@@ -15,8 +15,11 @@ import (
 func (suite *DelayedAckTestSuite) TestInvariants() {
 	suite.SetupTest()
 
-	keeper, rollappKeeper := suite.App.DelayedAckKeeper, suite.App.RollappKeeper
-	transferStack := damodule.NewIBCMiddleware(ibctransfer.NewIBCModule(suite.App.TransferKeeper), keeper, rollappKeeper)
+	transferStack := damodule.NewIBCMiddleware(
+		damodule.WithIBCModule(ibctransfer.NewIBCModule(suite.App.TransferKeeper)),
+		damodule.WithKeeper(suite.App.DelayedAckKeeper),
+		damodule.WithRollappKeeper(suite.App.RollappKeeper),
+	)
 
 	initialHeight := int64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialHeight)
@@ -42,7 +45,6 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	sequence := uint64(0)
 	for j := 0; j < numOfStates; j++ {
-
 		numOfBlocks := uint64(rand.Intn(10) + 1)
 		for rollapp, sequencer := range seqPerRollapp {
 
@@ -68,8 +70,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 	}
 
 	// progress finalization queue
-	err := suite.App.RollappKeeper.FinalizeRollappStates(suite.Ctx)
-	suite.Require().NoError(err)
+	suite.App.RollappKeeper.FinalizeRollappStates(suite.Ctx)
 
 	// test fraud
 	for rollapp := range seqPerRollapp {
