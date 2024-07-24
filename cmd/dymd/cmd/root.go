@@ -58,6 +58,7 @@ func (l MyLogger) Error(msg string, keyvals ...interface{}) {
 }
 
 func (l MyLogger) With(keyvals ...interface{}) log.Logger {
+	l.Logger.SugaredLogger = *l.Logger.SugaredLogger.With(keyvals...)
 	return l
 }
 
