@@ -7,6 +7,7 @@ WORKDIR /app
 COPY go.mod go.sum* ./
 
 RUN go mod download
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 COPY . .
 
@@ -21,6 +22,7 @@ FROM alpine:3.16.1
 RUN apk add --no-cache curl jq bash vim 
 
 COPY --from=go-builder /app/build/dymd /usr/local/bin/
+COPY --from=go-builder /go/bin/dlv /usr/local/bin/
 
 WORKDIR /app
 

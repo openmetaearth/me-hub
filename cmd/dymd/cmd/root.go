@@ -40,7 +40,26 @@ import (
 	"github.com/evmos/ethermint/crypto/hd"
 	ethermintserver "github.com/evmos/ethermint/server"
 	servercfg "github.com/evmos/ethermint/server/config"
+	ipfslog "github.com/ipfs/go-log/v2"
 )
+
+type MyLogger struct {
+	Logger *ipfslog.ZapEventLogger
+}
+
+func (l MyLogger) Debug(msg string, keyvals ...interface{}) {
+	l.Logger.Debugw(msg, keyvals...)
+}
+func (l MyLogger) Info(msg string, keyvals ...interface{}) {
+	l.Logger.Infow(msg, keyvals...)
+}
+func (l MyLogger) Error(msg string, keyvals ...interface{}) {
+	l.Logger.Errorw(msg, keyvals...)
+}
+
+func (l MyLogger) With(keyvals ...interface{}) log.Logger {
+	return l
+}
 
 // NewRootCmd creates a new root command for dymension hub
 func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
@@ -86,8 +105,16 @@ ______   __   __  __   __  _______  __    _  _______  ___   _______  __    _    
 
 			customAppTemplate, customAppConfig := initAppConfig()
 			customTMConfig := initTendermintConfig()
+			if err := server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig); err != nil {
+				return err
+			}
+			ctx := server.GetServerContextFromCmd(cmd)
+			logger := ipfslog.Logger("dymd")
+			ipfslog.SetAllLoggers(ipfslog.LevelInfo)
+			myLogger := MyLogger{Logger: ipfslog.WithStacktrace(ipfslog.WithSkip(logger, 1), ipfslog.LevelError)}
+			ctx.Logger = myLogger
 
-			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
+			return server.SetCmdServerContext(cmd, ctx)
 		},
 	}
 
