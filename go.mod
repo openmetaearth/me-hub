@@ -235,7 +235,7 @@ require (
 
 replace (
 	// use dymension forks
-	github.com/evmos/ethermint => ../ethermint
+	github.com/evmos/ethermint => ./ethermint
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1
 	github.com/osmosis-labs/osmosis/v15 => github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240627111157-f2243f47cdb3
