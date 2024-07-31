@@ -1,0 +1,3 @@
+[submodule "ethermint"]
+	path = ethermint
+	url = git@github.com:st-chain/ethermint.git

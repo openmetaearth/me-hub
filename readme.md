@@ -1,3 +1,10 @@
+# 初始化仓库，确保依赖正确
+``` sh
+git submodule init && git submodule update
+```
+
+
+# Dymension Offical Doc
 # Dymension Hub
 
 ![image](./docs/dymension.png)
