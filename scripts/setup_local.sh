@@ -1,5 +1,5 @@
 #!/bin/sh
-
+set -x
 # Common commands
 genesis_config_cmds="$(dirname "$0")/src/genesis_config_commands.sh"
 
@@ -11,13 +11,13 @@ else
 fi
 
 # Set parameters
-DATA_DIRECTORY="$HOME/.dymension"
+DATA_DIRECTORY="$HOME/.mechain"
 CONFIG_DIRECTORY="$DATA_DIRECTORY/config"
 TENDERMINT_CONFIG_FILE="$CONFIG_DIRECTORY/config.toml"
 CLIENT_CONFIG_FILE="$CONFIG_DIRECTORY/client.toml"
 APP_CONFIG_FILE="$CONFIG_DIRECTORY/app.toml"
 GENESIS_FILE="$CONFIG_DIRECTORY/genesis.json"
-CHAIN_ID=${CHAIN_ID:-"dymension_100-1"}
+CHAIN_ID=${CHAIN_ID:-"mechain_100-1"}
 MONIKER_NAME=${MONIKER_NAME:-"local"}
 KEY_NAME=${KEY_NAME:-"hub-user"}
 MNEMONIC="curtain hat remain song receive tower stereo hope frog cheap brown plate raccoon post reflect wool sail salmon game salon group glimpse adult shift"
@@ -31,21 +31,21 @@ API_ADDRESS=${API_ADDRESS:-"0.0.0.0:1318"}
 JSONRPC_ADDRESS=${JSONRPC_ADDRESS:-"0.0.0.0:9545"}
 JSONRPC_WS_ADDRESS=${JSONRPC_WS_ADDRESS:-"0.0.0.0:9546"}
 
-TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000adym"} #1M DYM (1e6dym = 1e6 * 1e18 = 1e24adym )
-STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000000000000000adym"} #67% is staked (inflation goal)
+TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000umec"} #1M DYM (1e6dym = 1e6 * 1e18 = 1e24adym )
+STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000000000000000umec"} #67% is staked (inflation goal)
 
-# Validate dymension binary exists
+# Validate mechain binary exists
 export PATH=$PATH:$HOME/go/bin
-if ! command -v dymd > /dev/null; then
+if ! command -v med > /dev/null; then
   make install
 
-  if ! command -v dymd; then
-    echo "dymension binary not found in $PATH"
+  if ! command -v med; then
+    echo "mechain binary not found in $PATH"
     exit 1
   fi
 fi
 
-# Verify that a genesis file doesn't exists for the dymension chain
+# Verify that a genesis file doesn't exists for the mechain chain
 if [ -f "$GENESIS_FILE" ]; then
   printf "\n======================================================================================================\n"
   echo "A genesis file already exists. building the chain will delete all previous chain data. continue? (y/n)"
@@ -58,7 +58,7 @@ if [ -f "$GENESIS_FILE" ]; then
 fi
 
 # Create and init dymension chain
-dymd init "$MONIKER_NAME" --chain-id="$CHAIN_ID"
+med init "$MONIKER_NAME" --chain-id="$CHAIN_ID"
 
 # ---------------------------------------------------------------------------- #
 #                              Set configurations                              #
@@ -97,22 +97,22 @@ fi
 echo "Initialize AMM accounts? (Y/n) "
 read -r answer
 if [ ! "$answer" != "${answer#[Nn]}" ] ;then
-  dymd keys add pools --keyring-backend test
-  dymd keys add user --keyring-backend test
+  med keys add pools --keyring-backend test
+  med keys add user --keyring-backend test
 
   # Add genesis accounts and provide coins to the accounts
-  dymd add-genesis-account $(dymd keys show pools --keyring-backend test -a) 1000000000000000000000000adym,10000000000uatom,500000000000uusd
+  med add-genesis-account $(med keys show pools --keyring-backend test -a) 1000000000000000000000000adym,10000000000uatom,500000000000uusd
   # Give some uatom to the local-user as well
-  dymd add-genesis-account $(dymd keys show user --keyring-backend test -a) 1000000000000000000000adym,10000000000uatom
+  med add-genesis-account $(med keys show user --keyring-backend test -a) 1000000000000000000000adym,10000000000uatom
 fi
 
-echo "$MNEMONIC" | dymd keys add "$KEY_NAME" --recover --keyring-backend test
-dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
+echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test
+med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
 
-dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
-dymd collect-gentxs
+med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
+med collect-gentxs
 
-set_authorised_deployer_account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)"
+set_authorised_deployer_account "$(med keys show "$KEY_NAME" -a --keyring-backend test)"
 
-dymd validate-genesis
-dymd start
+med validate-genesis
+med start
