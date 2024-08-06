@@ -6,11 +6,11 @@ import (
 	"cosmossdk.io/math"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/st-chain/me-hub/x/rollapp/transfergenesis"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/st-chain/me-hub/app/apptesting"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"

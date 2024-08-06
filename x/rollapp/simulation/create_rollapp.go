@@ -7,9 +7,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/dymensionxyz/dymension/v3/simulation"
-	simulationtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/st-chain/me-hub/simulation"
+	simulationtypes "github.com/st-chain/me-hub/simulation/types"
+	"github.com/st-chain/me-hub/x/rollapp/types"
 )
 
 func SimulateMsgCreateRollapp(ak simulationtypes.AccountKeeper, bk simulationtypes.BankKeeper) simtypes.Operation {

@@ -7,8 +7,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
-	"github.com/dymensionxyz/dymension/v3/app"
-	"github.com/dymensionxyz/dymension/v3/cmd/dymd/cmd"
+	"github.com/st-chain/me-hub/app"
+	"github.com/st-chain/me-hub/cmd/med/cmd"
 )
 
 func main() {

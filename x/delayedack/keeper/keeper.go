@@ -11,8 +11,8 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/st-chain/me-hub/x/delayedack/types"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 )
 
 type Keeper struct {

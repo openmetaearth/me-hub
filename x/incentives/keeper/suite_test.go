@@ -7,10 +7,10 @@ import (
 
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+	"github.com/st-chain/me-hub/x/incentives/types"
+	rollapp "github.com/st-chain/me-hub/x/rollapp/keeper"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

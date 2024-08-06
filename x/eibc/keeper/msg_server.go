@@ -8,8 +8,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
+	"github.com/st-chain/me-hub/x/eibc/types"
 )
 
 type msgServer struct {

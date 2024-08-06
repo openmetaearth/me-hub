@@ -5,8 +5,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/spf13/cobra"
+	"github.com/st-chain/me-hub/x/sequencer/types"
 )
 
 func CmdShowSequencersByRollapp() *cobra.Command {

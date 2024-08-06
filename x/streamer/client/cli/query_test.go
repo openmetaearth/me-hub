@@ -10,9 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+	"github.com/st-chain/me-hub/app/apptesting"
+	"github.com/st-chain/me-hub/x/streamer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

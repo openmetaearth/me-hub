@@ -11,7 +11,7 @@ import (
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	"github.com/st-chain/me-hub/testutil/sample"
 	"github.com/stretchr/testify/require"
 )
 

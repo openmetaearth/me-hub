@@ -13,7 +13,7 @@ import (
 	"io"
 	"net/http"
 
-	types_0 "github.com/dymensionxyz/dymension/v3/x/common/types"
+	types_0 "github.com/st-chain/me-hub/x/common/types"
 	"github.com/golang/protobuf/descriptor"
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"

@@ -29,12 +29,12 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
-	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
-	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
+	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
+	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
+	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
+	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
+	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 )
 
 // GenerateKeys generates new keys (KV Store, Transient store, and memory store).

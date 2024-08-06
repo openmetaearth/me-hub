@@ -6,7 +6,7 @@ import (
 	"cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	"github.com/st-chain/me-hub/x/streamer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

@@ -7,8 +7,8 @@ import (
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
+	"github.com/st-chain/me-hub/app/apptesting"
+	"github.com/st-chain/me-hub/x/incentives/keeper"
 )
 
 type KeeperTestSuite struct {

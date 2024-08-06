@@ -4,14 +4,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 	ethante "github.com/evmos/ethermint/app/ante"
 	txfeesante "github.com/osmosis-labs/osmosis/v15/x/txfees/ante"
+	"github.com/st-chain/me-hub/x/rollapp/transfergenesis"
 
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	delayedack "github.com/dymensionxyz/dymension/v3/x/delayedack"
+	delayedack "github.com/st-chain/me-hub/x/delayedack"
 )
 
 func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {

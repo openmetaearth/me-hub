@@ -2,7 +2,7 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	types "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	types "github.com/st-chain/me-hub/x/incentives/types"
 )
 
 // TestDistributeToRollappGauges tests distributing rewards to rollapp gauges.

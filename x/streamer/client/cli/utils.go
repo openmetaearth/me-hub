@@ -3,8 +3,8 @@ package cli
 import (
 	"fmt"
 
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	"github.com/st-chain/me-hub/x/streamer/types"
 )
 
 func parseRecords(gaugesRaw, weightsRaw string) ([]types.DistrRecord, error) {

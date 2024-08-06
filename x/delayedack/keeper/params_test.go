@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	testkeeper "github.com/st-chain/me-hub/testutil/keeper"
+	"github.com/st-chain/me-hub/x/delayedack/types"
 )
 
 func TestGetParams(t *testing.T) {

@@ -3,8 +3,8 @@ package v3
 import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
-	"github.com/dymensionxyz/dymension/v3/app/upgrades"
-	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	"github.com/st-chain/me-hub/app/upgrades"
+	eibctypes "github.com/st-chain/me-hub/x/eibc/types"
 )
 
 const (

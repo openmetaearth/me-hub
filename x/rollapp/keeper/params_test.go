@@ -3,9 +3,9 @@ package keeper_test
 import (
 	"testing"
 
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	testkeeper "github.com/st-chain/me-hub/testutil/keeper"
+	"github.com/st-chain/me-hub/testutil/sample"
+	"github.com/st-chain/me-hub/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 )
 

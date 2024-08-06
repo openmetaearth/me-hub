@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/st-chain/me-hub/app/apptesting"
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/stretchr/testify/suite"

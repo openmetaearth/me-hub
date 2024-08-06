@@ -8,7 +8,7 @@ import (
 	simulationtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	simcli "github.com/cosmos/cosmos-sdk/x/simulation/client/cli"
-	"github.com/dymensionxyz/dymension/v3/app"
+	"github.com/st-chain/me-hub/app"
 	"github.com/stretchr/testify/require"
 )
 

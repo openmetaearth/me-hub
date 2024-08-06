@@ -6,7 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	"github.com/st-chain/me-hub/x/incentives/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

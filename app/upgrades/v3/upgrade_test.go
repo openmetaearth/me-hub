@@ -10,11 +10,11 @@ import (
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/v3/app"
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/st-chain/me-hub/app"
+	"github.com/st-chain/me-hub/app/apptesting"
 )
 
 // UpgradeTestSuite defines the structure for the upgrade test suite

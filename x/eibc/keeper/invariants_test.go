@@ -4,10 +4,10 @@ import (
 	"strconv"
 
 	"cosmossdk.io/math"
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	"github.com/st-chain/me-hub/app/apptesting"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
+	eibckeeper "github.com/st-chain/me-hub/x/eibc/keeper"
+	"github.com/st-chain/me-hub/x/eibc/types"
 )
 
 func (suite *KeeperTestSuite) TestInvariants() {

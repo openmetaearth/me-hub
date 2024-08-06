@@ -3,9 +3,9 @@ package keeper_test
 import (
 	"github.com/cometbft/cometbft/libs/rand"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
+	"github.com/st-chain/me-hub/x/rollapp/keeper"
+	"github.com/st-chain/me-hub/x/rollapp/types"
 )
 
 func (suite *RollappTestSuite) TestInvariants() {

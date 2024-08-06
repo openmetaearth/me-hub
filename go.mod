@@ -1,4 +1,4 @@
-module github.com/dymensionxyz/dymension/v3
+module github.com/st-chain/me-hub
 
 go 1.22.4
 

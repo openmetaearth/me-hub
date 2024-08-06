@@ -4,7 +4,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	"github.com/dymensionxyz/dymension/v3/app/upgrades"
+	"github.com/st-chain/me-hub/app/upgrades"
 )
 
 const (

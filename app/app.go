@@ -17,10 +17,10 @@ import (
 	simappparams "cosmossdk.io/simapp/params"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
-	"github.com/dymensionxyz/dymension/v3/app/keepers"
-	"github.com/dymensionxyz/dymension/v3/app/upgrades"
-	v3 "github.com/dymensionxyz/dymension/v3/app/upgrades/v3"
-	v4 "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
+	"github.com/st-chain/me-hub/app/keepers"
+	"github.com/st-chain/me-hub/app/upgrades"
+	v3 "github.com/st-chain/me-hub/app/upgrades/v3"
+	v4 "github.com/st-chain/me-hub/app/upgrades/v4"
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -52,12 +52,12 @@ import (
 
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/dymensionxyz/dymension/v3/docs"
+	"github.com/st-chain/me-hub/docs"
 
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 
-	"github.com/dymensionxyz/dymension/v3/app/ante"
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
+	"github.com/st-chain/me-hub/app/ante"
+	appparams "github.com/st-chain/me-hub/app/params"
 
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/keeper"

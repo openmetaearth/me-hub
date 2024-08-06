@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	common "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	common "github.com/st-chain/me-hub/x/common/types"
+	"github.com/st-chain/me-hub/x/sequencer/types"
 )
 
 // Happy Flow

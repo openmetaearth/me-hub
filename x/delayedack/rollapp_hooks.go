@@ -3,7 +3,7 @@ package delayedack
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 )
 
 var _ rollapptypes.RollappHooks = &IBCMiddleware{}

@@ -3,9 +3,9 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	"github.com/st-chain/me-hub/app/apptesting"
+	"github.com/st-chain/me-hub/x/eibc/keeper"
+	"github.com/st-chain/me-hub/x/eibc/types"
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -15,7 +15,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/stretchr/testify/suite"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
 )
 
 const (

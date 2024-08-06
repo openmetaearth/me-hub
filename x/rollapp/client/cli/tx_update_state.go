@@ -7,9 +7,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
+	"github.com/st-chain/me-hub/x/rollapp/types"
 )
 
 var _ = strconv.Itoa(0)

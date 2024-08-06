@@ -5,8 +5,8 @@ import (
 
 	"github.com/cometbft/cometbft/libs/rand"
 
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/st-chain/me-hub/testutil/sample"
+	"github.com/st-chain/me-hub/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

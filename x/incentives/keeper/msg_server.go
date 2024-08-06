@@ -3,8 +3,8 @@ package keeper
 import (
 	"context"
 
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	"github.com/st-chain/me-hub/x/incentives/types"
 
 	errorsmod "cosmossdk.io/errors"
 

@@ -8,8 +8,8 @@ import (
 
 	query "github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+	"github.com/st-chain/me-hub/x/incentives/types"
 )
 
 var _ = suite.TestingSuite(nil)

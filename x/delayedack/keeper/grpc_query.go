@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	"github.com/st-chain/me-hub/x/delayedack/types"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

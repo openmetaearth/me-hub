@@ -9,7 +9,7 @@ import (
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
+	"github.com/st-chain/me-hub/x/denommetadata/types"
 )
 
 // Keeper of the denommetadata store

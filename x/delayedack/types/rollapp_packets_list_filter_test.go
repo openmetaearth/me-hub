@@ -6,8 +6,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
+	"github.com/st-chain/me-hub/x/delayedack/types"
 )
 
 func TestByRollappID(t *testing.T) {

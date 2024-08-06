@@ -8,10 +8,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/dymensionxyz/dymension/v3/app/params"
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
-	sequencersimulation "github.com/dymensionxyz/dymension/v3/x/sequencer/simulation"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/st-chain/me-hub/app/params"
+	"github.com/st-chain/me-hub/testutil/sample"
+	sequencersimulation "github.com/st-chain/me-hub/x/sequencer/simulation"
+	"github.com/st-chain/me-hub/x/sequencer/types"
 )
 
 // avoid unused import issue

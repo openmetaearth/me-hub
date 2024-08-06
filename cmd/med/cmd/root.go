@@ -32,9 +32,9 @@ import (
 
 	// this line is used by starport scaffolding # root/moduleImport
 
-	"github.com/dymensionxyz/dymension/v3/app"
-	"github.com/dymensionxyz/dymension/v3/app/keepers"
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
+	"github.com/st-chain/me-hub/app"
+	"github.com/st-chain/me-hub/app/keepers"
+	appparams "github.com/st-chain/me-hub/app/params"
 
 	ethermintclient "github.com/evmos/ethermint/client"
 	"github.com/evmos/ethermint/crypto/hd"
@@ -57,7 +57,7 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 		WithViper("")
 
 	rootCmd := &cobra.Command{
-		Use: "dymd",
+		Use: "med",
 		Short: `
 ______   __   __  __   __  _______  __    _  _______  ___   _______  __    _    __   __  __   __  _______
 |      | |  | |  ||  |_|  ||       ||  |  | ||       ||   | |       ||  |  | |  |  | |  ||  | |  ||  _    |

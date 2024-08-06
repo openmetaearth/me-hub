@@ -6,8 +6,8 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
+	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
 
 	errorsmod "cosmossdk.io/errors"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"

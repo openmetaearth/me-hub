@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/dymensionxyz/dymension/v3/app/keepers"
+	"github.com/st-chain/me-hub/app/keepers"
 )
 
 // The genesis state of the blockchain is represented here as a map of raw json

@@ -8,8 +8,8 @@ import (
 	chantypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
 
-	ctypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	ctypes "github.com/st-chain/me-hub/x/common/types"
+	"github.com/st-chain/me-hub/x/delayedack/types"
 )
 
 func TestGenesisState_Validate(t *testing.T) {

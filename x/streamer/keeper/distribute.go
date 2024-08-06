@@ -3,8 +3,8 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	"github.com/st-chain/me-hub/x/streamer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

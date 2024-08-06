@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/dymensionxyz/dymension/v3/app/keepers"
+	"github.com/st-chain/me-hub/app/keepers"
 )
 
 // BaseAppParamManager defines an interface that BaseApp is expected to fulfill

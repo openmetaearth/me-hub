@@ -10,9 +10,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	keepertest "github.com/st-chain/me-hub/testutil/keeper"
+	"github.com/st-chain/me-hub/testutil/nullify"
+	"github.com/st-chain/me-hub/x/sequencer/types"
 )
 
 func TestSequencerQuerySingle(t *testing.T) {

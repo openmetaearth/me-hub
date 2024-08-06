@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
 )
 
 var _ binary.ByteOrder

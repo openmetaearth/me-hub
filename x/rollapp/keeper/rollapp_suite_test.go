@@ -10,9 +10,9 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/st-chain/me-hub/app/apptesting"
+	"github.com/st-chain/me-hub/x/rollapp/keeper"
+	"github.com/st-chain/me-hub/x/rollapp/types"
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 )

@@ -1,14 +1,14 @@
 package keeper
 
 import (
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	"github.com/st-chain/me-hub/x/delayedack/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
+	eibctypes "github.com/st-chain/me-hub/x/eibc/types"
 )
 
 /* -------------------------------------------------------------------------- */

@@ -17,11 +17,11 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	// Ethermint modules
-	"github.com/dymensionxyz/dymension/v3/app/keepers"
-	"github.com/dymensionxyz/dymension/v3/app/upgrades"
-	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+	"github.com/st-chain/me-hub/app/keepers"
+	"github.com/st-chain/me-hub/app/upgrades"
+	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v4

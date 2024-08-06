@@ -2,8 +2,8 @@ package rollapp
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/st-chain/me-hub/x/rollapp/keeper"
+	"github.com/st-chain/me-hub/x/rollapp/types"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 

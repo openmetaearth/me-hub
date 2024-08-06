@@ -6,8 +6,8 @@ import (
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	seqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	seqtypes "github.com/st-chain/me-hub/x/sequencer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

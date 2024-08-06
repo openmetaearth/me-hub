@@ -10,7 +10,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/dymensionxyz/dymension/v3/x/wstaking/keeper"
+	"github.com/st-chain/me-hub/x/wstaking/keeper"
 )
 
 // AppModule implements an application module for the wrapped staking module.

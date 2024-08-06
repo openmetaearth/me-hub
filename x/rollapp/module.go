@@ -15,11 +15,11 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	simulationtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
+	simulationtypes "github.com/st-chain/me-hub/simulation/types"
 
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/client/cli"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/st-chain/me-hub/x/rollapp/client/cli"
+	"github.com/st-chain/me-hub/x/rollapp/keeper"
+	"github.com/st-chain/me-hub/x/rollapp/types"
 )
 
 var (

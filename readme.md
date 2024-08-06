@@ -56,7 +56,7 @@ make install
 Check that the dymd binaries have been successfully installed:
 
 ```sh
-dymd version
+med version
 ```
 
 If the dymd command is not found an error message is returned,
@@ -89,7 +89,7 @@ export PATH=$PATH:$(go env GOPATH)/bin
   Second, create genesis and init dymension chain:
 
   ```sh
-  dymd init "$MONIKER_NAME" --chain-id "$CHAIN_ID"
+  med init "$MONIKER_NAME" --chain-id "$CHAIN_ID"
   ```
 
   Third, set parameters to ensure denom is udym:
@@ -101,10 +101,10 @@ export PATH=$PATH:$(go env GOPATH)/bin
   Then, add genesis account and provide token to the account:
 
   ```sh
-  dymd keys add "$KEY_NAME" --keyring-backend test
-  dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" 1000dym
-  dymd gentx "$KEY_NAME" 670dym --chain-id "$CHAIN_ID" --keyring-backend test
-  dymd collect-gentxs
+  med keys add "$KEY_NAME" --keyring-backend test
+  med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" 1000dym
+  med gentx "$KEY_NAME" 670dym --chain-id "$CHAIN_ID" --keyring-backend test
+  med collect-gentxs
   ```
 
 ## Running the Chain
@@ -112,7 +112,7 @@ export PATH=$PATH:$(go env GOPATH)/bin
 Now start the chain!
 
 ```sh
-dymd start
+med start
 ```
 
 You should have a running local node!
@@ -138,7 +138,7 @@ sh scripts/incentives/fund_incentives.sh
 Wait for the gov proposal to pass, and validate with:
 
 ```sh
-dymd q streamer streams
+med q streamer streams
 ```
 
 ### Locking tokens
@@ -152,7 +152,7 @@ sh scripts/incentives/lockup_bootstrap.sh
 validate with:
 
 ```sh
-dymd q lockup module-balance
+med q lockup module-balance
 ```
 
 ### check rewards
@@ -162,10 +162,10 @@ Every minute a share of the rewards will be distributed!
 validate with:
 
 ```sh
-dymd q incentives active-gauges
+med q incentives active-gauges
 
 # alternatively, watch the outpup - you will see the "amount" change every minute
-#  watch -n1 -d "dymd q incentives active-gauges --output json | jq '.data[] | { "id": .id, "coins": .coins } '"
+#  watch -n1 -d "med q incentives active-gauges --output json | jq '.data[] | { "id": .id, "coins": .coins } '"
 ```
 
 ## Debugging Container

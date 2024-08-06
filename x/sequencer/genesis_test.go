@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	keepertest "github.com/st-chain/me-hub/testutil/keeper"
+	"github.com/st-chain/me-hub/testutil/nullify"
+	"github.com/st-chain/me-hub/x/sequencer"
+	"github.com/st-chain/me-hub/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 )
 

@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/st-chain/me-hub/x/sequencer/types"
 )
 
 // Unbond defines a method for removing coins from sequencer's bond

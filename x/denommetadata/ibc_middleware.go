@@ -15,8 +15,8 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
+	"github.com/st-chain/me-hub/x/denommetadata/types"
 )
 
 var _ porttypes.IBCModule = &IBCModule{}

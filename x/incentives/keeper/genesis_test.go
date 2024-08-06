@@ -10,10 +10,10 @@ import (
 
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+	"github.com/st-chain/me-hub/x/incentives/types"
 
-	apptesting "github.com/dymensionxyz/dymension/v3/app/apptesting"
+	apptesting "github.com/st-chain/me-hub/app/apptesting"
 )
 
 // TestIncentivesExportGenesis tests export genesis command for the incentives module.

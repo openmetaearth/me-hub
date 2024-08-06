@@ -7,7 +7,7 @@ import (
 	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
 	transferTypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/st-chain/me-hub/x/rollapp/types"
 )
 
 type GetRollapp func(ctx sdk.Context, rollappId string) (val types.Rollapp, found bool)

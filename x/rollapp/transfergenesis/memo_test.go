@@ -3,8 +3,8 @@ package transfergenesis
 import (
 	"testing"
 
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 
 	errorsmod "cosmossdk.io/errors"
 
