@@ -36,7 +36,6 @@ import (
 	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
@@ -91,6 +90,7 @@ import (
 	streamermodulekeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
+	wstakingkeeper "github.com/dymensionxyz/dymension/v3/x/wstaking/keeper"
 )
 
 type AppKeepers struct {
@@ -99,7 +99,7 @@ type AppKeepers struct {
 	AuthzKeeper                   authzkeeper.Keeper
 	BankKeeper                    bankkeeper.Keeper
 	CapabilityKeeper              *capabilitykeeper.Keeper
-	StakingKeeper                 *stakingkeeper.Keeper
+	StakingKeeper                 *wstakingkeeper.KeeperWrapper
 	SlashingKeeper                slashingkeeper.Keeper
 	MintKeeper                    mintkeeper.Keeper
 	DistrKeeper                   distrkeeper.Keeper
@@ -211,7 +211,14 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 	)
 
-	a.StakingKeeper = stakingkeeper.NewKeeper(
+	//a.StakingKeeper = stakingkeeper.NewKeeper(
+	//	appCodec,
+	//	a.keys[stakingtypes.StoreKey],
+	//	a.AccountKeeper,
+	//	a.BankKeeper,
+	//	govModuleAddress,
+	//)
+	a.StakingKeeper = wstakingkeeper.NewKeeper(
 		appCodec,
 		a.keys[stakingtypes.StoreKey],
 		a.AccountKeeper,
