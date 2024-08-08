@@ -33,6 +33,11 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) CreateValidator(goCtx context.Context, msg *types.MsgCreateValidator) (*types.MsgCreateValidatorResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.ValidatorAddress) {
+		// TODO: return error
+		return nil, nil
+	}
+
 	valAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
 		return nil, err

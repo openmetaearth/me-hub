@@ -13,7 +13,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
@@ -68,6 +67,8 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
+	daotypes "github.com/st-chain/me-hub/x/dao/types"
 
 	"github.com/st-chain/me-hub/x/bridgingfee"
 	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
@@ -140,6 +141,7 @@ type AppKeepers struct {
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
+	DaoKeeper           daokeeper.Keeper
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -211,6 +213,11 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 	)
 
+	a.DaoKeeper = daokeeper.NewKeeper(
+		appCodec,
+		a.keys[daotypes.StoreKey],
+	)
+
 	//a.StakingKeeper = stakingkeeper.NewKeeper(
 	//	appCodec,
 	//	a.keys[stakingtypes.StoreKey],
@@ -223,6 +230,7 @@ func (a *AppKeepers) InitKeepers(
 		a.keys[stakingtypes.StoreKey],
 		a.AccountKeeper,
 		a.BankKeeper,
+		a.DaoKeeper,
 		govModuleAddress,
 	)
 

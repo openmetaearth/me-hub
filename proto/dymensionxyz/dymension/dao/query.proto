@@ -1,0 +1,21 @@
+syntax = "proto3";
+package dymensionxyz.dymension.dao;;
+import "google/api/annotations.proto";
+// this line is used by starport scaffolding # 1
+
+option go_package = "github.com/st-chain/me-hub/x/dao/types";
+
+// Query defines the gRPC querier service.
+service Query {
+    // Queries a list of admin items.
+	rpc GlobalDao(QueryGlobalDaoRequest) returns (QueryGlobalDaoResponse) {
+		option (google.api.http).get = "/st-chain/me-hub/x/dao/global_dao";
+	}
+}
+
+message QueryGlobalDaoRequest {
+}
+
+message QueryGlobalDaoResponse {
+  string address = 1;
+}

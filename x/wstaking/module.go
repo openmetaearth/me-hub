@@ -30,6 +30,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/x/wstaking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/simulation"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 )
 
 const (
@@ -206,6 +207,7 @@ type StakingInputs struct {
 	Config        *modulev1.Module
 	AccountKeeper types.AccountKeeper
 	BankKeeper    types.BankKeeper
+	DaoKeeper     wstakingtypes.DaoKeeper
 	Cdc           codec.Codec
 	Key           *store.KVStoreKey
 
@@ -233,6 +235,7 @@ func ProvideModule(in StakingInputs) StakingOutputs {
 		in.Key,
 		in.AccountKeeper,
 		in.BankKeeper,
+		in.DaoKeeper,
 		authority.String(),
 	)
 	m := NewAppModule(in.Cdc, k, in.AccountKeeper, in.BankKeeper, in.LegacySubspace)
