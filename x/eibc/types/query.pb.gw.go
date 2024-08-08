@@ -13,11 +13,11 @@ import (
 	"io"
 	"net/http"
 
-	types_0 "github.com/st-chain/me-hub/x/common/types"
 	"github.com/golang/protobuf/descriptor"
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/utilities"
+	types_0 "github.com/st-chain/me-hub/x/common/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"

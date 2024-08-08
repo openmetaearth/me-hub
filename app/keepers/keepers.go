@@ -99,7 +99,7 @@ type AppKeepers struct {
 	AuthzKeeper                   authzkeeper.Keeper
 	BankKeeper                    bankkeeper.Keeper
 	CapabilityKeeper              *capabilitykeeper.Keeper
-	StakingKeeper                 *wstakingkeeper.KeeperWrapper
+	StakingKeeper                 *wstakingkeeper.Keeper
 	SlashingKeeper                slashingkeeper.Keeper
 	MintKeeper                    mintkeeper.Keeper
 	DistrKeeper                   distrkeeper.Keeper

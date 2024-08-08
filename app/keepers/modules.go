@@ -37,7 +37,6 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
@@ -67,6 +66,7 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	"github.com/st-chain/me-hub/x/wstaking"
 
 	appparams "github.com/st-chain/me-hub/app/params"
@@ -94,7 +94,6 @@ import (
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
 	"github.com/st-chain/me-hub/x/streamer"
 	streamermoduleclient "github.com/st-chain/me-hub/x/streamer/client"
-	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 )
 
 // ModuleBasics defines the module BasicManager is in charge of setting up basic,
@@ -107,7 +106,8 @@ var ModuleBasics = module.NewBasicManager(
 	bank.AppModuleBasic{},
 	capability.AppModuleBasic{},
 	consensus.AppModuleBasic{},
-	staking.AppModuleBasic{},
+	//staking.AppModuleBasic{},
+	wstaking.AppModuleBasic{},
 	mint.AppModuleBasic{},
 	distribution.AppModuleBasic{},
 	gov.NewAppModuleBasic([]client.ProposalHandler{

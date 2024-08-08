@@ -31,7 +31,7 @@ API_ADDRESS=${API_ADDRESS:-"0.0.0.0:1318"}
 JSONRPC_ADDRESS=${JSONRPC_ADDRESS:-"0.0.0.0:9545"}
 JSONRPC_WS_ADDRESS=${JSONRPC_WS_ADDRESS:-"0.0.0.0:9546"}
 
-TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000umec"} #1M DYM (1e6dym = 1e6 * 1e18 = 1e24adym )
+TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000umec"} #1M MEC (1e6mec = 1e6 * 1e18 = 1e24umec )
 STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000000000000000umec"} #67% is staked (inflation goal)
 
 # Validate mechain binary exists
@@ -73,7 +73,7 @@ sed -i'' -e "/\[json-rpc\]/,+9 s/^ws-address *= .*/ws-address = \"$JSONRPC_WS_AD
 sed -i'' -e '/\[api\]/,+3 s/enable *= .*/enable = true/' "$APP_CONFIG_FILE"
 sed -i'' -e "/\[api\]/,+9 s/address *= .*/address = \"tcp:\/\/$API_ADDRESS\"/" "$APP_CONFIG_FILE"
 
-sed -i'' -e 's/^minimum-gas-prices *= .*/minimum-gas-prices = "100000000adym"/' "$APP_CONFIG_FILE"
+sed -i'' -e 's/^minimum-gas-prices *= .*/minimum-gas-prices = "1000umec"/' "$APP_CONFIG_FILE"
 
 sed -i'' -e "s/^chain-id *= .*/chain-id = \"$CHAIN_ID\"/" "$CLIENT_CONFIG_FILE"
 sed -i'' -e "s/^keyring-backend *= .*/keyring-backend = \"test\"/" "$CLIENT_CONFIG_FILE"
@@ -101,9 +101,9 @@ if [ ! "$answer" != "${answer#[Nn]}" ] ;then
   med keys add user --keyring-backend test
 
   # Add genesis accounts and provide coins to the accounts
-  med add-genesis-account $(med keys show pools --keyring-backend test -a) 1000000000000000000000000adym,10000000000uatom,500000000000uusd
+  med add-genesis-account $(med keys show pools --keyring-backend test -a) 1000000000000000000000000umec,10000000000uatom,500000000000uusd
   # Give some uatom to the local-user as well
-  med add-genesis-account $(med keys show user --keyring-backend test -a) 1000000000000000000000adym,10000000000uatom
+  med add-genesis-account $(med keys show user --keyring-backend test -a) 1000000000000000000000umec,10000000000uatom
 fi
 
 echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test
