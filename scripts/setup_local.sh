@@ -109,6 +109,10 @@ fi
 echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test
 med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
 
+jq '.app_state["dao"]["global_dao"] = "mec139mq752delxv78jvtmwxhasyrycufsvr5fhrh9"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["meid_dao"] = "mec139mq752delxv78jvtmwxhasyrycufsvr5fhrh9"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["dev_operator"] = "mec139mq752delxv78jvtmwxhasyrycufsvr5fhrh9"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+
 med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
 med collect-gentxs
 

@@ -66,3 +66,8 @@ func (k Keeper) IsGlobalDao(ctx sdk.Context, address string) bool {
 	admin := k.GetGlobalDao(ctx)
 	return admin.String() == address
 }
+
+func (k Keeper) IsMeidDao(ctx sdk.Context, address string) bool {
+	admin := k.GetGlobalDao(ctx)
+	return admin.String() == address
+}

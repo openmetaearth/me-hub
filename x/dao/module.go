@@ -15,8 +15,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	simulationtypes "github.com/st-chain/me-hub/simulation/types"
-
 	"github.com/st-chain/me-hub/x/dao/client/cli"
 	"github.com/st-chain/me-hub/x/dao/keeper"
 	"github.com/st-chain/me-hub/x/dao/types"
@@ -100,22 +98,16 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper        *keeper.Keeper
-	accountKeeper simulationtypes.AccountKeeper
-	bankKeeper    simulationtypes.BankKeeper
+	keeper *keeper.Keeper
 }
 
 func NewAppModule(
 	cdc codec.Codec,
-	keeper *keeper.Keeper,
-	accountKeeper simulationtypes.AccountKeeper,
-	bankKeeper simulationtypes.BankKeeper,
+	keeper keeper.Keeper,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
-		keeper:         keeper,
-		accountKeeper:  accountKeeper,
-		bankKeeper:     bankKeeper,
+		keeper:         &keeper,
 	}
 }
 

@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 	"log"
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -11,7 +12,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/st-chain/me-hub/x/wstaking"
 )
 
 // ExportAppStateAndValidators exports the state of the application for a genesis
@@ -36,7 +36,7 @@ func (app *App) ExportAppStateAndValidators(
 		return servertypes.ExportedApp{}, err
 	}
 
-	validators, err := wstaking.WriteValidators(ctx, app.StakingKeeper)
+	validators, err := staking.WriteValidators(ctx, app.StakingKeeper.Keeper)
 	if err != nil {
 		return servertypes.ExportedApp{}, err
 	}

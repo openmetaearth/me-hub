@@ -38,9 +38,9 @@ func CmdAdmin() *cobra.Command {
 			}
 
 			queryClient := types.NewQueryClient(clientCtx)
-			params := &types.QueryAdminRequest{}
+			params := &types.QueryGlobalDaoRequest{}
 
-			res, err := queryClient.Admin(cmd.Context(), params)
+			res, err := queryClient.GlobalDao(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

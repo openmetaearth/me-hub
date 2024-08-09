@@ -8,7 +8,7 @@ option go_package = "github.com/st-chain/me-hub/x/dao/types";
 
 // GenesisState defines the sudo module's genesis state.
 message GenesisState {
-    string GlobalDao = 1 [(gogoproto.moretags) = "yaml:\"global_dao\""];
-    string MeidDao = 2 [(gogoproto.moretags) = "yaml:\"meid_dao\""];
-    string DevOperator = 3 [(gogoproto.moretags) = "yaml:\"dev_operator\""];
+    string global_dao = 1 [(gogoproto.moretags) = "yaml:\"global_dao\""];
+    string meid_dao = 2 [(gogoproto.moretags) = "yaml:\"meid_dao\""];
+    string dev_operator = 3 [(gogoproto.moretags) = "yaml:\"dev_operator\""];
 }
