@@ -66,6 +66,8 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+	"github.com/st-chain/me-hub/x/dao"
+	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	"github.com/st-chain/me-hub/x/wstaking"
 
@@ -154,6 +156,7 @@ var ModuleBasics = module.NewBasicManager(
 	poolmanager.AppModuleBasic{},
 	incentives.AppModuleBasic{},
 	txfees.AppModuleBasic{},
+	dao.AppModuleBasic{},
 )
 
 func (a *AppKeepers) SetupModules(
@@ -204,6 +207,7 @@ func (a *AppKeepers) SetupModules(
 		poolmanager.NewAppModule(*a.PoolManagerKeeper, a.GAMMKeeper),
 		incentives.NewAppModule(*a.IncentivesKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
 		txfees.NewAppModule(*a.TxFeesKeeper),
+		dao.NewAppModule(appCodec, a.DaoKeeper),
 	}
 }
 
@@ -275,6 +279,7 @@ var BeginBlockers = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
+	daotypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -312,6 +317,7 @@ var EndBlockers = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
+	daotypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -320,6 +326,7 @@ var InitGenesis = []string{
 	authz.ModuleName,
 	banktypes.ModuleName,
 	distrtypes.ModuleName,
+	daotypes.ModuleName,
 	stakingtypes.ModuleName,
 	vestingtypes.ModuleName,
 	slashingtypes.ModuleName,

@@ -48,7 +48,7 @@ func CmdUpdateAdmin() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgUpdateAdmin(
+			msg := types.NewMsgUpdateGlobalDao(
 				clientCtx.GetFromAddress(),
 				argAddress,
 			)
