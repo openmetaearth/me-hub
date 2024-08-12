@@ -11,7 +11,11 @@ import (
 
 type Keeper struct {
 	*stakingkeeper.Keeper
-	DaoKeeper types.DaoKeeper
+	cdc        codec.BinaryCodec
+	storeKey   storetypes.StoreKey
+	AuthKeeper banktypes.AccountKeeper
+	BankKeeper stakingtypes.BankKeeper
+	DaoKeeper  types.DaoKeeper
 }
 
 func NewKeeper(
@@ -23,7 +27,11 @@ func NewKeeper(
 	authority string,
 ) *Keeper {
 	return &Keeper{
-		Keeper:    stakingkeeper.NewKeeper(cdc, storeKey, ak, bk, authority),
-		DaoKeeper: dk,
+		Keeper:     stakingkeeper.NewKeeper(cdc, storeKey, ak, bk, authority),
+		cdc:        cdc,
+		storeKey:   storeKey,
+		AuthKeeper: ak,
+		BankKeeper: bk,
+		DaoKeeper:  dk,
 	}
 }

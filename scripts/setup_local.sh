@@ -113,7 +113,7 @@ jq '.app_state["dao"]["global_dao"] = "mec139mq752delxv78jvtmwxhasyrycufsvr5fhrh
 jq '.app_state["dao"]["meid_dao"] = "mec139mq752delxv78jvtmwxhasyrycufsvr5fhrh9"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 jq '.app_state["dao"]["dev_operator"] = "mec139mq752delxv78jvtmwxhasyrycufsvr5fhrh9"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 
-med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
+med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test --region-id me_earth
 med collect-gentxs
 
 set_authorised_deployer_account "$(med keys show "$KEY_NAME" -a --keyring-backend test)"
