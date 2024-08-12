@@ -1,0 +1,212 @@
+syntax = "proto3";
+package dymensionxyz.dymension.wstaking;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+import "gogoproto/gogo.proto";
+
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/staking/v1beta1/staking.proto";
+import "cosmos/msg/v1/msg.proto";
+import "amino/amino.proto";
+import "dymensionxyz/dymension/wstaking/region.proto";
+import "dymensionxyz/dymension/wstaking/fixed_deposit.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
+
+// Msg defines the staking Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+//  rpc CurrentDeposit(MsgCurrentDeposit) returns (MsgCurrentDepositResponse);
+//  rpc CurrentWithdraw(MsgCurrentWithdraw) returns (MsgCurrentWithdrawResponse);
+//  rpc FixedDeposit(MsgFixedDeposit) returns (MsgFixedDepositResponse);
+//  rpc FixedWithdraw(MsgFixedWithdraw) returns (MsgFixedWithdrawResponse);
+//  rpc NewFixedDepositCfg(MsgFixedDepositCfg) returns (MsgFixedDepositCfgResp);
+//  rpc RemoveFixedDepositCfg(MsgRemoveFixedDepositCfg) returns (MsgRemoveFixedDepositCfgResp);
+//  rpc SetFixedDepositCfgStatus(MsgSetFixedDepositCfgStatus) returns (MsgSetFixedDepositCfgStatusResp);
+//  rpc SetFixedDepositCfgRate(MsgSetFixedDepositCfgRate) returns (MsgSetFixedDepositCfgRateResp);
+  rpc NewRegion(MsgNewRegion) returns (MsgNewRegionResponse);
+  rpc RemoveRegion(MsgRemoveRegion) returns (MsgRemoveRegionResponse);
+//  rpc RetrieveCoinsFromRegion(MsgRetrieveCoinsFromRegion) returns (MsgRetrieveCoinsFromRegionResp);
+//  rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
+//  rpc RetrieveFeeFromGlobalAdminFeePool(MsgRetrieveFeeFromGlobalAdminFeePool) returns (MsgRetrieveFeeFromGlobalAdminFeePoolResp);
+}
+
+message MsgCurrentDeposit {
+  string account   = 1;
+  cosmos.base.v1beta1.Coin principal = 2 [(gogoproto.nullable) = false];
+}
+
+message MsgCurrentDepositResponse {
+  uint64 id = 1;
+}
+
+message MsgCurrentWithdraw {
+  string account   = 1;
+  cosmos.base.v1beta1.Coin principal = 2 [(gogoproto.nullable) = false];
+}
+
+message MsgCurrentWithdrawResponse {
+}
+
+message MsgFixedDeposit {
+  string account   = 1;
+  cosmos.base.v1beta1.Coin principal = 2 [(gogoproto.nullable) = false];
+  int64 term      = 3;
+}
+
+message MsgFixedDepositResponse {
+  uint64 id = 1;
+}
+
+message MsgFixedWithdraw {
+  string account = 1;
+  uint64 id      = 2;
+}
+
+message MsgFixedWithdrawResponse {
+  cosmos.base.v1beta1.Coin principal = 1 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin interest  = 2 [(gogoproto.nullable) = false];
+  int64         term      = 3;
+  string rate = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}
+
+message MsgFixedDepositCfg {
+  string    admin = 1;
+  string    regionId = 2;
+  int64    term    = 3;
+  string    rate = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}
+message MsgFixedDepositCfgResp {
+  string retcode = 1;
+}
+
+message MsgRemoveFixedDepositCfg {
+  string    admin = 1;
+  string    regionId = 2;
+  int64    term    = 3;
+}
+message MsgRemoveFixedDepositCfgResp {
+  string retcode = 1;
+}
+
+message MsgSetFixedDepositCfgStatus {
+  string    admin = 1;
+  string    regionId = 2;
+  int64    term    = 3;
+  FIXED_DEPOSIT_CFG_STATUS status = 4;
+}
+message MsgSetFixedDepositCfgStatusResp {
+  string retcode = 1;
+}
+
+message MsgSetFixedDepositCfgRate {
+  string    admin = 1;
+  string    regionId = 2;
+  int64     term    = 3;
+  string    rate = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}
+message MsgSetFixedDepositCfgRateResp {
+  string retcode = 1;
+}
+
+message MsgNewRegion {
+  string creator          = 1;
+  string region_id        = 2;
+  string name             = 3;
+  string operator_address = 4;
+}
+
+message MsgNewRegionResponse {
+  string region_id = 1;
+}
+
+message MsgRemoveRegion {
+  string creator  = 1;
+  string region_id = 2;
+}
+
+message MsgRemoveRegionResponse {
+  string retcode = 1;
+}
+
+message MsgRetrieveCoinsFromRegion {
+  string admin = 1;
+  string region_id = 2;
+  string receiver = 3;
+  repeated cosmos.base.v1beta1.Coin amount = 4 [
+    (gogoproto.nullable)     = false,
+    (amino.dont_omitempty)   = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message MsgRetrieveCoinsFromRegionResp {
+  string retcode = 1;
+}
+
+message MsgNewMeid {
+  string creator    = 1;
+  string account    = 2;
+  string invite_addr = 3;
+  string region_id   = 4;
+}
+
+message MsgNewMeidResponse {
+  string retcode = 1;
+}
+
+message MsgRemoveMeid {
+  string creator = 1;
+  string account = 2;
+}
+
+message MsgRemoveMeidResponse {
+  string retcode = 1;
+}
+
+message MsgNewMeidNFT {
+  string creator  = 1;
+  string account  = 2;
+  string region_id = 3;
+  string umeid     = 4;
+  string meta     = 5;
+  string uri      = 6;
+  string urihash  = 7;
+}
+
+message MsgNewMeidNFTResponse {
+  string retcode = 1;
+}
+
+message MsgRemoveMeidNFT {
+  string creator = 1;
+  string account = 2;
+  string umeid    = 3;
+}
+
+message MsgRemoveMeidNFTResponse {
+  string retcode = 1;
+}
+
+message MsgTransferRegion {
+  string fromRegion = 1;
+  string toRegion = 2;
+  repeated string address = 3;
+  string creator = 4;
+}
+message MsgTransferRegionResponse {}
+
+message MsgRetrieveFeeFromGlobalAdminFeePool {
+  string admin = 1;
+  repeated cosmos.base.v1beta1.Coin amount = 2 [
+    (gogoproto.nullable)     = false,
+    (amino.dont_omitempty)   = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message MsgRetrieveFeeFromGlobalAdminFeePoolResp {
+  string retcode = 1;
+}

@@ -11,12 +11,10 @@ import (
 	"github.com/st-chain/me-hub/x/dao/types"
 )
 
-type (
-	Keeper struct {
-		cdc      codec.BinaryCodec
-		storeKey storetypes.StoreKey
-	}
-)
+type Keeper struct {
+	cdc      codec.BinaryCodec
+	storeKey storetypes.StoreKey
+}
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
