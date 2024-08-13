@@ -9,7 +9,7 @@ import (
 )
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgUpdateGlobalDao{}, "dao/UpdateAdmin", nil)
+	cdc.RegisterConcrete(&MsgUpdateGlobalDao{}, "dao/MsgUpdateGlobalDao", nil)
 	// this line is used by starport scaffolding # 2
 }
 

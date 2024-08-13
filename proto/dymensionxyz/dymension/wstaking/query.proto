@@ -1,0 +1,41 @@
+syntax = "proto3";
+package dymensionxyz.dymension.wstaking;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "dymensionxyz/dymension/wstaking/region.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/query/v1/query.proto";
+import "amino/amino.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
+
+service Query {
+  // Queries a list of Region items.
+  rpc Region(QueryRegionRequest) returns (QueryRegionResponse) {
+    option (google.api.http).get = "/cosmos/staking/v1beta1/region/{regionId}";
+  }
+
+  rpc AllRegion(QueryAllRegionRequest) returns (QueryAllRegionResponse) {
+    option (google.api.http).get = "/cosmos/staking/v1beta1/all-region";
+  }
+}
+
+message QueryRegionRequest {
+  string regionId = 1;
+}
+
+message QueryRegionResponse {
+  Region region = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllRegionRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllRegionResponse {
+  repeated Region                        region     = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}

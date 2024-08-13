@@ -43,7 +43,7 @@ var (
 	ErrSendCoinToDevOperator = sdkerrors.Register(ModuleName, 1145, "send coins to region vault error")
 	ErrSendCoinToGlobalAdmin = sdkerrors.Register(ModuleName, 1146, "send coins to region vault error")
 	ErrGetGlobalAdmin        = sdkerrors.Register(ModuleName, 1147, "get global admin error")
-	ErrCheckGlobalAdmin      = sdkerrors.Register(ModuleName, 1148, "check global admin error")
+	ErrCheckGlobalDao        = sdkerrors.Register(ModuleName, 1148, "invalid global dao")
 
 	ErrMeidNew               = sdkerrors.Register(ModuleName, 1150, "new meid error")
 	ErrMeidRemove            = sdkerrors.Register(ModuleName, 1151, "remove meid error")
@@ -70,7 +70,7 @@ var (
 	ErrAmountLessThanMin               = sdkerrors.Register(ModuleName, 1172, "amount is less than 0.01ME")
 	ErrRegionValidatorDuplicate        = sdkerrors.Register(ModuleName, 1173, "input validator duplicates with already bonded validators")
 	ErrRegionNameDuplicate             = sdkerrors.Register(ModuleName, 1174, "input region name duplicates with the name of existing region")
-	ErrRegionName                      = sdkerrors.Register(ModuleName, 1175, "region name parameter error")
+	ErrRegionName                      = sdkerrors.Register(ModuleName, 1175, "invalid region name")
 	ErrExpRegionNotExist               = sdkerrors.Register(ModuleName, 1176, "experience region not exist")
 
 	ErrMeidNFTNew       = sdkerrors.Register(ModuleName, 1180, "new meid-nft error")
