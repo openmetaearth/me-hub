@@ -1,4 +1,4 @@
-package types
+package utils
 
 import (
 	"errors"
@@ -16,9 +16,7 @@ func init() {
 		regionNameMap[name[0]] = name[1]
 	}
 }
-func GetRegion() map[string]string {
-	return regionNameMap
-}
+
 func CheckRegionName(name string) (string, error) {
 	err := "input region name=" + name +
 		" is not find.It does not comply with the rules." +

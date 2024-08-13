@@ -234,6 +234,7 @@ require (
 )
 
 replace (
+	github.com/cosmos/cosmos-sdk => github.com/st-chain/cosmos-sdk v0.47.14-0.20240809082515-97bc329aa78a
 	// use dymension forks
 	github.com/evmos/ethermint => ./ethermint
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
@@ -247,4 +248,5 @@ replace (
 	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.29
 
 	golang.org/x/exp => golang.org/x/exp v0.0.0-20230711153332-06a737ee72cb
+
 )
