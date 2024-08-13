@@ -2,9 +2,12 @@ package cli
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
+	"github.com/st-chain/me-hub/x/wstaking/types"
 	"os"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -12,7 +15,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 // default values
@@ -23,12 +26,14 @@ var (
 	defaultCommissionMaxRate       = "0.2"
 	defaultCommissionMaxChangeRate = "0.01"
 	defaultMinSelfDelegation       = "1"
+
+	ValidatorAddress = "validator-addr"
 )
 
 // NewTxCmd returns a root CLI command handler for all x/staking transaction commands.
 func NewTxCmd() *cobra.Command {
 	stakingTxCmd := &cobra.Command{
-		Use:                        types.ModuleName,
+		Use:                        stakingtypes.ModuleName,
 		Short:                      "Staking transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -39,6 +44,7 @@ func NewTxCmd() *cobra.Command {
 		NewCreateValidatorCmd(),
 		CmdNewRegion(),
 		CmdRemoveRegion(),
+		NewDelegateCmd(),
 	)
 
 	return stakingTxCmd
@@ -87,7 +93,7 @@ func NewCreateValidatorCmd() *cobra.Command {
 	return cmd
 }
 
-func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgCreateValidator, error) {
+func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *stakingtypes.MsgCreateValidator, error) {
 	fAmount, _ := fs.GetString(FlagAmount)
 	amount, err := sdk.ParseCoinNormalized(fAmount)
 	if err != nil {
@@ -110,7 +116,7 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 	website, _ := fs.GetString(FlagWebsite)
 	security, _ := fs.GetString(FlagSecurityContact)
 	details, _ := fs.GetString(FlagDetails)
-	description := types.NewDescription(
+	description := stakingtypes.NewDescription(
 		moniker,
 		identity,
 		website,
@@ -138,7 +144,7 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		return txf, nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
 	}
 
-	msg, err := types.NewMsgCreateValidator(
+	msg, err := stakingtypes.NewMsgCreateValidator(
 		sdk.ValAddress(valAddr), pk, amount, description, commissionRates, minSelfDelegation,
 	)
 	if err != nil {
@@ -191,6 +197,56 @@ func CreateValidatorMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaultsDesc
 		defaultMinSelfDelegation)
 
 	return fsCreateValidator, defaultsDesc
+}
+
+// NewDelegateCmd returns a CLI command handler for creating a MsgDelegate transaction.
+func NewDelegateCmd() *cobra.Command {
+	//bech32PrefixValAddr := sdk.GetConfig().GetBech32ValidatorAddrPrefix()
+
+	cmd := &cobra.Command{
+		Use:   "delegate [amount] ",
+		Args:  cobra.ExactArgs(1),
+		Short: "Delegate liquid tokens to a validator",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Delegate an amount of liquid coins to a validator from your wallet.
+
+Example:
+$ %s tx staking delegate 1000mec --from mykey
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			amount, err := sdk.ParseCoinNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			err = types.CheckMinDelegate(amount.Amount)
+			if err != nil {
+				return err
+			}
+			delAddr := clientCtx.GetFromAddress()
+
+			msg := types.NewMsgDelegate(delAddr, sdk.ValAddress{}, amount, "")
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	cmd.Flags().AddFlagSet(FlagSetValidatorAddress())
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func FlagSetValidatorAddress() *flag.FlagSet {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+	fs.String(ValidatorAddress, "", "delegate to a validator (If it is empty, means delegate to exchequer)")
+	return fs
 }
 
 type TxCreateValidatorConfig struct {
@@ -329,7 +385,7 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 	}
 
 	valAddr := clientCtx.GetFromAddress()
-	description := types.NewDescription(
+	description := stakingtypes.NewDescription(
 		config.Moniker,
 		config.Identity,
 		config.Website,
@@ -355,7 +411,7 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 		return txBldr, nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
 	}
 
-	msg, err := types.NewMsgCreateValidator(
+	msg, err := stakingtypes.NewMsgCreateValidator(
 		sdk.ValAddress(valAddr),
 		config.PubKey,
 		amount,

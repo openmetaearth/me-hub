@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 const TypeMsgNewRegion = "new-region"
@@ -181,4 +182,19 @@ func (msg *MsgRetrieveFeeFromGlobalAdminFeePool) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
+}
+
+// NewMsgDelegate creates a new MsgDelegate instance.
+//
+//nolint:interfacer
+func NewMsgDelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin, valStr string) *types.MsgDelegate {
+	valAddrStr := valAddr.String()
+	if valStr == NotBondedPoolName && valAddr.Empty() {
+		valAddrStr = valStr
+	}
+	return &types.MsgDelegate{
+		DelegatorAddress: delAddr.String(),
+		ValidatorAddress: valAddrStr,
+		Amount:           amount,
+	}
 }
