@@ -75,14 +75,22 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.NewTxCmd()
 }
 
+// GetQueryCmd returns no root query command for the staking module.
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
+}
+
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	stakingKeeperMsgSrv := stakingkeeper.NewMsgServerImpl(am.keeper.Keeper)
 	// wrap the staking keeper message server to intersect the messages
 	stakingtypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper, stakingKeeperMsgSrv))
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper, stakingKeeperMsgSrv))
+
 	querier := stakingkeeper.Querier{Keeper: am.keeper.Keeper}
 	stakingtypes.RegisterQueryServer(cfg.QueryServer(), querier)
+	nativeQquerier := keeper.Querier{Keeper: am.keeper}
+	types.RegisterQueryServer(cfg.QueryServer(), nativeQquerier)
 
 	m := stakingkeeper.NewMigrator(am.keeper.Keeper, am.legacySubspace)
 	if err := cfg.RegisterMigration(stakingtypes.ModuleName, 1, m.Migrate1to2); err != nil {

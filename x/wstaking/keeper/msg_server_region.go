@@ -9,92 +9,36 @@ import (
 	"strings"
 )
 
-func (k MsgServer) CurrentDeposit(ctx context.Context, deposit *types.MsgCurrentDeposit) (*types.MsgCurrentDepositResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (k MsgServer) CurrentWithdraw(ctx context.Context, withdraw *types.MsgCurrentWithdraw) (*types.MsgCurrentWithdrawResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (k MsgServer) FixedDeposit(ctx context.Context, deposit *types.MsgFixedDeposit) (*types.MsgFixedDepositResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (k MsgServer) FixedWithdraw(ctx context.Context, withdraw *types.MsgFixedWithdraw) (*types.MsgFixedWithdrawResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (k MsgServer) NewFixedDepositCfg(ctx context.Context, cfg *types.MsgFixedDepositCfg) (*types.MsgFixedDepositCfgResp, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (k MsgServer) RemoveFixedDepositCfg(ctx context.Context, cfg *types.MsgRemoveFixedDepositCfg) (*types.MsgRemoveFixedDepositCfgResp, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (k MsgServer) SetFixedDepositCfgStatus(ctx context.Context, status *types.MsgSetFixedDepositCfgStatus) (*types.MsgSetFixedDepositCfgStatusResp, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (k MsgServer) SetFixedDepositCfgRate(ctx context.Context, rate *types.MsgSetFixedDepositCfgRate) (*types.MsgSetFixedDepositCfgRateResp, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (k MsgServer) RemoveRegion(ctx context.Context, region *types.MsgRemoveRegion) (*types.MsgRemoveRegionResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (k MsgServer) RetrieveCoinsFromRegion(ctx context.Context, region *types.MsgRetrieveCoinsFromRegion) (*types.MsgRetrieveCoinsFromRegionResp, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (k MsgServer) TransferRegion(ctx context.Context, region *types.MsgTransferRegion) (*types.MsgTransferRegionResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (k MsgServer) RetrieveFeeFromGlobalAdminFeePool(ctx context.Context, pool *types.MsgRetrieveFeeFromGlobalAdminFeePool) (*types.MsgRetrieveFeeFromGlobalAdminFeePoolResp, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*types.MsgNewRegionResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
 	_, err := utils.CheckRegionName(msg.Name)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrRegionName, err.Error())
 	}
 
 	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Creator) {
-		return nil, sdkerrors.Wrapf(types.ErrMeidRemove, "only global admin can  create region")
+		return nil, types.ErrCheckGlobalDao
 	}
+
 	regionId := strings.ToLower(msg.Name)
 	_, found := k.GetRegion(ctx, regionId)
 	if found {
 		return nil, sdkerrors.Wrapf(types.ErrRegionAlreadyExist, "region already exist")
 	}
+
 	valAddr, err := sdk.ValAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "region bonded validator no found")
 	}
 	validator, ok := k.GetValidator(ctx, valAddr)
 	if !ok {
-		return nil, sdkerrors.Wrapf(types.ErrRegionValidatorNotExist, "meid region bonded validator no found")
+		return nil, sdkerrors.Wrapf(types.ErrRegionValidatorNotExist, "region bonded validator no found")
 	}
 	if strings.ToLower(validator.Description.RegionId) != strings.ToLower(regionId) {
 		return nil, types.ErrRegion.Wrapf("only the validator with region id  %s can be bound,not bound %s region id", validator.Description.RegionId, msg.RegionId)
 	}
+
 	allRegions := k.Keeper.GetAllRegion(ctx)
 	for _, reg := range allRegions {
 		if reg.OperatorAddress == msg.OperatorAddress {
@@ -124,7 +68,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	//if err != nil {
 	//	return nil, sdkerrors.Wrapf(types.ErrRegionAlreadyExist, "nft classe save error")
 	//}
-	//
+
 	region := types.Region{
 		RegionId:        msg.RegionId,
 		Creator:         msg.Creator,
@@ -140,4 +84,35 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	}
 	k.SetRegion(ctx, region)
 	return &types.MsgNewRegionResponse{}, nil
+}
+
+func (k MsgServer) RemoveRegion(goCtx context.Context, msg *types.MsgRemoveRegion) (*types.MsgRemoveRegionResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Creator) {
+		return nil, types.ErrCheckGlobalDao
+	}
+
+	_, found := k.GetRegion(ctx, msg.RegionId)
+	if !found {
+		return nil, types.ErrRegionNotExist
+	}
+
+	k.Keeper.RemoveRegion(ctx, msg.RegionId)
+	return &types.MsgRemoveRegionResponse{}, nil
+}
+
+func (k MsgServer) RetrieveCoinsFromRegion(ctx context.Context, region *types.MsgRetrieveCoinsFromRegion) (*types.MsgRetrieveCoinsFromRegionResp, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (k MsgServer) TransferRegion(ctx context.Context, region *types.MsgTransferRegion) (*types.MsgTransferRegionResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (k MsgServer) RetrieveFeeFromGlobalAdminFeePool(ctx context.Context, pool *types.MsgRetrieveFeeFromGlobalAdminFeePool) (*types.MsgRetrieveFeeFromGlobalAdminFeePoolResp, error) {
+	//TODO implement me
+	panic("implement me")
 }

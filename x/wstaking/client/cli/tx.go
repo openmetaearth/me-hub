@@ -1,10 +1,15 @@
 package cli
 
 import (
+	"cosmossdk.io/math"
 	"fmt"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
+	"github.com/st-chain/me-hub/app/params"
+	gomath "math"
 	"os"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -12,7 +17,8 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
 // default values
@@ -37,6 +43,7 @@ func NewTxCmd() *cobra.Command {
 
 	stakingTxCmd.AddCommand(
 		NewCreateValidatorCmd(),
+		NewCreateExperienceNodeCmd(),
 		CmdNewRegion(),
 		CmdRemoveRegion(),
 	)
@@ -87,14 +94,64 @@ func NewCreateValidatorCmd() *cobra.Command {
 	return cmd
 }
 
-func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgCreateValidator, error) {
+func NewCreateExperienceNodeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create-experience-node",
+		Short: "create new validator initialized with a self-delegation to it",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			txf, err := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			txf, msgCreateValidator, err := newBuildCreateValidatorMsg(clientCtx, txf, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			msgCreateRegion := types.NewMsgNewRegion(
+				clientCtx.GetFromAddress().String(),
+				strings.ToLower(types.ExperienceRegion),
+				types.ExperienceRegion,
+				msgCreateValidator.ValidatorAddress)
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msgCreateValidator, msgCreateRegion)
+		},
+	}
+
+	cmd.Flags().AddFlagSet(FlagSetPublicKey())
+	cmd.Flags().AddFlagSet(FlagSetAmount())
+	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+	cmd.Flags().AddFlagSet(FlagSetCommissionCreate())
+	//cmd.Flags().AddFlagSet(FlagSetMinSelfStake())
+
+	cmd.Flags().String(FlagIP, "", fmt.Sprintf("The node's public IP. It takes effect only when used in combination with --%s", flags.FlagGenerateOnly))
+	cmd.Flags().String(FlagNodeID, "", "The node's ID")
+	cmd.Flags().String(FlagValidatorAddress, "", "validator address(prefix is me)")
+	cmd.Flags().String(FlagRegionId, "", "region id")
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagAmount)
+	_ = cmd.MarkFlagRequired(FlagPubKey)
+	_ = cmd.MarkFlagRequired(FlagMoniker)
+	_ = cmd.MarkFlagRequired(FlagValidatorAddress)
+	_ = cmd.MarkFlagRequired(FlagRegionId)
+	return cmd
+}
+
+func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *stakingtypes.MsgCreateValidator, error) {
 	fAmount, _ := fs.GetString(FlagAmount)
 	amount, err := sdk.ParseCoinNormalized(fAmount)
 	if err != nil {
 		return txf, nil, err
 	}
 
-	valAddr := clientCtx.GetFromAddress()
+	globalDao := clientCtx.GetFromAddress()
 	pkStr, err := fs.GetString(FlagPubKey)
 	if err != nil {
 		return txf, nil, err
@@ -110,7 +167,7 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 	website, _ := fs.GetString(FlagWebsite)
 	security, _ := fs.GetString(FlagSecurityContact)
 	details, _ := fs.GetString(FlagDetails)
-	description := types.NewDescription(
+	description := stakingtypes.NewDescription(
 		moniker,
 		identity,
 		website,
@@ -130,19 +187,26 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		return txf, nil, err
 	}
 
-	// get the initial validator min self delegation
-	msbStr, _ := fs.GetString(FlagMinSelfDelegation)
+	minSelfDelegation := math.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
 
-	minSelfDelegation, ok := sdk.NewIntFromString(msbStr)
-	if !ok {
-		return txf, nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
+	var pkAny *codectypes.Any
+	if pk != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(pk); err != nil {
+			return txf, nil, err
+		}
 	}
 
-	msg, err := types.NewMsgCreateValidator(
-		sdk.ValAddress(valAddr), pk, amount, description, commissionRates, minSelfDelegation,
-	)
-	if err != nil {
-		return txf, nil, err
+	validatorAddress, err := fs.GetString(FlagValidatorAddress)
+
+	msg := &stakingtypes.MsgCreateValidator{
+		Description:       description,
+		DelegatorAddress:  globalDao.String(),
+		ValidatorAddress:  sdk.ValAddress(sdk.MustAccAddressFromBech32(validatorAddress)).String(),
+		Pubkey:            pkAny,
+		Value:             amount,
+		Commission:        commissionRates,
+		MinSelfDelegation: minSelfDelegation,
 	}
 	if err := msg.ValidateBasic(); err != nil {
 		return txf, nil, err
@@ -175,6 +239,7 @@ func CreateValidatorMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaultsDesc
 	fsCreateValidator.String(FlagDetails, "", "The validator's (optional) details")
 	fsCreateValidator.String(FlagIdentity, "", "The (optional) identity signature (ex. UPort or Keybase)")
 	fsCreateValidator.String(FlagRegionId, "", "Region id")
+	fsCreateValidator.String(FlagValidatorAddress, "", "Region id")
 	fsCreateValidator.AddFlagSet(FlagSetCommissionCreate())
 	fsCreateValidator.AddFlagSet(FlagSetMinSelfDelegation())
 	fsCreateValidator.AddFlagSet(FlagSetAmount())
@@ -207,13 +272,14 @@ type TxCreateValidatorConfig struct {
 
 	PubKey cryptotypes.PubKey
 
-	IP              string
-	P2PPort         uint
-	Website         string
-	SecurityContact string
-	Details         string
-	Identity        string
-	RegionId        string
+	IP               string
+	P2PPort          uint
+	Website          string
+	SecurityContact  string
+	Details          string
+	Identity         string
+	RegionId         string
+	ValidatorAddress string
 }
 
 func PrepareConfigForTxCreateValidator(flagSet *flag.FlagSet, moniker, nodeID, chainID string, valPubKey cryptotypes.PubKey) (TxCreateValidatorConfig, error) {
@@ -283,6 +349,11 @@ func PrepareConfigForTxCreateValidator(flagSet *flag.FlagSet, moniker, nodeID, c
 		return c, err
 	}
 
+	c.ValidatorAddress, err = flagSet.GetString(FlagValidatorAddress)
+	if err != nil {
+		return c, err
+	}
+
 	c.IP = ip
 	c.P2PPort = p2pPort
 	c.Website = website
@@ -328,8 +399,8 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 		return txBldr, nil, err
 	}
 
-	valAddr := clientCtx.GetFromAddress()
-	description := types.NewDescription(
+	globalDao := clientCtx.GetFromAddress()
+	description := stakingtypes.NewDescription(
 		config.Moniker,
 		config.Identity,
 		config.Website,
@@ -355,16 +426,25 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 		return txBldr, nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
 	}
 
-	msg, err := types.NewMsgCreateValidator(
-		sdk.ValAddress(valAddr),
-		config.PubKey,
-		amount,
-		description,
-		commissionRates,
-		minSelfDelegation,
-	)
-	if err != nil {
-		return txBldr, msg, err
+	var pkAny *codectypes.Any
+	if config.PubKey != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(config.PubKey); err != nil {
+			return txBldr, nil, err
+		}
+	}
+
+	msg := &stakingtypes.MsgCreateValidator{
+		Description:       description,
+		DelegatorAddress:  globalDao.String(),
+		ValidatorAddress:  sdk.ValAddress(sdk.MustAccAddressFromBech32(config.ValidatorAddress)).String(),
+		Pubkey:            pkAny,
+		Value:             amount,
+		Commission:        commissionRates,
+		MinSelfDelegation: minSelfDelegation,
+	}
+	if err := msg.ValidateBasic(); err != nil {
+		return txBldr, nil, err
 	}
 
 	if generateOnly {
