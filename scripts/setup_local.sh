@@ -32,7 +32,7 @@ JSONRPC_ADDRESS=${JSONRPC_ADDRESS:-"0.0.0.0:9545"}
 JSONRPC_WS_ADDRESS=${JSONRPC_WS_ADDRESS:-"0.0.0.0:9546"}
 
 TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000umec"} #1M MEC (1e6mec = 1e6 * 1e18 = 1e24umec )
-STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000000000000000umec"} #67% is staked (inflation goal)
+STAKING_AMOUNT=${STAKING_AMOUNT:-"10000000000000000umec"} #67% is staked (inflation goal)
 
 # Validate mechain binary exists
 export PATH=$PATH:$HOME/go/bin
@@ -113,7 +113,9 @@ jq '.app_state["dao"]["global_dao"] = "mec139mq752delxv78jvtmwxhasyrycufsvr5fhrh
 jq '.app_state["dao"]["meid_dao"] = "mec139mq752delxv78jvtmwxhasyrycufsvr5fhrh9"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 jq '.app_state["dao"]["dev_operator"] = "mec139mq752delxv78jvtmwxhasyrycufsvr5fhrh9"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 
-med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test --region-id me_earth
+validator_address=$(med keys show "$KEY_NAME" -a --keyring-backend test)
+
+med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test --region-id me_earth --validator-address "$validator_address"
 med collect-gentxs
 
 set_authorised_deployer_account "$(med keys show "$KEY_NAME" -a --keyring-backend test)"
