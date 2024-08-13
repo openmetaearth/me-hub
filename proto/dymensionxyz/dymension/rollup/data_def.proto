@@ -1,0 +1,13 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollup;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollup/types";
+
+message MsgStakeInfo{
+  uint64 stakeAmount = 1;
+  uint64 applyUnStakeAmount = 2;
+
+}
+

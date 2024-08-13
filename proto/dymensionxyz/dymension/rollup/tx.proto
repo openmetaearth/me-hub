@@ -1,0 +1,14 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollup;
+
+import "gogoproto/gogo.proto";
+import "dymensionxyz/dymension/rollup/staking.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollup/types";
+
+
+// Msg defines the Msg service.
+service Msg {
+  rpc StakeForSequencer(MsgSeqStaking) returns (MsgStakingResponse);
+  rpc UnStake(MsgSeqUnStaking) returns (MsgUnStakingResponse);
+}

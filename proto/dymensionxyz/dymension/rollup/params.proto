@@ -1,0 +1,29 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollup;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollup/types";
+
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+  uint32 election_period = 1 [
+    (gogoproto.moretags) = "yaml:\"election_period\""
+  ];
+  uint32 sequencer_number = 2 [
+    (gogoproto.moretags) = "yaml:\"sequencer_number\""
+  ];
+  uint32 backup_sequencer_number = 3 [
+    (gogoproto.moretags) = "yaml:\"backup_sequencer_number\""
+  ];
+  uint64 min_stake_amount = 4 [
+    (gogoproto.moretags) = "yaml:\"min_stake_amount\""
+  ];
+  uint32 first_election_interval = 5 [
+    (gogoproto.moretags) = "yaml:\"first_election_interval\""
+  ];
+  uint32 allow_apply_election_time = 6 [
+    (gogoproto.moretags) = "yaml:\"allow_apply_election_time\""
+  ];
+
+}

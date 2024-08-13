@@ -1,0 +1,36 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollup;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollup/types";
+import "cosmos/msg/v1/msg.proto";
+//这里amount的最小单位为1MEC
+message MsgSeqStaking {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the sequencer sending the update
+  string creator = 1;
+  string rollappId = 2;
+  // version is the version of the rollapp
+  uint64 version = 3;
+  uint64 amount = 4;
+}
+
+message MsgSeqUnStaking {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the sequencer sending the update
+  string creator = 1;
+  string rollappId = 2;
+  // version is the version of the rollapp
+  uint64 version = 3;
+  uint64 amount = 4;
+}
+
+message MsgStakingResponse {
+
+}
+
+message MsgUnStakingResponse {
+
+}
+

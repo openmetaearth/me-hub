@@ -1,0 +1,24 @@
+package keeper
+
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollup/types"
+)
+
+// GetParams get all parameters as types.Params
+func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+	return types.Params{
+		ElectionPeriod:         k.GetElectionPeriod(ctx),
+		SequencerNumber:        k.GetSequencerNumber(ctx),
+		BackupSequencerNumber:  k.GetBackupNumber(ctx),
+		MinStakeAmount:         k.GetMinStakeAmount(ctx),
+		FirstElectionInterval:  k.GetFirstElectionInterval(ctx),
+		AllowApplyElectionTime: k.GetAllowApplyElectionTime(ctx),
+	}
+
+}
+
+// SetParams set the params
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+	k.paramStore.SetParamSet(ctx, &params)
+}

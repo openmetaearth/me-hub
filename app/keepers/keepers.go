@@ -85,6 +85,8 @@ import (
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	rollupkeeper "github.com/dymensionxyz/dymension/v3/x/rollup/keeper"
+	rollupkeepertypes "github.com/dymensionxyz/dymension/v3/x/rollup/types"
 	sequencermodulekeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	streamermodule "github.com/dymensionxyz/dymension/v3/x/streamer"
@@ -140,6 +142,7 @@ type AppKeepers struct {
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
+	RollupKeeper        *rollupkeeper.Keeper
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -404,6 +407,13 @@ func (a *AppKeepers) InitKeepers(
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		&a.EIBCKeeper,
+	)
+
+	//create rollupKeeper
+	a.RollupKeeper = rollupkeeper.NewKeeper(
+		a.keys[rollupkeepertypes.StoreKey],
+		appCodec,
+		a.GetSubspace(rollupkeepertypes.MODULE_NAME),
 	)
 
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
