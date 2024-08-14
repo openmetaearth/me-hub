@@ -82,4 +82,6 @@ var (
 	ErrUnknownAccount = sdkerrors.Register(ModuleName, 1202, "Unknown account")
 
 	ErrNodeLimitExceeded = sdkerrors.Register(ModuleName, 52, "Node delegation limit exceeded.")
+	ErrAssertionFailed   = sdkerrors.Register(ModuleName, 58, "type Delegation assertion failed")
+	ErrCalculateInterest = sdkerrors.Register(ModuleName, 51, "delegator calculate interest err.")
 )

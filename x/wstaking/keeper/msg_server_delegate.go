@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/st-chain/me-hub/app/params"
 	types "github.com/st-chain/me-hub/x/wstaking/types"
 	"strings"
 )
@@ -177,7 +178,7 @@ func (k MsgServer) UnMeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDe
 	rewards := sdk.ZeroDec()
 	var regionTreasureAddr sdk.AccAddress
 	if del != nil {
-		delegation, isOK := del.(types.Delegation)
+		delegation, isOK := del.(stakingtypes.Delegation)
 		if !isOK {
 			return nil, types.ErrAssertionFailed
 		}
@@ -189,7 +190,7 @@ func (k MsgServer) UnMeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDe
 		if err != nil {
 			return nil, err
 		}
-		err = k.bankKeeper.SendCoins(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(sdk.BaseMEDenom, rewards.TruncateInt())))
+		err = k.BankKeeper.SendCoins(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())))
 		if err != nil {
 			return nil, err
 		}
@@ -222,13 +223,13 @@ func (k MsgServer) UnMeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDe
 			types.EventTypeUnMeidDelegate,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyRewards, rewards.TruncateInt().String()+sdk.BaseMEDenom),
+			sdk.NewAttribute(types.AttributeKeyRewards, rewards.TruncateInt().String()+params.BaseDenom),
 			sdk.NewAttribute(types.AttributeKeyRegionTreasure, regionTreasureAddr.String()),
 			sdk.NewAttribute(types.AttributeKeyNewShares, newShares.String()),
-			sdk.NewAttribute(types.AttributeKeyTotalAmountDelegate, validator.DelegationAmount.String()+sdk.BaseMEDenom),
+			sdk.NewAttribute(types.AttributeKeyTotalAmountDelegate, validator.DelegationAmount.String()+params.BaseDenom),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress),
 			sdk.NewAttribute(types.AttributeKeyRegionId, region.RegionId),
 		),
 	})
-	return &types.MsgDelegateResponse{}, nil
+	return &stakingtypes.MsgDelegateResponse{}, nil
 }

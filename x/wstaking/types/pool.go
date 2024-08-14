@@ -10,3 +10,5 @@ const (
 	FixedDepositPrincipalPool = "fixed_deposit_principal_pool"
 	GlobalAdminFeePool        = "global_admin_fee_pool"
 )
+
+const PrefixUnMeid = "un_meid_all_amount"
