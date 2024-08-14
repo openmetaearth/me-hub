@@ -17,7 +17,7 @@ const (
 	// 1 MEC = 1x10^{BaseDenomUnit} umec
 	BaseDenomUnit = 8
 
-	AccountAddressPrefix = "mec"
+	AccountAddressPrefix = "me"
 	Name                 = "mechain"
 )
 

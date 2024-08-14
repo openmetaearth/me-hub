@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"github.com/cometbft/cometbft/crypto"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -45,14 +44,10 @@ func (k Keeper) GetAllRegion(ctx sdk.Context) (list []types.Region) {
 	return
 }
 
-func (k Keeper) GetRegionAccountAddr(_ctx sdk.Context, accountType types.REGION_ACCOUNT_TYPE, regionId string) sdk.AccAddress {
-	return sdk.AccAddress(crypto.AddressHash([]byte(types.RegionAccountNamePrefix + accountType.String() + regionId)))
-}
-
 func (k Keeper) CreateRegionAccount(ctx sdk.Context, accountType types.REGION_ACCOUNT_TYPE, regionId string) sdk.AccAddress {
 	regionAcc := k.GetRegionAccount(ctx, accountType, regionId)
 	if regionAcc == nil {
-		vaultAddr := k.GetRegionAccountAddr(ctx, accountType, regionId)
+		vaultAddr := types.GetRegionAccountAddr(accountType, regionId)
 		k.AuthKeeper.SetAccount(ctx, k.AuthKeeper.NewAccountWithAddress(ctx, vaultAddr))
 		return vaultAddr
 	}
@@ -60,6 +55,6 @@ func (k Keeper) CreateRegionAccount(ctx sdk.Context, accountType types.REGION_AC
 }
 
 func (k Keeper) GetRegionAccount(ctx sdk.Context, accountType types.REGION_ACCOUNT_TYPE, regionId string) authtypes.AccountI {
-	vaultAddr := k.GetRegionAccountAddr(ctx, accountType, regionId)
+	vaultAddr := types.GetRegionAccountAddr(accountType, regionId)
 	return k.AuthKeeper.GetAccount(ctx, vaultAddr)
 }
