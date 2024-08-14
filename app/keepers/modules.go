@@ -10,7 +10,6 @@ import (
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -69,6 +68,7 @@ import (
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	"github.com/st-chain/me-hub/x/wbank"
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	"github.com/st-chain/me-hub/x/wmint"
 	"github.com/st-chain/me-hub/x/wstaking"
 
@@ -106,7 +106,7 @@ var ModuleBasics = module.NewBasicManager(
 	auth.AppModuleBasic{},
 	authzmodule.AppModuleBasic{},
 	genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-	bank.AppModuleBasic{},
+	wbank.AppModuleBasic{},
 	capability.AppModuleBasic{},
 	consensus.AppModuleBasic{},
 	//staking.AppModuleBasic{},
@@ -229,6 +229,7 @@ func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 var maccPerms = map[string][]string{
 	authtypes.FeeCollectorName:                         nil,
 	distrtypes.ModuleName:                              nil,
+	wbanktypes.TreasuryPoolName:                        nil,
 	minttypes.ModuleName:                               {authtypes.Minter},
 	stakingtypes.BondedPoolName:                        {authtypes.Burner, authtypes.Staking},
 	stakingtypes.NotBondedPoolName:                     {authtypes.Burner, authtypes.Staking},

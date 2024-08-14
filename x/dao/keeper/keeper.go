@@ -30,42 +30,59 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) SetGlobalDao(ctx sdk.Context, address sdk.AccAddress) {
+func (k Keeper) SetDaoAddresses(ctx sdk.Context, daoAddresses types.DaoAddresses) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GlobalDaoPrefix, address)
+	b := k.cdc.MustMarshal(&daoAddresses)
+	store.Set(types.DaoAddressesPrefix, b)
 }
 
-func (k Keeper) GetGlobalDao(ctx sdk.Context) sdk.AccAddress {
+// GetDaoAddresses returns dao addresses
+func (k Keeper) GetDaoAddresses(ctx sdk.Context) (dao types.DaoAddresses, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	return store.Get(types.GlobalDaoPrefix)
+	b := store.Get(types.DaoAddressesPrefix)
+	if b == nil {
+		return dao, false
+	}
+	k.cdc.MustUnmarshal(b, &dao)
+	return dao, true
 }
 
-func (k Keeper) SetMeidDao(ctx sdk.Context, address sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.MeidDaoPrefix, address)
+func (k Keeper) GetMeidDao(ctx sdk.Context) string {
+	dao, found := k.GetDaoAddresses(ctx)
+	if found {
+		return dao.MeidDao
+	}
+	return ""
 }
 
-func (k Keeper) GetMeidDao(ctx sdk.Context) sdk.AccAddress {
-	store := ctx.KVStore(k.storeKey)
-	return store.Get(types.MeidDaoPrefix)
+func (k Keeper) GetDevOperator(ctx sdk.Context) string {
+	dao, found := k.GetDaoAddresses(ctx)
+	if found {
+		return dao.DevOperator
+	}
+	return ""
 }
 
-func (k Keeper) SetDevOperator(ctx sdk.Context, address sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.DevOperatorPrefix, address)
-}
-
-func (k Keeper) GetDevOperator(ctx sdk.Context) sdk.AccAddress {
-	store := ctx.KVStore(k.storeKey)
-	return store.Get(types.DevOperatorPrefix)
+func (k Keeper) GetAirdropAddress(ctx sdk.Context) string {
+	dao, found := k.GetDaoAddresses(ctx)
+	if found {
+		return dao.AirdropAddress
+	}
+	return ""
 }
 
 func (k Keeper) IsGlobalDao(ctx sdk.Context, address string) bool {
-	admin := k.GetGlobalDao(ctx)
-	return admin.String() == address
+	dao, found := k.GetDaoAddresses(ctx)
+	if !found {
+		return false
+	}
+	return dao.GlobalDao == address
 }
 
 func (k Keeper) IsMeidDao(ctx sdk.Context, address string) bool {
-	admin := k.GetGlobalDao(ctx)
-	return admin.String() == address
+	dao, found := k.GetDaoAddresses(ctx)
+	if !found {
+		return false
+	}
+	return dao.MeidDao == address
 }

@@ -2,18 +2,11 @@ package cli
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
-	"time"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/spf13/cobra"
 	"github.com/st-chain/me-hub/x/dao/types"
-)
-
-var (
-	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -26,31 +19,30 @@ func GetTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(CmdUpdateAdmin())
-	// this line is used by starport scaffolding # 1
-
+	cmd.AddCommand(CmdUpdateGlobalDao())
 	return cmd
 }
 
-func CmdUpdateAdmin() *cobra.Command {
+func CmdUpdateGlobalDao() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-admin [address]",
-		Short: "Broadcast message update_admin",
-		Args:  cobra.ExactArgs(1),
+		Use:   "update-global-dao [GlobalDao] [MeidDao] [DevOperator] [AirdropAddress]",
+		Short: "Broadcast message",
+		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argAddress, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
-
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
+			daoAddresses := types.DaoAddresses{
+				GlobalDao:      args[0],
+				MeidDao:        args[1],
+				DevOperator:    args[2],
+				AirdropAddress: args[3],
+			}
 			msg := types.NewMsgUpdateGlobalDao(
 				clientCtx.GetFromAddress(),
-				argAddress,
+				daoAddresses,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
