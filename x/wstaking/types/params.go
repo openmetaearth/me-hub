@@ -10,7 +10,6 @@ import (
 
 const (
 	MinDelegateAmount = "0.01"
-	ExperienceRegion  = "EXPERIENCE_REGION"
 	CaclTotalSupply   = 20000000000
 )
 

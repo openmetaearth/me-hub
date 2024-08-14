@@ -3,12 +3,12 @@ package cli
 import (
 	"cosmossdk.io/math"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/version"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
-	"github.com/st-chain/me-hub/x/wstaking/types"
 	"github.com/st-chain/me-hub/app/params"
+	"github.com/st-chain/me-hub/x/wstaking/types"
 	gomath "math"
 	"os"
 	"strings"
@@ -20,7 +20,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
 // default values
@@ -31,8 +30,6 @@ var (
 	defaultCommissionMaxRate       = "0.2"
 	defaultCommissionMaxChangeRate = "0.01"
 	defaultMinSelfDelegation       = "1"
-
-	ValidatorAddress = "validator-addr"
 )
 
 // NewTxCmd returns a root CLI command handler for all x/staking transaction commands.
@@ -89,6 +86,8 @@ func NewCreateValidatorCmd() *cobra.Command {
 
 	cmd.Flags().String(FlagIP, "", fmt.Sprintf("The node's public IP. It takes effect only when used in combination with --%s", flags.FlagGenerateOnly))
 	cmd.Flags().String(FlagNodeID, "", "The node's ID")
+	cmd.Flags().String(FlagValidatorAddress, "", "validator address(prefix is me)")
+	cmd.Flags().String(FlagRegionId, "", "region id")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
@@ -296,7 +295,12 @@ $ %s tx staking delegate 1000mec --from mykey
 			}
 			delAddr := clientCtx.GetFromAddress()
 
-			msg := types.NewMsgDelegate(delAddr, sdk.ValAddress{}, amount, "")
+			validatorAddress, err := cmd.Flags().GetString(FlagValidatorAddress)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDelegate(delAddr, sdk.ValAddress(sdk.MustAccAddressFromBech32(validatorAddress)), amount, "")
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -305,12 +309,6 @@ $ %s tx staking delegate 1000mec --from mykey
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
-}
-
-func FlagSetValidatorAddress() *flag.FlagSet {
-	fs := flag.NewFlagSet("", flag.ContinueOnError)
-	fs.String(ValidatorAddress, "", "delegate to a validator (If it is empty, means delegate to exchequer)")
-	return fs
 }
 
 type TxCreateValidatorConfig struct {
