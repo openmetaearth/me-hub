@@ -3,9 +3,11 @@ package cli
 import (
 	"cosmossdk.io/math"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/version"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
+	"github.com/st-chain/me-hub/x/wstaking/types"
 	"github.com/st-chain/me-hub/app/params"
 	gomath "math"
 	"os"
@@ -29,6 +31,8 @@ var (
 	defaultCommissionMaxRate       = "0.2"
 	defaultCommissionMaxChangeRate = "0.01"
 	defaultMinSelfDelegation       = "1"
+
+	ValidatorAddress = "validator-addr"
 )
 
 // NewTxCmd returns a root CLI command handler for all x/staking transaction commands.
@@ -46,6 +50,7 @@ func NewTxCmd() *cobra.Command {
 		NewCreateExperienceNodeCmd(),
 		CmdNewRegion(),
 		CmdRemoveRegion(),
+		NewDelegateCmd(),
 	)
 
 	return stakingTxCmd
@@ -256,6 +261,56 @@ func CreateValidatorMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaultsDesc
 		defaultMinSelfDelegation)
 
 	return fsCreateValidator, defaultsDesc
+}
+
+// NewDelegateCmd returns a CLI command handler for creating a MsgDelegate transaction.
+func NewDelegateCmd() *cobra.Command {
+	//bech32PrefixValAddr := sdk.GetConfig().GetBech32ValidatorAddrPrefix()
+
+	cmd := &cobra.Command{
+		Use:   "delegate [amount] ",
+		Args:  cobra.ExactArgs(1),
+		Short: "Delegate liquid tokens to a validator",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Delegate an amount of liquid coins to a validator from your wallet.
+
+Example:
+$ %s tx staking delegate 1000mec --from mykey
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			amount, err := sdk.ParseCoinNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			err = types.CheckMinDelegate(amount.Amount)
+			if err != nil {
+				return err
+			}
+			delAddr := clientCtx.GetFromAddress()
+
+			msg := types.NewMsgDelegate(delAddr, sdk.ValAddress{}, amount, "")
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	cmd.Flags().AddFlagSet(FlagSetValidatorAddress())
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func FlagSetValidatorAddress() *flag.FlagSet {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+	fs.String(ValidatorAddress, "", "delegate to a validator (If it is empty, means delegate to exchequer)")
+	return fs
 }
 
 type TxCreateValidatorConfig struct {

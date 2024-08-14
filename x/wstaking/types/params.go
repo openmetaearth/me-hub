@@ -1,0 +1,28 @@
+package types
+
+import (
+	"cosmossdk.io/math"
+	"errors"
+	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/st-chain/me-hub/app/params"
+)
+
+const (
+	MinDelegateAmount = "0.01"
+	ExperienceRegion  = "EXPERIENCE_REGION"
+	CaclTotalSupply   = 20000000000
+)
+
+func CheckMinDelegate(amount math.Int) error {
+	//if amount.Denom == sdk.BaseMEDenom {
+	delAmount := sdk.NewDecFromInt(amount).Mul(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
+	minAmount, _ := sdk.NewDecFromStr(MinDelegateAmount)
+	if delAmount.LT(minAmount) {
+		errStr := fmt.Sprintf("minimum delegate amount is %s,not less than this value.input value = %s",
+			MinDelegateAmount, amount.String())
+		return errors.New(errStr)
+	}
+	//}
+	return nil
+}
