@@ -3,8 +3,8 @@ package keeper
 import (
 	cmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	mintTypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/st-chain/me-hub/app/params"
+	mintTypes "github.com/st-chain/me-hub/x/wmint/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"math"
 )
@@ -63,7 +63,7 @@ func (k Keeper) Calculate(ctx sdk.Context, blockRewards sdk.Dec, totalStaking cm
 	log := k.Logger(ctx)
 	totalSupply := sdk.NewDec(types.CaclTotalSupply)
 	rate := sdk.OneDec().Quo(totalSupply)
-	rewards = blockRewards.Mul(sdk.NewDecFromInt(totalStaking).Mul(rate)).Mul(sdk.NewDecWithPrec(1, sdk.MEExponent))
+	rewards = blockRewards.Mul(sdk.NewDecFromInt(totalStaking).Mul(rate)).Mul(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
 	if rewards.LT(sdk.ZeroDec()) {
 		log.Error("Calculate_Interest", "Failed to calculate user revenue！")
 		return rewards, types.ErrCalculateInterest.Wrap("withdraw coins amount too small")
