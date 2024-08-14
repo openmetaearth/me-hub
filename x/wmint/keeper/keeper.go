@@ -13,8 +13,10 @@ import (
 // Wrapper wraps the original mint keeper and intercepts its original methods if needed.
 type Keeper struct {
 	mintkeeper.Keeper
-	cdc      codec.BinaryCodec
-	storeKey storetypes.StoreKey
+	cdc                   codec.BinaryCodec
+	storeKey              storetypes.StoreKey
+	bankKeeper            minttypes.BankKeeper
+	treasuryModuleAccount string
 }
 
 // NewWrappedMint returns a new instance of the WrappedNFTKeeper.
@@ -27,8 +29,10 @@ func NewKeeper(cdc codec.BinaryCodec,
 	authority string,
 ) Keeper {
 	return Keeper{
-		Keeper:   mintkeeper.NewKeeper(cdc, key, sk, ak, bk, feeCollectorName, authority),
-		storeKey: key,
+		Keeper:                mintkeeper.NewKeeper(cdc, key, sk, ak, bk, feeCollectorName, authority),
+		storeKey:              key,
+		bankKeeper:            bk,
+		treasuryModuleAccount: feeCollectorName,
 	}
 }
 
@@ -64,4 +68,9 @@ func (k Keeper) GetPerBlockMintCoinAmount(ctx sdk.Context) (amount big.Int) {
 	}
 	amount.SetBytes(b)
 	return
+}
+
+// SendCoinsToTreasury to be used in BeginBlocker. send coins to me treasury module account
+func (k Keeper) SendCoinsToTreasury(ctx sdk.Context, coins sdk.Coins) error {
+	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, minttypes.ModuleName, k.treasuryModuleAccount, coins)
 }

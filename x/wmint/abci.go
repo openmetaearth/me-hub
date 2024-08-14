@@ -46,11 +46,10 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic mintypes.InflationCalcula
 	}
 
 	// send the minted coins to me treasury module account
-	//TODO: bank module
-	//err = k.SendCoinsToTreasury(ctx, mintedCoins)
-	//if err != nil {
-	//	panic(err)
-	//}
+	err = k.SendCoinsToTreasury(ctx, mintedCoins)
+	if err != nil {
+		panic(err)
+	}
 
 	if mintedCoin.Amount.IsInt64() {
 		defer telemetry.ModuleSetGauge(types.ModuleName, float32(mintedCoin.Amount.Int64()), "minted_tokens")

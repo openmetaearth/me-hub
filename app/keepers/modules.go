@@ -68,6 +68,7 @@ import (
 	"github.com/st-chain/me-hub/x/dao"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
+	"github.com/st-chain/me-hub/x/wbank"
 	"github.com/st-chain/me-hub/x/wmint"
 	"github.com/st-chain/me-hub/x/wstaking"
 
@@ -173,7 +174,7 @@ func (a *AppKeepers) SetupModules(
 		auth.NewAppModule(appCodec, a.AccountKeeper, nil, a.GetSubspace(authtypes.ModuleName)),
 		authzmodule.NewAppModule(appCodec, a.AuthzKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
 		vesting.NewAppModule(a.AccountKeeper, a.BankKeeper),
-		bank.NewAppModule(appCodec, a.BankKeeper, a.AccountKeeper, a.GetSubspace(banktypes.ModuleName)),
+		wbank.NewAppModule(appCodec, a.BankKeeper, a.AccountKeeper, a.GetSubspace(banktypes.ModuleName)),
 		capability.NewAppModule(appCodec, *a.CapabilityKeeper, false),
 		feegrantmodule.NewAppModule(appCodec, a.AccountKeeper, a.BankKeeper, a.FeeGrantKeeper, encodingConfig.InterfaceRegistry),
 		crisis.NewAppModule(a.CrisisKeeper, skipGenesisInvariants, a.GetSubspace(crisistypes.ModuleName)),

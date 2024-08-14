@@ -9,7 +9,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -68,6 +67,7 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
+	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
 	mintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
 
 	"github.com/st-chain/me-hub/x/bridgingfee"
@@ -98,7 +98,7 @@ type AppKeepers struct {
 	// keepers
 	AccountKeeper                 authkeeper.AccountKeeper
 	AuthzKeeper                   authzkeeper.Keeper
-	BankKeeper                    bankkeeper.Keeper
+	BankKeeper                    wbankkeeper.BaseKeeperWrapper
 	CapabilityKeeper              *capabilitykeeper.Keeper
 	StakingKeeper                 *wstakingkeeper.Keeper
 	SlashingKeeper                slashingkeeper.Keeper
@@ -205,12 +205,20 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 	)
 
-	a.BankKeeper = bankkeeper.NewBaseKeeper(
+	//a.BankKeeper = bankkeeper.NewBaseKeeper(
+	//	appCodec,
+	//	a.keys[banktypes.StoreKey],
+	//	a.AccountKeeper,
+	//	moduleAccountAddrs,
+	//	govModuleAddress,
+	//)
+
+	a.BankKeeper = wbankkeeper.NewKeeper(
 		appCodec,
 		a.keys[banktypes.StoreKey],
 		a.AccountKeeper,
 		moduleAccountAddrs,
-		govModuleAddress,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.DaoKeeper = daokeeper.NewKeeper(
