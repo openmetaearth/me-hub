@@ -51,7 +51,7 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 	if electTimeVal := rollupStore.Get([]byte(types.KEY_LAST_ELECTION_TIME)); electTimeVal != nil {
 		lastElectTime = types.BytesToInt64(electTimeVal)
 		timeInterval := blkTime - lastElectTime
-		electionInterval := int64(k.GetElectionPeriod(ctx)) * types.DaySeconds
+		electionInterval := int64(k.GetElectionPeriod(ctx)) * types.HourSeconds
 		if timeInterval >= electionInterval {
 			bIsNeedElect = true
 		}

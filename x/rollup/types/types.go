@@ -21,7 +21,7 @@ const (
 )
 
 const (
-	DaySeconds  int64 = 86400
+	//	DaySeconds  int64 = 86400
 	HourSeconds int64 = 3600
 )
 
