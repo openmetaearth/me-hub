@@ -10,8 +10,6 @@ const (
 	TypeUnStake           = "unStake"
 )
 
-const MaxAllowedSequencers = 100
-
 func NewMsgSeqStaking(creator string, rollappId string, version, amount uint64) *MsgSeqStaking {
 	return &MsgSeqStaking{
 		Creator:   creator,
