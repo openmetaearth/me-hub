@@ -45,6 +45,7 @@ func NewTxCmd() *cobra.Command {
 	stakingTxCmd.AddCommand(
 		NewCreateValidatorCmd(),
 		NewCreateExperienceNodeCmd(),
+		NewEditValidatorCmd(),
 		CmdNewRegion(),
 		CmdRemoveRegion(),
 		NewDelegateCmd(),
@@ -146,6 +147,75 @@ func NewCreateExperienceNodeCmd() *cobra.Command {
 	_ = cmd.MarkFlagRequired(FlagMoniker)
 	_ = cmd.MarkFlagRequired(FlagValidatorAddress)
 	_ = cmd.MarkFlagRequired(FlagRegionId)
+	return cmd
+}
+
+// NewEditValidatorCmd returns a CLI command handler for creating a MsgEditValidator transaction.
+func NewEditValidatorCmd() *cobra.Command {
+	bech32PrefixValAddr := sdk.GetConfig().GetBech32ValidatorAddrPrefix()
+	bech32PrefixAccAddr := sdk.GetConfig().GetBech32AccountAddrPrefix()
+
+	cmd := &cobra.Command{
+		Use:   "edit-validator [validator-operator-addr]",
+		Args:  cobra.ExactArgs(1),
+		Short: "edit an existing validator info",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Edit an existing validator info.
+
+Example:
+$ %s tx staking edit-validator %s1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm --owner-address %s14yeg99jxzk2hfc3kye97kunudw7cug2pm2t5xe --from mykey
+`,
+				version.AppName, bech32PrefixValAddr, bech32PrefixAccAddr,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			operatorAddress := args[0]
+
+			staker := clientCtx.GetFromAddress()
+			moniker, _ := cmd.Flags().GetString(FlagEditMoniker)
+			identity, _ := cmd.Flags().GetString(FlagIdentity)
+			website, _ := cmd.Flags().GetString(FlagWebsite)
+			security, _ := cmd.Flags().GetString(FlagSecurityContact)
+			details, _ := cmd.Flags().GetString(FlagDetails)
+			regionId, _ := cmd.Flags().GetString(FlagRegionId)
+			description := stakingtypes.NewDescription(moniker, identity, website, security, details)
+			description.RegionId = regionId
+
+			var newRate *sdk.Dec
+			commissionRate, _ := cmd.Flags().GetString(FlagCommissionRate)
+			if commissionRate != "" {
+				rate, err := sdk.NewDecFromStr(commissionRate)
+				if err != nil {
+					return fmt.Errorf("invalid new commission rate: %v", err)
+				}
+
+				newRate = &rate
+			}
+
+			ownerAddress, _ := cmd.Flags().GetString(FlagOwnerAddress)
+
+			msg := &stakingtypes.MsgEditValidator{
+				Description:       description,
+				CommissionRate:    newRate,
+				StakerAddress:     staker.String(),
+				MinSelfDelegation: nil,
+				OwnerAddress:      ownerAddress,
+				OperatorAddress:   operatorAddress,
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().AddFlagSet(flagSetDescriptionEdit())
+	cmd.Flags().AddFlagSet(flagSetCommissionUpdate())
+	cmd.Flags().String(FlagOwnerAddress, "", "owner address")
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 

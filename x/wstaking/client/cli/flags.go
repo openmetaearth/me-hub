@@ -23,6 +23,7 @@ const (
 	FlagDetails          = "details"
 	FlagRegionId         = "region-id"
 	FlagValidatorAddress = "validator-address"
+	FlagOwnerAddress     = "owner-address"
 
 	FlagCommissionRate          = "commission-rate"
 	FlagCommissionMaxRate       = "commission-max-rate"
@@ -91,6 +92,7 @@ func flagSetDescriptionEdit() *flag.FlagSet {
 	fs.String(FlagWebsite, types.DoNotModifyDesc, "The validator's (optional) website")
 	fs.String(FlagSecurityContact, types.DoNotModifyDesc, "The validator's (optional) security contact email")
 	fs.String(FlagDetails, types.DoNotModifyDesc, "The validator's (optional) details")
+	fs.String(FlagRegionId, types.DoNotModifyDesc, "The validator's region id")
 
 	return fs
 }

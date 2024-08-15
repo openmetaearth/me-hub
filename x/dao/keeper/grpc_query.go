@@ -17,10 +17,10 @@ func (k Keeper) GlobalDao(goCtx context.Context, req *types.QueryGlobalDaoReques
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	globalDao := k.GetGlobalDao(ctx)
-	if globalDao == nil {
-		return &types.QueryGlobalDaoResponse{}, nil
+	daoAddresses, found := k.GetDaoAddresses(ctx)
+	if !found {
+		return &types.QueryGlobalDaoResponse{}, types.ErrNotFound
 	}
 
-	return &types.QueryGlobalDaoResponse{Address: globalDao.String()}, nil
+	return &types.QueryGlobalDaoResponse{DaoAddresses: daoAddresses}, nil
 }

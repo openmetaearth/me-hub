@@ -18,7 +18,9 @@ option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
 // Msg defines the staking Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
-//  rpc CurrentDeposit(MsgCurrentDeposit) returns (MsgCurrentDepositResponse);
+  // EditValidator defines a method for editing an existing validator.
+
+  //  rpc CurrentDeposit(MsgCurrentDeposit) returns (MsgCurrentDepositResponse);
 //  rpc CurrentWithdraw(MsgCurrentWithdraw) returns (MsgCurrentWithdrawResponse);
 //  rpc FixedDeposit(MsgFixedDeposit) returns (MsgFixedDepositResponse);
 //  rpc FixedWithdraw(MsgFixedWithdraw) returns (MsgFixedWithdrawResponse);

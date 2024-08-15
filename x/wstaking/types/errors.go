@@ -5,6 +5,8 @@ import (
 )
 
 var (
+	ErrValidatorOwnerAddress = sdkerrors.Register(ModuleName, 56, "cannot update validator owner address to module account address")
+
 	ErrSample           = sdkerrors.Register(ModuleName, 1100, "sample error")
 	ErrDoDeposit        = sdkerrors.Register(ModuleName, 1101, "do deposit error")
 	ErrDoWithdraw       = sdkerrors.Register(ModuleName, 1102, "do withdraw error")
