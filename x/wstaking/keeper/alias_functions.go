@@ -3,6 +3,7 @@ package keeper
 import (
 	cmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
 	mintTypes "github.com/st-chain/me-hub/x/wmint/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
@@ -73,4 +74,14 @@ func (k Keeper) Calculate(ctx sdk.Context, blockRewards sdk.Dec, totalStaking cm
 
 func RoundUpToFourDecimals(x float64) float64 {
 	return math.Ceil(x*10000) / 10000
+}
+
+// Delegation get the delegation interface for a particular set of delegator and validator addresses
+func (k Keeper) Delegation(ctx sdk.Context, addrDel sdk.AccAddress, addrVal sdk.ValAddress) stakingtypes.DelegationI {
+	bond, ok := k.GetDelegation(ctx, addrDel, addrVal)
+	if !ok {
+		return nil
+	}
+
+	return bond
 }

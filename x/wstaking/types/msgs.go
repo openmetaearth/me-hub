@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -190,13 +189,24 @@ func (msg *MsgRetrieveFeeFromGlobalAdminFeePool) ValidateBasic() error {
 //nolint:interfacer
 func NewMsgDelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin, valStr string) *types.MsgDelegate {
 	valAddrStr := valAddr.String()
-	fmt.Println(valAddrStr)
-	//if valStr == NotBondedPoolName && valAddr.Empty() {
-	//	valAddrStr = valStr
-	//}
+	if valStr == NotBondedPoolName && valAddr.Empty() {
+		valAddrStr = valStr
+	}
 	return &types.MsgDelegate{
 		DelegatorAddress: delAddr.String(),
 		ValidatorAddress: valAddrStr,
 		Amount:           amount,
+	}
+}
+
+// NewMsgUndelegate creates a new MsgUndelegate instance.
+//
+//nolint:interfacer
+func NewMsgUndelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin, isMeid bool) *types.MsgUndelegate {
+	return &types.MsgUndelegate{
+		DelegatorAddress: delAddr.String(),
+		ValidatorAddress: valAddr.String(),
+		Amount:           amount,
+		IsMeid:           isMeid,
 	}
 }

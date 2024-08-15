@@ -109,9 +109,10 @@ fi
 echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test
 med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
 
-jq '.app_state["dao"]["global_dao"] = "mec139mq752delxv78jvtmwxhasyrycufsvr5fhrh9"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-jq '.app_state["dao"]["meid_dao"] = "mec139mq752delxv78jvtmwxhasyrycufsvr5fhrh9"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-jq '.app_state["dao"]["dev_operator"] = "mec139mq752delxv78jvtmwxhasyrycufsvr5fhrh9"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["dao_addresses"]["global_dao"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["dao_addresses"]["meid_dao"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["dao_addresses"]["dev_operator"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["dao_addresses"]["airdrop_address"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 
 validator_address=$(med keys show "$KEY_NAME" -a --keyring-backend test)
 

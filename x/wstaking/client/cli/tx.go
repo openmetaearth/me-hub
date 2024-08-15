@@ -48,6 +48,7 @@ func NewTxCmd() *cobra.Command {
 		CmdNewRegion(),
 		CmdRemoveRegion(),
 		NewDelegateCmd(),
+		NewUndelegateCmd(),
 	)
 
 	return stakingTxCmd
