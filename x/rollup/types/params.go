@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -69,6 +70,12 @@ func (p Params) Validate() error {
 			p.AllowApplyElectionTime, p.ElectionPeriod)
 	}
 	return validateBackupSequencerNumber(p.BackupSequencerNumber)
+}
+
+// String implements the Stringer interface.
+func (p Params) String() string {
+	out, _ := yaml.Marshal(p)
+	return string(out)
 }
 
 func validateElectionPeriod(v interface{}) error {
