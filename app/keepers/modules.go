@@ -95,6 +95,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/streamer"
 	streamermoduleclient "github.com/dymensionxyz/dymension/v3/x/streamer/client"
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	rollupmodule "github.com/dymensionxyz/dymension/v3/x/rollup"
 )
 
 // ModuleBasics defines the module BasicManager is in charge of setting up basic,
@@ -142,6 +143,8 @@ var ModuleBasics = module.NewBasicManager(
 	packetforward.AppModuleBasic{},
 	delayedack.AppModuleBasic{},
 	eibc.AppModuleBasic{},
+	rollupmodule.AppModuleBasic{}
+
 
 	// Ethermint modules
 	evm.AppModuleBasic{},
@@ -192,6 +195,8 @@ func (a *AppKeepers) SetupModules(
 		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper),
 		denommetadatamodule.NewAppModule(a.DenomMetadataKeeper, *a.EvmKeeper, a.BankKeeper),
 		eibcmodule.NewAppModule(appCodec, a.EIBCKeeper, a.AccountKeeper, a.BankKeeper),
+		rollupmodule.NewAppModule(appCodec,a.RollupKeeper,a.BankKeeper),
+
 
 		// Ethermint app modules
 		evm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),

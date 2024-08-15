@@ -97,10 +97,11 @@ type AppModule struct {
 	bk     types.BankKeeper
 }
 
-func NewAppModule(k *keeper.Keeper) AppModule {
+func NewAppModule(cdc codec.Codec, keeper *keeper.Keeper, bankKeeper types.BankKeeper) AppModule {
 	return AppModule{
-		AppModuleBasic: AppModuleBasic{},
-		Keeper:         k,
+		AppModuleBasic: NewAppModuleBasic(cdc),
+		Keeper:         keeper,
+		bk:             bankKeeper,
 	}
 }
 
