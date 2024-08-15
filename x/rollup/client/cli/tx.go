@@ -61,7 +61,7 @@ func CmdStakeForSequencer() *cobra.Command {
 
 func CmdUnStake() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "UnStake [creator] [rollappId] [amount]",
+		Use:     "unStake [creator] [rollappId] [amount]",
 		Short:   "unstake mec",
 		Example: "dymd tx hubRollUp unStake <creator> <rollappId> <amount>",
 		Args:    cobra.ExactArgs(2),

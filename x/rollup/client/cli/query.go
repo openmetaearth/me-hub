@@ -43,7 +43,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 }
 func CmdQueryParams() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "QueryParams [rollapp-id]",
+		Use:   "queryParams [rollapp-id]",
 		Short: "query params.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -73,7 +73,7 @@ func CmdQueryParams() *cobra.Command {
 
 func CmdQueryElectionResult() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "QueryElectionResult [rollapp-id]",
+		Use:   "queryElectionResult [rollapp-id]",
 		Short: "query election result.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -102,7 +102,7 @@ func CmdQueryElectionResult() *cobra.Command {
 
 func CmdQueryStake() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "QueryStake [rollapp-id]",
+		Use:   "queryStake [rollapp-id]",
 		Short: "query stake info.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
