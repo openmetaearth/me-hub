@@ -14,9 +14,8 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgSeqStaking{}, &MsgSeqUnStaking{})
-	//registry.RegisterImplementations((*govtypes.Content)(nil), &SubmitFraudProposal{})
 	//msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
-	msgservice.RegisterMsgServiceDesc(registry, &_RollupServices_serviceDesc)
+	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
 var (
