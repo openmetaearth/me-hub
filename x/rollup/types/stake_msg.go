@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	TypeStakeForSequencer = "StakeForSequencer"
-	TypeUnStake           = "UnStake"
+	TypeStakeForSequencer = "stakeForSequencer"
+	TypeUnStake           = "unStake"
 )
 
 const MaxAllowedSequencers = 100

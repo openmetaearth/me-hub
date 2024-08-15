@@ -8,6 +8,10 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/rollup/types";
 message MsgStakeInfo{
   uint64 stakeAmount = 1;
   uint64 applyUnStakeAmount = 2;
-
 }
 
+message ElectionNodeStatus{
+  string address = 1 ;
+  uint64 stakeAmount = 2 ;
+  int32  status =3 ;
+}

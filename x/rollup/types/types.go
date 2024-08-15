@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	MODULE_NAME             = "HUB_ROLLUP"
+	MODULE_NAME             = "hubRollUp"
 	KEY_LAST_ELECTION_TIME  = "LastElectionTime"
 	KEY_FIRST_ELECTION_TIME = "FirstElectionStartTime"
 	KEY_LAST_UNSTAKE_TIME   = "LastUnStakeTime"

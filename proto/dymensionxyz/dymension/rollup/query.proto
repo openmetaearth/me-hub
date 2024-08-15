@@ -2,8 +2,8 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollup;
 
 import "gogoproto/gogo.proto";
-import "dymensionxyz/dymension/rollup/staking.proto";
 import "dymensionxyz/dymension/rollup/params.proto";
+import "dymensionxyz/dymension/rollup/data_def.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollup/types";
 
 message QueryParamsRequest {
@@ -14,8 +14,40 @@ message QueryParamsResponse {
   // params holds all the parameters of this module.
   Params params = 1 [ (gogoproto.nullable) = false ];
 }
+
+
+message QueryElectionRequest {
+  string rollappId = 1;
+}
+message QueryElectionResponse {
+  uint64 electionTime = 1;
+  uint64 blockHeight = 2;
+  repeated ElectionNodeStatus nodeStatusList = 3;
+}
+message QueryStakeRequest{
+  string rollappId = 1;
+  string address = 2;
+}
+
+message QueryStakeResponse{
+  MsgStakeInfo stakeInfo = 1;
+
+}
+
+/*
+message QueryNodeStatusRequest{
+  string rollappId = 1;
+  string address = 2;
+}
+
+message QueryNodeStatusResponse{
+  MsgStakeInfo  info = 1;
+}*/
+
+
 // Msg defines the Msg service.
-service Msg {
-  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {}
-  
+service Query {
+  rpc QueryParams(QueryParamsRequest) returns (QueryParamsResponse) {}
+  rpc QueryElectionResult(QueryElectionRequest) returns(QueryElectionResponse){}
+  rpc QueryStake(QueryStakeRequest) returns(QueryStakeResponse){}
 }

@@ -11,7 +11,7 @@ message MsgSeqStaking {
   // creator is the bech32-encoded address of the sequencer sending the update
   string creator = 1;
   string rollappId = 2;
-  // version is the version of the rollapp
+  // version is the version of the rollapp(ignore)
   uint64 version = 3;
   uint64 amount = 4;
 }
@@ -21,7 +21,7 @@ message MsgSeqUnStaking {
   // creator is the bech32-encoded address of the sequencer sending the update
   string creator = 1;
   string rollappId = 2;
-  // version is the version of the rollapp
+  // version is the version of the rollapp(ignore)
   uint64 version = 3;
   uint64 amount = 4;
 }

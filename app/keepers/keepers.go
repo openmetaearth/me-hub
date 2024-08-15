@@ -589,6 +589,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(denommetadatamoduletypes.ModuleName)
 	paramsKeeper.Subspace(delayedacktypes.ModuleName)
 	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
+	paramsKeeper.Subspace(rollupkeepertypes.MODULE_NAME)
 
 	// ethermint subspaces
 	paramsKeeper.Subspace(evmtypes.ModuleName)

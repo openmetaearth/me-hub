@@ -29,9 +29,9 @@ func GetTxCmd() *cobra.Command {
 
 func CmdStakeForSequencer() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "StakeForSequencer [creator] [rollappId] [amount]",
-		Short:   "StakeForSequencer",
-		Example: "dymd tx HUB_ROLLUP StakeForSequencer <creator> <rollappId> <amount>",
+		Use:     "stakeForSequencer [creator] [rollappId] [amount]",
+		Short:   "stakeForSequencer",
+		Example: "dymd tx hubRollUp stakeForSequencer <creator> <rollappId> <amount>",
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -63,7 +63,7 @@ func CmdUnStake() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "UnStake [creator] [rollappId] [amount]",
 		Short:   "unstake mec",
-		Example: "dymd tx HUB_ROLLUP UnStake <creator> <rollappId> <amount>",
+		Example: "dymd tx hubRollUp unStake <creator> <rollappId> <amount>",
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
