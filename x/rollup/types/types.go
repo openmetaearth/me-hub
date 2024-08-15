@@ -9,7 +9,9 @@ const (
 	KEY_LAST_ELECTION_TIME  = "LastElectionTime"
 	KEY_FIRST_ELECTION_TIME = "FirstElectionStartTime"
 	KEY_LAST_UNSTAKE_TIME   = "LastUnStakeTime"
+	KEY_LAST_ELECTION_INFO  = "LastElectionInfo"
 	StoreKey                = MODULE_NAME
+	RouterKey               = MODULE_NAME
 )
 
 const (
@@ -24,8 +26,8 @@ const (
 )
 
 const (
-	NodeSequencer uint16 = 0
-	NodeBackup    uint16 = 1
+	NodeSequencer int32 = 1
+	NodeBackup    int32 = 2
 )
 
 func Int64ToBytes(i int64) []byte {
@@ -53,12 +55,6 @@ func (t ElectionsList) Less(i, j int) bool { //降序排列
 }
 func (t ElectionsList) Swap(i, j int) {
 	t[i], t[j] = t[j], t[i]
-}
-
-type NodeElectionRes struct {
-	Address     string `json:"address"`
-	StakeAmount uint64 `json:"stakeAmount"`
-	Status      uint16 `json:"status"`
 }
 
 /*

@@ -9,6 +9,7 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/dymensionxyz/dymension/v3/x/rollup/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/rollup/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollup/types"
 	"github.com/gorilla/mux"
@@ -80,14 +81,14 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 // GetTxCmd returns the capability module's root tx command.
 // TODO:目前暂时设置为空，留待后续有需要增增加cli端
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
-	return nil
+	return cli.GetTxCmd()
 }
 
 // TODO:目前暂时设置为空，留待后续有需要增增加cli端
 // GetQueryCmd returns the capability module's root query command.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	//return cli.GetQueryCmd(types.StoreKey)
-	return nil
+	return cli.GetQueryCmd(types.StoreKey)
 }
 
 type AppModule struct {
@@ -109,7 +110,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 // module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(*am.Keeper))
-	//	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(*am.Keeper))
 }
 
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {

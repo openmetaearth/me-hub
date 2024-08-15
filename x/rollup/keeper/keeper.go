@@ -95,6 +95,15 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 			return fmt.Errorf("%s,Marshal(electList) error.err = %s", types.ErrProcessErr.Error(), err.Error())
 		}
 		rollupStore.Set([]byte(types.KEY_LAST_ELECTION_TIME), types.Int64ToBytes(blkTime))
+		//设置
+		electResult := types.QueryElectionResponse{
+			ElectionTime:   uint64(blkTime),
+			BlockHeight:    uint64(ctx.BlockHeight()),
+			NodeStatusList: electList,
+		}
+		electData := k.cdc.MustMarshal(&electResult)
+		rollupStore.Set([]byte(types.KEY_LAST_ELECTION_INFO), electData)
+		//
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EvtElection,
@@ -177,11 +186,9 @@ func (k *Keeper) startUnstake(ctx sdk.Context) (int32, error) {
 				}
 				unStakeAmount := val.ApplyUnStakeAmount
 				val.ApplyUnStakeAmount = 0
-				if resData, err := k.cdc.Marshal(&val); err != nil {
-					return 0, fmt.Errorf("%s,Marshal error,err = %s", types.ErrProcessErr.Error(), err.Error())
-				} else {
-					store.Set(iterator.Key(), resData)
-				}
+				resData := k.cdc.MustMarshal(&val)
+				store.Set(iterator.Key(), resData)
+
 				ctx.EventManager().EmitEvent(
 					sdk.NewEvent(
 						types.EvtProcUnStake,
@@ -207,7 +214,7 @@ func (k *Keeper) startUnstake(ctx sdk.Context) (int32, error) {
 	return procNumber, nil
 }
 
-func (k *Keeper) startElection(ctx sdk.Context, minStakeAmount uint64) ([]*types.NodeElectionRes, error) {
+func (k *Keeper) startElection(ctx sdk.Context, minStakeAmount uint64) ([]*types.ElectionNodeStatus, error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.RollupStakeKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
@@ -237,10 +244,11 @@ func (k *Keeper) startElection(ctx sdk.Context, minStakeAmount uint64) ([]*types
 			types.ErrProcessErr.Error(), electorList.Len(), SeqNumber)
 	}
 	totalNumber := SeqNumber + BackNumber
-	var res []*types.NodeElectionRes
+	var res []*types.ElectionNodeStatus
+
 	for i := 0; i < electorList.Len(); i++ {
 		index := uint32(i)
-		nodeElect := &types.NodeElectionRes{
+		nodeElect := &types.ElectionNodeStatus{
 			Address:     electorList[i].Address,
 			StakeAmount: electorList[i].StakeAmount,
 		}
@@ -252,6 +260,7 @@ func (k *Keeper) startElection(ctx sdk.Context, minStakeAmount uint64) ([]*types
 			break
 		}
 		res = append(res, nodeElect)
+
 	}
 	return res, nil
 

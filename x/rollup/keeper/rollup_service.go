@@ -13,3 +13,11 @@ type rollupServer struct {
 func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 	return &rollupServer{Keeper: keeper}
 }
+
+type rollupQueryServer struct {
+	Keeper
+}
+
+func NewQueryServerImpl(keeper Keeper) types.QueryServer {
+	return &rollupQueryServer{Keeper: keeper}
+}

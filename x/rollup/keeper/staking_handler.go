@@ -19,14 +19,16 @@ func (t *rollupServer) StakeForSequencer(stakeCtx context.Context, req *types.Ms
 	if !t.Keeper.rk.RollappsEnabled(ctx) {
 		return nil, types.ErrRollappDisable
 	}
-	rollapp, found := t.Keeper.rk.GetRollapp(ctx, req.RollappId)
+	_, found := t.Keeper.rk.GetRollapp(ctx, req.RollappId)
 	if !found {
 		return nil, types.ErrRollappNotExist
 	}
-	if req.Version != rollapp.Version {
-		return nil, fmt.Errorf("%s, rollappVersion = %d,reqVersion = %d", types.ErrRollappVersionMismatch.Error(),
-			rollapp.Version, req.Version)
-	}
+	/*
+		if req.Version != rollapp.Version {
+			return nil, fmt.Errorf("%s, rollappVersion = %d,reqVersion = %d", types.ErrRollappVersionMismatch.Error(),
+				rollapp.Version, req.Version)
+		}
+	*/
 
 	if !t.isAllowStake(ctx, ctx.BlockTime().Unix()) {
 		return nil, types.ErrStakeTimeoutLimit
@@ -105,14 +107,17 @@ func (t *rollupServer) UnStake(stakeCtx context.Context, req *types.MsgSeqUnStak
 	if !t.Keeper.rk.RollappsEnabled(ctx) {
 		return nil, types.ErrRollappDisable
 	}
-	rollapp, found := t.Keeper.rk.GetRollapp(ctx, req.RollappId)
+	_, found := t.Keeper.rk.GetRollapp(ctx, req.RollappId)
 	if !found {
 		return nil, types.ErrRollappNotExist
 	}
-	if req.Version != rollapp.Version {
-		return nil, fmt.Errorf("%s, rollappVersion = %d,reqVersion = %d", types.ErrRollappVersionMismatch.Error(),
-			rollapp.Version, req.Version)
-	}
+	/*
+		if req.Version != rollapp.Version {
+			return nil, fmt.Errorf("%s, rollappVersion = %d,reqVersion = %d", types.ErrRollappVersionMismatch.Error(),
+				rollapp.Version, req.Version)
+		}
+
+	*/
 	if req.Amount < 1 {
 		return nil, types.ErrInputDataErr
 	}

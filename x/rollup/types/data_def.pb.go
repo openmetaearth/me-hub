@@ -78,14 +78,78 @@ func (m *MsgStakeInfo) GetApplyUnStakeAmount() uint64 {
 	return 0
 }
 
+type ElectionNodeStatus struct {
+	Address              string   `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	StakeAmount          uint64   `protobuf:"varint,2,opt,name=stakeAmount,proto3" json:"stakeAmount,omitempty"`
+	Status               int32    `protobuf:"varint,3,opt,name=status,proto3" json:"status,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ElectionNodeStatus) Reset()         { *m = ElectionNodeStatus{} }
+func (m *ElectionNodeStatus) String() string { return proto.CompactTextString(m) }
+func (*ElectionNodeStatus) ProtoMessage()    {}
+func (*ElectionNodeStatus) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7361e34b9cc23e84, []int{1}
+}
+func (m *ElectionNodeStatus) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ElectionNodeStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ElectionNodeStatus.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ElectionNodeStatus) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ElectionNodeStatus.Merge(m, src)
+}
+func (m *ElectionNodeStatus) XXX_Size() int {
+	return m.Size()
+}
+func (m *ElectionNodeStatus) XXX_DiscardUnknown() {
+	xxx_messageInfo_ElectionNodeStatus.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ElectionNodeStatus proto.InternalMessageInfo
+
+func (m *ElectionNodeStatus) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
+func (m *ElectionNodeStatus) GetStakeAmount() uint64 {
+	if m != nil {
+		return m.StakeAmount
+	}
+	return 0
+}
+
+func (m *ElectionNodeStatus) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*MsgStakeInfo)(nil), "dymensionxyz.dymension.rollup.MsgStakeInfo")
+	proto.RegisterType((*ElectionNodeStatus)(nil), "dymensionxyz.dymension.rollup.ElectionNodeStatus")
 }
 
 func init() { proto.RegisterFile("data_def.proto", fileDescriptor_7361e34b9cc23e84) }
 
 var fileDescriptor_7361e34b9cc23e84 = []byte{
-	// 189 bytes of a gzipped FileDescriptorProto
+	// 249 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x4b, 0x49, 0x2c, 0x49,
 	0x8c, 0x4f, 0x49, 0x4d, 0xd3, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x92, 0x4d, 0xa9, 0xcc, 0x4d,
 	0xcd, 0x2b, 0xce, 0xcc, 0xcf, 0xab, 0xa8, 0xac, 0xd2, 0x83, 0x73, 0xf4, 0x8a, 0xf2, 0x73, 0x72,
@@ -93,11 +157,15 @@ var fileDescriptor_7361e34b9cc23e84 = []byte{
 	0x04, 0x2e, 0x1e, 0xdf, 0xe2, 0xf4, 0xe0, 0x92, 0xc4, 0xec, 0x54, 0xcf, 0xbc, 0xb4, 0x7c, 0x21,
 	0x05, 0x2e, 0xee, 0x62, 0x10, 0xc7, 0x31, 0x37, 0xbf, 0x34, 0xaf, 0x44, 0x82, 0x51, 0x81, 0x51,
 	0x83, 0x25, 0x08, 0x59, 0x48, 0x48, 0x8f, 0x4b, 0x28, 0xb1, 0xa0, 0x20, 0xa7, 0x32, 0x34, 0x2f,
-	0x18, 0x49, 0x21, 0x13, 0x58, 0x21, 0x16, 0x19, 0x27, 0xd7, 0x13, 0x8f, 0xe4, 0x18, 0x2f, 0x3c,
-	0x92, 0x63, 0x7c, 0xf0, 0x48, 0x8e, 0x71, 0xc6, 0x63, 0x39, 0x86, 0x28, 0xe3, 0xf4, 0xcc, 0x92,
-	0x8c, 0xd2, 0x24, 0xbd, 0xe4, 0xfc, 0x5c, 0x7d, 0x64, 0x37, 0x23, 0x38, 0xfa, 0x65, 0xc6, 0xfa,
-	0x15, 0xfa, 0x10, 0x87, 0xeb, 0x97, 0x54, 0x16, 0xa4, 0x16, 0x27, 0xb1, 0x81, 0xdd, 0x6b, 0x0c,
-	0x08, 0x00, 0x00, 0xff, 0xff, 0xa0, 0x91, 0xd4, 0x28, 0xf6, 0x00, 0x00, 0x00,
+	0x18, 0x49, 0x21, 0x13, 0x58, 0x21, 0x16, 0x19, 0xa5, 0x0c, 0x2e, 0x21, 0xd7, 0x9c, 0xd4, 0xe4,
+	0x92, 0xcc, 0xfc, 0x3c, 0xbf, 0xfc, 0x94, 0xd4, 0xe0, 0x92, 0xc4, 0x92, 0xd2, 0x62, 0x21, 0x09,
+	0x2e, 0xf6, 0xc4, 0x94, 0x94, 0xa2, 0xd4, 0xe2, 0x62, 0xb0, 0x1d, 0x9c, 0x41, 0x30, 0x2e, 0xba,
+	0x0b, 0x98, 0x30, 0x5d, 0x20, 0xc6, 0xc5, 0x56, 0x0c, 0x36, 0x45, 0x82, 0x59, 0x81, 0x51, 0x83,
+	0x35, 0x08, 0xca, 0x73, 0x72, 0x3d, 0xf1, 0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f,
+	0xe4, 0x18, 0x67, 0x3c, 0x96, 0x63, 0x88, 0x32, 0x4e, 0xcf, 0x2c, 0xc9, 0x28, 0x4d, 0xd2, 0x4b,
+	0xce, 0xcf, 0xd5, 0x47, 0x0e, 0x1d, 0x04, 0x47, 0xbf, 0xcc, 0x58, 0xbf, 0x42, 0x1f, 0x12, 0x44,
+	0xfa, 0x25, 0x95, 0x05, 0xa9, 0xc5, 0x49, 0x6c, 0xe0, 0x90, 0x31, 0x06, 0x04, 0x00, 0x00, 0xff,
+	0xff, 0xf4, 0xc0, 0x74, 0xec, 0x60, 0x01, 0x00, 0x00,
 }
 
 func (m *MsgStakeInfo) Marshal() (dAtA []byte, err error) {
@@ -137,6 +205,50 @@ func (m *MsgStakeInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *ElectionNodeStatus) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ElectionNodeStatus) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ElectionNodeStatus) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Status != 0 {
+		i = encodeVarintDataDef(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.StakeAmount != 0 {
+		i = encodeVarintDataDef(dAtA, i, uint64(m.StakeAmount))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Address) > 0 {
+		i -= len(m.Address)
+		copy(dAtA[i:], m.Address)
+		i = encodeVarintDataDef(dAtA, i, uint64(len(m.Address)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintDataDef(dAtA []byte, offset int, v uint64) int {
 	offset -= sovDataDef(v)
 	base := offset
@@ -159,6 +271,28 @@ func (m *MsgStakeInfo) Size() (n int) {
 	}
 	if m.ApplyUnStakeAmount != 0 {
 		n += 1 + sovDataDef(uint64(m.ApplyUnStakeAmount))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *ElectionNodeStatus) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovDataDef(uint64(l))
+	}
+	if m.StakeAmount != 0 {
+		n += 1 + sovDataDef(uint64(m.StakeAmount))
+	}
+	if m.Status != 0 {
+		n += 1 + sovDataDef(uint64(m.Status))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -235,6 +369,127 @@ func (m *MsgStakeInfo) Unmarshal(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.ApplyUnStakeAmount |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDataDef(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDataDef
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ElectionNodeStatus) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDataDef
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ElectionNodeStatus: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ElectionNodeStatus: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDataDef
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDataDef
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDataDef
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StakeAmount", wireType)
+			}
+			m.StakeAmount = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDataDef
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.StakeAmount |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDataDef
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
