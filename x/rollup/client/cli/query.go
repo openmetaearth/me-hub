@@ -9,26 +9,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-package cli
-
-import (
-"fmt"
-// "strings"
-
-"github.com/spf13/cobra"
-
-"github.com/cosmos/cosmos-sdk/client"
-
-
-"github.com/dymensionxyz/dymension/v3/x/rollup/types"
-)
-
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd(queryRoute string) *cobra.Command {
 	// Group rollapp queries under a subcommand
 	cmd := &cobra.Command{
 		Use:                        types.MODULE_NAME,
-		Short:                      fmt.Sprintf("Querying commands for the %s module",  types.MODULE_NAME),
+		Short:                      fmt.Sprintf("Querying commands for the %s module", types.MODULE_NAME),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -37,7 +23,6 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdQueryParams())
 	cmd.AddCommand(CmdQueryElectionResult())
 	cmd.AddCommand(CmdQueryStake())
-
 
 	return cmd
 }
@@ -63,13 +48,12 @@ func CmdQueryParams() *cobra.Command {
 		},
 	}
 
-//	cmd.Flags().Bool(FlagFinalized, false, "Indicates whether to return the latest finalized state index")
+	//	cmd.Flags().Bool(FlagFinalized, false, "Indicates whether to return the latest finalized state index")
 
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
-
 
 func CmdQueryElectionResult() *cobra.Command {
 	cmd := &cobra.Command{
@@ -112,7 +96,7 @@ func CmdQueryStake() *cobra.Command {
 			argAddress := args[1]
 			req := &types.QueryStakeRequest{
 				RollappId: argRollappId,
-				Address: argAddress,
+				Address:   argAddress,
 			}
 
 			res, err := queryClient.QueryStake(context.Background(), req)
