@@ -3,7 +3,7 @@ package mock
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	staking "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	wstaking "github.com/st-chain/me-hub/x/wstaking/keeper"
 
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 )
@@ -37,12 +37,12 @@ func (mbk MockBankKeeper) GetTreasuryPoolName() string {
 }
 
 type MockStakingKeeper struct {
-	*staking.Keeper
+	*wstaking.Keeper
 	Meid   map[string]*MockMeid
 	Region map[string]*MockRegion
 }
 
-func NewMockStakingKeeper(sk *staking.Keeper) *MockStakingKeeper {
+func NewMockStakingKeeper(sk *wstaking.Keeper) *MockStakingKeeper {
 	ms := &MockStakingKeeper{
 		Keeper: sk,
 		Meid:   make(map[string]*MockMeid),

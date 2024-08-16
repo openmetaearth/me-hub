@@ -2,7 +2,7 @@ package types
 
 const (
 	// ModuleName defines the module name
-	ModuleName = "wdistri"
+	ModuleName = "distribution"
 
 	// StoreKey defines the primary module store key
 	StoreKey = ModuleName
@@ -11,7 +11,7 @@ const (
 	RouterKey = ModuleName
 
 	// MemStoreKey defines the in-memory store key
-	MemStoreKey = "mem_wdistri"
+	MemStoreKey = "distribution"
 
 	ReceiveMintReward = "temp-" + ModuleName
 )

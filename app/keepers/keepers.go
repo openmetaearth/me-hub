@@ -16,8 +16,6 @@ import (
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
@@ -65,10 +63,13 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+	"github.com/st-chain/me-hub/mocks/mock"
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
+	wdistrkeeper "github.com/st-chain/me-hub/x/wdistri/keeper"
+	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
 
 	"github.com/st-chain/me-hub/x/bridgingfee"
@@ -104,7 +105,7 @@ type AppKeepers struct {
 	StakingKeeper                 *wstakingkeeper.Keeper
 	SlashingKeeper                slashingkeeper.Keeper
 	MintKeeper                    wmintkeeper.Keeper
-	DistrKeeper                   distrkeeper.Keeper
+	DistrKeeper                   *wdistrkeeper.Keeper
 	GovKeeper                     *govkeeper.Keeper
 	CrisisKeeper                  *crisiskeeper.Keeper
 	UpgradeKeeper                 *upgradekeeper.Keeper
@@ -254,14 +255,18 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 	)
 
-	a.DistrKeeper = distrkeeper.NewKeeper(
+	//FIXME: distribution
+	a.DistrKeeper = wdistrkeeper.NewKeeper(
 		appCodec,
-		a.keys[distrtypes.StoreKey],
+		a.keys[wdistrtypes.StoreKey],
+		a.keys[wdistrtypes.MemStoreKey],
+		a.GetSubspace(wdistrtypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
-		a.StakingKeeper,
-		authtypes.FeeCollectorName,
-		govModuleAddress,
+		//FIXME: use wstakingKeeper instead mock
+		mock.NewMockStakingKeeper(a.StakingKeeper),
+		wbanktypes.TreasuryPoolName,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.SlashingKeeper = slashingkeeper.NewKeeper(
@@ -591,7 +596,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(banktypes.ModuleName)
 	paramsKeeper.Subspace(stakingtypes.ModuleName)
 	paramsKeeper.Subspace(minttypes.ModuleName)
-	paramsKeeper.Subspace(distrtypes.ModuleName)
+	paramsKeeper.Subspace(wdistrtypes.ModuleName)
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName)

@@ -17,9 +17,6 @@ import (
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	"github.com/cosmos/cosmos-sdk/x/distribution"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/evidence"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
@@ -69,6 +66,9 @@ import (
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	"github.com/st-chain/me-hub/x/wbank"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
+	"github.com/st-chain/me-hub/x/wdistri"
+	wdistr "github.com/st-chain/me-hub/x/wdistri"
+	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 	"github.com/st-chain/me-hub/x/wmint"
 	"github.com/st-chain/me-hub/x/wstaking"
 
@@ -112,7 +112,7 @@ var ModuleBasics = module.NewBasicManager(
 	//staking.AppModuleBasic{},
 	wstaking.AppModuleBasic{},
 	wmint.AppModuleBasic{},
-	distribution.AppModuleBasic{},
+	wdistri.AppModuleBasic{},
 	gov.NewAppModuleBasic([]client.ProposalHandler{
 		paramsclient.ProposalHandler,
 		upgradeclient.LegacyProposalHandler,
@@ -182,7 +182,7 @@ func (a *AppKeepers) SetupModules(
 		gov.NewAppModule(appCodec, a.GovKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(govtypes.ModuleName)),
 		wmint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil, a.GetSubspace(minttypes.ModuleName)),
 		slashing.NewAppModule(appCodec, a.SlashingKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(slashingtypes.ModuleName)),
-		distr.NewAppModule(appCodec, a.DistrKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(distrtypes.ModuleName)),
+		wdistr.NewAppModule(appCodec, *a.DistrKeeper, a.AccountKeeper, a.BankKeeper),
 		wstaking.NewAppModule(appCodec, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
 		upgrade.NewAppModule(a.UpgradeKeeper),
 		evidence.NewAppModule(a.EvidenceKeeper),
@@ -228,7 +228,7 @@ func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 // module account permissions
 var maccPerms = map[string][]string{
 	authtypes.FeeCollectorName:                         nil,
-	distrtypes.ModuleName:                              nil,
+	wdistrtypes.ModuleName:                             nil,
 	wbanktypes.TreasuryPoolName:                        nil,
 	minttypes.ModuleName:                               {authtypes.Minter},
 	stakingtypes.BondedPoolName:                        {authtypes.Burner, authtypes.Staking},
@@ -251,7 +251,7 @@ var BeginBlockers = []string{
 	upgradetypes.ModuleName,
 	capabilitytypes.ModuleName,
 	minttypes.ModuleName,
-	distrtypes.ModuleName,
+	wdistrtypes.ModuleName,
 	slashingtypes.ModuleName,
 	evidencetypes.ModuleName,
 	stakingtypes.ModuleName,
@@ -292,7 +292,7 @@ var EndBlockers = []string{
 	authtypes.ModuleName,
 	authz.ModuleName,
 	banktypes.ModuleName,
-	distrtypes.ModuleName,
+	wdistrtypes.ModuleName,
 	feemarkettypes.ModuleName,
 	evmtypes.ModuleName,
 	slashingtypes.ModuleName,
@@ -327,7 +327,7 @@ var InitGenesis = []string{
 	authtypes.ModuleName,
 	authz.ModuleName,
 	banktypes.ModuleName,
-	distrtypes.ModuleName,
+	wdistrtypes.ModuleName,
 	daotypes.ModuleName,
 	stakingtypes.ModuleName,
 	vestingtypes.ModuleName,
