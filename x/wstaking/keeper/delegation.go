@@ -3,7 +3,6 @@ package keeper
 import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"time"
@@ -14,7 +13,7 @@ func (k Keeper) UnMeidDelegate(
 	// Get or create the delegation object
 	delegation, found := k.GetDelegation(ctx, delAddr, validatorAddr)
 	if !found {
-		delegation = stakingtypes.NewDelegation(delAddr, validatorAddr, sdk.ZeroDec())
+		delegation = types.NewDelegation(delAddr, validatorAddr, sdk.ZeroDec())
 	}
 	//if found {
 	//	err = k.hooks.BeforeDelegationSharesModified(ctx, delAddr, validatorAddr)
