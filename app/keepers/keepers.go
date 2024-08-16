@@ -63,7 +63,6 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
-	"github.com/st-chain/me-hub/mocks/mock"
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
@@ -264,7 +263,7 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.BankKeeper,
 		//FIXME: use wstakingKeeper instead mock
-		mock.NewMockStakingKeeper(a.StakingKeeper),
+		a.StakingKeeper,
 		wbanktypes.TreasuryPoolName,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
