@@ -1,12 +1,10 @@
 package types
 
 import (
-	cmath "cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	dt "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	"github.com/st-chain/me-hub/mocks/mock"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 )
 
 type DistrKeeper interface {
@@ -17,9 +15,7 @@ type StakingKeeper interface {
 	// Methods imported from staking should be defined here
 	dt.StakingKeeper
 
-	//FIXME: some method are not need ,remove it
-	//FIXME: replace mock.MockRegion type
-	GetAllRegion(ctx sdk.Context) (list []mock.MockRegion)
+	GetAllRegion(ctx sdk.Context) (list []wstakingtypes.Region)
 }
 
 type AccountKeeper interface {

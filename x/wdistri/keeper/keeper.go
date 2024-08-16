@@ -66,14 +66,14 @@ func NewKeeper(
 		WrapDistrKeeper: &WrapDistrKeeper{
 			&DistrKeeper,
 		},
-		cdc:           cdc,
-		storeKey:      storeKey,
-		memKey:        memKey,
-		paramstore:    ps,
-		authKeeper:    accountKeeper,
-		bankKeeper:    bankKeeper,
-		stakingKeeper: stakingKeeper,
-		authority: authority,
+		cdc:              cdc,
+		storeKey:         storeKey,
+		memKey:           memKey,
+		paramstore:       ps,
+		authKeeper:       accountKeeper,
+		bankKeeper:       bankKeeper,
+		stakingKeeper:    stakingKeeper,
+		authority:        authority,
 		feeCollectorName: feeCollectorName,
 	}
 }
@@ -134,21 +134,26 @@ func (k Keeper) AllocateBlockRewards(ctx sdk.Context, req abci.RequestEndBlock) 
 	}
 }
 
-// TODO: abstract the type from other module
-// TODO: set MEExponent
-// GetMintCoinsByHeight Get coins through the block height range
+// getMintCoinsByHeight Get coins through the block height range
 func getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
 	var totalCoins int64
-
-	lowMul := float64(fromHeight-1) / oneYearTotalBlocks
+	baseDenom, err := sdk.GetBaseDenom()
+	if err != nil {
+		panic("GetBaseDenom failed")
+	}
+	denomUnit, ok := sdk.GetDenomUnit(baseDenom)
+	if !ok {
+		panic("GetDenomUnit failed")
+	}
+	lowMul := (fromHeight - 1) / oneYearTotalBlocks
 	lowAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(lowMul))
 	lowMintMEAmount := RoundUpToFourDecimals(lowAmount)
-	lowMintUMEAmount := lowMintMEAmount * math.Pow(10, mock.MEExponent)
+	lowMintUMEAmount := lowMintMEAmount * math.Pow(10, denomUnit.MustFloat64())
 
-	highMul := float64(toHeight-1) / oneYearTotalBlocks
+	highMul := (toHeight - 1) / oneYearTotalBlocks
 	highAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(highMul))
 	highMintMEAmount := RoundUpToFourDecimals(highAmount)
-	highMintUMEAmount := highMintMEAmount * math.Pow(10, mock.MEExponent)
+	highMintUMEAmount := highMintMEAmount * math.Pow(10, denomUnit.MustFloat64())
 
 	for i := lowMul; i <= highMul; i++ {
 		// If the range of from and to are in the same reduction height
@@ -157,22 +162,22 @@ func getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
 			continue
 			// Calculate the number of tokens between from and its first cut height
 		} else if i == lowMul {
-			totalCoins = totalCoins + int64(oneYearTotalBlocks*(lowMul+1)-float64(fromHeight)+1)*int64(lowMintUMEAmount)
+			totalCoins = totalCoins + int64(oneYearTotalBlocks*(lowMul+1)-(fromHeight)+1)*int64(lowMintUMEAmount)
 			continue
 			// Calculate the number of tokens between the last production reduction height and to
 		} else if i == highMul {
-			totalCoins = totalCoins + int64(float64(toHeight)-oneYearTotalBlocks*(i)-1)*int64(highMintUMEAmount)
+			totalCoins = totalCoins + int64(toHeight-oneYearTotalBlocks*(i)-1)*int64(highMintUMEAmount)
 			continue
 		}
 
 		// Calculate the number of tokens for each full cut interval
 		mintAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(i))
 		mintMEAmount := RoundUpToFourDecimals(mintAmount)
-		mintUMEAmount := mintMEAmount * math.Pow(10, mock.MEExponent)
+		mintUMEAmount := mintMEAmount * math.Pow(10, denomUnit.MustFloat64())
 		totalCoins = totalCoins + int64(oneYearTotalBlocks)*int64(mintUMEAmount)
 	}
 
-	mintedUMECoin := sdk.NewCoin(mock.BaseMEDenom, sdk.NewInt(totalCoins))
+	mintedUMECoin := sdk.NewCoin(baseDenom, sdk.NewInt(totalCoins))
 	coin = sdk.NewDecFromInt(mintedUMECoin.Amount)
 
 	return
