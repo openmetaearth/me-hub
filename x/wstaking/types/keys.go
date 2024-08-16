@@ -243,12 +243,6 @@ func ParseValidatorQueueKey(bz []byte) (time.Time, int64, error) {
 	return ts, int64(height), nil
 }
 
-// GetDelegationKey creates the key for delegator bond with validator
-// VALUE: staking/Delegation
-func GetDelegationKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
-	return append(GetDelegationsKey(delAddr), address.MustLengthPrefix(sdk.ValAddress{})...)
-}
-
 // GetStakeKey creates the key for staker bond with validator
 // VALUE: staking/Stake
 func GetStakeKey(stakeAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {

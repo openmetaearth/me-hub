@@ -74,21 +74,6 @@ func (k Keeper) SetAllUnMEIDDelegationAmount(ctx sdk.Context, coin sdk.Coin) {
 	store.Set(key, b)
 }
 
-// GetDelegation returns a specific delegation.
-func (k Keeper) GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, found bool) {
-	store := ctx.KVStore(k.storeKey)
-	key := types.GetDelegationKey(delAddr, sdk.ValAddress{})
-
-	value := store.Get(key)
-	if value == nil {
-		return delegation, false
-	}
-
-	delegation = types.MustUnmarshalDelegation(k.cdc, value)
-
-	return delegation, true
-}
-
 // Undelegate unbonds an amount of delegator shares from a given validator. It
 // will verify that the unbonding entries between the delegator and validator
 // are not exceeded and unbond the staked tokens (based on shares) by creating

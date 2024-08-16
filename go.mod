@@ -234,7 +234,7 @@ require (
 )
 
 replace (
-	github.com/cosmos/cosmos-sdk => github.com/st-chain/cosmos-sdk v0.47.14-0.20240815073234-d80c096d1257
+	github.com/cosmos/cosmos-sdk => github.com/st-chain/cosmos-sdk v0.47.14-0.20240815103524-e76968460ac7
 	// use dymension forks
 	github.com/evmos/ethermint => ./ethermint
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
