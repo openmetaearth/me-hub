@@ -48,7 +48,6 @@ func NewKeeper(
 	stakingKeeper types.StakingKeeper,
 	feeCollectorName string,
 	authority string,
-	//FIXME: init treasuryPoolName
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {

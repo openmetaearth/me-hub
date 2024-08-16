@@ -18,17 +18,8 @@ type StakingKeeper interface {
 	dt.StakingKeeper
 
 	//FIXME: some method are not need ,remove it
-	CalculateInterest(ctx sdk.Context, totalStaking cmath.Int, height int64) (rewards sdk.Dec, err error)
-	SetDelegation(ctx sdk.Context, delegation mock.Delegation)
-	// GetALLDelegationAmount(ctx sdk.Context) sdk.Dec
 	//FIXME: replace mock.MockRegion type
 	GetAllRegion(ctx sdk.Context) (list []mock.MockRegion)
-	// GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
-
-	GetMeid(ctx sdk.Context, account string) (val mock.MockMeid, found bool)
-	//FIXME: replace mock.MockRegion type
-	GetRegion(ctx sdk.Context, regionId string) (val mock.MockRegion, found bool)
-	SetRegion(ctx sdk.Context, region mock.MockRegion)
 }
 
 type AccountKeeper interface {
