@@ -5,11 +5,10 @@ ARG LINK_STATICALLY
 # Set working directory
 WORKDIR /app
 
-COPY go.mod go.sum* ./
+COPY . .
 
 RUN go mod download
 
-COPY . .
 
 # Install system dependencies required for your application and Delve
 ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3
@@ -32,7 +31,7 @@ FROM alpine:3.16.1
 RUN apk add curl jq bash vim
 
 # Copy the compiled binary from the builder
-COPY --from=go-builder /app/build/dymd /usr/local/bin/
+COPY --from=go-builder /app/build/med /usr/local/bin/
 
 # Copy Delve from the builder
 COPY --from=go-builder /go/bin/dlv /usr/local/bin/dlv

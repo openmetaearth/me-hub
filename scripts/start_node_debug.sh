@@ -5,15 +5,16 @@ genesis_config_cmds="/app/scripts/genesis_config_commands.sh"
 . "$genesis_config_cmds"
 
 # Set parameters
-DATA_DIRECTORY="$HOME/.dymension"
+DATA_DIRECTORY="$HOME/.mechain"
 CONFIG_DIRECTORY="$DATA_DIRECTORY/config"
 TENDERMINT_CONFIG_FILE="$CONFIG_DIRECTORY/config.toml"
 CLIENT_CONFIG_FILE="$CONFIG_DIRECTORY/client.toml"
 APP_CONFIG_FILE="$CONFIG_DIRECTORY/app.toml"
 GENESIS_FILE="$CONFIG_DIRECTORY/genesis.json"
-CHAIN_ID=${CHAIN_ID:-"dymension_100-1"}
+CHAIN_ID=${CHAIN_ID:-"mechain_100-1"}
 MONIKER_NAME=${MONIKER_NAME:-"local"}
-KEY_NAME=${KEY_NAME:-"local-user"}
+KEY_NAME=${KEY_NAME:-"hub-user"}
+MNEMONIC="curtain hat remain song receive tower stereo hope frog cheap brown plate raccoon post reflect wool sail salmon game salon group glimpse adult shift"
 
 # Setting non-default ports to avoid port conflicts when running local rollapp
 SETTLEMENT_ADDR=${SETTLEMENT_ADDR:-"0.0.0.0:36657"}
@@ -24,21 +25,21 @@ API_ADDRESS=${API_ADDRESS:-"0.0.0.0:1318"}
 JSONRPC_ADDRESS=${JSONRPC_ADDRESS:-"0.0.0.0:9545"}
 JSONRPC_WS_ADDRESS=${JSONRPC_WS_ADDRESS:-"0.0.0.0:9546"}
 
-TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000adym"} #1M DYM (1e6dym = 1e6 * 1e18 = 1e24adym )
-STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000000000000000adym"} #67% is staked (inflation goal)
+TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000umec"} #1M MEC (1e6mec = 1e6 * 1e18 = 1e24umec )
+STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000000000000000umec"} #67% is staked (inflation goal)
 
-# Validate dymension binary exists
+# Validate mechain binary exists
 export PATH=$PATH:$HOME/go/bin
-if ! command -v dymd > /dev/null; then
+if ! command -v med > /dev/null; then
   make install
-  if ! command -v dymd; then
-    echo "dymension binary not found in $PATH"
+  if ! command -v med; then
+    echo "mechain binary not found in $PATH"
     exit 1
   fi
 fi
 
-# Create and init dymension chain
-dymd init "$MONIKER_NAME" --chain-id="$CHAIN_ID"
+# Create and init mechain chain
+med init "$MONIKER_NAME" --chain-id="$CHAIN_ID"
 
 # ---------------------------------------------------------------------------- #
 #                              Set configurations                              #
@@ -49,11 +50,11 @@ sed -i'' -e "/\[p2p\]/,+3 s/laddr *= .*/laddr = \"tcp:\/\/$P2P_ADDRESS\"/" "$TEN
 sed -i'' -e "/\[grpc\]/,+6 s/address *= .*/address = \"$GRPC_ADDRESS\"/" "$APP_CONFIG_FILE"
 sed -i'' -e "/\[grpc-web\]/,+7 s/address *= .*/address = \"$GRPC_WEB_ADDRESS\"/" "$APP_CONFIG_FILE"
 sed -i'' -e "/\[json-rpc\]/,+6 s/address *= .*/address = \"$JSONRPC_ADDRESS\"/" "$APP_CONFIG_FILE"
-sed -i'' -e "/\[json-rpc\]/,+9 s/address *= .*/address = \"$JSONRPC_WS_ADDRESS\"/" "$APP_CONFIG_FILE"
+sed -i'' -e "/\[json-rpc\]/,+9 s/^ws-address *= .*/ws-address = \"$JSONRPC_WS_ADDRESS\"/" "$APP_CONFIG_FILE"
 sed -i'' -e '/\[api\]/,+3 s/enable *= .*/enable = true/' "$APP_CONFIG_FILE"
 sed -i'' -e "/\[api\]/,+9 s/address *= .*/address = \"tcp:\/\/$API_ADDRESS\"/" "$APP_CONFIG_FILE"
 
-sed -i'' -e 's/^minimum-gas-prices *= .*/minimum-gas-prices = "100000000adym"/' "$APP_CONFIG_FILE"
+sed -i'' -e 's/^minimum-gas-prices *= .*/minimum-gas-prices = "1000umec"/' "$APP_CONFIG_FILE"
 
 sed -i'' -e "s/^chain-id *= .*/chain-id = \"$CHAIN_ID\"/" "$CLIENT_CONFIG_FILE"
 sed -i'' -e "s/^keyring-backend *= .*/keyring-backend = \"test\"/" "$CLIENT_CONFIG_FILE"
@@ -68,9 +69,16 @@ set_bank_denom_metadata
 set_epochs_params
 set_incentives_params
 
-dymd keys add "$KEY_NAME" --keyring-backend test
-dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
+echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test
+med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
 
-dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
-dymd collect-gentxs
-dlv --continue --accept-multiclient --api-version=2 --headless --listen=:4000 exec /usr/local/bin/dymd start
+jq '.app_state["dao"]["dao_addresses"]["global_dao"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["dao_addresses"]["meid_dao"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["dao_addresses"]["dev_operator"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["dao_addresses"]["airdrop_address"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+validator_address=$(med keys show "$KEY_NAME" -a --keyring-backend test)
+med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test --region-id me_earth --validator-address "$validator_address"
+med collect-gentxs
+set_authorised_deployer_account "$(med keys show "$KEY_NAME" -a --keyring-backend test)"
+med validate-genesis
+dlv --continue --accept-multiclient --api-version=2 --headless --listen=:4000 exec /usr/local/bin/med start
