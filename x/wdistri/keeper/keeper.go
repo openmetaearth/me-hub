@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 
-	cmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,7 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distriKeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/st-chain/me-hub/mocks/mock"
 	"github.com/st-chain/me-hub/x/wdistri/types"
 )
 
@@ -31,6 +29,8 @@ type (
 		authority string
 
 		feeCollectorName string // name of the FeeCollector ModuleAccount
+		baseDenom        string
+		denomeUnit       int64
 	}
 )
 
@@ -62,6 +62,14 @@ func NewKeeper(
 		feeCollectorName,
 		authority,
 	)
+	baseDenom, err := sdk.GetBaseDenom()
+	if err != nil {
+		panic("GetBaseDenom failed")
+	}
+	denomUnit, ok := sdk.GetDenomUnit(baseDenom)
+	if !ok {
+		panic("GetDenomUnit failed")
+	}
 	return &Keeper{
 		WrapDistrKeeper: &WrapDistrKeeper{
 			&DistrKeeper,
@@ -75,6 +83,8 @@ func NewKeeper(
 		stakingKeeper:    stakingKeeper,
 		authority:        authority,
 		feeCollectorName: feeCollectorName,
+		baseDenom:        baseDenom,
+		denomeUnit:       denomUnit.BigInt().Int64(),
 	}
 }
 
@@ -82,33 +92,13 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// TODO: abstract the type from other module
-// TODO: set MEExponent
+// TODO: abstract the type from other module:RegionI
 func (k Keeper) AllocateBlockRewards(ctx sdk.Context, req abci.RequestEndBlock) {
-	//TODO: remove test code
-	acc := k.authKeeper.GetModuleAccount(ctx, k.feeCollectorName)
-	mintAddress := acc.GetAddress()
-	//test allocate
-	ctx.Logger().Info("mint module address", "address", mintAddress.String())
-	mintCoins := k.bankKeeper.GetAllBalances(ctx, mintAddress)
-	mintCoins = mintCoins.QuoInt(cmath.NewInt(2))
-	ctx.Logger().Info("mint module balance", "coins", mintCoins.String())
-
-	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.feeCollectorName, sdk.MustAccAddressFromBech32("me1v5pve47gt0vnnhrlkfvs9c90keuz937vvsgjae"), mintCoins)
-	if err != nil {
-		ctx.Logger().Error(err.Error())
-	}
-	return
-	// for test environment
-	//if ctx.BlockHeight()%2 == 0 {
-	//	fromHeight := req.Height - 2 + 1
-
-	// for formal environment
 	if ctx.BlockHeight()%oneDayTotalBlocks == 0 {
 		fromHeight := req.Height - oneDayTotalBlocks + 1
 
 		toHeight := req.Height + 1
-		totalMintCoins := getMintCoinsByHeight(fromHeight, toHeight)
+		totalMintCoins := k.getMintCoinsByHeight(fromHeight, toHeight)
 
 		regions := k.stakingKeeper.GetAllRegion(ctx)
 		for _, region := range regions {
@@ -116,7 +106,7 @@ func (k Keeper) AllocateBlockRewards(ctx sdk.Context, req abci.RequestEndBlock) 
 			// calculate every region coins: RegionShare * totalMintCoins / totalSupply
 			amount := sdk.NewDecFromInt(region.RegionShare).Mul(totalMintCoins).Quo(totalSupply)
 			regionAmount := amount.TruncateInt()
-			regionCoins := sdk.NewCoins(sdk.NewCoin(mock.BaseMEDenom, sdk.NewInt(regionAmount.Int64())))
+			regionCoins := sdk.NewCoins(sdk.NewCoin(k.baseDenom, sdk.NewInt(regionAmount.Int64())))
 
 			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.feeCollectorName, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), regionCoins)
 			if err != nil {
@@ -135,25 +125,17 @@ func (k Keeper) AllocateBlockRewards(ctx sdk.Context, req abci.RequestEndBlock) 
 }
 
 // getMintCoinsByHeight Get coins through the block height range
-func getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
+func (k Keeper) getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
 	var totalCoins int64
-	baseDenom, err := sdk.GetBaseDenom()
-	if err != nil {
-		panic("GetBaseDenom failed")
-	}
-	denomUnit, ok := sdk.GetDenomUnit(baseDenom)
-	if !ok {
-		panic("GetDenomUnit failed")
-	}
 	lowMul := (fromHeight - 1) / oneYearTotalBlocks
 	lowAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(lowMul))
 	lowMintMEAmount := RoundUpToFourDecimals(lowAmount)
-	lowMintUMEAmount := lowMintMEAmount * math.Pow(10, denomUnit.MustFloat64())
+	lowMintUMEAmount := lowMintMEAmount * math.Pow(10, float64(k.denomeUnit))
 
 	highMul := (toHeight - 1) / oneYearTotalBlocks
 	highAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(highMul))
 	highMintMEAmount := RoundUpToFourDecimals(highAmount)
-	highMintUMEAmount := highMintMEAmount * math.Pow(10, denomUnit.MustFloat64())
+	highMintUMEAmount := highMintMEAmount * math.Pow(10, float64(k.denomeUnit))
 
 	for i := lowMul; i <= highMul; i++ {
 		// If the range of from and to are in the same reduction height
@@ -173,11 +155,11 @@ func getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
 		// Calculate the number of tokens for each full cut interval
 		mintAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(i))
 		mintMEAmount := RoundUpToFourDecimals(mintAmount)
-		mintUMEAmount := mintMEAmount * math.Pow(10, denomUnit.MustFloat64())
+		mintUMEAmount := mintMEAmount * math.Pow(10, float64(k.denomeUnit))
 		totalCoins = totalCoins + int64(oneYearTotalBlocks)*int64(mintUMEAmount)
 	}
 
-	mintedUMECoin := sdk.NewCoin(baseDenom, sdk.NewInt(totalCoins))
+	mintedUMECoin := sdk.NewCoin(k.baseDenom, sdk.NewInt(totalCoins))
 	coin = sdk.NewDecFromInt(mintedUMECoin.Amount)
 
 	return
