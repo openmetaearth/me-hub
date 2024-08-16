@@ -69,7 +69,7 @@ import (
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
-	mintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
+	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
 
 	"github.com/st-chain/me-hub/x/bridgingfee"
 	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
@@ -103,7 +103,7 @@ type AppKeepers struct {
 	CapabilityKeeper              *capabilitykeeper.Keeper
 	StakingKeeper                 *wstakingkeeper.Keeper
 	SlashingKeeper                slashingkeeper.Keeper
-	MintKeeper                    mintkeeper.Keeper
+	MintKeeper                    wmintkeeper.Keeper
 	DistrKeeper                   distrkeeper.Keeper
 	GovKeeper                     *govkeeper.Keeper
 	CrisisKeeper                  *crisiskeeper.Keeper
@@ -244,7 +244,7 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 	)
 
-	a.MintKeeper = mintkeeper.NewKeeper(
+	a.MintKeeper = wmintkeeper.NewKeeper(
 		appCodec,
 		a.keys[minttypes.StoreKey],
 		a.StakingKeeper,
