@@ -31,7 +31,6 @@ type (
 		authority string
 
 		feeCollectorName string // name of the FeeCollector ModuleAccount
-		treasuryPoolName string
 	}
 )
 
@@ -75,6 +74,8 @@ func NewKeeper(
 		authKeeper:    accountKeeper,
 		bankKeeper:    bankKeeper,
 		stakingKeeper: stakingKeeper,
+		authority: authority,
+		feeCollectorName: feeCollectorName,
 	}
 }
 
@@ -86,7 +87,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // TODO: set MEExponent
 func (k Keeper) AllocateBlockRewards(ctx sdk.Context, req abci.RequestEndBlock) {
 	//TODO: remove test code
-	acc := k.authKeeper.GetModuleAccount(ctx, "fee_collector")
+	acc := k.authKeeper.GetModuleAccount(ctx, k.feeCollectorName)
 	mintAddress := acc.GetAddress()
 	//test allocate
 	ctx.Logger().Info("mint module address", "address", mintAddress.String())
@@ -94,7 +95,7 @@ func (k Keeper) AllocateBlockRewards(ctx sdk.Context, req abci.RequestEndBlock) 
 	mintCoins = mintCoins.QuoInt(cmath.NewInt(2))
 	ctx.Logger().Info("mint module balance", "coins", mintCoins.String())
 
-	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, "fee_collector", sdk.MustAccAddressFromBech32("cosmos15uyu9rv248nsm72mcgd3su23qpa2shvhak3zxn"), mintCoins)
+	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.feeCollectorName, sdk.MustAccAddressFromBech32("me1v5pve47gt0vnnhrlkfvs9c90keuz937vvsgjae"), mintCoins)
 	if err != nil {
 		ctx.Logger().Error(err.Error())
 	}
@@ -118,7 +119,7 @@ func (k Keeper) AllocateBlockRewards(ctx sdk.Context, req abci.RequestEndBlock) 
 			regionAmount := amount.TruncateInt()
 			regionCoins := sdk.NewCoins(sdk.NewCoin(mock.BaseMEDenom, sdk.NewInt(regionAmount.Int64())))
 
-			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.treasuryPoolName, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), regionCoins)
+			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.feeCollectorName, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), regionCoins)
 			if err != nil {
 				ctx.Logger().Error(err.Error())
 			}
