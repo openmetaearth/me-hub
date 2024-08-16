@@ -4,11 +4,10 @@ ARG LINK_STATICALLY
 
 WORKDIR /app
 
-COPY go.mod go.sum* ./
+COPY . .
+
 
 RUN go mod download
-
-COPY . .
 
 ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3
 
@@ -20,7 +19,7 @@ FROM alpine:3.16.1
 
 RUN apk add --no-cache curl jq bash vim 
 
-COPY --from=go-builder /app/build/dymd /usr/local/bin/
+COPY --from=go-builder /app/build/med /usr/local/bin/
 
 WORKDIR /app
 
