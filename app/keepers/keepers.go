@@ -194,7 +194,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[authtypes.StoreKey],
 		authtypes.ProtoBaseAccount,
-		maccPerms,
+		MaccPerms,
 		sdk.GetConfig().GetBech32AccountAddrPrefix(),
 		govModuleAddress,
 	)

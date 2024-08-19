@@ -71,6 +71,7 @@ import (
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	"github.com/st-chain/me-hub/x/wmint"
 	"github.com/st-chain/me-hub/x/wstaking"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 
 	appparams "github.com/st-chain/me-hub/app/params"
 	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
@@ -215,7 +216,7 @@ func (a *AppKeepers) SetupModules(
 // ModuleAccountAddrs returns all the app's module account addresses.
 func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
-	for acc := range maccPerms {
+	for acc := range MaccPerms {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
@@ -226,13 +227,16 @@ func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 }
 
 // module account permissions
-var maccPerms = map[string][]string{
+var MaccPerms = map[string][]string{
 	authtypes.FeeCollectorName:                         nil,
 	distrtypes.ModuleName:                              nil,
 	wbanktypes.TreasuryPoolName:                        nil,
 	minttypes.ModuleName:                               {authtypes.Minter},
 	stakingtypes.BondedPoolName:                        {authtypes.Burner, authtypes.Staking},
 	stakingtypes.NotBondedPoolName:                     {authtypes.Burner, authtypes.Staking},
+	stakingtypes.BondedStakePoolName:                   {authtypes.Burner, authtypes.Staking},
+	stakingtypes.NotBondedStakePoolName:                {authtypes.Burner, authtypes.Staking},
+	wstakingtypes.StakePoolName:                        {authtypes.Staking},
 	govtypes.ModuleName:                                {authtypes.Burner},
 	ibctransfertypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},
 	sequencermoduletypes.ModuleName:                    {authtypes.Minter, authtypes.Burner, authtypes.Staking},

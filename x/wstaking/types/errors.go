@@ -5,7 +5,14 @@ import (
 )
 
 var (
-	ErrValidatorOwnerAddress = sdkerrors.Register(ModuleName, 56, "cannot update validator owner address to module account address")
+	ErrValidatorOwnerAddress    = sdkerrors.Register(ModuleName, 56, "cannot update validator owner address to module account address")
+	ErrStakerShareExRateInvalid = sdkerrors.Register(ModuleName, 57, "cannot delegate to validators with invalid (zero) ex-rate")
+	ErrNoStakerForAddress       = sdkerrors.Register(ModuleName, 58, "staker does not contain stake")
+	ErrMaxUnbondingStakeEntries = sdkerrors.Register(ModuleName, 59, "too many unbonding stake entries for (staker, validator) tuple")
+	ErrNotEnoughStakeShares     = sdkerrors.Register(ModuleName, 60, "not enough stake shares")
+	ErrValidatorTokensAmount    = sdkerrors.Register(ModuleName, 61, "unstake limit: validator's tokens amount can not less than meid amount or delegate amount")
+	ErrNoUnbondingStake         = sdkerrors.Register(ModuleName, 62, "no unbonding stake found")
+	ErrNoStake                  = sdkerrors.Register(ModuleName, 63, "no stake for (address, validator) tuple")
 
 	ErrSample           = sdkerrors.Register(ModuleName, 1100, "sample error")
 	ErrDoDeposit        = sdkerrors.Register(ModuleName, 1101, "do deposit error")
