@@ -1,0 +1,14 @@
+syntax = "proto3";
+package dymensionxyz.dymension.wdistri;
+
+import "gogoproto/gogo.proto";
+import "dymensionxyz/dymension/wdistri/params.proto";
+import "cosmos/distribution/v1beta1/genesis.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/wdistri/types";
+
+// GenesisState defines the wdistri module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  cosmos.distribution.v1beta1.GenesisState cosmosDistributionState = 2 [(gogoproto.nullable) = false];
+}
