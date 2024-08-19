@@ -58,3 +58,17 @@ func (k Keeper) GetRegionAccount(ctx sdk.Context, accountType types.REGION_ACCOU
 	vaultAddr := types.GetRegionAccountAddr(accountType, regionId)
 	return k.AuthKeeper.GetAccount(ctx, vaultAddr)
 }
+
+// GetAllRegion returns all region
+func (k Keeper) GetAllRegionI(ctx sdk.Context) (list []types.RegionI) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RegionKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Region
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		val.GetCreator()
+		list = append(list, &val)
+	}
+	return
+}

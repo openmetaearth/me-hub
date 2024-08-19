@@ -15,7 +15,7 @@ type StakingKeeper interface {
 	// Methods imported from staking should be defined here
 	dt.StakingKeeper
 
-	GetAllRegion(ctx sdk.Context) (list []wstakingtypes.Region)
+	GetAllRegionI(ctx sdk.Context) (list []wstakingtypes.RegionI)
 }
 
 type AccountKeeper interface {

@@ -92,7 +92,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// TODO: abstract the type from other module:RegionI
 func (k Keeper) AllocateBlockRewards(ctx sdk.Context, req abci.RequestEndBlock) {
 	if ctx.BlockHeight()%oneDayTotalBlocks == 0 {
 		fromHeight := req.Height - oneDayTotalBlocks + 1
@@ -100,23 +99,23 @@ func (k Keeper) AllocateBlockRewards(ctx sdk.Context, req abci.RequestEndBlock) 
 		toHeight := req.Height + 1
 		totalMintCoins := k.getMintCoinsByHeight(fromHeight, toHeight)
 
-		regions := k.stakingKeeper.GetAllRegion(ctx)
+		regions := k.stakingKeeper.GetAllRegionI(ctx)
 		for _, region := range regions {
 			totalSupply := sdk.NewDecFromInt(sdk.NewInt(int64(totalMintCoinsAmount)))
 			// calculate every region coins: RegionShare * totalMintCoins / totalSupply
-			amount := sdk.NewDecFromInt(region.RegionShare).Mul(totalMintCoins).Quo(totalSupply)
+			amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoins).Quo(totalSupply)
 			regionAmount := amount.TruncateInt()
 			regionCoins := sdk.NewCoins(sdk.NewCoin(k.baseDenom, sdk.NewInt(regionAmount.Int64())))
 
-			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.feeCollectorName, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), regionCoins)
+			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.feeCollectorName, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), regionCoins)
 			if err != nil {
 				ctx.Logger().Error(err.Error())
 			}
 			ctx.EventManager().EmitEvents(sdk.Events{
 				sdk.NewEvent(
 					types.EventTypeRegionTreasuryReword,
-					sdk.NewAttribute(types.AttributeKeyRegionTreasuryAddress, region.RegionTreasureAddr),
-					sdk.NewAttribute(types.AttributeKeyRegionId, region.RegionId),
+					sdk.NewAttribute(types.AttributeKeyRegionTreasuryAddress, region.GetRegionTreasureAddr()),
+					sdk.NewAttribute(types.AttributeKeyRegionId, region.GetRegionId()),
 					sdk.NewAttribute(sdk.AttributeKeyAmount, regionCoins.String()),
 				),
 			})
