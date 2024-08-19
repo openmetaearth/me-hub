@@ -5,6 +5,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/utils"
 	"github.com/st-chain/me-hub/x/wstaking/types"
@@ -18,7 +19,7 @@ func (k MsgServer) CreateValidator(
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !k.DaoKeeper.IsGlobalDao(ctx, msg.DelegatorAddress) {
-		return nil, nil
+		return nil, types.ErrCheckGlobalDao
 	}
 
 	_, err := utils.CheckRegionName(strings.ToUpper(msg.Description.RegionId))
@@ -100,6 +101,7 @@ func (k MsgServer) CreateValidator(
 	}
 
 	validator.MinSelfDelegation = msg.MinSelfDelegation
+	validator.OwnerAddress = sdk.AccAddress(valAddr).String()
 
 	k.SetValidator(ctx, validator)
 	k.SetValidatorByConsAddr(ctx, validator)
@@ -113,7 +115,7 @@ func (k MsgServer) CreateValidator(
 	// move coins from the msg.Address account to a (self-delegation) delegator account
 	// the validator account and global shares are updated within here
 	// NOTE source will always be from a wallet which are unbonded
-	_, err = k.Keeper.Delegate(ctx, delegatorAddress, msg.Value.Amount, stakingtypes.Unbonded, validator, true)
+	_, err = k.Keeper.Stake(ctx, delegatorAddress, msg.Value.Amount, stakingtypes.Unbonded, validator, true)
 	if err != nil {
 		return nil, err
 	}
@@ -127,4 +129,76 @@ func (k MsgServer) CreateValidator(
 	})
 
 	return &stakingtypes.MsgCreateValidatorResponse{}, nil
+}
+
+// EditValidator defines a method for editing an existing validator
+func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEditValidator) (*stakingtypes.MsgEditValidatorResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !k.DaoKeeper.IsGlobalDao(ctx, msg.StakerAddress) {
+		return nil, types.ErrCheckGlobalDao
+	}
+
+	valAddr, err := sdk.ValAddressFromBech32(msg.OperatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	validator, found := k.GetValidator(ctx, valAddr)
+	if !found {
+		return nil, stakingtypes.ErrNoValidatorFound
+	}
+
+	// replace all editable fields (clients should autofill existing values)
+	description, err := validator.Description.UpdateDescription(msg.Description)
+	if err != nil {
+		return nil, err
+	}
+	validator.Description.Details = description.Details
+	validator.Description.Identity = description.Identity
+	validator.Description.Moniker = description.Moniker
+	validator.Description.SecurityContact = description.SecurityContact
+	validator.Description.Website = description.Website
+	validator.Description.RegionId = description.RegionId
+
+	if msg.CommissionRate != nil {
+		commission, err := k.UpdateValidatorCommission(ctx, validator, *msg.CommissionRate)
+		if err != nil {
+			return nil, err
+		}
+
+		// call the before-modification hook since we're about to update the commission
+		if err := k.Hooks().BeforeValidatorModified(ctx, valAddr); err != nil {
+			return nil, err
+		}
+
+		validator.Commission = commission
+	}
+
+	if msg.OwnerAddress != "" {
+		ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+		if err != nil {
+			return nil, err
+		}
+		acc := k.AuthKeeper.GetAccount(ctx, ownerAddress)
+		if acc != nil {
+			_, ok := acc.(authtypes.ModuleAccountI)
+			if ok {
+				return nil, types.ErrValidatorOwnerAddress
+			}
+		}
+		validator.OwnerAddress = msg.OwnerAddress
+	}
+
+	k.SetValidator(ctx, validator)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			stakingtypes.EventTypeEditValidator,
+			sdk.NewAttribute(stakingtypes.AttributeKeyCommissionRate, validator.Commission.String()),
+			sdk.NewAttribute(stakingtypes.AttributeKeyMinSelfDelegation, validator.MinSelfDelegation.String()),
+		),
+	})
+
+	return &stakingtypes.MsgEditValidatorResponse{}, nil
 }

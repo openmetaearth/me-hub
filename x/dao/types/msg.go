@@ -9,10 +9,10 @@ var (
 	_ sdk.Msg = &MsgUpdateGlobalDao{}
 )
 
-func NewMsgUpdateGlobalDao(creator sdk.AccAddress, address sdk.AccAddress) *MsgUpdateGlobalDao {
+func NewMsgUpdateGlobalDao(creator sdk.AccAddress, addresses DaoAddresses) *MsgUpdateGlobalDao {
 	return &MsgUpdateGlobalDao{
-		Creator: creator.String(),
-		Address: address.String(),
+		Creator:      creator.String(),
+		DaoAddresses: addresses,
 	}
 }
 
@@ -41,10 +41,6 @@ func (msg *MsgUpdateGlobalDao) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Creator)
-	}
-	_, err = sdk.AccAddressFromBech32(msg.Address)
-	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Address)
 	}
 	return nil
 }

@@ -68,6 +68,7 @@ import (
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	mintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
 
 	"github.com/st-chain/me-hub/x/bridgingfee"
@@ -193,7 +194,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[authtypes.StoreKey],
 		authtypes.ProtoBaseAccount,
-		maccPerms,
+		MaccPerms,
 		sdk.GetConfig().GetBech32AccountAddrPrefix(),
 		govModuleAddress,
 	)
@@ -213,17 +214,18 @@ func (a *AppKeepers) InitKeepers(
 	//	govModuleAddress,
 	//)
 
+	a.DaoKeeper = daokeeper.NewKeeper(
+		appCodec,
+		a.keys[daotypes.StoreKey],
+	)
+
 	a.BankKeeper = wbankkeeper.NewKeeper(
 		appCodec,
 		a.keys[banktypes.StoreKey],
 		a.AccountKeeper,
+		a.DaoKeeper,
 		moduleAccountAddrs,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
-
-	a.DaoKeeper = daokeeper.NewKeeper(
-		appCodec,
-		a.keys[daotypes.StoreKey],
 	)
 
 	//a.StakingKeeper = stakingkeeper.NewKeeper(
@@ -248,7 +250,7 @@ func (a *AppKeepers) InitKeepers(
 		a.StakingKeeper,
 		a.AccountKeeper,
 		a.BankKeeper,
-		authtypes.FeeCollectorName,
+		wbanktypes.TreasuryPoolName,
 		govModuleAddress,
 	)
 

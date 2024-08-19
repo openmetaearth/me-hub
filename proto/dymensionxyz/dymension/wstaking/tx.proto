@@ -18,7 +18,10 @@ option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
 // Msg defines the staking Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
-//  rpc CurrentDeposit(MsgCurrentDeposit) returns (MsgCurrentDepositResponse);
+  rpc Stake(MsgStake) returns (MsgStakeResponse);
+  rpc Unstake(MsgUnstake) returns (MsgUnstakeResponse);
+
+  //  rpc CurrentDeposit(MsgCurrentDeposit) returns (MsgCurrentDepositResponse);
 //  rpc CurrentWithdraw(MsgCurrentWithdraw) returns (MsgCurrentWithdrawResponse);
 //  rpc FixedDeposit(MsgFixedDeposit) returns (MsgFixedDepositResponse);
 //  rpc FixedWithdraw(MsgFixedWithdraw) returns (MsgFixedWithdrawResponse);
@@ -28,9 +31,44 @@ service Msg {
 //  rpc SetFixedDepositCfgRate(MsgSetFixedDepositCfgRate) returns (MsgSetFixedDepositCfgRateResp);
   rpc NewRegion(MsgNewRegion) returns (MsgNewRegionResponse);
   rpc RemoveRegion(MsgRemoveRegion) returns (MsgRemoveRegionResponse);
-//  rpc RetrieveCoinsFromRegion(MsgRetrieveCoinsFromRegion) returns (MsgRetrieveCoinsFromRegionResp);
+  rpc WithdrawDelegatorReward(MsgWithdrawDelegatorReward) returns (MsgWithdrawDelegatorRewardResponse);
+//  rpc UnmeidWithdrawDelegatorReward(MsgUnmeidWithdrawDelegatorReward) returns (MsgUnmeidWithdrawDelegatorRewardResponse);
+
+  //  rpc RetrieveCoinsFromRegion(MsgRetrieveCoinsFromRegion) returns (MsgRetrieveCoinsFromRegionResp);
 //  rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
 //  rpc RetrieveFeeFromGlobalAdminFeePool(MsgRetrieveFeeFromGlobalAdminFeePool) returns (MsgRetrieveFeeFromGlobalAdminFeePoolResp);
+}
+
+// MsgStake defines a SDK message for performing a stake of coins
+// from a staker to a validator.
+message MsgStake {
+  option (cosmos.msg.v1.signer) = "staker_address";
+
+  option (gogoproto.equal) = false;
+
+  string                   staker_address    = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string                   validator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  cosmos.base.v1beta1.Coin amount            = 3 [(gogoproto.nullable) = false];
+}
+
+// MsgStakeResponse defines the Msg/Stake response type.
+message MsgStakeResponse {}
+
+// MsgUnstake defines a SDK message for performing an unstake from a
+// stake and a validator.
+message MsgUnstake {
+  option (cosmos.msg.v1.signer) = "staker_address";
+
+  option (gogoproto.equal) = false;
+
+  string                   staker_address    = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string                   validator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  cosmos.base.v1beta1.Coin amount            = 3 [(gogoproto.nullable) = false];
+}
+
+// MsgUnstakeResponse defines the Msg/MsgUnstake response type.
+message MsgUnstakeResponse {
+  google.protobuf.Timestamp completion_time = 1 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
 }
 
 message MsgCurrentDeposit {
@@ -209,4 +247,28 @@ message MsgRetrieveFeeFromGlobalAdminFeePool {
 
 message MsgRetrieveFeeFromGlobalAdminFeePoolResp {
   string retcode = 1;
+}
+
+// MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator
+// from a single validator.
+message MsgWithdrawDelegatorReward {
+  option (cosmos.msg.v1.signer) = "delegator_address";
+  option (amino.name)           = "cosmos-sdk/MsgWithdrawDelegationReward";
+
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string delegator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string validator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// MsgWithdrawDelegatorRewardResponse defines the Msg/WithdrawDelegatorReward
+// response type.
+message MsgWithdrawDelegatorRewardResponse {
+  // Since: cosmos-sdk 0.46
+  repeated cosmos.base.v1beta1.Coin amount = 1 [
+    (gogoproto.nullable)     = false,
+    (amino.dont_omitempty)   = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }

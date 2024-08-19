@@ -68,7 +68,6 @@ import (
 	"github.com/evmos/ethermint/ethereum/eip712"
 
 	"github.com/evmos/ethermint/server/flags"
-	ethermint "github.com/evmos/ethermint/types"
 	/* ----------------------------- osmosis imports ---------------------------- */ /* ---------------------------- upgrade handlers ---------------------------- */)
 
 var (
@@ -95,7 +94,7 @@ func init() {
 
 	DefaultNodeHome = filepath.Join(userHomeDir, "."+appparams.Name)
 
-	sdk.DefaultPowerReduction = ethermint.PowerReduction
+	//sdk.DefaultPowerReduction = ethermint.PowerReduction
 }
 
 // App extends an ABCI application, but with most of its parameters exported.

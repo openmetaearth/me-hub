@@ -18,9 +18,7 @@ const (
 )
 
 var (
-	GlobalDaoPrefix   = []byte{0x00}
-	MeidDaoPrefix     = []byte{0x01}
-	DevOperatorPrefix = []byte{0x02}
+	DaoAddressesPrefix = []byte{0x00}
 )
 
 func KeyPrefix(p string) []byte {

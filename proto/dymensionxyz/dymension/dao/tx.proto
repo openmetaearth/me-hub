@@ -2,7 +2,8 @@ syntax = "proto3";
 package dymensionxyz.dymension.dao;;
 
 import "gogoproto/gogo.proto";
-import "cosmos/bank/v1beta1/bank.proto";
+import "dymensionxyz/dymension/dao/dao.proto";
+import "cosmos/msg/v1/msg.proto";
 
 // this line is used by starport scaffolding # proto/tx/import
 
@@ -14,8 +15,9 @@ service Msg {
 }
 
 message MsgUpdateGlobalDao {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
-  string address = 2;
+  DaoAddresses dao_addresses = 2 [(gogoproto.nullable) = false];
 }
 
 message MsgUpdateGlobalDaoResponse {
