@@ -46,6 +46,8 @@ func NewTxCmd() *cobra.Command {
 		NewCreateValidatorCmd(),
 		NewCreateExperienceNodeCmd(),
 		NewEditValidatorCmd(),
+		NewUnstakeCmd(),
+		NewStakeCmd(),
 		CmdNewRegion(),
 		CmdRemoveRegion(),
 	)

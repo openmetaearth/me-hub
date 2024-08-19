@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
@@ -16,7 +15,7 @@ type Keeper struct {
 	cdc        codec.BinaryCodec
 	storeKey   storetypes.StoreKey
 	AuthKeeper banktypes.AccountKeeper
-	BankKeeper stakingtypes.BankKeeper
+	BankKeeper types.BankKeeper
 	DaoKeeper  types.DaoKeeper
 }
 
@@ -24,7 +23,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
 	ak banktypes.AccountKeeper,
-	bk stakingtypes.BankKeeper,
+	bk types.BankKeeper,
 	dk types.DaoKeeper,
 	authority string,
 ) *Keeper {
