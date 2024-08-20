@@ -88,6 +88,7 @@ func NewCreateValidatorCmd() *cobra.Command {
 
 	cmd.Flags().String(FlagIP, "", fmt.Sprintf("The node's public IP. It takes effect only when used in combination with --%s", flags.FlagGenerateOnly))
 	cmd.Flags().String(FlagNodeID, "", "The node's ID")
+	cmd.Flags().String(FlagValidatorAddress, "", "validator address(prefix is me)")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
@@ -95,6 +96,7 @@ func NewCreateValidatorCmd() *cobra.Command {
 	_ = cmd.MarkFlagRequired(FlagPubKey)
 	_ = cmd.MarkFlagRequired(FlagMoniker)
 	_ = cmd.MarkFlagRequired(FlagRegionId)
+	_ = cmd.MarkFlagRequired(FlagValidatorAddress)
 	return cmd
 }
 
@@ -131,12 +133,10 @@ func NewCreateExperienceNodeCmd() *cobra.Command {
 	cmd.Flags().AddFlagSet(FlagSetAmount())
 	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
 	cmd.Flags().AddFlagSet(FlagSetCommissionCreate())
-	//cmd.Flags().AddFlagSet(FlagSetMinSelfStake())
 
 	cmd.Flags().String(FlagIP, "", fmt.Sprintf("The node's public IP. It takes effect only when used in combination with --%s", flags.FlagGenerateOnly))
 	cmd.Flags().String(FlagNodeID, "", "The node's ID")
 	cmd.Flags().String(FlagValidatorAddress, "", "validator address(prefix is me)")
-	cmd.Flags().String(FlagRegionId, "", "region id")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
@@ -270,7 +270,7 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		}
 	}
 
-	validatorAddress, err := fs.GetString(FlagValidatorAddress)
+	validatorAddress, _ := fs.GetString(FlagValidatorAddress)
 
 	msg := &stakingtypes.MsgCreateValidator{
 		Description:       description,
