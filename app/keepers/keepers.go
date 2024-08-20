@@ -16,8 +16,6 @@ import (
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
@@ -69,7 +67,9 @@ import (
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
-	mintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
+	wdistrkeeper "github.com/st-chain/me-hub/x/wdistri/keeper"
+	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
+	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
 
 	"github.com/st-chain/me-hub/x/bridgingfee"
 	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
@@ -103,8 +103,8 @@ type AppKeepers struct {
 	CapabilityKeeper              *capabilitykeeper.Keeper
 	StakingKeeper                 *wstakingkeeper.Keeper
 	SlashingKeeper                slashingkeeper.Keeper
-	MintKeeper                    mintkeeper.Keeper
-	DistrKeeper                   distrkeeper.Keeper
+	MintKeeper                    wmintkeeper.Keeper
+	DistrKeeper                   *wdistrkeeper.Keeper
 	GovKeeper                     *govkeeper.Keeper
 	CrisisKeeper                  *crisiskeeper.Keeper
 	UpgradeKeeper                 *upgradekeeper.Keeper
@@ -244,7 +244,7 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 	)
 
-	a.MintKeeper = mintkeeper.NewKeeper(
+	a.MintKeeper = wmintkeeper.NewKeeper(
 		appCodec,
 		a.keys[minttypes.StoreKey],
 		a.StakingKeeper,
@@ -254,14 +254,18 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 	)
 
-	a.DistrKeeper = distrkeeper.NewKeeper(
+	//FIXME: distribution
+	a.DistrKeeper = wdistrkeeper.NewKeeper(
 		appCodec,
-		a.keys[distrtypes.StoreKey],
+		a.keys[wdistrtypes.StoreKey],
+		a.keys[wdistrtypes.MemStoreKey],
+		a.GetSubspace(wdistrtypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
+		//FIXME: use wstakingKeeper instead mock
 		a.StakingKeeper,
-		authtypes.FeeCollectorName,
-		govModuleAddress,
+		wbanktypes.TreasuryPoolName,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.SlashingKeeper = slashingkeeper.NewKeeper(
@@ -591,7 +595,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(banktypes.ModuleName)
 	paramsKeeper.Subspace(stakingtypes.ModuleName)
 	paramsKeeper.Subspace(minttypes.ModuleName)
-	paramsKeeper.Subspace(distrtypes.ModuleName)
+	paramsKeeper.Subspace(wdistrtypes.ModuleName)
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName)

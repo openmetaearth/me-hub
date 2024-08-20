@@ -9,7 +9,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -98,7 +98,8 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	banktypes.StoreKey,
 	stakingtypes.StoreKey,
 	minttypes.StoreKey,
-	distrtypes.StoreKey,
+	wdistrtypes.StoreKey,
+	wdistrtypes.MemStoreKey,
 	slashingtypes.StoreKey,
 	govtypes.StoreKey,
 	paramstypes.StoreKey,
