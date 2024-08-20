@@ -72,3 +72,50 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic mintypes.InflationCalcula
 func RoundUpToFourDecimals(x float64) float64 {
 	return math.Ceil(x*10000) / 10000
 }
+
+func CalculateCoinFromHeightToHeight(){
+
+}
+
+// getMintCoinsByHeight Get coins through the block height range
+func getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
+	denomeUnit:=8
+	baseDenom:="umec"
+	var totalCoins int64
+	lowMul := (fromHeight - 1) / types.OneYearTotalBlocks
+	lowAmount := types.InitOneYearMintAmount / types.OneYearTotalBlocks / math.Exp2(float64(lowMul))
+	lowMintMEAmount := RoundUpToFourDecimals(lowAmount)
+	lowMintUMEAmount := lowMintMEAmount * math.Pow(10, float64(denomeUnit))
+
+	highMul := (toHeight - 1) / types.OneYearTotalBlocks
+	highAmount := types.InitOneYearMintAmount / types.OneYearTotalBlocks / math.Exp2(float64(highMul))
+	highMintMEAmount := RoundUpToFourDecimals(highAmount)
+	highMintUMEAmount := highMintMEAmount * math.Pow(10, float64(denomeUnit))
+
+	for i := lowMul; i <= highMul; i++ {
+		// If the range of from and to are in the same reduction height
+		if i == lowMul && lowMul == highMul {
+			totalCoins = totalCoins + (toHeight-fromHeight)*int64(lowMintUMEAmount)
+			continue
+			// Calculate the number of tokens between from and its first cut height
+		} else if i == lowMul {
+			totalCoins = totalCoins + int64(types.OneYearTotalBlocks*(lowMul+1)-(fromHeight)+1)*int64(lowMintUMEAmount)
+			continue
+			// Calculate the number of tokens between the last production reduction height and to
+		} else if i == highMul {
+			totalCoins = totalCoins + int64(toHeight-types.OneYearTotalBlocks*(i)-1)*int64(highMintUMEAmount)
+			continue
+		}
+
+		// Calculate the number of tokens for each full cut interval
+		mintAmount := types.InitOneYearMintAmount / types.OneYearTotalBlocks / math.Exp2(float64(i))
+		mintMEAmount := RoundUpToFourDecimals(mintAmount)
+		mintUMEAmount := mintMEAmount * math.Pow(10, float64(denomeUnit))
+		totalCoins = totalCoins + int64(types.OneYearTotalBlocks)*int64(mintUMEAmount)
+	}
+
+	mintedUMECoin := sdk.NewCoin(baseDenom, sdk.NewInt(totalCoins))
+	coin = sdk.NewDecFromInt(mintedUMECoin.Amount)
+
+	return
+}
