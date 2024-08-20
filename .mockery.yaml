@@ -1,14 +1,14 @@
 with-expecter: true
 recursive: true
 filename: "mock_{{.InterfaceName}}.go"
-dir: "{{.InterfaceDir}}/mocks"
+dir: "{{.InterfaceDir}}/mock_{{.PackageName}}"
 mockname: "Mock{{.InterfaceName}}"
-outpkg: "mock{{.PackageName}}"
+outpkg: "mock_{{.PackageName}}"
 inpackage: False
 packages:
     github.com/cosmos/cosmos-sdk/x/mint/types:
         config:
-            dir: 'x/wmint/types/mocks'
+            dir: 'x/wmint/types/mock_{{.PackageName}}'
         interfaces:
             AccountKeeper:
             StakingKeeper:
