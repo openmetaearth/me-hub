@@ -1,0 +1,20 @@
+with-expecter: true
+recursive: true
+filename: "mock_{{.InterfaceName}}.go"
+dir: "{{.InterfaceDir}}/mocks"
+mockname: "Mock{{.InterfaceName}}"
+outpkg: "mock{{.PackageName}}"
+inpackage: False
+packages:
+    github.com/cosmos/cosmos-sdk/x/mint/types:
+        config:
+            dir: 'x/wmint/types/mocks'
+        interfaces:
+            AccountKeeper:
+            StakingKeeper:
+            BankKeeper:
+            # select the interfaces you want mocked
+    github.com/st-chain/me-hub/x/wdistri/types:
+        config:
+            all: True
+
