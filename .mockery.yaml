@@ -17,4 +17,11 @@ packages:
     github.com/st-chain/me-hub/x/wdistri/types:
         config:
             all: True
+    github.com/st-chain/me-hub/x/wstaking/types:
+        interfaces:
+            RegionI:
+                #common interface
+                config:
+                    dir: 'testutil/mocks'
+                    outpkg: 'mocks'
 
