@@ -114,7 +114,4 @@ var (
 	ErrNotEnoughDelegationAmount     = sdkerrors.Register(ModuleName, 1208, "not enough delegation amount")
 	ErrMaxUnbondingDelegationEntries = sdkerrors.Register(ModuleName, 1209, "too many unbonding delegation entries for (delegator, validator) tuple")
 	ErrNoDelegatorForAddress         = sdkerrors.Register(ModuleName, 1210, "delegator does not contain delegation")
-	ErrNodeLimitExceeded = sdkerrors.Register(ModuleName, 52, "Node delegation limit exceeded.")
-	ErrAssertionFailed   = sdkerrors.Register(ModuleName, 58, "type Delegation assertion failed")
-	ErrCalculateInterest = sdkerrors.Register(ModuleName, 51, "delegator calculate interest err.")
 )

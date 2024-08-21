@@ -272,3 +272,14 @@ message MsgWithdrawDelegatorRewardResponse {
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 }
+
+message MsgNewFixedDepositCfg {
+  string    admin = 1;
+  string    regionId = 2;
+  int64    term    = 3;
+  string    rate = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}
+
+message MsgNewFixedDepositCfgResp {
+  string retcode = 1;
+}

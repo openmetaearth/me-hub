@@ -5,9 +5,9 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
 	gomath "math"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 const (
@@ -319,5 +319,17 @@ func NewMsgDelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.C
 		DelegatorAddress: delAddr.String(),
 		ValidatorAddress: valAddrStr,
 		Amount:           amount,
+	}
+}
+
+// NewMsgUndelegate creates a new MsgUndelegate instance.
+//
+//nolint:interfacer
+func NewMsgUndelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin, isMeid bool) *types.MsgUndelegate {
+	return &types.MsgUndelegate{
+		DelegatorAddress: delAddr.String(),
+		ValidatorAddress: valAddr.String(),
+		Amount:           amount,
+		IsMeid:           isMeid,
 	}
 }

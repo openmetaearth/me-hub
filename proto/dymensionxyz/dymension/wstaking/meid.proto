@@ -1,0 +1,13 @@
+syntax = "proto3";
+package dymensionxyz.dymension.wstaking;
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
+
+message Meid {
+  string account    = 1;
+  string creator    = 2;
+  string regionId   = 3;
+  string regionName = 4;
+  int32 RewardType = 5;
+}

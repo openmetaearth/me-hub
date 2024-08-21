@@ -11,7 +11,7 @@ else
 fi
 
 # Set parameters
-DATA_DIRECTORY="$HOME/.mechain/node/node1"
+DATA_DIRECTORY="$HOME/.mechain_e/node/node1"
 CONFIG_DIRECTORY="$DATA_DIRECTORY/config"
 TENDERMINT_CONFIG_FILE="$CONFIG_DIRECTORY/config.toml"
 CLIENT_CONFIG_FILE="$CONFIG_DIRECTORY/client.toml"

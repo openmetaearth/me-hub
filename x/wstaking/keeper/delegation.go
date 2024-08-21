@@ -14,7 +14,7 @@ func (k Keeper) UnMeidDelegate(
 	// Get or create the delegation object
 	delegation, found := k.GetDelegation(ctx, delAddr, validatorAddr)
 	if !found {
-		delegation = stakingtypes.NewDelegation(delAddr, validatorAddr, sdk.ZeroDec())
+		delegation = types.NewDelegation(delAddr, validatorAddr, sdk.ZeroDec())
 	}
 	//if found {
 	//	err = k.hooks.BeforeDelegationSharesModified(ctx, delAddr, validatorAddr)

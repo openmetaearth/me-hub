@@ -1,16 +1,26 @@
 package types
 
 const (
-	EventTypeUnstake                = "unstake"
-	EventTypeStake                  = "stake"
-	EventTypeCompleteUnStakeBonding = "complete_stake_unbonding"
-	EventTypeCompleteUnDelBonding   = "complete_del_unbonding"
+	EventTypeUnstake                  = "unstake"
+	EventTypeStake                    = "stake"
+	EventTypeCompleteUnStakeBonding   = "complete_stake_unbonding"
+	EventTypeCompleteUnDelBonding     = "complete_del_unbonding"
+	EventTypeAddFixedDepositCfg       = "add_fixed_deposit_cfg"
+	EventTypeRemoveFixedDepositCfg    = "remove_fixed_deposit_cfg"
+	EventTypeSetFixedDepositCfgStatus = "set_fixed_deposit_cfg_status"
+	EventTypeSetFixedDepositCfgRate   = "set_fixed_deposit_cfg_rate"
 )
 
 const (
-	EventTypeAdminUpdated   = "admin_updated"
-	EventTypeUnMeidDelegate = "unmeid_delegate"
-	EventTypeUnDelegate     = "undelegate"
+	AttributeKeyCompletionTime = "completion_time"
+	AttributeKeyFromAddress    = "from_address"
+	AttributeKeyAccount        = "account"
+	AttributeKeyTerm           = "fixed_deposit_cofig_term"
+	AttributeKeyRate           = "fixed_deposit_config_rate"
+	AttributeKeyStatus         = "fixed_deposit_config_status"
+	EventTypeAdminUpdated      = "admin_updated"
+	EventTypeUnMeidDelegate    = "unmeid_delegate"
+	EventTypeUnDelegate        = "undelegate"
 
 	AttributeKeyLastAdmin                = "last_admin"
 	AttributeKeyCurrentAdmin             = "current_admin"
