@@ -242,7 +242,7 @@ func (k Keeper) Delegate(
 		}
 
 		coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), bondAmt))
-		if err := k.BankKeeper.DelegateCoinsFromAccountToModule(ctx, delegatorAddress, sendName, coins); err != nil {
+		if err = k.BankKeeper.DelegateCoinsFromAccountToModule(ctx, delegatorAddress, sendName, coins); err != nil {
 			return sdk.Dec{}, err
 		}
 	} else {
@@ -270,9 +270,9 @@ func (k Keeper) Delegate(
 	k.SetDelegation(ctx, delegation)
 
 	// Call the after-modification hook
-	if err = k.Hooks().AfterDelegationModified(ctx, delegatorAddress, delegation.GetValidatorAddr()); err != nil {
-		return newShares, err
-	}
+	//if err = k.Hooks().AfterDelegationModified(ctx, delegatorAddress, delegation.GetValidatorAddr()); err != nil {
+	//	return newShares, err
+	//}
 
 	return newShares, nil
 }
