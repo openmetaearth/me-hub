@@ -13,6 +13,7 @@ import (
 const (
 	TypeMsgNewRegion                         = "new-region"
 	TypeMsgRetrieveCoinFromRegion            = "retrieve-coin-from-region"
+	TypeMsgWithdrawDelegatorReward           = "withdraw_delegator_reward"
 	TypeMsgRemoveRegion                      = "remove-region"
 	TypeMsgRetrieveFeeFromGlobalAdminFeePool = "retrieve-fee-from-global-admin-fee-pool"
 	TypeMsgStake                             = "stake"
@@ -24,6 +25,7 @@ var (
 	_ sdk.Msg = &MsgUnstake{}
 	_ sdk.Msg = &MsgNewRegion{}
 	_ sdk.Msg = &MsgRemoveRegion{}
+	_ sdk.Msg = &MsgWithdrawDelegatorReward{}
 	_ sdk.Msg = &MsgRetrieveCoinsFromRegion{}
 	_ sdk.Msg = &MsgRetrieveFeeFromGlobalAdminFeePool{}
 )
@@ -332,4 +334,42 @@ func NewMsgUndelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk
 		Amount:           amount,
 		IsMeid:           isMeid,
 	}
+}
+
+func NewMsgWithdrawDelegatorReward(delAddr sdk.AccAddress, valAddr sdk.ValAddress) *MsgWithdrawDelegatorReward {
+	return &MsgWithdrawDelegatorReward{
+		DelegatorAddress: delAddr.String(),
+		ValidatorAddress: valAddr.String(),
+	}
+}
+
+func (msg MsgWithdrawDelegatorReward) Route() string { return ModuleName }
+func (msg MsgWithdrawDelegatorReward) Type() string  { return TypeMsgWithdrawDelegatorReward }
+
+// GetSigners Return address that must sign over msg.GetSignBytes()
+func (msg MsgWithdrawDelegatorReward) GetSigners() []sdk.AccAddress {
+	delegator, _ := sdk.AccAddressFromBech32(msg.DelegatorAddress)
+	return []sdk.AccAddress{delegator}
+}
+
+// GetSignBytes get the bytes for the message signer to sign on
+func (msg MsgWithdrawDelegatorReward) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic quick validity check
+func (msg MsgWithdrawDelegatorReward) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.DelegatorAddress); err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid delegator address: %s", err)
+	}
+	if len(msg.ValidatorAddress) > 0 {
+		if _, err := sdk.ValAddressFromBech32(msg.ValidatorAddress); err != nil {
+			if _, err := sdk.AccAddressFromBech32(msg.ValidatorAddress); err != nil {
+				return sdkerrors.ErrInvalidAddress.Wrapf("invalid validator address: %s,err=%s", msg.ValidatorAddress, err)
+			}
+		}
+	}
+
+	return nil
 }
