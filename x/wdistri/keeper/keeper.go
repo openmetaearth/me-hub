@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -100,10 +101,14 @@ func (k Keeper) AllocateBlockRewards(ctx sdk.Context, req abci.RequestEndBlock) 
 		totalMintCoins := k.getMintCoinsByHeight(fromHeight, toHeight)
 
 		regions := k.stakingKeeper.GetAllRegionI(ctx)
+		totalRegionShare := sdkmath.NewInt(0)
 		for _, region := range regions {
-			totalSupply := sdk.NewDecFromInt(sdk.NewInt(int64(totalMintCoinsAmount)))
-			// calculate every region coins: RegionShare * totalMintCoins / totalSupply
-			amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoins).Quo(totalSupply)
+			totalRegionShare = region.GetRegionShare().Add(totalRegionShare)
+		}
+		totalRegionShareDec := sdk.NewDecFromInt(totalRegionShare)
+		for _, region := range regions {
+			// calculate every region coins: RegionShare * totalMintCoins / totalRegionShare
+			amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoins).Quo(totalRegionShareDec)
 			regionAmount := amount.TruncateInt()
 			regionCoins := sdk.NewCoins(sdk.NewCoin(k.baseDenom, sdk.NewInt(regionAmount.Int64())))
 
