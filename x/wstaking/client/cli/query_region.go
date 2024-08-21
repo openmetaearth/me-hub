@@ -12,7 +12,7 @@ import (
 func GetCmdQueryRegion() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "region [region-id]",
-		Short: "show a region",
+		Short: "query a region",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -39,8 +39,8 @@ func GetCmdQueryRegion() *cobra.Command {
 
 func GetCmdQueryAllRegion() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "all-region",
-		Short: "show all region",
+		Use:   "regions",
+		Short: "query all region",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)

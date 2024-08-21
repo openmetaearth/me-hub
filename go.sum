@@ -1195,8 +1195,8 @@ github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An
 github.com/spf13/viper v1.3.2/go.mod h1:ZiWeW+zYFKm7srdB9IoDzzZXaJaI5eL9QjNiN/DMA2s=
 github.com/spf13/viper v1.18.2 h1:LUXCnvUvSM6FXAsj6nnfc8Q2tp1dIgUfY9Kc8GsSOiQ=
 github.com/spf13/viper v1.18.2/go.mod h1:EKmWIqdnk5lOcmR72yw6hS+8OPYcwD0jteitLMVB+yk=
-github.com/st-chain/cosmos-sdk v0.47.14-0.20240815103524-e76968460ac7 h1:Y92tQXc50PGb4NUaD9a+fXrJ1rxBbxAROFxn9I+xrkM=
-github.com/st-chain/cosmos-sdk v0.47.14-0.20240815103524-e76968460ac7/go.mod h1:pYMzhTfKFn9AJB5X64Epwe9NgYk0y3v7XN8Ks5xqWoo=
+github.com/st-chain/cosmos-sdk v0.47.14-0.20240819065315-28b7d11328f4 h1:B0ezaYHzMsRzK9AmKU3AWhSwGwxlawFeI5ohzN9SvYk=
+github.com/st-chain/cosmos-sdk v0.47.14-0.20240819065315-28b7d11328f4/go.mod h1:pYMzhTfKFn9AJB5X64Epwe9NgYk0y3v7XN8Ks5xqWoo=
 github.com/status-im/keycard-go v0.0.0-20190316090335-8537d3370df4/go.mod h1:RZLeN1LMWmRsyYjvAu+I6Dm9QmlDaIIt+Y+4Kd7Tp+Q=
 github.com/status-im/keycard-go v0.2.0 h1:QDLFswOQu1r5jsycloeQh3bVU8n/NatHHaZobtDnDzA=
 github.com/status-im/keycard-go v0.2.0/go.mod h1:wlp8ZLbsmrF6g6WjugPAx+IzoLrkdf9+mHxBEeo3Hbg=

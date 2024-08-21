@@ -1,20 +1,141 @@
 package types
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/st-chain/me-hub/app/params"
+	gomath "math"
 )
 
-const TypeMsgNewRegion = "new-region"
-const TypeMsgRetrieveCoinFromRegion = "retrieve-coin-from-region"
-const TypeMsgRemoveRegion = "remove-region"
-const TypeMsgRetrieveFeeFromGlobalAdminFeePool = "retrieve-fee-from-global-admin-fee-pool"
+const (
+	TypeMsgNewRegion                         = "new-region"
+	TypeMsgRetrieveCoinFromRegion            = "retrieve-coin-from-region"
+	TypeMsgRemoveRegion                      = "remove-region"
+	TypeMsgRetrieveFeeFromGlobalAdminFeePool = "retrieve-fee-from-global-admin-fee-pool"
+	TypeMsgStake                             = "stake"
+	TypeMsgUnstake                           = "begin_unstaking"
+)
 
-var _ sdk.Msg = &MsgNewRegion{}
-var _ sdk.Msg = &MsgRemoveRegion{}
-var _ sdk.Msg = &MsgRetrieveCoinsFromRegion{}
-var _ sdk.Msg = &MsgRetrieveFeeFromGlobalAdminFeePool{}
+var (
+	_ sdk.Msg = &MsgStake{}
+	_ sdk.Msg = &MsgUnstake{}
+	_ sdk.Msg = &MsgNewRegion{}
+	_ sdk.Msg = &MsgRemoveRegion{}
+	_ sdk.Msg = &MsgRetrieveCoinsFromRegion{}
+	_ sdk.Msg = &MsgRetrieveFeeFromGlobalAdminFeePool{}
+)
+
+// NewMsgStake creates a new MsgStake instance.
+//
+//nolint:interfacer
+func NewMsgStake(stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) *MsgStake {
+	return &MsgStake{
+		StakerAddress:    stakerAddr.String(),
+		ValidatorAddress: valAddr.String(),
+		Amount:           amount,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgStake) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgStake) Type() string { return TypeMsgStake }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgStake) GetSigners() []sdk.AccAddress {
+	staker, _ := sdk.AccAddressFromBech32(msg.StakerAddress)
+	return []sdk.AccAddress{staker}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgStake) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgStake) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.StakerAddress); err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid staker address: %s", err)
+	}
+
+	if _, err := sdk.ValAddressFromBech32(msg.ValidatorAddress); err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid validator address: %s", err)
+	}
+
+	if !msg.Amount.IsValid() || !msg.Amount.Amount.IsPositive() {
+		return sdkerrors.Wrap(
+			sdkerrors.ErrInvalidRequest,
+			"invalid stake amount",
+		)
+	}
+
+	minSelfStake := math.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
+	if !msg.Amount.Amount.Mod(minSelfStake).Equal(math.NewInt(0)) {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidRequest,
+			"invalid stake amount: got %s, expected %s integer multiple", msg.Amount.Amount, minSelfStake)
+	}
+	return nil
+}
+
+// NewMsgUnstake creates a new MsgUnstake instance.
+//
+//nolint:interfacer
+func NewMsgUnstake(stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) *MsgUnstake {
+	return &MsgUnstake{
+		StakerAddress:    stakerAddr.String(),
+		ValidatorAddress: valAddr.String(),
+		Amount:           amount,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgUnstake) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgUnstake) Type() string { return TypeMsgUnstake }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgUnstake) GetSigners() []sdk.AccAddress {
+	staker, _ := sdk.AccAddressFromBech32(msg.StakerAddress)
+	return []sdk.AccAddress{staker}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgUnstake) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgUnstake) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.StakerAddress); err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid staker address: %s", err)
+	}
+	if _, err := sdk.ValAddressFromBech32(msg.ValidatorAddress); err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid validator address: %s", err)
+	}
+
+	if !msg.Amount.IsValid() || !msg.Amount.Amount.IsPositive() {
+		return sdkerrors.Wrap(
+			sdkerrors.ErrInvalidRequest,
+			"invalid shares amount",
+		)
+	}
+
+	minSelfStake := math.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
+	if !msg.Amount.Amount.Mod(minSelfStake).Equal(math.NewInt(0)) {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidRequest,
+			"invalid unstake amount: got %s, expected %s integer multiple", msg.Amount.Amount, minSelfStake)
+	}
+
+	return nil
+}
 
 func NewMsgNewRegion(creator string, regionId string, name string, validator string) *MsgNewRegion {
 	return &MsgNewRegion{

@@ -32,7 +32,7 @@ JSONRPC_ADDRESS=${JSONRPC_ADDRESS:-"0.0.0.0:9545"}
 JSONRPC_WS_ADDRESS=${JSONRPC_WS_ADDRESS:-"0.0.0.0:9546"}
 
 TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000umec"} #1M MEC (1e6mec = 1e6 * 1e18 = 1e24umec )
-STAKING_AMOUNT=${STAKING_AMOUNT:-"1000000000000000000000umec"} #67% is staked (inflation goal)
+STAKING_AMOUNT=${STAKING_AMOUNT:-"10000000000000000umec"} #67% is staked (inflation goal)
 
 # Validate mechain binary exists
 export PATH=$PATH:$HOME/go/bin
@@ -108,6 +108,8 @@ fi
 
 echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test
 med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
+med add-genesis-stake-pool
+med add-genesis-m-accounts
 
 jq '.app_state["dao"]["dao_addresses"]["global_dao"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 jq '.app_state["dao"]["dao_addresses"]["meid_dao"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"

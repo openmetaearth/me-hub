@@ -113,6 +113,7 @@ func flagSetDescriptionCreate() *flag.FlagSet {
 	fs.String(FlagWebsite, "", "The validator's (optional) website")
 	fs.String(FlagSecurityContact, "", "The validator's (optional) security contact email")
 	fs.String(FlagDetails, "", "The validator's (optional) details")
+	fs.String(FlagRegionId, "", "The validator's region id")
 
 	return fs
 }

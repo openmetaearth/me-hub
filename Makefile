@@ -98,7 +98,7 @@ build: go.sum
 
 build-debug: go.sum
 	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)))
-	go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -gcflags "all=-N -l" -o $(BUILDDIR)/dymd ./cmd/dymd
+	go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -gcflags "all=-N -l" -o $(BUILDDIR)/med ./cmd/med
 
 docker-build-e2e:
 	@DOCKER_BUILDKIT=1 docker build -t ghcr.io/dymensionxyz/dymension:e2e -f Dockerfile .
@@ -166,7 +166,7 @@ containerProtoFmt=cosmos-sdk-proto-fmt-$(protoVer)
 #
 protoCosmosVer=0.14.0
 protoCosmosName=ghcr.io/cosmos/proto-builder:$(protoCosmosVer)
-protoCosmosImage=$(DOCKER) run --network host --rm -v $(CURDIR):/workspace --workdir /workspace $(protoCosmosName)
+protoCosmosImage=$(DOCKER) run  --network host --rm -v $(CURDIR):/workspace --workdir /workspace $(protoCosmosName)
 
 proto-gen:
 	@echo "Generating Protobuf files"

@@ -25,7 +25,7 @@ cd ..
 # Note: Proto files are suffixed with the current binary version.
 cp -r github.com/st-chain/me-hub/* ./
 
-rm -rf github.com
+#rm -rf github.com
 
 
 
