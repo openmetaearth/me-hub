@@ -1,0 +1,25 @@
+package keeper
+
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	distrikeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+)
+
+type Hooks struct {
+	distrikeeper.Hooks
+	k Keeper
+}
+
+var _ stakingtypes.StakingHooks = Hooks{}
+
+// Create new distribution hooks
+func (k Keeper) Hooks() Hooks {
+	return Hooks{Hooks: k.WrapDistrKeeper.Hooks(), k: k}
+}
+
+// overwrite
+// withdraw delegation rewards (which also increments period)
+func (h Hooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+	return nil
+}
