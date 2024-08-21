@@ -50,6 +50,13 @@ func NewTxCmd() *cobra.Command {
 		CmdRemoveRegion(),
 		NewDelegateCmd(),
 		NewUndelegateCmd(),
+		//NewFixedDepositCmd(),          //定期质押
+		//NewFixedWithdrawCmd(),         //定期收益提取
+		CmdRemoveFixedDepositCfg(),    //删除定期配置
+		CmdSetFixedDepositCfgStatus(), //修改定期期限
+		CmdSetFixedDepositCfgRate(),   //修改定期利率
+		CmdNewFixedDepositCfg(),       //创建定期配置
+
 	)
 
 	return stakingTxCmd

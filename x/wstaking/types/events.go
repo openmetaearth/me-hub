@@ -18,4 +18,13 @@ const (
 	AttributeKeyDelegatorAddress         = "delegator_address"
 	AttributeKeyPersonalDelegateInterest = "personal_delegate_interest"
 	AttributeKeyIsMeid                   = "is_meid"
+	AttributeKeyAccount                  = "account"
+	AttributeKeyTerm                     = "fixed_deposit_cofig_term"
+	AttributeKeyRate                     = "fixed_deposit_config_rate"
+	AttributeKeyStatus                   = "fixed_deposit_config_status"
+
+	EventTypeAddFixedDepositCfg       = "add_fixed_deposit_cfg"
+	EventTypeRemoveFixedDepositCfg    = "remove_fixed_deposit_cfg"
+	EventTypeSetFixedDepositCfgStatus = "set_fixed_deposit_cfg_status"
+	EventTypeSetFixedDepositCfgRate   = "set_fixed_deposit_cfg_rate"
 )
