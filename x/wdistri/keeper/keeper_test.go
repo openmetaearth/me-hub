@@ -1,15 +1,19 @@
 package keeper
 
 import (
+	"fmt"
 	"testing"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/st-chain/me-hub/x/wdistri/types"
-	"github.com/st-chain/me-hub/x/wdistri/types/mock_types"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	"github.com/st-chain/me-hub/testutil/mocks"
+	"github.com/st-chain/me-hub/x/wdistri/types"
+	"github.com/st-chain/me-hub/x/wdistri/types/mock_types"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 
 	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
@@ -27,14 +31,15 @@ import (
 
 type KeeperTestSuite struct {
 	suite.Suite
-	ctx           sdk.Context
-	wdistriKeeper *Keeper
-	authKeeper    *mock_types.MockAccountKeeper
-	bankKeeper    *mock_types.MockBankKeeper
-	stakingKeeper *mock_types.MockStakingKeeper
-	queryClient   types.QueryClient
-	msgServer     types.MsgServer
-	encCfg        moduletestutil.TestEncodingConfig
+	ctx            sdk.Context
+	wdistriKeeper  *Keeper
+	authKeeper     *mock_types.MockAccountKeeper
+	bankKeeper     *mock_types.MockBankKeeper
+	stakingKeeper  *mock_types.MockStakingKeeper
+	queryClient    types.QueryClient
+	msgServer      types.MsgServer
+	encCfg         moduletestutil.TestEncodingConfig
+	paramsSubspace typesparams.Subspace
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -64,11 +69,17 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	// gomock initializations
 
+	authKeeper := mock_types.NewMockAccountKeeper(t)
+	authKeeper.EXPECT().GetModuleAddress(types.ModuleName).Return(authtypes.NewModuleAddress(types.ModuleName))
+	bankKeeper := mock_types.NewMockBankKeeper(t)
+	stakingKeeper := mock_types.NewMockStakingKeeper(t)
+
 	suite.ctx = ctx
 	suite.encCfg = encCfg
-	suite.authKeeper = mock_types.NewMockAccountKeeper(t)
-	suite.bankKeeper = mock_types.NewMockBankKeeper(t)
-	suite.stakingKeeper = mock_types.NewMockStakingKeeper(t)
+	suite.paramsSubspace = paramsSubspace
+	suite.authKeeper = authKeeper
+	suite.bankKeeper = bankKeeper
+	suite.stakingKeeper = stakingKeeper
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, encCfg.InterfaceRegistry)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 	suite.wdistriKeeper = NewKeeper(
@@ -83,4 +94,113 @@ func (suite *KeeperTestSuite) SetupTest() {
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	suite.msgServer = NewMsgServerImpl(*suite.wdistriKeeper)
+}
+
+func (suite *KeeperTestSuite) TestGetAuthority() {
+	storeKey := sdk.NewKVStoreKey(types.StoreKey)
+	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
+	NewKeeperWithAuthority := func(authority string) *Keeper {
+		return NewKeeper(
+			suite.encCfg.Codec,
+			storeKey,
+			memStoreKey,
+			suite.paramsSubspace,
+			suite.authKeeper,
+			suite.bankKeeper,
+			suite.stakingKeeper,
+			"treasury_pool",
+			authority,
+		)
+	}
+
+	tests := map[string]string{
+		"some random account": "cosmos139f7kncmglres2nf3h4hc4tade85ekfr8sulz5",
+		"gov module account":  authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	}
+
+	for name, expected := range tests {
+		suite.T().Run(name, func(t *testing.T) {
+			kpr := NewKeeperWithAuthority(expected)
+			actual := kpr.GetAuthority()
+			suite.Require().Equal(expected, actual)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestGetTreasuryPool() {
+	err := suite.wdistriKeeper.Hooks().BeforeDelegationSharesModified(suite.ctx, sdk.AccAddress{}, sdk.ValAddress{})
+	assert.NoError(suite.T(), err)
+}
+
+func (suite *KeeperTestSuite) TestEndBlocker() {
+	// reward of per block at 
+	testsCases := []struct {
+		name                string
+		height              int
+		regionShares        []int
+		regionWantGetReward []int
+		totalReward int
+	}{
+		{
+			name:                "two region with equal share",
+			height:              oneDayTotalBlocks,
+			regionShares:        []int{1, 1},
+			regionWantGetReward: []int{68493150720000000,68493150720000000},
+		},
+	}
+	runCase := func(index int) {
+		testcase := testsCases[index]
+		ctx := suite.ctx.WithBlockHeight(int64(testcase.height))
+		addrs := suite.mockGetRegionI(ctx, testcase.regionShares...)
+		var wantReward []coinAndAddr
+		for i, addr := range addrs {
+			wantReward = append(wantReward, coinAndAddr{
+				num:  int64(testcase.regionWantGetReward[i]),
+				addr: addr,
+			})
+		}
+		suite.setMockSendCoinsFromModuleToAccountExpect(ctx, wantReward...)
+		suite.wdistriKeeper.AllocateBlockRewards(ctx, abci.RequestEndBlock{Height: ctx.BlockHeight()})
+	}
+	for i := range testsCases {
+		runCase(i)
+	}
+}
+
+func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int) []string {
+	var addrs []string
+	var regions []wstakingtypes.RegionI
+	for i, share := range regionShare {
+		region := mocks.NewMockRegionI(suite.T())
+		region.EXPECT().GetRegionShare().Return(sdk.NewInt(int64(share)))
+		addr := authtypes.NewModuleAddress(fmt.Sprintf("region_%d", i)).String()
+		addrs=append(addrs, addr)
+		region.EXPECT().GetRegionTreasureAddr().Return(addr)
+		region.EXPECT().GetRegionId().Return(fmt.Sprintf("region_ID_%d", i))
+		regions = append(regions, region)
+	}
+	suite.stakingKeeper.EXPECT().GetAllRegionI(ctx).Return(regions)
+	return addrs
+}
+
+type coinAndAddr struct {
+	num  int64
+	addr string
+}
+
+func (suite *KeeperTestSuite) setMockSendCoinsFromModuleToAccountExpect(ctx sdk.Context, want ...coinAndAddr) {
+	baseDenom := suite.wdistriKeeper.baseDenom
+	for _, w := range want {
+		suite.bankKeeper.EXPECT().
+			SendCoinsFromModuleToAccount(
+				ctx,
+				suite.wdistriKeeper.feeCollectorName,
+				sdk.MustAccAddressFromBech32(w.addr),
+				sdk.NewCoins(sdk.NewCoin(baseDenom, sdk.NewInt(w.num))),
+			).Return(nil)
+	}
+}
+
+func TestGetRangeReward(t *testing.T){
+	
 }

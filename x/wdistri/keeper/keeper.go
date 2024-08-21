@@ -71,6 +71,7 @@ func NewKeeper(
 	if !ok {
 		panic("GetDenomUnit failed")
 	}
+
 	return &Keeper{
 		WrapDistrKeeper: &WrapDistrKeeper{
 			&DistrKeeper,
@@ -111,7 +112,6 @@ func (k Keeper) AllocateBlockRewards(ctx sdk.Context, req abci.RequestEndBlock) 
 			amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoins).Quo(totalRegionShareDec)
 			regionAmount := amount.TruncateInt()
 			regionCoins := sdk.NewCoins(sdk.NewCoin(k.baseDenom, sdk.NewInt(regionAmount.Int64())))
-
 			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.feeCollectorName, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), regionCoins)
 			if err != nil {
 				ctx.Logger().Error(err.Error())
@@ -134,12 +134,12 @@ func (k Keeper) getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk
 	lowMul := (fromHeight - 1) / oneYearTotalBlocks
 	lowAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(lowMul))
 	lowMintMEAmount := RoundUpToFourDecimals(lowAmount)
-	lowMintUMEAmount := lowMintMEAmount * math.Pow(10, float64(k.denomeUnit))
+	lowMintUMEAmount := lowMintMEAmount * float64(k.denomeUnit)
 
 	highMul := (toHeight - 1) / oneYearTotalBlocks
 	highAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(highMul))
 	highMintMEAmount := RoundUpToFourDecimals(highAmount)
-	highMintUMEAmount := highMintMEAmount * math.Pow(10, float64(k.denomeUnit))
+	highMintUMEAmount := highMintMEAmount * float64(k.denomeUnit)
 
 	for i := lowMul; i <= highMul; i++ {
 		// If the range of from and to are in the same reduction height
@@ -159,7 +159,7 @@ func (k Keeper) getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk
 		// Calculate the number of tokens for each full cut interval
 		mintAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(i))
 		mintMEAmount := RoundUpToFourDecimals(mintAmount)
-		mintUMEAmount := mintMEAmount * math.Pow(10, float64(k.denomeUnit))
+		mintUMEAmount := mintMEAmount * float64(k.denomeUnit)
 		totalCoins = totalCoins + int64(oneYearTotalBlocks)*int64(mintUMEAmount)
 	}
 
