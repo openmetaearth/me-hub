@@ -5,11 +5,11 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
-// CustomParamsKeeper defines the custom params keeper interface required for the module.
 type DaoKeeper interface {
 	IsGlobalDao(ctx sdk.Context, address string) bool
 	IsMeidDao(ctx sdk.Context, address string) bool
 	GetAirdropAddress(ctx sdk.Context) string
+	GetDevOperator(ctx sdk.Context) string
 }
 
 // BankKeeper defines the expected interface needed to retrieve account balances.
