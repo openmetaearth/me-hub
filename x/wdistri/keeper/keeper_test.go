@@ -145,7 +145,7 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 			name:                "two region with equal share",
 			height:              oneDayTotalBlocks,
 			regionShares:        []int{1, 1},
-			regionWantGetReward: []int{68493150720000000,68493150720000000},
+			regionWantGetReward: []int{68493150720000000,68493150720000000},//umec
 		},
 	}
 	runCase := func(index int) {
@@ -163,7 +163,9 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 		suite.wdistriKeeper.AllocateBlockRewards(ctx, abci.RequestEndBlock{Height: ctx.BlockHeight()})
 	}
 	for i := range testsCases {
-		runCase(i)
+		suite.Run(testsCases[i].name, func() {
+			runCase(i)
+		})
 	}
 }
 
