@@ -1,11 +1,13 @@
 package types
 
 const (
-	EventTypeUnstake                = "unstake"
-	EventTypeStake                  = "stake"
-	EventTypeCompleteUnStakeBonding = "complete_stake_unbonding"
-	EventTypeCompleteUnDelBonding   = "complete_del_unbonding"
-	EventTypeSettleDelRewardsForKyc = "settle_del_rewards_for_kyc"
+	EventTypeUnstake                      = "unstake"
+	EventTypeStake                        = "stake"
+	EventTypeCompleteUnStakeBonding       = "complete_stake_unbonding"
+	EventTypeCompleteUnDelBonding         = "complete_del_unbonding"
+	EventTypeSettleDelRewardsForKyc       = "settle_del_rewards_for_kyc"
+	EventTypeWithdrawFromRegion           = "withdraw_from_region"
+	EventTypeWithdrawFromGlobalDaoFeePool = "withdraw_from_global_dao_fee_pool"
 
 	EventTypeMeidNew    = "meid_new"
 	EventTypeMeidRemove = "meid_remove"

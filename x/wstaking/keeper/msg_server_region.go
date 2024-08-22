@@ -2,8 +2,11 @@ package keeper
 
 import (
 	"context"
+	"cosmossdk.io/errors"
+	"crypto/sha256"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/nft"
 	"github.com/st-chain/me-hub/utils"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"strings"
@@ -49,32 +52,32 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 		}
 	}
 
-	//uri := "https://docs.cosmos.network/main/modules/nft"
-	//hasher := sha256.New()
-	//_, err = hasher.Write(conv.UnsafeStrToBytes(uri))
-	//errors.AssertNil(err)
-	//uriHash := hasher.Sum(nil)
-	//
-	//ntfClassId := msg.Name + "-NFT-CLASS-ID-"
-	//nftClass := nft.Class{
-	//	Id:          ntfClassId,
-	//	Name:        msg.Name + "-NFT-CLASS-NAME",
-	//	Symbol:      msg.Name + "-NFT-CLASS-SYMBOL",
-	//	Description: "nft class for region: " + msg.RegionId,
-	//	Uri:         uri,
-	//	UriHash:     string(uriHash[:]),
-	//}
-	//err = k.nftKeeper.SaveClass(ctx, nftClass)
-	//if err != nil {
-	//	return nil, sdkerrors.Wrapf(types.ErrRegionAlreadyExist, "nft classe save error")
-	//}
+	uri := "https://docs.cosmos.network/main/modules/nft"
+	hasher := sha256.New()
+	_, err = hasher.Write(utils.UnsafeStrToBytes(uri))
+	errors.AssertNil(err)
+	uriHash := hasher.Sum(nil)
+
+	ntfClassId := msg.Name + "-NFT-CLASS-ID-"
+	nftClass := nft.Class{
+		Id:          ntfClassId,
+		Name:        msg.Name + "-NFT-CLASS-NAME",
+		Symbol:      msg.Name + "-NFT-CLASS-SYMBOL",
+		Description: "nft class for region: " + msg.RegionId,
+		Uri:         uri,
+		UriHash:     string(uriHash[:]),
+	}
+	err = k.nftKeeper.SaveClass(ctx, nftClass)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrRegionAlreadyExist, "nft classe save error")
+	}
 
 	region := types.Region{
-		RegionId:        msg.RegionId,
-		Creator:         msg.Creator,
-		Name:            msg.Name,
-		OperatorAddress: msg.OperatorAddress,
-		//NftClassId:          ntfClassId,
+		RegionId:            msg.RegionId,
+		Creator:             msg.Creator,
+		Name:                msg.Name,
+		OperatorAddress:     msg.OperatorAddress,
+		NftClassId:          ntfClassId,
 		RegionTreasureAddr:  k.CreateRegionAccount(ctx, types.RegionAccountTypeBase, msg.RegionId).String(),
 		DepositInterestAddr: k.CreateRegionAccount(ctx, types.RegionAccountTypeDepositInterest, msg.RegionId).String(),
 		RegionShare:         validator.Tokens,
@@ -102,17 +105,44 @@ func (k MsgServer) RemoveRegion(goCtx context.Context, msg *types.MsgRemoveRegio
 	return &types.MsgRemoveRegionResponse{}, nil
 }
 
-func (k MsgServer) RetrieveCoinsFromRegion(ctx context.Context, region *types.MsgRetrieveCoinsFromRegion) (*types.MsgRetrieveCoinsFromRegionResp, error) {
-	//TODO implement me
-	panic("implement me")
-}
+func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithdrawFromRegion) (*types.MsgWithdrawFromRegionResp, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
-func (k MsgServer) TransferRegion(ctx context.Context, region *types.MsgTransferRegion) (*types.MsgTransferRegionResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
+	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Withdrawer) {
+		return nil, types.ErrCheckGlobalDao
+	}
 
-func (k MsgServer) RetrieveFeeFromGlobalAdminFeePool(ctx context.Context, pool *types.MsgRetrieveFeeFromGlobalAdminFeePool) (*types.MsgRetrieveFeeFromGlobalAdminFeePoolResp, error) {
-	//TODO implement me
-	panic("implement me")
+	region, found := k.GetRegion(ctx, msg.RegionId)
+	if !found {
+		return nil, sdkerrors.Wrapf(types.ErrRegionNotExist, "region not exist")
+	}
+
+	fromAddr, err := sdk.AccAddressFromBech32(region.RegionTreasureAddr)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrUnknownAccount, "region account %s format error %s", region.RegionTreasureAddr, err)
+	}
+
+	toAddr, err := sdk.AccAddressFromBech32(msg.Receiver)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrUnknownAccount, "receiver account %s format error %s", msg.Receiver, err)
+	}
+
+	err = k.BankKeeper.SendCoins(
+		ctx,
+		fromAddr,
+		toAddr,
+		msg.Amount)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(err, "retrieve coin from region account error: region account(%s), receiver (%s)", fromAddr.String(), toAddr.String())
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(types.EventTypeWithdrawFromRegion,
+			sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
+			sdk.NewAttribute(sdk.AttributeKeySender, fromAddr.String()),
+			sdk.NewAttribute(types.AttributeKeyReceiver, toAddr.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
+		),
+	)
+	return &types.MsgWithdrawFromRegionResp{}, nil
 }

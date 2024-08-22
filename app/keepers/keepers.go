@@ -25,6 +25,7 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	nftkeeper "github.com/cosmos/cosmos-sdk/x/nft/keeper"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -143,6 +144,7 @@ type AppKeepers struct {
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
 	DaoKeeper           daokeeper.Keeper
+	NFTKeeper           nftkeeper.Keeper
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -228,6 +230,13 @@ func (a *AppKeepers) InitKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	a.NFTKeeper = nftkeeper.NewKeeper(
+		a.keys[nftkeeper.StoreKey],
+		appCodec,
+		a.AccountKeeper,
+		a.BankKeeper,
+	)
+
 	//a.StakingKeeper = stakingkeeper.NewKeeper(
 	//	appCodec,
 	//	a.keys[stakingtypes.StoreKey],
@@ -241,6 +250,7 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.DaoKeeper,
+		a.NFTKeeper,
 		govModuleAddress,
 	)
 

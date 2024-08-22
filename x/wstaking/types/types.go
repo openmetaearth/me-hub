@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	StakePoolName = "stake_tokens_pool"
+	StakePoolName      = "stake_tokens_pool"
+	GlobalAdminFeePool = "global_admin_fee_pool"
 
 	GlobalRegion     = "ME_EARTH"
 	ExperienceRegion = "EXPERIENCE_REGION"
