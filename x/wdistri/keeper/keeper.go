@@ -31,7 +31,7 @@ type (
 
 		feeCollectorName string // name of the FeeCollector ModuleAccount
 		baseDenom        string
-		denomeUnit       int64
+		MecToUmec       int64
 	}
 )
 
@@ -67,10 +67,6 @@ func NewKeeper(
 	if err != nil {
 		panic("GetBaseDenom failed")
 	}
-	denomUnit, ok := sdk.GetDenomUnit(baseDenom)
-	if !ok {
-		panic("GetDenomUnit failed")
-	}
 
 	return &Keeper{
 		WrapDistrKeeper: &WrapDistrKeeper{
@@ -86,7 +82,7 @@ func NewKeeper(
 		authority:        authority,
 		feeCollectorName: feeCollectorName,
 		baseDenom:        baseDenom,
-		denomeUnit:       denomUnit.BigInt().Int64(),
+		MecToUmec:       int64(math.Pow(10, ME_EXPONENT)),
 	}
 }
 
@@ -134,12 +130,12 @@ func (k Keeper) getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk
 	lowMul := (fromHeight - 1) / oneYearTotalBlocks
 	lowAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(lowMul))
 	lowMintMEAmount := RoundUpToFourDecimals(lowAmount)
-	lowMintUMEAmount := lowMintMEAmount * float64(k.denomeUnit)
+	lowMintUMEAmount := lowMintMEAmount * float64(k.MecToUmec)
 
 	highMul := (toHeight - 1) / oneYearTotalBlocks
 	highAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(highMul))
 	highMintMEAmount := RoundUpToFourDecimals(highAmount)
-	highMintUMEAmount := highMintMEAmount * float64(k.denomeUnit)
+	highMintUMEAmount := highMintMEAmount * float64(k.MecToUmec)
 
 	for i := lowMul; i <= highMul; i++ {
 		// If the range of from and to are in the same reduction height
@@ -159,7 +155,7 @@ func (k Keeper) getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk
 		// Calculate the number of tokens for each full cut interval
 		mintAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(i))
 		mintMEAmount := RoundUpToFourDecimals(mintAmount)
-		mintUMEAmount := mintMEAmount * float64(k.denomeUnit)
+		mintUMEAmount := mintMEAmount * float64(k.MecToUmec)
 		totalCoins = totalCoins + int64(oneYearTotalBlocks)*int64(mintUMEAmount)
 	}
 
