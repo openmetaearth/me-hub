@@ -259,7 +259,3 @@ func TestGetRewardInfo(t *testing.T) {
 	fmt.Printf("second year daily reward is :%.4f mec %d umec\n", secondYearDailyRewardMec, secondYearDailyReward)
 
 }
-func TestSDKDec(t *testing.T) {
-	a := sdk.NewDecWithPrec(1110, 3)
-	fmt.Println(a)
-}
