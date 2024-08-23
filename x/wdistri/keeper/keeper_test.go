@@ -171,21 +171,31 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 			regionShares:        []int{},
 			regionWantGetReward: []int{}, //umec
 		},
+		{
+			name:                "second year first day",
+			height:              366 * oneDayTotalBlocks,
+			regionShares:        []int{1, 1},
+			regionWantGetReward: []int{342465753600000, 342465753600000}, //umec
+		},
+		{
+			name:                "second year first half of day",
+			height:              366 * oneDayTotalBlocks,
+			regionShares:        []int{},
+			regionWantGetReward: []int{}, //umec
+		},
 	}
 	runCase := func(index int) {
 		testcase := testsCases[index]
 		ctx := suite.ctx.WithBlockHeight(int64(testcase.height))
-		if len(testcase.regionShares) != 0 {
-			addrs := suite.mockGetRegionI(ctx, testcase.regionShares...)
-			var wantReward []coinAndAddr
-			for i, addr := range addrs {
-				wantReward = append(wantReward, coinAndAddr{
-					num:  int64(testcase.regionWantGetReward[i]),
-					addr: addr,
-				})
-			}
-			suite.setMockSendCoinsFromModuleToAccountExpect(ctx, wantReward...)
+		addrs := suite.mockGetRegionI(ctx, testcase.regionShares...)
+		var wantReward []coinAndAddr
+		for i, addr := range addrs {
+			wantReward = append(wantReward, coinAndAddr{
+				num:  int64(testcase.regionWantGetReward[i]),
+				addr: addr,
+			})
 		}
+		suite.setMockSendCoinsFromModuleToAccountExpect(ctx, wantReward...)
 		suite.wdistriKeeper.AllocateBlockRewards(ctx, abci.RequestEndBlock{Height: ctx.BlockHeight()})
 	}
 	for i := range testsCases {
@@ -196,6 +206,9 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 }
 func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int) []string {
 	var addrs []string
+	if len(regionShare) == 0 {
+		return addrs
+	}
 	var regions []wstakingtypes.RegionI
 	for i, share := range regionShare {
 		region := mocks.NewMockRegionI(suite.T())
