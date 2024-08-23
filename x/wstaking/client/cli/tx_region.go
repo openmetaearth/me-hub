@@ -1,6 +1,9 @@
 package cli
 
 import (
+	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/st-chain/me-hub/utils"
 	"strings"
 
@@ -70,6 +73,52 @@ func CmdRemoveRegion() *cobra.Command {
 			msg := types.NewMsgRemoveRegion(
 				clientCtx.GetFromAddress().String(),
 				argRegionId,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdWithdrawFromRegion() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "withdraw-from-region [region-id] [receiver] [amount]",
+		Short: "Send coins from region-treasury to receiver by global admin",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Send coins from region-treasury to receiver by global admin.
+Example:
+$ %s tx staking withdraw-from-region me_earth me1h47kmp4q5vkwjw350y5v5ecuzjtmct4zmrlhwf 100mec --from global-admin
+`,
+				version.AppName,
+			),
+		),
+		Args: cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argRegionId := args[0]
+			argsReceiver := args[1]
+			argsAmount := args[2]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			amount, err := sdk.ParseCoinsNormalized(argsAmount)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgWithdrawFromRegion(
+				clientCtx.GetFromAddress().String(),
+				argRegionId,
+				argsReceiver,
+				amount,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

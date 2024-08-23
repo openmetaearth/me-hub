@@ -67,7 +67,6 @@ func NewKeeper(
 	if err != nil {
 		panic("GetBaseDenom failed")
 	}
-
 	return &Keeper{
 		WrapDistrKeeper: &WrapDistrKeeper{
 			&DistrKeeper,

@@ -50,6 +50,8 @@ func NewTxCmd() *cobra.Command {
 		NewStakeCmd(),
 		CmdNewRegion(),
 		CmdRemoveRegion(),
+		CmdWithdrawFromRegion(),
+		CmdWithdrawFromGlobalDaoFeePool(),
 	)
 
 	return stakingTxCmd
@@ -88,6 +90,7 @@ func NewCreateValidatorCmd() *cobra.Command {
 
 	cmd.Flags().String(FlagIP, "", fmt.Sprintf("The node's public IP. It takes effect only when used in combination with --%s", flags.FlagGenerateOnly))
 	cmd.Flags().String(FlagNodeID, "", "The node's ID")
+	cmd.Flags().String(FlagValidatorAddress, "", "validator address(prefix is me)")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
@@ -95,6 +98,7 @@ func NewCreateValidatorCmd() *cobra.Command {
 	_ = cmd.MarkFlagRequired(FlagPubKey)
 	_ = cmd.MarkFlagRequired(FlagMoniker)
 	_ = cmd.MarkFlagRequired(FlagRegionId)
+	_ = cmd.MarkFlagRequired(FlagValidatorAddress)
 	return cmd
 }
 
@@ -131,12 +135,10 @@ func NewCreateExperienceNodeCmd() *cobra.Command {
 	cmd.Flags().AddFlagSet(FlagSetAmount())
 	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
 	cmd.Flags().AddFlagSet(FlagSetCommissionCreate())
-	//cmd.Flags().AddFlagSet(FlagSetMinSelfStake())
 
 	cmd.Flags().String(FlagIP, "", fmt.Sprintf("The node's public IP. It takes effect only when used in combination with --%s", flags.FlagGenerateOnly))
 	cmd.Flags().String(FlagNodeID, "", "The node's ID")
 	cmd.Flags().String(FlagValidatorAddress, "", "validator address(prefix is me)")
-	cmd.Flags().String(FlagRegionId, "", "region id")
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
@@ -270,7 +272,7 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		}
 	}
 
-	validatorAddress, err := fs.GetString(FlagValidatorAddress)
+	validatorAddress, _ := fs.GetString(FlagValidatorAddress)
 
 	msg := &stakingtypes.MsgCreateValidator{
 		Description:       description,
@@ -531,4 +533,38 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 	}
 
 	return txBldr, msg, nil
+}
+
+func CmdWithdrawFromGlobalDaoFeePool() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "withdraw-from-global-dao-fee-pool [amount]",
+		Short: "Broadcast message withdraw-from-global-dao-fee-pool",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argsAmount := args[0]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			amount, err := sdk.ParseCoinsNormalized(argsAmount)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgWithdrawFromGlobalDaoFeePool(
+				clientCtx.GetFromAddress().String(),
+				amount,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }

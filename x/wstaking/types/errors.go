@@ -13,6 +13,7 @@ var (
 	ErrValidatorTokensAmount    = sdkerrors.Register(ModuleName, 61, "unstake limit: validator's tokens amount can not less than meid amount or delegate amount")
 	ErrNoUnbondingStake         = sdkerrors.Register(ModuleName, 62, "no unbonding stake found")
 	ErrNoStake                  = sdkerrors.Register(ModuleName, 63, "no stake for (address, validator) tuple")
+	ErrCalculateInterest        = sdkerrors.Register(ModuleName, 64, "delegator calculate interest err.")
 
 	ErrSample           = sdkerrors.Register(ModuleName, 1100, "sample error")
 	ErrDoDeposit        = sdkerrors.Register(ModuleName, 1101, "do deposit error")
