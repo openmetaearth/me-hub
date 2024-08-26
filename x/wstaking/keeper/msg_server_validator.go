@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"strings"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -9,7 +11,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/utils"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"strings"
 )
 
 // CreateValidator defines wrapped method for creating a new validator.
@@ -79,7 +80,11 @@ func (k MsgServer) CreateValidator(
 			)
 		}
 	}
-
+	//before update Validator ,should distribution block reward
+	err = k.WstakingHooks().BeforeValidatorStakingModified(ctx, valAddr)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrHooks, "before create validator :error :%+v", err)
+	}
 	validator, err := stakingtypes.NewValidator(valAddr, pk, msg.Description)
 	if err != nil {
 		return nil, err
@@ -160,6 +165,11 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 	validator.Description.SecurityContact = description.SecurityContact
 	validator.Description.Website = description.Website
 	validator.Description.RegionId = description.RegionId
+	//before update Validator ,should distribution block reward
+	err = k.WstakingHooks().BeforeValidatorStakingModified(ctx, valAddr)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrHooks, "before edit validator :error :%+v", err)
+	}
 
 	if msg.CommissionRate != nil {
 		commission, err := k.UpdateValidatorCommission(ctx, validator, *msg.CommissionRate)
@@ -188,12 +198,6 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 			}
 		}
 		validator.OwnerAddress = msg.OwnerAddress
-	}
-
-	//before update Validator ,should distribution block reward
-	err=k.WstakingHooks().BeforeValidatorStakingModified(ctx,valAddr)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrHooks, "before edit validator :error :%+v", err)
 	}
 
 	k.SetValidator(ctx, validator)

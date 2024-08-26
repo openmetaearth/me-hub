@@ -28,6 +28,7 @@ func (h Hooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAd
 }
 
 func (h Hooks) BeforeValidatorStakingModified(ctx sdk.Context, valAddr sdk.ValAddress) error {
-	//TODO: distribution the block reward
+	ctx.Logger().Info("allocated block reward before validator's staking modified")
+	// TODO: distribution the block reward
 	return nil
 }
