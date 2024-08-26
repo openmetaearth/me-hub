@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"math/big"
 )
 
 // CustomParamsKeeper defines the custom params keeper interface required for the module.
@@ -35,4 +36,9 @@ type BankKeeper interface {
 
 	StakeCoinsFromModuleToModule(ctx sdk.Context, senderModule string, recipientModule string, amt sdk.Coins) error
 	UnstakeCoinsFromModuleToModule(ctx sdk.Context, senderModule string, recipientModule string, amt sdk.Coins) error
+}
+
+type MintKeeper interface {
+	// GetPerBlockMintCoinAmount returns the current block mint coins amount.
+	GetPerBlockMintCoinAmount(ctx sdk.Context) (amount big.Int)
 }

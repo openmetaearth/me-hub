@@ -13,8 +13,6 @@ import (
 	"strings"
 )
 
-var _ = strconv.Itoa(0)
-
 func CmdNewFixedDepositCfg() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "new-fixed-deposit-cfg [regionId] [term] [rate]",
@@ -59,8 +57,6 @@ func CmdNewFixedDepositCfg() *cobra.Command {
 	return cmd
 }
 
-var _ = strconv.Itoa(0)
-
 func CmdRemoveFixedDepositCfg() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "remove-fixed-deposit-cfg [regionId] [term]",
@@ -97,8 +93,6 @@ func CmdRemoveFixedDepositCfg() *cobra.Command {
 
 	return cmd
 }
-
-var _ = strconv.Itoa(0)
 
 func CmdSetFixedDepositCfgStatus() *cobra.Command {
 	cmd := &cobra.Command{
@@ -143,8 +137,6 @@ func CmdSetFixedDepositCfgStatus() *cobra.Command {
 
 	return cmd
 }
-
-var _ = strconv.Itoa(0)
 
 func CmdSetFixedDepositCfgRate() *cobra.Command {
 	cmd := &cobra.Command{

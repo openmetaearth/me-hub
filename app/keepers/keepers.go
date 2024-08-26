@@ -254,6 +254,8 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 	)
 
+	a.StakingKeeper.WMintKeeper = a.MintKeeper
+
 	//FIXME: distribution
 	a.DistrKeeper = wdistrkeeper.NewKeeper(
 		appCodec,

@@ -10,10 +10,9 @@ import (
 func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFixedDepositCfg) (*types.MsgNewFixedDepositCfgResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	//globalAdminAddress := k.GetGlobalAdminAddress(ctx)
-	//if msg.Admin != globalAdminAddress {
-	//	return nil, types.ErrAddFixedDepositConfig.Wrapf("only global admin can add fixed deposit config")
-	//}
+	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Admin) {
+		return nil, types.ErrCheckGlobalDao
+	}
 
 	_, found := k.GetRegion(ctx, msg.RegionId)
 	if !found {
@@ -63,10 +62,9 @@ func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFi
 func (k MsgServer) RemoveFixedDepositCfg(goCtx context.Context, msg *types.MsgRemoveFixedDepositCfg) (*types.MsgRemoveFixedDepositCfgResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	//globalAdminAddress := k.GetGlobalAdminAddress(ctx)
-	//if msg.Admin != globalAdminAddress {
-	//	return nil, types.ErrRemoveFixedDepositConfig.Wrapf("only global admin can remove fixed deposit config")
-	//}
+	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Admin) {
+		return nil, types.ErrCheckGlobalDao
+	}
 
 	count := k.GetFixedDepositCountOfCfg(ctx, msg.RegionId, msg.Term)
 	if count != 0 {
@@ -88,10 +86,9 @@ func (k MsgServer) RemoveFixedDepositCfg(goCtx context.Context, msg *types.MsgRe
 func (k MsgServer) SetFixedDepositCfgStatus(goCtx context.Context, msg *types.MsgSetFixedDepositCfgStatus) (*types.MsgSetFixedDepositCfgStatusResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	//globalAdminAddress := k.GetGlobalAdminAddress(ctx)
-	//if msg.Admin != globalAdminAddress {
-	//	return nil, types.ErrSetFixedDepositConfigStatus.Wrapf("only global admin can set fixed deposit config status")
-	//}
+	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Admin) {
+		return nil, types.ErrCheckGlobalDao
+	}
 
 	config, ok := k.GetFixedDepositCfg(ctx, msg.RegionId, msg.Term)
 	if !ok {
@@ -114,10 +111,9 @@ func (k MsgServer) SetFixedDepositCfgStatus(goCtx context.Context, msg *types.Ms
 func (k MsgServer) SetFixedDepositCfgRate(goCtx context.Context, msg *types.MsgSetFixedDepositCfgRate) (*types.MsgSetFixedDepositCfgRateResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	//globalAdminAddress := k.GetGlobalAdminAddress(ctx)
-	//if msg.Admin != globalAdminAddress {
-	//	return nil, types.ErrSetFixedDepositConfigRate.Wrapf("only global admin can set fixed deposit config rate")
-	//}
+	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Admin) {
+		return nil, types.ErrCheckGlobalDao
+	}
 
 	config, ok := k.GetFixedDepositCfg(ctx, msg.RegionId, msg.Term)
 	if !ok {

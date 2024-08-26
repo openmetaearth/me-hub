@@ -23,12 +23,7 @@ service Msg {
 
   //  rpc CurrentDeposit(MsgCurrentDeposit) returns (MsgCurrentDepositResponse);
 //  rpc CurrentWithdraw(MsgCurrentWithdraw) returns (MsgCurrentWithdrawResponse);
-//  rpc FixedDeposit(MsgFixedDeposit) returns (MsgFixedDepositResponse);
-//  rpc FixedWithdraw(MsgFixedWithdraw) returns (MsgFixedWithdrawResponse);
-//  rpc NewFixedDepositCfg(MsgFixedDepositCfg) returns (MsgFixedDepositCfgResp);
-//  rpc RemoveFixedDepositCfg(MsgRemoveFixedDepositCfg) returns (MsgRemoveFixedDepositCfgResp);
-//  rpc SetFixedDepositCfgStatus(MsgSetFixedDepositCfgStatus) returns (MsgSetFixedDepositCfgStatusResp);
-//  rpc SetFixedDepositCfgRate(MsgSetFixedDepositCfgRate) returns (MsgSetFixedDepositCfgRateResp);
+
   rpc NewRegion(MsgNewRegion) returns (MsgNewRegionResponse);
   rpc RemoveRegion(MsgRemoveRegion) returns (MsgRemoveRegionResponse);
   rpc WithdrawDelegatorReward(MsgWithdrawDelegatorReward) returns (MsgWithdrawDelegatorRewardResponse);
@@ -37,6 +32,12 @@ service Msg {
   //  rpc RetrieveCoinsFromRegion(MsgRetrieveCoinsFromRegion) returns (MsgRetrieveCoinsFromRegionResp);
 //  rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
 //  rpc RetrieveFeeFromGlobalAdminFeePool(MsgRetrieveFeeFromGlobalAdminFeePool) returns (MsgRetrieveFeeFromGlobalAdminFeePoolResp);
+  rpc NewFixedDepositCfg(MsgNewFixedDepositCfg) returns (MsgNewFixedDepositCfgResp);
+  rpc SetFixedDepositCfgStatus(MsgSetFixedDepositCfgStatus) returns (MsgSetFixedDepositCfgStatusResp);
+  rpc SetFixedDepositCfgRate(MsgSetFixedDepositCfgRate) returns (MsgSetFixedDepositCfgRateResp);
+  rpc DoFixedDeposit(MsgDoFixedDeposit) returns (MsgDoFixedDepositResponse);
+  rpc DoFixedWithdraw(MsgDoFixedWithdraw) returns (MsgDoFixedWithdrawResponse);
+  rpc RemoveFixedDepositCfg(MsgRemoveFixedDepositCfg) returns (MsgRemoveFixedDepositCfgResp);
 }
 
 // MsgStake defines a SDK message for performing a stake of coins
@@ -282,4 +283,26 @@ message MsgNewFixedDepositCfg {
 
 message MsgNewFixedDepositCfgResp {
   string retcode = 1;
+}
+
+message MsgDoFixedDeposit {
+  string                   account   = 1;
+  cosmos.base.v1beta1.Coin principal = 2 [(gogoproto.nullable) = false];
+  int64         term      = 4;
+}
+
+message MsgDoFixedDepositResponse {
+  uint64 id = 1;
+}
+
+message MsgDoFixedWithdraw {
+  string account = 1;
+  uint64 id      = 2;
+}
+
+message MsgDoFixedWithdrawResponse {
+  cosmos.base.v1beta1.Coin principal = 1 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin interest  = 2 [(gogoproto.nullable) = false];
+  int64         term      = 3;
+  string rate = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }

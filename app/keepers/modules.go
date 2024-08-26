@@ -248,6 +248,7 @@ var MaccPerms = map[string][]string{
 	lockuptypes.ModuleName:                             {authtypes.Minter, authtypes.Burner},
 	incentivestypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
 	txfeestypes.ModuleName:                             {authtypes.Burner},
+	wstakingtypes.FixedDepositPrincipalPool:            nil,
 }
 
 var BeginBlockers = []string{
