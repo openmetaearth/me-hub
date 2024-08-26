@@ -166,7 +166,7 @@ containerProtoFmt=cosmos-sdk-proto-fmt-$(protoVer)
 #
 protoCosmosVer=0.14.0
 protoCosmosName=ghcr.io/cosmos/proto-builder:$(protoCosmosVer)
-protoCosmosImage=$(DOCKER) run  --network host --rm -v $(CURDIR):/workspace --workdir /workspace $(protoCosmosName)
+protoCosmosImage=$(DOCKER) run --network host --rm -v $(CURDIR):/workspace --workdir /workspace $(protoCosmosName)
 
 proto-gen:
 	@echo "Generating Protobuf files"

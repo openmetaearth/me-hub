@@ -18,6 +18,8 @@ const (
 	TypeMsgRetrieveFeeFromGlobalAdminFeePool = "retrieve-fee-from-global-admin-fee-pool"
 	TypeMsgStake                             = "stake"
 	TypeMsgUnstake                           = "begin_unstaking"
+	TypeMsgWithdrawFromRegion           = "withdraw_from_region"
+	TypeMsgWithdrawFromGlobalDaoFeePool = "withdraw_from_global_dao_fee_pool"
 )
 
 var (
@@ -26,8 +28,8 @@ var (
 	_ sdk.Msg = &MsgNewRegion{}
 	_ sdk.Msg = &MsgRemoveRegion{}
 	_ sdk.Msg = &MsgWithdrawDelegatorReward{}
-	_ sdk.Msg = &MsgRetrieveCoinsFromRegion{}
-	_ sdk.Msg = &MsgRetrieveFeeFromGlobalAdminFeePool{}
+	_ sdk.Msg = &MsgWithdrawFromRegion{}
+	_ sdk.Msg = &MsgWithdrawFromGlobalDaoFeePool{}
 )
 
 // NewMsgStake creates a new MsgStake instance.
@@ -220,38 +222,38 @@ func (msg *MsgRemoveRegion) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgRetrieveCoinsFromRegion(admin string, regionId string, receiver string, amount sdk.Coins) *MsgRetrieveCoinsFromRegion {
-	return &MsgRetrieveCoinsFromRegion{
-		Admin:    admin,
-		RegionId: regionId,
-		Receiver: receiver,
-		Amount:   amount,
+func NewMsgWithdrawFromRegion(withdrawer string, regionId string, receiver string, amount sdk.Coins) *MsgWithdrawFromRegion {
+	return &MsgWithdrawFromRegion{
+		Withdrawer: withdrawer,
+		RegionId:   regionId,
+		Receiver:   receiver,
+		Amount:     amount,
 	}
 }
 
-func (msg *MsgRetrieveCoinsFromRegion) Route() string {
+func (msg *MsgWithdrawFromRegion) Route() string {
 	return RouterKey
 }
 
-func (msg *MsgRetrieveCoinsFromRegion) Type() string {
-	return TypeMsgRetrieveCoinFromRegion
+func (msg *MsgWithdrawFromRegion) Type() string {
+	return TypeMsgWithdrawFromRegion
 }
 
-func (msg *MsgRetrieveCoinsFromRegion) GetSigners() []sdk.AccAddress {
-	admin, err := sdk.AccAddressFromBech32(msg.Admin)
+func (msg *MsgWithdrawFromRegion) GetSigners() []sdk.AccAddress {
+	admin, err := sdk.AccAddressFromBech32(msg.Withdrawer)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{admin}
 }
 
-func (msg *MsgRetrieveCoinsFromRegion) GetSignBytes() []byte {
+func (msg *MsgWithdrawFromRegion) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgRetrieveCoinsFromRegion) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Admin)
+func (msg *MsgWithdrawFromRegion) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Withdrawer)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
@@ -272,36 +274,36 @@ func (msg *MsgRetrieveCoinsFromRegion) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgRetrieveFeeFromGlobalAdminFeePool(admin string, amount sdk.Coins) *MsgRetrieveFeeFromGlobalAdminFeePool {
-	return &MsgRetrieveFeeFromGlobalAdminFeePool{
-		Admin:  admin,
-		Amount: amount,
+func NewMsgWithdrawFromGlobalDaoFeePool(withdrawer string, amount sdk.Coins) *MsgWithdrawFromGlobalDaoFeePool {
+	return &MsgWithdrawFromGlobalDaoFeePool{
+		Withdrawer: withdrawer,
+		Amount:     amount,
 	}
 }
 
-func (msg *MsgRetrieveFeeFromGlobalAdminFeePool) Route() string {
+func (msg *MsgWithdrawFromGlobalDaoFeePool) Route() string {
 	return RouterKey
 }
 
-func (msg *MsgRetrieveFeeFromGlobalAdminFeePool) Type() string {
-	return TypeMsgRetrieveFeeFromGlobalAdminFeePool
+func (msg *MsgWithdrawFromGlobalDaoFeePool) Type() string {
+	return TypeMsgWithdrawFromGlobalDaoFeePool
 }
 
-func (msg *MsgRetrieveFeeFromGlobalAdminFeePool) GetSigners() []sdk.AccAddress {
-	admin, err := sdk.AccAddressFromBech32(msg.Admin)
+func (msg *MsgWithdrawFromGlobalDaoFeePool) GetSigners() []sdk.AccAddress {
+	admin, err := sdk.AccAddressFromBech32(msg.Withdrawer)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{admin}
 }
 
-func (msg *MsgRetrieveFeeFromGlobalAdminFeePool) GetSignBytes() []byte {
+func (msg *MsgWithdrawFromGlobalDaoFeePool) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgRetrieveFeeFromGlobalAdminFeePool) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Admin)
+func (msg *MsgWithdrawFromGlobalDaoFeePool) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Withdrawer)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}

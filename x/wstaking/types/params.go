@@ -10,7 +10,6 @@ import (
 
 const (
 	MinDelegateAmount = "0.01"
-	CaclTotalSupply   = 20000000000
 )
 
 func CheckMinDelegate(amount math.Int) error {

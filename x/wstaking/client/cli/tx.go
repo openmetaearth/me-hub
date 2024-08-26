@@ -51,6 +51,8 @@ func NewTxCmd() *cobra.Command {
 		NewStakeCmd(),
 		CmdNewRegion(),
 		CmdRemoveRegion(),
+		CmdWithdrawFromRegion(),
+		CmdWithdrawFromGlobalDaoFeePool(),
 		NewDelegateCmd(),
 		NewUndelegateCmd(),
 		NewFixedDepositCmd(),          //定期质押
@@ -280,7 +282,7 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		}
 	}
 
-	validatorAddress, err := fs.GetString(FlagValidatorAddress)
+	validatorAddress, _ := fs.GetString(FlagValidatorAddress)
 
 	msg := &stakingtypes.MsgCreateValidator{
 		Description:       description,
@@ -590,4 +592,38 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 	}
 
 	return txBldr, msg, nil
+}
+
+func CmdWithdrawFromGlobalDaoFeePool() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "withdraw-from-global-dao-fee-pool [amount]",
+		Short: "Broadcast message withdraw-from-global-dao-fee-pool",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argsAmount := args[0]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			amount, err := sdk.ParseCoinsNormalized(argsAmount)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgWithdrawFromGlobalDaoFeePool(
+				clientCtx.GetFromAddress().String(),
+				amount,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }

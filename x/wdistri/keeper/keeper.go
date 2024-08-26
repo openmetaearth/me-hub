@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,25 +15,23 @@ import (
 	"github.com/st-chain/me-hub/x/wdistri/types"
 )
 
-type (
-	Keeper struct {
-		*WrapDistrKeeper
-		cdc           codec.BinaryCodec
-		storeKey      storetypes.StoreKey
-		memKey        storetypes.StoreKey
-		paramstore    paramtypes.Subspace
-		authKeeper    types.AccountKeeper
-		bankKeeper    types.BankKeeper
-		stakingKeeper types.StakingKeeper
-		// the address capable of executing a MsgUpdateParams message. Typically, this
-		// should be the x/gov module account.
-		authority string
+type Keeper struct {
+	distriKeeper.Keeper
+	cdc           codec.BinaryCodec
+	storeKey      storetypes.StoreKey
+	memKey        storetypes.StoreKey
+	paramstore    paramtypes.Subspace
+	authKeeper    types.AccountKeeper
+	bankKeeper    types.BankKeeper
+	stakingKeeper types.StakingKeeper
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
 
-		feeCollectorName string // name of the FeeCollector ModuleAccount
-		baseDenom        string
-		denomeUnit       int64
-	}
-)
+	feeCollectorName string // name of the FeeCollector ModuleAccount
+	baseDenom        string
+	MecToUmec        int64
+}
 
 type WrapDistrKeeper struct {
 	*distriKeeper.Keeper
@@ -66,14 +65,8 @@ func NewKeeper(
 	if err != nil {
 		panic("GetBaseDenom failed")
 	}
-	denomUnit, ok := sdk.GetDenomUnit(baseDenom)
-	if !ok {
-		panic("GetDenomUnit failed")
-	}
 	return &Keeper{
-		WrapDistrKeeper: &WrapDistrKeeper{
-			&DistrKeeper,
-		},
+		Keeper:           DistrKeeper,
 		cdc:              cdc,
 		storeKey:         storeKey,
 		memKey:           memKey,
@@ -84,7 +77,7 @@ func NewKeeper(
 		authority:        authority,
 		feeCollectorName: feeCollectorName,
 		baseDenom:        baseDenom,
-		denomeUnit:       denomUnit.BigInt().Int64(),
+		MecToUmec:        int64(math.Pow(10, ME_EXPONENT)),
 	}
 }
 
@@ -100,13 +93,16 @@ func (k Keeper) AllocateBlockRewards(ctx sdk.Context, req abci.RequestEndBlock) 
 		totalMintCoins := k.getMintCoinsByHeight(fromHeight, toHeight)
 
 		regions := k.stakingKeeper.GetAllRegionI(ctx)
+		totalRegionShare := sdkmath.NewInt(0)
 		for _, region := range regions {
-			totalSupply := sdk.NewDecFromInt(sdk.NewInt(int64(totalMintCoinsAmount)))
-			// calculate every region coins: RegionShare * totalMintCoins / totalSupply
-			amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoins).Quo(totalSupply)
+			totalRegionShare = region.GetRegionShare().Add(totalRegionShare)
+		}
+		totalRegionShareDec := sdk.NewDecFromInt(totalRegionShare)
+		for _, region := range regions {
+			// calculate every region coins: RegionShare * totalMintCoins / totalRegionShare
+			amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoins).Quo(totalRegionShareDec)
 			regionAmount := amount.TruncateInt()
 			regionCoins := sdk.NewCoins(sdk.NewCoin(k.baseDenom, sdk.NewInt(regionAmount.Int64())))
-
 			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.feeCollectorName, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), regionCoins)
 			if err != nil {
 				ctx.Logger().Error(err.Error())
@@ -129,12 +125,12 @@ func (k Keeper) getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk
 	lowMul := (fromHeight - 1) / oneYearTotalBlocks
 	lowAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(lowMul))
 	lowMintMEAmount := RoundUpToFourDecimals(lowAmount)
-	lowMintUMEAmount := lowMintMEAmount * math.Pow(10, float64(k.denomeUnit))
+	lowMintUMEAmount := lowMintMEAmount * float64(k.MecToUmec)
 
 	highMul := (toHeight - 1) / oneYearTotalBlocks
 	highAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(highMul))
 	highMintMEAmount := RoundUpToFourDecimals(highAmount)
-	highMintUMEAmount := highMintMEAmount * math.Pow(10, float64(k.denomeUnit))
+	highMintUMEAmount := highMintMEAmount * float64(k.MecToUmec)
 
 	for i := lowMul; i <= highMul; i++ {
 		// If the range of from and to are in the same reduction height
@@ -154,7 +150,7 @@ func (k Keeper) getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk
 		// Calculate the number of tokens for each full cut interval
 		mintAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(i))
 		mintMEAmount := RoundUpToFourDecimals(mintAmount)
-		mintUMEAmount := mintMEAmount * math.Pow(10, float64(k.denomeUnit))
+		mintUMEAmount := mintMEAmount * float64(k.MecToUmec)
 		totalCoins = totalCoins + int64(oneYearTotalBlocks)*int64(mintUMEAmount)
 	}
 

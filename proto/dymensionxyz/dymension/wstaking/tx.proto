@@ -38,6 +38,8 @@ service Msg {
   rpc DoFixedDeposit(MsgDoFixedDeposit) returns (MsgDoFixedDepositResponse);
   rpc DoFixedWithdraw(MsgDoFixedWithdraw) returns (MsgDoFixedWithdrawResponse);
   rpc RemoveFixedDepositCfg(MsgRemoveFixedDepositCfg) returns (MsgRemoveFixedDepositCfgResp);
+  rpc WithdrawFromRegion(MsgWithdrawFromRegion) returns (MsgWithdrawFromRegionResp);
+  rpc WithdrawFromGlobalDaoFeePool(MsgWithdrawFromGlobalDaoFeePool) returns (MsgWithdrawFromGlobalDaoFeePoolResp);
 }
 
 // MsgStake defines a SDK message for performing a stake of coins
@@ -170,8 +172,8 @@ message MsgRemoveRegionResponse {
   string retcode = 1;
 }
 
-message MsgRetrieveCoinsFromRegion {
-  string admin = 1;
+message MsgWithdrawFromRegion {
+  string withdrawer = 1;
   string region_id = 2;
   string receiver = 3;
   repeated cosmos.base.v1beta1.Coin amount = 4 [
@@ -181,64 +183,11 @@ message MsgRetrieveCoinsFromRegion {
   ];
 }
 
-message MsgRetrieveCoinsFromRegionResp {
-  string retcode = 1;
+message MsgWithdrawFromRegionResp {
 }
 
-message MsgNewMeid {
-  string creator    = 1;
-  string account    = 2;
-  string invite_addr = 3;
-  string region_id   = 4;
-}
-
-message MsgNewMeidResponse {
-  string retcode = 1;
-}
-
-message MsgRemoveMeid {
-  string creator = 1;
-  string account = 2;
-}
-
-message MsgRemoveMeidResponse {
-  string retcode = 1;
-}
-
-message MsgNewMeidNFT {
-  string creator  = 1;
-  string account  = 2;
-  string region_id = 3;
-  string umeid     = 4;
-  string meta     = 5;
-  string uri      = 6;
-  string urihash  = 7;
-}
-
-message MsgNewMeidNFTResponse {
-  string retcode = 1;
-}
-
-message MsgRemoveMeidNFT {
-  string creator = 1;
-  string account = 2;
-  string umeid    = 3;
-}
-
-message MsgRemoveMeidNFTResponse {
-  string retcode = 1;
-}
-
-message MsgTransferRegion {
-  string fromRegion = 1;
-  string toRegion = 2;
-  repeated string address = 3;
-  string creator = 4;
-}
-message MsgTransferRegionResponse {}
-
-message MsgRetrieveFeeFromGlobalAdminFeePool {
-  string admin = 1;
+message MsgWithdrawFromGlobalDaoFeePool {
+  string withdrawer = 1;
   repeated cosmos.base.v1beta1.Coin amount = 2 [
     (gogoproto.nullable)     = false,
     (amino.dont_omitempty)   = true,
@@ -246,8 +195,7 @@ message MsgRetrieveFeeFromGlobalAdminFeePool {
   ];
 }
 
-message MsgRetrieveFeeFromGlobalAdminFeePoolResp {
-  string retcode = 1;
+message MsgWithdrawFromGlobalDaoFeePoolResp {
 }
 
 // MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator

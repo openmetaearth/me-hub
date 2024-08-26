@@ -19,6 +19,7 @@ type Keeper struct {
 	BankKeeper  types.BankKeeper
 	DaoKeeper   types.DaoKeeper
 	WMintKeeper wmintkeeper.Keeper
+	nftKeeper  types.NFTKeeper
 }
 
 func NewKeeper(
@@ -27,6 +28,7 @@ func NewKeeper(
 	ak banktypes.AccountKeeper,
 	bk types.BankKeeper,
 	dk types.DaoKeeper,
+	nk types.NFTKeeper,
 	authority string,
 ) *Keeper {
 	return &Keeper{
@@ -36,6 +38,7 @@ func NewKeeper(
 		AuthKeeper: ak,
 		BankKeeper: bk,
 		DaoKeeper:  dk,
+		nftKeeper:  nk,
 	}
 }
 

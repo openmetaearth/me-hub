@@ -13,6 +13,7 @@ var (
 	ErrValidatorTokensAmount    = sdkerrors.Register(ModuleName, 61, "unstake limit: validator's tokens amount can not less than meid amount or delegate amount")
 	ErrNoUnbondingStake         = sdkerrors.Register(ModuleName, 62, "no unbonding stake found")
 	ErrNoStake                  = sdkerrors.Register(ModuleName, 63, "no stake for (address, validator) tuple")
+	ErrCalculateInterest        = sdkerrors.Register(ModuleName, 64, "delegator calculate interest err.")
 
 	ErrSample           = sdkerrors.Register(ModuleName, 1100, "sample error")
 	ErrDoDeposit        = sdkerrors.Register(ModuleName, 1101, "do deposit error")
@@ -96,7 +97,6 @@ var (
 	ErrNoDelegatorForAddress         = sdkerrors.Register(ModuleName, 1210, "delegator does not contain delegation")
 	ErrNodeLimitExceeded             = sdkerrors.Register(ModuleName, 1211, "Node delegation limit exceeded.")
 	ErrAssertionFailed               = sdkerrors.Register(ModuleName, 1212, "type Delegation assertion failed")
-	ErrCalculateInterest             = sdkerrors.Register(ModuleName, 1213, "delegator calculate interest err.")
 
 	ErrEmptyDelegatorAddr      = sdkerrors.Register(ModuleName, 1214, "delegator address is empty")
 	ErrEmptyWithdrawAddr       = sdkerrors.Register(ModuleName, 1215, "withdraw address is empty")

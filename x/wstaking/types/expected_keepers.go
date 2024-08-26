@@ -3,14 +3,15 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/cosmos-sdk/x/nft"
 	"math/big"
 )
 
-// CustomParamsKeeper defines the custom params keeper interface required for the module.
 type DaoKeeper interface {
 	IsGlobalDao(ctx sdk.Context, address string) bool
 	IsMeidDao(ctx sdk.Context, address string) bool
 	GetAirdropAddress(ctx sdk.Context) string
+	GetDevOperator(ctx sdk.Context) string
 }
 
 // BankKeeper defines the expected interface needed to retrieve account balances.
@@ -41,4 +42,8 @@ type BankKeeper interface {
 type MintKeeper interface {
 	// GetPerBlockMintCoinAmount returns the current block mint coins amount.
 	GetPerBlockMintCoinAmount(ctx sdk.Context) (amount big.Int)
+}
+
+type NFTKeeper interface {
+	SaveClass(ctx sdk.Context, class nft.Class) error
 }

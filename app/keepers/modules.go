@@ -1,6 +1,8 @@
 package keepers
 
 import (
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -27,6 +29,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/client"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/cosmos/cosmos-sdk/x/nft"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -92,6 +95,7 @@ import (
 	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	"github.com/st-chain/me-hub/x/rollapp"
 
+	nftmodule "github.com/cosmos/cosmos-sdk/x/nft/module"
 	rollappmoduleclient "github.com/st-chain/me-hub/x/rollapp/client"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
 	"github.com/st-chain/me-hub/x/sequencer"
@@ -159,6 +163,8 @@ var ModuleBasics = module.NewBasicManager(
 	incentives.AppModuleBasic{},
 	txfees.AppModuleBasic{},
 	dao.AppModuleBasic{},
+	nftmodule.AppModuleBasic{},
+	wasm.AppModuleBasic{},
 )
 
 func (a *AppKeepers) SetupModules(
@@ -249,6 +255,8 @@ var MaccPerms = map[string][]string{
 	incentivestypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
 	txfeestypes.ModuleName:                             {authtypes.Burner},
 	wstakingtypes.FixedDepositPrincipalPool:            nil,
+	nft.ModuleName:                                     nil,
+	wasmtypes.ModuleName:                               {authtypes.Burner},
 }
 
 var BeginBlockers = []string{
@@ -287,6 +295,7 @@ var BeginBlockers = []string{
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	daotypes.ModuleName,
+	wasmtypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -325,6 +334,7 @@ var EndBlockers = []string{
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	daotypes.ModuleName,
+	wasmtypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -363,4 +373,5 @@ var InitGenesis = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
+	wasmtypes.ModuleName,
 }

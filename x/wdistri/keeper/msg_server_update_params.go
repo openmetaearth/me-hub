@@ -22,6 +22,6 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParam
 		return nil, errors.Wrapf(types.ErrInvalidParams, "cannot update base or bonus proposer reward because these are deprecated fields")
 	}
 
-	k.WrapDistrKeeper.SetParams(ctx, msg.Params.DistributionParams)
+	k.Keeper.Keeper.SetParams(ctx, msg.Params.DistributionParams)
 	return &types.MsgUpdateParamsResponse{}, nil
 }

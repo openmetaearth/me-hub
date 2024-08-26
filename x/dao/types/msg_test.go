@@ -18,14 +18,12 @@ func TestMsgUpdateGlobalDao_ValidateBasic(t *testing.T) {
 			name: "invalid address",
 			msg: MsgUpdateGlobalDao{
 				Creator: "invalid_address",
-				Address: sample.AccAddress(),
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
 			msg: MsgUpdateGlobalDao{
 				Creator: sample.AccAddress(),
-				Address: sample.AccAddress(),
 			},
 		},
 	}
