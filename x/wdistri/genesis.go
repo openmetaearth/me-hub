@@ -10,14 +10,14 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
-	k.WrapDistrKeeper.InitGenesis(ctx, genState.CosmosDistributionState)
+	k.Keeper.InitGenesis(ctx, genState.CosmosDistributionState)
 }
 
 // ExportGenesis returns the module's exported genesis
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis := types.DefaultGenesis()
 	genesis.Params = k.GetParams(ctx)
-	genesis.CosmosDistributionState = *k.WrapDistrKeeper.ExportGenesis(ctx)
+	genesis.CosmosDistributionState = *k.Keeper.ExportGenesis(ctx)
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis
