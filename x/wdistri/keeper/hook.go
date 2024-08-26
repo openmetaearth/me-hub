@@ -21,5 +21,11 @@ func (k Keeper) Hooks() Hooks {
 // overwrite
 // withdraw delegation rewards (which also increments period)
 func (h Hooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+	//TODO:
+
 	return nil
+}
+
+func (h Hooks) Before(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+	h.Hooks.BeforeDelegationCreated(ctx, delAddr, valAddr)
 }
