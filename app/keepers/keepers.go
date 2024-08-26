@@ -277,7 +277,6 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 	)
 
-	//FIXME: distribution
 	a.DistrKeeper = wdistrkeeper.NewKeeper(
 		appCodec,
 		a.keys[wdistrtypes.StoreKey],
