@@ -1,8 +1,12 @@
 package keepers
 
 import (
+	"fmt"
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -16,6 +20,7 @@ import (
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
@@ -71,7 +76,11 @@ import (
 	wdistrkeeper "github.com/st-chain/me-hub/x/wdistri/keeper"
 	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
+	"path/filepath"
+	"strings"
 
+	wasmapp "github.com/CosmWasm/wasmd/app"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/st-chain/me-hub/x/bridgingfee"
 	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
 	delayedackkeeper "github.com/st-chain/me-hub/x/delayedack/keeper"
@@ -145,6 +154,7 @@ type AppKeepers struct {
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
 	DaoKeeper           daokeeper.Keeper
 	NFTKeeper           nftkeeper.Keeper
+	WasmKeeper          wasmkeeper.Keeper
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -161,6 +171,8 @@ func (a *AppKeepers) InitKeepers(
 	skipUpgradeHeights map[int64]bool,
 	invCheckPeriod uint,
 	tracer, homePath string,
+	appOpts servertypes.AppOptions,
+	wasmOpts []wasmkeeper.Option,
 ) {
 	govModuleAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	// init keepers
@@ -176,6 +188,7 @@ func (a *AppKeepers) InitKeepers(
 	// grant capabilities for the ibc and ibc-transfer modules
 	a.ScopedIBCKeeper = a.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
 	a.ScopedTransferKeeper = a.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
+	scopedWasmKeeper := a.CapabilityKeeper.ScopeToModule(wasmtypes.ModuleName)
 
 	a.CapabilityKeeper.Seal()
 
@@ -442,6 +455,36 @@ func (a *AppKeepers) InitKeepers(
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		&a.EIBCKeeper,
+	)
+
+	wasmDir := filepath.Join(homePath, "wasm")
+	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
+	if err != nil {
+		panic(fmt.Sprintf("error while reading wasm config: %s", err))
+	}
+
+	// The last arguments can contain custom message handlers, and custom query handlers,
+	// if we want to allow any custom callbacks
+	availableCapabilities := strings.Join(wasmapp.AllCapabilities(), ",")
+	a.WasmKeeper = wasmkeeper.NewKeeper(
+		appCodec,
+		a.keys[wasmtypes.StoreKey],
+		a.AccountKeeper,
+		a.BankKeeper,
+		a.StakingKeeper,
+		distrkeeper.NewQuerier(a.DistrKeeper.Keeper),
+		a.ICS4Wrapper, // ISC4 Wrapper: fee IBC middleware
+		a.IBCKeeper.ChannelKeeper,
+		&a.IBCKeeper.PortKeeper,
+		scopedWasmKeeper,
+		a.TransferKeeper,
+		bApp.MsgServiceRouter(),
+		bApp.GRPCQueryRouter(),
+		wasmDir,
+		wasmConfig,
+		availableCapabilities,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		wasmOpts...,
 	)
 
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)

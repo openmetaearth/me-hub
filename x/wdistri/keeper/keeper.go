@@ -15,25 +15,23 @@ import (
 	"github.com/st-chain/me-hub/x/wdistri/types"
 )
 
-type (
-	Keeper struct {
-		*WrapDistrKeeper
-		cdc           codec.BinaryCodec
-		storeKey      storetypes.StoreKey
-		memKey        storetypes.StoreKey
-		paramstore    paramtypes.Subspace
-		authKeeper    types.AccountKeeper
-		bankKeeper    types.BankKeeper
-		stakingKeeper types.StakingKeeper
-		// the address capable of executing a MsgUpdateParams message. Typically, this
-		// should be the x/gov module account.
-		authority string
+type Keeper struct {
+	distriKeeper.Keeper
+	cdc           codec.BinaryCodec
+	storeKey      storetypes.StoreKey
+	memKey        storetypes.StoreKey
+	paramstore    paramtypes.Subspace
+	authKeeper    types.AccountKeeper
+	bankKeeper    types.BankKeeper
+	stakingKeeper types.StakingKeeper
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
 
-		feeCollectorName string // name of the FeeCollector ModuleAccount
-		baseDenom        string
-		MecToUmec       int64
-	}
-)
+	feeCollectorName string // name of the FeeCollector ModuleAccount
+	baseDenom        string
+	MecToUmec        int64
+}
 
 type WrapDistrKeeper struct {
 	*distriKeeper.Keeper
@@ -68,9 +66,7 @@ func NewKeeper(
 		panic("GetBaseDenom failed")
 	}
 	return &Keeper{
-		WrapDistrKeeper: &WrapDistrKeeper{
-			&DistrKeeper,
-		},
+		Keeper:           DistrKeeper,
 		cdc:              cdc,
 		storeKey:         storeKey,
 		memKey:           memKey,
@@ -81,7 +77,7 @@ func NewKeeper(
 		authority:        authority,
 		feeCollectorName: feeCollectorName,
 		baseDenom:        baseDenom,
-		MecToUmec:       int64(math.Pow(10, ME_EXPONENT)),
+		MecToUmec:        int64(math.Pow(10, ME_EXPONENT)),
 	}
 }
 

@@ -3,7 +3,9 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
+	"github.com/prometheus/client_golang/prometheus"
 	"io"
 	"io/fs"
 	"net/http"
@@ -170,7 +172,11 @@ func New(
 
 	tracer := cast.ToString(appOpts.Get(flags.EVMTracer))
 
-	app.AppKeepers.InitKeepers(appCodec, cdc, bApp, app.ModuleAccountAddrs(), skipUpgradeHeights, invCheckPeriod, tracer, homePath)
+	var wasmOpts []wasmkeeper.Option
+	if cast.ToBool(appOpts.Get("telemetry.enabled")) {
+		wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
+	}
+	app.AppKeepers.InitKeepers(appCodec, cdc, bApp, app.ModuleAccountAddrs(), skipUpgradeHeights, invCheckPeriod, tracer, homePath, appOpts, wasmOpts)
 	app.AppKeepers.SetupHooks()
 	app.AppKeepers.InitTransferStack()
 

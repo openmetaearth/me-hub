@@ -1,6 +1,8 @@
 package keepers
 
 import (
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -162,6 +164,7 @@ var ModuleBasics = module.NewBasicManager(
 	txfees.AppModuleBasic{},
 	dao.AppModuleBasic{},
 	nftmodule.AppModuleBasic{},
+	wasm.AppModuleBasic{},
 )
 
 func (a *AppKeepers) SetupModules(
@@ -252,6 +255,7 @@ var MaccPerms = map[string][]string{
 	incentivestypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
 	txfeestypes.ModuleName:                             {authtypes.Burner},
 	nft.ModuleName:                                     nil,
+	wasmtypes.ModuleName:                               {authtypes.Burner},
 }
 
 var BeginBlockers = []string{
@@ -290,6 +294,7 @@ var BeginBlockers = []string{
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	daotypes.ModuleName,
+	wasmtypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -328,6 +333,7 @@ var EndBlockers = []string{
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	daotypes.ModuleName,
+	wasmtypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -366,4 +372,5 @@ var InitGenesis = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
+	wasmtypes.ModuleName,
 }

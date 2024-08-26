@@ -15,7 +15,7 @@ var _ stakingtypes.StakingHooks = Hooks{}
 
 // Create new distribution hooks
 func (k Keeper) Hooks() Hooks {
-	return Hooks{Hooks: k.WrapDistrKeeper.Hooks(), k: k}
+	return Hooks{Hooks: k.Keeper.Hooks(), k: k}
 }
 
 // overwrite
