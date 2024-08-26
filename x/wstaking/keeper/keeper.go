@@ -12,12 +12,13 @@ import (
 
 type Keeper struct {
 	*stakingkeeper.Keeper
-	cdc        codec.BinaryCodec
-	storeKey   storetypes.StoreKey
-	AuthKeeper banktypes.AccountKeeper
-	BankKeeper types.BankKeeper
-	DaoKeeper  types.DaoKeeper
-	nftKeeper  types.NFTKeeper
+	cdc           codec.BinaryCodec
+	storeKey      storetypes.StoreKey
+	AuthKeeper    banktypes.AccountKeeper
+	BankKeeper    types.BankKeeper
+	DaoKeeper     types.DaoKeeper
+	nftKeeper     types.NFTKeeper
+	wstakingHooks types.WstakingHooks
 }
 
 func NewKeeper(
@@ -30,13 +31,14 @@ func NewKeeper(
 	authority string,
 ) *Keeper {
 	return &Keeper{
-		Keeper:     stakingkeeper.NewKeeper(cdc, storeKey, ak, bk, authority),
-		cdc:        cdc,
-		storeKey:   storeKey,
-		AuthKeeper: ak,
-		BankKeeper: bk,
-		DaoKeeper:  dk,
-		nftKeeper:  nk,
+		Keeper:        stakingkeeper.NewKeeper(cdc, storeKey, ak, bk, authority),
+		cdc:           cdc,
+		storeKey:      storeKey,
+		AuthKeeper:    ak,
+		BankKeeper:    bk,
+		DaoKeeper:     dk,
+		nftKeeper:     nk,
+		wstakingHooks: nil,
 	}
 }
 

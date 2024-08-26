@@ -90,4 +90,6 @@ var (
 
 	ErrParameter      = sdkerrors.Register(ModuleName, 1201, "parameter error")
 	ErrUnknownAccount = sdkerrors.Register(ModuleName, 1202, "Unknown account")
+
+	ErrHooks = sdkerrors.Register(ModuleName, 1210, "hooks error")
 )

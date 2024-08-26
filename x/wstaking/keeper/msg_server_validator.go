@@ -190,6 +190,12 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 		validator.OwnerAddress = msg.OwnerAddress
 	}
 
+	//before update Validator ,should distribution block reward
+	err=k.WstakingHooks().BeforeValidatorStakingModified(ctx,valAddr)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrHooks, "before edit validator :error :%+v", err)
+	}
+
 	k.SetValidator(ctx, validator)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
