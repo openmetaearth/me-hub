@@ -14,28 +14,22 @@ import (
 	"github.com/st-chain/me-hub/x/wdistri/types"
 )
 
-type (
-	Keeper struct {
-		*WrapDistrKeeper
-		cdc           codec.BinaryCodec
-		storeKey      storetypes.StoreKey
-		memKey        storetypes.StoreKey
-		paramstore    paramtypes.Subspace
-		authKeeper    types.AccountKeeper
-		bankKeeper    types.BankKeeper
-		stakingKeeper types.StakingKeeper
-		// the address capable of executing a MsgUpdateParams message. Typically, this
-		// should be the x/gov module account.
-		authority string
+type Keeper struct {
+	distriKeeper.Keeper
+	cdc           codec.BinaryCodec
+	storeKey      storetypes.StoreKey
+	memKey        storetypes.StoreKey
+	paramstore    paramtypes.Subspace
+	authKeeper    types.AccountKeeper
+	bankKeeper    types.BankKeeper
+	stakingKeeper types.StakingKeeper
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
 
-		feeCollectorName string // name of the FeeCollector ModuleAccount
-		baseDenom        string
-		denomeUnit       int64
-	}
-)
-
-type WrapDistrKeeper struct {
-	*distriKeeper.Keeper
+	feeCollectorName string // name of the FeeCollector ModuleAccount
+	baseDenom        string
+	denomeUnit       int64
 }
 
 func NewKeeper(
@@ -71,9 +65,7 @@ func NewKeeper(
 		panic("GetDenomUnit failed")
 	}
 	return &Keeper{
-		WrapDistrKeeper: &WrapDistrKeeper{
-			&DistrKeeper,
-		},
+		Keeper:           DistrKeeper,
 		cdc:              cdc,
 		storeKey:         storeKey,
 		memKey:           memKey,
