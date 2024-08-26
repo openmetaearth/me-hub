@@ -33,6 +33,12 @@ var (
 	ErrLogic                          = errorsmod.Register(ModuleName, 1038, "internal logic error")
 	ErrInvalidAddress                 = errorsmod.Register(ModuleName, 1040, "invalid address")
 
+	/* ------------------------------ new added ----------------------------- */
+	ErrParserData             = errorsmod.Register(ModuleName, 1041, "parser internal data error")
+	ErrValidateSubmitBlock    = errorsmod.Register(ModuleName, 1042, "SubmitBlock validate error")
+	ErrNotEnoughSequencerSign = errorsmod.Register(ModuleName, 1043, "not enough sequencer from election  sign for block ")
+	ErrCommitVerifyFail       = errorsmod.Register(ModuleName, 1045, "commitment verify failed ")
+	ErrNotEnoughStake         = errorsmod.Register(ModuleName, 1045, "Stake is not enough ")
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")
 	ErrDisputeAlreadyReverted  = errorsmod.Register(ModuleName, 2001, "disputed height already reverted")

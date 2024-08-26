@@ -5,7 +5,7 @@ package dymensionxyz.dymension.rollapp;
 import "cosmos/msg/v1/msg.proto";
 import "dymensionxyz/dymension/rollapp/block_descriptor.proto";
 import "dymensionxyz/dymension/rollapp/rollapp.proto";
-
+import "dymensionxyz/dymension/rollapp/blockDA_L2.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
 import "gogoproto/gogo.proto";
@@ -14,6 +14,8 @@ import "gogoproto/gogo.proto";
 service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
+  rpc SubmitBlockDAInfo(MsgBlkDAInfo) returns (MsgBlkDAResponse);
+  rpc GetLastSubmitBlockInfo(MsgLastSubmitBlkRequest) returns (MsgLastSubmitBlkResponse);
 }
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.
@@ -62,4 +64,17 @@ message MsgUpdateState {
 }
 
 message MsgUpdateStateResponse {
+
+}
+
+
+message MsgLastSubmitBlkRequest{
+  string rollappId = 1;
+}
+
+message MsgLastSubmitBlkResponse{
+  uint64 startHeight = 1;
+  // numBlocks is the number of blocks included in this batch update
+  uint64 numBlocks = 2;
+
 }

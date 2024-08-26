@@ -21,6 +21,7 @@ type Keeper struct {
 
 	ibcClientKeeper types.IBCClientKeeper
 	channelKeeper   types.ChannelKeeper
+	rollupKeeper    types.RollupKeeper
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 }
@@ -70,4 +71,8 @@ func (k *Keeper) SetHooks(sh types.MultiRollappHooks) {
 
 func (k *Keeper) GetHooks() types.MultiRollappHooks {
 	return k.hooks
+}
+
+func (k *Keeper) SetRollupKeeper(rollupKeeper types.RollupKeeper) {
+	k.rollupKeeper = rollupKeeper
 }

@@ -21,6 +21,8 @@ func GetTxCmd() *cobra.Command {
 
 	cmd.AddCommand(CmdCreateRollapp())
 	cmd.AddCommand(CmdUpdateState())
+	cmd.AddCommand(CmdSubmitBlockDa())
+	cmd.AddCommand(CmdGetLastSubmitBlock())
 
 	return cmd
 }

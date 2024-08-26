@@ -14,6 +14,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		MinStakeAmount:         k.GetMinStakeAmount(ctx),
 		FirstElectionInterval:  k.GetFirstElectionInterval(ctx),
 		AllowApplyElectionTime: k.GetAllowApplyElectionTime(ctx),
+		ElectionInterimTime:    k.GetElectionInterimTime(ctx),
 	}
 
 }

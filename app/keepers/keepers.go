@@ -415,6 +415,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.GetSubspace(rollupkeepertypes.MODULE_NAME),
 	)
+	a.RollappKeeper.SetRollupKeeper(a.RollupKeeper)
 
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
 

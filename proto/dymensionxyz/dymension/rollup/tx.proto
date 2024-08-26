@@ -11,4 +11,12 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/rollup/types";
 service Msg {
   rpc StakeForSequencer(MsgSeqStaking) returns (MsgStakingResponse);
   rpc UnStake(MsgSeqUnStaking) returns (MsgUnStakingResponse);
+  rpc RegisterRollappID(RegisterRollappIDRequest) returns (RegisterRollappIDResponse);
+}
+
+message RegisterRollappIDRequest{
+  string rollappID = 1 ;
+}
+
+message RegisterRollappIDResponse{
 }

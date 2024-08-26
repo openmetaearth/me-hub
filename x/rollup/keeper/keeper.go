@@ -3,6 +3,9 @@ package keeper
 import (
 	"encoding/json"
 	"fmt"
+
+	//"github.com/Workiva/go-datastructures/threadsafe/err"
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -16,12 +19,13 @@ import (
 
 // Keeper struct
 type Keeper struct {
-	storeKey         storetypes.StoreKey
-	cdc              codec.BinaryCodec
-	bk               types.BankKeeper
-	rk               types.RollappKeeper
-	paramStore       paramtypes.Subspace
-	lastElectionTime uint64
+	storeKey   storetypes.StoreKey
+	cdc        codec.BinaryCodec
+	bk         types.BankKeeper
+	rk         types.RollappKeeper
+	paramStore paramtypes.Subspace
+	//lastElectionTime uint64
+	rollAppID string
 }
 
 // NewKeeper creates a new staking Keeper instance
@@ -33,6 +37,7 @@ func NewKeeper(storeKey storetypes.StoreKey, cdc codec.BinaryCodec, paramSpace p
 		storeKey:   storeKey,
 		cdc:        cdc,
 		paramStore: paramSpace,
+		rollAppID:  "",
 	}
 }
 
@@ -45,7 +50,7 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 	blkTime := ctx.BlockTime().Unix()
 	//获取上一次选举的时间
 	kvStore := ctx.KVStore(k.storeKey)
-	rollupStore := prefix.NewStore(kvStore, []byte(types.RollupKeyPrefix))
+	rollupStore := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(k.rollAppID))
 	lastElectTime := int64(0)
 	bIsNeedElect := false
 	if electTimeVal := rollupStore.Get([]byte(types.KEY_LAST_ELECTION_TIME)); electTimeVal != nil {
@@ -78,8 +83,8 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 					return nil
 				}
 			} else {
-				return fmt.Errorf("%s,can not get firstElectTime. blkHeight = %d",
-					types.ErrProcessErr.Error(), ctx.BlockHeight())
+				return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("can not get firstElectTime. blkHeight = %d",
+					ctx.BlockHeight()))
 			}
 
 		}
@@ -92,7 +97,7 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 		}
 		var res []byte
 		if res, err = json.Marshal(electList); err != nil {
-			return fmt.Errorf("%s,Marshal(electList) error.err = %s", types.ErrProcessErr.Error(), err.Error())
+			return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("Marshal(electList) error.err = %s", err.Error()))
 		}
 		rollupStore.Set([]byte(types.KEY_LAST_ELECTION_TIME), types.Int64ToBytes(blkTime))
 		//设置
@@ -102,6 +107,10 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 			NodeStatusList: electList,
 		}
 		electData := k.cdc.MustMarshal(&electResult)
+		//保存上一次的竞选信息
+		if preElectData := rollupStore.Get([]byte(types.KEY_LAST_ELECTION_INFO)); preElectData != nil {
+			rollupStore.Set([]byte(types.KEY_PREVIOUS_ELECTION_INFO), preElectData)
+		}
 		rollupStore.Set([]byte(types.KEY_LAST_ELECTION_INFO), electData)
 		//
 		ctx.EventManager().EmitEvent(
@@ -122,7 +131,7 @@ func (k *Keeper) ProcUnstake(ctx sdk.Context) error {
 	blkTime := ctx.BlockTime().Unix()
 	//获取上一次选举的时间
 	kvStore := ctx.KVStore(k.storeKey)
-	rollupStore := prefix.NewStore(kvStore, []byte(types.RollupKeyPrefix))
+	rollupStore := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(k.rollAppID))
 
 	if ElectVal := rollupStore.Get([]byte(types.KEY_LAST_ELECTION_TIME)); ElectVal != nil {
 		lastElectTime := types.BytesToInt64(ElectVal)
@@ -157,7 +166,7 @@ func (k *Keeper) ProcUnstake(ctx sdk.Context) error {
 }
 
 func (k *Keeper) startUnstake(ctx sdk.Context) (int32, error) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.RollupStakeKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupAppStakeKeyPrefix(k.rollAppID))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
 	var totalUnstakeAddr [][]byte
@@ -165,23 +174,23 @@ func (k *Keeper) startUnstake(ctx sdk.Context) (int32, error) {
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.MsgStakeInfo
 		if err := k.cdc.Unmarshal(iterator.Value(), &val); err != nil {
-			return 0, fmt.Errorf("%s,Unmarshal stakeInfo error.err = %s", types.ErrParserDataErr.Error(), err.Error())
+			return 0, errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("Unmarshal stakeInfo error.err = %s", err.Error()))
 		}
 		if val.ApplyUnStakeAmount > 0 {
 			if val.ApplyUnStakeAmount > val.StakeAmount {
-				return 0, fmt.Errorf("%s,ApplyUnStakeAmount(%d) > StakeAmount(%d),addr = %s",
-					types.ErrProcessErr.Error(), val.ApplyUnStakeAmount, val.StakeAmount, string(iterator.Key()))
+				return 0, errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("ApplyUnStakeAmount(%d) > StakeAmount(%d),addr = %s",
+					val.ApplyUnStakeAmount, val.StakeAmount, string(iterator.Key())))
 			} else {
 				val.StakeAmount -= val.ApplyUnStakeAmount
 				recvAddr, err := sdk.AccAddressFromBech32(string(iterator.Key()))
 				if err != nil {
-					return 0, fmt.Errorf("%s,AccAddressFromBech32 error,err = %s,addr = %s",
-						types.ErrProcessErr.Error(), err.Error(), string(iterator.Key()))
+					return 0, errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("AccAddressFromBech32 error,err = %s,addr = %s",
+						err.Error(), string(iterator.Key())))
 				}
 				unStakeCoin := sdk.NewCoin("UMEC", sdk.NewInt(int64(val.ApplyUnStakeAmount)))
 				if err = k.bk.SendCoinsFromModuleToAccount(ctx, types.MODULE_NAME, recvAddr, sdk.NewCoins(unStakeCoin)); err != nil {
-					return 0, fmt.Errorf("%s,unstake coin form module error,err = %s,addr = %s,amount = %d",
-						types.ErrProcessErr.Error(), err.Error(), string(iterator.Key()), val.ApplyUnStakeAmount)
+					return 0, errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("unstake coin form module error,err = %s,addr = %s,amount = %d",
+						err.Error(), string(iterator.Key()), val.ApplyUnStakeAmount))
 
 				}
 				unStakeAmount := val.ApplyUnStakeAmount
@@ -215,7 +224,7 @@ func (k *Keeper) startUnstake(ctx sdk.Context) (int32, error) {
 }
 
 func (k *Keeper) startElection(ctx sdk.Context, minStakeAmount uint64) ([]*types.ElectionNodeStatus, error) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.RollupStakeKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupAppStakeKeyPrefix(k.rollAppID))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
 
@@ -223,8 +232,10 @@ func (k *Keeper) startElection(ctx sdk.Context, minStakeAmount uint64) ([]*types
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.MsgStakeInfo
 		if err := k.cdc.Unmarshal(iterator.Value(), &val); err != nil {
-			return nil, fmt.Errorf("%s,Unmarshal stakeInfo error.err = %s", types.ErrParserDataErr.Error(), err.Error())
+			return nil, errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("Unmarshal stakeInfo error.err = %s", err.Error()))
 		}
+		//这里进行 val.StakeAmount - val.ApplyUnStakeAmount的作用是为了让解质押对于竞选的影响的也能锁仓一个周期
+		//假设在竞选前一天进行解质押，如果不相减的话，则就相当解质押对于竞选的影响几乎没有
 		stakeAmount := val.StakeAmount - val.ApplyUnStakeAmount
 		if stakeAmount < minStakeAmount { //不满足最小质押要求，则不能参加竞选
 			continue
@@ -240,8 +251,8 @@ func (k *Keeper) startElection(ctx sdk.Context, minStakeAmount uint64) ([]*types
 	SeqNumber := k.GetSequencerNumber(ctx)
 	BackNumber := k.GetBackupNumber(ctx)
 	if uint32(electorList.Len()) < SeqNumber {
-		return nil, fmt.Errorf("%s,electorList len(%d) < sequencer number(%d)",
-			types.ErrProcessErr.Error(), electorList.Len(), SeqNumber)
+		return nil, errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("electorList len(%d) < sequencer number(%d)",
+			electorList.Len(), SeqNumber))
 	}
 	totalNumber := SeqNumber + BackNumber
 	var res []*types.ElectionNodeStatus
@@ -299,4 +310,61 @@ func (k Keeper) GetFirstElectionInterval(ctx sdk.Context) (res uint32) {
 func (k Keeper) GetAllowApplyElectionTime(ctx sdk.Context) (res uint32) {
 	k.paramStore.Get(ctx, []byte(types.KeyApplyElectionTime), &res)
 	return
+}
+
+func (k Keeper) GetElectionInterimTime(ctx sdk.Context) (res uint32) {
+	k.paramStore.Get(ctx, []byte(types.KeyElectionInterimTime), &res)
+	return
+}
+
+func (k *Keeper) Punishment(ctx sdk.Context, address, rollappID string, rate uint32, amount uint64) error {
+	punishmentAmount := uint64(0)
+	kvStore := ctx.KVStore(k.storeKey)
+	store := prefix.NewStore(kvStore, types.GetRollupAppStakeKeyPrefix(rollappID))
+	data := store.Get([]byte(address))
+	if data == nil {
+		return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("can not found stake info. add = %s", address))
+	}
+	resp := &types.MsgStakeInfo{
+		StakeAmount:        0,
+		ApplyUnStakeAmount: 0,
+	}
+	k.cdc.MustUnmarshal(data, resp)
+
+	if 0 == rate {
+		punishmentAmount = amount
+	} else {
+		if rate > 100 {
+			return errorsmod.Wrapf(types.ErrInputDataErr, fmt.Sprintf("input rate error. rate = %d", rate))
+		} else {
+			punishmentAmount = (resp.StakeAmount * uint64(rate)) / 100
+		}
+	}
+	if punishmentAmount > 0 {
+		accAddr, err := sdk.AccAddressFromBech32(address)
+		if err != nil {
+			return errorsmod.Wrapf(types.ErrInputDataErr, fmt.Sprintf(" AccAddressFromBech32 error. err = %s,addr = %s",
+				err.Error(), address))
+		}
+		stakeCoin := sdk.NewCoin("UMEC", sdk.NewInt(int64(punishmentAmount)))
+		//如果金额不够的话，SendCoinsFromAccountToModule这里就已经会判断处理了
+		if err = k.bk.SendCoinsFromAccountToModule(ctx, accAddr, types.MODULE_NAME, sdk.NewCoins(stakeCoin)); err != nil {
+			return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("transfer  coin to module error.err = %s,addr = %s",
+				err.Error(), address))
+		}
+		resp.StakeAmount -= punishmentAmount
+		resData := k.cdc.MustMarshal(resp)
+		store.Set(types.GetRollupAppStakeKeyPrefix(rollappID), resData)
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EvtPunishment,
+				sdk.NewAttribute("moduleName", types.MODULE_NAME),
+				sdk.NewAttribute("address", address),
+				sdk.NewAttribute("amount", strconv.FormatUint(punishmentAmount, 10)),
+			),
+		)
+		return nil
+	} else {
+		return nil
+	}
 }

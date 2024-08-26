@@ -2,16 +2,18 @@ package types
 
 import (
 	"encoding/binary"
+	"fmt"
 )
 
 const (
-	MODULE_NAME             = "hubRollUp"
-	KEY_LAST_ELECTION_TIME  = "LastElectionTime"
-	KEY_FIRST_ELECTION_TIME = "FirstElectionStartTime"
-	KEY_LAST_UNSTAKE_TIME   = "LastUnStakeTime"
-	KEY_LAST_ELECTION_INFO  = "LastElectionInfo"
-	StoreKey                = MODULE_NAME
-	RouterKey               = MODULE_NAME
+	MODULE_NAME                = "hubRollUp"
+	KEY_LAST_ELECTION_TIME     = "LastElectionTime"
+	KEY_FIRST_ELECTION_TIME    = "FirstElectionStartTime"
+	KEY_LAST_UNSTAKE_TIME      = "LastUnStakeTime"
+	KEY_LAST_ELECTION_INFO     = "LastElectionInfo"
+	KEY_PREVIOUS_ELECTION_INFO = "PreviousElectionInfo"
+	StoreKey                   = MODULE_NAME
+	RouterKey                  = MODULE_NAME
 )
 
 const (
@@ -30,6 +32,14 @@ const (
 	NodeBackup    int32 = 2
 )
 
+func GetRollupAppKeyPrefix(rollappID string) []byte {
+	return []byte(fmt.Sprintf("%s%s/", RollupKeyPrefix, rollappID))
+
+}
+func GetRollupAppStakeKeyPrefix(rollappID string) []byte {
+	return []byte(fmt.Sprintf("%s%s/", RollupStakeKeyPrefix, rollappID))
+
+}
 func Int64ToBytes(i int64) []byte {
 	var buf = make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, uint64(i))

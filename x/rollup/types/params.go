@@ -7,13 +7,14 @@ import (
 )
 
 const (
-	KeyElectionPeriod            = "KeyElectionPeriod"
-	KeyMinStakeAmount            = "KeyMinStakeAmount"
-	KeySequencerNumber           = "KeySequencerNumber"
-	KeyBackupNumber              = "KeyBackupNumber"
-	KeyFirstElectInterval        = "KeyFirstElectInterval"
-	KeyApplyElectionTime         = "KeyApplyElectionTime"
-	MecPrecision          uint64 = 100000000
+	KeyElectionPeriod             = "KeyElectionPeriod"
+	KeyMinStakeAmount             = "KeyMinStakeAmount"
+	KeySequencerNumber            = "KeySequencerNumber"
+	KeyBackupNumber               = "KeyBackupNumber"
+	KeyFirstElectInterval         = "KeyFirstElectInterval"
+	KeyApplyElectionTime          = "KeyApplyElectionTime"
+	KeyElectionInterimTime        = "KeyElectionInterimTime"
+	MecPrecision           uint64 = 100000000
 )
 
 var (
@@ -45,6 +46,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair([]byte(KeyBackupNumber), &p.BackupSequencerNumber, validateBackupSequencerNumber),
 		paramtypes.NewParamSetPair([]byte(KeyFirstElectInterval), &p.FirstElectionInterval, validateFirstElectInterval),
 		paramtypes.NewParamSetPair([]byte(KeyApplyElectionTime), &p.AllowApplyElectionTime, validateAllowApplyElectionTime),
+		paramtypes.NewParamSetPair([]byte(KeyElectionInterimTime), &p.ElectionInterimTime, validateElectionInterimTime),
 	}
 }
 
@@ -63,6 +65,9 @@ func (p Params) Validate() error {
 		return err
 	}
 	if err := validateAllowApplyElectionTime(p.AllowApplyElectionTime); err != nil {
+		return err
+	}
+	if err := validateElectionInterimTime(p.ElectionInterimTime); err != nil {
 		return err
 	}
 	if p.AllowApplyElectionTime >= p.ElectionPeriod {
@@ -138,6 +143,17 @@ func validateAllowApplyElectionTime(v interface{}) error {
 	}
 	if val < 1 {
 		return fmt.Errorf("AllowApplyElectionTime error. val = %d", val)
+	}
+	return nil
+}
+
+func validateElectionInterimTime(v interface{}) error {
+	val, ok := v.(uint32)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+	if val < 1 {
+		return fmt.Errorf("ElectionInterimTime error. val = %d", val)
 	}
 	return nil
 }

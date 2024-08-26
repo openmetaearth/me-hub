@@ -25,5 +25,7 @@ message Params {
   uint32 allow_apply_election_time = 6 [
     (gogoproto.moretags) = "yaml:\"allow_apply_election_time\""
   ];
-
+  uint32 election_interim_time = 7 [
+    (gogoproto.moretags) = "yaml:\"election_interim_time\""
+  ];
 }
