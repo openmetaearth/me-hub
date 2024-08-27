@@ -12,8 +12,10 @@ type Hooks struct {
 	k Keeper
 }
 
-var _ stakingtypes.StakingHooks = Hooks{}
-var _ Wstakingtypes.WstakingHooks = Hooks{}
+var (
+	_ stakingtypes.StakingHooks   = Hooks{}
+	_ Wstakingtypes.WstakingHooks = Hooks{}
+)
 
 // overwrite
 // Create new distribution hooks
@@ -29,6 +31,5 @@ func (h Hooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAd
 
 func (h Hooks) BeforeValidatorStakingModified(ctx sdk.Context, valAddr sdk.ValAddress) error {
 	ctx.Logger().Info("allocated block reward before validator's staking modified")
-	// TODO: distribution the block reward
-	return nil
+	return h.k.AllocateBlockReward(ctx)
 }

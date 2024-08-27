@@ -85,81 +85,42 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) AllocateBlockRewards(ctx sdk.Context, req abci.RequestEndBlock) {
+func (k Keeper) AllocateBlockRewardEveryday(ctx sdk.Context, req abci.RequestEndBlock) error {
 	if ctx.BlockHeight()%oneDayTotalBlocks == 0 {
-		fromHeight := req.Height - oneDayTotalBlocks + 1
-
-		toHeight := req.Height + 1
-		totalMintCoins := k.getMintCoinsByHeight(fromHeight, toHeight)
-
-		regions := k.stakingKeeper.GetAllRegionI(ctx)
-		totalRegionShare := sdkmath.NewInt(0)
-		for _, region := range regions {
-			totalRegionShare = region.GetRegionShare().Add(totalRegionShare)
-		}
-		totalRegionShareDec := sdk.NewDecFromInt(totalRegionShare)
-		for _, region := range regions {
-			// calculate every region coins: RegionShare * totalMintCoins / totalRegionShare
-			amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoins).Quo(totalRegionShareDec)
-			regionAmount := amount.TruncateInt()
-			regionCoins := sdk.NewCoins(sdk.NewCoin(k.baseDenom, sdk.NewInt(regionAmount.Int64())))
-			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.feeCollectorName, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), regionCoins)
-			if err != nil {
-				ctx.Logger().Error(err.Error())
-			}
-			ctx.EventManager().EmitEvents(sdk.Events{
-				sdk.NewEvent(
-					types.EventTypeRegionTreasuryReword,
-					sdk.NewAttribute(types.AttributeKeyRegionTreasuryAddress, region.GetRegionTreasureAddr()),
-					sdk.NewAttribute(types.AttributeKeyRegionId, region.GetRegionId()),
-					sdk.NewAttribute(sdk.AttributeKeyAmount, regionCoins.String()),
-				),
-			})
-		}
+		return k.AllocateBlockReward(ctx)
 	}
+	return nil
 }
 
-// getMintCoinsByHeight Get coins through the block height range
-func (k Keeper) getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
-	var totalCoins int64
-	lowMul := (fromHeight - 1) / oneYearTotalBlocks
-	lowAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(lowMul))
-	lowMintMEAmount := RoundUpToFourDecimals(lowAmount)
-	lowMintUMEAmount := lowMintMEAmount * float64(k.MecToUmec)
+func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
+	feeClollectorAddr := k.authKeeper.GetModuleAddress(k.feeCollectorName)
+	totalMintCoin := k.bankKeeper.GetBalance(ctx, feeClollectorAddr, k.baseDenom)
 
-	highMul := (toHeight - 1) / oneYearTotalBlocks
-	highAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(highMul))
-	highMintMEAmount := RoundUpToFourDecimals(highAmount)
-	highMintUMEAmount := highMintMEAmount * float64(k.MecToUmec)
-
-	for i := lowMul; i <= highMul; i++ {
-		// If the range of from and to are in the same reduction height
-		if i == lowMul && lowMul == highMul {
-			totalCoins = totalCoins + (toHeight-fromHeight)*int64(lowMintUMEAmount)
-			continue
-			// Calculate the number of tokens between from and its first cut height
-		} else if i == lowMul {
-			totalCoins = totalCoins + int64(oneYearTotalBlocks*(lowMul+1)-(fromHeight)+1)*int64(lowMintUMEAmount)
-			continue
-			// Calculate the number of tokens between the last production reduction height and to
-		} else if i == highMul {
-			totalCoins = totalCoins + int64(toHeight-oneYearTotalBlocks*(i)-1)*int64(highMintUMEAmount)
-			continue
-		}
-
-		// Calculate the number of tokens for each full cut interval
-		mintAmount := initOneYearMintAmount / oneYearTotalBlocks / math.Exp2(float64(i))
-		mintMEAmount := RoundUpToFourDecimals(mintAmount)
-		mintUMEAmount := mintMEAmount * float64(k.MecToUmec)
-		totalCoins = totalCoins + int64(oneYearTotalBlocks)*int64(mintUMEAmount)
+	regions := k.stakingKeeper.GetAllRegionI(ctx)
+	totalRegionShare := sdkmath.NewInt(0)
+	for _, region := range regions {
+		totalRegionShare = region.GetRegionShare().Add(totalRegionShare)
 	}
+	totalRegionShareDec := sdk.NewDecFromInt(totalRegionShare)
+	for _, region := range regions {
+		// calculate every region coins: RegionShare * totalMintCoins / totalRegionShare
 
-	mintedUMECoin := sdk.NewCoin(k.baseDenom, sdk.NewInt(totalCoins))
-	coin = sdk.NewDecFromInt(mintedUMECoin.Amount)
-
-	return
+		amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoin.Amount.ToLegacyDec()).Quo(totalRegionShareDec)
+		regionAmount := amount.TruncateInt()
+		regionCoins := sdk.NewCoins(sdk.NewCoin(k.baseDenom, sdk.NewInt(regionAmount.Int64())))
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.feeCollectorName, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), regionCoins)
+		if err != nil {
+			return err
+		}
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeRegionTreasuryReword,
+				sdk.NewAttribute(types.AttributeKeyRegionTreasuryAddress, region.GetRegionTreasureAddr()),
+				sdk.NewAttribute(types.AttributeKeyRegionId, region.GetRegionId()),
+				sdk.NewAttribute(sdk.AttributeKeyAmount, regionCoins.String()),
+			),
+		})
+	}
+	return nil
 }
 
-func RoundUpToFourDecimals(x float64) float64 {
-	return math.Ceil(x*10000) / 10000
-}
