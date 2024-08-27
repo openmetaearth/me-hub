@@ -80,8 +80,15 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 
 func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper)
-	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
-
+	//deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
+	deductFeeDecorator := NewDeductFeeDecorator(
+		options.AccountKeeper,
+		options.FeegrantKeeper,
+		options.DaoKeeper,
+		options.StakingKeeper,
+		options.TxFeeChecker,
+		options.WasmViewKeeper,
+	)
 	return sdk.ChainAnteDecorators(
 
 		NewRejectMessagesDecorator(), // reject MsgEthereumTxs and vesting msgs

@@ -7,11 +7,12 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
+	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
 
 	errorsmod "cosmossdk.io/errors"
+	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 )
 
 type HandlerOptions struct {
@@ -26,6 +27,11 @@ type HandlerOptions struct {
 	MaxTxGasWanted         uint64
 	ExtensionOptionChecker ante.ExtensionOptionChecker
 	RollappKeeper          rollappkeeper.Keeper
+
+	DaoKeeper      DaoKeeper
+	StakingKeeper  StakingKeeper
+	WasmViewKeeper wasmTypes.ViewKeeper
+	TxFeeChecker   ante.TxFeeChecker
 }
 
 func (options HandlerOptions) validate() error {
@@ -46,6 +52,16 @@ func (options HandlerOptions) validate() error {
 	}
 	if options.TxFeesKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "tx fees keeper is required for AnteHandler")
+	}
+
+	if options.DaoKeeper == nil {
+		return errorsmod.Wrap(errortypes.ErrLogic, "dao keeper is required for AnteHandler")
+	}
+	if options.StakingKeeper == nil {
+		return errorsmod.Wrap(errortypes.ErrLogic, "staking keeper is required for AnteHandler")
+	}
+	if options.WasmViewKeeper == nil {
+		return errorsmod.Wrap(errortypes.ErrLogic, "wasm view keeper is required for AnteHandler")
 	}
 	return nil
 }

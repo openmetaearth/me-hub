@@ -8,6 +8,7 @@ const (
 	EventTypeSettleDelRewardsForKyc       = "settle_del_rewards_for_kyc"
 	EventTypeWithdrawFromRegion           = "withdraw_from_region"
 	EventTypeWithdrawFromGlobalDaoFeePool = "withdraw_from_global_dao_fee_pool"
+	EventTypeFeeToReceivers               = "fee_to_receivers"
 
 	EventTypeMeidNew    = "meid_new"
 	EventTypeMeidRemove = "meid_remove"
@@ -40,16 +41,8 @@ const (
 	AttributeKeyFromRegion      = "from_region"
 	AttributeKeyToRegion        = "to_region"
 
-	AttributeKeyReceiver  = "receiver"
-	AttributeKeyReceiver2 = "receiver2"
-	AttributeKeyReceiver3 = "receiver3"
-	AttributeKeyReceiver4 = "receiver4"
-
-	AttributeKeyAmount  = "amount"
-	AttributeKeyAmount2 = "amount2"
-	AttributeKeyAmount3 = "amount3"
-	AttributeKeyAmount4 = "amount4"
-
+	AttributeKeyReceiver                         = "receiver"
+	AttributeKeyAmount                           = "amount"
 	AttributeKeyMeidInviteAddress                = "meid_invite_address"
 	AttributeKeyMeidInviteReward                 = "meid_invite_reward"
 	AttributeKeySendMeidInviteAddress            = "send_meid_invite_reward_address"

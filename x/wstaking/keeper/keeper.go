@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
@@ -43,4 +44,15 @@ func NewKeeper(
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+types.ModuleName)
+}
+
+func (k Keeper) GetProposerOwnerAddress(ctx sdk.Context) (string, error) {
+	header := ctx.BlockHeader()
+	addr := header.GetProposerAddress()
+
+	validator, ok := k.GetValidatorByConsAddr(ctx, addr)
+	if !ok {
+		return "", sdkerrors.Wrapf(types.ErrParameter, "proposer not found")
+	}
+	return validator.OwnerAddress, nil
 }

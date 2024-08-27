@@ -231,6 +231,9 @@ func New(
 		MaxTxGasWanted:         maxGasWanted,
 		ExtensionOptionChecker: nil, // uses default
 		RollappKeeper:          *app.RollappKeeper,
+		DaoKeeper:              app.DaoKeeper,
+		StakingKeeper:          app.StakingKeeper,
+		WasmViewKeeper:         app.WasmKeeper,
 	})
 	if err != nil {
 		panic(err)
