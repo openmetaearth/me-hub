@@ -1,5 +1,7 @@
 package keeper
 
-const BASE_DENOM = "umec"
-const DENOM = "mec"
-const ME_EXPONENT = 8
+const (
+	BASE_DENOM  = "umec"
+	DENOM       = "mec"
+	ME_EXPONENT = 8
+)

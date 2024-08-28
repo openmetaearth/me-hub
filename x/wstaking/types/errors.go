@@ -91,6 +91,7 @@ var (
 	ErrParameter      = sdkerrors.Register(ModuleName, 1201, "parameter error")
 	ErrUnknownAccount = sdkerrors.Register(ModuleName, 1202, "Unknown account")
 
+
 	ErrValidatorDelegationAmount     = sdkerrors.Register(ModuleName, 1206, "Validator DelegationAmount less than requested value.")
 	ErrNotEnoughDelegationAmount     = sdkerrors.Register(ModuleName, 1208, "not enough delegation amount")
 	ErrMaxUnbondingDelegationEntries = sdkerrors.Register(ModuleName, 1209, "too many unbonding delegation entries for (delegator, validator) tuple")
@@ -113,4 +114,6 @@ var (
 	ErrAssertDelegation        = sdkerrors.Register(ModuleName, 1226, "The delegation structure assertion error.")
 	ErrDistributionIncome      = sdkerrors.Register(ModuleName, 1227, "distribution income err.")
 	ErrDistributionOther       = sdkerrors.Register(ModuleName, 1228, "distribution err.")
+  
+	ErrHooks = sdkerrors.Register(ModuleName, 1301, "hooks error")
 )
