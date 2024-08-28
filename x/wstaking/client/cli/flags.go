@@ -117,3 +117,9 @@ func flagSetDescriptionCreate() *flag.FlagSet {
 
 	return fs
 }
+
+func FlagSetValidatorAddress() *flag.FlagSet {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+	fs.String(FlagValidatorAddress, "", "delegate to a validator (If it is empty, means delegate to exchequer)")
+	return fs
+}

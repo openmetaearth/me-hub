@@ -7,7 +7,8 @@ import (
 	context "context"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
-	_ "github.com/cosmos/cosmos-sdk/types"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/cosmos/cosmos-sdk/types"
 	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
 	_ "github.com/cosmos/gogoproto/gogoproto"
@@ -217,11 +218,856 @@ func (m *QueryAllRegionResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
+// QueryDelegationRewardsRequest is the request type for the
+// Query/DelegationRewards RPC method.
+type QueryDelegationRewardsRequest struct {
+	// delegator_address defines the delegator address to query for.
+	DelegatorAddress string `protobuf:"bytes,1,opt,name=delegator_address,json=delegatorAddress,proto3" json:"delegator_address,omitempty"`
+	// validator_address defines the validator address to query for.
+	ValidatorAddress string `protobuf:"bytes,2,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
+}
+
+func (m *QueryDelegationRewardsRequest) Reset()         { *m = QueryDelegationRewardsRequest{} }
+func (m *QueryDelegationRewardsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryDelegationRewardsRequest) ProtoMessage()    {}
+func (*QueryDelegationRewardsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{4}
+}
+func (m *QueryDelegationRewardsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryDelegationRewardsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryDelegationRewardsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryDelegationRewardsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDelegationRewardsRequest.Merge(m, src)
+}
+func (m *QueryDelegationRewardsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryDelegationRewardsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDelegationRewardsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryDelegationRewardsRequest proto.InternalMessageInfo
+
+// QueryDelegationRewardsResponse is the response type for the
+// Query/DelegationRewards RPC method.
+type QueryDelegationRewardsResponse struct {
+	// rewards defines the rewards accrued by a delegation.
+	Rewards github_com_cosmos_cosmos_sdk_types.DecCoins `protobuf:"bytes,1,rep,name=rewards,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.DecCoins" json:"rewards"`
+}
+
+func (m *QueryDelegationRewardsResponse) Reset()         { *m = QueryDelegationRewardsResponse{} }
+func (m *QueryDelegationRewardsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryDelegationRewardsResponse) ProtoMessage()    {}
+func (*QueryDelegationRewardsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{5}
+}
+func (m *QueryDelegationRewardsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryDelegationRewardsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryDelegationRewardsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryDelegationRewardsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDelegationRewardsResponse.Merge(m, src)
+}
+func (m *QueryDelegationRewardsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryDelegationRewardsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDelegationRewardsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryDelegationRewardsResponse proto.InternalMessageInfo
+
+func (m *QueryDelegationRewardsResponse) GetRewards() github_com_cosmos_cosmos_sdk_types.DecCoins {
+	if m != nil {
+		return m.Rewards
+	}
+	return nil
+}
+
+type QueryFixedDepositByAcctRequest struct {
+	//	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+	Account   string            `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
+	QueryType FixedDepositState `protobuf:"varint,3,opt,name=query_type,json=queryType,proto3,enum=dymensionxyz.dymension.wstaking.FixedDepositState" json:"query_type,omitempty"`
+}
+
+func (m *QueryFixedDepositByAcctRequest) Reset()         { *m = QueryFixedDepositByAcctRequest{} }
+func (m *QueryFixedDepositByAcctRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryFixedDepositByAcctRequest) ProtoMessage()    {}
+func (*QueryFixedDepositByAcctRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{6}
+}
+func (m *QueryFixedDepositByAcctRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryFixedDepositByAcctRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryFixedDepositByAcctRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryFixedDepositByAcctRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryFixedDepositByAcctRequest.Merge(m, src)
+}
+func (m *QueryFixedDepositByAcctRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryFixedDepositByAcctRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryFixedDepositByAcctRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryFixedDepositByAcctRequest proto.InternalMessageInfo
+
+func (m *QueryFixedDepositByAcctRequest) GetAccount() string {
+	if m != nil {
+		return m.Account
+	}
+	return ""
+}
+
+func (m *QueryFixedDepositByAcctRequest) GetQueryType() FixedDepositState {
+	if m != nil {
+		return m.QueryType
+	}
+	return FixedDepositState_AllState
+}
+
+type QueryFixedDepositByAcctResponse struct {
+	FixedDeposit []FixedDeposit `protobuf:"bytes,1,rep,name=FixedDeposit,proto3" json:"FixedDeposit"`
+}
+
+func (m *QueryFixedDepositByAcctResponse) Reset()         { *m = QueryFixedDepositByAcctResponse{} }
+func (m *QueryFixedDepositByAcctResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryFixedDepositByAcctResponse) ProtoMessage()    {}
+func (*QueryFixedDepositByAcctResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{7}
+}
+func (m *QueryFixedDepositByAcctResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryFixedDepositByAcctResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryFixedDepositByAcctResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryFixedDepositByAcctResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryFixedDepositByAcctResponse.Merge(m, src)
+}
+func (m *QueryFixedDepositByAcctResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryFixedDepositByAcctResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryFixedDepositByAcctResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryFixedDepositByAcctResponse proto.InternalMessageInfo
+
+func (m *QueryFixedDepositByAcctResponse) GetFixedDeposit() []FixedDeposit {
+	if m != nil {
+		return m.FixedDeposit
+	}
+	return nil
+}
+
+type QueryFixedDepositByRegionRequest struct {
+	Regionid string `protobuf:"bytes,1,opt,name=regionid,proto3" json:"regionid,omitempty"`
+	//	cosmos.base.query.v1beta1.PageRequest pagination = 2;
+	QueryType FixedDepositState `protobuf:"varint,3,opt,name=query_type,json=queryType,proto3,enum=dymensionxyz.dymension.wstaking.FixedDepositState" json:"query_type,omitempty"`
+}
+
+func (m *QueryFixedDepositByRegionRequest) Reset()         { *m = QueryFixedDepositByRegionRequest{} }
+func (m *QueryFixedDepositByRegionRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryFixedDepositByRegionRequest) ProtoMessage()    {}
+func (*QueryFixedDepositByRegionRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{8}
+}
+func (m *QueryFixedDepositByRegionRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryFixedDepositByRegionRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryFixedDepositByRegionRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryFixedDepositByRegionRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryFixedDepositByRegionRequest.Merge(m, src)
+}
+func (m *QueryFixedDepositByRegionRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryFixedDepositByRegionRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryFixedDepositByRegionRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryFixedDepositByRegionRequest proto.InternalMessageInfo
+
+func (m *QueryFixedDepositByRegionRequest) GetRegionid() string {
+	if m != nil {
+		return m.Regionid
+	}
+	return ""
+}
+
+func (m *QueryFixedDepositByRegionRequest) GetQueryType() FixedDepositState {
+	if m != nil {
+		return m.QueryType
+	}
+	return FixedDepositState_AllState
+}
+
+type QueryFixedDepositByRegionResponse struct {
+	FixedDeposit []FixedDeposit `protobuf:"bytes,1,rep,name=FixedDeposit,proto3" json:"FixedDeposit"`
+}
+
+func (m *QueryFixedDepositByRegionResponse) Reset()         { *m = QueryFixedDepositByRegionResponse{} }
+func (m *QueryFixedDepositByRegionResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryFixedDepositByRegionResponse) ProtoMessage()    {}
+func (*QueryFixedDepositByRegionResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{9}
+}
+func (m *QueryFixedDepositByRegionResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryFixedDepositByRegionResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryFixedDepositByRegionResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryFixedDepositByRegionResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryFixedDepositByRegionResponse.Merge(m, src)
+}
+func (m *QueryFixedDepositByRegionResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryFixedDepositByRegionResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryFixedDepositByRegionResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryFixedDepositByRegionResponse proto.InternalMessageInfo
+
+func (m *QueryFixedDepositByRegionResponse) GetFixedDeposit() []FixedDeposit {
+	if m != nil {
+		return m.FixedDeposit
+	}
+	return nil
+}
+
+type QueryGetFixedDepositRequest struct {
+	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	Id      uint64 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (m *QueryGetFixedDepositRequest) Reset()         { *m = QueryGetFixedDepositRequest{} }
+func (m *QueryGetFixedDepositRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryGetFixedDepositRequest) ProtoMessage()    {}
+func (*QueryGetFixedDepositRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{10}
+}
+func (m *QueryGetFixedDepositRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetFixedDepositRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetFixedDepositRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetFixedDepositRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetFixedDepositRequest.Merge(m, src)
+}
+func (m *QueryGetFixedDepositRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetFixedDepositRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetFixedDepositRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetFixedDepositRequest proto.InternalMessageInfo
+
+func (m *QueryGetFixedDepositRequest) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
+func (m *QueryGetFixedDepositRequest) GetId() uint64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type QueryGetFixedDepositResponse struct {
+	FixedDeposit FixedDeposit `protobuf:"bytes,1,opt,name=FixedDeposit,proto3" json:"FixedDeposit"`
+}
+
+func (m *QueryGetFixedDepositResponse) Reset()         { *m = QueryGetFixedDepositResponse{} }
+func (m *QueryGetFixedDepositResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryGetFixedDepositResponse) ProtoMessage()    {}
+func (*QueryGetFixedDepositResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{11}
+}
+func (m *QueryGetFixedDepositResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetFixedDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetFixedDepositResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetFixedDepositResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetFixedDepositResponse.Merge(m, src)
+}
+func (m *QueryGetFixedDepositResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetFixedDepositResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetFixedDepositResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetFixedDepositResponse proto.InternalMessageInfo
+
+func (m *QueryGetFixedDepositResponse) GetFixedDeposit() FixedDeposit {
+	if m != nil {
+		return m.FixedDeposit
+	}
+	return FixedDeposit{}
+}
+
+type QueryAllFixedDepositRequest struct {
+	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (m *QueryAllFixedDepositRequest) Reset()         { *m = QueryAllFixedDepositRequest{} }
+func (m *QueryAllFixedDepositRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryAllFixedDepositRequest) ProtoMessage()    {}
+func (*QueryAllFixedDepositRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{12}
+}
+func (m *QueryAllFixedDepositRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryAllFixedDepositRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryAllFixedDepositRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryAllFixedDepositRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAllFixedDepositRequest.Merge(m, src)
+}
+func (m *QueryAllFixedDepositRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryAllFixedDepositRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAllFixedDepositRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryAllFixedDepositRequest proto.InternalMessageInfo
+
+func (m *QueryAllFixedDepositRequest) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
+type QueryAllFixedDepositResponse struct {
+	FixedDeposit []FixedDeposit      `protobuf:"bytes,1,rep,name=FixedDeposit,proto3" json:"FixedDeposit"`
+	Pagination   *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (m *QueryAllFixedDepositResponse) Reset()         { *m = QueryAllFixedDepositResponse{} }
+func (m *QueryAllFixedDepositResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryAllFixedDepositResponse) ProtoMessage()    {}
+func (*QueryAllFixedDepositResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{13}
+}
+func (m *QueryAllFixedDepositResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryAllFixedDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryAllFixedDepositResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryAllFixedDepositResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAllFixedDepositResponse.Merge(m, src)
+}
+func (m *QueryAllFixedDepositResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryAllFixedDepositResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAllFixedDepositResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryAllFixedDepositResponse proto.InternalMessageInfo
+
+func (m *QueryAllFixedDepositResponse) GetFixedDeposit() []FixedDeposit {
+	if m != nil {
+		return m.FixedDeposit
+	}
+	return nil
+}
+
+func (m *QueryAllFixedDepositResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
+type QueryFixedDepositCfgRequest struct {
+	RegionId string `protobuf:"bytes,1,opt,name=regionId,proto3" json:"regionId,omitempty"`
+}
+
+func (m *QueryFixedDepositCfgRequest) Reset()         { *m = QueryFixedDepositCfgRequest{} }
+func (m *QueryFixedDepositCfgRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryFixedDepositCfgRequest) ProtoMessage()    {}
+func (*QueryFixedDepositCfgRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{14}
+}
+func (m *QueryFixedDepositCfgRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryFixedDepositCfgRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryFixedDepositCfgRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryFixedDepositCfgRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryFixedDepositCfgRequest.Merge(m, src)
+}
+func (m *QueryFixedDepositCfgRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryFixedDepositCfgRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryFixedDepositCfgRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryFixedDepositCfgRequest proto.InternalMessageInfo
+
+func (m *QueryFixedDepositCfgRequest) GetRegionId() string {
+	if m != nil {
+		return m.RegionId
+	}
+	return ""
+}
+
+type QueryFixedDepositCfgResponse struct {
+	FixedDepositCfgs []FixedDepositCfg `protobuf:"bytes,1,rep,name=FixedDepositCfgs,proto3" json:"FixedDepositCfgs"`
+}
+
+func (m *QueryFixedDepositCfgResponse) Reset()         { *m = QueryFixedDepositCfgResponse{} }
+func (m *QueryFixedDepositCfgResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryFixedDepositCfgResponse) ProtoMessage()    {}
+func (*QueryFixedDepositCfgResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{15}
+}
+func (m *QueryFixedDepositCfgResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryFixedDepositCfgResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryFixedDepositCfgResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryFixedDepositCfgResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryFixedDepositCfgResponse.Merge(m, src)
+}
+func (m *QueryFixedDepositCfgResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryFixedDepositCfgResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryFixedDepositCfgResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryFixedDepositCfgResponse proto.InternalMessageInfo
+
+func (m *QueryFixedDepositCfgResponse) GetFixedDepositCfgs() []FixedDepositCfg {
+	if m != nil {
+		return m.FixedDepositCfgs
+	}
+	return nil
+}
+
+type QueryFixedDepositCfgByTermRequest struct {
+	RegionId string `protobuf:"bytes,1,opt,name=regionId,proto3" json:"regionId,omitempty"`
+	Term     int64  `protobuf:"varint,2,opt,name=term,proto3" json:"term,omitempty"`
+}
+
+func (m *QueryFixedDepositCfgByTermRequest) Reset()         { *m = QueryFixedDepositCfgByTermRequest{} }
+func (m *QueryFixedDepositCfgByTermRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryFixedDepositCfgByTermRequest) ProtoMessage()    {}
+func (*QueryFixedDepositCfgByTermRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{16}
+}
+func (m *QueryFixedDepositCfgByTermRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryFixedDepositCfgByTermRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryFixedDepositCfgByTermRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryFixedDepositCfgByTermRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryFixedDepositCfgByTermRequest.Merge(m, src)
+}
+func (m *QueryFixedDepositCfgByTermRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryFixedDepositCfgByTermRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryFixedDepositCfgByTermRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryFixedDepositCfgByTermRequest proto.InternalMessageInfo
+
+func (m *QueryFixedDepositCfgByTermRequest) GetRegionId() string {
+	if m != nil {
+		return m.RegionId
+	}
+	return ""
+}
+
+func (m *QueryFixedDepositCfgByTermRequest) GetTerm() int64 {
+	if m != nil {
+		return m.Term
+	}
+	return 0
+}
+
+type QueryFixedDepositCfgByTermResponse struct {
+	FixedDepositCfg FixedDepositCfg `protobuf:"bytes,1,opt,name=FixedDepositCfg,proto3" json:"FixedDepositCfg"`
+}
+
+func (m *QueryFixedDepositCfgByTermResponse) Reset()         { *m = QueryFixedDepositCfgByTermResponse{} }
+func (m *QueryFixedDepositCfgByTermResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryFixedDepositCfgByTermResponse) ProtoMessage()    {}
+func (*QueryFixedDepositCfgByTermResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{17}
+}
+func (m *QueryFixedDepositCfgByTermResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryFixedDepositCfgByTermResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryFixedDepositCfgByTermResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryFixedDepositCfgByTermResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryFixedDepositCfgByTermResponse.Merge(m, src)
+}
+func (m *QueryFixedDepositCfgByTermResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryFixedDepositCfgByTermResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryFixedDepositCfgByTermResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryFixedDepositCfgByTermResponse proto.InternalMessageInfo
+
+func (m *QueryFixedDepositCfgByTermResponse) GetFixedDepositCfg() FixedDepositCfg {
+	if m != nil {
+		return m.FixedDepositCfg
+	}
+	return FixedDepositCfg{}
+}
+
+type QueryFixedDepositTotalAmountRequest struct {
+}
+
+func (m *QueryFixedDepositTotalAmountRequest) Reset()         { *m = QueryFixedDepositTotalAmountRequest{} }
+func (m *QueryFixedDepositTotalAmountRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryFixedDepositTotalAmountRequest) ProtoMessage()    {}
+func (*QueryFixedDepositTotalAmountRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{18}
+}
+func (m *QueryFixedDepositTotalAmountRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryFixedDepositTotalAmountRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryFixedDepositTotalAmountRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryFixedDepositTotalAmountRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryFixedDepositTotalAmountRequest.Merge(m, src)
+}
+func (m *QueryFixedDepositTotalAmountRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryFixedDepositTotalAmountRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryFixedDepositTotalAmountRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryFixedDepositTotalAmountRequest proto.InternalMessageInfo
+
+type QueryFixedDepositTotalAmountResponse struct {
+	Amount types.Coin `protobuf:"bytes,7,opt,name=amount,proto3" json:"amount"`
+}
+
+func (m *QueryFixedDepositTotalAmountResponse) Reset()         { *m = QueryFixedDepositTotalAmountResponse{} }
+func (m *QueryFixedDepositTotalAmountResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryFixedDepositTotalAmountResponse) ProtoMessage()    {}
+func (*QueryFixedDepositTotalAmountResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{19}
+}
+func (m *QueryFixedDepositTotalAmountResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryFixedDepositTotalAmountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryFixedDepositTotalAmountResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryFixedDepositTotalAmountResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryFixedDepositTotalAmountResponse.Merge(m, src)
+}
+func (m *QueryFixedDepositTotalAmountResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryFixedDepositTotalAmountResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryFixedDepositTotalAmountResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryFixedDepositTotalAmountResponse proto.InternalMessageInfo
+
+func (m *QueryFixedDepositTotalAmountResponse) GetAmount() types.Coin {
+	if m != nil {
+		return m.Amount
+	}
+	return types.Coin{}
+}
+
+type QueryFixedDepositAmountByMeidRequest struct {
+	Account string `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
+}
+
+func (m *QueryFixedDepositAmountByMeidRequest) Reset()         { *m = QueryFixedDepositAmountByMeidRequest{} }
+func (m *QueryFixedDepositAmountByMeidRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryFixedDepositAmountByMeidRequest) ProtoMessage()    {}
+func (*QueryFixedDepositAmountByMeidRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{20}
+}
+func (m *QueryFixedDepositAmountByMeidRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryFixedDepositAmountByMeidRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryFixedDepositAmountByMeidRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryFixedDepositAmountByMeidRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryFixedDepositAmountByMeidRequest.Merge(m, src)
+}
+func (m *QueryFixedDepositAmountByMeidRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryFixedDepositAmountByMeidRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryFixedDepositAmountByMeidRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryFixedDepositAmountByMeidRequest proto.InternalMessageInfo
+
+func (m *QueryFixedDepositAmountByMeidRequest) GetAccount() string {
+	if m != nil {
+		return m.Account
+	}
+	return ""
+}
+
+type QueryFixedDepositAmountByMeidResponse struct {
+	Amount types.Coin `protobuf:"bytes,7,opt,name=amount,proto3" json:"amount"`
+}
+
+func (m *QueryFixedDepositAmountByMeidResponse) Reset()         { *m = QueryFixedDepositAmountByMeidResponse{} }
+func (m *QueryFixedDepositAmountByMeidResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryFixedDepositAmountByMeidResponse) ProtoMessage()    {}
+func (*QueryFixedDepositAmountByMeidResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_50281b9f1f66347d, []int{21}
+}
+func (m *QueryFixedDepositAmountByMeidResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryFixedDepositAmountByMeidResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryFixedDepositAmountByMeidResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryFixedDepositAmountByMeidResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryFixedDepositAmountByMeidResponse.Merge(m, src)
+}
+func (m *QueryFixedDepositAmountByMeidResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryFixedDepositAmountByMeidResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryFixedDepositAmountByMeidResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryFixedDepositAmountByMeidResponse proto.InternalMessageInfo
+
+func (m *QueryFixedDepositAmountByMeidResponse) GetAmount() types.Coin {
+	if m != nil {
+		return m.Amount
+	}
+	return types.Coin{}
+}
+
 func init() {
 	proto.RegisterType((*QueryRegionRequest)(nil), "dymensionxyz.dymension.wstaking.QueryRegionRequest")
 	proto.RegisterType((*QueryRegionResponse)(nil), "dymensionxyz.dymension.wstaking.QueryRegionResponse")
 	proto.RegisterType((*QueryAllRegionRequest)(nil), "dymensionxyz.dymension.wstaking.QueryAllRegionRequest")
 	proto.RegisterType((*QueryAllRegionResponse)(nil), "dymensionxyz.dymension.wstaking.QueryAllRegionResponse")
+	proto.RegisterType((*QueryDelegationRewardsRequest)(nil), "dymensionxyz.dymension.wstaking.QueryDelegationRewardsRequest")
+	proto.RegisterType((*QueryDelegationRewardsResponse)(nil), "dymensionxyz.dymension.wstaking.QueryDelegationRewardsResponse")
+	proto.RegisterType((*QueryFixedDepositByAcctRequest)(nil), "dymensionxyz.dymension.wstaking.QueryFixedDepositByAcctRequest")
+	proto.RegisterType((*QueryFixedDepositByAcctResponse)(nil), "dymensionxyz.dymension.wstaking.QueryFixedDepositByAcctResponse")
+	proto.RegisterType((*QueryFixedDepositByRegionRequest)(nil), "dymensionxyz.dymension.wstaking.QueryFixedDepositByRegionRequest")
+	proto.RegisterType((*QueryFixedDepositByRegionResponse)(nil), "dymensionxyz.dymension.wstaking.QueryFixedDepositByRegionResponse")
+	proto.RegisterType((*QueryGetFixedDepositRequest)(nil), "dymensionxyz.dymension.wstaking.QueryGetFixedDepositRequest")
+	proto.RegisterType((*QueryGetFixedDepositResponse)(nil), "dymensionxyz.dymension.wstaking.QueryGetFixedDepositResponse")
+	proto.RegisterType((*QueryAllFixedDepositRequest)(nil), "dymensionxyz.dymension.wstaking.QueryAllFixedDepositRequest")
+	proto.RegisterType((*QueryAllFixedDepositResponse)(nil), "dymensionxyz.dymension.wstaking.QueryAllFixedDepositResponse")
+	proto.RegisterType((*QueryFixedDepositCfgRequest)(nil), "dymensionxyz.dymension.wstaking.QueryFixedDepositCfgRequest")
+	proto.RegisterType((*QueryFixedDepositCfgResponse)(nil), "dymensionxyz.dymension.wstaking.QueryFixedDepositCfgResponse")
+	proto.RegisterType((*QueryFixedDepositCfgByTermRequest)(nil), "dymensionxyz.dymension.wstaking.QueryFixedDepositCfgByTermRequest")
+	proto.RegisterType((*QueryFixedDepositCfgByTermResponse)(nil), "dymensionxyz.dymension.wstaking.QueryFixedDepositCfgByTermResponse")
+	proto.RegisterType((*QueryFixedDepositTotalAmountRequest)(nil), "dymensionxyz.dymension.wstaking.QueryFixedDepositTotalAmountRequest")
+	proto.RegisterType((*QueryFixedDepositTotalAmountResponse)(nil), "dymensionxyz.dymension.wstaking.QueryFixedDepositTotalAmountResponse")
+	proto.RegisterType((*QueryFixedDepositAmountByMeidRequest)(nil), "dymensionxyz.dymension.wstaking.QueryFixedDepositAmountByMeidRequest")
+	proto.RegisterType((*QueryFixedDepositAmountByMeidResponse)(nil), "dymensionxyz.dymension.wstaking.QueryFixedDepositAmountByMeidResponse")
 }
 
 func init() {
@@ -229,38 +1075,89 @@ func init() {
 }
 
 var fileDescriptor_50281b9f1f66347d = []byte{
-	// 484 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x93, 0xdd, 0x6a, 0x14, 0x31,
-	0x14, 0xc7, 0x37, 0xab, 0x2e, 0x36, 0x5e, 0x19, 0x3f, 0xd0, 0x51, 0xa6, 0x32, 0x88, 0x1f, 0x5d,
-	0x37, 0x71, 0x5b, 0xd1, 0x6b, 0x0b, 0x55, 0xbc, 0xd3, 0xb9, 0x14, 0xa1, 0x64, 0xb6, 0x21, 0x1b,
-	0x9c, 0x49, 0xa6, 0x9b, 0xac, 0x76, 0x14, 0x6f, 0x7c, 0x02, 0xc1, 0x77, 0x90, 0x3e, 0x4a, 0x2f,
-	0x0b, 0xde, 0x08, 0x82, 0xc8, 0xae, 0x0f, 0x22, 0x93, 0x64, 0x66, 0x67, 0xab, 0x32, 0xb6, 0x37,
-	0xc3, 0x9c, 0xe4, 0xfc, 0x73, 0x7e, 0xe7, 0x9f, 0x13, 0xd8, 0xdf, 0x29, 0x32, 0x26, 0xb5, 0x50,
-	0x72, 0xaf, 0x78, 0x47, 0xea, 0x80, 0xbc, 0xd5, 0x86, 0xbe, 0x16, 0x92, 0x93, 0xdd, 0x29, 0x9b,
-	0x14, 0x38, 0x9f, 0x28, 0xa3, 0xd0, 0x6a, 0x33, 0x19, 0xd7, 0x01, 0xae, 0x92, 0x83, 0xb5, 0x91,
-	0xd2, 0x99, 0xd2, 0x24, 0xa1, 0x9a, 0x39, 0x25, 0x79, 0x33, 0x4c, 0x98, 0xa1, 0x43, 0x92, 0x53,
-	0x2e, 0x24, 0x35, 0x65, 0xba, 0x3d, 0x2c, 0xb8, 0xc8, 0x15, 0x57, 0xf6, 0x97, 0x94, 0x7f, 0x7e,
-	0xf5, 0x3a, 0x57, 0x8a, 0xa7, 0x8c, 0xd0, 0x5c, 0x10, 0x2a, 0xa5, 0x32, 0x56, 0xa2, 0xfd, 0xee,
-	0xbd, 0x36, 0xda, 0x09, 0xe3, 0x8b, 0x0a, 0x57, 0x1d, 0xcd, 0xb6, 0x2b, 0xe2, 0x02, 0xbf, 0x15,
-	0x36, 0x41, 0x2b, 0xc4, 0x91, 0x12, 0x95, 0xf4, 0x9a, 0xdf, 0xaf, 0x7a, 0x68, 0xda, 0x10, 0x9c,
-	0xa7, 0x99, 0x90, 0x8a, 0xd8, 0xaf, 0x5b, 0x8a, 0xee, 0x43, 0xf4, 0xa2, 0xcc, 0x88, 0x6d, 0xfd,
-	0x98, 0xed, 0x4e, 0x99, 0x36, 0x28, 0x80, 0x67, 0x1d, 0xd0, 0xb3, 0x9d, 0x2b, 0xe0, 0x06, 0xb8,
-	0xb3, 0x12, 0xd7, 0x71, 0xf4, 0x0a, 0x5e, 0x58, 0x52, 0xe8, 0x5c, 0x49, 0xcd, 0xd0, 0x16, 0xec,
-	0xb9, 0x14, 0x2b, 0x38, 0xb7, 0x7e, 0x1b, 0xb7, 0x78, 0x8e, 0xdd, 0x01, 0x9b, 0xa7, 0x0f, 0x7e,
-	0xac, 0x76, 0x62, 0x2f, 0x8e, 0xb6, 0xe1, 0x25, 0x7b, 0xfa, 0xe3, 0x34, 0x5d, 0x46, 0x7a, 0x02,
-	0xe1, 0xe2, 0x26, 0x7c, 0x8d, 0x5b, 0xd8, 0x7b, 0x53, 0xba, 0x81, 0x5d, 0xa7, 0xde, 0x13, 0xfc,
-	0x9c, 0x72, 0xe6, 0xb5, 0x71, 0x43, 0x19, 0xed, 0x03, 0x78, 0xf9, 0x68, 0x85, 0xbf, 0xb4, 0x70,
-	0xea, 0xc4, 0x2d, 0xa0, 0xa7, 0x4b, 0xa4, 0x5d, 0xef, 0x46, 0x1b, 0xa9, 0x63, 0x68, 0xa2, 0xae,
-	0x7f, 0xef, 0xc2, 0x33, 0x16, 0x15, 0x7d, 0x01, 0xb0, 0xe7, 0x6a, 0xa1, 0x8d, 0x56, 0xa8, 0x3f,
-	0xef, 0x33, 0x78, 0x70, 0x3c, 0x91, 0x63, 0x89, 0x86, 0x1f, 0xbf, 0xfe, 0xfa, 0xdc, 0xed, 0xa3,
-	0xbb, 0x7e, 0x04, 0x49, 0x35, 0xac, 0xd5, 0xdc, 0xb9, 0x86, 0xc9, 0xfb, 0x6a, 0x36, 0x3e, 0xa0,
-	0x7d, 0x00, 0x57, 0x6a, 0x63, 0xd1, 0xc3, 0xff, 0x2b, 0x7b, 0xf4, 0xae, 0x83, 0x47, 0xc7, 0xd6,
-	0x79, 0xe2, 0x35, 0x4b, 0x7c, 0x13, 0x45, 0xff, 0x22, 0xa6, 0x69, 0x3a, 0x70, 0xb4, 0x9b, 0x5b,
-	0x07, 0xb3, 0x10, 0x1c, 0xce, 0x42, 0xf0, 0x73, 0x16, 0x82, 0x4f, 0xf3, 0xb0, 0x73, 0x38, 0x0f,
-	0x3b, 0xdf, 0xe6, 0x61, 0xe7, 0x65, 0x9f, 0x0b, 0x33, 0x9e, 0x26, 0x78, 0xa4, 0x32, 0xa2, 0xcd,
-	0x60, 0x34, 0xa6, 0x42, 0x92, 0x8c, 0x0d, 0xc6, 0xd3, 0x84, 0xec, 0x2d, 0x9e, 0xac, 0x29, 0x72,
-	0xa6, 0x93, 0x9e, 0x7d, 0x47, 0x1b, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0x7b, 0x67, 0xda, 0x88,
-	0x90, 0x04, 0x00, 0x00,
+	// 1297 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x58, 0xcb, 0x6f, 0x1b, 0x45,
+	0x1c, 0xf6, 0xa4, 0x21, 0x69, 0x06, 0x54, 0x9a, 0x21, 0x05, 0x77, 0x1b, 0xec, 0xb0, 0x34, 0xb4,
+	0x24, 0xb5, 0xb7, 0x71, 0x2a, 0x68, 0xa3, 0xd0, 0xc6, 0xce, 0x4b, 0x48, 0x20, 0xd1, 0x4d, 0x24,
+	0x24, 0x84, 0x64, 0xd6, 0xbb, 0x93, 0xcd, 0xa8, 0xeb, 0x5d, 0xd7, 0x3b, 0x6e, 0xe2, 0x86, 0x5c,
+	0x7a, 0x40, 0x5c, 0x90, 0x78, 0xfc, 0x03, 0x3d, 0xa1, 0x88, 0x13, 0x07, 0x24, 0x4e, 0x08, 0xb8,
+	0xf5, 0x58, 0x81, 0x84, 0x90, 0x90, 0x78, 0x24, 0x20, 0xb8, 0xf2, 0x07, 0x20, 0xa1, 0x9d, 0x99,
+	0x75, 0x76, 0xed, 0xdd, 0x78, 0xe3, 0x24, 0x97, 0xd6, 0xf3, 0xf8, 0xfd, 0x7e, 0xdf, 0xf7, 0xcd,
+	0xeb, 0xcb, 0xc2, 0x49, 0xa3, 0x59, 0xc5, 0xb6, 0x4b, 0x1c, 0x7b, 0xb3, 0x79, 0x5f, 0x69, 0x35,
+	0x94, 0x0d, 0x97, 0x6a, 0x77, 0x88, 0x6d, 0x2a, 0x77, 0x1b, 0xb8, 0xde, 0xcc, 0xd7, 0xea, 0x0e,
+	0x75, 0x50, 0x36, 0x38, 0x39, 0xdf, 0x6a, 0xe4, 0xfd, 0xc9, 0xd2, 0x84, 0xee, 0xb8, 0x55, 0xc7,
+	0x55, 0x2a, 0x9a, 0x8b, 0x79, 0xa4, 0x72, 0x6f, 0xaa, 0x82, 0xa9, 0x36, 0xa5, 0xd4, 0x34, 0x93,
+	0xd8, 0x1a, 0xf5, 0xa6, 0xb3, 0x64, 0xd2, 0x88, 0xe9, 0x98, 0x0e, 0xfb, 0xa9, 0x78, 0xbf, 0x44,
+	0xef, 0xa8, 0xe9, 0x38, 0xa6, 0x85, 0x15, 0xad, 0x46, 0x14, 0xcd, 0xb6, 0x1d, 0xca, 0x42, 0x5c,
+	0x31, 0x7a, 0xa5, 0x1b, 0xda, 0x3a, 0x36, 0xf7, 0x2b, 0x9c, 0xe7, 0x68, 0xca, 0xbc, 0x08, 0x6f,
+	0x88, 0xa1, 0x4c, 0x10, 0xa8, 0x0f, 0x51, 0x77, 0x88, 0x1f, 0x7a, 0x41, 0x8c, 0xfb, 0x1c, 0x82,
+	0x32, 0x48, 0xc3, 0x5a, 0x95, 0xd8, 0x8e, 0xc2, 0xfe, 0x15, 0x5d, 0xd3, 0xdd, 0x80, 0xad, 0x91,
+	0x4d, 0x6c, 0x94, 0x0d, 0x5c, 0x73, 0x5c, 0x42, 0x79, 0x90, 0x7c, 0x15, 0xa2, 0xdb, 0x5e, 0x5a,
+	0x95, 0x81, 0x56, 0xf1, 0xdd, 0x06, 0x76, 0x29, 0x92, 0xe0, 0x69, 0xce, 0xe2, 0x75, 0x23, 0x0d,
+	0xc6, 0xc0, 0xe5, 0x21, 0xb5, 0xd5, 0x96, 0xdf, 0x85, 0xcf, 0x84, 0x22, 0xdc, 0x9a, 0x63, 0xbb,
+	0x18, 0x2d, 0xc2, 0x01, 0x3e, 0x85, 0x05, 0x3c, 0x59, 0xb8, 0x94, 0xef, 0xb2, 0x50, 0x79, 0x9e,
+	0xa0, 0xd4, 0xff, 0xe8, 0xd7, 0x6c, 0x4a, 0x15, 0xc1, 0x72, 0x19, 0x9e, 0x63, 0xd9, 0x8b, 0x96,
+	0x15, 0x86, 0xb4, 0x04, 0xe1, 0xfe, 0xf2, 0x89, 0x1a, 0x2f, 0xe5, 0x85, 0xa0, 0x9e, 0x84, 0x79,
+	0x2e, 0x8f, 0x10, 0x32, 0xff, 0x96, 0x66, 0x62, 0x11, 0xab, 0x06, 0x22, 0xe5, 0x1d, 0x00, 0x9f,
+	0x6d, 0xaf, 0x10, 0x41, 0xe1, 0x54, 0xcf, 0x14, 0xd0, 0x72, 0x08, 0x69, 0x9f, 0x50, 0xa3, 0x1b,
+	0x52, 0x8e, 0x21, 0x04, 0xf5, 0x6b, 0x00, 0x9f, 0x67, 0x50, 0x17, 0xb0, 0x85, 0x4d, 0xd6, 0xa7,
+	0xe2, 0x0d, 0xad, 0x6e, 0xb8, 0xbe, 0x28, 0x8b, 0x70, 0xd8, 0xe0, 0x63, 0x4e, 0xbd, 0xac, 0x19,
+	0x46, 0x1d, 0xbb, 0x2e, 0x5f, 0xb0, 0x52, 0xfa, 0x87, 0xaf, 0x72, 0x23, 0xa2, 0x68, 0x91, 0x8f,
+	0xac, 0xd0, 0x3a, 0xb1, 0x4d, 0xf5, 0x6c, 0x2b, 0x44, 0xf4, 0x7b, 0x69, 0xee, 0x69, 0x16, 0x31,
+	0x42, 0x69, 0xfa, 0xba, 0xa5, 0x69, 0x85, 0x88, 0xfe, 0x99, 0xd3, 0x1f, 0x3e, 0xcc, 0xa6, 0xfe,
+	0x79, 0x98, 0x4d, 0xc9, 0x9f, 0x02, 0x98, 0x89, 0x43, 0x2e, 0xc4, 0xae, 0xc1, 0xc1, 0x3a, 0xef,
+	0x12, 0x6a, 0x8f, 0x86, 0x24, 0xf2, 0xc5, 0x59, 0xc0, 0xfa, 0xbc, 0x43, 0xec, 0xd2, 0x75, 0x4f,
+	0xe2, 0x2f, 0x7e, 0xcb, 0x4e, 0x9a, 0x84, 0xae, 0x37, 0x2a, 0x79, 0xdd, 0xa9, 0x8a, 0xd3, 0x24,
+	0xfe, 0xcb, 0xb9, 0xc6, 0x1d, 0x85, 0x36, 0x6b, 0xd8, 0xf5, 0x63, 0xdc, 0x9d, 0xbf, 0xbf, 0x9c,
+	0x00, 0xaa, 0x5f, 0x46, 0xfe, 0xc8, 0x07, 0xb5, 0xe4, 0x9d, 0x83, 0x05, 0x7e, 0x0c, 0x4a, 0xcd,
+	0xa2, 0xae, 0x53, 0x5f, 0xcf, 0x34, 0x1c, 0xd4, 0x74, 0xdd, 0x69, 0xd8, 0x94, 0xd3, 0x57, 0xfd,
+	0x26, 0xba, 0x0d, 0x21, 0x5b, 0xb5, 0xb2, 0x57, 0x22, 0x7d, 0x6a, 0x0c, 0x5c, 0x3e, 0x53, 0x28,
+	0x74, 0xdd, 0x1f, 0xc1, 0x4a, 0x2b, 0x54, 0xa3, 0x58, 0x1d, 0x62, 0x59, 0x56, 0x9b, 0x35, 0x2c,
+	0xdf, 0x87, 0xd9, 0x58, 0x38, 0x42, 0xa4, 0xb7, 0xe1, 0x53, 0xc1, 0x51, 0xa1, 0x54, 0xee, 0x50,
+	0x75, 0xc5, 0xee, 0x0c, 0x25, 0x92, 0x3f, 0x01, 0x70, 0x2c, 0xa2, 0x78, 0xcc, 0x2d, 0x40, 0xda,
+	0x6e, 0x01, 0x62, 0x9c, 0x84, 0x1e, 0xef, 0xc3, 0x17, 0x0e, 0x80, 0x74, 0xd2, 0x8a, 0x2c, 0xc3,
+	0x0b, 0xac, 0xfa, 0x32, 0xa6, 0xc1, 0xfe, 0xe0, 0xce, 0x08, 0x9e, 0x2f, 0xd5, 0x6f, 0xa2, 0x33,
+	0xb0, 0x8f, 0x18, 0x6c, 0xbb, 0xf4, 0xab, 0x7d, 0xc4, 0x90, 0x37, 0xe0, 0x68, 0x74, 0xa2, 0x58,
+	0x06, 0xe0, 0x78, 0x18, 0x60, 0xc1, 0xa0, 0x68, 0x59, 0x51, 0x0c, 0x8e, 0xeb, 0x02, 0xfd, 0x0e,
+	0x08, 0x82, 0x1d, 0x75, 0x4e, 0x78, 0x89, 0x8e, 0xef, 0x62, 0xbd, 0x21, 0x94, 0x0a, 0x66, 0x9f,
+	0x5f, 0x33, 0x93, 0xbc, 0x7e, 0x0f, 0x7c, 0xf6, 0x1d, 0xb1, 0x82, 0x7d, 0x05, 0x9e, 0x6d, 0x1b,
+	0xf2, 0x2f, 0xb8, 0xab, 0x87, 0x52, 0x60, 0x7e, 0xcd, 0x14, 0x22, 0x74, 0xe4, 0x93, 0x57, 0x22,
+	0x4e, 0x8a, 0x37, 0xbf, 0xb9, 0x8a, 0xeb, 0xd5, 0x04, 0x2c, 0x10, 0x82, 0xfd, 0x14, 0xd7, 0xab,
+	0x4c, 0xc3, 0x53, 0x2a, 0xfb, 0x2d, 0x7f, 0x00, 0xa0, 0x7c, 0x50, 0x56, 0xc1, 0xef, 0x3d, 0xf8,
+	0x74, 0xdb, 0x04, 0xb1, 0x97, 0x7a, 0xa5, 0xd7, 0x9e, 0x4e, 0x1e, 0x87, 0x2f, 0x76, 0xe0, 0x58,
+	0x75, 0xa8, 0x66, 0x15, 0xab, 0xde, 0x55, 0x2c, 0xf8, 0xc9, 0x06, 0xbc, 0x78, 0xf0, 0x34, 0x01,
+	0x78, 0x16, 0x0e, 0x68, 0xac, 0x27, 0x3d, 0xc8, 0x70, 0x9e, 0x8f, 0x7c, 0x67, 0xd8, 0x23, 0x33,
+	0xe4, 0x01, 0xe2, 0xaf, 0x86, 0x88, 0x91, 0xe7, 0x22, 0xaa, 0xf0, 0x02, 0xa5, 0xe6, 0x9b, 0x98,
+	0x18, 0x11, 0x2f, 0x07, 0x08, 0xbd, 0x1c, 0x32, 0x86, 0xe3, 0x5d, 0x32, 0x1c, 0x07, 0xd0, 0xc2,
+	0x7f, 0xc3, 0xf0, 0x09, 0x56, 0x07, 0x7d, 0x0e, 0xe0, 0x00, 0xbf, 0x35, 0xd1, 0x74, 0xd7, 0x35,
+	0xe9, 0x34, 0x7f, 0xd2, 0xb5, 0xc3, 0x05, 0x71, 0xf4, 0xf2, 0xd4, 0x83, 0x1f, 0xff, 0xfc, 0xac,
+	0x6f, 0x12, 0xbd, 0xec, 0x3f, 0xcb, 0xbe, 0xeb, 0xf4, 0x9d, 0x2d, 0xdf, 0x7c, 0xca, 0x96, 0xbf,
+	0x09, 0xb7, 0xd1, 0x0e, 0x80, 0x43, 0x2d, 0x17, 0x86, 0x5e, 0x49, 0x56, 0xb6, 0xdd, 0x18, 0x4a,
+	0xaf, 0x1e, 0x3a, 0x4e, 0x20, 0x9e, 0x60, 0x88, 0x2f, 0x22, 0x39, 0x0e, 0xb1, 0x66, 0x59, 0x39,
+	0xe1, 0xe9, 0x7e, 0x02, 0x70, 0xb8, 0xc3, 0xcb, 0xa0, 0x9b, 0xc9, 0x4a, 0xc7, 0xd9, 0x37, 0xe9,
+	0x56, 0xcf, 0xf1, 0x82, 0xc2, 0x1c, 0xa3, 0x30, 0x83, 0xae, 0xfb, 0x14, 0x0c, 0xe2, 0xd2, 0x3a,
+	0xa9, 0x34, 0xbc, 0xc9, 0x01, 0xe5, 0x59, 0x94, 0xb2, 0xd5, 0xe1, 0x15, 0xb7, 0xd1, 0x2e, 0x80,
+	0xcf, 0xc5, 0x9c, 0x20, 0xb4, 0x90, 0x0c, 0xde, 0xc1, 0xe7, 0x54, 0x5a, 0x3c, 0x62, 0x16, 0x41,
+	0x75, 0x86, 0x51, 0xbd, 0x86, 0x0a, 0x71, 0xab, 0x15, 0xfa, 0xeb, 0xa6, 0x4c, 0xbd, 0x14, 0x65,
+	0x7e, 0x36, 0xd0, 0xbf, 0x00, 0xa6, 0xe3, 0x8e, 0x1f, 0xea, 0x01, 0x5f, 0xc4, 0x05, 0x20, 0x2d,
+	0x1d, 0x35, 0x8d, 0xe0, 0xb9, 0xc4, 0x78, 0xce, 0xa1, 0x9b, 0xc9, 0x78, 0x72, 0x86, 0xe5, 0x4a,
+	0xb3, 0x5c, 0xc5, 0xc4, 0x50, 0xb6, 0xc4, 0xad, 0xb3, 0x8d, 0xfe, 0x02, 0x10, 0x75, 0x3a, 0x4b,
+	0x74, 0xeb, 0xf0, 0x30, 0x43, 0x16, 0x59, 0x9a, 0xeb, 0x3d, 0x81, 0x60, 0xf8, 0x06, 0x63, 0xb8,
+	0x84, 0x16, 0x92, 0x31, 0xac, 0x34, 0xcb, 0x9a, 0xae, 0xd3, 0x7d, 0x6a, 0xca, 0xd6, 0xbe, 0xf3,
+	0xdc, 0x46, 0x7f, 0x00, 0x38, 0x12, 0xe5, 0x18, 0x51, 0xb1, 0x17, 0xa0, 0xe1, 0xab, 0xa5, 0x74,
+	0x94, 0x14, 0x82, 0x6d, 0x89, 0xb1, 0x9d, 0x45, 0x33, 0x89, 0xd9, 0x86, 0x2f, 0x4a, 0x62, 0x6c,
+	0xa3, 0x6f, 0x41, 0xd8, 0x52, 0xa1, 0xd9, 0x64, 0xc0, 0xa2, 0xbd, 0xac, 0xf4, 0x5a, 0x8f, 0xd1,
+	0x82, 0x51, 0x81, 0x31, 0xba, 0x82, 0x26, 0x12, 0x31, 0x52, 0xb6, 0x3c, 0x06, 0xdf, 0x80, 0xb0,
+	0x6d, 0x28, 0x5a, 0x56, 0x52, 0x12, 0xd1, 0x76, 0x36, 0x29, 0x89, 0x18, 0x93, 0x2a, 0xe7, 0x18,
+	0x89, 0x4b, 0x68, 0x3c, 0x11, 0x09, 0xf4, 0x3d, 0xe8, 0xb0, 0x3d, 0x49, 0xf1, 0x47, 0x9b, 0xcc,
+	0xa4, 0xf8, 0x63, 0x6c, 0x66, 0xf7, 0xe7, 0x36, 0xbc, 0xad, 0xf4, 0x35, 0x13, 0xfd, 0x02, 0xe0,
+	0xb9, 0x48, 0x6f, 0x87, 0x4a, 0x3d, 0x61, 0x09, 0xd9, 0x4d, 0x69, 0xfe, 0x48, 0x39, 0x04, 0xab,
+	0x1b, 0x8c, 0xd5, 0x34, 0x9a, 0x4a, 0xcc, 0xca, 0x3b, 0x30, 0x9e, 0x7d, 0x2d, 0x2d, 0x3e, 0xda,
+	0xcd, 0x80, 0xc7, 0xbb, 0x19, 0xf0, 0xfb, 0x6e, 0x06, 0x7c, 0xbc, 0x97, 0x49, 0x3d, 0xde, 0xcb,
+	0xa4, 0x7e, 0xde, 0xcb, 0xa4, 0xde, 0x09, 0x7e, 0x32, 0x70, 0x69, 0x4e, 0x5f, 0xd7, 0x88, 0xad,
+	0x54, 0x71, 0x6e, 0xbd, 0x51, 0x51, 0x36, 0xf7, 0xbf, 0x8e, 0xb1, 0x6f, 0x07, 0x95, 0x01, 0xf6,
+	0x59, 0x6c, 0xfa, 0xff, 0x00, 0x00, 0x00, 0xff, 0xff, 0x4b, 0xf1, 0x0b, 0x06, 0x94, 0x14, 0x00,
+	0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -278,6 +1175,18 @@ type QueryClient interface {
 	// Queries a list of Region items.
 	Region(ctx context.Context, in *QueryRegionRequest, opts ...grpc.CallOption) (*QueryRegionResponse, error)
 	AllRegion(ctx context.Context, in *QueryAllRegionRequest, opts ...grpc.CallOption) (*QueryAllRegionResponse, error)
+	DelegationRewards(ctx context.Context, in *QueryDelegationRewardsRequest, opts ...grpc.CallOption) (*QueryDelegationRewardsResponse, error)
+	FixedDepositTotalAmount(ctx context.Context, in *QueryFixedDepositTotalAmountRequest, opts ...grpc.CallOption) (*QueryFixedDepositTotalAmountResponse, error)
+	FixedDepositAmountByMeid(ctx context.Context, in *QueryFixedDepositAmountByMeidRequest, opts ...grpc.CallOption) (*QueryFixedDepositAmountByMeidResponse, error)
+	// Queries a list of FixedDepositByAcct items.
+	FixedDepositByAcct(ctx context.Context, in *QueryFixedDepositByAcctRequest, opts ...grpc.CallOption) (*QueryFixedDepositByAcctResponse, error)
+	// Queries a list of FixedDepositByRegion items.
+	FixedDepositByRegion(ctx context.Context, in *QueryFixedDepositByRegionRequest, opts ...grpc.CallOption) (*QueryFixedDepositByRegionResponse, error)
+	// Queries a list of FixedDeposit items.
+	FixedDeposit(ctx context.Context, in *QueryGetFixedDepositRequest, opts ...grpc.CallOption) (*QueryGetFixedDepositResponse, error)
+	FixedDepositAll(ctx context.Context, in *QueryAllFixedDepositRequest, opts ...grpc.CallOption) (*QueryAllFixedDepositResponse, error)
+	FixedDepositCfg(ctx context.Context, in *QueryFixedDepositCfgRequest, opts ...grpc.CallOption) (*QueryFixedDepositCfgResponse, error)
+	FixedDepositCfgByTerm(ctx context.Context, in *QueryFixedDepositCfgByTermRequest, opts ...grpc.CallOption) (*QueryFixedDepositCfgByTermResponse, error)
 }
 
 type queryClient struct {
@@ -306,11 +1215,104 @@ func (c *queryClient) AllRegion(ctx context.Context, in *QueryAllRegionRequest, 
 	return out, nil
 }
 
+func (c *queryClient) DelegationRewards(ctx context.Context, in *QueryDelegationRewardsRequest, opts ...grpc.CallOption) (*QueryDelegationRewardsResponse, error) {
+	out := new(QueryDelegationRewardsResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.wstaking.Query/DelegationRewards", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) FixedDepositTotalAmount(ctx context.Context, in *QueryFixedDepositTotalAmountRequest, opts ...grpc.CallOption) (*QueryFixedDepositTotalAmountResponse, error) {
+	out := new(QueryFixedDepositTotalAmountResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.wstaking.Query/FixedDepositTotalAmount", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) FixedDepositAmountByMeid(ctx context.Context, in *QueryFixedDepositAmountByMeidRequest, opts ...grpc.CallOption) (*QueryFixedDepositAmountByMeidResponse, error) {
+	out := new(QueryFixedDepositAmountByMeidResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.wstaking.Query/FixedDepositAmountByMeid", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) FixedDepositByAcct(ctx context.Context, in *QueryFixedDepositByAcctRequest, opts ...grpc.CallOption) (*QueryFixedDepositByAcctResponse, error) {
+	out := new(QueryFixedDepositByAcctResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.wstaking.Query/FixedDepositByAcct", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) FixedDepositByRegion(ctx context.Context, in *QueryFixedDepositByRegionRequest, opts ...grpc.CallOption) (*QueryFixedDepositByRegionResponse, error) {
+	out := new(QueryFixedDepositByRegionResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.wstaking.Query/FixedDepositByRegion", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) FixedDeposit(ctx context.Context, in *QueryGetFixedDepositRequest, opts ...grpc.CallOption) (*QueryGetFixedDepositResponse, error) {
+	out := new(QueryGetFixedDepositResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.wstaking.Query/FixedDeposit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) FixedDepositAll(ctx context.Context, in *QueryAllFixedDepositRequest, opts ...grpc.CallOption) (*QueryAllFixedDepositResponse, error) {
+	out := new(QueryAllFixedDepositResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.wstaking.Query/FixedDepositAll", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) FixedDepositCfg(ctx context.Context, in *QueryFixedDepositCfgRequest, opts ...grpc.CallOption) (*QueryFixedDepositCfgResponse, error) {
+	out := new(QueryFixedDepositCfgResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.wstaking.Query/FixedDepositCfg", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) FixedDepositCfgByTerm(ctx context.Context, in *QueryFixedDepositCfgByTermRequest, opts ...grpc.CallOption) (*QueryFixedDepositCfgByTermResponse, error) {
+	out := new(QueryFixedDepositCfgByTermResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.wstaking.Query/FixedDepositCfgByTerm", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Queries a list of Region items.
 	Region(context.Context, *QueryRegionRequest) (*QueryRegionResponse, error)
 	AllRegion(context.Context, *QueryAllRegionRequest) (*QueryAllRegionResponse, error)
+	DelegationRewards(context.Context, *QueryDelegationRewardsRequest) (*QueryDelegationRewardsResponse, error)
+	FixedDepositTotalAmount(context.Context, *QueryFixedDepositTotalAmountRequest) (*QueryFixedDepositTotalAmountResponse, error)
+	FixedDepositAmountByMeid(context.Context, *QueryFixedDepositAmountByMeidRequest) (*QueryFixedDepositAmountByMeidResponse, error)
+	// Queries a list of FixedDepositByAcct items.
+	FixedDepositByAcct(context.Context, *QueryFixedDepositByAcctRequest) (*QueryFixedDepositByAcctResponse, error)
+	// Queries a list of FixedDepositByRegion items.
+	FixedDepositByRegion(context.Context, *QueryFixedDepositByRegionRequest) (*QueryFixedDepositByRegionResponse, error)
+	// Queries a list of FixedDeposit items.
+	FixedDeposit(context.Context, *QueryGetFixedDepositRequest) (*QueryGetFixedDepositResponse, error)
+	FixedDepositAll(context.Context, *QueryAllFixedDepositRequest) (*QueryAllFixedDepositResponse, error)
+	FixedDepositCfg(context.Context, *QueryFixedDepositCfgRequest) (*QueryFixedDepositCfgResponse, error)
+	FixedDepositCfgByTerm(context.Context, *QueryFixedDepositCfgByTermRequest) (*QueryFixedDepositCfgByTermResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -322,6 +1324,33 @@ func (*UnimplementedQueryServer) Region(ctx context.Context, req *QueryRegionReq
 }
 func (*UnimplementedQueryServer) AllRegion(ctx context.Context, req *QueryAllRegionRequest) (*QueryAllRegionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AllRegion not implemented")
+}
+func (*UnimplementedQueryServer) DelegationRewards(ctx context.Context, req *QueryDelegationRewardsRequest) (*QueryDelegationRewardsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DelegationRewards not implemented")
+}
+func (*UnimplementedQueryServer) FixedDepositTotalAmount(ctx context.Context, req *QueryFixedDepositTotalAmountRequest) (*QueryFixedDepositTotalAmountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FixedDepositTotalAmount not implemented")
+}
+func (*UnimplementedQueryServer) FixedDepositAmountByMeid(ctx context.Context, req *QueryFixedDepositAmountByMeidRequest) (*QueryFixedDepositAmountByMeidResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FixedDepositAmountByMeid not implemented")
+}
+func (*UnimplementedQueryServer) FixedDepositByAcct(ctx context.Context, req *QueryFixedDepositByAcctRequest) (*QueryFixedDepositByAcctResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FixedDepositByAcct not implemented")
+}
+func (*UnimplementedQueryServer) FixedDepositByRegion(ctx context.Context, req *QueryFixedDepositByRegionRequest) (*QueryFixedDepositByRegionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FixedDepositByRegion not implemented")
+}
+func (*UnimplementedQueryServer) FixedDeposit(ctx context.Context, req *QueryGetFixedDepositRequest) (*QueryGetFixedDepositResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FixedDeposit not implemented")
+}
+func (*UnimplementedQueryServer) FixedDepositAll(ctx context.Context, req *QueryAllFixedDepositRequest) (*QueryAllFixedDepositResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FixedDepositAll not implemented")
+}
+func (*UnimplementedQueryServer) FixedDepositCfg(ctx context.Context, req *QueryFixedDepositCfgRequest) (*QueryFixedDepositCfgResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FixedDepositCfg not implemented")
+}
+func (*UnimplementedQueryServer) FixedDepositCfgByTerm(ctx context.Context, req *QueryFixedDepositCfgByTermRequest) (*QueryFixedDepositCfgByTermResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FixedDepositCfgByTerm not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -364,6 +1393,168 @@ func _Query_AllRegion_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_DelegationRewards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryDelegationRewardsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).DelegationRewards(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.wstaking.Query/DelegationRewards",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).DelegationRewards(ctx, req.(*QueryDelegationRewardsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_FixedDepositTotalAmount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryFixedDepositTotalAmountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).FixedDepositTotalAmount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.wstaking.Query/FixedDepositTotalAmount",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).FixedDepositTotalAmount(ctx, req.(*QueryFixedDepositTotalAmountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_FixedDepositAmountByMeid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryFixedDepositAmountByMeidRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).FixedDepositAmountByMeid(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.wstaking.Query/FixedDepositAmountByMeid",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).FixedDepositAmountByMeid(ctx, req.(*QueryFixedDepositAmountByMeidRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_FixedDepositByAcct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryFixedDepositByAcctRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).FixedDepositByAcct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.wstaking.Query/FixedDepositByAcct",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).FixedDepositByAcct(ctx, req.(*QueryFixedDepositByAcctRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_FixedDepositByRegion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryFixedDepositByRegionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).FixedDepositByRegion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.wstaking.Query/FixedDepositByRegion",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).FixedDepositByRegion(ctx, req.(*QueryFixedDepositByRegionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_FixedDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetFixedDepositRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).FixedDeposit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.wstaking.Query/FixedDeposit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).FixedDeposit(ctx, req.(*QueryGetFixedDepositRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_FixedDepositAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryAllFixedDepositRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).FixedDepositAll(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.wstaking.Query/FixedDepositAll",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).FixedDepositAll(ctx, req.(*QueryAllFixedDepositRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_FixedDepositCfg_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryFixedDepositCfgRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).FixedDepositCfg(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.wstaking.Query/FixedDepositCfg",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).FixedDepositCfg(ctx, req.(*QueryFixedDepositCfgRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_FixedDepositCfgByTerm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryFixedDepositCfgByTermRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).FixedDepositCfgByTerm(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.wstaking.Query/FixedDepositCfgByTerm",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).FixedDepositCfgByTerm(ctx, req.(*QueryFixedDepositCfgByTermRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "dymensionxyz.dymension.wstaking.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -375,6 +1566,42 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AllRegion",
 			Handler:    _Query_AllRegion_Handler,
+		},
+		{
+			MethodName: "DelegationRewards",
+			Handler:    _Query_DelegationRewards_Handler,
+		},
+		{
+			MethodName: "FixedDepositTotalAmount",
+			Handler:    _Query_FixedDepositTotalAmount_Handler,
+		},
+		{
+			MethodName: "FixedDepositAmountByMeid",
+			Handler:    _Query_FixedDepositAmountByMeid_Handler,
+		},
+		{
+			MethodName: "FixedDepositByAcct",
+			Handler:    _Query_FixedDepositByAcct_Handler,
+		},
+		{
+			MethodName: "FixedDepositByRegion",
+			Handler:    _Query_FixedDepositByRegion_Handler,
+		},
+		{
+			MethodName: "FixedDeposit",
+			Handler:    _Query_FixedDeposit_Handler,
+		},
+		{
+			MethodName: "FixedDepositAll",
+			Handler:    _Query_FixedDepositAll_Handler,
+		},
+		{
+			MethodName: "FixedDepositCfg",
+			Handler:    _Query_FixedDepositCfg_Handler,
+		},
+		{
+			MethodName: "FixedDepositCfgByTerm",
+			Handler:    _Query_FixedDepositCfgByTerm_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -528,6 +1755,630 @@ func (m *QueryAllRegionResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryDelegationRewardsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryDelegationRewardsRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryDelegationRewardsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.ValidatorAddress) > 0 {
+		i -= len(m.ValidatorAddress)
+		copy(dAtA[i:], m.ValidatorAddress)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ValidatorAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.DelegatorAddress) > 0 {
+		i -= len(m.DelegatorAddress)
+		copy(dAtA[i:], m.DelegatorAddress)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.DelegatorAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryDelegationRewardsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryDelegationRewardsResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryDelegationRewardsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Rewards) > 0 {
+		for iNdEx := len(m.Rewards) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Rewards[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryFixedDepositByAcctRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryFixedDepositByAcctRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryFixedDepositByAcctRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.QueryType != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.QueryType))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Account) > 0 {
+		i -= len(m.Account)
+		copy(dAtA[i:], m.Account)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Account)))
+		i--
+		dAtA[i] = 0x12
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryFixedDepositByAcctResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryFixedDepositByAcctResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryFixedDepositByAcctResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.FixedDeposit) > 0 {
+		for iNdEx := len(m.FixedDeposit) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.FixedDeposit[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryFixedDepositByRegionRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryFixedDepositByRegionRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryFixedDepositByRegionRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.QueryType != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.QueryType))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Regionid) > 0 {
+		i -= len(m.Regionid)
+		copy(dAtA[i:], m.Regionid)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Regionid)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryFixedDepositByRegionResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryFixedDepositByRegionResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryFixedDepositByRegionResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.FixedDeposit) > 0 {
+		for iNdEx := len(m.FixedDeposit) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.FixedDeposit[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGetFixedDepositRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetFixedDepositRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetFixedDepositRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Id != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Address) > 0 {
+		i -= len(m.Address)
+		copy(dAtA[i:], m.Address)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Address)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGetFixedDepositResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetFixedDepositResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetFixedDepositResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.FixedDeposit.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryAllFixedDepositRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryAllFixedDepositRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryAllFixedDepositRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryAllFixedDepositResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryAllFixedDepositResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryAllFixedDepositResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.FixedDeposit) > 0 {
+		for iNdEx := len(m.FixedDeposit) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.FixedDeposit[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryFixedDepositCfgRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryFixedDepositCfgRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryFixedDepositCfgRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.RegionId) > 0 {
+		i -= len(m.RegionId)
+		copy(dAtA[i:], m.RegionId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.RegionId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryFixedDepositCfgResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryFixedDepositCfgResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryFixedDepositCfgResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.FixedDepositCfgs) > 0 {
+		for iNdEx := len(m.FixedDepositCfgs) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.FixedDepositCfgs[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryFixedDepositCfgByTermRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryFixedDepositCfgByTermRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryFixedDepositCfgByTermRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Term != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Term))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.RegionId) > 0 {
+		i -= len(m.RegionId)
+		copy(dAtA[i:], m.RegionId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.RegionId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryFixedDepositCfgByTermResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryFixedDepositCfgByTermResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryFixedDepositCfgByTermResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.FixedDepositCfg.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryFixedDepositTotalAmountRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryFixedDepositTotalAmountRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryFixedDepositTotalAmountRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryFixedDepositTotalAmountResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryFixedDepositTotalAmountResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryFixedDepositTotalAmountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Amount.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x3a
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryFixedDepositAmountByMeidRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryFixedDepositAmountByMeidRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryFixedDepositAmountByMeidRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Account) > 0 {
+		i -= len(m.Account)
+		copy(dAtA[i:], m.Account)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Account)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryFixedDepositAmountByMeidResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryFixedDepositAmountByMeidResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryFixedDepositAmountByMeidResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Amount.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x3a
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -592,6 +2443,258 @@ func (m *QueryAllRegionResponse) Size() (n int) {
 		l = m.Pagination.Size()
 		n += 1 + l + sovQuery(uint64(l))
 	}
+	return n
+}
+
+func (m *QueryDelegationRewardsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.DelegatorAddress)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.ValidatorAddress)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryDelegationRewardsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Rewards) > 0 {
+		for _, e := range m.Rewards {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *QueryFixedDepositByAcctRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Account)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.QueryType != 0 {
+		n += 1 + sovQuery(uint64(m.QueryType))
+	}
+	return n
+}
+
+func (m *QueryFixedDepositByAcctResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.FixedDeposit) > 0 {
+		for _, e := range m.FixedDeposit {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *QueryFixedDepositByRegionRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Regionid)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.QueryType != 0 {
+		n += 1 + sovQuery(uint64(m.QueryType))
+	}
+	return n
+}
+
+func (m *QueryFixedDepositByRegionResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.FixedDeposit) > 0 {
+		for _, e := range m.FixedDeposit {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *QueryGetFixedDepositRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.Id != 0 {
+		n += 1 + sovQuery(uint64(m.Id))
+	}
+	return n
+}
+
+func (m *QueryGetFixedDepositResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.FixedDeposit.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryAllFixedDepositRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryAllFixedDepositResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.FixedDeposit) > 0 {
+		for _, e := range m.FixedDeposit {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryFixedDepositCfgRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RegionId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryFixedDepositCfgResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.FixedDepositCfgs) > 0 {
+		for _, e := range m.FixedDepositCfgs {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *QueryFixedDepositCfgByTermRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RegionId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.Term != 0 {
+		n += 1 + sovQuery(uint64(m.Term))
+	}
+	return n
+}
+
+func (m *QueryFixedDepositCfgByTermResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.FixedDepositCfg.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryFixedDepositTotalAmountRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *QueryFixedDepositTotalAmountResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Amount.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryFixedDepositAmountByMeidRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Account)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryFixedDepositAmountByMeidResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Amount.Size()
+	n += 1 + l + sovQuery(uint64(l))
 	return n
 }
 
@@ -948,6 +3051,1612 @@ func (m *QueryAllRegionResponse) Unmarshal(dAtA []byte) error {
 				m.Pagination = &query.PageResponse{}
 			}
 			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryDelegationRewardsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryDelegationRewardsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryDelegationRewardsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DelegatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DelegatorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ValidatorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryDelegationRewardsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryDelegationRewardsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryDelegationRewardsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rewards", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Rewards = append(m.Rewards, types.DecCoin{})
+			if err := m.Rewards[len(m.Rewards)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryFixedDepositByAcctRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryFixedDepositByAcctRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryFixedDepositByAcctRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Account", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Account = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field QueryType", wireType)
+			}
+			m.QueryType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.QueryType |= FixedDepositState(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryFixedDepositByAcctResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryFixedDepositByAcctResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryFixedDepositByAcctResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FixedDeposit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FixedDeposit = append(m.FixedDeposit, FixedDeposit{})
+			if err := m.FixedDeposit[len(m.FixedDeposit)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryFixedDepositByRegionRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryFixedDepositByRegionRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryFixedDepositByRegionRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Regionid", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Regionid = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field QueryType", wireType)
+			}
+			m.QueryType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.QueryType |= FixedDepositState(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryFixedDepositByRegionResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryFixedDepositByRegionResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryFixedDepositByRegionResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FixedDeposit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FixedDeposit = append(m.FixedDeposit, FixedDeposit{})
+			if err := m.FixedDeposit[len(m.FixedDeposit)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetFixedDepositRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetFixedDepositRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetFixedDepositRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Id |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetFixedDepositResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetFixedDepositResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetFixedDepositResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FixedDeposit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.FixedDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryAllFixedDepositRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryAllFixedDepositRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryAllFixedDepositRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryAllFixedDepositResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryAllFixedDepositResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryAllFixedDepositResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FixedDeposit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FixedDeposit = append(m.FixedDeposit, FixedDeposit{})
+			if err := m.FixedDeposit[len(m.FixedDeposit)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryFixedDepositCfgRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryFixedDepositCfgRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryFixedDepositCfgRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RegionId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RegionId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryFixedDepositCfgResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryFixedDepositCfgResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryFixedDepositCfgResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FixedDepositCfgs", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FixedDepositCfgs = append(m.FixedDepositCfgs, FixedDepositCfg{})
+			if err := m.FixedDepositCfgs[len(m.FixedDepositCfgs)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryFixedDepositCfgByTermRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryFixedDepositCfgByTermRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryFixedDepositCfgByTermRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RegionId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RegionId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Term", wireType)
+			}
+			m.Term = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Term |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryFixedDepositCfgByTermResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryFixedDepositCfgByTermResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryFixedDepositCfgByTermResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FixedDepositCfg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.FixedDepositCfg.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryFixedDepositTotalAmountRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryFixedDepositTotalAmountRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryFixedDepositTotalAmountRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryFixedDepositTotalAmountResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryFixedDepositTotalAmountResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryFixedDepositTotalAmountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryFixedDepositAmountByMeidRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryFixedDepositAmountByMeidRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryFixedDepositAmountByMeidRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Account", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Account = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryFixedDepositAmountByMeidResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryFixedDepositAmountByMeidResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryFixedDepositAmountByMeidResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

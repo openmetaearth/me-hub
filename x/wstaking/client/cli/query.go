@@ -38,6 +38,18 @@ func GetQueryCmd() *cobra.Command {
 	stakingQueryCmd.AddCommand(
 		GetCmdQueryRegion(),
 		GetCmdQueryAllRegion(),
+		GetCmdQueryDelegatorRewards(),
+	)
+
+	stakingQueryCmd.AddCommand(
+		CmdListFixedDeposit(),
+		CmdShowFixedDeposit(),
+		CmdFixedDepositByRegion(),
+		CmdFixedDepositByAcct(),
+		CmdListFixedDepositCfg(),
+		CmdQueryFixedDepositCfg(),
+		CmdShowFixedDepositTotalAmount(),
+		CmdShowFixedDepositAmountByAcct(),
 	)
 
 	return stakingQueryCmd
