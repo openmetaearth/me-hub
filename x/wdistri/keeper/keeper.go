@@ -93,8 +93,8 @@ func (k Keeper) AllocateBlockRewardEveryday(ctx sdk.Context, req abci.RequestEnd
 }
 
 func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
-	feeClollectorAddr := k.authKeeper.GetModuleAddress(k.feeCollectorName)
-	totalMintCoin := k.bankKeeper.GetBalance(ctx, feeClollectorAddr, k.baseDenom)
+	feeCollectorAddr := k.authKeeper.GetModuleAddress(k.feeCollectorName)
+	totalMintCoin := k.bankKeeper.GetBalance(ctx, feeCollectorAddr, k.baseDenom)
 
 	regions := k.stakingKeeper.GetAllRegionI(ctx)
 	totalRegionShare := sdkmath.NewInt(0)
@@ -102,6 +102,9 @@ func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 		totalRegionShare = region.GetRegionShare().Add(totalRegionShare)
 	}
 	totalRegionShareDec := sdk.NewDecFromInt(totalRegionShare)
+	if totalRegionShare.IsZero() {
+		return fmt.Errorf("totalRegionShare is zero, cannot divide by zero")
+	}
 	for _, region := range regions {
 		// calculate every region coins: RegionShare * totalMintCoins / totalRegionShare
 
@@ -123,4 +126,3 @@ func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 	}
 	return nil
 }
-
