@@ -86,3 +86,21 @@ func (k BaseKeeperWrapper) UnstakeCoinsFromModuleToModule(
 
 	return k.SendCoins(ctx, senderAcc.GetAddress(), recipientAcc.GetAddress(), amt)
 }
+
+func (k BaseKeeperWrapper) FeeToReceivers(ctx sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output) error {
+	err := k.InputOutputCoins(ctx, inputs, outputs)
+	if err != nil {
+		return sdkerrors.Wrap(err, "failed to process input-output coins")
+	}
+
+	event := sdk.NewEvent(types.EventTypeFeeToReceivers)
+	for index, input := range inputs {
+		event.AppendAttributes(
+			sdk.NewAttribute(sdk.AttributeKeySender, input.Address),
+			sdk.NewAttribute(types.AttributeKeyReceiver, outputs[index].Address),
+			sdk.NewAttribute(types.AttributeKeyAmount, outputs[index].Coins.String()),
+		)
+	}
+	ctx.EventManager().EmitEvent(event)
+	return nil
+}

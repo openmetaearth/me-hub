@@ -2,14 +2,15 @@ package keeper
 
 import (
 	"context"
-	"cosmossdk.io/errors"
 	"crypto/sha256"
+	"strings"
+
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
 	"github.com/st-chain/me-hub/utils"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"strings"
 )
 
 func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*types.MsgNewRegionResponse, error) {
@@ -51,7 +52,10 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 			return nil, sdkerrors.Wrapf(types.ErrRegionNameDuplicate, "meid region name duplicates")
 		}
 	}
-
+	err = k.WstakingHooks().BeforeValidatorStakingModified(ctx, valAddr)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrHooks, "before create new region :error :%+v", err)
+	}
 	uri := "https://docs.cosmos.network/main/modules/nft"
 	hasher := sha256.New()
 	_, err = hasher.Write(utils.UnsafeStrToBytes(uri))
@@ -100,7 +104,10 @@ func (k MsgServer) RemoveRegion(goCtx context.Context, msg *types.MsgRemoveRegio
 	if !found {
 		return nil, types.ErrRegionNotExist
 	}
-
+	err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, sdk.ValAddress{})
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrHooks, "before remove region :error :%+v", err)
+	}
 	k.Keeper.RemoveRegion(ctx, msg.RegionId)
 	return &types.MsgRemoveRegionResponse{}, nil
 }

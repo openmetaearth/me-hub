@@ -2,6 +2,9 @@ package keepers
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
+
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -76,8 +79,6 @@ import (
 	wdistrkeeper "github.com/st-chain/me-hub/x/wdistri/keeper"
 	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
-	"path/filepath"
-	"strings"
 
 	wasmapp "github.com/CosmWasm/wasmd/app"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
@@ -103,6 +104,7 @@ import (
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	vfchooks "github.com/st-chain/me-hub/x/vfc/hooks"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 )
 
 type AppKeepers struct {
@@ -568,7 +570,9 @@ func (a *AppKeepers) SetupHooks() {
 	a.StakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(a.DistrKeeper.Hooks(), a.SlashingKeeper.Hooks()),
 	)
-
+	a.StakingKeeper.SetWstakingHooks(
+		wstakingtypes.NewMultiWstakingHooks(wstakingtypes.NewMultiWstakingHooks(a.DistrKeeper.Hooks())),
+	)
 	// register the staking hooks
 	a.LockupKeeper.SetHooks(
 		lockuptypes.NewMultiLockupHooks(

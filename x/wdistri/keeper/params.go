@@ -21,4 +21,3 @@ const oneDayTotalBlocks = wmintTypes.OneDayTotalBlocks
 const oneYearTotalBlocks = wmintTypes.OneYearTotalBlocks
 
 const initOneYearMintAmount = wmintTypes.InitOneYearMintAmount
-const totalMintCoinsAmount = wmintTypes.TotalMintCoinsAmount

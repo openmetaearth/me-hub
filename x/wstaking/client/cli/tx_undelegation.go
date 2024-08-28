@@ -34,10 +34,7 @@ $ %s tx staking undelegate 1000mec true --from mykey
 			if err != nil {
 				return err
 			}
-			var isMeid bool
-			if strings.ToLower(args[1]) == "true" {
-				isMeid = true
-			}
+			isMeid := strings.ToLower(args[1]) == "true"
 			delAddr := clientCtx.GetFromAddress()
 			validatorAddress, err := cmd.Flags().GetString(FlagValidatorAddress)
 			if err != nil {

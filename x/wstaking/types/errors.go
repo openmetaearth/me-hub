@@ -113,4 +113,5 @@ var (
 	ErrAssertDelegation        = sdkerrors.Register(ModuleName, 1226, "The delegation structure assertion error.")
 	ErrDistributionIncome      = sdkerrors.Register(ModuleName, 1227, "distribution income err.")
 	ErrDistributionOther       = sdkerrors.Register(ModuleName, 1228, "distribution err.")
+	ErrHooks = sdkerrors.Register(ModuleName, 1301, "hooks error")
 )

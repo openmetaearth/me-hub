@@ -30,5 +30,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 }
 
 func EndBlock(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) {
-	k.AllocateBlockRewards(ctx, req)
+	if err := k.AllocateBlockRewardEveryday(ctx, req); err != nil {
+		ctx.Logger().Error("AllocateBlockRewardEveryday", "err", err)
+	}
 }

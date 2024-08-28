@@ -112,7 +112,7 @@ func (k Keeper) FixedDepositTotalAmount(goCtx context.Context, req *types.QueryF
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	amount, found := k.GetFixedDepositTotalAmount(ctx)
 	if !found {
-		return nil, status.Error(codes.NotFound, "tatal fixed Deposit amount not found")
+		return nil, status.Error(codes.NotFound, "total fixed Deposit amount not found")
 	}
 	return &types.QueryFixedDepositTotalAmountResponse{Amount: amount.Amount}, nil
 }

@@ -47,6 +47,14 @@ func (k Keeper) GetDaoAddresses(ctx sdk.Context) (dao types.DaoAddresses, found 
 	return dao, true
 }
 
+func (k Keeper) GetGlobalDao(ctx sdk.Context) string {
+	dao, found := k.GetDaoAddresses(ctx)
+	if found {
+		return dao.GlobalDao
+	}
+	return ""
+}
+
 func (k Keeper) GetMeidDao(ctx sdk.Context) string {
 	dao, found := k.GetDaoAddresses(ctx)
 	if found {
