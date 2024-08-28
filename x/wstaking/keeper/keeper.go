@@ -8,16 +8,18 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
 type Keeper struct {
 	*stakingkeeper.Keeper
-	cdc        codec.BinaryCodec
-	storeKey   storetypes.StoreKey
-	AuthKeeper banktypes.AccountKeeper
-	BankKeeper types.BankKeeper
-	DaoKeeper  types.DaoKeeper
+	cdc         codec.BinaryCodec
+	storeKey    storetypes.StoreKey
+	AuthKeeper  banktypes.AccountKeeper
+	BankKeeper  types.BankKeeper
+	DaoKeeper   types.DaoKeeper
+	WMintKeeper wmintkeeper.Keeper
 	nftKeeper  types.NFTKeeper
 }
 

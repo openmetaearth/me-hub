@@ -89,6 +89,7 @@ var (
 	UnbondingStakeKey           = []byte{0x72} // key for an unbonding-stake
 	UnbondingStakeByValIndexKey = []byte{0x73} // prefix for each key for an unbonding-stake, by validator operator
 	UnbondingStakeQueueKey      = []byte{0x74} // prefix for the timestamps in unbonding stake queue
+	DelegatorWithdrawAddrPrefix = []byte{0x03} // key for delegator withdraw address
 )
 
 // UnbondingType defines the type of unbonding operation
@@ -241,12 +242,6 @@ func ParseValidatorQueueKey(bz []byte) (time.Time, int64, error) {
 	height := sdk.BigEndianToUint64(bz[prefixL+8+int(timeBzL):])
 
 	return ts, int64(height), nil
-}
-
-// GetDelegationKey creates the key for delegator bond with validator
-// VALUE: staking/Delegation
-func GetDelegationKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
-	return append(GetDelegationsKey(delAddr), address.MustLengthPrefix(sdk.ValAddress{})...)
 }
 
 // GetStakeKey creates the key for staker bond with validator
@@ -493,4 +488,9 @@ func FixedDepositCfgKey(term int64) []byte {
 	key = append(key, []byte("/")...)
 
 	return key
+}
+
+// GetDelegatorWithdrawAddrKey creates the key for a delegator's withdraw addr.
+func GetDelegatorWithdrawAddrKey(delAddr sdk.AccAddress) []byte {
+	return append(DelegatorWithdrawAddrPrefix, address.MustLengthPrefix(delAddr.Bytes())...)
 }

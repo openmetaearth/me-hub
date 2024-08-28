@@ -43,6 +43,7 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	stakingTxCmd.AddCommand(
+		NewWithdrawRewardsCmd(),
 		NewCreateValidatorCmd(),
 		NewCreateExperienceNodeCmd(),
 		NewEditValidatorCmd(),
@@ -52,6 +53,15 @@ func NewTxCmd() *cobra.Command {
 		CmdRemoveRegion(),
 		CmdWithdrawFromRegion(),
 		CmdWithdrawFromGlobalDaoFeePool(),
+		NewDelegateCmd(),
+		NewUndelegateCmd(),
+		NewFixedDepositCmd(),          //定期质押
+		NewFixedWithdrawCmd(),         //定期收益提取
+		CmdRemoveFixedDepositCfg(),    //删除定期配置
+		CmdSetFixedDepositCfgStatus(), //修改定期期限
+		CmdSetFixedDepositCfgRate(),   //修改定期利率
+		CmdNewFixedDepositCfg(),       //创建定期配置
+
 	)
 
 	return stakingTxCmd
@@ -331,6 +341,55 @@ func CreateValidatorMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaultsDesc
 		defaultMinSelfDelegation)
 
 	return fsCreateValidator, defaultsDesc
+}
+
+// NewDelegateCmd returns a CLI command handler for creating a MsgDelegate transaction.
+func NewDelegateCmd() *cobra.Command {
+	//bech32PrefixValAddr := sdk.GetConfig().GetBech32ValidatorAddrPrefix()
+
+	cmd := &cobra.Command{
+		Use:   "delegate [amount] ",
+		Args:  cobra.ExactArgs(1),
+		Short: "Delegate liquid tokens to a validator",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Delegate an amount of liquid coins to a validator from your wallet.
+
+Example:
+$ %s tx staking delegate 1000mec --from mykey
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			amount, err := sdk.ParseCoinNormalized(args[0])
+			if err != nil {
+				return err
+			}
+
+			err = types.CheckMinDelegate(amount.Amount)
+			if err != nil {
+				return err
+			}
+			delAddr := clientCtx.GetFromAddress()
+
+			validatorAddress, err := cmd.Flags().GetString(FlagValidatorAddress)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDelegate(delAddr, sdk.ValAddress(sdk.MustAccAddressFromBech32(validatorAddress)), amount, "")
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	cmd.Flags().AddFlagSet(FlagSetValidatorAddress())
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
 }
 
 type TxCreateValidatorConfig struct {

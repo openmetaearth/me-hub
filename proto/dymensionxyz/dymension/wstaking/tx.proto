@@ -21,14 +21,23 @@ service Msg {
   rpc Stake(MsgStake) returns (MsgStakeResponse);
   rpc Unstake(MsgUnstake) returns (MsgUnstakeResponse);
 
-//  rpc FixedDeposit(MsgFixedDeposit) returns (MsgFixedDepositResponse);
-//  rpc FixedWithdraw(MsgFixedWithdraw) returns (MsgFixedWithdrawResponse);
-//  rpc NewFixedDepositCfg(MsgFixedDepositCfg) returns (MsgFixedDepositCfgResp);
-//  rpc RemoveFixedDepositCfg(MsgRemoveFixedDepositCfg) returns (MsgRemoveFixedDepositCfgResp);
-//  rpc SetFixedDepositCfgStatus(MsgSetFixedDepositCfgStatus) returns (MsgSetFixedDepositCfgStatusResp);
-//  rpc SetFixedDepositCfgRate(MsgSetFixedDepositCfgRate) returns (MsgSetFixedDepositCfgRateResp);
+  //  rpc CurrentDeposit(MsgCurrentDeposit) returns (MsgCurrentDepositResponse);
+//  rpc CurrentWithdraw(MsgCurrentWithdraw) returns (MsgCurrentWithdrawResponse);
+
   rpc NewRegion(MsgNewRegion) returns (MsgNewRegionResponse);
   rpc RemoveRegion(MsgRemoveRegion) returns (MsgRemoveRegionResponse);
+  rpc WithdrawDelegatorReward(MsgWithdrawDelegatorReward) returns (MsgWithdrawDelegatorRewardResponse);
+//  rpc UnmeidWithdrawDelegatorReward(MsgUnmeidWithdrawDelegatorReward) returns (MsgUnmeidWithdrawDelegatorRewardResponse);
+
+  //  rpc RetrieveCoinsFromRegion(MsgRetrieveCoinsFromRegion) returns (MsgRetrieveCoinsFromRegionResp);
+//  rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
+//  rpc RetrieveFeeFromGlobalAdminFeePool(MsgRetrieveFeeFromGlobalAdminFeePool) returns (MsgRetrieveFeeFromGlobalAdminFeePoolResp);
+  rpc NewFixedDepositCfg(MsgNewFixedDepositCfg) returns (MsgNewFixedDepositCfgResp);
+  rpc SetFixedDepositCfgStatus(MsgSetFixedDepositCfgStatus) returns (MsgSetFixedDepositCfgStatusResp);
+  rpc SetFixedDepositCfgRate(MsgSetFixedDepositCfgRate) returns (MsgSetFixedDepositCfgRateResp);
+  rpc DoFixedDeposit(MsgDoFixedDeposit) returns (MsgDoFixedDepositResponse);
+  rpc DoFixedWithdraw(MsgDoFixedWithdraw) returns (MsgDoFixedWithdrawResponse);
+  rpc RemoveFixedDepositCfg(MsgRemoveFixedDepositCfg) returns (MsgRemoveFixedDepositCfgResp);
   rpc WithdrawFromRegion(MsgWithdrawFromRegion) returns (MsgWithdrawFromRegionResp);
   rpc WithdrawFromGlobalDaoFeePool(MsgWithdrawFromGlobalDaoFeePool) returns (MsgWithdrawFromGlobalDaoFeePoolResp);
 }
@@ -187,4 +196,61 @@ message MsgWithdrawFromGlobalDaoFeePool {
 }
 
 message MsgWithdrawFromGlobalDaoFeePoolResp {
+}
+
+// MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator
+// from a single validator.
+message MsgWithdrawDelegatorReward {
+  option (cosmos.msg.v1.signer) = "delegator_address";
+  option (amino.name)           = "cosmos-sdk/MsgWithdrawDelegationReward";
+
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string delegator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string validator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// MsgWithdrawDelegatorRewardResponse defines the Msg/WithdrawDelegatorReward
+// response type.
+message MsgWithdrawDelegatorRewardResponse {
+  // Since: cosmos-sdk 0.46
+  repeated cosmos.base.v1beta1.Coin amount = 1 [
+    (gogoproto.nullable)     = false,
+    (amino.dont_omitempty)   = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message MsgNewFixedDepositCfg {
+  string    admin = 1;
+  string    regionId = 2;
+  int64    term    = 3;
+  string    rate = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}
+
+message MsgNewFixedDepositCfgResp {
+  string retcode = 1;
+}
+
+message MsgDoFixedDeposit {
+  string                   account   = 1;
+  cosmos.base.v1beta1.Coin principal = 2 [(gogoproto.nullable) = false];
+  int64         term      = 4;
+}
+
+message MsgDoFixedDepositResponse {
+  uint64 id = 1;
+}
+
+message MsgDoFixedWithdraw {
+  string account = 1;
+  uint64 id      = 2;
+}
+
+message MsgDoFixedWithdrawResponse {
+  cosmos.base.v1beta1.Coin principal = 1 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin interest  = 2 [(gogoproto.nullable) = false];
+  int64         term      = 3;
+  string rate = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }
