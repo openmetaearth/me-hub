@@ -39,12 +39,12 @@ func TestPrintRewardInfo(t *testing.T) {
 	firstYearDailyRewardMec := mintMec * types.OneDayTotalBlocks
 	fmt.Printf("first year daily reward is :%.4f mec %d umec\n", firstYearDailyRewardMec, firstYearDailyReward)
 
-	sencondYearPerBlockReward := types.InitOneYearMintAmount / types.OneYearTotalBlocks / 2
-	secondMintMec := RoundUpToFourDecimals(sencondYearPerBlockReward)
+	secondYearPerBlockReward := types.InitOneYearMintAmount / types.OneYearTotalBlocks / 2
+	secondMintMec := RoundUpToFourDecimals(secondYearPerBlockReward)
 	secondMintUmec := int(secondMintMec * math.Pow(10, 8))
 	secondYearDailyReward := secondMintUmec * types.OneDayTotalBlocks
 	secondYearDailyRewardMec := secondMintMec * types.OneDayTotalBlocks
-	fmt.Printf("second year per block reward is :%.4f mec %d umec\n", sencondYearPerBlockReward, secondMintUmec)
+	fmt.Printf("second year per block reward is :%.4f mec %d umec\n", secondYearPerBlockReward, secondMintUmec)
 	fmt.Printf("second year daily reward is :%.4f mec %d umec\n", secondYearDailyRewardMec, secondYearDailyReward)
 }
 
