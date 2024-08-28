@@ -3,6 +3,8 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
@@ -62,4 +64,27 @@ func (k Keeper) GetMeidByRegion(ctx sdk.Context, regionId string) (list []types.
 		list = append(list, meid)
 	}
 	return
+}
+
+func (k Keeper) GetValOwnerAddress(ctx sdk.Context, meidAddress string) (string, error) {
+	meid, ok := k.GetMeid(ctx, meidAddress)
+	if !ok {
+		return "", sdkerrors.Wrapf(types.ErrMeidNotExists, "meid with account %s not exist", meidAddress)
+	}
+
+	region, ok := k.GetRegion(ctx, meid.RegionId)
+	if !ok {
+		return "", sdkerrors.Wrapf(types.ErrRegionNotExist, "region(%s) not found", meid.RegionId)
+	}
+
+	valAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
+	if err != nil {
+		return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "region bonded validator address(%s) invalid", region.OperatorAddress)
+	}
+
+	validator, ok := k.GetValidator(ctx, valAddr)
+	if !ok {
+		return "", sdkerrors.Wrapf(stakingtypes.ErrNoValidatorFound, "region bonded validator(%s) no found", valAddr.String())
+	}
+	return validator.OwnerAddress, nil
 }

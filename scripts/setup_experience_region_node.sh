@@ -11,7 +11,7 @@ else
 fi
 
 # Set parameters
-DATA_DIRECTORY="$HOME/.mechain"
+DATA_DIRECTORY="$HOME/.mechain_e/node/node1"
 CONFIG_DIRECTORY="$DATA_DIRECTORY/config"
 TENDERMINT_CONFIG_FILE="$CONFIG_DIRECTORY/config.toml"
 CLIENT_CONFIG_FILE="$CONFIG_DIRECTORY/client.toml"
@@ -32,7 +32,7 @@ JSONRPC_ADDRESS=${JSONRPC_ADDRESS:-"0.0.0.0:9545"}
 JSONRPC_WS_ADDRESS=${JSONRPC_WS_ADDRESS:-"0.0.0.0:9546"}
 
 TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000umec"} #1M MEC (1e6mec = 1e6 * 1e18 = 1e24umec )
-STAKING_AMOUNT=${STAKING_AMOUNT:-"10000000000000000umec"} #67% is staked (inflation goal)
+STAKING_AMOUNT=${STAKING_AMOUNT:-"1000000000000000000000umec"} #67% is staked (inflation goal)
 
 # Validate mechain binary exists
 export PATH=$PATH:$HOME/go/bin
@@ -58,7 +58,7 @@ if [ -f "$GENESIS_FILE" ]; then
 fi
 
 # Create and init dymension chain
-med init "$MONIKER_NAME" --chain-id="$CHAIN_ID"
+med init "$MONIKER_NAME" --chain-id="$CHAIN_ID"  --home "$DATA_DIRECTORY"
 
 # ---------------------------------------------------------------------------- #
 #                              Set configurations                              #
@@ -97,31 +97,28 @@ fi
 echo "Initialize AMM accounts? (Y/n) "
 read -r answer
 if [ ! "$answer" != "${answer#[Nn]}" ] ;then
-  med keys add pools --keyring-backend test
-  med keys add user --keyring-backend test
+  med keys add pools --keyring-backend test --home  "$DATA_DIRECTORY"
+  med keys add user --keyring-backend test --home  "$DATA_DIRECTORY"
 
   # Add genesis accounts and provide coins to the accounts
-  med add-genesis-account $(med keys show pools --keyring-backend test -a) 1000000000000000000000000umec,10000000000uatom,500000000000uusd
+  med add-genesis-account $(med keys show pools --keyring-backend test -a --home  "$DATA_DIRECTORY") 1000000000000000000000000umec,10000000000uatom,500000000000uusd --home  "$DATA_DIRECTORY"
   # Give some uatom to the local-user as well
-  med add-genesis-account $(med keys show user --keyring-backend test -a) 1000000000000000000000umec,10000000000uatom
+  med add-genesis-account $(med keys show user --keyring-backend test -a  --home  "$DATA_DIRECTORY") 1000000000000000000000umec,10000000000uatom  --home  "$DATA_DIRECTORY"
 fi
 
-echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test
-med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
-med add-genesis-stake-pool
-med add-genesis-m-accounts
+echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test --home  "$DATA_DIRECTORY"
+med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"  --home  "$DATA_DIRECTORY"
 
-jq '.app_state["dao"]["dao_addresses"]["global_dao"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-jq '.app_state["dao"]["dao_addresses"]["meid_dao"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-jq '.app_state["dao"]["dao_addresses"]["dev_operator"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-jq '.app_state["dao"]["dao_addresses"]["airdrop_address"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["global_dao"] = "mec139mq752delxv78jvtmwxhasyrycufsvr5fhrh9"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["meid_dao"] = "mec139mq752delxv78jvtmwxhasyrycufsvr5fhrh9"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["dev_operator"] = "mec139mq752delxv78jvtmwxhasyrycufsvr5fhrh9"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 
-validator_address=$(med keys show "$KEY_NAME" -a --keyring-backend test)
+validator_address=$(med keys show "$KEY_NAME" -a --keyring-backend test --home "$DATA_DIRECTORY")
 
-med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test --region-id me_earth --validator-address "$validator_address"
-med collect-gentxs
+med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test --region-id experience_region --validator-address "$validator_address"  --home  "$DATA_DIRECTORY"
+med collect-gentxs --home  "$DATA_DIRECTORY"
 
-set_authorised_deployer_account "$(med keys show "$KEY_NAME" -a --keyring-backend test)"
+set_authorised_deployer_account "$(med keys show "$KEY_NAME" -a --keyring-backend test  --home  "$DATA_DIRECTORY")"
 
-med validate-genesis
+med validate-genesis --home  "$DATA_DIRECTORY"
 med start

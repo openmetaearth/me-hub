@@ -2,17 +2,22 @@ package types
 
 import (
 	"cosmossdk.io/math"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
 	gomath "math"
 )
 
 const (
-	TypeMsgNewRegion                    = "new-region"
-	TypeMsgRemoveRegion                 = "remove-region"
-	TypeMsgStake                        = "stake"
-	TypeMsgUnstake                      = "begin_unstaking"
+	TypeMsgNewRegion                         = "new-region"
+	TypeMsgRetrieveCoinFromRegion            = "retrieve-coin-from-region"
+	TypeMsgWithdrawDelegatorReward           = "withdraw_delegator_reward"
+	TypeMsgRemoveRegion                      = "remove-region"
+	TypeMsgRetrieveFeeFromGlobalAdminFeePool = "retrieve-fee-from-global-admin-fee-pool"
+	TypeMsgStake                             = "stake"
+	TypeMsgUnstake                           = "begin_unstaking"
 	TypeMsgWithdrawFromRegion           = "withdraw_from_region"
 	TypeMsgWithdrawFromGlobalDaoFeePool = "withdraw_from_global_dao_fee_pool"
 )
@@ -22,6 +27,7 @@ var (
 	_ sdk.Msg = &MsgUnstake{}
 	_ sdk.Msg = &MsgNewRegion{}
 	_ sdk.Msg = &MsgRemoveRegion{}
+	_ sdk.Msg = &MsgWithdrawDelegatorReward{}
 	_ sdk.Msg = &MsgWithdrawFromRegion{}
 	_ sdk.Msg = &MsgWithdrawFromGlobalDaoFeePool{}
 )
@@ -301,5 +307,71 @@ func (msg *MsgWithdrawFromGlobalDaoFeePool) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
+	return nil
+}
+
+// NewMsgDelegate creates a new MsgDelegate instance.
+//
+//nolint:interfacer
+func NewMsgDelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin, valStr string) *types.MsgDelegate {
+	valAddrStr := valAddr.String()
+	fmt.Println(valAddrStr)
+	//if valStr == NotBondedPoolName && valAddr.Empty() {
+	//	valAddrStr = valStr
+	//}
+	return &types.MsgDelegate{
+		DelegatorAddress: delAddr.String(),
+		ValidatorAddress: valAddrStr,
+		Amount:           amount,
+	}
+}
+
+// NewMsgUndelegate creates a new MsgUndelegate instance.
+//
+//nolint:interfacer
+func NewMsgUndelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin, isMeid bool) *types.MsgUndelegate {
+	return &types.MsgUndelegate{
+		DelegatorAddress: delAddr.String(),
+		ValidatorAddress: valAddr.String(),
+		Amount:           amount,
+		IsMeid:           isMeid,
+	}
+}
+
+func NewMsgWithdrawDelegatorReward(delAddr sdk.AccAddress, valAddr sdk.ValAddress) *MsgWithdrawDelegatorReward {
+	return &MsgWithdrawDelegatorReward{
+		DelegatorAddress: delAddr.String(),
+		ValidatorAddress: valAddr.String(),
+	}
+}
+
+func (msg MsgWithdrawDelegatorReward) Route() string { return ModuleName }
+func (msg MsgWithdrawDelegatorReward) Type() string  { return TypeMsgWithdrawDelegatorReward }
+
+// GetSigners Return address that must sign over msg.GetSignBytes()
+func (msg MsgWithdrawDelegatorReward) GetSigners() []sdk.AccAddress {
+	delegator, _ := sdk.AccAddressFromBech32(msg.DelegatorAddress)
+	return []sdk.AccAddress{delegator}
+}
+
+// GetSignBytes get the bytes for the message signer to sign on
+func (msg MsgWithdrawDelegatorReward) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic quick validity check
+func (msg MsgWithdrawDelegatorReward) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.DelegatorAddress); err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid delegator address: %s", err)
+	}
+	if len(msg.ValidatorAddress) > 0 {
+		if _, err := sdk.ValAddressFromBech32(msg.ValidatorAddress); err != nil {
+			if _, err := sdk.AccAddressFromBech32(msg.ValidatorAddress); err != nil {
+				return sdkerrors.ErrInvalidAddress.Wrapf("invalid validator address: %s,err=%s", msg.ValidatorAddress, err)
+			}
+		}
+	}
+
 	return nil
 }
