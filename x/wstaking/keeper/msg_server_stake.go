@@ -2,6 +2,9 @@ package keeper
 
 import (
 	"context"
+	gomath "math"
+	"time"
+
 	"cosmossdk.io/math"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -10,8 +13,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	gomath "math"
-	"time"
 )
 
 // Stake defines a method for performing a stake of coins from stake_tokens_pool to a validator
@@ -45,6 +46,12 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 			sdkerrors.ErrInvalidRequest, "invalid coin amount: got %s, expected %s integer multiple", msg.Amount.Amount.Int64(), int64(gomath.Pow10(params.BaseDenomUnit)),
 		)
 	}
+	// should before modified region shared
+	err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, valAddr)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrHooks, "before stake:%+v", err)
+	}
+
 	region, found := k.Keeper.GetRegion(ctx, validator.Description.RegionId)
 	if found {
 		region.RegionShare = region.RegionShare.Add(msg.Amount.Amount)
@@ -112,7 +119,10 @@ func (k MsgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
 		)
 	}
-
+	err = k.WstakingHooks().BeforeValidatorStakingModified(ctx, addr)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrHooks, "before unStake :error :%+v", err)
+	}
 	completionTime, err := k.Keeper.Unstake(ctx, stakerAddress, addr, shares)
 	if err != nil {
 		return nil, err

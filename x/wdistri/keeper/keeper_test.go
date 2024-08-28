@@ -2,9 +2,9 @@ package keeper
 
 import (
 	"fmt"
-	"math"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -151,52 +151,59 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 			name:                "two region with equal share",
 			height:              oneDayTotalBlocks,
 			regionShares:        []int{1, 1},
-			regionWantGetReward: []int{684931507200000, 684931507200000}, //umec
+			regionWantGetReward: []int{684931507200000, 684931507200000}, // umec
 		},
 		{
 			name:                "one region should get all reward",
 			height:              oneDayTotalBlocks * 2,
 			regionShares:        []int{1},
-			regionWantGetReward: []int{1369863014400000}, //umec
+			regionWantGetReward: []int{1369863014400000}, // umec
 		},
 		{
 			name:                "one region should get all reward",
 			height:              oneDayTotalBlocks * 3,
 			regionShares:        []int{1, 2, 2},
-			regionWantGetReward: []int{273972602880000, 547945205760000, 547945205760000}, //umec
+			regionWantGetReward: []int{273972602880000, 547945205760000, 547945205760000}, // umec
 		},
 		{
 			name:                "not trigger distribution",
 			height:              oneDayTotalBlocks / 2,
 			regionShares:        []int{},
-			regionWantGetReward: []int{}, //umec
+			regionWantGetReward: []int{}, // umec
 		},
 		{
 			name:                "second year first day",
 			height:              366 * oneDayTotalBlocks,
 			regionShares:        []int{1, 1},
-			regionWantGetReward: []int{342465753600000, 342465753600000}, //umec
+			regionWantGetReward: []int{342465753600000, 342465753600000}, // umec
 		},
 		{
 			name:                "second year first half of day",
-			height:              366 * oneDayTotalBlocks,
+			height:              366*oneDayTotalBlocks + oneDayTotalBlocks/2,
 			regionShares:        []int{},
-			regionWantGetReward: []int{}, //umec
+			regionWantGetReward: []int{}, // umec
 		},
 	}
 	runCase := func(index int) {
 		testcase := testsCases[index]
-		ctx := suite.ctx.WithBlockHeight(int64(testcase.height))
+		ctx := suite.HelperNewContextWith(int64(testcase.height))
 		addrs := suite.mockGetRegionI(ctx, testcase.regionShares...)
 		var wantReward []coinAndAddr
+		totalWantReward := 0
 		for i, addr := range addrs {
 			wantReward = append(wantReward, coinAndAddr{
 				num:  int64(testcase.regionWantGetReward[i]),
 				addr: addr,
 			})
+			totalWantReward += testcase.regionWantGetReward[i]
+		}
+		if totalWantReward != 0 {
+			suite.SetMockGetBalance(ctx, sdk.NewInt(int64(totalWantReward)))
 		}
 		suite.setMockSendCoinsFromModuleToAccountExpect(ctx, wantReward...)
-		suite.wdistriKeeper.AllocateBlockRewards(ctx, abci.RequestEndBlock{Height: ctx.BlockHeight()})
+		suite.wdistriKeeper.AllocateBlockRewardEveryday(ctx, abci.RequestEndBlock{Height: ctx.BlockHeight()})
+		events := ctx.EventManager().ABCIEvents()
+		assert.Equal(suite.T(), len(addrs), len(events))
 	}
 	for i := range testsCases {
 		suite.Run(testsCases[i].name, func() {
@@ -204,6 +211,7 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 		})
 	}
 }
+
 func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int) []string {
 	var addrs []string
 	if len(regionShare) == 0 {
@@ -221,6 +229,14 @@ func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int
 	}
 	suite.stakingKeeper.EXPECT().GetAllRegionI(ctx).Return(regions)
 	return addrs
+}
+func (suite *KeeperTestSuite) SetMockGetBalance(ctx sdk.Context, fee sdkmath.Int) {
+	acc := authtypes.NewModuleAddress(suite.wdistriKeeper.feeCollectorName)
+	suite.authKeeper.EXPECT().GetModuleAddress(suite.wdistriKeeper.feeCollectorName).Return(acc)
+	suite.bankKeeper.EXPECT().GetBalance(ctx, acc, suite.wdistriKeeper.baseDenom).Return(sdk.NewCoin(suite.wdistriKeeper.baseDenom, fee))
+}
+func (suite *KeeperTestSuite) HelperNewContextWith(height int64) sdk.Context {
+	return sdk.NewContext(suite.ctx.MultiStore(), tmproto.Header{Time: tmtime.Now(), Height: height}, false, log.NewNopLogger())
 }
 
 type coinAndAddr struct {
@@ -241,21 +257,3 @@ func (suite *KeeperTestSuite) setMockSendCoinsFromModuleToAccountExpect(ctx sdk.
 	}
 }
 
-func TestGetRewardInfo(t *testing.T) {
-	firstYearPerBlockReward := initOneYearMintAmount / oneYearTotalBlocks
-	mintMec := RoundUpToFourDecimals(firstYearPerBlockReward)
-	mintUmec := int(mintMec * math.Pow(10, 8))
-	fmt.Printf("first year per block reward is :%.4f mec %d umec\n", firstYearPerBlockReward, mintUmec)
-	firstYearDailyReward := mintUmec * oneDayTotalBlocks
-	firstYearDailyRewardMec := mintMec * oneDayTotalBlocks
-	fmt.Printf("first year daily reward is :%.4f mec %d umec\n", firstYearDailyRewardMec, firstYearDailyReward)
-
-	sencondYearPerBlockReward := initOneYearMintAmount / oneYearTotalBlocks / 2
-	secondMintMec := RoundUpToFourDecimals(sencondYearPerBlockReward)
-	secondMintUmec := int(secondMintMec * math.Pow(10, 8))
-	secondYearDailyReward := secondMintUmec * oneDayTotalBlocks
-	secondYearDailyRewardMec := secondMintMec * oneDayTotalBlocks
-	fmt.Printf("second year per block reward is :%.4f mec %d umec\n", sencondYearPerBlockReward, secondMintUmec)
-	fmt.Printf("second year daily reward is :%.4f mec %d umec\n", secondYearDailyRewardMec, secondYearDailyReward)
-
-}

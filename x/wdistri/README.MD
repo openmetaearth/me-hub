@@ -28,19 +28,31 @@ All transaction fees and mining rewards are stored in `treasury_pool`, and rewar
 
 ## Contents
 
-* [Concepts](#concepts)
-* [State](#state)
-    * [Validator Distribution](#validator-distribution)
-    * [Delegation Distribution](#delegation-distribution)
-    * [Params](#params)
-* [Begin Block](#begin-block)
-* [Messages](#messages)
-* [Hooks](#hooks)
-* [Events](#events)
-* [Parameters](#parameters)
-* [Client](#client)
-    * [CLI](#cli)
-    * [gRPC](#grpc)
+- [`x/wdistri`](#xwdistri)
+  - [Overview](#overview)
+  - [Structure](#structure)
+  - [Effect on Staking](#effect-on-staking)
+  - [Contents](#contents)
+  - [Concepts](#concepts)
+  - [State](#state)
+    - [Params](#params)
+  - [Messages](#messages)
+    - [MsgUpdateParams](#msgupdateparams)
+  - [Hooks](#hooks)
+    - [Create or modify validator or region](#create-or-modify-validator-or-region)
+      - [Before](#before)
+  - [Events](#events)
+    - [BeginBlocker](#beginblocker)
+    - [EndBlocker](#endblocker)
+  - [Client](#client)
+    - [CLI](#cli)
+      - [Query](#query)
+        - [params](#params-1)
+        - [rewards](#rewards)
+        - [validator-distribution-info](#validator-distribution-info)
+    - [gRPC](#grpc)
+      - [Params](#params-2)
+      - [ValidatorDistributionInfo](#validatordistributioninfo)
 
 ## Concepts
 
@@ -52,23 +64,6 @@ To learn more, see the [F1 Fee Distribution paper](https://github.com/cosmos/cos
 
 The rewards to a delegator are distributed when the delegation is changed or removed, or a withdrawal is requested.
 Before rewards are distributed, all slashes to the validator that occurred during the current delegation are applied.
-
-### Reference Counting in F1 Fee Distribution
-
-In F1 fee distribution, the rewards a delegator receives are calculated when their delegation is withdrawn. This calculation must read the terms of the summation of rewards divided by the share of tokens from the period which they ended when they delegated, and the final period that was created for the withdrawal.
-
-Additionally, as slashes change the amount of tokens a delegation will have (but we calculate this lazily,
-only when a delegator un-delegates), we must calculate rewards in separate periods before / after any slashes
-which occurred in between when a delegator delegated and when they withdrew their rewards. Thus slashes, like
-delegations, reference the period which was ended by the slash event.
-
-All stored historical rewards records for periods which are no longer referenced by any delegations
-or any slashes can thus be safely removed, as they will never be read (future delegations and future
-slashes will always reference future periods). This is implemented by tracking a `ReferenceCount`
-along with each historical reward storage entry. Each time a new object (delegation or slash)
-is created which might need to reference the historical record, the reference count is incremented.
-Each time one object which previously needed to reference the historical record is deleted, the reference
-count is decremented. If the reference count hits zero, the historical record is deleted.
 
 ## State
 
@@ -108,56 +103,20 @@ The message handling can fail if:
 
 Available hooks that can be called by and from this module.
 
-### Create or modify delegation distribution
+### Create or modify validator or region
 
-* triggered-by: `staking.MsgDelegate`, `staking.MsgBeginRedelegate`, `staking.MsgUndelegate`
+* triggered-by: `staking.MsgNewRegion`, `staking.RemoveRegion`, `staking.MsgCreateValidator`,`staking.EditValidator`,`staking.MsgStake`,`staking.MsgUnStake`
 
 #### Before
 
-* ~~The delegation rewards are withdrawn to the withdraw address of the delegator.
-  The rewards include the current period and exclude the starting period.~~
-* The validator period is incremented.
-  The validator period is incremented because the validator's power and share distribution might have changed.
-* The reference count for the delegator's starting period is decremented.
+* the region create
+* the region remove
+* the validator create
+* the validator was edited
+* add stake
+* remove stake
 
-#### After
 
-The starting height of the delegation is set to the previous period.
-Because of the `Before`-hook, this period is the last period for which the delegator was rewarded.
-
-### Validator created
-
-* triggered-by: `staking.MsgCreateValidator`
-
-When a validator is created, the following validator variables are initialized:
-
-* Historical rewards
-* Current accumulated rewards
-* Accumulated commission
-* Total outstanding rewards
-* Period
-
-By default, all values are set to a `0`, except period, which is set to `1`.
-
-### Validator removed
-
-* triggered-by: `staking.RemoveValidator`
-
-Outstanding commission is sent to the validator's self-delegation withdrawal address.
-Remaining delegator rewards get sent to the community pool.
-
-Note: The validator gets removed only when it has no remaining delegations.
-At that time, all outstanding delegator rewards will have been withdrawn.
-Any remaining rewards are dust amounts.
-
-### Validator is slashed
-
-* triggered-by: `staking.Slash`
-* The current validator period reference count is incremented.
-  The reference count is incremented because the slash event has created a reference to it.
-* The validator period is incremented.
-* The slash event is stored for later use.
-  The slash event will be referenced when calculating delegator rewards.
 
 ## Events
 
