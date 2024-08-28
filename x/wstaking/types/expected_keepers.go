@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/nft"
+	"math/big"
 )
 
 type DaoKeeper interface {
@@ -36,6 +37,11 @@ type BankKeeper interface {
 
 	StakeCoinsFromModuleToModule(ctx sdk.Context, senderModule string, recipientModule string, amt sdk.Coins) error
 	UnstakeCoinsFromModuleToModule(ctx sdk.Context, senderModule string, recipientModule string, amt sdk.Coins) error
+}
+
+type MintKeeper interface {
+	// GetPerBlockMintCoinAmount returns the current block mint coins amount.
+	GetPerBlockMintCoinAmount(ctx sdk.Context) (amount big.Int)
 }
 
 type NFTKeeper interface {
