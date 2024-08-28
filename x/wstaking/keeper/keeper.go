@@ -21,6 +21,8 @@ type Keeper struct {
 	DaoKeeper   types.DaoKeeper
 	WMintKeeper wmintkeeper.Keeper
 	nftKeeper  types.NFTKeeper
+  wstakingHooks types.WstakingHooks
+
 }
 
 func NewKeeper(
@@ -33,13 +35,14 @@ func NewKeeper(
 	authority string,
 ) *Keeper {
 	return &Keeper{
-		Keeper:     stakingkeeper.NewKeeper(cdc, storeKey, ak, bk, authority),
-		cdc:        cdc,
-		storeKey:   storeKey,
-		AuthKeeper: ak,
-		BankKeeper: bk,
-		DaoKeeper:  dk,
-		nftKeeper:  nk,
+		Keeper:        stakingkeeper.NewKeeper(cdc, storeKey, ak, bk, authority),
+		cdc:           cdc,
+		storeKey:      storeKey,
+		AuthKeeper:    ak,
+		BankKeeper:    bk,
+		DaoKeeper:     dk,
+		nftKeeper:     nk,
+		wstakingHooks: nil,
 	}
 }
 
