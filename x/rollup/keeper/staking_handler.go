@@ -23,7 +23,7 @@ func (t *rollupServer) StakeForSequencer(stakeCtx context.Context, req *types.Ms
 	if !t.Keeper.rk.RollappsEnabled(ctx) {
 		return nil, types.ErrRollappDisable
 	}
-	_, found := t.Keeper.rk.GetRollapp(ctx, req.RollappId)
+	found := t.Keeper.rk.IsRollappExist(ctx, req.RollappId)
 	if !found {
 		return nil, types.ErrRollappNotExist
 	}
@@ -113,7 +113,7 @@ func (t *rollupServer) UnStake(stakeCtx context.Context, req *types.MsgSeqUnStak
 	if !t.Keeper.rk.RollappsEnabled(ctx) {
 		return nil, types.ErrRollappDisable
 	}
-	_, found := t.Keeper.rk.GetRollapp(ctx, req.RollappId)
+	found := t.Keeper.rk.IsRollappExist(ctx, req.RollappId)
 	if !found {
 		return nil, types.ErrRollappNotExist
 	}

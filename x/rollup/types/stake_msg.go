@@ -8,6 +8,7 @@ import (
 const (
 	TypeStakeForSequencer = "stakeForSequencer"
 	TypeUnStake           = "unStake"
+	TypeRegisterRollappID = "registerRollappID"
 )
 
 func NewMsgSeqStaking(creator string, rollappId string, version, amount uint64) *MsgSeqStaking {
@@ -94,6 +95,38 @@ func (msg *MsgSeqUnStaking) ValidateBasic() error {
 	}
 	if msg.RollappId == "" {
 		return fmt.Errorf("stake RollappId can not be empty")
+	}
+	return nil
+}
+
+func (msg *RegisterRollappIDRequest) Route() string {
+	return RouterKey
+}
+
+func (msg *RegisterRollappIDRequest) Type() string {
+	return TypeRegisterRollappID
+}
+
+func (msg *RegisterRollappIDRequest) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *RegisterRollappIDRequest) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *RegisterRollappIDRequest) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return err
+	}
+	if msg.RollappID == "" {
+		return fmt.Errorf(" RollappId can not be empty")
 	}
 	return nil
 }

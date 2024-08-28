@@ -34,3 +34,12 @@ message MsgUnStakingResponse {
 
 }
 
+message RegisterRollappIDRequest{
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the sequencer sending the update
+  string creator = 1;
+  string rollappID = 2 ;
+}
+
+message RegisterRollappIDResponse{
+}

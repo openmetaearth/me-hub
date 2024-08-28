@@ -37,8 +37,9 @@ var (
 	ErrParserData             = errorsmod.Register(ModuleName, 1041, "parser internal data error")
 	ErrValidateSubmitBlock    = errorsmod.Register(ModuleName, 1042, "SubmitBlock validate error")
 	ErrNotEnoughSequencerSign = errorsmod.Register(ModuleName, 1043, "not enough sequencer from election  sign for block ")
-	ErrCommitVerifyFail       = errorsmod.Register(ModuleName, 1045, "commitment verify failed ")
-	ErrNotEnoughStake         = errorsmod.Register(ModuleName, 1045, "Stake is not enough ")
+	ErrCommitVerify           = errorsmod.Register(ModuleName, 1045, "commitment verify error ")
+	ErrNotEnoughStake         = errorsmod.Register(ModuleName, 1046, "Stake is not enough ")
+	ErrLoadPlugin             = errorsmod.Register(ModuleName, 1047, "load plugin error ")
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")
 	ErrDisputeAlreadyReverted  = errorsmod.Register(ModuleName, 2001, "disputed height already reverted")

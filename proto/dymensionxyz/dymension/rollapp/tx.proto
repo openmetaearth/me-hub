@@ -68,13 +68,3 @@ message MsgUpdateStateResponse {
 }
 
 
-message MsgLastSubmitBlkRequest{
-  string rollappId = 1;
-}
-
-message MsgLastSubmitBlkResponse{
-  uint64 startHeight = 1;
-  // numBlocks is the number of blocks included in this batch update
-  uint64 numBlocks = 2;
-
-}

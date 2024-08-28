@@ -3,15 +3,15 @@ package keeper
 import (
 	"context"
 	errorsmod "cosmossdk.io/errors"
-	"encoding/json"
 	"fmt"
-	"github.com/celestiaorg/celestia-app/pkg/appconsts"
-	celestiaBlob "github.com/celestiaorg/celestia-node/blob"
+	//"github.com/celestiaorg/celestia-app/pkg/appconsts"
+	//celestiaBlob "github.com/celestiaorg/celestia-node/blob"
 	tenderminttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	rollupTypes "github.com/dymensionxyz/dymension/v3/x/rollup/types"
+	"plugin"
 	"strconv"
 )
 
@@ -214,25 +214,28 @@ func (k msgServer) verifyRollBlkIsAllowSubmit(ctx context.Context, submitBlock *
 		}
 	}
 	//校验DA 的commitProof
-	commitProof := new(celestiaBlob.CommitmentProof)
-	err = json.Unmarshal(submitBlock.CommitmentProof, commitProof)
+	p, err := plugin.Open("celestiaPlugin.so")
 	if err != nil {
-		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrParserData,
-			fmt.Sprintf("Unmarshal commit proof error, err = %s", err.Error()))
+		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrLoadPlugin,
+			fmt.Sprintf(" err = %s", err.Error()))
 	}
-	if err = commitProof.Validate(); err != nil {
-		return types.SUBMIT_BLOCK_DA_VALIDATE_ERR, errorsmod.Wrapf(types.ErrParserData,
-			fmt.Sprintf("commitProof.Validate error, err = %s", err.Error()))
-	}
-	bSucc, err := commitProof.Verify(submitBlock.DaRoot, appconsts.DefaultSubtreeRootThreshold)
+	pVal, err := p.Lookup("VerifyDACommitmentProof")
 	if err != nil {
-		return types.SUBMIT_BLOCK_DA_VERIFY_ERR, errorsmod.Wrapf(types.ErrParserData,
-			fmt.Sprintf("commitProof.verify error, err = %s", err.Error()))
+		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrLoadPlugin,
+			fmt.Sprintf(" Lookup function error.err = %s", err.Error()))
 	}
-	if bSucc {
+	daVerify, ok := pVal.(func([]byte, []byte) (int, error))
+	if !ok {
+		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrLoadPlugin,
+			" Lookup function typeAssert error.")
+	}
+	verifyRes, err := daVerify(submitBlock.CommitmentProof, submitBlock.DaRoot)
+	if err != nil {
 		return types.SUBMIT_BLOCK_SUCCESS, nil
 	}
-	return types.SUBMIT_BLOCK_DA_VERIFY_FAILED, types.ErrCommitVerifyFail
+	return verifyRes, errorsmod.Wrapf(types.ErrCommitVerify,
+		fmt.Sprintf("err = %s", err.Error()))
+
 }
 
 // 1、校验区块Header信息是否经过足够的签名教研,2、签名者是否有2f在Rollup的Election sequencer中
@@ -349,4 +352,16 @@ func verifyRollBlkInfo(rollAppID string, lightBlk *tenderminttypes.LightBlock) e
 	}
 	return nil
 
+}
+
+func (k Keeper) IsRollappExist(ctx sdk.Context, rollappId string) bool {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
+
+	b := store.Get(types.RollappKey(
+		rollappId,
+	))
+	if b == nil {
+		return false
+	}
+	return true
 }

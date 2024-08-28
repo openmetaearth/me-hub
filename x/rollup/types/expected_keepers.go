@@ -2,7 +2,6 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // BankKeeper defines the expected interface needed to retrieve account balances.
@@ -15,6 +14,6 @@ type BankKeeper interface {
 }
 
 type RollappKeeper interface {
-	GetRollapp(ctx sdk.Context, rollappId string) (types.Rollapp, bool)
+	IsRollappExist(ctx sdk.Context, rollappId string) bool
 	RollappsEnabled(ctx sdk.Context) bool
 }

@@ -14,9 +14,3 @@ service Msg {
   rpc RegisterRollappID(RegisterRollappIDRequest) returns (RegisterRollappIDResponse);
 }
 
-message RegisterRollappIDRequest{
-  string rollappID = 1 ;
-}
-
-message RegisterRollappIDResponse{
-}
