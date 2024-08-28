@@ -128,21 +128,21 @@ func (suite *KeeperTestSuite) TestBeginBlocker() {
 			endHeight:      types.OneDayTotalBlocks / 100,
 		},
 		{
-			name:           "3 blocks at 2th year",
+			name:           "3 blocks at 2nd year",
 			targetMinted:   39637240000 * 3,
 			perBlockReward: func(height int64) int64 { return 39637240000 },
 			startHeight:    types.OneYearTotalBlocks + 1,
 			endHeight:      types.OneYearTotalBlocks + 3,
 		},
 		{
-			name:           "100 blocks at 3th year",
+			name:           "100 blocks at 3rd year",
 			targetMinted:   19818620000 * 100,
 			perBlockReward: func(height int64) int64 { return 19818620000 },
 			startHeight:    2*types.OneYearTotalBlocks + 101,
 			endHeight:      2*types.OneYearTotalBlocks + 200,
 		},
 		{
-			name:         "100 blocks between 2th year (30 blocks) and 3th year (70 blocks)",
+			name:         "100 blocks between 2nd year (30 blocks) and 3rd year (70 blocks)",
 			targetMinted: 39637240000*30 + 19818620000*70,
 			perBlockReward: func(height int64) int64 {
 				if height > 2*types.OneYearTotalBlocks {
