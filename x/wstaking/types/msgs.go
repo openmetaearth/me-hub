@@ -18,8 +18,9 @@ const (
 	TypeMsgRetrieveFeeFromGlobalAdminFeePool = "retrieve-fee-from-global-admin-fee-pool"
 	TypeMsgStake                             = "stake"
 	TypeMsgUnstake                           = "begin_unstaking"
-	TypeMsgWithdrawFromRegion           = "withdraw_from_region"
-	TypeMsgWithdrawFromGlobalDaoFeePool = "withdraw_from_global_dao_fee_pool"
+	TypeMsgWithdrawFromRegion                = "withdraw_from_region"
+	TypeMsgWithdrawFromGlobalDaoFeePool      = "withdraw_from_global_dao_fee_pool"
+	TypeMsgResetValidator                    = "create_validator"
 )
 
 var (
@@ -30,6 +31,7 @@ var (
 	_ sdk.Msg = &MsgWithdrawDelegatorReward{}
 	_ sdk.Msg = &MsgWithdrawFromRegion{}
 	_ sdk.Msg = &MsgWithdrawFromGlobalDaoFeePool{}
+	_ sdk.Msg = &MsgResetValidator{}
 )
 
 // NewMsgStake creates a new MsgStake instance.
@@ -373,5 +375,42 @@ func (msg MsgWithdrawDelegatorReward) ValidateBasic() error {
 		}
 	}
 
+	return nil
+}
+
+func NewMsgResetValidator(stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, newValAddr sdk.Address) *MsgResetValidator {
+	return &MsgResetValidator{
+		StakerAddress:       stakerAddr.String(),
+		ValOperAddress:      valAddr.String(),
+		NewValidatorAddress: newValAddr.String(),
+	}
+}
+
+func (msg MsgResetValidator) Route() string { return RouterKey }
+func (msg MsgResetValidator) Type() string  { return TypeMsgResetValidator }
+func (msg MsgResetValidator) GetSigners() []sdk.AccAddress {
+	staker, _ := sdk.AccAddressFromBech32(msg.StakerAddress)
+	addrs := []sdk.AccAddress{staker}
+	return addrs
+}
+
+func (msg MsgResetValidator) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg MsgResetValidator) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.StakerAddress)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid staker address: %v", err)
+	}
+	_, err = sdk.ValAddressFromBech32(msg.ValOperAddress)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid validator operator address: %v", err)
+	}
+	_, err = sdk.AccAddressFromBech32(msg.NewValidatorAddress)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid new validator address: %v", err)
+	}
 	return nil
 }
