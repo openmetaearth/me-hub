@@ -162,10 +162,6 @@ func (k Keeper) Unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 	} else {
 		amount = delAmount
 	}
-	// call the before-delegation-modified hook
-	if err = k.Hooks().BeforeDelegationSharesModified(ctx, delAddr, valAddr); err != nil {
-		return amount, err
-	}
 	delegation.StartHeight = ctx.BlockHeight()
 	k.SetDelegation(ctx, delegation)
 	return amount, nil
