@@ -95,7 +95,10 @@ func (k Keeper) AllocateBlockRewardEveryday(ctx sdk.Context, req abci.RequestEnd
 func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 	feeCollectorAddr := k.authKeeper.GetModuleAddress(k.feeCollectorName)
 	totalMintCoin := k.bankKeeper.GetBalance(ctx, feeCollectorAddr, k.baseDenom)
-
+	if totalMintCoin.Amount.IsZero() {
+		ctx.Logger().Info("totalMintCoin is zero, no need to allocate reward")
+		return nil
+	}
 	regions := k.stakingKeeper.GetAllRegionI(ctx)
 	totalRegionShare := sdkmath.NewInt(0)
 	for _, region := range regions {
