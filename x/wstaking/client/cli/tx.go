@@ -61,7 +61,7 @@ func NewTxCmd() *cobra.Command {
 		CmdSetFixedDepositCfgStatus(), //修改定期期限
 		CmdSetFixedDepositCfgRate(),   //修改定期利率
 		CmdNewFixedDepositCfg(),       //创建定期配置
-
+		NewResetValidatorCmd(),
 	)
 
 	return stakingTxCmd
@@ -615,6 +615,45 @@ func CmdWithdrawFromGlobalDaoFeePool() *cobra.Command {
 			msg := types.NewMsgWithdrawFromGlobalDaoFeePool(
 				clientCtx.GetFromAddress().String(),
 				amount,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewResetValidatorCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "reset-validator [val-oper-address] [new-val-address]",
+		Short:   "reset-validator val-oper-address new-val-address",
+		Example: fmt.Sprintf("%s tx staking reset-validator mevaloper1tg8erk8z8yfz455rzzfv7jalye5fzgpujvt9xy me1raclycgud252j0vduzqpts9xmtkayh9ypxkec2", version.AppName),
+		Args:    cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			valAddr, err := sdk.ValAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			newValAddr, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgResetValidator(
+				clientCtx.GetFromAddress(),
+				valAddr,
+				newValAddr,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

@@ -14,6 +14,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgNewRegion{}, "cosmos-sdk/MsgNewRegion", nil)
 	cdc.RegisterConcrete(&MsgWithdrawDelegatorReward{}, "cosmos-sdk/MsgWithdrawDelegatorReward", nil)
 	cdc.RegisterConcrete(&MsgRemoveRegion{}, "cosmos-sdk/MsgRemoveRegion", nil)
+	cdc.RegisterConcrete(&MsgResetValidator{}, "cosmos-sdk/MsgResetValidator", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -23,6 +24,12 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgNewRegion{},
 		&MsgWithdrawDelegatorReward{},
 		&MsgRemoveRegion{},
+		&MsgNewFixedDepositCfg{},
+		&MsgSetFixedDepositCfgRate{},
+		&MsgSetFixedDepositCfgStatus{},
+		&MsgDoFixedDeposit{},
+		&MsgDoFixedWithdraw{},
+		&MsgResetValidator{},
 		&MsgNewFixedDepositCfg{},
 		&MsgSetFixedDepositCfgRate{},
 		&MsgSetFixedDepositCfgStatus{},
