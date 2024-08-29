@@ -99,6 +99,7 @@ var (
 	ErrNoDelegatorForAddress         = sdkerrors.Register(ModuleName, 1210, "delegator does not contain delegation")
 	ErrNodeLimitExceeded             = sdkerrors.Register(ModuleName, 1211, "Node delegation limit exceeded.")
 	ErrAssertionFailed               = sdkerrors.Register(ModuleName, 1212, "type Delegation assertion failed")
+	ErrWithdrawDelegateReward        = sdkerrors.Register(ModuleName, 1213, "withdraw delegate reward failed")
 
 	ErrEmptyDelegatorAddr      = sdkerrors.Register(ModuleName, 1214, "delegator address is empty")
 	ErrEmptyWithdrawAddr       = sdkerrors.Register(ModuleName, 1215, "withdraw address is empty")

@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,6 +18,8 @@ import (
 func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndelegate) (*stakingtypes.MsgUndelegateResponse, error) {
 	var region types.Region
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// TODO: check meid
 	meid, isFound := k.GetMeid(ctx, msg.DelegatorAddress)
 	if msg.IsMeid {
 		if !isFound {
@@ -36,7 +36,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 		}
 	}
 	msg.ValidatorAddress = region.OperatorAddress
-	addr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
+	valAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -53,47 +53,29 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 		)
 	}
 
-	val, isFound := k.GetValidator(ctx, addr)
+	val, isFound := k.GetValidator(ctx, valAddr)
 	if isFound {
 		if val.DelegationAmount.LT(sdk.ZeroInt()) {
 			return nil, types.ErrValidatorDelegationAmount.Wrapf("validator amount: %s, requested value: %s",
 				val.DelegationAmount.String(), msg.Amount.Amount.String())
 		}
-
 	}
 
 	// current interest balance * personal withdrawal pledge limit / district total pledge limit
-	//regionTreasureAddr, err := sdk.AccAddressFromBech32(region.RegionTreasureAddr)
-	//if err != nil {
-	//	return nil, err
-	//}
 	//person_dele_inte := region.DelegateInterest.Mul(sdk.NewDecFromInt(msg.Amount.Amount).Quo(sdk.NewDecFromInt(validator.DelegationAmount)))
-	del := k.Delegation(ctx, delegatorAddress, addr)
+	del := k.Delegation(ctx, delegatorAddress, valAddr)
 	if del == nil {
 		return nil, types.ErrEmptyDelegationDistInfo
 	}
 	delegation, isOK := del.(stakingtypes.Delegation)
 	if !isOK {
-		panic("Undelegate err:type Delegation assertion failed")
-		return nil, types.ErrAssertionFailed
-	}
-	userTotalStaking := delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable)
-	rewards, err := k.CalculateInterest(ctx, userTotalStaking, delegation.StartHeight)
-	if err != nil {
-		return nil, types.ErrCalculateInterest.Wrap(err.Error())
-	}
-	if region.DelegateInterest.GTE(rewards) {
-		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
-	} else {
-		return nil, errors.New(fmt.Sprintf("undelegate err,region(%s) total interest not enough.need pay %s,only have %s",
-			region.RegionId, rewards.String(), region.DelegateInterest.String()))
+		return nil, sdkerrors.Wrap(types.ErrAssertionFailed, "type Delegation assertion failed")
 	}
 
-	//TODO: send rewards in staking module
-	//err = k.bankKeeper.SendCoins(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(sdk.BaseMEDenom, rewards.TruncateInt())))
-	//if err != nil {
-	//	return nil, err
-	//}
+	rewards, err := k.WithdrawDelegationRewards(ctx, delegatorAddress, valAddr)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrWithdrawDelegateReward, err.Error())
+	}
 
 	if msg.IsMeid {
 		if delegation.Amount.LT(msg.Amount.Amount) {
@@ -105,7 +87,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 		}
 	}
 
-	completionTime, returnAmount, err := k.Keeper.Undelegate(ctx, delegatorAddress, addr, msg.IsMeid, msg.Amount.Amount)
+	completionTime, returnAmount, err := k.Keeper.Undelegate(ctx, delegatorAddress, valAddr, msg.IsMeid, msg.Amount.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +118,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 			sdk.NewAttribute(stakingtypes.BondedPoolName, delegateTreasure.String()),
 			sdk.NewAttribute(types.AttributeKeyRegionTreasure, region.RegionTreasureAddr),
 			sdk.NewAttribute(types.AttributeKeyDelegatorAddress, delegatorAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyPersonalDelegateInterest, rewards.TruncateInt().String()+params.BaseDenom),
+			sdk.NewAttribute(types.AttributeKeyPersonalDelegateInterest, rewards.AmountOf(params.BaseDenom).String()+params.BaseDenom),
 			sdk.NewAttribute(types.AttributeKeyIsMeid, strconv.FormatBool(msg.IsMeid)),
 		),
 	})
