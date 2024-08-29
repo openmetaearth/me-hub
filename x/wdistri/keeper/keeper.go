@@ -103,7 +103,7 @@ func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 	}
 	totalRegionShareDec := sdk.NewDecFromInt(totalRegionShare)
 	if totalRegionShare.IsZero() {
-		return fmt.Errorf("totalRegionShare is zero, cannot divide by zero")
+		return nil
 	}
 	for _, region := range regions {
 		// calculate every region coins: RegionShare * totalMintCoins / totalRegionShare
