@@ -5,7 +5,7 @@ const (
 	AttributeKeyValidator                = "validator"
 	AttributeKeyDelegator                = "delegator"
 	EventTypeWithdrawDelegatorReward     = "withdraw_delegator_reward"
-	EventTypeRegionTreasuryReword        = "region_treasury_reword"
+	EventTypeRegionTreasuryReward        = "region_treasury_reward"
 	AttributeKeyAmountDelegateInterest   = "amount_of_delegate_interest"
 	AttributeKeyPersonalDelegateInterest = "personal_delegate_interest"
 	AttributeKeyRegionTreasuryAddress    = "region_treasury_address"

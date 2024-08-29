@@ -120,7 +120,7 @@ func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 		}
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(
-				types.EventTypeRegionTreasuryReword,
+				types.EventTypeRegionTreasuryReward,
 				sdk.NewAttribute(types.AttributeKeyRegionTreasuryAddress, region.GetRegionTreasureAddr()),
 				sdk.NewAttribute(types.AttributeKeyRegionId, region.GetRegionId()),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, regionCoins.String()),

@@ -257,11 +257,6 @@ func (k MsgServer) ResetValidator(goCtx context.Context, msg *types.MsgResetVali
 		k.DeleteValidatorQueue(ctx, validator)
 	}
 
-	region, isFound := k.GetRegion(ctx, validator.Description.RegionId)
-	if !isFound {
-		return nil, sdkerrors.Wrapf(types.ErrRegion, "region id(%s) not found", validator.Description.RegionId)
-	}
-
 	stake.ValidatorAddress = newValOperAddr.String()
 	k.SetStake(ctx, stake)
 
@@ -272,6 +267,11 @@ func (k MsgServer) ResetValidator(goCtx context.Context, msg *types.MsgResetVali
 		}
 		return false
 	})
+
+	region, isFound := k.GetRegion(ctx, validator.Description.RegionId)
+	if !isFound {
+		return nil, sdkerrors.Wrapf(types.ErrRegion, "region id(%s) not found", validator.Description.RegionId)
+	}
 
 	validator.OperatorAddress = newValOperAddr.String()
 	validator.OwnerAddress = newValAddr.String()

@@ -58,6 +58,7 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 		k.Keeper.SetRegion(ctx, region)
 		//return nil, types.ErrValidatorRegion.Wrapf("%s not found", validator.Description.RegionID)
 	}
+
 	// NOTE: source funds are always unbonded
 	newShares, err := k.Keeper.Stake(ctx, sdk.MustAccAddressFromBech32(msg.StakerAddress), msg.Amount.Amount, stakingtypes.Unbonded, validator, true)
 	if err != nil {
