@@ -281,7 +281,6 @@ func (a *AppKeepers) InitKeepers(
 
 	a.StakingKeeper.WMintKeeper = a.MintKeeper
 
-	//FIXME: distribution
 	a.DistrKeeper = wdistrkeeper.NewKeeper(
 		appCodec,
 		a.keys[wdistrtypes.StoreKey],
@@ -289,7 +288,6 @@ func (a *AppKeepers) InitKeepers(
 		a.GetSubspace(wdistrtypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
-		//FIXME: use wstakingKeeper instead mock
 		a.StakingKeeper,
 		wbanktypes.TreasuryPoolName,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),

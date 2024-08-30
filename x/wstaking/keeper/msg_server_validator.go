@@ -80,7 +80,6 @@ func (k MsgServer) CreateValidator(
 			)
 		}
 	}
-
 	validator, err := stakingtypes.NewValidator(valAddr, pk, msg.Description)
 	if err != nil {
 		return nil, err
