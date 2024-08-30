@@ -20,7 +20,6 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/distribution"
 	distritkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 )
@@ -100,9 +99,6 @@ type AppModule struct {
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
 }
-type WarpDistrAppModule struct {
-	*distribution.AppModule
-}
 
 func NewAppModule(
 	cdc codec.Codec,
@@ -111,7 +107,6 @@ func NewAppModule(
 	bankKeeper types.BankKeeper,
 
 ) AppModule {
-	//FIXME: should use distrModule ?
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
 		keeper:         keeper,
