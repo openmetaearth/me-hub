@@ -21,4 +21,5 @@ var (
 	ErrRollappIdRegisterRepeated = errorsmod.Register(MODULE_NAME, 1111, "Rollapp Id has been registered")
 	ErrRollappIdNotRegister      = errorsmod.Register(MODULE_NAME, 1112, "RollappId unregistere")
 	ErrRollappIDMismatch         = errorsmod.Register(MODULE_NAME, 1113, "rollappid  mismatch")
+	ErrNotFound                  = errorsmod.Register(MODULE_NAME, 1115, "data not found")
 )

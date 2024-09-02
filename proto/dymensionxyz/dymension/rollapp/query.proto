@@ -7,6 +7,7 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymensionxyz/dymension/rollapp/params.proto";
 import "dymensionxyz/dymension/rollapp/rollapp.proto";
 import "dymensionxyz/dymension/rollapp/state_info.proto";
+import "dymensionxyz/dymension/rollapp/blockDA_L2.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
@@ -52,6 +53,16 @@ service Query {
   rpc StateInfo(QueryGetStateInfoRequest) returns (QueryGetStateInfoResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}";
+  }
+
+  //==============================new added==============================
+  rpc GetLastSubmitBlockInfo(MsgLastSubmitBlkRequest) returns (MsgLastSubmitBlkResponse){
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/rollapp/last_submit_block_info/{rollappId}";
+  }
+  rpc GetSubmitterBlockStatics(MsgSubmitBlockStaticsRequest) returns (MsgSubmitBlockStaticsResponse){
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/rollapp/submitter_block_statics/{rollappId}";
   }
 }
 

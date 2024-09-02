@@ -85,7 +85,7 @@ func (t rollupServer) isAllowStake(sdkCtx sdk.Context, curTime int64) bool {
 	store := prefix.NewStore(sdkCtx.KVStore(t.Keeper.storeKey), types.GetRollupAppKeyPrefix(t.rollAppID))
 	if val := store.Get([]byte(types.KEY_LAST_ELECTION_TIME)); val != nil {
 		lastElectTime := types.BytesToInt64(val)
-		stakeEndTime := lastElectTime + int64(t.Keeper.GetAllowApplyElectionTime(sdkCtx))*types.HourSeconds
+		stakeEndTime := lastElectTime + int64(t.Keeper.GetAllowApplyElectionTime(sdkCtx))*types.MinuteSeconds
 		if curTime > stakeEndTime {
 			return false
 		} else {

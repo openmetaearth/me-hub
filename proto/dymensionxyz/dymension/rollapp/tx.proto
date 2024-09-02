@@ -15,7 +15,6 @@ service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
   rpc SubmitBlockDAInfo(MsgBlkDAInfo) returns (MsgBlkDAResponse);
-  rpc GetLastSubmitBlockInfo(MsgLastSubmitBlkRequest) returns (MsgLastSubmitBlkResponse);
 }
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.

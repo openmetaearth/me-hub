@@ -24,10 +24,12 @@ const (
 
 const (
 	//	DaySeconds  int64 = 86400
-	HourSeconds int64 = 3600
+	HourSeconds   int64 = 3600
+	MinuteSeconds int64 = 60
 )
 
 const (
+	NodeNormal    int32 = 0
 	NodeSequencer int32 = 1
 	NodeBackup    int32 = 2
 )

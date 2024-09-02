@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	errorsmod "cosmossdk.io/errors"
 	"fmt"
@@ -15,13 +16,13 @@ import (
 	"strconv"
 )
 
-func (k msgServer) GetLastSubmitBlockInfo(goCtx context.Context, req *types.MsgLastSubmitBlkRequest) (*types.MsgLastSubmitBlkResponse, error) {
+func (k Keeper) GetLastSubmitBlockInfo(goCtx context.Context, req *types.MsgLastSubmitBlkRequest) (*types.MsgLastSubmitBlkResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	//ctx.Logger().Info("receviced SubmitBlockDAInfo", "msg", req.String())
 	if !k.RollappsEnabled(ctx) {
 		return nil, types.ErrRollappsDisabled
 	}
-	_, isFound := k.GetRollapp(ctx, req.RollappId)
+	isFound := k.IsRollappExist(ctx, req.RollappId)
 	if !isFound {
 		return nil, types.ErrUnknownRollappID
 	}
@@ -33,14 +34,80 @@ func (k msgServer) GetLastSubmitBlockInfo(goCtx context.Context, req *types.MsgL
 			return nil, errorsmod.Wrapf(types.ErrParserData, errP.Error())
 		} else {
 			return &types.MsgLastSubmitBlkResponse{
-				StartHeight: startBlkHeight,
-				NumBlocks:   uint64(number)}, nil
+				LastBatch: &types.MsgSubmitBlockBatch{
+					StartHeight: startBlkHeight,
+					NumBlocks:   number,
+				}}, nil
+
 		}
 	} else {
-		return &types.MsgLastSubmitBlkResponse{
-			StartHeight: 0,
-			NumBlocks:   0}, nil
+		return &types.MsgLastSubmitBlkResponse{LastBatch: nil}, nil
 	}
+}
+
+func (k Keeper) GetSubmitterBlockStatics(goCtx context.Context, req *types.MsgSubmitBlockStaticsRequest) (*types.MsgSubmitBlockStaticsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if !k.RollappsEnabled(ctx) {
+		return nil, types.ErrRollappsDisabled
+	}
+	isFound := k.IsRollappExist(ctx, req.RollappId)
+	if !isFound {
+		return nil, types.ErrUnknownRollappID
+	}
+	if req.StartHeight < 1 {
+		return nil, errorsmod.Wrapf(types.ErrInputParams, "StartHeight < 1")
+	}
+	if req.EndHeight < req.StartHeight {
+		return nil, errorsmod.Wrapf(types.ErrInputParams, "req.EndHeight < req.StartHeight")
+	}
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupBlockWithSubmitterKeyPrefix(req.RollappId))
+	//recStore.Set(types.ConvertBlockHeightToKey(req.StartHeight), types.ConvertToRecordSubmitVal(req.Creator, req.NumBlocks))
+	iterator := sdk.KVStorePrefixIterator(store, types.ConvertBlockHeightToKey(req.StartHeight))
+	defer iterator.Close() // nolint: errcheck
+	endBlkHeight := types.ConvertBlockHeightToKey(req.EndHeight)
+	bIsFindEndIndex := false
+	mapSubmitterBlkInfo := make(map[string][]*types.MsgSubmitBlockBatch)
+	for ; iterator.Valid(); iterator.Next() {
+		if bytes.Compare(iterator.Key(), endBlkHeight) >= 0 {
+			bIsFindEndIndex = true
+		}
+		blkHeight, err := strconv.ParseUint(string(iterator.Key()), 10, 64)
+		if err != nil {
+			return nil, errorsmod.Wrapf(types.ErrParserData,
+				fmt.Sprintf("ParseUint error. key = %s,err = %s", string(iterator.Key()), err.Error()))
+		}
+		if submitter, number, errP := types.ParserRecordSubmitVal(string(iterator.Value())); errP != nil {
+			return nil, errorsmod.Wrapf(types.ErrParserData,
+				fmt.Sprintf("ParserRecordSubmitVal error. val = %s,err = %s", string(iterator.Value()), errP.Error()))
+		} else {
+			var sliSubmitBlock []*types.MsgSubmitBlockBatch
+			if submitBlockList, ok := mapSubmitterBlkInfo[submitter]; ok {
+				sliSubmitBlock = submitBlockList
+			}
+			sliSubmitBlock = append(sliSubmitBlock, &types.MsgSubmitBlockBatch{
+				StartHeight: blkHeight,
+				NumBlocks:   number,
+			})
+			mapSubmitterBlkInfo[submitter] = sliSubmitBlock
+		}
+
+		if bIsFindEndIndex {
+			break
+		}
+	}
+	//遍历map
+	var submitBlkStaticsList []*types.MsgSubmitterStaticsInfo
+	for key, val := range mapSubmitterBlkInfo {
+		submitBlkStaticsList = append(submitBlkStaticsList, &types.MsgSubmitterStaticsInfo{
+			Submitter:  key,
+			SubmitList: val,
+		})
+	}
+	return &types.MsgSubmitBlockStaticsResponse{
+		SubmitterNumber:   uint32(len(submitBlkStaticsList)),
+		SubmitStaticsList: submitBlkStaticsList,
+	}, nil
 }
 
 func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAInfo) (*types.MsgBlkDAResponse, error) {
@@ -105,6 +172,9 @@ func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAI
 		if err = k.commitRollupBlockDAInfo(ctx, req); err != nil {
 			return nil, err
 		}
+		//
+		recStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupBlockWithSubmitterKeyPrefix(req.RollappId))
+		recStore.Set(types.ConvertBlockHeightToKey(req.StartHeight), types.ConvertToRecordSubmitVal(req.Creator, req.NumBlocks))
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventSubmitBlockDA,
@@ -139,6 +209,12 @@ func (k msgServer) punishSubmitter(ctx context.Context, status int, address, rol
 		sdkCtx := sdk.UnwrapSDKContext(ctx)
 		if err := k.rollupKeeper.Punishment(sdkCtx, address, rollappID, rate, 0); err != nil {
 			return err
+		} else {
+			//如果有对提交者进行了惩罚，则需要对其进行资质重估
+			errP := k.rollupKeeper.RevaluateSequencer(sdkCtx, address, rollappID)
+			if errP != nil {
+				return errP
+			}
 		}
 	}
 	return nil

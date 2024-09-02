@@ -23,4 +23,5 @@ type RollupKeeper interface {
 	GetParams(ctx sdk.Context) rollupTypes.Params
 	QueryStake(ctx context.Context, req *rollupTypes.QueryStakeRequest) (*rollupTypes.QueryStakeResponse, error)
 	Punishment(ctx sdk.Context, address, rollappID string, rate uint32, amount uint64) error
+	RevaluateSequencer(ctx sdk.Context, address, rollappID string) error
 }

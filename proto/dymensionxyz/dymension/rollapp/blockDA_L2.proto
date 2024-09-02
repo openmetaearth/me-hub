@@ -40,15 +40,36 @@ message MsgBlkDAResponse{
 }
 
 message MsgLastSubmitBlkRequest{
-  option (cosmos.msg.v1.signer) = "creator";
+ // option (cosmos.msg.v1.signer) = "creator";
   // creator is the bech32-encoded address of the sequencer sending the update
-  string creator = 1;
-  string rollappId = 2;
+ // string creator = 1;
+  string rollappId = 1;
 }
 
+
 message MsgLastSubmitBlkResponse{
+  MsgSubmitBlockBatch lastBatch = 1;
+}
+
+message MsgSubmitBlockBatch{
   uint64 startHeight = 1;
   // numBlocks is the number of blocks included in this batch update
-  uint64 numBlocks = 2;
+  uint32 numBlocks = 2;
+}
 
+
+message MsgSubmitterStaticsInfo{
+  string submitter = 1;
+  repeated MsgSubmitBlockBatch submitList = 2;
+}
+
+message MsgSubmitBlockStaticsRequest{
+  string rollappId = 1;
+  uint64 startHeight = 2;
+  uint64 endHeight = 3;
+}
+
+message MsgSubmitBlockStaticsResponse{
+  uint32 submitterNumber = 1;
+  repeated MsgSubmitterStaticsInfo submitStaticsList = 2;
 }

@@ -1,10 +1,8 @@
 package cli
 
 import (
-	"context"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -69,36 +67,6 @@ func CmdSubmitBlockDa() *cobra.Command {
 				return err
 			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func CmdGetLastSubmitBlock() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "get-last-submit-block [rollapp-id] [start-height] [num-blocks] [da-path] [version] [blks] [commitment] [daroot]",
-		Short: "get last submit block info",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-			queryClient := types.NewMsgClient(clientCtx)
-			argRollappId := args[0]
-			if argRollappId == "" {
-				return fmt.Errorf("rollappID can not be empty")
-			}
-			req := &types.MsgLastSubmitBlkRequest{
-				RollappId: argRollappId,
-			}
-
-			res, err := queryClient.GetLastSubmitBlockInfo(context.Background(), req)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
 		},
 	}
 

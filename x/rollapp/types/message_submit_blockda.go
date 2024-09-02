@@ -95,6 +95,7 @@ func (msg *MsgLastSubmitBlkRequest) Type() string {
 	return TypeGetLastSubmitBlockDA
 }
 
+/*
 func (msg *MsgLastSubmitBlkRequest) GetSigners() []sdk.AccAddress {
 	creator, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
@@ -113,36 +114,11 @@ func (msg *MsgLastSubmitBlkRequest) ValidateBasic() error {
 	if err != nil {
 		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
-
-	// an update can't be with no BDs
-	if msg.NumBlocks == uint32(0) {
-		return errorsmod.Wrap(ErrInvalidNumBlocks, "number of blocks can not be zero")
-	}
-
-	if msg.NumBlocks > 100000 {
-		return errorsmod.Wrapf(ErrInvalidNumBlocks, "numBlocks(%d)  exceeds max 100000", msg.NumBlocks)
-	}
-
-	// check to see that update contains all BDs
-	if len(msg.Blocks.LightBlocks) != int(msg.NumBlocks) {
-		return errorsmod.Wrapf(ErrInvalidNumBlocks, "number of blocks (%d) != number of light block(%d)", msg.NumBlocks, len(msg.Blocks.LightBlocks))
-	}
-
-	// check to see that startHeight is not zaro
-	if msg.StartHeight == 0 {
-		return errorsmod.Wrapf(ErrWrongBlockHeight, "StartHeight must be greater than zero")
-	}
-
-	// check that the blocks are sequential by height
-	for i := uint32(0); i < msg.NumBlocks; i++ {
-		if msg.Blocks.LightBlocks[i].SignedHeader.Header.Height != int64(msg.StartHeight+uint64(i)) {
-			return ErrInvalidBlockSequence
-		}
-	}
-
-	if msg.DaRoot == nil || msg.CommitmentProof == nil {
-		return errorsmod.Wrapf(ErrValidateSubmitBlock, " msg.DaRoot == nil or msg.CommitmentProof == nil")
+	if msg.RollappId == "" {
+		return fmt.Errorf(" RollappId can not be empty")
 	}
 
 	return nil
 }
+
+*/

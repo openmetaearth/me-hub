@@ -18,18 +18,28 @@ const (
 )
 
 var (
-	defaultElectionPeriod  uint32 = 30
-	defaultMinStakeAmount  uint64 = 1000 * MecPrecision
+	//默认的选举间隔周期，单位为分钟
+	defaultElectionPeriod  uint32 = 43200
+	defaultMinStakeAmount  uint64 = 1000
 	defaultSequencerNumber uint32 = 10
 	defaultBackupNumber    uint32 = 3
+	//默认首次选举的时间，单位为分钟
+	defaultFirstElectionInterval uint32 = 120
+	//默认允许申请参与质押的时间，默认2天，单位为分钟
+	defaultAllowApplyElectionTime uint32 = 2880
+	//默认选举后的过渡时间，单位为秒
+	defaultElectionInterimTime uint32 = 300
 )
 
 func DefaultParams() Params {
 	return Params{
-		ElectionPeriod:        defaultElectionPeriod,
-		MinStakeAmount:        defaultMinStakeAmount,
-		SequencerNumber:       defaultSequencerNumber,
-		BackupSequencerNumber: defaultBackupNumber,
+		ElectionPeriod:         defaultElectionPeriod,
+		MinStakeAmount:         defaultMinStakeAmount,
+		SequencerNumber:        defaultSequencerNumber,
+		BackupSequencerNumber:  defaultBackupNumber,
+		FirstElectionInterval:  defaultFirstElectionInterval,
+		AllowApplyElectionTime: defaultAllowApplyElectionTime,
+		ElectionInterimTime:    defaultElectionInterimTime,
 	}
 }
 
@@ -99,8 +109,8 @@ func validateMinStakeAmount(v interface{}) error {
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
-	if val < 100000000 {
-		return fmt.Errorf("minStakeAmount <  100000000")
+	if val < 1 {
+		return fmt.Errorf("minStakeAmount <  1")
 	}
 	return nil
 }

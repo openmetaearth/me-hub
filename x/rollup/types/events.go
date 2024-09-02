@@ -9,4 +9,5 @@ const (
 	EvtProcUnStake           = "EventProcUnStake"
 	EvtProcUnStakeStatistics = "EventProcUnStakeStatistics"
 	EvtPunishment            = "EventPunishment"
+	EvtSequencerChange       = "EventSequencerChange"
 )

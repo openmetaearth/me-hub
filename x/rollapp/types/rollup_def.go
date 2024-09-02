@@ -9,9 +9,9 @@ import (
 const (
 	RollupBlockPrefix = "rollupApp/block/"
 	//	RollupAppendBlockPrefix = "rollup/block/append/"
-	KeyLastRollupCommit = "KeyLastRollupCommit"
-	//KEY_APPEND_BLOCK       = "KeyAppendBlock"
-	KEY_ELECTION_INTERIM = "KeyElectionInterim"
+	KeyLastRollupCommit   = "KeyLastRollupCommit"
+	KeyBlockWithSubmitter = "KeyBlockWithSubmitter"
+	KEY_ELECTION_INTERIM  = "KeyElectionInterim"
 )
 
 const (
@@ -32,12 +32,42 @@ func GetRollupBlockKeyPrefix(rollappID string) []byte {
 	return []byte(fmt.Sprintf("%s%s/", RollupBlockPrefix, rollappID))
 }
 
+func GetRollupBlockWithSubmitterKeyPrefix(rollappID string) []byte {
+	return []byte(fmt.Sprintf("%s%s/%s/", RollupBlockPrefix, rollappID, KeyBlockWithSubmitter))
+}
+
+func GetRollupBlockWithSubmitterKeyByBlockHeight(rollappID string, blockHeight uint64) []byte {
+	return []byte(fmt.Sprintf("%s%s/%s/%09d", RollupBlockPrefix, rollappID, KeyBlockWithSubmitter, blockHeight))
+}
+
+func ConvertBlockHeightToKey(blockHeight uint64) []byte {
+	return []byte(fmt.Sprintf("%09d", blockHeight))
+}
+
 /*
 func GetRollupAppendBlockKeyPrefix(rollappID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s", RollupAppendBlockPrefix, rollappID))
 }
 
 */
+
+func ConvertToRecordSubmitVal(submitterAddr string, number uint32) []byte {
+	return []byte(fmt.Sprintf("%s-%d", submitterAddr, number))
+}
+
+func ParserRecordSubmitVal(val string) (string, uint32, error) {
+	res := strings.Split(val, "-")
+	if len(res) != 2 {
+		return "", 0, fmt.Errorf("Parser error. val = %s,sep is -, len = %d", val, len(res))
+	}
+	number, err := strconv.Atoi(res[1])
+	if err != nil {
+		return "", 0, fmt.Errorf("strconv.Atoi error. val = %s,err = %s", res[1], err.Error())
+	}
+
+	return res[0], uint32(number), nil
+
+}
 
 func GetRollupBlockKey(startHeight uint64, number uint32) []byte {
 	return []byte(fmt.Sprintf("%09d-%d", startHeight, number))

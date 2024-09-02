@@ -3,7 +3,6 @@ package keeper
 import (
 	"encoding/json"
 	"fmt"
-
 	//"github.com/Workiva/go-datastructures/threadsafe/err"
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
@@ -56,14 +55,14 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 	if electTimeVal := rollupStore.Get([]byte(types.KEY_LAST_ELECTION_TIME)); electTimeVal != nil {
 		lastElectTime = types.BytesToInt64(electTimeVal)
 		timeInterval := blkTime - lastElectTime
-		electionInterval := int64(k.GetElectionPeriod(ctx)) * types.HourSeconds
+		electionInterval := int64(k.GetElectionPeriod(ctx)) * types.MinuteSeconds
 		if timeInterval >= electionInterval {
 			bIsNeedElect = true
 		}
 
 	} else { //找不到lastElectTime的话，则表示还没竞选过
 		if 1 == ctx.BlockHeight() { //如果是第一个数据区块的话，则计算首次竞选的时间并保存
-			firstElectTime := blkTime + int64(k.GetFirstElectionInterval(ctx))*types.HourSeconds
+			firstElectTime := blkTime + int64(k.GetFirstElectionInterval(ctx))*types.MinuteSeconds
 			rollupStore.Set([]byte(types.KEY_FIRST_ELECTION_TIME), types.Int64ToBytes(firstElectTime))
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
@@ -117,7 +116,7 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 			sdk.NewEvent(
 				types.EvtElection,
 				sdk.NewAttribute("moduleName", types.MODULE_NAME),
-				sdk.NewAttribute("Result", string(res)),
+				sdk.NewAttribute("result", string(res)),
 			),
 		)
 		return nil
@@ -323,7 +322,7 @@ func (k *Keeper) Punishment(ctx sdk.Context, address, rollappID string, rate uin
 	store := prefix.NewStore(kvStore, types.GetRollupAppStakeKeyPrefix(rollappID))
 	data := store.Get([]byte(address))
 	if data == nil {
-		return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("can not found stake info. add = %s", address))
+		return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("can not found stake info. addr = %s", address))
 	}
 	resp := &types.MsgStakeInfo{
 		StakeAmount:        0,
@@ -367,4 +366,110 @@ func (k *Keeper) Punishment(ctx sdk.Context, address, rollappID string, rate uin
 	} else {
 		return nil
 	}
+}
+
+/*
+对该地址进行资质重估，涉及的流程：
+1、查询此时该地址的质押金额
+2、如果质押金额小于最小的质押进行，则查看该地址是否属于选举的sequencer或者backup
+3、如果是sequencer，则将该地址踢出sequencer，并且取一个backup作为sequencer，然后踢出选举的节点信息列表
+4、如果是backup，踢出选举的节点信息列表
+5、发出相应的状态变更事件通知
+*/
+func (k Keeper) RevaluateSequencer(ctx sdk.Context, address, rollappID string) error {
+	kvStore := ctx.KVStore(k.storeKey)
+	stakeStore := prefix.NewStore(kvStore, types.GetRollupAppStakeKeyPrefix(rollappID))
+	data := stakeStore.Get([]byte(address))
+	if data == nil {
+		return errorsmod.Wrapf(types.ErrNotFound, fmt.Sprintf("can not found stake info. addr = %s", address))
+	}
+	stakeInfo := &types.MsgStakeInfo{
+		StakeAmount:        0,
+		ApplyUnStakeAmount: 0,
+	}
+	k.cdc.MustUnmarshal(data, stakeInfo)
+	if stakeInfo.StakeAmount < k.GetMinStakeAmount(ctx)*types.MecPrecision {
+		//如果小于最小质押金额，则踢出
+		store := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(rollappID))
+		electionData := store.Get([]byte(types.KEY_LAST_ELECTION_INFO))
+
+		resp := &types.QueryElectionResponse{
+			ElectionTime:   0,
+			BlockHeight:    0,
+			NodeStatusList: nil,
+		}
+		if nil == electionData {
+			return errorsmod.Wrapf(types.ErrNotFound, fmt.Sprintf("can not found election info."))
+		}
+		if err := k.cdc.Unmarshal(electionData, resp); err != nil {
+			return errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("Unmarshal error. err = %s", err.Error()))
+		}
+		bIsProcSequencer := false
+		bIsNeedRewriteData := false
+		deleteKey := int(0)
+		for key, val := range resp.NodeStatusList { //这么操作的前提是NodeStatusList是按照金额从大到小排序的
+			if val.Address == address {
+				beforeStatus := ""
+				afterStatus := ""
+				if types.NodeSequencer == val.Status {
+					bIsProcSequencer = true
+					beforeStatus = strconv.Itoa(int(types.NodeSequencer))
+					afterStatus = strconv.Itoa(int(types.NodeNormal))
+					val.Status = types.NodeNormal
+					bIsNeedRewriteData = true
+				} else if types.NodeBackup == val.Status {
+					beforeStatus = strconv.Itoa(int(types.NodeBackup))
+					afterStatus = strconv.Itoa(int(types.NodeNormal))
+					val.Status = types.NodeNormal
+					bIsNeedRewriteData = true
+				}
+				if bIsNeedRewriteData { //产生了状态变更事件
+					deleteKey = key
+					ctx.EventManager().EmitEvent(
+						sdk.NewEvent(
+							types.EvtSequencerChange,
+							sdk.NewAttribute("moduleName", types.MODULE_NAME),
+							sdk.NewAttribute("address", address),
+							sdk.NewAttribute("beforeStatus", beforeStatus),
+							sdk.NewAttribute("afterStatus", afterStatus),
+						),
+					)
+				}
+				if !bIsProcSequencer {
+					//如果处理的不是sequencer的话，则可以跳出循环了,因为只有处理的是sequencer，才需要让备用节点顶上
+					break
+				}
+
+			} else {
+				if bIsProcSequencer { //如果对Sequencer进行了状态变更，这个实际则需要一个备选节点顶替
+					if types.NodeBackup == val.Status {
+						//这里选择第一个备选节点作为sequencer，然后调出循环
+						val.Status = types.NodeSequencer
+						ctx.EventManager().EmitEvent(
+							sdk.NewEvent(
+								types.EvtSequencerChange,
+								sdk.NewAttribute("moduleName", types.MODULE_NAME),
+								sdk.NewAttribute("address", address),
+								sdk.NewAttribute("beforeStatus", strconv.Itoa(int(types.NodeBackup))),
+								sdk.NewAttribute("afterStatus", strconv.Itoa(int(val.Status))),
+							),
+						)
+						break
+					}
+				}
+			}
+		}
+		if bIsNeedRewriteData {
+			//删除质押金额小于最小的节点
+			if len(resp.NodeStatusList) > 1 {
+				resp.NodeStatusList = append(resp.NodeStatusList[:deleteKey], resp.NodeStatusList[deleteKey+1:]...)
+			} else {
+				resp.NodeStatusList = nil
+			}
+			resData := k.cdc.MustMarshal(resp)
+			store.Set([]byte(types.KEY_LAST_ELECTION_INFO), resData)
+		}
+
+	}
+	return nil
 }

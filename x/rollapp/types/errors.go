@@ -40,6 +40,7 @@ var (
 	ErrCommitVerify           = errorsmod.Register(ModuleName, 1045, "commitment verify error ")
 	ErrNotEnoughStake         = errorsmod.Register(ModuleName, 1046, "Stake is not enough ")
 	ErrLoadPlugin             = errorsmod.Register(ModuleName, 1047, "load plugin error ")
+	ErrInputParams            = errorsmod.Register(ModuleName, 1049, "input params error ")
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")
 	ErrDisputeAlreadyReverted  = errorsmod.Register(ModuleName, 2001, "disputed height already reverted")
