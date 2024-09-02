@@ -1,7 +1,8 @@
 #!/bin/sh
 
-# Common commands
-genesis_config_cmds="/app/scripts/genesis_config_commands.sh"
+init(){
+  # Common commands
+genesis_config_cmds="/app/scripts/src/genesis_config_commands.sh"
 . "$genesis_config_cmds"
 
 # Set parameters
@@ -26,7 +27,7 @@ JSONRPC_ADDRESS=${JSONRPC_ADDRESS:-"0.0.0.0:9545"}
 JSONRPC_WS_ADDRESS=${JSONRPC_WS_ADDRESS:-"0.0.0.0:9546"}
 
 TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000umec"} #1M MEC (1e6mec = 1e6 * 1e18 = 1e24umec )
-STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000000000000000umec"} #67% is staked (inflation goal)
+STAKING_AMOUNT=${STAKING_AMOUNT:-"10000000000000000umec"} #67% is staked (inflation goal)
 
 # Validate mechain binary exists
 export PATH=$PATH:$HOME/go/bin
@@ -37,7 +38,12 @@ if ! command -v med > /dev/null; then
     exit 1
   fi
 fi
-
+# Verify that a genesis file doesn't exists for the mechain chain
+if [ -f "$GENESIS_FILE" ]; then
+  printf "\n======================================================================================================\n"
+  echo "A genesis file already exists. building the chain will delete all previous chain data. continue? (y/n)"
+  return 
+fi
 # Create and init mechain chain
 med init "$MONIKER_NAME" --chain-id="$CHAIN_ID"
 
@@ -68,10 +74,20 @@ set_EVM_params
 set_bank_denom_metadata
 set_epochs_params
 set_incentives_params
+enable_monitoring
+med keys add pools --keyring-backend test
+med keys add user --keyring-backend test
+
+  # Add genesis accounts and provide coins to the accounts
+med add-genesis-account $(med keys show pools --keyring-backend test -a) 1000000000000000000000000umec,10000000000uatom,500000000000uusd
+  # Give some uatom to the local-user as well
+med add-genesis-account $(med keys show user --keyring-backend test -a) 1000000000000000000000umec,10000000000uatom
+
 
 echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test
 med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
-
+med add-genesis-stake-pool
+med add-genesis-m-accounts
 jq '.app_state["dao"]["dao_addresses"]["global_dao"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 jq '.app_state["dao"]["dao_addresses"]["meid_dao"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 jq '.app_state["dao"]["dao_addresses"]["dev_operator"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
@@ -81,4 +97,9 @@ med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend
 med collect-gentxs
 set_authorised_deployer_account "$(med keys show "$KEY_NAME" -a --keyring-backend test)"
 med validate-genesis
-med start
+}
+if [ -n $1 ] ;then
+  $1
+else
+  med start
+fi

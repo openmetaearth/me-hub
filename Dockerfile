@@ -23,7 +23,7 @@ COPY --from=go-builder /app/build/med /usr/local/bin/
 COPY --from=go-builder /go/libwasmvm.x86_64.so /lib/x86_64-linux-gnu/libwasmvm.x86_64.so
 WORKDIR /app
 
-COPY scripts/* ./scripts/
+COPY scripts/ ./scripts/
 
 ENV KEY_NAME=local-user
 ENV MONIKER_NAME=local
