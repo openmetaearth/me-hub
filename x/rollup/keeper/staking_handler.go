@@ -53,13 +53,13 @@ func (t *rollupServer) StakeForSequencer(stakeCtx context.Context, req *types.Ms
 	}
 	stakeInfo.StakeAmount += req.Amount
 
-	stakeCoin := sdk.NewCoin("UMEC", sdk.NewInt(int64(req.Amount)))
+	stakeCoin := sdk.NewCoin("umec", sdk.NewInt(int64(req.Amount)))
 	//如果金额不够的话，SendCoinsFromAccountToModule这里就已经会判断处理了
 	if err = t.bk.SendCoinsFromAccountToModule(ctx, owner, types.MODULE_NAME, sdk.NewCoins(stakeCoin)); err != nil {
 		return nil, errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("stake coin to module error.err = %s", err.Error()))
 	}
 	//verify stake balance
-	qryRes := t.bk.GetBalance(ctx, owner, "UMEC")
+	qryRes := t.bk.GetBalance(ctx, owner, "umec")
 	if !qryRes.Amount.Equal(sdk.NewInt(int64(stakeInfo.StakeAmount))) {
 		return nil, errorsmod.Wrapf(types.ErrStakeDataErr, fmt.Sprintf("stake amount mismatch.statics's ammount = %s, module's balance = %s",
 			strconv.FormatUint(stakeInfo.StakeAmount, 10), qryRes.Amount.String()))

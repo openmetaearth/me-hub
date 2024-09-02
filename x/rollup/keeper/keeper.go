@@ -186,7 +186,7 @@ func (k *Keeper) startUnstake(ctx sdk.Context) (int32, error) {
 					return 0, errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("AccAddressFromBech32 error,err = %s,addr = %s",
 						err.Error(), string(iterator.Key())))
 				}
-				unStakeCoin := sdk.NewCoin("UMEC", sdk.NewInt(int64(val.ApplyUnStakeAmount)))
+				unStakeCoin := sdk.NewCoin("umec", sdk.NewInt(int64(val.ApplyUnStakeAmount)))
 				if err = k.bk.SendCoinsFromModuleToAccount(ctx, types.MODULE_NAME, recvAddr, sdk.NewCoins(unStakeCoin)); err != nil {
 					return 0, errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("unstake coin form module error,err = %s,addr = %s,amount = %d",
 						err.Error(), string(iterator.Key()), val.ApplyUnStakeAmount))
@@ -345,7 +345,7 @@ func (k *Keeper) Punishment(ctx sdk.Context, address, rollappID string, rate uin
 			return errorsmod.Wrapf(types.ErrInputDataErr, fmt.Sprintf(" AccAddressFromBech32 error. err = %s,addr = %s",
 				err.Error(), address))
 		}
-		stakeCoin := sdk.NewCoin("UMEC", sdk.NewInt(int64(punishmentAmount)))
+		stakeCoin := sdk.NewCoin("umec", sdk.NewInt(int64(punishmentAmount)))
 		//如果金额不够的话，SendCoinsFromAccountToModule这里就已经会判断处理了
 		if err = k.bk.SendCoinsFromAccountToModule(ctx, accAddr, types.MODULE_NAME, sdk.NewCoins(stakeCoin)); err != nil {
 			return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("transfer  coin to module error.err = %s,addr = %s",
