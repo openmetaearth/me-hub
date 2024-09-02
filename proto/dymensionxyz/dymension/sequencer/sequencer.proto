@@ -1,7 +1,7 @@
 syntax = "proto3";
 package dymensionxyz.dymension.sequencer;
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
+option go_package = "github.com/st-chain/me-hub/x/sequencer/types";
 import "dymensionxyz/dymension/sequencer/description.proto"; 
 import "dymensionxyz/dymension/sequencer/operating_status.proto"; 
 

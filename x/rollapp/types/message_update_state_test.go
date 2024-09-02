@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	"github.com/st-chain/me-hub/testutil/sample"
 )
 
 var hash32 = []byte("12345678901234567890123456789012")

@@ -10,14 +10,14 @@ import (
 
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	"github.com/st-chain/me-hub/app/apptesting"
+	"github.com/st-chain/me-hub/x/incentives/keeper"
+	"github.com/st-chain/me-hub/x/incentives/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 
-	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	rollapp "github.com/st-chain/me-hub/x/rollapp/keeper"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

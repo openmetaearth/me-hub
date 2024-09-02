@@ -3,7 +3,7 @@ package keeper
 import (
 	"time"
 
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	"github.com/st-chain/me-hub/x/incentives/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

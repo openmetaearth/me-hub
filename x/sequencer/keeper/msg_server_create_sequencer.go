@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/st-chain/me-hub/x/sequencer/types"
 
 	errorsmod "cosmossdk.io/errors"
 )

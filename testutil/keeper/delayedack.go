@@ -20,10 +20,10 @@ import (
 	ibctypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/st-chain/me-hub/x/delayedack/keeper"
+	"github.com/st-chain/me-hub/x/delayedack/types"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	sequencertypes "github.com/st-chain/me-hub/x/sequencer/types"
 )
 
 type ChannelKeeperStub struct{}

@@ -10,8 +10,8 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	cometbfttypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 
-	common "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	common "github.com/st-chain/me-hub/x/common/types"
+	"github.com/st-chain/me-hub/x/rollapp/types"
 )
 
 // HandleFraud handles the fraud evidence submitted by the user.

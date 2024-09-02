@@ -6,9 +6,9 @@ import (
 
 	"github.com/cometbft/cometbft/libs/log"
 
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	epochtypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
+	"github.com/st-chain/me-hub/x/incentives/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"

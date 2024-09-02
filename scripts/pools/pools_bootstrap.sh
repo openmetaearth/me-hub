@@ -15,7 +15,7 @@ exit_pool() {
 }
 
 swap_tokens() {
-    # dymd tx gamm swap --exact-amount-in=$1 --exact-amount-out=$2 --from pools  --keyring-backend=test -b block --gas auto --yes
+    # med tx gamm swap --exact-amount-in=$1 --exact-amount-out=$2 --from pools  --keyring-backend=test -b block --gas auto --yes
     dymd tx gamm swap-exact-amount-in 50adym 50000000 --swap-route-pool-ids 1 --swap-route-denoms uatom --from user --keyring-backend test -b block --gas-prices 100000000adym
 }
 

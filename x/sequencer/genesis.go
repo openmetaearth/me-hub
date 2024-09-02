@@ -2,8 +2,8 @@ package sequencer
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/st-chain/me-hub/x/sequencer/keeper"
+	"github.com/st-chain/me-hub/x/sequencer/types"
 )
 
 // InitGenesis initializes the sequencer module's state from a provided genesis

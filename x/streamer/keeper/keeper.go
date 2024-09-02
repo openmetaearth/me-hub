@@ -8,7 +8,7 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	"github.com/st-chain/me-hub/x/streamer/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"

@@ -9,7 +9,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/st-chain/me-hub/app/apptesting"
 )
 
 type KeeperTestSuite struct {

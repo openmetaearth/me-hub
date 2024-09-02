@@ -14,8 +14,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dymensionxyz/dymension/v3/app"
-	"github.com/dymensionxyz/dymension/v3/app/keepers"
+	"github.com/st-chain/me-hub/app"
+	"github.com/st-chain/me-hub/app/keepers"
 )
 
 type (

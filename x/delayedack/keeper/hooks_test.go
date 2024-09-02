@@ -3,8 +3,8 @@ package keeper_test
 import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
+	"github.com/st-chain/me-hub/x/delayedack/types"
 )
 
 // TestAfterEpochEnd tests that the finalized of rollapp packets

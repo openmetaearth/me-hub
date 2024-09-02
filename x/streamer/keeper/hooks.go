@@ -1,10 +1,10 @@
 package keeper
 
 import (
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	"github.com/st-chain/me-hub/x/streamer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

@@ -1,0 +1,23 @@
+syntax = "proto3";
+package dymensionxyz.dymension.dao;;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "dymensionxyz/dymension/dao/dao.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/dao/types";
+
+// Query defines the gRPC querier service.
+service Query {
+    // Queries a list of admin items.
+	rpc GlobalDao(QueryGlobalDaoRequest) returns (QueryGlobalDaoResponse) {
+		option (google.api.http).get = "/st-chain/me-hub/x/dao/global_dao";
+	}
+}
+
+message QueryGlobalDaoRequest {
+}
+
+message QueryGlobalDaoResponse {
+	DaoAddresses dao_addresses = 1 [(gogoproto.nullable) = false];
+}

@@ -3,10 +3,10 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/st-chain/me-hub/app/apptesting"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	"github.com/st-chain/me-hub/x/sequencer/keeper"
+	"github.com/st-chain/me-hub/x/sequencer/types"
 
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 

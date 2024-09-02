@@ -18,9 +18,9 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dymensionxyz/dymension/v3/x/denommetadata"
-	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/st-chain/me-hub/x/denommetadata"
+	"github.com/st-chain/me-hub/x/denommetadata/types"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 )
 
 func TestIBCModule_OnRecvPacket(t *testing.T) {

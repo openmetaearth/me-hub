@@ -5,10 +5,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	dacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	"github.com/st-chain/me-hub/app/apptesting"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
+	dacktypes "github.com/st-chain/me-hub/x/delayedack/types"
+	"github.com/st-chain/me-hub/x/eibc/types"
 )
 
 func (suite *KeeperTestSuite) TestMsgFulfillOrder() {

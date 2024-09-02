@@ -4,9 +4,9 @@ import (
 	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	delayeacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	types "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
+	delayeacktypes "github.com/st-chain/me-hub/x/delayedack/types"
+	types "github.com/st-chain/me-hub/x/eibc/types"
 )
 
 /* -------------------------------------------------------------------------- */

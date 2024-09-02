@@ -5,9 +5,9 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
+	"github.com/st-chain/me-hub/x/rollapp/types"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 )
 
 // ChannelKeeper defines the expected IBC channel keeper

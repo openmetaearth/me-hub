@@ -3,7 +3,7 @@ package types
 import (
 	"testing"
 
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	"github.com/st-chain/me-hub/testutil/sample"
 	"github.com/stretchr/testify/require"
 )
 

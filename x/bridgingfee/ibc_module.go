@@ -9,9 +9,9 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
+	delayedackkeeper "github.com/st-chain/me-hub/x/delayedack/keeper"
+	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
 )
 
 const (

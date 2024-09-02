@@ -3,8 +3,8 @@ package types_test
 import (
 	"testing"
 
-	_ "github.com/dymensionxyz/dymension/v3/app/params"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	_ "github.com/st-chain/me-hub/app/params"
+	"github.com/st-chain/me-hub/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 )
 

@@ -11,8 +11,8 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
+	"github.com/st-chain/me-hub/x/delayedack/types"
 )
 
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is

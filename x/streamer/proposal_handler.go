@@ -4,8 +4,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	"github.com/st-chain/me-hub/x/streamer/keeper"
+	"github.com/st-chain/me-hub/x/streamer/types"
 )
 
 func NewStreamerProposalHandler(k keeper.Keeper) govtypes.Handler {

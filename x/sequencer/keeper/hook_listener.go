@@ -2,8 +2,8 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	"github.com/st-chain/me-hub/x/sequencer/types"
 )
 
 var _ rollapptypes.RollappHooks = rollappHook{}

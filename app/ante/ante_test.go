@@ -24,10 +24,10 @@ import (
 	"github.com/evmos/ethermint/testutil"
 	ethermint "github.com/evmos/ethermint/types"
 
-	"github.com/dymensionxyz/dymension/v3/app"
-	"github.com/dymensionxyz/dymension/v3/app/ante"
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/dymensionxyz/dymension/v3/app/params"
+	"github.com/st-chain/me-hub/app"
+	"github.com/st-chain/me-hub/app/ante"
+	"github.com/st-chain/me-hub/app/apptesting"
+	"github.com/st-chain/me-hub/app/params"
 )
 
 type AnteTestSuite struct {

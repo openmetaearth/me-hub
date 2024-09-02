@@ -5,8 +5,10 @@ package dymensionxyz.dymension.rollapp;
 import "cosmos/msg/v1/msg.proto";
 import "dymensionxyz/dymension/rollapp/block_descriptor.proto";
 import "dymensionxyz/dymension/rollapp/rollapp.proto";
+
 import "dymensionxyz/dymension/rollapp/blockDA_L2.proto";
-option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+option go_package = "github.com/st-chain/me-hub/x/rollapp/types";
+
 
 import "gogoproto/gogo.proto";
 

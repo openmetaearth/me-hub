@@ -3,10 +3,10 @@ package rollapp_test
 import (
 	"testing"
 
-	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	keepertest "github.com/st-chain/me-hub/testutil/keeper"
+	"github.com/st-chain/me-hub/testutil/nullify"
+	"github.com/st-chain/me-hub/x/rollapp"
+	"github.com/st-chain/me-hub/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 )
 

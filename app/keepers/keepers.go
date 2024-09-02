@@ -1,25 +1,29 @@
 package keepers
 
 import (
+	"fmt"
+	"path/filepath"
+	"strings"
+
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
@@ -28,15 +32,14 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	nftkeeper "github.com/cosmos/cosmos-sdk/x/nft/keeper"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
@@ -70,41 +73,52 @@ import (
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
-	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
-	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
-	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
-	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
-	denommetadatamodulekeeper "github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
-	denommetadatamoduletypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
-	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
-	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
-	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
-	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
-	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
-	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	rollupkeeper "github.com/dymensionxyz/dymension/v3/x/rollup/keeper"
-	rollupkeepertypes "github.com/dymensionxyz/dymension/v3/x/rollup/types"
-	sequencermodulekeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
-	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	streamermodule "github.com/dymensionxyz/dymension/v3/x/streamer"
-	streamermodulekeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
-	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
-	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
+	wasmapp "github.com/CosmWasm/wasmd/app"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	"github.com/st-chain/me-hub/x/bridgingfee"
+	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
+	daotypes "github.com/st-chain/me-hub/x/dao/types"
+	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
+	delayedackkeeper "github.com/st-chain/me-hub/x/delayedack/keeper"
+	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
+	denommetadatamodule "github.com/st-chain/me-hub/x/denommetadata"
+	denommetadatamodulekeeper "github.com/st-chain/me-hub/x/denommetadata/keeper"
+	denommetadatamoduletypes "github.com/st-chain/me-hub/x/denommetadata/types"
+	eibckeeper "github.com/st-chain/me-hub/x/eibc/keeper"
+	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
+	incentiveskeeper "github.com/st-chain/me-hub/x/incentives/keeper"
+	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
+	rollappmodule "github.com/st-chain/me-hub/x/rollapp"
+	rollappmodulekeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
+	"github.com/st-chain/me-hub/x/rollapp/transfergenesis"
+	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
+	rollupkeeper "github.com/st-chain/me-hub/x/rollup/keeper"
+	rollupkeepertypes "github.com/st-chain/me-hub/x/rollup/types"
+	sequencermodulekeeper "github.com/st-chain/me-hub/x/sequencer/keeper"
+	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
+	streamermodule "github.com/st-chain/me-hub/x/streamer"
+	streamermodulekeeper "github.com/st-chain/me-hub/x/streamer/keeper"
+	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
+	vfchooks "github.com/st-chain/me-hub/x/vfc/hooks"
+	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
+	wdistrkeeper "github.com/st-chain/me-hub/x/wdistri/keeper"
+	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
+	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
+	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 )
 
 type AppKeepers struct {
 	// keepers
 	AccountKeeper                 authkeeper.AccountKeeper
 	AuthzKeeper                   authzkeeper.Keeper
-	BankKeeper                    bankkeeper.Keeper
+	BankKeeper                    wbankkeeper.BaseKeeperWrapper
 	CapabilityKeeper              *capabilitykeeper.Keeper
-	StakingKeeper                 *stakingkeeper.Keeper
+	StakingKeeper                 *wstakingkeeper.Keeper
 	SlashingKeeper                slashingkeeper.Keeper
-	MintKeeper                    mintkeeper.Keeper
-	DistrKeeper                   distrkeeper.Keeper
+	MintKeeper                    wmintkeeper.Keeper
+	DistrKeeper                   *wdistrkeeper.Keeper
 	GovKeeper                     *govkeeper.Keeper
 	CrisisKeeper                  *crisiskeeper.Keeper
 	UpgradeKeeper                 *upgradekeeper.Keeper
@@ -142,7 +156,12 @@ type AppKeepers struct {
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
-	RollupKeeper        *rollupkeeper.Keeper
+
+	RollupKeeper *rollupkeeper.Keeper
+
+	DaoKeeper  daokeeper.Keeper
+	NFTKeeper  nftkeeper.Keeper
+	WasmKeeper wasmkeeper.Keeper
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -159,6 +178,8 @@ func (a *AppKeepers) InitKeepers(
 	skipUpgradeHeights map[int64]bool,
 	invCheckPeriod uint,
 	tracer, homePath string,
+	appOpts servertypes.AppOptions,
+	wasmOpts []wasmkeeper.Option,
 ) {
 	govModuleAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	// init keepers
@@ -174,6 +195,7 @@ func (a *AppKeepers) InitKeepers(
 	// grant capabilities for the ibc and ibc-transfer modules
 	a.ScopedIBCKeeper = a.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
 	a.ScopedTransferKeeper = a.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
+	scopedWasmKeeper := a.CapabilityKeeper.ScopeToModule(wasmtypes.ModuleName)
 
 	a.CapabilityKeeper.Seal()
 
@@ -194,7 +216,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[authtypes.StoreKey],
 		authtypes.ProtoBaseAccount,
-		maccPerms,
+		MaccPerms,
 		sdk.GetConfig().GetBech32AccountAddrPrefix(),
 		govModuleAddress,
 	)
@@ -206,40 +228,74 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 	)
 
-	a.BankKeeper = bankkeeper.NewBaseKeeper(
+	//a.BankKeeper = bankkeeper.NewBaseKeeper(
+	//	appCodec,
+	//	a.keys[banktypes.StoreKey],
+	//	a.AccountKeeper,
+	//	moduleAccountAddrs,
+	//	govModuleAddress,
+	//)
+
+	a.DaoKeeper = daokeeper.NewKeeper(
+		appCodec,
+		a.keys[daotypes.StoreKey],
+	)
+
+	a.BankKeeper = wbankkeeper.NewKeeper(
 		appCodec,
 		a.keys[banktypes.StoreKey],
 		a.AccountKeeper,
+		a.DaoKeeper,
 		moduleAccountAddrs,
-		govModuleAddress,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	a.StakingKeeper = stakingkeeper.NewKeeper(
+	a.NFTKeeper = nftkeeper.NewKeeper(
+		a.keys[nftkeeper.StoreKey],
+		appCodec,
+		a.AccountKeeper,
+		a.BankKeeper,
+	)
+
+	//a.StakingKeeper = stakingkeeper.NewKeeper(
+	//	appCodec,
+	//	a.keys[stakingtypes.StoreKey],
+	//	a.AccountKeeper,
+	//	a.BankKeeper,
+	//	govModuleAddress,
+	//)
+	a.StakingKeeper = wstakingkeeper.NewKeeper(
 		appCodec,
 		a.keys[stakingtypes.StoreKey],
 		a.AccountKeeper,
 		a.BankKeeper,
+		a.DaoKeeper,
+		a.NFTKeeper,
 		govModuleAddress,
 	)
 
-	a.MintKeeper = mintkeeper.NewKeeper(
+	a.MintKeeper = wmintkeeper.NewKeeper(
 		appCodec,
 		a.keys[minttypes.StoreKey],
 		a.StakingKeeper,
 		a.AccountKeeper,
 		a.BankKeeper,
-		authtypes.FeeCollectorName,
+		wbanktypes.TreasuryPoolName,
 		govModuleAddress,
 	)
 
-	a.DistrKeeper = distrkeeper.NewKeeper(
+	a.StakingKeeper.WMintKeeper = a.MintKeeper
+
+	a.DistrKeeper = wdistrkeeper.NewKeeper(
 		appCodec,
-		a.keys[distrtypes.StoreKey],
+		a.keys[wdistrtypes.StoreKey],
+		a.keys[wdistrtypes.MemStoreKey],
+		a.GetSubspace(wdistrtypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.StakingKeeper,
-		authtypes.FeeCollectorName,
-		govModuleAddress,
+		wbanktypes.TreasuryPoolName,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.SlashingKeeper = slashingkeeper.NewKeeper(
@@ -417,6 +473,36 @@ func (a *AppKeepers) InitKeepers(
 	)
 	a.RollappKeeper.SetRollupKeeper(a.RollupKeeper)
 
+	wasmDir := filepath.Join(homePath, "wasm")
+	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
+	if err != nil {
+		panic(fmt.Sprintf("error while reading wasm config: %s", err))
+	}
+
+	// The last arguments can contain custom message handlers, and custom query handlers,
+	// if we want to allow any custom callbacks
+	availableCapabilities := strings.Join(wasmapp.AllCapabilities(), ",")
+	a.WasmKeeper = wasmkeeper.NewKeeper(
+		appCodec,
+		a.keys[wasmtypes.StoreKey],
+		a.AccountKeeper,
+		a.BankKeeper,
+		a.StakingKeeper,
+		distrkeeper.NewQuerier(a.DistrKeeper.Keeper),
+		a.ICS4Wrapper, // ISC4 Wrapper: fee IBC middleware
+		a.IBCKeeper.ChannelKeeper,
+		&a.IBCKeeper.PortKeeper,
+		scopedWasmKeeper,
+		a.TransferKeeper,
+		bApp.MsgServiceRouter(),
+		bApp.GRPCQueryRouter(),
+		wasmDir,
+		wasmConfig,
+		availableCapabilities,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		wasmOpts...,
+	)
+
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
 
 	// Register the proposal types
@@ -495,7 +581,9 @@ func (a *AppKeepers) SetupHooks() {
 	a.StakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(a.DistrKeeper.Hooks(), a.SlashingKeeper.Hooks()),
 	)
-
+	a.StakingKeeper.SetWstakingHooks(
+		wstakingtypes.NewMultiWstakingHooks(wstakingtypes.NewMultiWstakingHooks(a.DistrKeeper.Hooks())),
+	)
 	// register the staking hooks
 	a.LockupKeeper.SetHooks(
 		lockuptypes.NewMultiLockupHooks(
@@ -577,7 +665,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(banktypes.ModuleName)
 	paramsKeeper.Subspace(stakingtypes.ModuleName)
 	paramsKeeper.Subspace(minttypes.ModuleName)
-	paramsKeeper.Subspace(distrtypes.ModuleName)
+	paramsKeeper.Subspace(wdistrtypes.ModuleName)
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName)

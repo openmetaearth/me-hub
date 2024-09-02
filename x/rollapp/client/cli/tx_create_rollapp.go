@@ -7,9 +7,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
+	"github.com/st-chain/me-hub/x/rollapp/types"
 )
 
 var _ = strconv.Itoa(0)
@@ -23,7 +23,7 @@ func CmdCreateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "create-rollapp [rollapp-id] [max-sequencers] [permissioned-addresses] [metadata.json]",
 		Short:   "Create a new rollapp",
-		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID 10 '{\"Addresses\":[]}' metadata.json",
+		Example: "med tx rollapp create-rollapp ROLLAPP_CHAIN_ID 10 '{\"Addresses\":[]}' metadata.json",
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]

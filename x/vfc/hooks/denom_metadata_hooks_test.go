@@ -2,9 +2,9 @@ package hooks_test
 
 import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	vfchooks "github.com/st-chain/me-hub/x/vfc/hooks"
 )
 
 func (suite *HooksTestSuite) TestHookOperation_AfterDenomMetadataCreation() {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+	"github.com/st-chain/me-hub/x/incentives/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

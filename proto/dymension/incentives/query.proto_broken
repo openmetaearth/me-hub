@@ -10,7 +10,7 @@ import "dymension/incentives/gauge.proto";
 import "dymension/incentives/params.proto";
 import "osmosis/lockup/lock.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/incentives/types";
+option go_package = "github.com/st-chain/me-hub/x/incentives/types";
 
 // Query defines the gRPC querier service
 service Query {

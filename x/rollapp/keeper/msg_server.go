@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/st-chain/me-hub/x/rollapp/types"
 )
 
 type msgServer struct {

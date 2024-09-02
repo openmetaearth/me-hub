@@ -6,11 +6,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	dacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	uibc "github.com/dymensionxyz/sdk-utils/utils/uibc"
 	"github.com/pkg/errors"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
+	dacktypes "github.com/st-chain/me-hub/x/delayedack/types"
+	"github.com/st-chain/me-hub/x/eibc/types"
 )
 
 // EIBCDemandOrderHandler handles the eibc packet by creating a demand order from the packet data and saving it in the store.

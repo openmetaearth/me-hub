@@ -6,7 +6,7 @@ import "cosmos_proto/cosmos.proto";
 import "google/api/annotations.proto";
 import "dymensionxyz/dymension/sponsorship/sponsorship.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/sponsorship/types";
+option go_package = "github.com/st-chain/me-hub/x/sponsorship/types";
 
 // Query defines the gRPC querier service.
 service Query {

@@ -10,10 +10,10 @@ import (
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/st-chain/me-hub/app/apptesting"
 
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	"github.com/st-chain/me-hub/x/streamer/types"
 )
 
 // TestStreamerExportGenesis tests export genesis command for the streamer module.

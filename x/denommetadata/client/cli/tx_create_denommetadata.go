@@ -6,8 +6,8 @@ import (
 	"github.com/spf13/cobra"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/dymensionxyz/dymension/v3/utils"
-	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
+	"github.com/st-chain/me-hub/utils"
+	"github.com/st-chain/me-hub/x/denommetadata/types"
 
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -18,7 +18,7 @@ func NewCmdSubmitCreateDenomMetadataProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "create-denom-metadata-proposal denom_metadata.json [flags]",
 		Short:   "proposal to create new denom metadata for a specific token",
-		Example: `dymd tx gov submit-legacy-proposal create-denom-metadata-proposal denom_metadata.json`,
+		Example: `med tx gov submit-legacy-proposal create-denom-metadata-proposal denom_metadata.json`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)

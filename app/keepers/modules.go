@@ -1,6 +1,8 @@
 package keepers
 
 import (
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -10,7 +12,6 @@ import (
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -18,9 +19,6 @@ import (
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	"github.com/cosmos/cosmos-sdk/x/distribution"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/evidence"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
@@ -30,14 +28,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/gov/client"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/mint"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/cosmos/cosmos-sdk/x/nft"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
@@ -52,7 +49,6 @@ import (
 	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	rollupkeepertypes "github.com/dymensionxyz/dymension/v3/x/rollup/types"
 	"github.com/evmos/ethermint/x/evm"
 	evmclient "github.com/evmos/ethermint/x/evm/client"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -68,34 +64,46 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+	"github.com/st-chain/me-hub/x/dao"
+	daotypes "github.com/st-chain/me-hub/x/dao/types"
+	rollupkeepertypes "github.com/st-chain/me-hub/x/rollup/types"
+	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
+	"github.com/st-chain/me-hub/x/wbank"
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
+	"github.com/st-chain/me-hub/x/wdistri"
+	wdistr "github.com/st-chain/me-hub/x/wdistri"
+	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
+	"github.com/st-chain/me-hub/x/wmint"
+	"github.com/st-chain/me-hub/x/wstaking"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
-	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
-	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
-	eibcmodule "github.com/dymensionxyz/dymension/v3/x/eibc"
-	"github.com/dymensionxyz/dymension/v3/x/incentives"
-	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
-	sequencermodule "github.com/dymensionxyz/dymension/v3/x/sequencer"
-	streamermodule "github.com/dymensionxyz/dymension/v3/x/streamer"
+	appparams "github.com/st-chain/me-hub/app/params"
+	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
+	denommetadatamodule "github.com/st-chain/me-hub/x/denommetadata"
+	eibcmodule "github.com/st-chain/me-hub/x/eibc"
+	"github.com/st-chain/me-hub/x/incentives"
+	rollappmodule "github.com/st-chain/me-hub/x/rollapp"
+	sequencermodule "github.com/st-chain/me-hub/x/sequencer"
+	streamermodule "github.com/st-chain/me-hub/x/streamer"
 
-	"github.com/dymensionxyz/dymension/v3/x/delayedack"
-	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	"github.com/dymensionxyz/dymension/v3/x/denommetadata"
-	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
-	denommetadatamoduletypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
-	"github.com/dymensionxyz/dymension/v3/x/eibc"
-	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
-	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp"
+	"github.com/st-chain/me-hub/x/delayedack"
+	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
+	"github.com/st-chain/me-hub/x/denommetadata"
+	denommetadatamoduleclient "github.com/st-chain/me-hub/x/denommetadata/client"
+	denommetadatamoduletypes "github.com/st-chain/me-hub/x/denommetadata/types"
+	"github.com/st-chain/me-hub/x/eibc"
+	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
+	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
+	"github.com/st-chain/me-hub/x/rollapp"
 
-	rollappmoduleclient "github.com/dymensionxyz/dymension/v3/x/rollapp/client"
-	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	rollupmodule "github.com/dymensionxyz/dymension/v3/x/rollup"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer"
-	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/dymensionxyz/dymension/v3/x/streamer"
-	streamermoduleclient "github.com/dymensionxyz/dymension/v3/x/streamer/client"
-	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	nftmodule "github.com/cosmos/cosmos-sdk/x/nft/module"
+	rollappmoduleclient "github.com/st-chain/me-hub/x/rollapp/client"
+	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
+	rollupmodule "github.com/st-chain/me-hub/x/rollup"
+	"github.com/st-chain/me-hub/x/sequencer"
+	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
+	"github.com/st-chain/me-hub/x/streamer"
+	streamermoduleclient "github.com/st-chain/me-hub/x/streamer/client"
 )
 
 // ModuleBasics defines the module BasicManager is in charge of setting up basic,
@@ -105,12 +113,13 @@ var ModuleBasics = module.NewBasicManager(
 	auth.AppModuleBasic{},
 	authzmodule.AppModuleBasic{},
 	genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-	bank.AppModuleBasic{},
+	wbank.AppModuleBasic{},
 	capability.AppModuleBasic{},
 	consensus.AppModuleBasic{},
-	staking.AppModuleBasic{},
-	mint.AppModuleBasic{},
-	distribution.AppModuleBasic{},
+	//staking.AppModuleBasic{},
+	wstaking.AppModuleBasic{},
+	wmint.AppModuleBasic{},
+	wdistri.AppModuleBasic{},
 	gov.NewAppModuleBasic([]client.ProposalHandler{
 		paramsclient.ProposalHandler,
 		upgradeclient.LegacyProposalHandler,
@@ -156,6 +165,9 @@ var ModuleBasics = module.NewBasicManager(
 	poolmanager.AppModuleBasic{},
 	incentives.AppModuleBasic{},
 	txfees.AppModuleBasic{},
+	dao.AppModuleBasic{},
+	nftmodule.AppModuleBasic{},
+	wasm.AppModuleBasic{},
 )
 
 func (a *AppKeepers) SetupModules(
@@ -172,16 +184,16 @@ func (a *AppKeepers) SetupModules(
 		auth.NewAppModule(appCodec, a.AccountKeeper, nil, a.GetSubspace(authtypes.ModuleName)),
 		authzmodule.NewAppModule(appCodec, a.AuthzKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
 		vesting.NewAppModule(a.AccountKeeper, a.BankKeeper),
-		bank.NewAppModule(appCodec, a.BankKeeper, a.AccountKeeper, a.GetSubspace(banktypes.ModuleName)),
+		wbank.NewAppModule(appCodec, a.BankKeeper, a.AccountKeeper, a.GetSubspace(banktypes.ModuleName)),
 		capability.NewAppModule(appCodec, *a.CapabilityKeeper, false),
 		feegrantmodule.NewAppModule(appCodec, a.AccountKeeper, a.BankKeeper, a.FeeGrantKeeper, encodingConfig.InterfaceRegistry),
 		crisis.NewAppModule(a.CrisisKeeper, skipGenesisInvariants, a.GetSubspace(crisistypes.ModuleName)),
 		consensus.NewAppModule(appCodec, a.ConsensusParamsKeeper),
 		gov.NewAppModule(appCodec, a.GovKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(govtypes.ModuleName)),
-		mint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil, a.GetSubspace(minttypes.ModuleName)),
+		wmint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil, a.GetSubspace(minttypes.ModuleName)),
 		slashing.NewAppModule(appCodec, a.SlashingKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(slashingtypes.ModuleName)),
-		distr.NewAppModule(appCodec, a.DistrKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(distrtypes.ModuleName)),
-		staking.NewAppModule(appCodec, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
+		wdistr.NewAppModule(appCodec, *a.DistrKeeper, a.AccountKeeper, a.BankKeeper),
+		wstaking.NewAppModule(appCodec, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
 		upgrade.NewAppModule(a.UpgradeKeeper),
 		evidence.NewAppModule(a.EvidenceKeeper),
 		ibc.NewAppModule(a.IBCKeeper),
@@ -207,13 +219,14 @@ func (a *AppKeepers) SetupModules(
 		poolmanager.NewAppModule(*a.PoolManagerKeeper, a.GAMMKeeper),
 		incentives.NewAppModule(*a.IncentivesKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
 		txfees.NewAppModule(*a.TxFeesKeeper),
+		dao.NewAppModule(appCodec, a.DaoKeeper),
 	}
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
 func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
-	for acc := range maccPerms {
+	for acc := range MaccPerms {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
@@ -224,12 +237,16 @@ func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 }
 
 // module account permissions
-var maccPerms = map[string][]string{
+var MaccPerms = map[string][]string{
 	authtypes.FeeCollectorName:                         nil,
-	distrtypes.ModuleName:                              nil,
+	wdistrtypes.ModuleName:                             nil,
+	wbanktypes.TreasuryPoolName:                        nil,
 	minttypes.ModuleName:                               {authtypes.Minter},
 	stakingtypes.BondedPoolName:                        {authtypes.Burner, authtypes.Staking},
 	stakingtypes.NotBondedPoolName:                     {authtypes.Burner, authtypes.Staking},
+	stakingtypes.BondedStakePoolName:                   {authtypes.Burner, authtypes.Staking},
+	stakingtypes.NotBondedStakePoolName:                {authtypes.Burner, authtypes.Staking},
+	wstakingtypes.StakePoolName:                        {authtypes.Staking},
 	govtypes.ModuleName:                                {authtypes.Burner},
 	ibctransfertypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},
 	sequencermoduletypes.ModuleName:                    {authtypes.Minter, authtypes.Burner, authtypes.Staking},
@@ -241,6 +258,9 @@ var maccPerms = map[string][]string{
 	lockuptypes.ModuleName:                             {authtypes.Minter, authtypes.Burner},
 	incentivestypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
 	txfeestypes.ModuleName:                             {authtypes.Burner},
+	wstakingtypes.FixedDepositPrincipalPool:            nil,
+	nft.ModuleName:                                     nil,
+	wasmtypes.ModuleName:                               {authtypes.Burner},
 }
 
 var BeginBlockers = []string{
@@ -248,7 +268,7 @@ var BeginBlockers = []string{
 	upgradetypes.ModuleName,
 	capabilitytypes.ModuleName,
 	minttypes.ModuleName,
-	distrtypes.ModuleName,
+	wdistrtypes.ModuleName,
 	slashingtypes.ModuleName,
 	evidencetypes.ModuleName,
 	stakingtypes.ModuleName,
@@ -278,7 +298,11 @@ var BeginBlockers = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
+
 	rollupkeepertypes.MODULE_NAME,
+
+	daotypes.ModuleName,
+	wasmtypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -289,7 +313,7 @@ var EndBlockers = []string{
 	authtypes.ModuleName,
 	authz.ModuleName,
 	banktypes.ModuleName,
-	distrtypes.ModuleName,
+	wdistrtypes.ModuleName,
 	feemarkettypes.ModuleName,
 	evmtypes.ModuleName,
 	slashingtypes.ModuleName,
@@ -316,7 +340,11 @@ var EndBlockers = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
+
 	rollupkeepertypes.MODULE_NAME,
+
+	daotypes.ModuleName,
+	wasmtypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -324,7 +352,8 @@ var InitGenesis = []string{
 	authtypes.ModuleName,
 	authz.ModuleName,
 	banktypes.ModuleName,
-	distrtypes.ModuleName,
+	wdistrtypes.ModuleName,
+	daotypes.ModuleName,
 	stakingtypes.ModuleName,
 	vestingtypes.ModuleName,
 	slashingtypes.ModuleName,
@@ -354,5 +383,8 @@ var InitGenesis = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
+
 	rollupkeepertypes.MODULE_NAME,
+
+	wasmtypes.ModuleName,
 }

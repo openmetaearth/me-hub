@@ -7,15 +7,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/v3/app"
+	"github.com/st-chain/me-hub/app"
 
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
+	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	sequencerkeeper "github.com/st-chain/me-hub/x/sequencer/keeper"
 
-	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	sequencertypes "github.com/st-chain/me-hub/x/sequencer/types"
 )
 
 var (

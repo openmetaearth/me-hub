@@ -3,8 +3,8 @@ package keeper_test
 import (
 	"testing"
 
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	testkeeper "github.com/st-chain/me-hub/testutil/keeper"
+	"github.com/st-chain/me-hub/x/eibc/types"
 	"github.com/stretchr/testify/require"
 )
 

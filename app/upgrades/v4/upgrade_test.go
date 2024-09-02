@@ -11,8 +11,8 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/v3/app"
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/st-chain/me-hub/app"
+	"github.com/st-chain/me-hub/app/apptesting"
 )
 
 // UpgradeTestSuite defines the structure for the upgrade test suite

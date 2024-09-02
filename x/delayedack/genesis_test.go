@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	keepertest "github.com/st-chain/me-hub/testutil/keeper"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
+	"github.com/st-chain/me-hub/x/delayedack"
+	"github.com/st-chain/me-hub/x/delayedack/types"
 	"github.com/stretchr/testify/require"
 )
 

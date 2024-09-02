@@ -9,11 +9,11 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	nftkeeper "github.com/cosmos/cosmos-sdk/x/nft/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -28,13 +28,14 @@ import (
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
-
-	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
-	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	daotypes "github.com/st-chain/me-hub/x/dao/types"
+	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
+	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
+	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
+	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
+	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
+	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
+	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 )
 
 // GenerateKeys generates new keys (KV Store, Transient store, and memory store).
@@ -98,7 +99,8 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	banktypes.StoreKey,
 	stakingtypes.StoreKey,
 	minttypes.StoreKey,
-	distrtypes.StoreKey,
+	wdistrtypes.StoreKey,
+	wdistrtypes.MemStoreKey,
 	slashingtypes.StoreKey,
 	govtypes.StoreKey,
 	paramstypes.StoreKey,
@@ -126,4 +128,6 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	poolmanagertypes.StoreKey,
 	incentivestypes.StoreKey,
 	txfeestypes.StoreKey,
+	daotypes.StoreKey,
+	nftkeeper.StoreKey,
 )

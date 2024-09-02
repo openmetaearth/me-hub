@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"testing"
 
-	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
+	keepertest "github.com/st-chain/me-hub/testutil/keeper"
+	"github.com/st-chain/me-hub/testutil/nullify"
 	"github.com/stretchr/testify/require"
 )
 

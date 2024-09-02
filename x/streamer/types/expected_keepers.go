@@ -3,9 +3,9 @@ package types
 import (
 	time "time"
 
-	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"

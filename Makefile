@@ -47,7 +47,7 @@ ifeq ($(LEDGER_ENABLED),true)
   endif
 endif
 
-ifeq (cleveldb,$(findstring cleveldb,$(DYMENSION_BUILD_OPTIONS)))
+ifeq (cleveldb,$(findstring cleveldb,$(ME_BUILD_OPTIONS)))
   build_tags += gcc cleveldb
 endif
 build_tags += $(BUILD_TAGS)
@@ -60,20 +60,20 @@ build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 
 # process linker flags
 
-ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=dymension \
-		  -X github.com/cosmos/cosmos-sdk/version.AppName=dymd \
+ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=me-hub \
+		  -X github.com/cosmos/cosmos-sdk/version.AppName=med \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
 		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)" \
 	      -X github.com/cometbft/cometbft/version.TMCoreSemVer=$(TM_VERSION)
 
-ifeq (cleveldb,$(findstring cleveldb,$(DYMENSION_BUILD_OPTIONS)))
+ifeq (cleveldb,$(findstring cleveldb,$(ME_BUILD_OPTIONS)))
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
 endif
 ifeq ($(LINK_STATICALLY),true)
   ldflags += -linkmode=external -extldflags "-Wl,-z,muldefs -static"
 endif
-ifeq (,$(findstring nostrip,$(DYMENSION_BUILD_OPTIONS)))
+ifeq (,$(findstring nostrip,$(ME_BUILD_OPTIONS)))
   ldflags += -w -s
 endif
 ldflags += $(LDFLAGS)
@@ -81,7 +81,7 @@ ldflags := $(strip $(ldflags))
 
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 # check for nostrip option
-ifeq (,$(findstring nostrip,$(DYMENSION_BUILD_OPTIONS)))
+ifeq (,$(findstring nostrip,$(ME_BUILD_OPTIONS)))
   BUILD_FLAGS += -trimpath
 endif
 
@@ -89,16 +89,16 @@ all: install
 
 .PHONY: install
 install: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/dymd
+	go install -mod=readonly $(BUILD_FLAGS) ./cmd/med
 
 .PHONY: build build-debug
 
 build: go.sum
-	go build $(BUILD_FLAGS) -o $(BUILDDIR)/dymd ./cmd/dymd
+	go build $(BUILD_FLAGS) -o $(BUILDDIR)/med ./cmd/med
 
 build-debug: go.sum
 	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)))
-	go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -gcflags "all=-N -l" -o $(BUILDDIR)/dymd ./cmd/dymd
+	go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -gcflags "all=-N -l" -o $(BUILDDIR)/med ./cmd/med
 
 docker-build-e2e:
 	@DOCKER_BUILDKIT=1 docker build -t ghcr.io/dymensionxyz/dymension:e2e -f Dockerfile .

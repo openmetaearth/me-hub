@@ -7,7 +7,7 @@ import "dymensionxyz/dymension/rollapp/rollapp.proto";
 import "dymensionxyz/dymension/rollapp/state_info.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+option go_package = "github.com/st-chain/me-hub/x/rollapp/types";
 
 // Not to get confused with 'genesis', genesis transfers refers to the specific protocol of bootstrapping ibc denominated tokens for the RA
 

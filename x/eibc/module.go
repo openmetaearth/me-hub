@@ -14,9 +14,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/dymension/v3/x/eibc/client/cli"
-	"github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	"github.com/st-chain/me-hub/x/eibc/client/cli"
+	"github.com/st-chain/me-hub/x/eibc/keeper"
+	"github.com/st-chain/me-hub/x/eibc/types"
 )
 
 var (

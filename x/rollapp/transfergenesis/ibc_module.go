@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -24,9 +24,9 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
-	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	delayedackkeeper "github.com/st-chain/me-hub/x/delayedack/keeper"
+	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 )
 
 var ErrDisabled = errorsmod.Wrap(gerrc.ErrFault, "genesis transfers are disabled")

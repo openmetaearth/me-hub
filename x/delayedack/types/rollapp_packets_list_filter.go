@@ -1,7 +1,7 @@
 package types
 
 import (
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
 )
 
 type RollappPacketListFilter struct {

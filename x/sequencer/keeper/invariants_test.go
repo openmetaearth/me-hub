@@ -3,8 +3,8 @@ package keeper_test
 import (
 	"time"
 
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/st-chain/me-hub/x/sequencer/keeper"
+	"github.com/st-chain/me-hub/x/sequencer/types"
 )
 
 func (suite *SequencerTestSuite) TestInvariants() {

@@ -6,15 +6,15 @@ import (
 
 	"cosmossdk.io/math"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	"github.com/st-chain/me-hub/x/streamer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	keeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+	"github.com/st-chain/me-hub/app/apptesting"
+	keeper "github.com/st-chain/me-hub/x/streamer/keeper"
 )
 
 var defaultDistrInfo []types.DistrRecord = []types.DistrRecord{

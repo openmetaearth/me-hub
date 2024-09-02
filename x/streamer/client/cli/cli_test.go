@@ -5,9 +5,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	cli "github.com/dymensionxyz/dymension/v3/x/streamer/client/cli"
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils/osmocli"
+	cli "github.com/st-chain/me-hub/x/streamer/client/cli"
+	"github.com/st-chain/me-hub/x/streamer/types"
 )
 
 func TestGetCmdStreams(t *testing.T) {

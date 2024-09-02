@@ -18,10 +18,10 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
-	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	"github.com/st-chain/me-hub/app/apptesting"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
+	eibckeeper "github.com/st-chain/me-hub/x/eibc/keeper"
+	eibctypes "github.com/st-chain/me-hub/x/eibc/types"
 )
 
 type eibcSuite struct {

@@ -5,9 +5,9 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	apptesting "github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+	apptesting "github.com/st-chain/me-hub/app/apptesting"
+	"github.com/st-chain/me-hub/x/incentives/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

@@ -3,7 +3,9 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
+	"github.com/prometheus/client_golang/prometheus"
 	"io"
 	"io/fs"
 	"net/http"
@@ -17,10 +19,10 @@ import (
 	simappparams "cosmossdk.io/simapp/params"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
-	"github.com/dymensionxyz/dymension/v3/app/keepers"
-	"github.com/dymensionxyz/dymension/v3/app/upgrades"
-	v3 "github.com/dymensionxyz/dymension/v3/app/upgrades/v3"
-	v4 "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
+	"github.com/st-chain/me-hub/app/keepers"
+	"github.com/st-chain/me-hub/app/upgrades"
+	v3 "github.com/st-chain/me-hub/app/upgrades/v3"
+	v4 "github.com/st-chain/me-hub/app/upgrades/v4"
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -52,12 +54,12 @@ import (
 
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/dymensionxyz/dymension/v3/docs"
+	"github.com/st-chain/me-hub/docs"
 
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 
-	"github.com/dymensionxyz/dymension/v3/app/ante"
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
+	"github.com/st-chain/me-hub/app/ante"
+	appparams "github.com/st-chain/me-hub/app/params"
 
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/keeper"
@@ -68,7 +70,6 @@ import (
 	"github.com/evmos/ethermint/ethereum/eip712"
 
 	"github.com/evmos/ethermint/server/flags"
-	ethermint "github.com/evmos/ethermint/types"
 	/* ----------------------------- osmosis imports ---------------------------- */ /* ---------------------------- upgrade handlers ---------------------------- */)
 
 var (
@@ -95,7 +96,7 @@ func init() {
 
 	DefaultNodeHome = filepath.Join(userHomeDir, "."+appparams.Name)
 
-	sdk.DefaultPowerReduction = ethermint.PowerReduction
+	//sdk.DefaultPowerReduction = ethermint.PowerReduction
 }
 
 // App extends an ABCI application, but with most of its parameters exported.
@@ -171,7 +172,11 @@ func New(
 
 	tracer := cast.ToString(appOpts.Get(flags.EVMTracer))
 
-	app.AppKeepers.InitKeepers(appCodec, cdc, bApp, app.ModuleAccountAddrs(), skipUpgradeHeights, invCheckPeriod, tracer, homePath)
+	var wasmOpts []wasmkeeper.Option
+	if cast.ToBool(appOpts.Get("telemetry.enabled")) {
+		wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
+	}
+	app.AppKeepers.InitKeepers(appCodec, cdc, bApp, app.ModuleAccountAddrs(), skipUpgradeHeights, invCheckPeriod, tracer, homePath, appOpts, wasmOpts)
 	app.AppKeepers.SetupHooks()
 	app.AppKeepers.InitTransferStack()
 
@@ -226,6 +231,9 @@ func New(
 		MaxTxGasWanted:         maxGasWanted,
 		ExtensionOptionChecker: nil, // uses default
 		RollappKeeper:          *app.RollappKeeper,
+		DaoKeeper:              app.DaoKeeper,
+		StakingKeeper:          app.StakingKeeper,
+		WasmViewKeeper:         app.WasmKeeper,
 	})
 	if err != nil {
 		panic(err)

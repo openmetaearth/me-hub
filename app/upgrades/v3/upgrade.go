@@ -7,13 +7,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/dymensionxyz/dymension/v3/app/keepers"
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
-	"github.com/dymensionxyz/dymension/v3/app/upgrades"
+	"github.com/st-chain/me-hub/app/keepers"
+	appparams "github.com/st-chain/me-hub/app/params"
+	"github.com/st-chain/me-hub/app/upgrades"
 
-	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	seqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	seqtypes "github.com/st-chain/me-hub/x/sequencer/types"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v3
