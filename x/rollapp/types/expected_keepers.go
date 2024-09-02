@@ -5,7 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
-	rollupTypes "github.com/dymensionxyz/dymension/v3/x/rollup/types"
+	rollupTypes "github.com/st-chain/me-hub/x/rollup/types"
 )
 
 type IBCClientKeeper interface {

@@ -10,8 +10,8 @@ import (
 	tenderminttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	rollupTypes "github.com/dymensionxyz/dymension/v3/x/rollup/types"
+	"github.com/st-chain/me-hub/x/rollapp/types"
+	rollupTypes "github.com/st-chain/me-hub/x/rollup/types"
 	"plugin"
 	"strconv"
 )

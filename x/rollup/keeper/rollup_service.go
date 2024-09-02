@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/dymensionxyz/dymension/v3/x/rollup/types"
+	"github.com/st-chain/me-hub/x/rollup/types"
 )
 
 type rollupServer struct {

@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/dymensionxyz/dymension/v3/x/rollup/types"
+	"github.com/st-chain/me-hub/x/rollup/types"
 	"strconv"
 )
 
