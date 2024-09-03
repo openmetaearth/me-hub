@@ -94,14 +94,13 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 	Keeper *keeper.Keeper
-	bk     types.BankKeeper
+	//	bk     types.BankKeeper
 }
 
-func NewAppModule(cdc codec.Codec, keeper *keeper.Keeper, bankKeeper types.BankKeeper) AppModule {
+func NewAppModule(cdc codec.Codec, keeper *keeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
 		Keeper:         keeper,
-		bk:             bankKeeper,
 	}
 }
 

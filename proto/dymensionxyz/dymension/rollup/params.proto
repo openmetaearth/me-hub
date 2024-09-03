@@ -4,7 +4,7 @@ package dymensionxyz.dymension.rollup;
 import "gogoproto/gogo.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollup/types";
-
+import "cosmos/msg/v1/msg.proto";
 message Params {
   option (gogoproto.goproto_stringer) = false;
   uint32 election_period = 1 [
@@ -28,4 +28,13 @@ message Params {
   uint32 election_interim_time = 7 [
     (gogoproto.moretags) = "yaml:\"election_interim_time\""
   ];
+}
+message MsgSetRollupParamsRequest{
+  option (cosmos.msg.v1.signer) = "creator";
+  string creator = 1;
+  string rollappID = 2;
+  Params newParams = 3;
+}
+
+message MsgSetRollupParamsResponse{
 }

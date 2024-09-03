@@ -470,6 +470,9 @@ func (a *AppKeepers) InitKeepers(
 		a.keys[rollupkeepertypes.StoreKey],
 		appCodec,
 		a.GetSubspace(rollupkeepertypes.MODULE_NAME),
+		a.BankKeeper,
+		a.RollappKeeper,
+		a.DaoKeeper,
 	)
 	a.RollappKeeper.SetRollupKeeper(a.RollupKeeper)
 

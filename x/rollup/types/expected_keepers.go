@@ -17,3 +17,7 @@ type RollappKeeper interface {
 	IsRollappExist(ctx sdk.Context, rollappId string) bool
 	RollappsEnabled(ctx sdk.Context) bool
 }
+
+type DaoKeeper interface {
+	GetGlobalDao(ctx sdk.Context) string
+}

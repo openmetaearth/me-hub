@@ -9,6 +9,7 @@ const (
 	TypeStakeForSequencer = "stakeForSequencer"
 	TypeUnStake           = "unStake"
 	TypeRegisterRollappID = "registerRollappID"
+	TypeSetRollupParams   = "setParams"
 )
 
 func NewMsgSeqStaking(creator string, rollappId string, version, amount uint64) *MsgSeqStaking {
@@ -121,6 +122,38 @@ func (msg *RegisterRollappIDRequest) GetSignBytes() []byte {
 }
 
 func (msg *RegisterRollappIDRequest) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return err
+	}
+	if msg.RollappID == "" {
+		return fmt.Errorf(" RollappId can not be empty")
+	}
+	return nil
+}
+
+func (msg *MsgSetRollupParamsRequest) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgSetRollupParamsRequest) Type() string {
+	return TypeSetRollupParams
+}
+
+func (msg *MsgSetRollupParamsRequest) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *MsgSetRollupParamsRequest) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgSetRollupParamsRequest) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return err

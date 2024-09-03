@@ -23,6 +23,7 @@ func GetTxCmd() *cobra.Command {
 
 	cmd.AddCommand(CmdStakeForSequencer())
 	cmd.AddCommand(CmdUnStake())
+	cmd.AddCommand(CmdSetRollupParams())
 
 	return cmd
 }
@@ -83,6 +84,76 @@ func CmdUnStake() *cobra.Command {
 				return err
 			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdSetRollupParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "setParams [creator] [rollappId] [electionPeriod] [seqNumber] [backupNumber] [minStake] [firstElectTime] [allowApplyTime] [electInterim]",
+		Short:   "set rollup Params",
+		Example: "med tx hubRollUp setParams ",
+		Args:    cobra.ExactArgs(9),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			creator := args[0]
+			rollappID := args[1]
+			electionPeriod, err := strconv.Atoi(args[2])
+			if err != nil {
+				return err
+			}
+			seqNumber, err := strconv.Atoi(args[3])
+			if err != nil {
+				return err
+			}
+			backupNumber, err := strconv.Atoi(args[4])
+			if err != nil {
+				return err
+			}
+			minStakeAmount, err := strconv.ParseUint(args[5], 10, 64)
+			if err != nil {
+				return err
+			}
+			firstElectTime, err := strconv.Atoi(args[6])
+			if err != nil {
+				return err
+			}
+			allowApplyTime, err := strconv.Atoi(args[7])
+			if err != nil {
+				return err
+			}
+			electInterim, err := strconv.Atoi(args[8])
+			if err != nil {
+				return err
+			}
+			params := &types.Params{
+				ElectionPeriod:         uint32(electionPeriod),
+				SequencerNumber:        uint32(seqNumber),
+				BackupSequencerNumber:  uint32(backupNumber),
+				MinStakeAmount:         minStakeAmount,
+				FirstElectionInterval:  uint32(firstElectTime),
+				AllowApplyElectionTime: uint32(allowApplyTime),
+				ElectionInterimTime:    uint32(electInterim),
+			}
+
+			req := &types.MsgSetRollupParamsRequest{
+				Creator:   creator,
+				RollappID: rollappID,
+				NewParams: params,
+			}
+
+			if err = req.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), req)
 		},
 	}
 

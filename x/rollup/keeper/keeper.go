@@ -22,21 +22,26 @@ type Keeper struct {
 	cdc        codec.BinaryCodec
 	bk         types.BankKeeper
 	rk         types.RollappKeeper
+	dk         types.DaoKeeper
 	paramStore paramtypes.Subspace
 	//lastElectionTime uint64
 	rollAppID string
 }
 
 // NewKeeper creates a new staking Keeper instance
-func NewKeeper(storeKey storetypes.StoreKey, cdc codec.BinaryCodec, paramSpace paramtypes.Subspace) *Keeper {
-	//if !paramSpace.HasKeyTable() {
-	//	paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
-	//}
+func NewKeeper(storeKey storetypes.StoreKey, cdc codec.BinaryCodec, paramSpace paramtypes.Subspace,
+	bKeeper types.BankKeeper, rKeeper types.RollappKeeper, dKeeper types.DaoKeeper) *Keeper {
+	if !paramSpace.HasKeyTable() {
+		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+	}
 	return &Keeper{
 		storeKey:   storeKey,
 		cdc:        cdc,
 		paramStore: paramSpace,
 		rollAppID:  "",
+		bk:         bKeeper,
+		rk:         rKeeper,
+		dk:         dKeeper,
 	}
 }
 
