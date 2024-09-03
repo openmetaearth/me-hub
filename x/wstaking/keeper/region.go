@@ -15,14 +15,14 @@ func (k Keeper) SetRegion(ctx sdk.Context, region types.Region) {
 }
 
 // GetRegion returns a region from its index
-func (k Keeper) GetRegion(ctx sdk.Context, regionId string) (val types.Region, found bool) {
+func (k Keeper) GetRegion(ctx sdk.Context, regionId string) (region types.Region, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RegionKeyPrefix))
 	b := store.Get(types.RegionKey(regionId))
 	if b == nil {
-		return val, false
+		return region, false
 	}
-	k.cdc.MustUnmarshal(b, &val)
-	return val, true
+	k.cdc.MustUnmarshal(b, &region)
+	return region, true
 }
 
 // RemoveRegion removes a region from the store
