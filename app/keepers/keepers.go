@@ -57,7 +57,7 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 	"github.com/evmos/ethermint/x/evm"
-	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
+	ethermintevmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/evm/vm/geth"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
@@ -74,6 +74,7 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
+	evmkeeper "github.com/st-chain/me-hub/x/evm/keeper"
 	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	wdistrkeeper "github.com/st-chain/me-hub/x/wdistri/keeper"
@@ -284,7 +285,6 @@ func (a *AppKeepers) InitKeepers(
 	a.DistrKeeper = wdistrkeeper.NewKeeper(
 		appCodec,
 		a.keys[wdistrtypes.StoreKey],
-		a.keys[wdistrtypes.MemStoreKey],
 		a.GetSubspace(wdistrtypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
@@ -319,19 +319,20 @@ func (a *AppKeepers) InitKeepers(
 
 	// Create evmos keeper
 	a.EvmKeeper = evmkeeper.NewKeeper(
-		appCodec,
-		a.keys[evmtypes.StoreKey],
-		a.tkeys[evmtypes.TransientKey],
-		authtypes.NewModuleAddress(govtypes.ModuleName),
-		a.AccountKeeper,
-		a.BankKeeper,
-		a.StakingKeeper,
-		a.FeeMarketKeeper,
-		nil,
-		geth.NewEVM,
-		tracer,
-		a.GetSubspace(evmtypes.ModuleName),
-	)
+		ethermintevmkeeper.NewKeeper(
+			appCodec,
+			a.keys[evmtypes.StoreKey],
+			a.tkeys[evmtypes.TransientKey],
+			authtypes.NewModuleAddress(govtypes.ModuleName),
+			a.AccountKeeper,
+			a.BankKeeper,
+			a.StakingKeeper,
+			a.FeeMarketKeeper,
+			nil,
+			geth.NewEVM,
+			tracer,
+			a.GetSubspace(evmtypes.ModuleName),
+		))
 
 	// Osmosis keepers
 
@@ -504,7 +505,7 @@ func (a *AppKeepers) InitKeepers(
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(a.StreamerKeeper)).
 		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(a.RollappKeeper)).
 		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(a.DenomMetadataKeeper)).
-		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(a.EvmKeeper))
+		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(a.EvmKeeper.Keeper))
 
 	// Create evidence Keeper for to register the IBC light client misbehaviour evidence route
 	// If evidence needs to be handled for the app, set routes in router here and seal
@@ -580,7 +581,7 @@ func (a *AppKeepers) SetupHooks() {
 
 	a.DenomMetadataKeeper.SetHooks(
 		denommetadatamoduletypes.NewMultiDenomMetadataHooks(
-			vfchooks.NewVirtualFrontierBankContractRegistrationHook(*a.EvmKeeper),
+			vfchooks.NewVirtualFrontierBankContractRegistrationHook(*a.EvmKeeper.Keeper),
 		),
 	)
 

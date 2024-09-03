@@ -19,7 +19,6 @@ type Keeper struct {
 	distriKeeper.Keeper
 	cdc           codec.BinaryCodec
 	storeKey      storetypes.StoreKey
-	memKey        storetypes.StoreKey
 	paramstore    paramtypes.Subspace
 	authKeeper    types.AccountKeeper
 	bankKeeper    types.BankKeeper
@@ -39,8 +38,7 @@ type WrapDistrKeeper struct {
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey,
-	memKey storetypes.StoreKey,
+	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
@@ -69,7 +67,6 @@ func NewKeeper(
 		Keeper:           DistrKeeper,
 		cdc:              cdc,
 		storeKey:         storeKey,
-		memKey:           memKey,
 		paramstore:       ps,
 		authKeeper:       accountKeeper,
 		bankKeeper:       bankKeeper,

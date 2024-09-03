@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"errors"
+	ethermintserver "github.com/evmos/ethermint/server"
+	v2 "github.com/st-chain/me-hub/app/upgrades/v2"
 	"io"
 	"os"
 
@@ -38,7 +40,6 @@ import (
 
 	ethermintclient "github.com/evmos/ethermint/client"
 	"github.com/evmos/ethermint/crypto/hd"
-	ethermintserver "github.com/evmos/ethermint/server"
 	servercfg "github.com/evmos/ethermint/server/config"
 )
 
@@ -154,6 +155,13 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		addModuleInitFlags,
 	)
 
+	for _, command := range rootCmd.Commands() {
+		if command.Use == "start" {
+			rootCmd.RemoveCommand(command)
+			rootCmd.AddCommand(StartCmd(ethermintserver.NewDefaultStartOptions(a.newApp, app.DefaultNodeHome)))
+		}
+	}
+
 	rootCmd.AddCommand(InspectCmd(a.appExport, a.newApp, app.DefaultNodeHome))
 
 	// add keybase, auxiliary RPC, query, and tx child commands
@@ -163,6 +171,8 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		txCommand(),
 		ethermintclient.KeyCommands(app.DefaultNodeHome),
 	)
+
+	rootCmd.AddCommand(v2.PreUpgradeCmd())
 }
 
 // queryCommand returns the sub-command to send queries to the app

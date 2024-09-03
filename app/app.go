@@ -21,8 +21,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	"github.com/st-chain/me-hub/app/keepers"
 	"github.com/st-chain/me-hub/app/upgrades"
-	v3 "github.com/st-chain/me-hub/app/upgrades/v3"
-	v4 "github.com/st-chain/me-hub/app/upgrades/v4"
+	v2 "github.com/st-chain/me-hub/app/upgrades/v2"
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -85,7 +84,7 @@ var (
 	DefaultNodeHome string
 
 	// Upgrades contains the upgrade handlers for the application
-	Upgrades = []upgrades.Upgrade{v3.Upgrade, v4.Upgrade}
+	Upgrades = []upgrades.Upgrade{v2.Upgrade}
 )
 
 func init() {
