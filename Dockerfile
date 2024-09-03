@@ -1,29 +1,29 @@
-FROM golang:1.22-alpine3.19 as go-builder
-
+FROM golang:1.22-bullseye as go-builder
+ARG arch=x86_64
 ARG LINK_STATICALLY
 
 WORKDIR /app
 
 COPY . .
 
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    libc6-dev
 
 RUN go mod download
-
-ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3
-
-RUN apk add --no-cache $PACKAGES
-
 RUN make build
+RUN cp `ldd ./build/med |grep -P '/go/.+libwasmvm.x86_64.so' -o` /go/libwasmvm.x86_64.so
+FROM ubuntu:22.04
 
-FROM alpine:3.16.1
-
-RUN apk add --no-cache curl jq bash vim 
+RUN apt-get update && apt-get install -y curl jq bash vim 
 
 COPY --from=go-builder /app/build/med /usr/local/bin/
-
+COPY --from=go-builder /go/libwasmvm.x86_64.so /lib/x86_64-linux-gnu/libwasmvm.x86_64.so
 WORKDIR /app
 
-COPY scripts/* ./scripts/
+COPY scripts/ ./scripts/
 
 ENV KEY_NAME=local-user
 ENV MONIKER_NAME=local
