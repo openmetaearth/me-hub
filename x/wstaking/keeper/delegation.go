@@ -175,16 +175,6 @@ func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, tokens math.Int) {
 	}
 }
 
-// GetDelegatorWithdrawAddr get the delegator withdraw address, defaulting to the delegator address
-func (k Keeper) GetDelegatorWithdrawAddr(ctx sdk.Context, delAddr sdk.AccAddress) sdk.AccAddress {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.GetDelegatorWithdrawAddrKey(delAddr))
-	if b == nil {
-		return delAddr
-	}
-	return sdk.AccAddress(b)
-}
-
 // Delegate performs a delegation, set/update everything necessary within the store.
 // tokenSrc indicates the bond status of the incoming funds.
 func (k Keeper) Delegate(

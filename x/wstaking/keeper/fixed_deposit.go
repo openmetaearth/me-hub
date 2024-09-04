@@ -118,13 +118,11 @@ func (k Keeper) GetAllFixedDeposit(ctx sdk.Context) (list []types.FixedDeposit) 
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
-
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.FixedDeposit
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, val)
 	}
-
 	return
 }
 

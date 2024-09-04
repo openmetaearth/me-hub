@@ -101,7 +101,6 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	stakingtypes.StoreKey,
 	minttypes.StoreKey,
 	wdistrtypes.StoreKey,
-	wdistrtypes.MemStoreKey,
 	slashingtypes.StoreKey,
 	govtypes.StoreKey,
 	paramstypes.StoreKey,
@@ -129,6 +128,7 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	poolmanagertypes.StoreKey,
 	incentivestypes.StoreKey,
 	txfeestypes.StoreKey,
+	// me keys
 	daotypes.StoreKey,
 	nftkeeper.StoreKey,
 	rollupmoduletypes.StoreKey,

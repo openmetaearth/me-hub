@@ -16,7 +16,7 @@ import (
 
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
+	evmkeeper "github.com/st-chain/me-hub/x/evm/keeper"
 
 	"github.com/st-chain/me-hub/x/denommetadata/client/cli"
 	"github.com/st-chain/me-hub/x/denommetadata/keeper"

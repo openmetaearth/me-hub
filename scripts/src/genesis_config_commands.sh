@@ -7,6 +7,8 @@ set_gov_params() {
     jq '.app_state.gov.deposit_params.min_deposit[0].denom = "umec"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state.gov.deposit_params.min_deposit[0].amount = "10000000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state.gov.voting_params.voting_period = "1m"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.app_state.gov.params.min_deposit[0].denom = "umec"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.app_state.gov.params.min_deposit[0].amount = "10000000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
 set_hub_params() {

@@ -93,6 +93,7 @@ import (
 	denommetadatamoduletypes "github.com/st-chain/me-hub/x/denommetadata/types"
 	"github.com/st-chain/me-hub/x/eibc"
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
+	meevm "github.com/st-chain/me-hub/x/evm"
 	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	"github.com/st-chain/me-hub/x/rollapp"
 
@@ -209,7 +210,7 @@ func (a *AppKeepers) SetupModules(
 		rollupmodule.NewAppModule(appCodec, a.RollupKeeper),
 
 		// Ethermint app modules
-		evm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
+		meevm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName)),
 		feemarket.NewAppModule(a.FeeMarketKeeper, a.GetSubspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())),
 
 		// osmosis modules
