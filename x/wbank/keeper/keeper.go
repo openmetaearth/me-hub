@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"errors"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -93,14 +95,17 @@ func (k BaseKeeperWrapper) FeeToReceivers(ctx sdk.Context, inputs []banktypes.In
 		return sdkerrors.Wrap(err, "failed to process input-output coins")
 	}
 
-	event := sdk.NewEvent(types.EventTypeFeeToReceivers)
-	for index, input := range inputs {
-		event.AppendAttributes(
-			sdk.NewAttribute(sdk.AttributeKeySender, input.Address),
-			sdk.NewAttribute(types.AttributeKeyReceiver, outputs[index].Address),
-			sdk.NewAttribute(types.AttributeKeyAmount, outputs[index].Coins.String()),
-		)
+	attributes := []sdk.Attribute{}
+	if len(inputs) > 0 {
+		attributes = append(attributes, sdk.NewAttribute(sdk.AttributeKeySender, inputs[0].Address))
+		for index, output := range outputs {
+			attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s%d", types.AttributeKeyReceiver, index), output.Address))
+			attributes = append(attributes, sdk.NewAttribute(types.AttributeKeyAmount, output.Coins.String()))
+		}
+		event := sdk.NewEvent(types.EventTypeFeeToReceivers, attributes...)
+		ctx.EventManager().EmitEvent(event)
+	} else {
+		return errors.New("inputs error")
 	}
-	ctx.EventManager().EmitEvent(event)
 	return nil
 }
