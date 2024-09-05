@@ -24,33 +24,34 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdStakeForSequencer())
 	cmd.AddCommand(CmdUnStake())
 	cmd.AddCommand(CmdSetRollupParams())
-
+	cmd.AddCommand(CmdRegisterRollAppIDTest())
 	return cmd
 }
 
 func CmdStakeForSequencer() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "stakeForSequencer [creator] [rollappId] [amount]",
+		Use:     "stakeForSequencer  [rollappId] [amount]",
 		Short:   "stakeForSequencer",
-		Example: "dymd tx hubRollUp stakeForSequencer <creator> <rollappId> <amount>",
-		Args:    cobra.ExactArgs(3),
+		Example: "dymd tx hubRollUp stakeForSequencer  <rollappId> <amount>",
+		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			creator := args[0]
-			rollappID := args[1]
-			amount := args[2]
+			//creator := args[0]
+			rollappID := args[0]
+			amount := args[1]
 			val, err := strconv.ParseUint(amount, 10, 64)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgSeqStaking(creator, rollappID, 0, val)
+			msg := types.NewMsgSeqStaking(clientCtx.GetFromAddress().String(), rollappID, 0, val)
 			if err = msg.ValidateBasic(); err != nil {
 				return err
 			}
+
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
@@ -62,24 +63,23 @@ func CmdStakeForSequencer() *cobra.Command {
 
 func CmdUnStake() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "unStake [creator] [rollappId] [amount]",
+		Use:     "unStake  [rollappId] [amount]",
 		Short:   "unstake mec",
-		Example: "dymd tx hubRollUp unStake <creator> <rollappId> <amount>",
+		Example: "dymd tx hubRollUp unStake <rollappId> <amount>",
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			creator := args[0]
-			rollappID := args[1]
-			amount := args[2]
+			rollappID := args[0]
+			amount := args[1]
 			val, err := strconv.ParseUint(amount, 10, 64)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgSeqUnStaking(creator, rollappID, 0, val)
+			msg := types.NewMsgSeqUnStaking(clientCtx.GetFromAddress().String(), rollappID, 0, val)
 			if err = msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -94,42 +94,41 @@ func CmdUnStake() *cobra.Command {
 
 func CmdSetRollupParams() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "setParams [creator] [rollappId] [electionPeriod] [seqNumber] [backupNumber] [minStake] [firstElectTime] [allowApplyTime] [electInterim]",
+		Use:     "setParams [rollappId] [electionPeriod] [seqNumber] [backupNumber] [minStake] [firstElectTime] [allowApplyTime] [electInterim]",
 		Short:   "set rollup Params",
 		Example: "med tx hubRollUp setParams ",
-		Args:    cobra.ExactArgs(9),
+		Args:    cobra.ExactArgs(8),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			creator := args[0]
-			rollappID := args[1]
-			electionPeriod, err := strconv.Atoi(args[2])
+			rollappID := args[0]
+			electionPeriod, err := strconv.Atoi(args[1])
 			if err != nil {
 				return err
 			}
-			seqNumber, err := strconv.Atoi(args[3])
+			seqNumber, err := strconv.Atoi(args[2])
 			if err != nil {
 				return err
 			}
-			backupNumber, err := strconv.Atoi(args[4])
+			backupNumber, err := strconv.Atoi(args[3])
 			if err != nil {
 				return err
 			}
-			minStakeAmount, err := strconv.ParseUint(args[5], 10, 64)
+			minStakeAmount, err := strconv.ParseUint(args[4], 10, 64)
 			if err != nil {
 				return err
 			}
-			firstElectTime, err := strconv.Atoi(args[6])
+			firstElectTime, err := strconv.Atoi(args[5])
 			if err != nil {
 				return err
 			}
-			allowApplyTime, err := strconv.Atoi(args[7])
+			allowApplyTime, err := strconv.Atoi(args[6])
 			if err != nil {
 				return err
 			}
-			electInterim, err := strconv.Atoi(args[8])
+			electInterim, err := strconv.Atoi(args[7])
 			if err != nil {
 				return err
 			}
@@ -144,7 +143,7 @@ func CmdSetRollupParams() *cobra.Command {
 			}
 
 			req := &types.MsgSetRollupParamsRequest{
-				Creator:   creator,
+				Creator:   clientCtx.GetFromAddress().String(),
 				RollappID: rollappID,
 				NewParams: params,
 			}
@@ -161,3 +160,32 @@ func CmdSetRollupParams() *cobra.Command {
 
 	return cmd
 }
+
+// //==========================for test
+func CmdRegisterRollAppIDTest() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "registerRollappID  [rollappId]",
+		Short:   "registerRollappID for test",
+		Example: "med tx hubRollUp registerRollappID <rollappId>",
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			rollappID := args[0]
+
+			msg := types.NewRegisterRollappIDRequest(clientCtx.GetFromAddress().String(), rollappID)
+			if err = msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+//=========================end

@@ -100,6 +100,13 @@ func (msg *MsgSeqUnStaking) ValidateBasic() error {
 	return nil
 }
 
+func NewRegisterRollappIDRequest(creator string, rollappId string) *RegisterRollappIDRequest {
+	return &RegisterRollappIDRequest{
+		Creator:   creator,
+		RollappID: rollappId,
+	}
+}
+
 func (msg *RegisterRollappIDRequest) Route() string {
 	return RouterKey
 }

@@ -34,6 +34,7 @@ func NewKeeper(storeKey storetypes.StoreKey, cdc codec.BinaryCodec, paramSpace p
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
+
 	return &Keeper{
 		storeKey:   storeKey,
 		cdc:        cdc,
@@ -45,12 +46,28 @@ func NewKeeper(storeKey storetypes.StoreKey, cdc codec.BinaryCodec, paramSpace p
 	}
 }
 
+func (k *Keeper) InitRollappID(ctx sdk.Context) {
+	if k.rollAppID == "" {
+		kvStore := ctx.KVStore(k.storeKey)
+		store := prefix.NewStore(kvStore, []byte(types.RollupKeyPrefix))
+		data := store.Get([]byte(types.KEY_ROLLAPP_ID))
+		if data != nil {
+			k.rollAppID = string(data)
+		}
+		ctx.Logger().Info(fmt.Sprintf("enter InitRollappID,rollappID = %s", k.rollAppID))
+	}
+}
+
 // Logger returns a logger instance for the incentives module.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.MODULE_NAME))
 }
 
 func (k *Keeper) ProcElection(ctx sdk.Context) error {
+	if "" == k.rollAppID {
+		ctx.Logger().Info("not rollAppID associate with rollup ")
+		return nil
+	}
 	blkTime := ctx.BlockTime().Unix()
 	//获取上一次选举的时间
 	kvStore := ctx.KVStore(k.storeKey)
@@ -66,8 +83,9 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 		}
 
 	} else { //找不到lastElectTime的话，则表示还没竞选过
-		if 1 == ctx.BlockHeight() { //如果是第一个数据区块的话，则计算首次竞选的时间并保存
+		if timeVal := rollupStore.Get([]byte(types.KEY_FIRST_ELECTION_TIME)); timeVal == nil {
 			firstElectTime := blkTime + int64(k.GetFirstElectionInterval(ctx))*types.MinuteSeconds
+			ctx.Logger().Info(fmt.Sprintf("calc first election time,time = %d", firstElectTime))
 			rollupStore.Set([]byte(types.KEY_FIRST_ELECTION_TIME), types.Int64ToBytes(firstElectTime))
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
@@ -77,22 +95,14 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 				),
 			)
 			return nil
-		} else if ctx.BlockHeight() > 1 {
-			firstElectTime := int64(0)
-			if timeVal := rollupStore.Get([]byte(types.KEY_FIRST_ELECTION_TIME)); timeVal != nil {
-				firstElectTime = types.BytesToInt64(timeVal)
-				if blkTime >= firstElectTime {
-					bIsNeedElect = true
-				} else {
-					return nil
-				}
+		} else {
+			firstElectTime := types.BytesToInt64(timeVal)
+			if blkTime >= firstElectTime {
+				bIsNeedElect = true
 			} else {
-				return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("can not get firstElectTime. blkHeight = %d",
-					ctx.BlockHeight()))
+				return nil
 			}
-
 		}
-
 	}
 	if bIsNeedElect { //开始竞选
 		electList, err := k.startElection(ctx, k.GetMinStakeAmount(ctx)*types.MecPrecision)
@@ -239,7 +249,7 @@ func (k *Keeper) startElection(ctx sdk.Context, minStakeAmount uint64) ([]*types
 			return nil, errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("Unmarshal stakeInfo error.err = %s", err.Error()))
 		}
 		//这里进行 val.StakeAmount - val.ApplyUnStakeAmount的作用是为了让解质押对于竞选的影响的也能锁仓一个周期
-		//假设在竞选前一天进行解质押，如果不相减的话，则就相当解质押对于竞选的影响几乎没有
+		//假设在竞选前一天进行解质押，如果不相减的话，则就相当解质押对于竞选 的影响几乎没有
 		stakeAmount := val.StakeAmount - val.ApplyUnStakeAmount
 		if stakeAmount < minStakeAmount { //不满足最小质押要求，则不能参加竞选
 			continue

@@ -28,6 +28,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 
 func (k Keeper) SetRollupParams(ctx context.Context, req *types.MsgSetRollupParamsRequest) (*types.MsgSetRollupParamsResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.Logger().Info("SetRollupParams,new Params = ", req.String())
 	if req.RollappID != k.rollAppID {
 		return nil, errorsmod.Wrapf(types.ErrInputDataErr, "rollappID mismatch")
 	}

@@ -5,19 +5,19 @@ import (
 )
 
 type rollupServer struct {
-	Keeper
+	*Keeper
 }
 
 // NewMsgServerImpl returns an implementation of the MsgServer interface
 // for the provided Keeper.
-func NewMsgServerImpl(keeper Keeper) types.MsgServer {
+func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 	return &rollupServer{Keeper: keeper}
 }
 
 type rollupQueryServer struct {
-	Keeper
+	*Keeper
 }
 
-func NewQueryServerImpl(keeper Keeper) types.QueryServer {
+func NewQueryServerImpl(keeper *Keeper) types.QueryServer {
 	return &rollupQueryServer{Keeper: keeper}
 }

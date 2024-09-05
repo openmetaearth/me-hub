@@ -12,6 +12,7 @@ const (
 	KEY_LAST_UNSTAKE_TIME      = "LastUnStakeTime"
 	KEY_LAST_ELECTION_INFO     = "LastElectionInfo"
 	KEY_PREVIOUS_ELECTION_INFO = "PreviousElectionInfo"
+	KEY_ROLLAPP_ID             = "KeyRollappID"
 	StoreKey                   = MODULE_NAME
 	RouterKey                  = MODULE_NAME
 )
