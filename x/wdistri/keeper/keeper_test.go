@@ -50,7 +50,7 @@ func TestKeeperTestSuite(t *testing.T) {
 func (suite *KeeperTestSuite) SetupTest() {
 	t := suite.T()
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
-	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
+	memStoreKey := storetypes.NewMemoryStoreKey("transient")
 	db := tmdb.NewMemDB()
 	stateStore := store.NewCommitMultiStore(db)
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
@@ -86,7 +86,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.wdistriKeeper = NewKeeper(
 		cdc,
 		storeKey,
-		memStoreKey,
 		paramsSubspace,
 		suite.authKeeper,
 		suite.bankKeeper,
@@ -99,12 +98,11 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func (suite *KeeperTestSuite) TestGetAuthority() {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
-	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
+
 	NewKeeperWithAuthority := func(authority string) *Keeper {
 		return NewKeeper(
 			suite.encCfg.Codec,
 			storeKey,
-			memStoreKey,
 			suite.paramsSubspace,
 			suite.authKeeper,
 			suite.bankKeeper,
