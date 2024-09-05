@@ -1,0 +1,61 @@
+package types
+
+import (
+	"cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/st-chain/me-hub/utils"
+	"strings"
+)
+
+const (
+	TypeMsgUpdate = "update"
+)
+
+func NewMsgUpdate(issuer, did, regionId, uri, hash string) *MsgUpdate {
+	return &MsgUpdate{
+		Issuer:   issuer,
+		Did:      did,
+		RegionId: regionId,
+		Uri:      uri,
+		Hash:     hash,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (m *MsgUpdate) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (m *MsgUpdate) Type() string { return TypeMsgUpdate }
+
+func (m *MsgUpdate) GetSigners() []sdk.AccAddress {
+	issuer, err := sdk.AccAddressFromBech32(m.Issuer)
+	if err != nil {
+		panic(err)
+	}
+
+	return []sdk.AccAddress{issuer}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (m *MsgUpdate) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgUpdate) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Issuer); err != nil {
+		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the issuer is not a valid bech32 address")
+	}
+	if len(m.Did) != 16 {
+		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "DID length must be equal to 16")
+	}
+	if _, err := utils.CheckRegionName(strings.ToUpper(m.RegionId)); err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidType, err.Error())
+	}
+	if len(m.Hash) == 0 || len(m.Hash) > 128 {
+		return errors.Wrap(sdkerrors.ErrInvalidType, "hash length must be between 0 and 128")
+	}
+
+	return nil
+}

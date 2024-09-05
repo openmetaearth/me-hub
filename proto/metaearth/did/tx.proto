@@ -1,0 +1,106 @@
+syntax = "proto3";
+package metaearth.did;
+
+import "gogoproto/gogo.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "metaearth/did/did.proto";
+import "metaearth/did/service.proto";
+import "metaearth/did/filter.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/did/types";
+
+// Msg defines the Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  rpc CreateDid(MsgCreateDid) returns (MsgCreateDidResponse);
+  rpc UpdateDidStatus(MsgUpdateDidStatus) returns (MsgUpdateDidStatusResponse);
+//  rpc RemoveDid(MsgRemoveDid) returns (MsgRemoveDidResponse);
+
+  rpc CreateService(MsgCreateService) returns (MsgCreateServiceResponse);
+  rpc UpdateServiceStatus(MsgUpdateServiceStatus) returns (MsgUpdateServiceStatusResponse);
+//  rpc RemoveService(MsgRemoveService) returns (MsgRemoveServiceResponse);
+
+  rpc CreateVC(MsgCreateVC) returns (MsgCreateVCResponse);
+  rpc UpdateVC(MsgUpdateVC) returns (MsgUpdateVCResponse);
+  rpc RemoveVC(MsgRemoveVC) returns (MsgRemoveVCResponse);
+}
+
+message MsgCreateDid {
+  string creator = 1;
+  string did     = 2;
+  string pubkey  = 3;
+}
+
+message MsgCreateDidResponse {}
+
+message MsgUpdateDidStatus {
+  string creator     = 1;
+  string did         = 2;
+  DidStatus status   = 3;
+}
+
+message MsgUpdateDidStatusResponse{}
+
+message MsgRemoveDid {
+  string creator   = 1;
+  string did       = 2;
+}
+
+message MsgRemoveDidResponse{}
+
+message  MsgCreateService{
+  string creator     = 1;
+  string sid         = 2;
+  string name        = 3;
+  string description = 4;
+  string issuer      = 5;
+}
+
+message MsgCreateServiceResponse{}
+
+message MsgUpdateServiceStatus {
+  string creator        = 1;
+  string sid            = 2;
+  ServiceStatus status  = 3;
+}
+
+message MsgUpdateServiceStatusResponse{}
+
+message MsgRemoveService {
+  string creator       = 1;
+  string sid           = 2;
+}
+
+message MsgRemoveServiceResponse{}
+
+message MsgCreateVC{
+  string issuer        = 1;
+  string did           = 2;
+  string sid           = 3;
+  string hash          = 4;
+  string uri           = 5;
+  repeated bytes filters         = 6;
+}
+
+message MsgCreateVCResponse{}
+
+message MsgUpdateVC{
+  string issuer        = 1;
+  string did           = 2;
+  string sid           = 3;
+  string hash          = 4;
+  string uri           = 5;
+  repeated bytes filters         = 6;
+}
+
+message MsgUpdateVCResponse{}
+
+message MsgRemoveVC{
+  string issuer        = 1;
+  string did           = 2;
+  string sid           = 3;
+}
+
+message MsgRemoveVCResponse{}

@@ -30,8 +30,10 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
 	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
+	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
@@ -120,6 +122,9 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	// ethermint keys
 	evmtypes.StoreKey,
 	feemarkettypes.StoreKey,
+	// did keys
+	didtypes.StoreKey,
+	kyctypes.StoreKey,
 	// osmosis keys
 	lockuptypes.StoreKey,
 	epochstypes.StoreKey,

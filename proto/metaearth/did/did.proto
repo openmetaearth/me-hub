@@ -1,0 +1,34 @@
+syntax = "proto3";
+package metaearth.did;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "metaearth/did/credential.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/did/types";
+
+
+// did status enum
+enum DidStatus {
+  option (gogoproto.goproto_enum_stringer) = true;
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  DID_STATUS_DEACTIVE    = 0 [ (gogoproto.enumvalue_customname) = "DID_STATUS_DEACTIVE " ];
+  DID_STATUS_ACTIVE      = 1 [ (gogoproto.enumvalue_customname) = "DID_STATUS_ACTIVE" ];
+}
+
+
+message DidInfo {
+  // same as the MEID
+  string did             = 1;
+  // public_key is mapped to the user address
+  // the issuer will use public_key to encrypt the user's certificate to ensure the privacy of the off-chain certificate
+  string pubkey          = 2;
+  DidStatus status       = 3;
+}
+
+// did document
+message DidDocument {
+  DidInfo info = 1 [(gogoproto.nullable) = false];
+  repeated Credential vcs = 2 [(gogoproto.nullable) = false];
+}

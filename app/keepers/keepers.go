@@ -90,10 +90,14 @@ import (
 	denommetadatamodule "github.com/st-chain/me-hub/x/denommetadata"
 	denommetadatamodulekeeper "github.com/st-chain/me-hub/x/denommetadata/keeper"
 	denommetadatamoduletypes "github.com/st-chain/me-hub/x/denommetadata/types"
+	didkeeper "github.com/st-chain/me-hub/x/did/keeper"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 	eibckeeper "github.com/st-chain/me-hub/x/eibc/keeper"
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
 	incentiveskeeper "github.com/st-chain/me-hub/x/incentives/keeper"
 	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
+	kyckeeper "github.com/st-chain/me-hub/x/kyc/keeper"
+	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	rollappmodule "github.com/st-chain/me-hub/x/rollapp"
 	rollappmodulekeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
 	"github.com/st-chain/me-hub/x/rollapp/transfergenesis"
@@ -135,6 +139,10 @@ type AppKeepers struct {
 	// Ethermint keepers
 	EvmKeeper       *evmkeeper.Keeper
 	FeeMarketKeeper feemarketkeeper.Keeper
+
+	// did keeper
+	DidKeeper *didkeeper.Keeper
+	KycKeeper *kyckeeper.Keeper
 
 	// Osmosis keepers
 	GAMMKeeper        *gammkeeper.Keeper
@@ -491,6 +499,21 @@ func (a *AppKeepers) InitKeepers(
 		wasmOpts...,
 	)
 
+	// Create did Keepers
+	a.DidKeeper = didkeeper.NewKeeper(
+		appCodec,
+		a.keys[didtypes.StoreKey],
+		a.DaoKeeper,
+	)
+
+	a.KycKeeper = kyckeeper.NewKeeper(
+		appCodec,
+		a.keys[kyctypes.StoreKey],
+		a.StakingKeeper,
+		a.DidKeeper,
+		a.NFTKeeper,
+	)
+
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
 
 	// Register the proposal types
@@ -670,6 +693,10 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	// ethermint subspaces
 	paramsKeeper.Subspace(evmtypes.ModuleName)
 	paramsKeeper.Subspace(feemarkettypes.ModuleName)
+
+	// did subspace
+	paramsKeeper.Subspace(didtypes.ModuleName)
+	paramsKeeper.Subspace(kyctypes.ModuleName)
 
 	// osmosis subspaces
 	paramsKeeper.Subspace(lockuptypes.ModuleName)

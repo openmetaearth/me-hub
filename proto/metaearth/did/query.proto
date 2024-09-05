@@ -1,0 +1,83 @@
+syntax = "proto3";
+package metaearth.did;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "metaearth/did/did.proto";
+import "metaearth/did/service.proto";
+import "metaearth/did/credential.proto";
+import "metaearth/did/filter.proto";
+
+
+option go_package = "github.com/st-chain/me-hub/x/did/types";
+
+service Query {
+  // query user did doc
+  rpc Did(QueryDid) returns (QueryDidResponse) {
+    option (google.api.http).get = "/did/did";
+  }
+
+  rpc DidDocument(QueryDidDocument) returns (QueryDidDocumentResponse) {
+    option (google.api.http).get = "/did/didDocument";
+  }
+
+  rpc Service(QueryService) returns (QueryServiceResponse) {
+    option (google.api.http).get = "/did/service";
+  }
+
+  rpc Credential(QueryCredential) returns (QueryCredentialResponse) {
+    option (google.api.http).get = "/did/credential";
+  }
+
+  rpc Credentials(QueryCredentials) returns (QueryCredentialsResponse) {
+    option (google.api.http).get = "/did/credentials";
+  }
+}
+
+message QueryDid {
+  string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message QueryDidResponse{
+  string did = 1;
+}
+
+message QueryDidDocument {
+  string did = 1;
+}
+
+message QueryDidDocumentResponse{
+  DidDocument doc = 1 [ (gogoproto.nullable) = false ];
+}
+
+
+message QueryService{
+  string sid = 1;
+}
+
+message QueryServiceResponse{
+  Service service = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryCredential{
+  string did = 1;
+  string sid = 2;
+}
+
+message QueryCredentialResponse{
+  Credential credential = 1 [ (gogoproto.nullable) = false ];
+}
+
+
+message QueryCredentials{
+  string sid    = 1;
+  bytes filter = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+message QueryCredentialsResponse{
+  repeated Credential credentials = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
