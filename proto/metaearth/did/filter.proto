@@ -5,5 +5,7 @@ option go_package = "github.com/st-chain/me-hub/x/did/types";
 
 
 message FilterLogger {
-  repeated bytes filters         = 1;
+  string did             = 1;
+  string sid             = 2;
+  repeated bytes filters = 3;
 }

@@ -1,0 +1,20 @@
+syntax = "proto3";
+package metaearth.did;
+
+import "gogoproto/gogo.proto";
+import "metaearth/kyc/protocol.proto";
+import "metaearth/did/did.proto";
+import "metaearth/did/service.proto";
+import "metaearth/did/credential.proto";
+import "metaearth/did/filter.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/did/types";
+
+
+// GenesisState defines the kyc module's genesis state.
+message GenesisState {
+   repeated did.DidInfo infos = 1 [(gogoproto.nullable) = false];
+   repeated did.Service svcs = 2 [(gogoproto.nullable) = false];
+   repeated did.Credential vcs = 3 [(gogoproto.nullable) = false];
+   repeated did.FilterLogger flogs = 4 [(gogoproto.nullable) = false];
+}

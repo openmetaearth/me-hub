@@ -19,7 +19,10 @@ func (k Keeper) AddFilters(ctx sdk.Context, did, sid string, filters [][]byte, v
 
 	flog, found := k.GetFilterLogger(ctx, did, sid)
 	if !found {
-		flog = types.FilterLogger{}
+		flog = types.FilterLogger{
+			Did: did,
+			Sid: sid,
+		}
 	}
 
 	for _, filter := range filters {
@@ -35,7 +38,10 @@ func (k Keeper) DeleteFilters(ctx sdk.Context, did, sid string, filters [][]byte
 	store := ctx.KVStore(k.storeKey)
 	flog, found := k.GetFilterLogger(ctx, did, sid)
 	if !found {
-		flog = types.FilterLogger{}
+		flog = types.FilterLogger{
+			Did: did,
+			Sid: sid,
+		}
 	}
 
 	for _, filter := range filters {
@@ -63,6 +69,20 @@ func (k Keeper) GetFilterLogger(ctx sdk.Context, did, sid string) (flog types.Fi
 
 	k.cdc.MustUnmarshal(bz, &flog)
 	return flog, true
+}
+
+func (k Keeper) GetFilterLoggers(ctx sdk.Context) (flogs []types.FilterLogger) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.FilterLoggerPrefix)
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var flog types.FilterLogger
+		k.cdc.MustUnmarshal(iterator.Value(), &flog)
+		flogs = append(flogs, flog)
+	}
+
+	return flogs
 }
 
 // SetFilterLogger set credential filter and store filter logger
