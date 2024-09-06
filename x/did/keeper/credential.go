@@ -79,6 +79,7 @@ func (k Keeper) GetCredentialsByFilter(
 }
 
 func (k Keeper) SetCredential(ctx sdk.Context, did, sid string, credential types.Credential) {
+	k.Logger(ctx).Debug("call SetCredential", "did", did, "sid", sid, "credential", credential)
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetCredentialKey(did, sid), k.cdc.MustMarshal(&credential))
 }

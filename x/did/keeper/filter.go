@@ -5,6 +5,10 @@ import (
 	"github.com/st-chain/me-hub/x/did/types"
 )
 
+/*
+filter action (warped the filter logger)
+*/
+
 func (k Keeper) GetFilters(ctx sdk.Context, did, sid string) (filters [][]byte, found bool) {
 	flog, found := k.GetFilterLogger(ctx, did, sid)
 	if !found {
@@ -87,6 +91,7 @@ func (k Keeper) GetFilterLoggers(ctx sdk.Context) (flogs []types.FilterLogger) {
 
 // SetFilterLogger set credential filter and store filter logger
 func (k Keeper) SetFilterLogger(ctx sdk.Context, did, sid string, flog types.FilterLogger) {
+	k.Logger(ctx).Debug("call SetFilterLogger", "did", did, "sid", sid, "flog.did", flog.Did, "flog.sid", flog.Sid)
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetFilterLoggerKey(did, sid), k.cdc.MustMarshal(&flog))
 }
