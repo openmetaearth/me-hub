@@ -14,7 +14,7 @@ import (
 
 func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, regionId, creator string) error {
 	if regionId == strings.ToLower(types.ExperienceRegion) {
-		return sdkerrors.Wrapf(types.ErrTransferRegion, fmt.Sprintf("cannot transfer to %s", regionId))
+		return sdkerrors.Wrapf(types.ErrKycReward, fmt.Sprintf("cannot set kyc to %s region", regionId))
 	}
 
 	region, found := k.GetRegion(ctx, regionId)
