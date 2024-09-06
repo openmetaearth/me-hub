@@ -18,15 +18,16 @@ package cmd
 import (
 	"context"
 	"fmt"
-	rpcclient "github.com/cometbft/cometbft/rpc/client"
-	ethermintserver "github.com/evmos/ethermint/server"
-	metypes "github.com/st-chain/me-hub/types"
 	"net"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime/pprof"
 	"time"
+
+	rpcclient "github.com/cometbft/cometbft/rpc/client"
+	ethermintserver "github.com/evmos/ethermint/server"
+	metypes "github.com/st-chain/me-hub/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"

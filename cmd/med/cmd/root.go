@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"errors"
-	ethermintserver "github.com/evmos/ethermint/server"
-	v2 "github.com/st-chain/me-hub/app/upgrades/v2"
 	"io"
 	"os"
+
+	ethermintserver "github.com/evmos/ethermint/server"
+	v2 "github.com/st-chain/me-hub/app/upgrades/v2"
+	"github.com/st-chain/me-hub/logger"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -29,6 +31,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
@@ -87,11 +90,19 @@ ______   __   __  __   __  _______  __    _  _______  ___   _______  __    _    
 
 			customAppTemplate, customAppConfig := initAppConfig()
 			customTMConfig := initTendermintConfig()
-
-			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
+			err = server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
+			if err != nil {
+				return err
+			}
+			defaultLogger, _ := cmd.Flags().GetBool("not_me_hub_logger")
+			if os.Getenv("DISABLE_MEHUB_LOGGER") != "true" && !defaultLogger {
+				ctx := server.GetServerContextFromCmd(cmd)
+				ctx.Logger = logger.NewLogger("me-hub").WithEnvLevelOr("info").WithStacktrace(ipfslog.LevelError)
+			}
+			return nil
 		},
 	}
-
+	rootCmd.PersistentFlags().Bool("not_me_hub_logger", false, "disable me-hub logger and use cosmos lib logger")
 	initRootCmd(rootCmd, encodingConfig)
 
 	return rootCmd, encodingConfig
