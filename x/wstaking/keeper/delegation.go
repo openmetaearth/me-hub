@@ -162,10 +162,6 @@ func (k Keeper) Unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValA
 	} else {
 		amount = delAmount
 	}
-	// call the before-delegation-modified hook
-	if err = k.Hooks().BeforeDelegationSharesModified(ctx, delAddr, valAddr); err != nil {
-		return amount, err
-	}
 	delegation.StartHeight = ctx.BlockHeight()
 	k.SetDelegation(ctx, delegation)
 	return amount, nil
@@ -177,16 +173,6 @@ func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, tokens math.Int) {
 	if err := k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.BondedPoolName, types.NotBondedPoolName, coins); err != nil {
 		panic(err)
 	}
-}
-
-// GetDelegatorWithdrawAddr get the delegator withdraw address, defaulting to the delegator address
-func (k Keeper) GetDelegatorWithdrawAddr(ctx sdk.Context, delAddr sdk.AccAddress) sdk.AccAddress {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.GetDelegatorWithdrawAddrKey(delAddr))
-	if b == nil {
-		return delAddr
-	}
-	return sdk.AccAddress(b)
 }
 
 // Delegate performs a delegation, set/update everything necessary within the store.

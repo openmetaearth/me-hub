@@ -1,0 +1,133 @@
+package cli
+
+import (
+	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cobra"
+
+	"github.com/st-chain/me-hub/x/did/types"
+)
+
+// GetQueryCmd returns the cli query commands for this module
+func GetQueryCmd(queryRoute string) *cobra.Command {
+	// Group did queries under a subcommand
+	cmd := &cobra.Command{
+		Use:                        types.ModuleName,
+		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE:                       client.ValidateCmd,
+	}
+
+	cmd.AddCommand(CmdQueryDid())
+	cmd.AddCommand(CmdQueryDidDocument())
+	cmd.AddCommand(CmdQueryService())
+	cmd.AddCommand(CmdQueryCredential())
+	return cmd
+}
+
+func CmdQueryDid() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "did [address]",
+		Short: "query did",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			addr := args[0]
+			res, err := queryClient.Did(cmd.Context(), &types.QueryDid{Address: addr})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func CmdQueryDidDocument() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "document [did]",
+		Short: "query did document",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			did := args[0]
+			res, err := queryClient.DidDocument(cmd.Context(), &types.QueryDidDocument{Did: did})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func CmdQueryService() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "service [sid]",
+		Short: "query credential service",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			sid := args[0]
+			res, err := queryClient.Service(cmd.Context(), &types.QueryService{Sid: sid})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func CmdQueryCredential() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "credential [did] [sid]",
+		Short: "query verifiable credential",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			did := args[0]
+			sid := args[1]
+			res, err := queryClient.Credential(cmd.Context(), &types.QueryCredential{Did: did, Sid: sid})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}

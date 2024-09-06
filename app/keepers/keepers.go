@@ -57,7 +57,7 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	ibctestingtypes "github.com/cosmos/ibc-go/v7/testing/types"
 	"github.com/evmos/ethermint/x/evm"
-	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
+	ethermintevmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/evm/vm/geth"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
@@ -74,6 +74,7 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
+	evmkeeper "github.com/st-chain/me-hub/x/evm/keeper"
 	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	wdistrkeeper "github.com/st-chain/me-hub/x/wdistri/keeper"
@@ -89,10 +90,14 @@ import (
 	denommetadatamodule "github.com/st-chain/me-hub/x/denommetadata"
 	denommetadatamodulekeeper "github.com/st-chain/me-hub/x/denommetadata/keeper"
 	denommetadatamoduletypes "github.com/st-chain/me-hub/x/denommetadata/types"
+	didkeeper "github.com/st-chain/me-hub/x/did/keeper"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 	eibckeeper "github.com/st-chain/me-hub/x/eibc/keeper"
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
 	incentiveskeeper "github.com/st-chain/me-hub/x/incentives/keeper"
 	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
+	kyckeeper "github.com/st-chain/me-hub/x/kyc/keeper"
+	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	rollappmodule "github.com/st-chain/me-hub/x/rollapp"
 	rollappmodulekeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
 	"github.com/st-chain/me-hub/x/rollapp/transfergenesis"
@@ -134,6 +139,10 @@ type AppKeepers struct {
 	// Ethermint keepers
 	EvmKeeper       *evmkeeper.Keeper
 	FeeMarketKeeper feemarketkeeper.Keeper
+
+	// did keeper
+	DidKeeper *didkeeper.Keeper
+	KycKeeper *kyckeeper.Keeper
 
 	// Osmosis keepers
 	GAMMKeeper        *gammkeeper.Keeper
@@ -281,15 +290,12 @@ func (a *AppKeepers) InitKeepers(
 
 	a.StakingKeeper.WMintKeeper = a.MintKeeper
 
-	//FIXME: distribution
 	a.DistrKeeper = wdistrkeeper.NewKeeper(
 		appCodec,
 		a.keys[wdistrtypes.StoreKey],
-		a.keys[wdistrtypes.MemStoreKey],
 		a.GetSubspace(wdistrtypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
-		//FIXME: use wstakingKeeper instead mock
 		a.StakingKeeper,
 		wbanktypes.TreasuryPoolName,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
@@ -321,19 +327,20 @@ func (a *AppKeepers) InitKeepers(
 
 	// Create evmos keeper
 	a.EvmKeeper = evmkeeper.NewKeeper(
-		appCodec,
-		a.keys[evmtypes.StoreKey],
-		a.tkeys[evmtypes.TransientKey],
-		authtypes.NewModuleAddress(govtypes.ModuleName),
-		a.AccountKeeper,
-		a.BankKeeper,
-		a.StakingKeeper,
-		a.FeeMarketKeeper,
-		nil,
-		geth.NewEVM,
-		tracer,
-		a.GetSubspace(evmtypes.ModuleName),
-	)
+		ethermintevmkeeper.NewKeeper(
+			appCodec,
+			a.keys[evmtypes.StoreKey],
+			a.tkeys[evmtypes.TransientKey],
+			authtypes.NewModuleAddress(govtypes.ModuleName),
+			a.AccountKeeper,
+			a.BankKeeper,
+			a.StakingKeeper,
+			a.FeeMarketKeeper,
+			nil,
+			geth.NewEVM,
+			tracer,
+			a.GetSubspace(evmtypes.ModuleName),
+		))
 
 	// Osmosis keepers
 
@@ -492,6 +499,21 @@ func (a *AppKeepers) InitKeepers(
 		wasmOpts...,
 	)
 
+	// Create did Keepers
+	a.DidKeeper = didkeeper.NewKeeper(
+		appCodec,
+		a.keys[didtypes.StoreKey],
+		a.DaoKeeper,
+	)
+
+	a.KycKeeper = kyckeeper.NewKeeper(
+		appCodec,
+		a.keys[kyctypes.StoreKey],
+		a.StakingKeeper,
+		a.DidKeeper,
+		a.NFTKeeper,
+	)
+
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
 
 	// Register the proposal types
@@ -506,7 +528,7 @@ func (a *AppKeepers) InitKeepers(
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(a.StreamerKeeper)).
 		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(a.RollappKeeper)).
 		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(a.DenomMetadataKeeper)).
-		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(a.EvmKeeper))
+		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(a.EvmKeeper.Keeper))
 
 	// Create evidence Keeper for to register the IBC light client misbehaviour evidence route
 	// If evidence needs to be handled for the app, set routes in router here and seal
@@ -582,7 +604,7 @@ func (a *AppKeepers) SetupHooks() {
 
 	a.DenomMetadataKeeper.SetHooks(
 		denommetadatamoduletypes.NewMultiDenomMetadataHooks(
-			vfchooks.NewVirtualFrontierBankContractRegistrationHook(*a.EvmKeeper),
+			vfchooks.NewVirtualFrontierBankContractRegistrationHook(*a.EvmKeeper.Keeper),
 		),
 	)
 
@@ -671,6 +693,10 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	// ethermint subspaces
 	paramsKeeper.Subspace(evmtypes.ModuleName)
 	paramsKeeper.Subspace(feemarkettypes.ModuleName)
+
+	// did subspace
+	paramsKeeper.Subspace(didtypes.ModuleName)
+	paramsKeeper.Subspace(kyctypes.ModuleName)
 
 	// osmosis subspaces
 	paramsKeeper.Subspace(lockuptypes.ModuleName)

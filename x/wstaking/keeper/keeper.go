@@ -14,15 +14,14 @@ import (
 
 type Keeper struct {
 	*stakingkeeper.Keeper
-	cdc         codec.BinaryCodec
-	storeKey    storetypes.StoreKey
-	AuthKeeper  banktypes.AccountKeeper
-	BankKeeper  types.BankKeeper
-	DaoKeeper   types.DaoKeeper
-	WMintKeeper wmintkeeper.Keeper
-	nftKeeper  types.NFTKeeper
-  wstakingHooks types.WstakingHooks
-
+	cdc           codec.BinaryCodec
+	storeKey      storetypes.StoreKey
+	AuthKeeper    banktypes.AccountKeeper
+	BankKeeper    types.BankKeeper
+	DaoKeeper     types.DaoKeeper
+	WMintKeeper   wmintkeeper.Keeper
+	nftKeeper     types.NFTKeeper
+	wstakingHooks types.WstakingHooks
 }
 
 func NewKeeper(
@@ -60,4 +59,12 @@ func (k Keeper) GetProposerOwnerAddress(ctx sdk.Context) (string, error) {
 		return "", sdkerrors.Wrapf(types.ErrParameter, "proposer not found")
 	}
 	return validator.OwnerAddress, nil
+}
+
+func (k Keeper) GetStoreKey() storetypes.StoreKey {
+	return k.storeKey
+}
+
+func (k Keeper) GetCdc() codec.BinaryCodec {
+	return k.cdc
 }

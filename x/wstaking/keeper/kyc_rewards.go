@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"context"
 	"cosmossdk.io/math"
 	"errors"
 	"fmt"
@@ -14,13 +13,13 @@ import (
 )
 
 func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, regionId, creator string) error {
+	if regionId == strings.ToLower(types.ExperienceRegion) {
+		return sdkerrors.Wrapf(types.ErrTransferRegion, fmt.Sprintf("cannot transfer to %s", regionId))
+	}
+
 	region, found := k.GetRegion(ctx, regionId)
 	if !found {
 		return types.ErrRegionNotExist
-	}
-
-	if regionId == strings.ToLower(types.ExperienceRegion) {
-		return sdkerrors.Wrapf(types.ErrTransferRegion, fmt.Sprintf("cannot transfer to %s", regionId))
 	}
 
 	valAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
@@ -32,14 +31,13 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 		return types.ErrRegionValidatorNotExist
 	}
 
-	bonus := sdk.NewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
-	if validator.MeidAmount.Add(bonus.RoundInt()).GT(validator.Tokens) {
+	if validator.MeidAmount.Add(types.Bonus).GT(validator.Tokens) {
 		return sdkerrors.Wrapf(types.ErrMeidNew, fmt.Sprintf("meid bonded validator can not hold this meid user, reach meid limit"))
 	}
 
-	validator.MeidAmount = validator.MeidAmount.Add(bonus.RoundInt())
+	validator.MeidAmount = validator.MeidAmount.Add(types.Bonus)
 
-	err = k.RegisterKyc(ctx, account, bonus.RoundInt(), valAddr, inviteAddr, validator, region)
+	err = k.SendKycRewards(ctx, account, valAddr, inviteAddr, validator, region)
 	if err != nil {
 		return sdkerrors.Wrapf(types.ErrMeidNew, err.Error())
 	}
@@ -52,33 +50,30 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 		RewardType: types.MeidJoinGroupNoReward,
 	}
 	k.SetMeid(ctx, meid)
+
 	//validator rewards
 	ownerAddress := validator.OwnerAddress
 	if len(validator.OwnerAddress) <= 0 {
 		ownerAddress = k.DaoKeeper.GetDevOperator(ctx)
 	}
-	ownerAddr, _ := sdk.AccAddressFromBech32(ownerAddress)
-	inviteReward := sdk.NewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit)).Quo(sdk.NewDec(10)).RoundInt()
-	rewards := sdk.NewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit)).Quo(sdk.NewDec(100)).RoundInt()
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeMeidNew,
 			sdk.NewAttribute(types.AttributeKeyAccount, meid.Account),
 			sdk.NewAttribute(types.AttributeKeyRegionId, meid.RegionId),
 			sdk.NewAttribute(types.AttributeKeyCreator, meid.Creator),
 			sdk.NewAttribute(types.AttributeKeyMeidInviteAddress, inviteAddr),
-			sdk.NewAttribute(types.AttributeKeyMeidInviteReward, inviteReward.String()+params.BaseDenom),
+			sdk.NewAttribute(types.AttributeKeyMeidInviteReward, types.InviteReward.String()+params.BaseDenom),
 			sdk.NewAttribute(types.AttributeKeySendMeidInviteAddress, region.RegionTreasureAddr),
 			sdk.NewAttribute(types.AttributeKeyReceiveMeidInviteAddress_Society, k.DaoKeeper.GetDevOperator(ctx)),
-			sdk.NewAttribute(types.AttributeKeyReceiveMeidInviteAddress_Node, ownerAddr.String()),
-			sdk.NewAttribute(types.AttributeKeyMeidNumAddReward, rewards.String()+params.BaseDenom),
+			sdk.NewAttribute(types.AttributeKeyReceiveMeidInviteAddress_Node, ownerAddress),
+			sdk.NewAttribute(types.AttributeKeyMeidNumAddReward, types.ValidatorReward.String()+params.BaseDenom),
 		),
 	)
 	return nil
 }
 
-func (k Keeper) RemoveKycReward(goCtx context.Context, account sdk.AccAddress) error {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
+func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress) error {
 	meid, found := k.GetMeid(ctx, account.String())
 	if !found {
 		return types.ErrMeidNotExists
@@ -99,28 +94,20 @@ func (k Keeper) RemoveKycReward(goCtx context.Context, account sdk.AccAddress) e
 		return sdkerrors.Wrapf(types.ErrMeidNew, fmt.Sprintf("meid region bonded validator no found"))
 	}
 
-	_, err = k.UnRegisterMeid(ctx, account, valAddr, region, stakingtypes.Delegation{})
+	_, err = k.removeKycReward(ctx, account, valAddr, region, stakingtypes.Delegation{})
 	if err != nil {
 		return sdkerrors.Wrapf(types.ErrMeidNew, fmt.Sprintf("unregister meid airdop failed"))
 	}
 
-	bonus := sdk.NewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
-	validator.MeidAmount = validator.MeidAmount.Sub(bonus.RoundInt())
+	validator.MeidAmount = validator.MeidAmount.Sub(types.Bonus)
 	k.SetValidator(ctx, validator)
-
 	k.RemoveMeid(ctx, meid.Account, region.RegionId)
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(types.EventTypeMeidRemove,
-			sdk.NewAttribute(types.AttributeKeyAccount, meid.Account),
-			sdk.NewAttribute(types.AttributeKeyRegionId, meid.RegionId),
-			sdk.NewAttribute(types.AttributeKeyCreator, meid.Creator),
-		),
-	)
 	return nil
 }
 
-func (k Keeper) RegisterKyc(ctx sdk.Context, delAddr sdk.AccAddress, bondAmt math.Int,
+func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
 	validatorAddr sdk.ValAddress, inviteAddr string, validator stakingtypes.Validator, region types.Region) (err error) {
+
 	experienceRegion, hasRegion := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegion))
 	if !hasRegion {
 		return types.ErrExpRegionNotExist
@@ -132,32 +119,26 @@ func (k Keeper) RegisterKyc(ctx sdk.Context, delAddr sdk.AccAddress, bondAmt mat
 	}
 
 	delegation, found := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
-	if !found {
-		delegation = stakingtypes.NewDelegation(delAddr, validatorAddr, sdk.ZeroDec())
-	}
-
-	if delegation.Unmovable.GT(sdk.ZeroInt()) {
-		return types.ErrMeidExists
-	}
-
-	// call the appropriate hook if present
 	if found {
-		rewards, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
+		if delegation.Unmovable.GT(sdk.ZeroInt()) {
+			return types.ErrMeidExists
+		}
+		interest, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
 		if err != nil {
 			return types.ErrCalculateInterest.Wrap(err.Error())
 		}
 
 		// add coins to user account
-		if rewards.GT(sdk.ZeroDec()) {
+		if interest.GT(sdk.ZeroDec()) {
 			err = k.BankKeeper.SendCoins(ctx,
 				sdk.MustAccAddressFromBech32(region.RegionTreasureAddr),
 				sdk.MustAccAddressFromBech32(delegation.DelegatorAddress),
-				sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())))
+				sdk.NewCoins(sdk.NewCoin(params.BaseDenom, interest.TruncateInt())))
 			if err != nil {
 				return err
 			}
-			if experienceRegion.DelegateInterest.GTE(rewards) {
-				experienceRegion.DelegateInterest = experienceRegion.DelegateInterest.Sub(rewards)
+			if experienceRegion.DelegateInterest.GTE(interest) {
+				experienceRegion.DelegateInterest = experienceRegion.DelegateInterest.Sub(interest)
 			}
 			experienceRegion.DelegateAmount = experienceRegion.DelegateAmount.Sub(delegation.UnMeidAmount)
 			k.SetRegion(ctx, experienceRegion)
@@ -179,13 +160,15 @@ func (k Keeper) RegisterKyc(ctx sdk.Context, delAddr sdk.AccAddress, bondAmt mat
 				sdk.NewAttribute(types.AttributeKeyRegionTreasure, experienceRegion.RegionTreasureAddr),
 				sdk.NewAttribute(types.AttributeKeyRegionId, experienceRegion.RegionId),
 				sdk.NewAttribute(types.AttributeKeyAmountDelegateInterest, experienceRegion.DelegateInterest.String()+params.BaseDenom),
-				sdk.NewAttribute(types.AttributeKeyPersonalDelegateInterest, rewards.TruncateInt().String()+params.BaseDenom),
+				sdk.NewAttribute(types.AttributeKeyPersonalDelegateInterest, interest.TruncateInt().String()+params.BaseDenom),
 			),
 		})
+	} else {
+		delegation = stakingtypes.NewDelegation(delAddr, validatorAddr, sdk.ZeroDec())
 	}
 
 	// Update delegation
-	delegation.Unmovable = bondAmt //delegation.Unmovable.Add(bondAmt)
+	delegation.Unmovable = types.Bonus //delegation.Unmovable.Add(bondAmt)
 	delegation.StartHeight = ctx.BlockHeight()
 	delegation.ValidatorAddress = validatorAddr.String()
 	treasureAddr := k.GetRegionAccount(ctx, types.RegionAccountTypeBase, region.RegionId)
@@ -194,33 +177,30 @@ func (k Keeper) RegisterKyc(ctx sdk.Context, delAddr sdk.AccAddress, bondAmt mat
 		if err != nil {
 			return err
 		}
-		inviteReward := sdk.NewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit)).Quo(sdk.NewDec(10)).RoundInt()
-		err = k.BankKeeper.SendCoins(ctx, treasureAddr.GetAddress(), addr, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, inviteReward)))
+		err = k.BankKeeper.SendCoins(ctx, treasureAddr.GetAddress(), addr, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.InviteReward)))
 		if err != nil {
 			return err
 		}
 	}
 
-	rewards := sdk.NewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit)).Quo(sdk.NewDec(100)).RoundInt()
-	//validator rewards
-	if len(validator.OwnerAddress) <= 0 {
-		validator.OwnerAddress = k.DaoKeeper.GetDevOperator(ctx)
+	// validator rewards
+	ownerAddress := validator.OwnerAddress
+	if len(ownerAddress) == 0 {
+		ownerAddress = k.DaoKeeper.GetDevOperator(ctx)
 	}
-
-	ownerAddr, err := sdk.AccAddressFromBech32(validator.OwnerAddress)
-	if err != nil {
-		return err
-	}
-
-	err = k.BankKeeper.SendCoins(ctx, treasureAddr.GetAddress(), ownerAddr, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards)))
+	err = k.BankKeeper.SendCoins(ctx,
+		treasureAddr.GetAddress(),
+		sdk.MustAccAddressFromBech32(ownerAddress),
+		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.ValidatorReward)))
 	if err != nil {
 		return err
 	}
 
 	//committee rewards
-	err = k.BankKeeper.SendCoins(ctx, treasureAddr.GetAddress(),
+	err = k.BankKeeper.SendCoins(ctx,
+		treasureAddr.GetAddress(),
 		sdk.MustAccAddressFromBech32(k.DaoKeeper.GetDevOperator(ctx)),
-		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards)))
+		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.CommitteeReward)))
 	if err != nil {
 		return err
 	}
@@ -229,8 +209,7 @@ func (k Keeper) RegisterKyc(ctx sdk.Context, delAddr sdk.AccAddress, bondAmt mat
 	delegation.UnMeidAmount = sdk.ZeroInt()
 	k.SetDelegation(ctx, delegation)
 
-	bonus := sdk.NewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
-	region.DelegateAmount = region.DelegateAmount.Add(delegation.Amount).Add(bonus.RoundInt())
+	region.DelegateAmount = region.DelegateAmount.Add(delegation.Amount).Add(types.Bonus)
 	k.SetRegion(ctx, region)
 
 	validator.DelegationAmount = validator.DelegationAmount.Add(delegation.Amount)
@@ -238,7 +217,7 @@ func (k Keeper) RegisterKyc(ctx sdk.Context, delAddr sdk.AccAddress, bondAmt mat
 	return nil
 }
 
-func (k Keeper) UnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, region types.Region, delegation stakingtypes.Delegation) (amount math.Int, err error) {
+func (k Keeper) removeKycReward(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, region types.Region, delegation stakingtypes.Delegation) (amount math.Int, err error) {
 	if delegation == (stakingtypes.Delegation{}) {
 		var found bool
 		// check if a delegation object exists in the store
@@ -248,37 +227,39 @@ func (k Keeper) UnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, valAddr 
 		}
 	}
 
-	bonus := sdk.NewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
-	region.DelegateAmount = region.DelegateAmount.Sub(bonus.RoundInt())
+	region.DelegateAmount = region.DelegateAmount.Sub(types.Bonus)
 	if region.DelegateAmount.LT(sdk.ZeroInt()) {
 		return amount, errors.New("UnRegisterMeid err: region DelegationAmount < 0")
 	}
+
 	rewards, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
 	if err != nil {
 		return amount, types.ErrCalculateInterest.Wrap(err.Error())
 	}
+
 	regionTreasureAddr, err := sdk.AccAddressFromBech32(region.RegionTreasureAddr)
 	if err != nil {
 		return amount, err
 	}
+
 	err = k.BankKeeper.SendCoins(ctx, regionTreasureAddr, delAddr, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())))
 	if err != nil {
 		return amount, err
 	}
+
 	if region.DelegateInterest.GTE(rewards) {
 		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
 	}
+
 	if delegation.Unmovable.LTE(sdk.ZeroInt()) {
 		return amount, types.ErrMeidExists
 	}
+
 	delegation.Unmovable = sdk.ZeroInt()
 	delegation.StartHeight = ctx.BlockHeight()
-	valaddrStr := k.AuthKeeper.GetModuleAccount(ctx, stakingtypes.NotBondedPoolName).GetAddress().String()
-	valStr, err := sdk.Bech32ifyAddressBytes(sdk.GetConfig().GetBech32ValidatorAddrPrefix(), []byte(valaddrStr))
-	if err != nil {
-		return amount, err
-	}
-	delegation.ValidatorAddress = valStr
+
+	experienceRegion, _ := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegion))
+	delegation.ValidatorAddress = experienceRegion.OperatorAddress
 	if delegation.Amount.IsZero() && delegation.UnMeidAmount.IsZero() {
 		err = k.RemoveDelegation(ctx, delegation)
 		if err != nil {
@@ -296,7 +277,6 @@ func (k Keeper) UnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, valAddr 
 			sdk.NewAttribute(sdk.AttributeKeySender, region.RegionTreasureAddr),
 			sdk.NewAttribute(types.AttributeKeyReceiver, delAddr.String()),
 			sdk.NewAttribute(types.AttributeKeyPersonalDelegateInterest, rewards.String()+params.BaseDenom),
-			sdk.NewAttribute(types.AttributeKeyExecTime, ctx.BlockTime().String()),
 		),
 	})
 	return amount, nil

@@ -80,11 +80,7 @@ func (k MsgServer) CreateValidator(
 			)
 		}
 	}
-	//before update Validator ,should distribution block reward
-	err = k.WstakingHooks().BeforeValidatorStakingModified(ctx, valAddr)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrHooks, "before create validator :error :%+v", err)
-	}
+
 	validator, err := stakingtypes.NewValidator(valAddr, pk, msg.Description)
 	if err != nil {
 		return nil, err
@@ -165,11 +161,6 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 	validator.Description.SecurityContact = description.SecurityContact
 	validator.Description.Website = description.Website
 	validator.Description.RegionId = description.RegionId
-	//before update Validator ,should distribution block reward
-	err = k.WstakingHooks().BeforeValidatorStakingModified(ctx, valAddr)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrHooks, "before edit validator :error :%+v", err)
-	}
 
 	if msg.CommissionRate != nil {
 		commission, err := k.UpdateValidatorCommission(ctx, validator, *msg.CommissionRate)

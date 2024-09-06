@@ -66,6 +66,10 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	"github.com/st-chain/me-hub/x/dao"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
+	did "github.com/st-chain/me-hub/x/did"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
+	kyc "github.com/st-chain/me-hub/x/kyc"
+	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	"github.com/st-chain/me-hub/x/wbank"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
@@ -92,6 +96,7 @@ import (
 	denommetadatamoduletypes "github.com/st-chain/me-hub/x/denommetadata/types"
 	"github.com/st-chain/me-hub/x/eibc"
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
+	meevm "github.com/st-chain/me-hub/x/evm"
 	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	"github.com/st-chain/me-hub/x/rollapp"
 
@@ -155,6 +160,10 @@ var ModuleBasics = module.NewBasicManager(
 	evm.AppModuleBasic{},
 	feemarket.AppModuleBasic{},
 
+	// did modules
+	did.AppModuleBasic{},
+	kyc.AppModuleBasic{},
+
 	// Osmosis modules
 	lockup.AppModuleBasic{},
 	epochs.AppModuleBasic{},
@@ -205,8 +214,12 @@ func (a *AppKeepers) SetupModules(
 		eibcmodule.NewAppModule(appCodec, a.EIBCKeeper, a.AccountKeeper, a.BankKeeper),
 
 		// Ethermint app modules
-		evm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
+		meevm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName)),
 		feemarket.NewAppModule(a.FeeMarketKeeper, a.GetSubspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())),
+
+		// did app modules
+		did.NewAppModule(appCodec, a.DidKeeper),
+		kyc.NewAppModule(appCodec, a.KycKeeper),
 
 		// osmosis modules
 		lockup.NewAppModule(*a.LockupKeeper, a.AccountKeeper, a.BankKeeper),
@@ -296,6 +309,8 @@ var BeginBlockers = []string{
 	consensusparamtypes.ModuleName,
 	daotypes.ModuleName,
 	wasmtypes.ModuleName,
+	didtypes.ModuleName,
+	kyctypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -335,6 +350,8 @@ var EndBlockers = []string{
 	consensusparamtypes.ModuleName,
 	daotypes.ModuleName,
 	wasmtypes.ModuleName,
+	didtypes.ModuleName,
+	kyctypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -374,4 +391,6 @@ var InitGenesis = []string{
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	wasmtypes.ModuleName,
+	didtypes.ModuleName,
+	kyctypes.ModuleName,
 }

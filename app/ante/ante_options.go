@@ -4,11 +4,11 @@ import (
 	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
+	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
 
 	errorsmod "cosmossdk.io/errors"
 	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -17,7 +17,7 @@ import (
 
 type HandlerOptions struct {
 	AccountKeeper          *authkeeper.AccountKeeper
-	BankKeeper             bankkeeper.Keeper
+	BankKeeper             wbankkeeper.BaseKeeperWrapper
 	IBCKeeper              *ibckeeper.Keeper
 	FeeMarketKeeper        ethante.FeeMarketKeeper
 	EvmKeeper              ethante.EVMKeeper
@@ -38,9 +38,9 @@ func (options HandlerOptions) validate() error {
 	if options.AccountKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "account keeper is required for AnteHandler")
 	}
-	if options.BankKeeper == nil {
-		return errorsmod.Wrap(errortypes.ErrLogic, "bank keeper is required for AnteHandler")
-	}
+	//if options.BankKeeper == nil {
+	//	return errorsmod.Wrap(errortypes.ErrLogic, "bank keeper is required for AnteHandler")
+	//}
 	if options.SignModeHandler == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "sign mode handler is required for ante builder")
 	}

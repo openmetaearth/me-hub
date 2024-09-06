@@ -10,9 +10,6 @@ const (
 	// RouterKey defines the module's message routing key
 	RouterKey = ModuleName
 
-	// MemStoreKey defines the in-memory store key
-	MemStoreKey = "mem_distribution"
-
 	ReceiveMintReward = "temp-" + ModuleName
 )
 

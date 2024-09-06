@@ -83,6 +83,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	//deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 	deductFeeDecorator := NewDeductFeeDecorator(
 		options.AccountKeeper,
+		options.BankKeeper,
 		options.FeegrantKeeper,
 		options.DaoKeeper,
 		options.StakingKeeper,
