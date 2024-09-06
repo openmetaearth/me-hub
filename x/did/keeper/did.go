@@ -50,6 +50,20 @@ func (k Keeper) GetDidInfo(ctx sdk.Context, did string) (info types.DidInfo, fou
 	return info, true
 }
 
+func (k Keeper) GetDidInfos(ctx sdk.Context) (infos []types.DidInfo) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.DidInfoPrefix)
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var info types.DidInfo
+		k.cdc.MustUnmarshal(iterator.Value(), &info)
+		infos = append(infos, info)
+	}
+
+	return infos
+}
+
 func (k Keeper) SetDidInfo(ctx sdk.Context, did string, info types.DidInfo) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetDidInfoKey(did), k.cdc.MustMarshal(&info))
@@ -95,7 +109,7 @@ func (k Keeper) DeleteDidDocument(ctx sdk.Context, did string) {
 	k.DeleteDidInfo(ctx, did)
 
 	// delete all credentials
-	iter := sdk.KVStorePrefixIterator(store, types.GetCredentialIteratorKey(did))
+	iter := sdk.KVStorePrefixIterator(store, types.GetCredentialPrefixByDid(did))
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		store.Delete(iter.Key())
