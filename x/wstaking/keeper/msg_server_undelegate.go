@@ -76,6 +76,18 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrWithdrawDelegateReward, err.Error())
 	}
+	//if region.DelegateInterest.GTE(rewards) {
+	//	region.DelegateInterest = region.DelegateInterest.Sub(rewards)
+	//} else {
+	//	return nil, errors.New(fmt.Sprintf("undelegate err,region(%s) total interest not enough.need pay %s,only have %s",
+	//		region.RegionId, rewards.String(), region.DelegateInterest.String()))
+	//}
+
+	//TODO: send rewards in staking module
+	//err = k.bankKeeper.SendCoins(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(sdk.BaseMEDenom, rewards.TruncateInt())))
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	if msg.IsMeid {
 		if delegation.Amount.LT(msg.Amount.Amount) {

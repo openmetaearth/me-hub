@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"cosmossdk.io/math"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
+	"strings"
 	"time"
 )
 
@@ -192,73 +194,130 @@ func (k Keeper) Delegate(
 	delegation, found := k.GetDelegation(ctx, delAddr, validator.GetOperator())
 	if !found {
 		delegation = stakingtypes.NewDelegation(delAddr, validator.GetOperator(), math.LegacyZeroDec())
+		delegation.Amount = sdk.ZeroInt()
 	}
 
 	// call the appropriate hook if present
 	if found {
 		_, err = k.WithdrawDelegationRewards(ctx, delAddr, validator.GetOperator())
-		//err = k.Hooks().BeforeDelegationSharesModified(ctx, delAddr, validator.GetOperator())
-	} else {
-		//err = k.Hooks().BeforeDelegationCreated(ctx, delAddr, validator.GetOperator())
 	}
-
 	if err != nil {
 		return math.LegacyZeroDec(), err
 	}
-
 	delegatorAddress := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
-
-	// if subtractAccount is true then we are
-	// performing a delegation and not a redelegation, thus the source tokens are
-	// all non bonded
-	if subtractAccount {
-		if tokenSrc == stakingtypes.Bonded {
-			panic("delegation token source cannot be bonded")
-		}
-
-		var sendName string
-
-		switch {
-		case validator.IsBonded():
-			sendName = types.BondedPoolName
-		case validator.IsUnbonding(), validator.IsUnbonded():
-			sendName = types.NotBondedPoolName
-		default:
-			panic("invalid validator status")
-		}
-
-		coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), bondAmt))
-		if err = k.BankKeeper.DelegateCoinsFromAccountToModule(ctx, delegatorAddress, sendName, coins); err != nil {
-			return sdk.Dec{}, err
-		}
-	} else {
-		//// potentially transfer tokens between pools, if
-		//switch {
-		//case tokenSrc == stakingtypes.Bonded && validator.IsBonded():
-		//	// do nothing
-		//case (tokenSrc == stakingtypes.Unbonded || tokenSrc == stakingtypes.Unbonding) && !validator.IsBonded():
-		//	// do nothing
-		//case (tokenSrc == stakingtypes.Unbonded || tokenSrc == stakingtypes.Unbonding) && validator.IsBonded():
-		//	// transfer pools
-		//	k.notBondedTokensToBonded(ctx, bondAmt)
-		//case tokenSrc == stakingtypes.Bonded && !validator.IsBonded():
-		//	// transfer pools
-		//	k.bondedTokensToNotBonded(ctx, bondAmt)
-		//default:
-		//	panic("unknown token source bond status")
-		//}
+	if tokenSrc == stakingtypes.Bonded {
+		panic("delegation token source cannot be bonded")
 	}
 
-	_, newShares = k.AddValidatorTokensAndShares(ctx, validator, bondAmt)
+	var sendName string
 
+	switch {
+	case validator.IsBonded():
+		sendName = types.BondedPoolName
+	case validator.IsUnbonding(), validator.IsUnbonded():
+		sendName = types.NotBondedPoolName
+	default:
+		panic("invalid validator status")
+	}
+
+	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), bondAmt))
+	if err = k.BankKeeper.DelegateCoinsFromAccountToModule(ctx, delegatorAddress, sendName, coins); err != nil {
+		return sdk.Dec{}, err
+	}
+	_, newShares = k.AddValidatorTokensAndShares(ctx, validator, bondAmt)
 	// Update delegation
+	delegation.Amount = delegation.Amount.Add(bondAmt)
+	delegation.StartHeight = ctx.BlockHeight()
 	delegation.Shares = delegation.Shares.Add(newShares)
 	k.SetDelegation(ctx, delegation)
 
-	// Call the after-modification hook
-	//if err = k.Hooks().AfterDelegationModified(ctx, delegatorAddress, delegation.GetValidatorAddr()); err != nil {
-	//	return newShares, err
-	//}
-
 	return newShares, nil
+}
+
+// WithdrawDelegationRewards withdraw rewards from a delegation
+func (k Keeper) WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error) {
+	meid, isMeid := k.GetMeid(ctx, delAddr.String())
+	regionID := strings.ToLower(types.ExperienceRegion)
+	if isMeid {
+		regionID = meid.RegionId
+	}
+	region, hasRegion := k.GetRegion(ctx, regionID)
+	if !hasRegion {
+		return nil, fmt.Errorf("%s region not exist", regionID)
+	}
+	rewards, err := k.internalWithdrawDelegationRewards(ctx, delAddr, region)
+	if err != nil {
+		return nil, err
+	}
+	if rewards.IsZero() {
+		baseDenom, _ := sdk.GetBaseDenom()
+		rewards = sdk.Coins{sdk.Coin{
+			Denom:  baseDenom,
+			Amount: sdk.ZeroInt(),
+		}}
+	}
+	return rewards, nil
+}
+
+func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, region types.Region) (sdk.Coins, error) {
+	valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
+	if valErr != nil {
+		k.Logger(ctx).Error("internalWithdrawDelegationRewards err=", valErr.Error())
+		return nil, valErr
+	}
+	del := k.Delegation(ctx, delAddr, valAddr)
+	if del == nil {
+		return nil, types.ErrEmptyDelegationDistInfo
+	}
+
+	delegation, isOK := del.(stakingtypes.Delegation)
+	if !isOK {
+		panic("withdrawDelegationRewards err:type Delegation assertion failed")
+		return nil, types.ErrAssertionFailed
+	}
+
+	rewards, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
+	if err != nil {
+		return nil, types.ErrCalculateInterest.Wrap(err.Error())
+	}
+	if region.DelegateInterest.GTE(rewards) {
+		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
+	} else {
+		return nil, types.ErrCalculateInterest.Wrap(fmt.Sprintf("distribution reward.region(%s) total interest not enough.need pay %s,only have %s",
+			region.RegionId, rewards.String(), region.DelegateInterest.String()))
+	}
+	// truncate reward dec coins, return remainder to community pool
+	//finalRewards, remainder := rewards.TruncateDecimal()
+	coin := sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())
+	coins := sdk.NewCoins(coin)
+	// add coins to user account
+	if !coin.Amount.IsZero() {
+		err = k.BankKeeper.SendCoins(ctx, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), del.GetDelegatorAddr(), coins)
+		if err != nil {
+			return nil, err
+		}
+		delegation.StartHeight = ctx.BlockHeight()
+		k.SetDelegation(ctx, delegation)
+		k.SetRegion(ctx, region)
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeWithdrawDelegatorReward,
+			sdk.NewAttribute(types.AttributeKeyValidator, region.OperatorAddress),
+			sdk.NewAttribute(types.AttributeKeyDelegator, delAddr.String()),
+			sdk.NewAttribute(types.AttributeKeyRegionTreasuryAddress, region.RegionTreasureAddr),
+			sdk.NewAttribute(types.AttributeKeyRegionId, region.RegionId),
+			sdk.NewAttribute(types.AttributeKeyAmountDelegateInterest, region.DelegateInterest.String()+params.BaseDenom),
+			sdk.NewAttribute(types.AttributeKeyPersonalDelegateInterest, rewards.TruncateInt().String()+params.BaseDenom),
+		),
+	})
+	return coins, nil
+}
+
+func NewDelegationResp_new(del stakingtypes.Delegation, balance sdk.Coin) stakingtypes.DelegationResponse {
+	return stakingtypes.DelegationResponse{
+		Delegation: del,
+		Balance:    balance,
+	}
 }

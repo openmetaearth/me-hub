@@ -6,6 +6,7 @@ import (
 	"github.com/st-chain/me-hub/app/params"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -63,7 +64,20 @@ func (k Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationR
 	if err != nil {
 		return nil, err
 	}
-	del := k.Delegation(ctx, delAdr, sdk.ValAddress{})
+	regionID := strings.ToLower(types.ExperienceRegion)
+	meid, found := k.GetMeid(ctx, req.DelegatorAddress)
+	if found {
+		regionID = meid.RegionId
+	}
+	region, isFound := k.GetRegion(ctx, regionID)
+	if !isFound {
+		return nil, types.ErrRegionNotExist.Wrapf("region not found=%s", regionID)
+	}
+	valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
+	if valErr != nil {
+		return nil, valErr
+	}
+	del := k.Delegation(ctx, delAdr, valAddr)
 	if del == nil {
 		return nil, status.Error(codes.NotFound, "delegator not found, address="+delAdr.String())
 	}
@@ -81,4 +95,62 @@ func (k Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationR
 	return &types.QueryDelegationRewardsResponse{Rewards: rewards}, nil
 	//return &types.QueryDelegationRewardsResponse{Rewards: sdk.NewDecCoinsFromCoins(sdk.NewCoin(sdk.BaseMEDenom, interest.TruncateInt()))}, nil
 
+}
+
+// Delegation queries delegate info for given validator delegator pair
+func (k Querier) Delegation(c context.Context, req *stakingtypes.QueryDelegationRequest) (*stakingtypes.QueryDelegationResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if req.DelegatorAddr == "" {
+		return nil, status.Error(codes.InvalidArgument, "delegator address cannot be empty")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	delAddr, err := sdk.AccAddressFromBech32(req.DelegatorAddr)
+	if err != nil {
+		return nil, err
+	}
+	regionID := strings.ToLower(types.ExperienceRegion)
+	meid, found := k.GetMeid(ctx, req.DelegatorAddr)
+	if found {
+		regionID = meid.RegionId
+	}
+	region, isFound := k.GetRegion(ctx, regionID)
+	if !isFound {
+		return nil, types.ErrRegionNotExist.Wrapf("region not found=%s", regionID)
+	}
+	valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
+	if valErr != nil {
+		return nil, valErr
+	}
+	delegation, found := k.GetDelegation(ctx, delAddr, valAddr)
+	if !found {
+		return nil, status.Errorf(
+			codes.NotFound,
+			"delegation with delegator %s not found for validator",
+			req.DelegatorAddr)
+	}
+
+	delResponse, err := DelegationToDelegationResponse(ctx, k.Keeper, delegation)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &stakingtypes.QueryDelegationResponse{DelegationResponse: &delResponse}, nil
+}
+func DelegationToDelegationResponse(ctx sdk.Context, k *Keeper, del stakingtypes.Delegation) (stakingtypes.DelegationResponse, error) {
+	if del.Unmovable.GT(sdk.ZeroInt()) {
+		_, found := k.GetValidator(ctx, del.GetValidatorAddr())
+		if !found {
+			return stakingtypes.DelegationResponse{}, stakingtypes.ErrNoValidatorFound
+		}
+	}
+
+	_, err := sdk.AccAddressFromBech32(del.DelegatorAddress)
+	if err != nil {
+		return stakingtypes.DelegationResponse{}, err
+	}
+	amount := del.Amount.Add(del.UnMeidAmount).Add(del.Unmovable)
+	return NewDelegationResp_new(del, sdk.NewCoin(k.BondDenom(ctx), amount)), nil
 }

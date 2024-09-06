@@ -10,6 +10,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
+	"math/big"
 )
 
 type Keeper struct {
@@ -67,4 +68,8 @@ func (k Keeper) GetStoreKey() storetypes.StoreKey {
 
 func (k Keeper) GetCdc() codec.BinaryCodec {
 	return k.cdc
+}
+
+func (k Keeper) GetPerBlockMintCoinAmount(ctx sdk.Context) (amount big.Int) {
+	return k.WMintKeeper.GetPerBlockMintCoinAmount(ctx)
 }
