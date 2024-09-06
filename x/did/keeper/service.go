@@ -31,6 +31,7 @@ func (k Keeper) GetServices(ctx sdk.Context) (svcs []types.Service) {
 }
 
 func (k Keeper) SetService(ctx sdk.Context, sid string, svc types.Service) {
+	k.Logger(ctx).Debug("call SetService", "sid", sid, "service", svc)
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetServiceKey(sid), k.cdc.MustMarshal(&svc))
 }
