@@ -94,15 +94,15 @@ ______   __   __  __   __  _______  __    _  _______  ___   _______  __    _    
 			if err != nil {
 				return err
 			}
-			defaultLogger, _ := cmd.Flags().GetBool("not_me_hub_logger")
-			if os.Getenv("DISABLE_MEHUB_LOGGER") != "true" && !defaultLogger {
+			enableMeLogger, _ := cmd.Flags().GetBool("enable_me_hub_logger")
+			if os.Getenv("ENABLE_MEHUB_LOGGER") != "" || enableMeLogger {
 				ctx := server.GetServerContextFromCmd(cmd)
 				ctx.Logger = logger.NewLogger("me-hub").WithEnvLevelOr("info").WithStacktrace(ipfslog.LevelError)
 			}
 			return nil
 		},
 	}
-	rootCmd.PersistentFlags().Bool("not_me_hub_logger", false, "disable me-hub logger and use cosmos lib logger")
+	rootCmd.PersistentFlags().Bool("enable_me_hub_logger", false, "use me-hub logger instead of cosmos lib logger")
 	initRootCmd(rootCmd, encodingConfig)
 
 	return rootCmd, encodingConfig
