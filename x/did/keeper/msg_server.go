@@ -19,20 +19,21 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-func (k msgServer) CreateDid(goCtx context.Context, msg *types.MsgCreateDid) (*types.MsgCreateDidResponse, error) {
+func (m msgServer) CreateDid(goCtx context.Context, msg *types.MsgCreateDid) (*types.MsgCreateDidResponse, error) {
 
 	// API inactive
 	return &types.MsgCreateDidResponse{}, errors.Wrap(types.ErrApiInactive, "use the Approve method of the KYC module to create a DID")
 }
 
-func (k msgServer) UpdateDidStatus(goCtx context.Context, msg *types.MsgUpdateDidStatus) (*types.MsgUpdateDidStatusResponse, error) {
+func (m msgServer) UpdateDidStatus(goCtx context.Context, msg *types.MsgUpdateDidStatus) (*types.MsgUpdateDidStatusResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	m.Logger(ctx).Debug("call UpdateDidStatus", "msg", msg)
 
-	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
+	if !m.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
 		return &types.MsgUpdateDidStatusResponse{}, types.ErrPermissionDenial
 	}
 
-	info, found := k.GetDidInfo(ctx, msg.Did)
+	info, found := m.GetDidInfo(ctx, msg.Did)
 	if !found {
 		return &types.MsgUpdateDidStatusResponse{}, types.ErrDidNotFound
 	}
@@ -61,38 +62,40 @@ func (k msgServer) UpdateDidStatus(goCtx context.Context, msg *types.MsgUpdateDi
 //	return &types.MsgRemoveDidResponse{}, nil
 //}
 
-func (k msgServer) CreateService(goCtx context.Context, msg *types.MsgCreateService) (*types.MsgCreateServiceResponse, error) {
+func (m msgServer) CreateService(goCtx context.Context, msg *types.MsgCreateService) (*types.MsgCreateServiceResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	m.Logger(ctx).Debug("call CreateService", "msg", msg)
 
-	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
+	if !m.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
 		return &types.MsgCreateServiceResponse{}, types.ErrPermissionDenial
 	}
 
 	// check service
-	_, found := k.GetService(ctx, msg.Sid)
+	_, found := m.GetService(ctx, msg.Sid)
 	if found {
 		return &types.MsgCreateServiceResponse{}, types.ErrServiceExists
 	}
 
 	// check issuer
-	if info, found := k.GetDidInfo(ctx, msg.Issuer); !found || info.Status != types.DID_STATUS_ACTIVE {
+	if info, found := m.GetDidInfo(ctx, msg.Issuer); !found || info.Status != types.DID_STATUS_ACTIVE {
 		return &types.MsgCreateServiceResponse{}, types.ErrIssuerNotActive
 	}
 
 	service := types.NewService(msg.Sid, msg.Name, msg.Description, types.SERVICE_STATUS_DEACTIVE, msg.Issuer)
-	k.SetService(ctx, msg.Sid, service)
+	m.SetService(ctx, msg.Sid, service)
 
 	return &types.MsgCreateServiceResponse{}, nil
 }
 
-func (k msgServer) UpdateServiceStatus(goCtx context.Context, msg *types.MsgUpdateServiceStatus) (*types.MsgUpdateServiceStatusResponse, error) {
+func (m msgServer) UpdateServiceStatus(goCtx context.Context, msg *types.MsgUpdateServiceStatus) (*types.MsgUpdateServiceStatusResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	m.Logger(ctx).Debug("call UpdateServiceStatus", "msg", msg)
 
-	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
+	if !m.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
 		return &types.MsgUpdateServiceStatusResponse{}, types.ErrPermissionDenial
 	}
 
-	svc, found := k.GetService(ctx, msg.Sid)
+	svc, found := m.GetService(ctx, msg.Sid)
 	if !found {
 		return &types.MsgUpdateServiceStatusResponse{}, types.ErrServiceNotFound
 	}
@@ -120,82 +123,99 @@ func (k msgServer) UpdateServiceStatus(goCtx context.Context, msg *types.MsgUpda
 //	return &types.MsgRemoveServiceResponse{}, nil
 //}
 
-func (k msgServer) CreateVC(goCtx context.Context, msg *types.MsgCreateVC) (*types.MsgCreateVCResponse, error) {
+func (m msgServer) CreateVC(goCtx context.Context, msg *types.MsgCreateVC) (*types.MsgCreateVCResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	svc, found := k.GetService(ctx, msg.Sid)
-	if !found {
-		return &types.MsgCreateVCResponse{}, types.ErrServiceNotFound
-	}
+	m.Logger(ctx).Debug("call CreateVC", "msg", msg)
 
-	// check issuer
-	issuer := sdk.MustAccAddressFromBech32(msg.Issuer)
-	if did, found := k.GetDID(ctx, issuer); !found || did != svc.Issuer {
-		return &types.MsgCreateVCResponse{}, types.ErrIssuerNotFound
-	}
-
-	// check service status
-	if svc.Status != types.SERVICE_STATUS_ACTIVE {
+	// check credential service
+	svc, found := m.GetService(ctx, msg.Sid)
+	if !found || svc.Status != types.SERVICE_STATUS_ACTIVE {
 		return &types.MsgCreateVCResponse{}, types.ErrServiceNotActive
 	}
 
-	// check holder
-	if doc, found := k.GetDidDocument(ctx, msg.Did); !found || doc.Info.Status != types.DID_STATUS_ACTIVE {
+	// check issuer did
+	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
+	if !found || issuer != svc.Issuer {
+		return &types.MsgCreateVCResponse{}, types.ErrIssuerNotFound
+	}
+	issuerInfo, found := m.GetDidInfo(ctx, issuer)
+	if !found || issuerInfo.Status != types.DID_STATUS_ACTIVE {
+		return &types.MsgCreateVCResponse{}, types.ErrIssuerNotActive
+	}
+
+	// check holder did
+	if holderInfo, found := m.GetDidInfo(ctx, msg.Did); !found || holderInfo.Status != types.DID_STATUS_ACTIVE {
 		return &types.MsgCreateVCResponse{}, types.ErrHolderNotFound
 	}
 
+	// check vc
+	if m.HasCredential(ctx, msg.Did, msg.Sid) {
+		return &types.MsgCreateVCResponse{}, types.ErrCredentialExists
+	}
+
 	vc := types.NewCredential(msg.Did, msg.Sid, msg.Hash, msg.Uri)
-	k.SetCredential(ctx, msg.Did, msg.Sid, vc)
+	m.SetCredential(ctx, msg.Did, msg.Sid, vc)
 
 	return &types.MsgCreateVCResponse{}, nil
 }
 
-func (k msgServer) UpdateVC(goCtx context.Context, msg *types.MsgUpdateVC) (*types.MsgUpdateVCResponse, error) {
+func (m msgServer) UpdateVC(goCtx context.Context, msg *types.MsgUpdateVC) (*types.MsgUpdateVCResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	m.Logger(ctx).Debug("call UpdateVC", "msg", msg)
 
 	// check vc
-	vc, found := k.GetCredential(ctx, msg.Did, msg.Hash)
-	if !found || msg.Sid != vc.Sid {
+	if found := m.HasCredential(ctx, msg.Did, msg.Sid); !found {
 		return &types.MsgUpdateVCResponse{}, types.ErrCredentialNotFound
 	}
 
-	// check svc
-	svc, found := k.GetService(ctx, msg.Sid)
+	// check credential service
+	svc, found := m.GetService(ctx, msg.Sid)
 	if !found || svc.Status != types.SERVICE_STATUS_ACTIVE {
 		return &types.MsgUpdateVCResponse{}, types.ErrServiceNotActive
 	}
 
-	// check issuer
-	issuer := sdk.MustAccAddressFromBech32(msg.Issuer)
-	if did, found := k.GetDID(ctx, issuer); !found || did != svc.Issuer {
+	// check issuer did
+	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
+	if !found || issuer != svc.Issuer {
 		return &types.MsgUpdateVCResponse{}, types.ErrIssuerNotFound
+	}
+	issuerInfo, found := m.GetDidInfo(ctx, issuer)
+	if !found || issuerInfo.Status != types.DID_STATUS_ACTIVE {
+		return &types.MsgUpdateVCResponse{}, types.ErrIssuerNotActive
 	}
 
 	// check holder
-	if doc, found := k.GetDidDocument(ctx, msg.Did); !found || doc.Info.Status != types.DID_STATUS_ACTIVE {
+	if info, found := m.GetDidInfo(ctx, msg.Did); !found || info.Status != types.DID_STATUS_ACTIVE {
 		return &types.MsgUpdateVCResponse{}, types.ErrHolderNotActive
 	}
 
-	vc = types.NewCredential(msg.Did, msg.Sid, msg.Hash, msg.Uri)
-	k.SetCredential(ctx, msg.Did, msg.Sid, vc)
+	vc := types.NewCredential(msg.Did, msg.Sid, msg.Hash, msg.Uri)
+	m.SetCredential(ctx, msg.Did, msg.Sid, vc)
 
 	return &types.MsgUpdateVCResponse{}, nil
 }
 
-func (k msgServer) RemoveVC(goCtx context.Context, msg *types.MsgRemoveVC) (*types.MsgRemoveVCResponse, error) {
+func (m msgServer) RemoveVC(goCtx context.Context, msg *types.MsgRemoveVC) (*types.MsgRemoveVCResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	m.Logger(ctx).Debug("call RemoveVC", "msg", msg)
 
-	svc, found := k.GetService(ctx, msg.Sid)
-	if !found {
-		return &types.MsgRemoveVCResponse{}, types.ErrIssuerNotFound
+	// check credential service
+	svc, found := m.GetService(ctx, msg.Sid)
+	if !found || svc.Status != types.SERVICE_STATUS_ACTIVE {
+		return &types.MsgRemoveVCResponse{}, types.ErrServiceNotActive
 	}
 
-	// check issuer
-	addr := sdk.MustAccAddressFromBech32(msg.Issuer)
-	if did, found := k.GetDID(ctx, addr); !found || did != svc.Issuer {
+	// check issuer did
+	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
+	if !found || issuer != svc.Issuer {
 		return &types.MsgRemoveVCResponse{}, types.ErrIssuerNotFound
 	}
+	issuerInfo, found := m.GetDidInfo(ctx, issuer)
+	if !found || issuerInfo.Status != types.DID_STATUS_ACTIVE {
+		return &types.MsgRemoveVCResponse{}, types.ErrIssuerNotActive
+	}
 
-	k.DeleteCredential(ctx, msg.Did, msg.Sid)
+	m.DeleteCredential(ctx, msg.Did, msg.Sid)
 
 	return &types.MsgRemoveVCResponse{}, nil
 }
