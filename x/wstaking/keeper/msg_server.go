@@ -56,35 +56,3 @@ func (k MsgServer) WithdrawDelegatorReward(goCtx context.Context, msg *types.Msg
 
 	return &types.MsgWithdrawDelegatorRewardResponse{Amount: amount}, nil
 }
-
-//func (k MsgServer) UnmeidWithdrawDelegatorReward(goCtx context.Context, msg *types.MsgUnmeidWithdrawDelegatorReward) (*types.MsgUnmeidWithdrawDelegatorRewardResponse, error) {
-//	ctx := sdk.UnwrapSDKContext(goCtx)
-//
-//	msgErr := msg.ValidateBasic()
-//	if msgErr != nil {
-//		return nil, msgErr
-//	}
-//
-//	delegatorAddress, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
-//	if err != nil {
-//		return nil, err
-//	}
-//	amount, err := k.UnmeidWithdrawDelegationRewards(ctx, delegatorAddress, sdk.ValAddress{})
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	defer func() {
-//		for _, a := range amount {
-//			if a.Amount.IsInt64() {
-//				telemetry.SetGaugeWithLabels(
-//					[]string{"tx", "msg", "withdraw_reward"},
-//					float32(a.Amount.Int64()),
-//					[]metrics.Label{telemetry.NewLabel("denom", a.Denom)},
-//				)
-//			}
-//		}
-//	}()
-//
-//	return &types.MsgUnmeidWithdrawDelegatorRewardResponse{Amount: amount}, nil
-//}

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"cosmossdk.io/math"
+	"errors"
 	"fmt"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -375,13 +376,16 @@ $ %s tx staking delegate 1000mec --from mykey
 				return err
 			}
 			delAddr := clientCtx.GetFromAddress()
-
-			validatorAddress, err := cmd.Flags().GetString(FlagValidatorAddress)
-			if err != nil {
-				return err
+			if delAddr.Empty() {
+				return errors.New("from address is empty")
 			}
+			//validatorAddress, err := cmd.Flags().GetString(FlagValidatorAddress)
+			//if err != nil {
+			//	return err
+			//}
 
-			msg := types.NewMsgDelegate(delAddr, sdk.ValAddress(sdk.MustAccAddressFromBech32(validatorAddress)), amount, "")
+			//msg := types.NewMsgDelegate(delAddr, sdk.ValAddress(sdk.MustAccAddressFromBech32(validatorAddress)), amount, "")
+			msg := types.NewMsgDelegate(delAddr, sdk.ValAddress{}, amount, "")
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

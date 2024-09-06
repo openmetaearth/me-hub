@@ -9,7 +9,9 @@ import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/query/v1/query.proto";
 import "amino/amino.proto";
+import "google/protobuf/timestamp.proto";
 import "dymensionxyz/dymension/wstaking/fixed_deposit.proto";
+import "cosmos/staking/v1beta1/query.proto";
 
 
 option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
@@ -66,7 +68,12 @@ service Query {
       returns (QueryFixedDepositCfgByTermResponse) {
     option (google.api.http).get = "/cosmos/staking/v1beta1/fixed_deposit_cfg_by_term";
   }
-
+  // Delegation queries delegate info for given validator delegator pair.
+  rpc Delegation(cosmos.staking.v1beta1.QueryDelegationRequest) returns (cosmos.staking.v1beta1.QueryDelegationResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get               = "/cosmos/staking/v1beta1/delegation/"
+        "{delegator_addr}";
+  }
 }
 
 message QueryRegionRequest {

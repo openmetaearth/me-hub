@@ -19,7 +19,7 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	stakingQueryCmd.AddCommand(
-		stakingcli.GetCmdQueryDelegation(),
+		//stakingcli.GetCmdQueryDelegation(),
 		stakingcli.GetCmdQueryDelegations(),
 		stakingcli.GetCmdQueryUnbondingDelegation(),
 		stakingcli.GetCmdQueryUnbondingDelegations(),
@@ -39,6 +39,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryRegion(),
 		GetCmdQueryAllRegion(),
 		GetCmdQueryDelegatorRewards(),
+		GetCmdQueryDelegation(),
 	)
 
 	stakingQueryCmd.AddCommand(

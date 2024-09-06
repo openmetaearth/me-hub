@@ -36,12 +36,8 @@ $ %s tx staking undelegate 1000mec true --from mykey
 			}
 			isMeid := strings.ToLower(args[1]) == "true"
 			delAddr := clientCtx.GetFromAddress()
-			validatorAddress, err := cmd.Flags().GetString(FlagValidatorAddress)
-			if err != nil {
-				return err
-			}
 
-			msg := types.NewMsgUndelegate(delAddr, sdk.ValAddress(sdk.MustAccAddressFromBech32(validatorAddress)), amount, isMeid)
+			msg := types.NewMsgUndelegate(delAddr, sdk.ValAddress{}, amount, isMeid)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
