@@ -77,7 +77,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	})
 
 	// create KYC
-	kyc := didtypes.NewCredential(msg.Did, types.ModuleName, msg.Hash, msg.Uri)
+	kyc := msg.GetKYC()
 	m.SetKYC(ctx, msg.Did, kyc)
 
 	// add region filter to KYC
@@ -127,7 +127,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	}
 
 	// update KYC
-	kyc := didtypes.NewCredential(msg.Did, types.ModuleName, msg.Hash, msg.Uri)
+	kyc := msg.GetKYC()
 	m.SetKYC(ctx, msg.Did, kyc)
 
 	// update KYC region filter
