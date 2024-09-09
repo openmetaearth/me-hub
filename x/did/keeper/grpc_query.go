@@ -34,12 +34,14 @@ func (k Keeper) DidDocument(goCtx context.Context, req *types.QueryDidDocument) 
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	doc, found := k.GetDidDocument(ctx, req.Did)
+	info, found := k.GetDidInfo(ctx, req.Did)
 	if !found {
 		return &types.QueryDidDocumentResponse{}, types.ErrDidNotFound
 	}
 
-	return &types.QueryDidDocumentResponse{Doc: doc}, nil
+	vcs := k.GetCredentialsByDid(ctx, req.Did)
+
+	return &types.QueryDidDocumentResponse{Doc: types.DidDocument{Info: info, Vcs: vcs}}, nil
 }
 
 func (k Keeper) Service(goCtx context.Context, req *types.QueryService) (*types.QueryServiceResponse, error) {
@@ -79,7 +81,7 @@ func (k Keeper) Credentials(goCtx context.Context, req *types.QueryCredentials) 
 	var vcs []types.Credential
 
 	store := ctx.KVStore(k.storeKey)
-	filterStore := prefix.NewStore(store, types.GetFilterIteratorKey(req.Sid, req.Filter))
+	filterStore := prefix.NewStore(store, types.GetFilterPrefixBySidAndFilter(req.Sid, req.Filter))
 
 	pageRes, err := query.Paginate(filterStore, req.Pagination, func(key []byte, value []byte) error {
 		var vc types.Credential

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -9,6 +10,10 @@ import (
 	"strconv"
 
 	"github.com/st-chain/me-hub/x/did/types"
+)
+
+const (
+	FlagFilters = "filters"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -27,9 +32,9 @@ func GetTxCmd() *cobra.Command {
 		CmdCreateService(),
 		CmdUpdateServiceStatus(),
 		CmdRemoveService(),
-		NewCreateVcCmd(),
-		NewUpdateVcCmd(),
-		NewRemoveVcCmd(),
+		CmdCreateVc(),
+		CmdUpdateVc(),
+		CmdRemoveVc(),
 	)
 	return cmd
 }
@@ -194,11 +199,11 @@ func CmdRemoveService() *cobra.Command {
 	return cmd
 }
 
-func NewCreateVcCmd() *cobra.Command {
+func CmdCreateVc() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-vc [holder-did] [sid] [credential-file-hash] [off-chain-credential-uri]",
+		Use:   "create-vc [holder-did] [sid] [credential-file-hash] [off-chain-credential-uri] [hex-data]",
 		Short: "create verifiable credential",
-		Args:  cobra.ExactArgs(4),
+		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -209,7 +214,23 @@ func NewCreateVcCmd() *cobra.Command {
 			sid := args[1]
 			hash := args[2]
 			uri := args[3]
-			msg := types.NewMsgCreateVC(clientCtx.GetFromAddress().String(), holder, sid, hash, uri)
+			data, err := hex.DecodeString(args[4])
+			if err != nil {
+				return err
+			}
+
+			fs, _ := cmd.Flags().GetStringSlice(FlagFilters)
+			var filters [][]byte
+			for _, f := range fs {
+				filter, err := hex.DecodeString(f)
+				if err != nil {
+					return err
+				}
+
+				filters = append(filters, filter)
+			}
+
+			msg := types.NewMsgCreateVC(clientCtx.GetFromAddress().String(), holder, sid, hash, uri, data, filters)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -217,13 +238,15 @@ func NewCreateVcCmd() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().StringSlice(FlagFilters, []string{}, "hex-filters")
 	flags.AddTxFlagsToCmd(cmd)
+
 	return cmd
 }
 
-func NewUpdateVcCmd() *cobra.Command {
+func CmdUpdateVc() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-vc [holder-did] [sid] [credential-file-hash] [off-chain-credential-uri]",
+		Use:   "update-vc [holder-did] [sid] [credential-file-hash] [off-chain-credential-uri] [hex-data]",
 		Short: "update verifiable credential",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -236,7 +259,23 @@ func NewUpdateVcCmd() *cobra.Command {
 			sid := args[1]
 			hash := args[2]
 			uri := args[3]
-			msg := types.NewMsgUpdateVC(clientCtx.GetFromAddress().String(), holder, sid, hash, uri)
+			data, err := hex.DecodeString(args[4])
+			if err != nil {
+				return err
+			}
+
+			fs, _ := cmd.Flags().GetStringSlice(FlagFilters)
+			var filters [][]byte
+			for _, f := range fs {
+				filter, err := hex.DecodeString(f)
+				if err != nil {
+					return err
+				}
+
+				filters = append(filters, filter)
+			}
+
+			msg := types.NewMsgUpdateVC(clientCtx.GetFromAddress().String(), holder, sid, hash, uri, data, filters)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -245,11 +284,13 @@ func NewUpdateVcCmd() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().StringSlice(FlagFilters, []string{}, "hex-filters")
 	flags.AddTxFlagsToCmd(cmd)
+
 	return cmd
 }
 
-func NewRemoveVcCmd() *cobra.Command {
+func CmdRemoveVc() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "remove-vc [holder] [sid]",
 		Short: "remove verifiable credential",

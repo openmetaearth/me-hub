@@ -16,7 +16,22 @@ func (k Keeper) GetService(ctx sdk.Context, sid string) (svc types.Service, foun
 	return svc, true
 }
 
+func (k Keeper) GetServices(ctx sdk.Context) (svcs []types.Service) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ServicePrefix)
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var svc types.Service
+		k.cdc.MustUnmarshal(iterator.Value(), &svc)
+		svcs = append(svcs, svc)
+	}
+
+	return svcs
+}
+
 func (k Keeper) SetService(ctx sdk.Context, sid string, svc types.Service) {
+	k.Logger(ctx).Debug("call SetService", "sid", sid, "service", svc)
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetServiceKey(sid), k.cdc.MustMarshal(&svc))
 }

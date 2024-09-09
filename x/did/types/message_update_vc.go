@@ -10,13 +10,15 @@ const (
 	TypeMsgUpdateVC = "update_vc"
 )
 
-func NewMsgUpdateVC(issuer, did, sid, hash, uri string) *MsgUpdateVC {
+func NewMsgUpdateVC(issuer, did, sid, hash, uri string, data []byte, filters [][]byte) *MsgUpdateVC {
 	return &MsgUpdateVC{
-		Issuer: issuer,
-		Did:    did,
-		Sid:    sid,
-		Hash:   hash,
-		Uri:    uri,
+		Issuer:  issuer,
+		Did:     did,
+		Sid:     sid,
+		Hash:    hash,
+		Uri:     uri,
+		Data:    data,
+		Filters: filters,
 	}
 }
 
@@ -39,6 +41,10 @@ func (m *MsgUpdateVC) GetSigners() []sdk.AccAddress {
 func (m *MsgUpdateVC) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgUpdateVC) GetCredential() Credential {
+	return NewCredential(m.Did, m.Sid, m.Hash, m.Uri, m.Data)
 }
 
 func (m *MsgUpdateVC) ValidateBasic() error {

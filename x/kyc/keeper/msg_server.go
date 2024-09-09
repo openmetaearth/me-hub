@@ -25,24 +25,25 @@ var _ types.MsgServer = msgServer{}
 
 func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types.MsgApproveResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	m.Logger(ctx).Debug("call Approve", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx)
 	if !found || svc.Status != didtypes.SERVICE_STATUS_ACTIVE {
-		return &types.MsgApproveResponse{}, didtypes.ErrServiceNotFound
+		return &types.MsgApproveResponse{}, didtypes.ErrServiceNotActive
 	}
 
-	// check issuer
+	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
 	if !found || issuer != svc.Issuer {
 		return &types.MsgApproveResponse{}, didtypes.ErrIssuerNotFound
 	}
-	issuerDoc, found := m.GetDidInfo(ctx, issuer)
-	if !found || issuerDoc.Status != didtypes.DID_STATUS_ACTIVE {
+	issuerInfo, found := m.GetDidInfo(ctx, issuer)
+	if !found || issuerInfo.Status != didtypes.DID_STATUS_ACTIVE {
 		return &types.MsgApproveResponse{}, didtypes.ErrIssuerNotActive
 	}
 
-	// check DID
+	// check holder did
 	_, found = m.GetDidInfo(ctx, msg.Did)
 	if found {
 		return &types.MsgApproveResponse{}, didtypes.ErrDidExists
@@ -57,7 +58,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	address := sdk.MustAccAddressFromBech32(msg.Address)
 	pubkey, err := m.PubKeyFromString(msg.Pubkey)
 	if err != nil {
-		return &types.MsgApproveResponse{}, err
+		return &types.MsgApproveResponse{}, errors.Wrap(err, "invaild pubkey")
 	}
 	if !address.Equals(sdk.AccAddress(pubkey.Address())) {
 		return &types.MsgApproveResponse{}, didtypes.ErrHolderNotFound
@@ -76,7 +77,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	})
 
 	// create KYC
-	kyc := didtypes.NewCredential(msg.Did, types.ModuleName, msg.Hash, msg.Uri)
+	kyc := msg.GetKYC()
 	m.SetKYC(ctx, msg.Did, kyc)
 
 	// add region filter to KYC
@@ -84,7 +85,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 
 	// add reward to KYC holder and inviter
 	if err := m.SetApproveReward(ctx, msg.Address, msg.Inviter, msg.Issuer, msg.RegionId); err != nil {
-		return &types.MsgApproveResponse{}, err
+		return &types.MsgApproveResponse{}, errors.Wrap(err, "set reward failed")
 	}
 
 	return &types.MsgApproveResponse{}, nil
@@ -92,28 +93,33 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 
 func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.MsgUpdateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	m.Logger(ctx).Debug("call Update", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx)
 	if !found || svc.Status != didtypes.SERVICE_STATUS_ACTIVE {
-		return &types.MsgUpdateResponse{}, didtypes.ErrServiceNotFound
+		return &types.MsgUpdateResponse{}, didtypes.ErrServiceNotActive
 	}
 
-	// check issuer
+	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
 	if !found || issuer != svc.Issuer {
 		return &types.MsgUpdateResponse{}, didtypes.ErrIssuerNotFound
 	}
-	issuerDoc, found := m.GetDidInfo(ctx, issuer)
-	if !found || issuerDoc.Status != didtypes.DID_STATUS_ACTIVE {
+	issuerInfo, found := m.GetDidInfo(ctx, issuer)
+	if !found || issuerInfo.Status != didtypes.DID_STATUS_ACTIVE {
 		return &types.MsgUpdateResponse{}, didtypes.ErrIssuerNotActive
 	}
 
-	// check DID
-	didInfo, found := m.GetDidInfo(ctx, msg.Did)
+	// check holder did
+	holderInfo, found := m.GetDidInfo(ctx, msg.Did)
 	if !found {
 		return &types.MsgUpdateResponse{}, didtypes.ErrHolderNotFound
 	}
+
+	// active holder did
+	holderInfo.Status = didtypes.DID_STATUS_ACTIVE
+	m.SetDidInfo(ctx, msg.Did, holderInfo)
 
 	// check region
 	if _, found := m.stkKeeper.GetRegion(ctx, msg.RegionId); !found {
@@ -121,19 +127,19 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	}
 
 	// update KYC
-	kyc := didtypes.NewCredential(msg.Did, types.ModuleName, msg.Hash, msg.Uri)
+	kyc := msg.GetKYC()
 	m.SetKYC(ctx, msg.Did, kyc)
 
 	// update KYC region filter
 	m.AddFilters(ctx, msg.Did, [][]byte{[]byte(msg.RegionId)}, kyc)
 
 	// change reward
-	address := m.MustAccAddressFromPubkeyString(didInfo.Pubkey).String()
+	address := m.MustAccAddressFromPubkeyString(holderInfo.Pubkey).String()
 	if err := m.DeleteApproveReward(ctx, address); err != nil {
-		return &types.MsgUpdateResponse{}, err
+		return &types.MsgUpdateResponse{}, errors.Wrap(err, "delete reward failed")
 	}
 	if err := m.SetApproveReward(ctx, address, "", msg.Issuer, msg.RegionId); err != nil {
-		return &types.MsgUpdateResponse{}, err
+		return &types.MsgUpdateResponse{}, errors.Wrap(err, "set reward failed")
 	}
 
 	return &types.MsgUpdateResponse{}, nil
@@ -141,20 +147,21 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 
 func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.MsgRemoveResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	m.Logger(ctx).Debug("call Remove", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx)
 	if !found || svc.Status != didtypes.SERVICE_STATUS_ACTIVE {
-		return &types.MsgRemoveResponse{}, didtypes.ErrServiceNotFound
+		return &types.MsgRemoveResponse{}, didtypes.ErrServiceNotActive
 	}
 
-	// check issuer
+	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
 	if !found || issuer != svc.Issuer {
 		return &types.MsgRemoveResponse{}, didtypes.ErrIssuerNotFound
 	}
-	issuerDoc, found := m.GetDidInfo(ctx, issuer)
-	if !found || issuerDoc.Status != didtypes.DID_STATUS_ACTIVE {
+	issuerInfo, found := m.GetDidInfo(ctx, issuer)
+	if !found || issuerInfo.Status != didtypes.DID_STATUS_ACTIVE {
 		return &types.MsgRemoveResponse{}, didtypes.ErrIssuerNotActive
 	}
 
@@ -179,7 +186,7 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	// cancel reward
 	address := m.MustAccAddressFromPubkeyString(didInfo.Pubkey).String()
 	if err := m.DeleteApproveReward(ctx, address); err != nil {
-		return &types.MsgRemoveResponse{}, err
+		return &types.MsgRemoveResponse{}, errors.Wrap(err, "delete reward failed")
 	}
 
 	return &types.MsgRemoveResponse{}, nil
@@ -187,24 +194,25 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 
 func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*types.MsgCreateSBTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	m.Logger(ctx).Debug("call CreateSBT", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx)
 	if !found || svc.Status != didtypes.SERVICE_STATUS_ACTIVE {
-		return &types.MsgCreateSBTResponse{}, didtypes.ErrServiceNotFound
+		return &types.MsgCreateSBTResponse{}, didtypes.ErrServiceNotActive
 	}
 
-	// check issuer
+	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
 	if !found || issuer != svc.Issuer {
 		return &types.MsgCreateSBTResponse{}, didtypes.ErrIssuerNotFound
 	}
-	issuerDoc, found := m.GetDidInfo(ctx, issuer)
-	if !found || issuerDoc.Status != didtypes.DID_STATUS_ACTIVE {
+	issuerInfo, found := m.GetDidInfo(ctx, issuer)
+	if !found || issuerInfo.Status != didtypes.DID_STATUS_ACTIVE {
 		return &types.MsgCreateSBTResponse{}, didtypes.ErrIssuerNotActive
 	}
 
-	// check holder
+	// check holder did
 	if !m.HasDidInfo(ctx, msg.Did) {
 		return &types.MsgCreateSBTResponse{}, didtypes.ErrHolderNotFound
 	}
@@ -221,7 +229,7 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 		Data:    types2.UnsafePackAny(msg.Data), // todo: check for encode
 	}
 	if err := m.SetSBT(ctx, sbt, sdk.MustAccAddressFromBech32(msg.Issuer)); err != nil {
-		return &types.MsgCreateSBTResponse{}, err
+		return &types.MsgCreateSBTResponse{}, errors.Wrap(err, "mint SBT failed")
 	}
 
 	return &types.MsgCreateSBTResponse{}, nil
@@ -229,31 +237,32 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 
 func (m msgServer) DeleteSBT(goCtx context.Context, msg *types.MsgDeleteSBT) (*types.MsgDeleteSBTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	m.Logger(ctx).Debug("call DeleteSBT", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx)
 	if !found || svc.Status != didtypes.SERVICE_STATUS_ACTIVE {
-		return &types.MsgDeleteSBTResponse{}, didtypes.ErrServiceNotFound
+		return &types.MsgDeleteSBTResponse{}, didtypes.ErrServiceNotActive
 	}
 
-	// check issuer
+	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
 	if !found || issuer != svc.Issuer {
 		return &types.MsgDeleteSBTResponse{}, didtypes.ErrIssuerNotFound
 	}
-	issuerDoc, found := m.GetDidInfo(ctx, issuer)
-	if !found || issuerDoc.Status != didtypes.DID_STATUS_ACTIVE {
+	issuerInfo, found := m.GetDidInfo(ctx, issuer)
+	if !found || issuerInfo.Status != didtypes.DID_STATUS_ACTIVE {
 		return &types.MsgDeleteSBTResponse{}, didtypes.ErrIssuerNotActive
 	}
 
-	// check holder
+	// check holder did
 	if !m.HasDidInfo(ctx, msg.Did) {
 		return &types.MsgDeleteSBTResponse{}, didtypes.ErrHolderNotFound
 	}
 
 	// remove SBT
 	if err := m.RemoveSBT(ctx, msg.Did); err != nil {
-		return &types.MsgDeleteSBTResponse{}, errors.Wrap(err, "remove SBT failed")
+		return &types.MsgDeleteSBTResponse{}, errors.Wrap(err, "burn SBT failed")
 	}
 
 	return &types.MsgDeleteSBTResponse{}, nil

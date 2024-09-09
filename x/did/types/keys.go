@@ -52,22 +52,22 @@ func GetServiceKey(sid string) []byte {
 //	return append(ServiceIssuerPrefix, []byte(sid)...)
 //}
 
-func GetCredentialIteratorKey(did string) []byte {
+func GetCredentialPrefixByDid(did string) []byte {
 	return append(CredentialPrefix, []byte(did)...)
 }
 
 func GetCredentialKey(did, sid string) []byte {
-	return append(GetCredentialIteratorKey(did), sid...)
+	return append(GetCredentialPrefixByDid(did), sid...)
 }
 
 func GetFilterLoggerKey(did, sid string) []byte {
 	return append(append(FilterLoggerPrefix, did...), sid...)
 }
 
-func GetFilterIteratorKey(sid string, filter []byte) []byte {
+func GetFilterPrefixBySidAndFilter(sid string, filter []byte) []byte {
 	return append(append(FilterPrefix, sid...), filter...)
 }
 
 func GetFilterKey(sid, did string, filter []byte) []byte {
-	return append(GetFilterIteratorKey(sid, filter), did...)
+	return append(GetFilterPrefixBySidAndFilter(sid, filter), did...)
 }

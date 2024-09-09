@@ -81,7 +81,8 @@ message MsgCreateVC{
   string sid           = 3;
   string hash          = 4;
   string uri           = 5;
-  repeated bytes filters         = 6;
+  bytes data           = 6;
+  repeated bytes filters         = 7;
 }
 
 message MsgCreateVCResponse{}
@@ -92,7 +93,8 @@ message MsgUpdateVC{
   string sid           = 3;
   string hash          = 4;
   string uri           = 5;
-  repeated bytes filters         = 6;
+  bytes data           = 6;
+  repeated bytes filters         = 7;
 }
 
 message MsgUpdateVCResponse{}
