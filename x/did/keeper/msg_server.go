@@ -153,8 +153,12 @@ func (m msgServer) CreateVC(goCtx context.Context, msg *types.MsgCreateVC) (*typ
 		return &types.MsgCreateVCResponse{}, types.ErrCredentialExists
 	}
 
-	vc := types.NewCredential(msg.Did, msg.Sid, msg.Hash, msg.Uri)
+	// create VC
+	vc := msg.GetCredential()
 	m.SetCredential(ctx, msg.Did, msg.Sid, vc)
+
+	// add filters to VC
+	m.AddFilters(ctx, msg.Did, msg.Sid, msg.Filters, vc)
 
 	return &types.MsgCreateVCResponse{}, nil
 }
@@ -189,8 +193,12 @@ func (m msgServer) UpdateVC(goCtx context.Context, msg *types.MsgUpdateVC) (*typ
 		return &types.MsgUpdateVCResponse{}, types.ErrHolderNotActive
 	}
 
-	vc := types.NewCredential(msg.Did, msg.Sid, msg.Hash, msg.Uri)
+	// update VC
+	vc := msg.GetCredential()
 	m.SetCredential(ctx, msg.Did, msg.Sid, vc)
+
+	// update filters to VC
+	m.AddFilters(ctx, msg.Did, msg.Sid, msg.Filters, vc)
 
 	return &types.MsgUpdateVCResponse{}, nil
 }
@@ -216,6 +224,9 @@ func (m msgServer) RemoveVC(goCtx context.Context, msg *types.MsgRemoveVC) (*typ
 	}
 
 	m.DeleteCredential(ctx, msg.Did, msg.Sid)
+
+	filters, _ := m.GetFilters(ctx, msg.Did, msg.Sid)
+	m.DeleteFilters(ctx, msg.Did, msg.Sid, filters)
 
 	return &types.MsgRemoveVCResponse{}, nil
 }

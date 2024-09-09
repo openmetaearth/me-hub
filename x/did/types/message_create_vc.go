@@ -10,13 +10,15 @@ const (
 	TypeMsgCreateVC = "create_vc"
 )
 
-func NewMsgCreateVC(issuer, holder, sid, hash, uri string) *MsgCreateVC {
+func NewMsgCreateVC(issuer, holder, sid, hash, uri string, data []byte, filters [][]byte) *MsgCreateVC {
 	return &MsgCreateVC{
-		Issuer: issuer,
-		Did:    holder,
-		Sid:    sid,
-		Hash:   hash,
-		Uri:    uri,
+		Issuer:  issuer,
+		Did:     holder,
+		Sid:     sid,
+		Hash:    hash,
+		Uri:     uri,
+		Data:    data,
+		Filters: filters,
 	}
 }
 
@@ -42,7 +44,7 @@ func (m *MsgCreateVC) GetSignBytes() []byte {
 }
 
 func (m *MsgCreateVC) GetCredential() Credential {
-	return NewCredential(m.Did, m.Sid, m.Hash, m.Uri)
+	return NewCredential(m.Did, m.Sid, m.Hash, m.Uri, m.Data)
 }
 
 func (m *MsgCreateVC) ValidateBasic() error {
