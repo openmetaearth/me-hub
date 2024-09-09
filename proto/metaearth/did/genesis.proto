@@ -2,7 +2,6 @@ syntax = "proto3";
 package metaearth.did;
 
 import "gogoproto/gogo.proto";
-import "metaearth/kyc/protocol.proto";
 import "metaearth/did/did.proto";
 import "metaearth/did/service.proto";
 import "metaearth/did/credential.proto";
