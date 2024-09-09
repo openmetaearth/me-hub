@@ -44,8 +44,8 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	}
 
 	// check holder did
-	_, found = m.GetDidInfo(ctx, msg.Did)
-	if found {
+	holderInfo, found := m.GetDidInfo(ctx, msg.Did)
+	if found && holderInfo.Status == didtypes.DID_STATUS_ACTIVE {
 		return &types.MsgApproveResponse{}, didtypes.ErrDidExists
 	}
 
@@ -113,13 +113,13 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 
 	// check holder did
 	holderInfo, found := m.GetDidInfo(ctx, msg.Did)
-	if !found {
-		return &types.MsgUpdateResponse{}, didtypes.ErrHolderNotFound
+	if !found || holderInfo.Status != didtypes.DID_STATUS_ACTIVE {
+		return &types.MsgUpdateResponse{}, didtypes.ErrHolderNotActive
 	}
-
-	// active holder did
-	holderInfo.Status = didtypes.DID_STATUS_ACTIVE
-	m.SetDidInfo(ctx, msg.Did, holderInfo)
+	preKyc, found := m.GetKYC(ctx, msg.Did)
+	if !found {
+		return &types.MsgUpdateResponse{}, didtypes.ErrCredentialNotFound
+	}
 
 	// check region
 	if _, found := m.stkKeeper.GetRegion(ctx, msg.RegionId); !found {
@@ -135,11 +135,8 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 
 	// change reward
 	address := m.MustAccAddressFromPubkeyString(holderInfo.Pubkey).String()
-	if err := m.DeleteApproveReward(ctx, address); err != nil {
-		return &types.MsgUpdateResponse{}, errors.Wrap(err, "delete reward failed")
-	}
-	if err := m.SetApproveReward(ctx, address, "", msg.Issuer, msg.RegionId); err != nil {
-		return &types.MsgUpdateResponse{}, errors.Wrap(err, "set reward failed")
+	if err := m.TransferApproveReward(ctx, address, msg.Issuer, string(preKyc.Data), msg.RegionId); err != nil {
+		return &types.MsgUpdateResponse{}, errors.Wrap(err, "transfer reward failed")
 	}
 
 	return &types.MsgUpdateResponse{}, nil
@@ -174,7 +171,8 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	m.SetDidInfo(ctx, msg.Did, didInfo)
 
 	// delete KYC
-	if !m.HasKYC(ctx, msg.Did) {
+	kyc, found := m.GetKYC(ctx, msg.Did)
+	if !found {
 		return &types.MsgRemoveResponse{}, didtypes.ErrCredentialNotFound
 	}
 	m.DeleteKYC(ctx, msg.Did)
@@ -185,7 +183,7 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 
 	// cancel reward
 	address := m.MustAccAddressFromPubkeyString(didInfo.Pubkey).String()
-	if err := m.DeleteApproveReward(ctx, address); err != nil {
+	if err := m.DeleteApproveReward(ctx, address, string(kyc.Data)); err != nil {
 		return &types.MsgRemoveResponse{}, errors.Wrap(err, "delete reward failed")
 	}
 
