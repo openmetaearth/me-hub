@@ -25,7 +25,12 @@ func (k Keeper) Did(goCtx context.Context, req *types.QueryDid) (*types.QueryDid
 		return &types.QueryDidResponse{}, types.ErrDidNotFound
 	}
 
-	return &types.QueryDidResponse{Did: did}, nil
+	info, found := k.GetDidInfo(ctx, did)
+	if !found {
+		return &types.QueryDidResponse{}, types.ErrDidNotFound
+	}
+
+	return &types.QueryDidResponse{Info: info}, nil
 }
 
 func (k Keeper) DidDocument(goCtx context.Context, req *types.QueryDidDocument) (*types.QueryDidDocumentResponse, error) {
