@@ -201,7 +201,7 @@ func (k MsgServer) UnMeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDe
 	}
 
 	// NOTE: source funds are always unbonded
-	newShares, err := k.Keeper.UnMeidDelegate(ctx, delegatorAddress, msg.Amount.Amount, sdk.ValAddress{})
+	newShares, err := k.Keeper.UnMeidDelegate(ctx, delegatorAddress, msg.Amount.Amount, validator)
 	if err != nil {
 		return nil, err
 	}

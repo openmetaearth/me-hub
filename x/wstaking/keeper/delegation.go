@@ -12,11 +12,11 @@ import (
 )
 
 func (k Keeper) UnMeidDelegate(
-	ctx sdk.Context, delAddr sdk.AccAddress, bondAmt math.Int, validatorAddr sdk.ValAddress) (newShares sdk.Dec, err error) {
+	ctx sdk.Context, delAddr sdk.AccAddress, bondAmt math.Int, validator stakingtypes.Validator) (newShares sdk.Dec, err error) {
 	// Get or create the delegation object
-	delegation, found := k.GetDelegation(ctx, delAddr, validatorAddr)
+	delegation, found := k.GetDelegation(ctx, delAddr, validator.GetOperator())
 	if !found {
-		delegation = types.NewDelegation(delAddr, validatorAddr, sdk.ZeroDec())
+		delegation = types.NewDelegation(delAddr, validator.GetOperator(), sdk.ZeroDec())
 	}
 
 	if err != nil {
