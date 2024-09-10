@@ -65,7 +65,7 @@ func (k MsgServer) MeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDele
 		)
 	}
 
-	del := k.Delegation(ctx, delegatorAddress, valAddr)
+	del := k.Delegation(ctx, delegatorAddress, sdk.ValAddress{})
 	rewards := sdk.ZeroDec()
 	var regionTreasureAddr sdk.AccAddress
 	if del != nil {
@@ -185,7 +185,7 @@ func (k MsgServer) UnMeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDe
 		)
 	}
 
-	del := k.Delegation(ctx, delegatorAddress, valAddr)
+	del := k.Delegation(ctx, delegatorAddress, sdk.ValAddress{})
 	rewards := sdk.ZeroDec()
 	var regionTreasureAddr sdk.AccAddress
 	if del != nil {
@@ -211,7 +211,7 @@ func (k MsgServer) UnMeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDe
 	}
 
 	// NOTE: source funds are always unbonded
-	newShares, err := k.Keeper.UnMeidDelegate(ctx, delegatorAddress, msg.Amount.Amount, valAddr)
+	newShares, err := k.Keeper.UnMeidDelegate(ctx, delegatorAddress, msg.Amount.Amount, sdk.ValAddress{})
 	if err != nil {
 		return nil, err
 	}
