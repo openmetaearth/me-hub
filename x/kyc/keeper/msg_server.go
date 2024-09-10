@@ -71,9 +71,10 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	// create DID
 	m.SetDID(ctx, address, msg.Did)
 	m.SetDidInfo(ctx, msg.Did, didtypes.DidInfo{
-		Did:    msg.Did,
-		Pubkey: msg.Pubkey,
-		Status: didtypes.DID_STATUS_ACTIVE,
+		Did:     msg.Did,
+		Address: msg.Address,
+		Pubkey:  msg.Pubkey,
+		Status:  didtypes.DID_STATUS_ACTIVE,
 	})
 
 	// create KYC
