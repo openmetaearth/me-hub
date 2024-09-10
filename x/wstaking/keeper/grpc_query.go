@@ -2,16 +2,14 @@ package keeper
 
 import (
 	"context"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/st-chain/me-hub/app/params"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"strings"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type Querier struct {
@@ -64,20 +62,20 @@ func (k Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationR
 	if err != nil {
 		return nil, err
 	}
-	regionID := strings.ToLower(types.ExperienceRegion)
-	meid, found := k.GetMeid(ctx, req.DelegatorAddress)
-	if found {
-		regionID = meid.RegionId
-	}
-	region, isFound := k.GetRegion(ctx, regionID)
-	if !isFound {
-		return nil, types.ErrRegionNotExist.Wrapf("region not found=%s", regionID)
-	}
-	valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
-	if valErr != nil {
-		return nil, valErr
-	}
-	del := k.Delegation(ctx, delAdr, valAddr)
+	//regionID := strings.ToLower(types.ExperienceRegion)
+	//meid, found := k.GetMeid(ctx, req.DelegatorAddress)
+	//if found {
+	//	regionID = meid.RegionId
+	//}
+	//region, isFound := k.GetRegion(ctx, regionID)
+	//if !isFound {
+	//	return nil, types.ErrRegionNotExist.Wrapf("region not found=%s", regionID)
+	//}
+	//valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
+	//if valErr != nil {
+	//	return nil, valErr
+	//}
+	del := k.Delegation(ctx, delAdr, sdk.ValAddress{})
 	if del == nil {
 		return nil, status.Error(codes.NotFound, "delegator not found, address="+delAdr.String())
 	}
@@ -111,20 +109,20 @@ func (k Querier) Delegation(c context.Context, req *stakingtypes.QueryDelegation
 	if err != nil {
 		return nil, err
 	}
-	regionID := strings.ToLower(types.ExperienceRegion)
-	meid, found := k.GetMeid(ctx, req.DelegatorAddr)
-	if found {
-		regionID = meid.RegionId
-	}
-	region, isFound := k.GetRegion(ctx, regionID)
-	if !isFound {
-		return nil, types.ErrRegionNotExist.Wrapf("region not found=%s", regionID)
-	}
-	valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
-	if valErr != nil {
-		return nil, valErr
-	}
-	delegation, found := k.GetDelegation(ctx, delAddr, valAddr)
+	//regionID := strings.ToLower(types.ExperienceRegion)
+	//meid, found := k.GetMeid(ctx, req.DelegatorAddr)
+	//if found {
+	//regionID = meid.RegionId
+	//}
+	//region, isFound := k.GetRegion(ctx, regionID)
+	//if !isFound {
+	//	return nil, types.ErrRegionNotExist.Wrapf("region not found=%s", regionID)
+	//}
+	//valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
+	//if valErr != nil {
+	//	return nil, valErr
+	//}
+	delegation, found := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
 	if !found {
 		return nil, status.Errorf(
 			codes.NotFound,
