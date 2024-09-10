@@ -18,9 +18,6 @@ func (k Keeper) UnMeidDelegate(
 	if !found {
 		delegation = types.NewDelegation(delAddr, validatorAddr, sdk.ZeroDec())
 	}
-	//if found {
-	//	err = k.hooks.BeforeDelegationSharesModified(ctx, delAddr, validatorAddr)
-	//}
 
 	if err != nil {
 		return sdk.ZeroDec(), err

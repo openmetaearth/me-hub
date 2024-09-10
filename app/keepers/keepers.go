@@ -514,6 +514,8 @@ func (a *AppKeepers) InitKeepers(
 		a.NFTKeeper,
 	)
 
+	a.StakingKeeper.KycKeeper = a.KycKeeper
+
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
 
 	// Register the proposal types
