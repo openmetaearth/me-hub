@@ -30,7 +30,8 @@ service Msg {
 message MsgCreateDid {
   string creator = 1;
   string did     = 2;
-  string pubkey  = 3;
+  string address = 3;
+  string pubkey  = 4;
 }
 
 message MsgCreateDidResponse {}
