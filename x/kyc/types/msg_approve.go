@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/st-chain/me-hub/utils"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"strings"
 )
 
@@ -44,6 +45,10 @@ func (m *MsgApprove) GetSigners() []sdk.AccAddress {
 func (m *MsgApprove) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)
+}
+
+func (m *MsgApprove) GetKYC() didtypes.Credential {
+	return didtypes.NewCredential(m.Did, ModuleName, m.Hash, m.Uri, []byte(m.RegionId))
 }
 
 func (m *MsgApprove) ValidateBasic() error {

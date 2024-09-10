@@ -175,7 +175,7 @@ func (k MsgServer) UnMeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDe
 		)
 	}
 
-	del := k.Delegation(ctx, delegatorAddress, valAddr)
+	del := k.Delegation(ctx, delegatorAddress, sdk.ValAddress{})
 	rewards := sdk.ZeroDec()
 	var regionTreasureAddr sdk.AccAddress
 	if del != nil {

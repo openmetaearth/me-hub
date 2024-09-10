@@ -14,7 +14,7 @@ import (
 
 func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, regionId, creator string) error {
 	if regionId == strings.ToLower(types.ExperienceRegion) {
-		return sdkerrors.Wrapf(types.ErrTransferRegion, fmt.Sprintf("cannot transfer to %s", regionId))
+		return sdkerrors.Wrapf(types.ErrKycReward, fmt.Sprintf("cannot set kyc to %s region", regionId))
 	}
 
 	region, found := k.GetRegion(ctx, regionId)
@@ -32,24 +32,15 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 	}
 
 	if validator.MeidAmount.Add(types.Bonus).GT(validator.Tokens) {
-		return sdkerrors.Wrapf(types.ErrMeidNew, fmt.Sprintf("meid bonded validator can not hold this meid user, reach meid limit"))
+		return sdkerrors.Wrapf(types.ErrKycReward, fmt.Sprintf("meid bonded validator can not hold this meid user, reach meid limit"))
 	}
 
 	validator.MeidAmount = validator.MeidAmount.Add(types.Bonus)
 
 	err = k.SendKycRewards(ctx, account, valAddr, inviteAddr, validator, region)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrMeidNew, err.Error())
+		return sdkerrors.Wrapf(types.ErrKycReward, err.Error())
 	}
-
-	meid := types.Meid{
-		Account:    account.String(),
-		Creator:    creator,
-		RegionId:   regionId,
-		RegionName: region.Name,
-		RewardType: types.MeidJoinGroupNoReward,
-	}
-	k.SetMeid(ctx, meid)
 
 	//validator rewards
 	ownerAddress := validator.OwnerAddress
@@ -59,9 +50,9 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeMeidNew,
-			sdk.NewAttribute(types.AttributeKeyAccount, meid.Account),
-			sdk.NewAttribute(types.AttributeKeyRegionId, meid.RegionId),
-			sdk.NewAttribute(types.AttributeKeyCreator, meid.Creator),
+			sdk.NewAttribute(types.AttributeKeyAccount, account.String()),
+			sdk.NewAttribute(types.AttributeKeyRegionId, regionId),
+			sdk.NewAttribute(types.AttributeKeyCreator, creator),
 			sdk.NewAttribute(types.AttributeKeyMeidInviteAddress, inviteAddr),
 			sdk.NewAttribute(types.AttributeKeyMeidInviteReward, types.InviteReward.String()+params.BaseDenom),
 			sdk.NewAttribute(types.AttributeKeySendMeidInviteAddress, region.RegionTreasureAddr),
@@ -73,35 +64,29 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 	return nil
 }
 
-func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress) error {
-	meid, found := k.GetMeid(ctx, account.String())
+func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionId string) error {
+	region, found := k.GetRegion(ctx, regionId)
 	if !found {
-		return types.ErrMeidNotExists
-	}
-
-	region, found := k.GetRegion(ctx, meid.RegionId)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrMeidNotExists, fmt.Sprintf("meid's region %s not exists", meid.RegionId))
+		return sdkerrors.Wrapf(types.ErrMeidNotExists, fmt.Sprintf("meid's region %s not exists", regionId))
 	}
 
 	valAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, fmt.Sprintf("meid region bonded validator no found"))
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, fmt.Sprintf("region bonded validator no found"))
 	}
 
 	validator, ok := k.GetValidator(ctx, valAddr)
 	if !ok {
-		return sdkerrors.Wrapf(types.ErrMeidNew, fmt.Sprintf("meid region bonded validator no found"))
+		return sdkerrors.Wrapf(types.ErrKycReward, fmt.Sprintf("region bonded validator no found"))
 	}
 
 	_, err = k.removeKycReward(ctx, account, valAddr, region, stakingtypes.Delegation{})
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrMeidNew, fmt.Sprintf("unregister meid airdop failed"))
+		return sdkerrors.Wrapf(types.ErrKycReward, fmt.Sprintf("remove kyc reward failed"))
 	}
 
 	validator.MeidAmount = validator.MeidAmount.Sub(types.Bonus)
 	k.SetValidator(ctx, validator)
-	k.RemoveMeid(ctx, meid.Account, region.RegionId)
 	return nil
 }
 
