@@ -43,8 +43,8 @@ message QueryDid {
   string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
-message QueryDidResponse {
-  string did = 1;
+message QueryDidResponse{
+  did.DidInfo info = 1 [ (gogoproto.nullable) = false ];
 }
 
 message QueryDidDocument {
