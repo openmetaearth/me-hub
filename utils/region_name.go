@@ -18,7 +18,7 @@ func init() {
 }
 
 func CheckRegionName(name string) (string, error) {
-	err := "input region name=" + name +
+	err := "input region name " + name +
 		" is not find.It does not comply with the rules." +
 		"Please use the United Nations standard ISO 3166-1 three-letter code, " +
 		"and if there are multiple countries, please use the following format ex: CHN-USA-GBR"

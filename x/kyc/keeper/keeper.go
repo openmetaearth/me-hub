@@ -45,10 +45,12 @@ func (k *Keeper) PubKeyFromString(s string) (pk cryptotypes.PubKey, err error) {
 }
 
 func (k *Keeper) MustAccAddressFromPubkeyString(s string) sdk.AccAddress {
-	pk, err := k.PubKeyFromString(s)
-	if err != nil {
-		panic(err)
+	if len(s) > 0 {
+		pk, err := k.PubKeyFromString(s)
+		if err != nil {
+			panic(err)
+		}
+		return sdk.AccAddress(pk.Address())
 	}
-
-	return sdk.AccAddress(pk.Address())
+	return sdk.AccAddress{}
 }

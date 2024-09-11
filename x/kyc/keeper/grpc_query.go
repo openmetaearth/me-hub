@@ -10,6 +10,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+type Querier struct {
+	*Keeper
+}
+
 var _ types.QueryServer = Keeper{}
 
 func (k Keeper) Protocol(goCtx context.Context, req *types.QueryProtocol) (*types.QueryProtocolResponse, error) {

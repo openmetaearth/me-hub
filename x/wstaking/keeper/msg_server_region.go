@@ -37,10 +37,10 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	}
 	validator, ok := k.GetValidator(ctx, valAddr)
 	if !ok {
-		return nil, sdkerrors.Wrapf(types.ErrRegionValidatorNotExist, "region bonded validator no found")
+		return nil, types.ErrRegionValidatorNotExist
 	}
 	if strings.ToLower(validator.Description.RegionId) != strings.ToLower(regionId) {
-		return nil, types.ErrRegion.Wrapf("only the validator with region id  %s can be bound,not bound %s region id", validator.Description.RegionId, msg.RegionId)
+		return nil, types.ErrRegion.Wrapf("only the validator with region id %s can be bound, not bound %s region", validator.Description.RegionId, regionId)
 	}
 
 	allRegions := k.Keeper.GetAllRegion(ctx)
@@ -62,12 +62,11 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	errors.AssertNil(err)
 	uriHash := hasher.Sum(nil)
 
-	ntfClassId := msg.Name + "-NFT-CLASS-ID-"
 	nftClass := nft.Class{
-		Id:          ntfClassId,
-		Name:        msg.Name + "-NFT-CLASS-NAME",
-		Symbol:      msg.Name + "-NFT-CLASS-SYMBOL",
-		Description: "nft class for region: " + msg.RegionId,
+		Id:          types.GetClassId(msg.Name),
+		Name:        types.GetClassName(msg.Name),
+		Symbol:      types.GetClassSymbol(msg.Name),
+		Description: types.GetClassDescription(regionId),
 		Uri:         uri,
 		UriHash:     string(uriHash[:]),
 	}
@@ -77,16 +76,16 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	}
 
 	region := types.Region{
-		RegionId:            msg.RegionId,
+		RegionId:            regionId,
 		Creator:             msg.Creator,
 		Name:                msg.Name,
 		OperatorAddress:     msg.OperatorAddress,
-		NftClassId:          ntfClassId,
-		RegionTreasureAddr:  k.CreateRegionAccount(ctx, types.RegionAccountTypeBase, msg.RegionId).String(),
-		DepositInterestAddr: k.CreateRegionAccount(ctx, types.RegionAccountTypeDepositInterest, msg.RegionId).String(),
+		NftClassId:          types.GetClassId(msg.Name),
+		RegionTreasureAddr:  k.CreateRegionAccount(ctx, types.RegionAccountTypeBase, regionId).String(),
+		DepositInterestAddr: k.CreateRegionAccount(ctx, types.RegionAccountTypeDepositInterest, regionId).String(),
 		RegionShare:         validator.Tokens,
 	}
-	if msg.RegionId == strings.ToLower(types.ExperienceRegion) {
+	if regionId == strings.ToLower(types.ExperienceRegion) {
 		region.DepositInterestAddr = ""
 	}
 	k.SetRegion(ctx, region)
@@ -104,6 +103,7 @@ func (k MsgServer) RemoveRegion(goCtx context.Context, msg *types.MsgRemoveRegio
 	if !found {
 		return nil, types.ErrRegionNotExist
 	}
+
 	err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, sdk.ValAddress{})
 	if err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrHooks, "before remove region :error :%+v", err)
@@ -140,7 +140,7 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 		toAddr,
 		msg.Amount)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "retrieve coin from region account error: region account(%s), receiver (%s)", fromAddr.String(), toAddr.String())
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "region %s have enough balance", region.RegionTreasureAddr)
 	}
 
 	ctx.EventManager().EmitEvent(

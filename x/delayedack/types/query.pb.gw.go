@@ -289,9 +289,9 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "delayedack", "params"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "delayedack", "params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GetPackets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"dymensionxyz", "dymension", "delayedack", "packets", "rollappId", "status"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_GetPackets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"dymensionxyz", "dymension", "delayedack", "packets", "rollappId", "status"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

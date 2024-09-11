@@ -27,3 +27,19 @@ var (
 func GetRegionAccountAddr(accountType REGION_ACCOUNT_TYPE, regionId string) sdk.AccAddress {
 	return sdk.AccAddress(crypto.AddressHash([]byte(RegionAccountNamePrefix + accountType.String() + regionId)))
 }
+
+func GetClassId(regionName string) string {
+	return regionName + "-NFT-CLASS-ID"
+}
+
+func GetClassName(regionName string) string {
+	return regionName + "-NFT-CLASS-NAME"
+}
+
+func GetClassSymbol(regionName string) string {
+	return regionName + "-NFT-CLASS-SYMBOL"
+}
+
+func GetClassDescription(regionId string) string {
+	return "nft class for region " + regionId
+}

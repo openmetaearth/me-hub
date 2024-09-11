@@ -26,13 +26,14 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
+
 	validator, ok := k.GetValidator(ctx, valAddr)
 	if !ok {
 		return types.ErrRegionValidatorNotExist
 	}
 
 	if validator.MeidAmount.Add(types.Bonus).GT(validator.Tokens) {
-		return sdkerrors.Wrapf(types.ErrKycReward, fmt.Sprintf("meid bonded validator can not hold this meid user, reach meid limit"))
+		return sdkerrors.Wrapf(types.ErrKycReward, fmt.Sprintf("validator reach meid limit"))
 	}
 
 	validator.MeidAmount = validator.MeidAmount.Add(types.Bonus)
@@ -67,7 +68,7 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionId string) error {
 	region, found := k.GetRegion(ctx, regionId)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrMeidNotExists, fmt.Sprintf("meid's region %s not exists", regionId))
+		return sdkerrors.Wrapf(types.ErrRegionNotExist, fmt.Sprintf("%s not exists", regionId))
 	}
 
 	valAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
@@ -92,19 +93,18 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 
 func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
 	validatorAddr sdk.ValAddress, inviteAddr string, validator stakingtypes.Validator, region types.Region) (err error) {
-
-	experienceRegion, hasRegion := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegion))
-	if !hasRegion {
-		return types.ErrExpRegionNotExist
-	}
-
-	experienceValAddress, err := sdk.ValAddressFromBech32(experienceRegion.OperatorAddress)
-	if err != nil {
-		return err
-	}
-
 	delegation, found := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
 	if found {
+		experienceRegion, hasRegion := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegion))
+		if !hasRegion {
+			return types.ErrExpRegionNotExist
+		}
+
+		experienceValAddress, err := sdk.ValAddressFromBech32(experienceRegion.OperatorAddress)
+		if err != nil {
+			return err
+		}
+
 		if delegation.Unmovable.GT(sdk.ZeroInt()) {
 			return types.ErrMeidExists
 		}
@@ -205,8 +205,7 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
 func (k Keeper) removeKycReward(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, region types.Region, delegation stakingtypes.Delegation) (amount math.Int, err error) {
 	if delegation == (stakingtypes.Delegation{}) {
 		var found bool
-		// check if a delegation object exists in the store
-		delegation, found = k.GetDelegation(ctx, delAddr, valAddr)
+		delegation, found = k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
 		if !found {
 			return amount, stakingtypes.ErrNoDelegatorForAddress
 		}
@@ -243,10 +242,13 @@ func (k Keeper) removeKycReward(ctx sdk.Context, delAddr sdk.AccAddress, valAddr
 	delegation.Unmovable = sdk.ZeroInt()
 	delegation.StartHeight = ctx.BlockHeight()
 
-	experienceRegion, _ := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegion))
+	experienceRegion, found := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegion))
+	if !found {
+		return amount, types.ErrExperienceRegionNotExist
+	}
 	delegation.ValidatorAddress = experienceRegion.OperatorAddress
 	if delegation.Amount.IsZero() && delegation.UnMeidAmount.IsZero() {
-		err = k.RemoveDelegation(ctx, delegation)
+		err = k.removeDelegation(ctx, delegation)
 		if err != nil {
 			return amount, err
 		}

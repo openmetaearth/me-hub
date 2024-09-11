@@ -303,11 +303,11 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "sponsorship", "params"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "sponsorship", "params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Vote_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "sponsorship", "vote", "voter"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Vote_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "sponsorship", "vote", "voter"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Distribution_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "streamer", "distribution"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Distribution_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "streamer", "distribution"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

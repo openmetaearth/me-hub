@@ -479,15 +479,15 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_ModuleToDistributeCoins_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "streamer", "module_to_distribute_coins"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_ModuleToDistributeCoins_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "streamer", "module_to_distribute_coins"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_StreamByID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "streamer", "stream_by_id", "id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_StreamByID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "streamer", "stream_by_id", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Streams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "streamer", "streams"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Streams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "streamer", "streams"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_ActiveStreams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "streamer", "active_streams"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_ActiveStreams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "streamer", "active_streams"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_UpcomingStreams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "streamer", "upcoming_streams"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_UpcomingStreams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "streamer", "upcoming_streams"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

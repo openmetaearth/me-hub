@@ -5,6 +5,8 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/st-chain/me-hub/x/dao/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/st-chain/me-hub/app"
@@ -15,6 +17,7 @@ import (
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencerkeeper "github.com/st-chain/me-hub/x/sequencer/keeper"
 
+	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	sequencertypes "github.com/st-chain/me-hub/x/sequencer/types"
 )
 
@@ -27,6 +30,7 @@ type KeeperTestHelper struct {
 	suite.Suite
 	App *app.App
 	Ctx sdk.Context
+	Dao daotypes.DaoAddresses
 }
 
 func (s *KeeperTestHelper) CreateDefaultRollapp() string {
@@ -109,4 +113,29 @@ func (suite *KeeperTestHelper) StateNotAltered() {
 	suite.App.Commit()
 	newState := suite.App.ExportState(suite.Ctx)
 	suite.Require().Equal(oldState, newState)
+}
+
+func (s *KeeperTestHelper) InitializeDao() {
+	globalDao := secp256k1.GenPrivKey()
+	globalDaoAcc := authtypes.NewBaseAccount(globalDao.PubKey().Address().Bytes(), globalDao.PubKey(), 0, 0)
+
+	meidDao := secp256k1.GenPrivKey()
+	meidDaoAcc := authtypes.NewBaseAccount(meidDao.PubKey().Address().Bytes(), meidDao.PubKey(), 1, 0)
+
+	devOperator := secp256k1.GenPrivKey()
+	devOperatorAcc := authtypes.NewBaseAccount(devOperator.PubKey().Address().Bytes(), devOperator.PubKey(), 2, 0)
+
+	airdrop := secp256k1.GenPrivKey()
+	airdropAcc := authtypes.NewBaseAccount(airdrop.PubKey().Address().Bytes(), airdrop.PubKey(), 3, 0)
+
+	s.App.DaoKeeper.SetDaoAddresses(s.Ctx, types.DaoAddresses{
+		GlobalDao:      globalDaoAcc.Address,
+		MeidDao:        meidDaoAcc.Address,
+		DevOperator:    devOperatorAcc.Address,
+		AirdropAddress: airdropAcc.Address,
+	})
+
+	dao, found := s.App.DaoKeeper.GetDaoAddresses(s.Ctx)
+	s.Require().True(found)
+	s.Dao = dao
 }

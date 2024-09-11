@@ -49,6 +49,7 @@ func (k Keeper) AllRegion(goCtx context.Context, req *types.QueryAllRegionReques
 
 	return &types.QueryAllRegionResponse{Region: regions, Pagination: pageRes}, nil
 }
+
 func (k Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationRewardsRequest) (*types.QueryDelegationRewardsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -137,6 +138,7 @@ func (k Querier) Delegation(c context.Context, req *stakingtypes.QueryDelegation
 
 	return &stakingtypes.QueryDelegationResponse{DelegationResponse: &delResponse}, nil
 }
+
 func DelegationToDelegationResponse(ctx sdk.Context, k *Keeper, del stakingtypes.Delegation) (stakingtypes.DelegationResponse, error) {
 	if del.Unmovable.GT(sdk.ZeroInt()) {
 		_, found := k.GetValidator(ctx, del.GetValidatorAddr())
@@ -150,5 +152,5 @@ func DelegationToDelegationResponse(ctx sdk.Context, k *Keeper, del stakingtypes
 		return stakingtypes.DelegationResponse{}, err
 	}
 	amount := del.Amount.Add(del.UnMeidAmount).Add(del.Unmovable)
-	return NewDelegationResp_new(del, sdk.NewCoin(k.BondDenom(ctx), amount)), nil
+	return NewDelegationResp(del, sdk.NewCoin(k.BondDenom(ctx), amount)), nil
 }

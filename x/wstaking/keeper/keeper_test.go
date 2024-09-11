@@ -11,6 +11,7 @@ import (
 	"github.com/st-chain/me-hub/app/apptesting"
 	testutilstypes "github.com/st-chain/me-hub/testutil/types"
 	"github.com/st-chain/me-hub/x/wstaking/keeper"
+	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -21,12 +22,24 @@ import (
 type KeeperTestSuite struct {
 	apptesting.KeeperTestHelper
 
-	msgServer   types.MsgServer
-	queryClient types.QueryClient
+	msgServer           keeper.MsgServer
+	queryClient         types.QueryClient
+	meEarthValidator    stakingtypes.Validator
+	experienceValidator stakingtypes.Validator
+	usaValidator        stakingtypes.Validator
 }
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
+}
+
+func (suite *KeeperTestSuite) Keeper() *wstakingkeeper.Keeper {
+	return suite.App.StakingKeeper
+}
+
+func (suite *KeeperTestSuite) nextBlock() {
+	h := suite.Ctx.BlockHeight()
+	suite.Ctx = suite.Ctx.WithBlockHeight(h + 1)
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -42,14 +55,24 @@ func (suite *KeeperTestSuite) SetupTest() {
 	app.StakingKeeper.SetParams(ctx, stakingtypes.DefaultParams())
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, app.StakingKeeper)
+	nativeQuerier := keeper.Querier{Keeper: app.StakingKeeper}
+	types.RegisterQueryServer(queryHelper, nativeQuerier)
 	queryClient := types.NewQueryClient(queryHelper)
 
 	suite.App = app
+
 	stakingKeeperMsgSrv := stakingkeeper.NewMsgServerImpl(app.StakingKeeper.Keeper)
 	suite.msgServer = keeper.NewMsgServerImpl(app.StakingKeeper, stakingKeeperMsgSrv)
 	suite.Ctx = ctx
 	suite.queryClient = queryClient
+
+	suite.InitializeDao()
+
+	validators := suite.Keeper().GetValidators(suite.Ctx, 10)
+	suite.Require().True(len(validators) >= 3)
+	suite.meEarthValidator = validators[0]
+	suite.experienceValidator = validators[1]
+	suite.usaValidator = validators[2]
 }
 
 func SetValidatorV1(ctx sdk.Context, k *keeper.Keeper, validator testutilstypes.ValidatorV1) {
@@ -75,7 +98,7 @@ func GetValidatorV2(ctx sdk.Context, k *keeper.Keeper, addr sdk.ValAddress) (val
 	return validator, true
 }
 
-func (suite *KeeperTestSuite) TestStakingValidator() {
+func (suite *KeeperTestSuite) TestMigrateValidator() {
 	val1 := testutilstypes.ValidatorV1{
 		OperatorAddress: "mevaloper139mq752delxv78jvtmwxhasyrycufsvr707ate",
 		ConsensusPubkey: nil,
@@ -113,7 +136,7 @@ func (suite *KeeperTestSuite) TestStakingValidator() {
 	require.True(suite.T(), found)
 
 	validators := suite.App.StakingKeeper.GetAllValidators(suite.Ctx)
-	require.Equal(suite.T(), len(validators), 2)
+	require.Equal(suite.T(), len(validators), 4)
 	for _, v := range validators {
 		if v.OperatorAddress == validator.OperatorAddress {
 			suite.T().Log(validator.String())
