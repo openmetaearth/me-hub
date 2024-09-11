@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/st-chain/me-hub/app/params"
-	types2 "github.com/st-chain/me-hub/x/kyc/types"
 	minttypes "github.com/st-chain/me-hub/x/wmint/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"strconv"
@@ -196,8 +195,8 @@ func (k MsgServer) GetRegionIdByAccount(ctx sdk.Context, account string) (string
 		return "", errors.New(fmt.Sprintf("only meid user can do fixed deposit (%s)", types.ErrMeidNotExists)), true
 	}
 
-	kycData, _ := k.KycKeeper.KYC(ctx, &types2.QueryKYC{Did: did})
-	regionId := string(kycData.Kyc.Data)
+	kycData, _ := k.KycKeeper.GetKYC(ctx, did)
+	regionId := string(kycData.Data)
 	if regionId == strings.ToLower(types.ExperienceRegion) || regionId == types.ExperienceRegion {
 		return "", errors.New(fmt.Sprintf("experience region cannot do fixed deposit")), true
 	}
