@@ -39,8 +39,8 @@ func (m *MsgCreateDid) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (m *MsgCreateDid) GetDidDocument() DidDocument {
-	return NewDidDocument(m.Did, m.Pubkey, DID_STATUS_ACTIVE)
+func (m *MsgCreateDid) GetDidInfo() DidInfo {
+	return NewDidInfo(m.Did, m.Address, m.Pubkey, DID_STATUS_ACTIVE)
 }
 
 func (m *MsgCreateDid) ValidateBasic() error {

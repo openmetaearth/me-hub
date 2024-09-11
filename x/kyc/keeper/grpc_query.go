@@ -2,7 +2,9 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -36,7 +38,36 @@ func (k Keeper) DID(goCtx context.Context, req *types.QueryDID) (*types.QueryDID
 		return nil, status.Error(codes.Internal, "did not found")
 	}
 
-	return &types.QueryDIDResponse{Did: did}, nil
+	info, found := k.GetDidInfo(ctx, did)
+	if !found {
+		return nil, status.Error(codes.Internal, "did not found")
+	}
+
+	return &types.QueryDIDResponse{Info: info}, nil
+}
+
+func (k Keeper) DIDs(goCtx context.Context, req *types.QueryDIDs) (*types.QueryDIDsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	KYCs, pageRes, err := k.GetKYCsByRegion(ctx, req.RegionId, req.Pagination)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	var infos []didtypes.DidInfo
+	for _, kyc := range KYCs {
+		info, found := k.GetDidInfo(ctx, kyc.Did)
+		if !found {
+			return nil, status.Error(codes.Internal, fmt.Sprintf("kyc exist, but did %s is not found", kyc.Did))
+		}
+
+		infos = append(infos, info)
+	}
+
+	return &types.QueryDIDsResponse{Infos: infos, Pagination: pageRes}, nil
 }
 
 func (k Keeper) KYC(goCtx context.Context, req *types.QueryKYC) (*types.QueryKYCResponse, error) {

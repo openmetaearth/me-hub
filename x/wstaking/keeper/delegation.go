@@ -188,15 +188,15 @@ func (k Keeper) Delegate(
 	}
 
 	// Get or create the delegation object
-	delegation, found := k.GetDelegation(ctx, delAddr, validator.GetOperator())
+	delegation, found := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
 	if !found {
-		delegation = stakingtypes.NewDelegation(delAddr, validator.GetOperator(), math.LegacyZeroDec())
+		delegation = stakingtypes.NewDelegation(delAddr, sdk.ValAddress{}, math.LegacyZeroDec())
 		delegation.Amount = sdk.ZeroInt()
 	}
 
 	// call the appropriate hook if present
 	if found {
-		_, err = k.WithdrawDelegationRewards(ctx, delAddr, validator.GetOperator())
+		_, err = k.WithdrawDelegationRewards(ctx, delAddr, sdk.ValAddress{})
 	}
 	if err != nil {
 		return math.LegacyZeroDec(), err

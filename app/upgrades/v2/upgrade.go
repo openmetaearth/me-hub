@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -23,6 +24,8 @@ import (
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
+	kyckeeper "github.com/st-chain/me-hub/x/kyc/keeper"
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
@@ -49,6 +52,9 @@ func CreateUpgradeHandler(
 
 		ctx.Logger().Info("4.migrate validators")
 		migrateValidators(ctx, keepers.StakingKeeper)
+
+		ctx.Logger().Info("5.init kyc and did module")
+		migrateKycModule(ctx, keepers.AccountKeeper, keepers.KycKeeper)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -133,4 +139,30 @@ func migrateValidators(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper) {
 	for _, validator := range validators {
 		stakingKeeper.SetValidator(ctx, validator)
 	}
+}
+
+func migrateKycModule(ctx sdk.Context, ak authkeeper.AccountKeeper, k *kyckeeper.Keeper) {
+	// TODO: fill issuer pubkey
+	issuer := didtypes.DidInfo{
+		Did:     "0000000000000000",
+		Address: ak.GetAccountAddressByID(ctx, 0),
+		Pubkey:  "",
+		Status:  didtypes.DID_STATUS_ACTIVE,
+	}
+	address := k.MustAccAddressFromPubkeyString(issuer.Pubkey)
+	if _, found := k.GetDID(ctx, address); found {
+		panic(fmt.Errorf("issuer %s already exists", address))
+	}
+
+	k.SetDID(ctx, address, issuer.Did)
+	k.SetDidInfo(ctx, issuer.Did, issuer)
+
+	service := didtypes.Service{
+		Sid:         types.ModuleName,
+		Name:        types.ModuleName,
+		Description: "The KYC verifiable credential issuer based The DID(Decentralized Identity).",
+		Issuer:      issuer.Did,
+		Status:      didtypes.SERVICE_STATUS_ACTIVE,
+	}
+	k.SetService(ctx, service)
 }
