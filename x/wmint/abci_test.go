@@ -2,6 +2,7 @@ package wmint
 
 import (
 	"fmt"
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	"math"
 	"math/big"
 	"testing"
@@ -96,7 +97,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.bankKeeper = bankKeeper
 	suite.stakingKeeper = stakingKeeper
 	suite.accKeeper = accKeeper
-	suite.wmintKeeper = keeper.NewKeeper(encCfg.Codec, storeKey, suite.stakingKeeper, suite.accKeeper, suite.bankKeeper, "treasury_pool", authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	suite.wmintKeeper = keeper.NewKeeper(encCfg.Codec, storeKey, suite.stakingKeeper, suite.accKeeper, suite.bankKeeper, wbanktypes.TreasuryPoolName, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 }
 
 func (suite *KeeperTestSuite) TestBeginBlocker() {

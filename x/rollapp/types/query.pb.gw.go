@@ -785,19 +785,19 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "rollapp", "params"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "rollapp", "params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Rollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"dymensionxyz", "dymension", "rollapp", "rollappId"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Rollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"dymensionxyz", "dymension", "rollapp", "rollappId"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_RollappByEIP155_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3}, []string{"dymensionxyz", "dymension", "rollapp", "eip155"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_RollappByEIP155_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3}, []string{"dymensionxyz", "dymension", "rollapp", "eip155"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_RollappAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 2}, []string{"dymensionxyz", "dymension", "rollapp"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_RollappAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 2}, []string{"dymensionxyz", "dymension", "rollapp"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_LatestHeight_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "rollapp", "latest_height", "rollappId"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_LatestHeight_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "rollapp", "latest_height", "rollappId"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_LatestStateIndex_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "rollapp", "latest_state_index", "rollappId"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_LatestStateIndex_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "rollapp", "latest_state_index", "rollappId"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_StateInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"dymensionxyz", "dymension", "rollapp", "state_info", "rollappId", "index"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_StateInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"dymensionxyz", "dymension", "rollapp", "state_info", "rollappId", "index"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

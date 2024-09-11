@@ -154,9 +154,8 @@ message MsgSetFixedDepositCfgRateResp {
 
 message MsgNewRegion {
   string creator          = 1;
-  string region_id        = 2;
-  string name             = 3;
-  string operator_address = 4;
+  string name             = 2;
+  string operator_address = 3;
 }
 
 message MsgNewRegionResponse {

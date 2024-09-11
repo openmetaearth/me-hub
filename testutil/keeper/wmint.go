@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -34,7 +35,7 @@ func WmintKeeper(t testing.TB, sk types.StakingKeeper, ak types.AccountKeeper, b
 		sk,
 		ak,
 		bk,
-		"",
+		wbanktypes.TreasuryPoolName,
 		"",
 	)
 

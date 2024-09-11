@@ -147,7 +147,6 @@ func (msg MsgUnstake) ValidateBasic() error {
 func NewMsgNewRegion(creator string, regionId string, name string, validator string) *MsgNewRegion {
 	return &MsgNewRegion{
 		Creator:         creator,
-		RegionId:        regionId,
 		Name:            name,
 		OperatorAddress: validator,
 	}

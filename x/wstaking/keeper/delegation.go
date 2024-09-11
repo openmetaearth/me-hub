@@ -315,9 +315,23 @@ func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.A
 	return coins, nil
 }
 
-func NewDelegationResp_new(del stakingtypes.Delegation, balance sdk.Coin) stakingtypes.DelegationResponse {
+func NewDelegationResp(del stakingtypes.Delegation, balance sdk.Coin) stakingtypes.DelegationResponse {
 	return stakingtypes.DelegationResponse{
 		Delegation: del,
 		Balance:    balance,
 	}
+}
+
+func (k Keeper) SetDelegation(ctx sdk.Context, delegation stakingtypes.Delegation) {
+	delegatorAddress := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
+	store := ctx.KVStore(k.storeKey)
+	b := stakingtypes.MustMarshalDelegation(k.cdc, delegation)
+	store.Set(stakingtypes.GetDelegationKey(delegatorAddress, sdk.ValAddress{}), b)
+}
+
+func (k Keeper) removeDelegation(ctx sdk.Context, delegation stakingtypes.Delegation) error {
+	delegatorAddress := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(stakingtypes.GetDelegationKey(delegatorAddress, sdk.ValAddress{}))
+	return nil
 }

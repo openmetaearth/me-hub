@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	"testing"
 
 	"github.com/st-chain/me-hub/x/wdistri/keeper"
@@ -44,7 +45,7 @@ func WdistriKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		nil,
 		nil,
 		nil,
-		"",
+		wbanktypes.TreasuryPoolName,
 		"",
 	)
 
