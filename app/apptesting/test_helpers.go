@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
+	"math/big"
 	"math/rand"
 	"strconv"
 	"testing"
@@ -61,7 +63,7 @@ var DefaultConsensusParams = &cometbftproto.ConsensusParams{
 	},
 }
 
-var TestChainID = "dymension_100-1"
+var TestChainID = "mechain_100-1"
 
 // SetupOptions defines arguments that are passed into `Simapp` constructor.
 type SetupOptions struct {
@@ -95,28 +97,33 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 	return newApp, defaultGenesisState
 }
 
+func NewValidatorSet(t *testing.T, n int) *cometbfttypes.ValidatorSet {
+	validators := []*cometbfttypes.Validator{}
+	for i := 0; i < n; i++ {
+		privVal := mock.NewPV()
+		pubKey, err := privVal.GetPubKey()
+		require.NoError(t, err)
+		// create validator set with single validator
+		validator := cometbfttypes.NewValidator(pubKey, 1)
+		validators = append(validators, validator)
+	}
+	valSet := cometbfttypes.NewValidatorSet(validators)
+	return valSet
+}
+
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.
 func Setup(t *testing.T, isCheckTx bool) *app.App {
 	t.Helper()
-
-	privVal := mock.NewPV()
-	pubKey, err := privVal.GetPubKey()
-	require.NoError(t, err)
-
-	// create validator set with single validator
-	validator := cometbfttypes.NewValidator(pubKey, 1)
-	valSet := cometbfttypes.NewValidatorSet([]*cometbfttypes.Validator{validator})
 
 	// generate genesis account
 	senderPrivKey := secp256k1.GenPrivKey()
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 	balance := banktypes.Balance{
 		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000000000000000))),
+		Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000000000000000))),
 	}
-
+	valSet := NewValidatorSet(t, 3)
 	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
-
 	return app
 }
 
@@ -132,9 +139,9 @@ func genesisStateWithValSet(t *testing.T,
 	validators := make([]stakingtypes.Validator, 0, len(valSet.Validators))
 	delegations := make([]stakingtypes.Delegation, 0, len(valSet.Validators))
 
-	bondAmt := sdk.DefaultPowerReduction
+	bondAmt := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit+10), nil))
 
-	for _, val := range valSet.Validators {
+	for i, val := range valSet.Validators {
 		pk, err := cryptocodec.FromTmPubKeyInterface(val.PubKey)
 		require.NoError(t, err)
 		pkAny, err := codectypes.NewAnyWithValue(pk)
@@ -152,12 +159,21 @@ func genesisStateWithValSet(t *testing.T,
 			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
 			MinSelfDelegation: sdk.ZeroInt(),
 		}
+		if i == 0 {
+			validator.Description.RegionId = wstakingtypes.GlobalRegion
+		}
+		if i == 1 {
+			validator.Description.RegionId = wstakingtypes.ExperienceRegion
+		}
+		if i == 2 {
+			validator.Description.RegionId = "usa"
+		}
 		validators = append(validators, validator)
 		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.OneDec()))
-
 	}
 	// set validators and delegations
 	stakingGenesis := stakingtypes.NewGenesisState(stakingtypes.DefaultParams(), validators, delegations)
+	stakingGenesis.Params.BondDenom = params.BaseDenom
 	genesisState[stakingtypes.ModuleName] = app.AppCodec().MustMarshalJSON(stakingGenesis)
 
 	totalSupply := sdk.NewCoins()
@@ -168,13 +184,13 @@ func genesisStateWithValSet(t *testing.T,
 
 	for range delegations {
 		// add delegated tokens to total supply
-		totalSupply = totalSupply.Add(sdk.NewCoin(sdk.DefaultBondDenom, bondAmt))
+		totalSupply = totalSupply.Add(sdk.NewCoin(params.BaseDenom, bondAmt))
 	}
 
 	// add bonded amount to bonded pool module account
 	balances = append(balances, banktypes.Balance{
 		Address: authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String(),
-		Coins:   sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, bondAmt)},
+		Coins:   sdk.Coins{sdk.NewCoin(params.BaseDenom, bondAmt.Mul(sdk.NewInt(3)))},
 	})
 
 	// update total supply

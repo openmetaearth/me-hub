@@ -1,10 +1,8 @@
 package keeper
 
 import (
-	"fmt"
-	"math"
-
 	sdkmath "cosmossdk.io/math"
+	"fmt"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distriKeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wdistri/types"
 )
 
@@ -28,8 +27,6 @@ type Keeper struct {
 	authority string
 
 	feeCollectorName string // name of the FeeCollector ModuleAccount
-	baseDenom        string
-	MecToUmec        int64
 }
 
 type WrapDistrKeeper struct {
@@ -59,10 +56,6 @@ func NewKeeper(
 		feeCollectorName,
 		authority,
 	)
-	baseDenom, err := sdk.GetBaseDenom()
-	if err != nil {
-		panic("GetBaseDenom failed")
-	}
 	return &Keeper{
 		Keeper:           DistrKeeper,
 		cdc:              cdc,
@@ -73,8 +66,6 @@ func NewKeeper(
 		stakingKeeper:    stakingKeeper,
 		authority:        authority,
 		feeCollectorName: feeCollectorName,
-		baseDenom:        baseDenom,
-		MecToUmec:        int64(math.Pow(10, ME_EXPONENT)),
 	}
 }
 
@@ -91,7 +82,7 @@ func (k Keeper) AllocateBlockRewardEveryday(ctx sdk.Context, req abci.RequestEnd
 
 func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 	feeCollectorAddr := k.authKeeper.GetModuleAddress(k.feeCollectorName)
-	totalMintCoin := k.bankKeeper.GetBalance(ctx, feeCollectorAddr, k.baseDenom)
+	totalMintCoin := k.bankKeeper.GetBalance(ctx, feeCollectorAddr, params.BaseDenom)
 	if totalMintCoin.Amount.IsZero() {
 		ctx.Logger().Info("totalMintCoin is zero, no need to allocate reward")
 		return nil
@@ -110,7 +101,7 @@ func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 
 		amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoin.Amount.ToLegacyDec()).Quo(totalRegionShareDec)
 		regionAmount := amount.TruncateInt()
-		regionCoins := sdk.NewCoins(sdk.NewCoin(k.baseDenom, sdk.NewInt(regionAmount.Int64())))
+		regionCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(regionAmount.Int64())))
 		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.feeCollectorName, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), regionCoins)
 		if err != nil {
 			return err

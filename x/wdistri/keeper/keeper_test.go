@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -90,7 +91,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 		suite.authKeeper,
 		suite.bankKeeper,
 		suite.stakingKeeper,
-		"treasury_pool",
+		wbanktypes.TreasuryPoolName,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	suite.msgServer = NewMsgServerImpl(*suite.wdistriKeeper)
@@ -107,7 +108,7 @@ func (suite *KeeperTestSuite) TestGetAuthority() {
 			suite.authKeeper,
 			suite.bankKeeper,
 			suite.stakingKeeper,
-			"treasury_pool",
+			wbanktypes.TreasuryPoolName,
 			authority,
 		)
 	}
@@ -254,4 +255,3 @@ func (suite *KeeperTestSuite) setMockSendCoinsFromModuleToAccountExpect(ctx sdk.
 			).Return(nil)
 	}
 }
-

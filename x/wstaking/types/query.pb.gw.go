@@ -1241,29 +1241,29 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Region_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"cosmos", "staking", "v1beta1", "region", "regionId"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Region_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"cosmos", "staking", "v1beta1", "region", "regionId"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_AllRegion_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"cosmos", "staking", "v1beta1", "all-region"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_AllRegion_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"cosmos", "staking", "v1beta1", "all-region"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_DelegationRewards_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"cosmos", "distribution", "v1beta1", "rewards", "delegator_address"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_DelegationRewards_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"cosmos", "distribution", "v1beta1", "rewards", "delegator_address"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_FixedDepositTotalAmount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit_total_amount"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_FixedDepositTotalAmount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit_total_amount"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_FixedDepositAmountByMeid_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit_amount_by_meid", "account"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_FixedDepositAmountByMeid_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit_amount_by_meid", "account"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_FixedDepositByAcct_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit_by_acct", "account", "query_type"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_FixedDepositByAcct_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit_by_acct", "account", "query_type"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_FixedDepositByRegion_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit_by_region", "regionid"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_FixedDepositByRegion_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit_by_region", "regionid"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_FixedDeposit_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit", "id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_FixedDeposit_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_FixedDepositAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_FixedDepositAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_FixedDepositCfg_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit_cfg"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_FixedDepositCfg_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit_cfg"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_FixedDepositCfgByTerm_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit_cfg_by_term"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_FixedDepositCfgByTerm_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit_cfg_by_term"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Delegation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"cosmos", "staking", "v1beta1", "delegation", "delegator_addr"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Delegation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"cosmos", "staking", "v1beta1", "delegation", "delegator_addr"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
