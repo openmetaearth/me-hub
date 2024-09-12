@@ -58,9 +58,9 @@ var (
 	ErrCheckGlobalDao        = sdkerrors.Register(ModuleName, 1148, "invalid global dao")
 
 	ErrKycReward     = sdkerrors.Register(ModuleName, 1150, "kyc reward error")
-	ErrMeidRemove    = sdkerrors.Register(ModuleName, 1151, "remove meid error")
-	ErrMeidExists    = sdkerrors.Register(ModuleName, 1152, "meid already exists")
-	ErrMeidNotExists = sdkerrors.Register(ModuleName, 1153, "meid not exists")
+	ErrMeidRemove    = sdkerrors.Register(ModuleName, 1151, "remove did error")
+	ErrMeidExists    = sdkerrors.Register(ModuleName, 1152, "did already exists")
+	ErrMeidNotExists = sdkerrors.Register(ModuleName, 1153, "did not exists")
 
 	ErrRegionAlreadyExist       = sdkerrors.Register(ModuleName, 1162, "region already exist")
 	ErrRegionNotExist           = sdkerrors.Register(ModuleName, 1163, "region not exist")
