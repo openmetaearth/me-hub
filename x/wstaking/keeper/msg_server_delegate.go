@@ -65,7 +65,7 @@ func (k MsgServer) MeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDele
 		)
 	}
 
-	del := k.Delegation(ctx, delegatorAddress, sdk.ValAddress{})
+	del := k.Delegation(ctx, delegatorAddress, valAddr)
 	rewards := sdk.ZeroDec()
 	var regionTreasureAddr sdk.AccAddress
 	if del != nil {
@@ -133,26 +133,13 @@ func (k MsgServer) MeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDele
 
 func (k MsgServer) UnMeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDelegate) (*stakingtypes.MsgDelegateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	// = k.authKeeper.GetModuleAccount(ctx, types.NotBondedPoolName).GetAddress().String()
-	//valStr, err := sdk.Bech32ifyAddressBytes(sdk.GetConfig().GetBech32ValidatorAddrPrefix(), []byte(msg.ValidatorAddress))
-	//if err != nil {
-	//	return nil, err
-	//}
-	//accountAddress, err := sdk.AccAddressFromBech32(msg.ValidatorAddress)
-	//if err != nil {
-	//	return nil, err
-	//}
+
 	region, isFound := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegion))
 	if !isFound {
 		return nil, types.ErrRegionNotExist
 	}
 	msg.ValidatorAddress = region.OperatorAddress
-	//validatorAddresses := sdk.ValAddress(k.authKeeper.GetModuleAccount(ctx, types.ExperienceRegion).GetAddress()).String()
-	//valAddr, valErr := sdk.ValAddressFromBech32(validatorAddresses)
-	//if valErr != nil {
-	//	return nil, valErr
-	//}
-	//msg.ValidatorAddress = validatorAddresses
+
 	valAddr, valErr := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if valErr != nil {
 		return nil, valErr
@@ -211,7 +198,7 @@ func (k MsgServer) UnMeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDe
 	}
 
 	// NOTE: source funds are always unbonded
-	newShares, err := k.Keeper.UnMeidDelegate(ctx, delegatorAddress, msg.Amount.Amount, sdk.ValAddress{})
+	newShares, err := k.Keeper.UnMeidDelegate(ctx, delegatorAddress, msg.Amount.Amount, validator)
 	if err != nil {
 		return nil, err
 	}
