@@ -330,12 +330,12 @@ func NewMsgDelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.C
 // NewMsgUndelegate creates a new MsgUndelegate instance.
 //
 //nolint:interfacer
-func NewMsgUndelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin, isMeid bool) *types.MsgUndelegate {
+func NewMsgUndelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) *types.MsgUndelegate {
 	return &types.MsgUndelegate{
 		DelegatorAddress: delAddr.String(),
 		ValidatorAddress: valAddr.String(),
 		Amount:           amount,
-		IsMeid:           isMeid,
+		//IsMeid:           isMeid,
 	}
 }
 
