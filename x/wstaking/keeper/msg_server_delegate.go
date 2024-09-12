@@ -18,18 +18,20 @@ import (
 // Delegate defines a method for performing a delegation of coins from a delegator to a validator
 func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate) (*stakingtypes.MsgDelegateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	meid, isFound := k.GetMeid(ctx, msg.DelegatorAddress) //TODO Get from DID module
-	if !isFound {
+	did, ok := k.KycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.DelegatorAddress))
+	if !ok {
 		return k.UnMeidDelegate(goCtx, msg)
 	} else {
-		return k.MeidDelegate(goCtx, msg, meid)
+		return k.MeidDelegate(goCtx, msg, did)
 	}
 }
 
 // MeidDelegate defines a method for performing a delegation of coins from a KYC to a validator
-func (k MsgServer) MeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDelegate, meid types.Meid) (*stakingtypes.MsgDelegateResponse, error) {
+func (k MsgServer) MeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDelegate, did string) (*stakingtypes.MsgDelegateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	region, isFound := k.GetRegion(ctx, meid.RegionId)
+	kycData, _ := k.KycKeeper.GetKYC(ctx, did)
+	regionId := string(kycData.Data)
+	region, isFound := k.GetRegion(ctx, regionId)
 	if !isFound {
 		return nil, types.ErrRegionNotExist
 	}
