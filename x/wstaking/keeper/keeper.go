@@ -8,6 +8,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	kyckeeper "github.com/st-chain/me-hub/x/kyc/keeper"
 	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"math/big"
@@ -23,6 +24,7 @@ type Keeper struct {
 	WMintKeeper   wmintkeeper.Keeper
 	nftKeeper     types.NFTKeeper
 	wstakingHooks types.WstakingHooks
+	KycKeeper     *kyckeeper.Keeper
 }
 
 func NewKeeper(

@@ -74,10 +74,10 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) AllocateBlockRewardEveryday(ctx sdk.Context, req abci.RequestEndBlock) error {
-	if ctx.BlockHeight()%oneDayTotalBlocks == 0 {
-		return k.AllocateBlockReward(ctx)
-	}
-	return nil
+	//if ctx.BlockHeight()%oneDayTotalBlocks == 0 {
+	return k.AllocateBlockReward(ctx)
+	//}
+	//return nil
 }
 
 func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {

@@ -77,35 +77,35 @@ func (k Keeper) FixedDepositByRegion(goCtx context.Context, req *types.QueryFixe
 	}
 
 	//todo
-	//ctx := sdk.UnwrapSDKContext(goCtx)
-	//var fixedDeposits []types.FixedDeposit
-	//meidList := k.GetMeidByRegion(ctx, req.Regionid)
-	//for _, meid := range meidList {
-	//	tmpList := k.GetFixedDepositByAcct(ctx, meid.Account)
-	//	if req.QueryType == types.FixedDepositState_AllState {
-	//		fixedDeposits = append(fixedDeposits, tmpList...)
-	//		continue
-	//	} else {
-	//		for _, v := range tmpList {
-	//			switch req.QueryType {
-	//			//case types.AllState:
-	//			//	fixedDeposits = append(fixedDeposits, v)
-	//			case types.FixedDepositState_NotExpired:
-	//				if ctx.BlockTime().Before(v.EndTime) {
-	//					fixedDeposits = append(fixedDeposits, v)
-	//				}
-	//			case types.FixedDepositState_Expired:
-	//				if ctx.BlockTime().After(v.EndTime) {
-	//					fixedDeposits = append(fixedDeposits, v)
-	//				}
-	//			}
-	//		}
-	//	}
-	//
-	//}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	var fixedDeposits []types.FixedDeposit
+	meidList := k.GetMeidByRegion(ctx, req.Regionid)
+	for _, meid := range meidList {
+		tmpList := k.GetFixedDepositByAcct(ctx, meid.Account)
+		if req.QueryType == types.FixedDepositState_AllState {
+			fixedDeposits = append(fixedDeposits, tmpList...)
+			continue
+		} else {
+			for _, v := range tmpList {
+				switch req.QueryType {
+				//case types.AllState:
+				//	fixedDeposits = append(fixedDeposits, v)
+				case types.FixedDepositState_NotExpired:
+					if ctx.BlockTime().Before(v.EndTime) {
+						fixedDeposits = append(fixedDeposits, v)
+					}
+				case types.FixedDepositState_Expired:
+					if ctx.BlockTime().After(v.EndTime) {
+						fixedDeposits = append(fixedDeposits, v)
+					}
+				}
+			}
+		}
 
-	//return &types.QueryFixedDepositByRegionResponse{FixedDeposit: fixedDeposits}, nil
-	return nil, nil
+	}
+
+	return &types.QueryFixedDepositByRegionResponse{FixedDeposit: fixedDeposits}, nil
+	//return nil, nil
 }
 
 func (k Keeper) FixedDepositTotalAmount(goCtx context.Context, req *types.QueryFixedDepositTotalAmountRequest) (*types.QueryFixedDepositTotalAmountResponse, error) {

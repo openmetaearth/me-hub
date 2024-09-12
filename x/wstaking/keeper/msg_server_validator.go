@@ -80,6 +80,7 @@ func (k MsgServer) CreateValidator(
 			)
 		}
 	}
+
 	validator, err := stakingtypes.NewValidator(valAddr, pk, msg.Description)
 	if err != nil {
 		return nil, err
@@ -159,10 +160,7 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 	validator.Description.Moniker = description.Moniker
 	validator.Description.SecurityContact = description.SecurityContact
 	validator.Description.Website = description.Website
-	if msg.Description.RegionId == stakingtypes.DoNotModifyDesc {
-		msg.Description.RegionId = validator.Description.RegionId
-	}
-	validator.Description.RegionId = msg.Description.RegionId
+	validator.Description.RegionId = description.RegionId
 
 	if msg.CommissionRate != nil {
 		commission, err := k.UpdateValidatorCommission(ctx, validator, *msg.CommissionRate)

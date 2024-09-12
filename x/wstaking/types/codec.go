@@ -30,6 +30,11 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgDoFixedDeposit{},
 		&MsgDoFixedWithdraw{},
 		&MsgResetValidator{},
+		&MsgNewFixedDepositCfg{},
+		&MsgSetFixedDepositCfgRate{},
+		&MsgSetFixedDepositCfgStatus{},
+		&MsgDoFixedDeposit{},
+		&MsgDoFixedWithdraw{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

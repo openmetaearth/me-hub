@@ -28,8 +28,8 @@ const (
 	EventTypeFeeToReceivers               = "fee_to_receivers"
 	EventTypeMeidNew                      = "meid_new"
 	EventTypeMeidRemove                   = "meid_remove"
-	EventTransferRegion                   = "transfer_region"
 	EventTypeResetValidator               = "reset_validator"
+	EventTransferRegion                   = "transfer_region"
 )
 
 const (
@@ -71,6 +71,12 @@ const (
 	AttributeKeyToRegion                         = "to_region"
 	AttributeKeyReceiver                         = "receiver"
 	AttributeKeyAmount                           = "amount"
+	AttributeKeyReceiver2                        = "receiver2"
+	AttributeKeyReceiver3                        = "receiver3"
+	AttributeKeyReceiver4                        = "receiver4"
+	AttributeKeyAmount2                          = "amount2"
+	AttributeKeyAmount3                          = "amount3"
+	AttributeKeyAmount4                          = "amount4"
 	AttributeKeyMeidInviteAddress                = "meid_invite_address"
 	AttributeKeyMeidInviteReward                 = "meid_invite_reward"
 	AttributeKeySendMeidInviteAddress            = "send_meid_invite_reward_address"
