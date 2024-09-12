@@ -41,6 +41,9 @@ var (
 	ErrNotEnoughStake         = errorsmod.Register(ModuleName, 1046, "Stake is not enough ")
 	ErrLoadPlugin             = errorsmod.Register(ModuleName, 1047, "load plugin error ")
 	ErrInputParams            = errorsmod.Register(ModuleName, 1049, "input params error ")
+	//da fraud related
+	ErrDaFraudConflict = errorsmod.Register(ModuleName, 1050, "DA fraud challenge conflict ")
+	ErrDaFraudTimeout  = errorsmod.Register(ModuleName, 1051, "DA fraud challenge timeout ")
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")
 	ErrDisputeAlreadyReverted  = errorsmod.Register(ModuleName, 2001, "disputed height already reverted")

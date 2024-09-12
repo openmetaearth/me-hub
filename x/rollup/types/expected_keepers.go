@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -16,6 +17,8 @@ type BankKeeper interface {
 type RollappKeeper interface {
 	IsRollappExist(ctx sdk.Context, rollappId string) bool
 	RollappsEnabled(ctx sdk.Context) bool
+	GetSubmitterLastSubmitTime(goCtx context.Context, rollappId, submitter string) int64
+	GetBlockDaCommitTime(goCtx context.Context, rollappId string, startHeight uint64, numbers uint32) int64
 }
 
 type DaoKeeper interface {

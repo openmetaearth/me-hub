@@ -88,7 +88,7 @@ set_incentives_params
 echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test
 med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
 med add-genesis-stake-pool
-med add-genesis-m-account
+med add-genesis-m-accounts
 
 jq '.app_state["dao"]["dao_addresses"]["global_dao"] = "me16sf2d3haq5g58chfd8z8ylveygjycmq8f67hw3"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 jq '.app_state["dao"]["dao_addresses"]["meid_dao"] = "me16sf2d3haq5g58chfd8z8ylveygjycmq8f67hw3"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"

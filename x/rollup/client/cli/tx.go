@@ -24,7 +24,7 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdStakeForSequencer())
 	cmd.AddCommand(CmdUnStake())
 	cmd.AddCommand(CmdSetRollupParams())
-	cmd.AddCommand(CmdRegisterRollAppIDTest())
+	//cmd.AddCommand(CmdRegisterRollAppIDTest())
 	return cmd
 }
 
@@ -94,10 +94,10 @@ func CmdUnStake() *cobra.Command {
 
 func CmdSetRollupParams() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "setParams [rollappId] [electionPeriod] [seqNumber] [backupNumber] [minStake] [firstElectTime] [allowApplyTime] [electInterim]",
+		Use:     "setParams [rollappId] [electionPeriod] [seqNumber] [backupNumber] [minStake] [firstElectTime] [allowApplyTime] [electInterim] [daFraudChallengeStake]",
 		Short:   "set rollup Params",
 		Example: "med tx hubRollUp setParams ",
-		Args:    cobra.ExactArgs(8),
+		Args:    cobra.ExactArgs(9),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -132,6 +132,10 @@ func CmdSetRollupParams() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			daChallengeStake, err := strconv.Atoi(args[8])
+			if err != nil {
+				return err
+			}
 			params := &types.Params{
 				ElectionPeriod:         uint32(electionPeriod),
 				SequencerNumber:        uint32(seqNumber),
@@ -140,6 +144,7 @@ func CmdSetRollupParams() *cobra.Command {
 				FirstElectionInterval:  uint32(firstElectTime),
 				AllowApplyElectionTime: uint32(allowApplyTime),
 				ElectionInterimTime:    uint32(electInterim),
+				DaFraudChallengeStake:  uint32(daChallengeStake),
 			}
 
 			req := &types.MsgSetRollupParamsRequest{
@@ -160,32 +165,3 @@ func CmdSetRollupParams() *cobra.Command {
 
 	return cmd
 }
-
-// //==========================for test
-func CmdRegisterRollAppIDTest() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "registerRollappID  [rollappId]",
-		Short:   "registerRollappID for test",
-		Example: "med tx hubRollUp registerRollappID <rollappId>",
-		Args:    cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-			rollappID := args[0]
-
-			msg := types.NewRegisterRollappIDRequest(clientCtx.GetFromAddress().String(), rollappID)
-			if err = msg.ValidateBasic(); err != nil {
-				return err
-			}
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-//=========================end

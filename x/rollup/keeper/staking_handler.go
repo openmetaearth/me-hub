@@ -22,7 +22,7 @@ func (t *rollupServer) StakeForSequencer(stakeCtx context.Context, req *types.Ms
 	}
 	ownerAddr := owner.String()
 	ctx := sdk.UnwrapSDKContext(stakeCtx)
-	//=========================for test
+	//TODO:=========================for test
 	ctx.Logger().Info(fmt.Sprintf("enter StakeForSequencer,msg = %s,owner = %s", req.String(), ownerAddr))
 	/*
 		if !t.Keeper.rk.RollappsEnabled(ctx) {
@@ -42,7 +42,8 @@ func (t *rollupServer) StakeForSequencer(stakeCtx context.Context, req *types.Ms
 	*/
 
 	if !t.isAllowStake(ctx, ctx.BlockTime().Unix()) {
-		return nil, types.ErrStakeTimeoutLimit
+		ctx.Logger().Error("not allow stake because of exceeded time")
+		return nil, errorsmod.Wrapf(types.ErrStakeTimeoutLimit, "not allow stake because of exceeded time")
 	}
 
 	if req.Amount < 1 {
@@ -64,7 +65,7 @@ func (t *rollupServer) StakeForSequencer(stakeCtx context.Context, req *types.Ms
 	ctx.Logger().Info(fmt.Sprintf("enter StakeForSequencer SendCoinsFromAccountToModule,msg = %s,owner = %s", req.String(), owner.String()))
 	//如果金额不够的话，SendCoinsFromAccountToModule这里就已经会判断处理了
 	if err = t.bk.SendCoinsFromAccountToModule(ctx, owner, types.MODULE_NAME, sdk.NewCoins(stakeCoin)); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("stake coin to module error.err = %s", err.Error()))
+		return nil, errorsmod.Wrapf(types.ErrStakeDataErr, fmt.Sprintf("stake coin to module error.err = %s", err.Error()))
 	}
 	//verify stake balance
 
@@ -122,7 +123,7 @@ func (t *rollupServer) UnStake(stakeCtx context.Context, req *types.MsgSeqUnStak
 	ownerAddr := owner.String()
 	ctx := sdk.UnwrapSDKContext(stakeCtx)
 	kvStore := ctx.KVStore(t.Keeper.storeKey)
-	//=========================for test
+	//TODO:=========================for test
 	ctx.Logger().Info(fmt.Sprintf("enter UnStake,msg = %s", req.String()))
 	/*
 		if !t.Keeper.rk.RollappsEnabled(ctx) {
@@ -144,7 +145,7 @@ func (t *rollupServer) UnStake(stakeCtx context.Context, req *types.MsgSeqUnStak
 
 	*/
 	if req.Amount < 1 {
-		return nil, types.ErrInputDataErr
+		return nil, errorsmod.Wrapf(types.ErrInputDataErr, "amount error")
 	}
 
 	store := prefix.NewStore(kvStore, types.GetRollupAppStakeKeyPrefix(t.rollAppID))
@@ -160,12 +161,28 @@ func (t *rollupServer) UnStake(stakeCtx context.Context, req *types.MsgSeqUnStak
 
 	amount := req.Amount
 	if amount > stakeInfo.StakeAmount {
-		return nil, types.ErrInsufficientBalance
+		return nil, errorsmod.Wrapf(types.ErrInsufficientBalance, "")
+
 	}
+	lastSubmitTime := t.rk.GetSubmitterLastSubmitTime(stakeCtx, req.RollappId, ownerAddr)
+	if lastSubmitTime > 0 {
+
+		//如果还在提交DA承诺的锁定期的话，则解质押后所剩下的不能低于最小质押额
+		if ctx.BlockTime().Unix() <= (lastSubmitTime + int64(types.SubmitDaFraudTime)*types.HourSeconds) {
+			if stakeInfo.StakeAmount < (t.GetMinStakeAmount(ctx) + stakeInfo.ApplyUnStakeAmount + amount) {
+				return nil, errorsmod.Wrapf(types.ErrInsufficientBalance,
+					fmt.Sprintf("valid stake amount insufficient while in submitDaFraudTime.preApplyUnstake = %d,reqAmount = %d",
+						stakeInfo.ApplyUnStakeAmount, amount))
+			}
+		}
+	}
+	/*这个暂时去掉，可以允许一个周期内多次申请解质押
 	//这里一个周期内指允许一次
 	if stakeInfo.ApplyUnStakeAmount > 0 {
 		return nil, types.ErrUnStakeLimit
 	}
+
+	*/
 
 	//获取上一次选举的时间
 	rollupStore := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(t.rollAppID))
@@ -208,29 +225,4 @@ func (t *rollupServer) UnStake(stakeCtx context.Context, req *types.MsgSeqUnStak
 	)
 	return &types.MsgUnStakingResponse{}, nil
 
-}
-
-func (t *rollupServer) RegisterRollappID(ctx context.Context, req *types.RegisterRollappIDRequest) (*types.RegisterRollappIDResponse, error) {
-	if t.rollAppID == "" {
-		sdkCtx := sdk.UnwrapSDKContext(ctx)
-		kvStore := sdkCtx.KVStore(t.storeKey)
-		store := prefix.NewStore(kvStore, []byte(types.RollupKeyPrefix))
-		data := store.Get([]byte(types.KEY_ROLLAPP_ID))
-		if data != nil {
-			t.rollAppID = string(data)
-			return nil, types.ErrRollappIdRegisterRepeated
-		}
-		store.Set([]byte(types.KEY_ROLLAPP_ID), []byte(req.RollappID))
-		t.rollAppID = req.RollappID
-		sdkCtx.Logger().Info(fmt.Sprintf("RegisterRollappID = %s", t.rollAppID))
-		sdkCtx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EvtRegisterRollappID,
-				sdk.NewAttribute("moduleName", types.MODULE_NAME),
-				sdk.NewAttribute("rollappID", req.RollappID),
-			),
-		)
-		return &types.RegisterRollappIDResponse{}, nil
-	}
-	return nil, types.ErrRollappIdRegisterRepeated
 }

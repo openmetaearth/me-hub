@@ -5,9 +5,10 @@ package dymensionxyz.dymension.rollapp;
 import "cosmos/msg/v1/msg.proto";
 import "dymensionxyz/dymension/rollapp/block_descriptor.proto";
 import "dymensionxyz/dymension/rollapp/rollapp.proto";
-import "dymensionxyz/dymension/rollapp/da_fraud.proto";
+
 import "dymensionxyz/dymension/rollapp/blockDA_L2.proto";
 option go_package = "github.com/st-chain/me-hub/x/rollapp/types";
+
 
 import "gogoproto/gogo.proto";
 
@@ -18,9 +19,8 @@ service Msg {
   //new added
   rpc SubmitBlockDAInfo(MsgBlkDAInfo) returns (MsgBlkDAResponse);
   rpc RegisterRollappWithDA(MsgRollappAssociateDaRequest)returns(MsgRollappAssociateDaResponse);
-  rpc ChallengeDaFraud(MsgSubmitDaFraudRequest)returns (MsgSubmitDaFraudResponse);
-  rpc SubmitDaFraudVerifyData(MsgDaFraudVerifyResult) returns(MsgDaFraudVerifyResultResponse);
-  //rpc SubmitDaDataRecovery(MsgDaDataRecoveryRequest) returns(MsgDaDataRecoveryResponse);
+  rpc SubmitDaFraudVerifyData(MsgDaFraudVerifyRequest) returns(MsgDaFraudVerifyResponse);
+  rpc SubmitDaDataRecovery(MsgDaDataRecoveryRequest) returns(MsgDaDataRecoveryResponse);
 
 }
 

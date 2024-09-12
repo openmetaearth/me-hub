@@ -24,6 +24,7 @@ func (t Keeper) QueryParams(ctx context.Context, req *types.QueryParamsRequest) 
 		FirstElectionInterval:  t.GetFirstElectionInterval(sdkCtx),
 		AllowApplyElectionTime: t.GetAllowApplyElectionTime(sdkCtx),
 		ElectionInterimTime:    t.GetElectionInterimTime(sdkCtx),
+		DaFraudChallengeStake:  t.GetDaFraudChallengeStake(sdkCtx),
 	}
 	return &types.QueryParamsResponse{
 		Params: paramas,

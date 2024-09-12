@@ -100,45 +100,6 @@ func (msg *MsgSeqUnStaking) ValidateBasic() error {
 	return nil
 }
 
-func NewRegisterRollappIDRequest(creator string, rollappId string) *RegisterRollappIDRequest {
-	return &RegisterRollappIDRequest{
-		Creator:   creator,
-		RollappID: rollappId,
-	}
-}
-
-func (msg *RegisterRollappIDRequest) Route() string {
-	return RouterKey
-}
-
-func (msg *RegisterRollappIDRequest) Type() string {
-	return TypeRegisterRollappID
-}
-
-func (msg *RegisterRollappIDRequest) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}
-
-func (msg *RegisterRollappIDRequest) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
-func (msg *RegisterRollappIDRequest) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return err
-	}
-	if msg.RollappID == "" {
-		return fmt.Errorf(" RollappId can not be empty")
-	}
-	return nil
-}
-
 func (msg *MsgSetRollupParamsRequest) Route() string {
 	return RouterKey
 }

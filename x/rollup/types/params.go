@@ -7,14 +7,15 @@ import (
 )
 
 const (
-	KeyElectionPeriod             = "KeyElectionPeriod"
-	KeyMinStakeAmount             = "KeyMinStakeAmount"
-	KeySequencerNumber            = "KeySequencerNumber"
-	KeyBackupNumber               = "KeyBackupNumber"
-	KeyFirstElectInterval         = "KeyFirstElectInterval"
-	KeyApplyElectionTime          = "KeyApplyElectionTime"
-	KeyElectionInterimTime        = "KeyElectionInterimTime"
-	MecPrecision           uint64 = 100000000
+	KeyElectionPeriod               = "KeyElectionPeriod"
+	KeyMinStakeAmount               = "KeyMinStakeAmount"
+	KeySequencerNumber              = "KeySequencerNumber"
+	KeyBackupNumber                 = "KeyBackupNumber"
+	KeyFirstElectInterval           = "KeyFirstElectInterval"
+	KeyApplyElectionTime            = "KeyApplyElectionTime"
+	KeyElectionInterimTime          = "KeyElectionInterimTime"
+	KeyDaFraudChallengeStake        = "KeyDaFraudChallengeStake"
+	MecPrecision             uint64 = 100000000
 )
 
 var (
@@ -29,6 +30,8 @@ var (
 	defaultAllowApplyElectionTime uint32 = 2880
 	//默认选举后的过渡时间，单位为秒
 	defaultElectionInterimTime uint32 = 300
+	//默认的DA挑战者的质押金额
+	defaultDaFraudChallengeStake uint32 = 100
 )
 
 func DefaultParams() Params {
@@ -40,6 +43,7 @@ func DefaultParams() Params {
 		FirstElectionInterval:  defaultFirstElectionInterval,
 		AllowApplyElectionTime: defaultAllowApplyElectionTime,
 		ElectionInterimTime:    defaultElectionInterimTime,
+		DaFraudChallengeStake:  defaultDaFraudChallengeStake,
 	}
 }
 
@@ -57,6 +61,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair([]byte(KeyFirstElectInterval), &p.FirstElectionInterval, validateFirstElectInterval),
 		paramtypes.NewParamSetPair([]byte(KeyApplyElectionTime), &p.AllowApplyElectionTime, validateAllowApplyElectionTime),
 		paramtypes.NewParamSetPair([]byte(KeyElectionInterimTime), &p.ElectionInterimTime, validateElectionInterimTime),
+		paramtypes.NewParamSetPair([]byte(KeyDaFraudChallengeStake), &p.DaFraudChallengeStake, validateDaFraudChallengeStake),
 	}
 }
 
@@ -78,6 +83,9 @@ func (p Params) Validate() error {
 		return err
 	}
 	if err := validateElectionInterimTime(p.ElectionInterimTime); err != nil {
+		return err
+	}
+	if err := validateDaFraudChallengeStake(p.DaFraudChallengeStake); err != nil {
 		return err
 	}
 	if p.AllowApplyElectionTime >= p.ElectionPeriod {
@@ -164,6 +172,17 @@ func validateElectionInterimTime(v interface{}) error {
 	}
 	if val < 1 {
 		return fmt.Errorf("ElectionInterimTime error. val = %d", val)
+	}
+	return nil
+}
+
+func validateDaFraudChallengeStake(v interface{}) error {
+	val, ok := v.(uint32)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+	if val < 1 {
+		return fmt.Errorf("DaFraudChallengeStake error. val = %d", val)
 	}
 	return nil
 }

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/binary"
 	"fmt"
 	"strconv"
 	"strings"
@@ -12,6 +13,7 @@ const (
 	KeyLastRollupCommit   = "KeyLastRollupCommit"
 	KeyBlockWithSubmitter = "KeyBlockWithSubmitter"
 	KEY_ELECTION_INTERIM  = "KeyElectionInterim"
+	//	KeySubmitterLastSubmitTime = "KeySubmitterLastSubmitTime"
 )
 
 const (
@@ -23,7 +25,9 @@ const (
 )
 
 const (
-	EventSubmitBlockDA = "EventSubmitBlockDA"
+	EventSubmitBlockDA              = "EventSubmitBlockDA"
+	EventRegisterRollappAssociateDa = "EventRegisterRollappAssociateDa"
+	EventDAFraudChallenge           = "EventDAFraudChallenge"
 )
 
 //type LightBlock tenderminttypes.LightBlock
@@ -42,6 +46,10 @@ func GetRollupBlockWithSubmitterKeyByBlockHeight(rollappID string, blockHeight u
 
 func ConvertBlockHeightToKey(blockHeight uint64) []byte {
 	return []byte(fmt.Sprintf("%09d", blockHeight))
+}
+
+func GetSubmitterLastSubmitTimeKey(submitter string) []byte {
+	return []byte(fmt.Sprintf("LastSubmitTime_%s", submitter))
 }
 
 /*
@@ -88,6 +96,15 @@ func ParserRollupKey(key string) (uint64, uint32, error) {
 	}
 	return startHeight, uint32(number), nil
 
+}
+func Int64ToBytes(i int64) []byte {
+	var buf = make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, uint64(i))
+	return buf
+}
+
+func BytesToInt64(buf []byte) int64 {
+	return int64(binary.BigEndian.Uint64(buf))
 }
 
 /*

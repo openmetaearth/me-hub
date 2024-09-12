@@ -24,4 +24,6 @@ type RollupKeeper interface {
 	QueryStake(ctx context.Context, req *rollupTypes.QueryStakeRequest) (*rollupTypes.QueryStakeResponse, error)
 	Punishment(ctx sdk.Context, address, rollappID string, rate uint32, amount uint64) error
 	RevaluateSequencer(ctx sdk.Context, address, rollappID string) error
+	RegisterRollappID(ctx sdk.Context, rollappID string) error
+	StakeForDaFraud(ctx sdk.Context, rollappID, challenger string, challengeKey []byte) error
 }

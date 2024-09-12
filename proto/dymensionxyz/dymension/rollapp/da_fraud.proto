@@ -1,0 +1,62 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+import "cosmos/msg/v1/msg.proto";
+
+//challenger submit DA fraud request
+message MsgSubmitDaFraudRequest{
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the sequencer sending the update
+  string creator = 1;
+  string rollappId = 2;
+  uint64 startHeight = 3;
+  uint32 numBlocks = 4;
+  bytes namespace = 5;
+  bytes commitment = 6;
+  bytes daRoot = 7;
+  uint64 daBlockHeight = 8;
+}
+
+
+message MsgSubmitDaFraudResponse{
+}
+
+
+
+
+message MsgDaFraudVerifyResult{
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the sequencer sending the update
+  string creator = 1;
+  string daPath = 2;
+  string rollappId = 3;
+  uint64 startHeight = 4;
+  uint32 numBlocks = 5;
+  //0:欺诈挑战成功，但提交的数据有问题，1：欺诈挑战成功，且挑战者提交的数据没问题
+  //2:欺诈挑战失败，原数据没有问题
+  int32  result = 6;
+}
+
+message MsgDaFraudVerifyResultResponse{
+}
+
+message MsgDaFraudChallengerDataStatus{
+  string challenger = 1;
+  bytes submitCommitment = 2;
+  bytes submitDaRoot = 3;
+  uint64 submitDaBlockHeight = 4;
+  int32  status = 5; //0:挑战进行中，1：挑战成功，2 ：挑战失败
+}
+
+message MsgGetDaFraudChallengeRequest{
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the sequencer sending the update
+  string creator = 1;
+}
+
+message MsgGetDaFraudChallengeResponse{
+  repeated MsgSubmitDaFraudRequest daFraudChallengeList = 1;
+}

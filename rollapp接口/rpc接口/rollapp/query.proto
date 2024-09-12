@@ -8,7 +8,6 @@ import "dymensionxyz/dymension/rollapp/params.proto";
 import "dymensionxyz/dymension/rollapp/rollapp.proto";
 import "dymensionxyz/dymension/rollapp/state_info.proto";
 import "dymensionxyz/dymension/rollapp/blockDA_L2.proto";
-import "dymensionxyz/dymension/rollapp/da_fraud.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/rollapp/types";
 
@@ -65,18 +64,6 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/rollapp/submitter_block_statics/{rollappId}";
   }
-
-  rpc GetSubmitBlockDaInfo(MsgGetBlockDaInfoRequest) returns (MsgGetBlockDaInfoResponse){
-    option (google.api.http).get =
-        "/dymensionxyz/dymension/rollapp/get_block_da_info/{rollappId}";
-  }
-
-  //查询所有的为处理挑战信息
-  rpc GetAppendingDaFraudChallenge(MsgGetDaFraudChallengeRequest) returns(MsgGetDaFraudChallengeResponse){
-       option (google.api.http).get =
-      "/dymensionxyz/dymension/rollapp/get_da_fraud_challenge_info/";
-  }
-
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	errorsmod "cosmossdk.io/errors"
+	"encoding/hex"
 	"fmt"
 	//"github.com/celestiaorg/celestia-app/pkg/appconsts"
 	//celestiaBlob "github.com/celestiaorg/celestia-node/blob"
@@ -43,6 +44,70 @@ func (k Keeper) GetLastSubmitBlockInfo(goCtx context.Context, req *types.MsgLast
 	} else {
 		return &types.MsgLastSubmitBlkResponse{LastBatch: nil}, nil
 	}
+}
+
+func (k Keeper) GetSubmitterLastSubmitTime(goCtx context.Context, rollappId, submitter string) int64 {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupBlockKeyPrefix(rollappId))
+	data := store.Get(types.GetSubmitterLastSubmitTimeKey(submitter))
+	if data != nil {
+		return types.BytesToInt64(data)
+	}
+	return 0
+
+}
+
+func (k Keeper) getCommitBlockDaInfo(goCtx context.Context, rollappId string, startHeight uint64, numbers uint32) *types.MsgCommitBlockDaInfo {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupBlockKeyPrefix(rollappId))
+	data := store.Get(types.GetRollupBlockKey(startHeight, numbers))
+	if data != nil {
+		cmtBlkInfo := &types.MsgCommitBlockDaInfo{
+			BlkDaInfo:   nil,
+			BlockHeight: 0,
+			BlockTime:   0,
+		}
+		k.cdc.MustUnmarshal(data, cmtBlkInfo)
+		return cmtBlkInfo
+	}
+	return nil
+}
+
+func (k Keeper) GetBlockDaCommitTime(goCtx context.Context, rollappId string, startHeight uint64, numbers uint32) int64 {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupBlockKeyPrefix(rollappId))
+	data := store.Get(types.GetRollupBlockKey(startHeight, numbers))
+	if data != nil {
+		cmtBlkInfo := &types.MsgCommitBlockDaInfo{
+			BlkDaInfo:   nil,
+			BlockHeight: 0,
+			BlockTime:   0,
+		}
+		k.cdc.MustUnmarshal(data, cmtBlkInfo)
+		return int64(cmtBlkInfo.BlockTime)
+	}
+	return 0
+}
+func (k *Keeper) InitRollappAssociateDa(ctx sdk.Context) error {
+	if nil == k.mapRollappAssociateDa {
+		k.mapRollappAssociateDa = make(map[string][]byte)
+		store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollappWithCelestiaKey())
+
+		iterator := sdk.KVStorePrefixIterator(store, []byte(types.NameSpacePrefix))
+		defer iterator.Close() // nolint: errcheck
+
+		ctx.Logger().Info("InitRollappAssociateDa")
+		for ; iterator.Valid(); iterator.Next() {
+			rollappID, err := types.ParserRollappIdFrNamespaceIdKey(iterator.Key())
+			if err != nil {
+				return fmt.Errorf("ParserRollappIdFrNamespaceIdKey error.err = %s", err.Error())
+			}
+			k.mapRollappAssociateDa[rollappID] = iterator.Value()
+			ctx.Logger().Info(fmt.Sprintf("InitRollappAssociateDa: rollappID = %s,val = %s", rollappID, hex.EncodeToString(iterator.Value())))
+		}
+
+	}
+	return nil
 }
 
 func (k Keeper) GetSubmitterBlockStatics(goCtx context.Context, req *types.MsgSubmitBlockStaticsRequest) (*types.MsgSubmitBlockStaticsResponse, error) {
@@ -113,6 +178,7 @@ func (k Keeper) GetSubmitterBlockStatics(goCtx context.Context, req *types.MsgSu
 func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAInfo) (*types.MsgBlkDAResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	ctx.Logger().Info("receviced SubmitBlockDAInfo", "msg", req.String())
+	//TODO:=========for test
 
 	if !k.RollappsEnabled(ctx) {
 		return nil, types.ErrRollappsDisabled
@@ -128,6 +194,7 @@ func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAI
 	if rollapp.Version != req.Version {
 		return nil, errorsmod.Wrapf(types.ErrVersionMismatch, "rollappId(%s) current version is %d, but got %d", req.RollappId, rollapp.Version, req.Version)
 	}
+	//=================test
 
 	if len(req.Blocks.LightBlocks) != int(req.NumBlocks) {
 		return nil, errorsmod.Wrapf(types.ErrVersionMismatch, "rollappId(%s)  LightBlocks's number(%d) != NumBlocks(%d)",
@@ -169,12 +236,14 @@ func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAI
 		}
 		resp := &types.MsgBlkDAResponse{}
 
-		if err = k.commitRollupBlockDAInfo(ctx, req); err != nil {
+		if err = k.commitRollupBlockDAInfo(ctx, req, &store); err != nil {
 			return nil, err
 		}
 		//
 		recStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupBlockWithSubmitterKeyPrefix(req.RollappId))
 		recStore.Set(types.ConvertBlockHeightToKey(req.StartHeight), types.ConvertToRecordSubmitVal(req.Creator, req.NumBlocks))
+		//set last submit time
+		store.Set(types.GetSubmitterLastSubmitTimeKey(req.Creator), types.Int64ToBytes(ctx.BlockTime().Unix()))
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventSubmitBlockDA,
@@ -188,6 +257,55 @@ func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAI
 		return resp, nil
 
 	}
+
+}
+func (k msgServer) RegisterRollappWithDA(goCtx context.Context, req *types.MsgRollappAssociateDaRequest) (*types.MsgRollappAssociateDaResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	ctx.Logger().Info("receviced RegisterRollappWithDA", fmt.Sprintf("msg = %s", req.String()))
+	//TODO:=========for test
+
+	if !k.RollappsEnabled(ctx) {
+		return nil, types.ErrRollappsDisabled
+	}
+
+	// load rollapp object for stateful validations
+	_, isFound := k.GetRollapp(ctx, req.RollappId)
+	if !isFound {
+		return nil, types.ErrUnknownRollappID
+	}
+	//=================test
+	//目前只支持celestia,所以暂时忽略其他的DAPATH
+	if req.RollappId == "" {
+		return nil, errorsmod.Wrapf(types.ErrInputParams, "rollappID is empty")
+	}
+
+	if len(req.NsIdentify) != types.LenNamespaceID {
+		return nil, errorsmod.Wrapf(types.ErrInputParams, fmt.Sprintf("NsIdentify's length(%d) error.must be 28", len(req.NsIdentify)))
+	}
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollappWithCelestiaKey())
+	namespacekey := types.GetNamespaceIdKey(req.RollappId)
+	data := store.Get(namespacekey)
+	if data != nil {
+		return nil, errorsmod.Wrapf(types.ErrRollappExists, "")
+	}
+	//如果不存在
+	if err := k.rollupKeeper.RegisterRollappID(ctx, req.RollappId); err != nil {
+		return nil, err
+	}
+	store.Set(namespacekey, req.NsIdentify)
+	k.mapRollappAssociateDa[req.RollappId] = req.NsIdentify
+	//发出事件
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventRegisterRollappAssociateDa,
+			sdk.NewAttribute("moduleName", types.ModuleName),
+			sdk.NewAttribute("submitter", req.Creator),
+			sdk.NewAttribute("rollappID", req.RollappId),
+			sdk.NewAttribute("namespaceID", hex.EncodeToString(req.NsIdentify)),
+		),
+	)
+	return &types.MsgRollappAssociateDaResponse{}, nil
 
 }
 
@@ -220,16 +338,21 @@ func (k msgServer) punishSubmitter(ctx context.Context, status int, address, rol
 	return nil
 }
 
-func (k msgServer) commitRollupBlockDAInfo(ctx sdk.Context, msgBlkInfo *types.MsgBlkDAInfo) error {
-	data, err := k.cdc.Marshal(msgBlkInfo)
+func (k msgServer) commitRollupBlockDAInfo(ctx sdk.Context, msgBlkInfo *types.MsgBlkDAInfo, pStore *prefix.Store) error {
+	cmtBlkInfo := &types.MsgCommitBlockDaInfo{
+		BlkDaInfo:   msgBlkInfo,
+		BlockHeight: uint64(ctx.BlockHeight()),
+		BlockTime:   uint64(ctx.BlockTime().Unix()),
+	}
+	data, err := k.cdc.Marshal(cmtBlkInfo)
 	if err != nil {
 		return errorsmod.Wrapf(types.ErrParserData,
-			fmt.Sprintf("Marshal MsgBlkDAInfo error.err = %s", err.Error()))
+			fmt.Sprintf("Marshal MsgCommitBlockDaInfo error.err = %s", err.Error()))
 	}
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupBlockKeyPrefix(msgBlkInfo.RollappId))
+	//store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupBlockKeyPrefix(msgBlkInfo.RollappId))
 	blockKey := types.GetRollupBlockKey(msgBlkInfo.StartHeight, msgBlkInfo.NumBlocks)
-	store.Set(blockKey, data)
-	store.Set([]byte(types.KeyLastRollupCommit), blockKey)
+	pStore.Set(blockKey, data)
+	pStore.Set([]byte(types.KeyLastRollupCommit), blockKey)
 
 	return nil
 	/*目前方案有修改，暂时不走缓存方式了，L2也提交也变成batch submitter
@@ -259,11 +382,16 @@ func (k msgServer) commitRollupBlockDAInfo(ctx sdk.Context, msgBlkInfo *types.Ms
 
 // 校验rollup提交的区块是否允许被写入
 func (k msgServer) verifyRollBlkIsAllowSubmit(ctx context.Context, submitBlock *types.MsgBlkDAInfo, pRollapp *types.Rollapp) (int, error) {
+	daNsID := k.mapRollappAssociateDa[submitBlock.RollappId]
+	if nil == daNsID || len(daNsID) < 1 {
+		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrNotFound,
+			fmt.Sprintf("can not found namespaceID associated with rollapp.rollappID = %s", submitBlock.RollappId))
+	}
 	//校验区块的提交者的是否质押数量足够，这样就可以将区块的提交者和竞选的Sequencer剥离开，只要满足最小质押金额，都可以提交。
 	//这样也可以方便L2层设置一个专门提交区块的batch submitter
 	resp, err := k.Keeper.rollupKeeper.QueryStake(ctx, &rollupTypes.QueryStakeRequest{
-		RollappId: pRollapp.RollappId,
-		Address:   pRollapp.Creator})
+		RollappId: submitBlock.RollappId,
+		Address:   submitBlock.Creator})
 	if err != nil {
 		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrLogic,
 			fmt.Sprintf("QueryStake error, err = %s,addr = %s", err.Error(), pRollapp.Creator))
@@ -300,12 +428,12 @@ func (k msgServer) verifyRollBlkIsAllowSubmit(ctx context.Context, submitBlock *
 		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrLoadPlugin,
 			fmt.Sprintf(" Lookup function error.err = %s", err.Error()))
 	}
-	daVerify, ok := pVal.(func([]byte, []byte) (int, error))
+	daVerify, ok := pVal.(func([]byte, []byte, []byte) (int, error))
 	if !ok {
 		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrLoadPlugin,
 			" Lookup function typeAssert error.")
 	}
-	verifyRes, err := daVerify(submitBlock.CommitmentProof, submitBlock.DaRoot)
+	verifyRes, err := daVerify(submitBlock.CommitmentProof, submitBlock.DaRoot, daNsID)
 	if err != nil {
 		return types.SUBMIT_BLOCK_SUCCESS, nil
 	}
@@ -314,7 +442,7 @@ func (k msgServer) verifyRollBlkIsAllowSubmit(ctx context.Context, submitBlock *
 
 }
 
-// 1、校验区块Header信息是否经过足够的签名教研,2、签名者是否有2f在Rollup的Election sequencer中
+// 1、校验区块Header信息是否经过足够的签名校验,2、签名者是否有2f在Rollup的Election sequencer中
 func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId string, lightBlock *tenderminttypes.LightBlock, allowAddress []string) error {
 	err := verifyRollBlkInfo(rollAppId, lightBlock)
 	if err != nil {

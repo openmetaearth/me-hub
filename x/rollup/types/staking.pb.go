@@ -237,24 +237,24 @@ func (m *MsgUnStakingResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUnStakingResponse proto.InternalMessageInfo
 
-type RegisterRollappIDRequest struct {
-	// creator is the bech32-encoded address of the sequencer sending the update
-	Creator   string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-	RollappID string `protobuf:"bytes,2,opt,name=rollappID,proto3" json:"rollappID,omitempty"`
+type MsgStakeChallengeDaFraud struct {
+	Challenger string `protobuf:"bytes,1,opt,name=challenger,proto3" json:"challenger,omitempty"`
+	Denom      string `protobuf:"bytes,2,opt,name=denom,proto3" json:"denom,omitempty"`
+	Amount     uint64 `protobuf:"varint,3,opt,name=amount,proto3" json:"amount,omitempty"`
 }
 
-func (m *RegisterRollappIDRequest) Reset()         { *m = RegisterRollappIDRequest{} }
-func (m *RegisterRollappIDRequest) String() string { return proto.CompactTextString(m) }
-func (*RegisterRollappIDRequest) ProtoMessage()    {}
-func (*RegisterRollappIDRequest) Descriptor() ([]byte, []int) {
+func (m *MsgStakeChallengeDaFraud) Reset()         { *m = MsgStakeChallengeDaFraud{} }
+func (m *MsgStakeChallengeDaFraud) String() string { return proto.CompactTextString(m) }
+func (*MsgStakeChallengeDaFraud) ProtoMessage()    {}
+func (*MsgStakeChallengeDaFraud) Descriptor() ([]byte, []int) {
 	return fileDescriptor_42c03c4ccfca8a5e, []int{4}
 }
-func (m *RegisterRollappIDRequest) XXX_Unmarshal(b []byte) error {
+func (m *MsgStakeChallengeDaFraud) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *RegisterRollappIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgStakeChallengeDaFraud) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_RegisterRollappIDRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgStakeChallengeDaFraud.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -264,75 +264,45 @@ func (m *RegisterRollappIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *RegisterRollappIDRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RegisterRollappIDRequest.Merge(m, src)
+func (m *MsgStakeChallengeDaFraud) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgStakeChallengeDaFraud.Merge(m, src)
 }
-func (m *RegisterRollappIDRequest) XXX_Size() int {
+func (m *MsgStakeChallengeDaFraud) XXX_Size() int {
 	return m.Size()
 }
-func (m *RegisterRollappIDRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_RegisterRollappIDRequest.DiscardUnknown(m)
+func (m *MsgStakeChallengeDaFraud) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgStakeChallengeDaFraud.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_RegisterRollappIDRequest proto.InternalMessageInfo
+var xxx_messageInfo_MsgStakeChallengeDaFraud proto.InternalMessageInfo
 
-func (m *RegisterRollappIDRequest) GetCreator() string {
+func (m *MsgStakeChallengeDaFraud) GetChallenger() string {
 	if m != nil {
-		return m.Creator
+		return m.Challenger
 	}
 	return ""
 }
 
-func (m *RegisterRollappIDRequest) GetRollappID() string {
+func (m *MsgStakeChallengeDaFraud) GetDenom() string {
 	if m != nil {
-		return m.RollappID
+		return m.Denom
 	}
 	return ""
 }
 
-type RegisterRollappIDResponse struct {
-}
-
-func (m *RegisterRollappIDResponse) Reset()         { *m = RegisterRollappIDResponse{} }
-func (m *RegisterRollappIDResponse) String() string { return proto.CompactTextString(m) }
-func (*RegisterRollappIDResponse) ProtoMessage()    {}
-func (*RegisterRollappIDResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42c03c4ccfca8a5e, []int{5}
-}
-func (m *RegisterRollappIDResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *RegisterRollappIDResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_RegisterRollappIDResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
+func (m *MsgStakeChallengeDaFraud) GetAmount() uint64 {
+	if m != nil {
+		return m.Amount
 	}
+	return 0
 }
-func (m *RegisterRollappIDResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RegisterRollappIDResponse.Merge(m, src)
-}
-func (m *RegisterRollappIDResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *RegisterRollappIDResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_RegisterRollappIDResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_RegisterRollappIDResponse proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterType((*MsgSeqStaking)(nil), "dymensionxyz.dymension.rollup.MsgSeqStaking")
 	proto.RegisterType((*MsgSeqUnStaking)(nil), "dymensionxyz.dymension.rollup.MsgSeqUnStaking")
 	proto.RegisterType((*MsgStakingResponse)(nil), "dymensionxyz.dymension.rollup.MsgStakingResponse")
 	proto.RegisterType((*MsgUnStakingResponse)(nil), "dymensionxyz.dymension.rollup.MsgUnStakingResponse")
-	proto.RegisterType((*RegisterRollappIDRequest)(nil), "dymensionxyz.dymension.rollup.RegisterRollappIDRequest")
-	proto.RegisterType((*RegisterRollappIDResponse)(nil), "dymensionxyz.dymension.rollup.RegisterRollappIDResponse")
+	proto.RegisterType((*MsgStakeChallengeDaFraud)(nil), "dymensionxyz.dymension.rollup.MsgStakeChallengeDaFraud")
 }
 
 func init() {
@@ -340,28 +310,29 @@ func init() {
 }
 
 var fileDescriptor_42c03c4ccfca8a5e = []byte{
-	// 332 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xd2, 0x4e, 0xa9, 0xcc, 0x4d,
-	0xcd, 0x2b, 0xce, 0xcc, 0xcf, 0xab, 0xa8, 0xac, 0xd2, 0x87, 0x73, 0xf4, 0x8b, 0xf2, 0x73, 0x72,
-	0x4a, 0x0b, 0xf4, 0x8b, 0x4b, 0x12, 0xb3, 0x33, 0xf3, 0xd2, 0xf5, 0x0a, 0x8a, 0xf2, 0x4b, 0xf2,
-	0x85, 0x64, 0x91, 0x15, 0xeb, 0xc1, 0x39, 0x7a, 0x10, 0xc5, 0x52, 0x22, 0xe9, 0xf9, 0xe9, 0xf9,
-	0x60, 0x95, 0xfa, 0x20, 0x16, 0x44, 0x93, 0x94, 0x78, 0x72, 0x7e, 0x71, 0x6e, 0x7e, 0xb1, 0x7e,
-	0x6e, 0x71, 0xba, 0x7e, 0x99, 0x21, 0x88, 0x82, 0x48, 0x28, 0xb5, 0x33, 0x72, 0xf1, 0xfa, 0x16,
-	0xa7, 0x07, 0xa7, 0x16, 0x06, 0x43, 0x6c, 0x11, 0x92, 0xe0, 0x62, 0x4f, 0x2e, 0x4a, 0x4d, 0x2c,
-	0xc9, 0x2f, 0x92, 0x60, 0x54, 0x60, 0xd4, 0xe0, 0x0c, 0x82, 0x71, 0x85, 0x64, 0xb8, 0x38, 0x41,
-	0x96, 0x24, 0x16, 0x14, 0x78, 0xa6, 0x48, 0x30, 0x81, 0xe5, 0x10, 0x02, 0x20, 0x7d, 0x65, 0xa9,
-	0x45, 0x20, 0xa7, 0x48, 0x30, 0x2b, 0x30, 0x6a, 0xb0, 0x04, 0xc1, 0xb8, 0x42, 0x62, 0x5c, 0x6c,
-	0x89, 0xb9, 0xf9, 0xa5, 0x79, 0x25, 0x12, 0x2c, 0x60, 0x09, 0x28, 0xcf, 0x8a, 0xa7, 0xe9, 0xf9,
-	0x06, 0x2d, 0x98, 0xe9, 0x4a, 0x9d, 0x8c, 0x5c, 0xfc, 0x10, 0x97, 0x84, 0xe6, 0x0d, 0xb4, 0x5b,
-	0x44, 0xb8, 0x84, 0x40, 0x4e, 0x81, 0xb8, 0x22, 0x28, 0xb5, 0xb8, 0x20, 0x3f, 0xaf, 0x38, 0x55,
-	0x49, 0x8c, 0x4b, 0xc4, 0xb7, 0x38, 0x1d, 0xee, 0x3a, 0xb8, 0x78, 0x02, 0x97, 0x44, 0x50, 0x6a,
-	0x7a, 0x66, 0x71, 0x49, 0x6a, 0x51, 0x10, 0xd4, 0x09, 0x2e, 0x41, 0xa9, 0x85, 0xa5, 0xa9, 0xc5,
-	0x25, 0xc4, 0xf9, 0xc0, 0x05, 0xdd, 0x07, 0x2e, 0x68, 0xee, 0x91, 0xe6, 0x92, 0xc4, 0x62, 0x03,
-	0xc4, 0x7a, 0x27, 0xdf, 0x13, 0x8f, 0xe4, 0x18, 0x2f, 0x3c, 0x92, 0x63, 0x7c, 0xf0, 0x48, 0x8e,
-	0x71, 0xc2, 0x63, 0x39, 0x86, 0x0b, 0x8f, 0xe5, 0x18, 0x6e, 0x3c, 0x96, 0x63, 0x88, 0x32, 0x4e,
-	0xcf, 0x2c, 0xc9, 0x28, 0x4d, 0xd2, 0x4b, 0xce, 0xcf, 0xd5, 0xc7, 0x91, 0xc4, 0xca, 0x8c, 0xf5,
-	0x2b, 0x60, 0xe9, 0xac, 0xa4, 0xb2, 0x20, 0xb5, 0x38, 0x89, 0x0d, 0x9c, 0x30, 0x8c, 0x01, 0x01,
-	0x00, 0x00, 0xff, 0xff, 0x6d, 0x5d, 0x74, 0x70, 0x95, 0x02, 0x00, 0x00,
+	// 341 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x92, 0x31, 0x4b, 0xc3, 0x40,
+	0x14, 0xc7, 0x7b, 0xb6, 0x56, 0x7a, 0x28, 0xc2, 0x11, 0x6a, 0x28, 0x7a, 0x94, 0x4e, 0x45, 0x21,
+	0x87, 0x74, 0x73, 0x54, 0x11, 0x1c, 0xba, 0xb4, 0xb8, 0xb8, 0x5d, 0x93, 0xe3, 0x5a, 0x4c, 0xee,
+	0xc5, 0x5c, 0x52, 0x5a, 0x47, 0x17, 0x71, 0xf3, 0xa3, 0xf8, 0x31, 0x1c, 0x3b, 0x3a, 0x4a, 0x3b,
+	0xf8, 0x35, 0x24, 0xb9, 0x5e, 0xcc, 0xe2, 0xec, 0x94, 0xfc, 0xff, 0xef, 0xff, 0xee, 0xfd, 0x1e,
+	0x3c, 0x7c, 0x16, 0x2c, 0x23, 0xa1, 0xf4, 0x0c, 0xd4, 0x62, 0xf9, 0xc4, 0x4a, 0xc1, 0x12, 0x08,
+	0xc3, 0x2c, 0x66, 0x3a, 0xe5, 0x0f, 0x33, 0x25, 0xbd, 0x38, 0x81, 0x14, 0xc8, 0x49, 0x35, 0xec,
+	0x95, 0xc2, 0x33, 0xe1, 0x8e, 0x23, 0x41, 0x42, 0x91, 0x64, 0xf9, 0x9f, 0x69, 0xea, 0x1c, 0xf9,
+	0xa0, 0x23, 0xd0, 0x2c, 0xd2, 0x92, 0xcd, 0xcf, 0xf3, 0x8f, 0x29, 0xf4, 0x5e, 0x10, 0x3e, 0x18,
+	0x6a, 0x39, 0x16, 0x8f, 0x63, 0x33, 0x85, 0xb8, 0x78, 0xcf, 0x4f, 0x04, 0x4f, 0x21, 0x71, 0x51,
+	0x17, 0xf5, 0x5b, 0x23, 0x2b, 0xc9, 0x31, 0x6e, 0xe5, 0x43, 0x78, 0x1c, 0xdf, 0x06, 0xee, 0x4e,
+	0x51, 0xfb, 0x35, 0xf2, 0xbe, 0xb9, 0x48, 0x72, 0x14, 0xb7, 0xde, 0x45, 0xfd, 0xc6, 0xc8, 0x4a,
+	0xd2, 0xc6, 0x4d, 0x1e, 0x41, 0xa6, 0x52, 0xb7, 0x51, 0x14, 0xb6, 0xea, 0x62, 0xff, 0xf9, 0xfb,
+	0xfd, 0xd4, 0xbe, 0xde, 0x7b, 0x45, 0xf8, 0xd0, 0x90, 0xdc, 0xa9, 0xff, 0x66, 0x71, 0x30, 0xc9,
+	0x51, 0x0c, 0xc5, 0x48, 0xe8, 0x18, 0x94, 0x16, 0xbd, 0x36, 0x76, 0x86, 0x5a, 0x96, 0x74, 0xa5,
+	0x3f, 0xc5, 0xee, 0x36, 0x2d, 0xae, 0xa6, 0x3c, 0x0c, 0x85, 0x92, 0xe2, 0x9a, 0xdf, 0x24, 0x3c,
+	0x0b, 0x08, 0xc5, 0xd8, 0xb7, 0x9e, 0x5d, 0xa2, 0xe2, 0x10, 0x07, 0xef, 0x06, 0x42, 0x41, 0xb4,
+	0xdd, 0xc1, 0x88, 0x0a, 0x65, 0xbd, 0x4a, 0x79, 0x39, 0xfc, 0x58, 0x53, 0xb4, 0x5a, 0x53, 0xf4,
+	0xb5, 0xa6, 0xe8, 0x6d, 0x43, 0x6b, 0xab, 0x0d, 0xad, 0x7d, 0x6e, 0x68, 0xed, 0x7e, 0x20, 0x67,
+	0xe9, 0x34, 0x9b, 0x78, 0x3e, 0x44, 0xec, 0x8f, 0x6b, 0x9a, 0x0f, 0xd8, 0xc2, 0x9e, 0x54, 0xba,
+	0x8c, 0x85, 0x9e, 0x34, 0x8b, 0x1b, 0x18, 0xfc, 0x04, 0x00, 0x00, 0xff, 0xff, 0x3f, 0xa9, 0x4e,
+	0x49, 0x80, 0x02, 0x00, 0x00,
 }
 
 func (m *MsgSeqStaking) Marshal() (dAtA []byte, err error) {
@@ -504,7 +475,7 @@ func (m *MsgUnStakingResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *RegisterRollappIDRequest) Marshal() (dAtA []byte, err error) {
+func (m *MsgStakeChallengeDaFraud) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -514,53 +485,35 @@ func (m *RegisterRollappIDRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *RegisterRollappIDRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgStakeChallengeDaFraud) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *RegisterRollappIDRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgStakeChallengeDaFraud) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.RollappID) > 0 {
-		i -= len(m.RollappID)
-		copy(dAtA[i:], m.RollappID)
-		i = encodeVarintStaking(dAtA, i, uint64(len(m.RollappID)))
+	if m.Amount != 0 {
+		i = encodeVarintStaking(dAtA, i, uint64(m.Amount))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Denom) > 0 {
+		i -= len(m.Denom)
+		copy(dAtA[i:], m.Denom)
+		i = encodeVarintStaking(dAtA, i, uint64(len(m.Denom)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Creator) > 0 {
-		i -= len(m.Creator)
-		copy(dAtA[i:], m.Creator)
-		i = encodeVarintStaking(dAtA, i, uint64(len(m.Creator)))
+	if len(m.Challenger) > 0 {
+		i -= len(m.Challenger)
+		copy(dAtA[i:], m.Challenger)
+		i = encodeVarintStaking(dAtA, i, uint64(len(m.Challenger)))
 		i--
 		dAtA[i] = 0xa
 	}
-	return len(dAtA) - i, nil
-}
-
-func (m *RegisterRollappIDResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *RegisterRollappIDResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *RegisterRollappIDResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
 	return len(dAtA) - i, nil
 }
 
@@ -639,29 +592,23 @@ func (m *MsgUnStakingResponse) Size() (n int) {
 	return n
 }
 
-func (m *RegisterRollappIDRequest) Size() (n int) {
+func (m *MsgStakeChallengeDaFraud) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Creator)
+	l = len(m.Challenger)
 	if l > 0 {
 		n += 1 + l + sovStaking(uint64(l))
 	}
-	l = len(m.RollappID)
+	l = len(m.Denom)
 	if l > 0 {
 		n += 1 + l + sovStaking(uint64(l))
 	}
-	return n
-}
-
-func (m *RegisterRollappIDResponse) Size() (n int) {
-	if m == nil {
-		return 0
+	if m.Amount != 0 {
+		n += 1 + sovStaking(uint64(m.Amount))
 	}
-	var l int
-	_ = l
 	return n
 }
 
@@ -1075,7 +1022,7 @@ func (m *MsgUnStakingResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *RegisterRollappIDRequest) Unmarshal(dAtA []byte) error {
+func (m *MsgStakeChallengeDaFraud) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1098,15 +1045,15 @@ func (m *RegisterRollappIDRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: RegisterRollappIDRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgStakeChallengeDaFraud: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: RegisterRollappIDRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgStakeChallengeDaFraud: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Challenger", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1134,11 +1081,11 @@ func (m *RegisterRollappIDRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Creator = string(dAtA[iNdEx:postIndex])
+			m.Challenger = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RollappID", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Denom", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1166,58 +1113,27 @@ func (m *RegisterRollappIDRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.RollappID = string(dAtA[iNdEx:postIndex])
+			m.Denom = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipStaking(dAtA[iNdEx:])
-			if err != nil {
-				return err
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthStaking
+			m.Amount = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStaking
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Amount |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
 			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *RegisterRollappIDResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowStaking
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: RegisterRollappIDResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: RegisterRollappIDResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipStaking(dAtA[iNdEx:])

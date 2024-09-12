@@ -24,6 +24,8 @@ type Keeper struct {
 	rollupKeeper    types.RollupKeeper
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
+
+	mapRollappAssociateDa map[string][]byte
 }
 
 func NewKeeper(
@@ -39,12 +41,13 @@ func NewKeeper(
 	}
 
 	k := &Keeper{
-		cdc:             cdc,
-		storeKey:        storeKey,
-		paramstore:      ps,
-		hooks:           nil,
-		channelKeeper:   channelKeeper,
-		ibcClientKeeper: ibcclientKeeper,
+		cdc:                   cdc,
+		storeKey:              storeKey,
+		paramstore:            ps,
+		hooks:                 nil,
+		channelKeeper:         channelKeeper,
+		ibcClientKeeper:       ibcclientKeeper,
+		mapRollappAssociateDa: nil,
 	}
 	k.SetFinalizePendingFn(k.finalizePendingState)
 	return k

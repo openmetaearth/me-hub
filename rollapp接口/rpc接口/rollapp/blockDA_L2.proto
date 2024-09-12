@@ -33,8 +33,7 @@ message MsgBlkDAInfo{
   // submitData data to DA and return commitmentProof
   bytes commitmentProof = 8;
   bytes daRoot = 9;
-  bytes commitment = 10;
-  uint64 daBlockHeight = 11;
+  uint64 daBlockHeight = 10;
 
 
 }
@@ -86,39 +85,27 @@ message MsgCommitBlockDaInfo{
 }
 
 message MsgRollappAssociateDaRequest{
-  option (cosmos.msg.v1.signer) = "creator";
-  // creator is the bech32-encoded address of the sequencer sending the update
-  string creator = 1;
-  string daPath = 2;
-  string rollappId = 3;
-  bytes  namespace = 4;
+  string daPath = 1;
+  string rollappId = 2;
+  bytes  nsIdentify = 3;
 }
 
 message MsgRollappAssociateDaResponse{
 }
 
-message MsgGetBlockDaInfoRequest{
+message MsgDaFraudVerifyRequest{
   option (cosmos.msg.v1.signer) = "creator";
   // creator is the bech32-encoded address of the sequencer sending the update
   string creator = 1;
-  string rollappId = 2;
-  uint64 startHeight = 3;
-  uint32 numberBlocks = 4;
-
+  string daPath = 2;
+  string rollappId = 3;
+  uint64 daBlockHeight = 4;
+  bytes  daRoot = 5;
 }
 
-message MsgGetBlockDaInfoResponse{
-  MsgLightBlkInfos blocks = 1 [(gogoproto.nullable) = false];
-  // submitData data to DA and return commitmentProof
-  bytes namespace = 2;
-  bytes daRoot = 3;
-  bytes commitment = 4;
-  uint64 daBlockHeight = 5;
-
+message MsgDaFraudVerifyResponse{
 }
 
-
-/*
 message MsgDaDataRecoveryRequest{
   option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
@@ -140,5 +127,3 @@ message MsgDaDataRecoveryRequest{
 message MsgDaDataRecoveryResponse{
 
 }
-
- */

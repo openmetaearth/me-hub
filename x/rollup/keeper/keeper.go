@@ -11,6 +11,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/rollup/types"
 	"sort"
 	"strconv"
@@ -107,13 +108,18 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 	if bIsNeedElect { //开始竞选
 		electList, err := k.startElection(ctx, k.GetMinStakeAmount(ctx)*types.MecPrecision)
 		if err != nil {
-			return err
-		}
-		var res []byte
-		if res, err = json.Marshal(electList); err != nil {
-			return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("Marshal(electList) error.err = %s", err.Error()))
+			panic(err)
 		}
 		rollupStore.Set([]byte(types.KEY_LAST_ELECTION_TIME), types.Int64ToBytes(blkTime))
+		strRes := ""
+		if (nil != electList) && (len(electList) > 0) { //如果选举后没有
+			var res []byte
+			if res, err = json.Marshal(electList); err != nil {
+				panic(errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("Marshal(electList) error.err = %s", err.Error())))
+			}
+			strRes = string(res)
+		}
+
 		//设置
 		electResult := types.QueryElectionResponse{
 			ElectionTime:   uint64(blkTime),
@@ -131,7 +137,7 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 			sdk.NewEvent(
 				types.EvtElection,
 				sdk.NewAttribute("moduleName", types.MODULE_NAME),
-				sdk.NewAttribute("result", string(res)),
+				sdk.NewAttribute("result", strRes),
 			),
 		)
 		return nil
@@ -167,6 +173,7 @@ func (k *Keeper) ProcUnstake(ctx sdk.Context) error {
 					sdk.NewAttribute("time", strconv.FormatInt(blkTime, 10)),
 				),
 			)
+			ctx.Logger().Info("complete proc unStake")
 			return nil
 
 		} else {
@@ -185,6 +192,7 @@ func (k *Keeper) startUnstake(ctx sdk.Context) (int32, error) {
 	defer iterator.Close() // nolint: errcheck
 	var totalUnstakeAddr [][]byte
 	procNumber := int32(0)
+	ctx.Logger().Info("start proc unStake")
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.MsgStakeInfo
 		if err := k.cdc.Unmarshal(iterator.Value(), &val); err != nil {
@@ -201,7 +209,8 @@ func (k *Keeper) startUnstake(ctx sdk.Context) (int32, error) {
 					return 0, errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("AccAddressFromBech32 error,err = %s,addr = %s",
 						err.Error(), string(iterator.Key())))
 				}
-				unStakeCoin := sdk.NewCoin("umec", sdk.NewInt(int64(val.ApplyUnStakeAmount)))
+
+				unStakeCoin := sdk.NewCoin(params.BaseDenom, sdk.NewInt(int64(val.ApplyUnStakeAmount)))
 				if err = k.bk.SendCoinsFromModuleToAccount(ctx, types.MODULE_NAME, recvAddr, sdk.NewCoins(unStakeCoin)); err != nil {
 					return 0, errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("unstake coin form module error,err = %s,addr = %s,amount = %d",
 						err.Error(), string(iterator.Key()), val.ApplyUnStakeAmount))
@@ -245,9 +254,7 @@ func (k *Keeper) startElection(ctx sdk.Context, minStakeAmount uint64) ([]*types
 	var electorList types.ElectionsList
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.MsgStakeInfo
-		if err := k.cdc.Unmarshal(iterator.Value(), &val); err != nil {
-			return nil, errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("Unmarshal stakeInfo error.err = %s", err.Error()))
-		}
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		//这里进行 val.StakeAmount - val.ApplyUnStakeAmount的作用是为了让解质押对于竞选的影响的也能锁仓一个周期
 		//假设在竞选前一天进行解质押，如果不相减的话，则就相当解质押对于竞选 的影响几乎没有
 		stakeAmount := val.StakeAmount - val.ApplyUnStakeAmount
@@ -264,10 +271,13 @@ func (k *Keeper) startElection(ctx sdk.Context, minStakeAmount uint64) ([]*types
 	sort.Sort(electorList)
 	SeqNumber := k.GetSequencerNumber(ctx)
 	BackNumber := k.GetBackupNumber(ctx)
-	if uint32(electorList.Len()) < SeqNumber {
-		return nil, errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("electorList len(%d) < sequencer number(%d)",
-			electorList.Len(), SeqNumber))
-	}
+	//经过讨论，即使满足资格的质押人数已经不足，但是仍然作为有效的选举，
+	//所以这里不在判断
+	/*
+		if uint32(electorList.Len()) < SeqNumber {
+			return nil, errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("electorList len(%d) < sequencer number(%d)",
+				electorList.Len(), SeqNumber))
+		}*/
 	totalNumber := SeqNumber + BackNumber
 	var res []*types.ElectionNodeStatus
 
@@ -289,6 +299,29 @@ func (k *Keeper) startElection(ctx sdk.Context, minStakeAmount uint64) ([]*types
 	}
 	return res, nil
 
+}
+
+func (t *Keeper) RegisterRollappID(ctx sdk.Context, rollappID string) error {
+	if t.rollAppID == "" {
+		kvStore := ctx.KVStore(t.storeKey)
+		store := prefix.NewStore(kvStore, []byte(types.RollupKeyPrefix))
+		data := store.Get([]byte(types.KEY_ROLLAPP_ID))
+		if data != nil {
+			return errorsmod.Wrapf(types.ErrRollappIdRegisterRepeated, "")
+		}
+		store.Set([]byte(types.KEY_ROLLAPP_ID), []byte(rollappID))
+		t.rollAppID = rollappID
+		ctx.Logger().Info(fmt.Sprintf("RegisterRollappID = %s", t.rollAppID))
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EvtRegisterRollappID,
+				sdk.NewAttribute("moduleName", types.MODULE_NAME),
+				sdk.NewAttribute("rollappID", rollappID),
+			),
+		)
+		return nil
+	}
+	return errorsmod.Wrapf(types.ErrRollappIdRegisterRepeated, "")
 }
 
 // GetModuleAddress returns the staking module account address
@@ -328,6 +361,11 @@ func (k Keeper) GetAllowApplyElectionTime(ctx sdk.Context) (res uint32) {
 
 func (k Keeper) GetElectionInterimTime(ctx sdk.Context) (res uint32) {
 	k.paramStore.Get(ctx, []byte(types.KeyElectionInterimTime), &res)
+	return
+}
+
+func (k Keeper) GetDaFraudChallengeStake(ctx sdk.Context) (res uint32) {
+	k.paramStore.Get(ctx, []byte(types.KeyDaFraudChallengeStake), &res)
 	return
 }
 
