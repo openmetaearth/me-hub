@@ -18,7 +18,7 @@ import (
 func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndelegate) (*stakingtypes.MsgUndelegateResponse, error) {
 	var region types.Region
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	regionID := strings.ToLower(types.ExperienceRegion)
+	regionID := strings.ToLower(types.ExperienceRegionName)
 	did, ok := k.KycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.DelegatorAddress))
 	if ok {
 		kycData, _ := k.KycKeeper.GetKYC(ctx, did)

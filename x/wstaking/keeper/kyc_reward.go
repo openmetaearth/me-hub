@@ -13,7 +13,7 @@ import (
 )
 
 func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, regionId, creator string) error {
-	if regionId == strings.ToLower(types.ExperienceRegion) {
+	if regionId == strings.ToLower(types.ExperienceRegionName) {
 		return sdkerrors.Wrapf(types.ErrKycReward, fmt.Sprintf("cannot set kyc to %s region", regionId))
 	}
 
@@ -95,7 +95,7 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
 	validatorAddr sdk.ValAddress, inviteAddr string, validator stakingtypes.Validator, region types.Region) (err error) {
 	delegation, found := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
 	if found {
-		experienceRegion, hasRegion := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegion))
+		experienceRegion, hasRegion := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegionName))
 		if !hasRegion {
 			return types.ErrExpRegionNotExist
 		}
@@ -242,7 +242,7 @@ func (k Keeper) removeKycReward(ctx sdk.Context, delAddr sdk.AccAddress, valAddr
 	delegation.Unmovable = sdk.ZeroInt()
 	delegation.StartHeight = ctx.BlockHeight()
 
-	experienceRegion, found := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegion))
+	experienceRegion, found := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegionName))
 	if !found {
 		return amount, types.ErrExperienceRegionNotExist
 	}

@@ -46,7 +46,7 @@ func (k Keeper) UnMeidDelegate(
 // GetAllUnMeidDelegationAmount
 func (k Keeper) GetAllUnMeidDelegationAmount(ctx sdk.Context) sdk.Coin {
 	store := ctx.KVStore(k.storeKey)
-	key := types.KeyPrefix(types.ExperienceRegion + types.PrefixUnMeid)
+	key := types.KeyPrefix(types.ExperienceRegionName + types.PrefixUnMeid)
 	var coin sdk.Coin
 	value := store.Get(key)
 	if value == nil {
@@ -69,7 +69,7 @@ func (k Keeper) SetAllUnMEIDDelegationAmount(ctx sdk.Context, coin sdk.Coin) {
 		return
 	}
 
-	key := types.KeyPrefix(types.ExperienceRegion + types.PrefixUnMeid)
+	key := types.KeyPrefix(types.ExperienceRegionName + types.PrefixUnMeid)
 	store.Set(key, b)
 }
 
@@ -233,7 +233,7 @@ func (k Keeper) Delegate(
 
 // WithdrawDelegationRewards withdraw rewards from a delegation
 func (k Keeper) WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error) {
-	regionID := strings.ToLower(types.ExperienceRegion)
+	regionID := strings.ToLower(types.ExperienceRegionName)
 	did, ok := k.KycKeeper.GetDID(ctx, delAddr)
 	if ok {
 		kycData, _ := k.KycKeeper.GetKYC(ctx, did)

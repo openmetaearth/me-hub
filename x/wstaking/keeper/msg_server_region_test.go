@@ -19,7 +19,7 @@ func (s *KeeperTestSuite) TestNewRegion() {
 
 	newRegion := types.MsgNewRegion{
 		Creator:         s.Dao.GlobalDao,
-		Name:            types.GlobalRegion,
+		Name:            types.MeEarthRegionName,
 		OperatorAddress: s.meEarthValidator.OperatorAddress,
 	}
 	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
@@ -88,7 +88,7 @@ func (s *KeeperTestSuite) TestRemoveRegion() {
 	s.SetupTest()
 	newRegion := types.MsgNewRegion{
 		Creator:         s.Dao.GlobalDao,
-		Name:            types.GlobalRegion,
+		Name:            types.MeEarthRegionName,
 		OperatorAddress: s.meEarthValidator.OperatorAddress,
 	}
 	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
@@ -96,7 +96,7 @@ func (s *KeeperTestSuite) TestRemoveRegion() {
 
 	newRegion = types.MsgNewRegion{
 		Creator:         s.Dao.GlobalDao,
-		Name:            types.ExperienceRegion,
+		Name:            types.ExperienceRegionName,
 		OperatorAddress: s.experienceValidator.OperatorAddress,
 	}
 	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
@@ -134,7 +134,7 @@ func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 
 	newRegion := types.MsgNewRegion{
 		Creator:         s.Dao.GlobalDao,
-		Name:            types.ExperienceRegion,
+		Name:            types.ExperienceRegionName,
 		OperatorAddress: s.experienceValidator.OperatorAddress,
 	}
 	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
@@ -144,7 +144,7 @@ func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
-	regionResp, err := s.queryClient.Region(s.Ctx, &types.QueryRegionRequest{RegionId: strings.ToLower(types.ExperienceRegion)})
+	regionResp, err := s.queryClient.Region(s.Ctx, &types.QueryRegionRequest{RegionId: strings.ToLower(types.ExperienceRegionName)})
 	s.Require().NoError(err)
 
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(regionResp.Region.RegionTreasureAddr), params.BaseDenom)
@@ -187,7 +187,7 @@ func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 
 			msg := types.MsgWithdrawFromRegion{
 				Withdrawer: test.withdrawer,
-				RegionId:   strings.ToLower(types.ExperienceRegion),
+				RegionId:   strings.ToLower(types.ExperienceRegionName),
 				Receiver:   s.Dao.GlobalDao,
 				Amount:     sdk.NewCoins(test.amount),
 			}

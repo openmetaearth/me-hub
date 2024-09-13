@@ -1,6 +1,6 @@
 package mock
 
-const ExperienceRegion = "EXPERIENCE_REGION"
+const ExperienceRegionName = "EXPERIENCE_REGION"
 const (
 	MEDenom     = "mec"
 	BaseMEDenom = "umec"

@@ -197,7 +197,7 @@ func (k MsgServer) GetRegionIdByAccount(ctx sdk.Context, account string) (string
 
 	kycData, _ := k.KycKeeper.GetKYC(ctx, did)
 	regionId := string(kycData.Data)
-	if regionId == strings.ToLower(types.ExperienceRegion) {
+	if regionId == strings.ToLower(types.ExperienceRegionName) {
 		return "", errors.New(fmt.Sprintf("experience region cannot do fixed deposit")), true
 	}
 	return regionId, nil, false

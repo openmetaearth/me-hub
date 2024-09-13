@@ -135,8 +135,8 @@ func NewCreateExperienceNodeCmd() *cobra.Command {
 
 			msgCreateRegion := types.NewMsgNewRegion(
 				clientCtx.GetFromAddress().String(),
-				strings.ToLower(types.ExperienceRegion),
-				types.ExperienceRegion,
+				strings.ToLower(types.ExperienceRegionName),
+				types.ExperienceRegionName,
 				msgCreateValidator.ValidatorAddress)
 			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msgCreateValidator, msgCreateRegion)
 		},

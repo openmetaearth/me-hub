@@ -133,6 +133,8 @@ func migrateValidators(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper) {
 
 	for ; iterator.Valid(); iterator.Next() {
 		validator := stakingtypes.MustUnmarshalValidator(stakingKeeper.GetCdc(), iterator.Value())
+		validator.DelegatorShares = validator.StakerShares
+		validator.StakerShares = sdk.ZeroDec()
 		validators = append(validators, validator)
 	}
 

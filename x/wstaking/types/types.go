@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	GlobalRegion     = "ME_EARTH"
-	ExperienceRegion = "EXPERIENCE_REGION"
+	MeEarthRegionName    = "ME_EARTH"
+	ExperienceRegionName = "EXPERIENCE_REGION"
 
 	CaclTotalSupply = 20000000000
 

@@ -9,6 +9,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/apptesting"
+	"github.com/st-chain/me-hub/app/params"
 	testutilstypes "github.com/st-chain/me-hub/testutil/types"
 	"github.com/st-chain/me-hub/x/wstaking/keeper"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
@@ -52,7 +53,9 @@ func (suite *KeeperTestSuite) SetupTest() {
 	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
 	suite.Require().NoError(err)
 
-	app.StakingKeeper.SetParams(ctx, stakingtypes.DefaultParams())
+	stakingParams := stakingtypes.DefaultParams()
+	stakingParams.BondDenom = params.BaseDenom
+	app.StakingKeeper.SetParams(ctx, stakingParams)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	nativeQuerier := keeper.Querier{Keeper: app.StakingKeeper}
@@ -73,6 +76,14 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.meEarthValidator = validators[0]
 	suite.experienceValidator = validators[1]
 	suite.usaValidator = validators[2]
+
+	newRegion := types.MsgNewRegion{
+		Creator:         suite.Dao.GlobalDao,
+		Name:            types.ExperienceRegionName,
+		OperatorAddress: suite.experienceValidator.OperatorAddress,
+	}
+	_, err = suite.msgServer.NewRegion(suite.Ctx, &newRegion)
+	suite.Require().NoError(err)
 }
 
 func SetValidatorV1(ctx sdk.Context, k *keeper.Keeper, validator testutilstypes.ValidatorV1) {

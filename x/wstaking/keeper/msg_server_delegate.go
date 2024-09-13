@@ -136,7 +136,7 @@ func (k MsgServer) MeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDele
 func (k MsgServer) UnMeidDelegate(goCtx context.Context, msg *stakingtypes.MsgDelegate) (*stakingtypes.MsgDelegateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	region, isFound := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegion))
+	region, isFound := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegionName))
 	if !isFound {
 		return nil, types.ErrRegionNotExist
 	}
