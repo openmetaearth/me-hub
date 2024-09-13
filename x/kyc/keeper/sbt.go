@@ -26,3 +26,12 @@ func (k *Keeper) SetSBT(ctx sdk.Context, sbt nft.NFT, receiver sdk.AccAddress) e
 func (k *Keeper) RemoveSBT(ctx sdk.Context, did string) error {
 	return k.nftKeeper.Burn(ctx, types.ModuleName, did)
 }
+
+func (k *Keeper) SetSbtClass(ctx sdk.Context) error {
+	class := nft.Class{
+		Id:   types.ModuleName,
+		Name: types.ModuleName,
+	}
+
+	return k.nftKeeper.SaveClass(ctx, class)
+}
