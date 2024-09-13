@@ -29,12 +29,12 @@ func (s *KeeperTestSuite) TestKycReward_WithoutDelegation() {
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
-	invitee := s.Dao.GlobalDao
-	err = s.Keeper().KycReward(s.Ctx, kycAccount, invitee, s.usaValidator.Description.RegionId, s.Dao.GlobalDao)
+	inviter := s.Dao.GlobalDao
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter, s.usaValidator.Description.RegionId, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address
-	balance := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(invitee), params.BaseDenom)
+	balance := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(inviter), params.BaseDenom)
 	s.Require().Equal(balance.Amount.String(), types.InviteReward.String())
 
 	// check region DelegateAmount
@@ -61,7 +61,7 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithoutDelegation() {
 	// must have experience region
 	newRegion = types.MsgNewRegion{
 		Creator:         s.Dao.GlobalDao,
-		Name:            types.ExperienceRegion,
+		Name:            types.ExperienceRegionName,
 		OperatorAddress: s.experienceValidator.OperatorAddress,
 	}
 	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
@@ -72,12 +72,12 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithoutDelegation() {
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
-	invitee := s.Dao.GlobalDao
-	err = s.Keeper().KycReward(s.Ctx, kycAccount, invitee, s.usaValidator.Description.RegionId, s.Dao.GlobalDao)
+	inviter := s.Dao.GlobalDao
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter, s.usaValidator.Description.RegionId, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address
-	balance := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(invitee), params.BaseDenom)
+	balance := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(inviter), params.BaseDenom)
 	s.Require().Equal(balance.Amount.String(), types.InviteReward.String())
 
 	// remove kyc
@@ -98,7 +98,7 @@ func (s *KeeperTestSuite) TestKycReward_WithDelegation() {
 
 	newRegion := types.MsgNewRegion{
 		Creator:         s.Dao.GlobalDao,
-		Name:            types.ExperienceRegion,
+		Name:            types.ExperienceRegionName,
 		OperatorAddress: s.experienceValidator.OperatorAddress,
 	}
 	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
@@ -118,11 +118,11 @@ func (s *KeeperTestSuite) TestKycReward_WithDelegation() {
 
 	// do kyc reward
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
-	invitee := s.Dao.GlobalDao
-	err = s.Keeper().KycReward(s.Ctx, kycAccount, invitee, s.usaValidator.Description.RegionId, s.Dao.GlobalDao)
+	inviter := s.Dao.GlobalDao
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter, s.usaValidator.Description.RegionId, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address
-	balance := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(invitee), params.BaseDenom)
+	balance := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(inviter), params.BaseDenom)
 	s.Require().Equal(balance.Amount.String(), types.InviteReward.String())
 }

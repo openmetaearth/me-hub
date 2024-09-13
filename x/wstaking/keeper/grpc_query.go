@@ -63,7 +63,7 @@ func (k Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationR
 	if err != nil {
 		return nil, err
 	}
-	//regionID := strings.ToLower(types.ExperienceRegion)
+	//regionID := strings.ToLower(types.ExperienceRegionName)
 	//meid, found := k.GetMeid(ctx, req.DelegatorAddress)
 	//if found {
 	//	regionID = meid.RegionId
@@ -110,7 +110,7 @@ func (k Querier) Delegation(c context.Context, req *stakingtypes.QueryDelegation
 	if err != nil {
 		return nil, err
 	}
-	//regionID := strings.ToLower(types.ExperienceRegion)
+	//regionID := strings.ToLower(types.ExperienceRegionName)
 	//meid, found := k.GetMeid(ctx, req.DelegatorAddr)
 	//if found {
 	//regionID = meid.RegionId

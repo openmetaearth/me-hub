@@ -85,7 +85,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 		DepositInterestAddr: k.CreateRegionAccount(ctx, types.RegionAccountTypeDepositInterest, regionId).String(),
 		RegionShare:         validator.Tokens,
 	}
-	if regionId == strings.ToLower(types.ExperienceRegion) {
+	if regionId == strings.ToLower(types.ExperienceRegionName) {
 		region.DepositInterestAddr = ""
 	}
 	k.SetRegion(ctx, region)

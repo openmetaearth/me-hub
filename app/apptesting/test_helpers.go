@@ -5,10 +5,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	wminttypes "github.com/st-chain/me-hub/x/wmint/types"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"math/big"
 	"math/rand"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -118,12 +120,17 @@ func Setup(t *testing.T, isCheckTx bool) *app.App {
 	// generate genesis account
 	senderPrivKey := secp256k1.GenPrivKey()
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
+
+	coins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(wminttypes.TotalBaseCoinsAmount)))
+	moduleAddress := authtypes.NewModuleAddress(wstakingtypes.StakePoolName)
+	stakePoolBalances := banktypes.Balance{Address: moduleAddress.String(), Coins: coins.Sort()}
+
 	balance := banktypes.Balance{
 		Address: acc.GetAddress().String(),
 		Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000000000000000))),
 	}
 	valSet := NewValidatorSet(t, 3)
-	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance)
+	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance, stakePoolBalances)
 	return app
 }
 
@@ -160,10 +167,10 @@ func genesisStateWithValSet(t *testing.T,
 			MinSelfDelegation: sdk.ZeroInt(),
 		}
 		if i == 0 {
-			validator.Description.RegionId = wstakingtypes.GlobalRegion
+			validator.Description.RegionId = strings.ToLower(wstakingtypes.MeEarthRegionName)
 		}
 		if i == 1 {
-			validator.Description.RegionId = wstakingtypes.ExperienceRegion
+			validator.Description.RegionId = strings.ToLower(wstakingtypes.ExperienceRegionName)
 		}
 		if i == 2 {
 			validator.Description.RegionId = "usa"
