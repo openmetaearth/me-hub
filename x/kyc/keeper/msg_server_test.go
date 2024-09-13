@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-func (s *KeeperTestSuite) TestApprove_WithoutDelegation() {
+func (s *KeeperTestSuite) TestApprove() {
 	s.SetupTest()
 
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
@@ -58,7 +58,7 @@ func (s *KeeperTestSuite) TestApprove_WithoutDelegation() {
 	s.Require().Equal(msg.Hash, kyc.Hash)
 }
 
-func (s *KeeperTestSuite) TestRemove_WithoutDelegation() {
+func (s *KeeperTestSuite) TestRemove() {
 	s.SetupTest()
 
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
@@ -111,7 +111,7 @@ func (s *KeeperTestSuite) TestRemove_WithoutDelegation() {
 	s.Require().False(f)
 }
 
-func (s *KeeperTestSuite) TestTransferRegion() {
+func (s *KeeperTestSuite) TestUpdate() {
 	s.SetupTest()
 
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
