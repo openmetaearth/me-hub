@@ -14,8 +14,8 @@ import (
 
 func NewUndelegateCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "undelegate [amount] [is-meid]",
-		Args:  cobra.ExactArgs(2),
+		Use:   "undelegate [amount]",
+		Args:  cobra.ExactArgs(1),
 		Short: "undelegate liquid tokens from a validator",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`undelegate an amount of liquid coins from a validator to your wallet.
@@ -34,10 +34,10 @@ $ %s tx staking undelegate 1000mec true --from mykey
 			if err != nil {
 				return err
 			}
-			isMeid := strings.ToLower(args[1]) == "true"
+			//isMeid := strings.ToLower(args[1]) == "true"
 			delAddr := clientCtx.GetFromAddress()
 
-			msg := types.NewMsgUndelegate(delAddr, sdk.ValAddress{}, amount, isMeid)
+			msg := types.NewMsgUndelegate(delAddr, sdk.ValAddress{}, amount)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}

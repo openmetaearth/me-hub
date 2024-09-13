@@ -18,22 +18,15 @@ import (
 func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndelegate) (*stakingtypes.MsgUndelegateResponse, error) {
 	var region types.Region
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	// TODO: check meid
-	meid, isFound := k.GetMeid(ctx, msg.DelegatorAddress)
-	if msg.IsMeid {
-		if !isFound {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "is-meid is true, you're meid")
-		}
-		region, isFound = k.GetRegion(ctx, meid.RegionId)
-		if !isFound {
-			return nil, types.ErrRegionNotExist
-		}
-	} else {
-		region, isFound = k.GetRegion(ctx, strings.ToLower(types.ExperienceRegion))
-		if !isFound {
-			return nil, types.ErrRegionNotExist
-		}
+	regionID := strings.ToLower(types.ExperienceRegion)
+	did, ok := k.KycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.DelegatorAddress))
+	if ok {
+		kycData, _ := k.KycKeeper.GetKYC(ctx, did)
+		regionID = string(kycData.Data)
+	}
+	region, isFound := k.GetRegion(ctx, regionID)
+	if !isFound {
+		return nil, types.ErrRegionNotExist
 	}
 	msg.ValidatorAddress = region.OperatorAddress
 	valAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
@@ -63,7 +56,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 
 	// current interest balance * personal withdrawal pledge limit / district total pledge limit
 	//person_dele_inte := region.DelegateInterest.Mul(sdk.NewDecFromInt(msg.Amount.Amount).Quo(sdk.NewDecFromInt(validator.DelegationAmount)))
-	del := k.Delegation(ctx, delegatorAddress, valAddr)
+	del := k.Delegation(ctx, delegatorAddress, sdk.ValAddress{})
 	if del == nil {
 		return nil, types.ErrEmptyDelegationDistInfo
 	}

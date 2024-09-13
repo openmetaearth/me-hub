@@ -19,6 +19,7 @@ type DeductFeeDecorator struct {
 	feegrantKeeper ante.FeegrantKeeper
 	daoKeeper      DaoKeeper
 	stakingKeeper  StakingKeeper
+	didKeeper      DidKeeper
 	txFeeChecker   ante.TxFeeChecker
 	wasmKeeper     wasmtypes.ViewKeeper
 }
@@ -29,6 +30,7 @@ func NewDeductFeeDecorator(
 	fk ante.FeegrantKeeper,
 	dk DaoKeeper,
 	sk StakingKeeper,
+	didKeeper DidKeeper,
 	tfc ante.TxFeeChecker,
 	wk wasmtypes.ViewKeeper,
 ) DeductFeeDecorator {
@@ -46,6 +48,7 @@ func NewDeductFeeDecorator(
 		feegrantKeeper: fk,
 		daoKeeper:      dk,
 		stakingKeeper:  sk,
+		didKeeper:      didKeeper,
 		txFeeChecker:   tfc,
 		wasmKeeper:     wk,
 	}
@@ -181,9 +184,9 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			})
 
 			fee20Address := ""
-			meid, ok := dfd.stakingKeeper.GetMeid(ctx, deductFeesFrom.String())
+			_, ok = dfd.didKeeper.GetDID(ctx, deductFeesFrom)
 			if ok {
-				fee20Address, err = dfd.stakingKeeper.GetValOwnerAddress(ctx, meid.Account)
+				fee20Address, err = dfd.stakingKeeper.GetValOwnerAddress(ctx, deductFeesFrom.String())
 				if err != nil {
 					return ctx, err
 				}

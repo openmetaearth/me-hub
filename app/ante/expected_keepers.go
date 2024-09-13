@@ -24,3 +24,7 @@ type StakingKeeper interface {
 
 	GetGlobalAdminFeePoolAddr(ctx sdk.Context) sdk.AccAddress
 }
+
+type DidKeeper interface {
+	GetDID(ctx sdk.Context, addr sdk.AccAddress) (string, bool)
+}

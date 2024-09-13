@@ -30,6 +30,7 @@ type HandlerOptions struct {
 
 	DaoKeeper      DaoKeeper
 	StakingKeeper  StakingKeeper
+	DidKeeper      DidKeeper
 	WasmViewKeeper wasmTypes.ViewKeeper
 	TxFeeChecker   ante.TxFeeChecker
 }
