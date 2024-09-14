@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -56,33 +58,24 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 
 	// current interest balance * personal withdrawal pledge limit / district total pledge limit
 	//person_dele_inte := region.DelegateInterest.Mul(sdk.NewDecFromInt(msg.Amount.Amount).Quo(sdk.NewDecFromInt(validator.DelegationAmount)))
-	del := k.Delegation(ctx, delegatorAddress, sdk.ValAddress{})
-	if del == nil {
+	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, sdk.ValAddress{})
+	if !isOK {
 		return nil, types.ErrEmptyDelegationDistInfo
 	}
-	delegation, isOK := del.(stakingtypes.Delegation)
-	if !isOK {
-		return nil, sdkerrors.Wrap(types.ErrAssertionFailed, "type Delegation assertion failed")
-	}
 
-	rewards, err := k.WithdrawDelegationRewards(ctx, delegatorAddress, valAddr)
+	userTotalStaking := delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable)
+	rewards, err := k.CalculateInterest(ctx, userTotalStaking, delegation.StartHeight)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrWithdrawDelegateReward, err.Error())
+		return nil, types.ErrCalculateInterest.Wrap(err.Error())
 	}
-	//if region.DelegateInterest.GTE(rewards) {
-	//	region.DelegateInterest = region.DelegateInterest.Sub(rewards)
-	//} else {
-	//	return nil, errors.New(fmt.Sprintf("undelegate err,region(%s) total interest not enough.need pay %s,only have %s",
-	//		region.RegionId, rewards.String(), region.DelegateInterest.String()))
-	//}
-
-	//TODO: send rewards in staking module
-	//err = k.bankKeeper.SendCoins(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(sdk.BaseMEDenom, rewards.TruncateInt())))
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	if msg.IsMeid {
+	if region.DelegateInterest.GTE(rewards) {
+		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
+	} else {
+		return nil, errors.New(fmt.Sprintf("undelegate err,region(%s) total interest not enough.need pay %s,only have %s",
+			region.RegionId, rewards.String(), region.DelegateInterest.String()))
+	}
+	isMeid := false
+	if strings.ToLower(val.Description.RegionId) == strings.ToLower(types.ExperienceRegionName) {
 		if delegation.Amount.LT(msg.Amount.Amount) {
 			return nil, types.ErrNotEnoughDelegationAmount
 		}
@@ -90,9 +83,10 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 		if delegation.UnMeidAmount.LT(msg.Amount.Amount) {
 			return nil, types.ErrNotEnoughDelegationAmount
 		}
+		isMeid = true
 	}
 
-	completionTime, returnAmount, err := k.Keeper.Undelegate(ctx, delegatorAddress, valAddr, msg.IsMeid, msg.Amount.Amount)
+	completionTime, returnAmount, err := k.Keeper.Undelegate(ctx, delegatorAddress, valAddr, isMeid, msg.Amount.Amount, delegation)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +117,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 			sdk.NewAttribute(stakingtypes.BondedPoolName, delegateTreasure.String()),
 			sdk.NewAttribute(types.AttributeKeyRegionTreasure, region.RegionTreasureAddr),
 			sdk.NewAttribute(types.AttributeKeyDelegatorAddress, delegatorAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyPersonalDelegateInterest, rewards.AmountOf(params.BaseDenom).String()+params.BaseDenom),
+			sdk.NewAttribute(types.AttributeKeyPersonalDelegateInterest, rewards.String()+params.BaseDenom),
 			sdk.NewAttribute(types.AttributeKeyIsMeid, strconv.FormatBool(msg.IsMeid)),
 		),
 	})
