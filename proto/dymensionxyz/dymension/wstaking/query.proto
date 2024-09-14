@@ -129,7 +129,7 @@ message QueryFixedDepositByAcctResponse {
 
 message QueryFixedDepositByRegionRequest {
   string regionid = 1;
-  //	cosmos.base.query.v1beta1.PageRequest pagination = 2;
+//  cosmos.base.query.v1beta1.PageRequest pagination = 2;
   FixedDepositState query_type = 3;
 }
 

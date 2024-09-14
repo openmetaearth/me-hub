@@ -408,7 +408,7 @@ func (m *QueryFixedDepositByAcctResponse) GetFixedDeposit() []FixedDeposit {
 
 type QueryFixedDepositByRegionRequest struct {
 	Regionid string `protobuf:"bytes,1,opt,name=regionid,proto3" json:"regionid,omitempty"`
-	//	cosmos.base.query.v1beta1.PageRequest pagination = 2;
+	//  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 	QueryType FixedDepositState `protobuf:"varint,3,opt,name=query_type,json=queryType,proto3,enum=dymensionxyz.dymension.wstaking.FixedDepositState" json:"query_type,omitempty"`
 }
 
