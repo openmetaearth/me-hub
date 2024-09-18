@@ -10,4 +10,10 @@ const (
 	EvtProcUnStakeStatistics = "EventProcUnStakeStatistics"
 	EvtPunishment            = "EventPunishment"
 	EvtSequencerChange       = "EventSequencerChange"
+	EvtRestStakeInfo         = "EventRestStakeInfo"
+	//========da fraud
+	EvtPunishDaChallengerFraud = "EventPunishDaChallengerFraud" //DA挑战者欺诈事件
+	EvtPunishBlockDaSubmitter  = "EventPunishBlockDaSubmitter"  //提交BlockDa欺诈
+	EvtAddBlackList            = "EventAddBlackList"
+	EvtRewardDaFraudChallenger = "EventRewardDaFraudChallenger"
 )

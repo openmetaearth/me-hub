@@ -22,8 +22,15 @@ type RollupKeeper interface {
 	GetPreviousElectionResult(ctx context.Context, rollappID string) (*rollupTypes.QueryElectionResponse, error)
 	GetParams(ctx sdk.Context) rollupTypes.Params
 	QueryStake(ctx context.Context, req *rollupTypes.QueryStakeRequest) (*rollupTypes.QueryStakeResponse, error)
-	Punishment(ctx sdk.Context, address, rollappID string, rate uint32, amount uint64) error
+	Punishment(ctx sdk.Context, address, rollappID string, rate uint32, amount uint64) (uint64, error)
 	RevaluateSequencer(ctx sdk.Context, address, rollappID string) error
-	RegisterRollappID(ctx sdk.Context, rollappID string) error
-	StakeForDaFraud(ctx sdk.Context, rollappID, challenger string, challengeKey []byte) error
+	RegisterRollappInitInfo(ctx sdk.Context, rollappID string, FirstElectBlkHeight uint64, IdInDa []byte) error
+	IsInBlackList(addr string) bool
+	StakeForChallengeDaFraud(goCtx context.Context, rollappID, blockSubmitter, challenger string, challengeKey []byte) error
+	ProcChallengeDaFraud(goCtx context.Context, rollappID string, challengeKey []byte, result int32) error
+}
+
+type DaoKeeper interface {
+	IsGlobalDao(ctx sdk.Context, address string) bool
+	IsValidatorDao(ctx sdk.Context, address string) bool
 }

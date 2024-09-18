@@ -46,8 +46,7 @@ func (k Keeper) GetLastSubmitBlockInfo(goCtx context.Context, req *types.MsgLast
 	}
 }
 
-func (k Keeper) GetSubmitterLastSubmitTime(goCtx context.Context, rollappId, submitter string) int64 {
-	ctx := sdk.UnwrapSDKContext(goCtx)
+func (k Keeper) GetSubmitterLastSubmitTime(ctx sdk.Context, rollappId, submitter string) int64 {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupBlockKeyPrefix(rollappId))
 	data := store.Get(types.GetSubmitterLastSubmitTimeKey(submitter))
 	if data != nil {
@@ -195,6 +194,9 @@ func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAI
 		return nil, errorsmod.Wrapf(types.ErrVersionMismatch, "rollappId(%s) current version is %d, but got %d", req.RollappId, rollapp.Version, req.Version)
 	}
 	//=================test
+	if k.rollupKeeper.IsInBlackList(req.Creator) {
+		return nil, errorsmod.Wrapf(rollupTypes.ErrInBlackList, "")
+	}
 
 	if len(req.Blocks.LightBlocks) != int(req.NumBlocks) {
 		return nil, errorsmod.Wrapf(types.ErrVersionMismatch, "rollappId(%s)  LightBlocks's number(%d) != NumBlocks(%d)",
@@ -226,9 +228,9 @@ func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAI
 	if req.StartHeight != lastBlkHeight+1 {
 		return nil, types.ErrWrongBlockHeight
 	} else {
-		if resStatus, err := k.verifyRollBlkIsAllowSubmit(goCtx, req, &rollapp); err != nil {
+		if resStatus, err := k.verifyRollBlkIsAllowSubmit(goCtx, req); err != nil {
 			if resStatus != types.SUBMIT_BLOCK_NORMAL_ERR {
-				if err = k.punishSubmitter(goCtx, resStatus, rollapp.Creator, rollapp.RollappId); err != nil {
+				if err = k.punishSubmitter(goCtx, resStatus, req.Creator, req.RollappId); err != nil {
 					return nil, err
 				}
 			}
@@ -259,7 +261,8 @@ func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAI
 	}
 
 }
-func (k msgServer) RegisterRollappWithDA(goCtx context.Context, req *types.MsgRollappAssociateDaRequest) (*types.MsgRollappAssociateDaResponse, error) {
+
+func (k msgServer) RegisterRollappInitInfo(goCtx context.Context, req *types.MsgRollappInitRequest) (*types.MsgRollappInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	ctx.Logger().Info("receviced RegisterRollappWithDA", fmt.Sprintf("msg = %s", req.String()))
 	//TODO:=========for test
@@ -279,33 +282,34 @@ func (k msgServer) RegisterRollappWithDA(goCtx context.Context, req *types.MsgRo
 		return nil, errorsmod.Wrapf(types.ErrInputParams, "rollappID is empty")
 	}
 
-	if len(req.NsIdentify) != types.LenNamespaceID {
-		return nil, errorsmod.Wrapf(types.ErrInputParams, fmt.Sprintf("NsIdentify's length(%d) error.must be 28", len(req.NsIdentify)))
+	if len(req.Namespace) != types.LenNamespace {
+		return nil, errorsmod.Wrapf(types.ErrInputParams, fmt.Sprintf("namesapce's length(%d) error.must be 29", len(req.Namespace)))
 	}
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollappWithCelestiaKey())
-	namespacekey := types.GetNamespaceIdKey(req.RollappId)
+	namespacekey := types.GetNamespaceKey(req.RollappId)
 	data := store.Get(namespacekey)
 	if data != nil {
 		return nil, errorsmod.Wrapf(types.ErrRollappExists, "")
 	}
 	//如果不存在
-	if err := k.rollupKeeper.RegisterRollappID(ctx, req.RollappId); err != nil {
+	if err := k.rollupKeeper.RegisterRollappInitInfo(ctx, req.RollappId, req.FirstElectBlockHeight, req.Namespace); err != nil {
 		return nil, err
 	}
-	store.Set(namespacekey, req.NsIdentify)
-	k.mapRollappAssociateDa[req.RollappId] = req.NsIdentify
+	store.Set(namespacekey, req.Namespace)
+	k.mapRollappAssociateDa[req.RollappId] = req.Namespace
 	//发出事件
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventRegisterRollappAssociateDa,
+			types.EventRegisterRollappInitInfo,
 			sdk.NewAttribute("moduleName", types.ModuleName),
 			sdk.NewAttribute("submitter", req.Creator),
 			sdk.NewAttribute("rollappID", req.RollappId),
-			sdk.NewAttribute("namespaceID", hex.EncodeToString(req.NsIdentify)),
+			sdk.NewAttribute("namespace", hex.EncodeToString(req.Namespace)),
+			sdk.NewAttribute("firstElectHeight", hex.EncodeToString(req.Namespace)),
 		),
 	)
-	return &types.MsgRollappAssociateDaResponse{}, nil
+	return &types.MsgRollappInitResponse{}, nil
 
 }
 
@@ -325,7 +329,7 @@ func (k msgServer) punishSubmitter(ctx context.Context, status int, address, rol
 	}
 	if rate > 0 {
 		sdkCtx := sdk.UnwrapSDKContext(ctx)
-		if err := k.rollupKeeper.Punishment(sdkCtx, address, rollappID, rate, 0); err != nil {
+		if _, err := k.rollupKeeper.Punishment(sdkCtx, address, rollappID, rate, 0); err != nil {
 			return err
 		} else {
 			//如果有对提交者进行了惩罚，则需要对其进行资质重估
@@ -381,11 +385,11 @@ func (k msgServer) commitRollupBlockDAInfo(ctx sdk.Context, msgBlkInfo *types.Ms
 }
 
 // 校验rollup提交的区块是否允许被写入
-func (k msgServer) verifyRollBlkIsAllowSubmit(ctx context.Context, submitBlock *types.MsgBlkDAInfo, pRollapp *types.Rollapp) (int, error) {
-	daNsID := k.mapRollappAssociateDa[submitBlock.RollappId]
-	if nil == daNsID || len(daNsID) < 1 {
+func (k msgServer) verifyRollBlkIsAllowSubmit(ctx context.Context, submitBlock *types.MsgBlkDAInfo) (int, error) {
+	daNamespace := k.mapRollappAssociateDa[submitBlock.RollappId]
+	if nil == daNamespace || len(daNamespace) < 1 {
 		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrNotFound,
-			fmt.Sprintf("can not found namespaceID associated with rollapp.rollappID = %s", submitBlock.RollappId))
+			fmt.Sprintf("can not found namespace associated with rollapp.rollappID = %s", submitBlock.RollappId))
 	}
 	//校验区块的提交者的是否质押数量足够，这样就可以将区块的提交者和竞选的Sequencer剥离开，只要满足最小质押金额，都可以提交。
 	//这样也可以方便L2层设置一个专门提交区块的batch submitter
@@ -394,7 +398,7 @@ func (k msgServer) verifyRollBlkIsAllowSubmit(ctx context.Context, submitBlock *
 		Address:   submitBlock.Creator})
 	if err != nil {
 		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrLogic,
-			fmt.Sprintf("QueryStake error, err = %s,addr = %s", err.Error(), pRollapp.Creator))
+			fmt.Sprintf("QueryStake error, err = %s,addr = %s", err.Error(), submitBlock.Creator))
 	}
 	//
 	//这样操作的原因是因为解质押一个周期内申请，下周期竞选完成就可以解质押。如果在竞选前一天进行解质押，此时该提交者提交的数据
@@ -413,7 +417,7 @@ func (k msgServer) verifyRollBlkIsAllowSubmit(ctx context.Context, submitBlock *
 			return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrParserData,
 				fmt.Sprintf("LightBlockFromProto, err = %s", err.Error()))
 		}
-		if err = k.verifyRollupBlkConsensus(ctx, submitBlock.RollappId, pLightBlock, pRollapp.PermissionedAddresses); err != nil {
+		if err = k.verifyRollupBlkConsensus(ctx, submitBlock.RollappId, pLightBlock); err != nil {
 			return types.SUBMIT_BLOCK_NORMAL_ERR, err
 		}
 	}
@@ -433,8 +437,8 @@ func (k msgServer) verifyRollBlkIsAllowSubmit(ctx context.Context, submitBlock *
 		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrLoadPlugin,
 			" Lookup function typeAssert error.")
 	}
-	verifyRes, err := daVerify(submitBlock.CommitmentProof, submitBlock.DaRoot, daNsID)
-	if err != nil {
+	verifyRes, err := daVerify(submitBlock.CommitmentProof, submitBlock.DaRoot, daNamespace)
+	if err == nil {
 		return types.SUBMIT_BLOCK_SUCCESS, nil
 	}
 	return verifyRes, errorsmod.Wrapf(types.ErrCommitVerify,
@@ -443,7 +447,7 @@ func (k msgServer) verifyRollBlkIsAllowSubmit(ctx context.Context, submitBlock *
 }
 
 // 1、校验区块Header信息是否经过足够的签名校验,2、签名者是否有2f在Rollup的Election sequencer中
-func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId string, lightBlock *tenderminttypes.LightBlock, allowAddress []string) error {
+func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId string, lightBlock *tenderminttypes.LightBlock) error {
 	err := verifyRollBlkInfo(rollAppId, lightBlock)
 	if err != nil {
 		return err
@@ -455,16 +459,13 @@ func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId strin
 		return errorsmod.Wrapf(types.ErrParserData,
 			fmt.Sprintf("QueryElectionResult error.err = %s", err.Error()))
 	}
-
-	bIsInitSeq := false
 	voteNumber := uint32(0)
 	sequencerLen := uint32(0)
 	if 0 == resp.ElectionTime || nil == resp.NodeStatusList { //表明没有进行过选举，此时应该采用最初创建RollApp中的Sequencer
-		bIsInitSeq = true
-		voteNumber, sequencerLen, err = calcElectSequencerVoteForBlock(lightBlock, nil, allowAddress)
-	} else {
-		voteNumber, sequencerLen, err = calcElectSequencerVoteForBlock(lightBlock, resp.NodeStatusList, nil)
+		return errorsmod.Wrapf(types.ErrLogic, "election info is empty in verifyRollupBlkConsensus")
 	}
+	voteNumber, sequencerLen, err = calcElectSequencerVoteForBlock(lightBlock, resp.NodeStatusList)
+
 	if err != nil {
 		return err
 	}
@@ -473,20 +474,17 @@ func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId strin
 	if voteNumber >= 2*f { //如果>=2f个，则认为是允许的
 		return nil
 	} else {
-		if !bIsInitSeq { //当前的竞选不是初始化的，才会有可能有前一次的选举
-			sdkCtx := sdk.UnwrapSDKContext(ctx)
-			param := k.rollupKeeper.GetParams(sdkCtx)
-			tmp := sdkCtx.BlockTime().Unix() - int64(resp.ElectionTime)
-			if tmp <= int64(param.ElectionInterimTime) { //当前时间间隔<=选举过渡期，则允许使用之前的选举Sequencer进行判断
-				preElect, err := k.rollupKeeper.GetPreviousElectionResult(ctx, rollAppId)
-				if err != nil {
-					return err
-				}
-				if preElect.NodeStatusList != nil && len(preElect.NodeStatusList) > 0 { //如果有存在上一次的数据
-					voteNumber, sequencerLen, err = calcElectSequencerVoteForBlock(lightBlock, preElect.NodeStatusList, nil)
-				} else { //然后没有找到之前的选举结果，说明刚刚那次选举是第一次选举，则用allowAddress来代替之前的选举
-					voteNumber, sequencerLen, err = calcElectSequencerVoteForBlock(lightBlock, nil, allowAddress)
-				}
+		//能进到这里，之前的查询竞选说明有数据，也就是有竞选过
+		sdkCtx := sdk.UnwrapSDKContext(ctx)
+		param := k.rollupKeeper.GetParams(sdkCtx)
+		tmp := sdkCtx.BlockTime().Unix() - int64(resp.ElectionTime)
+		if tmp <= int64(param.ElectionInterimTime) { //当前时间间隔<=选举过渡期，则允许使用之前的选举Sequencer进行判断
+			preElect, err := k.rollupKeeper.GetPreviousElectionResult(ctx, rollAppId)
+			if err != nil {
+				return err
+			}
+			if preElect.NodeStatusList != nil && len(preElect.NodeStatusList) > 0 { //如果有存在上一次的数据
+				voteNumber, sequencerLen, err = calcElectSequencerVoteForBlock(lightBlock, preElect.NodeStatusList)
 				if err != nil {
 					return fmt.Errorf("%s in second time", err.Error())
 				}
@@ -501,6 +499,7 @@ func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId strin
 
 			}
 		}
+
 		return errorsmod.Wrapf(types.ErrNotEnoughSequencerSign,
 			fmt.Sprintf("sequencer vote's number = %d,total = %d,blkHeight = %d", voteNumber, sequencerLen, lightBlock.Height))
 	}
@@ -508,7 +507,7 @@ func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId strin
 }
 
 // 计算为block投票的验证者也同时存在于选举后的Sequencer中的数量
-func calcElectSequencerVoteForBlock(pBlock *tenderminttypes.LightBlock, electNodeList []*rollupTypes.ElectionNodeStatus, initAllowAddress []string) (uint32, uint32, error) {
+func calcElectSequencerVoteForBlock(pBlock *tenderminttypes.LightBlock, electNodeList []*rollupTypes.ElectionNodeStatus) (uint32, uint32, error) {
 
 	mapSequencer := make(map[string]struct{})
 	if electNodeList != nil && len(electNodeList) > 0 {
@@ -518,13 +517,10 @@ func calcElectSequencerVoteForBlock(pBlock *tenderminttypes.LightBlock, electNod
 			}
 			mapSequencer[val.Address] = struct{}{}
 		}
-	} else {
-		for _, val := range initAllowAddress {
-			mapSequencer[val] = struct{}{}
-		}
 	}
+
 	if len(mapSequencer) < 1 {
-		return 0, 0, errorsmod.Wrapf(types.ErrLogic, "electNodeList and initAllowAddress are both empty in calcElectSequencerVoteForBlock")
+		return 0, 0, errorsmod.Wrapf(types.ErrLogic, "electNodeList is empty in calcElectSequencerVoteForBlock")
 	}
 
 	voteNumber := uint32(0)

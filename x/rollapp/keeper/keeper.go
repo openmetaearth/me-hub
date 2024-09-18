@@ -25,6 +25,7 @@ type Keeper struct {
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 
+	daoKeeper             types.DaoKeeper
 	mapRollappAssociateDa map[string][]byte
 }
 
@@ -78,4 +79,8 @@ func (k *Keeper) GetHooks() types.MultiRollappHooks {
 
 func (k *Keeper) SetRollupKeeper(rollupKeeper types.RollupKeeper) {
 	k.rollupKeeper = rollupKeeper
+}
+
+func (k *Keeper) SetDaoKeeper(dKeeper types.DaoKeeper) {
+	k.daoKeeper = dKeeper
 }

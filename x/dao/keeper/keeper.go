@@ -79,6 +79,14 @@ func (k Keeper) GetAirdropAddress(ctx sdk.Context) string {
 	return ""
 }
 
+func (k Keeper) GetValidatorAddress(ctx sdk.Context) string {
+	dao, found := k.GetDaoAddresses(ctx)
+	if found {
+		return dao.ValidatorAddress
+	}
+	return ""
+}
+
 func (k Keeper) IsGlobalDao(ctx sdk.Context, address string) bool {
 	dao, found := k.GetDaoAddresses(ctx)
 	if !found {
@@ -93,4 +101,12 @@ func (k Keeper) IsMeidDao(ctx sdk.Context, address string) bool {
 		return false
 	}
 	return dao.MeidDao == address
+}
+
+func (k Keeper) IsValidatorDao(ctx sdk.Context, address string) bool {
+	dao, found := k.GetDaoAddresses(ctx)
+	if !found {
+		return false
+	}
+	return dao.ValidatorAddress == address
 }

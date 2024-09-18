@@ -17,7 +17,7 @@ service Msg {
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
   //new added
   rpc SubmitBlockDAInfo(MsgBlkDAInfo) returns (MsgBlkDAResponse);
-  rpc RegisterRollappWithDA(MsgRollappAssociateDaRequest)returns(MsgRollappAssociateDaResponse);
+  rpc RegisterRollappInitInfo(MsgRollappInitRequest)returns(MsgRollappInitResponse);
   rpc ChallengeDaFraud(MsgSubmitDaFraudRequest)returns (MsgSubmitDaFraudResponse);
   rpc SubmitDaFraudVerifyData(MsgDaFraudVerifyResult) returns(MsgDaFraudVerifyResultResponse);
   //rpc SubmitDaDataRecovery(MsgDaDataRecoveryRequest) returns(MsgDaDataRecoveryResponse);

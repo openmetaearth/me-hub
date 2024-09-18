@@ -477,7 +477,7 @@ func (a *AppKeepers) InitKeepers(
 		a.DaoKeeper,
 	)
 	a.RollappKeeper.SetRollupKeeper(a.RollupKeeper)
-
+	a.RollappKeeper.SetDaoKeeper(a.DaoKeeper)
 	wasmDir := filepath.Join(homePath, "wasm")
 	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
 	if err != nil {

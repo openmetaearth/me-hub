@@ -25,9 +25,9 @@ const (
 )
 
 const (
-	EventSubmitBlockDA              = "EventSubmitBlockDA"
-	EventRegisterRollappAssociateDa = "EventRegisterRollappAssociateDa"
-	EventDAFraudChallenge           = "EventDAFraudChallenge"
+	EventSubmitBlockDA           = "EventSubmitBlockDA"
+	EventRegisterRollappInitInfo = "EventRegisterRollappInitInfo"
+	EventDAFraudChallenge        = "EventDAFraudChallenge"
 )
 
 //type LightBlock tenderminttypes.LightBlock

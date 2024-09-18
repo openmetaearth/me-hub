@@ -85,17 +85,21 @@ message MsgCommitBlockDaInfo{
     uint64       blockTime = 3;
 }
 
-message MsgRollappAssociateDaRequest{
+
+message MsgRollappInitRequest{
   option (cosmos.msg.v1.signer) = "creator";
   // creator is the bech32-encoded address of the sequencer sending the update
   string creator = 1;
-  string daPath = 2;
-  string rollappId = 3;
+  string rollappId = 2;
+  string daPath = 3;
   bytes  namespace = 4;
+  uint64 firstElectBlockHeight = 5;
 }
 
-message MsgRollappAssociateDaResponse{
+message MsgRollappInitResponse{
 }
+
+
 
 message MsgGetBlockDaInfoRequest{
   option (cosmos.msg.v1.signer) = "creator";

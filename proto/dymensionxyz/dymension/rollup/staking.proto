@@ -36,6 +36,7 @@ message MsgUnStakingResponse {
 
 message MsgStakeChallengeDaFraud{
   string challenger = 1;
-  string denom = 2;
-  uint64 amount = 3;
+  string blockSubmitter = 2;
+  string denom = 3;
+  uint64 amount = 4;
 }

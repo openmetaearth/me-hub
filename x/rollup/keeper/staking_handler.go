@@ -21,7 +21,16 @@ func (t *rollupServer) StakeForSequencer(stakeCtx context.Context, req *types.Ms
 		return nil, errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("AccAddressFromBech32 error. err = %s", err.Error()))
 	}
 	ownerAddr := owner.String()
+	//TODO: for test
+	if ownerAddr != req.Creator {
+		panic(fmt.Sprintf("ownerAddr != req.Creator.ownerAddr = %s,creator = %s", ownerAddr, req.Creator))
+	}
+	//======================end
+
 	ctx := sdk.UnwrapSDKContext(stakeCtx)
+	if t.IsInBlackList(req.Creator) {
+		return nil, errorsmod.Wrapf(types.ErrInBlackList, "")
+	}
 	//TODO:=========================for test
 	ctx.Logger().Info(fmt.Sprintf("enter StakeForSequencer,msg = %s,owner = %s", req.String(), ownerAddr))
 	/*
@@ -164,11 +173,11 @@ func (t *rollupServer) UnStake(stakeCtx context.Context, req *types.MsgSeqUnStak
 		return nil, errorsmod.Wrapf(types.ErrInsufficientBalance, "")
 
 	}
-	lastSubmitTime := t.rk.GetSubmitterLastSubmitTime(stakeCtx, req.RollappId, ownerAddr)
+	lastSubmitTime := t.rk.GetSubmitterLastSubmitTime(ctx, req.RollappId, ownerAddr)
 	if lastSubmitTime > 0 {
 
-		//如果还在提交DA承诺的锁定期的话，则解质押后所剩下的不能低于最小质押额
-		if ctx.BlockTime().Unix() <= (lastSubmitTime + int64(types.SubmitDaFraudTime)*types.HourSeconds) {
+		//如果还在提交DA承诺的锁定期的话，则解质押后所剩下的不能低于最小质押额,这里质押时间多预留3个小时
+		if ctx.BlockTime().Unix() <= (lastSubmitTime + int64(types.SubmitDaFraudTime+3)*types.HourSeconds) {
 			if stakeInfo.StakeAmount < (t.GetMinStakeAmount(ctx) + stakeInfo.ApplyUnStakeAmount + amount) {
 				return nil, errorsmod.Wrapf(types.ErrInsufficientBalance,
 					fmt.Sprintf("valid stake amount insufficient while in submitDaFraudTime.preApplyUnstake = %d,reqAmount = %d",
