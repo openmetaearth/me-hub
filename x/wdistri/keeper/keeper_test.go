@@ -2,8 +2,10 @@ package keeper
 
 import (
 	"fmt"
-	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	"testing"
+
+	"github.com/st-chain/me-hub/app/params"
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -232,7 +234,7 @@ func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int
 func (suite *KeeperTestSuite) SetMockGetBalance(ctx sdk.Context, fee sdkmath.Int) {
 	acc := authtypes.NewModuleAddress(suite.wdistriKeeper.feeCollectorName)
 	suite.authKeeper.EXPECT().GetModuleAddress(suite.wdistriKeeper.feeCollectorName).Return(acc)
-	suite.bankKeeper.EXPECT().GetBalance(ctx, acc, suite.wdistriKeeper.baseDenom).Return(sdk.NewCoin(suite.wdistriKeeper.baseDenom, fee))
+	suite.bankKeeper.EXPECT().GetBalance(ctx, acc, params.BaseDenom).Return(sdk.NewCoin(params.BaseDenom, fee))
 }
 func (suite *KeeperTestSuite) HelperNewContextWith(height int64) sdk.Context {
 	return sdk.NewContext(suite.ctx.MultiStore(), tmproto.Header{Time: tmtime.Now(), Height: height}, false, log.NewNopLogger())
@@ -244,7 +246,7 @@ type coinAndAddr struct {
 }
 
 func (suite *KeeperTestSuite) setMockSendCoinsFromModuleToAccountExpect(ctx sdk.Context, want ...coinAndAddr) {
-	baseDenom := suite.wdistriKeeper.baseDenom
+	baseDenom := params.BaseDenom
 	for _, w := range want {
 		suite.bankKeeper.EXPECT().
 			SendCoinsFromModuleToAccount(
