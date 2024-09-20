@@ -10,12 +10,12 @@ import (
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgSeqStaking{}, "rollup/MsgSeqStaking", nil)
 	cdc.RegisterConcrete(&MsgSeqUnStaking{}, "rollup/MsgSeqUnStaking", nil)
-	cdc.RegisterConcrete(&RegisterRollappIDRequest{}, "rollup/RegisterRollappIDRequest", nil)
+	cdc.RegisterConcrete(&MsgSetRollupParamsRequest{}, "rollup/SetRollupParamsRequest", nil)
 
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
-	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgSeqStaking{}, &MsgSeqUnStaking{}, &RegisterRollappIDRequest{})
+	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgSeqStaking{}, &MsgSeqUnStaking{}, &MsgSetRollupParamsRequest{})
 	//msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

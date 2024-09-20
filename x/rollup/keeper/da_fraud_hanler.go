@@ -216,6 +216,8 @@ func (k Keeper) RewardsChallengeDaFraud(ctx sdk.Context, rollappId string) error
 }
 
 func (k Keeper) rewardBaseDeomToDaFraudChallenge(ctx sdk.Context, rollappID, fraudsterAddr string, rewardAmount uint64) error {
+	ctx.Logger().Info(fmt.Sprintf("enter rewardBaseDeomToDaFraudChallenge.rollappID = %s,fraudster = %s,amount = %d",
+		rollappID, fraudsterAddr, rewardAmount))
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetDaFraudStaticsPrefix(rollappID))
 	iterator := sdk.KVStorePrefixIterator(store, types.GetProvedDaFraudKeyPrefix(fraudsterAddr))
 	defer iterator.Close() // nolint: errcheck

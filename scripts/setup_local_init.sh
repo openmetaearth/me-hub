@@ -94,6 +94,7 @@ jq '.app_state["dao"]["dao_addresses"]["global_dao"] = "me16sf2d3haq5g58chfd8z8y
 jq '.app_state["dao"]["dao_addresses"]["meid_dao"] = "me16sf2d3haq5g58chfd8z8ylveygjycmq8f67hw3"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 jq '.app_state["dao"]["dao_addresses"]["dev_operator"] = "me16sf2d3haq5g58chfd8z8ylveygjycmq8f67hw3"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 jq '.app_state["dao"]["dao_addresses"]["airdrop_address"] = "me16sf2d3haq5g58chfd8z8ylveygjycmq8f67hw3"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["dao_addresses"]["validator_address"] = "me16sf2d3haq5g58chfd8z8ylveygjycmq8f67hw3"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 
 validator_address=$(med keys show "$KEY_NAME" -a --keyring-backend test)
 echo $validator_address

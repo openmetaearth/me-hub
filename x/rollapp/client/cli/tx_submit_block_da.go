@@ -13,7 +13,7 @@ import (
 
 func CmdSubmitBlockDa() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "submit-block-da [rollapp-id] [start-height] [num-blocks] [da-path] [version] [blks] [commitment] [daroot]",
+		Use:   "submitBlockDAInfo [rollapp-id] [start-height] [num-blocks] [da-path] [version] [blks] [commitment] [daroot]",
 		Short: "submit block and da commitment-proof",
 		Args:  cobra.ExactArgs(8),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -62,6 +62,47 @@ func CmdSubmitBlockDa() *cobra.Command {
 				Blocks:          *argBlks,
 				CommitmentProof: daCommitment,
 				DaRoot:          daRoot,
+			}
+			if err = msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdRegisterRollappInitInfo() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "registerRollappInitInfo [RollappId] [daPath] [FirstElectBlockHeight] [Namespace]",
+		Short: "register rollapp Init Information",
+		Args:  cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			rollappID := args[0]
+			daPath := args[1]
+			firstElectBlockHeight, err := cast.ToUint64E(args[2])
+			if err != nil {
+				return err
+			}
+			namespace, err := hex.DecodeString(args[3])
+			if err != nil {
+				return err
+			}
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := &types.MsgRollappInitRequest{
+				Creator:               clientCtx.GetFromAddress().String(),
+				RollappId:             rollappID,
+				DaPath:                daPath,
+				Namespace:             namespace,
+				FirstElectBlockHeight: firstElectBlockHeight,
 			}
 			if err = msg.ValidateBasic(); err != nil {
 				return err

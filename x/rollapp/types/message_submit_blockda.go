@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	TypeMsgSubmitBlockDA     = "submit_block_da"
-	TypeGetLastSubmitBlockDA = "get_last_submit_blocksInfo"
+	TypeMsgSubmitBlockDA        = "submitBlockDAInfo"
+	TypeGetLastSubmitBlockDA    = "getLastSubmitBlockInfo"
+	TypeRegisterRollappInitInfo = "registerRollappInitInfo"
 )
 
 //var _ sdk.Msg = &MsgUpdateState{}
@@ -56,21 +57,21 @@ func (msg *MsgBlkDAInfo) ValidateBasic() error {
 
 	// an update can't be with no BDs
 	if msg.NumBlocks == uint32(0) {
-		return errorsmod.Wrap(ErrInvalidNumBlocks, "number of blocks can not be zero")
+		return errorsmod.Wrap(ErrInputParams, "number of blocks can not be zero")
 	}
 
 	if msg.NumBlocks > 100000 {
-		return errorsmod.Wrapf(ErrInvalidNumBlocks, "numBlocks(%d)  exceeds max 100000", msg.NumBlocks)
+		return errorsmod.Wrapf(ErrInputParams, "numBlocks(%d)  exceeds max 100000", msg.NumBlocks)
 	}
 
 	// check to see that update contains all BDs
 	if len(msg.Blocks.LightBlocks) != int(msg.NumBlocks) {
-		return errorsmod.Wrapf(ErrInvalidNumBlocks, "number of blocks (%d) != number of light block(%d)", msg.NumBlocks, len(msg.Blocks.LightBlocks))
+		return errorsmod.Wrapf(ErrInputParams, "number of blocks (%d) != number of light block(%d)", msg.NumBlocks, len(msg.Blocks.LightBlocks))
 	}
 
 	// check to see that startHeight is not zaro
 	if msg.StartHeight == 0 {
-		return errorsmod.Wrapf(ErrWrongBlockHeight, "StartHeight must be greater than zero")
+		return errorsmod.Wrapf(ErrInputParams, "StartHeight must be greater than zero")
 	}
 
 	// check that the blocks are sequential by height
@@ -81,7 +82,7 @@ func (msg *MsgBlkDAInfo) ValidateBasic() error {
 	}
 
 	if msg.DaRoot == nil || msg.CommitmentProof == nil {
-		return errorsmod.Wrapf(ErrValidateSubmitBlock, " msg.DaRoot == nil or msg.CommitmentProof == nil")
+		return errorsmod.Wrapf(ErrInputParams, " msg.DaRoot == nil or msg.CommitmentProof == nil")
 	}
 
 	return nil
@@ -122,3 +123,46 @@ func (msg *MsgLastSubmitBlkRequest) ValidateBasic() error {
 }
 
 */
+
+func (msg *MsgRollappInitRequest) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgRollappInitRequest) Type() string {
+	return TypeRegisterRollappInitInfo
+}
+
+func (msg *MsgRollappInitRequest) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *MsgRollappInitRequest) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgRollappInitRequest) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	// an update can't be with no BDs
+	if msg.FirstElectBlockHeight < 1 {
+		return errorsmod.Wrap(ErrInputParams, "FirstElectBlockHeight must > 0")
+	}
+
+	if "" == msg.RollappId {
+		return errorsmod.Wrapf(ErrInputParams, "RollappId can not be empty")
+	}
+
+	if 29 != len(msg.Namespace) {
+		return errorsmod.Wrapf(ErrInputParams, "Namespace length error")
+	}
+
+	return nil
+}

@@ -21,17 +21,22 @@ import (
 func (k msgServer) ChallengeDaFraud(goCtx context.Context, req *types.MsgSubmitDaFraudRequest) (*types.MsgSubmitDaFraudResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	//ctx.Logger().Info("receviced SubmitBlockDAInfo", "msg", req.String())
-	if !k.RollappsEnabled(ctx) {
-		return nil, types.ErrRollappsDisabled
-	}
-	isFound := k.IsRollappExist(ctx, req.RollappId)
-	if !isFound {
-		return nil, types.ErrUnknownRollappID
-	}
+	//todo: for test
+	/*
+		if !k.RollappsEnabled(ctx) {
+			return nil, types.ErrRollappsDisabled
+		}
+		isFound := k.IsRollappExist(ctx, req.RollappId)
+		if !isFound {
+			return nil, types.ErrUnknownRollappID
+		}
+	*/
+	//=================end
 	if k.rollupKeeper.IsInBlackList(req.Creator) {
 		return nil, errorsmod.Wrapf(rollupTypes.ErrInBlackList, "")
 	}
 	//判断改区块是否已经被挑战
+	ctx.Logger().Info("enter ChallengeDaFraud")
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetDaChallengeKeyPrefix(req.RollappId))
 	challengeRollupBlkKey := types.GetRollupBlockKey(req.StartHeight, req.NumBlocks)
 	data := store.Get(challengeRollupBlkKey)
@@ -77,6 +82,7 @@ func (k msgServer) ChallengeDaFraud(goCtx context.Context, req *types.MsgSubmitD
 			sdk.NewAttribute("submitDaRoot", hex.EncodeToString(req.DaRoot)),
 		),
 	)
+	ctx.Logger().Info("end ChallengeDaFraud")
 	return &types.MsgSubmitDaFraudResponse{}, nil
 
 }
@@ -84,11 +90,16 @@ func (k msgServer) ChallengeDaFraud(goCtx context.Context, req *types.MsgSubmitD
 func (k msgServer) SubmitDaFraudVerifyData(goCtx context.Context, req *types.MsgDaFraudVerifyResult) (*types.MsgDaFraudVerifyResultResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if k.daoKeeper.IsGlobalDao(ctx, req.Creator) || k.daoKeeper.IsValidatorDao(ctx, req.Creator) {
-		isFound := k.IsRollappExist(ctx, req.RollappId)
-		if !isFound {
-			return nil, types.ErrUnknownRollappID
-		}
+		//todo: for test
+		/*
+			isFound := k.IsRollappExist(ctx, req.RollappId)
+			if !isFound {
+				return nil, types.ErrUnknownRollappID
+			}
+		*/
+		//=============end
 		//判断改区块是否已经被挑战
+		ctx.Logger().Info("enter SubmitDaFraudVerifyData")
 		store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetDaChallengeKeyPrefix(req.RollappId))
 		challengeRollupBlkKey := types.GetRollupBlockKey(req.StartHeight, req.NumBlocks)
 		data := store.Get(challengeRollupBlkKey)
@@ -136,7 +147,7 @@ func (k msgServer) SubmitDaFraudVerifyData(goCtx context.Context, req *types.Msg
 			blkStore.Set(challengeRollupBlkKey, k.cdc.MustMarshal(cmtBlkInfo))
 		} else { //如果是挑战成功，但是挑战者提交的数据是错误的，则不处理
 		}
-
+		ctx.Logger().Info("end SubmitDaFraudVerifyData")
 		return &types.MsgDaFraudVerifyResultResponse{}, nil
 
 	} else {

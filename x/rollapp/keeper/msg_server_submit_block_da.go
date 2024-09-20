@@ -88,24 +88,23 @@ func (k Keeper) GetBlockDaCommitTime(goCtx context.Context, rollappId string, st
 	return 0
 }
 func (k *Keeper) InitRollappAssociateDa(ctx sdk.Context) error {
-	if nil == k.mapRollappAssociateDa {
-		k.mapRollappAssociateDa = make(map[string][]byte)
-		store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollappWithCelestiaKey())
 
-		iterator := sdk.KVStorePrefixIterator(store, []byte(types.NameSpacePrefix))
-		defer iterator.Close() // nolint: errcheck
+	k.mapRollappAssociateDa = make(map[string][]byte)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollappWithCelestiaKey())
 
-		ctx.Logger().Info("InitRollappAssociateDa")
-		for ; iterator.Valid(); iterator.Next() {
-			rollappID, err := types.ParserRollappIdFrNamespaceIdKey(iterator.Key())
-			if err != nil {
-				return fmt.Errorf("ParserRollappIdFrNamespaceIdKey error.err = %s", err.Error())
-			}
-			k.mapRollappAssociateDa[rollappID] = iterator.Value()
-			ctx.Logger().Info(fmt.Sprintf("InitRollappAssociateDa: rollappID = %s,val = %s", rollappID, hex.EncodeToString(iterator.Value())))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.NameSpacePrefix))
+	defer iterator.Close() // nolint: errcheck
+
+	ctx.Logger().Info("InitRollappAssociateDa")
+	for ; iterator.Valid(); iterator.Next() {
+		rollappID, err := types.ParserRollappIdFrNamespaceIdKey(iterator.Key())
+		if err != nil {
+			return fmt.Errorf("ParserRollappIdFrNamespaceIdKey error.err = %s", err.Error())
 		}
-
+		k.mapRollappAssociateDa[rollappID] = iterator.Value()
+		ctx.Logger().Info(fmt.Sprintf("InitRollappAssociateDa: rollappID = %s,val = %s", rollappID, hex.EncodeToString(iterator.Value())))
 	}
+
 	return nil
 }
 
@@ -177,23 +176,26 @@ func (k Keeper) GetSubmitterBlockStatics(goCtx context.Context, req *types.MsgSu
 func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAInfo) (*types.MsgBlkDAResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	ctx.Logger().Info("receviced SubmitBlockDAInfo", "msg", req.String())
-	//TODO:=========for test
 
 	if !k.RollappsEnabled(ctx) {
 		return nil, types.ErrRollappsDisabled
 	}
+	//TODO:=========for test
 
 	// load rollapp object for stateful validations
-	rollapp, isFound := k.GetRollapp(ctx, req.RollappId)
-	if !isFound {
-		return nil, types.ErrUnknownRollappID
-	}
+	/*
+		rollapp, isFound := k.GetRollapp(ctx, req.RollappId)
+		if !isFound {
+			return nil, types.ErrUnknownRollappID
+		}
 
-	// check rollapp version
-	if rollapp.Version != req.Version {
-		return nil, errorsmod.Wrapf(types.ErrVersionMismatch, "rollappId(%s) current version is %d, but got %d", req.RollappId, rollapp.Version, req.Version)
-	}
+		// check rollapp version
+		if rollapp.Version != req.Version {
+			return nil, errorsmod.Wrapf(types.ErrVersionMismatch, "rollappId(%s) current version is %d, but got %d", req.RollappId, rollapp.Version, req.Version)
+		}
+	*/
 	//=================test
+	ctx.Logger().Info("enter SubmitBlockDAInfo")
 	if k.rollupKeeper.IsInBlackList(req.Creator) {
 		return nil, errorsmod.Wrapf(rollupTypes.ErrInBlackList, "")
 	}
@@ -265,23 +267,25 @@ func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAI
 func (k msgServer) RegisterRollappInitInfo(goCtx context.Context, req *types.MsgRollappInitRequest) (*types.MsgRollappInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	ctx.Logger().Info("receviced RegisterRollappWithDA", fmt.Sprintf("msg = %s", req.String()))
-	//TODO:=========for test
 
 	if !k.RollappsEnabled(ctx) {
 		return nil, types.ErrRollappsDisabled
 	}
-
+	//todo:for test
 	// load rollapp object for stateful validations
-	_, isFound := k.GetRollapp(ctx, req.RollappId)
-	if !isFound {
-		return nil, types.ErrUnknownRollappID
-	}
+	/*
+		_, isFound := k.GetRollapp(ctx, req.RollappId)
+		if !isFound {
+			return nil, types.ErrUnknownRollappID
+		}
+	*/
 	//=================test
 	//目前只支持celestia,所以暂时忽略其他的DAPATH
 	if req.RollappId == "" {
 		return nil, errorsmod.Wrapf(types.ErrInputParams, "rollappID is empty")
 	}
 
+	ctx.Logger().Info("enter RegisterRollappInitInfo")
 	if len(req.Namespace) != types.LenNamespace {
 		return nil, errorsmod.Wrapf(types.ErrInputParams, fmt.Sprintf("namesapce's length(%d) error.must be 29", len(req.Namespace)))
 	}
@@ -297,7 +301,6 @@ func (k msgServer) RegisterRollappInitInfo(goCtx context.Context, req *types.Msg
 		return nil, err
 	}
 	store.Set(namespacekey, req.Namespace)
-	k.mapRollappAssociateDa[req.RollappId] = req.Namespace
 	//发出事件
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -306,7 +309,7 @@ func (k msgServer) RegisterRollappInitInfo(goCtx context.Context, req *types.Msg
 			sdk.NewAttribute("submitter", req.Creator),
 			sdk.NewAttribute("rollappID", req.RollappId),
 			sdk.NewAttribute("namespace", hex.EncodeToString(req.Namespace)),
-			sdk.NewAttribute("firstElectHeight", hex.EncodeToString(req.Namespace)),
+			sdk.NewAttribute("firstElectHeight", strconv.FormatUint(req.FirstElectBlockHeight, 10)),
 		),
 	)
 	return &types.MsgRollappInitResponse{}, nil

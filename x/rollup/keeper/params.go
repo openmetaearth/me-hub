@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	errorsmod "cosmossdk.io/errors"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/rollup/types"
 )
@@ -29,10 +30,13 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 
 func (k Keeper) SetRollupParams(ctx context.Context, req *types.MsgSetRollupParamsRequest) (*types.MsgSetRollupParamsResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.Logger().Info("SetRollupParams,new Params = ", req.String())
+	sdkCtx.Logger().Info(fmt.Sprintf("SetRollupParams,new Params = %s", req.String()))
+
 	if req.RollappID != k.rollAppID {
-		return nil, errorsmod.Wrapf(types.ErrInputDataErr, "rollappID mismatch")
+		return nil, errorsmod.Wrapf(types.ErrInputDataErr, fmt.Sprintf("rollappID mismatch.orgRollappId = %s,input = %s",
+			k.rollAppID, req.RollappID))
 	}
+
 	if req.Creator != k.dk.GetGlobalDao(sdkCtx) {
 		return nil, errorsmod.Wrapf(types.ErrInputDataErr, "creator has not right to set params")
 	}

@@ -13,11 +13,15 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateRollapp{}, "rollapp/CreateRollapp", nil)
 	cdc.RegisterConcrete(&MsgUpdateState{}, "rollapp/UpdateState", nil)
 	cdc.RegisterConcrete(&MsgBlkDAInfo{}, "rollapp/BlkDAInfo", nil)
+	cdc.RegisterConcrete(&MsgRollappInitRequest{}, "rollapp/RollappInitRequest", nil)
+	cdc.RegisterConcrete(&MsgSubmitDaFraudRequest{}, "rollapp/SubmitDaFraudRequest", nil)
+	cdc.RegisterConcrete(&MsgDaFraudVerifyResult{}, "rollapp/DaFraudVerifyResult", nil)
 	//cdc.RegisterConcrete(&MsgLastSubmitBlkRequest{}, "rollapp/LastSubmitBlkRequest", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
-	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgCreateRollapp{}, &MsgUpdateState{}, &MsgBlkDAInfo{})
+	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgCreateRollapp{}, &MsgUpdateState{}, &MsgBlkDAInfo{},
+		&MsgRollappInitRequest{}, &MsgSubmitDaFraudRequest{}, &MsgDaFraudVerifyResult{})
 	registry.RegisterImplementations((*govtypes.Content)(nil), &SubmitFraudProposal{})
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

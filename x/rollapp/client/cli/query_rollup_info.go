@@ -12,7 +12,7 @@ import (
 
 func CmdGetLastSubmitBlock() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get-last-submit-block [rollapp-id]",
+		Use:   "getLastSubmitBlockInfo [rollapp-id]",
 		Short: "get last submit block info",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -42,7 +42,7 @@ func CmdGetLastSubmitBlock() *cobra.Command {
 
 func CmdGetSubmitterBlockStatics() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get-submitter-block-statics [rollapp-id] [startHeight] [endHeight]",
+		Use:   "getSubmitterBlockStatics [rollapp-id] [startHeight] [endHeight]",
 		Short: "get submitter block statics data",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
