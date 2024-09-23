@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,9 +14,12 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/cosmos/cosmos-sdk/x/nft"
+	nftkeeper "github.com/cosmos/cosmos-sdk/x/nft/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
@@ -24,11 +28,16 @@ import (
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
+	didkeeper "github.com/st-chain/me-hub/x/did/keeper"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	kyckeeper "github.com/st-chain/me-hub/x/kyc/keeper"
+	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
+	"io/ioutil"
+	"path/filepath"
+	"strings"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v4
@@ -54,7 +63,11 @@ func CreateUpgradeHandler(
 		migrateValidators(ctx, keepers.StakingKeeper)
 
 		ctx.Logger().Info("5.init kyc and did module")
-		migrateKycModule(ctx, keepers.AccountKeeper, keepers.KycKeeper)
+		homePath := GetPath(keepers.UpgradeKeeper)
+		migrateKycModule(ctx, keepers.KycKeeper, homePath)
+
+		ctx.Logger().Info("6.migrate kyc and did")
+		migrateKycData(ctx, keepers.StakingKeeper, keepers.DidKeeper, keepers.KycKeeper, keepers.NFTKeeper, homePath)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -143,28 +156,166 @@ func migrateValidators(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper) {
 	}
 }
 
-func migrateKycModule(ctx sdk.Context, ak authkeeper.AccountKeeper, k *kyckeeper.Keeper) {
-	// TODO: fill issuer pubkey
-	issuer := didtypes.DidInfo{
-		Did:     "0000000000000000",
-		Address: ak.GetAccountAddressByID(ctx, 0),
-		Pubkey:  "",
-		Status:  didtypes.DID_STATUS_ACTIVE,
+func GetPath(upgradeKeeper *upgradekeeper.Keeper) string {
+	path, _ := upgradeKeeper.GetUpgradeInfoPath()
+	return strings.TrimRight(path, "/data/upgrade-info.json")
+}
+
+func migrateKycModule(ctx sdk.Context, kycKeeper *kyckeeper.Keeper, path string) {
+	issuer, err := ReadIssuer(path)
+	if err != nil {
+		panic(err)
 	}
-	address := k.MustAccAddressFromPubkeyString(issuer.Pubkey)
-	if _, found := k.GetDID(ctx, address); found {
+	address := kycKeeper.MustAccAddressFromPubkeyString(issuer.Pubkey)
+	if _, found := kycKeeper.GetDID(ctx, address); found {
 		panic(fmt.Errorf("issuer %s already exists", address))
 	}
 
-	k.SetDID(ctx, address, issuer.Did)
-	k.SetDidInfo(ctx, issuer.Did, issuer)
+	kycKeeper.SetDID(ctx, address, issuer.Did)
+	kycKeeper.SetDidInfo(ctx, issuer.Did, issuer)
 
 	service := didtypes.Service{
-		Sid:         types.ModuleName,
-		Name:        types.ModuleName,
+		Sid:         kyctypes.ModuleName,
+		Name:        kyctypes.ModuleName,
 		Description: "The KYC verifiable credential issuer based The DID(Decentralized Identity).",
 		Issuer:      issuer.Did,
 		Status:      didtypes.SERVICE_STATUS_ACTIVE,
 	}
-	k.SetService(ctx, service)
+	kycKeeper.SetService(ctx, service)
+}
+
+func migrateKycData(ctx sdk.Context,
+	stakingKeeper *wstakingkeeper.Keeper,
+	didKeeper *didkeeper.Keeper,
+	kycKeeper *kyckeeper.Keeper,
+	nftKeeper nftkeeper.Keeper,
+	homePath string) {
+	// get all data from old module
+	meids := stakingKeeper.GetAllMeid(ctx)
+
+	service, found := kycKeeper.GetService(ctx)
+	if !found {
+		panic("kyc: service not found")
+	}
+
+	dids, err := ReadDID(homePath)
+	if err != nil {
+		panic(err)
+	}
+
+	accountPubkey, err := ReadKycPubkey(homePath)
+	if err != nil {
+		panic(err)
+	}
+
+	// Iterate over old data and transform it into new data structure
+	for _, oldRecord := range meids {
+		did := dids[oldRecord.Account]
+		if len(did) > 0 {
+			didInfo := didtypes.NewDidInfo(did, oldRecord.Account, accountPubkey[oldRecord.Account], didtypes.DID_STATUS_ACTIVE)
+			// write new data to the new module s storage
+			didKeeper.SetDID(ctx, sdk.MustAccAddressFromBech32(oldRecord.Account), did)
+			didKeeper.SetDidInfo(ctx, didInfo.Did, didInfo)
+			didKeeper.SetCredential(
+				ctx,
+				didInfo.Did,
+				service.Sid,
+				didtypes.Credential{
+					Did:  did,
+					Sid:  service.Sid,
+					Hash: "",
+					Uri:  "",
+					Data: []byte(oldRecord.RegionId),
+				},
+			)
+			migrateNFTtoSBT(ctx, stakingKeeper, oldRecord, nftKeeper, kycKeeper, did)
+		}
+	}
+
+	// If the old module is no longer used, delete the data of the old module
+	//oldKeeper.ClearAllData(ctx)
+}
+
+func migrateNFTtoSBT(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, oldRecord types.Meid, nftKeeper nftkeeper.Keeper, kycKeeper *kyckeeper.Keeper, did string) {
+	region, found := stakingKeeper.GetRegion(ctx, oldRecord.RegionId)
+	if !found {
+		panic(fmt.Sprintf("kyc: region %s not found", oldRecord.RegionId))
+	}
+
+	_, classExist := nftKeeper.GetClass(ctx, kyctypes.ModuleName)
+	if !classExist {
+		err := nftKeeper.SaveClass(ctx, nft.Class{
+			Id:          kyctypes.ModuleName,
+			Name:        "Soul Bound Token",
+			Symbol:      "SBT",
+			Description: "",
+			Uri:         "",
+			UriHash:     "",
+			Data:        nil,
+		})
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	meidNFT, nftFound := stakingKeeper.GetMeidNFTByAccount(ctx, oldRecord.Account)
+	if nftFound {
+		oldNft, f := nftKeeper.GetNFT(ctx, region.NftClassId, meidNFT.NftId)
+		if f {
+			if err := kycKeeper.SetSBT(
+				ctx,
+				nft.NFT{
+					ClassId: kyctypes.ModuleName,
+					Id:      did,
+					Uri:     oldNft.Uri,
+					UriHash: oldNft.UriHash,
+					Data:    oldNft.Data,
+				},
+				sdk.MustAccAddressFromBech32(oldRecord.Account),
+			); err != nil {
+				panic(fmt.Sprintf("account: %s, did: %s, error: %v", oldRecord.Account, did, err))
+			}
+		}
+	}
+	//if err := nftKeeper.Burn(ctx, nftInfo.ClassId, nftInfo.Id); err != nil {
+	//	panic(err)
+	//}
+}
+
+func ReadKycPubkey(homePath string) (map[string]string, error) {
+	data, err := ioutil.ReadFile(filepath.Join(homePath, "kyc_pubkey.json"))
+	if err != nil {
+		return nil, err
+	}
+	accounts := make(map[string]string)
+	err = json.Unmarshal(data, &accounts)
+	if err != nil {
+		return nil, err
+	}
+	return accounts, nil
+}
+
+func ReadIssuer(path string) (issuer didtypes.DidInfo, err error) {
+	data, err := ioutil.ReadFile(filepath.Join(path, "issuer.json"))
+	if err != nil {
+		return issuer, err
+	}
+	err = json.Unmarshal(data, &issuer)
+	if err != nil {
+		return issuer, err
+	}
+	return issuer, nil
+}
+
+func ReadDID(path string) (map[string]string, error) {
+	data, err := ioutil.ReadFile(filepath.Join(path, "did.json"))
+	if err != nil {
+		return nil, err
+	}
+	list := make(map[string]string)
+	err = json.Unmarshal(data, &list)
+	if err != nil {
+		return nil, err
+	}
+	return list, nil
 }

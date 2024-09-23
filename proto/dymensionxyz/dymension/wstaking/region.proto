@@ -43,11 +43,3 @@ message Region {
     (gogoproto.nullable)   = false
   ];
 }
-
-message Meid {
-  string account    = 1;
-  string creator    = 2;
-  string regionId   = 3;
-  string regionName = 4;
-  int32 RewardType = 5;
-}
