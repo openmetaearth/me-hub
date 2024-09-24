@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -106,17 +107,20 @@ func CmdQueryKYC() *cobra.Command {
 
 func CmdQueryKYCs() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "KYCs []",
+		Use:   "KYCs",
 		Short: "Query the KYCs information",
-		Args:  cobra.ExactArgs(1),
+		//Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
+			region := ""
+			if f := cmd.Flag("region"); f != nil {
+				region = f.Value.String()
+			}
 
-			region := args[0]
 			pageReq, _ := client.ReadPageRequest(cmd.Flags())
 			res, err := queryClient.KYCs(cmd.Context(), &types.QueryKYCs{
 				RegionId:   region,
@@ -129,7 +133,8 @@ func CmdQueryKYCs() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
-
+	f := cmd.Flags()
+	f.String("region", "", "filter by region_id ,example: me_earth")
 	flags.AddQueryFlagsToCmd(cmd)
 	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	return cmd
