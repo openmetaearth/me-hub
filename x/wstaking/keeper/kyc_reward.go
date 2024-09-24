@@ -83,7 +83,7 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 
 	_, err = k.removeKycReward(ctx, account, valAddr, region, stakingtypes.Delegation{})
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrKycReward, fmt.Sprintf("remove kyc reward failed"))
+		return sdkerrors.Wrapf(types.ErrKycReward, fmt.Sprintf("%v", err))
 	}
 
 	validator.MeidAmount = validator.MeidAmount.Sub(types.Bonus)

@@ -100,8 +100,8 @@ build-debug: go.sum
 	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)))
 	go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -gcflags "all=-N -l" -o $(BUILDDIR)/med ./cmd/med
 
-docker-build-e2e:
-	@DOCKER_BUILDKIT=1 docker build -t ghcr.io/dymensionxyz/dymension:e2e -f Dockerfile .
+docker-build:
+	@DOCKER_BUILDKIT=1 docker build -t ghcr.io/me-hub/med:2.0.0 -f Dockerfile .
 
 docker-build-e2e-debug:
 	@DOCKER_BUILDKIT=1 CGO_ENABLED=0 docker build -t ghcr.io/dymensionxyz/dymension:e2e-debug -f Dockerfile.debug .

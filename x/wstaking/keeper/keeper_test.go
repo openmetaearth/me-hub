@@ -83,6 +83,16 @@ func (suite *KeeperTestSuite) SetupTest() {
 		OperatorAddress: suite.experienceValidator.OperatorAddress,
 	}
 	_, err = suite.msgServer.NewRegion(suite.Ctx, &newRegion)
+
+	suite.Require().NoError(err)
+
+	newMeEarthRegion := types.MsgNewRegion{
+		Creator:         suite.Dao.GlobalDao,
+		Name:            types.MeEarthRegionName,
+		OperatorAddress: suite.meEarthValidator.OperatorAddress,
+	}
+	_, err = suite.msgServer.NewRegion(suite.Ctx, &newMeEarthRegion)
+
 	suite.Require().NoError(err)
 }
 

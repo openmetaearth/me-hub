@@ -11,38 +11,6 @@ import (
 	"time"
 )
 
-func (k Keeper) UnMeidDelegate(
-	ctx sdk.Context, delAddr sdk.AccAddress, bondAmt math.Int, validator stakingtypes.Validator) (newShares sdk.Dec, err error) {
-	// Get or create the delegation object
-	delegation, found := k.GetDelegation(ctx, delAddr, validator.GetOperator())
-	if !found {
-		delegation = types.NewDelegation(delAddr, validator.GetOperator(), sdk.ZeroDec())
-	}
-
-	if err != nil {
-		return sdk.ZeroDec(), err
-	}
-
-	delegatorAddress := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
-	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), bondAmt))
-
-	err = k.BankKeeper.DelegateCoinsFromAccountToModule(ctx, delegatorAddress, types.BondedPoolName, coins)
-	if err != nil {
-		return sdk.Dec{}, err
-	}
-	delegation.UnMeidAmount = delegation.UnMeidAmount.Add(bondAmt)
-	delegation.StartHeight = ctx.BlockHeight()
-	allAmount := k.GetAllUnMeidDelegationAmount(ctx)
-	if allAmount.Amount.IsNil() {
-		allAmount.Amount = sdk.ZeroInt()
-	}
-	allAmount.Amount = allAmount.Amount.Add(bondAmt)
-	allAmount.Denom = k.BondDenom(ctx)
-	k.SetAllUnMEIDDelegationAmount(ctx, allAmount)
-	k.SetDelegation(ctx, delegation)
-	return sdk.NewDecFromInt(delegation.UnMeidAmount), nil
-}
-
 // GetAllUnMeidDelegationAmount
 func (k Keeper) GetAllUnMeidDelegationAmount(ctx sdk.Context) sdk.Coin {
 	store := ctx.KVStore(k.storeKey)
@@ -78,17 +46,13 @@ func (k Keeper) SetAllUnMEIDDelegationAmount(ctx sdk.Context, coin sdk.Coin) {
 // are not exceeded and unbond the staked tokens (based on shares) by creating
 // an unbonding object and inserting it into the unbonding queue which will be
 // processed during the staking EndBlocker.
-func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, isMeid bool, anmout math.Int) (time.Time, math.Int, error) {
-	//validator, found := k.GetValidator(ctx, valAddr)
-	//if !found {
-	//	return time.Time{}, types.ErrNoDelegatorForAddress
-	//}
+func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, isMeid bool, anmout math.Int, delegation stakingtypes.Delegation) (time.Time, math.Int, error) {
 	if !isMeid {
 		if k.HasMaxUnbondingDelegationEntries(ctx, delAddr, valAddr) {
 			return time.Time{}, anmout, stakingtypes.ErrMaxUnbondingDelegationEntries
 		}
 	}
-	returnAmount, err := k.Unbond(ctx, delAddr, valAddr, anmout, isMeid)
+	returnAmount, err := k.Unbond(ctx, anmout, isMeid, delegation)
 	if err != nil {
 		return time.Time{}, anmout, err
 	}
@@ -99,14 +63,6 @@ func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.
 		completionTime = ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
 		ubd := k.SetUnbondingDelegationEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, returnAmount)
 		k.InsertUBDQueue(ctx, ubd, completionTime)
-
-		allAmount := k.GetAllUnMeidDelegationAmount(ctx)
-		if allAmount.Amount.IsNil() {
-			allAmount.Amount = sdk.ZeroInt()
-		}
-		allAmount.Amount = allAmount.Amount.Sub(returnAmount)
-		allAmount.Denom = k.BondDenom(ctx)
-		k.SetAllUnMEIDDelegationAmount(ctx, allAmount)
 	} else {
 		amt := sdk.NewCoin(params.BaseDenom, returnAmount)
 		err = k.BankKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delAddr, sdk.NewCoins(amt))
@@ -119,13 +75,8 @@ func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.
 }
 
 // Unbond unbonds a particular delegation and perform associated store operations.
-func (k Keeper) Unbond(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, delAmount math.Int, isMeid bool) (amount math.Int, err error) {
+func (k Keeper) Unbond(ctx sdk.Context, delAmount math.Int, isMeid bool, delegation stakingtypes.Delegation) (amount math.Int, err error) {
 	// check if a delegation object exists in the store
-	delegation, found := k.GetDelegation(ctx, delAddr, valAddr)
-	if !found {
-		return amount, stakingtypes.ErrNoDelegatorForAddress
-	}
-
 	overAmount := sdk.ZeroInt()
 	if isMeid {
 		if delegation.Amount.LTE(sdk.ZeroInt()) {
@@ -178,7 +129,7 @@ func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, tokens math.Int) {
 // tokenSrc indicates the bond status of the incoming funds.
 func (k Keeper) Delegate(
 	ctx sdk.Context, delAddr sdk.AccAddress, bondAmt math.Int, tokenSrc stakingtypes.BondStatus,
-	validator stakingtypes.Validator, subtractAccount bool,
+	validator stakingtypes.Validator, delegation stakingtypes.Delegation,
 ) (newShares sdk.Dec, err error) {
 	// In some situations, the exchange rate becomes invalid, e.g. if
 	// Validator loses all tokens due to slashing. In this case,
@@ -186,20 +137,8 @@ func (k Keeper) Delegate(
 	if validator.InvalidExRate() {
 		return math.LegacyZeroDec(), stakingtypes.ErrDelegatorShareExRateInvalid
 	}
-
-	// Get or create the delegation object
-	delegation, found := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
-	if !found {
+	if delegation.DelegatorAddress == "" {
 		delegation = stakingtypes.NewDelegation(delAddr, sdk.ValAddress{}, math.LegacyZeroDec())
-		delegation.Amount = sdk.ZeroInt()
-	}
-
-	// call the appropriate hook if present
-	if found {
-		_, err = k.WithdrawDelegationRewards(ctx, delAddr, sdk.ValAddress{})
-	}
-	if err != nil {
-		return math.LegacyZeroDec(), err
 	}
 	delegatorAddress := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
 	if tokenSrc == stakingtypes.Bonded {
@@ -223,7 +162,11 @@ func (k Keeper) Delegate(
 	}
 	_, newShares = k.AddValidatorTokensAndShares(ctx, validator, bondAmt)
 	// Update delegation
-	delegation.Amount = delegation.Amount.Add(bondAmt)
+	if strings.ToLower(validator.Description.RegionId) == strings.ToLower(types.ExperienceRegionName) {
+		delegation.UnMeidAmount = delegation.UnMeidAmount.Add(bondAmt)
+	} else {
+		delegation.Amount = delegation.Amount.Add(bondAmt)
+	}
 	delegation.StartHeight = ctx.BlockHeight()
 	delegation.Shares = delegation.Shares.Add(newShares)
 	k.SetDelegation(ctx, delegation)

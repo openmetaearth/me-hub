@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"errors"
+	ethermintserver "github.com/evmos/ethermint/server"
+	v2 "github.com/st-chain/me-hub/app/upgrades/v2"
 	"io"
 	"os"
 
-	ethermintserver "github.com/evmos/ethermint/server"
-	v2 "github.com/st-chain/me-hub/app/upgrades/v2"
 	"github.com/st-chain/me-hub/logger"
 
 	"github.com/cosmos/cosmos-sdk/client"
