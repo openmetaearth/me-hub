@@ -61,12 +61,11 @@ func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdk.D
 }
 
 func (k Keeper) Calculate(ctx sdk.Context, blockRewards sdk.Dec, totalStaking cmath.Int) (rewards sdk.Dec, err error) {
-	log := k.Logger(ctx)
 	totalSupply := sdk.NewDec(types.CaclTotalSupply)
 	rate := sdk.OneDec().Quo(totalSupply)
 	rewards = blockRewards.Mul(sdk.NewDecFromInt(totalStaking).Mul(rate)).Mul(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
 	if rewards.LT(sdk.ZeroDec()) {
-		log.Error("Calculate_Interest", "Failed to calculate user revenue！")
+		k.Logger(ctx).Error("Calculate_Interest", "Failed to calculate user revenue！")
 		return rewards, types.ErrCalculateInterest.Wrap("withdraw coins amount too small")
 	}
 	return
