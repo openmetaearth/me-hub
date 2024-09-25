@@ -10,7 +10,6 @@ import (
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
-	types "github.com/st-chain/me-hub/x/rollapp/types"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -160,7 +159,7 @@ type MsgUpdateState struct {
 	Version uint64 `protobuf:"varint,6,opt,name=version,proto3" json:"version,omitempty"`
 	// BDs is a list of block description objects (one per block)
 	// the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
-	BDs types.BlockDescriptors `protobuf:"bytes,7,opt,name=BDs,proto3" json:"BDs"`
+	BDs BlockDescriptors `protobuf:"bytes,7,opt,name=BDs,proto3" json:"BDs"`
 }
 
 func (m *MsgUpdateState) Reset()         { *m = MsgUpdateState{} }
@@ -238,11 +237,11 @@ func (m *MsgUpdateState) GetVersion() uint64 {
 	return 0
 }
 
-func (m *MsgUpdateState) GetBDs() types.BlockDescriptors {
+func (m *MsgUpdateState) GetBDs() BlockDescriptors {
 	if m != nil {
 		return m.BDs
 	}
-	return types.BlockDescriptors{}
+	return BlockDescriptors{}
 }
 
 type MsgUpdateStateResponse struct {

@@ -94,7 +94,7 @@ func CmdUnStake() *cobra.Command {
 
 func CmdSetRollupParams() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "setParams [rollappId] [electionPeriod] [seqNumber] [backupNumber] [minStake] [firstElectTime] [allowApplyTime] [electInterim] [daFraudChallengeStake]",
+		Use:     "setParams [rollappId] [electionPeriod] [seqNumber] [backupNumber] [minStake]  [allowApplyTime] [electInterim] [daFraudChallengeStake]",
 		Short:   "set rollup Params",
 		Example: "med tx hubRollUp setParams ",
 		Args:    cobra.ExactArgs(9),
@@ -120,28 +120,24 @@ func CmdSetRollupParams() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			firstElectTime, err := strconv.Atoi(args[5])
+			allowApplyTime, err := strconv.Atoi(args[5])
 			if err != nil {
 				return err
 			}
-			allowApplyTime, err := strconv.Atoi(args[6])
+			electInterim, err := strconv.Atoi(args[6])
 			if err != nil {
 				return err
 			}
-			electInterim, err := strconv.Atoi(args[7])
-			if err != nil {
-				return err
-			}
-			daChallengeStake, err := strconv.Atoi(args[8])
+			daChallengeStake, err := strconv.Atoi(args[7])
 			if err != nil {
 				return err
 			}
 			params := &types.Params{
-				ElectionPeriod:         uint32(electionPeriod),
-				SequencerNumber:        uint32(seqNumber),
-				BackupSequencerNumber:  uint32(backupNumber),
-				MinStakeAmount:         minStakeAmount,
-				FirstElectionInterval:  uint32(firstElectTime),
+				ElectionPeriod:        uint32(electionPeriod),
+				SequencerNumber:       uint32(seqNumber),
+				BackupSequencerNumber: uint32(backupNumber),
+				MinStakeAmount:        minStakeAmount,
+				//	FirstElectionInterval:  uint32(firstElectTime),
 				AllowApplyElectionTime: uint32(allowApplyTime),
 				ElectionInterimTime:    uint32(electInterim),
 				DaFraudChallengeStake:  uint32(daChallengeStake),

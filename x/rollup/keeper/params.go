@@ -11,11 +11,11 @@ import (
 // GetParams get all parameters as types.Params
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.Params{
-		ElectionPeriod:         k.GetElectionPeriod(ctx),
-		SequencerNumber:        k.GetSequencerNumber(ctx),
-		BackupSequencerNumber:  k.GetBackupNumber(ctx),
-		MinStakeAmount:         k.GetMinStakeAmount(ctx),
-		FirstElectionInterval:  k.GetFirstElectionInterval(ctx),
+		ElectionPeriod:        k.GetElectionPeriod(ctx),
+		SequencerNumber:       k.GetSequencerNumber(ctx),
+		BackupSequencerNumber: k.GetBackupNumber(ctx),
+		MinStakeAmount:        k.GetMinStakeAmount(ctx),
+		//	FirstElectionInterval:  k.GetFirstElectionInterval(ctx),
 		AllowApplyElectionTime: k.GetAllowApplyElectionTime(ctx),
 		ElectionInterimTime:    k.GetElectionInterimTime(ctx),
 		DaFraudChallengeStake:  k.GetDaFraudChallengeStake(ctx),

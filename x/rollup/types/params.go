@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	KeyElectionPeriod               = "KeyElectionPeriod"
-	KeyMinStakeAmount               = "KeyMinStakeAmount"
-	KeySequencerNumber              = "KeySequencerNumber"
-	KeyBackupNumber                 = "KeyBackupNumber"
-	KeyFirstElectInterval           = "KeyFirstElectInterval"
+	KeyElectionPeriod  = "KeyElectionPeriod"
+	KeyMinStakeAmount  = "KeyMinStakeAmount"
+	KeySequencerNumber = "KeySequencerNumber"
+	KeyBackupNumber    = "KeyBackupNumber"
+	//	KeyFirstElectInterval           = "KeyFirstElectInterval"
 	KeyApplyElectionTime            = "KeyApplyElectionTime"
 	KeyElectionInterimTime          = "KeyElectionInterimTime"
 	KeyDaFraudChallengeStake        = "KeyDaFraudChallengeStake"
@@ -25,7 +25,7 @@ var (
 	defaultSequencerNumber uint32 = 10
 	defaultBackupNumber    uint32 = 3
 	//默认首次选举的时间，单位为分钟
-	defaultFirstElectionInterval uint32 = 120
+	//	defaultFirstElectionInterval uint32 = 120
 	//默认允许申请参与质押的时间，默认2天，单位为分钟
 	defaultAllowApplyElectionTime uint32 = 2880
 	//默认选举后的过渡时间，单位为秒
@@ -36,11 +36,11 @@ var (
 
 func DefaultParams() Params {
 	return Params{
-		ElectionPeriod:         defaultElectionPeriod,
-		MinStakeAmount:         defaultMinStakeAmount,
-		SequencerNumber:        defaultSequencerNumber,
-		BackupSequencerNumber:  defaultBackupNumber,
-		FirstElectionInterval:  defaultFirstElectionInterval,
+		ElectionPeriod:        defaultElectionPeriod,
+		MinStakeAmount:        defaultMinStakeAmount,
+		SequencerNumber:       defaultSequencerNumber,
+		BackupSequencerNumber: defaultBackupNumber,
+		//	FirstElectionInterval:  defaultFirstElectionInterval,
 		AllowApplyElectionTime: defaultAllowApplyElectionTime,
 		ElectionInterimTime:    defaultElectionInterimTime,
 		DaFraudChallengeStake:  defaultDaFraudChallengeStake,
@@ -58,7 +58,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair([]byte(KeyMinStakeAmount), &p.MinStakeAmount, validateMinStakeAmount),
 		paramtypes.NewParamSetPair([]byte(KeySequencerNumber), &p.SequencerNumber, validateSequencerNumber),
 		paramtypes.NewParamSetPair([]byte(KeyBackupNumber), &p.BackupSequencerNumber, validateBackupSequencerNumber),
-		paramtypes.NewParamSetPair([]byte(KeyFirstElectInterval), &p.FirstElectionInterval, validateFirstElectInterval),
+		//	paramtypes.NewParamSetPair([]byte(KeyFirstElectInterval), &p.FirstElectionInterval, validateFirstElectInterval),
 		paramtypes.NewParamSetPair([]byte(KeyApplyElectionTime), &p.AllowApplyElectionTime, validateAllowApplyElectionTime),
 		paramtypes.NewParamSetPair([]byte(KeyElectionInterimTime), &p.ElectionInterimTime, validateElectionInterimTime),
 		paramtypes.NewParamSetPair([]byte(KeyDaFraudChallengeStake), &p.DaFraudChallengeStake, validateDaFraudChallengeStake),
@@ -76,9 +76,9 @@ func (p Params) Validate() error {
 	if err := validateSequencerNumber(p.SequencerNumber); err != nil {
 		return err
 	}
-	if err := validateFirstElectInterval(p.FirstElectionInterval); err != nil {
-		return err
-	}
+	//	if err := validateFirstElectInterval(p.FirstElectionInterval); err != nil {
+	//	return err
+	//	}
 	if err := validateAllowApplyElectionTime(p.AllowApplyElectionTime); err != nil {
 		return err
 	}
@@ -143,6 +143,7 @@ func validateBackupSequencerNumber(v interface{}) error {
 	return nil
 }
 
+/*
 func validateFirstElectInterval(v interface{}) error {
 	val, ok := v.(uint32)
 	if !ok {
@@ -152,7 +153,7 @@ func validateFirstElectInterval(v interface{}) error {
 		return fmt.Errorf("FirstElectInterval error. val = %d", val)
 	}
 	return nil
-}
+}*/
 
 func validateAllowApplyElectionTime(v interface{}) error {
 	val, ok := v.(uint32)

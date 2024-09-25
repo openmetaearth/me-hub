@@ -1,11 +1,19 @@
 package keeper
 
+/*
+#cgo LDFLAGS: -L../../../cgoCelestia -lcgoCelestia -Wl,-rpath,number
+#cgo CFLAGS: -I../../../cgoCelestia
+#include "cgoCelestialib.h"
+*/
+import "C"
 import (
 	"bytes"
 	"context"
 	errorsmod "cosmossdk.io/errors"
 	"encoding/hex"
 	"fmt"
+	"unsafe"
+
 	//"github.com/celestiaorg/celestia-app/pkg/appconsts"
 	//celestiaBlob "github.com/celestiaorg/celestia-node/blob"
 	tenderminttypes "github.com/cometbft/cometbft/types"
@@ -13,9 +21,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/rollapp/types"
 	rollupTypes "github.com/st-chain/me-hub/x/rollup/types"
-	"plugin"
+	//"plugin"
 	"strconv"
 )
+
+func ConvertString(goStr string) *C.char {
+	cStr := C.CString(goStr)
+	return cStr
+}
 
 func (k Keeper) GetLastSubmitBlockInfo(goCtx context.Context, req *types.MsgLastSubmitBlkRequest) (*types.MsgLastSubmitBlkResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -231,7 +244,7 @@ func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAI
 		return nil, types.ErrWrongBlockHeight
 	} else {
 		if resStatus, err := k.verifyRollBlkIsAllowSubmit(goCtx, req); err != nil {
-			if resStatus != types.SUBMIT_BLOCK_NORMAL_ERR {
+			if resStatus != types.SUBMIT_BLOCK_NORMAL_ERR { //如果是数据验证错误，则进行惩罚
 				if err = k.punishSubmitter(goCtx, resStatus, req.Creator, req.RollappId); err != nil {
 					return nil, err
 				}
@@ -389,9 +402,15 @@ func (k msgServer) commitRollupBlockDAInfo(ctx sdk.Context, msgBlkInfo *types.Ms
 
 // 校验rollup提交的区块是否允许被写入
 func (k msgServer) verifyRollBlkIsAllowSubmit(ctx context.Context, submitBlock *types.MsgBlkDAInfo) (int, error) {
+
+	if nil == submitBlock.CommitmentProof {
+		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrInputParams, "CommitmentProof is nil")
+	}
+
 	daNamespace := k.mapRollappAssociateDa[submitBlock.RollappId]
 	if nil == daNamespace || len(daNamespace) < 1 {
 		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrNotFound,
+
 			fmt.Sprintf("can not found namespace associated with rollapp.rollappID = %s", submitBlock.RollappId))
 	}
 	//校验区块的提交者的是否质押数量足够，这样就可以将区块的提交者和竞选的Sequencer剥离开，只要满足最小质押金额，都可以提交。
@@ -424,28 +443,49 @@ func (k msgServer) verifyRollBlkIsAllowSubmit(ctx context.Context, submitBlock *
 			return types.SUBMIT_BLOCK_NORMAL_ERR, err
 		}
 	}
+
 	//校验DA 的commitProof
-	p, err := plugin.Open("celestiaPlugin.so")
-	if err != nil {
-		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrLoadPlugin,
-			fmt.Sprintf(" err = %s", err.Error()))
-	}
-	pVal, err := p.Lookup("VerifyDACommitmentProof")
-	if err != nil {
-		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrLoadPlugin,
-			fmt.Sprintf(" Lookup function error.err = %s", err.Error()))
-	}
-	daVerify, ok := pVal.(func([]byte, []byte, []byte) (int, error))
-	if !ok {
-		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrLoadPlugin,
-			" Lookup function typeAssert error.")
-	}
-	verifyRes, err := daVerify(submitBlock.CommitmentProof, submitBlock.DaRoot, daNamespace)
-	if err == nil {
+	//func VerifyDACommitmentProof_c(commitProof_c, daRoot_c, namespace_c *C.char) VerifyResult
+	pCmtProof_c := ConvertString(hex.EncodeToString(submitBlock.CommitmentProof))
+	pDaRoot_c := ConvertString(hex.EncodeToString(submitBlock.DaRoot))
+	pNamespace_c := ConvertString(hex.EncodeToString(daNamespace))
+	verifyRes := C.VerifyDACommitmentProof_c(pCmtProof_c, pDaRoot_c, pNamespace_c)
+	strErr := C.GoString(verifyRes.Err)
+	status := int(verifyRes.Status)
+	defer func() { //释放对应内存
+		C.free(unsafe.Pointer(verifyRes.Err))
+		C.free(unsafe.Pointer(pCmtProof_c))
+		C.free(unsafe.Pointer(pDaRoot_c))
+		C.free(unsafe.Pointer(pNamespace_c))
+	}()
+
+	if types.SUBMIT_BLOCK_SUCCESS == status {
 		return types.SUBMIT_BLOCK_SUCCESS, nil
 	}
-	return verifyRes, errorsmod.Wrapf(types.ErrCommitVerify,
-		fmt.Sprintf("err = %s", err.Error()))
+	return status, errorsmod.Wrapf(types.ErrCommitVerify, fmt.Sprintf("err = %s", strErr))
+	/*
+		p, err := plugin.Open("celestiaPlugin.so")
+		if err != nil {
+			return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrLoadPlugin,
+				fmt.Sprintf(" err = %s", err.Error()))
+		}
+		pVal, err := p.Lookup("VerifyDACommitmentProof")
+		if err != nil {
+			return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrLoadPlugin,
+				fmt.Sprintf(" Lookup function error.err = %s", err.Error()))
+		}
+		daVerify, ok := pVal.(func([]byte, []byte, []byte) (int, error))
+		if !ok {
+			return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrLoadPlugin,
+				" Lookup function typeAssert error.")
+		}
+		verifyRes, err := daVerify(submitBlock.CommitmentProof, submitBlock.DaRoot, daNamespace)
+		if err == nil {
+			return types.SUBMIT_BLOCK_SUCCESS, nil
+		}
+	*/
+	//	return types.SUBMIT_BLOCK_SUCCESS, errorsmod.Wrapf(types.ErrCommitVerify,
+	//		fmt.Sprintf("err = %s", err.Error()))
 
 }
 
@@ -474,7 +514,7 @@ func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId strin
 	}
 
 	f := sequencerLen / 3
-	if voteNumber >= 2*f { //如果>=2f个，则认为是允许的
+	if voteNumber >= (2*f + 1) { //如果>=2f个，则认为是允许的
 		return nil
 	} else {
 		//能进到这里，之前的查询竞选说明有数据，也就是有竞选过
@@ -492,7 +532,7 @@ func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId strin
 					return fmt.Errorf("%s in second time", err.Error())
 				}
 				f = sequencerLen / 3
-				if voteNumber >= 2*f { //如果>=2f个，则认为是允许的
+				if voteNumber >= (2*f + 1) { //如果>=2f个，则认为是允许的
 					return nil
 				} else {
 					return errorsmod.Wrapf(types.ErrNotEnoughSequencerSign,

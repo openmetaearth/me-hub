@@ -371,11 +371,12 @@ func (k Keeper) GetBackupNumber(ctx sdk.Context) (res uint32) {
 	return
 }
 
-func (k Keeper) GetFirstElectionInterval(ctx sdk.Context) (res uint32) {
-	k.paramStore.Get(ctx, []byte(types.KeyFirstElectInterval), &res)
-	return
-}
-
+/*
+	func (k Keeper) GetFirstElectionInterval(ctx sdk.Context) (res uint32) {
+		k.paramStore.Get(ctx, []byte(types.KeyFirstElectInterval), &res)
+		return
+	}
+*/
 func (k Keeper) GetAllowApplyElectionTime(ctx sdk.Context) (res uint32) {
 	k.paramStore.Get(ctx, []byte(types.KeyApplyElectionTime), &res)
 	return

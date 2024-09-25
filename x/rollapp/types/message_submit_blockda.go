@@ -60,8 +60,8 @@ func (msg *MsgBlkDAInfo) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInputParams, "number of blocks can not be zero")
 	}
 
-	if msg.NumBlocks > 100000 {
-		return errorsmod.Wrapf(ErrInputParams, "numBlocks(%d)  exceeds max 100000", msg.NumBlocks)
+	if msg.NumBlocks > 10000 {
+		return errorsmod.Wrapf(ErrInputParams, "numBlocks(%d)  exceeds max 10000", msg.NumBlocks)
 	}
 
 	// check to see that update contains all BDs

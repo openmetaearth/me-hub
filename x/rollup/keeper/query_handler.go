@@ -17,11 +17,11 @@ func (t Keeper) QueryParams(ctx context.Context, req *types.QueryParamsRequest) 
 	}
 
 	paramas := types.Params{
-		ElectionPeriod:         t.GetElectionPeriod(sdkCtx),
-		SequencerNumber:        t.GetSequencerNumber(sdkCtx),
-		BackupSequencerNumber:  t.GetBackupNumber(sdkCtx),
-		MinStakeAmount:         t.GetMinStakeAmount(sdkCtx),
-		FirstElectionInterval:  t.GetFirstElectionInterval(sdkCtx),
+		ElectionPeriod:        t.GetElectionPeriod(sdkCtx),
+		SequencerNumber:       t.GetSequencerNumber(sdkCtx),
+		BackupSequencerNumber: t.GetBackupNumber(sdkCtx),
+		MinStakeAmount:        t.GetMinStakeAmount(sdkCtx),
+		//	FirstElectionInterval:  t.GetFirstElectionInterval(sdkCtx),
 		AllowApplyElectionTime: t.GetAllowApplyElectionTime(sdkCtx),
 		ElectionInterimTime:    t.GetElectionInterimTime(sdkCtx),
 		DaFraudChallengeStake:  t.GetDaFraudChallengeStake(sdkCtx),

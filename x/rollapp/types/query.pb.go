@@ -10,7 +10,6 @@ import (
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
-	types "github.com/st-chain/me-hub/x/rollapp/types"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -71,7 +70,7 @@ var xxx_messageInfo_QueryParamsRequest proto.InternalMessageInfo
 // QueryParamsResponse is response type for the Query/Params RPC method.
 type QueryParamsResponse struct {
 	// params holds all the parameters of this module.
-	Params types.Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
+	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
 }
 
 func (m *QueryParamsResponse) Reset()         { *m = QueryParamsResponse{} }
@@ -107,11 +106,11 @@ func (m *QueryParamsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryParamsResponse proto.InternalMessageInfo
 
-func (m *QueryParamsResponse) GetParams() types.Params {
+func (m *QueryParamsResponse) GetParams() Params {
 	if m != nil {
 		return m.Params
 	}
-	return types.Params{}
+	return Params{}
 }
 
 type QueryGetRollappRequest struct {
@@ -351,7 +350,7 @@ func (m *QueryGetLatestStateIndexRequest) GetFinalized() bool {
 }
 
 type QueryGetLatestStateIndexResponse struct {
-	StateIndex types.StateInfoIndex `protobuf:"bytes,1,opt,name=stateIndex,proto3" json:"stateIndex"`
+	StateIndex StateInfoIndex `protobuf:"bytes,1,opt,name=stateIndex,proto3" json:"stateIndex"`
 }
 
 func (m *QueryGetLatestStateIndexResponse) Reset()         { *m = QueryGetLatestStateIndexResponse{} }
@@ -387,21 +386,21 @@ func (m *QueryGetLatestStateIndexResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryGetLatestStateIndexResponse proto.InternalMessageInfo
 
-func (m *QueryGetLatestStateIndexResponse) GetStateIndex() types.StateInfoIndex {
+func (m *QueryGetLatestStateIndexResponse) GetStateIndex() StateInfoIndex {
 	if m != nil {
 		return m.StateIndex
 	}
-	return types.StateInfoIndex{}
+	return StateInfoIndex{}
 }
 
 type QueryGetRollappResponse struct {
-	Rollapp types.Rollapp `protobuf:"bytes,1,opt,name=rollapp,proto3" json:"rollapp"`
+	Rollapp Rollapp `protobuf:"bytes,1,opt,name=rollapp,proto3" json:"rollapp"`
 	// Defines the index of the last rollapp UpdateState.
-	LatestStateIndex *types.StateInfoIndex `protobuf:"bytes,2,opt,name=latestStateIndex,proto3" json:"latestStateIndex,omitempty"`
+	LatestStateIndex *StateInfoIndex `protobuf:"bytes,2,opt,name=latestStateIndex,proto3" json:"latestStateIndex,omitempty"`
 	// Defines the index of the last rollapp UpdateState that was finalized.
-	LatestFinalizedStateIndex *types.StateInfoIndex `protobuf:"bytes,3,opt,name=latestFinalizedStateIndex,proto3" json:"latestFinalizedStateIndex,omitempty"`
-	LatestHeight              uint64                `protobuf:"varint,4,opt,name=latestHeight,proto3" json:"latestHeight,omitempty"`
-	LatestFinalizedHeight     uint64                `protobuf:"varint,5,opt,name=latestFinalizedHeight,proto3" json:"latestFinalizedHeight,omitempty"`
+	LatestFinalizedStateIndex *StateInfoIndex `protobuf:"bytes,3,opt,name=latestFinalizedStateIndex,proto3" json:"latestFinalizedStateIndex,omitempty"`
+	LatestHeight              uint64          `protobuf:"varint,4,opt,name=latestHeight,proto3" json:"latestHeight,omitempty"`
+	LatestFinalizedHeight     uint64          `protobuf:"varint,5,opt,name=latestFinalizedHeight,proto3" json:"latestFinalizedHeight,omitempty"`
 }
 
 func (m *QueryGetRollappResponse) Reset()         { *m = QueryGetRollappResponse{} }
@@ -437,21 +436,21 @@ func (m *QueryGetRollappResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryGetRollappResponse proto.InternalMessageInfo
 
-func (m *QueryGetRollappResponse) GetRollapp() types.Rollapp {
+func (m *QueryGetRollappResponse) GetRollapp() Rollapp {
 	if m != nil {
 		return m.Rollapp
 	}
-	return types.Rollapp{}
+	return Rollapp{}
 }
 
-func (m *QueryGetRollappResponse) GetLatestStateIndex() *types.StateInfoIndex {
+func (m *QueryGetRollappResponse) GetLatestStateIndex() *StateInfoIndex {
 	if m != nil {
 		return m.LatestStateIndex
 	}
 	return nil
 }
 
-func (m *QueryGetRollappResponse) GetLatestFinalizedStateIndex() *types.StateInfoIndex {
+func (m *QueryGetRollappResponse) GetLatestFinalizedStateIndex() *StateInfoIndex {
 	if m != nil {
 		return m.LatestFinalizedStateIndex
 	}
@@ -517,8 +516,8 @@ func (m *QueryAllRollappRequest) GetPagination() *query.PageRequest {
 }
 
 type QueryAllRollappResponse struct {
-	Rollapp    []types.RollappSummary `protobuf:"bytes,1,rep,name=rollapp,proto3" json:"rollapp"`
-	Pagination *query.PageResponse    `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Rollapp    []RollappSummary    `protobuf:"bytes,1,rep,name=rollapp,proto3" json:"rollapp"`
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryAllRollappResponse) Reset()         { *m = QueryAllRollappResponse{} }
@@ -554,7 +553,7 @@ func (m *QueryAllRollappResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAllRollappResponse proto.InternalMessageInfo
 
-func (m *QueryAllRollappResponse) GetRollapp() []types.RollappSummary {
+func (m *QueryAllRollappResponse) GetRollapp() []RollappSummary {
 	if m != nil {
 		return m.Rollapp
 	}
@@ -637,7 +636,7 @@ func (m *QueryGetStateInfoRequest) GetFinalized() bool {
 }
 
 type QueryGetStateInfoResponse struct {
-	StateInfo types.StateInfo `protobuf:"bytes,1,opt,name=stateInfo,proto3" json:"stateInfo"`
+	StateInfo StateInfo `protobuf:"bytes,1,opt,name=stateInfo,proto3" json:"stateInfo"`
 }
 
 func (m *QueryGetStateInfoResponse) Reset()         { *m = QueryGetStateInfoResponse{} }
@@ -673,11 +672,11 @@ func (m *QueryGetStateInfoResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryGetStateInfoResponse proto.InternalMessageInfo
 
-func (m *QueryGetStateInfoResponse) GetStateInfo() types.StateInfo {
+func (m *QueryGetStateInfoResponse) GetStateInfo() StateInfo {
 	if m != nil {
 		return m.StateInfo
 	}
-	return types.StateInfo{}
+	return StateInfo{}
 }
 
 func init() {
@@ -2661,7 +2660,7 @@ func (m *QueryGetRollappResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.LatestStateIndex == nil {
-				m.LatestStateIndex = &types.StateInfoIndex{}
+				m.LatestStateIndex = &StateInfoIndex{}
 			}
 			if err := m.LatestStateIndex.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2697,7 +2696,7 @@ func (m *QueryGetRollappResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.LatestFinalizedStateIndex == nil {
-				m.LatestFinalizedStateIndex = &types.StateInfoIndex{}
+				m.LatestFinalizedStateIndex = &StateInfoIndex{}
 			}
 			if err := m.LatestFinalizedStateIndex.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2906,7 +2905,7 @@ func (m *QueryAllRollappResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Rollapp = append(m.Rollapp, types.RollappSummary{})
+			m.Rollapp = append(m.Rollapp, RollappSummary{})
 			if err := m.Rollapp[len(m.Rollapp)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
