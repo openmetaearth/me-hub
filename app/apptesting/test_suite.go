@@ -12,7 +12,9 @@ import (
 	"github.com/st-chain/me-hub/x/dao/types"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/suite"
+	"strings"
 
 	"github.com/st-chain/me-hub/app"
 
@@ -173,6 +175,14 @@ func (s *KeeperTestHelper) InitKyc(pubkey string) {
 		Status:      didtypes.SERVICE_STATUS_ACTIVE,
 	}
 	s.App.DidKeeper.SetService(s.Ctx, service.Sid, service)
+
+	s.App.KycKeeper.SetKYC(s.Ctx, did, didtypes.Credential{
+		Did:  did,
+		Sid:  service.Sid,
+		Hash: "",
+		Uri:  "",
+		Data: []byte(strings.ToLower(wstakingtypes.MeEarthRegionName)),
+	})
 }
 
 func (s *KeeperTestHelper) NewAccount() (sdk.AccAddress, string) {

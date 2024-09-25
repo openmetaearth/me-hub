@@ -190,7 +190,7 @@ func (s *KeeperTestSuite) TestUnStake() {
 			s.Require().ErrorIs(err, test.expErr)
 
 			// call endblock for complete unstake
-			wstaking.EndBlocker(s.Ctx, s.Keeper())
+			wstaking.EndBlock(s.Ctx, s.Keeper())
 			if test.expErr == nil {
 				// check stake pool balance
 				stakePoolBalanceAfter := s.App.BankKeeper.GetBalance(s.Ctx, moduleAddress, params.BaseDenom)

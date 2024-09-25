@@ -165,6 +165,7 @@ func genesisStateWithValSet(t *testing.T,
 			UnbondingTime:     time.Unix(0, 0).UTC(),
 			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
 			MinSelfDelegation: sdk.ZeroInt(),
+			OwnerAddress:      val.Address.String(),
 		}
 		if i == 0 {
 			validator.Description.RegionId = strings.ToLower(wstakingtypes.MeEarthRegionName)
