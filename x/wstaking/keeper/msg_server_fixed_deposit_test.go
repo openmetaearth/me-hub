@@ -47,7 +47,7 @@ func (s *KeeperTestSuite) TestRemoveFixedDepositCfg() {
 	s.Require().ErrorIs(err, nil)
 }
 
-func (s *KeeperTestSuite) TestWithdrawFixedDepositCfg() {
+func (s *KeeperTestSuite) TestWithdrawFixedDeposit() {
 	s.SetupTest()
 	newFixdDepositCfg := &types.MsgNewFixedDepositCfg{
 		Admin:    s.Dao.GlobalDao,

@@ -10,7 +10,7 @@ import (
 func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFixedDepositCfg) (*types.MsgNewFixedDepositCfgResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Admin) {
+	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Dao) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
@@ -49,7 +49,7 @@ func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFi
 	k.InitFixedDepositCountOfCfg(ctx, msg.RegionId, msg.Term)
 
 	event := sdk.NewEvent(types.EventTypeAddFixedDepositCfg,
-		sdk.NewAttribute(types.AttributeKeyAccount, msg.Admin),
+		sdk.NewAttribute(types.AttributeKeyAccount, msg.Dao),
 		sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
 		sdk.NewAttribute(types.AttributeKeyTerm, strconv.FormatInt(msg.Term, 10)),
 		sdk.NewAttribute(types.AttributeKeyRate, msg.Rate.String()),
