@@ -6,8 +6,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/st-chain/me-hub/app/apptesting"
 	"github.com/st-chain/me-hub/app/params"
 	testutilstypes "github.com/st-chain/me-hub/testutil/types"
@@ -93,6 +95,9 @@ func (suite *KeeperTestSuite) SetupTest() {
 	}
 	_, err = suite.msgServer.NewRegion(suite.Ctx, &newMeEarthRegion)
 
+	suite.Require().NoError(err)
+
+	err = suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, mintypes.ModuleName, suite.App.StakingKeeper.GetRegionAccount(ctx, types.RegionAccountTypeBase, types.MeEarthRegionId).GetAddress(), sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
 	suite.Require().NoError(err)
 }
 

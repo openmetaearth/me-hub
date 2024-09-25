@@ -15,6 +15,8 @@ const (
 
 	MeidJoinGroupNoReward = 0
 	MeidJoinGroupRewarded = 1
+	MeEarthRegionId       = "me_earth"
+	ExperienceRegionId    = "experience_region"
 )
 
 var (
