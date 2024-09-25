@@ -40,10 +40,9 @@ func (k MsgServer) GetFixedDepositInterest(cfg *types.FixedDepositCfg, principal
 
 func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDeposit) (*types.MsgDoFixedDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	regionId, err2, done := k.GetRegionIdByAccount(ctx, msg.Account)
+	regionId, err, done := k.GetRegionIdByAccount(ctx, msg.Account)
 	if done {
-		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit, err2.Error())
+		return nil, sdkerrors.Wrapf(types.ErrDidNotExists, err.Error())
 	}
 
 	if !msg.Principal.Amount.IsPositive() {

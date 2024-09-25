@@ -14,7 +14,7 @@ import (
 
 func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, regionId, creator string) error {
 	if regionId == strings.ToLower(types.ExperienceRegionName) {
-		return sdkerrors.Wrapf(types.ErrKycReward, fmt.Sprintf("cannot set kyc to %s region", regionId))
+		return sdkerrors.Wrapf(types.ErrDidReward, fmt.Sprintf("cannot set kyc to %s region", regionId))
 	}
 
 	region, found := k.GetRegion(ctx, regionId)
@@ -33,14 +33,14 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 	}
 
 	if validator.MeidAmount.Add(types.Bonus).GT(validator.Tokens) {
-		return sdkerrors.Wrapf(types.ErrKycReward, fmt.Sprintf("validator reach meid limit"))
+		return sdkerrors.Wrapf(types.ErrDidReward, fmt.Sprintf("validator reach meid limit"))
 	}
 
 	validator.MeidAmount = validator.MeidAmount.Add(types.Bonus)
 
 	err = k.SendKycRewards(ctx, account, valAddr, inviteAddr, validator, region)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrKycReward, err.Error())
+		return sdkerrors.Wrapf(types.ErrDidReward, err.Error())
 	}
 
 	//validator rewards
@@ -78,12 +78,12 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 
 	validator, ok := k.GetValidator(ctx, valAddr)
 	if !ok {
-		return sdkerrors.Wrapf(types.ErrKycReward, fmt.Sprintf("region bonded validator no found"))
+		return sdkerrors.Wrapf(types.ErrDidReward, fmt.Sprintf("region bonded validator no found"))
 	}
 
 	_, err = k.removeKycReward(ctx, account, valAddr, region, stakingtypes.Delegation{})
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrKycReward, fmt.Sprintf("%v", err))
+		return sdkerrors.Wrapf(types.ErrDidReward, fmt.Sprintf("%v", err))
 	}
 
 	validator.MeidAmount = validator.MeidAmount.Sub(types.Bonus)
@@ -106,7 +106,7 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
 		}
 
 		if delegation.Unmovable.GT(sdk.ZeroInt()) {
-			return types.ErrMeidExists
+			return types.ErrDidExists
 		}
 		interest, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
 		if err != nil {
@@ -236,7 +236,7 @@ func (k Keeper) removeKycReward(ctx sdk.Context, delAddr sdk.AccAddress, valAddr
 	}
 
 	if delegation.Unmovable.LTE(sdk.ZeroInt()) {
-		return amount, types.ErrMeidExists
+		return amount, types.ErrDidExists
 	}
 
 	delegation.Unmovable = sdk.ZeroInt()

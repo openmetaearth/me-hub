@@ -11,7 +11,6 @@ import (
 	"github.com/st-chain/me-hub/app/apptesting"
 	"github.com/st-chain/me-hub/app/params"
 	testutilstypes "github.com/st-chain/me-hub/testutil/types"
-	"github.com/st-chain/me-hub/x/wstaking/keeper"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/require"
@@ -23,7 +22,7 @@ import (
 type KeeperTestSuite struct {
 	apptesting.KeeperTestHelper
 
-	msgServer           keeper.MsgServer
+	msgServer           wstakingkeeper.MsgServer
 	queryClient         types.QueryClient
 	meEarthValidator    stakingtypes.Validator
 	experienceValidator stakingtypes.Validator
@@ -58,16 +57,16 @@ func (suite *KeeperTestSuite) SetupTest() {
 	app.StakingKeeper.SetParams(ctx, stakingParams)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	nativeQuerier := keeper.Querier{Keeper: app.StakingKeeper}
+	nativeQuerier := wstakingkeeper.Querier{Keeper: app.StakingKeeper}
 	types.RegisterQueryServer(queryHelper, nativeQuerier)
 	queryClient := types.NewQueryClient(queryHelper)
+	suite.queryClient = queryClient
 
 	suite.App = app
+	suite.Ctx = ctx
 
 	stakingKeeperMsgSrv := stakingkeeper.NewMsgServerImpl(app.StakingKeeper.Keeper)
-	suite.msgServer = keeper.NewMsgServerImpl(app.StakingKeeper, stakingKeeperMsgSrv)
-	suite.Ctx = ctx
-	suite.queryClient = queryClient
+	suite.msgServer = wstakingkeeper.NewMsgServerImpl(app.StakingKeeper, stakingKeeperMsgSrv)
 
 	suite.InitializeDao()
 
@@ -86,7 +85,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.Require().NoError(err)
 }
 
-func SetValidatorV1(ctx sdk.Context, k *keeper.Keeper, validator testutilstypes.ValidatorV1) {
+func SetValidatorV1(ctx sdk.Context, k *wstakingkeeper.Keeper, validator testutilstypes.ValidatorV1) {
 	store := ctx.KVStore(k.GetStoreKey())
 	bz := k.GetCdc().MustMarshal(&validator)
 	addr, err := sdk.ValAddressFromBech32(validator.OperatorAddress)
@@ -96,7 +95,7 @@ func SetValidatorV1(ctx sdk.Context, k *keeper.Keeper, validator testutilstypes.
 	store.Set(stakingtypes.GetValidatorKey(addr), bz)
 }
 
-func GetValidatorV2(ctx sdk.Context, k *keeper.Keeper, addr sdk.ValAddress) (validator testutilstypes.ValidatorV2, found bool) {
+func GetValidatorV2(ctx sdk.Context, k *wstakingkeeper.Keeper, addr sdk.ValAddress) (validator testutilstypes.ValidatorV2, found bool) {
 	store := ctx.KVStore(k.GetStoreKey())
 	value := store.Get(stakingtypes.GetValidatorKey(addr))
 	if value == nil {
