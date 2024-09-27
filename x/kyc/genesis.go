@@ -2,6 +2,7 @@ package kyc
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/keeper"
@@ -17,7 +18,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 
 	k.SetDID(ctx, address, genState.Issuer.Did)
 	k.SetDidInfo(ctx, genState.Issuer.Did, genState.Issuer)
-
+	// Set if defined
+	if genState.KycEventSeq != nil {
+		k.SetKycEventSeq(ctx, *genState.KycEventSeq)
+	}
 	service := didtypes.Service{
 		Sid:         types.ModuleName,
 		Name:        types.ModuleName,
@@ -34,6 +38,11 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	svc, found := k.GetService(ctx)
 	if !found {
 		return genesis
+	}
+	// Get all kycEventSeq
+	kycEventSeq, found := k.GetKycEventSeq(ctx)
+	if found {
+		genesis.KycEventSeq = &kycEventSeq
 	}
 	didInfo, found := k.GetDidInfo(ctx, svc.Issuer)
 	genesis.Issuer = didInfo

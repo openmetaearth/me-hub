@@ -3,6 +3,7 @@ package metaearth.kyc;
 
 import "gogoproto/gogo.proto";
 import "metaearth/kyc/protocol.proto";
+import "metaearth/kyc/kyc_event_seq.proto";
 import "metaearth/did/did.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/kyc/types";
@@ -11,4 +12,5 @@ option go_package = "github.com/st-chain/me-hub/x/kyc/types";
 // GenesisState defines the kyc module's genesis state.
 message GenesisState {
    did.DidInfo issuer = 1 [(gogoproto.nullable) = false];
+   KycEventSeq kycEventSeq = 2;
 }
