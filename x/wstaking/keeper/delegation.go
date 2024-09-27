@@ -201,12 +201,12 @@ func (k Keeper) WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddres
 }
 
 func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, region types.Region) (sdk.Coins, error) {
-	valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
-	if valErr != nil {
-		k.Logger(ctx).Error("internalWithdrawDelegationRewards err=", valErr.Error())
-		return nil, valErr
-	}
-	del := k.Delegation(ctx, delAddr, valAddr)
+	//valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
+	//if valErr != nil {
+	//	k.Logger(ctx).Error("internalWithdrawDelegationRewards err=", valErr.Error())
+	//	return nil, valErr
+	//}
+	del := k.Delegation(ctx, delAddr, sdk.ValAddress{})
 	if del == nil {
 		return nil, types.ErrEmptyDelegationDistInfo
 	}

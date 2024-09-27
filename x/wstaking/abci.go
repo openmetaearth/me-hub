@@ -12,7 +12,7 @@ import (
 
 // BeginBlocker will persist the current header and validator set as a historical entry
 // and prune the oldest entry based on the HistoricalEntries parameter
-func BeginBlocker(ctx sdk.Context, k *keeper.Keeper) {
+func BeginBlock(ctx sdk.Context, k *keeper.Keeper) {
 	totalRewardsPerBlockTemp := k.GetPerBlockMintCoinAmount(ctx)
 	totalRewardsPerBlock := sdk.NewIntFromBigInt(&totalRewardsPerBlockTemp)
 	regions := k.GetAllRegion(ctx)
@@ -28,6 +28,6 @@ func BeginBlocker(ctx sdk.Context, k *keeper.Keeper) {
 	k.TrackHistoricalInfo(ctx)
 }
 
-func EndBlocker(ctx sdk.Context, k *keeper.Keeper) []abci.ValidatorUpdate {
+func EndBlock(ctx sdk.Context, k *keeper.Keeper) []abci.ValidatorUpdate {
 	return k.BlockValidatorUpdates(ctx)
 }

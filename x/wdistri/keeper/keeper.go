@@ -75,7 +75,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k Keeper) AllocateBlockRewardEveryday(ctx sdk.Context, req abci.RequestEndBlock) error {
 	if ctx.BlockHeight()%oneDayTotalBlocks == 0 {
-	return k.AllocateBlockReward(ctx)
+		return k.AllocateBlockReward(ctx)
 	}
 	return nil
 }
@@ -98,7 +98,6 @@ func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 	}
 	for _, region := range regions {
 		// calculate every region coins: RegionShare * totalMintCoins / totalRegionShare
-
 		amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoin.Amount.ToLegacyDec()).Quo(totalRegionShareDec)
 		regionAmount := amount.TruncateInt()
 		regionCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(regionAmount.Int64())))

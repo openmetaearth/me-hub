@@ -84,11 +84,11 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 
 // BeginBlock returns the begin blocker for the staking module.
 func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
-	BeginBlocker(ctx, am.keeper)
+	BeginBlock(ctx, am.keeper)
 }
 
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return EndBlocker(ctx, am.keeper)
+	return EndBlock(ctx, am.keeper)
 }
 
 // RegisterServices registers module services.

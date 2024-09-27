@@ -51,12 +51,12 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 
 	err := k.RemoveKycReward(ctx, address, fromRegionId)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrKycReward, err.Error())
+		return sdkerrors.Wrapf(types.ErrDidReward, err.Error())
 	}
 
 	err = k.SendKycRewards(ctx, address, valAddr, "", validator, toRegion)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrKycReward, err.Error())
+		return sdkerrors.Wrapf(types.ErrDidReward, err.Error())
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{

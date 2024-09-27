@@ -17,13 +17,6 @@ var (
 	ErrValidatorExist           = sdkerrors.Register(ModuleName, 65, "validator already exist")
 	ErrValidatorAddress         = sdkerrors.Register(ModuleName, 66, "cannot update validator address to module account address")
 
-	ErrSample           = sdkerrors.Register(ModuleName, 1100, "sample error")
-	ErrDoDeposit        = sdkerrors.Register(ModuleName, 1101, "do deposit error")
-	ErrDoWithdraw       = sdkerrors.Register(ModuleName, 1102, "do withdraw error")
-	ErrNoDeposit        = sdkerrors.Register(ModuleName, 1103, "deposit not exist error")
-	ErrNotEnoughDeposit = sdkerrors.Register(ModuleName, 1104, "deposit not enough error")
-	ErrAmountNotInteger = sdkerrors.Register(ModuleName, 1105, "amount is not integer error")
-
 	ErrDoFixedDeposit           = sdkerrors.Register(ModuleName, 1113, "do fixed deposit error")
 	ErrDoFixedWithDraw          = sdkerrors.Register(ModuleName, 1114, "do fixed withdraw error")
 	ErrNoFixedDepositFound      = sdkerrors.Register(ModuleName, 1115, "fixed deposit not found")
@@ -42,11 +35,6 @@ var (
 	ErrFixedDepositConfigInactive      = sdkerrors.Register(ModuleName, 1128, "fixed deposit config status inactive")
 	ErrFixedDepositConfigRateInvalid   = sdkerrors.Register(ModuleName, 1129, "fixed deposit config rate invalid, rate range:[0.0001, 10000]")
 
-	ErrorBonusNew      = sdkerrors.Register(ModuleName, 1130, "new bonus error")
-	ErrorBonusRetrieve = sdkerrors.Register(ModuleName, 1131, "bonus retrieve error")
-	ErrorBonusStatus   = sdkerrors.Register(ModuleName, 1132, "bonus status error")
-	ErrorBonusNotExist = sdkerrors.Register(ModuleName, 1133, "bonus not exist")
-
 	ErrVaultAccountExists    = sdkerrors.Register(ModuleName, 1140, "region vault account exists")
 	ErrSendCoinToRegionAdmin = sdkerrors.Register(ModuleName, 1141, "send coins to region admin error")
 	ErrSendCoinToRegionVault = sdkerrors.Register(ModuleName, 1142, "send coins to region vault error")
@@ -57,9 +45,9 @@ var (
 	ErrGetGlobalAdmin        = sdkerrors.Register(ModuleName, 1147, "get global admin error")
 	ErrCheckGlobalDao        = sdkerrors.Register(ModuleName, 1148, "invalid global dao")
 
-	ErrKycReward    = sdkerrors.Register(ModuleName, 1150, "kyc reward error")
-	ErrMeidRemove   = sdkerrors.Register(ModuleName, 1151, "remove did error")
-	ErrMeidExists   = sdkerrors.Register(ModuleName, 1152, "did already exists")
+	ErrDidReward    = sdkerrors.Register(ModuleName, 1150, "did reward error")
+	ErrDidRemove    = sdkerrors.Register(ModuleName, 1151, "remove did error")
+	ErrDidExists    = sdkerrors.Register(ModuleName, 1152, "did already exists")
 	ErrDidNotExists = sdkerrors.Register(ModuleName, 1153, "did not exists")
 
 	ErrRegionAlreadyExist       = sdkerrors.Register(ModuleName, 1162, "region already exist")
