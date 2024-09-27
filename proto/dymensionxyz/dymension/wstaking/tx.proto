@@ -222,7 +222,7 @@ message MsgWithdrawDelegatorRewardResponse {
 }
 
 message MsgNewFixedDepositCfg {
-  string    admin = 1;
+  string    dao = 1;
   string    regionId = 2;
   int64    term    = 3;
   string    rate = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];

@@ -2,7 +2,9 @@ package keeper
 
 import (
 	"context"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/st-chain/me-hub/app/params"
+	types2 "github.com/st-chain/me-hub/x/kyc/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -76,20 +78,29 @@ func (k Keeper) FixedDepositByRegion(goCtx context.Context, req *types.QueryFixe
 		return nil, status.Error(codes.InvalidArgument, "invalid query type")
 	}
 
-	//todo
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	var fixedDeposits []types.FixedDeposit
-	meidList := k.GetMeidByRegion(ctx, req.Regionid)
-	for _, meid := range meidList {
-		tmpList := k.GetFixedDepositByAcct(ctx, meid.Account)
+	meidList, err := k.KycKeeper.DIDs(ctx, &types2.QueryDIDs{
+		RegionId: req.Regionid,
+		Pagination: &query.PageRequest{
+			Key:        nil,
+			Offset:     0,
+			Limit:      9999,
+			CountTotal: false,
+			Reverse:    false,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	for _, did := range meidList.Infos {
+		tmpList := k.GetFixedDepositByAcct(ctx, did.Address)
 		if req.QueryType == types.FixedDepositState_AllState {
 			fixedDeposits = append(fixedDeposits, tmpList...)
 			continue
 		} else {
 			for _, v := range tmpList {
 				switch req.QueryType {
-				//case types.AllState:
-				//	fixedDeposits = append(fixedDeposits, v)
 				case types.FixedDepositState_NotExpired:
 					if ctx.BlockTime().Before(v.EndTime) {
 						fixedDeposits = append(fixedDeposits, v)
@@ -105,7 +116,6 @@ func (k Keeper) FixedDepositByRegion(goCtx context.Context, req *types.QueryFixe
 	}
 
 	return &types.QueryFixedDepositByRegionResponse{FixedDeposit: fixedDeposits}, nil
-	//return nil, nil
 }
 
 func (k Keeper) FixedDepositTotalAmount(goCtx context.Context, req *types.QueryFixedDepositTotalAmountRequest) (*types.QueryFixedDepositTotalAmountResponse, error) {

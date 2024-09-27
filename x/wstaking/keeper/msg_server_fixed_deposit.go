@@ -250,7 +250,7 @@ func (k MsgServer) DoFixedWithdraw(goCtx context.Context, msg *types.MsgDoFixedW
 			fixedDeposit.Principal.String())
 	}
 	if coin := k.BankKeeper.GetBalance(ctx, regionInterestAddr, fixedDeposit.Interest.Denom); coin.IsLT(fixedDeposit.Interest) {
-		return nil, sdkerrors.Wrapf(types.ErrDoFixedWithDraw,
+		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit,
 			"region interest account %s balance(%s) less interest coin(%s)",
 			regionInterestAddr.String(),
 			coin.String(),
