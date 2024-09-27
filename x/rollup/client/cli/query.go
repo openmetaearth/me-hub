@@ -28,16 +28,14 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 }
 func CmdQueryParams() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "queryParams [rollapp-id]",
+		Use:   "queryParams ",
 		Short: "query params.",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			queryClient := types.NewQueryClient(clientCtx)
-			argRollappId := args[0]
-			req := &types.QueryParamsRequest{
-				RollappId: argRollappId,
-			}
+
+			req := &types.QueryParamsRequest{}
 
 			res, err := queryClient.QueryParams(context.Background(), req)
 			if err != nil {

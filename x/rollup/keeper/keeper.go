@@ -26,10 +26,9 @@ type Keeper struct {
 	dk         types.DaoKeeper
 	paramStore paramtypes.Subspace
 	//lastElectionTime uint64
-	rollAppID      string
-	mapBlackList   map[string]struct{}
-	rollappInitExt *types.RollappInitExtVal
-	mapPunishInfo  map[string]uint64
+	mapBlackList      map[string]struct{}
+	mapRollappInfoMng map[string]*types.RollappInitExtVal
+	mapPunishInfo     map[string]map[string]uint64 //rollappID => address => punishmentAmount
 }
 
 // NewKeeper creates a new staking Keeper instance
@@ -43,37 +42,40 @@ func NewKeeper(storeKey storetypes.StoreKey, cdc codec.BinaryCodec, paramSpace p
 		storeKey:   storeKey,
 		cdc:        cdc,
 		paramStore: paramSpace,
-		rollAppID:  "",
 		bk:         bKeeper,
 		rk:         rKeeper,
 		dk:         dKeeper,
 	}
 }
 
-func (k *Keeper) InitRollappID(ctx sdk.Context) {
-	if k.rollAppID == "" {
-		kvStore := ctx.KVStore(k.storeKey)
-		store := prefix.NewStore(kvStore, []byte(types.RollupKeyPrefix))
-		data := store.Get([]byte(types.KEY_ROLLAPP_ID))
-		if data != nil {
-			k.rollAppID = string(data)
-			rollappStore := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(k.rollAppID))
-			infoData := rollappStore.Get([]byte(types.KeyRollappInitInfo))
-			if nil == infoData {
-				panic("rollappInitInfo is nil but exist rollappID")
-			}
-			val := &types.RollappInitExtVal{
-				IdInDA:              nil,
-				FirstElectBlkHeight: 0,
-			}
-			if err := json.Unmarshal(infoData, val); err != nil {
-				panic(fmt.Errorf("Unmarshal rollappInitInfo error,err = %s", err.Error()))
-			}
-			k.rollappInitExt = val
-			ctx.Logger().Info(fmt.Sprintf("get rollapp data,rollappID = %s,initInfo = %+v", k.rollAppID, k.rollappInitExt))
+func (k *Keeper) InitRollappID(ctx sdk.Context) error {
+
+	k.mapRollappInfoMng = make(map[string]*types.RollappInitExtVal)
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.RollupKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(types.KeyRollappInitInfoPrefix))
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		rollappID := types.GetRollappIdFromInitInfoKey(iterator.Key())
+		if nil == rollappID {
+			return errorsmod.Wrapf(types.ErrParserDataErr,
+				fmt.Sprintf("parser rollappID from rollappInitInfoKey failed.key = %s", iterator.Key()))
 		}
+		val := &types.RollappInitExtVal{
+			IdInDA:              nil,
+			FirstElectBlkHeight: 0,
+		}
+		if err := json.Unmarshal(iterator.Value(), val); err != nil {
+			return errorsmod.Wrapf(types.ErrParserDataErr,
+				fmt.Sprintf("Unmarshal rollappInitInfo error,err = %s,key = %s", err.Error(), iterator.Key()))
+		}
+		k.mapRollappInfoMng[string(rollappID)] = val
+		ctx.Logger().Info(fmt.Sprintf("praser rollapp init infodata,rollappID = %s,initInfo = %+v", rollappID, val))
 
 	}
+	return nil
+
 }
 
 // Logger returns a logger instance for the incentives module.
@@ -82,122 +84,122 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k *Keeper) ProcElection(ctx sdk.Context) error {
-	if "" == k.rollAppID {
-		ctx.Logger().Info("not rollAppID associate with rollup ")
-		return nil
-	}
-	if ctx.BlockHeight() < int64(k.rollappInitExt.FirstElectBlkHeight) {
-		return nil
-	}
+	for key, val := range k.mapRollappInfoMng {
+		if ctx.BlockHeight() < int64(val.FirstElectBlkHeight) {
+			continue
+		}
+		rollAppID := key
 
-	blkTime := ctx.BlockTime().Unix()
-	//获取上一次选举的时间
-	kvStore := ctx.KVStore(k.storeKey)
-	rollupStore := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(k.rollAppID))
-	lastElectTime := int64(0)
-	bIsNeedElect := false
-	if electTimeVal := rollupStore.Get([]byte(types.KEY_LAST_ELECTION_TIME)); electTimeVal != nil {
-		lastElectTime = types.BytesToInt64(electTimeVal)
-		timeInterval := blkTime - lastElectTime
-		electionInterval := int64(k.GetElectionPeriod(ctx)) * types.MinuteSeconds
-		if timeInterval >= electionInterval {
+		blkTime := ctx.BlockTime().Unix()
+		//获取上一次选举的时间
+		kvStore := ctx.KVStore(k.storeKey)
+		rollupStore := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(rollAppID))
+		lastElectTime := int64(0)
+		bIsNeedElect := false
+		if electTimeVal := rollupStore.Get([]byte(types.KEY_LAST_ELECTION_TIME)); electTimeVal != nil {
+			lastElectTime = types.BytesToInt64(electTimeVal)
+			timeInterval := blkTime - lastElectTime
+			electionInterval := int64(k.GetElectionPeriod(ctx)) * types.MinuteSeconds
+			if timeInterval >= electionInterval {
+				bIsNeedElect = true
+			}
+
+		} else { //找不到lastElectTime的话，则表示还没竞选过,但是由于当前的区块已经>=FirstElectBlkHeight, 所以要立即开始竞选
 			bIsNeedElect = true
 		}
+		if bIsNeedElect { //开始竞选
+			ctx.Logger().Info("ready to elect sequencer")
+			electList, err := k.startElection(ctx, rollAppID, k.GetMinStakeAmount(ctx)*types.MecPrecision)
+			if err != nil {
+				return err
+			}
+			strRes := ""
+			if (nil != electList) && (len(electList) > 0) { //只有选举后有节点才成为有效选举，然后是无效的选举的话，则不更新选举信息
+				var res []byte
+				if res, err = json.Marshal(electList); err != nil {
+					return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("Marshal(electList) error.err = %s", err.Error()))
+				}
+				strRes = string(res)
+				rollupStore.Set([]byte(types.KEY_LAST_ELECTION_TIME), types.Int64ToBytes(blkTime))
+				//设置
+				electResult := types.QueryElectionResponse{
+					ElectionTime:   uint64(blkTime),
+					BlockHeight:    uint64(ctx.BlockHeight()),
+					NodeStatusList: electList,
+				}
+				electData := k.cdc.MustMarshal(&electResult)
+				//保存上一次的竞选信息
+				if preElectData := rollupStore.Get([]byte(types.KEY_LAST_ELECTION_INFO)); preElectData != nil {
+					rollupStore.Set([]byte(types.KEY_PREVIOUS_ELECTION_INFO), preElectData)
+				}
+				rollupStore.Set([]byte(types.KEY_LAST_ELECTION_INFO), electData)
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						types.EvtElection,
+						sdk.NewAttribute("moduleName", types.MODULE_NAME),
+						sdk.NewAttribute("rollappID", rollAppID),
+						sdk.NewAttribute("result", strRes),
+					),
+				)
+			} else {
+				ctx.Logger().Error(fmt.Sprintf("can not elect sequencer node.blkHeight = %d,blkTime = %d",
+					ctx.BlockHeight(), blkTime))
+			}
 
-	} else { //找不到lastElectTime的话，则表示还没竞选过,但是由于当前的区块已经>=FirstElectBlkHeight, 所以要立即开始竞选
-		bIsNeedElect = true
-	}
-	if bIsNeedElect { //开始竞选
-		ctx.Logger().Info("ready to elect sequencer")
-		electList, err := k.startElection(ctx, k.GetMinStakeAmount(ctx)*types.MecPrecision)
-		if err != nil {
-			panic(err)
 		}
-		strRes := ""
-		if (nil != electList) && (len(electList) > 0) { //只有选举后有节点才成为有效选举，然后是无效的选举的话，则不更新选举信息
-			var res []byte
-			if res, err = json.Marshal(electList); err != nil {
-				panic(errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("Marshal(electList) error.err = %s", err.Error())))
-			}
-			strRes = string(res)
-			rollupStore.Set([]byte(types.KEY_LAST_ELECTION_TIME), types.Int64ToBytes(blkTime))
-			//设置
-			electResult := types.QueryElectionResponse{
-				ElectionTime:   uint64(blkTime),
-				BlockHeight:    uint64(ctx.BlockHeight()),
-				NodeStatusList: electList,
-			}
-			electData := k.cdc.MustMarshal(&electResult)
-			//保存上一次的竞选信息
-			if preElectData := rollupStore.Get([]byte(types.KEY_LAST_ELECTION_INFO)); preElectData != nil {
-				rollupStore.Set([]byte(types.KEY_PREVIOUS_ELECTION_INFO), preElectData)
-			}
-			rollupStore.Set([]byte(types.KEY_LAST_ELECTION_INFO), electData)
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EvtElection,
-					sdk.NewAttribute("moduleName", types.MODULE_NAME),
-					sdk.NewAttribute("result", strRes),
-				),
-			)
-		} else {
-			ctx.Logger().Error(fmt.Sprintf("can not elect sequencer node.blkHeight = %d,blkTime = %d",
-				ctx.BlockHeight(), blkTime))
-		}
-		return nil
-	} else {
-		return nil
 	}
+	return nil
 
 }
 
 func (k *Keeper) ProcUnstake(ctx sdk.Context) error {
+
 	blkTime := ctx.BlockTime().Unix()
 	//获取上一次选举的时间
 	kvStore := ctx.KVStore(k.storeKey)
-	rollupStore := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(k.rollAppID))
+	for key, _ := range k.mapRollappInfoMng {
+		rollAppID := key
+		rollupStore := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(rollAppID))
 
-	if ElectVal := rollupStore.Get([]byte(types.KEY_LAST_ELECTION_TIME)); ElectVal != nil {
-		lastElectTime := types.BytesToInt64(ElectVal)
-		lastUnStakeTime := int64(0)
-		if val := rollupStore.Get([]byte(types.KEY_LAST_UNSTAKE_TIME)); val != nil {
-			lastUnStakeTime = types.BytesToInt64(val)
-		}
-		if lastUnStakeTime < lastElectTime { //这里才需要进行解质押的处理
-			//由于选举存在过渡时间，所以这里解质押也需要增加过渡时间，180秒是额外附加
-			interimTime := k.GetElectionInterimTime(ctx) + 180
-			if blkTime < (lastElectTime + int64(interimTime)) {
-				return nil
+		if ElectVal := rollupStore.Get([]byte(types.KEY_LAST_ELECTION_TIME)); ElectVal != nil {
+			lastElectTime := types.BytesToInt64(ElectVal)
+			lastUnStakeTime := int64(0)
+			if val := rollupStore.Get([]byte(types.KEY_LAST_UNSTAKE_TIME)); val != nil {
+				lastUnStakeTime = types.BytesToInt64(val)
 			}
+			if lastUnStakeTime < lastElectTime { //这里才需要进行解质押的处理
+				//由于选举存在过渡时间，所以这里解质押也需要增加过渡时间，180秒是额外附加
+				interimTime := k.GetElectionInterimTime(ctx) + 180
+				if blkTime < (lastElectTime + int64(interimTime)) {
+					continue
+				}
 
-			number, err := k.startUnstake(ctx)
-			if err != nil {
-				return err
+				number, err := k.startUnstake(ctx, rollAppID)
+				if err != nil {
+					return err
+				}
+				rollupStore.Set([]byte(types.KEY_LAST_UNSTAKE_TIME), types.Int64ToBytes(blkTime))
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						types.EvtProcUnStakeStatistics,
+						sdk.NewAttribute("moduleName", types.MODULE_NAME),
+						sdk.NewAttribute("unstake_number", strconv.Itoa(int(number))),
+						sdk.NewAttribute("time", strconv.FormatInt(blkTime, 10)),
+					),
+				)
+				ctx.Logger().Info("complete proc unStake")
+
 			}
-			rollupStore.Set([]byte(types.KEY_LAST_UNSTAKE_TIME), types.Int64ToBytes(blkTime))
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EvtProcUnStakeStatistics,
-					sdk.NewAttribute("moduleName", types.MODULE_NAME),
-					sdk.NewAttribute("unstake_number", strconv.Itoa(int(number))),
-					sdk.NewAttribute("time", strconv.FormatInt(blkTime, 10)),
-				),
-			)
-			ctx.Logger().Info("complete proc unStake")
-			return nil
-
-		} else {
-			return nil
+		} else { //如果还没开始过选举，则也不操作解质押
+			continue
 		}
-
-	} else { //如果还没开始过选举，则也不操作解质押
-		return nil
 	}
+	return nil
 
 }
 
-func (k *Keeper) startUnstake(ctx sdk.Context) (int32, error) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupAppStakeKeyPrefix(k.rollAppID))
+func (k *Keeper) startUnstake(ctx sdk.Context, rollappId string) (int32, error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupAppStakeKeyPrefix(rollappId))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
 	var totalUnstakeAddr [][]byte
@@ -235,6 +237,7 @@ func (k *Keeper) startUnstake(ctx sdk.Context) (int32, error) {
 					sdk.NewEvent(
 						types.EvtProcUnStake,
 						sdk.NewAttribute("moduleName", types.MODULE_NAME),
+						sdk.NewAttribute("rollappID", rollappId),
 						sdk.NewAttribute("address", string(iterator.Key())),
 						sdk.NewAttribute("amount", strconv.FormatUint(unStakeAmount, 10)),
 					),
@@ -256,8 +259,8 @@ func (k *Keeper) startUnstake(ctx sdk.Context) (int32, error) {
 	return procNumber, nil
 }
 
-func (k *Keeper) startElection(ctx sdk.Context, minStakeAmount uint64) ([]*types.ElectionNodeStatus, error) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupAppStakeKeyPrefix(k.rollAppID))
+func (k *Keeper) startElection(ctx sdk.Context, rollAppID string, minStakeAmount uint64) ([]*types.ElectionNodeStatus, error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupAppStakeKeyPrefix(rollAppID))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
 
@@ -312,38 +315,32 @@ func (k *Keeper) startElection(ctx sdk.Context, minStakeAmount uint64) ([]*types
 }
 
 func (t *Keeper) RegisterRollappInitInfo(ctx sdk.Context, rollappID string, FirstElectBlkHeight uint64, IdInDa []byte) error {
-	if t.rollAppID == "" {
-		kvStore := ctx.KVStore(t.storeKey)
-		store := prefix.NewStore(kvStore, []byte(types.RollupKeyPrefix))
-		data := store.Get([]byte(types.KEY_ROLLAPP_ID))
-		if data != nil {
-			return errorsmod.Wrapf(types.ErrRollappIdRegisterRepeated, "")
-		}
-		store.Set([]byte(types.KEY_ROLLAPP_ID), []byte(rollappID))
-
-		initExtInfo := &types.RollappInitExtVal{
-			IdInDA:              IdInDa,
-			FirstElectBlkHeight: FirstElectBlkHeight,
-		}
-		val, err := json.Marshal(initExtInfo)
-		if err != nil {
-			return errorsmod.Wrapf(types.ErrParserDataErr, "Marshal(initExtInfo) error.err = %s", err.Error())
-		}
-		rollappStore := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(rollappID))
-		rollappStore.Set([]byte(types.KeyRollappInitInfo), val)
-		t.rollAppID = rollappID
-		t.rollappInitExt = initExtInfo
-		ctx.Logger().Info(fmt.Sprintf("RegisterRollappID = %s", t.rollAppID))
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EvtRegisterRollappID,
-				sdk.NewAttribute("moduleName", types.MODULE_NAME),
-				sdk.NewAttribute("rollappID", rollappID),
-			),
-		)
-		return nil
+	if _, ok := t.mapRollappInfoMng[rollappID]; ok {
+		return errorsmod.Wrapf(types.ErrRollappIdRegisterRepeated, "")
 	}
-	return errorsmod.Wrapf(types.ErrRollappIdRegisterRepeated, "")
+
+	initExtInfo := &types.RollappInitExtVal{
+		IdInDA:              IdInDa,
+		FirstElectBlkHeight: FirstElectBlkHeight,
+	}
+	val, err := json.Marshal(initExtInfo)
+	if err != nil {
+		return errorsmod.Wrapf(types.ErrParserDataErr, "Marshal(initExtInfo) error.err = %s", err.Error())
+	}
+	kvStore := ctx.KVStore(t.storeKey)
+	store := prefix.NewStore(kvStore, []byte(types.RollupKeyPrefix))
+	store.Set(types.GetRollupAppInitInfKey(rollappID), val)
+	ctx.Logger().Info(fmt.Sprintf("RegisterRollappID = %s", rollappID))
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EvtRegisterRollappID,
+			sdk.NewAttribute("moduleName", types.MODULE_NAME),
+			sdk.NewAttribute("rollappID", rollappID),
+			sdk.NewAttribute("rollappInitInfo", string(val)),
+		),
+	)
+	return nil
+
 }
 
 // GetModuleAddress returns the staking module account address

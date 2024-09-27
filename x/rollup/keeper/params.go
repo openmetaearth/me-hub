@@ -32,12 +32,7 @@ func (k Keeper) SetRollupParams(ctx context.Context, req *types.MsgSetRollupPara
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	sdkCtx.Logger().Info(fmt.Sprintf("SetRollupParams,new Params = %s", req.String()))
 
-	if req.RollappID != k.rollAppID {
-		return nil, errorsmod.Wrapf(types.ErrInputDataErr, fmt.Sprintf("rollappID mismatch.orgRollappId = %s,input = %s",
-			k.rollAppID, req.RollappID))
-	}
-
-	if req.Creator != k.dk.GetGlobalDao(sdkCtx) {
+	if req.Creator != k.dk.GetDevOperator(sdkCtx) {
 		return nil, errorsmod.Wrapf(types.ErrInputDataErr, "creator has not right to set params")
 	}
 	k.paramStore.SetParamSet(sdkCtx, req.NewParams)

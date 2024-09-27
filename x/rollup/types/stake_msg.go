@@ -126,8 +126,5 @@ func (msg *MsgSetRollupParamsRequest) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
-	if msg.RollappID == "" {
-		return fmt.Errorf(" RollappId can not be empty")
-	}
 	return nil
 }

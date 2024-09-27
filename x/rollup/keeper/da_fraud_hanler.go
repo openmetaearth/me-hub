@@ -160,57 +160,67 @@ func (k Keeper) ProcChallengeDaFraud(goCtx context.Context, rollappID string, ch
 
 }
 func (k *Keeper) InitPunishInfo(ctx sdk.Context) error {
-	daFraudStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetDaFraudStaticsPrefix(k.rollAppID))
-	needPunishmentData := daFraudStore.Get([]byte(types.KeyNeedPunishment))
-	if nil != needPunishmentData {
-		k.mapPunishInfo = nil
-		if err := json.Unmarshal(needPunishmentData, &k.mapPunishInfo); err != nil {
-			return fmt.Errorf("Unmarshal data to mapPunishInfo error.err = %s,rollappID = %s", err.Error(), k.rollAppID)
+	k.mapPunishInfo = nil
+	for key, _ := range k.mapRollappInfoMng {
+		rollAppID := key
+		daFraudStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetDaFraudStaticsPrefix(rollAppID))
+		needPunishmentData := daFraudStore.Get([]byte(types.KeyNeedPunishment))
+		if nil != needPunishmentData {
+			var punishInfo map[string]uint64
+			if err := json.Unmarshal(needPunishmentData, &punishInfo); err != nil {
+				k.mapPunishInfo = nil
+				return fmt.Errorf("Unmarshal data to punishmentInfo error.err = %s,rollappID = %s", err.Error(), rollAppID)
+			}
+			if nil == k.mapPunishInfo {
+				k.mapPunishInfo = make(map[string]map[string]uint64)
+			}
+			k.mapPunishInfo[rollAppID] = punishInfo
+		} else {
+			continue
 		}
-	} else {
-		k.mapPunishInfo = make(map[string]uint64)
 	}
 	return nil
+
 }
 
-func (k Keeper) RewardsChallengeDaFraud(ctx sdk.Context, rollappId string) error {
-	//目前暂时用全局的rollappID来代替
-	rollappId = k.rollAppID
-	//
-	if nil == k.mapPunishInfo { //这里绝对不会为空
-		panic(fmt.Errorf("mapPunishInfo can not be nil in RewardsChallengeDaFraud"))
+func (k Keeper) RewardsChallengeDaFraud(ctx sdk.Context) error {
+	if nil == k.mapPunishInfo { //这里表示没有惩罚数据
+		return nil
 	}
-	var procFraudster []string
-	for key, val := range k.mapPunishInfo {
-		submitTime := k.rk.GetSubmitterLastSubmitTime(ctx, k.rollAppID, key)
-		blkTime := ctx.BlockTime().Unix()
-		//7200秒为额外附加冗余的时间
-		if blkTime >= (submitTime + int64(types.SubmitDaFraudTime)*types.HourSeconds + 7200) {
-			//开始根据统计信息发放奖励
-			if err := k.rewardBaseDeomToDaFraudChallenge(ctx, rollappId, key, val); err != nil {
-				return err
-			}
+	for rollappId, punishInfo := range k.mapPunishInfo {
+		var procFraudster []string
+		for key, val := range punishInfo {
+			submitTime := k.rk.GetSubmitterLastSubmitTime(ctx, rollappId, key)
+			blkTime := ctx.BlockTime().Unix()
+			//7200秒为额外附加冗余的时间
+			if blkTime >= (submitTime + int64(types.SubmitDaFraudTime)*types.HourSeconds + 7200) {
+				//开始根据统计信息发放奖励
+				if err := k.rewardBaseDeomToDaFraudChallenge(ctx, rollappId, key, val); err != nil {
+					return err
+				}
 
-			store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetDaFraudStaticsPrefix(rollappId))
-			store.Set(types.GetFinishDaFraudPunishKey(key), []byte(strconv.FormatUint(val, 10)))
-			procFraudster = append(procFraudster, key)
+				store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetDaFraudStaticsPrefix(rollappId))
+				store.Set(types.GetFinishDaFraudPunishKey(key), []byte(strconv.FormatUint(val, 10)))
+				procFraudster = append(procFraudster, key)
+			}
+		}
+		isNeedWrite := false
+		//修改mapPunishInfo信息,写入ival
+		for _, v := range procFraudster {
+			delete(punishInfo, v)
+			isNeedWrite = true
+		}
+		if isNeedWrite {
+			resData, err := json.Marshal(punishInfo)
+			if err != nil {
+				return errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("Marshal punishmentInfo in RewardsChallengeDaFraud error."+
+					" err = %s", err.Error()))
+			}
+			daFraudStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetDaFraudStaticsPrefix(rollappId))
+			daFraudStore.Set([]byte(types.KeyNeedPunishment), resData)
 		}
 	}
-	isNeedWrite := false
-	//修改mapPunishInfo信息,写入ival
-	for _, v := range procFraudster {
-		delete(k.mapPunishInfo, v)
-		isNeedWrite = true
-	}
-	if isNeedWrite {
-		resData, err := json.Marshal(k.mapPunishInfo)
-		if err != nil {
-			return errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("Marshal mapPunishInfo in RewardsChallengeDaFraud error."+
-				" err = %s", err.Error()))
-		}
-		daFraudStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetDaFraudStaticsPrefix(rollappId))
-		daFraudStore.Set([]byte(types.KeyNeedPunishment), resData)
-	}
+
 	return nil
 
 }

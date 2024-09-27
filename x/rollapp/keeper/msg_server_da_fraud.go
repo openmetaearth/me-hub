@@ -145,7 +145,8 @@ func (k msgServer) SubmitDaFraudVerifyData(goCtx context.Context, req *types.Msg
 			//挑战之后就不在需要CommitmentProof
 			cmtBlkInfo.BlkDaInfo.CommitmentProof = nil
 			blkStore.Set(challengeRollupBlkKey, k.cdc.MustMarshal(cmtBlkInfo))
-		} else { //如果是挑战成功，但是挑战者提交的数据是错误的，则不处理
+		} else { //如果是挑战成功，但是挑战者提交的数据是错误的，那就删除挑战记录，让这个可以继续被挑战
+			store.Delete(challengeRollupBlkKey)
 		}
 		ctx.Logger().Info("end SubmitDaFraudVerifyData")
 		return &types.MsgDaFraudVerifyResultResponse{}, nil

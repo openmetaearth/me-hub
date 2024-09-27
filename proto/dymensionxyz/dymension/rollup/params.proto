@@ -19,24 +19,21 @@ message Params {
   uint64 min_stake_amount = 4 [
     (gogoproto.moretags) = "yaml:\"min_stake_amount\""
   ];
-  uint32 first_election_interval = 5 [
-    (gogoproto.moretags) = "yaml:\"first_election_interval\""
-  ];
-  uint32 allow_apply_election_time = 6 [
+
+  uint32 allow_apply_election_time = 5 [
     (gogoproto.moretags) = "yaml:\"allow_apply_election_time\""
   ];
-  uint32 election_interim_time = 7 [
+  uint32 election_interim_time = 6 [
     (gogoproto.moretags) = "yaml:\"election_interim_time\""
   ];
-  uint32 da_fraud_challenge_stake = 8 [
+  uint32 da_fraud_challenge_stake = 7 [
     (gogoproto.moretags) = "yaml:\"da_fraud_challenge_stake\""
   ];
 }
 message MsgSetRollupParamsRequest{
   option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
-  string rollappID = 2;
-  Params newParams = 3;
+  Params newParams = 2;
 }
 
 message MsgSetRollupParamsResponse{

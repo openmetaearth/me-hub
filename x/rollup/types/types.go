@@ -18,9 +18,10 @@ const (
 	KeyDaFraudPunishPrefix     = "DaFraudPunish_"
 	KeyRollupBlackList         = "RollupBlackList"
 	KeyProvedDaFraudPrefix     = "ProvedDaFraud_"
-	KeyRollappInitInfo         = "KeyRollappInitInfo"
-	KeyNeedPunishment          = "KeyNeedPunishment"
-	KeyFinishPunishmentPrefix  = "FinishPunish_"
+	//	KeyRollappInitInfo         = "KeyRollappInitInfo"
+	KeyNeedPunishment         = "KeyNeedPunishment"
+	KeyFinishPunishmentPrefix = "FinishPunish_"
+	KeyRollappInitInfoPrefix  = "RollappInfo_"
 )
 
 const (
@@ -30,6 +31,7 @@ const (
 	RollupStakeChallengeDaFraudKeyPrefix = RollupStakeKeyPrefix + "ChallengeDaFraud/"
 	RollupDaFraudStatics                 = RollupKeyPrefix + "DaFraudStatics/"
 	//RollupBlackListPrefix                = RollupKeyPrefix + "BlackList"
+	//RollupAppIdKeyPrefix = RollupKeyPrefix + KeyRollappIdPrefix
 )
 const (
 	SubmitDaFraudTime int32 = 72
@@ -57,8 +59,12 @@ const (
 
 func GetRollupAppKeyPrefix(rollappID string) []byte {
 	return []byte(fmt.Sprintf("%s%s/", RollupKeyPrefix, rollappID))
-
 }
+
+func GetRollupAppInitInfKey(rollappID string) []byte {
+	return []byte(fmt.Sprintf("%s%s", KeyRollappInitInfoPrefix, rollappID))
+}
+
 func GetRollupAppStakeKeyPrefix(rollappID string) []byte {
 	return []byte(fmt.Sprintf("%s%s/", RollupStakeKeyPrefix, rollappID))
 
@@ -82,6 +88,14 @@ func GetProvedDaFraudKeyPrefix(fraudster string) []byte {
 
 func GetFinishDaFraudPunishKey(fraudster string) []byte {
 	return []byte(fmt.Sprintf("%s%s", KeyFinishPunishmentPrefix, fraudster))
+}
+
+func GetRollappIdFromInitInfoKey(rollappInitInfoKey []byte) []byte {
+	lenPrefix := len(KeyRollappInitInfoPrefix)
+	if len(rollappInitInfoKey) <= lenPrefix {
+		return nil
+	}
+	return rollappInitInfoKey[lenPrefix:]
 }
 
 //

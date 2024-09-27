@@ -129,11 +129,14 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 // BeginBlock contains the logic that is automatically triggered at the beginning of each block
 func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 	logger := am.Keeper.Logger(ctx)
-	am.Keeper.InitRollappID(ctx)
-	if err := am.Keeper.InitBlackList(ctx); err != nil {
+	err := am.Keeper.InitRollappID(ctx)
+	if err != nil {
 		logger.Error(err.Error())
 	}
-	if err := am.Keeper.InitPunishInfo(ctx); err != nil {
+	if err = am.Keeper.InitBlackList(ctx); err != nil {
+		logger.Error(err.Error())
+	}
+	if err = am.Keeper.InitPunishInfo(ctx); err != nil {
 		logger.Error(err.Error())
 	}
 }
@@ -148,7 +151,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, endBlk abci.RequestEndBlock) []abc
 	if err = am.Keeper.ProcElection(ctx); err != nil {
 		logger.Error(err.Error())
 	}
-	if err = am.Keeper.RewardsChallengeDaFraud(ctx, ""); err != nil {
+	if err = am.Keeper.RewardsChallengeDaFraud(ctx); err != nil {
 		logger.Error(err.Error())
 	}
 	return []abci.ValidatorUpdate{}

@@ -11,10 +11,6 @@ import (
 
 func (t Keeper) QueryParams(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	rollAppID := t.getRollappID(sdkCtx)
-	if req.RollappId != rollAppID {
-		return nil, errorsmod.Wrapf(types.ErrRollappIDMismatch, fmt.Sprintf("rollupServer's rollappID = %s", rollAppID))
-	}
 
 	paramas := types.Params{
 		ElectionPeriod:        t.GetElectionPeriod(sdkCtx),
@@ -34,13 +30,12 @@ func (t Keeper) QueryParams(ctx context.Context, req *types.QueryParamsRequest) 
 
 func (t Keeper) QueryElectionResult(ctx context.Context, req *types.QueryElectionRequest) (*types.QueryElectionResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	rollAppID := t.getRollappID(sdkCtx)
-	if req.RollappId != rollAppID {
-		return nil, errorsmod.Wrapf(types.ErrRollappIDMismatch, fmt.Sprintf("rollupServer's rollappID = %s", rollAppID))
+	if _, ok := t.mapRollappInfoMng[req.RollappId]; !ok {
+		return nil, errorsmod.Wrapf(types.ErrNotFound, fmt.Sprintf("can not found rollapp Info, rollappID = %s", req.RollappId))
 	}
 
 	kvStore := sdkCtx.KVStore(t.storeKey)
-	store := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(rollAppID))
+	store := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(req.RollappId))
 	data := store.Get([]byte(types.KEY_LAST_ELECTION_INFO))
 
 	resp := &types.QueryElectionResponse{
@@ -59,12 +54,12 @@ func (t Keeper) QueryElectionResult(ctx context.Context, req *types.QueryElectio
 
 func (t Keeper) GetPreviousElectionResult(ctx context.Context, rollappID string) (*types.QueryElectionResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	tRollAppID := t.getRollappID(sdkCtx)
-	if rollappID != tRollAppID {
-		return nil, errorsmod.Wrapf(types.ErrRollappIDMismatch, fmt.Sprintf("rollupServer's rollappID = %s", tRollAppID))
+
+	if _, ok := t.mapRollappInfoMng[rollappID]; !ok {
+		return nil, errorsmod.Wrapf(types.ErrNotFound, fmt.Sprintf("can not found rollapp Info, rollappID = %s", rollappID))
 	}
 	kvStore := sdkCtx.KVStore(t.storeKey)
-	store := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(tRollAppID))
+	store := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(rollappID))
 	data := store.Get([]byte(types.KEY_PREVIOUS_ELECTION_INFO))
 
 	resp := &types.QueryElectionResponse{
@@ -83,15 +78,14 @@ func (t Keeper) GetPreviousElectionResult(ctx context.Context, rollappID string)
 
 func (t Keeper) QueryStake(ctx context.Context, req *types.QueryStakeRequest) (*types.QueryStakeResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	rollAppID := t.getRollappID(sdkCtx)
-	if req.RollappId != rollAppID {
-		sdkCtx.Logger().Error(fmt.Sprintf("reqRollappID = %s,t.RollappID = %s", req.RollappId, rollAppID))
-		return nil, errorsmod.Wrapf(types.ErrRollappIDMismatch, fmt.Sprintf("rollupServer's rollappID = %s", rollAppID))
+
+	if _, ok := t.mapRollappInfoMng[req.RollappId]; !ok {
+		return nil, errorsmod.Wrapf(types.ErrNotFound, fmt.Sprintf("can not found rollapp Info, rollappID = %s", req.RollappId))
 	}
 
-	sdkCtx.Logger().Info(fmt.Sprintf("QueryStake,rollappID = %s", rollAppID))
+	sdkCtx.Logger().Info(fmt.Sprintf("QueryStake,rollappID = %s", req.RollappId))
 	kvStore := sdkCtx.KVStore(t.storeKey)
-	store := prefix.NewStore(kvStore, types.GetRollupAppStakeKeyPrefix(rollAppID))
+	store := prefix.NewStore(kvStore, types.GetRollupAppStakeKeyPrefix(req.RollappId))
 	data := store.Get([]byte(req.Address))
 	resp := &types.MsgStakeInfo{
 		StakeAmount:        0,
@@ -104,17 +98,4 @@ func (t Keeper) QueryStake(ctx context.Context, req *types.QueryStakeRequest) (*
 	return &types.QueryStakeResponse{
 		StakeInfo: resp,
 	}, nil
-}
-
-func (t Keeper) getRollappID(ctx sdk.Context) string {
-	if t.rollAppID != "" {
-		return t.rollAppID
-	}
-	kvStore := ctx.KVStore(t.storeKey)
-	store := prefix.NewStore(kvStore, []byte(types.RollupKeyPrefix))
-	data := store.Get([]byte(types.KEY_ROLLAPP_ID))
-	if data != nil {
-		return string(data)
-	}
-	return ""
 }

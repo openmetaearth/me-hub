@@ -13,9 +13,10 @@ import (
 
 func (t *rollupServer) StakeForSequencer(stakeCtx context.Context, req *types.MsgSeqStaking) (*types.MsgStakingResponse, error) {
 
-	if req.RollappId != t.rollAppID {
-		return nil, errorsmod.Wrapf(types.ErrRollappIDMismatch, fmt.Sprintf("rollupServer's rollappID = %s", t.rollAppID))
+	if _, ok := t.mapRollappInfoMng[req.RollappId]; !ok {
+		return nil, errorsmod.Wrapf(types.ErrNotFound, fmt.Sprintf("can not found rollapp Info, rollappID = %s", req.RollappId))
 	}
+
 	owner, err := sdk.AccAddressFromBech32(req.Creator)
 	if err != nil {
 		return nil, errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("AccAddressFromBech32 error. err = %s", err.Error()))
@@ -50,7 +51,7 @@ func (t *rollupServer) StakeForSequencer(stakeCtx context.Context, req *types.Ms
 		}
 	*/
 
-	if !t.isAllowStake(ctx, ctx.BlockTime().Unix()) {
+	if !t.isAllowStake(ctx, req.RollappId, ctx.BlockTime().Unix()) {
 		ctx.Logger().Error("not allow stake because of exceeded time")
 		return nil, errorsmod.Wrapf(types.ErrStakeTimeoutLimit, "not allow stake because of exceeded time")
 	}
@@ -58,7 +59,7 @@ func (t *rollupServer) StakeForSequencer(stakeCtx context.Context, req *types.Ms
 	if req.Amount < 1 {
 		return nil, types.ErrInputDataErr
 	}
-	store := prefix.NewStore(ctx.KVStore(t.Keeper.storeKey), types.GetRollupAppStakeKeyPrefix(t.rollAppID))
+	store := prefix.NewStore(ctx.KVStore(t.Keeper.storeKey), types.GetRollupAppStakeKeyPrefix(req.RollappId))
 	stakeInfo := &types.MsgStakeInfo{
 		StakeAmount:        0,
 		ApplyUnStakeAmount: 0,
@@ -103,8 +104,8 @@ func (t *rollupServer) StakeForSequencer(stakeCtx context.Context, req *types.Ms
 	return &types.MsgStakingResponse{}, nil
 
 }
-func (t rollupServer) isAllowStake(sdkCtx sdk.Context, curTime int64) bool {
-	store := prefix.NewStore(sdkCtx.KVStore(t.Keeper.storeKey), types.GetRollupAppKeyPrefix(t.rollAppID))
+func (t rollupServer) isAllowStake(sdkCtx sdk.Context, rollAppID string, curTime int64) bool {
+	store := prefix.NewStore(sdkCtx.KVStore(t.Keeper.storeKey), types.GetRollupAppKeyPrefix(rollAppID))
 	if val := store.Get([]byte(types.KEY_LAST_ELECTION_TIME)); val != nil {
 		lastElectTime := types.BytesToInt64(val)
 		stakeEndTime := lastElectTime + int64(t.Keeper.GetAllowApplyElectionTime(sdkCtx))*types.MinuteSeconds
@@ -121,9 +122,11 @@ func (t rollupServer) isAllowStake(sdkCtx sdk.Context, curTime int64) bool {
 }
 
 func (t *rollupServer) UnStake(stakeCtx context.Context, req *types.MsgSeqUnStaking) (*types.MsgUnStakingResponse, error) {
-	if req.RollappId != t.rollAppID {
-		return nil, errorsmod.Wrapf(types.ErrRollappIDMismatch, fmt.Sprintf("rollupServer's rollappID = %s", t.rollAppID))
+
+	if _, ok := t.mapRollappInfoMng[req.RollappId]; !ok {
+		return nil, errorsmod.Wrapf(types.ErrNotFound, fmt.Sprintf("can not found rollapp Info, rollappID = %s", req.RollappId))
 	}
+
 	owner, err := sdk.AccAddressFromBech32(req.Creator)
 
 	if err != nil {
@@ -157,7 +160,7 @@ func (t *rollupServer) UnStake(stakeCtx context.Context, req *types.MsgSeqUnStak
 		return nil, errorsmod.Wrapf(types.ErrInputDataErr, "amount error")
 	}
 
-	store := prefix.NewStore(kvStore, types.GetRollupAppStakeKeyPrefix(t.rollAppID))
+	store := prefix.NewStore(kvStore, types.GetRollupAppStakeKeyPrefix(req.RollappId))
 	stakeInfo := &types.MsgStakeInfo{
 		StakeAmount:        0,
 		ApplyUnStakeAmount: 0,
@@ -194,7 +197,7 @@ func (t *rollupServer) UnStake(stakeCtx context.Context, req *types.MsgSeqUnStak
 	*/
 
 	//获取上一次选举的时间
-	rollupStore := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(t.rollAppID))
+	rollupStore := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(req.RollappId))
 	electTime := int64(0)
 	if electBlkVal := rollupStore.Get([]byte(types.KEY_LAST_ELECTION_TIME)); electBlkVal != nil {
 		electTime = types.BytesToInt64(electBlkVal)

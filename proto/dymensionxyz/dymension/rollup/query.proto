@@ -7,7 +7,6 @@ import "dymensionxyz/dymension/rollup/data_def.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollup/types";
 
 message QueryParamsRequest {
-  string rollappId = 1;
 }
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {

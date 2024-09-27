@@ -74,7 +74,7 @@ service Query {
   //查询所有的为处理挑战信息
   rpc GetAppendingDaFraudChallenge(MsgGetDaFraudChallengeRequest) returns(MsgGetDaFraudChallengeResponse){
        option (google.api.http).get =
-      "/dymensionxyz/dymension/rollapp/get_da_fraud_challenge_info/";
+      "/dymensionxyz/dymension/rollapp/get_da_fraud_challenge_info/{creator}";
   }
 
 }

@@ -94,41 +94,40 @@ func CmdUnStake() *cobra.Command {
 
 func CmdSetRollupParams() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "setParams [rollappId] [electionPeriod] [seqNumber] [backupNumber] [minStake]  [allowApplyTime] [electInterim] [daFraudChallengeStake]",
+		Use:     "setParams [electionPeriod] [seqNumber] [backupNumber] [minStake]  [allowApplyTime] [electInterim] [daFraudChallengeStake]",
 		Short:   "set rollup Params",
 		Example: "med tx hubRollUp setParams ",
-		Args:    cobra.ExactArgs(9),
+		Args:    cobra.ExactArgs(7),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			rollappID := args[0]
-			electionPeriod, err := strconv.Atoi(args[1])
+			electionPeriod, err := strconv.Atoi(args[0])
 			if err != nil {
 				return err
 			}
-			seqNumber, err := strconv.Atoi(args[2])
+			seqNumber, err := strconv.Atoi(args[1])
 			if err != nil {
 				return err
 			}
-			backupNumber, err := strconv.Atoi(args[3])
+			backupNumber, err := strconv.Atoi(args[2])
 			if err != nil {
 				return err
 			}
-			minStakeAmount, err := strconv.ParseUint(args[4], 10, 64)
+			minStakeAmount, err := strconv.ParseUint(args[3], 10, 64)
 			if err != nil {
 				return err
 			}
-			allowApplyTime, err := strconv.Atoi(args[5])
+			allowApplyTime, err := strconv.Atoi(args[4])
 			if err != nil {
 				return err
 			}
-			electInterim, err := strconv.Atoi(args[6])
+			electInterim, err := strconv.Atoi(args[5])
 			if err != nil {
 				return err
 			}
-			daChallengeStake, err := strconv.Atoi(args[7])
+			daChallengeStake, err := strconv.Atoi(args[6])
 			if err != nil {
 				return err
 			}
@@ -145,7 +144,6 @@ func CmdSetRollupParams() *cobra.Command {
 
 			req := &types.MsgSetRollupParamsRequest{
 				Creator:   clientCtx.GetFromAddress().String(),
-				RollappID: rollappID,
 				NewParams: params,
 			}
 

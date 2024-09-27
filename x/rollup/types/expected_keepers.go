@@ -22,5 +22,5 @@ type RollappKeeper interface {
 }
 
 type DaoKeeper interface {
-	GetGlobalDao(ctx sdk.Context) string
+	GetDevOperator(ctx sdk.Context) string
 }
