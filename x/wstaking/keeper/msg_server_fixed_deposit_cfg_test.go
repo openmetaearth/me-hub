@@ -65,7 +65,7 @@ func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
 	for _, test := range tests {
 		s.Run(test.name, func() {
 			msg := types.MsgNewFixedDepositCfg{
-				Admin:    test.creator,
+				Dao:      test.creator,
 				RegionId: test.regionId,
 				Term:     test.term,
 				Rate:     test.rate,

@@ -9,9 +9,9 @@ const TypeMsgNewFixedDepositCfg = "add_fixed_deposit_cfg"
 
 var _ sdk.Msg = &MsgNewFixedDepositCfg{}
 
-func NewMsgNewFixedDepositCfg(admin string, regionId string, term int64, rate sdk.Dec) *MsgNewFixedDepositCfg {
+func NewMsgNewFixedDepositCfg(dao string, regionId string, term int64, rate sdk.Dec) *MsgNewFixedDepositCfg {
 	return &MsgNewFixedDepositCfg{
-		Admin:    admin,
+		Dao:      dao,
 		RegionId: regionId,
 		Term:     term,
 		Rate:     rate,
@@ -27,7 +27,7 @@ func (msg *MsgNewFixedDepositCfg) Type() string {
 }
 
 func (msg *MsgNewFixedDepositCfg) GetSigners() []sdk.AccAddress {
-	admin, err := sdk.AccAddressFromBech32(msg.Admin)
+	admin, err := sdk.AccAddressFromBech32(msg.Dao)
 	if err != nil {
 		panic(err)
 	}
@@ -40,7 +40,7 @@ func (msg *MsgNewFixedDepositCfg) GetSignBytes() []byte {
 }
 
 func (msg *MsgNewFixedDepositCfg) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Admin)
+	_, err := sdk.AccAddressFromBech32(msg.Dao)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}

@@ -74,8 +74,8 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 		return nil, errors.New(fmt.Sprintf("undelegate err,region(%s) total interest not enough.need pay %s,only have %s",
 			region.RegionId, rewards.String(), region.DelegateInterest.String()))
 	}
-	isMeid := false
-	if strings.ToLower(val.Description.RegionId) == strings.ToLower(types.ExperienceRegionName) {
+	isMeid := true
+	if strings.ToLower(val.Description.RegionId) != strings.ToLower(types.ExperienceRegionName) {
 		if delegation.Amount.LT(msg.Amount.Amount) {
 			return nil, types.ErrNotEnoughDelegationAmount
 		}
@@ -83,7 +83,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 		if delegation.UnMeidAmount.LT(msg.Amount.Amount) {
 			return nil, types.ErrNotEnoughDelegationAmount
 		}
-		isMeid = true
+		isMeid = false
 	}
 
 	completionTime, returnAmount, err := k.Keeper.Undelegate(ctx, delegatorAddress, valAddr, isMeid, msg.Amount.Amount, delegation)

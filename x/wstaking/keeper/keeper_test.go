@@ -8,6 +8,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/st-chain/me-hub/app/apptesting"
 	"github.com/st-chain/me-hub/app/params"
 	testutilstypes "github.com/st-chain/me-hub/testutil/types"
@@ -82,6 +83,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 		OperatorAddress: suite.experienceValidator.OperatorAddress,
 	}
 	_, err = suite.msgServer.NewRegion(suite.Ctx, &newRegion)
+
 	suite.Require().NoError(err)
 }
 

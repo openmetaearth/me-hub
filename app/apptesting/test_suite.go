@@ -8,15 +8,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	"github.com/st-chain/me-hub/app"
+	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/dao/types"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/suite"
-	"strings"
-
-	"github.com/st-chain/me-hub/app"
 
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
@@ -136,6 +136,7 @@ func (s *KeeperTestHelper) InitializeDao() {
 
 	airdrop, _ := ethsecp256k1.GenerateKey()
 	airdropAcc := authtypes.NewBaseAccount(airdrop.PubKey().Address().Bytes(), airdrop.PubKey(), 3, 0)
+	airdropAddress := sdk.AccAddress(airdrop.PubKey().Address().Bytes())
 
 	s.App.DaoKeeper.SetDaoAddresses(s.Ctx, types.DaoAddresses{
 		GlobalDao:      globalDaoAcc.Address,
@@ -149,6 +150,11 @@ func (s *KeeperTestHelper) InitializeDao() {
 	s.Dao = dao
 
 	s.InitKyc(globalOutput.PubKey)
+
+	_ = s.App.BankKeeper.MintCoins(s.Ctx, mintypes.ModuleName, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000000000)})
+	_ = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, globalDaoAddress, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
+	_ = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, airdropAddress, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
+
 }
 
 func (s *KeeperTestHelper) InitKyc(pubkey string) {
@@ -176,13 +182,9 @@ func (s *KeeperTestHelper) InitKyc(pubkey string) {
 	}
 	s.App.DidKeeper.SetService(s.Ctx, service.Sid, service)
 
-	s.App.KycKeeper.SetKYC(s.Ctx, did, didtypes.Credential{
-		Did:  did,
-		Sid:  service.Sid,
-		Hash: "",
-		Uri:  "",
-		Data: []byte(strings.ToLower(wstakingtypes.MeEarthRegionName)),
-	})
+	kyc := didtypes.NewCredential(did, service.Sid, "", "", []byte(wstakingtypes.MeEarthRegionId))
+	s.App.KycKeeper.SetKYC(s.Ctx, did, kyc)
+	s.App.KycKeeper.AddFilters(s.Ctx, did, [][]byte{[]byte(wstakingtypes.MeEarthRegionId)}, kyc)
 }
 
 func (s *KeeperTestHelper) NewAccount() (sdk.AccAddress, string) {
