@@ -3,7 +3,7 @@ package dymensionxyz.dymension.rollup;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/rollup/types";
+option go_package = "github.com/st-chain/me-hub/x/rollup/types";
 import "cosmos/msg/v1/msg.proto";
 //这里amount的最小单位为1MEC
 message MsgSeqStaking {

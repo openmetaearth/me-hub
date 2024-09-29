@@ -3,7 +3,7 @@ package dymensionxyz.dymension.rollup;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/rollup/types";
+option go_package = "github.com/st-chain/me-hub/x/rollup/types";
 
 message MsgStakeInfo{
   uint64 stakeAmount = 1;
