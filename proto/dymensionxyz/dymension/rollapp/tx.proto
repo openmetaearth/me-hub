@@ -7,9 +7,9 @@ import "dymensionxyz/dymension/rollapp/block_descriptor.proto";
 import "dymensionxyz/dymension/rollapp/rollapp.proto";
 import "dymensionxyz/dymension/rollapp/da_fraud.proto";
 import "dymensionxyz/dymension/rollapp/blockDA_L2.proto";
-option go_package = "github.com/st-chain/me-hub/x/rollapp/types";
-
 import "gogoproto/gogo.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/rollapp/types";
 
 // Msg defines the Msg service.
 service Msg {

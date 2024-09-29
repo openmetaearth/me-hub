@@ -2,9 +2,9 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 import "gogoproto/gogo.proto";
-
-option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 import "cosmos/msg/v1/msg.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/rollapp/types";
 
 //challenger submit DA fraud request
 message MsgSubmitDaFraudRequest{
