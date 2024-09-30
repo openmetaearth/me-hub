@@ -11,6 +11,7 @@ import "cosmos/query/v1/query.proto";
 import "amino/amino.proto";
 import "google/protobuf/timestamp.proto";
 import "dymensionxyz/dymension/wstaking/fixed_deposit.proto";
+import "dymensionxyz/dymension/wstaking/stake.proto";
 import "cosmos/staking/v1beta1/query.proto";
 
 
@@ -68,11 +69,16 @@ service Query {
       returns (QueryFixedDepositCfgByTermResponse) {
     option (google.api.http).get = "/cosmos/staking/v1beta1/fixed_deposit_cfg_by_term";
   }
+
   // Delegation queries delegate info for given validator delegator pair.
   rpc Delegation(cosmos.staking.v1beta1.QueryDelegationRequest) returns (cosmos.staking.v1beta1.QueryDelegationResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http).get               = "/cosmos/staking/v1beta1/delegation/"
         "{delegator_addr}";
+  }
+
+  rpc Stakes(QueryStakesRequest) returns (QueryStakesResponse) {
+    option (google.api.http).get = "/cosmos/staking/v1beta1/stakes";
   }
 }
 
@@ -186,4 +192,13 @@ message QueryFixedDepositAmountByMeidRequest {
 
 message QueryFixedDepositAmountByMeidResponse {
   cosmos.base.v1beta1.Coin amount  = 7 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
+message QueryStakesRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryStakesResponse {
+  repeated Stake stakes     = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

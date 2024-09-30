@@ -154,3 +154,9 @@ func DelegationToDelegationResponse(ctx sdk.Context, k *Keeper, del stakingtypes
 	amount := del.Amount.Add(del.UnMeidAmount).Add(del.Unmovable)
 	return NewDelegationResp(del, sdk.NewCoin(k.BondDenom(ctx), amount)), nil
 }
+
+func (k Keeper) Stakes(goCtx context.Context, req *types.QueryStakesRequest) (*types.QueryStakesResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	stakes := k.GetAllStakes(ctx)
+	return &types.QueryStakesResponse{Stakes: stakes}, nil
+}

@@ -39,8 +39,8 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	if !ok {
 		return nil, types.ErrRegionValidatorNotExist
 	}
-	if strings.ToLower(validator.Description.RegionId) != strings.ToLower(regionId) {
-		return nil, types.ErrRegion.Wrapf("only the validator with region id %s can be bound, not bound %s region", validator.Description.RegionId, regionId)
+	if strings.ToLower(validator.Description.RegionID) != strings.ToLower(regionId) {
+		return nil, types.ErrRegion.Wrapf("only the validator with region id %s can be bound, not bound %s region", validator.Description.RegionID, regionId)
 	}
 
 	allRegions := k.Keeper.GetAllRegion(ctx)

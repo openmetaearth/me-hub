@@ -52,7 +52,7 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 		return nil, sdkerrors.Wrapf(types.ErrHooks, "before stake:%+v", err)
 	}
 
-	region, found := k.Keeper.GetRegion(ctx, validator.Description.RegionId)
+	region, found := k.Keeper.GetRegion(ctx, validator.Description.RegionID)
 	if found {
 		region.RegionShare = region.RegionShare.Add(msg.Amount.Amount)
 		k.Keeper.SetRegion(ctx, region)
@@ -82,7 +82,7 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyNewShares, newShares.String()),
-			sdk.NewAttribute(types.AttributeKeyRegionId, validator.Description.RegionId),
+			sdk.NewAttribute(types.AttributeKeyRegionId, validator.Description.RegionID),
 		),
 	})
 

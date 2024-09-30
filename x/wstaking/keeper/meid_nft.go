@@ -40,11 +40,5 @@ func (k Keeper) GetMeidNFTByAccount(ctx sdk.Context, account string) (val types.
 	storeReg := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidNFTAccountKeyPrefix+account))
 	iterator := sdk.KVStorePrefixIterator(storeReg, []byte{})
 	defer iterator.Close()
-
-	meidNFT, found := k.GetMeidNFT(ctx, string(account))
-	if !found {
-		panic("get meidNFT by region fatal error")
-	}
-
-	return meidNFT, true
+	return k.GetMeidNFT(ctx, account)
 }

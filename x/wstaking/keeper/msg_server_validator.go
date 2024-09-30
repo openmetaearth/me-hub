@@ -23,11 +23,11 @@ func (k MsgServer) CreateValidator(
 		return nil, types.ErrCheckGlobalDao
 	}
 
-	_, err := utils.CheckRegionName(strings.ToUpper(msg.Description.RegionId))
+	_, err := utils.CheckRegionName(strings.ToUpper(msg.Description.RegionID))
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrRegionName, msg.Description.RegionId)
+		return nil, sdkerrors.Wrapf(types.ErrRegionName, msg.Description.RegionID)
 	}
-	msg.Description.RegionId = strings.ToLower(msg.Description.RegionId)
+	msg.Description.RegionID = strings.ToLower(msg.Description.RegionID)
 
 	valAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
@@ -160,7 +160,7 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 	validator.Description.Moniker = description.Moniker
 	validator.Description.SecurityContact = description.SecurityContact
 	validator.Description.Website = description.Website
-	validator.Description.RegionId = description.RegionId
+	validator.Description.RegionID = description.RegionID
 
 	if msg.CommissionRate != nil {
 		commission, err := k.UpdateValidatorCommission(ctx, validator, *msg.CommissionRate)
@@ -269,9 +269,9 @@ func (k MsgServer) ResetValidator(goCtx context.Context, msg *types.MsgResetVali
 		return false
 	})
 
-	region, isFound := k.GetRegion(ctx, validator.Description.RegionId)
+	region, isFound := k.GetRegion(ctx, validator.Description.RegionID)
 	if !isFound {
-		return nil, sdkerrors.Wrapf(types.ErrRegion, "region id(%s) not found", validator.Description.RegionId)
+		return nil, sdkerrors.Wrapf(types.ErrRegion, "region id(%s) not found", validator.Description.RegionID)
 	}
 
 	validator.OperatorAddress = newValOperAddr.String()

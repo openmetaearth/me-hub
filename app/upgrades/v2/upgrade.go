@@ -3,7 +3,6 @@ package v2
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -23,6 +22,10 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+	epochtypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
+	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
+	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
+	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	"github.com/st-chain/me-hub/app/keepers"
 	"github.com/st-chain/me-hub/app/upgrades"
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
@@ -30,9 +33,12 @@ import (
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
 	didkeeper "github.com/st-chain/me-hub/x/did/keeper"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
+	eibctypes "github.com/st-chain/me-hub/x/eibc/types"
+	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	kyckeeper "github.com/st-chain/me-hub/x/kyc/keeper"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	sequencertypes "github.com/st-chain/me-hub/x/sequencer/types"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"io/ioutil"
@@ -48,6 +54,12 @@ func CreateUpgradeHandler(
 	keepers *keepers.AppKeepers,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		for n, m := range mm.Modules {
+			if mod, ok := m.(module.HasConsensusVersion); ok {
+				fromVM[n] = mod.ConsensusVersion()
+			}
+		}
+
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
 		ctx.Logger().Info("1.migrate module params")
@@ -113,8 +125,12 @@ func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 		}
 	}
 	// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
-	baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
-	baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
+	//baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
+	//get, err := keepers.ConsensusParamsKeeper.Get(ctx)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
 }
 
 func setNewModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
@@ -122,9 +138,36 @@ func setNewModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 	delayedackParams := delayedacktypes.DefaultParams()
 	keepers.DelayedAckKeeper.SetParams(ctx, delayedackParams)
 
+	eibcParams := eibctypes.DefaultParams()
+	keepers.EIBCKeeper.SetParams(ctx, eibcParams)
+
+	evmParams := evmtypes.DefaultParams()
+	keepers.EvmKeeper.SetParams(ctx, evmParams)
+
 	// overwrite params for rollapp module due to proto change
 	rollappParams := rollapptypes.DefaultParams()
 	keepers.RollappKeeper.SetParams(ctx, rollappParams)
+
+	sequencerParams := sequencertypes.DefaultParams()
+	keepers.SequencerKeeper.SetParams(ctx, sequencerParams)
+
+	feemarketParams := feemarkettypes.DefaultParams()
+	keepers.FeeMarketKeeper.SetParams(ctx, feemarketParams)
+
+	incentivesParams := incentivestypes.DefaultGenesis()
+	keepers.IncentivesKeeper.InitGenesis(ctx, *incentivesParams)
+
+	gammParams := gammtypes.DefaultGenesis()
+	keepers.GAMMKeeper.InitGenesis(ctx, *gammParams, nil)
+
+	poolParams := poolmanagertypes.DefaultGenesis()
+	keepers.PoolManagerKeeper.InitGenesis(ctx, poolParams)
+
+	epochParams := epochtypes.DefaultGenesis()
+	keepers.EpochsKeeper.InitGenesis(ctx, *epochParams)
+
+	txfeeParams := txfeestypes.DefaultGenesis()
+	keepers.TxFeesKeeper.InitGenesis(ctx, *txfeeParams)
 }
 
 func migrateDao(ctx sdk.Context, ak authkeeper.AccountKeeper, dk daokeeper.Keeper) {

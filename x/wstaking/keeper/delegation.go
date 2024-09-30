@@ -162,7 +162,7 @@ func (k Keeper) Delegate(
 	}
 	_, newShares = k.AddValidatorTokensAndShares(ctx, validator, bondAmt)
 	// Update delegation
-	if strings.ToLower(validator.Description.RegionId) == strings.ToLower(types.ExperienceRegionName) {
+	if strings.ToLower(validator.Description.RegionID) == strings.ToLower(types.ExperienceRegionName) {
 		delegation.UnMeidAmount = delegation.UnMeidAmount.Add(bondAmt)
 	} else {
 		delegation.Amount = delegation.Amount.Add(bondAmt)
