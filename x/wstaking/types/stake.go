@@ -33,6 +33,10 @@ func NewStake(stakerAddr sdk.AccAddress, validatorAddr sdk.ValAddress, shares sd
 		StakerAddress:    stakerAddr.String(),
 		ValidatorAddress: validatorAddr.String(),
 		Shares:           shares,
+		StartHeight:      0,
+		Rewards:          sdk.ZeroDec(),
+		Amount:           sdk.ZeroInt(),
+		Unmovable:        sdk.ZeroInt(),
 	}
 }
 

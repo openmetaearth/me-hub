@@ -91,7 +91,7 @@ all: install
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/med
 
-.PHONY: build build-debug
+.PHONY: build build-debug build-linux
 
 build: go.sum
 	go build $(BUILD_FLAGS) -o $(BUILDDIR)/med ./cmd/med
@@ -99,6 +99,9 @@ build: go.sum
 build-debug: go.sum
 	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)))
 	go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -gcflags "all=-N -l" -o $(BUILDDIR)/med ./cmd/med
+
+build-linux: go.sum
+	@CC=x86_64-unknown-linux-gnu-gcc CGO_ENABLED=1 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/med ./cmd/med
 
 docker-build:
 	@DOCKER_BUILDKIT=1 docker build -t ghcr.io/me-hub/med:2.0.0 -f Dockerfile .

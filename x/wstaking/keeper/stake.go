@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/st-chain/me-hub/app/params"
@@ -88,44 +89,30 @@ func (k Keeper) GetStake(ctx sdk.Context, stakerAddr sdk.AccAddress, valAddr sdk
 	if value == nil {
 		return stake, false
 	}
-
 	stake = types.MustUnmarshalStake(k.cdc, value)
-
 	return stake, true
 }
 
 // SetStake sets a stake.
 func (k Keeper) SetStake(ctx sdk.Context, stake types.Stake) {
 	stakerAddress := sdk.MustAccAddressFromBech32(stake.StakerAddress)
-
 	store := ctx.KVStore(k.storeKey)
 	b := types.MustMarshalStake(k.cdc, stake)
 	store.Set(types.GetStakeKey(stakerAddress, stake.GetValidatorAddr()), b)
 }
 
-// IterateAllStakes iterates through all of the stakes.
-func (k Keeper) IterateAllStakes(ctx sdk.Context, cb func(stake types.Stake) (stop bool)) {
+func (k Keeper) GetAllStakes(ctx sdk.Context) (stakes []types.Stake) {
 	store := ctx.KVStore(k.storeKey)
-
 	iterator := sdk.KVStorePrefixIterator(store, types.StakeKey)
 	defer iterator.Close()
-
 	for ; iterator.Valid(); iterator.Next() {
-		stake := types.MustUnmarshalStake(k.cdc, iterator.Value())
-		if cb(stake) {
-			break
-		}
+		var val types.Stake
+		fmt.Println(iterator.Key())
+		fmt.Println(string(iterator.Key()))
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		stakes = append(stakes, val)
 	}
-}
-
-// GetAllStakes returns all stakes used during genesis dump.
-func (k Keeper) GetAllStakes(ctx sdk.Context) (stakes []types.Stake) {
-	k.IterateAllStakes(ctx, func(stake types.Stake) bool {
-		stakes = append(stakes, stake)
-		return false
-	})
-
-	return stakes
+	return
 }
 
 // HasMaxUnbondingStakeEntries - check if unbonding stake has maximum number of entries.
@@ -233,7 +220,7 @@ func (k Keeper) UnStakeBond(
 	//	}
 	//}
 
-	region, found := k.GetRegion(ctx, validator.Description.RegionId)
+	region, found := k.GetRegion(ctx, validator.Description.RegionID)
 	if found {
 		region.RegionShare = validator.Tokens
 		k.SetRegion(ctx, region)

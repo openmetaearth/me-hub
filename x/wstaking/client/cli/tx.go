@@ -195,7 +195,7 @@ $ %s tx staking edit-validator %s1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm --owner
 			details, _ := cmd.Flags().GetString(FlagDetails)
 			regionId, _ := cmd.Flags().GetString(FlagRegionId)
 			description := stakingtypes.NewDescription(moniker, identity, website, security, details)
-			description.RegionId = regionId
+			description.RegionID = regionId
 
 			var newRate *sdk.Dec
 			commissionRate, _ := cmd.Flags().GetString(FlagCommissionRate)
@@ -261,7 +261,7 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		details,
 	)
 	regionId, _ := fs.GetString(FlagRegionId)
-	description.RegionId = regionId
+	description.RegionID = regionId
 
 	// get the initial validator commission parameters
 	rateStr, _ := fs.GetString(FlagCommissionRate)
@@ -545,7 +545,7 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 		config.SecurityContact,
 		config.Details,
 	)
-	description.RegionId = config.RegionId
+	description.RegionID = config.RegionId
 
 	// get the initial validator commission parameters
 	rateStr := config.CommissionRate

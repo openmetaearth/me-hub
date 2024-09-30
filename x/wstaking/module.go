@@ -2,6 +2,7 @@ package wstaking
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -80,6 +81,10 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 // GetQueryCmd returns no root query command for the staking module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
+}
+
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+	return cdc.MustMarshalJSON(am.keeper.ExportGenesis(ctx))
 }
 
 // BeginBlock returns the begin blocker for the staking module.
