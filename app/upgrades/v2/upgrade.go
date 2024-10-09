@@ -3,6 +3,8 @@ package v2
 import (
 	"encoding/json"
 	"fmt"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -168,6 +170,24 @@ func setNewModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 
 	txfeeParams := txfeestypes.DefaultGenesis()
 	keepers.TxFeesKeeper.InitGenesis(ctx, *txfeeParams)
+
+	sequences := make([]wasmtypes.Sequence, 0)
+	for _, k := range [][]byte{wasmtypes.KeyLastCodeID, wasmtypes.KeyLastInstanceID} {
+		sequences = append(sequences, wasmtypes.Sequence{
+			IDKey: k,
+			Value: keepers.WasmKeeper.PeekAutoIncrementID(ctx, k),
+		})
+	}
+	wasmDefault := wasmtypes.GenesisState{
+		Params:    keepers.WasmKeeper.GetParams(ctx),
+		Codes:     make([]wasmtypes.Code, 0),
+		Contracts: make([]wasmtypes.Contract, 0),
+		Sequences: sequences,
+	}
+	_, err := wasmkeeper.InitGenesis(ctx, &keepers.WasmKeeper, wasmDefault)
+	if err != nil {
+		panic(fmt.Sprintf("wasm init genesis: %v", err))
+	}
 }
 
 func migrateDao(ctx sdk.Context, ak authkeeper.AccountKeeper, dk daokeeper.Keeper) {

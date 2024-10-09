@@ -1,6 +1,7 @@
 package keepers
 
 import (
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -135,4 +136,5 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	// me keys
 	daotypes.StoreKey,
 	nftkeeper.StoreKey,
+	wasmtypes.StoreKey,
 )

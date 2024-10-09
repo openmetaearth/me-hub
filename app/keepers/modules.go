@@ -229,6 +229,9 @@ func (a *AppKeepers) SetupModules(
 		incentives.NewAppModule(*a.IncentivesKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
 		txfees.NewAppModule(*a.TxFeesKeeper),
 		dao.NewAppModule(appCodec, a.DaoKeeper),
+
+		nftmodule.NewAppModule(appCodec, a.NFTKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
+		wasm.NewAppModule(appCodec, &a.WasmKeeper, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, bApp.MsgServiceRouter(), a.GetSubspace(wasmtypes.ModuleName)),
 	}
 }
 
@@ -311,6 +314,7 @@ var BeginBlockers = []string{
 	wasmtypes.ModuleName,
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
+	nft.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -352,6 +356,7 @@ var EndBlockers = []string{
 	wasmtypes.ModuleName,
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
+	nft.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -393,4 +398,5 @@ var InitGenesis = []string{
 	wasmtypes.ModuleName,
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
+	nft.ModuleName,
 }

@@ -2,6 +2,7 @@ package keepers
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/nft"
 	"path/filepath"
 	"strings"
 
@@ -707,5 +708,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(incentivestypes.ModuleName)
 	paramsKeeper.Subspace(txfeestypes.ModuleName)
 
+	paramsKeeper.Subspace(wasmtypes.ModuleName)
+	paramsKeeper.Subspace(nft.ModuleName)
 	return paramsKeeper
 }
