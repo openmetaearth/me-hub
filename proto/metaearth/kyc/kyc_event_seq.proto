@@ -1,0 +1,9 @@
+syntax = "proto3";
+package metaearth.kyc;
+
+option go_package = "github.com/st-chain/me-hub/x/kyc/types";
+
+message KycEventSeq {
+  uint64 seq = 1; 
+  
+}
