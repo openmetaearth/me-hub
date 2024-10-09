@@ -76,7 +76,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	}
 
 	isMeid := true
-	if strings.ToLower(val.Description.RegionId) != strings.ToLower(types.ExperienceRegionName) {
+	if strings.ToLower(val.Description.RegionID) != strings.ToLower(types.ExperienceRegionName) {
 		if delegation.Amount.LT(msg.Amount.Amount) {
 			return nil, types.ErrNotEnoughDelegationAmount
 		}

@@ -36,6 +36,5 @@ func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) *types.GenesisState {
 	genesis.Svcs = k.GetServices(ctx)
 	genesis.Vcs = k.GetCredentials(ctx)
 	genesis.Flogs = k.GetFilterLoggers(ctx)
-
 	return genesis
 }
