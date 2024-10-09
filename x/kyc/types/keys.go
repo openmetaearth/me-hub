@@ -30,3 +30,9 @@ func GetRegionKey(regionId string) []byte {
 	}
 	return append(RegionPrefix, []byte(regionId)...)
 }
+const (
+	KycEventSeqKey = "KycEventSeq/value/"
+)
+func KeyPrefix(p string) []byte {
+	return []byte(p)
+}

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	"cosmossdk.io/errors"
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -88,7 +89,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	if err := m.SetApproveReward(ctx, msg.Address, msg.Inviter, msg.Issuer, msg.RegionId); err != nil {
 		return &types.MsgApproveResponse{}, errors.Wrap(err, "set reward failed")
 	}
-
+	ctx.EventManager().EmitEvent(types.NewKycEvent(msg.Address, msg.Did, "approve", m.takeSeq(ctx)))
 	return &types.MsgApproveResponse{}, nil
 }
 
@@ -139,7 +140,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	if err := m.TransferApproveReward(ctx, address, msg.Issuer, string(preKyc.Data), msg.RegionId); err != nil {
 		return &types.MsgUpdateResponse{}, errors.Wrap(err, "transfer reward failed")
 	}
-
+	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, "update", m.takeSeq(ctx)))
 	return &types.MsgUpdateResponse{}, nil
 }
 
@@ -187,7 +188,7 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	if err := m.DeleteApproveReward(ctx, address, string(kyc.Data)); err != nil {
 		return &types.MsgRemoveResponse{}, errors.Wrap(err, "delete reward failed")
 	}
-
+	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, "remove", m.takeSeq(ctx)))
 	return &types.MsgRemoveResponse{}, nil
 }
 

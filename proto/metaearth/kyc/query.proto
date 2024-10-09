@@ -9,7 +9,7 @@ import "cosmos_proto/cosmos.proto";
 import "metaearth/kyc/protocol.proto";
 import "metaearth/did/did.proto";
 import "metaearth/did/credential.proto";
-
+import "metaearth/kyc/kyc_event_seq.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/kyc/types";
 
@@ -33,6 +33,11 @@ service Query {
   }
   rpc SBT(QuerySBT) returns (QuerySBTResponse) {
     option (google.api.http).get = "/kyc/SBT";
+  }
+   // Queries a KycEventSeq by index.
+  rpc KycEventSeq (QueryGetKycEventSeqRequest) returns (QueryGetKycEventSeqResponse) {
+    option (google.api.http).get = "/st-chain/me-hub/kyc/kyc_event_seq";
+  
   }
 }
 
@@ -95,3 +100,11 @@ message QuerySBTResponse {
 //  repeated SBT SBTs = 1;
 //  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 //}
+
+
+
+message QueryGetKycEventSeqRequest {}
+
+message QueryGetKycEventSeqResponse {
+  KycEventSeq KycEventSeq = 1 [(gogoproto.nullable) = false];
+}

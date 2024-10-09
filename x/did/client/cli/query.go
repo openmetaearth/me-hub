@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -24,6 +25,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdQueryDidDocument())
 	cmd.AddCommand(CmdQueryService())
 	cmd.AddCommand(CmdQueryCredential())
+	cmd.AddCommand(CmdDidInfos())
 	return cmd
 }
 
