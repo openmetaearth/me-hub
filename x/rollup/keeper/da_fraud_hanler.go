@@ -51,6 +51,7 @@ func (k Keeper) StakeForChallengeDaFraud(goCtx context.Context, rollappID, block
 	return nil
 
 }
+
 func (k Keeper) ProcChallengeDaFraud(goCtx context.Context, rollappID string, challengeKey []byte, result int32) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetStakeForChallengeDaFraudPrefix(rollappID))
@@ -75,6 +76,28 @@ func (k Keeper) ProcChallengeDaFraud(goCtx context.Context, rollappID string, ch
 	stakeCoin := sdk.NewCoin(params.BaseDenom, sdk.NewInt(int64(stakeMsg.Amount)))
 	if types.RESULT_CHG_FAIL == result || types.RESULT_CHG_SUCCESS_SUBMIT_DATA_FAIL == result {
 		//如果挑战失败，或者提交错误数据，则扣除挑战者的质押资金(由于之前已经质押了资金，这里只要清除质押记录即可)
+		//并将质押金额的20%奖励给验证器地址
+		rewardValidatorCoin := sdk.NewCoin(params.BaseDenom, sdk.NewInt(int64(stakeMsg.Amount/5)))
+		validatorAccAddr, errP := sdk.AccAddressFromBech32(k.dk.GetValidatorAddress(ctx))
+		if errP != nil {
+			return errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("AccAddressFromBech32 validator_address error.err = %s,addr = %s ",
+				errP.Error(), k.dk.GetValidatorAddress(ctx)))
+		}
+		if err = k.bk.SendCoinsFromModuleToAccount(ctx, types.MODULE_NAME, validatorAccAddr, sdk.NewCoins(rewardValidatorCoin)); err != nil {
+			return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("reward coin to validator_address error.err = %s, addr = %s, amount = %s",
+				err.Error(), validatorAccAddr.String(), rewardValidatorCoin.String()))
+		}
+		//记录事件
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EvtRewardDaFraudValidator,
+				sdk.NewAttribute("moduleName", types.MODULE_NAME),
+				sdk.NewAttribute("rollappID", rollappID),
+				sdk.NewAttribute("from", stakeMsg.Challenger),
+				sdk.NewAttribute("validatorAddr", validatorAccAddr.String()),
+				sdk.NewAttribute("rewardAmount", rewardValidatorCoin.String()),
+			),
+		)
 		store.Delete(challengeKey)
 		ctx.Logger().Info("verify result: challenge fraud")
 		ctx.EventManager().EmitEvent(
@@ -187,6 +210,11 @@ func (k Keeper) RewardsChallengeDaFraud(ctx sdk.Context) error {
 	if nil == k.mapPunishInfo { //这里表示没有惩罚数据
 		return nil
 	}
+	validatorAccAddr, errP := sdk.AccAddressFromBech32(k.dk.GetValidatorAddress(ctx))
+	if errP != nil {
+		return errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("AccAddressFromBech32 validator_address error.err = %s,addr = %s ",
+			errP.Error(), k.dk.GetValidatorAddress(ctx)))
+	}
 	for rollappId, punishInfo := range k.mapPunishInfo {
 		var procFraudster []string
 		for key, val := range punishInfo {
@@ -195,10 +223,28 @@ func (k Keeper) RewardsChallengeDaFraud(ctx sdk.Context) error {
 			//7200秒为额外附加冗余的时间
 			if blkTime >= (submitTime + int64(types.SubmitDaFraudTime)*types.HourSeconds + 7200) {
 				//开始根据统计信息发放奖励
-				if err := k.rewardBaseDeomToDaFraudChallenge(ctx, rollappId, key, val); err != nil {
+				rewardsAmount := (val * 4) / 5
+				err := k.rewardBaseDeomToDaFraudChallenge(ctx, rollappId, key, rewardsAmount)
+				if err != nil {
 					return err
 				}
-
+				//剩下的部分发送给链下验证器地址
+				remainCoin := sdk.NewCoin(params.BaseDenom, sdk.NewIntFromBigInt(big.NewInt(int64(val/5))))
+				if err = k.bk.SendCoinsFromModuleToAccount(ctx, types.MODULE_NAME, validatorAccAddr, sdk.NewCoins(remainCoin)); err != nil {
+					return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("reward coin to validator_address error.err = %s, addr = %s, amount = %s",
+						err.Error(), validatorAccAddr.String(), remainCoin.String()))
+				}
+				//记录事件
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						types.EvtRewardDaFraudValidator,
+						sdk.NewAttribute("moduleName", types.MODULE_NAME),
+						sdk.NewAttribute("rollappID", rollappId),
+						sdk.NewAttribute("from", key),
+						sdk.NewAttribute("validatorAddr", validatorAccAddr.String()),
+						sdk.NewAttribute("rewardAmount", remainCoin.String()),
+					),
+				)
 				store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetDaFraudStaticsPrefix(rollappId))
 				store.Set(types.GetFinishDaFraudPunishKey(key), []byte(strconv.FormatUint(val, 10)))
 				procFraudster = append(procFraudster, key)
@@ -259,7 +305,7 @@ func (k Keeper) rewardBaseDeomToDaFraudChallenge(ctx sdk.Context, rollappID, fra
 		totalSend.Add(totalSend, profits)
 		//发放奖励，如果金额不够的话，SendCoinsFromModuleToAccount这里就已经会判断处理了
 		if err = k.bk.SendCoinsFromModuleToAccount(ctx, types.MODULE_NAME, accAddr, sdk.NewCoins(profitCoin)); err != nil {
-			return errorsmod.Wrapf(types.ErrStakeDataErr, fmt.Sprintf("reward coin to challenger error.err = %s, addr = %s, amount = %s",
+			return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("reward coin to challenger error.err = %s, addr = %s, amount = %s",
 				err.Error(), accAddr.String(), profitCoin.String()))
 		}
 		//记录事件

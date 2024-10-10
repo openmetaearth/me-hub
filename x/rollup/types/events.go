@@ -16,4 +16,5 @@ const (
 	EvtPunishBlockDaSubmitter  = "EventPunishBlockDaSubmitter"  //提交BlockDa欺诈
 	EvtAddBlackList            = "EventAddBlackList"
 	EvtRewardDaFraudChallenger = "EventRewardDaFraudChallenger"
+	EvtRewardDaFraudValidator  = "EventRewardDaFraudValidator"
 )

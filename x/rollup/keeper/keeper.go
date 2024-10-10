@@ -169,7 +169,7 @@ func (k *Keeper) ProcUnstake(ctx sdk.Context) error {
 			}
 			if lastUnStakeTime < lastElectTime { //这里才需要进行解质押的处理
 				//由于选举存在过渡时间，所以这里解质押也需要增加过渡时间，180秒是额外附加
-				interimTime := k.GetElectionInterimTime(ctx) + 180
+				interimTime := k.GetElectionInterimTime(ctx) + 120
 				if blkTime < (lastElectTime + int64(interimTime)) {
 					continue
 				}

@@ -23,4 +23,5 @@ type RollappKeeper interface {
 
 type DaoKeeper interface {
 	GetDevOperator(ctx sdk.Context) string
+	GetValidatorAddress(ctx sdk.Context) string
 }

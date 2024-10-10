@@ -410,7 +410,6 @@ func (k msgServer) verifyRollBlkIsAllowSubmit(ctx context.Context, submitBlock *
 	daNamespace := k.mapRollappAssociateDa[submitBlock.RollappId]
 	if nil == daNamespace || len(daNamespace) < 1 {
 		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrNotFound,
-
 			fmt.Sprintf("can not found namespace associated with rollapp.rollappID = %s", submitBlock.RollappId))
 	}
 	//校验区块的提交者的是否质押数量足够，这样就可以将区块的提交者和竞选的Sequencer剥离开，只要满足最小质押金额，都可以提交。
@@ -446,7 +445,9 @@ func (k msgServer) verifyRollBlkIsAllowSubmit(ctx context.Context, submitBlock *
 
 	//校验DA 的commitProof
 	//func VerifyDACommitmentProof_c(commitProof_c, daRoot_c, namespace_c *C.char) VerifyResult
-	pCmtProof_c := ConvertString(hex.EncodeToString(submitBlock.CommitmentProof))
+	//这里由于底层rollapp在将CommitmentProof通过proto转换成[]byte错误，所以这里的CommitmentProof传过来将直接是json字符串
+	//所以这里可以直接调用，而无需再封装成hex
+	pCmtProof_c := ConvertString(string(submitBlock.CommitmentProof))
 	pDaRoot_c := ConvertString(hex.EncodeToString(submitBlock.DaRoot))
 	pNamespace_c := ConvertString(hex.EncodeToString(daNamespace))
 	verifyRes := C.VerifyDACommitmentProof_c(pCmtProof_c, pDaRoot_c, pNamespace_c)
@@ -514,7 +515,7 @@ func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId strin
 	}
 
 	f := sequencerLen / 3
-	if voteNumber >= (2*f + 1) { //如果>=2f个，则认为是允许的
+	if voteNumber > 2*f { //如果> 2f个，则认为是允许的
 		return nil
 	} else {
 		//能进到这里，之前的查询竞选说明有数据，也就是有竞选过
@@ -532,7 +533,7 @@ func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId strin
 					return fmt.Errorf("%s in second time", err.Error())
 				}
 				f = sequencerLen / 3
-				if voteNumber >= (2*f + 1) { //如果>=2f个，则认为是允许的
+				if voteNumber > 2*f { //如果>2f个，则认为是允许的
 					return nil
 				} else {
 					return errorsmod.Wrapf(types.ErrNotEnoughSequencerSign,
@@ -568,6 +569,7 @@ func calcElectSequencerVoteForBlock(pBlock *tenderminttypes.LightBlock, electNod
 
 	voteNumber := uint32(0)
 	for _, cmtSig := range pBlock.Commit.Signatures {
+
 		if cmtSig.ForBlock() {
 			if _, ok := mapSequencer[cmtSig.ValidatorAddress.String()]; ok {
 				voteNumber++

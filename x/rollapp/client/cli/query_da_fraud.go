@@ -95,7 +95,7 @@ func CmGetAppendingDaFraudChallenge() *cobra.Command {
 
 func CmdVerifyCommitmentProof() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "verifyCommitmentProof [commitmentProof] [daRoot] [namespace]",
+		Use:   "verifyCommitmentProof  [daRoot] [namespace] [commitmentProof]]",
 		Short: "verifyCommitmentProof",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -134,10 +134,11 @@ func CmdVerifyCommitmentProof() *cobra.Command {
 				}
 
 			*/
-			pCmtProof_c := ConvertString(args[0])
-			pDaRoot_c := ConvertString(args[1])
-			pNamespace_c := ConvertString(args[2])
-			res := C.VerifyDACommitmentProof_c(pCmtProof_c, pDaRoot_c, pNamespace_c)
+
+			pCmtProof_c := ConvertString(args[2])
+			pDaRoot_c := ConvertString(args[0])
+			pNamespace_c := ConvertString(args[1])
+			res := C.VerifyDACommitmentProofTest_c(pCmtProof_c, pDaRoot_c, pNamespace_c)
 			strErr := C.GoString(res.Err)
 			status := int(res.Status)
 
