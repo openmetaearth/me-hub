@@ -17,24 +17,28 @@ jobs:
     # Checkout the code
     - name: Checkout code
       uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        persist-credentials: false  # Important: disable default credentials
+        token: ${{ secrets.GO_MOD_FETCH }}  # Use the personal access token for both repo and submodules
 
     # Set up Go environment
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
-        go-version: '1.21'
+        go-version: '1.23.0'
 
     # Authenticate with GitHub to access private repositories
     - name: Set up authentication for private repos
       run: |
-        echo "https://github.com:${{ secrets.GO_MOD_FETCH }}@github.com"
         git config --global url."https://github.com:${{ secrets.GO_MOD_FETCH }}@github.com".insteadOf "https://github.com"
         go env -w GOPRIVATE=github.com/st-chain
-        go get github.com/st-chain/me-rdk
 
     # Install dependencies
     - name: Install dependencies
-      run: go mod tidy
+      run: |
+        go mod tidy
+        echo `cat go.mod`
 
     # Build the project using Make
     - name: Build the project
@@ -74,6 +78,13 @@ jobs:
         else
           echo "prerelease=false" >> $GITHUB_ENV
         fi
+    # Create release branch based on the tag
+    - name: Create release branch
+      run: |
+        TAG_NAME="${GITHUB_REF##*/}"
+        BRANCH_NAME="release/${TAG_NAME}"
+        git checkout -b "${BRANCH_NAME}"
+        git push origin "${BRANCH_NAME}"
 
     # Generate release body description
     - name: Generate release body
