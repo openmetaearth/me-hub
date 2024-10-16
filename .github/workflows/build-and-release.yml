@@ -39,7 +39,7 @@ jobs:
     - name: Install dependencies
       run: |
         go mod tidy
-        cat go.mod
+        echo `cat go.mod`
 
     # Build the project using Make
     - name: Build the project
