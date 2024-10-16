@@ -33,7 +33,6 @@ jobs:
       run: |
         git config --global url."https://github.com:${{ secrets.GO_MOD_FETCH }}@github.com".insteadOf "https://github.com"
         go env -w GOPRIVATE=github.com/st-chain
-        go get github.com/st-chain/me-rdk
 
     # Install dependencies
     - name: Install dependencies
