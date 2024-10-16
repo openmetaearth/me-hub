@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"errors"
-	ethermintserver "github.com/evmos/ethermint/server"
-	v2 "github.com/st-chain/me-hub/app/upgrades/v2"
 	"io"
 	"os"
+
+	ethermintserver "github.com/evmos/ethermint/server"
+	v2 "github.com/st-chain/me-hub/app/upgrades/v2"
 
 	"github.com/st-chain/me-hub/logger"
 
@@ -156,6 +157,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		pruning.PruningCmd(a.newApp),
 		AddGenesisStakePoolAccountCmd(app.DefaultNodeHome),
 		AddGenesisModuleAccountsCmd(app.DefaultNodeHome),
+		SetDAOCmd(),
 	)
 
 	// add server commands
