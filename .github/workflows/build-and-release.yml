@@ -37,7 +37,9 @@ jobs:
 
     # Install dependencies
     - name: Install dependencies
-      run: go mod tidy
+      run: |
+        go mod tidy
+        cat go.mod
 
     # Build the project using Make
     - name: Build the project
