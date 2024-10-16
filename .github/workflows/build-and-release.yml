@@ -17,6 +17,10 @@ jobs:
     # Checkout the code
     - name: Checkout code
       uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        persist-credentials: false  # Important: disable default credentials
+        token: ${{ secrets.GO_MOD_FETCH }}  # Use the personal access token for both repo and submodules
 
     # Set up Go environment
     - name: Set up Go
@@ -29,8 +33,6 @@ jobs:
       run: |
         echo "https://github.com:${{ secrets.GO_MOD_FETCH }}@github.com"
         git config --global url."https://github.com:${{ secrets.GO_MOD_FETCH }}@github.com".insteadOf "https://github.com"
-        git submodule init
-        git submodule update
         go env -w GOPRIVATE=github.com/st-chain
         go get github.com/st-chain/me-rdk
 
