@@ -91,10 +91,14 @@ all: install
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/med
 
-.PHONY: build build-debug build-linux
+.PHONY: build build-debug build-linux build-test
 
 build: go.sum
 	go build $(BUILD_FLAGS) -o $(BUILDDIR)/med ./cmd/med
+
+build-test: go.sum
+	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)) -X github.com/st-chain/me-hub/x/wmint/types.OneDayTotalBlocks=100)
+	go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -o $(BUILDDIR)/med ./cmd/med
 
 build-debug: go.sum
 	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)))
