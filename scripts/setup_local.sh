@@ -111,13 +111,7 @@ med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)"
 med add-genesis-stake-pool
 med add-genesis-m-accounts
 
-jq '.app_state["dao"]["dao_addresses"]["global_dao"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-jq '.app_state["dao"]["dao_addresses"]["meid_dao"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-jq '.app_state["dao"]["dao_addresses"]["dev_operator"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-jq '.app_state["dao"]["dao_addresses"]["airdrop_address"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-jq '.app_state["kyc"]["issuer"]["did"] = "1000000000000001"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-jq '.app_state["kyc"]["issuer"]["pubkey"] = "{\"@type\":\"/ethermint.crypto.v1.ethsecp256k1.PubKey\",\"key\":\"Aggm+J77xeXPyJMOnpdtEu+nmCG/ia9zudrm3kGs722z\"}"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-jq '.app_state["kyc"]["issuer"]["status"] = "DID_STATUS_ACTIVE"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+med gentx_DAO --pubkey "$(med keys show "$KEY_NAME" -p)"
 
 validator_address=$(med keys show "$KEY_NAME" -a --keyring-backend test)
 

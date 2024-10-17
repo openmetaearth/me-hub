@@ -88,7 +88,7 @@ echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test
 med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
 med add-genesis-stake-pool
 med add-genesis-m-accounts
-med gentx_DAO --pubkey "$(med keys show hub-user -p)"
+med gentx_DAO --pubkey "$(med keys show "$KEY_NAME" -p)"
 validator_address=$(med keys show "$KEY_NAME" -a --keyring-backend test)
 med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test --region-id me_earth --validator-address "$validator_address"
 med collect-gentxs
