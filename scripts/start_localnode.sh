@@ -2,7 +2,7 @@
 
 init(){
   # Common commands
-genesis_config_cmds="/app/scripts/src/genesis_config_commands.sh"
+genesis_config_cmds="$(dirname "$0")/src/genesis_config_commands.sh"
 . "$genesis_config_cmds"
 
 # Set parameters
