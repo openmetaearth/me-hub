@@ -1,4 +1,4 @@
-name: Build and Release Rollapp
+name: Build and Release 
 
 on:
   push:
