@@ -30,6 +30,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		Status:      didtypes.SERVICE_STATUS_ACTIVE,
 	}
 	k.SetService(ctx, service)
+
+	// set SBT class
+	if err := k.SetSbtClass(ctx); err != nil {
+		panic(fmt.Errorf("set SBT class failed, err: %s", address))
+	}
 }
 
 // ExportGenesis returns the module's exported genesis

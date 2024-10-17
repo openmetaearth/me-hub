@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -30,9 +28,6 @@ func KycKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	require.NoError(t, stateStore.LoadLatestVersion())
 
 	registry := codectypes.NewInterfaceRegistry()
-	registry.RegisterInterface("/ethermint.crypto.v1.ethsecp256k1.PubKey",
-		(*cryptotypes.PubKey)(nil),
-		&testdata.Dog{})
 	cdc := codec.NewProtoCodec(registry)
 
 	k := keeper.NewKeeper(cdc, storeKey, nil, nil, nil)

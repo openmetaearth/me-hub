@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/errors"
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/x/nft"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/types"
@@ -220,7 +221,7 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 		return &types.MsgCreateSBTResponse{}, didtypes.ErrCredentialNotFound //
 	}
 
-	// mint SBT
+	// mint SBT to KYC module address
 	sbt := nft.NFT{
 		ClassId: types.ModuleName,
 		Id:      msg.Did,
@@ -228,7 +229,8 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 		UriHash: msg.UriHash,
 		Data:    types2.UnsafePackAny(msg.Data), // todo: check for encode
 	}
-	if err := m.SetSBT(ctx, sbt, sdk.MustAccAddressFromBech32(msg.Issuer)); err != nil {
+
+	if err := m.SetSBT(ctx, sbt, address.Module(types.ModuleName)); err != nil {
 		return &types.MsgCreateSBTResponse{}, errors.Wrap(err, "mint SBT failed")
 	}
 
