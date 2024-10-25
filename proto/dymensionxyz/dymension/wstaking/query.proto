@@ -47,10 +47,10 @@ service Query {
         "{query_type}";
   }
 
-  // Queries a list of FixedDepositByRegion items.
-  rpc FixedDepositByRegion(QueryFixedDepositByRegionRequest) returns (QueryFixedDepositByRegionResponse) {
-    option (google.api.http).get = "/cosmos/staking/v1beta1/fixed_deposit_by_region/{regionid}";
-  }
+//  // Queries a list of FixedDepositByRegion items.
+//  rpc FixedDepositByRegion(QueryFixedDepositByRegionRequest) returns (QueryFixedDepositByRegionResponse) {
+//    option (google.api.http).get = "/cosmos/staking/v1beta1/fixed_deposit_by_region/{regionid}";
+//  }
 
   // Queries a list of FixedDeposit items.
   rpc FixedDeposit(QueryGetFixedDepositRequest) returns (QueryGetFixedDepositResponse) {
@@ -133,16 +133,16 @@ message QueryFixedDepositByAcctResponse {
   //	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryFixedDepositByRegionRequest {
-  string regionid = 1;
-//  cosmos.base.query.v1beta1.PageRequest pagination = 2;
-  FixedDepositState query_type = 3;
-}
+//message QueryFixedDepositByRegionRequest {
+//  string regionid = 1;
+////  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+//  FixedDepositState query_type = 3;
+//}
 
-message QueryFixedDepositByRegionResponse {
-  repeated FixedDeposit FixedDeposit = 1 [(gogoproto.nullable) = false];
-  //	cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
+//message QueryFixedDepositByRegionResponse {
+//  repeated FixedDeposit FixedDeposit = 1 [(gogoproto.nullable) = false];
+//  //	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+//}
 
 message QueryGetFixedDepositRequest {
   string address = 1;

@@ -2,9 +2,7 @@ package keeper
 
 import (
 	"context"
-	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/st-chain/me-hub/app/params"
-	types2 "github.com/st-chain/me-hub/x/kyc/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -70,53 +68,53 @@ func (k Keeper) FixedDepositByAcct(goCtx context.Context, req *types.QueryFixedD
 	return &types.QueryFixedDepositByAcctResponse{FixedDeposit: fixedDeposits}, nil
 }
 
-func (k Keeper) FixedDepositByRegion(goCtx context.Context, req *types.QueryFixedDepositByRegionRequest) (*types.QueryFixedDepositByRegionResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	if req.QueryType != types.FixedDepositState_AllState && req.QueryType != types.FixedDepositState_NotExpired && req.QueryType != types.FixedDepositState_Expired {
-		return nil, status.Error(codes.InvalidArgument, "invalid query type")
-	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	var fixedDeposits []types.FixedDeposit
-	meidList, err := k.KycKeeper.DIDs(ctx, &types2.QueryDIDs{
-		RegionId: req.Regionid,
-		Pagination: &query.PageRequest{
-			Key:        nil,
-			Offset:     0,
-			Limit:      9999,
-			CountTotal: false,
-			Reverse:    false,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-	for _, did := range meidList.Infos {
-		tmpList := k.GetFixedDepositByAcct(ctx, did.Address)
-		if req.QueryType == types.FixedDepositState_AllState {
-			fixedDeposits = append(fixedDeposits, tmpList...)
-			continue
-		} else {
-			for _, v := range tmpList {
-				switch req.QueryType {
-				case types.FixedDepositState_NotExpired:
-					if ctx.BlockTime().Before(v.EndTime) {
-						fixedDeposits = append(fixedDeposits, v)
-					}
-				case types.FixedDepositState_Expired:
-					if ctx.BlockTime().After(v.EndTime) {
-						fixedDeposits = append(fixedDeposits, v)
-					}
-				}
-			}
-		}
-
-	}
-
-	return &types.QueryFixedDepositByRegionResponse{FixedDeposit: fixedDeposits}, nil
-}
+//func (k Keeper) FixedDepositByRegion(goCtx context.Context, req *types.QueryFixedDepositByRegionRequest) (*types.QueryFixedDepositByRegionResponse, error) {
+//	if req == nil {
+//		return nil, status.Error(codes.InvalidArgument, "invalid request")
+//	}
+//	if req.QueryType != types.FixedDepositState_AllState && req.QueryType != types.FixedDepositState_NotExpired && req.QueryType != types.FixedDepositState_Expired {
+//		return nil, status.Error(codes.InvalidArgument, "invalid query type")
+//	}
+//
+//	ctx := sdk.UnwrapSDKContext(goCtx)
+//	var fixedDeposits []types.FixedDeposit
+//	meidList, err := k.KycKeeper.DIDs(ctx, &types2.QueryDIDs{
+//		RegionId: req.Regionid,
+//		Pagination: &query.PageRequest{
+//			Key:        nil,
+//			Offset:     0,
+//			Limit:      9999,
+//			CountTotal: false,
+//			Reverse:    false,
+//		},
+//	})
+//	if err != nil {
+//		return nil, err
+//	}
+//	for _, did := range meidList.Infos {
+//		tmpList := k.GetFixedDepositByAcct(ctx, did.Address)
+//		if req.QueryType == types.FixedDepositState_AllState {
+//			fixedDeposits = append(fixedDeposits, tmpList...)
+//			continue
+//		} else {
+//			for _, v := range tmpList {
+//				switch req.QueryType {
+//				case types.FixedDepositState_NotExpired:
+//					if ctx.BlockTime().Before(v.EndTime) {
+//						fixedDeposits = append(fixedDeposits, v)
+//					}
+//				case types.FixedDepositState_Expired:
+//					if ctx.BlockTime().After(v.EndTime) {
+//						fixedDeposits = append(fixedDeposits, v)
+//					}
+//				}
+//			}
+//		}
+//
+//	}
+//
+//	return &types.QueryFixedDepositByRegionResponse{FixedDeposit: fixedDeposits}, nil
+//}
 
 func (k Keeper) FixedDepositTotalAmount(goCtx context.Context, req *types.QueryFixedDepositTotalAmountRequest) (*types.QueryFixedDepositTotalAmountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
