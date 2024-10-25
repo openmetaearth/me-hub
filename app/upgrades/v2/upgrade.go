@@ -16,7 +16,6 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/nft"
-	nftkeeper "github.com/cosmos/cosmos-sdk/x/nft/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -41,6 +40,7 @@ import (
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencertypes "github.com/st-chain/me-hub/x/sequencer/types"
+	wnftkeeper "github.com/st-chain/me-hub/x/wnft/keeper"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"io/ioutil"
@@ -81,7 +81,7 @@ func CreateUpgradeHandler(
 		migrateKycModule(ctx, keepers.KycKeeper, homePath)
 
 		ctx.Logger().Info("6.migrate kyc and did")
-		migrateKycData(ctx, keepers.StakingKeeper, keepers.DidKeeper, keepers.KycKeeper, keepers.NFTKeeper, homePath)
+		migrateKycData(ctx, keepers.StakingKeeper, keepers.DidKeeper, keepers.KycKeeper, keepers.WNFTKeeper, homePath)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -251,7 +251,7 @@ func migrateKycData(ctx sdk.Context,
 	stakingKeeper *wstakingkeeper.Keeper,
 	didKeeper *didkeeper.Keeper,
 	kycKeeper *kyckeeper.Keeper,
-	nftKeeper nftkeeper.Keeper,
+	nftKeeper *wnftkeeper.Keeper,
 	homePath string) {
 	// get all data from old module
 	meids := stakingKeeper.GetAllMeid(ctx)
@@ -299,7 +299,7 @@ func migrateKycData(ctx sdk.Context,
 	//oldKeeper.ClearAllData(ctx)
 }
 
-func migrateNFTtoSBT(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, oldRecord types.Meid, nftKeeper nftkeeper.Keeper, kycKeeper *kyckeeper.Keeper, did string) {
+func migrateNFTtoSBT(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, oldRecord types.Meid, nftKeeper *wnftkeeper.Keeper, kycKeeper *kyckeeper.Keeper, did string) {
 	region, found := stakingKeeper.GetRegion(ctx, oldRecord.RegionId)
 	if !found {
 		panic(fmt.Sprintf("kyc: region %s not found", oldRecord.RegionId))

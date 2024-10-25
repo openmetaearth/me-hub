@@ -109,6 +109,7 @@ import (
 	streamermodulekeeper "github.com/st-chain/me-hub/x/streamer/keeper"
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	vfchooks "github.com/st-chain/me-hub/x/vfc/hooks"
+	wnftkeeper "github.com/st-chain/me-hub/x/wnft/keeper"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 )
@@ -165,7 +166,7 @@ type AppKeepers struct {
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
 	DaoKeeper           daokeeper.Keeper
-	NFTKeeper           nftkeeper.Keeper
+	WNFTKeeper          *wnftkeeper.Keeper
 	WasmKeeper          wasmkeeper.Keeper
 
 	// keys to access the substores
@@ -255,9 +256,9 @@ func (a *AppKeepers) InitKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	a.NFTKeeper = nftkeeper.NewKeeper(
-		a.keys[nftkeeper.StoreKey],
+	a.WNFTKeeper = wnftkeeper.NewKeeper(
 		appCodec,
+		a.keys[nftkeeper.StoreKey],
 		a.AccountKeeper,
 		a.BankKeeper,
 	)
@@ -275,7 +276,7 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.DaoKeeper,
-		a.NFTKeeper,
+		a.WNFTKeeper,
 		govModuleAddress,
 	)
 
@@ -512,7 +513,7 @@ func (a *AppKeepers) InitKeepers(
 		a.keys[kyctypes.StoreKey],
 		a.StakingKeeper,
 		a.DidKeeper,
-		a.NFTKeeper,
+		a.WNFTKeeper,
 	)
 
 	a.StakingKeeper.KycKeeper = a.KycKeeper
