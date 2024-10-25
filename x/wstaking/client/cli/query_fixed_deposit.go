@@ -119,45 +119,45 @@ func CmdFixedDepositByAcct() *cobra.Command {
 
 var _ = strconv.Itoa(0)
 
-func CmdFixedDepositByRegion() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "show-fixed-deposit-by-region [regionid] [query_type]",
-		Short: "show fixed_deposit-by-region",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			reqRegionId := args[0]
-			reqQueryType := args[1]
-
-			queryType, ok := types.FixedDepositState_value[strings.ToUpper(strings.Trim(reqQueryType, " "))]
-			if !ok {
-				return types.ErrParameter.Wrap("period error")
-			}
-
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-
-			params := &types.QueryFixedDepositByRegionRequest{
-				Regionid:  reqRegionId,
-				QueryType: types.FixedDepositState(queryType),
-			}
-
-			res, err := queryClient.FixedDepositByRegion(cmd.Context(), params)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
+//func CmdFixedDepositByRegion() *cobra.Command {
+//	cmd := &cobra.Command{
+//		Use:   "show-fixed-deposit-by-region [regionid] [query_type]",
+//		Short: "show fixed_deposit-by-region",
+//		Args:  cobra.ExactArgs(2),
+//		RunE: func(cmd *cobra.Command, args []string) (err error) {
+//			reqRegionId := args[0]
+//			reqQueryType := args[1]
+//
+//			queryType, ok := types.FixedDepositState_value[strings.ToUpper(strings.Trim(reqQueryType, " "))]
+//			if !ok {
+//				return types.ErrParameter.Wrap("period error")
+//			}
+//
+//			clientCtx, err := client.GetClientTxContext(cmd)
+//			if err != nil {
+//				return err
+//			}
+//
+//			queryClient := types.NewQueryClient(clientCtx)
+//
+//			params := &types.QueryFixedDepositByRegionRequest{
+//				Regionid:  reqRegionId,
+//				QueryType: types.FixedDepositState(queryType),
+//			}
+//
+//			res, err := queryClient.FixedDepositByRegion(cmd.Context(), params)
+//			if err != nil {
+//				return err
+//			}
+//
+//			return clientCtx.PrintProto(res)
+//		},
+//	}
+//	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
+//	flags.AddQueryFlagsToCmd(cmd)
+//
+//	return cmd
+//}
 
 func CmdShowFixedDepositAmountByAcct() *cobra.Command {
 	cmd := &cobra.Command{
