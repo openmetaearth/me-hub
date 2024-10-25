@@ -83,9 +83,14 @@ func CreateUpgradeHandler(
 		ctx.Logger().Info("6.migrate kyc and did")
 		migrateKycData(ctx, keepers.StakingKeeper, keepers.DidKeeper, keepers.KycKeeper, keepers.WNFTKeeper, homePath)
 
+		//todo
+		ctx.Logger().Info("6.migrate nft ipfs uri")
+		migrateNftUri(ctx, keepers.WNFTKeeper, homePath)
+
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
 		//ctx = ctx.WithChainID(metypes.V2ChainId)
+
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}
 }
@@ -343,6 +348,27 @@ func migrateNFTtoSBT(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, oldR
 	//if err := nftKeeper.Burn(ctx, nftInfo.ClassId, nftInfo.Id); err != nil {
 	//	panic(err)
 	//}
+}
+
+func migrateNftUri(ctx sdk.Context,
+	nftKeeper *wnftkeeper.Keeper,
+	homePath string) {
+	classlist := nftKeeper.GetClasses(ctx)
+
+	for _, class := range classlist {
+		if class.Id == kyctypes.ModuleName {
+			continue
+		}
+		nftList := nftKeeper.GetNFTsOfClass(ctx, class.Id)
+		for _, nft := range nftList {
+			//nft.Uri = strings.ReplaceAll(nft.Uri, "ipfs://", "XXXXXXXXXXXXXXXXXXXXX") todo
+			err := nftKeeper.Update(ctx, nft)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
 }
 
 func ReadKycPubkey(homePath string) (map[string]string, error) {
