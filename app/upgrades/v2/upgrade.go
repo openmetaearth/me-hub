@@ -368,7 +368,6 @@ func migrateNftUri(ctx sdk.Context,
 			}
 		}
 	}
-
 }
 
 func ReadKycPubkey(homePath string) (map[string]string, error) {
