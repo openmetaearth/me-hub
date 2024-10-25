@@ -46,9 +46,13 @@ func NewAppModule(
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
+	nft.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper, am.keeper.Keeper))
+
 	querier := keeper.Querier{Keeper: am.keeper}
 	types.RegisterQueryServer(cfg.QueryServer(), querier)
+
+	nft.RegisterQueryServer(cfg.QueryServer(), am.keeper.Keeper)
 }
 
 // GetQueryCmd returns no root query command for the staking module.
