@@ -156,28 +156,6 @@ func (s *KeeperTestHelper) InitializeDao() {
 	_ = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, airdropAddress, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
 }
 
-func (s *KeeperTestHelper) NewAccount(count int64) []sdk.AccAddress {
-	for _, i := range count {
-	
-	}
-	globalDaoPrivKey, _ := ethsecp256k1.GenerateKey()
-	globalDaoAddress := sdk.AccAddress(globalDaoPrivKey.PubKey().Address().Bytes())
-
-	globalDaoAcc := authtypes.NewBaseAccount(globalDaoPrivKey.PubKey().Address().Bytes(), globalDaoPrivKey.PubKey(), 1, 0)
-	globalOutput, _ := keyring.NewKeyOutput("global_dao", keyring.TypeLocal, globalDaoAddress, globalDaoPrivKey.PubKey())
-
-	meidDao, _ := ethsecp256k1.GenerateKey()
-	meidDaoAcc := authtypes.NewBaseAccount(meidDao.PubKey().Address().Bytes(), meidDao.PubKey(), 1, 0)
-
-	devOperator, _ := ethsecp256k1.GenerateKey()
-	devOperatorAcc := authtypes.NewBaseAccount(devOperator.PubKey().Address().Bytes(), devOperator.PubKey(), 2, 0)
-
-	airdrop, _ := ethsecp256k1.GenerateKey()
-	airdropAcc := authtypes.NewBaseAccount(airdrop.PubKey().Address().Bytes(), airdrop.PubKey(), 3, 0)
-	airdropAddress := sdk.AccAddress(airdrop.PubKey().Address().Bytes())
-
-}
-
 func (s *KeeperTestHelper) InitKyc(pubkey string) {
 	address := s.App.KycKeeper.MustAccAddressFromPubkeyString(pubkey)
 	if _, found := s.App.KycKeeper.GetDID(s.Ctx, address); found {
@@ -213,4 +191,15 @@ func (s *KeeperTestHelper) NewAccount() (sdk.AccAddress, string) {
 	globalDaoAddress := sdk.AccAddress(globalDaoPrivKey.PubKey().Address().Bytes())
 	globalOutput, _ := keyring.NewKeyOutput("global_dao", keyring.TypeLocal, globalDaoAddress, globalDaoPrivKey.PubKey())
 	return globalDaoAddress, globalOutput.PubKey
+}
+
+func (s *KeeperTestHelper) NewAccounts(count int) []sdk.AccAddress {
+	accounts := make([]sdk.AccAddress, count)
+	for i := 0; i < count; i++ {
+		key, _ := ethsecp256k1.GenerateKey()
+		address := sdk.AccAddress(key.PubKey().Address().Bytes())
+		//account := authtypes.NewBaseAccount(airdrop.PubKey().Address().Bytes(), airdrop.PubKey(), 3, 0)
+		accounts = append(accounts, address)
+	}
+	return accounts
 }

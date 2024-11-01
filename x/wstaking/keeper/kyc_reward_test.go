@@ -4,6 +4,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/apptesting"
 	"github.com/st-chain/me-hub/app/params"
@@ -11,6 +12,7 @@ import (
 	"github.com/st-chain/me-hub/x/wmint"
 	wmintTypes "github.com/st-chain/me-hub/x/wmint/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
+	"math/big"
 )
 
 func (s *KeeperTestSuite) TestKycReward_WithoutDelegation() {
@@ -29,12 +31,12 @@ func (s *KeeperTestSuite) TestKycReward_WithoutDelegation() {
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
-	inviter := s.Dao.GlobalDao
-	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+	inviter, _ := s.NewAccount()
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter.String(), s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address
-	balance := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(inviter), params.BaseDenom)
+	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
 	s.Require().Equal(balance.Amount.String(), types.InviteReward.String())
 
 	// check region DelegateAmount
@@ -63,12 +65,12 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithoutDelegation() {
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
-	inviter := s.Dao.DevOperator
-	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+	inviter, _ := s.NewAccount()
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter.String(), s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address
-	balance := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(inviter), params.BaseDenom)
+	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
 	s.Require().Equal(balance.Amount.String(), types.InviteReward.String())
 
 	// remove kyc
@@ -86,25 +88,82 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithoutDelegation() {
 
 func (s *KeeperTestSuite) TestKycReward_WithDelegation() {
 	s.SetupTest()
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            "USA",
+		OperatorAddress: s.usaValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
 
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
-	_, err := s.msgServer.Delegate(s.Ctx, &stakingtypes.MsgDelegate{
-		DelegatorAddress: "",
-		ValidatorAddress: "",
-		Amount:           sdk.Coin{},
+	userAccount, _ := s.NewAccount()
+	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, userAccount, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
+	s.Require().NoError(err)
+
+	delegateAmount := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil))
+	_, err = s.msgServer.Delegate(s.Ctx, &stakingtypes.MsgDelegate{
+		DelegatorAddress: userAccount.String(),
+		ValidatorAddress: s.experienceValidator.OperatorAddress,
+		Amount:           sdk.NewCoin(params.BaseDenom, delegateAmount),
 	})
 	s.Require().NoError(err)
 
+	// check experience region DelegateAmount
+	expRegion, found := s.Keeper().GetRegion(s.Ctx, s.experienceValidator.Description.RegionID)
+	s.Require().True(found)
+	s.Require().Equal(expRegion.DelegateAmount.String(), delegateAmount.String())
+
+	// check experience validator DelegateAmount
+	valAddress, err := sdk.ValAddressFromBech32(s.experienceValidator.OperatorAddress)
+	s.Require().NoError(err)
+	expVal, _ := s.Keeper().GetValidator(s.Ctx, valAddress)
+	s.Require().NoError(err)
+	s.Require().Equal(expVal.DelegationAmount.String(), delegateAmount.String())
+
+	delegation, f := s.Keeper().GetDelegation(s.Ctx, userAccount, sdk.ValAddress{})
+	s.Require().True(f)
+	s.Require().Equal(delegation.UnMeidAmount.String(), delegateAmount.String())
+	s.Require().Equal(delegation.Unmovable.String(), sdk.NewInt(0).String())
+	s.Require().Equal(delegation.Amount.String(), sdk.NewInt(0).String())
+
 	// do kyc reward
-	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
-	inviter := s.Dao.GlobalDao
-	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+	inviter, _ := s.NewAccount()
+	err = s.Keeper().KycReward(s.Ctx, userAccount, inviter.String(), s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address
-	balance := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(inviter), params.BaseDenom)
+	balance := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(inviter.String()), params.BaseDenom)
 	s.Require().Equal(balance.Amount.String(), types.InviteReward.String())
+
+	// after kyc reward
+	// check experience region DelegateAmount
+	expRegion, found = s.Keeper().GetRegion(s.Ctx, s.experienceValidator.Description.RegionID)
+	s.Require().True(found)
+	s.Require().Equal(sdk.NewInt(0).String(), expRegion.DelegateAmount.String())
+
+	// check experience validator DelegateAmount
+	expVal, _ = s.Keeper().GetValidator(s.Ctx, valAddress)
+	s.Require().NoError(err)
+	s.Require().Equal(sdk.NewInt(0).String(), expVal.DelegationAmount.String())
+
+	// check usa region DelegateAmount
+	usaRegion, found := s.Keeper().GetRegion(s.Ctx, s.usaValidator.Description.RegionID)
+	s.Require().True(found)
+	s.Require().Equal(delegateAmount.Add(types.Bonus).String(), usaRegion.DelegateAmount.String())
+
+	// check usa validator DelegateAmount
+	usaValAddress, err := sdk.ValAddressFromBech32(s.usaValidator.OperatorAddress)
+	usaVal, _ := s.Keeper().GetValidator(s.Ctx, usaValAddress)
+	s.Require().NoError(err)
+	s.Require().Equal(delegateAmount.String(), usaVal.DelegationAmount.String())
+
+	delegation, f = s.Keeper().GetDelegation(s.Ctx, userAccount, sdk.ValAddress{})
+	s.Require().True(f)
+	s.Require().Equal(sdk.NewInt(0).String(), delegation.UnMeidAmount.String())
+	s.Require().Equal(types.Bonus.String(), delegation.Unmovable.String())
+	s.Require().Equal(delegateAmount.String(), delegation.Amount.String())
 }

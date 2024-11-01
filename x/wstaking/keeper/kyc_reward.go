@@ -112,7 +112,6 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
 		if err != nil {
 			return types.ErrCalculateInterest.Wrap(err.Error())
 		}
-
 		// add coins to user account
 		if interest.GT(sdk.ZeroDec()) {
 			err = k.BankKeeper.SendCoins(ctx,
@@ -122,20 +121,20 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
 			if err != nil {
 				return err
 			}
-			if experienceRegion.DelegateInterest.GTE(interest) {
-				experienceRegion.DelegateInterest = experienceRegion.DelegateInterest.Sub(interest)
-			}
-			experienceRegion.DelegateAmount = experienceRegion.DelegateAmount.Sub(delegation.UnMeidAmount)
-			k.SetRegion(ctx, experienceRegion)
+		}
+		if experienceRegion.DelegateInterest.GTE(interest) {
+			experienceRegion.DelegateInterest = experienceRegion.DelegateInterest.Sub(interest)
+		}
+		experienceRegion.DelegateAmount = experienceRegion.DelegateAmount.Sub(delegation.UnMeidAmount)
+		k.SetRegion(ctx, experienceRegion)
 
-			experienceVal, ok := k.GetValidator(ctx, experienceValAddress)
-			if !ok {
-				return fmt.Errorf("experience region validator no found")
-			}
-			if experienceVal.DelegationAmount.GTE(delegation.Amount) {
-				experienceVal.DelegationAmount = experienceVal.DelegationAmount.Sub(delegation.Amount)
-				k.SetValidator(ctx, experienceVal)
-			}
+		experienceVal, ok := k.GetValidator(ctx, experienceValAddress)
+		if !ok {
+			return fmt.Errorf("experience region validator no found")
+		}
+		if experienceVal.DelegationAmount.GTE(delegation.UnMeidAmount) {
+			experienceVal.DelegationAmount = experienceVal.DelegationAmount.Sub(delegation.UnMeidAmount)
+			k.SetValidator(ctx, experienceVal)
 		}
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(
