@@ -2,6 +2,9 @@ package keeper
 
 import (
 	"fmt"
+	"github.com/cometbft/cometbft/crypto"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 
 	"github.com/cometbft/cometbft/libs/log"
 
@@ -12,17 +15,20 @@ import (
 )
 
 type Keeper struct {
-	cdc      codec.BinaryCodec
-	storeKey storetypes.StoreKey
+	cdc        codec.BinaryCodec
+	storeKey   storetypes.StoreKey
+	authKeeper banktypes.AccountKeeper
 }
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
+	ak banktypes.AccountKeeper,
 ) Keeper {
 	return Keeper{
-		cdc:      cdc,
-		storeKey: storeKey,
+		cdc:        cdc,
+		storeKey:   storeKey,
+		authKeeper: ak,
 	}
 }
 
@@ -93,4 +99,14 @@ func (k Keeper) IsMeidDao(ctx sdk.Context, address string) bool {
 		return false
 	}
 	return dao.MeidDao == address
+}
+
+func (k Keeper) GetGlobalDaoFeePoolAddr(ctx sdk.Context) sdk.AccAddress {
+	addr := sdk.AccAddress(crypto.AddressHash([]byte(wstakingtypes.GlobalDaoFeePool)))
+	account := k.authKeeper.GetAccount(ctx, addr)
+	if account == nil {
+		k.authKeeper.SetAccount(ctx, k.authKeeper.NewAccountWithAddress(ctx, addr))
+		return addr
+	}
+	return account.GetAddress()
 }

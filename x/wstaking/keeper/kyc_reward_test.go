@@ -30,7 +30,7 @@ func (s *KeeperTestSuite) TestKycReward_WithoutDelegation() {
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
 	inviter := s.Dao.GlobalDao
-	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter, s.usaValidator.Description.RegionId, s.Dao.GlobalDao)
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address
@@ -58,22 +58,13 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithoutDelegation() {
 	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
 
-	// must have experience region
-	newRegion = types.MsgNewRegion{
-		Creator:         s.Dao.GlobalDao,
-		Name:            types.ExperienceRegionName,
-		OperatorAddress: s.experienceValidator.OperatorAddress,
-	}
-	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
-	s.Require().NoError(err)
-
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
-	inviter := s.Dao.GlobalDao
-	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter, s.usaValidator.Description.RegionId, s.Dao.GlobalDao)
+	inviter := s.Dao.DevOperator
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address
@@ -81,7 +72,7 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithoutDelegation() {
 	s.Require().Equal(balance.Amount.String(), types.InviteReward.String())
 
 	// remove kyc
-	err = s.Keeper().RemoveKycReward(s.Ctx, kycAccount, s.usaValidator.Description.RegionId)
+	err = s.Keeper().RemoveKycReward(s.Ctx, kycAccount, s.usaValidator.Description.RegionID)
 	s.Require().NoError(err)
 
 	// check region DelegateAmount
@@ -96,20 +87,11 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithoutDelegation() {
 func (s *KeeperTestSuite) TestKycReward_WithDelegation() {
 	s.SetupTest()
 
-	newRegion := types.MsgNewRegion{
-		Creator:         s.Dao.GlobalDao,
-		Name:            types.ExperienceRegionName,
-		OperatorAddress: s.experienceValidator.OperatorAddress,
-	}
-	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
-	s.Require().NoError(err)
-
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
-	// TODO: msg delegate
-	_, err = s.msgServer.Delegate(s.Ctx, &stakingtypes.MsgDelegate{
+	_, err := s.msgServer.Delegate(s.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: "",
 		ValidatorAddress: "",
 		Amount:           sdk.Coin{},
@@ -119,7 +101,7 @@ func (s *KeeperTestSuite) TestKycReward_WithDelegation() {
 	// do kyc reward
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
 	inviter := s.Dao.GlobalDao
-	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter, s.usaValidator.Description.RegionId, s.Dao.GlobalDao)
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address

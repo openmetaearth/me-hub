@@ -20,16 +20,15 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(CmdAdmin())
-	// this line is used by starport scaffolding # 1
-
+	cmd.AddCommand(CmdDaoAddress())
+	cmd.AddCommand(CmdGlobalDaoFeePool())
 	return cmd
 }
 
-func CmdAdmin() *cobra.Command {
+func CmdDaoAddress() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "admin",
-		Short: "Query admin",
+		Use:   "addresses",
+		Short: "Query dao addresses",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -48,8 +47,32 @@ func CmdAdmin() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
-
 	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
 
+func CmdGlobalDaoFeePool() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "global-dao-fee-pool",
+		Short: "Query global dao fee pool",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			params := &types.QueryGlobalDaoFeePoolReq{}
+
+			res, err := queryClient.GlobalDaoFeePool(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

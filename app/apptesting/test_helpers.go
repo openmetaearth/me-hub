@@ -165,16 +165,16 @@ func genesisStateWithValSet(t *testing.T,
 			UnbondingTime:     time.Unix(0, 0).UTC(),
 			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
 			MinSelfDelegation: sdk.ZeroInt(),
-			OwnerAddress:      val.Address.String(),
+			OwnerAddress:      sdk.AccAddress(val.Address).String(),
 		}
 		if i == 0 {
-			validator.Description.RegionId = strings.ToLower(wstakingtypes.MeEarthRegionName)
+			validator.Description.RegionID = strings.ToLower(wstakingtypes.MeEarthRegionName)
 		}
 		if i == 1 {
-			validator.Description.RegionId = strings.ToLower(wstakingtypes.ExperienceRegionName)
+			validator.Description.RegionID = strings.ToLower(wstakingtypes.ExperienceRegionName)
 		}
 		if i == 2 {
-			validator.Description.RegionId = "usa"
+			validator.Description.RegionID = "usa"
 		}
 		validators = append(validators, validator)
 		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.OneDec()))

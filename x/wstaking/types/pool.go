@@ -8,7 +8,7 @@ const (
 	StakePoolName             = "stake_tokens_pool"
 	MeidNFTPoolName           = "meid_nft_pool"
 	FixedDepositPrincipalPool = "fixed_deposit_principal_pool"
-	GlobalAdminFeePool        = "global_admin_fee_pool"
+	GlobalDaoFeePool          = "global_admin_fee_pool"
 )
 
 const PrefixUnMeid = "un_meid_all_amount"

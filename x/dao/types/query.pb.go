@@ -109,9 +109,91 @@ func (m *QueryGlobalDaoResponse) GetDaoAddresses() DaoAddresses {
 	return DaoAddresses{}
 }
 
+type QueryGlobalDaoFeePoolReq struct {
+}
+
+func (m *QueryGlobalDaoFeePoolReq) Reset()         { *m = QueryGlobalDaoFeePoolReq{} }
+func (m *QueryGlobalDaoFeePoolReq) String() string { return proto.CompactTextString(m) }
+func (*QueryGlobalDaoFeePoolReq) ProtoMessage()    {}
+func (*QueryGlobalDaoFeePoolReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7e11374e29c75b88, []int{2}
+}
+func (m *QueryGlobalDaoFeePoolReq) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGlobalDaoFeePoolReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGlobalDaoFeePoolReq.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGlobalDaoFeePoolReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGlobalDaoFeePoolReq.Merge(m, src)
+}
+func (m *QueryGlobalDaoFeePoolReq) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGlobalDaoFeePoolReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGlobalDaoFeePoolReq.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGlobalDaoFeePoolReq proto.InternalMessageInfo
+
+type QueryGlobalDaoFeePoolResp struct {
+	GlobalDaoFeePool string `protobuf:"bytes,1,opt,name=global_dao_fee_pool,json=globalDaoFeePool,proto3" json:"global_dao_fee_pool,omitempty"`
+}
+
+func (m *QueryGlobalDaoFeePoolResp) Reset()         { *m = QueryGlobalDaoFeePoolResp{} }
+func (m *QueryGlobalDaoFeePoolResp) String() string { return proto.CompactTextString(m) }
+func (*QueryGlobalDaoFeePoolResp) ProtoMessage()    {}
+func (*QueryGlobalDaoFeePoolResp) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7e11374e29c75b88, []int{3}
+}
+func (m *QueryGlobalDaoFeePoolResp) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGlobalDaoFeePoolResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGlobalDaoFeePoolResp.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGlobalDaoFeePoolResp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGlobalDaoFeePoolResp.Merge(m, src)
+}
+func (m *QueryGlobalDaoFeePoolResp) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGlobalDaoFeePoolResp) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGlobalDaoFeePoolResp.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGlobalDaoFeePoolResp proto.InternalMessageInfo
+
+func (m *QueryGlobalDaoFeePoolResp) GetGlobalDaoFeePool() string {
+	if m != nil {
+		return m.GlobalDaoFeePool
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*QueryGlobalDaoRequest)(nil), "dymensionxyz.dymension.dao.QueryGlobalDaoRequest")
 	proto.RegisterType((*QueryGlobalDaoResponse)(nil), "dymensionxyz.dymension.dao.QueryGlobalDaoResponse")
+	proto.RegisterType((*QueryGlobalDaoFeePoolReq)(nil), "dymensionxyz.dymension.dao.QueryGlobalDaoFeePoolReq")
+	proto.RegisterType((*QueryGlobalDaoFeePoolResp)(nil), "dymensionxyz.dymension.dao.QueryGlobalDaoFeePoolResp")
 }
 
 func init() {
@@ -119,27 +201,32 @@ func init() {
 }
 
 var fileDescriptor_7e11374e29c75b88 = []byte{
-	// 313 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x50, 0xcd, 0x4a, 0x03, 0x31,
-	0x10, 0xde, 0x88, 0x0a, 0x46, 0xbd, 0x2c, 0xfe, 0xb1, 0x48, 0xd4, 0x2a, 0xa5, 0x1e, 0x9a, 0x60,
-	0x7d, 0x01, 0x2d, 0x05, 0xcf, 0xd6, 0x9b, 0x97, 0x32, 0xdb, 0x84, 0x74, 0xa1, 0x9b, 0xd9, 0x36,
-	0x59, 0xe8, 0x7a, 0xf4, 0x09, 0x04, 0xcf, 0x9e, 0x7d, 0x95, 0x1e, 0x0b, 0x5e, 0x3c, 0x89, 0xb4,
-	0x3e, 0x88, 0x74, 0x5b, 0x4b, 0x11, 0x5b, 0xf0, 0x96, 0xc9, 0x7c, 0x3f, 0xf3, 0x7d, 0xb4, 0x28,
-	0xb3, 0x58, 0x19, 0x1b, 0xa1, 0xe9, 0x65, 0x0f, 0x62, 0x36, 0x08, 0x09, 0x28, 0x3a, 0xa9, 0xea,
-	0x66, 0x3c, 0xe9, 0xa2, 0x43, 0x3f, 0x98, 0xc7, 0xf1, 0xd9, 0xc0, 0x25, 0x60, 0xb0, 0xa3, 0x51,
-	0x63, 0x0e, 0x13, 0xe3, 0xd7, 0x84, 0x11, 0x1c, 0x6a, 0x44, 0xdd, 0x56, 0x02, 0x92, 0x48, 0x80,
-	0x31, 0xe8, 0xc0, 0x45, 0x68, 0xec, 0x74, 0x7b, 0xb6, 0xc4, 0x57, 0xc2, 0x54, 0xa3, 0xb0, 0x4f,
-	0x77, 0x6f, 0xc7, 0x47, 0xdc, 0xb4, 0x31, 0x84, 0x76, 0x0d, 0xb0, 0xae, 0x3a, 0xa9, 0xb2, 0xae,
-	0x10, 0xd3, 0xbd, 0xdf, 0x0b, 0x9b, 0xa0, 0xb1, 0xca, 0xbf, 0xa3, 0xdb, 0x12, 0xb0, 0x01, 0x52,
-	0x76, 0x95, 0xb5, 0xca, 0x1e, 0x90, 0x63, 0x52, 0xda, 0xac, 0x94, 0xf8, 0xe2, 0x00, 0xbc, 0x06,
-	0x78, 0xfd, 0x83, 0xaf, 0xae, 0xf6, 0x3f, 0x8e, 0xbc, 0xfa, 0x96, 0x9c, 0xfb, 0xab, 0xbc, 0x12,
-	0xba, 0x96, 0xfb, 0xf9, 0x2f, 0x84, 0x6e, 0xcc, 0x4c, 0xfd, 0x8b, 0x65, 0xaa, 0x7f, 0x5e, 0x1e,
-	0x54, 0xfe, 0x43, 0x99, 0x64, 0x2a, 0x9c, 0x3f, 0xbe, 0x7d, 0x3d, 0xaf, 0x9c, 0xfa, 0x27, 0xc2,
-	0xba, 0x72, 0xb3, 0x05, 0x91, 0x11, 0xb1, 0x2a, 0xb7, 0xd2, 0x50, 0xf4, 0xf2, 0xc2, 0x74, 0xce,
-	0x68, 0x48, 0xc0, 0xea, 0x55, 0x7f, 0xc8, 0xc8, 0x60, 0xc8, 0xc8, 0xe7, 0x90, 0x91, 0xa7, 0x11,
-	0xf3, 0x06, 0x23, 0xe6, 0xbd, 0x8f, 0x98, 0x77, 0x5f, 0xd4, 0x91, 0x6b, 0xa5, 0x21, 0x6f, 0x62,
-	0xbc, 0x40, 0xc6, 0x65, 0x89, 0xb2, 0xe1, 0x7a, 0x5e, 0xfd, 0xe5, 0x77, 0x00, 0x00, 0x00, 0xff,
-	0xff, 0x95, 0x65, 0x33, 0xcf, 0x1a, 0x02, 0x00, 0x00,
+	// 391 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x52, 0xcd, 0x4a, 0xeb, 0x40,
+	0x18, 0x4d, 0xca, 0xbd, 0x17, 0x3a, 0xf7, 0x5e, 0x28, 0x73, 0x7f, 0xac, 0x41, 0xa2, 0x46, 0x29,
+	0x55, 0x6c, 0x06, 0xa3, 0xee, 0xb5, 0x14, 0x05, 0x57, 0x1a, 0x77, 0x6e, 0xca, 0xa4, 0x33, 0xa6,
+	0x81, 0x24, 0x5f, 0xda, 0x49, 0xa0, 0x71, 0xe9, 0x13, 0x08, 0xae, 0x7d, 0x0a, 0x5f, 0xa2, 0xcb,
+	0x82, 0x1b, 0x37, 0x8a, 0xb4, 0x3e, 0x88, 0x34, 0xad, 0x69, 0x2d, 0xb6, 0xfe, 0xec, 0xf2, 0xfd,
+	0x9c, 0xf3, 0x9d, 0x73, 0x32, 0xa8, 0xc0, 0x62, 0x8f, 0xfb, 0xc2, 0x01, 0xbf, 0x15, 0x9f, 0x93,
+	0xb4, 0x20, 0x8c, 0x02, 0x69, 0x44, 0xbc, 0x19, 0xeb, 0x41, 0x13, 0x42, 0xc0, 0xca, 0xf8, 0x9e,
+	0x9e, 0x16, 0x3a, 0xa3, 0xa0, 0xfc, 0xb5, 0xc1, 0x86, 0x64, 0x8d, 0xf4, 0xbf, 0x06, 0x08, 0x65,
+	0xc1, 0x06, 0xb0, 0x5d, 0x4e, 0x68, 0xe0, 0x10, 0xea, 0xfb, 0x10, 0xd2, 0xd0, 0x01, 0x5f, 0x0c,
+	0xa7, 0xab, 0x33, 0xee, 0x32, 0x3a, 0xe4, 0xd0, 0xe6, 0xd0, 0xbf, 0xe3, 0xbe, 0x88, 0x03, 0x17,
+	0x2c, 0xea, 0x56, 0x28, 0x98, 0xbc, 0x11, 0x71, 0x11, 0x6a, 0x1e, 0xfa, 0x3f, 0x39, 0x10, 0x01,
+	0xf8, 0x82, 0xe3, 0x13, 0xf4, 0x9b, 0x51, 0xa8, 0x52, 0xc6, 0x9a, 0x5c, 0x08, 0x2e, 0xf2, 0xf2,
+	0x92, 0x5c, 0xfc, 0x69, 0x14, 0xf5, 0xe9, 0x06, 0xf4, 0x0a, 0x85, 0xbd, 0x97, 0xfd, 0xf2, 0xb7,
+	0xf6, 0xc3, 0xa2, 0x64, 0xfe, 0x62, 0x63, 0x3d, 0x4d, 0x41, 0xf9, 0xd7, 0xe7, 0xf6, 0x39, 0x3f,
+	0x02, 0x70, 0x4d, 0xde, 0xd0, 0x0e, 0xd1, 0xfc, 0x94, 0x99, 0x08, 0x70, 0x09, 0xfd, 0xb1, 0x93,
+	0x7e, 0xb5, 0x2f, 0xea, 0x8c, 0xf3, 0x6a, 0x00, 0xe0, 0x26, 0x9a, 0xb2, 0x66, 0xce, 0x9e, 0x80,
+	0x18, 0xf7, 0x19, 0xf4, 0x3d, 0x21, 0xc3, 0xd7, 0x32, 0xca, 0xa6, 0x8c, 0x78, 0x73, 0x96, 0xfa,
+	0x37, 0x13, 0x52, 0x8c, 0xcf, 0x40, 0x06, 0xd9, 0x69, 0x6b, 0x17, 0xb7, 0x4f, 0x57, 0x99, 0x15,
+	0xbc, 0x4c, 0x44, 0x58, 0xaa, 0xd5, 0xa9, 0xe3, 0x13, 0x8f, 0x97, 0xea, 0x91, 0x45, 0x5a, 0xc9,
+	0x8f, 0x19, 0x59, 0xc1, 0x37, 0x32, 0xca, 0x4d, 0x3a, 0xc6, 0xdb, 0x1f, 0xbf, 0x39, 0x0a, 0x50,
+	0xd9, 0xf9, 0x02, 0x4a, 0x04, 0x9a, 0x91, 0x88, 0xdd, 0xc0, 0xeb, 0xef, 0x8a, 0x4d, 0x73, 0x2f,
+	0xef, 0xb6, 0xbb, 0xaa, 0xdc, 0xe9, 0xaa, 0xf2, 0x63, 0x57, 0x95, 0x2f, 0x7b, 0xaa, 0xd4, 0xe9,
+	0xa9, 0xd2, 0x5d, 0x4f, 0x95, 0x4e, 0x0b, 0xb6, 0x13, 0xd6, 0x23, 0x4b, 0xaf, 0x81, 0x37, 0x85,
+	0x2f, 0x8c, 0x03, 0x2e, 0xac, 0x1f, 0xc9, 0xc3, 0xdc, 0x7a, 0x0e, 0x00, 0x00, 0xff, 0xff, 0xbe,
+	0xaf, 0x03, 0xb8, 0x38, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -156,6 +243,7 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// Queries a list of admin items.
 	GlobalDao(ctx context.Context, in *QueryGlobalDaoRequest, opts ...grpc.CallOption) (*QueryGlobalDaoResponse, error)
+	GlobalDaoFeePool(ctx context.Context, in *QueryGlobalDaoFeePoolReq, opts ...grpc.CallOption) (*QueryGlobalDaoFeePoolResp, error)
 }
 
 type queryClient struct {
@@ -175,10 +263,20 @@ func (c *queryClient) GlobalDao(ctx context.Context, in *QueryGlobalDaoRequest, 
 	return out, nil
 }
 
+func (c *queryClient) GlobalDaoFeePool(ctx context.Context, in *QueryGlobalDaoFeePoolReq, opts ...grpc.CallOption) (*QueryGlobalDaoFeePoolResp, error) {
+	out := new(QueryGlobalDaoFeePoolResp)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dao.Query/GlobalDaoFeePool", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Queries a list of admin items.
 	GlobalDao(context.Context, *QueryGlobalDaoRequest) (*QueryGlobalDaoResponse, error)
+	GlobalDaoFeePool(context.Context, *QueryGlobalDaoFeePoolReq) (*QueryGlobalDaoFeePoolResp, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -187,6 +285,9 @@ type UnimplementedQueryServer struct {
 
 func (*UnimplementedQueryServer) GlobalDao(ctx context.Context, req *QueryGlobalDaoRequest) (*QueryGlobalDaoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GlobalDao not implemented")
+}
+func (*UnimplementedQueryServer) GlobalDaoFeePool(ctx context.Context, req *QueryGlobalDaoFeePoolReq) (*QueryGlobalDaoFeePoolResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GlobalDaoFeePool not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -211,6 +312,24 @@ func _Query_GlobalDao_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_GlobalDaoFeePool_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGlobalDaoFeePoolReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).GlobalDaoFeePool(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.dao.Query/GlobalDaoFeePool",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).GlobalDaoFeePool(ctx, req.(*QueryGlobalDaoFeePoolReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "dymensionxyz.dymension.dao.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -218,6 +337,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GlobalDao",
 			Handler:    _Query_GlobalDao_Handler,
+		},
+		{
+			MethodName: "GlobalDaoFeePool",
+			Handler:    _Query_GlobalDaoFeePool_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -280,6 +403,59 @@ func (m *QueryGlobalDaoResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryGlobalDaoFeePoolReq) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGlobalDaoFeePoolReq) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGlobalDaoFeePoolReq) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGlobalDaoFeePoolResp) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGlobalDaoFeePoolResp) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGlobalDaoFeePoolResp) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.GlobalDaoFeePool) > 0 {
+		i -= len(m.GlobalDaoFeePool)
+		copy(dAtA[i:], m.GlobalDaoFeePool)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.GlobalDaoFeePool)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -308,6 +484,28 @@ func (m *QueryGlobalDaoResponse) Size() (n int) {
 	_ = l
 	l = m.DaoAddresses.Size()
 	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryGlobalDaoFeePoolReq) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *QueryGlobalDaoFeePoolResp) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.GlobalDaoFeePool)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
@@ -428,6 +626,138 @@ func (m *QueryGlobalDaoResponse) Unmarshal(dAtA []byte) error {
 			if err := m.DaoAddresses.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGlobalDaoFeePoolReq) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGlobalDaoFeePoolReq: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGlobalDaoFeePoolReq: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGlobalDaoFeePoolResp) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGlobalDaoFeePoolResp: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGlobalDaoFeePoolResp: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalDaoFeePool", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.GlobalDaoFeePool = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
