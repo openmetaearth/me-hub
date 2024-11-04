@@ -56,6 +56,7 @@ var (
 	ErrTransferRegion           = sdkerrors.Register(ModuleName, 1165, "transfer region err")
 	ErrRegion                   = sdkerrors.Register(ModuleName, 1166, "region err")
 	ErrExperienceRegionNotExist = sdkerrors.Register(ModuleName, 1167, "experience region not exist")
+	ErrRemoveKyc                = sdkerrors.Register(ModuleName, 1168, "remove kyc not allowed")
 
 	ErrAmountNotPositive        = sdkerrors.Register(ModuleName, 1171, "amount not positive")
 	ErrAmountLessThanMin        = sdkerrors.Register(ModuleName, 1172, "amount is less than 0.01ME")

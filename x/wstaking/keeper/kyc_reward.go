@@ -66,6 +66,20 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 }
 
 func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionId string) error {
+	delegation, found := k.GetDelegation(ctx, account, sdk.ValAddress{})
+	if !found {
+		return types.ErrNoDelegatorForAddress
+	}
+
+	if delegation.Amount.Add(delegation.UnMeidAmount).GT(sdk.ZeroInt()) {
+		return types.ErrRemoveKyc.Wrap(fmt.Sprintf("The current user(%s) have delegate, need to withdraw.", account))
+	}
+
+	fixedCount := len(k.GetFixedDepositByAcct(ctx, account.String()))
+	if fixedCount > 0 {
+		return types.ErrRemoveKyc.Wrap(fmt.Sprintf("The current user(%s) have fixed deposit, need to withdraw.", account))
+	}
+
 	region, found := k.GetRegion(ctx, regionId)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrRegionNotExist, fmt.Sprintf("%s not exists", regionId))
@@ -81,7 +95,7 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 		return sdkerrors.Wrapf(types.ErrDidReward, fmt.Sprintf("region bonded validator no found"))
 	}
 
-	_, err = k.removeKycReward(ctx, account, valAddr, region, stakingtypes.Delegation{})
+	_, err = k.removeKycReward(ctx, account, valAddr, region)
 	if err != nil {
 		return sdkerrors.Wrapf(types.ErrDidReward, fmt.Sprintf("%v", err))
 	}
@@ -201,16 +215,13 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
 	return nil
 }
 
-func (k Keeper) removeKycReward(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, region types.Region, delegation stakingtypes.Delegation) (amount math.Int, err error) {
-	if delegation == (stakingtypes.Delegation{}) {
-		var found bool
-		delegation, found = k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
-		if !found {
-			return amount, stakingtypes.ErrNoDelegatorForAddress
-		}
+func (k Keeper) removeKycReward(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, region types.Region) (amount math.Int, err error) {
+	delegation, found := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
+	if !found {
+		return amount, stakingtypes.ErrNoDelegatorForAddress
 	}
 
-	region.DelegateAmount = region.DelegateAmount.Sub(types.Bonus)
+	region.DelegateAmount = region.DelegateAmount.Sub(types.Bonus).Sub(delegation.Amount)
 	if region.DelegateAmount.LT(sdk.ZeroInt()) {
 		return amount, errors.New("UnRegisterMeid err: region DelegationAmount < 0")
 	}
