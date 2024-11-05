@@ -9,7 +9,6 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	"github.com/st-chain/me-hub/x/wdistri/client/cli"
 	"github.com/st-chain/me-hub/x/wdistri/keeper"
 	"github.com/st-chain/me-hub/x/wdistri/types"
 
@@ -79,13 +78,12 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 
 // GetTxCmd returns the root Tx command for the module. The subcommands of this root command are used by end-users to generate new transactions containing messages defined in the module
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd()
+	return nil
 }
 
 // GetQueryCmd returns the root query command for the module. The subcommands of this root command are used by end-users to generate new queries to the subset of the state defined by the module
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	c := cli.GetQueryCmd(types.StoreKey)
-	return c
+	return nil
 }
 
 // ----------------------------------------------------------------------------
