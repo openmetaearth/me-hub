@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	errorsmod "cosmossdk.io/errors"
+	"encoding/hex"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -59,6 +60,10 @@ func (t *rollupServer) StakeForSequencer(stakeCtx context.Context, req *types.Ms
 	if req.Amount < 1 {
 		return nil, types.ErrInputDataErr
 	}
+	if err = t.Keeper.bondNodeAddr(ctx, req.RollappId, req.Creator, req.BondNodeAddress, req.Amount); err != nil {
+		ctx.Logger().Error(err.Error())
+		return nil, err
+	}
 	store := prefix.NewStore(ctx.KVStore(t.Keeper.storeKey), types.GetRollupAppStakeKeyPrefix(req.RollappId))
 	stakeInfo := &types.MsgStakeInfo{
 		StakeAmount:        0,
@@ -99,6 +104,7 @@ func (t *rollupServer) StakeForSequencer(stakeCtx context.Context, req *types.Ms
 			sdk.NewAttribute("moduleName", types.MODULE_NAME),
 			sdk.NewAttribute("delegator", ownerAddr),
 			sdk.NewAttribute("amount", strconv.FormatUint(req.Amount, 10)),
+			sdk.NewAttribute("bondNodeAddr", hex.EncodeToString(req.BondNodeAddress)),
 		),
 	)
 	return &types.MsgStakingResponse{}, nil
@@ -181,7 +187,7 @@ func (t *rollupServer) UnStake(stakeCtx context.Context, req *types.MsgSeqUnStak
 
 		//如果还在提交DA承诺的锁定期的话，则解质押后所剩下的不能低于最小质押额,这里质押时间多预留3个小时
 		if ctx.BlockTime().Unix() <= (lastSubmitTime + int64(types.SubmitDaFraudTime+3)*types.HourSeconds) {
-			if stakeInfo.StakeAmount < (t.GetMinStakeAmount(ctx) + stakeInfo.ApplyUnStakeAmount + amount) {
+			if stakeInfo.StakeAmount < (t.GetMinStakeAmount(ctx)*types.MecPrecision + stakeInfo.ApplyUnStakeAmount + amount) {
 				return nil, errorsmod.Wrapf(types.ErrInsufficientBalance,
 					fmt.Sprintf("valid stake amount insufficient while in submitDaFraudTime.preApplyUnstake = %d,reqAmount = %d",
 						stakeInfo.ApplyUnStakeAmount, amount))

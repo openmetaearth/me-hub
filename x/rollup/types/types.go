@@ -30,6 +30,8 @@ const (
 	RollupStakeKeyPrefix                 = "Rollup/value/Stake/"
 	RollupStakeChallengeDaFraudKeyPrefix = RollupStakeKeyPrefix + "ChallengeDaFraud/"
 	RollupDaFraudStatics                 = RollupKeyPrefix + "DaFraudStatics/"
+	RollupStakeBondNodePrefix            = RollupStakeKeyPrefix + "BondNodeAddr/"
+	RollupDelegatorStakeBondNodePrefix   = RollupStakeKeyPrefix + "DelegatorStakeBondNode/"
 	//RollupBlackListPrefix                = RollupKeyPrefix + "BlackList"
 	//RollupAppIdKeyPrefix = RollupKeyPrefix + KeyRollappIdPrefix
 )
@@ -67,8 +69,16 @@ func GetRollupAppInitInfKey(rollappID string) []byte {
 
 func GetRollupAppStakeKeyPrefix(rollappID string) []byte {
 	return []byte(fmt.Sprintf("%s%s/", RollupStakeKeyPrefix, rollappID))
-
 }
+
+func GetStakeBondNodeAddrPrefix(rollappID string) []byte {
+	return []byte(fmt.Sprintf("%s%s/", RollupStakeBondNodePrefix, rollappID))
+}
+
+func GetDelegatorStakeNodePrefix(rollappID string) []byte {
+	return []byte(fmt.Sprintf("%s%s/", RollupDelegatorStakeBondNodePrefix, rollappID))
+}
+
 func GetStakeForChallengeDaFraudPrefix(rollappID string) []byte {
 	return []byte(fmt.Sprintf("%s%s/", RollupStakeChallengeDaFraudKeyPrefix, rollappID))
 }

@@ -25,4 +25,6 @@ var (
 	ErrNotFound             = errorsmod.Register(MODULE_NAME, 1115, "data not found")
 	ErrStakeDaFraudRepeated = errorsmod.Register(MODULE_NAME, 1116, "Stake challenge DA fraud Repeated ")
 	ErrInBlackList          = errorsmod.Register(MODULE_NAME, 1117, "address in black list ")
+	//bond node address
+	ErrNotAllowBondNodeAddr = errorsmod.Register(MODULE_NAME, 1118, "node address has been bonded,and delegator is still valid ")
 )

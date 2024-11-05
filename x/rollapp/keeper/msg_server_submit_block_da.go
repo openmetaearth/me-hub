@@ -508,7 +508,8 @@ func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId strin
 	if 0 == resp.ElectionTime || nil == resp.NodeStatusList { //表明没有进行过选举，此时应该采用最初创建RollApp中的Sequencer
 		return errorsmod.Wrapf(types.ErrLogic, "election info is empty in verifyRollupBlkConsensus")
 	}
-	voteNumber, sequencerLen, err = calcElectSequencerVoteForBlock(lightBlock, resp.NodeStatusList)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	voteNumber, sequencerLen, err = k.Keeper.calcElectSequencerVoteForBlock(sdkCtx, rollAppId, lightBlock, resp.NodeStatusList)
 
 	if err != nil {
 		return err
@@ -519,7 +520,7 @@ func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId strin
 		return nil
 	} else {
 		//能进到这里，之前的查询竞选说明有数据，也就是有竞选过
-		sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 		param := k.rollupKeeper.GetParams(sdkCtx)
 		tmp := sdkCtx.BlockTime().Unix() - int64(resp.ElectionTime)
 		if tmp <= int64(param.ElectionInterimTime) { //当前时间间隔<=选举过渡期，则允许使用之前的选举Sequencer进行判断
@@ -528,7 +529,7 @@ func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId strin
 				return err
 			}
 			if preElect.NodeStatusList != nil && len(preElect.NodeStatusList) > 0 { //如果有存在上一次的数据
-				voteNumber, sequencerLen, err = calcElectSequencerVoteForBlock(lightBlock, preElect.NodeStatusList)
+				voteNumber, sequencerLen, err = k.Keeper.calcElectSequencerVoteForBlock(sdkCtx, rollAppId, lightBlock, preElect.NodeStatusList)
 				if err != nil {
 					return fmt.Errorf("%s in second time", err.Error())
 				}
@@ -551,7 +552,7 @@ func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId strin
 }
 
 // 计算为block投票的验证者也同时存在于选举后的Sequencer中的数量
-func calcElectSequencerVoteForBlock(pBlock *tenderminttypes.LightBlock, electNodeList []*rollupTypes.ElectionNodeStatus) (uint32, uint32, error) {
+func (k Keeper) calcElectSequencerVoteForBlock(sdkCtx sdk.Context, rollappID string, pBlock *tenderminttypes.LightBlock, electNodeList []*rollupTypes.ElectionNodeStatus) (uint32, uint32, error) {
 
 	mapSequencer := make(map[string]struct{})
 	if electNodeList != nil && len(electNodeList) > 0 {
@@ -571,9 +572,13 @@ func calcElectSequencerVoteForBlock(pBlock *tenderminttypes.LightBlock, electNod
 	for _, cmtSig := range pBlock.Commit.Signatures {
 
 		if cmtSig.ForBlock() {
-			if _, ok := mapSequencer[cmtSig.ValidatorAddress.String()]; ok {
-				voteNumber++
+			delegator := k.rollupKeeper.GetBondNodeDelegator(sdkCtx, rollappID, cmtSig.ValidatorAddress)
+			if nil != delegator {
+				if _, ok := mapSequencer[string(delegator)]; ok {
+					voteNumber++
+				}
 			}
+
 		}
 	}
 

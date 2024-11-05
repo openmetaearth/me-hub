@@ -28,6 +28,7 @@ type RollupKeeper interface {
 	IsInBlackList(addr string) bool
 	StakeForChallengeDaFraud(goCtx context.Context, rollappID, blockSubmitter, challenger string, challengeKey []byte) error
 	ProcChallengeDaFraud(goCtx context.Context, rollappID string, challengeKey []byte, result int32) error
+	GetBondNodeDelegator(ctx sdk.Context, rollappID string, bondAddress []byte) []byte
 }
 
 type DaoKeeper interface {

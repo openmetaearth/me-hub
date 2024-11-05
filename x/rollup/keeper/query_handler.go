@@ -91,11 +91,41 @@ func (t Keeper) QueryStake(ctx context.Context, req *types.QueryStakeRequest) (*
 		StakeAmount:        0,
 		ApplyUnStakeAmount: 0,
 	}
-	if err := t.cdc.Unmarshal(data, resp); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("Unmarshal error. err = %s", err.Error()))
+	if data != nil {
+		if err := t.cdc.Unmarshal(data, resp); err != nil {
+			return nil, errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("Unmarshal error. err = %s", err.Error()))
+		}
+
 	}
 
 	return &types.QueryStakeResponse{
 		StakeInfo: resp,
 	}, nil
+}
+
+func (t Keeper) queryStakeData(sdkCtx sdk.Context, rollappId, address string) (*types.MsgStakeInfo, error) {
+	kvStore := sdkCtx.KVStore(t.storeKey)
+	store := prefix.NewStore(kvStore, types.GetRollupAppStakeKeyPrefix(rollappId))
+	data := store.Get([]byte(address))
+	resp := &types.MsgStakeInfo{
+		StakeAmount:        0,
+		ApplyUnStakeAmount: 0,
+	}
+	if data != nil {
+		if err := t.cdc.Unmarshal(data, resp); err != nil {
+			return nil, errorsmod.Wrapf(types.ErrParserDataErr, fmt.Sprintf("Unmarshal stake data error. err = %s", err.Error()))
+		}
+
+	}
+
+	return resp, nil
+}
+
+func (t Keeper) QueryStakeBondNode(ctx context.Context, req *types.QueryStakeBondNodeRequest) (*types.QueryStakeBondNodeResponse, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	kvStore := sdkCtx.KVStore(t.storeKey)
+	store := prefix.NewStore(kvStore, types.GetDelegatorStakeNodePrefix(req.RollappId))
+	data := store.Get([]byte(req.StakeAddr))
+	return &types.QueryStakeBondNodeResponse{BondNodeAddr: data}, nil
+
 }

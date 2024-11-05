@@ -17,4 +17,7 @@ const (
 	EvtAddBlackList            = "EventAddBlackList"
 	EvtRewardDaFraudChallenger = "EventRewardDaFraudChallenger"
 	EvtRewardDaFraudValidator  = "EventRewardDaFraudValidator"
+
+	//bondAddress
+	EvtBondRollappNodeAddress = "EventBondRollappNodeAddress" //DA挑战者欺诈事件
 )

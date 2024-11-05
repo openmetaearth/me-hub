@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/spf13/cobra"
 
@@ -30,10 +31,10 @@ func GetTxCmd() *cobra.Command {
 
 func CmdStakeForSequencer() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "stakeForSequencer  [rollappId] [amount]",
+		Use:     "stakeForSequencer  [rollappId] [amount] [bondNodeAddress]",
 		Short:   "stakeForSequencer",
-		Example: "dymd tx hubRollUp stakeForSequencer  <rollappId> <amount>",
-		Args:    cobra.ExactArgs(2),
+		Example: "dymd tx hubRollUp stakeForSequencer  <rollappId> <amount> <bondNodeAddress>",
+		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -46,8 +47,12 @@ func CmdStakeForSequencer() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			bondedNodeAddr, err := hex.DecodeString(args[2])
+			if err != nil {
+				return err
+			}
 
-			msg := types.NewMsgSeqStaking(clientCtx.GetFromAddress().String(), rollappID, 0, val)
+			msg := types.NewMsgSeqStaking(clientCtx.GetFromAddress().String(), rollappID, 0, val, bondedNodeAddr)
 			if err = msg.ValidateBasic(); err != nil {
 				return err
 			}

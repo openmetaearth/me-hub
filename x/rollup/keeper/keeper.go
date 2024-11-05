@@ -1,8 +1,10 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+
 	//"github.com/Workiva/go-datastructures/threadsafe/err"
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
@@ -553,6 +555,69 @@ func (k Keeper) RevaluateSequencer(ctx sdk.Context, address, rollappID string) e
 
 	}
 	return nil
+}
+
+// 将质押者的地址和L2层的节点地址进行绑定，这里运行绑定的条件为:
+// 1、该节点地址未被绑定过
+// 2、该节点已经绑定的地址，但是存在满足条件就可重新绑定
+//
+//	1）该地址既不是Sequencer也不是备用节点
+//	2）该地址目前质押金额的已经小于最小质押金额
+func (k Keeper) bondNodeAddr(ctx sdk.Context, rollappID, creator string, bondAddress []byte, amount uint64) error {
+	if nil == bondAddress {
+		return errorsmod.Wrapf(types.ErrInputDataErr, " bondAddress can not be nil")
+	}
+	if len(bondAddress) != 20 {
+		return errorsmod.Wrapf(types.ErrInputDataErr, fmt.Sprintf(" bondAddress length error.len = %d,must be 20", len(bondAddress)))
+	}
+	kvStore := ctx.KVStore(k.storeKey)
+	bondStore := prefix.NewStore(kvStore, types.GetStakeBondNodeAddrPrefix(rollappID))
+	data := bondStore.Get(bondAddress)
+	var orgDelegator []byte
+	if data != nil {
+		delegatorAddr := string(data)
+		if delegatorAddr == creator {
+			return nil
+		}
+		orgDelegator = data
+		//查看是否可以覆盖绑定
+		stakeData, err := k.queryStakeData(ctx, rollappID, delegatorAddr)
+		if err != nil {
+			return err
+		}
+		if amount <= stakeData.StakeAmount {
+			return errorsmod.Wrapf(types.ErrNotAllowBondNodeAddr, ",input stake amount is smaller")
+		}
+		//如果此时质押的金额小于最小金额，那么肯定就不是Sequencer或者备选节点
+		if stakeData.StakeAmount >= k.GetMinStakeAmount(ctx)*types.MecPrecision {
+			return errorsmod.Wrapf(types.ErrNotAllowBondNodeAddr, fmt.Sprintf("orgDelegator stake amount = %d", stakeData.StakeAmount))
+		}
+
+	}
+
+	bondStore.Set(bondAddress, []byte(creator))
+	//设定Delegator和NodeAddr的映射关系
+	delegatorStore := prefix.NewStore(kvStore, types.GetDelegatorStakeNodePrefix(rollappID))
+	delegatorStore.Set([]byte(creator), bondAddress)
+	if orgDelegator != nil { //如果该节点地址之前存在绑定关系，则解除该关系
+		delegatorStore.Delete(orgDelegator)
+	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EvtBondRollappNodeAddress,
+			sdk.NewAttribute("moduleName", types.MODULE_NAME),
+			sdk.NewAttribute("delegator", creator),
+			sdk.NewAttribute("nodeKeyAddr", hex.EncodeToString(bondAddress)),
+		))
+
+	return nil
+}
+
+// 获取绑定节点所关联的委托者
+func (k Keeper) GetBondNodeDelegator(ctx sdk.Context, rollappID string, bondAddress []byte) []byte {
+	kvStore := ctx.KVStore(k.storeKey)
+	bondStore := prefix.NewStore(kvStore, []byte(types.GetStakeBondNodeAddrPrefix(rollappID)))
+	return bondStore.Get(bondAddress)
 }
 
 /*

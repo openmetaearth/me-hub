@@ -33,6 +33,13 @@ message QueryStakeResponse{
 
 }
 
+message QueryStakeBondNodeRequest{
+  string rollappId = 1;
+  string stakeAddr = 2;
+}
+message QueryStakeBondNodeResponse{
+  bytes bondNodeAddr = 1;
+}
 /*
 message QueryNodeStatusRequest{
   string rollappId = 1;
@@ -49,4 +56,5 @@ service Query {
   rpc QueryParams(QueryParamsRequest) returns (QueryParamsResponse) {}
   rpc QueryElectionResult(QueryElectionRequest) returns(QueryElectionResponse){}
   rpc QueryStake(QueryStakeRequest) returns(QueryStakeResponse){}
+  rpc QueryStakeBondNode(QueryStakeBondNodeRequest) returns(QueryStakeBondNodeResponse){}
 }

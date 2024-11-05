@@ -23,7 +23,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdQueryParams())
 	cmd.AddCommand(CmdQueryElectionResult())
 	cmd.AddCommand(CmdQueryStake())
-
+	cmd.AddCommand(CmdQueryStakeBondNode())
 	return cmd
 }
 func CmdQueryParams() *cobra.Command {
@@ -84,7 +84,7 @@ func CmdQueryElectionResult() *cobra.Command {
 
 func CmdQueryStake() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "queryStake [rollapp-id]",
+		Use:   "queryStake [rollapp-id] [address]",
 		Short: "query stake info.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -98,6 +98,37 @@ func CmdQueryStake() *cobra.Command {
 			}
 
 			res, err := queryClient.QueryStake(context.Background(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	//	cmd.Flags().Bool(FlagFinalized, false, "Indicates whether to return the latest finalized state index")
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryStakeBondNode() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "queryStakeBondNode [rollapp-id] [address]",
+		Short: "query delegator stake bond node address.",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+			argRollappId := args[0]
+			argAddress := args[1]
+			req := &types.QueryStakeBondNodeRequest{
+				RollappId: argRollappId,
+				StakeAddr: argAddress,
+			}
+
+			res, err := queryClient.QueryStakeBondNode(context.Background(), req)
 			if err != nil {
 				return err
 			}

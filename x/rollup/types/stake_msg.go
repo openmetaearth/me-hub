@@ -12,12 +12,13 @@ const (
 	TypeSetRollupParams   = "setParams"
 )
 
-func NewMsgSeqStaking(creator string, rollappId string, version, amount uint64) *MsgSeqStaking {
+func NewMsgSeqStaking(creator string, rollappId string, version, amount uint64, bondAddress []byte) *MsgSeqStaking {
 	return &MsgSeqStaking{
-		Creator:   creator,
-		RollappId: rollappId,
-		Version:   version,
-		Amount:    amount,
+		Creator:         creator,
+		RollappId:       rollappId,
+		Version:         version,
+		Amount:          amount,
+		BondNodeAddress: bondAddress,
 	}
 }
 
@@ -52,6 +53,9 @@ func (msg *MsgSeqStaking) ValidateBasic() error {
 	}
 	if msg.RollappId == "" {
 		return fmt.Errorf("stake RollappId can not be empty")
+	}
+	if nil == msg.BondNodeAddress {
+		return fmt.Errorf("staker boned node address can not be empty")
 	}
 	return nil
 }
