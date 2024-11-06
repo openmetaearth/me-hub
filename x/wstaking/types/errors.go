@@ -45,10 +45,10 @@ var (
 	ErrGetGlobalAdmin        = sdkerrors.Register(ModuleName, 1147, "get global admin error")
 	ErrCheckGlobalDao        = sdkerrors.Register(ModuleName, 1148, "invalid global dao")
 
-	ErrDidReward    = sdkerrors.Register(ModuleName, 1150, "did reward error")
-	ErrDidRemove    = sdkerrors.Register(ModuleName, 1151, "remove did error")
-	ErrDidExists    = sdkerrors.Register(ModuleName, 1152, "did already exists")
-	ErrDidNotExists = sdkerrors.Register(ModuleName, 1153, "did not exists")
+	ErrDidExists       = sdkerrors.Register(ModuleName, 1150, "did already exists")
+	ErrDidNotExists    = sdkerrors.Register(ModuleName, 1151, "did not exists")
+	ErrSendKycReward   = sdkerrors.Register(ModuleName, 1152, "send kyc reward")
+	ErrRemoveKycReward = sdkerrors.Register(ModuleName, 1153, "remove kyc reward")
 
 	ErrRegionAlreadyExist       = sdkerrors.Register(ModuleName, 1162, "region already exist")
 	ErrRegionNotExist           = sdkerrors.Register(ModuleName, 1163, "region not exist")
@@ -64,11 +64,6 @@ var (
 	ErrRegionNameDuplicate      = sdkerrors.Register(ModuleName, 1174, "input region name duplicates with the name of existing region")
 	ErrRegionName               = sdkerrors.Register(ModuleName, 1175, "invalid region name")
 	ErrExpRegionNotExist        = sdkerrors.Register(ModuleName, 1176, "experience region not exist")
-
-	ErrMeidNFTNew       = sdkerrors.Register(ModuleName, 1180, "new meid-nft error")
-	ErrMeidNFTRemove    = sdkerrors.Register(ModuleName, 1181, "remove meid-nft error")
-	ErrMeidNFTExists    = sdkerrors.Register(ModuleName, 1182, "meid-nft already exists")
-	ErrMeidNFTNotExists = sdkerrors.Register(ModuleName, 1183, "meid-nft not exists")
 
 	ErrParameter      = sdkerrors.Register(ModuleName, 1201, "parameter error")
 	ErrUnknownAccount = sdkerrors.Register(ModuleName, 1202, "Unknown account")
