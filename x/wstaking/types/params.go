@@ -17,7 +17,7 @@ func CheckMinDelegate(amount math.Int) error {
 	delAmount := sdk.NewDecFromInt(amount).Mul(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
 	minAmount, _ := sdk.NewDecFromStr(MinDelegateAmount)
 	if delAmount.LT(minAmount) {
-		errStr := fmt.Sprintf("minimum delegate amount is %s,not less than this value.input value = %s",
+		errStr := fmt.Sprintf("minimum delegate amount is %s, delegate value is %s",
 			MinDelegateAmount, amount.String())
 		return errors.New(errStr)
 	}
