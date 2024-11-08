@@ -16,7 +16,6 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/nft"
-	nftkeeper "github.com/cosmos/cosmos-sdk/x/nft/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -41,6 +40,7 @@ import (
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencertypes "github.com/st-chain/me-hub/x/sequencer/types"
+	wnftkeeper "github.com/st-chain/me-hub/x/wnft/keeper"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"io/ioutil"
@@ -81,11 +81,19 @@ func CreateUpgradeHandler(
 		migrateKycModule(ctx, keepers.KycKeeper, homePath)
 
 		ctx.Logger().Info("6.migrate kyc and did")
-		migrateKycData(ctx, keepers.StakingKeeper, keepers.DidKeeper, keepers.KycKeeper, keepers.NFTKeeper, homePath)
+		migrateKycData(ctx, keepers.StakingKeeper, keepers.DidKeeper, keepers.KycKeeper, keepers.WNFTKeeper, homePath)
+
+		//todo
+		ctx.Logger().Info("6.migrate nft ipfs uri")
+		migrateNftUri(ctx, keepers.WNFTKeeper, homePath)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
 		//ctx = ctx.WithChainID(metypes.V2ChainId)
+
+		ctx.Logger().Info("6.migrate region class id, fix name...")
+		migrateRegionClassName()
+
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}
 }
@@ -251,7 +259,7 @@ func migrateKycData(ctx sdk.Context,
 	stakingKeeper *wstakingkeeper.Keeper,
 	didKeeper *didkeeper.Keeper,
 	kycKeeper *kyckeeper.Keeper,
-	nftKeeper nftkeeper.Keeper,
+	nftKeeper *wnftkeeper.Keeper,
 	homePath string) {
 	// get all data from old module
 	meids := stakingKeeper.GetAllMeid(ctx)
@@ -299,7 +307,7 @@ func migrateKycData(ctx sdk.Context,
 	//oldKeeper.ClearAllData(ctx)
 }
 
-func migrateNFTtoSBT(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, oldRecord types.Meid, nftKeeper nftkeeper.Keeper, kycKeeper *kyckeeper.Keeper, did string) {
+func migrateNFTtoSBT(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, oldRecord types.Meid, nftKeeper *wnftkeeper.Keeper, kycKeeper *kyckeeper.Keeper, did string) {
 	region, found := stakingKeeper.GetRegion(ctx, oldRecord.RegionId)
 	if !found {
 		panic(fmt.Sprintf("kyc: region %s not found", oldRecord.RegionId))
@@ -345,6 +353,26 @@ func migrateNFTtoSBT(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, oldR
 	//}
 }
 
+func migrateNftUri(ctx sdk.Context,
+	nftKeeper *wnftkeeper.Keeper,
+	homePath string) {
+	classlist := nftKeeper.GetClasses(ctx)
+
+	for _, class := range classlist {
+		if class.Id == kyctypes.ModuleName {
+			continue
+		}
+		nftList := nftKeeper.GetNFTsOfClass(ctx, class.Id)
+		for _, nftInfo := range nftList {
+			//nft.Uri = strings.ReplaceAll(nft.Uri, "ipfs://", "XXXXXXXXXXXXXXXXXXXXX") todo
+			err := nftKeeper.Update(ctx, nftInfo)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+}
+
 func ReadKycPubkey(homePath string) (map[string]string, error) {
 	data, err := ioutil.ReadFile(filepath.Join(homePath, "kyc_pubkey.json"))
 	if err != nil {
@@ -381,4 +409,21 @@ func ReadDID(path string) (map[string]string, error) {
 		return nil, err
 	}
 	return list, nil
+}
+
+func migrateRegionClassName(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, nftKeeper *wnftkeeper.Keeper) {
+	regions := stakingKeeper.GetAllRegion(ctx)
+	for _, regionObj := range regions {
+		newClassId := regionObj.NftClassId[:len(regionObj.NftClassId)-1]
+		class, found := nftKeeper.GetClass(ctx, regionObj.NftClassId)
+		if found {
+			class.Id = newClassId
+			err := nftKeeper.UpdateClass(ctx, class)
+			if err != nil {
+				panic(err)
+			}
+		}
+		regionObj.NftClassId = newClassId
+		stakingKeeper.SetRegion(ctx, regionObj)
+	}
 }

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 )
 
@@ -29,6 +30,21 @@ func CheckRegionName(name string) (string, error) {
 		}
 	}
 	return "", nil
+}
+
+func CheckIsRegionName(name string) bool {
+	re := regexp.MustCompile(`^.+-NFT-CLASS-ID$`)
+	if !re.MatchString(name) {
+		return false
+	}
+
+	nameSli := strings.Split(name, "-")
+	for _, code := range nameSli {
+		if _, isFind := regionNameMap[code]; isFind {
+			return true
+		}
+	}
+	return false
 }
 
 var RegionName = `ABW-阿鲁巴,

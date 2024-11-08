@@ -77,6 +77,7 @@ import (
 	wdistr "github.com/st-chain/me-hub/x/wdistri"
 	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 	"github.com/st-chain/me-hub/x/wmint"
+	"github.com/st-chain/me-hub/x/wnft"
 	"github.com/st-chain/me-hub/x/wstaking"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 
@@ -100,7 +101,6 @@ import (
 	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	"github.com/st-chain/me-hub/x/rollapp"
 
-	nftmodule "github.com/cosmos/cosmos-sdk/x/nft/module"
 	rollappmoduleclient "github.com/st-chain/me-hub/x/rollapp/client"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
 	"github.com/st-chain/me-hub/x/sequencer"
@@ -172,7 +172,8 @@ var ModuleBasics = module.NewBasicManager(
 	incentives.AppModuleBasic{},
 	txfees.AppModuleBasic{},
 	dao.AppModuleBasic{},
-	nftmodule.AppModuleBasic{},
+	//nftmodule.AppModuleBasic{},
+	wnft.AppModuleBasic{},
 	wasm.AppModuleBasic{},
 )
 
@@ -230,7 +231,7 @@ func (a *AppKeepers) SetupModules(
 		txfees.NewAppModule(*a.TxFeesKeeper),
 		dao.NewAppModule(appCodec, a.DaoKeeper),
 
-		nftmodule.NewAppModule(appCodec, a.NFTKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
+		wnft.NewAppModule(appCodec, a.WNFTKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
 		wasm.NewAppModule(appCodec, &a.WasmKeeper, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, bApp.MsgServiceRouter(), a.GetSubspace(wasmtypes.ModuleName)),
 	}
 }

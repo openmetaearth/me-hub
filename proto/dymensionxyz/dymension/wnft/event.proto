@@ -1,0 +1,14 @@
+syntax = "proto3";
+package dymensionxyz.dymension.wnft;
+
+option go_package = "github.com/st-chain/me-hub/x/wnft/types";
+
+// EventNewClass is emitted on NewClass
+message EventNewClass {
+  // class_id associated with the nft
+  string class_id = 1;
+
+  string total_supply = 2;
+
+}
+
