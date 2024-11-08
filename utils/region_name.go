@@ -33,7 +33,7 @@ func CheckRegionName(name string) (string, error) {
 }
 
 func CheckIsRegionName(name string) bool {
-	re := regexp.MustCompile(`^.+-NFT-CLASS-ID-$`)
+	re := regexp.MustCompile(`^.+-NFT-CLASS-ID$`)
 	if !re.MatchString(name) {
 		return false
 	}

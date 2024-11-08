@@ -91,6 +91,9 @@ func CreateUpgradeHandler(
 		logger.Debug("running module migrations ...")
 		//ctx = ctx.WithChainID(metypes.V2ChainId)
 
+		ctx.Logger().Info("6.migrate region class id, fix name...")
+		migrateRegionClassName()
+
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}
 }
@@ -360,9 +363,9 @@ func migrateNftUri(ctx sdk.Context,
 			continue
 		}
 		nftList := nftKeeper.GetNFTsOfClass(ctx, class.Id)
-		for _, nft := range nftList {
+		for _, nftInfo := range nftList {
 			//nft.Uri = strings.ReplaceAll(nft.Uri, "ipfs://", "XXXXXXXXXXXXXXXXXXXXX") todo
-			err := nftKeeper.Update(ctx, nft)
+			err := nftKeeper.Update(ctx, nftInfo)
 			if err != nil {
 				panic(err)
 			}
@@ -406,4 +409,21 @@ func ReadDID(path string) (map[string]string, error) {
 		return nil, err
 	}
 	return list, nil
+}
+
+func migrateRegionClassName(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, nftKeeper *wnftkeeper.Keeper) {
+	regions := stakingKeeper.GetAllRegion(ctx)
+	for _, regionObj := range regions {
+		newClassId := regionObj.NftClassId[:len(regionObj.NftClassId)-1]
+		class, found := nftKeeper.GetClass(ctx, regionObj.NftClassId)
+		if found {
+			class.Id = newClassId
+			err := nftKeeper.UpdateClass(ctx, class)
+			if err != nil {
+				panic(err)
+			}
+		}
+		regionObj.NftClassId = newClassId
+		stakingKeeper.SetRegion(ctx, regionObj)
+	}
 }
