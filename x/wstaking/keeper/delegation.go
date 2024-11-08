@@ -213,7 +213,6 @@ func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.A
 	delegation, isOK := del.(stakingtypes.Delegation)
 	if !isOK {
 		panic("withdrawDelegationRewards err:type Delegation assertion failed")
-		return nil, types.ErrAssertionFailed
 	}
 
 	rewards, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
