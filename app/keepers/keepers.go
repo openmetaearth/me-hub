@@ -245,6 +245,7 @@ func (a *AppKeepers) InitKeepers(
 	a.DaoKeeper = daokeeper.NewKeeper(
 		appCodec,
 		a.keys[daotypes.StoreKey],
+		a.AccountKeeper,
 	)
 
 	a.BankKeeper = wbankkeeper.NewKeeper(

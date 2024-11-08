@@ -160,7 +160,7 @@ func (k Keeper) Delegate(
 	if err = k.BankKeeper.DelegateCoinsFromAccountToModule(ctx, delegatorAddress, sendName, coins); err != nil {
 		return sdk.Dec{}, err
 	}
-	_, newShares = k.AddValidatorTokensAndShares(ctx, validator, bondAmt)
+
 	// Update delegation
 	if strings.ToLower(validator.Description.RegionID) == strings.ToLower(types.ExperienceRegionName) {
 		delegation.UnMeidAmount = delegation.UnMeidAmount.Add(bondAmt)
@@ -168,10 +168,9 @@ func (k Keeper) Delegate(
 		delegation.Amount = delegation.Amount.Add(bondAmt)
 	}
 	delegation.StartHeight = ctx.BlockHeight()
-	delegation.Shares = delegation.Shares.Add(newShares)
 	k.SetDelegation(ctx, delegation)
 
-	return newShares, nil
+	return sdk.NewDecFromInt(delegation.Amount), nil
 }
 
 // WithdrawDelegationRewards withdraw rewards from a delegation

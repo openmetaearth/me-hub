@@ -38,7 +38,7 @@ func (s *KeeperTestSuite) TestTransferKycRegion() {
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
 	inviter := s.Dao.GlobalDao
-	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter, s.meEarthValidator.Description.RegionId, s.Dao.GlobalDao)
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter, s.meEarthValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address
@@ -57,7 +57,7 @@ func (s *KeeperTestSuite) TestTransferKycRegion() {
 
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks + 1).WithChainID(apptesting.TestChainID)
 	// transfer kyc region
-	err = s.Keeper().TransferKycRegion(s.Ctx, kycAccount, s.Dao.GlobalDao, s.meEarthValidator.Description.RegionId, s.usaValidator.Description.RegionId)
+	err = s.Keeper().TransferKycRegion(s.Ctx, kycAccount, s.Dao.GlobalDao, s.meEarthValidator.Description.RegionID, s.usaValidator.Description.RegionID)
 	s.Require().NoError(err)
 
 	delegation, f = s.Keeper().GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})

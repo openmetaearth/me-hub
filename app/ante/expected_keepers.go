@@ -11,6 +11,7 @@ type DaoKeeper interface {
 	GetDevOperator(ctx sdk.Context) string
 	GetGlobalDao(ctx sdk.Context) string
 	GetMeidDao(ctx sdk.Context) string
+	GetGlobalDaoFeePoolAddr(ctx sdk.Context) sdk.AccAddress
 }
 
 type BankKeeper interface {
@@ -21,8 +22,6 @@ type StakingKeeper interface {
 	GetMeid(ctx sdk.Context, account string) (val types.Meid, found bool)
 	GetValOwnerAddress(ctx sdk.Context, meidAddress string) (string, error)
 	GetProposerOwnerAddress(ctx sdk.Context) (string, error)
-
-	GetGlobalAdminFeePoolAddr(ctx sdk.Context) sdk.AccAddress
 }
 
 type DidKeeper interface {

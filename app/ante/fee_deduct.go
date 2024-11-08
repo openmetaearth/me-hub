@@ -201,7 +201,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 				Coins:   fee20})
 
 			outputs = append(outputs, banktypes.Output{
-				Address: dfd.stakingKeeper.GetGlobalAdminFeePoolAddr(ctx).String(),
+				Address: dfd.daoKeeper.GetGlobalDaoFeePoolAddr(ctx).String(),
 				Coins:   fee30,
 			})
 
@@ -210,7 +210,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			if ok {
 				fee40Address = contractOwner
 			} else {
-				fee40Address = dfd.stakingKeeper.GetGlobalAdminFeePoolAddr(ctx).String()
+				fee40Address = dfd.daoKeeper.GetGlobalDaoFeePoolAddr(ctx).String()
 			}
 			outputs = append(outputs, banktypes.Output{
 				Address: fee40Address,
