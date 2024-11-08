@@ -30,12 +30,12 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 	}
 
 	if delegation.Amount.Add(delegation.UnMeidAmount).GT(sdk.ZeroInt()) {
-		return types.ErrTransferRegion.Wrap(fmt.Sprintf("The current user(%s) have delegate, need to withdrow.", address))
+		return types.ErrTransferRegion.Wrap(fmt.Sprintf("The current user(%s) have delegate, need to withdraw.", address))
 	}
 
 	fixedCount := len(k.GetFixedDepositByAcct(ctx, address.String()))
 	if fixedCount > 0 {
-		return types.ErrTransferRegion.Wrap(fmt.Sprintf("The current user(%s) have fixed deposit, need to withdrow.", address))
+		return types.ErrTransferRegion.Wrap(fmt.Sprintf("The current user(%s) have fixed deposit, need to withdraw.", address))
 	}
 
 	// fix validator meid amount
@@ -51,12 +51,12 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 
 	err := k.RemoveKycReward(ctx, address, fromRegionId)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrDidReward, err.Error())
+		return sdkerrors.Wrapf(types.ErrRemoveKycReward, err.Error())
 	}
 
 	err = k.SendKycRewards(ctx, address, valAddr, "", validator, toRegion)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrDidReward, err.Error())
+		return sdkerrors.Wrapf(types.ErrSendKycReward, err.Error())
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{

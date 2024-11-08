@@ -14,7 +14,7 @@ import (
 
 func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, regionId, creator string) error {
 	if regionId == strings.ToLower(types.ExperienceRegionName) {
-		return sdkerrors.Wrapf(types.ErrDidReward, fmt.Sprintf("cannot set kyc to %s region", regionId))
+		return sdkerrors.Wrapf(types.ErrSendKycReward, fmt.Sprintf("cannot set kyc to %s region", regionId))
 	}
 
 	region, found := k.GetRegion(ctx, regionId)
@@ -33,14 +33,14 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 	}
 
 	if validator.MeidAmount.Add(types.Bonus).GT(validator.Tokens) {
-		return sdkerrors.Wrapf(types.ErrDidReward, fmt.Sprintf("validator reach meid limit"))
+		return sdkerrors.Wrapf(types.ErrSendKycReward, fmt.Sprintf("validator reach meid limit"))
 	}
 
 	validator.MeidAmount = validator.MeidAmount.Add(types.Bonus)
 
 	err = k.SendKycRewards(ctx, account, valAddr, inviteAddr, validator, region)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrDidReward, err.Error())
+		return sdkerrors.Wrapf(types.ErrSendKycReward, err.Error())
 	}
 
 	//validator rewards
@@ -66,6 +66,20 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 }
 
 func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionId string) error {
+	delegation, found := k.GetDelegation(ctx, account, sdk.ValAddress{})
+	if !found {
+		return types.ErrNoDelegatorForAddress
+	}
+
+	if delegation.Amount.Add(delegation.UnMeidAmount).GT(sdk.ZeroInt()) {
+		return types.ErrRemoveKyc.Wrap(fmt.Sprintf("The current user(%s) have delegate, need to withdraw.", account))
+	}
+
+	fixedCount := len(k.GetFixedDepositByAcct(ctx, account.String()))
+	if fixedCount > 0 {
+		return types.ErrRemoveKyc.Wrap(fmt.Sprintf("The current user(%s) have fixed deposit, need to withdraw.", account))
+	}
+
 	region, found := k.GetRegion(ctx, regionId)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrRegionNotExist, fmt.Sprintf("%s not exists", regionId))
@@ -73,17 +87,17 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 
 	valAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, fmt.Sprintf("region bonded validator no found"))
+		return fmt.Errorf("invalid region operator address")
 	}
 
 	validator, ok := k.GetValidator(ctx, valAddr)
 	if !ok {
-		return sdkerrors.Wrapf(types.ErrDidReward, fmt.Sprintf("region bonded validator no found"))
+		return fmt.Errorf("region bonded validator not found")
 	}
 
-	_, err = k.removeKycReward(ctx, account, valAddr, region, stakingtypes.Delegation{})
+	_, err = k.removeKycReward(ctx, account, valAddr, region)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrDidReward, fmt.Sprintf("%v", err))
+		return err
 	}
 
 	validator.MeidAmount = validator.MeidAmount.Sub(types.Bonus)
@@ -112,7 +126,6 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
 		if err != nil {
 			return types.ErrCalculateInterest.Wrap(err.Error())
 		}
-
 		// add coins to user account
 		if interest.GT(sdk.ZeroDec()) {
 			err = k.BankKeeper.SendCoins(ctx,
@@ -122,20 +135,20 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
 			if err != nil {
 				return err
 			}
-			if experienceRegion.DelegateInterest.GTE(interest) {
-				experienceRegion.DelegateInterest = experienceRegion.DelegateInterest.Sub(interest)
-			}
-			experienceRegion.DelegateAmount = experienceRegion.DelegateAmount.Sub(delegation.UnMeidAmount)
-			k.SetRegion(ctx, experienceRegion)
+		}
+		if experienceRegion.DelegateInterest.GTE(interest) {
+			experienceRegion.DelegateInterest = experienceRegion.DelegateInterest.Sub(interest)
+		}
+		experienceRegion.DelegateAmount = experienceRegion.DelegateAmount.Sub(delegation.UnMeidAmount)
+		k.SetRegion(ctx, experienceRegion)
 
-			experienceVal, ok := k.GetValidator(ctx, experienceValAddress)
-			if !ok {
-				return fmt.Errorf("experience region validator no found")
-			}
-			if experienceVal.DelegationAmount.GTE(delegation.Amount) {
-				experienceVal.DelegationAmount = experienceVal.DelegationAmount.Sub(delegation.Amount)
-				k.SetValidator(ctx, experienceVal)
-			}
+		experienceVal, ok := k.GetValidator(ctx, experienceValAddress)
+		if !ok {
+			return fmt.Errorf("experience region validator no found")
+		}
+		if experienceVal.DelegationAmount.GTE(delegation.UnMeidAmount) {
+			experienceVal.DelegationAmount = experienceVal.DelegationAmount.Sub(delegation.UnMeidAmount)
+			k.SetValidator(ctx, experienceVal)
 		}
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(
@@ -158,13 +171,9 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
 	delegation.ValidatorAddress = validatorAddr.String()
 	treasureAddr := k.GetRegionAccount(ctx, types.RegionAccountTypeBase, region.RegionId)
 	if len(inviteAddr) > 0 {
-		addr, err := sdk.AccAddressFromBech32(inviteAddr)
+		err = k.BankKeeper.SendCoins(ctx, treasureAddr.GetAddress(), sdk.MustAccAddressFromBech32(inviteAddr), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.InviteReward)))
 		if err != nil {
-			return err
-		}
-		err = k.BankKeeper.SendCoins(ctx, treasureAddr.GetAddress(), addr, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.InviteReward)))
-		if err != nil {
-			return err
+			return fmt.Errorf("send kyc reward to inviter, %v", err)
 		}
 	}
 
@@ -178,7 +187,7 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
 		sdk.MustAccAddressFromBech32(ownerAddress),
 		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.ValidatorReward)))
 	if err != nil {
-		return err
+		return fmt.Errorf("send kyc reward to validator, %v", err)
 	}
 
 	//committee rewards
@@ -187,7 +196,7 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
 		sdk.MustAccAddressFromBech32(k.DaoKeeper.GetDevOperator(ctx)),
 		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.CommitteeReward)))
 	if err != nil {
-		return err
+		return fmt.Errorf("send kyc reward to committee, %v", err)
 	}
 
 	delegation.Amount = delegation.Amount.Add(delegation.UnMeidAmount)
@@ -202,18 +211,15 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
 	return nil
 }
 
-func (k Keeper) removeKycReward(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, region types.Region, delegation stakingtypes.Delegation) (amount math.Int, err error) {
-	if delegation == (stakingtypes.Delegation{}) {
-		var found bool
-		delegation, found = k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
-		if !found {
-			return amount, stakingtypes.ErrNoDelegatorForAddress
-		}
+func (k Keeper) removeKycReward(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, region types.Region) (amount math.Int, err error) {
+	delegation, found := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
+	if !found {
+		return amount, stakingtypes.ErrNoDelegatorForAddress
 	}
 
-	region.DelegateAmount = region.DelegateAmount.Sub(types.Bonus)
+	region.DelegateAmount = region.DelegateAmount.Sub(types.Bonus).Sub(delegation.Amount)
 	if region.DelegateAmount.LT(sdk.ZeroInt()) {
-		return amount, errors.New("UnRegisterMeid err: region DelegationAmount < 0")
+		return amount, errors.New("remove kyc error: region delegation amount less than 0")
 	}
 
 	rewards, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
@@ -221,14 +227,11 @@ func (k Keeper) removeKycReward(ctx sdk.Context, delAddr sdk.AccAddress, valAddr
 		return amount, types.ErrCalculateInterest.Wrap(err.Error())
 	}
 
-	regionTreasureAddr, err := sdk.AccAddressFromBech32(region.RegionTreasureAddr)
+	// settle interest
+	err = k.BankKeeper.SendCoins(ctx, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), delAddr,
+		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())))
 	if err != nil {
-		return amount, err
-	}
-
-	err = k.BankKeeper.SendCoins(ctx, regionTreasureAddr, delAddr, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())))
-	if err != nil {
-		return amount, err
+		return amount, fmt.Errorf("settle interest error: %v", err)
 	}
 
 	if region.DelegateInterest.GTE(rewards) {

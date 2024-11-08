@@ -80,6 +80,8 @@ service Query {
   rpc Stakes(QueryStakesRequest) returns (QueryStakesResponse) {
     option (google.api.http).get = "/cosmos/staking/v1beta1/stakes";
   }
+
+
 }
 
 message QueryRegionRequest {

@@ -124,7 +124,7 @@ func (suite *KeeperTestSuite) TestMigrateValidator() {
 			Website:         "",
 			SecurityContact: "",
 			Details:         "",
-			RegionId:        "usa",
+			RegionID:        "usa",
 		},
 		UnbondingHeight:         0,
 		UnbondingTime:           time.Time{},
