@@ -92,7 +92,7 @@ func CreateUpgradeHandler(
 		//ctx = ctx.WithChainID(metypes.V2ChainId)
 
 		ctx.Logger().Info("6.migrate region class id, fix name...")
-		migrateRegionClassName()
+		migrateRegionClassName(ctx, keepers.StakingKeeper, keepers.WNFTKeeper)
 
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}
