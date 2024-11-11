@@ -40,7 +40,10 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	if err != nil {
 		return nil, err
 	}
-
+	regionTreasureAddr, err := sdk.AccAddressFromBech32(region.RegionTreasureAddr)
+	if err != nil {
+		return nil, err
+	}
 	bondDenom := k.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
 		return nil, sdkerrors.Wrapf(
@@ -95,7 +98,11 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	k.SetRegion(ctx, region)
 	val.DelegationAmount = val.DelegationAmount.Sub(msg.Amount.Amount)
 	k.SetValidator(ctx, val)
-
+	//send delegation rewards
+	err = k.BankKeeper.SendCoins(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())))
+	if err != nil {
+		return nil, err
+	}
 	if msg.Amount.Amount.IsInt64() {
 		defer func() {
 			telemetry.IncrCounter(1, stakingtypes.ModuleName, "undelegate")
