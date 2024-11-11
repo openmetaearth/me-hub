@@ -63,6 +63,14 @@ func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.
 		completionTime = ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
 		ubd := k.SetUnbondingDelegationEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, returnAmount)
 		k.InsertUBDQueue(ctx, ubd, completionTime)
+
+		allAmount := k.GetAllUnMeidDelegationAmount(ctx)
+		if allAmount.Amount.IsNil() {
+			allAmount.Amount = sdk.ZeroInt()
+		}
+		allAmount.Amount = allAmount.Amount.Sub(returnAmount)
+		allAmount.Denom = k.BondDenom(ctx)
+		k.SetAllUnMEIDDelegationAmount(ctx, allAmount)
 	} else {
 		amt := sdk.NewCoin(params.BaseDenom, returnAmount)
 		err = k.BankKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delAddr, sdk.NewCoins(amt))
