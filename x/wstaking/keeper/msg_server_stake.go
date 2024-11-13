@@ -145,7 +145,7 @@ func (k MsgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 			types.EventTypeUnstake,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
+			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.UTC().Format(time.RFC3339)),
 		),
 	})
 
