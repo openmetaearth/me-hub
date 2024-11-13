@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/hex"
 	"strings"
 
 	"cosmossdk.io/errors"
@@ -68,7 +69,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 		Symbol:      types.GetClassSymbol(msg.Name),
 		Description: types.GetClassDescription(regionId),
 		Uri:         uri,
-		UriHash:     string(uriHash[:]),
+		UriHash:     hex.EncodeToString(uriHash),
 	}
 	err = k.nftKeeper.SaveClass(ctx, nftClass)
 	if err != nil {
@@ -88,7 +89,11 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	if regionId == strings.ToLower(types.ExperienceRegionName) {
 		region.DepositInterestAddr = ""
 	}
+	event4Nft := utils.GenEventCompactAttr(types.EventNewNftClass, nftClass)
 	k.SetRegion(ctx, region)
+	ctx.EventManager().EmitEvent(event4Nft)
+	event4NewRegion := utils.GenEventCompactAttr(types.EventNewRegion, region)
+	ctx.EventManager().EmitEvent(event4NewRegion)
 	return &types.MsgNewRegionResponse{}, nil
 }
 
