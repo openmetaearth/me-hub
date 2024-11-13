@@ -94,7 +94,6 @@ func (dfd DeductFeeDecorator) ParseWasmMsgContractOwner(ctx sdk.Context, tx sdk.
 }
 
 func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
-	//log := ctx.Logger()
 	feeTx, ok := tx.(sdk.FeeTx)
 	if !ok {
 		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
