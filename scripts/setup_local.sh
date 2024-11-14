@@ -121,4 +121,4 @@ med collect-gentxs
 set_authorised_deployer_account "$(med keys show "$KEY_NAME" -a --keyring-backend test)"
 
 med validate-genesis
-med start
+#med start
