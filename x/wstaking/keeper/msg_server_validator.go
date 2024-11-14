@@ -155,10 +155,12 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 	if err != nil {
 		return nil, err
 	}
-	validator.Description = description
-	if msg.Description.RegionID != stakingtypes.DoNotModifyDesc {
-		validator.Description.RegionID = msg.Description.RegionID
+	if msg.Description.RegionID == stakingtypes.DoNotModifyDesc {
+		description.RegionID = validator.Description.RegionID
+	} else {
+		description.RegionID = msg.Description.RegionID
 	}
+	validator.Description = description
 
 	if msg.CommissionRate != nil {
 		commission, err := k.UpdateValidatorCommission(ctx, validator, *msg.CommissionRate)
