@@ -71,9 +71,12 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 		Uri:         uri,
 		UriHash:     hex.EncodeToString(uriHash),
 	}
-	err = k.nftKeeper.SaveClass(ctx, nftClass)
-	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrRegionAlreadyExist, "nft classe save error")
+	_, nftClassFound := k.nftKeeper.GetClass(ctx, nftClass.Id)
+	if !nftClassFound {
+		err = k.nftKeeper.SaveClass(ctx, nftClass)
+		if err != nil {
+			return nil, sdkerrors.Wrapf(types.ErrRegionAlreadyExist, "save nft class: %v", err)
+		}
 	}
 
 	region := types.Region{

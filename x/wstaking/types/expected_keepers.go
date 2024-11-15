@@ -47,4 +47,5 @@ type MintKeeper interface {
 
 type NFTKeeper interface {
 	SaveClass(ctx sdk.Context, class nft.Class) error
+	GetClass(ctx sdk.Context, classID string) (nft.Class, bool)
 }

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -161,6 +162,15 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 		description.RegionID = msg.Description.RegionID
 	}
 	validator.Description = description
+
+	region, f := k.GetRegion(ctx, validator.Description.RegionID)
+	if !f {
+		return nil, sdkerrors.Wrapf(types.ErrRegionNotExist, "please set region first")
+	}
+
+	if region.OperatorAddress != validator.OperatorAddress {
+		return nil, fmt.Errorf("region id already bound to another validator(%s), please set region first", region.OperatorAddress)
+	}
 
 	if msg.CommissionRate != nil {
 		commission, err := k.UpdateValidatorCommission(ctx, validator, *msg.CommissionRate)

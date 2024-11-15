@@ -77,7 +77,7 @@ func (s *KeeperTestSuite) TestNewRegion() {
 
 			// check nft class
 			if test.expErr == nil {
-				_, found := s.App.NFTKeeper.GetClass(s.Ctx, types.GetClassId(test.regionName))
+				_, found := s.App.WNFTKeeper.GetClass(s.Ctx, types.GetClassId(test.regionName))
 				s.Require().True(found)
 			}
 		})
@@ -96,14 +96,6 @@ func (s *KeeperTestSuite) TestRemoveRegion() {
 
 	newRegion = types.MsgNewRegion{
 		Creator:         s.Dao.GlobalDao,
-		Name:            types.ExperienceRegionName,
-		OperatorAddress: s.experienceValidator.OperatorAddress,
-	}
-	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
-	s.Require().NoError(err)
-
-	newRegion = types.MsgNewRegion{
-		Creator:         s.Dao.GlobalDao,
 		Name:            "USA",
 		OperatorAddress: s.usaValidator.OperatorAddress,
 	}
@@ -113,7 +105,7 @@ func (s *KeeperTestSuite) TestRemoveRegion() {
 	// must have error
 	_, err = s.msgServer.RemoveRegion(s.Ctx, &types.MsgRemoveRegion{
 		Creator:  s.Dao.MeidDao,
-		RegionId: "USA",
+		RegionId: "usa",
 	})
 	s.Require().ErrorIs(err, types.ErrCheckGlobalDao)
 
@@ -127,6 +119,52 @@ func (s *KeeperTestSuite) TestRemoveRegion() {
 	// must error
 	_, err = s.queryClient.Region(s.Ctx, &types.QueryRegionRequest{RegionId: "usa"})
 	s.Require().ErrorIs(err, types.ErrRegionNotExist)
+}
+
+func (s *KeeperTestSuite) TestRemoveRegionThenCreateRegion() {
+	s.SetupTest()
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            types.MeEarthRegionName,
+		OperatorAddress: s.meEarthValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
+	newRegion = types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            "USA",
+		OperatorAddress: s.usaValidator.OperatorAddress,
+	}
+	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
+	// must have error
+	_, err = s.msgServer.RemoveRegion(s.Ctx, &types.MsgRemoveRegion{
+		Creator:  s.Dao.MeidDao,
+		RegionId: "usa",
+	})
+	s.Require().ErrorIs(err, types.ErrCheckGlobalDao)
+
+	// must no error
+	_, err = s.msgServer.RemoveRegion(s.Ctx, &types.MsgRemoveRegion{
+		Creator:  s.Dao.GlobalDao,
+		RegionId: "usa",
+	})
+	s.Require().NoError(err)
+
+	// must error
+	_, err = s.queryClient.Region(s.Ctx, &types.QueryRegionRequest{RegionId: "usa"})
+	s.Require().ErrorIs(err, types.ErrRegionNotExist)
+
+	// new region again
+	newRegion = types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            "USA",
+		OperatorAddress: s.usaValidator.OperatorAddress,
+	}
+	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
 }
 
 func (s *KeeperTestSuite) TestWithdrawFromRegion() {
