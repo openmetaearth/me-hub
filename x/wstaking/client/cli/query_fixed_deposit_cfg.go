@@ -18,7 +18,10 @@ func CmdListFixedDepositCfg() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			argRegionId := args[0]
 
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			queryClient := types.NewQueryClient(clientCtx)
 
@@ -49,7 +52,10 @@ func CmdQueryFixedDepositCfg() *cobra.Command {
 			argRegionId := args[0]
 			argTerm := args[1]
 
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			queryClient := types.NewQueryClient(clientCtx)
 
