@@ -120,13 +120,12 @@ $ %s tx bank send-to-treasury 1000mec --from global-dao
 // NewSendToAirdropTxCmd returns a CLI command handler for creating a MsgSendToAirdrop transaction.
 func NewSendToAirdropTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "sendToAirdrop [amount]",
+		Use:   "send-to-airdrop [amount]",
 		Short: "Send funds from region treasury to airdrop address.",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Send funds from region treasury to airdrop address.
-
 Example:
-$ %s tx bank sendToAirdrop 1000mec --from global-admin --region-id me_earth
+$ %s tx bank send-to-airdrop 1000mec --from global-admin --region-id me_earth
 `,
 				version.AppName,
 			),
