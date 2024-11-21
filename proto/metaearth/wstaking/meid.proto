@@ -1,0 +1,28 @@
+syntax = "proto3";
+package metaearth.wstaking;
+
+option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "tendermint/types/types.proto";
+import "amino/amino.proto";
+
+message Meid {
+  string account    = 1;
+  string creator    = 2;
+  string regionId   = 3;
+  string regionName = 4;
+  int32 RewardType = 5;
+}
+
+message MeidNFT {
+  string creator    = 1;
+  string account    = 2;
+  string regionId   = 3;
+  string regionName = 4;
+  // umeid means user meid.
+  string umeid      = 5;
+  string nft_id     = 6;
+}
