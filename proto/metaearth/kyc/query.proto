@@ -17,22 +17,22 @@ option go_package = "github.com/st-chain/me-hub/x/kyc/types";
 service Query {
   // query protocol
   rpc Protocol(QueryProtocol) returns (QueryProtocolResponse) {
-    option (google.api.http).get = "/kyc/protocol";
+    option (google.api.http).get = "/metaearth/kyc/protocol";
   }
   rpc DID(QueryDID) returns (QueryDIDResponse) {
-    option (google.api.http).get = "/kyc/DID";
+    option (google.api.http).get = "/metaearth/kyc/DID";
   }
   rpc DIDs(QueryDIDs) returns (QueryDIDsResponse) {
-    option (google.api.http).get = "/kyc/DIDs";
+    option (google.api.http).get = "/metaearth/kyc/DIDs";
   }
   rpc KYC(QueryKYC) returns (QueryKYCResponse) {
-    option (google.api.http).get = "/kyc/KYC";
+    option (google.api.http).get = "/metaearth/kyc/KYC";
   }
   rpc KYCs(QueryKYCs) returns (QueryKYCsResponse) {
-    option (google.api.http).get = "/kyc/KYCs";
+    option (google.api.http).get = "/metaearth/kyc/KYCs";
   }
   rpc SBT(QuerySBT) returns (QuerySBTResponse) {
-    option (google.api.http).get = "/kyc/SBT";
+    option (google.api.http).get = "/metaearth/kyc/SBT";
   }
 }
 

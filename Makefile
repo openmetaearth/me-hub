@@ -11,7 +11,7 @@ DOCKER := $(shell which docker)
 BUILDDIR ?= $(CURDIR)/build
 
 # Dependencies version
-DEPS_COSMOS_SDK_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos-sdk' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_COSMOS_SDK_VERSION := $(shell cat go.sum | grep 'github.com/st-chain/cosmos-sdk' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_ETHERMINT_VERSION := $(shell cat go.sum | grep 'github.com/dymensionxyz/ethermint' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_OSMOSIS_VERSION := $(shell cat go.sum | grep 'github.com/dymensionxyz/osmosis' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_IBC_GO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/ibc-go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
@@ -183,8 +183,10 @@ proto-gen:
 	@go mod tidy
 
 proto-swagger-gen:
+	@#echo "Downloading Protobuf dependencies"
+	@#make proto-download-deps
 	@echo "Generating Protobuf Swagger"
-	$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
+	@$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
 
 proto-format:
 	@$(protoCosmosImage) find ./ -name "*.proto" -exec clang-format -i {} \;
@@ -202,8 +204,7 @@ proto-download-deps:
 	git remote add origin "https://github.com/cosmos/cosmos-sdk.git" && \
 	git config core.sparseCheckout true && \
 	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
-	git fetch --depth=1 origin "$(DEPS_COSMOS_SDK_VERSION)" && \
-	git checkout FETCH_HEAD && \
+	git pull origin release/v0.47.x && \
 	rm -f ./proto/buf.* && \
 	mv ./proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/cosmos_tmp"
@@ -219,18 +220,6 @@ proto-download-deps:
 	rm -f ./proto/buf.* && \
 	mv ./proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/ethermint_tmp"
-
-	mkdir -p "$(THIRD_PARTY_DIR)/osmosis_tmp" && \
-	cd "$(THIRD_PARTY_DIR)/osmosis_tmp" && \
-	git init && \
-	git remote add origin "https://github.com/dymensionxyz/osmosis.git" && \
-	git config core.sparseCheckout true && \
-	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
-	git fetch --depth=1 origin "$(DEPS_OSMOSIS_VERSION)" && \
-	git checkout FETCH_HEAD && \
-	rm -f ./proto/buf.* && \
-	mv ./proto/* ..
-	rm -rf "$(THIRD_PARTY_DIR)/osmosis_tmp"
 
 	mkdir -p "$(THIRD_PARTY_DIR)/ibc_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/ibc_tmp" && \
@@ -265,5 +254,9 @@ proto-download-deps:
 
 	mkdir -p "$(THIRD_PARTY_DIR)/confio/ics23" && \
 	curl -sSL https://raw.githubusercontent.com/confio/ics23/$(DEPS_CONFIO_ICS23_VERSION)/proofs.proto > "$(THIRD_PARTY_DIR)/proofs.proto"
+
+	mkdir -p "$(THIRD_PARTY_DIR)/cosmos/ics23/v1" && \
+	curl -sSL "https://raw.githubusercontent.com/cosmos/ics23/refs/heads/master/proto/cosmos/ics23/v1/proofs.proto" > "$(THIRD_PARTY_DIR)/cosmos/ics23/v1/proofs.proto"
+
 
 .PHONY: proto-gen proto-swagger-gen proto-format proto-lint proto-download-deps

@@ -101,9 +101,9 @@ if [ ! "$answer" != "${answer#[Nn]}" ] ;then
   med keys add user --keyring-backend test
 
   # Add genesis accounts and provide coins to the accounts
-  med add-genesis-account $(med keys show pools --keyring-backend test -a) 1000000000000000000000000umec,10000000000uatom,500000000000uusd
+  med add-genesis-account $(med keys show pools --keyring-backend test -a) 1000000000000000000000000umec
   # Give some uatom to the local-user as well
-  med add-genesis-account $(med keys show user --keyring-backend test -a) 1000000000000000000000umec,10000000000uatom
+  med add-genesis-account $(med keys show user --keyring-backend test -a) 1000000000000000000000umec
 fi
 
 echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test

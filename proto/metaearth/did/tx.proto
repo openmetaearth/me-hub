@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "metaearth/did/did.proto";
-import "metaearth/did/service.proto";
+import "metaearth/did/credential_service.proto";
 import "metaearth/did/filter.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/did/types";

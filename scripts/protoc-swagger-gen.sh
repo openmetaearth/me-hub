@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 SWAGGER_DIR=./swagger-proto
 
@@ -10,7 +11,7 @@ printf "version: v1\nname: buf.build/dymensionxyz/dymension\n" > "$SWAGGER_DIR/p
 cp ./proto/buf.gen.swagger.yaml "$SWAGGER_DIR/proto/buf.gen.swagger.yaml"
 
 # copy existing proto files
-cp -r ./proto/dymension "$SWAGGER_DIR/proto"
+cp -r ./proto/metaearth "$SWAGGER_DIR/proto"
 
 # create temporary folder to store intermediate results from `buf generate`
 mkdir -p ./tmp-swagger-gen
@@ -37,4 +38,4 @@ swagger-combine ./docs/config.json -o ./docs/static/openapi.yml -f yaml --contin
 
 # clean swagger files
 rm -rf ./tmp-swagger-gen
-rm -rf "$SWAGGER_DIR"
+#rm -rf "$SWAGGER_DIR"
