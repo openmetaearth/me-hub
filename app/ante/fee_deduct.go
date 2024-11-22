@@ -143,7 +143,10 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			}
 			deductFeesFrom = feeGranter
 		}
-
+		err = dfd.checkFunds(ctx, tx, deductFeesFrom.String(), fee)
+		if err != nil {
+			return ctx, err
+		}
 		// deduct the fees
 		if !fee.IsZero() {
 			// DeductFees deducts fees from the given account.
@@ -229,6 +232,47 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	}
 	newCtx := ctx.WithPriority(priority)
 	return next(newCtx, tx, simulate)
+}
+func (dfd DeductFeeDecorator) checkFunds(ctx sdk.Context, tx sdk.Tx, feePayer string, fees sdk.Coins) error {
+	if len(fees.Denoms()) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "denom is empty")
+	}
+	userBalance := make(map[string]sdk.Coins)
+	userSendAmount := sdk.NewCoins()
+	for _, msg := range tx.GetMsgs() {
+		switch txMsg := msg.(type) {
+		case *banktypes.MsgSend:
+			userSendAmount = userBalance[txMsg.FromAddress]
+			userSendAmount = userSendAmount.Add(txMsg.Amount...)
+			if txMsg.FromAddress == feePayer {
+				userSendAmount = userSendAmount.Add(fees...)
+			}
+			userBalance[txMsg.FromAddress] = userSendAmount
+		}
+	}
+	if _, exists := userBalance[feePayer]; !exists {
+		userBalance[feePayer] = fees
+	}
+	for address, coins := range userBalance {
+		if len(coins) <= 0 {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid fee amount: %s", coins)
+		}
+		account, err := sdk.AccAddressFromBech32(address)
+		if err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address: %s", address)
+		}
+		balance := dfd.bk.GetBalance(ctx, account, coins[0].Denom)
+		sendTotalAmount := sdk.ZeroInt()
+
+		for _, coin := range coins {
+			sendTotalAmount = sendTotalAmount.Add(coin.Amount)
+		}
+
+		if balance.Amount.LT(sendTotalAmount) {
+			return sdkerrors.ErrInsufficientFunds.Wrapf("address %s expect %v, got %v", address, sendTotalAmount.String(), balance.Amount.String())
+		}
+	}
+	return nil
 }
 
 // checkTxFeeWithValidatorMinGasPrices implements the default fee logic, where the minimum price per
