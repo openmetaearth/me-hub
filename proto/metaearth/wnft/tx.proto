@@ -1,0 +1,50 @@
+syntax = "proto3";
+package metaearth.wnft;
+
+option go_package = "github.com/st-chain/me-hub/x/wnft/types";
+
+import "cosmos_proto/cosmos.proto";
+import "cosmos/msg/v1/msg.proto";
+
+// Msg defines the nft Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // NewClass defines a method to new class.
+  rpc NewClass(MsgNewClass) returns (MsgNewClassResponse);
+
+  // MintNFT defines a method to new nft.
+  rpc MintNFT(MsgMintNFT) returns (MsgMintNFTResponse);
+}
+
+message MsgNewClass {
+  option (cosmos.msg.v1.signer) = "sender";
+
+  // class_id defines the unique identifier of the nft classification, similar to the contract address of ERC721
+  string class_id = 1;
+
+  uint64 total_supply = 2;
+
+  // sender is the address of the owner of nft
+  string sender = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// MsgNewClassResponse defines the Msg/NewClass response type.
+message MsgNewClassResponse {}
+
+message MsgMintNFT {
+  option (cosmos.msg.v1.signer) = "sender";
+
+  // class_id defines the unique identifier of the nft classification, similar to the contract address of ERC721
+  string class_id = 1;
+
+  string token_id = 2;
+
+  string uri = 3;
+
+  // sender is the address of the owner of nft
+  string sender = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// MsgMintResponse defines the Msg/Mint response type.
+message MsgMintNFTResponse {}

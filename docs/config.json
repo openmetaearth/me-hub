@@ -7,7 +7,7 @@
   },
   "apis": [
     {
-      "url": "./tmp-swagger-gen/dymension/delayedack/query.swagger.json",
+      "url": "./tmp-swagger-gen/metaearth/delayedack/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "DelayedAckParams"
@@ -15,7 +15,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/dymension/eibc/query.swagger.json",
+      "url": "./tmp-swagger-gen/metaearth/eibc/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "EIbcParams"
@@ -23,7 +23,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/dymension/rollapp/query.swagger.json",
+      "url": "./tmp-swagger-gen/metaearth/rollapp/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "RollAppParams"
@@ -31,7 +31,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/dymension/sequencer/query.swagger.json",
+      "url": "./tmp-swagger-gen/metaearth/sequencer/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "SequencerParams"
@@ -39,7 +39,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/dymension/streamer/query.swagger.json",
+      "url": "./tmp-swagger-gen/metaearth/streamer/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "StreamerParams",
@@ -61,52 +61,6 @@
         "rename": {
           "Params": "FeeMarketParams",
           "BaseFee": "FeeMarketBaseFee"
-        }
-      }
-    },
-    {
-      "url": "./tmp-swagger-gen/osmosis/gamm/v2/query.swagger.json",
-      "operationIds": {
-        "rename": {
-          "SpotPrice": "SpotPriceV2"
-        }
-      }
-    },
-    {
-      "url": "./tmp-swagger-gen/osmosis/gamm/v1beta1/query.swagger.json",
-      "operationIds": {
-        "rename": {
-          "Params": "GammParams",
-          "SpotPrice": "SpotPriceV1beta1",
-          "Pool": "GammPool"
-        }
-      }
-    },
-    {
-      "url": "./tmp-swagger-gen/osmosis/epochs/query.swagger.json"
-    },
-    {
-      "url": "./tmp-swagger-gen/osmosis/incentives/query.swagger.json",
-      "operationIds": {
-        "rename": {
-          "Params": "IncentivesParams",
-          "ModuleToDistributeCoins": "IncentivesModuleToDistributeCoins"
-        }
-      }
-    },
-    {
-      "url": "./tmp-swagger-gen/osmosis/lockup/query.swagger.json",
-      "operationIds": {
-        "rename": {
-          "Params": "LockupParams"
-        }
-      }
-    },
-    {
-      "url": "./tmp-swagger-gen/osmosis/txfees/v1beta1/query.swagger.json",
-      "operationIds": {
-        "rename": {
-          "Params": "TxFeesParams"
         }
       }
     },

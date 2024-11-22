@@ -8,34 +8,34 @@ import "google/api/annotations.proto";
 import "metaearth/did/credential.proto";
 import "metaearth/did/did.proto";
 import "metaearth/did/filter.proto";
-import "metaearth/did/service.proto";
+import "metaearth/did/credential_service.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/did/types";
 
 service Query {
   // query user did doc
   rpc Did(QueryDid) returns (QueryDidResponse) {
-    option (google.api.http).get = "/did/did";
+    option (google.api.http).get = "/metaearth/did/did";
   }
 
   rpc DidDocument(QueryDidDocument) returns (QueryDidDocumentResponse) {
-    option (google.api.http).get = "/did/didDocument";
+    option (google.api.http).get = "/metaearth/did/didDocument";
   }
 
   rpc Service(QueryService) returns (QueryServiceResponse) {
-    option (google.api.http).get = "/did/service";
+    option (google.api.http).get = "/metaearth/did/service";
   }
 
   rpc Credential(QueryCredential) returns (QueryCredentialResponse) {
-    option (google.api.http).get = "/did/credential";
+    option (google.api.http).get = "/metaearth/did/credential";
   }
 
   rpc Credentials(QueryCredentials) returns (QueryCredentialsResponse) {
-    option (google.api.http).get = "/did/credentials";
+    option (google.api.http).get = "/metaearth/did/credentials";
   }
   // Queries a list of DidInfos items.
   rpc DidInfos(QueryDidInfosRequest) returns (QueryDidInfosResponse) {
-    option (google.api.http).get = "/st-chain/me-hub/kyc/did_infos";
+    option (google.api.http).get = "/metaearth/did/did_infos";
   }
 }
 

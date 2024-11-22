@@ -340,6 +340,7 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 		RegisterSwaggerAPI(clientCtx, apiSvr.Router)
 	}
 	HealthcheckRegister(clientCtx, apiSvr.Router)
+	docs.RegisterOpenAPIService(appparams.Name, apiSvr.Router)
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
