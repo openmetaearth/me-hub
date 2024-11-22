@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 
@@ -17,9 +18,10 @@ func (k Keeper) FixedDepositAll(c context.Context, req *types.QueryAllFixedDepos
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	fixedDeposits := k.GetAllFixedDeposit(ctx)
 
-	return &types.QueryAllFixedDepositResponse{FixedDeposit: fixedDeposits}, nil
+	fixedDeposits, pageRes, err := k.GetAllFixedDepositWithPage(ctx, req)
+
+	return &types.QueryAllFixedDepositResponse{FixedDeposit: fixedDeposits, Pagination: pageRes}, err
 }
 
 func (k Keeper) FixedDeposit(c context.Context, req *types.QueryGetFixedDepositRequest) (*types.QueryGetFixedDepositResponse, error) {
