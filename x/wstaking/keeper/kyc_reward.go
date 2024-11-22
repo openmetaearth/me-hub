@@ -38,7 +38,7 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 
 	validator.MeidAmount = validator.MeidAmount.Add(types.Bonus)
 
-	err = k.SendKycRewards(ctx, account, valAddr, inviteAddr, validator, region)
+	err = k.SendKycRewards(ctx, account, valAddr, inviteAddr, validator, region, false)
 	if err != nil {
 		return sdkerrors.Wrapf(types.ErrSendKycReward, err.Error())
 	}
@@ -105,8 +105,8 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 	return nil
 }
 
-func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
-	validatorAddr sdk.ValAddress, inviteAddr string, validator stakingtypes.Validator, region types.Region) (err error) {
+func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
+	inviteAddr string, validator stakingtypes.Validator, region types.Region, isTransferRegion bool) (err error) {
 	delegation, found := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
 	if found {
 		experienceRegion, hasRegion := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegionName))
@@ -190,13 +190,15 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress,
 		return fmt.Errorf("send kyc reward to validator, %v", err)
 	}
 
-	//committee rewards
-	err = k.BankKeeper.SendCoins(ctx,
-		treasureAddr.GetAddress(),
-		sdk.MustAccAddressFromBech32(k.DaoKeeper.GetDevOperator(ctx)),
-		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.CommitteeReward)))
-	if err != nil {
-		return fmt.Errorf("send kyc reward to committee, %v", err)
+	if !isTransferRegion {
+		//committee rewards
+		err = k.BankKeeper.SendCoins(ctx,
+			treasureAddr.GetAddress(),
+			sdk.MustAccAddressFromBech32(k.DaoKeeper.GetDevOperator(ctx)),
+			sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.CommitteeReward)))
+		if err != nil {
+			return fmt.Errorf("send kyc reward to committee, %v", err)
+		}
 	}
 
 	delegation.Amount = delegation.Amount.Add(delegation.UnMeidAmount)

@@ -54,7 +54,7 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 		return sdkerrors.Wrapf(types.ErrRemoveKycReward, err.Error())
 	}
 
-	err = k.SendKycRewards(ctx, address, valAddr, "", validator, toRegion)
+	err = k.SendKycRewards(ctx, address, valAddr, "", validator, toRegion, true)
 	if err != nil {
 		return sdkerrors.Wrapf(types.ErrSendKycReward, err.Error())
 	}
@@ -67,6 +67,9 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 			sdk.NewAttribute(types.AttributeKeyFromRegion, fromRegionId),
 			sdk.NewAttribute(types.AttributeKeyToRegion, toRegionId),
 			sdk.NewAttribute(types.AttributeKeyRewards, types.Bonus.String()+params.BaseDenom),
+			sdk.NewAttribute(types.AttributeKeySendMeidInviteAddress, toRegion.RegionTreasureAddr),
+			sdk.NewAttribute(types.AttributeKeyReceiveMeidInviteAddress_Node, validator.OwnerAddress),
+			sdk.NewAttribute(types.AttributeKeyMeidNumAddReward, types.ValidatorReward.String()+params.BaseDenom),
 		),
 	})
 	return nil

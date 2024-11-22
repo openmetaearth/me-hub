@@ -16,6 +16,7 @@ type DaoKeeper interface {
 
 type BankKeeper interface {
 	FeeToReceivers(ctx sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output) error
+	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
 }
 
 type StakingKeeper interface {
