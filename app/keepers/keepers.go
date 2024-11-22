@@ -292,6 +292,8 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 	)
 
+	a.StakingKeeper.WMintKeeper = a.MintKeeper
+
 	a.DistrKeeper = wdistrkeeper.NewKeeper(
 		appCodec,
 		a.keys[wdistrtypes.StoreKey],
