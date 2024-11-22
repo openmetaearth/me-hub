@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"math/big"
+
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -9,9 +11,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	kyckeeper "github.com/st-chain/me-hub/x/kyc/keeper"
-	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"math/big"
 )
 
 type Keeper struct {
@@ -21,7 +21,7 @@ type Keeper struct {
 	AuthKeeper    banktypes.AccountKeeper
 	BankKeeper    types.BankKeeper
 	DaoKeeper     types.DaoKeeper
-	WMintKeeper   wmintkeeper.Keeper
+	WMintKeeper   types.MintKeeper
 	nftKeeper     types.NFTKeeper
 	wstakingHooks types.WstakingHooks
 	KycKeeper     *kyckeeper.Keeper
@@ -34,6 +34,7 @@ func NewKeeper(
 	bk types.BankKeeper,
 	dk types.DaoKeeper,
 	nk types.NFTKeeper,
+	mk types.MintKeeper,
 	authority string,
 ) *Keeper {
 	return &Keeper{
@@ -45,6 +46,7 @@ func NewKeeper(
 		DaoKeeper:     dk,
 		nftKeeper:     nk,
 		wstakingHooks: nil,
+		WMintKeeper:   nil,
 	}
 }
 
