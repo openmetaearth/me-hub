@@ -124,8 +124,8 @@ func (m *BlockDescriptors) GetBD() []BlockDescriptor {
 }
 
 func init() {
-	proto.RegisterType((*BlockDescriptor)(nil), "dymensionxyz.dymension.rollapp.BlockDescriptor")
-	proto.RegisterType((*BlockDescriptors)(nil), "dymensionxyz.dymension.rollapp.BlockDescriptors")
+	proto.RegisterType((*BlockDescriptor)(nil), "metaearth.rollapp.BlockDescriptor")
+	proto.RegisterType((*BlockDescriptors)(nil), "metaearth.rollapp.BlockDescriptors")
 }
 
 func init() {

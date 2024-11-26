@@ -114,8 +114,8 @@ func (m *UpdateStreamDistributionProposal) XXX_DiscardUnknown() {
 var xxx_messageInfo_UpdateStreamDistributionProposal proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*ReplaceStreamDistributionProposal)(nil), "dymensionxyz.dymension.streamer.ReplaceStreamDistributionProposal")
-	proto.RegisterType((*UpdateStreamDistributionProposal)(nil), "dymensionxyz.dymension.streamer.UpdateStreamDistributionProposal")
+	proto.RegisterType((*ReplaceStreamDistributionProposal)(nil), "metaearth.streamer.ReplaceStreamDistributionProposal")
+	proto.RegisterType((*UpdateStreamDistributionProposal)(nil), "metaearth.streamer.UpdateStreamDistributionProposal")
 }
 
 func init() {

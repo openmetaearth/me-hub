@@ -50,7 +50,7 @@ func (Status) EnumDescriptor() ([]byte, []int) {
 }
 
 func init() {
-	proto.RegisterEnum("dymensionxyz.dymension.common.Status", Status_name, Status_value)
+	proto.RegisterEnum("metaearth.common.Status", Status_name, Status_value)
 }
 
 func init() { proto.RegisterFile("dymension/common/status.proto", fileDescriptor_cacbb2cb1a9e9699) }

@@ -116,8 +116,8 @@ func (m *DistrRecord) GetGaugeId() uint64 {
 }
 
 func init() {
-	proto.RegisterType((*DistrInfo)(nil), "dymensionxyz.dymension.streamer.DistrInfo")
-	proto.RegisterType((*DistrRecord)(nil), "dymensionxyz.dymension.streamer.DistrRecord")
+	proto.RegisterType((*DistrInfo)(nil), "metaearth.streamer.DistrInfo")
+	proto.RegisterType((*DistrRecord)(nil), "metaearth.streamer.DistrRecord")
 }
 
 func init() {

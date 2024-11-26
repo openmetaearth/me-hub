@@ -245,10 +245,10 @@ func (m *MsgUnbondResponse) GetCompletionTime() time.Time {
 }
 
 func init() {
-	proto.RegisterType((*MsgCreateSequencer)(nil), "dymensionxyz.dymension.sequencer.MsgCreateSequencer")
-	proto.RegisterType((*MsgCreateSequencerResponse)(nil), "dymensionxyz.dymension.sequencer.MsgCreateSequencerResponse")
-	proto.RegisterType((*MsgUnbond)(nil), "dymensionxyz.dymension.sequencer.MsgUnbond")
-	proto.RegisterType((*MsgUnbondResponse)(nil), "dymensionxyz.dymension.sequencer.MsgUnbondResponse")
+	proto.RegisterType((*MsgCreateSequencer)(nil), "metaearth.sequencer.MsgCreateSequencer")
+	proto.RegisterType((*MsgCreateSequencerResponse)(nil), "metaearth.sequencer.MsgCreateSequencerResponse")
+	proto.RegisterType((*MsgUnbond)(nil), "metaearth.sequencer.MsgUnbond")
+	proto.RegisterType((*MsgUnbondResponse)(nil), "metaearth.sequencer.MsgUnbondResponse")
 }
 
 func init() { proto.RegisterFile("dymension/sequencer/tx.proto", fileDescriptor_26d679aa996065f1) }
@@ -396,7 +396,7 @@ func _Msg_Unbond_Handler(srv interface{}, ctx context.Context, dec func(interfac
 }
 
 var _Msg_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "dymensionxyz.dymension.sequencer.Msg",
+	ServiceName: "metaearth.sequencer.Msg",
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

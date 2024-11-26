@@ -114,8 +114,8 @@ func (m *TerminateStreamProposal) XXX_DiscardUnknown() {
 var xxx_messageInfo_TerminateStreamProposal proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*CreateStreamProposal)(nil), "dymensionxyz.dymension.streamer.CreateStreamProposal")
-	proto.RegisterType((*TerminateStreamProposal)(nil), "dymensionxyz.dymension.streamer.TerminateStreamProposal")
+	proto.RegisterType((*CreateStreamProposal)(nil), "metaearth.streamer.CreateStreamProposal")
+	proto.RegisterType((*TerminateStreamProposal)(nil), "metaearth.streamer.TerminateStreamProposal")
 }
 
 func init() {

@@ -166,8 +166,8 @@ func (m *RollappPacket) GetOriginalTransferTarget() string {
 }
 
 func init() {
-	proto.RegisterEnum("dymensionxyz.dymension.common.RollappPacket_Type", RollappPacket_Type_name, RollappPacket_Type_value)
-	proto.RegisterType((*RollappPacket)(nil), "dymensionxyz.dymension.common.RollappPacket")
+	proto.RegisterEnum("metaearth.common.RollappPacket_Type", RollappPacket_Type_name, RollappPacket_Type_value)
+	proto.RegisterType((*RollappPacket)(nil), "metaearth.common.RollappPacket")
 }
 
 func init() {

@@ -136,8 +136,8 @@ func (m *Params) GetRollappsEnabled() bool {
 }
 
 func init() {
-	proto.RegisterType((*DeployerParams)(nil), "dymensionxyz.dymension.rollapp.DeployerParams")
-	proto.RegisterType((*Params)(nil), "dymensionxyz.dymension.rollapp.Params")
+	proto.RegisterType((*DeployerParams)(nil), "metaearth.rollapp.DeployerParams")
+	proto.RegisterType((*Params)(nil), "metaearth.rollapp.Params")
 }
 
 func init() { proto.RegisterFile("dymension/rollapp/params.proto", fileDescriptor_8a5e294b0dff70d2) }

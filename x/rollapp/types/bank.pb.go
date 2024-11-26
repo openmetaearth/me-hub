@@ -213,8 +213,8 @@ func (m *TokenMetadata) GetURIHash() string {
 }
 
 func init() {
-	proto.RegisterType((*DenomUnit)(nil), "dymensionxyz.dymension.rollapp.DenomUnit")
-	proto.RegisterType((*TokenMetadata)(nil), "dymensionxyz.dymension.rollapp.TokenMetadata")
+	proto.RegisterType((*DenomUnit)(nil), "metaearth.rollapp.DenomUnit")
+	proto.RegisterType((*TokenMetadata)(nil), "metaearth.rollapp.TokenMetadata")
 }
 
 func init() { proto.RegisterFile("dymension/rollapp/bank.proto", fileDescriptor_e7bcc95cdae840f1) }

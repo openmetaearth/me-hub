@@ -502,16 +502,16 @@ func (m *UpcomingStreamsResponse) GetPagination() *query.PageResponse {
 }
 
 func init() {
-	proto.RegisterType((*ModuleToDistributeCoinsRequest)(nil), "dymensionxyz.dymension.streamer.ModuleToDistributeCoinsRequest")
-	proto.RegisterType((*ModuleToDistributeCoinsResponse)(nil), "dymensionxyz.dymension.streamer.ModuleToDistributeCoinsResponse")
-	proto.RegisterType((*StreamByIDRequest)(nil), "dymensionxyz.dymension.streamer.StreamByIDRequest")
-	proto.RegisterType((*StreamByIDResponse)(nil), "dymensionxyz.dymension.streamer.StreamByIDResponse")
-	proto.RegisterType((*StreamsRequest)(nil), "dymensionxyz.dymension.streamer.StreamsRequest")
-	proto.RegisterType((*StreamsResponse)(nil), "dymensionxyz.dymension.streamer.StreamsResponse")
-	proto.RegisterType((*ActiveStreamsRequest)(nil), "dymensionxyz.dymension.streamer.ActiveStreamsRequest")
-	proto.RegisterType((*ActiveStreamsResponse)(nil), "dymensionxyz.dymension.streamer.ActiveStreamsResponse")
-	proto.RegisterType((*UpcomingStreamsRequest)(nil), "dymensionxyz.dymension.streamer.UpcomingStreamsRequest")
-	proto.RegisterType((*UpcomingStreamsResponse)(nil), "dymensionxyz.dymension.streamer.UpcomingStreamsResponse")
+	proto.RegisterType((*ModuleToDistributeCoinsRequest)(nil), "metaearth.streamer.ModuleToDistributeCoinsRequest")
+	proto.RegisterType((*ModuleToDistributeCoinsResponse)(nil), "metaearth.streamer.ModuleToDistributeCoinsResponse")
+	proto.RegisterType((*StreamByIDRequest)(nil), "metaearth.streamer.StreamByIDRequest")
+	proto.RegisterType((*StreamByIDResponse)(nil), "metaearth.streamer.StreamByIDResponse")
+	proto.RegisterType((*StreamsRequest)(nil), "metaearth.streamer.StreamsRequest")
+	proto.RegisterType((*StreamsResponse)(nil), "metaearth.streamer.StreamsResponse")
+	proto.RegisterType((*ActiveStreamsRequest)(nil), "metaearth.streamer.ActiveStreamsRequest")
+	proto.RegisterType((*ActiveStreamsResponse)(nil), "metaearth.streamer.ActiveStreamsResponse")
+	proto.RegisterType((*UpcomingStreamsRequest)(nil), "metaearth.streamer.UpcomingStreamsRequest")
+	proto.RegisterType((*UpcomingStreamsResponse)(nil), "metaearth.streamer.UpcomingStreamsResponse")
 }
 
 func init() { proto.RegisterFile("dymension/streamer/query.proto", fileDescriptor_c9c3279da5f3c595) }
@@ -770,7 +770,7 @@ func _Query_UpcomingStreams_Handler(srv interface{}, ctx context.Context, dec fu
 }
 
 var _Query_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "dymensionxyz.dymension.streamer.Query",
+	ServiceName: "metaearth.streamer.Query",
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

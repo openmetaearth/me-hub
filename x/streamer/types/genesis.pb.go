@@ -91,7 +91,7 @@ func (m *GenesisState) GetLastStreamId() uint64 {
 }
 
 func init() {
-	proto.RegisterType((*GenesisState)(nil), "dymensionxyz.dymension.streamer.GenesisState")
+	proto.RegisterType((*GenesisState)(nil), "metaearth.streamer.GenesisState")
 }
 
 func init() { proto.RegisterFile("dymension/streamer/genesis.proto", fileDescriptor_4bce5e482260879a) }

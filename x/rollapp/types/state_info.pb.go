@@ -328,10 +328,10 @@ func (m *BlockHeightToFinalizationQueue) GetFinalizationQueue() []StateInfoIndex
 }
 
 func init() {
-	proto.RegisterType((*StateInfoIndex)(nil), "dymensionxyz.dymension.rollapp.StateInfoIndex")
-	proto.RegisterType((*StateInfo)(nil), "dymensionxyz.dymension.rollapp.StateInfo")
-	proto.RegisterType((*StateInfoSummary)(nil), "dymensionxyz.dymension.rollapp.StateInfoSummary")
-	proto.RegisterType((*BlockHeightToFinalizationQueue)(nil), "dymensionxyz.dymension.rollapp.BlockHeightToFinalizationQueue")
+	proto.RegisterType((*StateInfoIndex)(nil), "metaearth.rollapp.StateInfoIndex")
+	proto.RegisterType((*StateInfo)(nil), "metaearth.rollapp.StateInfo")
+	proto.RegisterType((*StateInfoSummary)(nil), "metaearth.rollapp.StateInfoSummary")
+	proto.RegisterType((*BlockHeightToFinalizationQueue)(nil), "metaearth.rollapp.BlockHeightToFinalizationQueue")
 }
 
 func init() {

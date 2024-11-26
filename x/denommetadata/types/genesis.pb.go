@@ -62,7 +62,7 @@ func (m *GenesisState) XXX_DiscardUnknown() {
 var xxx_messageInfo_GenesisState proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*GenesisState)(nil), "dymensionxyz.dymension.denommetadata.GenesisState")
+	proto.RegisterType((*GenesisState)(nil), "metaearth.denommetadata.GenesisState")
 }
 
 func init() {

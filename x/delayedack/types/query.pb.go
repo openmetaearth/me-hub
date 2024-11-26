@@ -235,10 +235,10 @@ func (m *QueryRollappPacketListResponse) GetPagination() *query.PageResponse {
 }
 
 func init() {
-	proto.RegisterType((*QueryParamsRequest)(nil), "dymensionxyz.dymension.delayedack.QueryParamsRequest")
-	proto.RegisterType((*QueryParamsResponse)(nil), "dymensionxyz.dymension.delayedack.QueryParamsResponse")
-	proto.RegisterType((*QueryRollappPacketsRequest)(nil), "dymensionxyz.dymension.delayedack.QueryRollappPacketsRequest")
-	proto.RegisterType((*QueryRollappPacketListResponse)(nil), "dymensionxyz.dymension.delayedack.QueryRollappPacketListResponse")
+	proto.RegisterType((*QueryParamsRequest)(nil), "metaearth.delayedack.QueryParamsRequest")
+	proto.RegisterType((*QueryParamsResponse)(nil), "metaearth.delayedack.QueryParamsResponse")
+	proto.RegisterType((*QueryRollappPacketsRequest)(nil), "metaearth.delayedack.QueryRollappPacketsRequest")
+	proto.RegisterType((*QueryRollappPacketListResponse)(nil), "metaearth.delayedack.QueryRollappPacketListResponse")
 }
 
 func init() { proto.RegisterFile("dymension/delayedack/query.proto", fileDescriptor_455c3259533734e9) }
@@ -386,7 +386,7 @@ func _Query_GetPackets_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 var _Query_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "dymensionxyz.dymension.delayedack.Query",
+	ServiceName: "metaearth.delayedack.Query",
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

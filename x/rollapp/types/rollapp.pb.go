@@ -331,10 +331,10 @@ func (m *RollappSummary) GetLatestFinalizedStateIndex() *StateInfoIndex {
 }
 
 func init() {
-	proto.RegisterType((*GenesisAccount)(nil), "dymensionxyz.dymension.rollapp.GenesisAccount")
-	proto.RegisterType((*RollappGenesisState)(nil), "dymensionxyz.dymension.rollapp.RollappGenesisState")
-	proto.RegisterType((*Rollapp)(nil), "dymensionxyz.dymension.rollapp.Rollapp")
-	proto.RegisterType((*RollappSummary)(nil), "dymensionxyz.dymension.rollapp.RollappSummary")
+	proto.RegisterType((*GenesisAccount)(nil), "metaearth.rollapp.GenesisAccount")
+	proto.RegisterType((*RollappGenesisState)(nil), "metaearth.rollapp.RollappGenesisState")
+	proto.RegisterType((*Rollapp)(nil), "metaearth.rollapp.Rollapp")
+	proto.RegisterType((*RollappSummary)(nil), "metaearth.rollapp.RollappSummary")
 }
 
 func init() { proto.RegisterFile("dymension/rollapp/rollapp.proto", fileDescriptor_2c072320fdc0abd9) }

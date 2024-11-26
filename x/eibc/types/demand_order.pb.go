@@ -141,7 +141,7 @@ func (m *DemandOrder) GetType() types1.RollappPacket_Type {
 }
 
 func init() {
-	proto.RegisterType((*DemandOrder)(nil), "dymensionxyz.dymension.eibc.DemandOrder")
+	proto.RegisterType((*DemandOrder)(nil), "metaearth.eibc.DemandOrder")
 }
 
 func init() { proto.RegisterFile("dymension/eibc/demand_order.proto", fileDescriptor_3808f42eed32f331) }

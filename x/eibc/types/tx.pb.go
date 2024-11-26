@@ -119,8 +119,8 @@ func (m *MsgFulfillOrderResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgFulfillOrderResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MsgFulfillOrder)(nil), "dymensionxyz.dymension.eibc.MsgFulfillOrder")
-	proto.RegisterType((*MsgFulfillOrderResponse)(nil), "dymensionxyz.dymension.eibc.MsgFulfillOrderResponse")
+	proto.RegisterType((*MsgFulfillOrder)(nil), "metaearth.eibc.MsgFulfillOrder")
+	proto.RegisterType((*MsgFulfillOrderResponse)(nil), "metaearth.eibc.MsgFulfillOrderResponse")
 }
 
 func init() { proto.RegisterFile("dymension/eibc/tx.proto", fileDescriptor_b6b186a723f445fa) }
@@ -212,7 +212,7 @@ func _Msg_FulfillOrder_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 var _Msg_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "dymensionxyz.dymension.eibc.Msg",
+	ServiceName: "metaearth.eibc.Msg",
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

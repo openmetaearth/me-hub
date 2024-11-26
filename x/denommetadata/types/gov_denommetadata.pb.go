@@ -101,8 +101,8 @@ func (m *UpdateDenomMetadataProposal) XXX_DiscardUnknown() {
 var xxx_messageInfo_UpdateDenomMetadataProposal proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*CreateDenomMetadataProposal)(nil), "dymensionxyz.dymension.denommetadata.CreateDenomMetadataProposal")
-	proto.RegisterType((*UpdateDenomMetadataProposal)(nil), "dymensionxyz.dymension.denommetadata.UpdateDenomMetadataProposal")
+	proto.RegisterType((*CreateDenomMetadataProposal)(nil), "metaearth.denommetadata.CreateDenomMetadataProposal")
+	proto.RegisterType((*UpdateDenomMetadataProposal)(nil), "metaearth.denommetadata.UpdateDenomMetadataProposal")
 }
 
 func init() {

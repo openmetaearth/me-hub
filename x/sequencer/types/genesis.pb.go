@@ -77,7 +77,7 @@ func (m *GenesisState) GetSequencerList() []Sequencer {
 }
 
 func init() {
-	proto.RegisterType((*GenesisState)(nil), "dymensionxyz.dymension.sequencer.GenesisState")
+	proto.RegisterType((*GenesisState)(nil), "metaearth.sequencer.GenesisState")
 }
 
 func init() { proto.RegisterFile("dymension/sequencer/genesis.proto", fileDescriptor_52f5d9dc91070770) }

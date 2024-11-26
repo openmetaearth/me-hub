@@ -70,7 +70,7 @@ func (m *Params) GetEpochIdentifier() string {
 }
 
 func init() {
-	proto.RegisterType((*Params)(nil), "dymensionxyz.dymension.delayedack.Params")
+	proto.RegisterType((*Params)(nil), "metaearth.delayedack.Params")
 }
 
 func init() { proto.RegisterFile("dymension/delayedack/params.proto", fileDescriptor_4a023ab5715cd34b) }

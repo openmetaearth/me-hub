@@ -490,16 +490,16 @@ func (m *QueryGetSequencersByRollappByStatusResponse) GetSequencers() []Sequence
 }
 
 func init() {
-	proto.RegisterType((*QueryParamsRequest)(nil), "dymensionxyz.dymension.sequencer.QueryParamsRequest")
-	proto.RegisterType((*QueryParamsResponse)(nil), "dymensionxyz.dymension.sequencer.QueryParamsResponse")
-	proto.RegisterType((*QueryGetSequencerRequest)(nil), "dymensionxyz.dymension.sequencer.QueryGetSequencerRequest")
-	proto.RegisterType((*QueryGetSequencerResponse)(nil), "dymensionxyz.dymension.sequencer.QueryGetSequencerResponse")
-	proto.RegisterType((*QuerySequencersRequest)(nil), "dymensionxyz.dymension.sequencer.QuerySequencersRequest")
-	proto.RegisterType((*QuerySequencersResponse)(nil), "dymensionxyz.dymension.sequencer.QuerySequencersResponse")
-	proto.RegisterType((*QueryGetSequencersByRollappRequest)(nil), "dymensionxyz.dymension.sequencer.QueryGetSequencersByRollappRequest")
-	proto.RegisterType((*QueryGetSequencersByRollappResponse)(nil), "dymensionxyz.dymension.sequencer.QueryGetSequencersByRollappResponse")
-	proto.RegisterType((*QueryGetSequencersByRollappByStatusRequest)(nil), "dymensionxyz.dymension.sequencer.QueryGetSequencersByRollappByStatusRequest")
-	proto.RegisterType((*QueryGetSequencersByRollappByStatusResponse)(nil), "dymensionxyz.dymension.sequencer.QueryGetSequencersByRollappByStatusResponse")
+	proto.RegisterType((*QueryParamsRequest)(nil), "metaearth.sequencer.QueryParamsRequest")
+	proto.RegisterType((*QueryParamsResponse)(nil), "metaearth.sequencer.QueryParamsResponse")
+	proto.RegisterType((*QueryGetSequencerRequest)(nil), "metaearth.sequencer.QueryGetSequencerRequest")
+	proto.RegisterType((*QueryGetSequencerResponse)(nil), "metaearth.sequencer.QueryGetSequencerResponse")
+	proto.RegisterType((*QuerySequencersRequest)(nil), "metaearth.sequencer.QuerySequencersRequest")
+	proto.RegisterType((*QuerySequencersResponse)(nil), "metaearth.sequencer.QuerySequencersResponse")
+	proto.RegisterType((*QueryGetSequencersByRollappRequest)(nil), "metaearth.sequencer.QueryGetSequencersByRollappRequest")
+	proto.RegisterType((*QueryGetSequencersByRollappResponse)(nil), "metaearth.sequencer.QueryGetSequencersByRollappResponse")
+	proto.RegisterType((*QueryGetSequencersByRollappByStatusRequest)(nil), "metaearth.sequencer.QueryGetSequencersByRollappByStatusRequest")
+	proto.RegisterType((*QueryGetSequencersByRollappByStatusResponse)(nil), "metaearth.sequencer.QueryGetSequencersByRollappByStatusResponse")
 }
 
 func init() { proto.RegisterFile("dymension/sequencer/query.proto", fileDescriptor_d09222b66a78a447) }
@@ -758,7 +758,7 @@ func _Query_SequencersByRollappByStatus_Handler(srv interface{}, ctx context.Con
 }
 
 var _Query_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "dymensionxyz.dymension.sequencer.Query",
+	ServiceName: "metaearth.sequencer.Query",
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

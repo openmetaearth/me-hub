@@ -80,7 +80,7 @@ func (m *GenesisState) GetRollappPackets() []types.RollappPacket {
 }
 
 func init() {
-	proto.RegisterType((*GenesisState)(nil), "dymensionxyz.dymension.delayedack.GenesisState")
+	proto.RegisterType((*GenesisState)(nil), "metaearth.delayedack.GenesisState")
 }
 
 func init() {

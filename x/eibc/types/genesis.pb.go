@@ -77,7 +77,7 @@ func (m *GenesisState) GetDemandOrders() []DemandOrder {
 }
 
 func init() {
-	proto.RegisterType((*GenesisState)(nil), "dymensionxyz.dymension.eibc.GenesisState")
+	proto.RegisterType((*GenesisState)(nil), "metaearth.eibc.GenesisState")
 }
 
 func init() { proto.RegisterFile("dymension/eibc/genesis.proto", fileDescriptor_7eebb2caf58028be) }

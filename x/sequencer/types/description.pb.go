@@ -105,7 +105,7 @@ func (m *Description) GetDetails() string {
 }
 
 func init() {
-	proto.RegisterType((*Description)(nil), "dymensionxyz.dymension.sequencer.Description")
+	proto.RegisterType((*Description)(nil), "metaearth.sequencer.Description")
 }
 
 func init() {

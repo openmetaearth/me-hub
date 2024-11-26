@@ -680,19 +680,19 @@ func (m *QueryGetStateInfoResponse) GetStateInfo() StateInfo {
 }
 
 func init() {
-	proto.RegisterType((*QueryParamsRequest)(nil), "dymensionxyz.dymension.rollapp.QueryParamsRequest")
-	proto.RegisterType((*QueryParamsResponse)(nil), "dymensionxyz.dymension.rollapp.QueryParamsResponse")
-	proto.RegisterType((*QueryGetRollappRequest)(nil), "dymensionxyz.dymension.rollapp.QueryGetRollappRequest")
-	proto.RegisterType((*QueryGetRollappByEIP155Request)(nil), "dymensionxyz.dymension.rollapp.QueryGetRollappByEIP155Request")
-	proto.RegisterType((*QueryGetLatestHeightRequest)(nil), "dymensionxyz.dymension.rollapp.QueryGetLatestHeightRequest")
-	proto.RegisterType((*QueryGetLatestHeightResponse)(nil), "dymensionxyz.dymension.rollapp.QueryGetLatestHeightResponse")
-	proto.RegisterType((*QueryGetLatestStateIndexRequest)(nil), "dymensionxyz.dymension.rollapp.QueryGetLatestStateIndexRequest")
-	proto.RegisterType((*QueryGetLatestStateIndexResponse)(nil), "dymensionxyz.dymension.rollapp.QueryGetLatestStateIndexResponse")
-	proto.RegisterType((*QueryGetRollappResponse)(nil), "dymensionxyz.dymension.rollapp.QueryGetRollappResponse")
-	proto.RegisterType((*QueryAllRollappRequest)(nil), "dymensionxyz.dymension.rollapp.QueryAllRollappRequest")
-	proto.RegisterType((*QueryAllRollappResponse)(nil), "dymensionxyz.dymension.rollapp.QueryAllRollappResponse")
-	proto.RegisterType((*QueryGetStateInfoRequest)(nil), "dymensionxyz.dymension.rollapp.QueryGetStateInfoRequest")
-	proto.RegisterType((*QueryGetStateInfoResponse)(nil), "dymensionxyz.dymension.rollapp.QueryGetStateInfoResponse")
+	proto.RegisterType((*QueryParamsRequest)(nil), "metaearth.rollapp.QueryParamsRequest")
+	proto.RegisterType((*QueryParamsResponse)(nil), "metaearth.rollapp.QueryParamsResponse")
+	proto.RegisterType((*QueryGetRollappRequest)(nil), "metaearth.rollapp.QueryGetRollappRequest")
+	proto.RegisterType((*QueryGetRollappByEIP155Request)(nil), "metaearth.rollapp.QueryGetRollappByEIP155Request")
+	proto.RegisterType((*QueryGetLatestHeightRequest)(nil), "metaearth.rollapp.QueryGetLatestHeightRequest")
+	proto.RegisterType((*QueryGetLatestHeightResponse)(nil), "metaearth.rollapp.QueryGetLatestHeightResponse")
+	proto.RegisterType((*QueryGetLatestStateIndexRequest)(nil), "metaearth.rollapp.QueryGetLatestStateIndexRequest")
+	proto.RegisterType((*QueryGetLatestStateIndexResponse)(nil), "metaearth.rollapp.QueryGetLatestStateIndexResponse")
+	proto.RegisterType((*QueryGetRollappResponse)(nil), "metaearth.rollapp.QueryGetRollappResponse")
+	proto.RegisterType((*QueryAllRollappRequest)(nil), "metaearth.rollapp.QueryAllRollappRequest")
+	proto.RegisterType((*QueryAllRollappResponse)(nil), "metaearth.rollapp.QueryAllRollappResponse")
+	proto.RegisterType((*QueryGetStateInfoRequest)(nil), "metaearth.rollapp.QueryGetStateInfoRequest")
+	proto.RegisterType((*QueryGetStateInfoResponse)(nil), "metaearth.rollapp.QueryGetStateInfoResponse")
 }
 
 func init() { proto.RegisterFile("dymension/rollapp/query.proto", fileDescriptor_6816c5236b322a4f) }
@@ -1032,7 +1032,7 @@ func _Query_StateInfo_Handler(srv interface{}, ctx context.Context, dec func(int
 }
 
 var _Query_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "dymensionxyz.dymension.rollapp.Query",
+	ServiceName: "metaearth.rollapp.Query",
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

@@ -145,7 +145,7 @@ func (m *Stream) GetDistributedCoins() github_com_cosmos_cosmos_sdk_types.Coins 
 }
 
 func init() {
-	proto.RegisterType((*Stream)(nil), "dymensionxyz.dymension.streamer.Stream")
+	proto.RegisterType((*Stream)(nil), "metaearth.streamer.Stream")
 }
 
 func init() { proto.RegisterFile("dymension/streamer/stream.proto", fileDescriptor_409f823846b6b198) }

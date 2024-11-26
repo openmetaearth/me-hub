@@ -363,13 +363,13 @@ func (m *QueryDemandOrdersByStatusResponse) GetDemandOrders() []*DemandOrder {
 }
 
 func init() {
-	proto.RegisterEnum("dymensionxyz.dymension.eibc.FulfillmentState", FulfillmentState_name, FulfillmentState_value)
-	proto.RegisterType((*QueryParamsRequest)(nil), "dymensionxyz.dymension.eibc.QueryParamsRequest")
-	proto.RegisterType((*QueryParamsResponse)(nil), "dymensionxyz.dymension.eibc.QueryParamsResponse")
-	proto.RegisterType((*QueryGetDemandOrderRequest)(nil), "dymensionxyz.dymension.eibc.QueryGetDemandOrderRequest")
-	proto.RegisterType((*QueryDemandOrdersByStatusRequest)(nil), "dymensionxyz.dymension.eibc.QueryDemandOrdersByStatusRequest")
-	proto.RegisterType((*QueryGetDemandOrderResponse)(nil), "dymensionxyz.dymension.eibc.QueryGetDemandOrderResponse")
-	proto.RegisterType((*QueryDemandOrdersByStatusResponse)(nil), "dymensionxyz.dymension.eibc.QueryDemandOrdersByStatusResponse")
+	proto.RegisterEnum("metaearth.eibc.FulfillmentState", FulfillmentState_name, FulfillmentState_value)
+	proto.RegisterType((*QueryParamsRequest)(nil), "metaearth.eibc.QueryParamsRequest")
+	proto.RegisterType((*QueryParamsResponse)(nil), "metaearth.eibc.QueryParamsResponse")
+	proto.RegisterType((*QueryGetDemandOrderRequest)(nil), "metaearth.eibc.QueryGetDemandOrderRequest")
+	proto.RegisterType((*QueryDemandOrdersByStatusRequest)(nil), "metaearth.eibc.QueryDemandOrdersByStatusRequest")
+	proto.RegisterType((*QueryGetDemandOrderResponse)(nil), "metaearth.eibc.QueryGetDemandOrderResponse")
+	proto.RegisterType((*QueryDemandOrdersByStatusResponse)(nil), "metaearth.eibc.QueryDemandOrdersByStatusResponse")
 }
 
 func init() { proto.RegisterFile("dymension/eibc/query.proto", fileDescriptor_39216408ffc70aa8) }
@@ -559,7 +559,7 @@ func _Query_DemandOrdersByStatus_Handler(srv interface{}, ctx context.Context, d
 }
 
 var _Query_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "dymensionxyz.dymension.eibc.Query",
+	ServiceName: "metaearth.eibc.Query",
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

@@ -399,12 +399,12 @@ func (m *MsgRollappGenesisEventResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgRollappGenesisEventResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MsgCreateRollapp)(nil), "dymensionxyz.dymension.rollapp.MsgCreateRollapp")
-	proto.RegisterType((*MsgCreateRollappResponse)(nil), "dymensionxyz.dymension.rollapp.MsgCreateRollappResponse")
-	proto.RegisterType((*MsgUpdateState)(nil), "dymensionxyz.dymension.rollapp.MsgUpdateState")
-	proto.RegisterType((*MsgUpdateStateResponse)(nil), "dymensionxyz.dymension.rollapp.MsgUpdateStateResponse")
-	proto.RegisterType((*MsgRollappGenesisEvent)(nil), "dymensionxyz.dymension.rollapp.MsgRollappGenesisEvent")
-	proto.RegisterType((*MsgRollappGenesisEventResponse)(nil), "dymensionxyz.dymension.rollapp.MsgRollappGenesisEventResponse")
+	proto.RegisterType((*MsgCreateRollapp)(nil), "metaearth.rollapp.MsgCreateRollapp")
+	proto.RegisterType((*MsgCreateRollappResponse)(nil), "metaearth.rollapp.MsgCreateRollappResponse")
+	proto.RegisterType((*MsgUpdateState)(nil), "metaearth.rollapp.MsgUpdateState")
+	proto.RegisterType((*MsgUpdateStateResponse)(nil), "metaearth.rollapp.MsgUpdateStateResponse")
+	proto.RegisterType((*MsgRollappGenesisEvent)(nil), "metaearth.rollapp.MsgRollappGenesisEvent")
+	proto.RegisterType((*MsgRollappGenesisEventResponse)(nil), "metaearth.rollapp.MsgRollappGenesisEventResponse")
 }
 
 func init() { proto.RegisterFile("dymension/rollapp/tx.proto", fileDescriptor_935cc363af28220c) }
@@ -583,7 +583,7 @@ func _Msg_TriggerGenesisEvent_Handler(srv interface{}, ctx context.Context, dec 
 }
 
 var _Msg_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "dymensionxyz.dymension.rollapp.Msg",
+	ServiceName: "metaearth.rollapp.Msg",
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

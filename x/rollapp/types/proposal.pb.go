@@ -69,7 +69,7 @@ func (m *SubmitFraudProposal) XXX_DiscardUnknown() {
 var xxx_messageInfo_SubmitFraudProposal proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*SubmitFraudProposal)(nil), "dymensionxyz.dymension.rollapp.SubmitFraudProposal")
+	proto.RegisterType((*SubmitFraudProposal)(nil), "metaearth.rollapp.SubmitFraudProposal")
 }
 
 func init() { proto.RegisterFile("dymension/rollapp/proposal.proto", fileDescriptor_08eae7139ed79842) }

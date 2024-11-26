@@ -61,7 +61,7 @@ func (m *Params) XXX_DiscardUnknown() {
 var xxx_messageInfo_Params proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*Params)(nil), "dymensionxyz.dymension.streamer.Params")
+	proto.RegisterType((*Params)(nil), "metaearth.streamer.Params")
 }
 
 func init() { proto.RegisterFile("dymension/streamer/params.proto", fileDescriptor_d38f7dac47a04ceb) }

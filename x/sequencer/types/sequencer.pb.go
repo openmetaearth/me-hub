@@ -161,7 +161,7 @@ func (m *Sequencer) GetUnbondTime() time.Time {
 }
 
 func init() {
-	proto.RegisterType((*Sequencer)(nil), "dymensionxyz.dymension.sequencer.Sequencer")
+	proto.RegisterType((*Sequencer)(nil), "metaearth.sequencer.Sequencer")
 }
 
 func init() {

@@ -109,7 +109,7 @@ func (m *GenesisState) GetBlockHeightToFinalizationQueueList() []BlockHeightToFi
 }
 
 func init() {
-	proto.RegisterType((*GenesisState)(nil), "dymensionxyz.dymension.rollapp.GenesisState")
+	proto.RegisterType((*GenesisState)(nil), "metaearth.rollapp.GenesisState")
 }
 
 func init() { proto.RegisterFile("dymension/rollapp/genesis.proto", fileDescriptor_f4bf6d3c28914609) }

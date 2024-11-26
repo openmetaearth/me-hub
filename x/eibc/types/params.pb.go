@@ -71,7 +71,7 @@ func (m *Params) GetEpochIdentifier() string {
 }
 
 func init() {
-	proto.RegisterType((*Params)(nil), "dymensionxyz.dymension.eibc.Params")
+	proto.RegisterType((*Params)(nil), "metaearth.eibc.Params")
 }
 
 func init() { proto.RegisterFile("dymension/eibc/params.proto", fileDescriptor_8592d607d0403a37) }

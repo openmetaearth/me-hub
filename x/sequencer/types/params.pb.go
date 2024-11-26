@@ -82,7 +82,7 @@ func (m *Params) GetUnbondingTime() time.Duration {
 }
 
 func init() {
-	proto.RegisterType((*Params)(nil), "dymensionxyz.dymension.sequencer.Params")
+	proto.RegisterType((*Params)(nil), "metaearth.sequencer.Params")
 }
 
 func init() { proto.RegisterFile("dymension/sequencer/params.proto", fileDescriptor_d06545e8924ecfea) }
