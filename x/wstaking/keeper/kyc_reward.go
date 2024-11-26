@@ -177,20 +177,19 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 		}
 	}
 
-	// validator rewards
-	ownerAddress := validator.OwnerAddress
-	if len(ownerAddress) == 0 {
-		ownerAddress = k.DaoKeeper.GetDevOperator(ctx)
-	}
-	err = k.BankKeeper.SendCoins(ctx,
-		treasureAddr.GetAddress(),
-		sdk.MustAccAddressFromBech32(ownerAddress),
-		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.ValidatorReward)))
-	if err != nil {
-		return fmt.Errorf("send kyc reward to validator, %v", err)
-	}
-
 	if !isTransferRegion {
+		// validator rewards
+		ownerAddress := validator.OwnerAddress
+		if len(ownerAddress) == 0 {
+			ownerAddress = k.DaoKeeper.GetDevOperator(ctx)
+		}
+		err = k.BankKeeper.SendCoins(ctx,
+			treasureAddr.GetAddress(),
+			sdk.MustAccAddressFromBech32(ownerAddress),
+			sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.ValidatorReward)))
+		if err != nil {
+			return fmt.Errorf("send kyc reward to validator, %v", err)
+		}
 		//committee rewards
 		err = k.BankKeeper.SendCoins(ctx,
 			treasureAddr.GetAddress(),
