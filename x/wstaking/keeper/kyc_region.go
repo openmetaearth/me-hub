@@ -67,9 +67,6 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 			sdk.NewAttribute(types.AttributeKeyFromRegion, fromRegionId),
 			sdk.NewAttribute(types.AttributeKeyToRegion, toRegionId),
 			sdk.NewAttribute(types.AttributeKeyRewards, types.Bonus.String()+params.BaseDenom),
-			sdk.NewAttribute(types.AttributeKeySendMeidInviteAddress, toRegion.RegionTreasureAddr),
-			sdk.NewAttribute(types.AttributeKeyReceiveMeidInviteAddress_Node, validator.OwnerAddress),
-			sdk.NewAttribute(types.AttributeKeyMeidNumAddReward, types.ValidatorReward.String()+params.BaseDenom),
 		),
 	})
 	return nil
