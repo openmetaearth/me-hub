@@ -310,7 +310,7 @@ func NewQueryClient(cc grpc1.ClientConn) QueryClient {
 
 func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
 	out := new(QueryParamsResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.delayedack.Query/Params", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.delayedack.Query/Params", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -319,7 +319,7 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 
 func (c *queryClient) GetPackets(ctx context.Context, in *QueryRollappPacketsRequest, opts ...grpc.CallOption) (*QueryRollappPacketListResponse, error) {
 	out := new(QueryRollappPacketListResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.delayedack.Query/GetPackets", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.delayedack.Query/GetPackets", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +359,7 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.delayedack.Query/Params",
+		FullMethod: "/metaearth.delayedack.Query/Params",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).Params(ctx, req.(*QueryParamsRequest))
@@ -377,7 +377,7 @@ func _Query_GetPackets_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.delayedack.Query/GetPackets",
+		FullMethod: "/metaearth.delayedack.Query/GetPackets",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).GetPackets(ctx, req.(*QueryRollappPacketsRequest))

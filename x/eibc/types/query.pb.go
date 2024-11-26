@@ -451,7 +451,7 @@ func NewQueryClient(cc grpc1.ClientConn) QueryClient {
 
 func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
 	out := new(QueryParamsResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.eibc.Query/Params", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.eibc.Query/Params", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -460,7 +460,7 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 
 func (c *queryClient) DemandOrderById(ctx context.Context, in *QueryGetDemandOrderRequest, opts ...grpc.CallOption) (*QueryGetDemandOrderResponse, error) {
 	out := new(QueryGetDemandOrderResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.eibc.Query/DemandOrderById", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.eibc.Query/DemandOrderById", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -469,7 +469,7 @@ func (c *queryClient) DemandOrderById(ctx context.Context, in *QueryGetDemandOrd
 
 func (c *queryClient) DemandOrdersByStatus(ctx context.Context, in *QueryDemandOrdersByStatusRequest, opts ...grpc.CallOption) (*QueryDemandOrdersByStatusResponse, error) {
 	out := new(QueryDemandOrdersByStatusResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.eibc.Query/DemandOrdersByStatus", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.eibc.Query/DemandOrdersByStatus", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -514,7 +514,7 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.eibc.Query/Params",
+		FullMethod: "/metaearth.eibc.Query/Params",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).Params(ctx, req.(*QueryParamsRequest))
@@ -532,7 +532,7 @@ func _Query_DemandOrderById_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.eibc.Query/DemandOrderById",
+		FullMethod: "/metaearth.eibc.Query/DemandOrderById",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).DemandOrderById(ctx, req.(*QueryGetDemandOrderRequest))
@@ -550,7 +550,7 @@ func _Query_DemandOrdersByStatus_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.eibc.Query/DemandOrdersByStatus",
+		FullMethod: "/metaearth.eibc.Query/DemandOrdersByStatus",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).DemandOrdersByStatus(ctx, req.(*QueryDemandOrdersByStatusRequest))

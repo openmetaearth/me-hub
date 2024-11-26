@@ -478,7 +478,7 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 
 func (c *msgClient) CreateRollapp(ctx context.Context, in *MsgCreateRollapp, opts ...grpc.CallOption) (*MsgCreateRollappResponse, error) {
 	out := new(MsgCreateRollappResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Msg/CreateRollapp", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.rollapp.Msg/CreateRollapp", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -487,7 +487,7 @@ func (c *msgClient) CreateRollapp(ctx context.Context, in *MsgCreateRollapp, opt
 
 func (c *msgClient) UpdateState(ctx context.Context, in *MsgUpdateState, opts ...grpc.CallOption) (*MsgUpdateStateResponse, error) {
 	out := new(MsgUpdateStateResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Msg/UpdateState", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.rollapp.Msg/UpdateState", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -496,7 +496,7 @@ func (c *msgClient) UpdateState(ctx context.Context, in *MsgUpdateState, opts ..
 
 func (c *msgClient) TriggerGenesisEvent(ctx context.Context, in *MsgRollappGenesisEvent, opts ...grpc.CallOption) (*MsgRollappGenesisEventResponse, error) {
 	out := new(MsgRollappGenesisEventResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Msg/TriggerGenesisEvent", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.rollapp.Msg/TriggerGenesisEvent", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -538,7 +538,7 @@ func _Msg_CreateRollapp_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Msg/CreateRollapp",
+		FullMethod: "/metaearth.rollapp.Msg/CreateRollapp",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).CreateRollapp(ctx, req.(*MsgCreateRollapp))
@@ -556,7 +556,7 @@ func _Msg_UpdateState_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Msg/UpdateState",
+		FullMethod: "/metaearth.rollapp.Msg/UpdateState",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).UpdateState(ctx, req.(*MsgUpdateState))
@@ -574,7 +574,7 @@ func _Msg_TriggerGenesisEvent_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Msg/TriggerGenesisEvent",
+		FullMethod: "/metaearth.rollapp.Msg/TriggerGenesisEvent",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).TriggerGenesisEvent(ctx, req.(*MsgRollappGenesisEvent))

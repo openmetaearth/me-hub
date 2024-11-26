@@ -586,7 +586,7 @@ func NewQueryClient(cc grpc1.ClientConn) QueryClient {
 
 func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
 	out := new(QueryParamsResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Query/Params", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.sequencer.Query/Params", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -595,7 +595,7 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 
 func (c *queryClient) Sequencer(ctx context.Context, in *QueryGetSequencerRequest, opts ...grpc.CallOption) (*QueryGetSequencerResponse, error) {
 	out := new(QueryGetSequencerResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Query/Sequencer", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.sequencer.Query/Sequencer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -604,7 +604,7 @@ func (c *queryClient) Sequencer(ctx context.Context, in *QueryGetSequencerReques
 
 func (c *queryClient) Sequencers(ctx context.Context, in *QuerySequencersRequest, opts ...grpc.CallOption) (*QuerySequencersResponse, error) {
 	out := new(QuerySequencersResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Query/Sequencers", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.sequencer.Query/Sequencers", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -613,7 +613,7 @@ func (c *queryClient) Sequencers(ctx context.Context, in *QuerySequencersRequest
 
 func (c *queryClient) SequencersByRollapp(ctx context.Context, in *QueryGetSequencersByRollappRequest, opts ...grpc.CallOption) (*QueryGetSequencersByRollappResponse, error) {
 	out := new(QueryGetSequencersByRollappResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Query/SequencersByRollapp", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.sequencer.Query/SequencersByRollapp", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -622,7 +622,7 @@ func (c *queryClient) SequencersByRollapp(ctx context.Context, in *QueryGetSeque
 
 func (c *queryClient) SequencersByRollappByStatus(ctx context.Context, in *QueryGetSequencersByRollappByStatusRequest, opts ...grpc.CallOption) (*QueryGetSequencersByRollappByStatusResponse, error) {
 	out := new(QueryGetSequencersByRollappByStatusResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Query/SequencersByRollappByStatus", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.sequencer.Query/SequencersByRollappByStatus", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -677,7 +677,7 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.sequencer.Query/Params",
+		FullMethod: "/metaearth.sequencer.Query/Params",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).Params(ctx, req.(*QueryParamsRequest))
@@ -695,7 +695,7 @@ func _Query_Sequencer_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.sequencer.Query/Sequencer",
+		FullMethod: "/metaearth.sequencer.Query/Sequencer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).Sequencer(ctx, req.(*QueryGetSequencerRequest))
@@ -713,7 +713,7 @@ func _Query_Sequencers_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.sequencer.Query/Sequencers",
+		FullMethod: "/metaearth.sequencer.Query/Sequencers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).Sequencers(ctx, req.(*QuerySequencersRequest))
@@ -731,7 +731,7 @@ func _Query_SequencersByRollapp_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.sequencer.Query/SequencersByRollapp",
+		FullMethod: "/metaearth.sequencer.Query/SequencersByRollapp",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).SequencersByRollapp(ctx, req.(*QueryGetSequencersByRollappRequest))
@@ -749,7 +749,7 @@ func _Query_SequencersByRollappByStatus_Handler(srv interface{}, ctx context.Con
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.sequencer.Query/SequencersByRollappByStatus",
+		FullMethod: "/metaearth.sequencer.Query/SequencersByRollappByStatus",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).SequencersByRollappByStatus(ctx, req.(*QueryGetSequencersByRollappByStatusRequest))

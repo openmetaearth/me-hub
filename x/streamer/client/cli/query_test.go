@@ -65,31 +65,31 @@ func (s *QueryTestSuite) TestQueriesNeverAlterState() {
 	}{
 		{
 			"Query active streams",
-			"/dymensionxyz.dymension.streamer.Query/ActiveStreams",
+			"/metaearth.streamer.Query/ActiveStreams",
 			&types.ActiveStreamsRequest{},
 			&types.ActiveStreamsResponse{},
 		},
 		{
 			"Query stream by id",
-			"/dymensionxyz.dymension.streamer.Query/StreamByID",
+			"/metaearth.streamer.Query/StreamByID",
 			&types.StreamByIDRequest{Id: 1},
 			&types.StreamByIDResponse{},
 		},
 		{
 			"Query all streams",
-			"/dymensionxyz.dymension.streamer.Query/Streams",
+			"/metaearth.streamer.Query/Streams",
 			&types.StreamsRequest{},
 			&types.StreamsResponse{},
 		},
 		{
 			"Query module to distribute coins",
-			"/dymensionxyz.dymension.streamer.Query/ModuleToDistributeCoins",
+			"/metaearth.streamer.Query/ModuleToDistributeCoins",
 			&types.ModuleToDistributeCoinsRequest{},
 			&types.ModuleToDistributeCoinsResponse{},
 		},
 		{
 			"Query upcoming streams",
-			"/dymensionxyz.dymension.streamer.Query/UpcomingStreams",
+			"/metaearth.streamer.Query/UpcomingStreams",
 			&types.UpcomingStreamsRequest{},
 			&types.UpcomingStreamsResponse{},
 		},

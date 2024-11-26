@@ -320,7 +320,7 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 
 func (c *msgClient) CreateSequencer(ctx context.Context, in *MsgCreateSequencer, opts ...grpc.CallOption) (*MsgCreateSequencerResponse, error) {
 	out := new(MsgCreateSequencerResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Msg/CreateSequencer", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.sequencer.Msg/CreateSequencer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -329,7 +329,7 @@ func (c *msgClient) CreateSequencer(ctx context.Context, in *MsgCreateSequencer,
 
 func (c *msgClient) Unbond(ctx context.Context, in *MsgUnbond, opts ...grpc.CallOption) (*MsgUnbondResponse, error) {
 	out := new(MsgUnbondResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Msg/Unbond", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.sequencer.Msg/Unbond", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -369,7 +369,7 @@ func _Msg_CreateSequencer_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.sequencer.Msg/CreateSequencer",
+		FullMethod: "/metaearth.sequencer.Msg/CreateSequencer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).CreateSequencer(ctx, req.(*MsgCreateSequencer))
@@ -387,7 +387,7 @@ func _Msg_Unbond_Handler(srv interface{}, ctx context.Context, dec func(interfac
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.sequencer.Msg/Unbond",
+		FullMethod: "/metaearth.sequencer.Msg/Unbond",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).Unbond(ctx, req.(*MsgUnbond))

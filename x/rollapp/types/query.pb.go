@@ -796,7 +796,7 @@ func NewQueryClient(cc grpc1.ClientConn) QueryClient {
 
 func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
 	out := new(QueryParamsResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/Params", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.rollapp.Query/Params", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -805,7 +805,7 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 
 func (c *queryClient) Rollapp(ctx context.Context, in *QueryGetRollappRequest, opts ...grpc.CallOption) (*QueryGetRollappResponse, error) {
 	out := new(QueryGetRollappResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/Rollapp", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.rollapp.Query/Rollapp", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -814,7 +814,7 @@ func (c *queryClient) Rollapp(ctx context.Context, in *QueryGetRollappRequest, o
 
 func (c *queryClient) RollappByEIP155(ctx context.Context, in *QueryGetRollappByEIP155Request, opts ...grpc.CallOption) (*QueryGetRollappResponse, error) {
 	out := new(QueryGetRollappResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/RollappByEIP155", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.rollapp.Query/RollappByEIP155", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -823,7 +823,7 @@ func (c *queryClient) RollappByEIP155(ctx context.Context, in *QueryGetRollappBy
 
 func (c *queryClient) RollappAll(ctx context.Context, in *QueryAllRollappRequest, opts ...grpc.CallOption) (*QueryAllRollappResponse, error) {
 	out := new(QueryAllRollappResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/RollappAll", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.rollapp.Query/RollappAll", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -832,7 +832,7 @@ func (c *queryClient) RollappAll(ctx context.Context, in *QueryAllRollappRequest
 
 func (c *queryClient) LatestHeight(ctx context.Context, in *QueryGetLatestHeightRequest, opts ...grpc.CallOption) (*QueryGetLatestHeightResponse, error) {
 	out := new(QueryGetLatestHeightResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/LatestHeight", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.rollapp.Query/LatestHeight", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -841,7 +841,7 @@ func (c *queryClient) LatestHeight(ctx context.Context, in *QueryGetLatestHeight
 
 func (c *queryClient) LatestStateIndex(ctx context.Context, in *QueryGetLatestStateIndexRequest, opts ...grpc.CallOption) (*QueryGetLatestStateIndexResponse, error) {
 	out := new(QueryGetLatestStateIndexResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/LatestStateIndex", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.rollapp.Query/LatestStateIndex", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -850,7 +850,7 @@ func (c *queryClient) LatestStateIndex(ctx context.Context, in *QueryGetLatestSt
 
 func (c *queryClient) StateInfo(ctx context.Context, in *QueryGetStateInfoRequest, opts ...grpc.CallOption) (*QueryGetStateInfoResponse, error) {
 	out := new(QueryGetStateInfoResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/StateInfo", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.rollapp.Query/StateInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -915,7 +915,7 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Query/Params",
+		FullMethod: "/metaearth.rollapp.Query/Params",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).Params(ctx, req.(*QueryParamsRequest))
@@ -933,7 +933,7 @@ func _Query_Rollapp_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Query/Rollapp",
+		FullMethod: "/metaearth.rollapp.Query/Rollapp",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).Rollapp(ctx, req.(*QueryGetRollappRequest))
@@ -951,7 +951,7 @@ func _Query_RollappByEIP155_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Query/RollappByEIP155",
+		FullMethod: "/metaearth.rollapp.Query/RollappByEIP155",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).RollappByEIP155(ctx, req.(*QueryGetRollappByEIP155Request))
@@ -969,7 +969,7 @@ func _Query_RollappAll_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Query/RollappAll",
+		FullMethod: "/metaearth.rollapp.Query/RollappAll",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).RollappAll(ctx, req.(*QueryAllRollappRequest))
@@ -987,7 +987,7 @@ func _Query_LatestHeight_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Query/LatestHeight",
+		FullMethod: "/metaearth.rollapp.Query/LatestHeight",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).LatestHeight(ctx, req.(*QueryGetLatestHeightRequest))
@@ -1005,7 +1005,7 @@ func _Query_LatestStateIndex_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Query/LatestStateIndex",
+		FullMethod: "/metaearth.rollapp.Query/LatestStateIndex",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).LatestStateIndex(ctx, req.(*QueryGetLatestStateIndexRequest))
@@ -1023,7 +1023,7 @@ func _Query_StateInfo_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Query/StateInfo",
+		FullMethod: "/metaearth.rollapp.Query/StateInfo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).StateInfo(ctx, req.(*QueryGetStateInfoRequest))

@@ -598,7 +598,7 @@ func NewQueryClient(cc grpc1.ClientConn) QueryClient {
 
 func (c *queryClient) ModuleToDistributeCoins(ctx context.Context, in *ModuleToDistributeCoinsRequest, opts ...grpc.CallOption) (*ModuleToDistributeCoinsResponse, error) {
 	out := new(ModuleToDistributeCoinsResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.streamer.Query/ModuleToDistributeCoins", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.streamer.Query/ModuleToDistributeCoins", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -607,7 +607,7 @@ func (c *queryClient) ModuleToDistributeCoins(ctx context.Context, in *ModuleToD
 
 func (c *queryClient) StreamByID(ctx context.Context, in *StreamByIDRequest, opts ...grpc.CallOption) (*StreamByIDResponse, error) {
 	out := new(StreamByIDResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.streamer.Query/StreamByID", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.streamer.Query/StreamByID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -616,7 +616,7 @@ func (c *queryClient) StreamByID(ctx context.Context, in *StreamByIDRequest, opt
 
 func (c *queryClient) Streams(ctx context.Context, in *StreamsRequest, opts ...grpc.CallOption) (*StreamsResponse, error) {
 	out := new(StreamsResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.streamer.Query/Streams", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.streamer.Query/Streams", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -625,7 +625,7 @@ func (c *queryClient) Streams(ctx context.Context, in *StreamsRequest, opts ...g
 
 func (c *queryClient) ActiveStreams(ctx context.Context, in *ActiveStreamsRequest, opts ...grpc.CallOption) (*ActiveStreamsResponse, error) {
 	out := new(ActiveStreamsResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.streamer.Query/ActiveStreams", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.streamer.Query/ActiveStreams", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -634,7 +634,7 @@ func (c *queryClient) ActiveStreams(ctx context.Context, in *ActiveStreamsReques
 
 func (c *queryClient) UpcomingStreams(ctx context.Context, in *UpcomingStreamsRequest, opts ...grpc.CallOption) (*UpcomingStreamsResponse, error) {
 	out := new(UpcomingStreamsResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.streamer.Query/UpcomingStreams", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.streamer.Query/UpcomingStreams", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -689,7 +689,7 @@ func _Query_ModuleToDistributeCoins_Handler(srv interface{}, ctx context.Context
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.streamer.Query/ModuleToDistributeCoins",
+		FullMethod: "/metaearth.streamer.Query/ModuleToDistributeCoins",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).ModuleToDistributeCoins(ctx, req.(*ModuleToDistributeCoinsRequest))
@@ -707,7 +707,7 @@ func _Query_StreamByID_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.streamer.Query/StreamByID",
+		FullMethod: "/metaearth.streamer.Query/StreamByID",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).StreamByID(ctx, req.(*StreamByIDRequest))
@@ -725,7 +725,7 @@ func _Query_Streams_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.streamer.Query/Streams",
+		FullMethod: "/metaearth.streamer.Query/Streams",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).Streams(ctx, req.(*StreamsRequest))
@@ -743,7 +743,7 @@ func _Query_ActiveStreams_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.streamer.Query/ActiveStreams",
+		FullMethod: "/metaearth.streamer.Query/ActiveStreams",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).ActiveStreams(ctx, req.(*ActiveStreamsRequest))
@@ -761,7 +761,7 @@ func _Query_UpcomingStreams_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.streamer.Query/UpcomingStreams",
+		FullMethod: "/metaearth.streamer.Query/UpcomingStreams",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).UpcomingStreams(ctx, req.(*UpcomingStreamsRequest))

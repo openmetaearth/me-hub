@@ -169,7 +169,7 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 
 func (c *msgClient) FulfillOrder(ctx context.Context, in *MsgFulfillOrder, opts ...grpc.CallOption) (*MsgFulfillOrderResponse, error) {
 	out := new(MsgFulfillOrderResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.eibc.Msg/FulfillOrder", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/metaearth.eibc.Msg/FulfillOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +203,7 @@ func _Msg_FulfillOrder_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.eibc.Msg/FulfillOrder",
+		FullMethod: "/metaearth.eibc.Msg/FulfillOrder",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).FulfillOrder(ctx, req.(*MsgFulfillOrder))
