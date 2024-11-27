@@ -118,10 +118,10 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 			strRes := ""
 			if (nil != electList) && (len(electList) > 0) { //只有选举后有节点才成为有效选举，然后是无效的选举的话，则不更新选举信息
 				var res []byte
-				if res, err = json.Marshal(electList); err != nil {
-					return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("Marshal(electList) error.err = %s", err.Error()))
-				}
-				strRes = string(res)
+				//if res, err = json.Marshal(electList); err != nil {
+				//	return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("Marshal(electList) error.err = %s", err.Error()))
+				//}
+
 				rollupStore.Set([]byte(types.KEY_LAST_ELECTION_TIME), types.Int64ToBytes(blkTime))
 				//设置
 				electResult := types.QueryElectionResponse{
@@ -135,6 +135,11 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 					rollupStore.Set([]byte(types.KEY_PREVIOUS_ELECTION_INFO), preElectData)
 				}
 				rollupStore.Set([]byte(types.KEY_LAST_ELECTION_INFO), electData)
+				res, err = electResult.Marshal()
+				if err != nil {
+					return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("Marshal(electResult) error.err = %s", err.Error()))
+				}
+				strRes = string(res)
 				ctx.EventManager().EmitEvent(
 					sdk.NewEvent(
 						types.EvtElection,
@@ -511,8 +516,11 @@ func (k Keeper) RevaluateSequencer(ctx sdk.Context, address, rollappID string) e
 					ctx.EventManager().EmitEvent(
 						sdk.NewEvent(
 							types.EvtSequencerChange,
+							sdk.NewAttribute("rollappID", rollappID),
 							sdk.NewAttribute("moduleName", types.MODULE_NAME),
 							sdk.NewAttribute("address", address),
+							sdk.NewAttribute("blockHeight", strconv.FormatInt(ctx.BlockHeight(), 10)),
+							sdk.NewAttribute("blockTime", strconv.FormatInt(ctx.BlockTime().Unix(), 10)),
 							sdk.NewAttribute("beforeStatus", beforeStatus),
 							sdk.NewAttribute("afterStatus", afterStatus),
 						),
@@ -531,8 +539,11 @@ func (k Keeper) RevaluateSequencer(ctx sdk.Context, address, rollappID string) e
 						ctx.EventManager().EmitEvent(
 							sdk.NewEvent(
 								types.EvtSequencerChange,
+								sdk.NewAttribute("rollappID", rollappID),
 								sdk.NewAttribute("moduleName", types.MODULE_NAME),
 								sdk.NewAttribute("address", address),
+								sdk.NewAttribute("blockHeight", strconv.FormatInt(ctx.BlockHeight(), 10)),
+								sdk.NewAttribute("blockTime", strconv.FormatInt(ctx.BlockTime().Unix(), 10)),
 								sdk.NewAttribute("beforeStatus", strconv.Itoa(int(types.NodeBackup))),
 								sdk.NewAttribute("afterStatus", strconv.Itoa(int(val.Status))),
 							),

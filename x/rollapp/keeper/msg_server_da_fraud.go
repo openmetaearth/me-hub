@@ -157,6 +157,10 @@ func (k msgServer) SubmitDaFraudVerifyData(goCtx context.Context, req *types.Msg
 
 }
 
+func (k msgServer) QueryElectionResult(ctx context.Context, req *rollupTypes.QueryElectionRequest) (*rollupTypes.QueryElectionResponse, error) {
+	return k.Keeper.rollupKeeper.QueryElectionResult(ctx, req)
+}
+
 func (k Keeper) GetSubmitBlockDaInfo(goCtx context.Context, req *types.MsgGetBlockDaInfoRequest) (*types.MsgGetBlockDaInfoResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	blkStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupBlockKeyPrefix(req.RollappId))

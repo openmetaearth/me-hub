@@ -7,6 +7,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/rollup/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (t Keeper) QueryParams(ctx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
@@ -31,7 +33,7 @@ func (t Keeper) QueryParams(ctx context.Context, req *types.QueryParamsRequest) 
 func (t Keeper) QueryElectionResult(ctx context.Context, req *types.QueryElectionRequest) (*types.QueryElectionResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	if _, ok := t.mapRollappInfoMng[req.RollappId]; !ok {
-		return nil, errorsmod.Wrapf(types.ErrNotFound, fmt.Sprintf("can not found rollapp Info, rollappID = %s", req.RollappId))
+		return nil, status.Error(codes.NotFound, fmt.Sprintf("rollappID not found,rollappID = %s", req.RollappId))
 	}
 
 	kvStore := sdkCtx.KVStore(t.storeKey)

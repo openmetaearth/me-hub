@@ -264,6 +264,7 @@ func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAI
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventSubmitBlockDA,
+				sdk.NewAttribute("rollappID", req.RollappId),
 				sdk.NewAttribute("moduleName", types.ModuleName),
 				sdk.NewAttribute("submitter", req.Creator),
 				sdk.NewAttribute("startHeight", strconv.FormatUint(req.StartHeight, 10)),
