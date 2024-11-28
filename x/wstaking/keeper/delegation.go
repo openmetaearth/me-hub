@@ -1,14 +1,16 @@
 package keeper
 
 import (
-	"cosmossdk.io/math"
 	"fmt"
+	"strings"
+	"time"
+
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"strings"
-	"time"
 )
 
 // Undelegate unbonds an amount of delegator shares from a given validator. It
@@ -115,22 +117,28 @@ func (k Keeper) Delegate(
 		panic("delegation token source cannot be bonded")
 	}
 
-	var sendName string
+	var pool string
 
 	switch {
 	case validator.IsBonded():
-		sendName = types.BondedPoolName
+		pool = types.BondedPoolName
 	case validator.IsUnbonding(), validator.IsUnbonded():
-		sendName = types.NotBondedPoolName
+		pool = types.NotBondedPoolName
 	default:
 		panic("invalid validator status")
 	}
 
-	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), bondAmt))
-	if err = k.BankKeeper.DelegateCoinsFromAccountToModule(ctx, delegatorAddress, sendName, coins); err != nil {
+	gage := sdk.NewCoin(k.BondDenom(ctx), bondAmt)
+	coins := sdk.NewCoins(gage)
+	if err = k.BankKeeper.DelegateCoinsFromAccountToModule(ctx, delegatorAddress, pool, coins); err != nil {
 		return sdk.Dec{}, err
 	}
-
+	poolAccI := k.AuthKeeper.GetModuleAccount(ctx, pool)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeDelegateTransfer,
+		sdk.NewAttribute(banktypes.AttributeKeySender, delegation.DelegatorAddress),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, gage.String()),
+		sdk.NewAttribute(banktypes.AttributeKeyRecipient, poolAccI.GetAddress().String()),
+	))
 	// Update delegation
 	if strings.ToLower(validator.Description.RegionID) == strings.ToLower(types.ExperienceRegionName) {
 		delegation.UnMeidAmount = delegation.UnMeidAmount.Add(bondAmt)
