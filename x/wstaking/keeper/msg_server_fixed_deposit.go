@@ -205,7 +205,7 @@ func (k MsgServer) GetRegionIdByAccount(ctx sdk.Context, account string) (string
 	return regionId, nil, false
 }
 
-func (k MsgServer) DoFixedWithdraw(goCtx context.Context, msg *types.MsgDoFixedWithdraw) (*types.MsgDoFixedWithdrawResponse, error) {
+func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWithdrawFixedDeposit) (*types.MsgWithdrawFixedDepositResponse, error) {
 	var interest sdk.Coin
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	log := ctx.Logger()
@@ -330,7 +330,7 @@ func (k MsgServer) DoFixedWithdraw(goCtx context.Context, msg *types.MsgDoFixedW
 		", rate", fixedDeposit.Rate.String(),
 	)
 
-	return &types.MsgDoFixedWithdrawResponse{
+	return &types.MsgWithdrawFixedDepositResponse{
 		Principal: fixedDeposit.Principal,
 		Interest:  fixedDeposit.Interest,
 		Term:      fixedDeposit.Term,

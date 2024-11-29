@@ -71,7 +71,7 @@ func NewFixedWithdrawCmd() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgDoFixedWithdraw(
+			msg := types.NewMsgWithdrawFixedDeposit(
 				clientCtx.GetFromAddress().String(),
 				argId,
 			)
