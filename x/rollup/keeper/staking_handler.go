@@ -14,6 +14,11 @@ import (
 
 func (t *rollupServer) StakeForSequencer(stakeCtx context.Context, req *types.MsgSeqStaking) (*types.MsgStakingResponse, error) {
 
+	if len(req.BondNodeAddress) != 20 {
+		return nil, errorsmod.Wrapf(types.ErrStakeDataErr, fmt.Sprintf("bondNodeAddress's length error, rollappID = %s,len = %d",
+			req.RollappId, len(req.BondNodeAddress)))
+	}
+
 	if _, ok := t.mapRollappInfoMng[req.RollappId]; !ok {
 		return nil, errorsmod.Wrapf(types.ErrNotFound, fmt.Sprintf("can not found rollapp Info, rollappID = %s", req.RollappId))
 	}

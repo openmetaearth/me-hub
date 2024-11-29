@@ -304,8 +304,9 @@ func (k *Keeper) startElection(ctx sdk.Context, rollAppID string, minStakeAmount
 	for i := 0; i < electorList.Len(); i++ {
 		index := uint32(i)
 		nodeElect := &types.ElectionNodeStatus{
-			Address:     electorList[i].Address,
-			StakeAmount: electorList[i].StakeAmount,
+			Address:         electorList[i].Address,
+			StakeAmount:     electorList[i].StakeAmount,
+			BondNodeAddress: k.getDelegatorBondNodeAddr(ctx, rollAppID, electorList[i].Address),
 		}
 		if index < SeqNumber {
 			nodeElect.Status = types.NodeSequencer
@@ -513,12 +514,18 @@ func (k Keeper) RevaluateSequencer(ctx sdk.Context, address, rollappID string) e
 				}
 				if bIsNeedRewriteData { //产生了状态变更事件
 					deleteKey = key
+					bondNodeAddress := ""
+					if bondAddrBytes := k.getDelegatorBondNodeAddr(ctx, rollappID, address); bondAddrBytes != nil {
+						bondNodeAddress = hex.EncodeToString(bondAddrBytes)
+					}
+
 					ctx.EventManager().EmitEvent(
 						sdk.NewEvent(
 							types.EvtSequencerChange,
 							sdk.NewAttribute("rollappID", rollappID),
 							sdk.NewAttribute("moduleName", types.MODULE_NAME),
 							sdk.NewAttribute("address", address),
+							sdk.NewAttribute("bondNodeAddress", bondNodeAddress),
 							sdk.NewAttribute("blockHeight", strconv.FormatInt(ctx.BlockHeight(), 10)),
 							sdk.NewAttribute("blockTime", strconv.FormatInt(ctx.BlockTime().Unix(), 10)),
 							sdk.NewAttribute("beforeStatus", beforeStatus),
@@ -536,12 +543,17 @@ func (k Keeper) RevaluateSequencer(ctx sdk.Context, address, rollappID string) e
 					if types.NodeBackup == val.Status {
 						//这里选择第一个备选节点作为sequencer，然后调出循环
 						val.Status = types.NodeSequencer
+						bondNodeAddress := ""
+						if bondAddrBytes := k.getDelegatorBondNodeAddr(ctx, rollappID, val.Address); bondAddrBytes != nil {
+							bondNodeAddress = hex.EncodeToString(bondAddrBytes)
+						}
 						ctx.EventManager().EmitEvent(
 							sdk.NewEvent(
 								types.EvtSequencerChange,
 								sdk.NewAttribute("rollappID", rollappID),
 								sdk.NewAttribute("moduleName", types.MODULE_NAME),
-								sdk.NewAttribute("address", address),
+								sdk.NewAttribute("address", val.Address),
+								sdk.NewAttribute("bondNodeAddress", bondNodeAddress),
 								sdk.NewAttribute("blockHeight", strconv.FormatInt(ctx.BlockHeight(), 10)),
 								sdk.NewAttribute("blockTime", strconv.FormatInt(ctx.BlockTime().Unix(), 10)),
 								sdk.NewAttribute("beforeStatus", strconv.Itoa(int(types.NodeBackup))),
@@ -622,6 +634,13 @@ func (k Keeper) bondNodeAddr(ctx sdk.Context, rollappID, creator string, bondAdd
 		))
 
 	return nil
+}
+
+// 获取委托者所绑定的节点的地址
+func (k Keeper) getDelegatorBondNodeAddr(ctx sdk.Context, rollappID, delegatorAddress string) []byte {
+	kvStore := ctx.KVStore(k.storeKey)
+	delegatorStore := prefix.NewStore(kvStore, types.GetDelegatorStakeNodePrefix(rollappID))
+	return delegatorStore.Get([]byte(delegatorAddress))
 }
 
 // 获取绑定节点所关联的委托者
