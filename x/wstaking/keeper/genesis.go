@@ -61,24 +61,12 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 		}
 	}
 
+	for _, stake := range data.Stakes {
+		k.SetStake(ctx, stake)
+	}
+
 	for _, delegation := range data.Delegations {
-		delegatorAddress := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
-
-		// Call the before-creation hook if not exported
-		if !data.Exported {
-			if err := k.Hooks().BeforeDelegationCreated(ctx, delegatorAddress, delegation.GetValidatorAddr()); err != nil {
-				panic(err)
-			}
-		}
-
 		k.SetDelegation(ctx, delegation)
-
-		// Call the after-modification hook if not exported
-		if !data.Exported {
-			if err := k.Hooks().AfterDelegationModified(ctx, delegatorAddress, delegation.GetValidatorAddr()); err != nil {
-				panic(err)
-			}
-		}
 	}
 
 	for _, ubd := range data.UnbondingDelegations {

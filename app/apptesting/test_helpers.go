@@ -144,7 +144,7 @@ func genesisStateWithValSet(t *testing.T,
 	genesisState[authtypes.ModuleName] = app.AppCodec().MustMarshalJSON(authGenesis)
 
 	validators := make([]stakingtypes.Validator, 0, len(valSet.Validators))
-	delegations := make([]stakingtypes.Delegation, 0, len(valSet.Validators))
+	stakes := make([]wstakingtypes.Stake, 0, len(valSet.Validators))
 
 	bondAmt := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit+10), nil))
 
@@ -177,10 +177,10 @@ func genesisStateWithValSet(t *testing.T,
 			validator.Description.RegionID = "usa"
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.OneDec()))
+		stakes = append(stakes, wstakingtypes.NewStake(genAccs[0].GetAddress(), sdk.ValAddress(val.Address), sdk.OneDec()))
 	}
 	// set validators and delegations
-	stakingGenesis := stakingtypes.NewGenesisState(stakingtypes.DefaultParams(), validators, delegations)
+	stakingGenesis := wstakingtypes.NewGenesisState(stakingtypes.DefaultParams(), validators, stakes)
 	stakingGenesis.Params.BondDenom = params.BaseDenom
 	genesisState[stakingtypes.ModuleName] = app.AppCodec().MustMarshalJSON(stakingGenesis)
 
@@ -190,7 +190,7 @@ func genesisStateWithValSet(t *testing.T,
 		totalSupply = totalSupply.Add(b.Coins...)
 	}
 
-	for range delegations {
+	for range stakes {
 		// add delegated tokens to total supply
 		totalSupply = totalSupply.Add(sdk.NewCoin(params.BaseDenom, bondAmt))
 	}

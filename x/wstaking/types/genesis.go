@@ -1,7 +1,9 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/codec"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"time"
 )
@@ -14,6 +16,27 @@ func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		Params: params,
 	}
+}
+
+// NewGenesisState creates a new GenesisState instanc e
+func NewGenesisState(params stakingtypes.Params, validators []stakingtypes.Validator, delegations []Stake) *GenesisState {
+	return &GenesisState{
+		Params:     params,
+		Validators: validators,
+		Stakes:     delegations,
+	}
+}
+
+// GetGenesisStateFromAppState returns x/staking GenesisState given raw application
+// genesis state.
+func GetGenesisStateFromAppState(cdc codec.JSONCodec, appState map[string]json.RawMessage) *GenesisState {
+	var genesisState GenesisState
+
+	if appState[ModuleName] != nil {
+		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
+	}
+
+	return &genesisState
 }
 
 // ValidateGenesis validates the provided staking genesis state to ensure the
