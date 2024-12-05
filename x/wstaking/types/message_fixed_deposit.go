@@ -46,26 +46,26 @@ func (msg *MsgDoFixedDeposit) ValidateBasic() error {
 	return nil
 }
 
-const TypeMsgDoFixedWithdraw = "do_fixed_withdraw"
+const TypeMsgWithdrawFixedDeposit = "do_fixed_withdraw"
 
-var _ sdk.Msg = &MsgDoFixedWithdraw{}
+var _ sdk.Msg = &MsgWithdrawFixedDeposit{}
 
-func NewMsgDoFixedWithdraw(account string, id uint64) *MsgDoFixedWithdraw {
-	return &MsgDoFixedWithdraw{
+func NewMsgWithdrawFixedDeposit(account string, id uint64) *MsgWithdrawFixedDeposit {
+	return &MsgWithdrawFixedDeposit{
 		Account: account,
 		Id:      id,
 	}
 }
 
-func (msg *MsgDoFixedWithdraw) Route() string {
+func (msg *MsgWithdrawFixedDeposit) Route() string {
 	return RouterKey
 }
 
-func (msg *MsgDoFixedWithdraw) Type() string {
-	return TypeMsgDoFixedWithdraw
+func (msg *MsgWithdrawFixedDeposit) Type() string {
+	return TypeMsgWithdrawFixedDeposit
 }
 
-func (msg *MsgDoFixedWithdraw) GetSigners() []sdk.AccAddress {
+func (msg *MsgWithdrawFixedDeposit) GetSigners() []sdk.AccAddress {
 	account, err := sdk.AccAddressFromBech32(msg.Account)
 	if err != nil {
 		panic(err)
@@ -73,12 +73,12 @@ func (msg *MsgDoFixedWithdraw) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{account}
 }
 
-func (msg *MsgDoFixedWithdraw) GetSignBytes() []byte {
+func (msg *MsgWithdrawFixedDeposit) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgDoFixedWithdraw) ValidateBasic() error {
+func (msg *MsgWithdrawFixedDeposit) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Account)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid account address (%s)", err)

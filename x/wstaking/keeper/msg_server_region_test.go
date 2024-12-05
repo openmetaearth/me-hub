@@ -171,14 +171,6 @@ func (s *KeeperTestSuite) TestRemoveRegionThenCreateRegion() {
 func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 	s.SetupTest()
 
-	newRegion := types.MsgNewRegion{
-		Creator:         s.Dao.GlobalDao,
-		Name:            types.ExperienceRegionName,
-		OperatorAddress: s.experienceValidator.OperatorAddress,
-	}
-	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
-	s.Require().NoError(err)
-
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)

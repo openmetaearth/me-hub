@@ -35,7 +35,7 @@ service Msg {
   rpc SetFixedDepositCfgStatus(MsgSetFixedDepositCfgStatus) returns (MsgSetFixedDepositCfgStatusResp);
   rpc SetFixedDepositCfgRate(MsgSetFixedDepositCfgRate) returns (MsgSetFixedDepositCfgRateResp);
   rpc DoFixedDeposit(MsgDoFixedDeposit) returns (MsgDoFixedDepositResponse);
-  rpc DoFixedWithdraw(MsgDoFixedWithdraw) returns (MsgDoFixedWithdrawResponse);
+  rpc WithdrawFixedDeposit(MsgWithdrawFixedDeposit) returns (MsgWithdrawFixedDepositResponse);
   rpc RemoveFixedDepositCfg(MsgRemoveFixedDepositCfg) returns (MsgRemoveFixedDepositCfgResp);
   rpc WithdrawFromRegion(MsgWithdrawFromRegion) returns (MsgWithdrawFromRegionResp);
   rpc WithdrawFromGlobalDaoFeePool(MsgWithdrawFromGlobalDaoFeePool) returns (MsgWithdrawFromGlobalDaoFeePoolResp);
@@ -72,45 +72,6 @@ message MsgUnstake {
 // MsgUnstakeResponse defines the Msg/MsgUnstake response type.
 message MsgUnstakeResponse {
   google.protobuf.Timestamp completion_time = 1 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
-}
-
-message MsgCurrentDeposit {
-  string account   = 1;
-  cosmos.base.v1beta1.Coin principal = 2 [(gogoproto.nullable) = false];
-}
-
-message MsgCurrentDepositResponse {
-  uint64 id = 1;
-}
-
-message MsgCurrentWithdraw {
-  string account   = 1;
-  cosmos.base.v1beta1.Coin principal = 2 [(gogoproto.nullable) = false];
-}
-
-message MsgCurrentWithdrawResponse {
-}
-
-message MsgFixedDeposit {
-  string account   = 1;
-  cosmos.base.v1beta1.Coin principal = 2 [(gogoproto.nullable) = false];
-  int64 term      = 3;
-}
-
-message MsgFixedDepositResponse {
-  uint64 id = 1;
-}
-
-message MsgFixedWithdraw {
-  string account = 1;
-  uint64 id      = 2;
-}
-
-message MsgFixedWithdrawResponse {
-  cosmos.base.v1beta1.Coin principal = 1 [(gogoproto.nullable) = false];
-  cosmos.base.v1beta1.Coin interest  = 2 [(gogoproto.nullable) = false];
-  int64         term      = 3;
-  string rate = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }
 
 message MsgFixedDepositCfg {
@@ -242,12 +203,12 @@ message MsgDoFixedDepositResponse {
   uint64 id = 1;
 }
 
-message MsgDoFixedWithdraw {
+message MsgWithdrawFixedDeposit {
   string account = 1;
   uint64 id      = 2;
 }
 
-message MsgDoFixedWithdrawResponse {
+message MsgWithdrawFixedDepositResponse {
   cosmos.base.v1beta1.Coin principal = 1 [(gogoproto.nullable) = false];
   cosmos.base.v1beta1.Coin interest  = 2 [(gogoproto.nullable) = false];
   int64         term      = 3;

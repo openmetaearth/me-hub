@@ -5,6 +5,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/codec"
+	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"io"
 	"os"
 	"path/filepath"
@@ -123,7 +127,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			if err != nil {
 				return err
 			}
-			err = genutil.ValidateAccountInGenesis(genesisState, genBalIterator, addr, coins, cdc)
+			err = ValidateAccountInGenesis(genesisState, genBalIterator, addr, coins, cdc)
 			if err != nil {
 				return errors.Wrap(err, "failed to validate account in genesis")
 			}
@@ -256,4 +260,54 @@ func writeSignedGenTx(clientCtx client.Context, outputDocument string, tx sdk.Tx
 	_, err = fmt.Fprintf(outputFile, "%s\n", json)
 
 	return err
+}
+
+// ValidateAccountInGenesis checks that the provided account has a sufficient
+// balance in the set of genesis accounts.
+func ValidateAccountInGenesis(
+	appGenesisState map[string]json.RawMessage, genBalIterator types.GenesisBalancesIterator,
+	addr sdk.Address, coins sdk.Coins, cdc codec.JSONCodec,
+) error {
+	var stakingData wstakingtypes.GenesisState
+	cdc.MustUnmarshalJSON(appGenesisState[stakingtypes.ModuleName], &stakingData)
+	bondDenom := stakingData.Params.BondDenom
+
+	var err error
+
+	accountIsInGenesis := false
+
+	genBalIterator.IterateGenesisBalances(cdc, appGenesisState,
+		func(bal bankexported.GenesisBalance) (stop bool) {
+			accAddress := bal.GetAddress()
+			accCoins := bal.GetCoins()
+
+			// ensure that account is in genesis
+			if accAddress.Equals(addr) {
+				// ensure account contains enough funds of default bond denom
+				if coins.AmountOf(bondDenom).GT(accCoins.AmountOf(bondDenom)) {
+					err = fmt.Errorf(
+						"account %s has a balance in genesis, but it only has %v%s available to stake, not %v%s",
+						addr, accCoins.AmountOf(bondDenom), bondDenom, coins.AmountOf(bondDenom), bondDenom,
+					)
+
+					return true
+				}
+
+				accountIsInGenesis = true
+				return true
+			}
+
+			return false
+		},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if !accountIsInGenesis {
+		return fmt.Errorf("account %s does not have a balance in the genesis state", addr)
+	}
+
+	return nil
 }
