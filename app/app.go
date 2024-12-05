@@ -258,6 +258,9 @@ func New(
 	}
 	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
 
+	// setup upgrade handlers
+	app.setupUpgradeHandlers()
+
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
 			cometbftos.Exit(err.Error())
