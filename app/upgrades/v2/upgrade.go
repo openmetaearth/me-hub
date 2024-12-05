@@ -186,15 +186,18 @@ func setNewModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 			Value: keepers.WasmKeeper.PeekAutoIncrementID(ctx, k),
 		})
 	}
-	wasmDefault := wasmtypes.GenesisState{
-		Params:    keepers.WasmKeeper.GetParams(ctx),
-		Codes:     make([]wasmtypes.Code, 0),
-		Contracts: make([]wasmtypes.Contract, 0),
-		Sequences: sequences,
-	}
-	_, err := wasmkeeper.InitGenesis(ctx, &keepers.WasmKeeper, wasmDefault)
-	if err != nil {
-		panic(fmt.Sprintf("wasm init genesis: %v", err))
+	params := keepers.WasmKeeper.GetParams(ctx)
+	if params.InstantiateDefaultPermission == wasmtypes.AccessTypeUnspecified {
+		wasmDefault := wasmtypes.GenesisState{
+			Params:    keepers.WasmKeeper.GetParams(ctx),
+			Codes:     make([]wasmtypes.Code, 0),
+			Contracts: make([]wasmtypes.Contract, 0),
+			Sequences: sequences,
+		}
+		_, err := wasmkeeper.InitGenesis(ctx, &keepers.WasmKeeper, wasmDefault)
+		if err != nil {
+			panic(fmt.Sprintf("wasm init genesis: %v", err))
+		}
 	}
 }
 
