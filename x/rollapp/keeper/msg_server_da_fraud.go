@@ -21,16 +21,15 @@ import (
 func (k msgServer) ChallengeDaFraud(goCtx context.Context, req *types.MsgSubmitDaFraudRequest) (*types.MsgSubmitDaFraudResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	//ctx.Logger().Info("receviced SubmitBlockDAInfo", "msg", req.String())
-	//todo: for test
-	/*
-		if !k.RollappsEnabled(ctx) {
-			return nil, types.ErrRollappsDisabled
-		}
-		isFound := k.IsRollappExist(ctx, req.RollappId)
-		if !isFound {
-			return nil, types.ErrUnknownRollappID
-		}
-	*/
+
+	if !k.RollappsEnabled(ctx) {
+		return nil, types.ErrRollappsDisabled
+	}
+	isFound := k.IsRollappExist(ctx, req.RollappId)
+	if !isFound {
+		return nil, types.ErrUnknownRollappID
+	}
+
 	//=================end
 	if k.rollupKeeper.IsInBlackList(req.Creator) {
 		return nil, errorsmod.Wrapf(rollupTypes.ErrInBlackList, "")
@@ -90,13 +89,12 @@ func (k msgServer) ChallengeDaFraud(goCtx context.Context, req *types.MsgSubmitD
 func (k msgServer) SubmitDaFraudVerifyData(goCtx context.Context, req *types.MsgDaFraudVerifyResult) (*types.MsgDaFraudVerifyResultResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if k.daoKeeper.IsGlobalDao(ctx, req.Creator) || k.daoKeeper.IsValidatorDao(ctx, req.Creator) {
-		//todo: for test
-		/*
-			isFound := k.IsRollappExist(ctx, req.RollappId)
-			if !isFound {
-				return nil, types.ErrUnknownRollappID
-			}
-		*/
+
+		isFound := k.IsRollappExist(ctx, req.RollappId)
+		if !isFound {
+			return nil, types.ErrUnknownRollappID
+		}
+
 		//=============end
 		//判断改区块是否已经被挑战
 		ctx.Logger().Info("enter SubmitDaFraudVerifyData")

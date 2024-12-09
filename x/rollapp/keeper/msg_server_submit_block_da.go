@@ -196,17 +196,16 @@ func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAI
 	//TODO:=========for test
 
 	// load rollapp object for stateful validations
-	/*
-		rollapp, isFound := k.GetRollapp(ctx, req.RollappId)
-		if !isFound {
-			return nil, types.ErrUnknownRollappID
-		}
 
-		// check rollapp version
-		if rollapp.Version != req.Version {
-			return nil, errorsmod.Wrapf(types.ErrVersionMismatch, "rollappId(%s) current version is %d, but got %d", req.RollappId, rollapp.Version, req.Version)
-		}
-	*/
+	_, isFound := k.GetRollapp(ctx, req.RollappId)
+	if !isFound {
+		return nil, types.ErrUnknownRollappID
+	}
+
+	// check rollapp version
+	//	if rollapp.Version != req.Version {
+	//		return nil, errorsmod.Wrapf(types.ErrVersionMismatch, "rollappId(%s) current version is %d, but got %d", req.RollappId, rollapp.Version, req.Version)
+	//	}
 	//=================test
 	ctx.Logger().Info("enter SubmitBlockDAInfo")
 	if k.rollupKeeper.IsInBlackList(req.Creator) {
@@ -218,16 +217,18 @@ func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAI
 			req.RollappId, len(req.Blocks.LightBlocks), req.NumBlocks)
 	}
 	//TODO:明确这是干嘛
-	err := k.hooks.BeforeUpdateState(ctx, req.Creator, req.RollappId)
-	if err != nil {
-		return nil, err
-	}
+	//err := k.hooks.BeforeUpdateState(ctx, req.Creator, req.RollappId)
+	//	if err != nil {
+	//		ctx.Logger().Error("BeforeUpdateState error.", "err = ", err.Error())
+	//	return nil, err
+	//	}
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupBlockKeyPrefix(req.RollappId))
 	lastCommitKey := store.Get([]byte(types.KeyLastRollupCommit))
 	lastBlkHeight := uint64(0)
 	if lastCommitKey != nil {
 		if startBlkHeight, number, errP := types.ParserRollupKey(string(lastCommitKey)); errP != nil {
+			ctx.Logger().Error("ParserRollupKey error.", "err = ", errP.Error())
 			return nil, errorsmod.Wrapf(types.ErrParserData, errP.Error())
 		} else {
 			if startBlkHeight < 1 || number < 1 {
@@ -241,6 +242,7 @@ func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAI
 
 	//if lastBlkHeight > 1 {
 	if req.StartHeight != lastBlkHeight+1 {
+		ctx.Logger().Error("ErrWrongBlockHeight error.", "lastBlkHeight = ", lastBlkHeight)
 		return nil, types.ErrWrongBlockHeight
 	} else {
 		if resStatus, err := k.verifyRollBlkIsAllowSubmit(goCtx, req); err != nil {
@@ -249,13 +251,18 @@ func (k msgServer) SubmitBlockDAInfo(goCtx context.Context, req *types.MsgBlkDAI
 					return nil, err
 				}
 			}
+			ctx.Logger().Error("verifyRollBlkIsAllowSubmit error.", "err = ", err.Error(),
+				"mapRollappAssociateDa's len = ", len(k.mapRollappAssociateDa))
+
 			return nil, err
 		}
 		resp := &types.MsgBlkDAResponse{}
-
-		if err = k.commitRollupBlockDAInfo(ctx, req, &store); err != nil {
+		ctx.Logger().Info("verifyRollBlkIsAllowSubmit success")
+		if err := k.commitRollupBlockDAInfo(ctx, req, &store); err != nil {
+			ctx.Logger().Error("commitRollupBlockDAInfo error", "err = ", err.Error())
 			return nil, err
 		}
+		ctx.Logger().Info("commitRollupBlockDAInfo success")
 		//
 		recStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetRollupBlockWithSubmitterKeyPrefix(req.RollappId))
 		recStore.Set(types.ConvertBlockHeightToKey(req.StartHeight), types.ConvertToRecordSubmitVal(req.Creator, req.NumBlocks))
@@ -285,14 +292,11 @@ func (k msgServer) RegisterRollappInitInfo(goCtx context.Context, req *types.Msg
 	if !k.RollappsEnabled(ctx) {
 		return nil, types.ErrRollappsDisabled
 	}
-	//todo:for test
-	// load rollapp object for stateful validations
-	/*
-		_, isFound := k.GetRollapp(ctx, req.RollappId)
-		if !isFound {
-			return nil, types.ErrUnknownRollappID
-		}
-	*/
+	_, isFound := k.GetRollapp(ctx, req.RollappId)
+	if !isFound {
+		return nil, types.ErrUnknownRollappID
+	}
+
 	//=================test
 	//目前只支持celestia,所以暂时忽略其他的DAPATH
 	if req.RollappId == "" {
@@ -408,10 +412,13 @@ func (k msgServer) verifyRollBlkIsAllowSubmit(ctx context.Context, submitBlock *
 		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrInputParams, "CommitmentProof is nil")
 	}
 
-	daNamespace := k.mapRollappAssociateDa[submitBlock.RollappId]
-	if nil == daNamespace || len(daNamespace) < 1 {
+	daNamespace, ok := k.mapRollappAssociateDa[submitBlock.RollappId]
+	if !ok {
 		return types.SUBMIT_BLOCK_NORMAL_ERR, errorsmod.Wrapf(types.ErrNotFound,
 			fmt.Sprintf("can not found namespace associated with rollapp.rollappID = %s", submitBlock.RollappId))
+	}
+	if nil == daNamespace || len(daNamespace) < 1 {
+		panic("daNamespace can not be nil")
 	}
 	//校验区块的提交者的是否质押数量足够，这样就可以将区块的提交者和竞选的Sequencer剥离开，只要满足最小质押金额，都可以提交。
 	//这样也可以方便L2层设置一个专门提交区块的batch submitter

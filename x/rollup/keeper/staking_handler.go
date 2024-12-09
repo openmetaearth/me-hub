@@ -40,18 +40,17 @@ func (t *rollupServer) StakeForSequencer(stakeCtx context.Context, req *types.Ms
 	}
 	//TODO:=========================for test
 	ctx.Logger().Info(fmt.Sprintf("enter StakeForSequencer,msg = %s,owner = %s", req.String(), ownerAddr))
-	/*
-		if !t.Keeper.rk.RollappsEnabled(ctx) {
-			return nil, types.ErrRollappDisable
-		}
-		found := t.Keeper.rk.IsRollappExist(ctx, req.RollappId)
-		if !found {
-			return nil, types.ErrRollappNotExist
-		}*/
+
+	if !t.Keeper.rk.RollappsEnabled(ctx) {
+		return nil, types.ErrRollappDisable
+	}
+	found := t.Keeper.rk.IsRollappExist(ctx, req.RollappId)
+	if !found {
+		return nil, types.ErrRollappNotExist
+	}
 	////==========================end
 
-	/*
-		if req.Version != rollapp.Version {
+	/*	if req.Version != rollapp.Version {
 			return nil, fmt.Errorf("%s, rollappVersion = %d,reqVersion = %d", types.ErrRollappVersionMismatch.Error(),
 				rollapp.Version, req.Version)
 		}
@@ -148,15 +147,14 @@ func (t *rollupServer) UnStake(stakeCtx context.Context, req *types.MsgSeqUnStak
 	kvStore := ctx.KVStore(t.Keeper.storeKey)
 	//TODO:=========================for test
 	ctx.Logger().Info(fmt.Sprintf("enter UnStake,msg = %s", req.String()))
-	/*
-		if !t.Keeper.rk.RollappsEnabled(ctx) {
-			return nil, types.ErrRollappDisable
-		}
-		found := t.Keeper.rk.IsRollappExist(ctx, req.RollappId)
-		if !found {
-			return nil, types.ErrRollappNotExist
-		}
-	*/
+
+	if !t.Keeper.rk.RollappsEnabled(ctx) {
+		return nil, types.ErrRollappDisable
+	}
+	found := t.Keeper.rk.IsRollappExist(ctx, req.RollappId)
+	if !found {
+		return nil, types.ErrRollappNotExist
+	}
 
 	//========================end
 

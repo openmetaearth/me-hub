@@ -2,6 +2,7 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -120,7 +121,7 @@ func (msg *MsgDaFraudVerifyResult) ValidateBasic() error {
 	}
 
 	if msg.Result < 0 {
-		return errorsmod.Wrapf(ErrInputParams, "msgResult value error.val= %d length error.len = %d", msg.Result)
+		return errorsmod.Wrapf(ErrInputParams, fmt.Sprintf("msgResult value error.val= %d ", msg.Result))
 	}
 
 	return nil
