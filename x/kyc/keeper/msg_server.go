@@ -65,7 +65,8 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	if !address.Equals(sdk.AccAddress(pubkey.Address())) {
 		return &types.MsgApproveResponse{}, didtypes.ErrHolderNotFound
 	}
-	if m.HasDID(ctx, address) {
+	did, found := m.GetDID(ctx, address)
+	if found && did != msg.Did {
 		// notice: holder must have not DID
 		return &types.MsgApproveResponse{}, didtypes.ErrHolderExists
 	}
