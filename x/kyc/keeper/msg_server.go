@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-
 	"cosmossdk.io/errors"
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -91,6 +90,8 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	if err := m.SetApproveReward(ctx, msg.Address, msg.Inviter, msg.Issuer, msg.RegionId); err != nil {
 		return &types.MsgApproveResponse{}, errors.Wrap(err, "set reward failed")
 	}
+
+	// todo: update events
 	ctx.EventManager().EmitEvent(types.NewKycEvent(msg.Address, msg.Did, "approve", m.takeSeq(ctx)))
 	return &types.MsgApproveResponse{}, nil
 }
@@ -235,6 +236,7 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 		return &types.MsgCreateSBTResponse{}, errors.Wrap(err, "mint SBT failed")
 	}
 
+	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeCreateSBT, msg.Did, msg.Uri, msg.UriHash))
 	return &types.MsgCreateSBTResponse{}, nil
 }
 
@@ -268,5 +270,6 @@ func (m msgServer) DeleteSBT(goCtx context.Context, msg *types.MsgDeleteSBT) (*t
 		return &types.MsgDeleteSBTResponse{}, errors.Wrap(err, "burn SBT failed")
 	}
 
+	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeDeleteSBT, msg.Did, "", ""))
 	return &types.MsgDeleteSBTResponse{}, nil
 }

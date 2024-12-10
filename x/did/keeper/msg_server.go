@@ -42,6 +42,7 @@ func (m msgServer) UpdateDidStatus(goCtx context.Context, msg *types.MsgUpdateDi
 	}
 
 	info.Status = msg.Status
+	ctx.EventManager().EmitEvent(types.NewDidEvent(types.EventTypeUpdateDidStatus, info.Did, info.Address, info.Status.String()))
 	return &types.MsgUpdateDidStatusResponse{}, nil
 }
 
@@ -81,9 +82,10 @@ func (m msgServer) CreateService(goCtx context.Context, msg *types.MsgCreateServ
 		return &types.MsgCreateServiceResponse{}, types.ErrIssuerNotActive
 	}
 
-	service := types.NewService(msg.Sid, msg.Name, msg.Description, types.SERVICE_STATUS_DEACTIVE, msg.Issuer)
-	m.SetService(ctx, msg.Sid, service)
+	svc := types.NewService(msg.Sid, msg.Name, msg.Description, types.SERVICE_STATUS_DEACTIVE, msg.Issuer)
+	m.SetService(ctx, msg.Sid, svc)
 
+	ctx.EventManager().EmitEvent(types.NewServiceEvent(types.EventTypeCreateService, svc.Sid, svc.Name, svc.Status.String()))
 	return &types.MsgCreateServiceResponse{}, nil
 }
 
@@ -104,6 +106,8 @@ func (m msgServer) UpdateServiceStatus(goCtx context.Context, msg *types.MsgUpda
 	}
 
 	svc.Status = msg.Status
+
+	ctx.EventManager().EmitEvent(types.NewServiceEvent(types.EventTypeUpdateServiceStatus, svc.Sid, svc.Name, svc.Status.String()))
 	return &types.MsgUpdateServiceStatusResponse{}, nil
 }
 
@@ -160,6 +164,7 @@ func (m msgServer) CreateVC(goCtx context.Context, msg *types.MsgCreateVC) (*typ
 	// add filters to VC
 	m.AddFilters(ctx, msg.Did, msg.Sid, msg.Filters, vc)
 
+	ctx.EventManager().EmitEvent(types.NewVcEvent(types.EventTypeCreateVC, vc.Sid, vc.Did, vc.Hash, vc.Uri))
 	return &types.MsgCreateVCResponse{}, nil
 }
 
@@ -200,6 +205,7 @@ func (m msgServer) UpdateVC(goCtx context.Context, msg *types.MsgUpdateVC) (*typ
 	// update filters to VC
 	m.AddFilters(ctx, msg.Did, msg.Sid, msg.Filters, vc)
 
+	ctx.EventManager().EmitEvent(types.NewVcEvent(types.EventTypeUpdateVC, vc.Sid, vc.Did, vc.Hash, vc.Uri))
 	return &types.MsgUpdateVCResponse{}, nil
 }
 
@@ -228,5 +234,6 @@ func (m msgServer) RemoveVC(goCtx context.Context, msg *types.MsgRemoveVC) (*typ
 	filters, _ := m.GetFilters(ctx, msg.Did, msg.Sid)
 	m.DeleteFilters(ctx, msg.Did, msg.Sid, filters)
 
+	ctx.EventManager().EmitEvent(types.NewVcEvent(types.EventTypeRemoveVC, msg.Sid, msg.Did, "", ""))
 	return &types.MsgRemoveVCResponse{}, nil
 }
