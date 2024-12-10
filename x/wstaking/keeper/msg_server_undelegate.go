@@ -123,7 +123,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 			sdk.NewAttribute(sdk.AttributeKeyAmount, returnAmount.String()+params.BaseDenom),
 			sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.UTC().Format(time.RFC3339)),
 			sdk.NewAttribute(types.AttributeKeyAmountDelegateInterest, region.DelegateInterest.String()+params.BaseDenom),
-			sdk.NewAttribute(stakingtypes.BondedPoolName, delegateTreasure.String()),
+			sdk.NewAttribute(stakingtypes.BondedPoolName, delegateTreasure.GetAddress().String()),
 			sdk.NewAttribute(types.AttributeKeyRegionTreasure, region.RegionTreasureAddr),
 			sdk.NewAttribute(types.AttributeKeyDelegatorAddress, delegatorAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyPersonalDelegateInterest, rewards.String()+params.BaseDenom),

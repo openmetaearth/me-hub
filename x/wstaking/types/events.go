@@ -30,8 +30,9 @@ const (
 	EventTypeMeidRemove                   = "meid_remove"
 	EventTypeResetValidator               = "reset_validator"
 	EventTransferRegion                   = "transfer_region"
-	EventNewRegion                   = "new_region"
-	EventNewNftClass                   = "new_nft_class"
+	EventNewRegion                        = "new_region"
+	EventNewNftClass                      = "new_nft_class"
+	EventTypeDelegateTransfer             = "delegate_transfer"
 )
 
 const (

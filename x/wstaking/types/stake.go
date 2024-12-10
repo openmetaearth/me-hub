@@ -21,7 +21,6 @@ func (s Stake) GetShares() sdk.Dec { return s.Shares }
 
 func (s Stake) GetStakerAddr() sdk.AccAddress {
 	stakerAddress := sdk.MustAccAddressFromBech32(s.StakerAddress)
-
 	return stakerAddress
 }
 

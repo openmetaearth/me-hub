@@ -85,10 +85,10 @@ var (
 	ParamsKey           = []byte{0x51} // prefix for parameters for module x/staking
 	ValidatorUpdatesKey = []byte{0x71} // prefix for the end block validator updates key
 
-	StakeKey                    = []byte{0x61} // key for a stake
 	UnbondingStakeKey           = []byte{0x72} // key for an unbonding-stake
 	UnbondingStakeByValIndexKey = []byte{0x73} // prefix for each key for an unbonding-stake, by validator operator
 	UnbondingStakeQueueKey      = []byte{0x74} // prefix for the timestamps in unbonding stake queue
+	StakeKey                    = []byte{0x75} // key for a stake
 )
 
 // UnbondingType defines the type of unbonding operation

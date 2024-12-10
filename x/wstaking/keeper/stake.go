@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/st-chain/me-hub/app/params"
@@ -101,18 +100,26 @@ func (k Keeper) SetStake(ctx sdk.Context, stake types.Stake) {
 	store.Set(types.GetStakeKey(stakerAddress, stake.GetValidatorAddr()), b)
 }
 
-func (k Keeper) GetAllStakes(ctx sdk.Context) (stakes []types.Stake) {
+// IterateAllDelegations iterates through all of the delegations.
+func (k Keeper) IterateAllStakes(ctx sdk.Context, cb func(stake types.Stake) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.StakeKey)
 	defer iterator.Close()
+
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.Stake
-		fmt.Println(iterator.Key())
-		fmt.Println(string(iterator.Key()))
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		stakes = append(stakes, val)
+		stake := types.MustUnmarshalStake(k.cdc, iterator.Value())
+		if cb(stake) {
+			break
+		}
 	}
-	return
+}
+
+func (k Keeper) GetAllStakes(ctx sdk.Context) (stakes []types.Stake) {
+	k.IterateAllStakes(ctx, func(stake types.Stake) bool {
+		stakes = append(stakes, stake)
+		return false
+	})
+	return stakes
 }
 
 // HasMaxUnbondingStakeEntries - check if unbonding stake has maximum number of entries.

@@ -347,7 +347,6 @@ func (a *AppKeepers) InitKeepers(
 		))
 
 	// Osmosis keepers
-
 	a.LockupKeeper = lockupkeeper.NewKeeper(
 		a.keys[lockuptypes.StoreKey],
 		a.GetSubspace(lockuptypes.ModuleName),

@@ -186,15 +186,18 @@ func setNewModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 			Value: keepers.WasmKeeper.PeekAutoIncrementID(ctx, k),
 		})
 	}
-	wasmDefault := wasmtypes.GenesisState{
-		Params:    keepers.WasmKeeper.GetParams(ctx),
-		Codes:     make([]wasmtypes.Code, 0),
-		Contracts: make([]wasmtypes.Contract, 0),
-		Sequences: sequences,
-	}
-	_, err := wasmkeeper.InitGenesis(ctx, &keepers.WasmKeeper, wasmDefault)
-	if err != nil {
-		panic(fmt.Sprintf("wasm init genesis: %v", err))
+	params := keepers.WasmKeeper.GetParams(ctx)
+	if params.InstantiateDefaultPermission == wasmtypes.AccessTypeUnspecified {
+		wasmDefault := wasmtypes.GenesisState{
+			Params:    keepers.WasmKeeper.GetParams(ctx),
+			Codes:     make([]wasmtypes.Code, 0),
+			Contracts: make([]wasmtypes.Contract, 0),
+			Sequences: sequences,
+		}
+		_, err := wasmkeeper.InitGenesis(ctx, &keepers.WasmKeeper, wasmDefault)
+		if err != nil {
+			panic(fmt.Sprintf("wasm init genesis: %v", err))
+		}
 	}
 }
 
@@ -229,7 +232,8 @@ func migrateValidators(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper) {
 
 func GetPath(upgradeKeeper *upgradekeeper.Keeper) string {
 	path, _ := upgradeKeeper.GetUpgradeInfoPath()
-	return strings.TrimRight(path, "/data/upgrade-info.json")
+	pathList := strings.Split(path, "/data")
+	return pathList[0]
 }
 
 func migrateKycModule(ctx sdk.Context, kycKeeper *kyckeeper.Keeper, path string) {
@@ -374,7 +378,7 @@ func migrateNftUri(ctx sdk.Context,
 }
 
 func ReadKycPubkey(homePath string) (map[string]string, error) {
-	data, err := ioutil.ReadFile(filepath.Join(homePath, "kyc_pubkey.json"))
+	data, err := ioutil.ReadFile(filepath.Join(homePath, "/config/kyc_pubkey.json"))
 	if err != nil {
 		return nil, err
 	}
@@ -387,7 +391,7 @@ func ReadKycPubkey(homePath string) (map[string]string, error) {
 }
 
 func ReadIssuer(path string) (issuer didtypes.DidInfo, err error) {
-	data, err := ioutil.ReadFile(filepath.Join(path, "issuer.json"))
+	data, err := ioutil.ReadFile(filepath.Join(path, "/config/issuer.json"))
 	if err != nil {
 		return issuer, err
 	}
@@ -399,7 +403,7 @@ func ReadIssuer(path string) (issuer didtypes.DidInfo, err error) {
 }
 
 func ReadDID(path string) (map[string]string, error) {
-	data, err := ioutil.ReadFile(filepath.Join(path, "did.json"))
+	data, err := ioutil.ReadFile(filepath.Join(path, "/config/did.json"))
 	if err != nil {
 		return nil, err
 	}
@@ -417,8 +421,9 @@ func migrateRegionClassName(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keepe
 		newClassId := regionObj.NftClassId[:len(regionObj.NftClassId)-1]
 		class, found := nftKeeper.GetClass(ctx, regionObj.NftClassId)
 		if found {
+			nftKeeper.DeleteClass(ctx, class.Id)
 			class.Id = newClassId
-			err := nftKeeper.UpdateClass(ctx, class)
+			err := nftKeeper.SaveClass(ctx, class)
 			if err != nil {
 				panic(err)
 			}
