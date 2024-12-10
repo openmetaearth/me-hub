@@ -8,23 +8,25 @@ import (
 // DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
-		Issuer: didtypes.DidInfo{},
+		Issuers: []didtypes.DidInfo{},
 	}
 }
 
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
-	if len(gs.Issuer.Did) != 16 {
-		return fmt.Errorf("DID length must be equal to 16")
-	}
+	for _, issuer := range gs.Issuers {
+		if len(issuer.Did) != 16 {
+			return fmt.Errorf("DID length must be equal to 16")
+		}
 
-	if gs.Issuer.Pubkey == "" {
-		return fmt.Errorf("the pubkey is empty")
-	}
+		if issuer.Pubkey == "" {
+			return fmt.Errorf("the pubkey is empty")
+		}
 
-	if gs.Issuer.Status != didtypes.DID_STATUS_ACTIVE {
-		return fmt.Errorf("DID status must be active")
+		if issuer.Status != didtypes.DID_STATUS_ACTIVE {
+			return fmt.Errorf("DID status must be active")
+		}
 	}
 
 	return nil

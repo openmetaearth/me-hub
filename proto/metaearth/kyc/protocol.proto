@@ -3,7 +3,7 @@ package metaearth.kyc;
 
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
-import "metaearth/did/credential_service.proto";
+import "metaearth/did/service.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/kyc/types";
 

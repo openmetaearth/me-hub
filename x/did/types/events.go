@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -23,11 +24,12 @@ func NewDidEvent(eventType, did, address, status string) sdkTypes.Event {
 	return sdkTypes.NewEvent(eventType, attributes...)
 }
 
-func NewServiceEvent(eventType, sid, name, status string) sdkTypes.Event {
+func NewServiceEvent(eventType, sid, name, status string, issuers []string) sdkTypes.Event {
 	attributes := []sdkTypes.Attribute{
 		{Key: "sid", Value: sid},
 		{Key: "name", Value: name},
 		{Key: "status", Value: status},
+		{Key: "issuers", Value: fmt.Sprintf("%v", issuers)},
 	}
 	return sdkTypes.NewEvent(eventType, attributes...)
 }

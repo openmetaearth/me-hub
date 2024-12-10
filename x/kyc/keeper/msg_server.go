@@ -10,6 +10,7 @@ import (
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/types"
 	stktypes "github.com/st-chain/me-hub/x/wstaking/types"
+	"slices"
 )
 
 type msgServer struct {
@@ -36,9 +37,10 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 
 	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
-	if !found || issuer != svc.Issuer {
+	if !found || !slices.Contains(svc.Issuers, issuer) {
 		return &types.MsgApproveResponse{}, didtypes.ErrIssuerNotFound
 	}
+
 	issuerInfo, found := m.GetDidInfo(ctx, issuer)
 	if !found || issuerInfo.Status != didtypes.DID_STATUS_ACTIVE {
 		return &types.MsgApproveResponse{}, didtypes.ErrIssuerNotActive
@@ -108,7 +110,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 
 	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
-	if !found || issuer != svc.Issuer {
+	if !found || !slices.Contains(svc.Issuers, issuer) {
 		return &types.MsgUpdateResponse{}, didtypes.ErrIssuerNotFound
 	}
 	issuerInfo, found := m.GetDidInfo(ctx, issuer)
@@ -159,7 +161,7 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 
 	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
-	if !found || issuer != svc.Issuer {
+	if !found || !slices.Contains(svc.Issuers, issuer) {
 		return &types.MsgRemoveResponse{}, didtypes.ErrIssuerNotFound
 	}
 	issuerInfo, found := m.GetDidInfo(ctx, issuer)
@@ -207,7 +209,7 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 
 	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
-	if !found || issuer != svc.Issuer {
+	if !found || !slices.Contains(svc.Issuers, issuer) {
 		return &types.MsgCreateSBTResponse{}, didtypes.ErrIssuerNotFound
 	}
 	issuerInfo, found := m.GetDidInfo(ctx, issuer)
@@ -252,7 +254,7 @@ func (m msgServer) DeleteSBT(goCtx context.Context, msg *types.MsgDeleteSBT) (*t
 
 	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
-	if !found || issuer != svc.Issuer {
+	if !found || !slices.Contains(svc.Issuers, issuer) {
 		return &types.MsgDeleteSBTResponse{}, didtypes.ErrIssuerNotFound
 	}
 	issuerInfo, found := m.GetDidInfo(ctx, issuer)

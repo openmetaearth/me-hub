@@ -10,13 +10,13 @@ const (
 	TypeMsgCreateService = "create_service"
 )
 
-func NewMsgCreateService(creator, sid, name, description, issuer string) *MsgCreateService {
+func NewMsgCreateService(creator, sid, name, description string, issuers []string) *MsgCreateService {
 	return &MsgCreateService{
 		Creator:     creator,
 		Sid:         sid,
 		Name:        name,
 		Description: description,
-		Issuer:      issuer,
+		Issuers:     issuers,
 	}
 }
 
@@ -42,7 +42,7 @@ func (m *MsgCreateService) GetSignBytes() []byte {
 }
 
 func (m *MsgCreateService) GetService() Service {
-	return NewService(m.Sid, m.Name, m.Description, SERVICE_STATUS_ACTIVE, m.Issuer)
+	return NewService(m.Sid, m.Name, m.Description, SERVICE_STATUS_ACTIVE, m.Issuers)
 }
 
 func (m *MsgCreateService) ValidateBasic() error {
@@ -59,8 +59,10 @@ func (m *MsgCreateService) ValidateBasic() error {
 	if len(m.Description) > 1024 {
 		return errors.Wrap(sdkerrors.ErrInvalidType, "description length exceeds 1024")
 	}
-	if len(m.Issuer) != 16 {
-		return errors.Wrap(sdkerrors.ErrInvalidType, "issuer length must be equal to 16")
+	for _, issuer := range m.Issuers {
+		if len(issuer) != 16 {
+			return errors.Wrap(sdkerrors.ErrInvalidType, "issuer length must be equal to 16")
+		}
 	}
 
 	return nil
