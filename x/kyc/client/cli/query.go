@@ -142,7 +142,7 @@ func CmdQueryKYCs() *cobra.Command {
 
 func CmdQuerySBT() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "sbt",
+		Use:   "sbt [did]",
 		Short: "Query the SBT information",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
