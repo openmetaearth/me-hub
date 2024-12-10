@@ -16,7 +16,7 @@ func PreUpgradeCmd() *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
-			serverCtx.Logger.Info("pre-upgrade-v2 starting")
+			serverCtx.Logger.Info("pre-upgrade-v2_0_1 update config starting")
 			rootDir := serverCtx.Config.RootDir
 
 			config.SetConfigTemplate(config.DefaultConfigTemplate)
@@ -35,7 +35,7 @@ func PreUpgradeCmd() *cobra.Command {
 
 			fileName := filepath.Join(rootDir, "config", "app.toml")
 			config.WriteConfigFile(fileName, customAppConfig)
-			serverCtx.Logger.Info("pre-upgrade-v3 success")
+			serverCtx.Logger.Info("pre-upgrade config success")
 			return nil
 		},
 	}

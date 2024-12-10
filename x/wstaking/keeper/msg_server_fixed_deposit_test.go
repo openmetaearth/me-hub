@@ -114,25 +114,42 @@ func (s *KeeperTestSuite) TestFixedDeposit() {
 
 func (s *KeeperTestSuite) TestNewFixedDepositCfgs() {
 	s.SetupTest()
+
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            types.MeEarthRegionName,
+		OperatorAddress: s.meEarthValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
 	newFixdDepositCfg := &types.MsgNewFixedDepositCfg{
 		Dao:      s.Dao.GlobalDao,
 		RegionId: strings.ToLower(types.MeEarthRegionName),
 		Term:     30,
 		Rate:     sdk.NewDec(1),
 	}
-	_, err := s.msgServer.NewFixedDepositCfg(s.Ctx, newFixdDepositCfg)
+	_, err = s.msgServer.NewFixedDepositCfg(s.Ctx, newFixdDepositCfg)
 	s.Require().NoError(err)
 }
 
 func (s *KeeperTestSuite) TestRemoveFixedDepositCfg() {
 	s.SetupTest()
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            types.MeEarthRegionName,
+		OperatorAddress: s.meEarthValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
 	newFixdDepositCfg := &types.MsgNewFixedDepositCfg{
 		Dao:      s.Dao.GlobalDao,
 		RegionId: types.MeEarthRegionId,
 		Term:     30,
 		Rate:     sdk.NewDec(1),
 	}
-	_, err := s.msgServer.NewFixedDepositCfg(s.Ctx, newFixdDepositCfg)
+	_, err = s.msgServer.NewFixedDepositCfg(s.Ctx, newFixdDepositCfg)
 	s.Require().NoError(err)
 
 	_, err = s.msgServer.RemoveFixedDepositCfg(s.Ctx,
@@ -195,7 +212,7 @@ func (s *KeeperTestSuite) TestWithdrawFixedDeposit() {
 	s.T().Log(fmt.Sprintf("interestBalance balance: %s", interestBalance.String()))
 
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneYearTotalBlocks).WithChainID(apptesting.TestChainID).WithBlockTime(s.Ctx.BlockTime().Add(7760 * time.Hour))
-	_, err = s.msgServer.DoFixedWithdraw(s.Ctx, &types.MsgDoFixedWithdraw{
+	_, err = s.msgServer.WithdrawFixedDeposit(s.Ctx, &types.MsgWithdrawFixedDeposit{
 		Account: s.Dao.GlobalDao,
 		Id:      fixDeposit.Id,
 	})

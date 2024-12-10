@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	UpgradeName = "v2_0_1"
+	UpgradeName = "v2"
 )
 
 var Upgrade = upgrades.Upgrade{
@@ -52,6 +52,7 @@ var Upgrade = upgrades.Upgrade{
 			didtypes.ModuleName,
 			kyctypes.ModuleName,
 		},
+		Deleted: []string{},
 	},
 	PreUpgradeCmd: PreUpgradeCmd(),
 }

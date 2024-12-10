@@ -199,7 +199,7 @@ func (s *KeeperTestHelper) NewAccounts(count int) []sdk.AccAddress {
 		key, _ := ethsecp256k1.GenerateKey()
 		address := sdk.AccAddress(key.PubKey().Address().Bytes())
 		//account := authtypes.NewBaseAccount(airdrop.PubKey().Address().Bytes(), airdrop.PubKey(), 3, 0)
-		accounts = append(accounts, address)
+		accounts[i] = address
 	}
 	return accounts
 }

@@ -25,42 +25,42 @@ func (s *KeeperTestSuite) TestDelegate() {
 
 	region, _ := s.App.StakingKeeper.GetRegion(s.Ctx, types.MeEarthRegionId)
 
-	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
-	s.Require().NoError(err)
-
-	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
+	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 2000000000000)})
 	s.Require().NoError(err)
 
 	tests := []struct {
-		name    string
-		account string
-		amount  sdk.Coin
-		reward  float64
-		height  int64
-		expErr  error
+		name             string
+		account          string
+		amount           sdk.Coin
+		reward           float64
+		height           int64
+		validatorAddress string
+		expErr           error
 	}{
 		{
-			name:    "did delegate",
-			account: s.Dao.GlobalDao,
-			amount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000)),
-			height:  5,
-			reward:  0.1981862,
-			expErr:  nil,
+			name:             "did delegate",
+			account:          s.Dao.GlobalDao,
+			amount:           sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000)),
+			height:           5,
+			reward:           0.1981862,
+			validatorAddress: s.meEarthValidator.OperatorAddress,
+			expErr:           nil,
 		},
 		{
-			name:    "un did delegate",
-			account: s.Dao.AirdropAddress,
-			amount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000)),
-			height:  5,
-			reward:  0.1981862,
-			expErr:  nil,
+			name:             "un did delegate",
+			account:          s.Dao.AirdropAddress,
+			amount:           sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000)),
+			height:           5,
+			reward:           0.1981862,
+			validatorAddress: s.experienceValidator.OperatorAddress,
+			expErr:           nil,
 		},
 	}
 	for _, test := range tests {
 		s.Run(test.name, func() {
 			msg := stakingtypes.MsgDelegate{
 				DelegatorAddress: test.account,
-				ValidatorAddress: "",
+				ValidatorAddress: test.validatorAddress,
 				Amount:           test.amount,
 			}
 			_, err := s.msgServer.Delegate(s.Ctx, &msg)
@@ -70,7 +70,7 @@ func (s *KeeperTestSuite) TestDelegate() {
 			if test.expErr == nil {
 				withdrawRewardMsg := types.MsgWithdrawDelegatorReward{
 					DelegatorAddress: test.account,
-					ValidatorAddress: "",
+					ValidatorAddress: test.validatorAddress,
 				}
 
 				s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(test.height).WithChainID(apptesting.TestChainID)
@@ -81,7 +81,7 @@ func (s *KeeperTestSuite) TestDelegate() {
 
 				rewards, err := s.msgServer.DelegationRewards(s.Ctx, &types.QueryDelegationRewardsRequest{
 					DelegatorAddress: test.account,
-					ValidatorAddress: "",
+					ValidatorAddress: test.validatorAddress,
 				})
 				s.Require().NoError(err)
 				_, err = s.msgServer.WithdrawDelegatorReward(s.Ctx, &withdrawRewardMsg)
