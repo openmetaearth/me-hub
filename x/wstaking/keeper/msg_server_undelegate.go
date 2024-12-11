@@ -127,7 +127,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 			sdk.NewAttribute(types.AttributeKeyRegionTreasure, region.RegionTreasureAddr),
 			sdk.NewAttribute(types.AttributeKeyDelegatorAddress, delegatorAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyPersonalDelegateInterest, rewards.String()+params.BaseDenom),
-			sdk.NewAttribute(types.AttributeKeyIsMeid, strconv.FormatBool(msg.IsMeid)),
+			sdk.NewAttribute(types.AttributeKeyIsMeid, strconv.FormatBool(isMeid)),
 		),
 	})
 
