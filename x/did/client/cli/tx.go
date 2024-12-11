@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 	"strconv"
+	"strings"
 
 	"github.com/st-chain/me-hub/x/did/types"
 )
@@ -133,8 +134,8 @@ func CmdCreateService() *cobra.Command {
 			sid := args[0]
 			name := args[1]
 			description := args[2]
-			issuer := args[3]
-			msg := types.NewMsgCreateService(clientCtx.GetFromAddress().String(), sid, name, description, issuer)
+			issuers := strings.Split(args[3], ",")
+			msg := types.NewMsgCreateService(clientCtx.GetFromAddress().String(), sid, name, description, issuers)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

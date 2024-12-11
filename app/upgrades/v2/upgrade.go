@@ -253,7 +253,7 @@ func migrateKycModule(ctx sdk.Context, kycKeeper *kyckeeper.Keeper, path string)
 		Sid:         kyctypes.ModuleName,
 		Name:        kyctypes.ModuleName,
 		Description: "The KYC verifiable credential issuer based The DID(Decentralized Identity).",
-		Issuer:      issuer.Did,
+		Issuers:     []string{issuer.Did},
 		Status:      didtypes.SERVICE_STATUS_ACTIVE,
 	}
 	kycKeeper.SetService(ctx, service)

@@ -1,12 +1,12 @@
 package types
 
-func NewService(sid, name, description string, status ServiceStatus, issuer string) Service {
+func NewService(sid, name, description string, status ServiceStatus, issuers []string) Service {
 
 	return Service{
 		Sid:         sid,
 		Name:        name,
 		Description: description,
-		Issuer:      issuer,
+		Issuers:     issuers,
 		Status:      status,
 	}
 }

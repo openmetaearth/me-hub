@@ -3,7 +3,7 @@ package metaearth.did;
 
 import "gogoproto/gogo.proto";
 import "metaearth/did/did.proto";
-import "metaearth/did/credential_service.proto";
+import "metaearth/did/service.proto";
 import "metaearth/did/credential.proto";
 import "metaearth/did/filter.proto";
 
