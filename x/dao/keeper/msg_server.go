@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/dao/types"
 )
