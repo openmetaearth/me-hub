@@ -5,4 +5,5 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: sh ./scripts/start_localnode.sh
+    command: sh ./scripts/setup_local.sh
+    platform: linux/amd64

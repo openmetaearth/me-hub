@@ -9,3 +9,4 @@ build/
 proposal.json
 .go-version
 swagger-proto
+reports/

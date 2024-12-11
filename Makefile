@@ -260,3 +260,19 @@ proto-download-deps:
 
 
 .PHONY: proto-gen proto-swagger-gen proto-format proto-lint proto-download-deps
+
+
+.PHONY: test coverage
+
+REPORT_DIR := reports
+DATE := $(shell date +%Y%m%d)
+
+test:
+	mkdir -p $(REPORT_DIR)
+	go test ./... -json | go-test-report -o $(REPORT_DIR)/$(DATE)-report.html || exit 1
+
+
+coverage:
+	mkdir -p $(REPORT_DIR)
+	go test ./... -cover -coverprofile=$(REPORT_DIR)/$(DATE)-coverage.out || { echo "Tests failed, skipping coverage"; exit 1; }
+	go tool cover -html=$(REPORT_DIR)/$(DATE)-coverage.out -o $(REPORT_DIR)/$(DATE)-coverage.html || exit 1
