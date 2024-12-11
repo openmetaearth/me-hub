@@ -5,6 +5,7 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/did/types"
+	"slices"
 )
 
 type msgServer struct {
@@ -78,14 +79,16 @@ func (m msgServer) CreateService(goCtx context.Context, msg *types.MsgCreateServ
 	}
 
 	// check issuer
-	if info, found := m.GetDidInfo(ctx, msg.Issuer); !found || info.Status != types.DID_STATUS_ACTIVE {
-		return &types.MsgCreateServiceResponse{}, types.ErrIssuerNotActive
+	for _, issuer := range msg.Issuers {
+		if info, found := m.GetDidInfo(ctx, issuer); !found || info.Status != types.DID_STATUS_ACTIVE {
+			return &types.MsgCreateServiceResponse{}, types.ErrIssuerNotActive
+		}
 	}
 
-	svc := types.NewService(msg.Sid, msg.Name, msg.Description, types.SERVICE_STATUS_DEACTIVE, msg.Issuer)
+	svc := types.NewService(msg.Sid, msg.Name, msg.Description, types.SERVICE_STATUS_DEACTIVE, msg.Issuers)
 	m.SetService(ctx, msg.Sid, svc)
 
-	ctx.EventManager().EmitEvent(types.NewServiceEvent(types.EventTypeCreateService, svc.Sid, svc.Name, svc.Status.String()))
+	ctx.EventManager().EmitEvent(types.NewServiceEvent(types.EventTypeCreateService, svc.Sid, svc.Name, svc.Status.String(), svc.Issuers))
 	return &types.MsgCreateServiceResponse{}, nil
 }
 
@@ -107,7 +110,7 @@ func (m msgServer) UpdateServiceStatus(goCtx context.Context, msg *types.MsgUpda
 
 	svc.Status = msg.Status
 
-	ctx.EventManager().EmitEvent(types.NewServiceEvent(types.EventTypeUpdateServiceStatus, svc.Sid, svc.Name, svc.Status.String()))
+	ctx.EventManager().EmitEvent(types.NewServiceEvent(types.EventTypeUpdateServiceStatus, svc.Sid, svc.Name, svc.Status.String(), svc.Issuers))
 	return &types.MsgUpdateServiceStatusResponse{}, nil
 }
 
@@ -139,7 +142,7 @@ func (m msgServer) CreateVC(goCtx context.Context, msg *types.MsgCreateVC) (*typ
 
 	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
-	if !found || issuer != svc.Issuer {
+	if !found || !slices.Contains(svc.Issuers, issuer) {
 		return &types.MsgCreateVCResponse{}, types.ErrIssuerNotFound
 	}
 	issuerInfo, found := m.GetDidInfo(ctx, issuer)
@@ -185,7 +188,7 @@ func (m msgServer) UpdateVC(goCtx context.Context, msg *types.MsgUpdateVC) (*typ
 
 	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
-	if !found || issuer != svc.Issuer {
+	if !found || !slices.Contains(svc.Issuers, issuer) {
 		return &types.MsgUpdateVCResponse{}, types.ErrIssuerNotFound
 	}
 	issuerInfo, found := m.GetDidInfo(ctx, issuer)
@@ -221,7 +224,7 @@ func (m msgServer) RemoveVC(goCtx context.Context, msg *types.MsgRemoveVC) (*typ
 
 	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
-	if !found || issuer != svc.Issuer {
+	if !found || !slices.Contains(svc.Issuers, issuer) {
 		return &types.MsgRemoveVCResponse{}, types.ErrIssuerNotFound
 	}
 	issuerInfo, found := m.GetDidInfo(ctx, issuer)

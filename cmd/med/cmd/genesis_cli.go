@@ -79,7 +79,7 @@ $ %s gentx \'%s dymint show-sequencer\' --home=/path/to/home/dir --keyring-backe
 			}
 
 			appGenesisState, err = SetGenesisIssuerToGenesis(clientCtx.Codec, appGenesisState, daoAddr, pkStr)
-			if err!=nil{
+			if err != nil {
 				return err
 			}
 			appState, err := json.MarshalIndent(appGenesisState, "", "  ")
@@ -128,10 +128,12 @@ func SetGenesisIssuerToGenesis(
 	var genState kyctypes.GenesisState
 	cdc.MustUnmarshalJSON(appGenesisState[kyctypes.ModuleName], &genState)
 
-	genState.Issuer = didtypes.DidInfo{
-		Did:    "1000000000000001",
-		Pubkey: pkStr,
-		Status: didtypes.DID_STATUS_ACTIVE,
+	genState.Issuers = []didtypes.DidInfo{
+		{
+			Did:    "1000000000000001",
+			Pubkey: pkStr,
+			Status: didtypes.DID_STATUS_ACTIVE,
+		},
 	}
 	appGenesisState[kyctypes.ModuleName] = cdc.MustMarshalJSON(&genState)
 
