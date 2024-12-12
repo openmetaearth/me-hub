@@ -3,6 +3,7 @@ package ante
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
@@ -15,7 +16,7 @@ type DaoKeeper interface {
 }
 
 type BankKeeper interface {
-	FeeToReceivers(ctx sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output) error
+	FeeToReceivers(ctx sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output, receiverTypes []wbanktypes.FeeReceiverType) error
 	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
 }
 

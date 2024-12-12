@@ -6,6 +6,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	"math"
 )
 
@@ -54,7 +55,7 @@ func NewDeductFeeDecorator(
 	}
 }
 
-func (dfd DeductFeeDecorator) ParseWasmMsgContractOwner(ctx sdk.Context, tx sdk.Tx) (string, bool) {
+func (dfd DeductFeeDecorator) ParseWasmMsgContractCreator(ctx sdk.Context, tx sdk.Tx) (string, bool) {
 	// wasm exec message should be the only message in tx
 	// to be considered as a wasm transaction
 	// this criterion is coarse, refine it later!
@@ -180,12 +181,15 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			}
 
 			outputs := []banktypes.Output{}
+			feeReceiverTypes := []wbanktypes.FeeReceiverType{}
 			outputs = append(outputs, banktypes.Output{
 				Address: dfd.daoKeeper.GetDevOperator(ctx),
 				Coins:   fee10,
 			})
+			feeReceiverTypes = append(feeReceiverTypes, wbanktypes.FeeReceiverDevOperator)
 
 			fee20Address := ""
+			fee20ReceiverType := wbanktypes.FeeReceiverKycRegionOwner
 			_, ok = dfd.didKeeper.GetDID(ctx, deductFeesFrom)
 			if ok {
 				fee20Address, err = dfd.stakingKeeper.GetValOwnerAddress(ctx, deductFeesFrom.String())
@@ -197,29 +201,32 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 				if err != nil {
 					return ctx, err
 				}
+				fee20ReceiverType = wbanktypes.FeeReceiverProposerOwner
 			}
-			outputs = append(outputs, banktypes.Output{
-				Address: fee20Address,
-				Coins:   fee20})
+			outputs = append(outputs, banktypes.Output{Address: fee20Address, Coins: fee20})
+			feeReceiverTypes = append(feeReceiverTypes, fee20ReceiverType)
+
+			fee40Address := ""
+			globalFee := sdk.NewCoins()
+			contractOwner, ok := dfd.ParseWasmMsgContractCreator(ctx, tx)
+			if ok {
+				fee40Address = contractOwner
+				fee40ReceiverTypes := wbanktypes.FeeReceiverContractCreator
+				feeReceiverTypes = append(feeReceiverTypes, fee40ReceiverTypes)
+				outputs = append(outputs, banktypes.Output{
+					Address: fee40Address,
+					Coins:   fee40,
+				})
+			} else {
+				globalFee = fee30.Add(fee40...)
+			}
 
 			outputs = append(outputs, banktypes.Output{
 				Address: dfd.daoKeeper.GetGlobalDaoFeePoolAddr(ctx).String(),
-				Coins:   fee30,
-			})
+				Coins:   globalFee})
+			feeReceiverTypes = append(feeReceiverTypes, wbanktypes.FeeReceiverGlobalDaoFeePool)
 
-			fee40Address := ""
-			contractOwner, ok := dfd.ParseWasmMsgContractOwner(ctx, tx)
-			if ok {
-				fee40Address = contractOwner
-			} else {
-				fee40Address = dfd.daoKeeper.GetGlobalDaoFeePoolAddr(ctx).String()
-			}
-			outputs = append(outputs, banktypes.Output{
-				Address: fee40Address,
-				Coins:   fee40,
-			})
-
-			err = dfd.bk.FeeToReceivers(ctx, inputs, outputs)
+			err = dfd.bk.FeeToReceivers(ctx, inputs, outputs, feeReceiverTypes)
 			if err != nil {
 				return ctx, err
 			}

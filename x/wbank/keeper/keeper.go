@@ -10,7 +10,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/st-chain/me-hub/x/wbank/types"
 )
 
 // BaseKeeperWrapper is a wrapper of the cosmos-sdk bank module.
@@ -89,18 +89,22 @@ func (k BaseKeeperWrapper) UnstakeCoinsFromModuleToModule(
 	return k.SendCoins(ctx, senderAcc.GetAddress(), recipientAcc.GetAddress(), amt)
 }
 
-func (k BaseKeeperWrapper) FeeToReceivers(ctx sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output) error {
+func (k BaseKeeperWrapper) FeeToReceivers(ctx sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output, receiverTypes []types.FeeReceiverType) error {
 	err := k.InputOutputCoins(ctx, inputs, outputs)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to process input-output coins")
+	}
+
+	if len(receiverTypes) != len(outputs) {
+		return sdkerrors.Wrap(err, "fee receiver types and outputs are not equal")
 	}
 
 	attributes := []sdk.Attribute{}
 	if len(inputs) > 0 {
 		attributes = append(attributes, sdk.NewAttribute(sdk.AttributeKeySender, inputs[0].Address))
 		for index, output := range outputs {
-			attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s%d", types.AttributeKeyReceiver, index), output.Address))
-			attributes = append(attributes, sdk.NewAttribute(types.AttributeKeyAmount, output.Coins.String()))
+			attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s", receiverTypes[index]), output.Address))
+			attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s_amount", receiverTypes[index]), output.Coins.String()))
 		}
 		event := sdk.NewEvent(types.EventTypeFeeToReceivers, attributes...)
 		ctx.EventManager().EmitEvent(event)
