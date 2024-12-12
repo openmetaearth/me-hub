@@ -32,6 +32,7 @@ const (
 	EventNewRegion                        = "new_region"
 	EventNewNftClass                      = "new_nft_class"
 	EventTypeDelegateTransfer             = "delegate_transfer"
+	EventTypeRemoveRegion                 = "remove_region"
 )
 
 const (
