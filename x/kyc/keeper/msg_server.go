@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"slices"
+
 	"cosmossdk.io/errors"
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,7 +12,6 @@ import (
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/types"
 	stktypes "github.com/st-chain/me-hub/x/wstaking/types"
-	"slices"
 )
 
 type msgServer struct {
@@ -231,7 +232,7 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 		Id:      msg.Did,
 		Uri:     msg.Uri,
 		UriHash: msg.UriHash,
-		Data:    types2.UnsafePackAny(msg.Data), // todo: check for encode
+		Data:    types2.UnsafePackAny(&types.SbtData{Data: msg.Data}), // todo: check for encode
 	}
 
 	if err := m.SetSBT(ctx, sbt, address.Module(types.ModuleName)); err != nil {
