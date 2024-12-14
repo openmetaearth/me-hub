@@ -25,7 +25,6 @@ const (
 	EventTypeSettleDelRewardsForKyc       = "settle_del_rewards_for_kyc"
 	EventTypeWithdrawFromRegion           = "withdraw_from_region"
 	EventTypeWithdrawFromGlobalDaoFeePool = "withdraw_from_global_dao_fee_pool"
-	EventTypeFeeToReceivers               = "fee_to_receivers"
 	EventTypeMeidNew                      = "meid_new"
 	EventTypeMeidRemove                   = "meid_remove"
 	EventTypeResetValidator               = "reset_validator"
@@ -33,6 +32,7 @@ const (
 	EventNewRegion                        = "new_region"
 	EventNewNftClass                      = "new_nft_class"
 	EventTypeDelegateTransfer             = "delegate_transfer"
+	EventTypeRemoveRegion                 = "remove_region"
 )
 
 const (

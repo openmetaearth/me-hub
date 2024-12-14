@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"encoding/json"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/dao/types"
 )
@@ -33,20 +34,21 @@ func (k msgServer) UpdateGlobalDao(goCtx context.Context, msg *types.MsgUpdateGl
 
 	k.SetDaoAddresses(ctx, msg.DaoAddresses)
 
+	oldByte, err := json.Marshal(oldAddresses)
+	if err != nil {
+		panic(err)
+	}
+
+	newByte, err := json.Marshal(msg.DaoAddresses)
+	if err != nil {
+		panic(err)
+	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeDaoUpdated,
-			sdk.NewAttribute(types.AttributeKeyLastGlobalDao, oldAddresses.GlobalDao),
-			sdk.NewAttribute(types.AttributeKeyCurrentGlobalDao, msg.DaoAddresses.GlobalDao),
-
-			sdk.NewAttribute(types.AttributeKeyLastMeidDao, oldAddresses.MeidDao),
-			sdk.NewAttribute(types.AttributeKeyCurrentMeidDao, msg.DaoAddresses.MeidDao),
-
-			sdk.NewAttribute(types.AttributeKeyLastDevOperator, oldAddresses.DevOperator),
-			sdk.NewAttribute(types.AttributeKeyCurrentDevOperator, msg.DaoAddresses.DevOperator),
-
-			sdk.NewAttribute(types.AttributeKeyLastAirdrop, oldAddresses.AirdropAddress),
-			sdk.NewAttribute(types.AttributeKeyCurrentAirdrop, msg.DaoAddresses.AirdropAddress),
+			sdk.NewAttribute(types.AttributeKeyLastDaoAddresses, string(oldByte)),
+			sdk.NewAttribute(types.AttributeKeyNewDaoAddresses, string(newByte)),
 		),
 	)
 

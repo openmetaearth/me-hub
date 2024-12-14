@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/st-chain/me-hub/x/wbank/types"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
@@ -70,7 +71,8 @@ func (k MsgServer) WithdrawTreasury(goCtx context.Context, msg *types.MsgWithdra
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSendToGlobalDao,
-			sdk.NewAttribute(types.AttributeKeyGlobalDao, msg.FromAddress),
+			sdk.NewAttribute(banktypes.AttributeKeySender, msg.FromAddress),
+			sdk.NewAttribute(banktypes.AttributeKeyReceiver, msg.Receiver),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 		),
 	)
@@ -120,7 +122,7 @@ func (k MsgServer) SendToAirdrop(goCtx context.Context, msg *types.MsgSendToAird
 		sdk.NewEvent(types.EventTypeSendToAirdrop,
 			sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
 			sdk.NewAttribute(sdk.AttributeKeySender, regionBaseAccount.String()),
-			sdk.NewAttribute(types.AttributeKeyReceiver, to.String()),
+			sdk.NewAttribute(banktypes.AttributeKeyReceiver, to.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 		),
 	)
@@ -163,7 +165,8 @@ func (k MsgServer) SendToTreasury(goCtx context.Context, msg *types.MsgSendToTre
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSendToTreasury,
-			sdk.NewAttribute(types.AttributeKeyGlobalDao, msg.FromAddress),
+			sdk.NewAttribute(banktypes.AttributeKeySender, msg.FromAddress),
+			sdk.NewAttribute(banktypes.AttributeKeyReceiver, authtypes.NewModuleAddress(types.TreasuryPoolName).String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 		),
 	)

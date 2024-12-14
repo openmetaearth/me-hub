@@ -7,7 +7,5 @@ const (
 )
 
 const (
-	AttributeKeyGlobalDao = "global_dao"
-	AttributeKeyRegionId  = "regionId"
-	AttributeKeyReceiver  = "receiver"
+	AttributeKeyRegionId = "regionId"
 )

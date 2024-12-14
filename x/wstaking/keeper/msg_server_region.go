@@ -117,6 +117,12 @@ func (k MsgServer) RemoveRegion(goCtx context.Context, msg *types.MsgRemoveRegio
 		return nil, sdkerrors.Wrapf(types.ErrHooks, "before remove region :error :%+v", err)
 	}
 	k.Keeper.RemoveRegion(ctx, msg.RegionId)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeRemoveRegion,
+			sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
+		),
+	)
 	return &types.MsgRemoveRegionResponse{}, nil
 }
 
