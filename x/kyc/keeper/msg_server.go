@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"slices"
+
 	"cosmossdk.io/errors"
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,7 +12,6 @@ import (
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/types"
 	stktypes "github.com/st-chain/me-hub/x/wstaking/types"
-	"slices"
 )
 
 type msgServer struct {
