@@ -46,7 +46,7 @@ func (m *MsgCreateSBT) ValidateBasic() error {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the issuer is not a valid bech32 address")
 	}
 	if len(m.Did) != 16 {
-		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "DID length must be equal to 16")
+		return errors.Wrap(sdkerrors.ErrInvalidType, "DID length must be equal to 16")
 	}
 	if len(m.UriHash) == 0 || len(m.UriHash) > 128 {
 		return errors.Wrap(sdkerrors.ErrInvalidType, "uri hash length must be between 0 and 128")
