@@ -67,9 +67,3 @@ message MsgDeleteSBT {
 }
 
 message MsgDeleteSBTResponse {}
-
-
-// sbt data
-message SbtData {
-  bytes data = 1;
-}
