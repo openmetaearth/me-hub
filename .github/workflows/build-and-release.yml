@@ -53,6 +53,7 @@ jobs:
       with:
         name: med
         path: med.tar.gz
+        retention-days: 2
         
   release:
     runs-on: ubuntu-latest
