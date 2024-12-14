@@ -232,7 +232,7 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 		Id:      msg.Did,
 		Uri:     msg.Uri,
 		UriHash: msg.UriHash,
-		Data:    types2.UnsafePackAny(&types.SbtData{Data: msg.Data}), // todo: check for encode
+		Data:    types2.UnsafePackAny(msg.Data), // todo: check for encode
 	}
 
 	if err := m.SetSBT(ctx, sbt, address.Module(types.ModuleName)); err != nil {
