@@ -1,8 +1,6 @@
 package types
 
 const (
-	NotBondedPoolName         = "not_bonded_tokens_pool"
-	BondedPoolName            = "bonded_tokens_pool"
 	NotBondedStakePoolName    = "not_bonded_stake_tokens_pool"
 	BondedStakePoolName       = "bonded_stake_tokens_pool"
 	StakePoolName             = "stake_tokens_pool"

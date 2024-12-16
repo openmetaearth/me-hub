@@ -76,6 +76,7 @@ import (
 	"github.com/st-chain/me-hub/x/wdistri"
 	wdistr "github.com/st-chain/me-hub/x/wdistri"
 	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
+	"github.com/st-chain/me-hub/x/wgov"
 	"github.com/st-chain/me-hub/x/wmint"
 	"github.com/st-chain/me-hub/x/wnft"
 	"github.com/st-chain/me-hub/x/wstaking"
@@ -196,7 +197,7 @@ func (a *AppKeepers) SetupModules(
 		feegrantmodule.NewAppModule(appCodec, a.AccountKeeper, a.BankKeeper, a.FeeGrantKeeper, encodingConfig.InterfaceRegistry),
 		crisis.NewAppModule(a.CrisisKeeper, skipGenesisInvariants, a.GetSubspace(crisistypes.ModuleName)),
 		consensus.NewAppModule(appCodec, a.ConsensusParamsKeeper),
-		gov.NewAppModule(appCodec, a.GovKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(govtypes.ModuleName)),
+		wgov.NewAppModule(appCodec, a.GovKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(govtypes.ModuleName)),
 		wmint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil, a.GetSubspace(minttypes.ModuleName)),
 		slashing.NewAppModule(appCodec, a.SlashingKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(slashingtypes.ModuleName)),
 		wdistr.NewAppModule(appCodec, *a.DistrKeeper, a.AccountKeeper, a.BankKeeper),

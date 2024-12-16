@@ -37,7 +37,7 @@ func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.
 		k.InsertUBDQueue(ctx, ubd, completionTime)
 	} else {
 		amt := sdk.NewCoin(params.BaseDenom, returnAmount)
-		err = k.BankKeeper.UndelegateCoinsFromModuleToAccount(ctx, types.BondedPoolName, delAddr, sdk.NewCoins(amt))
+		err = k.BankKeeper.UndelegateCoinsFromModuleToAccount(ctx, stakingtypes.BondedPoolName, delAddr, sdk.NewCoins(amt))
 		if err != nil {
 			return completionTime, returnAmount, err
 		}
@@ -92,7 +92,7 @@ func (k Keeper) Unbond(ctx sdk.Context, delAmount math.Int, isMeid bool, delegat
 // bondedTokensToNotBonded transfers coins from the bonded to the not bonded pool within staking
 func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, tokens math.Int) {
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokens))
-	if err := k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.BondedPoolName, types.NotBondedPoolName, coins); err != nil {
+	if err := k.BankKeeper.SendCoinsFromModuleToModule(ctx, stakingtypes.BondedPoolName, stakingtypes.NotBondedPoolName, coins); err != nil {
 		panic(err)
 	}
 }
@@ -121,9 +121,9 @@ func (k Keeper) Delegate(
 
 	switch {
 	case validator.IsBonded():
-		pool = types.BondedPoolName
+		pool = stakingtypes.BondedPoolName
 	case validator.IsUnbonding(), validator.IsUnbonded():
-		pool = types.NotBondedPoolName
+		pool = stakingtypes.NotBondedPoolName
 	default:
 		panic("invalid validator status")
 	}

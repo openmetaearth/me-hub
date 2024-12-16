@@ -29,7 +29,6 @@ import (
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
-	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -109,6 +108,7 @@ import (
 	streamermodulekeeper "github.com/st-chain/me-hub/x/streamer/keeper"
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	vfchooks "github.com/st-chain/me-hub/x/vfc/hooks"
+	wgovkeeper "github.com/st-chain/me-hub/x/wgov/keeper"
 	wnftkeeper "github.com/st-chain/me-hub/x/wnft/keeper"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
@@ -124,7 +124,7 @@ type AppKeepers struct {
 	SlashingKeeper                slashingkeeper.Keeper
 	MintKeeper                    wmintkeeper.Keeper
 	DistrKeeper                   *wdistrkeeper.Keeper
-	GovKeeper                     *govkeeper.Keeper
+	GovKeeper                     *wgovkeeper.Keeper
 	CrisisKeeper                  *crisiskeeper.Keeper
 	UpgradeKeeper                 *upgradekeeper.Keeper
 	ParamsKeeper                  paramskeeper.Keeper
@@ -542,7 +542,7 @@ func (a *AppKeepers) InitKeepers(
 	)
 
 	govConfig := govtypes.DefaultConfig()
-	a.GovKeeper = govkeeper.NewKeeper(
+	a.GovKeeper = wgovkeeper.NewKeeper(
 		appCodec, a.keys[govtypes.StoreKey], a.AccountKeeper, a.BankKeeper,
 		a.StakingKeeper, bApp.MsgServiceRouter(), govConfig, govModuleAddress,
 	)

@@ -114,6 +114,25 @@ func (k Keeper) IterateAllStakes(ctx sdk.Context, cb func(stake types.Stake) (st
 	}
 }
 
+func (k Keeper) IterateStakes(ctx sdk.Context, delAddr sdk.AccAddress,
+	fn func(index int64, del types.Stake) (stop bool),
+) {
+	store := ctx.KVStore(k.storeKey)
+	stakerPrefixKey := types.GetStakesKey(delAddr)
+
+	iterator := sdk.KVStorePrefixIterator(store, stakerPrefixKey) // smallest to largest
+	defer iterator.Close()
+
+	for i := int64(0); iterator.Valid(); iterator.Next() {
+		del := types.MustUnmarshalStake(k.cdc, iterator.Value())
+		stop := fn(i, del)
+		if stop {
+			break
+		}
+		i++
+	}
+}
+
 func (k Keeper) GetAllStakes(ctx sdk.Context) (stakes []types.Stake) {
 	k.IterateAllStakes(ctx, func(stake types.Stake) bool {
 		stakes = append(stakes, stake)
