@@ -19,20 +19,19 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	stakingQueryCmd.AddCommand(
-		//stakingcli.GetCmdQueryDelegation(),
-		stakingcli.GetCmdQueryDelegations(),
-		stakingcli.GetCmdQueryUnbondingDelegation(),
-		stakingcli.GetCmdQueryUnbondingDelegations(),
-		stakingcli.GetCmdQueryRedelegation(),
-		stakingcli.GetCmdQueryRedelegations(),
+		//stakingcli.GetCmdQueryDelegations(),
+		//stakingcli.GetCmdQueryUnbondingDelegation(),
+		//stakingcli.GetCmdQueryUnbondingDelegations(),
+		//stakingcli.GetCmdQueryRedelegation(),
+		//stakingcli.GetCmdQueryRedelegations(),
 		stakingcli.GetCmdQueryValidator(),
 		stakingcli.GetCmdQueryValidators(),
 		stakingcli.GetCmdQueryValidatorDelegations(),
-		stakingcli.GetCmdQueryValidatorUnbondingDelegations(),
-		stakingcli.GetCmdQueryValidatorRedelegations(),
+		//stakingcli.GetCmdQueryValidatorUnbondingDelegations(),
+		//stakingcli.GetCmdQueryValidatorRedelegations(),
 		stakingcli.GetCmdQueryHistoricalInfo(),
 		stakingcli.GetCmdQueryParams(),
-		stakingcli.GetCmdQueryPool(),
+		//stakingcli.GetCmdQueryPool(),
 	)
 
 	stakingQueryCmd.AddCommand(
