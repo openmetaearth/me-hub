@@ -243,8 +243,7 @@ require (
 )
 
 replace (
-	//github.com/cosmos/cosmos-sdk => github.com/st-chain/cosmos-sdk v0.47.14-0.20241205094736-6206adc2cf00
-	github.com/cosmos/cosmos-sdk => ../cosmos-sdk
+	github.com/cosmos/cosmos-sdk => github.com/st-chain/cosmos-sdk v0.47.14-0.20241216115355-06fc0760af60
 	github.com/evmos/ethermint => github.com/st-chain/ethermint v0.0.0-20241011062015-96743bd744bb
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1
