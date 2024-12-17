@@ -110,6 +110,7 @@ func (m msgServer) UpdateServiceStatus(goCtx context.Context, msg *types.MsgUpda
 	}
 
 	svc.Status = msg.Status
+	m.SetService(ctx, msg.Sid, svc)
 
 	ctx.EventManager().EmitEvent(types.NewServiceEvent(types.EventTypeUpdateServiceStatus, svc.Sid, svc.Name, svc.Status.String(), svc.Issuers))
 	return &types.MsgUpdateServiceStatusResponse{}, nil
