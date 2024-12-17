@@ -3,12 +3,13 @@ package cli
 import (
 	"encoding/hex"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
-	"strconv"
-	"strings"
 
 	"github.com/st-chain/me-hub/x/did/types"
 )
@@ -29,10 +30,10 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(
 		CmdCreateDid(),
 		CmdUpdateDidStatus(),
-		CmdRemoveDid(),
+		// CmdRemoveDid(),
 		CmdCreateService(),
 		CmdUpdateServiceStatus(),
-		CmdRemoveService(),
+		// CmdRemoveService(),
 		CmdCreateVc(),
 		CmdUpdateVc(),
 		CmdRemoveVc(),
@@ -95,30 +96,30 @@ func CmdUpdateDidStatus() *cobra.Command {
 	return cmd
 }
 
-func CmdRemoveDid() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "remove-did [did]",
-		Short: "remove did",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
+// func CmdRemoveDid() *cobra.Command {
+// 	cmd := &cobra.Command{
+// 		Use:   "remove-did [did]",
+// 		Short: "remove did",
+// 		Args:  cobra.ExactArgs(1),
+// 		RunE: func(cmd *cobra.Command, args []string) error {
+// 			clientCtx, err := client.GetClientTxContext(cmd)
+// 			if err != nil {
+// 				return err
+// 			}
 
-			did := args[0]
-			msg := types.NewMsgRemoveDid(clientCtx.GetFromAddress().String(), did)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
+// 			did := args[0]
+// 			msg := types.NewMsgRemoveDid(clientCtx.GetFromAddress().String(), did)
+// 			if err := msg.ValidateBasic(); err != nil {
+// 				return err
+// 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
+// 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+// 		},
+// 	}
 
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
-}
+// 	flags.AddTxFlagsToCmd(cmd)
+// 	return cmd
+// }
 
 func CmdCreateService() *cobra.Command {
 	cmd := &cobra.Command{
@@ -175,30 +176,30 @@ func CmdUpdateServiceStatus() *cobra.Command {
 	return cmd
 }
 
-func CmdRemoveService() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "remove-service [sid]",
-		Short: "remove credential service",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
+// func CmdRemoveService() *cobra.Command {
+// 	cmd := &cobra.Command{
+// 		Use:   "remove-service [sid]",
+// 		Short: "remove credential service",
+// 		Args:  cobra.ExactArgs(1),
+// 		RunE: func(cmd *cobra.Command, args []string) error {
+// 			clientCtx, err := client.GetClientTxContext(cmd)
+// 			if err != nil {
+// 				return err
+// 			}
 
-			sid := args[0]
-			msg := types.NewMsgRemoveService(clientCtx.GetFromAddress().String(), sid)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
+// 			sid := args[0]
+// 			msg := types.NewMsgRemoveService(clientCtx.GetFromAddress().String(), sid)
+// 			if err := msg.ValidateBasic(); err != nil {
+// 				return err
+// 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
+// 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+// 		},
+// 	}
 
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
-}
+// 	flags.AddTxFlagsToCmd(cmd)
+// 	return cmd
+// }
 
 func CmdCreateVc() *cobra.Command {
 	cmd := &cobra.Command{
