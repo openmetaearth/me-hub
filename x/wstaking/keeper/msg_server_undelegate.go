@@ -94,9 +94,9 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	if err != nil {
 		return nil, err
 	}
-	region.DelegateAmount = region.DelegateAmount.Sub(msg.Amount.Amount)
+	region.DelegateAmount = region.DelegateAmount.Sub(returnAmount)
 	k.SetRegion(ctx, region)
-	val.DelegationAmount = val.DelegationAmount.Sub(msg.Amount.Amount)
+	val.DelegationAmount = val.DelegationAmount.Sub(returnAmount)
 	k.SetValidator(ctx, val)
 	//send delegation rewards
 	err = k.BankKeeper.SendCoins(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())))
