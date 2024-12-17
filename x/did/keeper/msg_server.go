@@ -2,10 +2,11 @@ package keeper
 
 import (
 	"context"
+	"slices"
+
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/did/types"
-	"slices"
 )
 
 type msgServer struct {
@@ -85,7 +86,7 @@ func (m msgServer) CreateService(goCtx context.Context, msg *types.MsgCreateServ
 		}
 	}
 
-	svc := types.NewService(msg.Sid, msg.Name, msg.Description, types.SERVICE_STATUS_DEACTIVE, msg.Issuers)
+	svc := types.NewService(msg.Sid, msg.Name, msg.Description, types.SERVICE_STATUS_ACTIVE, msg.Issuers)
 	m.SetService(ctx, msg.Sid, svc)
 
 	ctx.EventManager().EmitEvent(types.NewServiceEvent(types.EventTypeCreateService, svc.Sid, svc.Name, svc.Status.String(), svc.Issuers))
