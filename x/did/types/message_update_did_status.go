@@ -46,6 +46,9 @@ func (m *MsgUpdateDidStatus) ValidateBasic() error {
 	if len(m.Did) != 16 {
 		return errors.Wrap(sdkerrors.ErrInvalidType, "DID length must be equal to 16")
 	}
+	if _, ok := DidStatus_name[int32(m.Status)]; !ok {
+		return errors.Wrap(sdkerrors.ErrInvalidType, "DID status must be ACTIVE or INACTIVE")
+	}
 
 	return nil
 }
