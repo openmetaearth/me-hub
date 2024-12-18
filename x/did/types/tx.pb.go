@@ -191,7 +191,7 @@ func (m *MsgUpdateDidStatus) GetStatus() DidStatus {
 	if m != nil {
 		return m.Status
 	}
-	return DID_STATUS_DEACTIVE
+	return DID_STATUS_INACTIVE
 }
 
 type MsgUpdateDidStatusResponse struct {
@@ -487,7 +487,7 @@ func (m *MsgUpdateServiceStatus) GetStatus() ServiceStatus {
 	if m != nil {
 		return m.Status
 	}
-	return SERVICE_STATUS_DEACTIVE
+	return SERVICE_STATUS_INACTIVE
 }
 
 type MsgUpdateServiceStatusResponse struct {
@@ -1295,6 +1295,7 @@ func _Msg_RemoveVC_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+var Msg_serviceDesc = _Msg_serviceDesc
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "metaearth.did.Msg",
 	HandlerType: (*MsgServer)(nil),

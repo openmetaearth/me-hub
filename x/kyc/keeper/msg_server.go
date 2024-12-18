@@ -175,7 +175,7 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	if !found {
 		return &types.MsgRemoveResponse{}, didtypes.ErrHolderNotFound
 	}
-	didInfo.Status = didtypes.DID_STATUS_DEACTIVE
+	didInfo.Status = didtypes.DID_STATUS_INACTIVE
 	m.SetDidInfo(ctx, msg.Did, didInfo)
 
 	// delete KYC

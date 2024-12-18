@@ -14,7 +14,7 @@ enum DidStatus {
   option (gogoproto.goproto_enum_stringer) = true;
   option (gogoproto.goproto_enum_prefix) = false;
 
-  DID_STATUS_DEACTIVE    = 0 [ (gogoproto.enumvalue_customname) = "DID_STATUS_DEACTIVE " ];
+  DID_STATUS_INACTIVE    = 0 [ (gogoproto.enumvalue_customname) = "DID_STATUS_INACTIVE " ];
   DID_STATUS_ACTIVE      = 1 [ (gogoproto.enumvalue_customname) = "DID_STATUS_ACTIVE" ];
 }
 
