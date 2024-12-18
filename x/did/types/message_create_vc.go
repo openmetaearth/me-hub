@@ -50,12 +50,12 @@ func (m *MsgCreateVC) GetCredential() Credential {
 func (m *MsgCreateVC) ValidateBasic() error {
 	// check issuer
 	if _, err := sdk.AccAddressFromBech32(m.Issuer); err != nil {
-		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the creator is not a valid bech32 address")
+		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the issuer is not a valid bech32 address")
 	}
 
 	// check holder
-	if _, err := sdk.AccAddressFromBech32(m.Did); err != nil {
-		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the creator is not a valid bech32 address")
+	if len(m.Did) != 16 {
+		return errors.Wrap(sdkerrors.ErrInvalidType, "DID length must be equal to 16")
 	}
 
 	if len(m.Sid) < 2 || len(m.Sid) > 8 {

@@ -70,7 +70,7 @@ func CmdCreateDid() *cobra.Command {
 func CmdUpdateDidStatus() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-did-status [did] [status]",
-		Short: "update did status, status: 1-active, 2-inactive",
+		Short: "update did status, status: 1-active, 0-inactive",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -152,7 +152,7 @@ func CmdCreateService() *cobra.Command {
 func CmdUpdateServiceStatus() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-service-status [sid] [status]",
-		Short: "update credential service status, status: 1-active, 2-inactive",
+		Short: "update credential service status, status: 1-active, 0-inactive",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
