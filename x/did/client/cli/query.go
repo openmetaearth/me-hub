@@ -133,3 +133,34 @@ func CmdQueryCredential() *cobra.Command {
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
+
+func CmdDidInfos() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "did-infos",
+		Short: "Query did_infos",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			pageReq, _ := client.ReadPageRequest(cmd.Flags())
+			res, err := queryClient.DidInfos(cmd.Context(), &types.QueryDidInfosRequest{
+				Pagination: pageReq,
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
+
+	return cmd
+}
