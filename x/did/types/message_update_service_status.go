@@ -46,7 +46,7 @@ func (m *MsgUpdateServiceStatus) ValidateBasic() error {
 	if len(m.Sid) < 2 || len(m.Sid) > 8 {
 		return errors.Wrap(sdkerrors.ErrInvalidType, "sid length must be between 2 and 8")
 	}
-	if m.Status != SERVICE_STATUS_ACTIVE && m.Status != SERVICE_STATUS_DEACTIVE {
+	if m.Status != SERVICE_STATUS_ACTIVE && m.Status != SERVICE_STATUS_INACTIVE {
 		return errors.Wrap(sdkerrors.ErrInvalidType, "invalid service status")
 	}
 
