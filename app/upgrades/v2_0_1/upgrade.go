@@ -1,4 +1,4 @@
-package v2
+package v2_0_1
 
 import (
 	"encoding/json"
@@ -237,23 +237,26 @@ func GetPath(upgradeKeeper *upgradekeeper.Keeper) string {
 }
 
 func migrateKycModule(ctx sdk.Context, kycKeeper *kyckeeper.Keeper, path string) {
-	issuer, err := ReadIssuer(path)
+	issuers, err := ReadIssuer(path)
 	if err != nil {
 		panic(err)
 	}
-	address := kycKeeper.MustAccAddressFromPubkeyString(issuer.Pubkey)
-	if _, found := kycKeeper.GetDID(ctx, address); found {
-		panic(fmt.Errorf("issuer %s already exists", address))
+	issuerDids := []string{}
+	for _, issuer := range issuers {
+		address := kycKeeper.MustAccAddressFromPubkeyString(issuer.Pubkey)
+		if _, found := kycKeeper.GetDID(ctx, address); found {
+			panic(fmt.Errorf("issuer %s already exists", address))
+		}
+
+		kycKeeper.SetDID(ctx, address, issuer.Did)
+		kycKeeper.SetDidInfo(ctx, issuer.Did, issuer)
+		issuerDids = append(issuerDids, issuer.Did)
 	}
-
-	kycKeeper.SetDID(ctx, address, issuer.Did)
-	kycKeeper.SetDidInfo(ctx, issuer.Did, issuer)
-
 	service := didtypes.Service{
 		Sid:         kyctypes.ModuleName,
 		Name:        kyctypes.ModuleName,
 		Description: "The KYC verifiable credential issuer based The DID(Decentralized Identity).",
-		Issuers:     []string{issuer.Did},
+		Issuers:     issuerDids,
 		Status:      didtypes.SERVICE_STATUS_ACTIVE,
 	}
 	kycKeeper.SetService(ctx, service)
@@ -390,7 +393,7 @@ func ReadKycPubkey(homePath string) (map[string]string, error) {
 	return accounts, nil
 }
 
-func ReadIssuer(path string) (issuer didtypes.DidInfo, err error) {
+func ReadIssuer(path string) (issuer []didtypes.DidInfo, err error) {
 	data, err := ioutil.ReadFile(filepath.Join(path, "/config/issuer.json"))
 	if err != nil {
 		return issuer, err

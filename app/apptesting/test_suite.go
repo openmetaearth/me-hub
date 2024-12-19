@@ -176,7 +176,7 @@ func (s *KeeperTestHelper) InitKyc(pubkey string) {
 		Sid:         kyctypes.ModuleName,
 		Name:        kyctypes.ModuleName,
 		Description: "The KYC verifiable credential issuer based The DID(Decentralized Identity).",
-		Issuer:      did,
+		Issuers:     []string{address.String()},
 		Status:      didtypes.SERVICE_STATUS_ACTIVE,
 	}
 	s.App.DidKeeper.SetService(s.Ctx, service.Sid, service)
