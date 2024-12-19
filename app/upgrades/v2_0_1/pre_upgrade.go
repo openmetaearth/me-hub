@@ -1,4 +1,4 @@
-package v2
+package v2_0_1
 
 import (
 	"github.com/cosmos/cosmos-sdk/server"

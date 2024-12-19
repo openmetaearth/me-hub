@@ -21,7 +21,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	"github.com/st-chain/me-hub/app/keepers"
 	"github.com/st-chain/me-hub/app/upgrades"
-	v2 "github.com/st-chain/me-hub/app/upgrades/v2"
+	v2 "github.com/st-chain/me-hub/app/upgrades/v2_0_1"
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"

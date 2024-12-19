@@ -240,6 +240,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	newCtx := ctx.WithPriority(priority)
 	return next(newCtx, tx, simulate)
 }
+
 func (dfd DeductFeeDecorator) checkFunds(ctx sdk.Context, tx sdk.Tx, feePayer string, fees sdk.Coins) error {
 	if len(fees.Denoms()) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "denom is empty")
