@@ -137,7 +137,7 @@ func CmdQueryCredential() *cobra.Command {
 func CmdDidInfos() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "did-infos",
-		Short: "Query did_infos",
+		Short: "Query did base information list",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
