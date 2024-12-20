@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package metaearth.megroup;
+
+import "gogoproto/gogo.proto";
+import "metaearth/megroup/params.proto";
+import "metaearth/megroup/group.proto";
+import "metaearth/megroup/group_member.proto";
+import "metaearth/megroup/member_joined.proto";
+import "metaearth/megroup/group_member_count.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/megroup/types";
+
+// GenesisState defines the megroup module's genesis state.
+message GenesisState {
+           Params           params               = 1 [(gogoproto.nullable) = false];
+  repeated Group            groupList            = 2 [(gogoproto.nullable) = false];
+           uint64           groupCount           = 3;
+  repeated GroupMember      groupMemberList      = 4 [(gogoproto.nullable) = false];
+  repeated MemberJoined     memberJoinedList     = 5 [(gogoproto.nullable) = false];
+  repeated GroupMemberCount groupMemberCountList = 6 [(gogoproto.nullable) = false];
+}
+
