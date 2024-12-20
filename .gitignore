@@ -10,3 +10,4 @@ proposal.json
 .go-version
 swagger-proto
 github.com
+tmp-swagger-gen

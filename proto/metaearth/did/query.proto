@@ -8,7 +8,7 @@ import "google/api/annotations.proto";
 import "metaearth/did/credential.proto";
 import "metaearth/did/did.proto";
 import "metaearth/did/filter.proto";
-import "metaearth/did/service.proto";
+import "metaearth/did/issuer.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/did/types";
 
@@ -43,8 +43,8 @@ message QueryDid {
   string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
-message QueryDidResponse{
-  did.DidInfo info = 1 [ (gogoproto.nullable) = false ];
+message QueryDidResponse {
+  did.DidInfo info = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryDidDocument {
