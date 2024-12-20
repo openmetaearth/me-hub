@@ -7,6 +7,54 @@
   },
   "apis": [
     {
+      "url": "./tmp-swagger-gen/metaearth/dao/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "DaoParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/metaearth/did/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "DidParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/metaearth/kyc/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "KycParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/metaearth/streamer/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "StreamerParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/metaearth/wdistri/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "wDistriParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/metaearth/wnft/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "wNftParams"
+        }
+      }
+    },
+    {
       "url": "./tmp-swagger-gen/dymensionxyz/dymension/delayedack/query.swagger.json",
       "operationIds": {
         "rename": {
