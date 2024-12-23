@@ -27,7 +27,7 @@ message MsgApprove {
   string regionId = 3;
   string address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string pubkey = 5;
-  uint32 level = 6;
+  int32 level = 6;
   string uri = 7;
   string hash = 8;
   string inviter = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -41,7 +41,7 @@ message MsgUpdate {
   string regionId = 3;
   string uri = 4;
   string hash = 5;
-  uint32 level = 6;
+  int32 level = 6;
 }
 
 message MsgUpdateResponse {}
