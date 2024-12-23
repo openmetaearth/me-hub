@@ -3,12 +3,15 @@ package cli
 import (
 	"encoding/hex"
 	"fmt"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 	"github.com/st-chain/me-hub/x/kyc/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -32,9 +35,9 @@ func GetTxCmd() *cobra.Command {
 
 func CmdApprove() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "approve [DID] [region ID] [address] [pubkey] [uri] [hash] [inviter address]",
+		Use:   "approve [DID] [region ID] [address] [pubkey] [level] [uri] [hash] [inviter address]",
 		Short: "approve KYC information",
-		Args:  cobra.ExactArgs(7),
+		Args:  cobra.ExactArgs(8),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -45,9 +48,13 @@ func CmdApprove() *cobra.Command {
 			regionId := args[1]
 			address := args[2]
 			pubkey := args[3]
-			uri := args[4]
-			hash := args[5]
-			inviter := args[6]
+			level, err := strconv.Atoi(args[4])
+			if err != nil {
+				return err
+			}
+			uri := args[5]
+			hash := args[6]
+			inviter := args[7]
 
 			msg := types.NewMsgApprove(
 				clientCtx.GetFromAddress().String(),
@@ -55,6 +62,7 @@ func CmdApprove() *cobra.Command {
 				regionId,
 				address,
 				pubkey,
+				didtypes.KycLevel(level),
 				uri,
 				hash,
 				inviter,
@@ -73,7 +81,7 @@ func CmdApprove() *cobra.Command {
 
 func CmdUpdate() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update [DID] [region ID] [uri] [hash]",
+		Use:   "update [DID] [region ID] [level] [uri] [hash]",
 		Short: "update KYC information",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -84,13 +92,18 @@ func CmdUpdate() *cobra.Command {
 
 			did := args[0]
 			regionId := args[1]
-			uri := args[2]
-			hash := args[3]
+			level, err := strconv.Atoi(args[2])
+			if err != nil {
+				return err
+			}
+			uri := args[3]
+			hash := args[4]
 
 			msg := types.NewMsgUpdate(
 				clientCtx.GetFromAddress().String(),
 				did,
 				regionId,
+				didtypes.KycLevel(level),
 				uri,
 				hash,
 			)

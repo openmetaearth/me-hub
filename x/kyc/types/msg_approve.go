@@ -1,25 +1,27 @@
 package types
 
 import (
+	"strings"
+
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/st-chain/me-hub/utils"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
-	"strings"
 )
 
 const (
 	TypeMsgApprove = "approve"
 )
 
-func NewMsgApprove(issuer, did, regionId, address, pubkey, uri, hash, inviter string) *MsgApprove {
+func NewMsgApprove(issuer, did, regionId, address, pubkey string, level didtypes.KycLevel, uri, hash, inviter string) *MsgApprove {
 	return &MsgApprove{
 		Issuer:   issuer,
 		Did:      did,
 		RegionId: regionId,
 		Address:  address,
 		Pubkey:   pubkey,
+		Level:    level,
 		Uri:      uri,
 		Hash:     hash,
 		Inviter:  inviter,
@@ -66,6 +68,9 @@ func (m *MsgApprove) ValidateBasic() error {
 	}
 	if m.Pubkey == "" {
 		return errors.Wrap(sdkerrors.ErrInvalidPubKey, "the pubkey is empty")
+	}
+	if _, ok := didtypes.KycLevel_name[int32(m.Level)]; !ok {
+		return errors.Wrap(sdkerrors.ErrInvalidType, "the level is not valid")
 	}
 	if len(m.Hash) == 0 || len(m.Hash) > 128 {
 		return errors.Wrap(sdkerrors.ErrInvalidType, "hash length must be between 0 and 128")
