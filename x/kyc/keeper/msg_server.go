@@ -243,6 +243,53 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 	return &types.MsgCreateSBTResponse{}, nil
 }
 
+func (m msgServer) UpdateSBT(goCtx context.Context, msg *types.MsgUpdateSBT) (*types.MsgUpdateSBTResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	m.Logger(ctx).Debug("call UpdateSBT", "msg", msg)
+
+	// check credential service
+	svc, found := m.GetService(ctx)
+	if !found || svc.Status != didtypes.SERVICE_STATUS_ACTIVE {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrServiceNotActive
+	}
+
+	// check issuer did
+	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
+	if !found || !slices.Contains(svc.Issuers, issuer) {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrIssuerNotFound
+	}
+	issuerInfo, found := m.GetDidInfo(ctx, issuer)
+	if !found || issuerInfo.Status != didtypes.DID_STATUS_ACTIVE {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrIssuerNotActive
+	}
+
+	// check holder did
+	if !m.HasDidInfo(ctx, msg.Did) {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrHolderNotFound
+	}
+	if !m.HasKYC(ctx, msg.Did) {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrCredentialNotFound
+	}
+
+	// checkk SBT is existed
+	sbt, found := m.GetSBT(ctx, msg.Did)
+	if !found {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrSbtNotFound
+	}
+
+	// mint SBT to KYC module address
+	sbt.Uri = msg.Uri
+	sbt.UriHash = msg.UriHash
+	sbt.Data = types2.UnsafePackAny(msg.Data)
+
+	if err := m.nftKeeper.Update(ctx, sbt); err != nil {
+		return &types.MsgUpdateSBTResponse{}, errors.Wrap(err, "update SBT failed")
+	}
+
+	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeUpdateSBT, msg.Did, msg.Uri, msg.UriHash))
+	return &types.MsgUpdateSBTResponse{}, nil
+}
+
 func (m msgServer) DeleteSBT(goCtx context.Context, msg *types.MsgDeleteSBT) (*types.MsgDeleteSBTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	m.Logger(ctx).Debug("call DeleteSBT", "msg", msg)
