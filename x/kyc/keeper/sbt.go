@@ -6,6 +6,10 @@ import (
 	"github.com/st-chain/me-hub/x/kyc/types"
 )
 
+/*
+todo: remove these functions, for now we only need to support SetSbtClass
+*/
+
 func (k *Keeper) HasSBT(ctx sdk.Context, did string) bool {
 	return k.nftKeeper.HasNFT(ctx, types.ModuleName, did)
 }
