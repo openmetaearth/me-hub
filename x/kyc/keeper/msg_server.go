@@ -96,7 +96,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	}
 
 	// todo: update events
-	ctx.EventManager().EmitEvent(types.NewKycEvent(msg.Address, msg.Did, int(msg.Level), "approve", m.takeSeq(ctx)))
+	ctx.EventManager().EmitEvent(types.NewKycEvent(msg.Address, msg.Did, msg.Level, "approve", m.takeSeq(ctx)))
 	return &types.MsgApproveResponse{}, nil
 }
 
@@ -151,7 +151,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	if err := m.TransferApproveReward(ctx, address, msg.Issuer, string(preKyc.Data), msg.RegionId); err != nil {
 		return &types.MsgUpdateResponse{}, errors.Wrap(err, "transfer reward failed")
 	}
-	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, int(msg.Level), "update", m.takeSeq(ctx)))
+	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, msg.Level, "update", m.takeSeq(ctx)))
 	return &types.MsgUpdateResponse{}, nil
 }
 
@@ -200,7 +200,7 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	if err := m.DeleteApproveReward(ctx, address, string(kyc.Data)); err != nil {
 		return &types.MsgRemoveResponse{}, errors.Wrap(err, "delete reward failed")
 	}
-	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, int(didInfo.KycLevel), "remove", m.takeSeq(ctx)))
+	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, didInfo.KycLevel, "remove", m.takeSeq(ctx)))
 	return &types.MsgRemoveResponse{}, nil
 }
 
