@@ -5,7 +5,6 @@ import "gogoproto/gogo.proto";
 import "metaearth/kyc/protocol.proto";
 import "metaearth/kyc/kyc_event_seq.proto";
 import "metaearth/did/did.proto";
-import "cosmos/staking/v1beta1/staking.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/kyc/types";
 
