@@ -35,7 +35,7 @@ func PreUpgradeCmd() *cobra.Command {
 
 			fileName := filepath.Join(rootDir, "config", "app.toml")
 			config.WriteConfigFile(fileName, customAppConfig)
-			serverCtx.Logger.Info("pre-upgrade config success")
+			serverCtx.Logger.Info("pre-upgrade config app.toml success")
 			return nil
 		},
 	}
