@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+	didTypes "github.com/st-chain/me-hub/x/did/types"
 )
 
 const (
@@ -11,14 +12,16 @@ const (
 	EventTypeUpdate    = "update"
 	EventTypeRemove    = "remove"
 	EventTypeCreateSBT = "create_sbt"
+	EventTypeUpdateSBT = "create_sbt"
 	EventTypeDeleteSBT = "delete_sbt"
 )
 
-func NewKycEvent(address string, did string, action string, seq uint64) sdkTypes.Event {
+func NewKycEvent(address string, did string, level didTypes.KycLevel, action string, seq uint64) sdkTypes.Event {
 	attributes := []sdkTypes.Attribute{
 		{Key: "sequence", Value: fmt.Sprintf("%d", seq)},
 		{Key: "address", Value: address},
 		{Key: "did", Value: did},
+		{Key: "level", Value: level.String()},
 		{Key: "action", Value: action},
 	}
 	return sdkTypes.NewEvent("kyc_event", attributes...)

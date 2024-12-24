@@ -1,23 +1,25 @@
 package types
 
 import (
+	"strings"
+
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/st-chain/me-hub/utils"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
-	"strings"
 )
 
 const (
 	TypeMsgUpdate = "update"
 )
 
-func NewMsgUpdate(issuer, did, regionId, uri, hash string) *MsgUpdate {
+func NewMsgUpdate(issuer, did, regionId string, level didtypes.KycLevel, uri, hash string) *MsgUpdate {
 	return &MsgUpdate{
 		Issuer:   issuer,
 		Did:      did,
 		RegionId: regionId,
+		Level:    level,
 		Uri:      uri,
 		Hash:     hash,
 	}
@@ -57,6 +59,9 @@ func (m *MsgUpdate) ValidateBasic() error {
 	}
 	if _, err := utils.CheckRegionName(strings.ToUpper(m.RegionId)); err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidType, err.Error())
+	}
+	if _, ok := didtypes.KycLevel_name[int32(m.Level)]; !ok {
+		return errors.Wrap(sdkerrors.ErrInvalidType, "the level is not valid")
 	}
 	if len(m.Hash) == 0 || len(m.Hash) > 128 {
 		return errors.Wrap(sdkerrors.ErrInvalidType, "hash length must be between 0 and 128")

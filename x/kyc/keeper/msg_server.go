@@ -76,10 +76,11 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	// create DID
 	m.SetDID(ctx, address, msg.Did)
 	m.SetDidInfo(ctx, msg.Did, didtypes.DidInfo{
-		Did:     msg.Did,
-		Address: msg.Address,
-		Pubkey:  msg.Pubkey,
-		Status:  didtypes.DID_STATUS_ACTIVE,
+		Did:      msg.Did,
+		Address:  msg.Address,
+		Pubkey:   msg.Pubkey,
+		KycLevel: msg.Level,
+		Status:   didtypes.DID_STATUS_ACTIVE,
 	})
 
 	// create KYC
@@ -95,7 +96,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	}
 
 	// todo: update events
-	ctx.EventManager().EmitEvent(types.NewKycEvent(msg.Address, msg.Did, "approve", m.takeSeq(ctx)))
+	ctx.EventManager().EmitEvent(types.NewKycEvent(msg.Address, msg.Did, msg.Level, "approve", m.takeSeq(ctx)))
 	return &types.MsgApproveResponse{}, nil
 }
 
@@ -134,6 +135,10 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 		return &types.MsgUpdateResponse{}, stktypes.ErrRegionNotExist
 	}
 
+	// update KYC level
+	holderInfo.KycLevel = msg.Level
+	m.SetDidInfo(ctx, msg.Did, holderInfo)
+
 	// update KYC
 	kyc := msg.GetKYC()
 	m.SetKYC(ctx, msg.Did, kyc)
@@ -146,7 +151,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	if err := m.TransferApproveReward(ctx, address, msg.Issuer, string(preKyc.Data), msg.RegionId); err != nil {
 		return &types.MsgUpdateResponse{}, errors.Wrap(err, "transfer reward failed")
 	}
-	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, "update", m.takeSeq(ctx)))
+	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, msg.Level, "update", m.takeSeq(ctx)))
 	return &types.MsgUpdateResponse{}, nil
 }
 
@@ -175,6 +180,7 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	if !found {
 		return &types.MsgRemoveResponse{}, didtypes.ErrHolderNotFound
 	}
+	didInfo.KycLevel = 0
 	didInfo.Status = didtypes.DID_STATUS_INACTIVE
 	m.SetDidInfo(ctx, msg.Did, didInfo)
 
@@ -194,7 +200,7 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	if err := m.DeleteApproveReward(ctx, address, string(kyc.Data)); err != nil {
 		return &types.MsgRemoveResponse{}, errors.Wrap(err, "delete reward failed")
 	}
-	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, "remove", m.takeSeq(ctx)))
+	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, didInfo.KycLevel, "remove", m.takeSeq(ctx)))
 	return &types.MsgRemoveResponse{}, nil
 }
 
@@ -241,6 +247,53 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 
 	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeCreateSBT, msg.Did, msg.Uri, msg.UriHash))
 	return &types.MsgCreateSBTResponse{}, nil
+}
+
+func (m msgServer) UpdateSBT(goCtx context.Context, msg *types.MsgUpdateSBT) (*types.MsgUpdateSBTResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	m.Logger(ctx).Debug("call UpdateSBT", "msg", msg)
+
+	// check credential service
+	svc, found := m.GetService(ctx)
+	if !found || svc.Status != didtypes.SERVICE_STATUS_ACTIVE {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrServiceNotActive
+	}
+
+	// check issuer did
+	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
+	if !found || !slices.Contains(svc.Issuers, issuer) {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrIssuerNotFound
+	}
+	issuerInfo, found := m.GetDidInfo(ctx, issuer)
+	if !found || issuerInfo.Status != didtypes.DID_STATUS_ACTIVE {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrIssuerNotActive
+	}
+
+	// check holder did
+	if !m.HasDidInfo(ctx, msg.Did) {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrHolderNotFound
+	}
+	if !m.HasKYC(ctx, msg.Did) {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrCredentialNotFound
+	}
+
+	// checkk SBT is existed
+	sbt, found := m.GetSBT(ctx, msg.Did)
+	if !found {
+		return &types.MsgUpdateSBTResponse{}, types.ErrSbtNotFound
+	}
+
+	// mint SBT to KYC module address
+	sbt.Uri = msg.Uri
+	sbt.UriHash = msg.UriHash
+	sbt.Data = types2.UnsafePackAny(msg.Data)
+
+	if err := m.nftKeeper.Update(ctx, sbt); err != nil {
+		return &types.MsgUpdateSBTResponse{}, errors.Wrap(err, "update SBT failed")
+	}
+
+	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeUpdateSBT, msg.Did, msg.Uri, msg.UriHash))
+	return &types.MsgUpdateSBTResponse{}, nil
 }
 
 func (m msgServer) DeleteSBT(goCtx context.Context, msg *types.MsgDeleteSBT) (*types.MsgDeleteSBTResponse, error) {

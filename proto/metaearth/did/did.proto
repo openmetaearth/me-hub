@@ -9,6 +9,17 @@ import "metaearth/did/credential.proto";
 option go_package = "github.com/st-chain/me-hub/x/did/types";
 
 
+// kyc level enum
+enum KycLevel {
+  option (gogoproto.goproto_enum_stringer) = true;
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  KYC_LEVEL_NONE   = 0 [ (gogoproto.enumvalue_customname) = "KYC_LEVEL_NONE " ];
+  KYC_LEVEL_ONE    = 1 [ (gogoproto.enumvalue_customname) = "KYC_LEVEL_ONE " ];
+  KYC_LEVEL_TWO    = 2 [ (gogoproto.enumvalue_customname) = "KYC_LEVEL_TWO" ];
+}
+
+
 // did status enum
 enum DidStatus {
   option (gogoproto.goproto_enum_stringer) = true;
@@ -26,7 +37,9 @@ message DidInfo {
   // public_key is mapped to the user address
   // the issuer will use public_key to encrypt the user's certificate to ensure the privacy of the off-chain certificate
   string pubkey          = 3;
-  DidStatus status       = 4;
+  string regionId        = 4;   // unused!
+  KycLevel kycLevel      = 5;
+  DidStatus status       = 6;
 }
 
 // did document
