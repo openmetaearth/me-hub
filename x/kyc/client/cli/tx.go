@@ -83,7 +83,7 @@ func CmdUpdate() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update [DID] [region ID] [level] [uri] [hash]",
 		Short: "update KYC information",
-		Args:  cobra.ExactArgs(4),
+		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {

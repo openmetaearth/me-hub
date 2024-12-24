@@ -250,7 +250,7 @@ func CmdUpdateVc() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-vc [holder-did] [sid] [credential-file-hash] [off-chain-credential-uri] [hex-data]",
 		Short: "update verifiable credential",
-		Args:  cobra.ExactArgs(4),
+		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
