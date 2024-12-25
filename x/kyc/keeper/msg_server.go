@@ -7,7 +7,7 @@ import (
 	"cosmossdk.io/errors"
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
+	sdkaddr "github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/x/nft"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/types"
@@ -76,10 +76,11 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	// create DID
 	m.SetDID(ctx, address, msg.Did)
 	m.SetDidInfo(ctx, msg.Did, didtypes.DidInfo{
-		Did:     msg.Did,
-		Address: msg.Address,
-		Pubkey:  msg.Pubkey,
-		Status:  didtypes.DID_STATUS_ACTIVE,
+		Did:      msg.Did,
+		Address:  msg.Address,
+		Pubkey:   msg.Pubkey,
+		KycLevel: msg.Level,
+		Status:   didtypes.DID_STATUS_ACTIVE,
 	})
 
 	// create KYC
@@ -95,7 +96,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	}
 
 	// todo: update events
-	ctx.EventManager().EmitEvent(types.NewKycEvent(msg.Address, msg.Did, "approve", m.takeSeq(ctx)))
+	ctx.EventManager().EmitEvent(types.NewKycEvent(msg.Address, msg.Did, msg.Level, "approve", m.takeSeq(ctx)))
 	return &types.MsgApproveResponse{}, nil
 }
 
@@ -128,11 +129,17 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	if !found {
 		return &types.MsgUpdateResponse{}, didtypes.ErrCredentialNotFound
 	}
+	perRegionId := string(preKyc.Data)
+	perLevel := holderInfo.KycLevel.String()
 
 	// check region
 	if _, found := m.stkKeeper.GetRegion(ctx, msg.RegionId); !found {
 		return &types.MsgUpdateResponse{}, stktypes.ErrRegionNotExist
 	}
+
+	// update KYC level
+	holderInfo.KycLevel = msg.Level
+	m.SetDidInfo(ctx, msg.Did, holderInfo)
 
 	// update KYC
 	kyc := msg.GetKYC()
@@ -143,10 +150,26 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 
 	// change reward
 	address := m.MustAccAddressFromPubkeyString(holderInfo.Pubkey).String()
-	if err := m.TransferApproveReward(ctx, address, msg.Issuer, string(preKyc.Data), msg.RegionId); err != nil {
+	if err := m.TransferApproveReward(ctx, address, msg.Issuer, perRegionId, msg.RegionId); err != nil {
 		return &types.MsgUpdateResponse{}, errors.Wrap(err, "transfer reward failed")
 	}
-	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, "update", m.takeSeq(ctx)))
+
+	// add event
+	event := sdk.NewEvent(types.EventTypeUpdate,
+		sdk.NewAttribute(types.AttributeKeyRegionId, perRegionId),
+		sdk.NewAttribute(types.AttributeKeyRegionIdChanged, msg.RegionId),
+		sdk.NewAttribute(types.AttributeKeyLevel, perLevel),
+		sdk.NewAttribute(types.AttributeKeyLevelChanged, msg.Level.String()),
+	)
+	ctx.EventManager().EmitEvent(event)
+	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, msg.Level, "update", m.takeSeq(ctx)))
+
+	// event post-handler
+	err := m.handlerReg.HandleEvent(ctx, types.EventTypeUpdate, event)
+	if err != nil {
+		return &types.MsgUpdateResponse{}, err
+	}
+
 	return &types.MsgUpdateResponse{}, nil
 }
 
@@ -175,6 +198,7 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	if !found {
 		return &types.MsgRemoveResponse{}, didtypes.ErrHolderNotFound
 	}
+	didInfo.KycLevel = 0
 	didInfo.Status = didtypes.DID_STATUS_INACTIVE
 	m.SetDidInfo(ctx, msg.Did, didInfo)
 
@@ -194,7 +218,7 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	if err := m.DeleteApproveReward(ctx, address, string(kyc.Data)); err != nil {
 		return &types.MsgRemoveResponse{}, errors.Wrap(err, "delete reward failed")
 	}
-	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, "remove", m.takeSeq(ctx)))
+	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, didInfo.KycLevel, "remove", m.takeSeq(ctx)))
 	return &types.MsgRemoveResponse{}, nil
 }
 
@@ -235,12 +259,59 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 		Data:    types2.UnsafePackAny(msg.Data), // todo: check for encode
 	}
 
-	if err := m.SetSBT(ctx, sbt, address.Module(types.ModuleName)); err != nil {
+	if err := m.SetSBT(ctx, sbt, sdkaddr.Module(types.ModuleName)); err != nil {
 		return &types.MsgCreateSBTResponse{}, errors.Wrap(err, "mint SBT failed")
 	}
 
 	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeCreateSBT, msg.Did, msg.Uri, msg.UriHash))
 	return &types.MsgCreateSBTResponse{}, nil
+}
+
+func (m msgServer) UpdateSBT(goCtx context.Context, msg *types.MsgUpdateSBT) (*types.MsgUpdateSBTResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	m.Logger(ctx).Debug("call UpdateSBT", "msg", msg)
+
+	// check credential service
+	svc, found := m.GetService(ctx)
+	if !found || svc.Status != didtypes.SERVICE_STATUS_ACTIVE {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrServiceNotActive
+	}
+
+	// check issuer did
+	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
+	if !found || !slices.Contains(svc.Issuers, issuer) {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrIssuerNotFound
+	}
+	issuerInfo, found := m.GetDidInfo(ctx, issuer)
+	if !found || issuerInfo.Status != didtypes.DID_STATUS_ACTIVE {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrIssuerNotActive
+	}
+
+	// check holder did
+	if !m.HasDidInfo(ctx, msg.Did) {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrHolderNotFound
+	}
+	if !m.HasKYC(ctx, msg.Did) {
+		return &types.MsgUpdateSBTResponse{}, didtypes.ErrCredentialNotFound
+	}
+
+	// checkk SBT is existed
+	sbt, found := m.GetSBT(ctx, msg.Did)
+	if !found {
+		return &types.MsgUpdateSBTResponse{}, types.ErrSbtNotFound
+	}
+
+	// mint SBT to KYC module address
+	sbt.Uri = msg.Uri
+	sbt.UriHash = msg.UriHash
+	sbt.Data = types2.UnsafePackAny(msg.Data)
+
+	if err := m.nftKeeper.Update(ctx, sbt); err != nil {
+		return &types.MsgUpdateSBTResponse{}, errors.Wrap(err, "update SBT failed")
+	}
+
+	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeUpdateSBT, msg.Did, msg.Uri, msg.UriHash))
+	return &types.MsgUpdateSBTResponse{}, nil
 }
 
 func (m msgServer) DeleteSBT(goCtx context.Context, msg *types.MsgDeleteSBT) (*types.MsgDeleteSBTResponse, error) {

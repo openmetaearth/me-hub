@@ -2,17 +2,22 @@ package types
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 )
 
 const (
-	V1ChainId  = "mechain"
-	V2ChainId  = "mechain_100-1"
-	EvmChainID = 100
+	MainnetV1ChainId  = "mechain"
+	MainnetV2ChainId  = "mechain_100-1"
+	MainnetEvmChainID = 100
+
+	TestnetV1ChainId  = "mechain_testnet"
+	TestnetV2ChainId  = "mechain_testnet_101-1"
+	TestnetEvmChainID = 101
 )
 
 var (
-	chainId = V1ChainId
+	chainId = MainnetV1ChainId
 	once    sync.Once
 )
 
@@ -27,5 +32,8 @@ func ChainId() string {
 }
 
 func ChainIdWithEIP155() string {
-	return fmt.Sprintf("%s_%d-1", ChainId(), EvmChainID)
+	if strings.Contains(ChainId(), "testnet") {
+		return fmt.Sprintf("%s_%d-1", ChainId(), TestnetEvmChainID)
+	}
+	return fmt.Sprintf("%s_%d-1", ChainId(), MainnetEvmChainID)
 }
