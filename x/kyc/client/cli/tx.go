@@ -28,6 +28,7 @@ func GetTxCmd() *cobra.Command {
 		CmdUpdate(),
 		CmdRemove(),
 		CmdCreateSBT(),
+		CmdUpdateSBT(),
 		CmdDeleteSBT(),
 	)
 	return cmd
@@ -167,6 +168,43 @@ func CmdCreateSBT() *cobra.Command {
 			}
 
 			msg := types.NewMsgCreateSBT(
+				clientCtx.GetFromAddress().String(),
+				did,
+				uri,
+				uriHash,
+				data,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+func CmdUpdateSBT() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-sbt [DID] [uri] [uri hash] [data]",
+		Short: "update SBT(Soul binding token)",
+		Args:  cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			did := args[0]
+			uri := args[1]
+			uriHash := args[2]
+			data, err := hex.DecodeString(args[3])
+			if err != nil {
+				return fmt.Errorf("data is not a valid hex string")
+			}
+
+			msg := types.NewMsgUpdateSBT(
 				clientCtx.GetFromAddress().String(),
 				did,
 				uri,
