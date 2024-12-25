@@ -17,6 +17,7 @@ const (
 )
 
 const (
+	AttributeKeyAddress         = "address"
 	AttributeKeyRegionId        = "region_id"
 	AttributeKeyRegionIdChanged = "region_id_changed"
 	AttributeKeyLevel           = "level"
