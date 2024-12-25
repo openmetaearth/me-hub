@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/st-chain/me-hub/app/params"
+	kycTypes "github.com/st-chain/me-hub/x/kyc/types"
 	"github.com/st-chain/me-hub/x/megroup/types"
 )
 
@@ -64,15 +65,29 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k Keeper) KycStatusChanged(ctx sdk.Context, msgType string, data interface{}) error {
 	//if eventType
-	/*
-		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtGrpMigrateByKyc,
-			sdk.NewAttribute("group_id", fmt.Sprintf("%d", msg.GroupId)),
-			sdk.NewAttribute("creator", msg.Creator),
-			sdk.NewAttribute("user"),
-			//1sdk.NewAttribute("metadata", msg.),
-		))
 
-	*/
+	if kycTypes.EventTypeUpdate != msgType {
+		return nil
+	}
+	if val, ok := data.(sdk.Event); !ok {
+		return fmt.Errorf("data's type is not sdk.Event.but msgType is update")
+	} else {
+		k.Logger(ctx).Info("start to proc KycStatusChanged!!!")
+		attrNewRegion, found := val.GetAttribute(kycTypes.AttributeKeyRegionIdChanged)
+		if !found {
+			return fmt.Errorf("can not found AttributeKeyRegionIdChanged.but EventType is update")
+		}
+		address := ""
+		if err := k.procKycRegionChange(ctx, address, attrNewRegion.Value); err != nil {
+			return err
+		}
+	}
+	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtGrpMigrateByKyc,
+		sdk.NewAttribute("group_id", fmt.Sprintf("%d", msg.GroupId)),
+		sdk.NewAttribute("creator", msg.Creator),
+		sdk.NewAttribute("user"),
+		//1sdk.NewAttribute("metadata", msg.),
+	))
 	return nil
 
 }

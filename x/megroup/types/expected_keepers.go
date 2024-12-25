@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/st-chain/me-hub/x/kyc/handler"
 	stakingTypes "github.com/st-chain/me-hub/x/wstaking/types"
 )
 
@@ -46,4 +47,8 @@ type BankKeeper interface {
 type DAOKeeper interface {
 	IsGlobalDao(ctx sdk.Context, address string) bool
 	GetMeidDao(ctx sdk.Context) sdk.AccAddress
+}
+
+type KycKeeper interface {
+	RegisterEventHandler(eventType string, priority int, module string, handler handler.HandlerFunc)
 }
