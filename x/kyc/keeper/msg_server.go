@@ -156,6 +156,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 
 	// add event
 	event := sdk.NewEvent(types.EventTypeUpdate,
+		sdk.NewAttribute(types.AttributeKeyAddress, address),
 		sdk.NewAttribute(types.AttributeKeyRegionId, perRegionId),
 		sdk.NewAttribute(types.AttributeKeyRegionIdChanged, msg.RegionId),
 		sdk.NewAttribute(types.AttributeKeyLevel, perLevel),
