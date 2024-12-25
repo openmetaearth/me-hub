@@ -7,7 +7,7 @@ import (
 	"cosmossdk.io/errors"
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
+	sdkaddr "github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/x/nft"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/types"
@@ -129,6 +129,8 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	if !found {
 		return &types.MsgUpdateResponse{}, didtypes.ErrCredentialNotFound
 	}
+	perRegionId := string(preKyc.Data)
+	perLevel := holderInfo.KycLevel.String()
 
 	// check region
 	if _, found := m.stkKeeper.GetRegion(ctx, msg.RegionId); !found {
@@ -148,10 +150,26 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 
 	// change reward
 	address := m.MustAccAddressFromPubkeyString(holderInfo.Pubkey).String()
-	if err := m.TransferApproveReward(ctx, address, msg.Issuer, string(preKyc.Data), msg.RegionId); err != nil {
+	if err := m.TransferApproveReward(ctx, address, msg.Issuer, perRegionId, msg.RegionId); err != nil {
 		return &types.MsgUpdateResponse{}, errors.Wrap(err, "transfer reward failed")
 	}
+
+	// add event
+	event := sdk.NewEvent(types.EventTypeUpdate,
+		sdk.NewAttribute(types.AttributeKeyRegionId, perRegionId),
+		sdk.NewAttribute(types.AttributeKeyRegionIdChanged, msg.RegionId),
+		sdk.NewAttribute(types.AttributeKeyLevel, perLevel),
+		sdk.NewAttribute(types.AttributeKeyLevelChanged, msg.Level.String()),
+	)
+	ctx.EventManager().EmitEvent(event)
 	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, msg.Level, "update", m.takeSeq(ctx)))
+
+	// event post-handler
+	err := m.handlerReg.HandleEvent(ctx, types.EventTypeUpdate, event)
+	if err != nil {
+		return &types.MsgUpdateResponse{}, err
+	}
+
 	return &types.MsgUpdateResponse{}, nil
 }
 
@@ -241,7 +259,7 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 		Data:    types2.UnsafePackAny(msg.Data), // todo: check for encode
 	}
 
-	if err := m.SetSBT(ctx, sbt, address.Module(types.ModuleName)); err != nil {
+	if err := m.SetSBT(ctx, sbt, sdkaddr.Module(types.ModuleName)); err != nil {
 		return &types.MsgCreateSBTResponse{}, errors.Wrap(err, "mint SBT failed")
 	}
 
