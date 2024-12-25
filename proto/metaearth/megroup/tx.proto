@@ -2,17 +2,17 @@ syntax = "proto3";
 
 package metaearth.megroup;
 
-import "metaearth/megroup/group.proto";
 import "metaearth/megroup/group_info.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/megroup/types";
+option go_package = ".com/st-chain/me-hub/x/megroup/types";
 
 // Msg defines the Msg service.
 service Msg {
   rpc CreateGroup (MsgCreateGroup) returns (MsgCreateGroupResponse);
   rpc UpdateGroup (MsgUpdateGroup) returns (MsgUpdateGroupResponse);
   rpc DeleteGroup (MsgDeleteGroup) returns (MsgDeleteGroupResponse);
-  rpc JoinGroup   (MsgJoinGroup  ) returns (MsgJoinGroupResponse  );
+  rpc JoinGroup   (MsgJoinGroup  ) returns (MsgJoinGroupResponse);
+  rpc LeaveGroup  (MsgLeaveGroupRequest) returns (MsgLeaveGroupResponse);
 }
 message MsgCreateGroup {
   string    creator   = 1;
@@ -48,3 +48,10 @@ message MsgJoinGroupResponse {
   string groupId = 1;
 }
 
+message MsgLeaveGroupRequest{
+  string creator      = 1;
+  uint64 groupId      = 2;
+}
+
+message MsgLeaveGroupResponse{
+}

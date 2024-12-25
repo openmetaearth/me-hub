@@ -1,10 +1,11 @@
 package types
 
 import (
-	"me-hub/mocks/mock"
+	//"me-hub/mocks/mock"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	stakingTypes "github.com/st-chain/me-hub/x/wstaking/types"
 )
 
 type StakingKeeper interface {
@@ -12,12 +13,14 @@ type StakingKeeper interface {
 
 	//FIXME: wait wstaking keep and types.Meid ;Temporarily use MockMeid instead of MEID and MockRegion instead types.Region
 	// GetMeid(ctx sdk.Context, account string) (val types.Meid, found bool)
-	GetMeid(ctx sdk.Context, account string) (val mock.MockMeid, found bool)
+	GetMeid(ctx sdk.Context, account string) (val stakingTypes.Meid, found bool)
 	// SetMeid(ctx sdk.Context, meid types.Meid)
-	SetMeid(ctx sdk.Context, meid mock.MockMeid)
+	SetMeid(ctx sdk.Context, meid stakingTypes.Meid)
 
 	// GetRegion(ctx sdk.Context, regionId string) (val types.Region, found bool)
-	GetRegion(ctx sdk.Context, regionId string) (val mock.MockRegion, found bool)
+	//	GetRegion(ctx sdk.Context, regionId string) (val mock.MockRegion, found bool)
+
+	GetRegion(ctx sdk.Context, regionId string) (region stakingTypes.Region, found bool)
 	CheckRegionName(name string) (string, error)
 }
 

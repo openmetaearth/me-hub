@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/binary"
 	"fmt"
 
 	"github.com/st-chain/me-hub/x/megroup/types"
@@ -113,14 +112,13 @@ func (ms MemberStoreByGroupID) DestroyThisGroup() {
 
 // GetGroupMemberIDBytes returns the byte representation of the ID
 func GetGroupMemberIDBytes(id uint64) []byte {
-	bz := make([]byte, 8)
-	binary.BigEndian.PutUint64(bz, id)
-	return bz
+	return types.GetBytesFromUint64(id)
+
 }
 
 // GetGroupMemberIDFromBytes returns ID in uint64 format from a byte array
 func GetGroupMemberIDFromBytes(bz []byte) uint64 {
-	return binary.BigEndian.Uint64(bz)
+	return types.GetUint64FromBytes(bz)
 }
 
 func (k Keeper) GetAllGroupMember(ctx sdk.Context) (list []types.GroupMember) {

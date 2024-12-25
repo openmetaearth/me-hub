@@ -19,8 +19,9 @@ func KeyPrefix(p string) []byte {
 }
 
 const (
-	GroupKey      = "Group/value/"
-	GroupCountKey = "Group/count/"
+	GroupKey       = "Group/value/"
+	GroupLastIDKey = "Group/LastID/"
+	GroupRegionKey = "Group/RegionID/"
 )
 
 const (

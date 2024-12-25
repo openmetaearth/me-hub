@@ -1,17 +1,17 @@
 package keeper
 
 import (
-	"encoding/binary"
-
+	"cosmossdk.io/errors"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/megroup/types"
 )
 
 // GetGroupCount get the total number of group
-func (k Keeper) GetGroupCount(ctx sdk.Context) uint64 {
+func (k Keeper) GetLastGroupID(ctx sdk.Context) uint64 {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
-	byteKey := types.KeyPrefix(types.GroupCountKey)
+	byteKey := types.KeyPrefix(types.GroupLastIDKey)
 	bz := store.Get(byteKey)
 
 	// Count doesn't exist: no element
@@ -20,50 +20,48 @@ func (k Keeper) GetGroupCount(ctx sdk.Context) uint64 {
 	}
 
 	// Parse bytes
-	return binary.BigEndian.Uint64(bz)
+	return types.GetUint64FromBytes(bz)
 }
 
 // SetGroupCount set the total number of group
-func (k Keeper) SetGroupCount(ctx sdk.Context, count uint64) {
+func (k Keeper) SetGroupID(ctx sdk.Context, groupID uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
-	byteKey := types.KeyPrefix(types.GroupCountKey)
-	bz := make([]byte, 8)
-	binary.BigEndian.PutUint64(bz, count)
-	store.Set(byteKey, bz)
+	byteKey := types.KeyPrefix(types.GroupLastIDKey)
+	store.Set(byteKey, types.GetBytesFromUint64(groupID))
 }
 
 // AppendGroup appends a group in the store with a new id and update the count
-func (k Keeper) AppendGroup(
-	ctx sdk.Context,
-	group types.Group,
-) uint64 {
-	// Create the group
-	count := k.GetGroupCount(ctx)
-
-	// Set the ID of the appended value
-	group.Id = count
-
+func (k Keeper) AppendGroup(ctx sdk.Context, group *types.GroupInfo) error {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupKey))
-	appendedValue := k.cdc.MustMarshal(&group)
-	store.Set(GetGroupIDBytes(group.Id), appendedValue)
+	if nil != store.Get(types.GetBytesFromUint64(group.Id)) {
+		return errors.Wrapf(types.ErrGroupCreateRepeated, fmt.Sprintf("group id has bee existed.groupID = %d",
+			group.Id))
+
+	}
+	appendedValue := k.cdc.MustMarshal(group)
+
+	store.Set(types.GetBytesFromUint64(group.Id), appendedValue)
 
 	// Update group count
-	k.SetGroupCount(ctx, count+1)
+	k.SetGroupID(ctx, group.Id)
 
-	return count
+	return nil
 }
 
 // SetGroup set a specific group in the store
+/*
 func (k Keeper) SetGroup(ctx sdk.Context, group types.Group) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupKey))
 	b := k.cdc.MustMarshal(&group)
 	store.Set(GetGroupIDBytes(group.Id), b)
 }
 
+*/
+
 // GetGroup returns a group from its id
-func (k Keeper) GetGroup(ctx sdk.Context, id uint64) (val types.Group, found bool) {
+func (k Keeper) GetGroup(ctx sdk.Context, id uint64) (val types.GroupInfo, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupKey))
-	b := store.Get(GetGroupIDBytes(id))
+	b := store.Get(types.GetBytesFromUint64(id))
 	if b == nil {
 		return val, false
 	}
@@ -74,18 +72,18 @@ func (k Keeper) GetGroup(ctx sdk.Context, id uint64) (val types.Group, found boo
 // RemoveGroup removes a group from the store
 func (k Keeper) RemoveGroup(ctx sdk.Context, id uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupKey))
-	store.Delete(GetGroupIDBytes(id))
+	store.Delete(types.GetBytesFromUint64(id))
 }
 
 // GetAllGroup returns all group
-func (k Keeper) GetAllGroup(ctx sdk.Context) (list []types.Group) {
+func (k Keeper) GetAllGroup(ctx sdk.Context) (list []types.GroupInfo) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupKey))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.Group
+		var val types.GroupInfo
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, val)
 	}
@@ -93,14 +91,21 @@ func (k Keeper) GetAllGroup(ctx sdk.Context) (list []types.Group) {
 	return
 }
 
-// GetGroupIDBytes returns the byte representation of the ID
-func GetGroupIDBytes(id uint64) []byte {
-	bz := make([]byte, 8)
-	binary.BigEndian.PutUint64(bz, id)
-	return bz
+func (k Keeper) DeleteGroupAssociateWithRegion(ctx sdk.Context, regionID string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupRegionKey))
+	store.Delete([]byte(regionID))
 }
 
-// GetGroupIDFromBytes returns ID in uint64 format from a byte array
-func GetGroupIDFromBytes(bz []byte) uint64 {
-	return binary.BigEndian.Uint64(bz)
+func (k Keeper) SetGroupToRegion(ctx sdk.Context, regionID string, groupID uint64) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupRegionKey))
+	store.Set([]byte(regionID), types.GetBytesFromUint64(groupID))
+}
+
+func (k Keeper) GetGroupIdByRegion(ctx sdk.Context, regionID string) (uint64, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupRegionKey))
+	data := store.Get([]byte(regionID))
+	if nil == data {
+		return 0, false
+	}
+	return types.GetUint64FromBytes(data), true
 }
