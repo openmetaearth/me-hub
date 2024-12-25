@@ -2,29 +2,28 @@ package keeper
 
 import (
 	"context"
-
+	"cosmossdk.io/errors"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/st-chain/me-hub/x/megroup/types"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func (k Keeper) GroupAll(goCtx context.Context, req *types.QueryAllGroupRequest) (*types.QueryAllGroupResponse, error) {
 	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+		return nil, errors.Wrapf(sdkerrors.ErrInvalidRequest, "")
 	}
 
-	var groups []types.Group
+	var groups []types.GroupInfo
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	store := ctx.KVStore(k.storeKey)
 	groupStore := prefix.NewStore(store, types.KeyPrefix(types.GroupKey))
 
 	pageRes, err := query.Paginate(groupStore, req.Pagination, func(key []byte, value []byte) error {
-		var group types.Group
+		var group types.GroupInfo
 		if err := k.cdc.Unmarshal(value, &group); err != nil {
 			return err
 		}
@@ -34,7 +33,8 @@ func (k Keeper) GroupAll(goCtx context.Context, req *types.QueryAllGroupRequest)
 	})
 
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, errors.Wrapf(sdkerrors.ErrLogic, fmt.Sprintf(" query.Paginate error.err = %s,req.Pagination = %s",
+			err.Error(), req.Pagination.String()))
 	}
 
 	return &types.QueryAllGroupResponse{Group: groups, Pagination: pageRes}, nil
@@ -42,14 +42,31 @@ func (k Keeper) GroupAll(goCtx context.Context, req *types.QueryAllGroupRequest)
 
 func (k Keeper) Group(goCtx context.Context, req *types.QueryGetGroupRequest) (*types.QueryGetGroupResponse, error) {
 	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+		return nil, errors.Wrapf(sdkerrors.ErrInvalidRequest, "")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	group, found := k.GetGroup(ctx, req.Id)
 	if !found {
-		return nil, sdkerrors.ErrKeyNotFound
+		return nil, errors.Wrapf(sdkerrors.ErrKeyNotFound, fmt.Sprintf("can not found group by groupID.groupID = %d", req.Id))
 	}
 
+	return &types.QueryGetGroupResponse{Group: group}, nil
+}
+
+func (k Keeper) GroupByMember(goCtx context.Context, req *types.QueryGroupByMemberRequest) (*types.QueryGetGroupResponse, error) {
+	if req == nil {
+		return nil, errors.Wrapf(sdkerrors.ErrInvalidRequest, "")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	joined, found := k.GetMemberJoined(ctx, req.Address)
+	if !found {
+		return nil, errors.Wrapf(sdkerrors.ErrKeyNotFound, "can not found memberJoin info by address")
+	}
+
+	group, found := k.GetGroup(ctx, joined.GroupId)
+	if !found {
+		return nil, errors.Wrapf(sdkerrors.ErrKeyNotFound, fmt.Sprintf("can not found group by memberJoin's groupID.groupID = %d", joined.GroupId))
+	}
 	return &types.QueryGetGroupResponse{Group: group}, nil
 }

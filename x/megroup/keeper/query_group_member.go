@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/st-chain/me-hub/x/megroup/types"
 
@@ -10,20 +11,18 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) GroupMemberAll(goCtx context.Context, req *types.QueryAllGroupMemberRequest) (*types.QueryAllGroupMemberResponse, error) {
+func (k Keeper) GroupMemberAll(goCtx context.Context, req *types.QueryGroupAllMemberRequest) (*types.QueryGroupAllMemberResponse, error) {
 	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+		return nil, errors.Wrapf(sdkerrors.ErrInvalidRequest, "")
 	}
 
 	var groupMembers []types.GroupMember
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	store := ctx.KVStore(k.storeKey)
-	groupMemberStore := prefix.NewStore(store, types.KeyPrefix(types.GroupMemberKey))
+	grpMemberPrefix := fmt.Sprintf("%s%d/", types.GroupMemberKey, req.GroupID)
+	groupMemberStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(grpMemberPrefix))
 
 	pageRes, err := query.Paginate(groupMemberStore, req.Pagination, func(key []byte, value []byte) error {
 		var groupMember types.GroupMember
@@ -36,26 +35,34 @@ func (k Keeper) GroupMemberAll(goCtx context.Context, req *types.QueryAllGroupMe
 	})
 
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, errors.Wrapf(sdkerrors.ErrLogic, fmt.Sprintf(" query.Paginate error.err = %s. req.Pagination = %s",
+			err.Error(), req.Pagination.String()))
 	}
 
-	return &types.QueryAllGroupMemberResponse{GroupMember: groupMembers, Pagination: pageRes}, nil
+	return &types.QueryGroupAllMemberResponse{GroupID: req.GroupID, GroupMember: groupMembers, Pagination: pageRes}, nil
 }
 
 func (k Keeper) GroupMember(goCtx context.Context, req *types.QueryGetGroupMemberRequest) (*types.QueryGetGroupMemberResponse, error) {
 	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+		return nil, errors.Wrapf(sdkerrors.ErrInvalidRequest, "")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	groupMember, found := k.GetMemberJoined(ctx, req.Address)
+	joined, found := k.GetMemberJoined(ctx, req.Address)
 	if !found {
-		return nil, sdkerrors.ErrKeyNotFound
+		return nil, errors.Wrapf(sdkerrors.ErrKeyNotFound, "can not found group by member address")
 	}
-	gm, found := k.LoadMemberStoreByGroupID(ctx, groupMember.GroupId).GetGroupMember(groupMember.MemberListId)
-	if !found {
-		//THIS SHOULD NOT HAPPEN
-		return nil, errors.Wrapf(sdkerrors.ErrKeyNotFound, "THIS SHOULD NEVER HAPPEN :group member not found %s", groupMember.Address)
+	grpMemberPrefix := fmt.Sprintf("%s%d/", types.GroupMemberKey, joined.GroupId)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(grpMemberPrefix))
+	data := store.Get([]byte(req.Address))
+	if nil == data {
+		return nil, errors.Wrapf(sdkerrors.ErrKeyNotFound, fmt.Sprintf("can not found groupMember by memberJoined info."+
+			"join groupID = %d,memberAddress = %s", joined.GroupId, req.Address))
 	}
-	return &types.QueryGetGroupMemberResponse{GroupMember: gm}, nil
+	var groupMember types.GroupMember
+	if err := k.cdc.Unmarshal(data, &groupMember); err != nil {
+		return nil, errors.Wrapf(sdkerrors.ErrLogic, fmt.Sprintf("cdc.Unmarshal groupMember data error.err = %s.", err.Error()))
+	}
+
+	return &types.QueryGetGroupMemberResponse{GroupMember: groupMember}, nil
 }

@@ -4,9 +4,7 @@ package metaearth.megroup;
 option go_package = "github.com/st-chain/me-hub/x/megroup/types";
 
 message MemberJoined {
-  string address = 1; 
-  uint64 groupId = 2; 
-  uint64 memberListId = 3; 
-  
+  string address = 1;
+  uint64 groupId = 2;
 }
 

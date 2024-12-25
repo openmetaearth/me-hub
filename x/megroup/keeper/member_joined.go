@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"cosmossdk.io/errors"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/megroup/types"
@@ -13,6 +15,18 @@ func (k Keeper) SetMemberJoined(ctx sdk.Context, memberJoined types.MemberJoined
 	store.Set(types.MemberJoinedKey(
 		memberJoined.Address,
 	), b)
+}
+
+func (k *Keeper) addGroupMember(ctx sdk.Context, grpMember *types.GroupMember) error {
+	grpMemberPrefix := fmt.Sprintf("%s%d/", types.GroupMemberKey, grpMember.GroupID)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(grpMemberPrefix))
+	if nil != store.Get([]byte(grpMember.Member.Address)) {
+		return errors.Wrapf(types.ErrGroupMemberRepeated, fmt.Sprintf("member has been joined this group store.groupID = %d",
+			grpMember.GroupID))
+	}
+	val := k.cdc.MustMarshal(grpMember)
+	store.Set([]byte(grpMember.Member.Address), val)
+	return nil
 }
 
 // GetMemberJoined returns a memberJoined from its index
@@ -60,4 +74,16 @@ func (k Keeper) GetAllMemberJoined(ctx sdk.Context) (list []types.MemberJoined) 
 	}
 
 	return
+}
+
+func (k *Keeper) deleteMemberFormGroup(ctx sdk.Context, groupID uint64, address string) error {
+	grpMemberPrefix := fmt.Sprintf("%s%d/", types.GroupMemberKey, groupID)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(grpMemberPrefix))
+	addrBytes := []byte(address)
+	if nil == store.Get(addrBytes) {
+		return errors.Wrapf(types.ErrGroupMemberNotExist, fmt.Sprintf("can not found member in group.addr = %s,groupID = %d",
+			address, groupID))
+	}
+	store.Delete(addrBytes)
+	return nil
 }
