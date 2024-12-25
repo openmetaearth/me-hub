@@ -94,7 +94,7 @@ func CmdCreateSequencer() *cobra.Command {
 func CmdUnbond() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unbond",
-		Short: "Create a new sequencer for a rollapp",
+		Short: "Try to unbond the sequencer totally",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)

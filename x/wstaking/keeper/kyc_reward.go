@@ -129,7 +129,7 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 		// add coins to user account
 		if interest.GT(sdk.ZeroDec()) {
 			err = k.BankKeeper.SendCoins(ctx,
-				sdk.MustAccAddressFromBech32(region.RegionTreasureAddr),
+				sdk.MustAccAddressFromBech32(experienceRegion.RegionTreasureAddr),
 				sdk.MustAccAddressFromBech32(delegation.DelegatorAddress),
 				sdk.NewCoins(sdk.NewCoin(params.BaseDenom, interest.TruncateInt())))
 			if err != nil {

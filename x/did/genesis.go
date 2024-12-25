@@ -2,6 +2,7 @@ package did
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/did/keeper"
 	"github.com/st-chain/me-hub/x/did/types"
@@ -17,6 +18,10 @@ func InitGenesis(ctx sdk.Context, k *keeper.Keeper, genState types.GenesisState)
 
 	for _, svc := range genState.Svcs {
 		k.SetService(ctx, svc.Sid, svc)
+	}
+
+	for _, vc := range genState.Vcs {
+		k.SetCredential(ctx, vc.Did, vc.Sid, vc)
 	}
 
 	// set filter
