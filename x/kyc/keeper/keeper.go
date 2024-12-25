@@ -59,3 +59,7 @@ func (k *Keeper) MustAccAddressFromPubkeyString(s string) sdk.AccAddress {
 	}
 	return sdk.AccAddress{}
 }
+
+func (k *Keeper) RegisterEventHandler(eventType string, priority int, module string, handler handler.HandlerFunc) {
+	k.handlerReg.RegisterHandler(eventType, priority, module, handler)
+}
