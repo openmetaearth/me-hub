@@ -16,6 +16,13 @@ const (
 	EventTypeDeleteSBT = "delete_sbt"
 )
 
+const (
+	AttributeKeyRegionId        = "region_id"
+	AttributeKeyRegionIdChanged = "region_id_changed"
+	AttributeKeyLevel           = "level"
+	AttributeKeyLevelChanged    = "level_changed"
+)
+
 func NewKycEvent(address string, did string, level didTypes.KycLevel, action string, seq uint64) sdkTypes.Event {
 	attributes := []sdkTypes.Attribute{
 		{Key: "sequence", Value: fmt.Sprintf("%d", seq)},
