@@ -7,6 +7,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/st-chain/me-hub/x/kyc/handler"
 	"github.com/st-chain/me-hub/x/kyc/types"
 )
 
@@ -17,6 +18,8 @@ type Keeper struct {
 	stkKeeper types.StakingKeeper
 	didKeeper types.DIDKeeper
 	nftKeeper types.NFTKeeper
+
+	handlerReg *handler.HandlerRegistry
 }
 
 func NewKeeper(
@@ -32,6 +35,8 @@ func NewKeeper(
 		stkKeeper: stkKeeper,
 		didKeeper: didKeeper,
 		nftKeeper: nftKeeper,
+
+		handlerReg: handler.NewEventRegistry(),
 	}
 }
 
