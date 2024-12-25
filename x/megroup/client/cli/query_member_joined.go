@@ -8,6 +8,7 @@ import (
 	"github.com/st-chain/me-hub/x/megroup/types"
 )
 
+/*
 func CmdListMemberJoined() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-member-joined",
@@ -44,9 +45,11 @@ func CmdListMemberJoined() *cobra.Command {
 	return cmd
 }
 
-func CmdShowMemberJoined() *cobra.Command {
+*/
+
+func CmdShowMemberJoinedGroup() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-member-joined [address]",
+		Use:   "show-member-joined-group [address]",
 		Short: "shows a member_joined",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -59,11 +62,11 @@ func CmdShowMemberJoined() *cobra.Command {
 
 			argAddress := args[0]
 
-			params := &types.QueryGetMemberJoinedRequest{
+			params := &types.QueryGroupByMemberRequest{
 				Address: argAddress,
 			}
 
-			res, err := queryClient.MemberJoined(cmd.Context(), params)
+			res, err := queryClient.GroupByMember(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

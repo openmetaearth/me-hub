@@ -35,6 +35,7 @@ import (
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
 	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
+	gourpTypes "github.com/st-chain/me-hub/x/megroup/types"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
@@ -137,4 +138,7 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	daotypes.StoreKey,
 	nftkeeper.StoreKey,
 	wasmtypes.StoreKey,
+	//megroup
+	gourpTypes.StoreKey,
+
 )

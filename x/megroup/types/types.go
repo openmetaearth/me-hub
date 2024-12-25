@@ -9,6 +9,7 @@ const (
 	EvtJoinGroup       string = "EventJoinGroup"
 	EvtLeaveGroup      string = "EventLeaveGroup"
 	EvtGrpMigrateByKyc string = "EventGroupMigrateByKycChange"
+	EvtJoinGroupReward string = "EventJoinGroupReward"
 )
 
 type GroupMetaData struct {

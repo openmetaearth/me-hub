@@ -2,10 +2,9 @@ package keeper
 
 import (
 	"context"
-	"fmt"
-
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/megroup/types"
@@ -14,15 +13,15 @@ import (
 func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*types.MsgJoinGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return nil, err
-	}
+	//creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	// allow join group when creator is applicant or global DAO or Meid DAO
 
 	if msg.ApplicantAddress != msg.Creator {
-		if !(k.daoKeeper.IsGlobalDao(ctx, msg.Creator) || k.daoKeeper.GetMeidDao(ctx).Equals(creator)) {
+		if !(k.daoKeeper.IsGlobalDao(ctx, msg.Creator) || k.daoKeeper.GetMeidDao(ctx) == msg.Creator) {
 			return nil, errors.Wrapf(types.ErrPermissionDenied, "msg.ApplicantAddress != msg.Creator. but Creator is not adminAddress")
 		}
 	}
@@ -39,6 +38,11 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 		return nil, errors.Wrapf(types.ErrPermissionDenied, string(errLogBytes))
 	}
 
+	grpNumber, found := k.GetGroupMemberCount(ctx, msg.GroupId)
+	if !found {
+		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("can not found group number count in JoinGroup"))
+	}
+
 	joined, JoinGroupFound := k.GetMemberJoined(ctx, msg.ApplicantAddress)
 	if JoinGroupFound && joined.GroupId > 0 {
 		errLogBytes := fmt.Sprintf("user has joined a group (groupID:%d)", joined.GroupId)
@@ -51,7 +55,8 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 		GroupId: msg.GroupId,
 	})
 	//add to group_member
-	err = k.addGroupMember(ctx, &types.GroupMember{
+
+	err := k.addGroupMember(ctx, &types.GroupMember{
 		GroupID: msg.GroupId,
 		Member: &types.Member{
 			Address: msg.ApplicantAddress,
@@ -59,6 +64,8 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 	if err != nil {
 		return nil, err
 	}
+	k.SetGroupMemberCount(ctx, msg.GroupId, grpNumber+1)
+
 	if !JoinGroupFound { //send rewards if user has not joined group
 		//get RegionTreasureAddr
 		region, found := k.stakingKeeper.GetRegion(ctx, groupInfo.RegionID)
@@ -78,6 +85,12 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 			return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
 				err.Error(), region.GetRegionTreasureAddr(), groupInfo.Admin))
 		}
+		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtJoinGroupReward,
+			sdk.NewAttribute("userAddress", msg.ApplicantAddress),
+			sdk.NewAttribute("groupAdminAddress", groupInfo.Admin),
+			sdk.NewAttribute("regionTreasureAddress", region.GetRegionTreasureAddr()),
+			sdk.NewAttribute("rewards", rewardsCoin.String()),
+		))
 
 	}
 
@@ -92,6 +105,14 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 
 func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupRequest) (*types.MsgLeaveGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	grpNumber, found := k.GetGroupMemberCount(ctx, req.GroupId)
+	if !found {
+		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("can not found group number count in LeaveGroup"))
+	}
+	if 0 == grpNumber {
+		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("group number is 0 in LeaveGroup"))
+	}
 
 	joined, found := k.GetMemberJoined(ctx, req.Creator)
 	if !found {
@@ -108,5 +129,10 @@ func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupReq
 
 	joined.GroupId = 0
 	k.SetMemberJoined(ctx, joined)
+	k.SetGroupMemberCount(ctx, req.GroupId, grpNumber-1)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtLeaveGroup,
+		sdk.NewAttribute("address", req.Creator),
+		sdk.NewAttribute("groupID", fmt.Sprintf("%d", req.GroupId)),
+	))
 	return &types.MsgLeaveGroupResponse{}, nil
 }

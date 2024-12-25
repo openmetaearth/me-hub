@@ -3,10 +3,13 @@ package keepers
 import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/nft"
+	groupTypes "github.com/st-chain/me-hub/x/megroup/types"
 	"path/filepath"
 	"strings"
 
+	wasmapp "github.com/CosmWasm/wasmd/app"
 	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -72,18 +75,9 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+	"github.com/st-chain/me-hub/x/bridgingfee"
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
-	evmkeeper "github.com/st-chain/me-hub/x/evm/keeper"
-	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
-	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
-	wdistrkeeper "github.com/st-chain/me-hub/x/wdistri/keeper"
-	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
-	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
-
-	wasmapp "github.com/CosmWasm/wasmd/app"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	"github.com/st-chain/me-hub/x/bridgingfee"
 	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
 	delayedackkeeper "github.com/st-chain/me-hub/x/delayedack/keeper"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
@@ -94,10 +88,12 @@ import (
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	eibckeeper "github.com/st-chain/me-hub/x/eibc/keeper"
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
+	evmkeeper "github.com/st-chain/me-hub/x/evm/keeper"
 	incentiveskeeper "github.com/st-chain/me-hub/x/incentives/keeper"
 	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	kyckeeper "github.com/st-chain/me-hub/x/kyc/keeper"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
+	groupkeeper "github.com/st-chain/me-hub/x/megroup/keeper"
 	rollappmodule "github.com/st-chain/me-hub/x/rollapp"
 	rollappmodulekeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
 	"github.com/st-chain/me-hub/x/rollapp/transfergenesis"
@@ -108,7 +104,12 @@ import (
 	streamermodulekeeper "github.com/st-chain/me-hub/x/streamer/keeper"
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	vfchooks "github.com/st-chain/me-hub/x/vfc/hooks"
+	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
+	wdistrkeeper "github.com/st-chain/me-hub/x/wdistri/keeper"
+	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 	wgovkeeper "github.com/st-chain/me-hub/x/wgov/keeper"
+	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
 	wnftkeeper "github.com/st-chain/me-hub/x/wnft/keeper"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
@@ -168,6 +169,7 @@ type AppKeepers struct {
 	DaoKeeper           daokeeper.Keeper
 	WNFTKeeper          *wnftkeeper.Keeper
 	WasmKeeper          wasmkeeper.Keeper
+	GroupKeeper         *groupkeeper.Keeper
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -520,6 +522,16 @@ func (a *AppKeepers) InitKeepers(
 	a.StakingKeeper.KycKeeper = a.KycKeeper
 
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
+	a.GroupKeeper = groupkeeper.NewKeeper(
+		appCodec,
+		a.keys[groupTypes.StoreKey],
+		a.GetSubspace(groupTypes.ModuleName),
+		a.AccountKeeper,
+		a.BankKeeper,
+		a.StakingKeeper,
+		a.DaoKeeper,
+		a.KycKeeper,
+	)
 
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
@@ -712,5 +724,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 
 	paramsKeeper.Subspace(wasmtypes.ModuleName)
 	paramsKeeper.Subspace(nft.ModuleName)
+	paramsKeeper.Subspace(groupTypes.ModuleName)
 	return paramsKeeper
 }

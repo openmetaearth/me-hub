@@ -22,7 +22,6 @@ type StakingKeeper interface {
 	//	GetRegion(ctx sdk.Context, regionId string) (val mock.MockRegion, found bool)
 
 	GetRegion(ctx sdk.Context, regionId string) (region stakingTypes.Region, found bool)
-	CheckRegionName(name string) (string, error)
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
@@ -40,13 +39,12 @@ type BankKeeper interface {
 	// Methods imported from bank should be defined here
 
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
-	GetTreasuryPoolName() string
 	SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
 }
 
 type DAOKeeper interface {
 	IsGlobalDao(ctx sdk.Context, address string) bool
-	GetMeidDao(ctx sdk.Context) sdk.AccAddress
+	GetMeidDao(ctx sdk.Context) string
 }
 
 type KycKeeper interface {

@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/st-chain/me-hub/x/megroup/types"
-
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/st-chain/me-hub/utils"
+	"github.com/st-chain/me-hub/x/megroup/types"
 )
 
 func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup) (*types.MsgCreateGroupResponse, error) {
@@ -20,12 +20,11 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	//check permission
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return nil, err
-	}
-	if !(k.daoKeeper.IsGlobalDao(ctx, msg.Creator) ||
-		k.daoKeeper.GetMeidDao(ctx).Equals(creator)) {
+	//	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	if !(k.daoKeeper.IsGlobalDao(ctx, msg.Creator) || k.daoKeeper.GetMeidDao(ctx) == msg.Creator) {
 		errLogBytes := types.EmitNewGroupError("only global admin can  create group", msg)
 		return nil, errors.Wrapf(types.ErrCheckGlobalAdmin, string(errLogBytes))
 	}
@@ -40,7 +39,7 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 	}
 
 	//check region name
-	_, err = k.stakingKeeper.CheckRegionName(strings.ToUpper(msg.GroupInfo.RegionID))
+	_, err := utils.CheckRegionName(strings.ToUpper(msg.GroupInfo.RegionID))
 	if err != nil {
 		errLogBytes := types.EmitNewGroupError(fmt.Sprintf("region id %s illegal", msg.GroupInfo.RegionID), msg)
 		return nil, errors.Wrapf(types.ErrCreate, string(errLogBytes))
@@ -103,6 +102,7 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 		return nil, err
 
 	}
+	k.SetGroupMemberCount(ctx, newGroupID, 1)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtGroupCreated,
 		sdk.NewAttribute("group_id", fmt.Sprintf("%d", newGroupID)),

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"github.com/st-chain/me-hub/x/megroup/types"
+	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -10,8 +11,9 @@ import (
 
 func CmdListGroupMember() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list-group-member",
-		Short: "list all group_member",
+		Use:   "list-group-member [groupID]",
+		Short: "list  group_member",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -23,9 +25,13 @@ func CmdListGroupMember() *cobra.Command {
 				return err
 			}
 
+			strGrpID := args[0]
+			grpId, _ := strconv.ParseUint(strGrpID, 10, 64)
+
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryAllGroupMemberRequest{
+			params := &types.QueryGroupAllMemberRequest{
+				GroupID:    grpId,
 				Pagination: pageReq,
 			}
 

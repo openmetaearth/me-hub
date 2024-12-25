@@ -87,6 +87,8 @@ import (
 	denommetadatamodule "github.com/st-chain/me-hub/x/denommetadata"
 	eibcmodule "github.com/st-chain/me-hub/x/eibc"
 	"github.com/st-chain/me-hub/x/incentives"
+	groupmodule "github.com/st-chain/me-hub/x/megroup"
+	groupTypes "github.com/st-chain/me-hub/x/megroup/types"
 	rollappmodule "github.com/st-chain/me-hub/x/rollapp"
 	sequencermodule "github.com/st-chain/me-hub/x/sequencer"
 	streamermodule "github.com/st-chain/me-hub/x/streamer"
@@ -176,6 +178,7 @@ var ModuleBasics = module.NewBasicManager(
 	//nftmodule.AppModuleBasic{},
 	wnft.AppModuleBasic{},
 	wasm.AppModuleBasic{},
+	groupmodule.AppModuleBasic{},
 )
 
 func (a *AppKeepers) SetupModules(
@@ -222,6 +225,9 @@ func (a *AppKeepers) SetupModules(
 		// did app modules
 		did.NewAppModule(appCodec, a.DidKeeper),
 		kyc.NewAppModule(appCodec, a.KycKeeper),
+
+		//me-group
+		groupmodule.NewAppModule(appCodec, *a.GroupKeeper),
 
 		// osmosis modules
 		lockup.NewAppModule(*a.LockupKeeper, a.AccountKeeper, a.BankKeeper),
@@ -275,6 +281,7 @@ var MaccPerms = map[string][]string{
 	wstakingtypes.FixedDepositPrincipalPool:            nil,
 	nft.ModuleName:                                     nil,
 	wasmtypes.ModuleName:                               {authtypes.Burner},
+	groupTypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
 }
 
 var BeginBlockers = []string{
@@ -317,6 +324,7 @@ var BeginBlockers = []string{
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
 	nft.ModuleName,
+	groupTypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -359,6 +367,7 @@ var EndBlockers = []string{
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
 	nft.ModuleName,
+	groupTypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -401,4 +410,5 @@ var InitGenesis = []string{
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
 	nft.ModuleName,
+	groupTypes.ModuleName,
 }

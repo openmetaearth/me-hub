@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"fmt"
@@ -20,74 +21,89 @@ type (
 	Keeper struct {
 		cdc        codec.BinaryCodec
 		storeKey   storetypes.StoreKey
-		memKey     storetypes.StoreKey
 		paramstore paramtypes.Subspace
 
 		accountKeeper types.AccountKeeper
 		bankKeeper    types.BankKeeper
 		stakingKeeper types.StakingKeeper
 		daoKeeper     types.DAOKeeper
+		kycKeeper     types.KycKeeper
 	}
 )
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey,
-	memKey storetypes.StoreKey,
+	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	stakingKeeper types.StakingKeeper,
 	daoKeeper types.DAOKeeper,
+	kycKeeper types.KycKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
-	return &Keeper{
+	keeperVal := &Keeper{
 		cdc:        cdc,
 		storeKey:   storeKey,
-		memKey:     memKey,
 		paramstore: ps,
 
 		accountKeeper: accountKeeper,
 		bankKeeper:    bankKeeper,
 		stakingKeeper: stakingKeeper,
 		daoKeeper:     daoKeeper,
+		kycKeeper:     kycKeeper,
 	}
+	keeperVal.kycKeeper.RegisterEventHandler(kycTypes.EventTypeUpdate, 0, types.ModuleName, keeperVal.KycStatusChanged)
+	return keeperVal
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) KycStatusChanged(ctx sdk.Context, msgType string, data interface{}) error {
+func (k Keeper) KycStatusChanged(goCtx context.Context, msgType string, data interface{}) error {
 	//if eventType
-
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	if kycTypes.EventTypeUpdate != msgType {
 		return nil
 	}
 	if val, ok := data.(sdk.Event); !ok {
 		return fmt.Errorf("data's type is not sdk.Event.but msgType is update")
 	} else {
-		k.Logger(ctx).Info("start to proc KycStatusChanged!!!")
+		attrPreRegion, found := val.GetAttribute(kycTypes.AttributeKeyRegionId)
+		if !found {
+			return fmt.Errorf("can not found AttributeKeyRegionId.but EventType is update")
+		}
 		attrNewRegion, found := val.GetAttribute(kycTypes.AttributeKeyRegionIdChanged)
 		if !found {
 			return fmt.Errorf("can not found AttributeKeyRegionIdChanged.but EventType is update")
 		}
-		address := ""
-		if err := k.procKycRegionChange(ctx, address, attrNewRegion.Value); err != nil {
+		if attrPreRegion.Value == attrNewRegion.Value { //if region not changed,return
+			k.Logger(ctx).Info("regionID was not changed in KycStatusChanged!!!")
+			return nil
+		}
+		k.Logger(ctx).Info("start to proc KycStatusChanged!!!")
+		attrAddress, found := val.GetAttribute(kycTypes.AttributeKeyAddress)
+		if !found {
+			return fmt.Errorf("can not found AttributeKeyAddress.but EventType is update")
+		}
+
+		if err := k.procKycRegionChange(ctx, attrAddress.Value, attrNewRegion.Value); err != nil {
 			return err
 		}
+		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtGrpMigrateByKyc,
+			sdk.NewAttribute("user", attrAddress.Value),
+			sdk.NewAttribute("preRegionID", attrPreRegion.Value),
+			sdk.NewAttribute("nowRegionID", attrNewRegion.Value),
+			//1sdk.NewAttribute("metadata", msg.),
+		))
 	}
-	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtGrpMigrateByKyc,
-		sdk.NewAttribute("group_id", fmt.Sprintf("%d", msg.GroupId)),
-		sdk.NewAttribute("creator", msg.Creator),
-		sdk.NewAttribute("user"),
-		//1sdk.NewAttribute("metadata", msg.),
-	))
+
 	return nil
 
 }
@@ -107,14 +123,26 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, nowRegionID str
 				joined.GroupId, "newGroupID = ", newGrpId)
 			return nil
 		}
+		preGroupNumber, found := k.GetGroupMemberCount(sdkCtx, joined.GroupId)
+		if !found {
+			return fmt.Errorf("can not found preGroup number count while ready to levae preGourp in procKycRegionChange")
+		}
+		if 0 == preGroupNumber {
+			return fmt.Errorf("preGroup number is 0 while ready to levae preGourp in procKycRegionChange")
+		}
 		if err := k.deleteMemberFormGroup(sdkCtx, joined.GroupId, address); err != nil {
 			return err
 		}
+		k.SetGroupMemberCount(sdkCtx, joined.GroupId, preGroupNumber-1)
 	}
 
 	newGrpInfo, found := k.GetGroup(sdkCtx, newGrpId)
 	if !found {
 		return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found group by groupID.groupID = %d", newGrpId))
+	}
+	newGrpNumberCnt, found := k.GetGroupMemberCount(sdkCtx, newGrpId)
+	if !found {
+		return fmt.Errorf("can not found newGroup number count while ready to join newGourp in procKycRegionChange")
 	}
 
 	newJoin := types.MemberJoined{
@@ -133,6 +161,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, nowRegionID str
 	if err != nil {
 		return err
 	}
+	k.SetGroupMemberCount(sdkCtx, newGrpId, newGrpNumberCnt+1)
 	if !JoinGroupFound { //send rewards if user has not joined group
 
 		//get RegionTreasureAddr
@@ -153,6 +182,12 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, nowRegionID str
 			return errors.Wrapf(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
 				err.Error(), region.GetRegionTreasureAddr(), newGrpInfo.Admin))
 		}
+		sdkCtx.EventManager().EmitEvent(sdk.NewEvent(types.EvtJoinGroupReward,
+			sdk.NewAttribute("userAddress", address),
+			sdk.NewAttribute("groupAdminAddress", newGrpInfo.Admin),
+			sdk.NewAttribute("regionTreasureAddress", region.GetRegionTreasureAddr()),
+			sdk.NewAttribute("rewards", rewardsCoin.String()),
+		))
 
 	}
 	return nil

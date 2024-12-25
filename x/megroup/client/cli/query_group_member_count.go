@@ -9,6 +9,7 @@ import (
 	"github.com/st-chain/me-hub/x/megroup/types"
 )
 
+/*
 func CmdListGroupMemberCount() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-group-member-count",
@@ -44,6 +45,8 @@ func CmdListGroupMemberCount() *cobra.Command {
 
 	return cmd
 }
+
+*/
 
 func CmdShowGroupMemberCount() *cobra.Command {
 	cmd := &cobra.Command{

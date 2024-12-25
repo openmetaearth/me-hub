@@ -7,31 +7,20 @@ import (
 )
 
 // SetGroupMemberCount set a specific groupMemberCount in the store from its index
-func (k Keeper) SetGroupMemberCount(ctx sdk.Context, groupMemberCount types.GroupMemberCount) {
+func (k Keeper) SetGroupMemberCount(ctx sdk.Context, groupID, number uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupMemberCountKeyPrefix))
-	b := k.cdc.MustMarshal(&groupMemberCount)
-	store.Set(types.GroupMemberCountKey(
-		groupMemberCount.GroupId,
-	), b)
+	store.Set(types.GetBytesFromUint64(groupID), types.GetBytesFromUint64(number))
 }
 
 // GetGroupMemberCount returns a groupMemberCount from its index
-func (k Keeper) GetGroupMemberCount(
-	ctx sdk.Context,
-	groupId uint64,
-
-) (val types.GroupMemberCount, found bool) {
+func (k Keeper) GetGroupMemberCount(ctx sdk.Context, groupId uint64) (uint64, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupMemberCountKeyPrefix))
 
-	b := store.Get(types.GroupMemberCountKey(
-		groupId,
-	))
-	if b == nil {
-		return val, false
+	val := store.Get(types.GetBytesFromUint64(groupId))
+	if nil == val {
+		return 0, false
 	}
-
-	k.cdc.MustUnmarshal(b, &val)
-	return val, true
+	return types.GetUint64FromBytes(val), true
 }
 
 // RemoveGroupMemberCount removes a groupMemberCount from the store
@@ -41,12 +30,11 @@ func (k Keeper) RemoveGroupMemberCount(
 
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupMemberCountKeyPrefix))
-	store.Delete(types.GroupMemberCountKey(
-		groupId,
-	))
+	store.Delete(types.GetBytesFromUint64(groupId))
 }
 
 // GetAllGroupMemberCount returns all groupMemberCount
+/*
 func (k Keeper) GetAllGroupMemberCount(ctx sdk.Context) (list []types.GroupMemberCount) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupMemberCountKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
@@ -61,3 +49,5 @@ func (k Keeper) GetAllGroupMemberCount(ctx sdk.Context) (list []types.GroupMembe
 
 	return
 }
+
+*/

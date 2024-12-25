@@ -45,3 +45,42 @@ func (msg *MsgJoinGroup) ValidateBasic() error {
 	}
 	return nil
 }
+
+func NewMsgLeaveGroupRequest(creator string, groupId uint64) *MsgLeaveGroupRequest {
+	return &MsgLeaveGroupRequest{
+		Creator: creator,
+		GroupId: groupId,
+	}
+}
+
+func (msg *MsgLeaveGroupRequest) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgLeaveGroupRequest) Type() string {
+	return TypeMsgJoinGroup
+}
+
+func (msg *MsgLeaveGroupRequest) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *MsgLeaveGroupRequest) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgLeaveGroupRequest) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+	if msg.GroupId == 0 {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "GroupId is 0")
+	}
+	return nil
+}
