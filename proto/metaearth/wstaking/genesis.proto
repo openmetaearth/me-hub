@@ -52,7 +52,7 @@ message GenesisState {
 
   repeated FixedDeposit fixedDepositList  = 12 [(gogoproto.nullable) = false];
   uint64                fixedDepositCount = 13;
-  bool exported = 15;
+  bool exported = 14;
 }
 
 // LastValidatorPower required for validator set update logic.

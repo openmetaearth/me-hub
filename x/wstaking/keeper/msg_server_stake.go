@@ -107,9 +107,7 @@ func (k MsgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 		return nil, err
 	}
 
-	shares, err := k.ValidateUnbondAmount(
-		ctx, stakerAddress, addr, msg.Amount.Amount,
-	)
+	shares, err := k.ValidateUnbondAmount(ctx, stakerAddress, addr, msg.Amount.Amount)
 	if err != nil {
 		return nil, err
 	}

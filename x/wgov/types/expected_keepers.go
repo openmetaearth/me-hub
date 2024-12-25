@@ -21,6 +21,6 @@ type StakingKeeper interface {
 		fn func(index int64, delegation stakingtypes.DelegationI) (stop bool),
 	)
 	IterateStakes(ctx sdk.Context, delAddr sdk.AccAddress,
-		fn func(index int64, del types.Stake) (stop bool),
+		fn func(x int64, del types.Stake) (stop bool),
 	)
 }

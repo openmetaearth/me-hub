@@ -167,7 +167,7 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *wstakingtypes.GenesisState {
 
 	var unbondingStakes []wstakingtypes.UnbondingStake
 
-	k.IterateUnbondingStakes(ctx, func(_ int64, ubs wstakingtypes.UnbondingStake) (stop bool) {
+	k.IterateUnbondingStakes(ctx, func(ubs wstakingtypes.UnbondingStake) (stop bool) {
 		unbondingStakes = append(unbondingStakes, ubs)
 		return false
 	})
