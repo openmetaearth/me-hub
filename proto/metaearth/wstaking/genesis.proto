@@ -47,12 +47,11 @@ message GenesisState {
   // unbonding_stakes defines the unbonding stakes active at genesis.
   repeated UnbondingStake unbonding_stakes = 9 [(gogoproto.nullable) = false];
 
-  repeated Region regionList = 10 [(gogoproto.nullable) = false];
-  repeated Meid    meidList    = 11 [(gogoproto.nullable) = false];
+  repeated Region regions = 10 [(gogoproto.nullable) = false];
 
-  repeated FixedDeposit fixedDepositList  = 12 [(gogoproto.nullable) = false];
-  uint64                fixedDepositCount = 13;
-  bool exported = 14;
+  repeated FixedDeposit fixedDepositList  = 11 [(gogoproto.nullable) = false];
+  uint64                fixedDepositCount = 12;
+  bool exported = 13;
 }
 
 // LastValidatorPower required for validator set update logic.
