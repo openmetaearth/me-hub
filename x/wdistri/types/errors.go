@@ -17,6 +17,6 @@ var (
 	ErrUnknownAccount          = sdkerrors.Register(ModuleName, 1106, "Unknown account")
 	ErrDistributionIncome      = sdkerrors.Register(ModuleName, 1107, "distribution income err.")
 	ErrDistributionOther       = sdkerrors.Register(ModuleName, 1108, "distribution err.")
-	ErrPermissionDenied         = sdkerrors.Register(ModuleName, 1111, "permission denied")
-	ErrInvalidParams            = sdkerrors.Register(ModuleName, 1112, "invalid params")
+	ErrPermissionDenied        = sdkerrors.Register(ModuleName, 1111, "permission denied")
+	ErrInvalidParams           = sdkerrors.Register(ModuleName, 1112, "invalid params")
 )
