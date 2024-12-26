@@ -79,6 +79,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 		Did:      msg.Did,
 		Address:  msg.Address,
 		Pubkey:   msg.Pubkey,
+		RegionId: msg.RegionId,
 		KycLevel: msg.Level,
 		Status:   didtypes.DID_STATUS_ACTIVE,
 	})
@@ -138,7 +139,13 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	}
 
 	// update KYC level
-	holderInfo.KycLevel = msg.Level
+	if msg.Level == didtypes.KYC_LEVEL_NONE {
+		return &types.MsgUpdateResponse{}, errors.Wrap(didtypes.ErrParameter, "KYC level must be greater than 0")
+	}
+	if msg.RegionId != "" {
+		holderInfo.RegionId = msg.RegionId
+	}
+
 	m.SetDidInfo(ctx, msg.Did, holderInfo)
 
 	// update KYC
@@ -199,6 +206,7 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	if !found {
 		return &types.MsgRemoveResponse{}, didtypes.ErrHolderNotFound
 	}
+	didInfo.RegionId = ""
 	didInfo.KycLevel = 0
 	didInfo.Status = didtypes.DID_STATUS_INACTIVE
 	m.SetDidInfo(ctx, msg.Did, didInfo)
