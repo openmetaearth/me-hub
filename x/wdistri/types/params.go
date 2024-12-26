@@ -40,7 +40,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 }
 
 // Validate validates the set of params
-// FIXME: may need to refactor
+//FIXME: may need to refactor
 func (p Params) Validate() error {
 	if p.DistributionParams.BaseProposerReward.IsNegative() {
 		return fmt.Errorf(

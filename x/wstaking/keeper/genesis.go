@@ -90,9 +90,9 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 	notBondedCoins := sdk.NewCoins(sdk.NewCoin(data.Params.BondDenom, notBondedTokens))
 
 	// check if the unbonded and bonded pools accounts exists
-	bondedPool := k.GetBondedStakePool(ctx)
+	bondedPool := k.GetBondedPool(ctx)
 	if bondedPool == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types.BondedStakePoolName))
+		panic(fmt.Sprintf("%s module account has not been set", types.BondedPoolName))
 	}
 
 	// TODO: remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
@@ -196,7 +196,8 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *wstakingtypes.GenesisState {
 		Redelegations:        redelegations,
 		Stakes:               k.GetAllStakes(ctx),
 		UnbondingStakes:      unbondingStakes,
-		Regions:              k.GetAllRegion(ctx),
+		RegionList:           k.GetAllRegion(ctx),
+		MeidList:             k.GetAllMeid(ctx),
 		FixedDepositList:     k.GetAllFixedDeposit(ctx),
 		FixedDepositCount:    k.GetFixedDepositCount(ctx),
 		Exported:             true,
