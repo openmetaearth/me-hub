@@ -116,7 +116,7 @@ func (m *MsgApprove) GetLevel() types.KycLevel {
 	if m != nil {
 		return m.Level
 	}
-	return types.KYC_LEVEL_ONE
+	return types.KYC_LEVEL_NONE
 }
 
 func (m *MsgApprove) GetUri() string {
@@ -243,7 +243,7 @@ func (m *MsgUpdate) GetLevel() types.KycLevel {
 	if m != nil {
 		return m.Level
 	}
-	return types.KYC_LEVEL_ONE
+	return types.KYC_LEVEL_NONE
 }
 
 func (m *MsgUpdate) GetUri() string {
@@ -983,7 +983,6 @@ func _Msg_DeleteSBT_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
-var Msg_serviceDesc = _Msg_serviceDesc
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "metaearth.kyc.Msg",
 	HandlerType: (*MsgServer)(nil),

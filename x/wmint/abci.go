@@ -73,14 +73,14 @@ func RoundUpToFourDecimals(x float64) float64 {
 	return math.Ceil(x*10000) / 10000
 }
 
-func CalculateCoinFromHeightToHeight(){
+func CalculateCoinFromHeightToHeight() {
 
 }
 
 // getMintCoinsByHeight Get coins through the block height range
 func getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
-	denomeUnit:=8
-	baseDenom:="umec"
+	denomeUnit := 8
+	baseDenom := "umec"
 	var totalCoins int64
 	lowMul := (fromHeight - 1) / types.OneYearTotalBlocks
 	lowAmount := types.InitOneYearMintAmount / types.OneYearTotalBlocks / math.Exp2(float64(lowMul))

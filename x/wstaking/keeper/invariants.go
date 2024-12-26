@@ -5,19 +5,68 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
 // RegisterInvariants registers all staking invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k *Keeper) {
 	ir.RegisterRoute(types.ModuleName, "module-accounts",
-		stakingkeeper.ModuleAccountInvariants(k.Keeper))
+		ModuleAccountInvariants(k))
 	ir.RegisterRoute(types.ModuleName, "nonnegative-power",
 		stakingkeeper.NonNegativePowerInvariant(k.Keeper))
 	ir.RegisterRoute(types.ModuleName, "positive-delegation",
 		stakingkeeper.PositiveDelegationInvariant(k.Keeper))
 	ir.RegisterRoute(types.ModuleName, "delegator-shares",
 		DelegatorSharesInvariant(k))
+}
+
+// ModuleAccountInvariants checks that the bonded and notBonded ModuleAccounts pools
+// reflects the tokens actively bonded and not bonded
+func ModuleAccountInvariants(k *Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		bonded := math.ZeroInt()
+		notBonded := math.ZeroInt()
+		bondedPool := k.GetBondedStakePool(ctx)
+		notBondedPool := k.GetNotBondedStakePool(ctx)
+		bondDenom := k.BondDenom(ctx)
+
+		k.IterateValidators(ctx, func(_ int64, validator stakingtypes.ValidatorI) bool {
+			switch validator.GetStatus() {
+			case stakingtypes.Bonded:
+				bonded = bonded.Add(validator.GetTokens())
+			case stakingtypes.Unbonding, stakingtypes.Unbonded:
+				notBonded = notBonded.Add(validator.GetTokens())
+			default:
+				panic("invalid validator status")
+			}
+			return false
+		})
+
+		k.IterateUnbondingStakes(ctx, func(ubd types.UnbondingStake) bool {
+			for _, entry := range ubd.Entries {
+				notBonded = notBonded.Add(entry.Balance)
+			}
+			return false
+		})
+
+		poolBonded := k.BankKeeper.GetBalance(ctx, bondedPool.GetAddress(), bondDenom)
+		poolNotBonded := k.BankKeeper.GetBalance(ctx, notBondedPool.GetAddress(), bondDenom)
+		broken := !poolBonded.Amount.Equal(bonded) || !poolNotBonded.Amount.Equal(notBonded)
+
+		// Bonded tokens should equal sum of tokens with bonded validators
+		// Not-bonded tokens should equal unbonding delegations	plus tokens on unbonded validators
+		return sdk.FormatInvariant(types.ModuleName, "bonded and not bonded module account coins", fmt.Sprintf(
+			"\tPool's bonded tokens: %v\n"+
+				"\tsum of bonded tokens: %v\n"+
+				"not bonded token invariance:\n"+
+				"\tPool's not bonded tokens: %v\n"+
+				"\tsum of not bonded tokens: %v\n"+
+				"module accounts total (bonded + not bonded):\n"+
+				"\tModule Accounts' tokens: %v\n"+
+				"\tsum tokens:              %v\n",
+			poolBonded, bonded, poolNotBonded, notBonded, poolBonded.Add(poolNotBonded), bonded.Add(notBonded))), broken
+	}
 }
 
 // DelegatorSharesInvariant checks whether all the delegator shares which persist

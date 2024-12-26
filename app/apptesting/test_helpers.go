@@ -125,12 +125,12 @@ func Setup(t *testing.T, isCheckTx bool) *app.App {
 	moduleAddress := authtypes.NewModuleAddress(wstakingtypes.StakePoolName)
 	stakePoolBalances := banktypes.Balance{Address: moduleAddress.String(), Coins: coins.Sort()}
 
-	balance := banktypes.Balance{
-		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000000000000000))),
-	}
+	//balance := banktypes.Balance{
+	//	Address: acc.GetAddress().String(),
+	//	Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000000000000000))),
+	//}
 	valSet := NewValidatorSet(t, 3)
-	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, balance, stakePoolBalances)
+	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, stakePoolBalances)
 	return app
 }
 
@@ -146,7 +146,7 @@ func genesisStateWithValSet(t *testing.T,
 	validators := make([]stakingtypes.Validator, 0, len(valSet.Validators))
 	stakes := make([]wstakingtypes.Stake, 0, len(valSet.Validators))
 
-	bondAmt := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit+10), nil))
+	bondAmt := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil))
 
 	for i, val := range valSet.Validators {
 		pk, err := cryptocodec.FromTmPubKeyInterface(val.PubKey)
@@ -197,7 +197,7 @@ func genesisStateWithValSet(t *testing.T,
 
 	// add bonded amount to bonded pool module account
 	balances = append(balances, banktypes.Balance{
-		Address: authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String(),
+		Address: authtypes.NewModuleAddress(stakingtypes.BondedStakePoolName).String(),
 		Coins:   sdk.Coins{sdk.NewCoin(params.BaseDenom, bondAmt.Mul(sdk.NewInt(3)))},
 	})
 
