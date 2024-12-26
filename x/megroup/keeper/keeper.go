@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/st-chain/me-hub/app/params"
+	didTypes "github.com/st-chain/me-hub/x/did/types"
 	kycTypes "github.com/st-chain/me-hub/x/kyc/types"
 	"github.com/st-chain/me-hub/x/megroup/types"
 )
@@ -192,4 +193,22 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, nowRegionID str
 	}
 	return nil
 
+}
+
+func (k Keeper) GetDidAndKycActive(sdkCtx sdk.Context, address sdk.AccAddress, regionID string) (string, bool) {
+	didVal, found := k.kycKeeper.GetDID(sdkCtx, address)
+	if !found {
+		return "", false
+	}
+	didInfo, found := k.kycKeeper.GetDidInfo(sdkCtx, didVal)
+	if !found {
+		return "", false
+	}
+	if didInfo.RegionId != regionID {
+		return "", false
+	}
+	if didInfo.Status == didTypes.DID_STATUS_ACTIVE {
+		return didVal, true
+	}
+	return didVal, false
 }

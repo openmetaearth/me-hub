@@ -2,6 +2,7 @@ package cli
 
 import (
 	"strconv"
+	"time"
 
 	"encoding/json"
 
@@ -14,19 +15,23 @@ import (
 
 func CmdCreateGroup() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-group [group-info]",
+		Use:   "create-group [admin] [regionID]",
 		Short: "Create a new group",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argGroupInfo := new(types.GroupInfo)
-			err = json.Unmarshal([]byte(args[0]), argGroupInfo)
-			if err != nil {
-				return err
-			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
+			}
+			argGroupInfo := &types.GroupInfo{
+				Id:          0,
+				Admin:       args[0],
+				Metadata:    "",
+				Version:     1,
+				TotalWeight: "",
+				CreatedAt:   time.Time{},
+				RegionID:    args[1],
 			}
 
 			msg := types.NewMsgCreateGroup(clientCtx.GetFromAddress().String(), argGroupInfo)

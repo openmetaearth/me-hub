@@ -20,10 +20,11 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	//check permission
-	//	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	//	if err != nil {
-	//		return nil, err
-	//	}
+	adminAccAddr, err := sdk.AccAddressFromBech32(msg.GroupInfo.Admin)
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("sdk.AccAddressFromBech32 error.err = %s,addr = %s",
+			err.Error(), msg.GroupInfo.Admin))
+	}
 	if !(k.daoKeeper.IsGlobalDao(ctx, msg.Creator) || k.daoKeeper.GetMeidDao(ctx) == msg.Creator) {
 		errLogBytes := types.EmitNewGroupError("only global admin can  create group", msg)
 		return nil, errors.Wrapf(types.ErrCheckGlobalAdmin, string(errLogBytes))
@@ -39,15 +40,16 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 	}
 
 	//check region name
-	_, err := utils.CheckRegionName(strings.ToUpper(msg.GroupInfo.RegionID))
+	_, err = utils.CheckRegionName(strings.ToUpper(msg.GroupInfo.RegionID))
 	if err != nil {
 		errLogBytes := types.EmitNewGroupError(fmt.Sprintf("region id %s illegal", msg.GroupInfo.RegionID), msg)
 		return nil, errors.Wrapf(types.ErrCreate, string(errLogBytes))
 	}
-	adminMeid, found := k.stakingKeeper.GetMeid(ctx, msg.GroupInfo.Admin)
-	if !found {
-		errLogBytes := types.EmitNewGroupError("only MEID user can create group", msg)
-		return nil, errors.Wrapf(types.ErrMeidNotExists, string(errLogBytes))
+	adminDid, isKycActive := k.GetDidAndKycActive(ctx, adminAccAddr, msg.GroupInfo.RegionID)
+	if !isKycActive {
+		errLogBytes := fmt.Sprintf("can not found admin's did active status in group's region"+
+			"address = %s, group's regionID = %s", msg.GroupInfo.Admin, msg.GroupInfo.RegionID)
+		return nil, errors.Wrapf(types.ErrPermissionDenied, errLogBytes)
 	}
 
 	joined, found := k.GetMemberJoined(ctx, msg.GroupInfo.Admin)
@@ -56,14 +58,9 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 		return nil, errors.Wrapf(types.ErrCreate, string(errLogBytes))
 	}
 
-	adminMeidData, err := adminMeid.Marshal()
-	if err != nil {
-		errLogBytes := types.EmitNewGroupError(fmt.Sprintf("adminMeid.Marshal error. err = %s", err.Error()), msg)
-		return nil, errors.Wrapf(types.ErrProcData, string(errLogBytes))
-	}
 	grpMetaInfo := &types.GroupMetaData{
 		SubmitMetaData: msg.GroupInfo.Metadata,
-		AdminMeid:      string(adminMeidData),
+		AdminMeid:      adminDid,
 	}
 	grpMetaData, err := json.Marshal(grpMetaInfo)
 	if err != nil {

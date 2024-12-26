@@ -26,16 +26,21 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 		}
 	}
 
+	userAccAddr, err := sdk.AccAddressFromBech32(msg.ApplicantAddress)
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("sdk.AccAddressFromBech32 error.err = %s,addr = %s",
+			err.Error(), msg.ApplicantAddress))
+	}
+
 	groupInfo, found := k.GetGroup(ctx, msg.GroupId)
 	if !found {
 		return nil, errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("msg's groupID = %d", msg.GroupId))
 	}
 
-	//
-	_, found = k.stakingKeeper.GetMeid(ctx, msg.ApplicantAddress)
-	if !found {
-		errLogBytes := fmt.Sprintf("only MEID user can join group. user's address = %s", msg.Creator)
-		return nil, errors.Wrapf(types.ErrPermissionDenied, string(errLogBytes))
+	_, isKycActive := k.GetDidAndKycActive(ctx, userAccAddr, groupInfo.RegionID)
+	if !isKycActive {
+		return nil, errors.Wrapf(types.ErrPermissionDenied, fmt.Sprintf("can not found user's did active status in group's region"+
+			"address = %s, group's regionID = %s", msg.ApplicantAddress, groupInfo.RegionID))
 	}
 
 	grpNumber, found := k.GetGroupMemberCount(ctx, msg.GroupId)
@@ -56,7 +61,7 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 	})
 	//add to group_member
 
-	err := k.addGroupMember(ctx, &types.GroupMember{
+	err = k.addGroupMember(ctx, &types.GroupMember{
 		GroupID: msg.GroupId,
 		Member: &types.Member{
 			Address: msg.ApplicantAddress,
@@ -106,6 +111,14 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupRequest) (*types.MsgLeaveGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	groupInfo, found := k.GetGroup(ctx, req.GroupId)
+	if !found {
+		return nil, errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found gourp.groupID = %d", req.GroupId))
+	}
+
+	if req.Creator == groupInfo.Admin { //admin can not leave group
+		return nil, errors.Wrapf(types.ErrExcute, "admin of group can not leave")
+	}
 	grpNumber, found := k.GetGroupMemberCount(ctx, req.GroupId)
 	if !found {
 		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("can not found group number count in LeaveGroup"))
@@ -119,7 +132,7 @@ func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupReq
 		return nil, errors.Wrapf(types.ErrExcute, "can not found join group")
 	}
 	if joined.GroupId != req.GroupId {
-		return nil, errors.Wrapf(types.ErrExcute, fmt.Sprint("group info dismatch.input group's id = %d,join gropp's id = %d",
+		return nil, errors.Wrapf(types.ErrExcute, fmt.Sprintf("group info dismatch.input group's id = %d,join gropp's id = %d",
 			req.GroupId, joined.GroupId))
 	}
 

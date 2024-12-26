@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/handler"
 	stakingTypes "github.com/st-chain/me-hub/x/wstaking/types"
 )
@@ -49,4 +50,6 @@ type DAOKeeper interface {
 
 type KycKeeper interface {
 	RegisterEventHandler(eventType string, priority int, module string, handler handler.HandlerFunc)
+	GetDID(ctx sdk.Context, addr sdk.AccAddress) (string, bool)
+	GetDidInfo(ctx sdk.Context, did string) (didtypes.DidInfo, bool)
 }
