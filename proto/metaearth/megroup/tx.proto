@@ -4,7 +4,7 @@ package metaearth.megroup;
 
 import "metaearth/megroup/group_info.proto";
 
-option go_package = ".com/st-chain/me-hub/x/megroup/types";
+option go_package = "github.com/st-chain/me-hub/x/megroup/types";
 
 // Msg defines the Msg service.
 service Msg {
@@ -45,7 +45,6 @@ message MsgJoinGroup {
 }
 
 message MsgJoinGroupResponse {
-  string groupId = 1;
 }
 
 message MsgLeaveGroupRequest{
