@@ -40,19 +40,27 @@ func migrateRegions(ctx sdk.Context, k *wstakingkeeper.Keeper) {
 	regionsMap := make(map[string]wstakingtypes.Region)
 	for _, region := range regions {
 		regionIds = append(regionIds, region.RegionId)
+
+		region.RegionTreasureAddr = k.CreateRegionAccount(ctx, wstakingtypes.RegionAccountTypeBase, region.RegionId).String()
+		region.DepositInterestAddr = k.CreateRegionAccount(ctx, wstakingtypes.RegionAccountTypeDepositInterest, region.RegionId).String()
+		region.RegionShare = sdk.ZeroInt()
+
 		regionsMap[region.RegionId] = region
 	}
 
 	for index, validator := range validators {
+
 		validator.Description.RegionID = regionIds[index]
 		k.SetValidator(ctx, validator)
 
 		if region, ok := regionsMap[validator.Description.RegionID]; ok {
 			region.OperatorAddress = validator.OperatorAddress
-			region.RegionTreasureAddr = k.CreateRegionAccount(ctx, wstakingtypes.RegionAccountTypeBase, region.RegionId).String()
-			region.DepositInterestAddr = k.CreateRegionAccount(ctx, wstakingtypes.RegionAccountTypeDepositInterest, region.RegionId).String()
 			region.RegionShare = validator.Tokens
-			k.SetRegion(ctx, region)
+			regionsMap[validator.Description.RegionID] = region
 		}
+	}
+
+	for _, region := range regionsMap {
+		k.SetRegion(ctx, region)
 	}
 }
