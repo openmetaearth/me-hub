@@ -43,19 +43,21 @@ func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid class name %s", msg.ClassId)
 	}
 
-	k.SaveClass(ctx, nft.Class{
+	class := nft.Class{
 		Id:          msg.ClassId,
+		Name:        msg.Name,
+		Symbol:      msg.Symbol,
+		Description: msg.Description,
+		Uri:         msg.Uri,
+		UriHash:     msg.UriHash,
 		TotalSupply: msg.TotalSupply,
-	})
+	}
 
-	ctx.EventManager().EmitTypedEvent(&types.EventNewClass{
-		ClassId: msg.ClassId,
-	})
-
+	k.SaveClass(ctx, class)
+	ctx.EventManager().EmitTypedEvent(&class)
 	return &types.MsgNewClassResponse{}, nil
 }
 
-// NewClass implements the NewClass method of types.MsgServer.
 func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.MsgMintNFTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -83,6 +85,7 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 			ClassId: msg.ClassId,
 			Id:      msg.TokenId,
 			Uri:     msg.Uri,
+			UriHash: msg.UriHash,
 			Data:    nil,
 		},
 		receiver,
