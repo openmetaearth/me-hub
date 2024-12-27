@@ -58,7 +58,8 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	if err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrHooks, "before create new region :error :%+v", err)
 	}
-	uri := "https://docs.cosmos.network/main/modules/nft"
+
+	uri := ""
 	hasher := sha256.New()
 	_, err = hasher.Write(utils.UnsafeStrToBytes(uri))
 	errors.AssertNil(err)
