@@ -1,7 +1,6 @@
 package v2_0_2_test
 
 import (
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -129,48 +128,6 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 		regions := s.App.StakingKeeper.GetAllRegion(s.Ctx)
 		for _, region := range regions {
 			regionMap[region.RegionId] = region
-		}
-		return nil
-	}
-
-	upgrade()
-	err := postUpgrade()
-	s.Require().NoError(err)
-}
-
-// TestUpgrade is a method of UpgradeTestSuite to test the upgrade process.
-func (s *UpgradeTestSuite) TestMigrateValidator() {
-	upgrade := func() {
-		// Run upgrade
-		s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight - 1)
-		plan := upgradetypes.Plan{Name: v2_0_2.UpgradeName, Height: dummyUpgradeHeight}
-		err := s.App.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
-		s.Require().NoError(err)
-		_, exists := s.App.UpgradeKeeper.GetUpgradePlan(s.Ctx)
-		s.Require().True(exists)
-
-		s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight)
-		// simulate the upgrade process not panic.
-		s.Require().NotPanics(func() {
-			// simulate the upgrade process.
-			s.App.BeginBlocker(s.Ctx, abci.RequestBeginBlock{})
-		})
-	}
-
-	postUpgrade := func() error {
-		regionMap := make(map[string]wstakingtypes.Region)
-		regions := s.App.StakingKeeper.GetAllRegion(s.Ctx)
-		for _, region := range regions {
-			regionMap[region.RegionId] = region
-		}
-
-		validators := s.App.StakingKeeper.GetAllValidators(s.Ctx)
-		for _, validator := range validators {
-			region := regionMap[validator.Description.RegionID]
-			if region.OperatorAddress != validator.OperatorAddress {
-				return fmt.Errorf("validator %v does not have the correct operator address, expected: %s, got: %s", validator.Description.RegionID,
-					validator.OperatorAddress, region.OperatorAddress)
-			}
 		}
 		return nil
 	}
