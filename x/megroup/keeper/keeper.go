@@ -98,9 +98,9 @@ func (k Keeper) KycStatusChanged(goCtx context.Context, msgType string, data int
 			return err
 		}
 		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtGrpMigrateByKyc,
-			sdk.NewAttribute("user", attrAddress.Value),
-			sdk.NewAttribute("preRegionID", attrPreRegion.Value),
-			sdk.NewAttribute("nowRegionID", attrNewRegion.Value),
+			sdk.NewAttribute("applicant", attrAddress.Value),
+			sdk.NewAttribute("previous_region_id", attrPreRegion.Value),
+			sdk.NewAttribute("now_region_id", attrNewRegion.Value),
 			//1sdk.NewAttribute("metadata", msg.),
 		))
 	}
@@ -184,8 +184,8 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, nowRegionID str
 				err.Error(), region.GetRegionTreasureAddr(), newGrpInfo.Admin))
 		}
 		sdkCtx.EventManager().EmitEvent(sdk.NewEvent(types.EvtJoinGroupReward,
-			sdk.NewAttribute("userAddress", address),
-			sdk.NewAttribute("groupAdminAddress", newGrpInfo.Admin),
+			sdk.NewAttribute("applicant", address),
+			sdk.NewAttribute("admin", newGrpInfo.Admin),
 			sdk.NewAttribute("regionTreasureAddress", region.GetRegionTreasureAddr()),
 			sdk.NewAttribute("rewards", rewardsCoin.String()),
 		))
