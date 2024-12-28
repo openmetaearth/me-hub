@@ -47,7 +47,7 @@ func NewKeeper(
 	}
 }
 
-func (k Keeper) SetMintKeeper(mintKeeper types.MintKeeper) {
+func (k *Keeper) SetMintKeeper(mintKeeper types.MintKeeper) {
 	k.mintKeeper = mintKeeper
 }
 
