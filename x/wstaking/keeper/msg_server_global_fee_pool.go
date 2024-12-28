@@ -10,7 +10,7 @@ import (
 func (k MsgServer) WithdrawFromGlobalDaoFeePool(goCtx context.Context, msg *types.MsgWithdrawFromGlobalDaoFeePool) (*types.MsgWithdrawFromGlobalDaoFeePoolResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Withdrawer) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Withdrawer) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
@@ -19,8 +19,8 @@ func (k MsgServer) WithdrawFromGlobalDaoFeePool(goCtx context.Context, msg *type
 		return nil, sdkerrors.Wrapf(types.ErrUnknownAccount, "receiver account %s format error %s", msg.Withdrawer, err)
 	}
 
-	fromAddr := k.DaoKeeper.GetGlobalDaoFeePoolAddr(ctx)
-	err = k.BankKeeper.SendCoins(
+	fromAddr := k.daoKeeper.GetGlobalDaoFeePoolAddr(ctx)
+	err = k.bankKeeper.SendCoins(
 		ctx,
 		fromAddr,
 		toAddr,

@@ -9,23 +9,23 @@ import (
 
 // GetBondedStakePool returns the bonded stake tokens pool's module account
 func (k Keeper) GetBondedStakePool(ctx sdk.Context) (bondedStakePool authtypes.ModuleAccountI) {
-	return k.AuthKeeper.GetModuleAccount(ctx, types.BondedStakePoolName)
+	return k.authKeeper.GetModuleAccount(ctx, types.BondedStakePoolName)
 }
 
 // GetNotBondedStakePool returns the not bonded stake tokens pool's module account
 func (k Keeper) GetNotBondedStakePool(ctx sdk.Context) (bondedStakePool authtypes.ModuleAccountI) {
-	return k.AuthKeeper.GetModuleAccount(ctx, types.NotBondedStakePoolName)
+	return k.authKeeper.GetModuleAccount(ctx, types.NotBondedStakePoolName)
 }
 
 func (k Keeper) TotalBondedStakePool(ctx sdk.Context) math.Int {
 	bondedStakePool := k.GetBondedStakePool(ctx)
-	return k.BankKeeper.GetBalance(ctx, bondedStakePool.GetAddress(), k.BondDenom(ctx)).Amount
+	return k.bankKeeper.GetBalance(ctx, bondedStakePool.GetAddress(), k.BondDenom(ctx)).Amount
 }
 
 // bondedStakeTokensToNotBonded transfers coins from the bonded to the not bonded pool within staking
 func (k Keeper) BondedStakeTokensToNotBonded(ctx sdk.Context, tokens math.Int) {
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokens))
-	if err := k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.BondedStakePoolName, types.NotBondedStakePoolName, coins); err != nil {
+	if err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.BondedStakePoolName, types.NotBondedStakePoolName, coins); err != nil {
 		panic(err)
 	}
 }
@@ -33,7 +33,7 @@ func (k Keeper) BondedStakeTokensToNotBonded(ctx sdk.Context, tokens math.Int) {
 // notBondedStakeTokensToBonded transfers coins from the not bonded to the bonded pool within staking
 func (k Keeper) NotBondedStakeTokensToBonded(ctx sdk.Context, tokens math.Int) {
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokens))
-	if err := k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.NotBondedStakePoolName, types.BondedStakePoolName, coins); err != nil {
+	if err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.NotBondedStakePoolName, types.BondedStakePoolName, coins); err != nil {
 		panic(err)
 	}
 }

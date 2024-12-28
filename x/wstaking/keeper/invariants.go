@@ -50,8 +50,8 @@ func ModuleAccountInvariants(k *Keeper) sdk.Invariant {
 			return false
 		})
 
-		poolBonded := k.BankKeeper.GetBalance(ctx, bondedPool.GetAddress(), bondDenom)
-		poolNotBonded := k.BankKeeper.GetBalance(ctx, notBondedPool.GetAddress(), bondDenom)
+		poolBonded := k.bankKeeper.GetBalance(ctx, bondedPool.GetAddress(), bondDenom)
+		poolNotBonded := k.bankKeeper.GetBalance(ctx, notBondedPool.GetAddress(), bondDenom)
 		broken := !poolBonded.Amount.Equal(bonded) || !poolNotBonded.Amount.Equal(notBonded)
 
 		// Bonded tokens should equal sum of tokens with bonded validators

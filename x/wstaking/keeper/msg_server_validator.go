@@ -19,7 +19,7 @@ func (k MsgServer) CreateValidator(
 ) (*stakingtypes.MsgCreateValidatorResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.DelegatorAddress) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.DelegatorAddress) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
@@ -136,7 +136,7 @@ func (k MsgServer) CreateValidator(
 func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEditValidator) (*stakingtypes.MsgEditValidatorResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.StakerAddress) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.StakerAddress) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
@@ -189,7 +189,7 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 		if err != nil {
 			return nil, err
 		}
-		acc := k.AuthKeeper.GetAccount(ctx, ownerAddress)
+		acc := k.authKeeper.GetAccount(ctx, ownerAddress)
 		if acc != nil {
 			_, ok := acc.(authtypes.ModuleAccountI)
 			if ok {
@@ -220,7 +220,7 @@ func (k MsgServer) ResetValidator(goCtx context.Context, msg *types.MsgResetVali
 		return nil, err
 	}
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.StakerAddress) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.StakerAddress) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
@@ -239,7 +239,7 @@ func (k MsgServer) ResetValidator(goCtx context.Context, msg *types.MsgResetVali
 		return nil, err
 	}
 
-	acc := k.AuthKeeper.GetAccount(ctx, newValAddr)
+	acc := k.authKeeper.GetAccount(ctx, newValAddr)
 	if acc != nil {
 		_, ok := acc.(authtypes.ModuleAccountI)
 		if ok {

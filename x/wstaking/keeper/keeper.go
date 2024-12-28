@@ -18,10 +18,10 @@ type Keeper struct {
 	*stakingkeeper.Keeper
 	cdc           codec.BinaryCodec
 	storeKey      storetypes.StoreKey
-	AuthKeeper    banktypes.AccountKeeper
-	BankKeeper    types.BankKeeper
-	DaoKeeper     types.DaoKeeper
-	WMintKeeper   types.MintKeeper
+	authKeeper    banktypes.AccountKeeper
+	bankKeeper    types.BankKeeper
+	daoKeeper     types.DaoKeeper
+	mintKeeper    types.MintKeeper
 	nftKeeper     types.NFTKeeper
 	wstakingHooks types.WstakingHooks
 	KycKeeper     *kyckeeper.Keeper
@@ -34,20 +34,21 @@ func NewKeeper(
 	bk types.BankKeeper,
 	dk types.DaoKeeper,
 	nk types.NFTKeeper,
-	mk types.MintKeeper,
 	authority string,
 ) *Keeper {
 	return &Keeper{
-		Keeper:        stakingkeeper.NewKeeper(cdc, storeKey, ak, bk, authority),
-		cdc:           cdc,
-		storeKey:      storeKey,
-		AuthKeeper:    ak,
-		BankKeeper:    bk,
-		DaoKeeper:     dk,
-		nftKeeper:     nk,
-		wstakingHooks: nil,
-		WMintKeeper:   nil,
+		Keeper:     stakingkeeper.NewKeeper(cdc, storeKey, ak, bk, authority),
+		cdc:        cdc,
+		storeKey:   storeKey,
+		authKeeper: ak,
+		bankKeeper: bk,
+		daoKeeper:  dk,
+		nftKeeper:  nk,
 	}
+}
+
+func (k Keeper) SetMintKeeper(mintKeeper types.MintKeeper) {
+	k.mintKeeper = mintKeeper
 }
 
 // Logger returns a module-specific logger.
@@ -75,5 +76,5 @@ func (k Keeper) GetCdc() codec.BinaryCodec {
 }
 
 func (k Keeper) GetPerBlockMintCoinAmount(ctx sdk.Context) (amount big.Int) {
-	return k.WMintKeeper.GetPerBlockMintCoinAmount(ctx)
+	return k.mintKeeper.GetPerBlockMintCoinAmount(ctx)
 }

@@ -22,7 +22,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 		return nil, sdkerrors.Wrapf(types.ErrRegionName, err.Error())
 	}
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Creator) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
@@ -105,7 +105,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 func (k MsgServer) RemoveRegion(goCtx context.Context, msg *types.MsgRemoveRegion) (*types.MsgRemoveRegionResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Creator) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
@@ -131,7 +131,7 @@ func (k MsgServer) RemoveRegion(goCtx context.Context, msg *types.MsgRemoveRegio
 func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithdrawFromRegion) (*types.MsgWithdrawFromRegionResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Withdrawer) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Withdrawer) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
@@ -150,7 +150,7 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 		return nil, sdkerrors.Wrapf(types.ErrUnknownAccount, "receiver account %s format error %s", msg.Receiver, err)
 	}
 
-	err = k.BankKeeper.SendCoins(
+	err = k.bankKeeper.SendCoins(
 		ctx,
 		fromAddr,
 		toAddr,

@@ -48,7 +48,7 @@ func (k Keeper) CreateRegionAccount(ctx sdk.Context, accountType types.REGION_AC
 	regionAcc := k.GetRegionAccount(ctx, accountType, regionId)
 	if regionAcc == nil {
 		vaultAddr := types.GetRegionAccountAddr(accountType, regionId)
-		k.AuthKeeper.SetAccount(ctx, k.AuthKeeper.NewAccountWithAddress(ctx, vaultAddr))
+		k.authKeeper.SetAccount(ctx, k.authKeeper.NewAccountWithAddress(ctx, vaultAddr))
 		return vaultAddr
 	}
 	return regionAcc.GetAddress()
@@ -56,7 +56,7 @@ func (k Keeper) CreateRegionAccount(ctx sdk.Context, accountType types.REGION_AC
 
 func (k Keeper) GetRegionAccount(ctx sdk.Context, accountType types.REGION_ACCOUNT_TYPE, regionId string) authtypes.AccountI {
 	vaultAddr := types.GetRegionAccountAddr(accountType, regionId)
-	return k.AuthKeeper.GetAccount(ctx, vaultAddr)
+	return k.authKeeper.GetAccount(ctx, vaultAddr)
 }
 
 // GetAllRegion returns all region

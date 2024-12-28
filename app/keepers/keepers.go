@@ -280,7 +280,6 @@ func (a *AppKeepers) InitKeepers(
 		a.BankKeeper,
 		a.DaoKeeper,
 		a.WNFTKeeper,
-		a.MintKeeper,
 		govModuleAddress,
 	)
 
@@ -293,8 +292,7 @@ func (a *AppKeepers) InitKeepers(
 		wbanktypes.TreasuryPoolName,
 		govModuleAddress,
 	)
-
-	a.StakingKeeper.WMintKeeper = a.MintKeeper
+	a.StakingKeeper.SetMintKeeper(a.MintKeeper)
 
 	a.DistrKeeper = wdistrkeeper.NewKeeper(
 		appCodec,
