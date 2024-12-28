@@ -97,9 +97,9 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 
 	// TODO: remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
 
-	bondedBalance := k.BankKeeper.GetAllBalances(ctx, bondedPool.GetAddress())
+	bondedBalance := k.bankKeeper.GetAllBalances(ctx, bondedPool.GetAddress())
 	if bondedBalance.IsZero() {
-		k.AuthKeeper.SetModuleAccount(ctx, bondedPool)
+		k.authKeeper.SetModuleAccount(ctx, bondedPool)
 	}
 
 	// if balance is different from bonded coins panic because genesis is most likely malformed
@@ -112,9 +112,9 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 		panic(fmt.Sprintf("%s module account has not been set", types.NotBondedPoolName))
 	}
 
-	notBondedBalance := k.BankKeeper.GetAllBalances(ctx, notBondedPool.GetAddress())
+	notBondedBalance := k.bankKeeper.GetAllBalances(ctx, notBondedPool.GetAddress())
 	if notBondedBalance.IsZero() {
-		k.AuthKeeper.SetModuleAccount(ctx, notBondedPool)
+		k.authKeeper.SetModuleAccount(ctx, notBondedPool)
 	}
 
 	// If balance is different from non bonded coins panic because genesis is most

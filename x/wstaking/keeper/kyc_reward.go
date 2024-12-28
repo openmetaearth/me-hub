@@ -46,7 +46,7 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 	//validator rewards
 	ownerAddress := validator.OwnerAddress
 	if len(validator.OwnerAddress) <= 0 {
-		ownerAddress = k.DaoKeeper.GetDevOperator(ctx)
+		ownerAddress = k.daoKeeper.GetDevOperator(ctx)
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -57,7 +57,7 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 			sdk.NewAttribute(types.AttributeKeyMeidInviteAddress, inviteAddr),
 			sdk.NewAttribute(types.AttributeKeyMeidInviteReward, types.InviteReward.String()+params.BaseDenom),
 			sdk.NewAttribute(types.AttributeKeySendMeidInviteAddress, region.RegionTreasureAddr),
-			sdk.NewAttribute(types.AttributeKeyReceiveMeidInviteAddress_Society, k.DaoKeeper.GetDevOperator(ctx)),
+			sdk.NewAttribute(types.AttributeKeyReceiveMeidInviteAddress_Society, k.daoKeeper.GetDevOperator(ctx)),
 			sdk.NewAttribute(types.AttributeKeyReceiveMeidInviteAddress_Node, ownerAddress),
 			sdk.NewAttribute(types.AttributeKeyMeidNumAddReward, types.ValidatorReward.String()+params.BaseDenom),
 		),
@@ -128,7 +128,7 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 		}
 		// add coins to user account
 		if interest.GT(sdk.ZeroDec()) {
-			err = k.BankKeeper.SendCoins(ctx,
+			err = k.bankKeeper.SendCoins(ctx,
 				sdk.MustAccAddressFromBech32(experienceRegion.RegionTreasureAddr),
 				sdk.MustAccAddressFromBech32(delegation.DelegatorAddress),
 				sdk.NewCoins(sdk.NewCoin(params.BaseDenom, interest.TruncateInt())))
@@ -171,7 +171,7 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 	delegation.ValidatorAddress = validatorAddr.String()
 	treasureAddr := k.GetRegionAccount(ctx, types.RegionAccountTypeBase, region.RegionId)
 	if len(inviteAddr) > 0 {
-		err = k.BankKeeper.SendCoins(ctx, treasureAddr.GetAddress(), sdk.MustAccAddressFromBech32(inviteAddr), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.InviteReward)))
+		err = k.bankKeeper.SendCoins(ctx, treasureAddr.GetAddress(), sdk.MustAccAddressFromBech32(inviteAddr), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.InviteReward)))
 		if err != nil {
 			return fmt.Errorf("send kyc reward to inviter, %v", err)
 		}
@@ -181,9 +181,9 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 		// validator rewards
 		ownerAddress := validator.OwnerAddress
 		if len(ownerAddress) == 0 {
-			ownerAddress = k.DaoKeeper.GetDevOperator(ctx)
+			ownerAddress = k.daoKeeper.GetDevOperator(ctx)
 		}
-		err = k.BankKeeper.SendCoins(ctx,
+		err = k.bankKeeper.SendCoins(ctx,
 			treasureAddr.GetAddress(),
 			sdk.MustAccAddressFromBech32(ownerAddress),
 			sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.ValidatorReward)))
@@ -191,9 +191,9 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 			return fmt.Errorf("send kyc reward to validator, %v", err)
 		}
 		//committee rewards
-		err = k.BankKeeper.SendCoins(ctx,
+		err = k.bankKeeper.SendCoins(ctx,
 			treasureAddr.GetAddress(),
-			sdk.MustAccAddressFromBech32(k.DaoKeeper.GetDevOperator(ctx)),
+			sdk.MustAccAddressFromBech32(k.daoKeeper.GetDevOperator(ctx)),
 			sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.CommitteeReward)))
 		if err != nil {
 			return fmt.Errorf("send kyc reward to committee, %v", err)
@@ -229,7 +229,7 @@ func (k Keeper) removeKycReward(ctx sdk.Context, delAddr sdk.AccAddress, valAddr
 	}
 
 	// settle interest
-	err = k.BankKeeper.SendCoins(ctx, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), delAddr,
+	err = k.bankKeeper.SendCoins(ctx, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), delAddr,
 		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())))
 	if err != nil {
 		return amount, fmt.Errorf("settle interest error: %v", err)

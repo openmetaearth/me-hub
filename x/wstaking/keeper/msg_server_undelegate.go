@@ -93,7 +93,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	val.DelegationAmount = val.DelegationAmount.Sub(returnAmount)
 	k.SetValidator(ctx, val)
 	//send delegation rewards
-	err = k.BankKeeper.SendCoins(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())))
+	err = k.bankKeeper.SendCoins(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())))
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 			)
 		}()
 	}
-	delegateTreasure := k.AuthKeeper.GetModuleAccount(ctx, stakingtypes.BondedPoolName)
+	delegateTreasure := k.authKeeper.GetModuleAccount(ctx, stakingtypes.BondedPoolName)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUnDelegate,

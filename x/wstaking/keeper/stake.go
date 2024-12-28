@@ -49,7 +49,7 @@ func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt math.Int,
 		}
 
 		coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), bondAmt))
-		if err := k.BankKeeper.StakeCoinsFromModuleToModule(ctx, types.StakePoolName, recipientModule, coins); err != nil {
+		if err := k.bankKeeper.StakeCoinsFromModuleToModule(ctx, types.StakePoolName, recipientModule, coins); err != nil {
 			return sdk.Dec{}, err
 		}
 	} else {
@@ -461,7 +461,7 @@ func (k Keeper) CompleteStakeUnBonding(ctx sdk.Context, stakerAddr sdk.AccAddres
 			// track unstake only when remaining or truncated shares are non-zero
 			if !entry.Balance.IsZero() {
 				amt := sdk.NewCoin(bondDenom, entry.Balance)
-				if err := k.BankKeeper.UnstakeCoinsFromModuleToModule(
+				if err := k.bankKeeper.UnstakeCoinsFromModuleToModule(
 					ctx, types.NotBondedStakePoolName, types.StakePoolName, sdk.NewCoins(amt),
 				); err != nil {
 					return nil, err

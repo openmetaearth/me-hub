@@ -10,7 +10,7 @@ import (
 func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFixedDepositCfg) (*types.MsgNewFixedDepositCfgResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Dao) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Dao) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
@@ -62,7 +62,7 @@ func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFi
 func (k MsgServer) RemoveFixedDepositCfg(goCtx context.Context, msg *types.MsgRemoveFixedDepositCfg) (*types.MsgRemoveFixedDepositCfgResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Admin) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Admin) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
@@ -86,7 +86,7 @@ func (k MsgServer) RemoveFixedDepositCfg(goCtx context.Context, msg *types.MsgRe
 func (k MsgServer) SetFixedDepositCfgStatus(goCtx context.Context, msg *types.MsgSetFixedDepositCfgStatus) (*types.MsgSetFixedDepositCfgStatusResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Admin) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Admin) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
@@ -111,7 +111,7 @@ func (k MsgServer) SetFixedDepositCfgStatus(goCtx context.Context, msg *types.Ms
 func (k MsgServer) SetFixedDepositCfgRate(goCtx context.Context, msg *types.MsgSetFixedDepositCfgRate) (*types.MsgSetFixedDepositCfgRateResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Admin) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Admin) {
 		return nil, types.ErrCheckGlobalDao
 	}
 

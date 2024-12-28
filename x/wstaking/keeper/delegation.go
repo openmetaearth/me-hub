@@ -37,7 +37,7 @@ func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.
 		k.InsertUBDQueue(ctx, ubd, completionTime)
 	} else {
 		amt := sdk.NewCoin(params.BaseDenom, returnAmount)
-		err = k.BankKeeper.UndelegateCoinsFromModuleToAccount(ctx, stakingtypes.BondedPoolName, delAddr, sdk.NewCoins(amt))
+		err = k.bankKeeper.UndelegateCoinsFromModuleToAccount(ctx, stakingtypes.BondedPoolName, delAddr, sdk.NewCoins(amt))
 		if err != nil {
 			return completionTime, returnAmount, err
 		}
@@ -92,7 +92,7 @@ func (k Keeper) Unbond(ctx sdk.Context, delAmount math.Int, isMeid bool, delegat
 // bondedTokensToNotBonded transfers coins from the bonded to the not bonded pool within staking
 func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, tokens math.Int) {
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokens))
-	if err := k.BankKeeper.SendCoinsFromModuleToModule(ctx, stakingtypes.BondedPoolName, stakingtypes.NotBondedPoolName, coins); err != nil {
+	if err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, stakingtypes.BondedPoolName, stakingtypes.NotBondedPoolName, coins); err != nil {
 		panic(err)
 	}
 }
@@ -130,10 +130,10 @@ func (k Keeper) Delegate(
 
 	gage := sdk.NewCoin(k.BondDenom(ctx), bondAmt)
 	coins := sdk.NewCoins(gage)
-	if err = k.BankKeeper.DelegateCoinsFromAccountToModule(ctx, delegatorAddress, pool, coins); err != nil {
+	if err = k.bankKeeper.DelegateCoinsFromAccountToModule(ctx, delegatorAddress, pool, coins); err != nil {
 		return sdk.Dec{}, err
 	}
-	poolAccI := k.AuthKeeper.GetModuleAccount(ctx, pool)
+	poolAccI := k.authKeeper.GetModuleAccount(ctx, pool)
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeDelegateTransfer,
 		sdk.NewAttribute(banktypes.AttributeKeySender, delegation.DelegatorAddress),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, gage.String()),
@@ -209,7 +209,7 @@ func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.A
 	coins := sdk.NewCoins(coin)
 	// add coins to user account
 	if !coin.Amount.IsZero() {
-		err = k.BankKeeper.SendCoins(ctx, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), del.GetDelegatorAddr(), coins)
+		err = k.bankKeeper.SendCoins(ctx, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), del.GetDelegatorAddr(), coins)
 		if err != nil {
 			return nil, err
 		}
