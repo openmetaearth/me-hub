@@ -10,7 +10,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	kyckeeper "github.com/st-chain/me-hub/x/kyc/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
@@ -24,7 +23,7 @@ type Keeper struct {
 	mintKeeper    types.MintKeeper
 	nftKeeper     types.NFTKeeper
 	wstakingHooks types.WstakingHooks
-	KycKeeper     *kyckeeper.Keeper
+	kycKeeper     types.KycKeeper
 }
 
 func NewKeeper(
@@ -49,6 +48,10 @@ func NewKeeper(
 
 func (k *Keeper) SetMintKeeper(mintKeeper types.MintKeeper) {
 	k.mintKeeper = mintKeeper
+}
+
+func (k *Keeper) SetKycKeeper(keeper types.KycKeeper) {
+	k.kycKeeper = keeper
 }
 
 // Logger returns a module-specific logger.

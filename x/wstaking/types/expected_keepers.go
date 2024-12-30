@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/nft"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"math/big"
 )
 
@@ -48,4 +49,9 @@ type MintKeeper interface {
 type NFTKeeper interface {
 	SaveClass(ctx sdk.Context, class nft.Class) error
 	GetClass(ctx sdk.Context, classID string) (nft.Class, bool)
+}
+
+type KycKeeper interface {
+	GetDID(ctx sdk.Context, addr sdk.AccAddress) (string, bool)
+	GetKYC(ctx sdk.Context, did string) (kyc didtypes.Credential, found bool)
 }

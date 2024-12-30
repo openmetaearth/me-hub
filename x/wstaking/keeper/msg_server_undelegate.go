@@ -22,9 +22,9 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	var region types.Region
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	regionID := strings.ToLower(types.ExperienceRegionName)
-	did, ok := k.KycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.DelegatorAddress))
+	did, ok := k.kycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.DelegatorAddress))
 	if ok {
-		kycData, _ := k.KycKeeper.GetKYC(ctx, did)
+		kycData, _ := k.kycKeeper.GetKYC(ctx, did)
 		regionID = string(kycData.Data)
 	}
 	region, isFound := k.GetRegion(ctx, regionID)

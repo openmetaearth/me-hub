@@ -154,9 +154,9 @@ func (k Keeper) Delegate(
 // WithdrawDelegationRewards withdraw rewards from a delegation
 func (k Keeper) WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error) {
 	regionID := strings.ToLower(types.ExperienceRegionName)
-	did, ok := k.KycKeeper.GetDID(ctx, delAddr)
+	did, ok := k.kycKeeper.GetDID(ctx, delAddr)
 	if ok {
-		kycData, _ := k.KycKeeper.GetKYC(ctx, did)
+		kycData, _ := k.kycKeeper.GetKYC(ctx, did)
 		regionID = string(kycData.Data)
 	}
 	region, hasRegion := k.GetRegion(ctx, regionID)

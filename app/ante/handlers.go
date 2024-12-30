@@ -87,7 +87,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		options.FeegrantKeeper,
 		options.DaoKeeper,
 		options.StakingKeeper,
-		options.DidKeeper,
+		options.KycKeeper,
 		options.TxFeeChecker,
 		options.WasmViewKeeper,
 	)

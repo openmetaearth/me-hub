@@ -236,7 +236,7 @@ func New(
 		RollappKeeper:          *app.RollappKeeper,
 		DaoKeeper:              app.DaoKeeper,
 		StakingKeeper:          app.StakingKeeper,
-		DidKeeper:              app.DidKeeper,
+		KycKeeper:              app.KycKeeper,
 		WasmViewKeeper:         app.WasmKeeper,
 	})
 	if err != nil {

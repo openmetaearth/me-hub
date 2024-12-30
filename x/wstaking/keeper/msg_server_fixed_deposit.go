@@ -192,12 +192,12 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 }
 
 func (k MsgServer) GetRegionIdByAccount(ctx sdk.Context, account string) (string, error, bool) {
-	did, ok := k.KycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(account))
+	did, ok := k.kycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(account))
 	if !ok {
 		return "", sdkerrors.Wrapf(types.ErrDidNotExists, "meid with account %s not exist", account), true
 	}
 
-	kycData, _ := k.KycKeeper.GetKYC(ctx, did)
+	kycData, _ := k.kycKeeper.GetKYC(ctx, did)
 	regionId := string(kycData.Data)
 	if regionId == strings.ToLower(types.ExperienceRegionName) {
 		return "", errors.New(fmt.Sprintf("experience region cannot do fixed deposit")), true

@@ -18,8 +18,8 @@ import (
 // Delegate defines a method for performing a delegation of coins from a delegator to a validator
 func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate) (*stakingtypes.MsgDelegateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	did, _ := k.KycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.DelegatorAddress))
-	kycData, ok := k.KycKeeper.GetKYC(ctx, did)
+	did, _ := k.kycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.DelegatorAddress))
+	kycData, ok := k.kycKeeper.GetKYC(ctx, did)
 	var regionId string
 	if !ok {
 		regionId = strings.ToLower(types.ExperienceRegionName)

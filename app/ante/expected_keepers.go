@@ -3,6 +3,7 @@ package ante
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 )
 
@@ -20,10 +21,11 @@ type BankKeeper interface {
 }
 
 type StakingKeeper interface {
-	GetValOwnerAddress(ctx sdk.Context, meidAddress string) (string, error)
+	GetValOwnerAddress(ctx sdk.Context, regionId string) (string, error)
 	GetProposerOwnerAddress(ctx sdk.Context) (string, error)
 }
 
-type DidKeeper interface {
+type KycKeeper interface {
 	GetDID(ctx sdk.Context, addr sdk.AccAddress) (string, bool)
+	GetKYC(ctx sdk.Context, did string) (kyc didtypes.Credential, found bool)
 }

@@ -1,11 +1,13 @@
 package ante
 
 import (
+	"fmt"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	"math"
 )
@@ -20,7 +22,7 @@ type DeductFeeDecorator struct {
 	feegrantKeeper ante.FeegrantKeeper
 	daoKeeper      DaoKeeper
 	stakingKeeper  StakingKeeper
-	didKeeper      DidKeeper
+	kycKeeper      KycKeeper
 	txFeeChecker   ante.TxFeeChecker
 	wasmKeeper     wasmtypes.ViewKeeper
 }
@@ -31,7 +33,7 @@ func NewDeductFeeDecorator(
 	fk ante.FeegrantKeeper,
 	dk DaoKeeper,
 	sk StakingKeeper,
-	didKeeper DidKeeper,
+	kycKeeper KycKeeper,
 	tfc ante.TxFeeChecker,
 	wk wasmtypes.ViewKeeper,
 ) DeductFeeDecorator {
@@ -49,7 +51,7 @@ func NewDeductFeeDecorator(
 		feegrantKeeper: fk,
 		daoKeeper:      dk,
 		stakingKeeper:  sk,
-		didKeeper:      didKeeper,
+		kycKeeper:      kycKeeper,
 		txFeeChecker:   tfc,
 		wasmKeeper:     wk,
 	}
@@ -190,11 +192,16 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 
 			fee20Address := ""
 			fee20ReceiverType := wbanktypes.FeeReceiverKycRegionOwner
-			_, ok = dfd.didKeeper.GetDID(ctx, deductFeesFrom)
-			if ok {
-				fee20Address, err = dfd.stakingKeeper.GetValOwnerAddress(ctx, deductFeesFrom.String())
+
+			kyc, isKyc := didtypes.Credential{}, false
+			did, hasDid := dfd.kycKeeper.GetDID(ctx, deductFeesFrom)
+			if hasDid {
+				kyc, isKyc = dfd.kycKeeper.GetKYC(ctx, did)
+			}
+			if isKyc {
+				fee20Address, err = dfd.stakingKeeper.GetValOwnerAddress(ctx, string(kyc.Data))
 				if err != nil {
-					return ctx, err
+					return ctx, fmt.Errorf("couldn't get validator from kyc address: %s", deductFeesFrom.String())
 				}
 			} else {
 				fee20Address, err = dfd.stakingKeeper.GetProposerOwnerAddress(ctx)
@@ -203,6 +210,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 				}
 				fee20ReceiverType = wbanktypes.FeeReceiverProposerOwner
 			}
+
 			outputs = append(outputs, banktypes.Output{Address: fee20Address, Coins: fee20})
 			feeReceiverTypes = append(feeReceiverTypes, fee20ReceiverType)
 
