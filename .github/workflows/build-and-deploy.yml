@@ -43,7 +43,7 @@ jobs:
     - name: deploy st 197
       run: |
         ssh user1@192.168.0.197 'pkill med'
-        scp ./build/med user1@192.168.0.197/home/user1/bin/
+        scp ./build/med user1@192.168.0.197:/home/user1/bin/
         ssh user1@192.168.0.197 '/home/user1/bin/me.sh start_all'
 
 
