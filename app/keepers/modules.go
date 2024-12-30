@@ -277,11 +277,10 @@ var MaccPerms = map[string][]string{
 	gammtypes.ModuleName:                               {authtypes.Minter, authtypes.Burner},
 	lockuptypes.ModuleName:                             {authtypes.Minter, authtypes.Burner},
 	incentivestypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
-	txfeestypes.ModuleName:                             {authtypes.Burner},
 	wstakingtypes.FixedDepositPrincipalPool:            nil,
-	nft.ModuleName:                                     nil,
 	wasmtypes.ModuleName:                               {authtypes.Burner},
 	groupTypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
+	txfeestypes.ModuleName:                             {authtypes.Burner},
 }
 
 var BeginBlockers = []string{

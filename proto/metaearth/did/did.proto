@@ -37,9 +37,9 @@ message DidInfo {
   // public_key is mapped to the user address
   // the issuer will use public_key to encrypt the user's certificate to ensure the privacy of the off-chain certificate
   string pubkey          = 3;
-  string regionId        = 4;   // unused!
-  KycLevel kycLevel      = 5;
-  DidStatus status       = 6;
+  DidStatus status       = 4;
+  string regionId        = 5;   // unused!
+  KycLevel kycLevel      = 6;
 }
 
 // did document

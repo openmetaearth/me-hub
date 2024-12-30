@@ -22,6 +22,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// no need to record group's creator,so Group can be remove
 type Group struct {
 	Id        uint64     `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	GroupInfo *GroupInfo `protobuf:"bytes,2,opt,name=groupInfo,proto3" json:"groupInfo,omitempty"`

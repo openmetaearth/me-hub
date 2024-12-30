@@ -27,7 +27,7 @@ import (
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
-	"github.com/st-chain/me-hub/app/keepers"
+	appkeepers "github.com/st-chain/me-hub/app/keepers"
 	"github.com/st-chain/me-hub/app/upgrades"
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
@@ -40,6 +40,7 @@ import (
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencertypes "github.com/st-chain/me-hub/x/sequencer/types"
+	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	wnftkeeper "github.com/st-chain/me-hub/x/wnft/keeper"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
@@ -53,7 +54,7 @@ func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
 	_ upgrades.BaseAppParamManager,
-	keepers *keepers.AppKeepers,
+	keepers *appkeepers.AppKeepers,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		for n, m := range mm.Modules {
@@ -83,7 +84,6 @@ func CreateUpgradeHandler(
 		ctx.Logger().Info("6.migrate kyc and did")
 		migrateKycData(ctx, keepers.StakingKeeper, keepers.DidKeeper, keepers.KycKeeper, keepers.WNFTKeeper, homePath)
 
-		//todo
 		ctx.Logger().Info("6.migrate nft ipfs uri")
 		migrateNftUri(ctx, keepers.WNFTKeeper, homePath)
 
@@ -94,12 +94,16 @@ func CreateUpgradeHandler(
 		ctx.Logger().Info("6.migrate region class id, fix name...")
 		migrateRegionClassName(ctx, keepers.StakingKeeper, keepers.WNFTKeeper)
 
+		// create a new module account
+		macc := authtypes.NewEmptyModuleAccount(streamermoduletypes.ModuleName)
+		maccI := (keepers.AccountKeeper.NewAccount(ctx, macc)).(authtypes.ModuleAccountI) // set the account number
+		keepers.AccountKeeper.SetModuleAccount(ctx, maccI)
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}
 }
 
 //nolint:staticcheck
-func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
+func migrateModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
 	// Set param key table for params module migration
 	for _, subspace := range keepers.ParamsKeeper.GetSubspaces() {
 		var keyTable paramstypes.KeyTable
@@ -143,7 +147,7 @@ func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 	//baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
 }
 
-func setNewModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
+func setNewModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
 	// overwrite params for delayedack module due to added parameters
 	delayedackParams := delayedacktypes.DefaultParams()
 	keepers.DelayedAckKeeper.SetParams(ctx, delayedackParams)

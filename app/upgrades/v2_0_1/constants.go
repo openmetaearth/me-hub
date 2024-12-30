@@ -17,6 +17,7 @@ import (
 	eibctypes "github.com/st-chain/me-hub/x/eibc/types"
 	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
+	megrouptypes "github.com/st-chain/me-hub/x/megroup/types"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
@@ -51,6 +52,7 @@ var Upgrade = upgrades.Upgrade{
 			daotypes.ModuleName,
 			didtypes.ModuleName,
 			kyctypes.ModuleName,
+			megrouptypes.ModuleName,
 		},
 		Deleted: []string{},
 	},
