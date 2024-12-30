@@ -49,11 +49,16 @@ func (msg MsgNewClass) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgNewClass(class_id string, sender string, total_supply uint64) *MsgNewClass {
+func NewMsgNewClass(classId, sender, name, symbol, description, uri, uriHash string, totalSupply uint64) *MsgNewClass {
 	return &MsgNewClass{
-		ClassId:     class_id,
+		ClassId:     classId,
 		Sender:      sender,
-		TotalSupply: total_supply,
+		Name:        name,
+		Symbol:      symbol,
+		Description: description,
+		Uri:         uri,
+		UriHash:     uriHash,
+		TotalSupply: totalSupply,
 	}
 }
 
@@ -85,11 +90,12 @@ func (m MsgMintNFT) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{signer}
 }
 
-func NewMsgMintNFT(class_id, token_id, uri, sender string) *MsgMintNFT {
+func NewMsgMintNFT(class_id, token_id, uri, uriHash, sender string) *MsgMintNFT {
 	return &MsgMintNFT{
 		ClassId: class_id,
 		TokenId: token_id,
 		Uri:     uri,
+		UriHash: uriHash,
 		Sender:  sender,
 	}
 }
