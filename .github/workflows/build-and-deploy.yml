@@ -19,10 +19,10 @@ jobs:
         token: ${{ secrets.GO_MOD_FETCH }}  # Use the personal access token for both repo and submodules
 
     # Set up Go environment
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.23.0'
+    # - name: Set up Go
+    #   uses: actions/setup-go@v5
+    #   with:
+    #     go-version: '1.23.0'
 
     # Authenticate with GitHub to access private repositories
     - name: Set up authentication for private repos
