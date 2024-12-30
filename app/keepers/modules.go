@@ -281,6 +281,7 @@ var MaccPerms = map[string][]string{
 	wasmtypes.ModuleName:                               {authtypes.Burner},
 	groupTypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
 	txfeestypes.ModuleName:                             {authtypes.Burner},
+	nft.ModuleName:                                     nil,
 }
 
 var BeginBlockers = []string{

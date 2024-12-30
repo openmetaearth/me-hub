@@ -40,11 +40,11 @@ func GetTxCmd() *cobra.Command {
 // NewCmdNewClass creates a CLI command for MsgNewClass.
 func NewCmdNewClass() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "new-class [class-id] [total_supply] --from [sender]",
-		Args:  cobra.ExactArgs(2),
+		Use:   "new-class [class-id] [name] [symbol] [description] [uri] [uri_hash] [total_supply]",
+		Args:  cobra.ExactArgs(7),
 		Short: "create a class",
 		Long: strings.TrimSpace(fmt.Sprintf(`
-			$ %s tx %s new-class [class-id] [total_supply] --from [sender] --chain-id <chain-id>`, version.AppName, nft.ModuleName),
+			$ %s tx %s new-class [class-id] [name] [symbol] [description] [uri] [uri_hash] [total_supply] --from [sender] --chain-id <chain-id>`, version.AppName, nft.ModuleName),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -53,14 +53,19 @@ func NewCmdNewClass() *cobra.Command {
 			}
 
 			classId := args[0]
+			name := args[1]
+			symbol := args[2]
+			description := args[3]
+			uri := args[4]
+			uriHash := args[5]
 
-			argTotalSupply := args[1]
+			argTotalSupply := args[6]
 			totalSupply, err := strconv.ParseUint(argTotalSupply, 10, 64)
 			if err != nil {
 				return types.ErrParameter.Wrap("term error")
 			}
 
-			msg := wnfttypes.NewMsgNewClass(classId, clientCtx.GetFromAddress().String(), totalSupply)
+			msg := wnfttypes.NewMsgNewClass(classId, clientCtx.GetFromAddress().String(), name, symbol, description, uri, uriHash, totalSupply)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -75,11 +80,11 @@ func NewCmdNewClass() *cobra.Command {
 // NewCmdMintNFT creates a CLI command for NewCmdMintNFT.
 func NewCmdMintNFT() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mint [class-id] [token-id] [uri] --from [sender]",
+		Use:   "mint [class-id] [token-id] [uri] [uri-hash] --from [sender]",
 		Args:  cobra.ExactArgs(3),
 		Short: "create a nft",
 		Long: strings.TrimSpace(fmt.Sprintf(`
-			$ %s tx %s mint [class-id] [token-id] [uri] --from [sender] --chain-id <chain-id>`, version.AppName, nft.ModuleName),
+			$ %s tx %s mint [class-id] [token-id] [uri] [uri-hash] --from [sender] --chain-id <chain-id>`, version.AppName, nft.ModuleName),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -92,12 +97,13 @@ func NewCmdMintNFT() *cobra.Command {
 			tokenId := args[1]
 
 			url := args[2]
+			urlHash := args[3]
 
 			if err != nil {
 				return types.ErrParameter.Wrap("term error")
 			}
 
-			msg := wnfttypes.NewMsgMintNFT(classId, tokenId, url, clientCtx.GetFromAddress().String())
+			msg := wnfttypes.NewMsgMintNFT(classId, tokenId, url, urlHash, clientCtx.GetFromAddress().String())
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
