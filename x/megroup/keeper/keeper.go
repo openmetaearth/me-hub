@@ -14,6 +14,7 @@ import (
 	didTypes "github.com/st-chain/me-hub/x/did/types"
 	kycTypes "github.com/st-chain/me-hub/x/kyc/types"
 	"github.com/st-chain/me-hub/x/megroup/types"
+	"strconv"
 )
 
 type kycHookFunc func(ctx sdk.Context, eventType string, beforeData interface{}, afterData interface{}) error
@@ -94,35 +95,42 @@ func (k Keeper) KycStatusChanged(goCtx context.Context, msgType string, data int
 			return fmt.Errorf("can not found AttributeKeyAddress.but EventType is update")
 		}
 
-		if err := k.procKycRegionChange(ctx, attrAddress.Value, attrNewRegion.Value); err != nil {
+		if err := k.procKycRegionChange(ctx, attrAddress.Value, attrPreRegion.Value, attrNewRegion.Value); err != nil {
 			return err
 		}
-		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtGrpMigrateByKyc,
-			sdk.NewAttribute("applicant", attrAddress.Value),
-			sdk.NewAttribute("previous_region_id", attrPreRegion.Value),
-			sdk.NewAttribute("now_region_id", attrNewRegion.Value),
-			//1sdk.NewAttribute("metadata", msg.),
-		))
+
 	}
 
 	return nil
 
 }
 
-func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, nowRegionID string) error {
+func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, nowRegionID string) error {
 	newGrpId, found := k.GetGroupIdByRegion(sdkCtx, nowRegionID)
 	if !found {
-		return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found groupId in region.regionID = %s", nowRegionID))
+		newGrpId = 0
+		//	return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found groupId in region.regionID = %s", nowRegionID))
 	}
-	if 0 == newGrpId {
-		return errors.Wrapf(types.ErrProcData, fmt.Sprintf("groupId is 0 in new region.regionID = %s", nowRegionID))
-	}
+	//if 0 == newGrpId {
+	//	return errors.Wrapf(types.ErrProcData, fmt.Sprintf("groupId is 0 in new region.regionID = %s", nowRegionID))
+	//}
 	joined, JoinGroupFound := k.GetMemberJoined(sdkCtx, address)
+	preJoinedGroupID := uint64(0)
 	if JoinGroupFound && joined.GroupId > 0 {
 		if newGrpId == joined.GroupId {
 			k.Logger(sdkCtx).Error("newGrpId == joined.GroupId in procKycRegionChange.", "preJoinedGroupId = ",
 				joined.GroupId, "newGroupID = ", newGrpId)
 			return nil
+		}
+		preJoinedGroupID = joined.GroupId
+		preGrpIdByRegion, found := k.GetGroupIdByRegion(sdkCtx, preRegionID)
+		if !found {
+			return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found groupId in previous region.preRegionID = %s."+
+				"but user has been joined group.joinGroupID = %d", preRegionID, joined.GroupId))
+		}
+		if preGrpIdByRegion != joined.GroupId {
+			return errors.Wrapf(types.ErrProcData, fmt.Sprintf("preGrpIdByRegion != joined.GroupId.preGrpIdByRegion = %d."+
+				"but user has been joined group.joinGroupID = %d", preGrpIdByRegion, joined.GroupId))
 		}
 		preGroupNumber, found := k.GetGroupMemberCount(sdkCtx, joined.GroupId)
 		if !found {
@@ -135,10 +143,30 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, nowRegionID str
 			return err
 		}
 		k.SetGroupMemberCount(sdkCtx, joined.GroupId, preGroupNumber-1)
+
+	}
+	if 0 == newGrpId {
+		if preJoinedGroupID > 0 {
+			//set member's join group info
+			k.SetMemberJoined(sdkCtx, types.MemberJoined{
+				Address: address,
+				GroupId: 0,
+			})
+			sdkCtx.EventManager().EmitEvent(sdk.NewEvent(types.EvtGrpMigrateByKyc,
+				sdk.NewAttribute("applicant", address),
+				sdk.NewAttribute("previous_region_id", preRegionID),
+				sdk.NewAttribute("now_region_id", nowRegionID),
+				sdk.NewAttribute("previous_group_id", strconv.FormatUint(preJoinedGroupID, 10)),
+				sdk.NewAttribute("now_group_id", "0"),
+				//1sdk.NewAttribute("metadata", msg.),
+			))
+		}
+		return nil
+
 	}
 
 	newGrpInfo, found := k.GetGroup(sdkCtx, newGrpId)
-	if !found {
+	if !found { //if new group has not been created,emit event and return
 		return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found group by groupID.groupID = %d", newGrpId))
 	}
 	newGrpNumberCnt, found := k.GetGroupMemberCount(sdkCtx, newGrpId)
@@ -191,6 +219,14 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, nowRegionID str
 		))
 
 	}
+	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(types.EvtGrpMigrateByKyc,
+		sdk.NewAttribute("applicant", address),
+		sdk.NewAttribute("previous_region_id", preRegionID),
+		sdk.NewAttribute("now_region_id", nowRegionID),
+		sdk.NewAttribute("previous_group_id", strconv.FormatUint(preJoinedGroupID, 10)),
+		sdk.NewAttribute("now_group_id", strconv.FormatUint(newGrpId, 10)),
+		//1sdk.NewAttribute("metadata", msg.),
+	))
 	return nil
 
 }
