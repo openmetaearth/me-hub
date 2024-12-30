@@ -41,17 +41,11 @@ jobs:
 
     # deploy
     - name: deploy st 197
-      uses: cross-the-world/ssh-scp-ssh-pipelines@latest
-      with:
-        host: 192.168.0.197
-        user: user1
-        connect_timeout: 10s
-        first_ssh: |
-          pkill med
-        scp: |
-          ./build/med => /home/user1/bin/
-        last_ssh: |
-          /home/user1/bin/me.sh start_all
+      run: |
+        ssh user1@192.168.0.197 'pkill med'
+        scp ./build/med user1@192.168.0.197/home/user1/bin/
+        ssh user1@192.168.0.197 '/home/user1/bin/me.sh start_all'
+
 
     # Archive the build output
     # - name: Archive the build output
