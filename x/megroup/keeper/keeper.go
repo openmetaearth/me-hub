@@ -132,6 +132,15 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 			return errors.Wrapf(types.ErrProcData, fmt.Sprintf("preGrpIdByRegion != joined.GroupId.preGrpIdByRegion = %d."+
 				"but user has been joined group.joinGroupID = %d", preGrpIdByRegion, joined.GroupId))
 		}
+		preGroupInfo, found := k.GetGroup(sdkCtx, joined.GroupId)
+		if !found {
+			return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found joined previous gourp.groupID = %d", joined.GroupId))
+		}
+
+		if address == preGroupInfo.Admin { //admin can not leave group
+			return errors.Wrapf(types.ErrExcute, "admin of group can not leave")
+		}
+
 		preGroupNumber, found := k.GetGroupMemberCount(sdkCtx, joined.GroupId)
 		if !found {
 			return fmt.Errorf("can not found preGroup number count while ready to levae preGourp in procKycRegionChange")
