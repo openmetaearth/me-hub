@@ -219,7 +219,7 @@ func migrateValidators(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper) {
 	validators := stakingKeeper.GetAllValidators(ctx)
 	store := ctx.KVStore(stakingKeeper.GetStoreKey())
 
-	iterator := sdk.KVStorePrefixIterator(store, types.ValidatorsKey)
+	iterator := sdk.KVStorePrefixIterator(store, stakingtypes.ValidatorsKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
