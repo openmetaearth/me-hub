@@ -38,7 +38,7 @@ func CmdCreateGroup() *cobra.Command {
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			clientCtx.PrintProto(argGroupInfo)
+			//clientCtx.PrintProto(argGroupInfo)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
