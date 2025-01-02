@@ -106,7 +106,6 @@ func DelegatorSharesInvariant(k *Keeper) sdk.Invariant {
 					"\tsum of Delegator.Shares: %v\n", expValTotalDelShares, calculatedValTotalDelShares)
 			}
 		}
-
 		return sdk.FormatInvariant(types.ModuleName, "delegator shares", msg), broken
 	}
 }
