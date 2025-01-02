@@ -239,17 +239,11 @@ func (k Keeper) UnStakeBond(
 	// remove the shares and coins from the validator
 	// NOTE that the amount is later (in keeper.Stake) moved between staking module pools
 	validator, amount = k.RemoveValidatorTokensAndShares(ctx, validator, shares)
-	//regions := k.GetAllRegion(ctx)
-	//for _, region := range regions {
-	//	if region.OperatorAddress == validator.OperatorAddress {
-	//		region.RegionShare = validator.Tokens
-	//		k.SetRegion(ctx, region)
-	//	}
-	//}
 
 	region, found := k.GetRegion(ctx, validator.Description.RegionID)
 	if found {
 		region.RegionShare = validator.Tokens
+		region.OperatorAddress = ""
 		k.SetRegion(ctx, region)
 		//return nil, types.ErrValidatorRegion.Wrapf("%s not found", validator.Description.RegionID)
 	}
@@ -266,7 +260,6 @@ func (k Keeper) UnStakeBond(
 			sdk.NewAttribute(types.AttributeKeyRegionId, region.RegionId),
 		),
 	})
-
 	return amount, nil
 }
 
