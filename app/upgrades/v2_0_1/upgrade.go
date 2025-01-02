@@ -145,6 +145,11 @@ func migrateModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
 	//	panic(err)
 	//}
 	//baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
+
+	// create a new module account
+	macc := authtypes.NewEmptyModuleAccount(streamermoduletypes.ModuleName)
+	maccI := (keepers.AccountKeeper.NewAccount(ctx, macc)).(authtypes.ModuleAccountI) // set the account number
+	keepers.AccountKeeper.SetModuleAccount(ctx, maccI)
 }
 
 func setNewModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
@@ -219,7 +224,7 @@ func migrateValidators(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper) {
 	validators := stakingKeeper.GetAllValidators(ctx)
 	store := ctx.KVStore(stakingKeeper.GetStoreKey())
 
-	iterator := sdk.KVStorePrefixIterator(store, types.ValidatorsKey)
+	iterator := sdk.KVStorePrefixIterator(store, stakingtypes.ValidatorsKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
