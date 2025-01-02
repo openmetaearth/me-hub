@@ -139,13 +139,11 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	}
 
 	// update KYC level
-	if msg.Level == didtypes.KYC_LEVEL_NONE {
-		return &types.MsgUpdateResponse{}, errors.Wrap(didtypes.ErrParameter, "KYC level must be greater than 0")
-	}
-	if msg.RegionId != "" {
-		holderInfo.RegionId = msg.RegionId
-	}
-
+	//if msg.Level == didtypes.KYC_LEVEL_NONE {
+	//	return &types.MsgUpdateResponse{}, errors.Wrap(didtypes.ErrParameter, "KYC level must be greater than 0")
+	//}
+	holderInfo.RegionId = msg.RegionId
+	holderInfo.KycLevel = msg.Level
 	m.SetDidInfo(ctx, msg.Did, holderInfo)
 
 	// update KYC
