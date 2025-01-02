@@ -136,7 +136,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 		if !found {
 			return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found joined previous gourp.groupID = %d", joined.GroupId))
 		}
-
+        //admin can not migrate
 		if address == preGroupInfo.Admin { //admin can not leave group
 			return errors.Wrapf(types.ErrExcute, "admin of group can not leave")
 		}
