@@ -145,6 +145,11 @@ func migrateModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
 	//	panic(err)
 	//}
 	//baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
+
+	// create a new module account
+	macc := authtypes.NewEmptyModuleAccount(streamermoduletypes.ModuleName)
+	maccI := (keepers.AccountKeeper.NewAccount(ctx, macc)).(authtypes.ModuleAccountI) // set the account number
+	keepers.AccountKeeper.SetModuleAccount(ctx, maccI)
 }
 
 func setNewModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
