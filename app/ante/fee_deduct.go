@@ -2,6 +2,8 @@ package ante
 
 import (
 	"fmt"
+	"math"
+
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -9,7 +11,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
-	"math"
 )
 
 // DeductFeeDecorator deducts fees from the first signer of the tx
@@ -125,7 +126,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		}
 	}
 
-	if !freeGas {
+	if !freeGas&&!simulate {
 		fee, err := sdk.ParseCoinsNormalized(feePending.String())
 		if err != nil {
 			return ctx, sdkerrors.Wrap(err, "")
