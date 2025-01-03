@@ -24,7 +24,7 @@ func (k Keeper) GetLastGroupID(ctx sdk.Context) uint64 {
 }
 
 // SetGroupCount set the total number of group
-func (k Keeper) SetGroupID(ctx sdk.Context, groupID uint64) {
+func (k Keeper) SetLastGroupID(ctx sdk.Context, groupID uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	byteKey := types.KeyPrefix(types.GroupLastIDKey)
 	store.Set(byteKey, types.GetBytesFromUint64(groupID))
@@ -43,7 +43,7 @@ func (k Keeper) AppendGroup(ctx sdk.Context, group *types.GroupInfo) error {
 	store.Set(types.GetBytesFromUint64(group.Id), appendedValue)
 
 	// Update group count
-	k.SetGroupID(ctx, group.Id)
+	k.SetLastGroupID(ctx, group.Id)
 
 	return nil
 }

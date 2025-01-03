@@ -61,8 +61,8 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 	})
 	//add to group_member
 
-	err = k.addGroupMember(ctx, &types.GroupMember{
-		GroupID: msg.GroupId,
+	err = k.AddGroupMember(ctx, &types.GroupMember{
+		GroupId: msg.GroupId,
 		Member: &types.Member{
 			Address: msg.ApplicantAddress,
 			AddedAt: ctx.BlockTime()}})

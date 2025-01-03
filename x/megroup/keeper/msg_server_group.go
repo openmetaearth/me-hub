@@ -89,8 +89,8 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 		Address: msg.GroupInfo.Admin,
 		GroupId: newGroupID})
 	//add member to group
-	if err = k.addGroupMember(ctx, &types.GroupMember{
-		GroupID: groupInfo.Id,
+	if err = k.AddGroupMember(ctx, &types.GroupMember{
+		GroupId: groupInfo.Id,
 		Member: &types.Member{
 			Address:  msg.GroupInfo.Admin,
 			Weight:   math.NewInt(0).String(),

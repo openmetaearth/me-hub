@@ -5,7 +5,6 @@ option go_package = "github.com/st-chain/me-hub/x/megroup/types";
 import "metaearth/megroup/member.proto"; 
 
 message GroupMember {
-  uint64 groupID = 1;
+  uint64 group_id = 1;
   Member member = 2;
-  
 }
