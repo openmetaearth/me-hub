@@ -81,7 +81,7 @@ func NewCmdNewClass() *cobra.Command {
 func NewCmdMintNFT() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "mint [class-id] [token-id] [uri] [uri-hash] --from [sender]",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(4),
 		Short: "create a nft",
 		Long: strings.TrimSpace(fmt.Sprintf(`
 			$ %s tx %s mint [class-id] [token-id] [uri] [uri-hash] --from [sender] --chain-id <chain-id>`, version.AppName, nft.ModuleName),
