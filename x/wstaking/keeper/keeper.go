@@ -24,6 +24,7 @@ type Keeper struct {
 	nftKeeper     types.NFTKeeper
 	wstakingHooks types.WstakingHooks
 	kycKeeper     types.KycKeeper
+	groupKeeper   types.GroupKeeper
 }
 
 func NewKeeper(
@@ -52,6 +53,10 @@ func (k *Keeper) SetMintKeeper(mintKeeper types.MintKeeper) {
 
 func (k *Keeper) SetKycKeeper(keeper types.KycKeeper) {
 	k.kycKeeper = keeper
+}
+
+func (k *Keeper) SetGroupKeeper(keeper types.GroupKeeper) {
+	k.groupKeeper = keeper
 }
 
 // Logger returns a module-specific logger.
