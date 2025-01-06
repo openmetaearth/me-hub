@@ -2,20 +2,15 @@ package keeper
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"strings"
-	"time"
-
 	"cosmossdk.io/errors"
-	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/telemetry"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/utils"
 	"github.com/st-chain/me-hub/x/megroup/types"
 )
 
 func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup) (*types.MsgCreateGroupResponse, error) {
+
+	return nil, errors.Wrapf(types.ErrNotSupport, "")
+	/* temp hidden because of new scheme
+	
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), "created_group")
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -110,6 +105,8 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 	return &types.MsgCreateGroupResponse{
 		Id: newGroupID,
 	}, nil
+
+	*/
 }
 
 func (k msgServer) UpdateGroup(goCtx context.Context, msg *types.MsgUpdateGroup) (*types.MsgUpdateGroupResponse, error) {

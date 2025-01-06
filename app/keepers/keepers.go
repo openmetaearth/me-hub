@@ -529,7 +529,7 @@ func (a *AppKeepers) InitKeepers(
 		a.DaoKeeper,
 		a.KycKeeper,
 	)
-
+	a.StakingKeeper.SetGroupKeeper(a.GroupKeeper)
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
 	// by granting the governance module the right to execute the message.

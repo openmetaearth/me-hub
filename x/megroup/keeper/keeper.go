@@ -9,11 +9,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/st-chain/me-hub/app/params"
 	didTypes "github.com/st-chain/me-hub/x/did/types"
 	kycTypes "github.com/st-chain/me-hub/x/kyc/types"
 	"github.com/st-chain/me-hub/x/megroup/types"
+	stakingTypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"strconv"
 )
 
@@ -136,7 +138,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 		if !found {
 			return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found joined previous gourp.groupID = %d", joined.GroupId))
 		}
-        //admin can not migrate
+		//admin can not migrate
 		if address == preGroupInfo.Admin { //admin can not leave group
 			return errors.Wrapf(types.ErrExcute, "admin of group can not leave")
 		}
@@ -205,7 +207,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 		//get RegionTreasureAddr
 		region, found := k.stakingKeeper.GetRegion(sdkCtx, nowRegionID)
 		if !found {
-			return errors.Wrapf(types.ErrRegionNotExist, fmt.Sprintf("group's region = %d", nowRegionID))
+			return errors.Wrapf(types.ErrRegionNotExist, fmt.Sprintf("group's region = %s", nowRegionID))
 		}
 		rewardsCoin := sdk.NewCoin(params.BaseDenom, math.NewInt(1000000))
 		err = k.bankKeeper.SendCoins(sdkCtx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
@@ -256,4 +258,47 @@ func (k Keeper) GetDidAndKycActive(sdkCtx sdk.Context, address sdk.AccAddress, r
 		return didVal, true
 	}
 	return didVal, false
+}
+
+// only called by wstaking/newRgion
+func (k Keeper) CreateGroupByRegion(sdkCtx sdk.Context, regionInfo stakingTypes.Region) (uint64, error) {
+
+	//check group has been created
+	preGroupID, found := k.GetGroupIdByRegion(sdkCtx, regionInfo.RegionId)
+	if found {
+		return 0, errors.Wrapf(types.ErrGroupExceededInRegion, fmt.Sprintf("group of region has been created.groupId = %d", preGroupID))
+	}
+
+	operValAddr, err := sdk.ValAddressFromBech32(regionInfo.OperatorAddress)
+	if err != nil {
+		return 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, fmt.Sprintf("OperatorAddress can not convert to ValAddress."+
+			"err = %s, OperatorAddress = %s", err.Error(), regionInfo.OperatorAddress))
+	}
+	accAddr := sdk.AccAddress(operValAddr.Bytes())
+
+	newGroupID := k.GetLastGroupID(sdkCtx) + 1
+	groupInfo := &types.GroupInfo{
+		Id:          newGroupID,
+		Admin:       accAddr.String(),
+		Metadata:    "",
+		Version:     1,
+		TotalWeight: math.NewInt(0).String(),
+		CreatedAt:   sdkCtx.BlockTime(),
+		RegionID:    regionInfo.RegionId,
+	}
+	if err := k.AppendGroup(sdkCtx, groupInfo); err != nil {
+		return 0, err
+	}
+	k.SetGroupToRegion(sdkCtx, regionInfo.RegionId, newGroupID)
+	k.SetGroupMemberCount(sdkCtx, newGroupID, 0)
+	//group's admin(region's operator) no need to add group
+
+	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(types.EvtGroupCreated,
+		sdk.NewAttribute("group_id", fmt.Sprintf("%d", groupInfo.Id)),
+		sdk.NewAttribute("admin", groupInfo.Admin),
+		sdk.NewAttribute("region_id", groupInfo.RegionID),
+		sdk.NewAttribute("metadata", groupInfo.Metadata),
+	))
+	return groupInfo.Id, nil
+
 }

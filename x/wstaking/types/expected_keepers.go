@@ -55,3 +55,7 @@ type KycKeeper interface {
 	GetDID(ctx sdk.Context, addr sdk.AccAddress) (string, bool)
 	GetKYC(ctx sdk.Context, did string) (kyc didtypes.Credential, found bool)
 }
+
+type GroupKeeper interface {
+	CreateGroupByRegion(sdkCtx sdk.Context, regionInfo Region) (uint64, error)
+}

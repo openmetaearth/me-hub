@@ -119,13 +119,6 @@ func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupReq
 	if req.Creator == groupInfo.Admin { //admin can not leave group
 		return nil, errors.Wrapf(types.ErrExcute, "admin of group can not leave")
 	}
-	grpNumber, found := k.GetGroupMemberCount(ctx, req.GroupId)
-	if !found {
-		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("can not found group number count in LeaveGroup"))
-	}
-	if 0 == grpNumber {
-		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("group number is 0 in LeaveGroup"))
-	}
 
 	joined, found := k.GetMemberJoined(ctx, req.Creator)
 	if !found {
@@ -134,6 +127,14 @@ func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupReq
 	if joined.GroupId != req.GroupId {
 		return nil, errors.Wrapf(types.ErrExcute, fmt.Sprintf("group info dismatch.input group's id = %d,join gropp's id = %d",
 			req.GroupId, joined.GroupId))
+	}
+
+	grpNumber, found := k.GetGroupMemberCount(ctx, req.GroupId)
+	if !found {
+		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("can not found group number count in LeaveGroup"))
+	}
+	if 0 == grpNumber {
+		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("group number is 0 in LeaveGroup"))
 	}
 
 	if err := k.deleteMemberFormGroup(ctx, req.GroupId, req.Creator); err != nil {
