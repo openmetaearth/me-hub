@@ -493,7 +493,15 @@ func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper) {
 	}
 
 	lastGroupId := uint64(0)
+	groupExist := make(map[string]string)
 	for _, groupInfo := range data.AppState.Group.Groups {
+		regionId := strings.ToLower(groupInfo.RegionID)
+		_, ok := groupExist[regionId]
+		if ok {
+			continue
+		}
+		groupExist[regionId] = groupInfo.Id
+
 		id, err := strconv.ParseUint(groupInfo.Id, 10, 64)
 		if err != nil {
 			panic(fmt.Sprintf("Parse group id: %v", err))
@@ -512,7 +520,7 @@ func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper) {
 			Version:     version,
 			TotalWeight: groupInfo.TotalWeight,
 			CreatedAt:   groupInfo.CreatedAt,
-			RegionID:    groupInfo.RegionID,
+			RegionID:    regionId,
 		}
 		err = gk.AppendGroup(ctx, &protoGroupInfo)
 		if err != nil {
@@ -542,7 +550,10 @@ func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper) {
 		if err != nil {
 			panic(fmt.Sprintf("Parse group id: %v", err))
 		}
-
+		_, f := gk.GetGroup(ctx, groupId)
+		if !f {
+			continue
+		}
 		protoMember := megrouptypes.GroupMember{
 			GroupId: groupId,
 			Member: &megrouptypes.Member{

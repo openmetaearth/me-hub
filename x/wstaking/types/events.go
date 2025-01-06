@@ -45,6 +45,7 @@ const (
 	AttributeKeyLastAdmin                        = "last_admin"
 	AttributeKeyCurrentAdmin                     = "current_admin"
 	AttributeKeyValidator                        = "validator"
+	AttributeKeyStaker                           = "staker"
 	AttributeKeyRewards                          = "rewards"
 	AttributeKeyRegionTreasure                   = "region_treasure"
 	AttributeKeyNewShares                        = "new_shares"
