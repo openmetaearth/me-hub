@@ -97,11 +97,13 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	event4Nft := utils.GenEventCompactAttr(types.EventNewNftClass, nftClass)
 	k.SetRegion(ctx, region)
 	//create megroup
-	if _, err := k.groupKeeper.CreateGroupByRegion(ctx, region); err != nil {
-		return nil, err
+	if regionId != strings.ToLower(types.ExperienceRegionName) {
+		if _, err := k.groupKeeper.CreateGroupByRegion(ctx, region); err != nil {
+			return nil, err
+		}
 	}
-	//
 
+	//
 	ctx.EventManager().EmitEvent(event4Nft)
 	event4NewRegion := utils.GenEventCompactAttr(types.EventNewRegion, region)
 	ctx.EventManager().EmitEvent(event4NewRegion)
