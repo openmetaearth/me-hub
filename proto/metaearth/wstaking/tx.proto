@@ -39,7 +39,6 @@ service Msg {
   rpc RemoveFixedDepositCfg(MsgRemoveFixedDepositCfg) returns (MsgRemoveFixedDepositCfgResp);
   rpc WithdrawFromRegion(MsgWithdrawFromRegion) returns (MsgWithdrawFromRegionResp);
   rpc WithdrawFromGlobalDaoFeePool(MsgWithdrawFromGlobalDaoFeePool) returns (MsgWithdrawFromGlobalDaoFeePoolResp);
-  rpc ResetValidator(MsgResetValidator) returns (MsgResetValidatorResponse);
 }
 
 // MsgStake defines a SDK message for performing a stake of coins
@@ -214,11 +213,3 @@ message MsgWithdrawFixedDepositResponse {
   int64         term      = 3;
   string rate = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }
-
-message MsgResetValidator {
-  string staker_address         = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string val_oper_address     = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string new_validator_address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-}
-
-message MsgResetValidatorResponse {}
