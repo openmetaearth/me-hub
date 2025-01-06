@@ -6,8 +6,8 @@ const DefaultIndex uint64 = 1
 // DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
-		GroupList:            []GroupInfo{},
-		GroupMemberList:      []GroupMember{},
+		Groups:               []GroupInfo{},
+		GroupMembers:         []GroupMember{},
 		MemberJoinedList:     []MemberJoined{},
 		GroupMemberCountList: []GroupMemberCount{},
 		// this line is used by starport scaffolding # genesis/types/default

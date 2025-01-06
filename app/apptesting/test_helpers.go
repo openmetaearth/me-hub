@@ -164,7 +164,7 @@ func genesisStateWithValSet(t *testing.T,
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
 			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-			MinSelfDelegation: sdk.ZeroInt(),
+			MinSelfDelegation: sdk.OneInt(),
 			OwnerAddress:      sdk.AccAddress(val.Address).String(),
 		}
 		if i == 0 {

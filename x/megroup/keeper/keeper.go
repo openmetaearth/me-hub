@@ -193,8 +193,8 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 	//set member's join group info
 	k.SetMemberJoined(sdkCtx, newJoin)
 	//add to group_member
-	err := k.addGroupMember(sdkCtx, &types.GroupMember{
-		GroupID: newGrpId,
+	err := k.AddGroupMember(sdkCtx, &types.GroupMember{
+		GroupId: newGrpId,
 		Member: &types.Member{
 			Address: address,
 			AddedAt: sdkCtx.BlockTime()}})

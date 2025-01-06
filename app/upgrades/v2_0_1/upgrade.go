@@ -1,6 +1,7 @@
 package v2_0_1
 
 import (
+	"cosmossdk.io/math"
 	"encoding/json"
 	"fmt"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
@@ -38,6 +39,8 @@ import (
 	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	kyckeeper "github.com/st-chain/me-hub/x/kyc/keeper"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
+	groupkeeper "github.com/st-chain/me-hub/x/megroup/keeper"
+	megrouptypes "github.com/st-chain/me-hub/x/megroup/types"
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencertypes "github.com/st-chain/me-hub/x/sequencer/types"
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
@@ -45,8 +48,12 @@ import (
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"io/ioutil"
+	"log"
+	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v4
@@ -93,6 +100,9 @@ func CreateUpgradeHandler(
 
 		ctx.Logger().Info("6.migrate region class id, fix name...")
 		migrateRegionClassName(ctx, keepers.StakingKeeper, keepers.WNFTKeeper)
+
+		ctx.Logger().Info("7.migrate group")
+		migrateGroup(ctx, homePath, keepers.GroupKeeper)
 
 		// create a new module account
 		macc := authtypes.NewEmptyModuleAccount(streamermoduletypes.ModuleName)
@@ -442,5 +452,133 @@ func migrateRegionClassName(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keepe
 		}
 		regionObj.NftClassId = newClassId
 		stakingKeeper.SetRegion(ctx, regionObj)
+	}
+}
+
+func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper) {
+	file, err := os.Open(filepath.Join(path, "/config/genesis1.3.json"))
+	if err != nil {
+		log.Fatalf("Failed to open file: %v", err)
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+
+	var data struct {
+		AppState struct {
+			Group struct {
+				GroupMembers []struct {
+					GroupId string `json:"group_id,omitempty"`
+					Member  struct {
+						Address  string    `json:"address,omitempty"`
+						Weight   string    `json:"weight,omitempty"`
+						Metadata string    `json:"metadata,omitempty"`
+						AddedAt  time.Time `json:"added_at"`
+					} `json:"member,omitempty"`
+				} `json:"group_members"`
+				Groups []struct {
+					Id          string    `json:"id,omitempty"`
+					Admin       string    `json:"admin,omitempty"`
+					Metadata    string    `json:"metadata,omitempty"`
+					Version     string    `json:"version,omitempty"`
+					TotalWeight string    `json:"total_weight,omitempty"`
+					CreatedAt   time.Time `json:"created_at"`
+					RegionID    string    `json:"regionID,omitempty"`
+				} `json:"groups"`
+			} `json:"group"`
+		} `json:"app_state"`
+	}
+	if err := decoder.Decode(&data); err != nil {
+		panic(fmt.Sprintf("Failed to decode JSON: %v", err))
+	}
+
+	lastGroupId := uint64(0)
+	groupExist := make(map[string]string)
+	for _, groupInfo := range data.AppState.Group.Groups {
+		regionId := strings.ToLower(groupInfo.RegionID)
+		_, ok := groupExist[regionId]
+		if ok {
+			continue
+		}
+		groupExist[regionId] = groupInfo.Id
+
+		id, err := strconv.ParseUint(groupInfo.Id, 10, 64)
+		if err != nil {
+			panic(fmt.Sprintf("Parse group id: %v", err))
+		}
+		if lastGroupId <= id {
+			lastGroupId = id
+		}
+		version, err := strconv.ParseUint(groupInfo.Version, 10, 64)
+		if err != nil {
+			panic(fmt.Sprintf("Parse group version: %v", err))
+		}
+		protoGroupInfo := megrouptypes.GroupInfo{
+			Id:          id,
+			Admin:       groupInfo.Admin,
+			Metadata:    groupInfo.Metadata,
+			Version:     version,
+			TotalWeight: groupInfo.TotalWeight,
+			CreatedAt:   groupInfo.CreatedAt,
+			RegionID:    regionId,
+		}
+		err = gk.AppendGroup(ctx, &protoGroupInfo)
+		if err != nil {
+			panic(fmt.Sprintf("Failed to append group: %v", err))
+		}
+		gk.SetGroupToRegion(ctx, protoGroupInfo.RegionID, protoGroupInfo.Id)
+
+		gk.SetMemberJoined(ctx, megrouptypes.MemberJoined{
+			Address: protoGroupInfo.Admin,
+			GroupId: protoGroupInfo.Id})
+		gk.AddGroupMember(ctx, &megrouptypes.GroupMember{
+			GroupId: protoGroupInfo.Id,
+			Member: &megrouptypes.Member{
+				Address:  protoGroupInfo.Admin,
+				Weight:   math.NewInt(0).String(),
+				Metadata: "",
+				AddedAt:  groupInfo.CreatedAt,
+			},
+		})
+		gk.SetGroupMemberCount(ctx, protoGroupInfo.Id, 1)
+	}
+
+	gk.SetLastGroupID(ctx, lastGroupId)
+
+	for _, member := range data.AppState.Group.GroupMembers {
+		groupId, err := strconv.ParseUint(member.GroupId, 10, 64)
+		if err != nil {
+			panic(fmt.Sprintf("Parse group id: %v", err))
+		}
+		_, f := gk.GetGroup(ctx, groupId)
+		if !f {
+			continue
+		}
+		protoMember := megrouptypes.GroupMember{
+			GroupId: groupId,
+			Member: &megrouptypes.Member{
+				Address:  member.Member.Address,
+				Weight:   member.Member.Weight,
+				Metadata: member.Member.Metadata,
+				AddedAt:  member.Member.AddedAt,
+			},
+		}
+
+		gk.SetMemberJoined(ctx, megrouptypes.MemberJoined{
+			Address: protoMember.Member.Address,
+			GroupId: groupId,
+		})
+
+		err = gk.AddGroupMember(ctx, &protoMember)
+		if err != nil {
+			panic(fmt.Sprintf("Failed to add group member: %v", err))
+		}
+
+		grpNumber, found := gk.GetGroupMemberCount(ctx, groupId)
+		if !found {
+			grpNumber = 0
+		}
+
+		gk.SetGroupMemberCount(ctx, groupId, grpNumber+1)
 	}
 }

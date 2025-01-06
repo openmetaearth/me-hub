@@ -17,12 +17,12 @@ func (k Keeper) SetMemberJoined(ctx sdk.Context, memberJoined types.MemberJoined
 	), b)
 }
 
-func (k *Keeper) addGroupMember(ctx sdk.Context, grpMember *types.GroupMember) error {
-	grpMemberPrefix := fmt.Sprintf("%s%d/", types.GroupMemberKey, grpMember.GroupID)
+func (k *Keeper) AddGroupMember(ctx sdk.Context, grpMember *types.GroupMember) error {
+	grpMemberPrefix := fmt.Sprintf("%s%d/", types.GroupMemberKey, grpMember.GroupId)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(grpMemberPrefix))
 	if nil != store.Get([]byte(grpMember.Member.Address)) {
 		return errors.Wrapf(types.ErrGroupMemberRepeated, fmt.Sprintf("member has been joined this group store.groupID = %d",
-			grpMember.GroupID))
+			grpMember.GroupId))
 	}
 	val := k.cdc.MustMarshal(grpMember)
 	store.Set([]byte(grpMember.Member.Address), val)
