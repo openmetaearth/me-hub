@@ -17,7 +17,7 @@ const (
 	TypeMsgRemoveRegion                      = "remove-region"
 	TypeMsgRetrieveFeeFromGlobalAdminFeePool = "retrieve-fee-from-global-admin-fee-pool"
 	TypeMsgStake                             = "stake"
-	TypeMsgUnstake                           = "begin_unstaking"
+	TypeMsgUnstake                           = "unstake"
 	TypeMsgWithdrawFromRegion                = "withdraw_from_region"
 	TypeMsgWithdrawFromGlobalDaoFeePool      = "withdraw_from_global_dao_fee_pool"
 	TypeMsgResetValidator                    = "create_validator"
