@@ -48,18 +48,14 @@ func (k Keeper) AppendGroup(ctx sdk.Context, group *types.GroupInfo) error {
 	return nil
 }
 
-// SetGroup set a specific group in the store
-/*
-func (k Keeper) SetGroup(ctx sdk.Context, group types.Group) {
+func (k Keeper) SetGroupInfo(ctx sdk.Context, group types.GroupInfo) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupKey))
 	b := k.cdc.MustMarshal(&group)
-	store.Set(GetGroupIDBytes(group.Id), b)
+	store.Set(types.GetBytesFromUint64(group.Id), b)
 }
 
-*/
-
 // GetGroup returns a group from its id
-func (k Keeper) GetGroup(ctx sdk.Context, id uint64) (val types.GroupInfo, found bool) {
+func (k Keeper) GetGroupInfo(ctx sdk.Context, id uint64) (val types.GroupInfo, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupKey))
 	b := store.Get(types.GetBytesFromUint64(id))
 	if b == nil {
@@ -108,4 +104,17 @@ func (k Keeper) GetGroupIdByRegion(ctx sdk.Context, regionID string) (uint64, bo
 		return 0, false
 	}
 	return types.GetUint64FromBytes(data), true
+}
+
+func (k Keeper) UpdateGroupAdmin(ctx sdk.Context, regionID string, admin string) {
+	groupId, found := k.GetGroupIdByRegion(ctx, regionID)
+	if !found {
+		return
+	}
+	group, found := k.GetGroupInfo(ctx, groupId)
+	if !found {
+		return
+	}
+	group.Admin = admin
+	k.SetGroupInfo(ctx, group)
 }

@@ -248,14 +248,17 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 		return false
 	})
 
-	region, isFound := k.GetRegion(ctx, validator.Description.RegionID)
-	if !isFound {
-		return sdkerrors.Wrapf(types.ErrRegion, "region id(%s) not found", validator.Description.RegionID)
-	}
-
 	validator.OperatorAddress = newValOperAddr.String()
 	validator.OwnerAddress = newValAddr.String()
+
+	region, found := k.GetRegion(ctx, validator.Description.RegionID)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrRegion, "region id(%s) not found", validator.Description.RegionID)
+	}
 	region.OperatorAddress = newValOperAddr.String()
+
+	k.groupKeeper.UpdateGroupAdmin(ctx, region.RegionId, newValAddr.String())
+
 	err := k.SetValidatorByConsAddr(ctx, validator)
 	if err != nil {
 		return err

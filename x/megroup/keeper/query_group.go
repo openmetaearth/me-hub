@@ -46,7 +46,7 @@ func (k Keeper) Group(goCtx context.Context, req *types.QueryGetGroupRequest) (*
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	group, found := k.GetGroup(ctx, req.Id)
+	group, found := k.GetGroupInfo(ctx, req.Id)
 	if !found {
 		return nil, errors.Wrapf(sdkerrors.ErrKeyNotFound, fmt.Sprintf("can not found group by groupID.groupID = %d", req.Id))
 	}
@@ -64,7 +64,7 @@ func (k Keeper) GroupByMember(goCtx context.Context, req *types.QueryGroupByMemb
 		return nil, errors.Wrapf(sdkerrors.ErrKeyNotFound, "can not found memberJoin info by address")
 	}
 
-	group, found := k.GetGroup(ctx, joined.GroupId)
+	group, found := k.GetGroupInfo(ctx, joined.GroupId)
 	if !found {
 		return nil, errors.Wrapf(sdkerrors.ErrKeyNotFound, fmt.Sprintf("can not found group by memberJoin's groupID.groupID = %d", joined.GroupId))
 	}

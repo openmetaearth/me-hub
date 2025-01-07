@@ -245,6 +245,7 @@ func (k Keeper) UnStakeBond(
 		region.RegionShare = validator.Tokens
 		region.OperatorAddress = ""
 		k.SetRegion(ctx, region)
+		k.groupKeeper.UpdateGroupAdmin(ctx, region.RegionId, "")
 		//return nil, types.ErrValidatorRegion.Wrapf("%s not found", validator.Description.RegionID)
 	}
 

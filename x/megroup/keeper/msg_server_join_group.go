@@ -32,7 +32,7 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 			err.Error(), msg.ApplicantAddress))
 	}
 
-	groupInfo, found := k.GetGroup(ctx, msg.GroupId)
+	groupInfo, found := k.GetGroupInfo(ctx, msg.GroupId)
 	if !found {
 		return nil, errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("msg's groupID = %d", msg.GroupId))
 	}
@@ -111,7 +111,7 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupRequest) (*types.MsgLeaveGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	groupInfo, found := k.GetGroup(ctx, req.GroupId)
+	groupInfo, found := k.GetGroupInfo(ctx, req.GroupId)
 	if !found {
 		return nil, errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found gourp.groupID = %d", req.GroupId))
 	}

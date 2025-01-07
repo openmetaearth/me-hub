@@ -550,7 +550,7 @@ func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper) {
 		if err != nil {
 			panic(fmt.Sprintf("Parse group id: %v", err))
 		}
-		_, f := gk.GetGroup(ctx, groupId)
+		_, f := gk.GetGroupInfo(ctx, groupId)
 		if !f {
 			continue
 		}

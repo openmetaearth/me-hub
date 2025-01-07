@@ -134,7 +134,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 			return errors.Wrapf(types.ErrProcData, fmt.Sprintf("preGrpIdByRegion != joined.GroupId.preGrpIdByRegion = %d."+
 				"but user has been joined group.joinGroupID = %d", preGrpIdByRegion, joined.GroupId))
 		}
-		preGroupInfo, found := k.GetGroup(sdkCtx, joined.GroupId)
+		preGroupInfo, found := k.GetGroupInfo(sdkCtx, joined.GroupId)
 		if !found {
 			return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found joined previous gourp.groupID = %d", joined.GroupId))
 		}
@@ -176,7 +176,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 
 	}
 
-	newGrpInfo, found := k.GetGroup(sdkCtx, newGrpId)
+	newGrpInfo, found := k.GetGroupInfo(sdkCtx, newGrpId)
 	if !found { //if new group has not been created,emit event and return
 		return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found group by groupID.groupID = %d", newGrpId))
 	}
