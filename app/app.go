@@ -9,6 +9,7 @@ import (
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_2"
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_3"
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_4"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_5"
 	"io"
 	"io/fs"
 	"net/http"
@@ -92,6 +93,7 @@ var (
 		v2_0_2.Upgrade,
 		v2_0_3.Upgrade,
 		v2_0_4.Upgrade,
+		v2_0_5.Upgrade,
 	}
 )
 
