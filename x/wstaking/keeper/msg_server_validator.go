@@ -224,7 +224,7 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 		return types.ErrValidatorExist
 	}
 
-	ctx.Logger().Info("==>old validator", "old validator", oldValOperator, "old owner", validator.OwnerAddress)
+	ctx.Logger().Info("==>old validator", "old validator", validator.String(), "old owner", validator.OwnerAddress)
 
 	stake, found := k.GetStake(ctx, staker, validator.GetOperator())
 	if !found {
@@ -233,7 +233,7 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 
 	k.RemoveValidator(ctx, validator.GetOperator())
 	k.DeleteLastValidatorPower(ctx, validator.GetOperator())
-	if validator.Status == stakingtypes.Unbonding || validator.UnbondingHeight > 0 {
+	if validator.Status == stakingtypes.Unbonding {
 		k.DeleteValidatorQueue(ctx, validator)
 	}
 
@@ -268,11 +268,11 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 	k.SetValidatorByPowerIndex(ctx, validator)
 	k.SetRegion(ctx, region)
 
-	if validator.Status == stakingtypes.Unbonding || validator.UnbondingHeight > 0 {
+	if validator.Status == stakingtypes.Unbonding {
 		k.InsertUnbondingValidatorQueue(ctx, validator)
 	}
 
-	ctx.Logger().Info("==>new validator", "validator", validator.OperatorAddress, "owner", validator.OwnerAddress)
+	ctx.Logger().Info("==>new validator", "validator", validator.String(), "owner", validator.OwnerAddress)
 	if err := k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
 		return err
 	}
