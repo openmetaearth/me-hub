@@ -224,30 +224,28 @@ func (k Keeper) UnStakeBond(
 		validator = k.MustGetValidator(ctx, validator.GetOperator())
 	}
 
+	region, regionFound := k.GetRegion(ctx, validator.Description.RegionID)
+
 	if stake.Shares.IsZero() {
 		err = k.RemoveStake(ctx, stake)
+		if regionFound {
+			region.RegionShare = validator.Tokens
+			region.OperatorAddress = ""
+			k.SetRegion(ctx, region)
+			k.groupKeeper.UpdateGroupAdmin(ctx, region.RegionId, "")
+		}
+		if err != nil {
+			return amount, err
+		}
 	} else {
 		k.SetStake(ctx, stake)
 		// call the after stake modification hook
 		//err = k.AfterDelegationModified(ctx, stakerAddress, stake.GetValidatorAddr())
 	}
 
-	if err != nil {
-		return amount, err
-	}
-
 	// remove the shares and coins from the validator
 	// NOTE that the amount is later (in keeper.Stake) moved between staking module pools
 	validator, amount = k.RemoveValidatorTokensAndShares(ctx, validator, shares)
-
-	region, found := k.GetRegion(ctx, validator.Description.RegionID)
-	if found {
-		region.RegionShare = validator.Tokens
-		region.OperatorAddress = ""
-		k.SetRegion(ctx, region)
-		k.groupKeeper.UpdateGroupAdmin(ctx, region.RegionId, "")
-		//return nil, types.ErrValidatorRegion.Wrapf("%s not found", validator.Description.RegionID)
-	}
 
 	if validator.DelegatorShares.IsZero() && validator.IsUnbonded() {
 		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
