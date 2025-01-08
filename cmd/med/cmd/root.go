@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"errors"
+	"github.com/cosmos/cosmos-sdk/client/keys"
+	"github.com/evmos/ethermint/crypto/hd"
 	"io"
 	"os"
 
@@ -43,7 +45,6 @@ import (
 	appparams "github.com/st-chain/me-hub/app/params"
 
 	ethermintclient "github.com/evmos/ethermint/client"
-	"github.com/evmos/ethermint/crypto/hd"
 	servercfg "github.com/evmos/ethermint/server/config"
 )
 
@@ -183,6 +184,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		queryCommand(),
 		txCommand(),
 		ethermintclient.KeyCommands(app.DefaultNodeHome),
+		keys.Commands(app.DefaultNodeHome),
 	)
 
 	rootCmd.AddCommand(v2.PreUpgradeCmd())
