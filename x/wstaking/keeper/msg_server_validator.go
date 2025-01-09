@@ -156,7 +156,11 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 	}
 	if msg.Description.RegionID == stakingtypes.DoNotModifyDesc {
 		description.RegionID = oldRegionId
+		validator.Description = description
 	} else {
+		if _, err := utils.CheckRegionName(strings.ToUpper(msg.Description.RegionID)); err != nil {
+			return nil, types.ErrRegionName
+		}
 		// remove duplication
 		validators := k.GetAllValidators(ctx)
 		for _, v := range validators {
@@ -166,12 +170,12 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 		}
 		k.UnBondRegion(ctx, oldRegionId)
 		description.RegionID = msg.Description.RegionID
+		validator.Description = description
 		region, f := k.GetRegion(ctx, msg.Description.RegionID)
 		if f && region.OperatorAddress == "" {
 			k.BondRegion(ctx, validator, validator.Tokens, true)
 		}
 	}
-	validator.Description = description
 
 	//region, f := k.GetRegion(ctx, validator.Description.RegionID)
 	//if !f {
@@ -263,13 +267,6 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 	validator.OperatorAddress = newValOperAddr.String()
 	validator.OwnerAddress = newValAddr.String()
 
-	region, found := k.GetRegion(ctx, validator.Description.RegionID)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrRegion, "region id(%s) not found", validator.Description.RegionID)
-	}
-	region.OperatorAddress = newValOperAddr.String()
-	k.groupKeeper.UpdateGroupAdmin(ctx, region.RegionId, newValAddr.String())
-
 	err := k.SetValidatorByConsAddr(ctx, validator)
 	if err != nil {
 		return err
@@ -277,7 +274,7 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 
 	k.SetValidator(ctx, validator)
 	k.SetValidatorByPowerIndex(ctx, validator)
-	k.SetRegion(ctx, region)
+	k.BondRegion(ctx, validator, validator.Tokens, true)
 
 	if validator.Status == stakingtypes.Unbonding {
 		k.InsertUnbondingValidatorQueue(ctx, validator)
