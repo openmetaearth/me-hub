@@ -224,19 +224,12 @@ func (k Keeper) UnStakeBond(
 		validator = k.MustGetValidator(ctx, validator.GetOperator())
 	}
 
-	region, regionFound := k.GetRegion(ctx, validator.Description.RegionID)
-
 	if stake.Shares.IsZero() {
 		err = k.RemoveStake(ctx, stake)
-		if regionFound {
-			region.RegionShare = validator.Tokens
-			region.OperatorAddress = ""
-			k.SetRegion(ctx, region)
-			k.groupKeeper.UpdateGroupAdmin(ctx, region.RegionId, "")
-		}
 		if err != nil {
 			return amount, err
 		}
+		k.UnBondRegion(ctx, validator.Description.RegionID)
 	} else {
 		k.SetStake(ctx, stake)
 		// call the after stake modification hook
@@ -256,7 +249,7 @@ func (k Keeper) UnStakeBond(
 			types.EventTypeUnstake,
 			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, validator.OperatorAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()+params.BaseDenom),
-			sdk.NewAttribute(types.AttributeKeyRegionId, region.RegionId),
+			sdk.NewAttribute(types.AttributeKeyRegionId, validator.Description.RegionID),
 		),
 	})
 	return amount, nil

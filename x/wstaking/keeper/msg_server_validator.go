@@ -107,7 +107,7 @@ func (k MsgServer) CreateValidator(
 	k.SetValidator(ctx, validator)
 	k.SetValidatorByConsAddr(ctx, validator)
 	k.SetNewValidatorByPowerIndex(ctx, validator)
-
+	k.BondRegion(ctx, validator)
 	// call the after-creation hook
 	if err := k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
 		return nil, err
@@ -256,7 +256,6 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 		return sdkerrors.Wrapf(types.ErrRegion, "region id(%s) not found", validator.Description.RegionID)
 	}
 	region.OperatorAddress = newValOperAddr.String()
-
 	k.groupKeeper.UpdateGroupAdmin(ctx, region.RegionId, newValAddr.String())
 
 	err := k.SetValidatorByConsAddr(ctx, validator)

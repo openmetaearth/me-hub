@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
@@ -71,4 +72,26 @@ func (k Keeper) GetAllRegionI(ctx sdk.Context) (list []types.RegionI) {
 		list = append(list, &val)
 	}
 	return
+}
+
+func (k Keeper) BondRegion(ctx sdk.Context, validator stakingtypes.Validator) {
+	region, found := k.GetRegion(ctx, validator.Description.RegionID)
+	if !found {
+		return
+	}
+	region.OperatorAddress = validator.OperatorAddress
+	region.RegionShare = validator.Tokens
+	k.SetRegion(ctx, region)
+	k.groupKeeper.UpdateGroupAdmin(ctx, validator.Description.RegionID, validator.OwnerAddress)
+}
+
+func (k Keeper) UnBondRegion(ctx sdk.Context, regionId string) {
+	region, found := k.GetRegion(ctx, regionId)
+	if !found {
+		return
+	}
+	region.RegionShare = sdk.ZeroInt()
+	region.OperatorAddress = ""
+	k.SetRegion(ctx, region)
+	k.groupKeeper.UpdateGroupAdmin(ctx, regionId, "")
 }
