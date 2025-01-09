@@ -62,7 +62,7 @@ func NewCmdNewClass() *cobra.Command {
 			argTotalSupply := args[6]
 			totalSupply, err := strconv.ParseUint(argTotalSupply, 10, 64)
 			if err != nil {
-				return types.ErrParameter.Wrap("term error")
+				return err
 			}
 
 			msg := wnfttypes.NewMsgNewClass(classId, clientCtx.GetFromAddress().String(), name, symbol, description, uri, uriHash, totalSupply)

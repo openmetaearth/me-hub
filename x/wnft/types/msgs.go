@@ -37,7 +37,7 @@ func (msg MsgNewClass) ValidateBasic() error {
 		return nft.ErrEmptyClassID
 	}
 
-	if msg.TotalSupply == 0 {
+	if msg.TotalSupply == 0 && msg.ClassId != "kyc" {
 		return ErrEmptyTotalSupply
 	}
 
@@ -69,11 +69,11 @@ func (m MsgMintNFT) ValidateBasic() error {
 	}
 
 	if len(m.TokenId) == 0 {
-		return ErrEmptyTotalSupply
+		return ErrEmptyTokenId
 	}
 
 	if len(m.Uri) == 0 {
-		return ErrEmptyTotalSupply
+		return ErrEmptyUri
 	}
 
 	_, err := sdk.AccAddressFromBech32(m.Sender)

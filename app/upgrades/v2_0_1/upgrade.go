@@ -49,7 +49,6 @@ import (
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"io/ioutil"
 	"log"
-	gomath "math"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -344,13 +343,13 @@ func migrateNFTtoSBT(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, oldR
 	if !classExist {
 		err := nftKeeper.SaveClass(ctx, nft.Class{
 			Id:          kyctypes.ModuleName,
-			Name:        "Soul Bound Token",
+			Name:        kyctypes.ModuleName,
 			Symbol:      "SBT",
 			Description: "",
 			Uri:         "",
 			UriHash:     "",
 			Data:        nil,
-			TotalSupply: gomath.MaxUint64,
+			TotalSupply: 0,
 		})
 		if err != nil {
 			panic(err)
