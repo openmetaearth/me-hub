@@ -75,7 +75,7 @@ func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt math.Int,
 	// Update stake
 	stake.Shares = stake.Shares.Add(newShares)
 	k.SetStake(ctx, stake)
-
+	k.BondRegion(ctx, validator, stake.Shares.TruncateInt())
 	return newShares, nil
 }
 

@@ -49,6 +49,7 @@ import (
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"io/ioutil"
 	"log"
+	gomath "math"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -349,6 +350,7 @@ func migrateNFTtoSBT(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, oldR
 			Uri:         "",
 			UriHash:     "",
 			Data:        nil,
+			TotalSupply: gomath.MaxUint64,
 		})
 		if err != nil {
 			panic(err)

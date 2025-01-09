@@ -107,7 +107,6 @@ func (k MsgServer) CreateValidator(
 	k.SetValidator(ctx, validator)
 	k.SetValidatorByConsAddr(ctx, validator)
 	k.SetNewValidatorByPowerIndex(ctx, validator)
-	k.BondRegion(ctx, validator)
 	// call the after-creation hook
 	if err := k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
 		return nil, err
@@ -230,6 +229,7 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 	if !found {
 		return sdkerrors.Wrapf(types.ErrNoStake, "stake(%s) for operator(%s) not found", staker, validator.GetOperator())
 	}
+	k.RemoveStake(ctx, stake)
 
 	k.RemoveValidator(ctx, validator.GetOperator())
 	k.DeleteLastValidatorPower(ctx, validator.GetOperator())
