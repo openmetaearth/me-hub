@@ -74,7 +74,7 @@ func (k Keeper) GetAllRegionI(ctx sdk.Context) (list []types.RegionI) {
 	return
 }
 
-func (k Keeper) BondRegion(ctx sdk.Context, validator stakingtypes.Validator, token sdk.Int, changeOperator bool) {
+func (k Keeper) BondRegion(ctx sdk.Context, validator stakingtypes.Validator, tokens sdk.Int, changeOperator bool) {
 	region, found := k.GetRegion(ctx, validator.Description.RegionID)
 	if !found {
 		return
@@ -83,7 +83,7 @@ func (k Keeper) BondRegion(ctx sdk.Context, validator stakingtypes.Validator, to
 		region.OperatorAddress = validator.OperatorAddress
 		k.groupKeeper.UpdateGroupAdmin(ctx, validator.Description.RegionID, validator.OwnerAddress)
 	}
-	region.RegionShare = token
+	region.RegionShare = tokens
 	k.SetRegion(ctx, region)
 }
 

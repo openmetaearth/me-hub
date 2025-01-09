@@ -166,6 +166,10 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 		}
 		k.UnBondRegion(ctx, oldRegionId)
 		description.RegionID = msg.Description.RegionID
+		region, f := k.GetRegion(ctx, msg.Description.RegionID)
+		if f && region.OperatorAddress == "" {
+			k.BondRegion(ctx, validator, validator.Tokens, true)
+		}
 	}
 	validator.Description = description
 
