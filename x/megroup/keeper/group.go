@@ -117,4 +117,9 @@ func (k Keeper) UpdateGroupAdmin(ctx sdk.Context, regionID string, admin string)
 	}
 	group.Admin = admin
 	k.SetGroupInfo(ctx, group)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtUpdateGroupAdmin,
+		sdk.NewAttribute("group_id", fmt.Sprintf("%d", groupId)),
+		sdk.NewAttribute("admin", admin),
+		sdk.NewAttribute("region_id", regionID),
+	))
 }
