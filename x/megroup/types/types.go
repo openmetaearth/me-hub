@@ -5,11 +5,12 @@ import (
 )
 
 const (
-	EvtGroupCreated    string = "EventGroupCreated"
-	EvtJoinGroup       string = "EventJoinGroup"
-	EvtLeaveGroup      string = "EventLeaveGroup"
-	EvtGrpMigrateByKyc string = "EventGroupMigrateByKycChange"
-	EvtJoinGroupReward string = "EventJoinGroupReward"
+	EvtGroupCreated     string = "EventGroupCreated"
+	EvtJoinGroup        string = "EventJoinGroup"
+	EvtLeaveGroup       string = "EventLeaveGroup"
+	EvtGrpMigrateByKyc  string = "EventGroupMigrateByKycChange"
+	EvtJoinGroupReward  string = "EventJoinGroupReward"
+	EvtUpdateGroupAdmin string = "EventUpdateGroupAdmin"
 )
 
 type GroupMetaData struct {
