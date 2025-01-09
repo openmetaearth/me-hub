@@ -148,15 +148,23 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 	if !found {
 		return nil, stakingtypes.ErrNoValidatorFound
 	}
-
+	oldRegionId := validator.Description.RegionID
 	// replace all editable fields (clients should autofill existing values)
 	description, err := validator.Description.UpdateDescription(msg.Description)
 	if err != nil {
 		return nil, err
 	}
 	if msg.Description.RegionID == stakingtypes.DoNotModifyDesc {
-		description.RegionID = validator.Description.RegionID
+		description.RegionID = oldRegionId
 	} else {
+		// remove duplication
+		validators := k.GetAllValidators(ctx)
+		for _, v := range validators {
+			if v.Description.RegionID == msg.Description.RegionID {
+				return nil, types.ErrValidatorRegionDuplication
+			}
+		}
+		k.UnBondRegion(ctx, oldRegionId)
 		description.RegionID = msg.Description.RegionID
 	}
 	validator.Description = description
