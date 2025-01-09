@@ -75,7 +75,7 @@ func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt math.Int,
 	// Update stake
 	stake.Shares = stake.Shares.Add(newShares)
 	k.SetStake(ctx, stake)
-	k.BondRegion(ctx, validator, stake.Shares.TruncateInt())
+	k.BondRegion(ctx, validator, stake.Shares.TruncateInt(), true)
 	return newShares, nil
 }
 
@@ -231,6 +231,7 @@ func (k Keeper) UnStakeBond(
 		}
 		k.UnBondRegion(ctx, validator.Description.RegionID)
 	} else {
+		k.BondRegion(ctx, validator, stake.Shares.TruncateInt(), false)
 		k.SetStake(ctx, stake)
 		// call the after stake modification hook
 		//err = k.AfterDelegationModified(ctx, stakerAddress, stake.GetValidatorAddr())
