@@ -307,7 +307,7 @@ func (a appCreator) appExport(
 		logger,
 		db,
 		traceStore,
-		true,
+		height == -1,
 		skipUpgradeHeights,
 		cast.ToString(appOpts.Get(flags.FlagHome)),
 		cast.ToUint(appOpts.Get(sdkserver.FlagInvCheckPeriod)),
