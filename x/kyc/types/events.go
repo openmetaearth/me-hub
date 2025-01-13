@@ -12,7 +12,7 @@ const (
 	EventTypeUpdate    = "update"
 	EventTypeRemove    = "remove"
 	EventTypeCreateSBT = "create_sbt"
-	EventTypeUpdateSBT = "create_sbt"
+	EventTypeUpdateSBT = "update_sbt"
 	EventTypeDeleteSBT = "delete_sbt"
 )
 
