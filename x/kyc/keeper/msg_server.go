@@ -151,6 +151,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	m.SetKYC(ctx, msg.Did, kyc)
 
 	// update KYC region filter
+	m.DeleteFilters(ctx, msg.Did, [][]byte{[]byte(perRegionId)})
 	m.AddFilters(ctx, msg.Did, [][]byte{[]byte(msg.RegionId)}, kyc)
 
 	// change reward
