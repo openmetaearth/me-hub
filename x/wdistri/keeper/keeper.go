@@ -100,19 +100,21 @@ func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 		// calculate every region coins: RegionShare * totalMintCoins / totalRegionShare
 		amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoin.Amount.ToLegacyDec()).Quo(totalRegionShareDec)
 		regionAmount := amount.TruncateInt()
-		regionCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(regionAmount.Int64())))
-		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.feeCollectorName, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), regionCoins)
-		if err != nil {
-			return err
+		if regionAmount.IsZero() {
+			regionCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(regionAmount.Int64())))
+			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.feeCollectorName, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), regionCoins)
+			if err != nil {
+				return err
+			}
+			ctx.EventManager().EmitEvents(sdk.Events{
+				sdk.NewEvent(
+					types.EventTypeRegionTreasuryReward,
+					sdk.NewAttribute(types.AttributeKeyRegionTreasuryAddress, region.GetRegionTreasureAddr()),
+					sdk.NewAttribute(types.AttributeKeyRegionId, region.GetRegionId()),
+					sdk.NewAttribute(sdk.AttributeKeyAmount, regionCoins.String()),
+				),
+			})
 		}
-		ctx.EventManager().EmitEvents(sdk.Events{
-			sdk.NewEvent(
-				types.EventTypeRegionTreasuryReward,
-				sdk.NewAttribute(types.AttributeKeyRegionTreasuryAddress, region.GetRegionTreasureAddr()),
-				sdk.NewAttribute(types.AttributeKeyRegionId, region.GetRegionId()),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, regionCoins.String()),
-			),
-		})
 	}
 	return nil
 }
