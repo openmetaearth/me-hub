@@ -6,12 +6,6 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_2"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_3"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_4"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_5"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_6"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_7"
 	"io"
 	"io/fs"
 	"net/http"
@@ -27,7 +21,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	"github.com/st-chain/me-hub/app/keepers"
 	"github.com/st-chain/me-hub/app/upgrades"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_1"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_8"
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -91,13 +85,7 @@ var (
 
 	// Upgrades contains the upgrade handlers for the application
 	Upgrades = []upgrades.Upgrade{
-		v2_0_1.Upgrade,
-		v2_0_2.Upgrade,
-		v2_0_3.Upgrade,
-		v2_0_4.Upgrade,
-		v2_0_5.Upgrade,
-		v2_0_6.Upgrade,
-		v2_0_7.Upgrade,
+		v2_0_8.Upgrade,
 	}
 )
 
