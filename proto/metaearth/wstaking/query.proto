@@ -13,6 +13,7 @@ import "google/protobuf/timestamp.proto";
 import "metaearth/wstaking/fixed_deposit.proto";
 import "metaearth/wstaking/stake.proto";
 import "cosmos/staking/v1beta1/query.proto";
+import "metaearth/wstaking/record.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
 
@@ -74,6 +75,19 @@ service Query {
 
   rpc Stakes(QueryStakesRequest) returns (QueryStakesResponse) {
     option (google.api.http).get = "/cosmos/staking/v1beta1/stakes";
+  }
+
+  //Queries a list of Record 
+  rpc QueryAllRecord(QueryAllRecords) returns (QueryAllRecordsResponse) {
+    option (google.api.http).get = "/cosmos/staking/v1beta1/records";
+  }
+
+  rpc QueryRecordByAddress(QueryRecordsByAddress) returns (QueryRecordsByAddressResponse) {
+    option (google.api.http).get =  "/cosmos/staking/v1beta1/record/{account}";
+  }
+
+  rpc QueryReviewRecordByID(QueryReviewRecordByNumber) returns (QueryReviewRecordByNumberResponse) {
+    option (google.api.http).get =  "/cosmos/staking/v1beta1/review_record/{actionNumber}";
   }
 }
 
@@ -196,4 +210,30 @@ message QueryStakesRequest {
 message QueryStakesResponse {
   repeated Stake stakes     = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryAllRecords{
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllRecordsResponse {
+  repeated Record                           records        = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryRecordsByAddress{
+  string account = 1;
+}
+
+message QueryRecordsByAddressResponse {
+  repeated Record                           records        = 1 [(gogoproto.nullable) = false];
+//  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryReviewRecordByNumber{
+  string actionNumber = 1;
+}
+message QueryReviewRecordByNumberResponse {
+   ReviewRecord                           reviewRecord       = 1 [(gogoproto.nullable) = false];
+  //  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

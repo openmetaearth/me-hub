@@ -17,6 +17,10 @@ for dir in $proto_dirs; do
     done
 done
 
+# Generate TypeScript client code
+# echo "Generating TypeScript client code"
+# buf generate --template buf.gen.ts.yaml
+
 cd ..
 
 # move proto files to the right places

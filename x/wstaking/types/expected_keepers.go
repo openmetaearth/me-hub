@@ -14,6 +14,8 @@ type DaoKeeper interface {
 	GetAirdropAddress(ctx sdk.Context) string
 	GetDevOperator(ctx sdk.Context) string
 	GetGlobalDaoFeePoolAddr(ctx sdk.Context) sdk.AccAddress
+	GetGlobalDao(ctx sdk.Context) string
+	GetMeidDao(ctx sdk.Context) string
 }
 
 // BankKeeper defines the expected interface needed to retrieve account balances.

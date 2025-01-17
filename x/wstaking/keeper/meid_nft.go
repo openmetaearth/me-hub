@@ -6,7 +6,7 @@ import (
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
-// SetMeid set a specific meid in the store from its index
+// SetMeidNFT set a specific meid in the store from its index
 func (k Keeper) SetMeidNFT(ctx sdk.Context, meidNFT types.MeidNFT) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidNFTKeyPrefix))
 	b := k.cdc.MustMarshal(&meidNFT)
