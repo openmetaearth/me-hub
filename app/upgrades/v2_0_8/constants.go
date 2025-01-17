@@ -1,4 +1,4 @@
-package v2_0_1
+package v2_0_8
 
 import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -24,7 +24,11 @@ import (
 )
 
 const (
-	UpgradeName = "v2.0.1"
+	UpgradeName       = "v2.0.8"
+	didFilePath       = "/config/did.json"
+	issuerFilePath    = "/config/issuer.json"
+	kycPubkeyFilePath = "/config/kyc_pubkey.json"
+	groupFilePath     = "/config/genesis1.3.json" // need export 1.3 genesis
 )
 
 var Upgrade = upgrades.Upgrade{

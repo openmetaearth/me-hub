@@ -1,4 +1,4 @@
-package v2_0_1
+package v2_0_8
 
 import (
 	"cosmossdk.io/math"
@@ -326,11 +326,11 @@ func migrateKycData(ctx sdk.Context,
 				},
 			)
 			migrateNFTtoSBT(ctx, stakingKeeper, oldRecord, nftKeeper, kycKeeper, did)
+			stakingKeeper.RemoveMeid(ctx, oldRecord.Account, oldRecord.RegionId)
 		}
 	}
-
 	// If the old module is no longer used, delete the data of the old module
-	//oldKeeper.ClearAllData(ctx)
+	//stakingKeeper.ClearAllData(ctx)
 }
 
 func migrateNFTtoSBT(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, oldRecord types.Meid, nftKeeper *wnftkeeper.Keeper, kycKeeper *kyckeeper.Keeper, did string) {
@@ -401,7 +401,7 @@ func migrateNftUri(ctx sdk.Context,
 }
 
 func ReadKycPubkey(homePath string) (map[string]string, error) {
-	data, err := ioutil.ReadFile(filepath.Join(homePath, "/config/kyc_pubkey.json"))
+	data, err := ioutil.ReadFile(filepath.Join(homePath, kycPubkeyFilePath))
 	if err != nil {
 		return nil, err
 	}
@@ -414,7 +414,7 @@ func ReadKycPubkey(homePath string) (map[string]string, error) {
 }
 
 func ReadIssuer(path string) (issuer []didtypes.DidInfo, err error) {
-	data, err := ioutil.ReadFile(filepath.Join(path, "/config/issuer.json"))
+	data, err := ioutil.ReadFile(filepath.Join(path, issuerFilePath))
 	if err != nil {
 		return issuer, err
 	}
@@ -426,7 +426,7 @@ func ReadIssuer(path string) (issuer []didtypes.DidInfo, err error) {
 }
 
 func ReadDID(path string) (map[string]string, error) {
-	data, err := ioutil.ReadFile(filepath.Join(path, "/config/did.json"))
+	data, err := ioutil.ReadFile(filepath.Join(path, didFilePath))
 	if err != nil {
 		return nil, err
 	}
@@ -457,7 +457,7 @@ func migrateRegionClassName(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keepe
 }
 
 func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper) {
-	file, err := os.Open(filepath.Join(path, "/config/genesis1.3.json"))
+	file, err := os.Open(filepath.Join(path, groupFilePath))
 	if err != nil {
 		log.Fatalf("Failed to open file: %v", err)
 	}

@@ -8,7 +8,7 @@ import (
 	"os"
 
 	ethermintserver "github.com/evmos/ethermint/server"
-	v2 "github.com/st-chain/me-hub/app/upgrades/v2_0_1"
+	v2 "github.com/st-chain/me-hub/app/upgrades/v2_0_8"
 
 	"github.com/st-chain/me-hub/logger"
 
