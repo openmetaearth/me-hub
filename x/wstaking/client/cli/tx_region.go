@@ -131,3 +131,32 @@ $ %s tx staking withdraw-from-region me_earth me1h47kmp4q5vkwjw350y5v5ecuzjtmct4
 
 	return cmd
 }
+
+func CmdTransferRegion() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "transfer-region  [from-region] [to-region] [address]",
+		Short: "transfer meid to new region.",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			from := args[0]
+			to := args[1]
+			addr := args[2]
+			address := make([]string, 0, 1)
+			address = append(address, addr)
+			creatorAddr := clientCtx.GetFromAddress().String()
+			msg := &types.MsgTransferRegion{FromRegion: from, ToRegion: to, Address: address, Creator: creatorAddr}
+
+			//if err = msg.ValidateBasic(); err != nil {
+			//	return err
+			//}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}

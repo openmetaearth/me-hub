@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"context"
-	"slices"
-
 	"cosmossdk.io/errors"
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,6 +10,8 @@ import (
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/types"
 	stktypes "github.com/st-chain/me-hub/x/wstaking/types"
+	"slices"
+	"strings"
 )
 
 type msgServer struct {
@@ -133,6 +133,12 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	perRegionId := string(preKyc.Data)
 	perLevel := holderInfo.KycLevel.String()
 
+	if strings.EqualFold(perRegionId, stktypes.ExperienceRegionName) || strings.EqualFold(msg.RegionId, stktypes.ExperienceRegionName) {
+		return nil, stktypes.ErrTransferRegion.Wrap("from region or to region is experience region")
+	}
+	if strings.EqualFold(perRegionId, msg.RegionId) {
+		return nil, stktypes.ErrTransferRegion.Wrap("from region and to region is equal")
+	}
 	// check region
 	if _, found := m.stkKeeper.GetRegion(ctx, msg.RegionId); !found {
 		return &types.MsgUpdateResponse{}, stktypes.ErrRegionNotExist
@@ -145,7 +151,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	holderInfo.RegionId = msg.RegionId
 	holderInfo.KycLevel = msg.Level
 	m.SetDidInfo(ctx, msg.Did, holderInfo)
-
+	address := m.MustAccAddressFromPubkeyString(holderInfo.Pubkey).String()
 	// update KYC
 	kyc := msg.GetKYC()
 	m.SetKYC(ctx, msg.Did, kyc)
@@ -155,7 +161,6 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	m.AddFilters(ctx, msg.Did, [][]byte{[]byte(msg.RegionId)}, kyc)
 
 	// change reward
-	address := m.MustAccAddressFromPubkeyString(holderInfo.Pubkey).String()
 	if err := m.TransferApproveReward(ctx, address, msg.Issuer, perRegionId, msg.RegionId); err != nil {
 		return &types.MsgUpdateResponse{}, errors.Wrap(err, "transfer reward failed")
 	}
