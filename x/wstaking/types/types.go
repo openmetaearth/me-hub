@@ -7,16 +7,18 @@ import (
 	"math/big"
 )
 
+type MEID_REWARD_TYPE int32
+
 const (
 	MeEarthRegionName    = "ME_EARTH"
 	ExperienceRegionName = "EXPERIENCE_REGION"
 
 	CaclTotalSupply = 20000000000
 
-	MeidJoinGroupNoReward = 0
-	MeidJoinGroupRewarded = 1
-	MeEarthRegionId       = "me_earth"
-	ExperienceRegionId    = "experience_region"
+	MeidJoinGroupNoReward MEID_REWARD_TYPE = 0
+	MeidJoinGroupRewarded MEID_REWARD_TYPE = 1
+	MeEarthRegionId                        = "me_earth"
+	ExperienceRegionId                     = "experience_region"
 )
 
 var (
@@ -44,4 +46,8 @@ func GetClassSymbol(regionName string) string {
 
 func GetClassDescription(regionId string) string {
 	return "nft class for region " + regionId
+}
+
+func (m MEID_REWARD_TYPE) Int32() int32 {
+	return int32(m)
 }

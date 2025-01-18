@@ -66,8 +66,9 @@ var (
 	ErrRegionName               = sdkerrors.Register(ModuleName, 1175, "invalid region name")
 	ErrExpRegionNotExist        = sdkerrors.Register(ModuleName, 1176, "experience region not exist")
 
-	ErrParameter      = sdkerrors.Register(ModuleName, 1201, "parameter error")
-	ErrUnknownAccount = sdkerrors.Register(ModuleName, 1202, "Unknown account")
+	ErrParameter           = sdkerrors.Register(ModuleName, 1201, "parameter error")
+	ErrUnknownAccount      = sdkerrors.Register(ModuleName, 1202, "Unknown account")
+	ErrInvalidRecordParams = sdkerrors.Register(ModuleName, 1203, "invalid record params")
 
 	ErrValidatorDelegationAmount     = sdkerrors.Register(ModuleName, 1206, "Validator DelegationAmount less than requested value.")
 	ErrNotEnoughDelegationAmount     = sdkerrors.Register(ModuleName, 1208, "not enough delegation amount")

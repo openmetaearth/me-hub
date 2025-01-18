@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -159,4 +161,47 @@ func (k Keeper) Stakes(goCtx context.Context, req *types.QueryStakesRequest) (*t
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	stakes := k.GetAllStakes(ctx)
 	return &types.QueryStakesResponse{Stakes: stakes}, nil
+}
+
+func (k Keeper) QueryAllRecord(goCtx context.Context, req *types.QueryAllRecords) (*types.QueryAllRecordsResponse, error) {
+	var records []types.Record
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	store := ctx.KVStore(k.storeKey)
+	meidStore := prefix.NewStore(store, types.NewRecordKey)
+
+	pageRes, err := query.Paginate(meidStore, req.Pagination, func(key []byte, value []byte) error {
+		var record types.Record
+		if err := k.cdc.Unmarshal(value, &record); err != nil {
+			return err
+		}
+
+		records = append(records, record)
+		return nil
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, fmt.Sprintf("query all records err=%s", err.Error()))
+	}
+
+	return &types.QueryAllRecordsResponse{Records: records, Pagination: pageRes}, nil
+}
+
+func (k Querier) QueryRecordByAddress(goCtx context.Context, req *types.QueryRecordsByAddress) (*types.QueryRecordsByAddressResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	from, err := sdk.AccAddressFromBech32(req.Account)
+	if err != nil {
+		return nil, err
+	}
+	records := k.GetRecordsByAddress(ctx, from)
+	return &types.QueryRecordsByAddressResponse{Records: records}, nil
+}
+
+func (k Querier) QueryReviewRecordByID(goCtx context.Context, req *types.QueryReviewRecordByNumber) (*types.QueryReviewRecordByNumberResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if req.ActionNumber == "" {
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("ActionNumber is empty"))
+	}
+	rr := k.GetReviewRecordByID(ctx, req.ActionNumber)
+	return &types.QueryReviewRecordByNumberResponse{ReviewRecord: rr}, nil
 }

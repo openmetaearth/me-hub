@@ -54,6 +54,9 @@ var (
 	UnbondingStakeKey           = []byte{0x72} // key for an unbonding-stake
 	UnbondingStakeByValIndexKey = []byte{0x73} // prefix for each key for an unbonding-stake, by validator operator
 	UnbondingStakeQueueKey      = []byte{0x74} // prefix for the timestamps in unbonding stake queue
+
+	NewRecordKey    = []byte{0x88} //key for new record
+	ReviewRecordKey = []byte{0x89} // key for new review record
 )
 
 func KeyPrefix(p string) []byte {
@@ -97,6 +100,17 @@ func GetUBSsByValIndexKey(valAddr sdk.ValAddress) []byte {
 func GetUnbondingStakeTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)
 	return append(UnbondingStakeQueueKey, bz...)
+}
+
+// GetRecordKey creates the prefix for a record
+func GetRecordKey(acc sdk.AccAddress) []byte {
+	return append(NewRecordKey, address.MustLengthPrefix(acc)...)
+}
+
+// GetReviewRecordKey creates the prefix for a review
+func GetReviewRecordKey(recordNum string) []byte {
+	b := []byte(recordNum)
+	return append(ReviewRecordKey, b...)
 }
 
 // MeidKey returns the store key to retrieve a Meid from the index fields

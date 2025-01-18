@@ -39,6 +39,9 @@ service Msg {
   rpc RemoveFixedDepositCfg(MsgRemoveFixedDepositCfg) returns (MsgRemoveFixedDepositCfgResp);
   rpc WithdrawFromRegion(MsgWithdrawFromRegion) returns (MsgWithdrawFromRegionResp);
   rpc WithdrawFromGlobalDaoFeePool(MsgWithdrawFromGlobalDaoFeePool) returns (MsgWithdrawFromGlobalDaoFeePoolResp);
+  rpc NewRecord(MsgNewRecord) returns (MsgNewRecordResponse);
+  rpc ReviewRecord(MsgReviewRecord) returns (MsgReviewRecordResponse);
+  rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
 }
 
 // MsgStake defines a SDK message for performing a stake of coins
@@ -213,3 +216,29 @@ message MsgWithdrawFixedDepositResponse {
   int64         term      = 3;
   string rate = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }
+
+message MsgNewRecord {
+  string actionNumber = 1;
+  string actionUrl = 2;
+  string from=3;
+}
+
+message MsgNewRecordResponse {}
+
+message MsgReviewRecord {
+  string recordHash = 1;
+  string reviewResult = 2;
+  string from=3;
+  string ActionNumber = 4;
+  string reviewedAddress=5;
+}
+
+message MsgReviewRecordResponse {}
+
+message MsgTransferRegion {
+  string fromRegion = 1;
+  string toRegion = 2;
+  repeated string address = 3;
+  string creator = 4;
+}
+message MsgTransferRegionResponse {}

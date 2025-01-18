@@ -3,7 +3,6 @@ package keeper
 import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
@@ -28,16 +27,11 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 	if !found {
 		return types.ErrNoDelegatorForAddress
 	}
-
-	if delegation.Amount.Add(delegation.UnMeidAmount).GT(sdk.ZeroInt()) {
-		return types.ErrTransferRegion.Wrap(fmt.Sprintf("The current user(%s) have delegate, need to withdraw.", address))
+	// Handling fixed deposits
+	err := k.transferDeposit(ctx, toRegion, address.String(), fromRegionId)
+	if err != nil {
+		return types.ErrTransferRegion.Wrap(err.Error())
 	}
-
-	fixedCount := len(k.GetFixedDepositByAcct(ctx, address.String()))
-	if fixedCount > 0 {
-		return types.ErrTransferRegion.Wrap(fmt.Sprintf("The current user(%s) have fixed deposit, need to withdraw.", address))
-	}
-
 	// fix validator meid amount
 	validator.DelegationAmount = validator.DelegationAmount.Add(delegation.Amount)
 	if validator.Tokens.LT(validator.DelegationAmount) {
@@ -49,14 +43,14 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 	validator.MeidAmount = validator.MeidAmount.Add(types.Bonus)
 	k.SetValidator(ctx, validator)
 
-	err := k.RemoveKycReward(ctx, address, fromRegionId)
+	err = k.transferRemoveMeid(ctx, address.String(), fromRegionId, delegation)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrRemoveKycReward, err.Error())
+		return types.ErrTransferRegion.Wrap(err.Error())
 	}
 
-	err = k.SendKycRewards(ctx, address, valAddr, "", validator, toRegion, true)
+	err = k.transferNewMeid(ctx, toRegion, address.String(), valAddr, delegation)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrSendKycReward, err.Error())
+		return types.ErrTransferRegion.Wrap(err.Error())
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{

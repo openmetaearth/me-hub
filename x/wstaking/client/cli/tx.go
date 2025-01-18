@@ -1,17 +1,18 @@
 package cli
 
 import (
-	"cosmossdk.io/math"
 	"errors"
 	"fmt"
+	gomath "math"
+	"os"
+	"strings"
+
+	"cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"github.com/st-chain/me-hub/app/params"
-	gomath "math"
-	"os"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -51,9 +52,12 @@ func NewTxCmd() *cobra.Command {
 		NewUnstakeCmd(),
 		NewStakeCmd(),
 		CmdNewRegion(),
-		CmdRemoveRegion(),
+		//CmdRemoveRegion(),
 		CmdWithdrawFromRegion(),
 		CmdWithdrawFromGlobalDaoFeePool(),
+		CmdNewRecord(),
+		CmdNewReviewRecord(),
+		// CmdTransferRegion(),
 		NewDelegateCmd(),
 		NewUndelegateCmd(),
 		NewFixedDepositCmd(),

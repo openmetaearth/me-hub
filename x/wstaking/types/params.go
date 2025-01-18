@@ -1,15 +1,17 @@
 package types
 
 import (
-	"cosmossdk.io/math"
 	"errors"
 	"fmt"
+
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/app/params"
 )
 
 const (
 	MinDelegateAmount = "0.01"
+	GlobalRegion      = "ME_EARTH"
 )
 
 func CheckMinDelegate(amount math.Int) error {
