@@ -51,6 +51,9 @@ func GetQueryCmd() *cobra.Command {
 		CmdQueryFixedDepositCfg(),
 		CmdShowFixedDepositTotalAmount(),
 		CmdShowFixedDepositAmountByAcct(),
+		CmdShowAllRecord(),
+		CmdShowRecordByAddress(),
+		CmdShowReviewRecord(),
 	)
 
 	return stakingQueryCmd
