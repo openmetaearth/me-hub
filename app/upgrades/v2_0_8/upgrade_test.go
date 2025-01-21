@@ -1,7 +1,11 @@
 package v2_0_8_test
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_8"
 	"math/big"
 	"testing"
 	"time"
@@ -127,4 +131,49 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			}
 		})
 	}
+}
+
+func (s *UpgradeTestSuite) TestDidData() {
+	list := make(map[string]v2_0_8.DidData)
+	list["me1ujufste3u23tpq3qhlq77u94nhw99emy3pr4p2"] = v2_0_8.DidData{
+		Did:     "2405208027001",
+		Uri:     "https://example.com/nft/metadata.json",
+		UriHash: calculateUriHash("https://example.com/nft/metadata.json"),
+	}
+	list["me1phcakjkaf9vrn6jgttl3747dgnnpt88rt9440d"] = v2_0_8.DidData{
+		Did:     "CHN2405204091002",
+		Uri:     "https://example.com/nft1/metadata.json",
+		UriHash: calculateUriHash("https://example.com/nft1/metadata.json"),
+	}
+	marshal, err := json.MarshalIndent(list, "", "  ")
+	s.Require().NoError(err)
+	s.T().Log(string(marshal))
+}
+
+func (s *UpgradeTestSuite) TestReadDidData() {
+	list := `{
+          "me1phcakjkaf9vrn6jgttl3747dgnnpt88rt9440d": {
+            "did": "CHN2405204091002",
+            "uri": "https://example.com/nft1/metadata.json",
+            "uri_hash": "e00d196344dbd54550dadeab1167302ef39fade96eb211e302693a512ef131e1"
+          },
+          "me1ujufste3u23tpq3qhlq77u94nhw99emy3pr4p2": {
+            "did": "2405208027001",
+            "uri": "https://example.com/nft/metadata.json",
+            "uri_hash": "9d4b6d9f5207db3461c26591fc4dd2a8e46ad4ce0d157f80b00bd57f52c90dec"
+          }
+        }`
+	data := make(map[string]v2_0_8.DidData)
+	err := json.Unmarshal([]byte(list), &data)
+	s.Require().NoError(err)
+	first, ok := data["me1phcakjkaf9vrn6jgttl3747dgnnpt88rt9440d"]
+	s.Require().True(ok)
+	s.Require().EqualValues("CHN2405204091002", first.Did)
+}
+
+func calculateUriHash(uri string) string {
+	h := sha256.New()
+	h.Write([]byte(uri))
+	hash := h.Sum(nil)
+	return hex.EncodeToString(hash)
 }

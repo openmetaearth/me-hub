@@ -102,7 +102,7 @@ func CreateUpgradeHandler(
 		migrateRegionClassName(ctx, keepers.StakingKeeper, keepers.WNFTKeeper)
 
 		ctx.Logger().Info("7.migrate group")
-		migrateGroup(ctx, homePath, keepers.GroupKeeper)
+		migrateGroup(ctx, homePath, keepers.GroupKeeper, keepers.StakingKeeper)
 
 		// create a new module account
 		macc := authtypes.NewEmptyModuleAccount(streamermoduletypes.ModuleName)
@@ -295,7 +295,7 @@ func migrateKycData(ctx sdk.Context,
 		panic("kyc: service not found")
 	}
 
-	dids, err := ReadDID(homePath)
+	didData, err := ReadDID(homePath)
 	if err != nil {
 		panic(err)
 	}
@@ -307,18 +307,25 @@ func migrateKycData(ctx sdk.Context,
 
 	// Iterate over old data and transform it into new data structure
 	for _, oldRecord := range meids {
-		did := dids[oldRecord.Account]
-		if len(did) > 0 {
-			didInfo := didtypes.NewDidInfo(did, oldRecord.Account, accountPubkey[oldRecord.Account], didtypes.DID_STATUS_ACTIVE)
+		did := didData[oldRecord.Account]
+		if len(did.Did) > 0 {
+			didInfo := didtypes.DidInfo{
+				Did:      did.Did,
+				Address:  oldRecord.Account,
+				Pubkey:   accountPubkey[oldRecord.Account],
+				RegionId: oldRecord.RegionId,
+				KycLevel: didtypes.KYC_LEVEL_ONE,
+				Status:   didtypes.DID_STATUS_ACTIVE,
+			}
 			// write new data to the new module s storage
-			didKeeper.SetDID(ctx, sdk.MustAccAddressFromBech32(oldRecord.Account), did)
+			didKeeper.SetDID(ctx, sdk.MustAccAddressFromBech32(oldRecord.Account), did.Did)
 			didKeeper.SetDidInfo(ctx, didInfo.Did, didInfo)
 			didKeeper.SetCredential(
 				ctx,
 				didInfo.Did,
 				service.Sid,
 				didtypes.Credential{
-					Did:  did,
+					Did:  did.Did,
 					Sid:  service.Sid,
 					Hash: "",
 					Uri:  "",
@@ -329,11 +336,14 @@ func migrateKycData(ctx sdk.Context,
 			stakingKeeper.RemoveMeid(ctx, oldRecord.Account, oldRecord.RegionId)
 		}
 	}
-	// If the old module is no longer used, delete the data of the old module
-	//stakingKeeper.ClearAllData(ctx)
 }
 
-func migrateNFTtoSBT(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, oldRecord types.Meid, nftKeeper *wnftkeeper.Keeper, kycKeeper *kyckeeper.Keeper, did string) {
+func migrateNFTtoSBT(ctx sdk.Context,
+	stakingKeeper *wstakingkeeper.Keeper,
+	oldRecord types.Meid,
+	nftKeeper *wnftkeeper.Keeper,
+	kycKeeper *kyckeeper.Keeper,
+	did DidData) {
 	region, found := stakingKeeper.GetRegion(ctx, oldRecord.RegionId)
 	if !found {
 		panic(fmt.Sprintf("kyc: region %s not found", oldRecord.RegionId))
@@ -345,7 +355,7 @@ func migrateNFTtoSBT(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, oldR
 			Id:          kyctypes.ModuleName,
 			Name:        kyctypes.ModuleName,
 			Symbol:      "SBT",
-			Description: "",
+			Description: "Soulbound Token",
 			Uri:         "",
 			UriHash:     "",
 			Data:        nil,
@@ -364,9 +374,9 @@ func migrateNFTtoSBT(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, oldR
 				ctx,
 				nft.NFT{
 					ClassId: kyctypes.ModuleName,
-					Id:      did,
-					Uri:     oldNft.Uri,
-					UriHash: oldNft.UriHash,
+					Id:      did.Did,
+					Uri:     did.Uri,
+					UriHash: did.UriHash,
 					Data:    oldNft.Data,
 				},
 				sdk.MustAccAddressFromBech32(oldRecord.Account),
@@ -375,9 +385,7 @@ func migrateNFTtoSBT(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, oldR
 			}
 		}
 	}
-	//if err := nftKeeper.Burn(ctx, nftInfo.ClassId, nftInfo.Id); err != nil {
-	//	panic(err)
-	//}
+	stakingKeeper.RemoveMeid(ctx, oldRecord.Account, oldRecord.RegionId)
 }
 
 func migrateNftUri(ctx sdk.Context,
@@ -425,12 +433,18 @@ func ReadIssuer(path string) (issuer []didtypes.DidInfo, err error) {
 	return issuer, nil
 }
 
-func ReadDID(path string) (map[string]string, error) {
+type DidData struct {
+	Did     string `json:"did"`
+	Uri     string `json:"uri"`
+	UriHash string `json:"uri_hash"`
+}
+
+func ReadDID(path string) (map[string]DidData, error) {
 	data, err := ioutil.ReadFile(filepath.Join(path, didFilePath))
 	if err != nil {
 		return nil, err
 	}
-	list := make(map[string]string)
+	list := make(map[string]DidData)
 	err = json.Unmarshal(data, &list)
 	if err != nil {
 		return nil, err
@@ -456,7 +470,7 @@ func migrateRegionClassName(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keepe
 	}
 }
 
-func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper) {
+func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper, sk *wstakingkeeper.Keeper) {
 	file, err := os.Open(filepath.Join(path, groupFilePath))
 	if err != nil {
 		log.Fatalf("Failed to open file: %v", err)
@@ -495,59 +509,71 @@ func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper) {
 
 	lastGroupId := uint64(0)
 	groupExist := make(map[string]string)
-	for _, groupInfo := range data.AppState.Group.Groups {
-		regionId := strings.ToLower(groupInfo.RegionID)
+	groupAdmin := make(map[string]string)
+	for _, groupInfoV1 := range data.AppState.Group.Groups {
+		regionId := strings.ToLower(groupInfoV1.RegionID)
 		_, ok := groupExist[regionId]
 		if ok {
 			continue
 		}
-		groupExist[regionId] = groupInfo.Id
+		groupExist[regionId] = groupInfoV1.Id
 
-		id, err := strconv.ParseUint(groupInfo.Id, 10, 64)
+		if _, ok := groupAdmin[regionId]; !ok {
+			region, found := sk.GetRegion(ctx, regionId)
+			if found {
+				addr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
+				if err != nil {
+					panic(fmt.Sprintf("Failed to get operator address: %v", err))
+				}
+				groupAdmin[regionId] = sdk.AccAddress(addr).String()
+			}
+		}
+
+		id, err := strconv.ParseUint(groupInfoV1.Id, 10, 64)
 		if err != nil {
 			panic(fmt.Sprintf("Parse group id: %v", err))
 		}
 		if lastGroupId <= id {
 			lastGroupId = id
 		}
-		version, err := strconv.ParseUint(groupInfo.Version, 10, 64)
+		version, err := strconv.ParseUint(groupInfoV1.Version, 10, 64)
 		if err != nil {
 			panic(fmt.Sprintf("Parse group version: %v", err))
 		}
-		protoGroupInfo := megrouptypes.GroupInfo{
+		groupInfoV2 := megrouptypes.GroupInfo{
 			Id:          id,
-			Admin:       groupInfo.Admin,
-			Metadata:    groupInfo.Metadata,
+			Admin:       groupAdmin[regionId],
+			Metadata:    groupInfoV1.Metadata,
 			Version:     version,
-			TotalWeight: groupInfo.TotalWeight,
-			CreatedAt:   groupInfo.CreatedAt,
+			TotalWeight: groupInfoV1.TotalWeight,
+			CreatedAt:   groupInfoV1.CreatedAt,
 			RegionID:    regionId,
 		}
-		err = gk.AppendGroup(ctx, &protoGroupInfo)
+		err = gk.AppendGroup(ctx, &groupInfoV2)
 		if err != nil {
 			panic(fmt.Sprintf("Failed to append group: %v", err))
 		}
-		gk.SetGroupToRegion(ctx, protoGroupInfo.RegionID, protoGroupInfo.Id)
+		gk.SetGroupToRegion(ctx, groupInfoV2.RegionID, groupInfoV2.Id)
 
 		gk.SetMemberJoined(ctx, megrouptypes.MemberJoined{
-			Address: protoGroupInfo.Admin,
-			GroupId: protoGroupInfo.Id})
+			Address: groupInfoV2.Admin,
+			GroupId: groupInfoV2.Id})
 		gk.AddGroupMember(ctx, &megrouptypes.GroupMember{
-			GroupId: protoGroupInfo.Id,
+			GroupId: groupInfoV2.Id,
 			Member: &megrouptypes.Member{
-				Address:  protoGroupInfo.Admin,
+				Address:  groupInfoV2.Admin,
 				Weight:   math.NewInt(0).String(),
 				Metadata: "",
-				AddedAt:  groupInfo.CreatedAt,
+				AddedAt:  groupInfoV1.CreatedAt,
 			},
 		})
-		gk.SetGroupMemberCount(ctx, protoGroupInfo.Id, 1)
+		gk.SetGroupMemberCount(ctx, groupInfoV2.Id, 1)
 	}
 
 	gk.SetLastGroupID(ctx, lastGroupId)
 
-	for _, member := range data.AppState.Group.GroupMembers {
-		groupId, err := strconv.ParseUint(member.GroupId, 10, 64)
+	for _, memberV1 := range data.AppState.Group.GroupMembers {
+		groupId, err := strconv.ParseUint(memberV1.GroupId, 10, 64)
 		if err != nil {
 			panic(fmt.Sprintf("Parse group id: %v", err))
 		}
@@ -555,22 +581,22 @@ func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper) {
 		if !f {
 			continue
 		}
-		protoMember := megrouptypes.GroupMember{
+		memberV2 := megrouptypes.GroupMember{
 			GroupId: groupId,
 			Member: &megrouptypes.Member{
-				Address:  member.Member.Address,
-				Weight:   member.Member.Weight,
-				Metadata: member.Member.Metadata,
-				AddedAt:  member.Member.AddedAt,
+				Address:  memberV1.Member.Address,
+				Weight:   memberV1.Member.Weight,
+				Metadata: memberV1.Member.Metadata,
+				AddedAt:  memberV1.Member.AddedAt,
 			},
 		}
 
 		gk.SetMemberJoined(ctx, megrouptypes.MemberJoined{
-			Address: protoMember.Member.Address,
+			Address: memberV2.Member.Address,
 			GroupId: groupId,
 		})
 
-		err = gk.AddGroupMember(ctx, &protoMember)
+		err = gk.AddGroupMember(ctx, &memberV2)
 		if err != nil {
 			panic(fmt.Sprintf("Failed to add group member: %v", err))
 		}
