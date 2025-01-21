@@ -19,7 +19,7 @@ const registry = new Registry([
   ...CosmosBaseTendermintV1Beta1MsgTypes,
   ...CosmosTxV1Beta1MsgTypes,
   ...CosmosVestingV1Beta1MsgTypes,
-
+  
 ])
 
 export {
