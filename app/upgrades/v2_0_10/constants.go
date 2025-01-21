@@ -1,4 +1,4 @@
-package v2_0_8
+package v2_0_10
 
 import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	UpgradeName       = "v2.0.8"
+	UpgradeName       = "v2.0.10"
 	didFilePath       = "/config/did.json"
 	issuerFilePath    = "/config/issuer.json"
 	kycPubkeyFilePath = "/config/kyc_pubkey.json"

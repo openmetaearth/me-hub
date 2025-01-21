@@ -2,6 +2,8 @@ package ante
 
 import (
 	"fmt"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"math"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -126,7 +128,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		}
 	}
 
-	if !freeGas&&!simulate {
+	if !freeGas && !simulate {
 		fee, err := sdk.ParseCoinsNormalized(feePending.String())
 		if err != nil {
 			return ctx, sdkerrors.Wrap(err, "")
@@ -254,31 +256,54 @@ func (dfd DeductFeeDecorator) checkFunds(ctx sdk.Context, tx sdk.Tx, feePayer st
 	if len(fees.Denoms()) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "denom is empty")
 	}
-	userBalance := make(map[string]sdk.Coins)
-	userSendAmount := sdk.NewCoins()
+	userSendAmount := make(map[string]sdk.Coins)
 	for _, msg := range tx.GetMsgs() {
 		switch txMsg := msg.(type) {
 		case *banktypes.MsgSend:
-			userSendAmount = userBalance[txMsg.FromAddress]
-			userSendAmount = userSendAmount.Add(txMsg.Amount...)
+			sendAmount := userSendAmount[txMsg.FromAddress]
+			sendAmount = sendAmount.Add(txMsg.Amount...)
 			if txMsg.FromAddress == feePayer {
-				userSendAmount = userSendAmount.Add(fees...)
+				sendAmount = sendAmount.Add(fees...)
 			}
-			userBalance[txMsg.FromAddress] = userSendAmount
+			userSendAmount[txMsg.FromAddress] = sendAmount
+		case *banktypes.MsgMultiSend:
+			if len(txMsg.Inputs) == 0 {
+				return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "no input coins provided")
+			}
+			fromAddress := txMsg.Inputs[0].Address
+			sendAmount := userSendAmount[fromAddress]
+			for _, output := range txMsg.Outputs {
+				sendAmount = sendAmount.Add(output.Coins...)
+			}
+			if fromAddress == feePayer {
+				sendAmount = sendAmount.Add(fees...)
+			}
+			userSendAmount[fromAddress] = sendAmount
+		case *stakingtypes.MsgDelegate:
+			sendAmount := userSendAmount[txMsg.DelegatorAddress]
+			sendAmount = sendAmount.Add(txMsg.Amount)
+			if txMsg.DelegatorAddress == feePayer {
+				sendAmount = sendAmount.Add(fees...)
+			}
+			userSendAmount[txMsg.DelegatorAddress] = sendAmount
+		case *wstakingtypes.MsgDoFixedDeposit:
+			sendAmount := userSendAmount[txMsg.Account]
+			sendAmount = sendAmount.Add(txMsg.Principal)
+			if txMsg.Account == feePayer {
+				sendAmount = sendAmount.Add(fees...)
+			}
+			userSendAmount[txMsg.Account] = sendAmount
 		}
 	}
-	if _, exists := userBalance[feePayer]; !exists {
-		userBalance[feePayer] = fees
+	if _, exists := userSendAmount[feePayer]; !exists {
+		userSendAmount[feePayer] = fees
 	}
-	for address, coins := range userBalance {
+	for address, coins := range userSendAmount {
 		if len(coins) <= 0 {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid fee amount: %s", coins)
 		}
-		account, err := sdk.AccAddressFromBech32(address)
-		if err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address: %s", address)
-		}
-		balance := dfd.bk.GetBalance(ctx, account, coins[0].Denom)
+
+		balance := dfd.bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(address), coins[0].Denom)
 		sendTotalAmount := sdk.ZeroInt()
 
 		for _, coin := range coins {

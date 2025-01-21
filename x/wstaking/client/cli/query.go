@@ -26,7 +26,7 @@ func GetQueryCmd() *cobra.Command {
 		//stakingcli.GetCmdQueryRedelegations(),
 		stakingcli.GetCmdQueryValidator(),
 		stakingcli.GetCmdQueryValidators(),
-		stakingcli.GetCmdQueryValidatorDelegations(),
+		//stakingcli.GetCmdQueryValidatorDelegations(),
 		//stakingcli.GetCmdQueryValidatorUnbondingDelegations(),
 		//stakingcli.GetCmdQueryValidatorRedelegations(),
 		stakingcli.GetCmdQueryHistoricalInfo(),
@@ -51,6 +51,9 @@ func GetQueryCmd() *cobra.Command {
 		CmdQueryFixedDepositCfg(),
 		CmdShowFixedDepositTotalAmount(),
 		CmdShowFixedDepositAmountByAcct(),
+		CmdShowAllRecord(),
+		CmdShowRecordByAddress(),
+		CmdShowReviewRecord(),
 	)
 
 	return stakingQueryCmd
