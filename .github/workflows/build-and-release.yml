@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: b2-local
 
     steps:
     # Checkout the code
@@ -56,7 +56,7 @@ jobs:
         retention-days: 2
         
   release:
-    runs-on: ubuntu-latest
+    runs-on: b2-local
     needs: build
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
 
