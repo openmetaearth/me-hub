@@ -159,7 +159,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 
 	// change reward
 	if err := m.TransferApproveReward(ctx, address, msg.Issuer, perRegionId, msg.RegionId); err != nil {
-		return &types.MsgUpdateResponse{}, errors.Wrap(err, "transfer reward failed")
+		return &types.MsgUpdateResponse{}, err
 	}
 
 	// add event
