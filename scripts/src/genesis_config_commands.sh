@@ -91,7 +91,7 @@ set_bank_denom_metadata() {
                 {
                     "aliases": [],
                     "denom": "MEC",
-                    "exponent": 18
+                    "exponent": 8
                 }
             ],
             "description": "Denom metadata for MEC (umec)",

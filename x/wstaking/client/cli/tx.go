@@ -288,10 +288,14 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 
 	validatorAddress, _ := fs.GetString(FlagValidatorAddress)
 
+	accValidatorAddress, err := sdk.AccAddressFromBech32(validatorAddress)
+	if err != nil {
+		return txf, nil, err
+	}
 	msg := &stakingtypes.MsgCreateValidator{
 		Description:       description,
 		DelegatorAddress:  globalDao.String(),
-		ValidatorAddress:  sdk.ValAddress(sdk.MustAccAddressFromBech32(validatorAddress)).String(),
+		ValidatorAddress:  sdk.ValAddress(accValidatorAddress).String(),
 		Pubkey:            pkAny,
 		Value:             amount,
 		Commission:        commissionRates,
