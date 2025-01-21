@@ -136,9 +136,6 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	if strings.EqualFold(perRegionId, stktypes.ExperienceRegionName) || strings.EqualFold(msg.RegionId, stktypes.ExperienceRegionName) {
 		return nil, stktypes.ErrTransferRegion.Wrap("from region or to region is experience region")
 	}
-	if strings.EqualFold(perRegionId, msg.RegionId) {
-		return nil, stktypes.ErrTransferRegion.Wrap("from region and to region is equal")
-	}
 	// check region
 	if _, found := m.stkKeeper.GetRegion(ctx, msg.RegionId); !found {
 		return &types.MsgUpdateResponse{}, stktypes.ErrRegionNotExist
