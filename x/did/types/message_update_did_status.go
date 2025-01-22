@@ -2,6 +2,7 @@ package types
 
 import (
 	"cosmossdk.io/errors"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -43,8 +44,8 @@ func (m *MsgUpdateDidStatus) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Creator); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the creator is not a valid bech32 address")
 	}
-	if len(m.Did) != 13 {
-		return errors.Wrap(sdkerrors.ErrInvalidType, "DID length must be equal to 13")
+	if len(m.Did) != DidLength {
+		return errors.Wrap(sdkerrors.ErrInvalidType, fmt.Sprintf("DID length must be equal to %d", DidLength))
 	}
 	if _, ok := DidStatus_name[int32(m.Status)]; !ok {
 		return errors.Wrap(sdkerrors.ErrInvalidType, "DID status must be ACTIVE or INACTIVE")
