@@ -42,8 +42,8 @@ func (m *MsgRemove) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Issuer); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the issuer is not a valid bech32 address")
 	}
-	if len(m.Did) != 16 {
-		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "DID length must be equal to 16")
+	if len(m.Did) != 13 {
+		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "DID length must be equal to 13")
 	}
 
 	return nil

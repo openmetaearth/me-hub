@@ -43,8 +43,8 @@ func (m *MsgUpdateDidStatus) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Creator); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the creator is not a valid bech32 address")
 	}
-	if len(m.Did) != 16 {
-		return errors.Wrap(sdkerrors.ErrInvalidType, "DID length must be equal to 16")
+	if len(m.Did) != 13 {
+		return errors.Wrap(sdkerrors.ErrInvalidType, "DID length must be equal to 13")
 	}
 	if _, ok := DidStatus_name[int32(m.Status)]; !ok {
 		return errors.Wrap(sdkerrors.ErrInvalidType, "DID status must be ACTIVE or INACTIVE")

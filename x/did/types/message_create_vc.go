@@ -54,8 +54,8 @@ func (m *MsgCreateVC) ValidateBasic() error {
 	}
 
 	// check holder
-	if len(m.Did) != 16 {
-		return errors.Wrap(sdkerrors.ErrInvalidType, "DID length must be equal to 16")
+	if len(m.Did) != 13 {
+		return errors.Wrap(sdkerrors.ErrInvalidType, "DID length must be equal to 13")
 	}
 
 	if len(m.Sid) < 2 || len(m.Sid) > 8 {

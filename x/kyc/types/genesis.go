@@ -16,8 +16,8 @@ func DefaultGenesis() *GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 	for _, issuer := range gs.Issuers {
-		if len(issuer.Did) != 16 {
-			return fmt.Errorf("DID length must be equal to 16")
+		if len(issuer.Did) != 13 {
+			return fmt.Errorf("DID length must be equal to 13")
 		}
 
 		if issuer.Pubkey == "" {
