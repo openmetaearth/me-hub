@@ -2,6 +2,7 @@ package types
 
 import (
 	"cosmossdk.io/errors"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -54,8 +55,8 @@ func (m *MsgCreateVC) ValidateBasic() error {
 	}
 
 	// check holder
-	if len(m.Did) != 13 {
-		return errors.Wrap(sdkerrors.ErrInvalidType, "DID length must be equal to 13")
+	if len(m.Did) != DidLength {
+		return errors.Wrap(sdkerrors.ErrInvalidType, fmt.Sprintf("DID length must be equal to %d", DidLength))
 	}
 
 	if len(m.Sid) < 2 || len(m.Sid) > 8 {
