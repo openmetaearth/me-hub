@@ -67,7 +67,7 @@ func (k MsgServer) RemoveFixedDepositCfg(goCtx context.Context, msg *types.MsgRe
 	}
 
 	count := k.GetFixedDepositCountOfCfg(ctx, msg.RegionId, msg.Term)
-	if count != 0 {
+	if count == 0 {
 		return nil, types.ErrRemoveFixedDepositConfig.Wrapf("remove fixed deposit config error:(%s)", types.ErrFixedDepositExistUnderConfig)
 	}
 
