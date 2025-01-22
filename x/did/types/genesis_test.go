@@ -12,7 +12,7 @@ func TestGenesisState_Validate(t *testing.T) {
 	test := types.GenesisState{
 		Infos: []types.DidInfo{
 			types.DidInfo{
-				Did:    "1000000000000001",
+				Did:    "1000000000001",
 				Pubkey: "{\"@type\":\"/ethermint.crypto.v1.ethsecp256k1.PubKey\",\"key\":\"AjkBriaNQIyoihm/Op5a53ovjdThnbs8G3GhSdErW7Mt\"}",
 				Status: types.DID_STATUS_ACTIVE,
 			},
@@ -22,13 +22,13 @@ func TestGenesisState_Validate(t *testing.T) {
 				Sid:         "kyc",
 				Name:        "kyc",
 				Description: "this is kyc test service.",
-				Issuer:      "1000000000000001",
+				Issuers:     []string{"1000000000001"},
 				Status:      types.SERVICE_STATUS_ACTIVE,
 			},
 		},
 		Vcs: []types.Credential{
 			types.Credential{
-				Did:  "1000000000000001",
+				Did:  "1000000000001",
 				Sid:  "kyc",
 				Hash: "0000000000000000001",
 				Uri:  "http://metaearth.com/files/0001.vc",
@@ -37,7 +37,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		},
 		Flogs: []types.FilterLogger{
 			types.FilterLogger{
-				Did: "000000000000001",
+				Did: "000000000001",
 				Sid: "kyc",
 				Filters: [][]byte{
 					[]byte("A0"),

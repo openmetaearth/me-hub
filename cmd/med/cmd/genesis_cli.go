@@ -130,7 +130,7 @@ func SetGenesisIssuerToGenesis(
 
 	genState.Issuers = []didtypes.DidInfo{
 		{
-			Did:    "1000000000000001",
+			Did:    "1000000000001",
 			Pubkey: pkStr,
 			Status: didtypes.DID_STATUS_ACTIVE,
 		},

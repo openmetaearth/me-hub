@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"strings"
 
 	"cosmossdk.io/errors"
@@ -57,8 +58,8 @@ func (m *MsgApprove) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Issuer); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the issuer is not a valid bech32 address")
 	}
-	if len(m.Did) != 16 {
-		return errors.Wrapf(sdkerrors.ErrInvalidType, "DID length must be equal to 16")
+	if len(m.Did) != didtypes.DidLength {
+		return errors.Wrapf(sdkerrors.ErrInvalidType, fmt.Sprintf("DID length must be equal to %d", didtypes.DidLength))
 	}
 	if _, err := utils.CheckRegionName(strings.ToUpper(m.RegionId)); err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidType, err.Error())

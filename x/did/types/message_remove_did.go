@@ -2,6 +2,7 @@ package types
 
 import (
 	"cosmossdk.io/errors"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -42,8 +43,8 @@ func (m *MsgRemoveDid) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Creator); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the creator is not a valid bech32 address")
 	}
-	if len(m.Did) != 16 {
-		return errors.Wrap(sdkerrors.ErrInvalidType, "DID length must be equal to 16")
+	if len(m.Did) != DidLength {
+		return errors.Wrap(sdkerrors.ErrInvalidType, fmt.Sprintf("DID length must be equal to %d", DidLength))
 	}
 
 	return nil

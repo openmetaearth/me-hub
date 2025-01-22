@@ -2,6 +2,7 @@ package types
 
 import (
 	"cosmossdk.io/errors"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -60,8 +61,8 @@ func (m *MsgCreateService) ValidateBasic() error {
 		return errors.Wrap(sdkerrors.ErrInvalidType, "description length exceeds 1024")
 	}
 	for _, issuer := range m.Issuers {
-		if len(issuer) != 16 {
-			return errors.Wrap(sdkerrors.ErrInvalidType, "issuer length must be equal to 16")
+		if len(issuer) != DidLength {
+			return errors.Wrap(sdkerrors.ErrInvalidType, fmt.Sprintf("issuer length must be equal to %d", DidLength))
 		}
 	}
 
