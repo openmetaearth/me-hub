@@ -52,8 +52,8 @@ func (m *MsgUpdateVC) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Issuer); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the creator is not a valid bech32 address")
 	}
-	if len(m.Did) != 16 {
-		return errors.Wrap(sdkerrors.ErrInvalidType, "DID length must be equal to 16")
+	if len(m.Did) != 13 {
+		return errors.Wrap(sdkerrors.ErrInvalidType, "DID length must be equal to 13")
 	}
 	if len(m.Sid) < 2 || len(m.Sid) > 8 {
 		return errors.Wrap(sdkerrors.ErrInvalidType, "sid length must be between 2 and 8")
