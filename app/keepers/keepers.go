@@ -207,10 +207,6 @@ func (a *AppKeepers) InitKeepers(
 
 	a.CapabilityKeeper.Seal()
 
-	a.CrisisKeeper = crisiskeeper.NewKeeper(
-		appCodec, a.keys[crisistypes.StoreKey], invCheckPeriod, a.BankKeeper, authtypes.FeeCollectorName, govModuleAddress,
-	)
-
 	a.UpgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights,
 		a.keys[upgradetypes.StoreKey],
@@ -257,6 +253,10 @@ func (a *AppKeepers) InitKeepers(
 		a.DaoKeeper,
 		moduleAccountAddrs,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
+	a.CrisisKeeper = crisiskeeper.NewKeeper(
+		appCodec, a.keys[crisistypes.StoreKey], invCheckPeriod, a.BankKeeper, authtypes.FeeCollectorName, govModuleAddress,
 	)
 
 	a.WNFTKeeper = wnftkeeper.NewKeeper(
