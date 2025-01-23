@@ -25,32 +25,22 @@ import (
 	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/gov/client"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/nft"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
-	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v7/modules/core"
-	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	"github.com/evmos/ethermint/x/evm"
-	evmclient "github.com/evmos/ethermint/x/evm/client"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
@@ -73,7 +63,6 @@ import (
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	"github.com/st-chain/me-hub/x/wbank"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
-	"github.com/st-chain/me-hub/x/wdistri"
 	wdistr "github.com/st-chain/me-hub/x/wdistri"
 	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 	"github.com/st-chain/me-hub/x/wgov"
@@ -93,92 +82,13 @@ import (
 	sequencermodule "github.com/st-chain/me-hub/x/sequencer"
 	streamermodule "github.com/st-chain/me-hub/x/streamer"
 
-	"github.com/st-chain/me-hub/x/delayedack"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
-	"github.com/st-chain/me-hub/x/denommetadata"
-	denommetadatamoduleclient "github.com/st-chain/me-hub/x/denommetadata/client"
 	denommetadatamoduletypes "github.com/st-chain/me-hub/x/denommetadata/types"
-	"github.com/st-chain/me-hub/x/eibc"
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
 	meevm "github.com/st-chain/me-hub/x/evm"
 	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
-	"github.com/st-chain/me-hub/x/rollapp"
-
-	rollappmoduleclient "github.com/st-chain/me-hub/x/rollapp/client"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
-	"github.com/st-chain/me-hub/x/sequencer"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
-	"github.com/st-chain/me-hub/x/streamer"
-	streamermoduleclient "github.com/st-chain/me-hub/x/streamer/client"
-)
-
-// ModuleBasics defines the module BasicManager is in charge of setting up basic,
-// non-dependant module elements, such as codec registration
-// and genesis verification.
-var ModuleBasics = module.NewBasicManager(
-	auth.AppModuleBasic{},
-	authzmodule.AppModuleBasic{},
-	genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-	wbank.AppModuleBasic{},
-	capability.AppModuleBasic{},
-	consensus.AppModuleBasic{},
-	//staking.AppModuleBasic{},
-	wstaking.AppModuleBasic{},
-	wmint.AppModuleBasic{},
-	wdistri.AppModuleBasic{},
-	gov.NewAppModuleBasic([]client.ProposalHandler{
-		paramsclient.ProposalHandler,
-		upgradeclient.LegacyProposalHandler,
-		upgradeclient.LegacyCancelProposalHandler,
-		ibcclientclient.UpdateClientProposalHandler,
-		ibcclientclient.UpgradeProposalHandler,
-		streamermoduleclient.CreateStreamHandler,
-		streamermoduleclient.TerminateStreamHandler,
-		streamermoduleclient.ReplaceStreamHandler,
-		streamermoduleclient.UpdateStreamHandler,
-		rollappmoduleclient.SubmitFraudHandler,
-		denommetadatamoduleclient.CreateDenomMetadataHandler,
-		denommetadatamoduleclient.UpdateDenomMetadataHandler,
-		evmclient.UpdateVirtualFrontierBankContractProposalHandler,
-	}),
-	params.AppModuleBasic{},
-	crisis.AppModuleBasic{},
-	slashing.AppModuleBasic{},
-	feegrantmodule.AppModuleBasic{},
-	ibc.AppModuleBasic{},
-	ibctm.AppModuleBasic{},
-	upgrade.AppModuleBasic{},
-	evidence.AppModuleBasic{},
-	transfer.AppModuleBasic{},
-	vesting.AppModuleBasic{},
-	rollapp.AppModuleBasic{},
-	sequencer.AppModuleBasic{},
-	streamer.AppModuleBasic{},
-	denommetadata.AppModuleBasic{},
-	packetforward.AppModuleBasic{},
-	delayedack.AppModuleBasic{},
-	eibc.AppModuleBasic{},
-
-	// Ethermint modules
-	evm.AppModuleBasic{},
-	feemarket.AppModuleBasic{},
-
-	// did modules
-	did.AppModuleBasic{},
-	kyc.AppModuleBasic{},
-
-	// Osmosis modules
-	lockup.AppModuleBasic{},
-	epochs.AppModuleBasic{},
-	gamm.AppModuleBasic{},
-	poolmanager.AppModuleBasic{},
-	incentives.AppModuleBasic{},
-	txfees.AppModuleBasic{},
-	dao.AppModuleBasic{},
-	//nftmodule.AppModuleBasic{},
-	wnft.AppModuleBasic{},
-	wasm.AppModuleBasic{},
-	groupmodule.AppModuleBasic{},
 )
 
 func (a *AppKeepers) SetupModules(
