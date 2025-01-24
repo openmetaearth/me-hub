@@ -512,15 +512,17 @@ func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper, sk *wsta
 	groupAdmin := make(map[string]string)
 	for _, groupInfoV1 := range data.AppState.Group.Groups {
 		regionId := strings.ToLower(groupInfoV1.RegionID)
-		_, ok := groupExist[regionId]
-		if ok {
+		if _, ok := groupExist[regionId]; ok {
 			continue
 		}
+
 		groupExist[regionId] = groupInfoV1.Id
 
 		if _, ok := groupAdmin[regionId]; !ok {
 			region, found := sk.GetRegion(ctx, regionId)
-			if found {
+			if !found {
+				continue
+			} else {
 				addr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
 				if err != nil {
 					panic(fmt.Sprintf("Failed to get operator address: %v", err))
@@ -558,6 +560,7 @@ func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper, sk *wsta
 		gk.SetMemberJoined(ctx, megrouptypes.MemberJoined{
 			Address: groupInfoV2.Admin,
 			GroupId: groupInfoV2.Id})
+
 		gk.AddGroupMember(ctx, &megrouptypes.GroupMember{
 			GroupId: groupInfoV2.Id,
 			Member: &megrouptypes.Member{
@@ -577,10 +580,12 @@ func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper, sk *wsta
 		if err != nil {
 			panic(fmt.Sprintf("Parse group id: %v", err))
 		}
+
 		_, f := gk.GetGroupInfo(ctx, groupId)
 		if !f {
 			continue
 		}
+
 		memberV2 := megrouptypes.GroupMember{
 			GroupId: groupId,
 			Member: &megrouptypes.Member{
