@@ -183,8 +183,8 @@ proto-gen:
 	@go mod tidy
 
 proto-swagger-gen:
-	@#echo "Downloading Protobuf dependencies"
-	@#make proto-download-deps
+	@echo "Downloading Protobuf dependencies"
+	@make proto-download-deps
 	@echo "Generating Protobuf Swagger"
 	@$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
 
