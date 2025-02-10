@@ -55,6 +55,16 @@
       }
     },
     {
+      "url": "./tmp-swagger-gen/metaearth/wstaking/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "WstakingParams",
+          "DelegationRewards": "WstakingDelegationRewards",
+          "Delegation": "WstakingDelegation"
+        }
+      }
+    },
+    {
       "url": "./tmp-swagger-gen/dymensionxyz/dymension/delayedack/query.swagger.json",
       "operationIds": {
         "rename": {
