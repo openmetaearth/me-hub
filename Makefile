@@ -107,13 +107,17 @@ build-debug: go.sum
 	go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -gcflags "all=-N -l" -o $(BUILDDIR)/med ./cmd/med
 
 build-linux: go.sum
-	@CC=x86_64-unknown-linux-gnu-gcc CGO_ENABLED=1 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/med ./cmd/med
+	CC=x86_64-unknown-linux-gnu-gcc CGO_ENABLED=1 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/med ./cmd/med
+
+build-linux-debug: go.sum
+	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)))
+	CC=x86_64-unknown-linux-gnu-gcc CGO_ENABLED=1 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -gcflags "all=-N -l" -o $(BUILDDIR)/med-debug ./cmd/med
 
 docker-build:
-	@DOCKER_BUILDKIT=1 docker build -t ghcr.io/me-hub/med:2.0.0 -f Dockerfile .
+	DOCKER_BUILDKIT=1 docker build -t ghcr.io/me-hub/med:2.0.0 -f Dockerfile .
 
 docker-build-e2e-debug:
-	@DOCKER_BUILDKIT=1 CGO_ENABLED=0 docker build -t ghcr.io/dymensionxyz/dymension:e2e-debug -f Dockerfile.debug .
+	DOCKER_BUILDKIT=1 CGO_ENABLED=0 docker build -t ghcr.io/dymensionxyz/dymension:e2e-debug -f Dockerfile.debug .
 
 docker-run-debug:
 	@DOCKER_BUILDKIT=1 docker-compose -f docker-compose.debug.yml up

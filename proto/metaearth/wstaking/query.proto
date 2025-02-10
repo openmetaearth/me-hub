@@ -20,28 +20,28 @@ option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
 service Query {
   // Queries a list of Region items.
   rpc Region(QueryRegionRequest) returns (QueryRegionResponse) {
-    option (google.api.http).get = "/cosmos/staking/v1beta1/region/{regionId}";
+    option (google.api.http).get = "/metaearth/wstaking/region/{regionId}";
   }
 
   rpc AllRegion(QueryAllRegionRequest) returns (QueryAllRegionResponse) {
-    option (google.api.http).get = "/cosmos/staking/v1beta1/all-region";
+    option (google.api.http).get = "/metaearth/wstaking/all-region";
   }
 
   rpc DelegationRewards(QueryDelegationRewardsRequest) returns (QueryDelegationRewardsResponse) {
-    option (google.api.http).get = "/cosmos/distribution/v1beta1/rewards/{delegator_address}";
+    option (google.api.http).get = "/metaearth/wstaking/delegation-rewards/{delegator_address}";
   }
 
   rpc FixedDepositTotalAmount(QueryFixedDepositTotalAmountRequest) returns (QueryFixedDepositTotalAmountResponse) {
-    option (google.api.http).get = "/cosmos/staking/v1beta1/fixed_deposit_total_amount";
+    option (google.api.http).get = "/metaearth/wstaking/fixed_deposit_total_amount";
   }
 
   rpc FixedDepositAmountByMeid(QueryFixedDepositAmountByMeidRequest) returns (QueryFixedDepositAmountByMeidResponse) {
-    option (google.api.http).get = "/cosmos/staking/v1beta1/fixed_deposit_amount_by_meid/{account}";
+    option (google.api.http).get = "/metaearth/wstaking/fixed_deposit_amount_by_meid/{account}";
   }
 
   // Queries a list of FixedDepositByAcct items.
   rpc FixedDepositByAcct(QueryFixedDepositByAcctRequest) returns (QueryFixedDepositByAcctResponse) {
-    option (google.api.http).get = "/cosmos/staking/v1beta1/fixed_deposit_by_acct/{account}/{query_type}";
+    option (google.api.http).get = "/metaearth/wstaking/fixed_deposit_by_acct/{account}/{query_type}";
   }
 
 //  // Queries a list of FixedDepositByRegion items.
@@ -51,43 +51,43 @@ service Query {
 
   // Queries a list of FixedDeposit items.
   rpc FixedDeposit(QueryGetFixedDepositRequest) returns (QueryGetFixedDepositResponse) {
-    option (google.api.http).get = "/cosmos/staking/v1beta1/fixed_deposit/{id}";
+    option (google.api.http).get = "/metaearth/wstaking/fixed_deposit/{id}";
   }
   rpc FixedDepositAll(QueryAllFixedDepositRequest) returns (QueryAllFixedDepositResponse) {
-    option (google.api.http).get = "/cosmos/staking/v1beta1/fixed_deposit";
+    option (google.api.http).get = "/metaearth/wstaking/fixed_deposit";
   }
 
   rpc FixedDepositCfg(QueryFixedDepositCfgRequest)
       returns (QueryFixedDepositCfgResponse) {
-    option (google.api.http).get = "/cosmos/staking/v1beta1/fixed_deposit_cfg";
+    option (google.api.http).get = "/metaearth/wstaking/fixed_deposit_cfg";
   }
 
   rpc FixedDepositCfgByTerm(QueryFixedDepositCfgByTermRequest)
       returns (QueryFixedDepositCfgByTermResponse) {
-    option (google.api.http).get = "/cosmos/staking/v1beta1/fixed_deposit_cfg_by_term";
+    option (google.api.http).get = "/metaearth/wstaking/fixed_deposit_cfg_by_term";
   }
 
   // Delegation queries delegate info for given validator delegator pair.
   rpc Delegation(cosmos.staking.v1beta1.QueryDelegationRequest) returns (cosmos.staking.v1beta1.QueryDelegationResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/cosmos/staking/v1beta1/delegation/{delegator_addr}";
+    option (google.api.http).get               = "/metaearth/wstaking/delegation/{delegator_addr}";
   }
 
   rpc Stakes(QueryStakesRequest) returns (QueryStakesResponse) {
-    option (google.api.http).get = "/cosmos/staking/v1beta1/stakes";
+    option (google.api.http).get = "/metaearth/wstaking/stakes";
   }
 
   //Queries a list of Record 
   rpc QueryAllRecord(QueryAllRecords) returns (QueryAllRecordsResponse) {
-    option (google.api.http).get = "/cosmos/staking/v1beta1/records";
+    option (google.api.http).get = "/metaearth/wstaking/records";
   }
 
   rpc QueryRecordByAddress(QueryRecordsByAddress) returns (QueryRecordsByAddressResponse) {
-    option (google.api.http).get =  "/cosmos/staking/v1beta1/record/{account}";
+    option (google.api.http).get =  "/metaearth/wstaking/record/{account}";
   }
 
   rpc QueryReviewRecordByID(QueryReviewRecordByNumber) returns (QueryReviewRecordByNumberResponse) {
-    option (google.api.http).get =  "/cosmos/staking/v1beta1/review_record/{actionNumber}";
+    option (google.api.http).get =  "/metaearth/wstaking/review_record/{actionNumber}";
   }
 }
 
@@ -107,8 +107,7 @@ message QueryAllRegionResponse {
   repeated Region                        region     = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
-// QueryDelegationRewardsRequest is the request type for the
-// Query/DelegationRewards RPC method.
+
 message QueryDelegationRewardsRequest {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
@@ -119,8 +118,6 @@ message QueryDelegationRewardsRequest {
   string validator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
-// QueryDelegationRewardsResponse is the response type for the
-// Query/DelegationRewards RPC method.
 message QueryDelegationRewardsResponse {
   // rewards defines the rewards accrued by a delegation.
   repeated cosmos.base.v1beta1.DecCoin rewards = 1 [
@@ -231,8 +228,9 @@ message QueryRecordsByAddressResponse {
 }
 
 message QueryReviewRecordByNumber{
-  string actionNumber = 1;
+  string actionumber = 1;
 }
+
 message QueryReviewRecordByNumberResponse {
    ReviewRecord                           reviewRecord       = 1 [(gogoproto.nullable) = false];
   //  cosmos.base.query.v1beta1.PageResponse pagination = 2;
