@@ -159,28 +159,24 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 // the keeper.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *wstakingtypes.GenesisState {
 	var unbondingDelegations []types.UnbondingDelegation
-
 	k.IterateUnbondingDelegations(ctx, func(_ int64, ubd types.UnbondingDelegation) (stop bool) {
 		unbondingDelegations = append(unbondingDelegations, ubd)
 		return false
 	})
 
 	var unbondingStakes []wstakingtypes.UnbondingStake
-
 	k.IterateUnbondingStakes(ctx, func(ubs wstakingtypes.UnbondingStake) (stop bool) {
 		unbondingStakes = append(unbondingStakes, ubs)
 		return false
 	})
 
 	var redelegations []types.Redelegation
-
 	k.IterateRedelegations(ctx, func(_ int64, red types.Redelegation) (stop bool) {
 		redelegations = append(redelegations, red)
 		return false
 	})
 
 	var lastValidatorPowers []wstakingtypes.LastValidatorPower
-
 	k.IterateLastValidatorPowers(ctx, func(addr sdk.ValAddress, power int64) (stop bool) {
 		lastValidatorPowers = append(lastValidatorPowers, wstakingtypes.LastValidatorPower{Address: addr.String(), Power: power})
 		return false

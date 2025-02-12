@@ -73,9 +73,9 @@ func (m *MsgApprove) ValidateBasic() error {
 	if _, ok := didtypes.KycLevel_name[int32(m.Level)]; !ok {
 		return errors.Wrap(sdkerrors.ErrInvalidType, "the level is not valid")
 	}
-	if len(m.Hash) == 0 || len(m.Hash) > 128 {
-		return errors.Wrap(sdkerrors.ErrInvalidType, "hash length must be between 0 and 128")
-	}
+	//if len(m.Hash) == 0 || len(m.Hash) > 128 {
+	//	return errors.Wrap(sdkerrors.ErrInvalidType, "hash length must be between 0 and 128")
+	//}
 	if m.Inviter != "" {
 		if _, err := sdk.AccAddressFromBech32(m.Inviter); err != nil {
 			return errors.Wrap(sdkerrors.ErrInvalidAddress, "the inviter is not a valid bech32 address")
