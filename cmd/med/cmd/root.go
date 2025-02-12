@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"errors"
-	"github.com/evmos/ethermint/crypto/hd"
 	"io"
 	"os"
+
+	"github.com/evmos/ethermint/crypto/hd"
 
 	ethermintserver "github.com/evmos/ethermint/server"
 	v2 "github.com/st-chain/me-hub/app/upgrades/v2_0_10"
@@ -230,6 +231,7 @@ func txCommand() *cobra.Command {
 		flags.LineBreak,
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
+		GetEncodeToRawTxCommand(),
 		authcmd.GetDecodeCommand(),
 		authcmd.GetAuxToFeeCommand(),
 	)
