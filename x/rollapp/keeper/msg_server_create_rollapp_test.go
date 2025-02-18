@@ -164,6 +164,11 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 			rollappId: "-1234",
 			eip:       false,
 			valid:     false,
+		}, {
+			name:      "default is valid without revision number",
+			rollappId: "rollapp_1234",
+			eip:       true,
+			valid:     true,
 		},
 	}
 	for _, test := range tests {

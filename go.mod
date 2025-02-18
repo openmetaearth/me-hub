@@ -270,8 +270,11 @@ require (
 )
 
 replace (
-	github.com/cosmos/cosmos-sdk => github.com/st-chain/cosmos-sdk v0.47.14-0.20250102055730-c1d75798a3bb
-	github.com/evmos/ethermint => github.com/st-chain/ethermint v0.0.0-20241011062015-96743bd744bb
+	//github.com/cosmos/cosmos-sdk => github.com/st-chain/cosmos-sdk v0.47.14-0.20250102055730-c1d75798a3bb
+	github.com/cosmos/cosmos-sdk => ../cosmos-sdk
+	github.com/cosmos/ibc-go/v7 => ../ibc-go
+	//github.com/evmos/ethermint => github.com/st-chain/ethermint v0.0.0-20241011062015-96743bd744bb
+	github.com/evmos/ethermint => ../ethermint
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1
 	github.com/osmosis-labs/osmosis/v15 => github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240627111157-f2243f47cdb3

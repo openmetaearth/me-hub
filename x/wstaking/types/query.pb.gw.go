@@ -739,15 +739,15 @@ func request_Query_QueryReviewRecordByID_0(ctx context.Context, marshaler runtim
 		_   = err
 	)
 
-	val, ok = pathParams["actionNumber"]
+	val, ok = pathParams["action_number"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "actionNumber")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "action_number")
 	}
 
 	protoReq.ActionNumber, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "actionNumber", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "action_number", err)
 	}
 
 	msg, err := client.QueryReviewRecordByID(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -766,15 +766,15 @@ func local_request_Query_QueryReviewRecordByID_0(ctx context.Context, marshaler 
 		_   = err
 	)
 
-	val, ok = pathParams["actionNumber"]
+	val, ok = pathParams["action_number"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "actionNumber")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "action_number")
 	}
 
 	protoReq.ActionNumber, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "actionNumber", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "action_number", err)
 	}
 
 	msg, err := server.QueryReviewRecordByID(ctx, &protoReq)
@@ -1506,7 +1506,7 @@ var (
 
 	pattern_Query_QueryRecordByAddress_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "wstaking", "record", "account"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_QueryReviewRecordByID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "wstaking", "review_record", "actionNumber"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_QueryReviewRecordByID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "wstaking", "review_record", "action_number"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

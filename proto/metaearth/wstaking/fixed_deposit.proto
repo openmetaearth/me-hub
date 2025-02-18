@@ -8,8 +8,6 @@ import "cosmos_proto/cosmos.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
-import "tendermint/types/types.proto";
-import "amino/amino.proto";
 
 enum FixedDepositState {
   ALL_STATE   = 0 [(gogoproto.enumvalue_customname) = "AllState"];

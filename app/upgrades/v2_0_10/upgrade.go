@@ -327,8 +327,8 @@ func migrateKycData(ctx sdk.Context,
 				didtypes.Credential{
 					Did:  did.Did,
 					Sid:  service.Sid,
-					Hash: "",
-					Uri:  "",
+					Uri:  did.KycUri,
+					Hash: did.KycUriHash,
 					Data: []byte(oldRecord.RegionId),
 				},
 			)
@@ -355,7 +355,7 @@ func migrateNFTtoSBT(ctx sdk.Context,
 			Id:          kyctypes.ModuleName,
 			Name:        kyctypes.ModuleName,
 			Symbol:      "SBT",
-			Description: "Soulbound Token",
+			Description: "Soul Bound Token",
 			Uri:         "",
 			UriHash:     "",
 			Data:        nil,
@@ -434,9 +434,11 @@ func ReadIssuer(path string) (issuer []didtypes.DidInfo, err error) {
 }
 
 type DidData struct {
-	Did     string `json:"did"`
-	Uri     string `json:"uri"`
-	UriHash string `json:"uri_hash"`
+	Did        string `json:"did"`
+	Uri        string `json:"uri"`
+	UriHash    string `json:"uri_hash"`
+	KycUri     string `json:"kyc_uri"`
+	KycUriHash string `json:"kyc_uri_hash"`
 }
 
 func ReadDID(path string) (map[string]DidData, error) {

@@ -34,10 +34,6 @@ export interface QueryAllRegionResponse {
   pagination: PageResponse | undefined;
 }
 
-/**
- * QueryDelegationRewardsRequest is the request type for the
- * Query/DelegationRewards RPC method.
- */
 export interface QueryDelegationRewardsRequest {
   /** delegator_address defines the delegator address to query for. */
   delegatorAddress: string;
@@ -45,10 +41,6 @@ export interface QueryDelegationRewardsRequest {
   validatorAddress: string;
 }
 
-/**
- * QueryDelegationRewardsResponse is the response type for the
- * Query/DelegationRewards RPC method.
- */
 export interface QueryDelegationRewardsResponse {
   /** rewards defines the rewards accrued by a delegation. */
   rewards: DecCoin[];

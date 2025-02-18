@@ -9,6 +9,18 @@
  * ---------------------------------------------------------------
  */
 
+/**
+* Params defines the set of on-chain interchain accounts parameters.
+The following parameters may be used to disable the host submodule.
+*/
+export interface Hostv1Params {
+  /** host_enabled enables or disables the host submodule. */
+  host_enabled?: boolean;
+
+  /** allow_messages defines a list of sdk message typeURLs allowed to be executed on a host chain. */
+  allow_messages?: string[];
+}
+
 export interface ProtobufAny {
   "@type"?: string;
 }
@@ -20,16 +32,15 @@ export interface RpcStatus {
   details?: ProtobufAny[];
 }
 
-/**
-* Params defines the set of on-chain interchain accounts parameters.
-The following parameters may be used to disable the host submodule.
-*/
-export interface V1Params {
-  /** host_enabled enables or disables the host submodule. */
-  host_enabled?: boolean;
+export interface V1MsgModuleQuerySafeResponse {
+  /**
+   * height at which the responses were queried
+   * @format uint64
+   */
+  height?: string;
 
-  /** allow_messages defines a list of sdk message typeURLs allowed to be executed on a host chain. */
-  allow_messages?: string[];
+  /** protobuf encoded responses for each query */
+  responses?: string[];
 }
 
 /**
@@ -37,7 +48,26 @@ export interface V1Params {
  */
 export interface V1QueryParamsResponse {
   /** params defines the parameters of the module. */
-  params?: V1Params;
+  params?: Hostv1Params;
+}
+
+/**
+* QueryRequest defines the parameters for a particular query request
+by an interchain account.
+*/
+export interface V1QueryRequest {
+  /**
+   * path defines the path of the query request as defined by ADR-021.
+   * https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-021-protobuf-query-encoding.md#custom-query-registration-and-routing
+   */
+  path?: string;
+
+  /**
+   * data defines the payload of the query request as defined by ADR-021.
+   * https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-021-protobuf-query-encoding.md#custom-query-registration-and-routing
+   * @format byte
+   */
+  data?: string;
 }
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, ResponseType } from "axios";

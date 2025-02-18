@@ -7,36 +7,18 @@ import { msgTypes } from './registry';
 import { IgniteClient } from "../client"
 import { MissingWalletError } from "../helpers"
 import { Api } from "./rest";
-import { MsgUpdateSBT } from "./types/metaearth/kyc/tx";
-import { MsgDeleteSBT } from "./types/metaearth/kyc/tx";
-import { MsgApprove } from "./types/metaearth/kyc/tx";
 import { MsgUpdate } from "./types/metaearth/kyc/tx";
 import { MsgRemove } from "./types/metaearth/kyc/tx";
 import { MsgCreateSBT } from "./types/metaearth/kyc/tx";
+import { MsgDeleteSBT } from "./types/metaearth/kyc/tx";
+import { MsgUpdateSBT } from "./types/metaearth/kyc/tx";
+import { MsgApprove } from "./types/metaearth/kyc/tx";
 
 import { KycEventSeq as typeKycEventSeq} from "./types"
 import { Region as typeRegion} from "./types"
 import { Protocol as typeProtocol} from "./types"
 
-export { MsgUpdateSBT, MsgDeleteSBT, MsgApprove, MsgUpdate, MsgRemove, MsgCreateSBT };
-
-type sendMsgUpdateSBTParams = {
-  value: MsgUpdateSBT,
-  fee?: StdFee,
-  memo?: string
-};
-
-type sendMsgDeleteSBTParams = {
-  value: MsgDeleteSBT,
-  fee?: StdFee,
-  memo?: string
-};
-
-type sendMsgApproveParams = {
-  value: MsgApprove,
-  fee?: StdFee,
-  memo?: string
-};
+export { MsgUpdate, MsgRemove, MsgCreateSBT, MsgDeleteSBT, MsgUpdateSBT, MsgApprove };
 
 type sendMsgUpdateParams = {
   value: MsgUpdate,
@@ -56,18 +38,24 @@ type sendMsgCreateSBTParams = {
   memo?: string
 };
 
-
-type msgUpdateSBTParams = {
-  value: MsgUpdateSBT,
-};
-
-type msgDeleteSBTParams = {
+type sendMsgDeleteSBTParams = {
   value: MsgDeleteSBT,
+  fee?: StdFee,
+  memo?: string
 };
 
-type msgApproveParams = {
-  value: MsgApprove,
+type sendMsgUpdateSBTParams = {
+  value: MsgUpdateSBT,
+  fee?: StdFee,
+  memo?: string
 };
+
+type sendMsgApproveParams = {
+  value: MsgApprove,
+  fee?: StdFee,
+  memo?: string
+};
+
 
 type msgUpdateParams = {
   value: MsgUpdate,
@@ -79,6 +67,18 @@ type msgRemoveParams = {
 
 type msgCreateSBTParams = {
   value: MsgCreateSBT,
+};
+
+type msgDeleteSBTParams = {
+  value: MsgDeleteSBT,
+};
+
+type msgUpdateSBTParams = {
+  value: MsgUpdateSBT,
+};
+
+type msgApproveParams = {
+  value: MsgApprove,
 };
 
 
@@ -110,48 +110,6 @@ interface TxClientOptions {
 export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "http://localhost:26657", prefix: "cosmos" }) => {
 
   return {
-		
-		async sendMsgUpdateSBT({ value, fee, memo }: sendMsgUpdateSBTParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgUpdateSBT: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgUpdateSBT({ value: MsgUpdateSBT.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgUpdateSBT: Could not broadcast Tx: '+ e.message)
-			}
-		},
-		
-		async sendMsgDeleteSBT({ value, fee, memo }: sendMsgDeleteSBTParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgDeleteSBT: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgDeleteSBT({ value: MsgDeleteSBT.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgDeleteSBT: Could not broadcast Tx: '+ e.message)
-			}
-		},
-		
-		async sendMsgApprove({ value, fee, memo }: sendMsgApproveParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgApprove: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgApprove({ value: MsgApprove.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgApprove: Could not broadcast Tx: '+ e.message)
-			}
-		},
 		
 		async sendMsgUpdate({ value, fee, memo }: sendMsgUpdateParams): Promise<DeliverTxResponse> {
 			if (!signer) {
@@ -195,30 +153,48 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		
-		msgUpdateSBT({ value }: msgUpdateSBTParams): EncodeObject {
-			try {
-				return { typeUrl: "/metaearth.kyc.MsgUpdateSBT", value: MsgUpdateSBT.fromPartial( value ) }  
+		async sendMsgDeleteSBT({ value, fee, memo }: sendMsgDeleteSBTParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgDeleteSBT: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgDeleteSBT({ value: MsgDeleteSBT.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
-				throw new Error('TxClient:MsgUpdateSBT: Could not create message: ' + e.message)
+				throw new Error('TxClient:sendMsgDeleteSBT: Could not broadcast Tx: '+ e.message)
 			}
 		},
 		
-		msgDeleteSBT({ value }: msgDeleteSBTParams): EncodeObject {
-			try {
-				return { typeUrl: "/metaearth.kyc.MsgDeleteSBT", value: MsgDeleteSBT.fromPartial( value ) }  
+		async sendMsgUpdateSBT({ value, fee, memo }: sendMsgUpdateSBTParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgUpdateSBT: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgUpdateSBT({ value: MsgUpdateSBT.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
-				throw new Error('TxClient:MsgDeleteSBT: Could not create message: ' + e.message)
+				throw new Error('TxClient:sendMsgUpdateSBT: Could not broadcast Tx: '+ e.message)
 			}
 		},
 		
-		msgApprove({ value }: msgApproveParams): EncodeObject {
-			try {
-				return { typeUrl: "/metaearth.kyc.MsgApprove", value: MsgApprove.fromPartial( value ) }  
+		async sendMsgApprove({ value, fee, memo }: sendMsgApproveParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgApprove: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgApprove({ value: MsgApprove.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
-				throw new Error('TxClient:MsgApprove: Could not create message: ' + e.message)
+				throw new Error('TxClient:sendMsgApprove: Could not broadcast Tx: '+ e.message)
 			}
 		},
+		
 		
 		msgUpdate({ value }: msgUpdateParams): EncodeObject {
 			try {
@@ -241,6 +217,30 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 				return { typeUrl: "/metaearth.kyc.MsgCreateSBT", value: MsgCreateSBT.fromPartial( value ) }  
 			} catch (e: any) {
 				throw new Error('TxClient:MsgCreateSBT: Could not create message: ' + e.message)
+			}
+		},
+		
+		msgDeleteSBT({ value }: msgDeleteSBTParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.kyc.MsgDeleteSBT", value: MsgDeleteSBT.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgDeleteSBT: Could not create message: ' + e.message)
+			}
+		},
+		
+		msgUpdateSBT({ value }: msgUpdateSBTParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.kyc.MsgUpdateSBT", value: MsgUpdateSBT.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgUpdateSBT: Could not create message: ' + e.message)
+			}
+		},
+		
+		msgApprove({ value }: msgApproveParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.kyc.MsgApprove", value: MsgApprove.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgApprove: Could not create message: ' + e.message)
 			}
 		},
 		

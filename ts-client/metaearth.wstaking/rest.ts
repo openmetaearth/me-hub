@@ -500,10 +500,6 @@ export interface WstakingQueryAllRegionResponse {
   pagination?: V1Beta1PageResponse;
 }
 
-/**
-* QueryDelegationRewardsResponse is the response type for the
-Query/DelegationRewards RPC method.
-*/
 export interface WstakingQueryDelegationRewardsResponse {
   /** rewards defines the rewards accrued by a delegation. */
   rewards?: V1Beta1DecCoin[];
@@ -710,28 +706,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Query
-   * @name QueryDelegationRewards
-   * @request GET:/cosmos/distribution/v1beta1/rewards/{delegator_address}
-   */
-  queryDelegationRewards = (
-    delegatorAddress: string,
-    query?: { validator_address?: string },
-    params: RequestParams = {},
-  ) =>
-    this.request<WstakingQueryDelegationRewardsResponse, RpcStatus>({
-      path: `/cosmos/distribution/v1beta1/rewards/${delegatorAddress}`,
-      method: "GET",
-      query: query,
-      format: "json",
-      ...params,
-    });
-
-  /**
-   * No description
-   *
-   * @tags Query
    * @name QueryAllRegion
-   * @request GET:/cosmos/staking/v1beta1/all-region
+   * @request GET:/metaearth/wstaking/all-region
    */
   queryAllRegion = (
     query?: {
@@ -744,7 +720,27 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     params: RequestParams = {},
   ) =>
     this.request<WstakingQueryAllRegionResponse, RpcStatus>({
-      path: `/cosmos/staking/v1beta1/all-region`,
+      path: `/metaearth/wstaking/all-region`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryDelegationRewards
+   * @request GET:/metaearth/wstaking/delegation-rewards/{delegator_address}
+   */
+  queryDelegationRewards = (
+    delegatorAddress: string,
+    query?: { validator_address?: string },
+    params: RequestParams = {},
+  ) =>
+    this.request<WstakingQueryDelegationRewardsResponse, RpcStatus>({
+      path: `/metaearth/wstaking/delegation-rewards/${delegatorAddress}`,
       method: "GET",
       query: query,
       format: "json",
@@ -757,11 +753,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * @tags Query
    * @name QueryDelegation
    * @summary Delegation queries delegate info for given validator delegator pair.
-   * @request GET:/cosmos/staking/v1beta1/delegation/{delegator_addr}
+   * @request GET:/metaearth/wstaking/delegation/{delegator_addr}
    */
   queryDelegation = (delegatorAddr: string, query?: { validator_addr?: string }, params: RequestParams = {}) =>
     this.request<V1Beta1QueryDelegationResponse, RpcStatus>({
-      path: `/cosmos/staking/v1beta1/delegation/${delegatorAddr}`,
+      path: `/metaearth/wstaking/delegation/${delegatorAddr}`,
       method: "GET",
       query: query,
       format: "json",
@@ -773,7 +769,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    *
    * @tags Query
    * @name QueryFixedDepositAll
-   * @request GET:/cosmos/staking/v1beta1/fixed_deposit
+   * @request GET:/metaearth/wstaking/fixed_deposit
    */
   queryFixedDepositAll = (
     query?: {
@@ -786,7 +782,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     params: RequestParams = {},
   ) =>
     this.request<WstakingQueryAllFixedDepositResponse, RpcStatus>({
-      path: `/cosmos/staking/v1beta1/fixed_deposit`,
+      path: `/metaearth/wstaking/fixed_deposit`,
       method: "GET",
       query: query,
       format: "json",
@@ -799,11 +795,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * @tags Query
    * @name QueryFixedDeposit
    * @summary Queries a list of FixedDeposit items.
-   * @request GET:/cosmos/staking/v1beta1/fixed_deposit/{id}
+   * @request GET:/metaearth/wstaking/fixed_deposit/{id}
    */
   queryFixedDeposit = (id: string, query?: { address?: string }, params: RequestParams = {}) =>
     this.request<WstakingQueryGetFixedDepositResponse, RpcStatus>({
-      path: `/cosmos/staking/v1beta1/fixed_deposit/${id}`,
+      path: `/metaearth/wstaking/fixed_deposit/${id}`,
       method: "GET",
       query: query,
       format: "json",
@@ -815,11 +811,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    *
    * @tags Query
    * @name QueryFixedDepositAmountByMeid
-   * @request GET:/cosmos/staking/v1beta1/fixed_deposit_amount_by_meid/{account}
+   * @request GET:/metaearth/wstaking/fixed_deposit_amount_by_meid/{account}
    */
   queryFixedDepositAmountByMeid = (account: string, params: RequestParams = {}) =>
     this.request<WstakingQueryFixedDepositAmountByMeidResponse, RpcStatus>({
-      path: `/cosmos/staking/v1beta1/fixed_deposit_amount_by_meid/${account}`,
+      path: `/metaearth/wstaking/fixed_deposit_amount_by_meid/${account}`,
       method: "GET",
       format: "json",
       ...params,
@@ -831,7 +827,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * @tags Query
    * @name QueryFixedDepositByAcct
    * @summary Queries a list of FixedDepositByAcct items.
-   * @request GET:/cosmos/staking/v1beta1/fixed_deposit_by_acct/{account}/{query_type}
+   * @request GET:/metaearth/wstaking/fixed_deposit_by_acct/{account}/{query_type}
    */
   queryFixedDepositByAcct = (
     account: string,
@@ -839,7 +835,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     params: RequestParams = {},
   ) =>
     this.request<WstakingQueryFixedDepositByAcctResponse, RpcStatus>({
-      path: `/cosmos/staking/v1beta1/fixed_deposit_by_acct/${account}/${queryType}`,
+      path: `/metaearth/wstaking/fixed_deposit_by_acct/${account}/${queryType}`,
       method: "GET",
       format: "json",
       ...params,
@@ -850,11 +846,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    *
    * @tags Query
    * @name QueryFixedDepositCfg
-   * @request GET:/cosmos/staking/v1beta1/fixed_deposit_cfg
+   * @request GET:/metaearth/wstaking/fixed_deposit_cfg
    */
   queryFixedDepositCfg = (query?: { regionId?: string }, params: RequestParams = {}) =>
     this.request<WstakingQueryFixedDepositCfgResponse, RpcStatus>({
-      path: `/cosmos/staking/v1beta1/fixed_deposit_cfg`,
+      path: `/metaearth/wstaking/fixed_deposit_cfg`,
       method: "GET",
       query: query,
       format: "json",
@@ -866,11 +862,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    *
    * @tags Query
    * @name QueryFixedDepositCfgByTerm
-   * @request GET:/cosmos/staking/v1beta1/fixed_deposit_cfg_by_term
+   * @request GET:/metaearth/wstaking/fixed_deposit_cfg_by_term
    */
   queryFixedDepositCfgByTerm = (query?: { regionId?: string; term?: string }, params: RequestParams = {}) =>
     this.request<WstakingQueryFixedDepositCfgByTermResponse, RpcStatus>({
-      path: `/cosmos/staking/v1beta1/fixed_deposit_cfg_by_term`,
+      path: `/metaearth/wstaking/fixed_deposit_cfg_by_term`,
       method: "GET",
       query: query,
       format: "json",
@@ -882,11 +878,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    *
    * @tags Query
    * @name QueryFixedDepositTotalAmount
-   * @request GET:/cosmos/staking/v1beta1/fixed_deposit_total_amount
+   * @request GET:/metaearth/wstaking/fixed_deposit_total_amount
    */
   queryFixedDepositTotalAmount = (params: RequestParams = {}) =>
     this.request<WstakingQueryFixedDepositTotalAmountResponse, RpcStatus>({
-      path: `/cosmos/staking/v1beta1/fixed_deposit_total_amount`,
+      path: `/metaearth/wstaking/fixed_deposit_total_amount`,
       method: "GET",
       format: "json",
       ...params,
@@ -897,11 +893,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    *
    * @tags Query
    * @name QueryQueryRecordByAddress
-   * @request GET:/cosmos/staking/v1beta1/record/{account}
+   * @request GET:/metaearth/wstaking/record/{account}
    */
   queryQueryRecordByAddress = (account: string, params: RequestParams = {}) =>
     this.request<WstakingQueryRecordsByAddressResponse, RpcStatus>({
-      path: `/cosmos/staking/v1beta1/record/${account}`,
+      path: `/metaearth/wstaking/record/${account}`,
       method: "GET",
       format: "json",
       ...params,
@@ -913,7 +909,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * @tags Query
    * @name QueryQueryAllRecord
    * @summary Queries a list of Record
-   * @request GET:/cosmos/staking/v1beta1/records
+   * @request GET:/metaearth/wstaking/records
    */
   queryQueryAllRecord = (
     query?: {
@@ -926,7 +922,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     params: RequestParams = {},
   ) =>
     this.request<WstakingQueryAllRecordsResponse, RpcStatus>({
-      path: `/cosmos/staking/v1beta1/records`,
+      path: `/metaearth/wstaking/records`,
       method: "GET",
       query: query,
       format: "json",
@@ -939,11 +935,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * @tags Query
    * @name QueryRegion
    * @summary Queries a list of Region items.
-   * @request GET:/cosmos/staking/v1beta1/region/{regionId}
+   * @request GET:/metaearth/wstaking/region/{regionId}
    */
   queryRegion = (regionId: string, params: RequestParams = {}) =>
     this.request<WstakingQueryRegionResponse, RpcStatus>({
-      path: `/cosmos/staking/v1beta1/region/${regionId}`,
+      path: `/metaearth/wstaking/region/${regionId}`,
       method: "GET",
       format: "json",
       ...params,
@@ -954,11 +950,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    *
    * @tags Query
    * @name QueryQueryReviewRecordById
-   * @request GET:/cosmos/staking/v1beta1/review_record/{actionNumber}
+   * @request GET:/metaearth/wstaking/review_record/{action_number}
    */
   queryQueryReviewRecordByID = (actionNumber: string, params: RequestParams = {}) =>
     this.request<WstakingQueryReviewRecordByNumberResponse, RpcStatus>({
-      path: `/cosmos/staking/v1beta1/review_record/${actionNumber}`,
+      path: `/metaearth/wstaking/review_record/${actionNumber}`,
       method: "GET",
       format: "json",
       ...params,
@@ -969,7 +965,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    *
    * @tags Query
    * @name QueryStakes
-   * @request GET:/cosmos/staking/v1beta1/stakes
+   * @request GET:/metaearth/wstaking/stakes
    */
   queryStakes = (
     query?: {
@@ -982,7 +978,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     params: RequestParams = {},
   ) =>
     this.request<WstakingQueryStakesResponse, RpcStatus>({
-      path: `/cosmos/staking/v1beta1/stakes`,
+      path: `/metaearth/wstaking/stakes`,
       method: "GET",
       query: query,
       format: "json",

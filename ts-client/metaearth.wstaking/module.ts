@@ -7,22 +7,22 @@ import { msgTypes } from './registry';
 import { IgniteClient } from "../client"
 import { MissingWalletError } from "../helpers"
 import { Api } from "./rest";
-import { MsgRemoveRegion } from "./types/metaearth/wstaking/tx";
-import { MsgWithdrawFixedDeposit } from "./types/metaearth/wstaking/tx";
-import { MsgNewFixedDepositCfg } from "./types/metaearth/wstaking/tx";
-import { MsgUnstake } from "./types/metaearth/wstaking/tx";
-import { MsgWithdrawFromRegion } from "./types/metaearth/wstaking/tx";
-import { MsgWithdrawDelegatorReward } from "./types/metaearth/wstaking/tx";
-import { MsgTransferRegion } from "./types/metaearth/wstaking/tx";
 import { MsgRemoveFixedDepositCfg } from "./types/metaearth/wstaking/tx";
+import { MsgRemoveRegion } from "./types/metaearth/wstaking/tx";
+import { MsgWithdrawFromRegion } from "./types/metaearth/wstaking/tx";
+import { MsgUnstake } from "./types/metaearth/wstaking/tx";
+import { MsgWithdrawDelegatorReward } from "./types/metaearth/wstaking/tx";
 import { MsgReviewRecord } from "./types/metaearth/wstaking/tx";
+import { MsgNewRecord } from "./types/metaearth/wstaking/tx";
 import { MsgStake } from "./types/metaearth/wstaking/tx";
-import { MsgDoFixedDeposit } from "./types/metaearth/wstaking/tx";
+import { MsgTransferRegion } from "./types/metaearth/wstaking/tx";
 import { MsgNewRegion } from "./types/metaearth/wstaking/tx";
+import { MsgWithdrawFixedDeposit } from "./types/metaearth/wstaking/tx";
 import { MsgSetFixedDepositCfgStatus } from "./types/metaearth/wstaking/tx";
 import { MsgSetFixedDepositCfgRate } from "./types/metaearth/wstaking/tx";
-import { MsgNewRecord } from "./types/metaearth/wstaking/tx";
+import { MsgDoFixedDeposit } from "./types/metaearth/wstaking/tx";
 import { MsgWithdrawFromGlobalDaoFeePool } from "./types/metaearth/wstaking/tx";
+import { MsgNewFixedDepositCfg } from "./types/metaearth/wstaking/tx";
 
 import { FixedDeposit as typeFixedDeposit} from "./types"
 import { FixedDepositTotal as typeFixedDepositTotal} from "./types"
@@ -41,28 +41,16 @@ import { SVPairs as typeSVPairs} from "./types"
 import { MsgFixedDepositCfg as typeMsgFixedDepositCfg} from "./types"
 import { MsgFixedDepositCfgResp as typeMsgFixedDepositCfgResp} from "./types"
 
-export { MsgRemoveRegion, MsgWithdrawFixedDeposit, MsgNewFixedDepositCfg, MsgUnstake, MsgWithdrawFromRegion, MsgWithdrawDelegatorReward, MsgTransferRegion, MsgRemoveFixedDepositCfg, MsgReviewRecord, MsgStake, MsgDoFixedDeposit, MsgNewRegion, MsgSetFixedDepositCfgStatus, MsgSetFixedDepositCfgRate, MsgNewRecord, MsgWithdrawFromGlobalDaoFeePool };
+export { MsgRemoveFixedDepositCfg, MsgRemoveRegion, MsgWithdrawFromRegion, MsgUnstake, MsgWithdrawDelegatorReward, MsgReviewRecord, MsgNewRecord, MsgStake, MsgTransferRegion, MsgNewRegion, MsgWithdrawFixedDeposit, MsgSetFixedDepositCfgStatus, MsgSetFixedDepositCfgRate, MsgDoFixedDeposit, MsgWithdrawFromGlobalDaoFeePool, MsgNewFixedDepositCfg };
+
+type sendMsgRemoveFixedDepositCfgParams = {
+  value: MsgRemoveFixedDepositCfg,
+  fee?: StdFee,
+  memo?: string
+};
 
 type sendMsgRemoveRegionParams = {
   value: MsgRemoveRegion,
-  fee?: StdFee,
-  memo?: string
-};
-
-type sendMsgWithdrawFixedDepositParams = {
-  value: MsgWithdrawFixedDeposit,
-  fee?: StdFee,
-  memo?: string
-};
-
-type sendMsgNewFixedDepositCfgParams = {
-  value: MsgNewFixedDepositCfg,
-  fee?: StdFee,
-  memo?: string
-};
-
-type sendMsgUnstakeParams = {
-  value: MsgUnstake,
   fee?: StdFee,
   memo?: string
 };
@@ -73,20 +61,14 @@ type sendMsgWithdrawFromRegionParams = {
   memo?: string
 };
 
+type sendMsgUnstakeParams = {
+  value: MsgUnstake,
+  fee?: StdFee,
+  memo?: string
+};
+
 type sendMsgWithdrawDelegatorRewardParams = {
   value: MsgWithdrawDelegatorReward,
-  fee?: StdFee,
-  memo?: string
-};
-
-type sendMsgTransferRegionParams = {
-  value: MsgTransferRegion,
-  fee?: StdFee,
-  memo?: string
-};
-
-type sendMsgRemoveFixedDepositCfgParams = {
-  value: MsgRemoveFixedDepositCfg,
   fee?: StdFee,
   memo?: string
 };
@@ -97,20 +79,32 @@ type sendMsgReviewRecordParams = {
   memo?: string
 };
 
+type sendMsgNewRecordParams = {
+  value: MsgNewRecord,
+  fee?: StdFee,
+  memo?: string
+};
+
 type sendMsgStakeParams = {
   value: MsgStake,
   fee?: StdFee,
   memo?: string
 };
 
-type sendMsgDoFixedDepositParams = {
-  value: MsgDoFixedDeposit,
+type sendMsgTransferRegionParams = {
+  value: MsgTransferRegion,
   fee?: StdFee,
   memo?: string
 };
 
 type sendMsgNewRegionParams = {
   value: MsgNewRegion,
+  fee?: StdFee,
+  memo?: string
+};
+
+type sendMsgWithdrawFixedDepositParams = {
+  value: MsgWithdrawFixedDeposit,
   fee?: StdFee,
   memo?: string
 };
@@ -127,8 +121,8 @@ type sendMsgSetFixedDepositCfgRateParams = {
   memo?: string
 };
 
-type sendMsgNewRecordParams = {
-  value: MsgNewRecord,
+type sendMsgDoFixedDepositParams = {
+  value: MsgDoFixedDeposit,
   fee?: StdFee,
   memo?: string
 };
@@ -139,53 +133,55 @@ type sendMsgWithdrawFromGlobalDaoFeePoolParams = {
   memo?: string
 };
 
+type sendMsgNewFixedDepositCfgParams = {
+  value: MsgNewFixedDepositCfg,
+  fee?: StdFee,
+  memo?: string
+};
+
+
+type msgRemoveFixedDepositCfgParams = {
+  value: MsgRemoveFixedDepositCfg,
+};
 
 type msgRemoveRegionParams = {
   value: MsgRemoveRegion,
-};
-
-type msgWithdrawFixedDepositParams = {
-  value: MsgWithdrawFixedDeposit,
-};
-
-type msgNewFixedDepositCfgParams = {
-  value: MsgNewFixedDepositCfg,
-};
-
-type msgUnstakeParams = {
-  value: MsgUnstake,
 };
 
 type msgWithdrawFromRegionParams = {
   value: MsgWithdrawFromRegion,
 };
 
+type msgUnstakeParams = {
+  value: MsgUnstake,
+};
+
 type msgWithdrawDelegatorRewardParams = {
   value: MsgWithdrawDelegatorReward,
-};
-
-type msgTransferRegionParams = {
-  value: MsgTransferRegion,
-};
-
-type msgRemoveFixedDepositCfgParams = {
-  value: MsgRemoveFixedDepositCfg,
 };
 
 type msgReviewRecordParams = {
   value: MsgReviewRecord,
 };
 
+type msgNewRecordParams = {
+  value: MsgNewRecord,
+};
+
 type msgStakeParams = {
   value: MsgStake,
 };
 
-type msgDoFixedDepositParams = {
-  value: MsgDoFixedDeposit,
+type msgTransferRegionParams = {
+  value: MsgTransferRegion,
 };
 
 type msgNewRegionParams = {
   value: MsgNewRegion,
+};
+
+type msgWithdrawFixedDepositParams = {
+  value: MsgWithdrawFixedDeposit,
 };
 
 type msgSetFixedDepositCfgStatusParams = {
@@ -196,12 +192,16 @@ type msgSetFixedDepositCfgRateParams = {
   value: MsgSetFixedDepositCfgRate,
 };
 
-type msgNewRecordParams = {
-  value: MsgNewRecord,
+type msgDoFixedDepositParams = {
+  value: MsgDoFixedDeposit,
 };
 
 type msgWithdrawFromGlobalDaoFeePoolParams = {
   value: MsgWithdrawFromGlobalDaoFeePool,
+};
+
+type msgNewFixedDepositCfgParams = {
+  value: MsgNewFixedDepositCfg,
 };
 
 
@@ -234,6 +234,20 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 
   return {
 		
+		async sendMsgRemoveFixedDepositCfg({ value, fee, memo }: sendMsgRemoveFixedDepositCfgParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgRemoveFixedDepositCfg: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgRemoveFixedDepositCfg({ value: MsgRemoveFixedDepositCfg.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+			} catch (e: any) {
+				throw new Error('TxClient:sendMsgRemoveFixedDepositCfg: Could not broadcast Tx: '+ e.message)
+			}
+		},
+		
 		async sendMsgRemoveRegion({ value, fee, memo }: sendMsgRemoveRegionParams): Promise<DeliverTxResponse> {
 			if (!signer) {
 					throw new Error('TxClient:sendMsgRemoveRegion: Unable to sign Tx. Signer is not present.')
@@ -245,48 +259,6 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
 				throw new Error('TxClient:sendMsgRemoveRegion: Could not broadcast Tx: '+ e.message)
-			}
-		},
-		
-		async sendMsgWithdrawFixedDeposit({ value, fee, memo }: sendMsgWithdrawFixedDepositParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgWithdrawFixedDeposit: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgWithdrawFixedDeposit({ value: MsgWithdrawFixedDeposit.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgWithdrawFixedDeposit: Could not broadcast Tx: '+ e.message)
-			}
-		},
-		
-		async sendMsgNewFixedDepositCfg({ value, fee, memo }: sendMsgNewFixedDepositCfgParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgNewFixedDepositCfg: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgNewFixedDepositCfg({ value: MsgNewFixedDepositCfg.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgNewFixedDepositCfg: Could not broadcast Tx: '+ e.message)
-			}
-		},
-		
-		async sendMsgUnstake({ value, fee, memo }: sendMsgUnstakeParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgUnstake: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgUnstake({ value: MsgUnstake.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgUnstake: Could not broadcast Tx: '+ e.message)
 			}
 		},
 		
@@ -304,6 +276,20 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
+		async sendMsgUnstake({ value, fee, memo }: sendMsgUnstakeParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgUnstake: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgUnstake({ value: MsgUnstake.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+			} catch (e: any) {
+				throw new Error('TxClient:sendMsgUnstake: Could not broadcast Tx: '+ e.message)
+			}
+		},
+		
 		async sendMsgWithdrawDelegatorReward({ value, fee, memo }: sendMsgWithdrawDelegatorRewardParams): Promise<DeliverTxResponse> {
 			if (!signer) {
 					throw new Error('TxClient:sendMsgWithdrawDelegatorReward: Unable to sign Tx. Signer is not present.')
@@ -315,34 +301,6 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
 				throw new Error('TxClient:sendMsgWithdrawDelegatorReward: Could not broadcast Tx: '+ e.message)
-			}
-		},
-		
-		async sendMsgTransferRegion({ value, fee, memo }: sendMsgTransferRegionParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgTransferRegion: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgTransferRegion({ value: MsgTransferRegion.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgTransferRegion: Could not broadcast Tx: '+ e.message)
-			}
-		},
-		
-		async sendMsgRemoveFixedDepositCfg({ value, fee, memo }: sendMsgRemoveFixedDepositCfgParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgRemoveFixedDepositCfg: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgRemoveFixedDepositCfg({ value: MsgRemoveFixedDepositCfg.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgRemoveFixedDepositCfg: Could not broadcast Tx: '+ e.message)
 			}
 		},
 		
@@ -360,6 +318,20 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
+		async sendMsgNewRecord({ value, fee, memo }: sendMsgNewRecordParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgNewRecord: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgNewRecord({ value: MsgNewRecord.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+			} catch (e: any) {
+				throw new Error('TxClient:sendMsgNewRecord: Could not broadcast Tx: '+ e.message)
+			}
+		},
+		
 		async sendMsgStake({ value, fee, memo }: sendMsgStakeParams): Promise<DeliverTxResponse> {
 			if (!signer) {
 					throw new Error('TxClient:sendMsgStake: Unable to sign Tx. Signer is not present.')
@@ -374,17 +346,17 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		async sendMsgDoFixedDeposit({ value, fee, memo }: sendMsgDoFixedDepositParams): Promise<DeliverTxResponse> {
+		async sendMsgTransferRegion({ value, fee, memo }: sendMsgTransferRegionParams): Promise<DeliverTxResponse> {
 			if (!signer) {
-					throw new Error('TxClient:sendMsgDoFixedDeposit: Unable to sign Tx. Signer is not present.')
+					throw new Error('TxClient:sendMsgTransferRegion: Unable to sign Tx. Signer is not present.')
 			}
 			try {			
 				const { address } = (await signer.getAccounts())[0]; 
 				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgDoFixedDeposit({ value: MsgDoFixedDeposit.fromPartial(value) })
+				let msg = this.msgTransferRegion({ value: MsgTransferRegion.fromPartial(value) })
 				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
-				throw new Error('TxClient:sendMsgDoFixedDeposit: Could not broadcast Tx: '+ e.message)
+				throw new Error('TxClient:sendMsgTransferRegion: Could not broadcast Tx: '+ e.message)
 			}
 		},
 		
@@ -399,6 +371,20 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
 				throw new Error('TxClient:sendMsgNewRegion: Could not broadcast Tx: '+ e.message)
+			}
+		},
+		
+		async sendMsgWithdrawFixedDeposit({ value, fee, memo }: sendMsgWithdrawFixedDepositParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgWithdrawFixedDeposit: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgWithdrawFixedDeposit({ value: MsgWithdrawFixedDeposit.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+			} catch (e: any) {
+				throw new Error('TxClient:sendMsgWithdrawFixedDeposit: Could not broadcast Tx: '+ e.message)
 			}
 		},
 		
@@ -430,17 +416,17 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		async sendMsgNewRecord({ value, fee, memo }: sendMsgNewRecordParams): Promise<DeliverTxResponse> {
+		async sendMsgDoFixedDeposit({ value, fee, memo }: sendMsgDoFixedDepositParams): Promise<DeliverTxResponse> {
 			if (!signer) {
-					throw new Error('TxClient:sendMsgNewRecord: Unable to sign Tx. Signer is not present.')
+					throw new Error('TxClient:sendMsgDoFixedDeposit: Unable to sign Tx. Signer is not present.')
 			}
 			try {			
 				const { address } = (await signer.getAccounts())[0]; 
 				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgNewRecord({ value: MsgNewRecord.fromPartial(value) })
+				let msg = this.msgDoFixedDeposit({ value: MsgDoFixedDeposit.fromPartial(value) })
 				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
-				throw new Error('TxClient:sendMsgNewRecord: Could not broadcast Tx: '+ e.message)
+				throw new Error('TxClient:sendMsgDoFixedDeposit: Could not broadcast Tx: '+ e.message)
 			}
 		},
 		
@@ -458,36 +444,34 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
+		async sendMsgNewFixedDepositCfg({ value, fee, memo }: sendMsgNewFixedDepositCfgParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgNewFixedDepositCfg: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgNewFixedDepositCfg({ value: MsgNewFixedDepositCfg.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+			} catch (e: any) {
+				throw new Error('TxClient:sendMsgNewFixedDepositCfg: Could not broadcast Tx: '+ e.message)
+			}
+		},
+		
+		
+		msgRemoveFixedDepositCfg({ value }: msgRemoveFixedDepositCfgParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.wstaking.MsgRemoveFixedDepositCfg", value: MsgRemoveFixedDepositCfg.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgRemoveFixedDepositCfg: Could not create message: ' + e.message)
+			}
+		},
 		
 		msgRemoveRegion({ value }: msgRemoveRegionParams): EncodeObject {
 			try {
 				return { typeUrl: "/metaearth.wstaking.MsgRemoveRegion", value: MsgRemoveRegion.fromPartial( value ) }  
 			} catch (e: any) {
 				throw new Error('TxClient:MsgRemoveRegion: Could not create message: ' + e.message)
-			}
-		},
-		
-		msgWithdrawFixedDeposit({ value }: msgWithdrawFixedDepositParams): EncodeObject {
-			try {
-				return { typeUrl: "/metaearth.wstaking.MsgWithdrawFixedDeposit", value: MsgWithdrawFixedDeposit.fromPartial( value ) }  
-			} catch (e: any) {
-				throw new Error('TxClient:MsgWithdrawFixedDeposit: Could not create message: ' + e.message)
-			}
-		},
-		
-		msgNewFixedDepositCfg({ value }: msgNewFixedDepositCfgParams): EncodeObject {
-			try {
-				return { typeUrl: "/metaearth.wstaking.MsgNewFixedDepositCfg", value: MsgNewFixedDepositCfg.fromPartial( value ) }  
-			} catch (e: any) {
-				throw new Error('TxClient:MsgNewFixedDepositCfg: Could not create message: ' + e.message)
-			}
-		},
-		
-		msgUnstake({ value }: msgUnstakeParams): EncodeObject {
-			try {
-				return { typeUrl: "/metaearth.wstaking.MsgUnstake", value: MsgUnstake.fromPartial( value ) }  
-			} catch (e: any) {
-				throw new Error('TxClient:MsgUnstake: Could not create message: ' + e.message)
 			}
 		},
 		
@@ -499,27 +483,19 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
+		msgUnstake({ value }: msgUnstakeParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.wstaking.MsgUnstake", value: MsgUnstake.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgUnstake: Could not create message: ' + e.message)
+			}
+		},
+		
 		msgWithdrawDelegatorReward({ value }: msgWithdrawDelegatorRewardParams): EncodeObject {
 			try {
 				return { typeUrl: "/metaearth.wstaking.MsgWithdrawDelegatorReward", value: MsgWithdrawDelegatorReward.fromPartial( value ) }  
 			} catch (e: any) {
 				throw new Error('TxClient:MsgWithdrawDelegatorReward: Could not create message: ' + e.message)
-			}
-		},
-		
-		msgTransferRegion({ value }: msgTransferRegionParams): EncodeObject {
-			try {
-				return { typeUrl: "/metaearth.wstaking.MsgTransferRegion", value: MsgTransferRegion.fromPartial( value ) }  
-			} catch (e: any) {
-				throw new Error('TxClient:MsgTransferRegion: Could not create message: ' + e.message)
-			}
-		},
-		
-		msgRemoveFixedDepositCfg({ value }: msgRemoveFixedDepositCfgParams): EncodeObject {
-			try {
-				return { typeUrl: "/metaearth.wstaking.MsgRemoveFixedDepositCfg", value: MsgRemoveFixedDepositCfg.fromPartial( value ) }  
-			} catch (e: any) {
-				throw new Error('TxClient:MsgRemoveFixedDepositCfg: Could not create message: ' + e.message)
 			}
 		},
 		
@@ -531,6 +507,14 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
+		msgNewRecord({ value }: msgNewRecordParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.wstaking.MsgNewRecord", value: MsgNewRecord.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgNewRecord: Could not create message: ' + e.message)
+			}
+		},
+		
 		msgStake({ value }: msgStakeParams): EncodeObject {
 			try {
 				return { typeUrl: "/metaearth.wstaking.MsgStake", value: MsgStake.fromPartial( value ) }  
@@ -539,11 +523,11 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		msgDoFixedDeposit({ value }: msgDoFixedDepositParams): EncodeObject {
+		msgTransferRegion({ value }: msgTransferRegionParams): EncodeObject {
 			try {
-				return { typeUrl: "/metaearth.wstaking.MsgDoFixedDeposit", value: MsgDoFixedDeposit.fromPartial( value ) }  
+				return { typeUrl: "/metaearth.wstaking.MsgTransferRegion", value: MsgTransferRegion.fromPartial( value ) }  
 			} catch (e: any) {
-				throw new Error('TxClient:MsgDoFixedDeposit: Could not create message: ' + e.message)
+				throw new Error('TxClient:MsgTransferRegion: Could not create message: ' + e.message)
 			}
 		},
 		
@@ -552,6 +536,14 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 				return { typeUrl: "/metaearth.wstaking.MsgNewRegion", value: MsgNewRegion.fromPartial( value ) }  
 			} catch (e: any) {
 				throw new Error('TxClient:MsgNewRegion: Could not create message: ' + e.message)
+			}
+		},
+		
+		msgWithdrawFixedDeposit({ value }: msgWithdrawFixedDepositParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.wstaking.MsgWithdrawFixedDeposit", value: MsgWithdrawFixedDeposit.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgWithdrawFixedDeposit: Could not create message: ' + e.message)
 			}
 		},
 		
@@ -571,11 +563,11 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		msgNewRecord({ value }: msgNewRecordParams): EncodeObject {
+		msgDoFixedDeposit({ value }: msgDoFixedDepositParams): EncodeObject {
 			try {
-				return { typeUrl: "/metaearth.wstaking.MsgNewRecord", value: MsgNewRecord.fromPartial( value ) }  
+				return { typeUrl: "/metaearth.wstaking.MsgDoFixedDeposit", value: MsgDoFixedDeposit.fromPartial( value ) }  
 			} catch (e: any) {
-				throw new Error('TxClient:MsgNewRecord: Could not create message: ' + e.message)
+				throw new Error('TxClient:MsgDoFixedDeposit: Could not create message: ' + e.message)
 			}
 		},
 		
@@ -584,6 +576,14 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 				return { typeUrl: "/metaearth.wstaking.MsgWithdrawFromGlobalDaoFeePool", value: MsgWithdrawFromGlobalDaoFeePool.fromPartial( value ) }  
 			} catch (e: any) {
 				throw new Error('TxClient:MsgWithdrawFromGlobalDaoFeePool: Could not create message: ' + e.message)
+			}
+		},
+		
+		msgNewFixedDepositCfg({ value }: msgNewFixedDepositCfgParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.wstaking.MsgNewFixedDepositCfg", value: MsgNewFixedDepositCfg.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgNewFixedDepositCfg: Could not create message: ' + e.message)
 			}
 		},
 		

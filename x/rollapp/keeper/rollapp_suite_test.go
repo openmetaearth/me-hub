@@ -29,9 +29,9 @@ const (
 	rejectEventCountWithTransfer  = 5 // Extra "sender" attribute emitted by the bank
 	forfeitEventCount             = 4
 	forfeitEventCountWithTransfer = 5 // Extra "sender" attribute emitted by the bank
-	alice                         = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
-	bob                           = "dym1d0wlmz987qlurs6e3kc6zd25z6wsdmnwx8tafy"
-	carol                         = "dym1zka35fkgdxmhl8ncjgwkrah0e8kpvd8vkn0vsp"
+	alice                         = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"
+	bob                           = "me1fxv6zn3my807ps6ph5va48rn0m8zurmp036zlf"
+	carol                         = "me1es57vt7wnjyuedepvd4dt7aa7gnvus5hvrmyld"
 	balAlice                      = 50000000
 	balBob                        = 20000000
 	balCarol                      = 10000000
