@@ -44,7 +44,7 @@ func NewParams(epochIdentifier string, bridgingFee sdk.Dec, deletePacketsEpochLi
 func DefaultParams() Params {
 	return NewParams(
 		defaultEpochIdentifier,
-		sdk.NewDecWithPrec(1, 3), // 0.1%
+		sdk.ZeroDec(),
 		defaultDeletePacketsEpochLimit,
 	)
 }
