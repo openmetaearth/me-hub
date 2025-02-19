@@ -262,12 +262,12 @@ func migrateKycModule(ctx sdk.Context, kycKeeper *kyckeeper.Keeper, path string)
 	}
 	issuerDids := []string{}
 	for _, issuer := range issuers {
-		address := kycKeeper.MustAccAddressFromPubkeyString(issuer.Pubkey)
-		if _, found := kycKeeper.GetDID(ctx, address); found {
-			panic(fmt.Errorf("issuer %s already exists", address))
+		//address := kycKeeper.MustAccAddressFromPubkeyString(issuer.Pubkey) // global admin has multi pubkey
+		if _, found := kycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(issuer.Address)); found {
+			panic(fmt.Errorf("issuer %s already exists", sdk.MustAccAddressFromBech32(issuer.Address)))
 		}
 
-		kycKeeper.SetDID(ctx, address, issuer.Did)
+		kycKeeper.SetDID(ctx, sdk.MustAccAddressFromBech32(issuer.Address), issuer.Did)
 		kycKeeper.SetDidInfo(ctx, issuer.Did, issuer)
 		issuerDids = append(issuerDids, issuer.Did)
 	}
