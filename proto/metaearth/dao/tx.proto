@@ -11,14 +11,14 @@ option go_package = "github.com/st-chain/me-hub/x/dao/types";
 
 // Msg defines the Msg service.
 service Msg {
-  rpc UpdateGlobalDao(MsgUpdateGlobalDao) returns (MsgUpdateGlobalDaoResponse);
+  rpc UpdateDao(MsgUpdateDao) returns (MsgUpdateDaoResponse);
 }
 
-message MsgUpdateGlobalDao {
+message MsgUpdateDao {
   option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   DaoAddresses dao_addresses = 2 [(gogoproto.nullable) = false];
 }
 
-message MsgUpdateGlobalDaoResponse {
+message MsgUpdateDaoResponse {
 }

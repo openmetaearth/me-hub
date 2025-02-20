@@ -2112,9 +2112,9 @@ type MsgClient interface {
 	NewRegion(ctx context.Context, in *MsgNewRegion, opts ...grpc.CallOption) (*MsgNewRegionResponse, error)
 	RemoveRegion(ctx context.Context, in *MsgRemoveRegion, opts ...grpc.CallOption) (*MsgRemoveRegionResponse, error)
 	WithdrawDelegatorReward(ctx context.Context, in *MsgWithdrawDelegatorReward, opts ...grpc.CallOption) (*MsgWithdrawDelegatorRewardResponse, error)
-	//  rpc RetrieveCoinsFromRegion(MsgRetrieveCoinsFromRegion) returns (MsgRetrieveCoinsFromRegionResp);
-	//  rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
-	//  rpc RetrieveFeeFromGlobalAdminFeePool(MsgRetrieveFeeFromGlobalAdminFeePool) returns (MsgRetrieveFeeFromGlobalAdminFeePoolResp);
+	// rpc RetrieveCoinsFromRegion(MsgRetrieveCoinsFromRegion) returns (MsgRetrieveCoinsFromRegionResp);
+	// rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
+	// rpc RetrieveFeeFromGlobalAdminFeePool(MsgRetrieveFeeFromGlobalAdminFeePool) returns (MsgRetrieveFeeFromGlobalAdminFeePoolResp);
 	NewFixedDepositCfg(ctx context.Context, in *MsgNewFixedDepositCfg, opts ...grpc.CallOption) (*MsgNewFixedDepositCfgResp, error)
 	SetFixedDepositCfgStatus(ctx context.Context, in *MsgSetFixedDepositCfgStatus, opts ...grpc.CallOption) (*MsgSetFixedDepositCfgStatusResp, error)
 	SetFixedDepositCfgRate(ctx context.Context, in *MsgSetFixedDepositCfgRate, opts ...grpc.CallOption) (*MsgSetFixedDepositCfgRateResp, error)
@@ -2297,9 +2297,9 @@ type MsgServer interface {
 	NewRegion(context.Context, *MsgNewRegion) (*MsgNewRegionResponse, error)
 	RemoveRegion(context.Context, *MsgRemoveRegion) (*MsgRemoveRegionResponse, error)
 	WithdrawDelegatorReward(context.Context, *MsgWithdrawDelegatorReward) (*MsgWithdrawDelegatorRewardResponse, error)
-	//  rpc RetrieveCoinsFromRegion(MsgRetrieveCoinsFromRegion) returns (MsgRetrieveCoinsFromRegionResp);
-	//  rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
-	//  rpc RetrieveFeeFromGlobalAdminFeePool(MsgRetrieveFeeFromGlobalAdminFeePool) returns (MsgRetrieveFeeFromGlobalAdminFeePoolResp);
+	// rpc RetrieveCoinsFromRegion(MsgRetrieveCoinsFromRegion) returns (MsgRetrieveCoinsFromRegionResp);
+	// rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
+	// rpc RetrieveFeeFromGlobalAdminFeePool(MsgRetrieveFeeFromGlobalAdminFeePool) returns (MsgRetrieveFeeFromGlobalAdminFeePoolResp);
 	NewFixedDepositCfg(context.Context, *MsgNewFixedDepositCfg) (*MsgNewFixedDepositCfgResp, error)
 	SetFixedDepositCfgStatus(context.Context, *MsgSetFixedDepositCfgStatus) (*MsgSetFixedDepositCfgStatusResp, error)
 	SetFixedDepositCfgRate(context.Context, *MsgSetFixedDepositCfgRate) (*MsgSetFixedDepositCfgRateResp, error)
@@ -2680,7 +2680,6 @@ func _Msg_IbcTransferFromRegionTreasure_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
-var Msg_serviceDesc = _Msg_serviceDesc
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "metaearth.wstaking.Msg",
 	HandlerType: (*MsgServer)(nil),

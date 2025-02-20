@@ -19,7 +19,7 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-func (k msgServer) UpdateGlobalDao(goCtx context.Context, msg *types.MsgUpdateGlobalDao) (*types.MsgUpdateGlobalDaoResponse, error) {
+func (k msgServer) UpdateDao(goCtx context.Context, msg *types.MsgUpdateDao) (*types.MsgUpdateDaoResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	isGlobalDao := k.IsGlobalDao(ctx, msg.Creator)
@@ -52,5 +52,5 @@ func (k msgServer) UpdateGlobalDao(goCtx context.Context, msg *types.MsgUpdateGl
 		),
 	)
 
-	return &types.MsgUpdateGlobalDaoResponse{}, nil
+	return &types.MsgUpdateDaoResponse{}, nil
 }
