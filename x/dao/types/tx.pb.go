@@ -29,23 +29,23 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type MsgUpdateGlobalDao struct {
+type MsgUpdateDao struct {
 	Creator      string       `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 	DaoAddresses DaoAddresses `protobuf:"bytes,2,opt,name=dao_addresses,json=daoAddresses,proto3" json:"dao_addresses"`
 }
 
-func (m *MsgUpdateGlobalDao) Reset()         { *m = MsgUpdateGlobalDao{} }
-func (m *MsgUpdateGlobalDao) String() string { return proto.CompactTextString(m) }
-func (*MsgUpdateGlobalDao) ProtoMessage()    {}
-func (*MsgUpdateGlobalDao) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateDao) Reset()         { *m = MsgUpdateDao{} }
+func (m *MsgUpdateDao) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateDao) ProtoMessage()    {}
+func (*MsgUpdateDao) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c4900b4006fbe666, []int{0}
 }
-func (m *MsgUpdateGlobalDao) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateDao) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUpdateGlobalDao) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateDao) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUpdateGlobalDao.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateDao.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -55,47 +55,47 @@ func (m *MsgUpdateGlobalDao) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *MsgUpdateGlobalDao) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUpdateGlobalDao.Merge(m, src)
+func (m *MsgUpdateDao) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateDao.Merge(m, src)
 }
-func (m *MsgUpdateGlobalDao) XXX_Size() int {
+func (m *MsgUpdateDao) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUpdateGlobalDao) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUpdateGlobalDao.DiscardUnknown(m)
+func (m *MsgUpdateDao) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateDao.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUpdateGlobalDao proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateDao proto.InternalMessageInfo
 
-func (m *MsgUpdateGlobalDao) GetCreator() string {
+func (m *MsgUpdateDao) GetCreator() string {
 	if m != nil {
 		return m.Creator
 	}
 	return ""
 }
 
-func (m *MsgUpdateGlobalDao) GetDaoAddresses() DaoAddresses {
+func (m *MsgUpdateDao) GetDaoAddresses() DaoAddresses {
 	if m != nil {
 		return m.DaoAddresses
 	}
 	return DaoAddresses{}
 }
 
-type MsgUpdateGlobalDaoResponse struct {
+type MsgUpdateDaoResponse struct {
 }
 
-func (m *MsgUpdateGlobalDaoResponse) Reset()         { *m = MsgUpdateGlobalDaoResponse{} }
-func (m *MsgUpdateGlobalDaoResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgUpdateGlobalDaoResponse) ProtoMessage()    {}
-func (*MsgUpdateGlobalDaoResponse) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateDaoResponse) Reset()         { *m = MsgUpdateDaoResponse{} }
+func (m *MsgUpdateDaoResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateDaoResponse) ProtoMessage()    {}
+func (*MsgUpdateDaoResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c4900b4006fbe666, []int{1}
 }
-func (m *MsgUpdateGlobalDaoResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateDaoResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUpdateGlobalDaoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateDaoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUpdateGlobalDaoResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateDaoResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -105,46 +105,46 @@ func (m *MsgUpdateGlobalDaoResponse) XXX_Marshal(b []byte, deterministic bool) (
 		return b[:n], nil
 	}
 }
-func (m *MsgUpdateGlobalDaoResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUpdateGlobalDaoResponse.Merge(m, src)
+func (m *MsgUpdateDaoResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateDaoResponse.Merge(m, src)
 }
-func (m *MsgUpdateGlobalDaoResponse) XXX_Size() int {
+func (m *MsgUpdateDaoResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUpdateGlobalDaoResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUpdateGlobalDaoResponse.DiscardUnknown(m)
+func (m *MsgUpdateDaoResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateDaoResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUpdateGlobalDaoResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateDaoResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MsgUpdateGlobalDao)(nil), "metaearth.dao.MsgUpdateGlobalDao")
-	proto.RegisterType((*MsgUpdateGlobalDaoResponse)(nil), "metaearth.dao.MsgUpdateGlobalDaoResponse")
+	proto.RegisterType((*MsgUpdateDao)(nil), "metaearth.dao.MsgUpdateDao")
+	proto.RegisterType((*MsgUpdateDaoResponse)(nil), "metaearth.dao.MsgUpdateDaoResponse")
 }
 
 func init() { proto.RegisterFile("metaearth/dao/tx.proto", fileDescriptor_c4900b4006fbe666) }
 
 var fileDescriptor_c4900b4006fbe666 = []byte{
-	// 300 bytes of a gzipped FileDescriptorProto
+	// 291 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xcb, 0x4d, 0x2d, 0x49,
 	0x4c, 0x4d, 0x2c, 0x2a, 0xc9, 0xd0, 0x4f, 0x49, 0xcc, 0xd7, 0x2f, 0xa9, 0xd0, 0x2b, 0x28, 0xca,
 	0x2f, 0xc9, 0x17, 0xe2, 0x85, 0x8b, 0xeb, 0xa5, 0x24, 0xe6, 0x4b, 0x89, 0xa4, 0xe7, 0xa7, 0xe7,
 	0x83, 0x65, 0xf4, 0x41, 0x2c, 0x88, 0x22, 0x29, 0x71, 0x54, 0xcd, 0x29, 0x89, 0x70, 0x89, 0xe4,
 	0xfc, 0xe2, 0xdc, 0xfc, 0x62, 0xfd, 0xdc, 0xe2, 0x74, 0xfd, 0x32, 0x43, 0x10, 0x05, 0x91, 0x50,
-	0x6a, 0x61, 0xe4, 0x12, 0xf2, 0x2d, 0x4e, 0x0f, 0x2d, 0x48, 0x49, 0x2c, 0x49, 0x75, 0xcf, 0xc9,
-	0x4f, 0x4a, 0xcc, 0x71, 0x49, 0xcc, 0x17, 0x92, 0xe0, 0x62, 0x4f, 0x2e, 0x4a, 0x4d, 0x2c, 0xc9,
-	0x2f, 0x92, 0x60, 0x54, 0x60, 0xd4, 0xe0, 0x0c, 0x82, 0x71, 0x85, 0xdc, 0xb8, 0x78, 0x53, 0x12,
-	0xf3, 0xe3, 0x13, 0x53, 0x52, 0x8a, 0x52, 0x8b, 0x8b, 0x53, 0x8b, 0x25, 0x98, 0x14, 0x18, 0x35,
-	0xb8, 0x8d, 0xa4, 0xf5, 0x50, 0xdc, 0xa7, 0xe7, 0x92, 0x98, 0xef, 0x08, 0x53, 0xe2, 0xc4, 0x72,
-	0xe2, 0x9e, 0x3c, 0x43, 0x10, 0x4f, 0x0a, 0x92, 0x98, 0x15, 0x4f, 0xd3, 0xf3, 0x0d, 0x5a, 0x30,
-	0x53, 0x95, 0x64, 0xb8, 0xa4, 0x30, 0x5d, 0x11, 0x94, 0x5a, 0x5c, 0x90, 0x9f, 0x57, 0x9c, 0x6a,
-	0x94, 0xc6, 0xc5, 0xec, 0x5b, 0x9c, 0x2e, 0x14, 0xcf, 0xc5, 0x8f, 0xee, 0x4e, 0x45, 0x34, 0x6b,
-	0x31, 0x0d, 0x91, 0xd2, 0x24, 0xa8, 0x04, 0x66, 0x8f, 0x93, 0xc3, 0x89, 0x47, 0x72, 0x8c, 0x17,
-	0x1e, 0xc9, 0x31, 0x3e, 0x78, 0x24, 0xc7, 0x38, 0xe1, 0xb1, 0x1c, 0xc3, 0x85, 0xc7, 0x72, 0x0c,
-	0x37, 0x1e, 0xcb, 0x31, 0x44, 0xa9, 0xa5, 0x67, 0x96, 0x64, 0x94, 0x26, 0xe9, 0x25, 0xe7, 0xe7,
-	0xea, 0x17, 0x97, 0xe8, 0x26, 0x67, 0x24, 0x66, 0xe6, 0xe9, 0xe7, 0xa6, 0xea, 0x66, 0x94, 0x26,
-	0xe9, 0x57, 0x40, 0x22, 0xaa, 0xb2, 0x20, 0xb5, 0x38, 0x89, 0x0d, 0x1c, 0xaa, 0xc6, 0x80, 0x00,
-	0x00, 0x00, 0xff, 0xff, 0xbb, 0x40, 0x06, 0x81, 0xc6, 0x01, 0x00, 0x00,
+	0xaa, 0xe3, 0xe2, 0xf1, 0x2d, 0x4e, 0x0f, 0x2d, 0x48, 0x49, 0x2c, 0x49, 0x75, 0x49, 0xcc, 0x17,
+	0x92, 0xe0, 0x62, 0x4f, 0x2e, 0x4a, 0x4d, 0x2c, 0xc9, 0x2f, 0x92, 0x60, 0x54, 0x60, 0xd4, 0xe0,
+	0x0c, 0x82, 0x71, 0x85, 0xdc, 0xb8, 0x78, 0x53, 0x12, 0xf3, 0xe3, 0x13, 0x53, 0x52, 0x8a, 0x52,
+	0x8b, 0x8b, 0x53, 0x8b, 0x25, 0x98, 0x14, 0x18, 0x35, 0xb8, 0x8d, 0xa4, 0xf5, 0x50, 0x1c, 0xa6,
+	0xe7, 0x92, 0x98, 0xef, 0x08, 0x53, 0xe2, 0xc4, 0x72, 0xe2, 0x9e, 0x3c, 0x43, 0x10, 0x4f, 0x0a,
+	0x92, 0x98, 0x15, 0x4f, 0xd3, 0xf3, 0x0d, 0x5a, 0x30, 0x53, 0x95, 0xc4, 0xb8, 0x44, 0x90, 0xed,
+	0x0f, 0x4a, 0x2d, 0x2e, 0xc8, 0xcf, 0x2b, 0x4e, 0x35, 0x0a, 0xe1, 0x62, 0xf6, 0x2d, 0x4e, 0x17,
+	0xf2, 0xe5, 0xe2, 0x44, 0xb8, 0x0d, 0xdd, 0x2a, 0x64, 0x8d, 0x52, 0xca, 0x78, 0x24, 0x61, 0xa6,
+	0x3a, 0x39, 0x9c, 0x78, 0x24, 0xc7, 0x78, 0xe1, 0x91, 0x1c, 0xe3, 0x83, 0x47, 0x72, 0x8c, 0x13,
+	0x1e, 0xcb, 0x31, 0x5c, 0x78, 0x2c, 0xc7, 0x70, 0xe3, 0xb1, 0x1c, 0x43, 0x94, 0x5a, 0x7a, 0x66,
+	0x49, 0x46, 0x69, 0x92, 0x5e, 0x72, 0x7e, 0xae, 0x7e, 0x71, 0x89, 0x6e, 0x72, 0x46, 0x62, 0x66,
+	0x9e, 0x7e, 0x6e, 0xaa, 0x6e, 0x46, 0x69, 0x92, 0x7e, 0x05, 0x24, 0x26, 0x2a, 0x0b, 0x52, 0x8b,
+	0x93, 0xd8, 0xc0, 0xc1, 0x66, 0x0c, 0x08, 0x00, 0x00, 0xff, 0xff, 0x84, 0x26, 0x67, 0x78, 0xa7,
+	0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -159,7 +159,7 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	UpdateGlobalDao(ctx context.Context, in *MsgUpdateGlobalDao, opts ...grpc.CallOption) (*MsgUpdateGlobalDaoResponse, error)
+	UpdateDao(ctx context.Context, in *MsgUpdateDao, opts ...grpc.CallOption) (*MsgUpdateDaoResponse, error)
 }
 
 type msgClient struct {
@@ -170,9 +170,9 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) UpdateGlobalDao(ctx context.Context, in *MsgUpdateGlobalDao, opts ...grpc.CallOption) (*MsgUpdateGlobalDaoResponse, error) {
-	out := new(MsgUpdateGlobalDaoResponse)
-	err := c.cc.Invoke(ctx, "/metaearth.dao.Msg/UpdateGlobalDao", in, out, opts...)
+func (c *msgClient) UpdateDao(ctx context.Context, in *MsgUpdateDao, opts ...grpc.CallOption) (*MsgUpdateDaoResponse, error) {
+	out := new(MsgUpdateDaoResponse)
+	err := c.cc.Invoke(ctx, "/metaearth.dao.Msg/UpdateDao", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -181,35 +181,35 @@ func (c *msgClient) UpdateGlobalDao(ctx context.Context, in *MsgUpdateGlobalDao,
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	UpdateGlobalDao(context.Context, *MsgUpdateGlobalDao) (*MsgUpdateGlobalDaoResponse, error)
+	UpdateDao(context.Context, *MsgUpdateDao) (*MsgUpdateDaoResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) UpdateGlobalDao(ctx context.Context, req *MsgUpdateGlobalDao) (*MsgUpdateGlobalDaoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateGlobalDao not implemented")
+func (*UnimplementedMsgServer) UpdateDao(ctx context.Context, req *MsgUpdateDao) (*MsgUpdateDaoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateDao not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
 }
 
-func _Msg_UpdateGlobalDao_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgUpdateGlobalDao)
+func _Msg_UpdateDao_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateDao)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).UpdateGlobalDao(ctx, in)
+		return srv.(MsgServer).UpdateDao(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/metaearth.dao.Msg/UpdateGlobalDao",
+		FullMethod: "/metaearth.dao.Msg/UpdateDao",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).UpdateGlobalDao(ctx, req.(*MsgUpdateGlobalDao))
+		return srv.(MsgServer).UpdateDao(ctx, req.(*MsgUpdateDao))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -219,15 +219,15 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "UpdateGlobalDao",
-			Handler:    _Msg_UpdateGlobalDao_Handler,
+			MethodName: "UpdateDao",
+			Handler:    _Msg_UpdateDao_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "metaearth/dao/tx.proto",
 }
 
-func (m *MsgUpdateGlobalDao) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateDao) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -237,12 +237,12 @@ func (m *MsgUpdateGlobalDao) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgUpdateGlobalDao) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateDao) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUpdateGlobalDao) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateDao) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -267,7 +267,7 @@ func (m *MsgUpdateGlobalDao) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUpdateGlobalDaoResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateDaoResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -277,12 +277,12 @@ func (m *MsgUpdateGlobalDaoResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgUpdateGlobalDaoResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateDaoResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUpdateGlobalDaoResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateDaoResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -301,7 +301,7 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MsgUpdateGlobalDao) Size() (n int) {
+func (m *MsgUpdateDao) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -316,7 +316,7 @@ func (m *MsgUpdateGlobalDao) Size() (n int) {
 	return n
 }
 
-func (m *MsgUpdateGlobalDaoResponse) Size() (n int) {
+func (m *MsgUpdateDaoResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -331,7 +331,7 @@ func sovTx(x uint64) (n int) {
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MsgUpdateGlobalDao) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateDao) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -354,10 +354,10 @@ func (m *MsgUpdateGlobalDao) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUpdateGlobalDao: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateDao: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUpdateGlobalDao: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateDao: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -446,7 +446,7 @@ func (m *MsgUpdateGlobalDao) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgUpdateGlobalDaoResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateDaoResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -469,10 +469,10 @@ func (m *MsgUpdateGlobalDaoResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUpdateGlobalDaoResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateDaoResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUpdateGlobalDaoResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateDaoResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
