@@ -102,7 +102,7 @@ func CreateUpgradeHandler(
 		migrateRegionClassName(ctx, keepers.StakingKeeper, keepers.WNFTKeeper)
 
 		ctx.Logger().Info("7.migrate group")
-		migrateGroup(ctx, homePath, keepers.GroupKeeper, keepers.StakingKeeper)
+		migrateGroup(ctx, homePath, keepers.GroupKeeper, keepers.StakingKeeper, keepers.KycKeeper)
 
 		// create a new module account
 		macc := authtypes.NewEmptyModuleAccount(streamermoduletypes.ModuleName)
@@ -472,7 +472,7 @@ func migrateRegionClassName(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keepe
 	}
 }
 
-func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper, sk *wstakingkeeper.Keeper) {
+func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper, sk *wstakingkeeper.Keeper, kk *kyckeeper.Keeper) {
 	file, err := os.Open(filepath.Join(path, groupFilePath))
 	if err != nil {
 		log.Fatalf("Failed to open file: %v", err)
@@ -578,12 +578,23 @@ func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper, sk *wsta
 	gk.SetLastGroupID(ctx, lastGroupId)
 
 	for _, memberV1 := range data.AppState.Group.GroupMembers {
-		groupId, err := strconv.ParseUint(memberV1.GroupId, 10, 64)
-		if err != nil {
-			panic(fmt.Sprintf("Parse group id: %v", err))
-		}
+		//groupId, err := strconv.ParseUint(memberV1.GroupId, 10, 64)
+		//if err != nil {
+		//	panic(fmt.Sprintf("Parse group id: %v", err))
+		//}
 
-		_, f := gk.GetGroupInfo(ctx, groupId)
+		did, ok := kk.GetDID(ctx, sdk.MustAccAddressFromBech32(memberV1.Member.Address))
+		if !ok {
+			ctx.Logger().Error("adding group member has no did", "member address", memberV1.Member.Address)
+			continue
+		}
+		kycData, ok := kk.GetKYC(ctx, did)
+		if !ok {
+			ctx.Logger().Error("adding group member has no kyc", "member address", memberV1.Member.Address)
+			continue
+		}
+		regionId := string(kycData.Data)
+		groupId, f := gk.GetGroupIdByRegion(ctx, regionId)
 		if !f {
 			continue
 		}
