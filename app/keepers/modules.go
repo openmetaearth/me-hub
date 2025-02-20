@@ -114,7 +114,7 @@ func (a *AppKeepers) SetupModules(
 		wmint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil, a.GetSubspace(minttypes.ModuleName)),
 		slashing.NewAppModule(appCodec, a.SlashingKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(slashingtypes.ModuleName)),
 		wdistr.NewAppModule(appCodec, *a.DistrKeeper, a.AccountKeeper, a.BankKeeper),
-		wstaking.NewAppModule(appCodec, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
+		wstaking.NewAppModule(appCodec, a.StakingKeeper, a.TransferKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
 		upgrade.NewAppModule(a.UpgradeKeeper),
 		evidence.NewAppModule(a.EvidenceKeeper),
 		ibc.NewAppModule(a.IBCKeeper),
@@ -136,7 +136,7 @@ func (a *AppKeepers) SetupModules(
 		did.NewAppModule(appCodec, a.DidKeeper),
 		kyc.NewAppModule(appCodec, a.KycKeeper),
 
-		//me-group
+		// me-group
 		groupmodule.NewAppModule(appCodec, *a.GroupKeeper),
 
 		// osmosis modules

@@ -228,7 +228,7 @@ message QueryRecordsByAddressResponse {
 }
 
 message QueryReviewRecordByNumber{
-  string action_number = 1;
+  string actionNumber = 1;
 }
 
 message QueryReviewRecordByNumberResponse {

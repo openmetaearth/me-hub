@@ -52,7 +52,7 @@ func NewTxCmd() *cobra.Command {
 		NewUnstakeCmd(),
 		NewStakeCmd(),
 		CmdNewRegion(),
-		//CmdRemoveRegion(),
+		// CmdRemoveRegion(),
 		CmdWithdrawFromRegion(),
 		CmdWithdrawFromGlobalDaoFeePool(),
 		CmdNewRecord(),
@@ -66,6 +66,7 @@ func NewTxCmd() *cobra.Command {
 		CmdSetFixedDepositCfgStatus(),
 		CmdSetFixedDepositCfgRate(),
 		CmdNewFixedDepositCfg(),
+		NewIbcTransferFromRegionTreasureCmd(),
 	)
 
 	return stakingTxCmd
@@ -353,7 +354,7 @@ func CreateValidatorMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaultsDesc
 
 // NewDelegateCmd returns a CLI command handler for creating a MsgDelegate transaction.
 func NewDelegateCmd() *cobra.Command {
-	//bech32PrefixValAddr := sdk.GetConfig().GetBech32ValidatorAddrPrefix()
+	// bech32PrefixValAddr := sdk.GetConfig().GetBech32ValidatorAddrPrefix()
 
 	cmd := &cobra.Command{
 		Use:   "delegate [amount] ",
@@ -391,7 +392,7 @@ $ %s tx staking delegate 1000mec --from mykey
 			//	return err
 			//}
 
-			//msg := types.NewMsgDelegate(delAddr, sdk.ValAddress(sdk.MustAccAddressFromBech32(validatorAddress)), amount, "")
+			// msg := types.NewMsgDelegate(delAddr, sdk.ValAddress(sdk.MustAccAddressFromBech32(validatorAddress)), amount, "")
 			msg := types.NewMsgDelegate(delAddr, sdk.ValAddress{}, amount, "")
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
