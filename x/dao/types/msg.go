@@ -38,9 +38,25 @@ func (msg *MsgUpdateDao) GetSignBytes() []byte {
 }
 
 func (msg *MsgUpdateDao) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Creator)
+	if len(msg.DaoAddresses.GlobalDao) > 0 {
+		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.GlobalDao); err != nil {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.GlobalDao)
+		}
+	}
+	if len(msg.DaoAddresses.MeidDao) > 0 {
+		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.MeidDao); err != nil {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.MeidDao)
+		}
+	}
+	if len(msg.DaoAddresses.AirdropAddress) > 0 {
+		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.AirdropAddress); err != nil {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.AirdropAddress)
+		}
+	}
+	if len(msg.DaoAddresses.AirdropAddress) > 0 {
+		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.AirdropAddress); err != nil {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.AirdropAddress)
+		}
 	}
 	return nil
 }
