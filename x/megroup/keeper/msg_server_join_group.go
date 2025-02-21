@@ -39,7 +39,7 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 
 	_, isKycActive := k.GetDidAndKycActive(ctx, userAccAddr, groupInfo.RegionID)
 	if !isKycActive {
-		return nil, errors.Wrapf(types.ErrPermissionDenied, fmt.Sprintf("can not found user's did active status in group's region"+
+		return nil, errors.Wrapf(types.ErrPermissionDenied, fmt.Sprintf("can not found hight kyc level user's did active status in group's region"+
 			"address = %s, group's regionID = %s", msg.ApplicantAddress, groupInfo.RegionID))
 	}
 
