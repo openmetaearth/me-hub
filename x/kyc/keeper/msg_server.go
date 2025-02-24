@@ -92,8 +92,12 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	m.AddFilters(ctx, msg.Did, [][]byte{[]byte(msg.RegionId)}, kyc)
 
 	// add reward to KYC holder and inviter
-	if err := m.SetApproveReward(ctx, msg.Address, msg.Inviter, msg.Issuer, msg.RegionId); err != nil {
+	if err := m.stkKeeper.KycReward(ctx, address, msg.RegionId, issuer); err != nil {
 		return &types.MsgApproveResponse{}, errors.Wrap(err, "set reward failed")
+	}
+
+	if msg.Level == didtypes.KYC_LEVEL_TWO {
+		m.stkKeeper.SendInviteReward(ctx, msg.Inviter, msg.Address, msg.RegionId)
 	}
 
 	// todo: update events
@@ -131,7 +135,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 		return &types.MsgUpdateResponse{}, didtypes.ErrCredentialNotFound
 	}
 	perRegionId := string(preKyc.Data)
-	perLevel := holderInfo.KycLevel.String()
+	perLevel := holderInfo.KycLevel
 
 	if strings.EqualFold(perRegionId, stktypes.ExperienceRegionName) || strings.EqualFold(msg.RegionId, stktypes.ExperienceRegionName) {
 		return nil, stktypes.ErrTransferRegion.Wrap("from region or to region is experience region")
@@ -146,6 +150,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	//if msg.Level == didtypes.KYC_LEVEL_NONE {
 	//	return &types.MsgUpdateResponse{}, errors.Wrap(didtypes.ErrParameter, "KYC level must be greater than 0")
 	//}
+
 	holderInfo.RegionId = msg.RegionId
 	holderInfo.KycLevel = msg.Level
 	m.SetDidInfo(ctx, msg.Did, holderInfo)
@@ -159,8 +164,12 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	m.AddFilters(ctx, msg.Did, [][]byte{[]byte(msg.RegionId)}, kyc)
 
 	// change reward
-	if err := m.TransferApproveReward(ctx, address, msg.Issuer, perRegionId, msg.RegionId); err != nil {
+	if err := m.TransferKycRegion(ctx, address, msg.Issuer, perRegionId, msg.RegionId); err != nil {
 		return &types.MsgUpdateResponse{}, err
+	}
+
+	if perLevel == didtypes.KYC_LEVEL_ONE && msg.Level == didtypes.KYC_LEVEL_TWO {
+		m.stkKeeper.SendInviteReward(ctx, msg.Inviter, address, msg.RegionId)
 	}
 
 	// add event
@@ -168,7 +177,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 		sdk.NewAttribute(types.AttributeKeyAddress, address),
 		sdk.NewAttribute(types.AttributeKeyRegionId, perRegionId),
 		sdk.NewAttribute(types.AttributeKeyRegionIdChanged, msg.RegionId),
-		sdk.NewAttribute(types.AttributeKeyLevel, perLevel),
+		sdk.NewAttribute(types.AttributeKeyLevel, perLevel.String()),
 		sdk.NewAttribute(types.AttributeKeyLevelChanged, msg.Level.String()),
 	)
 	ctx.EventManager().EmitEvent(event)

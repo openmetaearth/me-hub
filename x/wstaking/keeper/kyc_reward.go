@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, regionId, creator string) error {
+func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, creator string) error {
 	if regionId == strings.ToLower(types.ExperienceRegionName) {
 		return sdkerrors.Wrapf(types.ErrSendKycReward, fmt.Sprintf("cannot set kyc to %s region", regionId))
 	}
@@ -38,7 +38,7 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 
 	validator.MeidAmount = validator.MeidAmount.Add(types.Bonus)
 
-	err = k.SendKycRewards(ctx, account, valAddr, inviteAddr, validator, region)
+	err = k.SendKycRewards(ctx, account, valAddr, validator, region)
 	if err != nil {
 		return sdkerrors.Wrapf(types.ErrSendKycReward, err.Error())
 	}
@@ -54,8 +54,6 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, inviteAddr, r
 			sdk.NewAttribute(types.AttributeKeyAccount, account.String()),
 			sdk.NewAttribute(types.AttributeKeyRegionId, regionId),
 			sdk.NewAttribute(types.AttributeKeyCreator, creator),
-			sdk.NewAttribute(types.AttributeKeyMeidInviteAddress, inviteAddr),
-			sdk.NewAttribute(types.AttributeKeyMeidInviteReward, types.InviteReward.String()+params.BaseDenom),
 			sdk.NewAttribute(types.AttributeKeySendMeidInviteAddress, region.RegionTreasureAddr),
 			sdk.NewAttribute(types.AttributeKeyReceiveMeidInviteAddress_Society, k.daoKeeper.GetDevOperator(ctx)),
 			sdk.NewAttribute(types.AttributeKeyReceiveMeidInviteAddress_Node, ownerAddress),
@@ -106,7 +104,7 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 }
 
 func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
-	inviteAddr string, validator stakingtypes.Validator, region types.Region) (err error) {
+	validator stakingtypes.Validator, region types.Region) (err error) {
 	delegation, found := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
 	if found {
 		experienceRegion, hasRegion := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegionName))
@@ -170,12 +168,6 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 	delegation.StartHeight = ctx.BlockHeight()
 	delegation.ValidatorAddress = validatorAddr.String()
 	treasureAddr := k.GetRegionAccount(ctx, types.RegionAccountTypeBase, region.RegionId)
-	if len(inviteAddr) > 0 {
-		err = k.bankKeeper.SendCoins(ctx, treasureAddr.GetAddress(), sdk.MustAccAddressFromBech32(inviteAddr), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.InviteReward)))
-		if err != nil {
-			return fmt.Errorf("send kyc reward to inviter, %v", err)
-		}
-	}
 
 	// validator rewards
 	ownerAddress := validator.OwnerAddress

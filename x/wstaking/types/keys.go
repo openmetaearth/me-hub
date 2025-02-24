@@ -57,6 +57,7 @@ var (
 
 	NewRecordKey    = []byte{0x88} //key for new record
 	ReviewRecordKey = []byte{0x89} // key for new review record
+	InviteKey       = []byte{0x90}
 )
 
 func KeyPrefix(p string) []byte {

@@ -43,6 +43,7 @@ message MsgUpdate {
   did.KycLevel level = 4;
   string uri = 5;
   string hash = 6;
+  string inviter = 7;
 }
 
 message MsgUpdateResponse {}

@@ -297,7 +297,7 @@ func migrateKycData(ctx sdk.Context,
 
 	didData, err := ReadDID(homePath)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("read did: %v", err))
 	}
 
 	accountPubkey, err := ReadKycPubkey(homePath)
@@ -314,8 +314,11 @@ func migrateKycData(ctx sdk.Context,
 				Address:  oldRecord.Account,
 				Pubkey:   accountPubkey[oldRecord.Account],
 				RegionId: oldRecord.RegionId,
-				KycLevel: didtypes.KYC_LEVEL_ONE,
+				KycLevel: didtypes.KycLevel(did.Level),
 				Status:   didtypes.DID_STATUS_ACTIVE,
+			}
+			if did.Level != 2 {
+				stakingKeeper.SetInviterReward(ctx, oldRecord.Account)
 			}
 			// write new data to the new module s storage
 			didKeeper.SetDID(ctx, sdk.MustAccAddressFromBech32(oldRecord.Account), did.Did)
@@ -435,6 +438,7 @@ func ReadIssuer(path string) (issuer []didtypes.DidInfo, err error) {
 
 type DidData struct {
 	Did        string `json:"did"`
+	Level      uint64 `json:"level"`
 	Uri        string `json:"uri"`
 	UriHash    string `json:"uri_hash"`
 	KycUri     string `json:"kyc_uri"`

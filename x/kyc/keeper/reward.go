@@ -5,15 +5,11 @@ import (
 	"strings"
 )
 
-func (k *Keeper) SetApproveReward(ctx sdk.Context, address, inviter, issuer, originId string) error {
-	return k.stkKeeper.KycReward(ctx, sdk.MustAccAddressFromBech32(address), inviter, originId, issuer)
-}
-
 func (k *Keeper) DeleteApproveReward(ctx sdk.Context, address, regionId string) error {
 	return k.stkKeeper.RemoveKycReward(ctx, sdk.MustAccAddressFromBech32(address), regionId)
 }
 
-func (k *Keeper) TransferApproveReward(ctx sdk.Context, address, issuer, fromRegionId, toRegionId string) error {
+func (k *Keeper) TransferKycRegion(ctx sdk.Context, address, issuer, fromRegionId, toRegionId string) error {
 	if strings.EqualFold(fromRegionId, toRegionId) {
 		return nil
 	}
