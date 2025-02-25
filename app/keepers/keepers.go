@@ -517,6 +517,7 @@ func (a *AppKeepers) InitKeepers(
 		a.WNFTKeeper,
 	)
 	a.StakingKeeper.SetKycKeeper(a.KycKeeper)
+	a.DaoKeeper.SetHook(a.KycKeeper)
 
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
 	a.GroupKeeper = groupkeeper.NewKeeper(

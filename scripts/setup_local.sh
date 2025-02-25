@@ -113,6 +113,12 @@ med add-genesis-m-accounts
 
 med gentx_DAO --pubkey "$(med keys show "$KEY_NAME" -p)"
 
+jq '.app_state["dao"]["dao_addresses"]["global_dao"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["dao_addresses"]["meid_dao"] = "me1p7s6k4ecrm2kl0rs6399k99pyuk322dc78dcxq"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["dao_addresses"]["dev_operator"] = "me16qle3emp70kr08wt5508t7gk7trst0zwclnscj"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["dao"]["dao_addresses"]["airdrop_address"] = "me1uzt6kk6ra9x0ap3au3xuqwp94l2rnw4zqscn2s"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+set_kyc_issuers
+
 validator_address=$(med keys show "$KEY_NAME" -a --keyring-backend test)
 
 med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test --region-id me_earth --validator-address "$validator_address"

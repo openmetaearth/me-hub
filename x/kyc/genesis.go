@@ -15,7 +15,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	var issuers []string
 
 	for _, issuer := range genState.Issuers {
-		address := k.MustAccAddressFromPubkeyString(issuer.Pubkey)
+		address, err := k.MustAccAddressFromPubkeyString(issuer.Pubkey)
+		if err != nil {
+			panic(err)
+		}
 		if _, found := k.GetDID(ctx, address); found {
 			panic(fmt.Errorf("issuer %s already exists", address))
 		}

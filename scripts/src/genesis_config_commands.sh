@@ -114,3 +114,23 @@ enable_monitoring() {
     sed -ie 's/enable-unsafe-cors.*$/enabled-unsafe-cors = true/' "$APP_CONFIG_FILE"
     sed -ie 's/cors_allowed_origins.*$/cors_allowed_origins = ["*"]/' "$TENDERMINT_CONFIG_FILE"
 }
+
+set_kyc_issuers() {
+    echo "setting issuer"
+    jq '.app_state.kyc.issuers = [
+      {
+        "did": "0000000000001",
+        "address": "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u",
+        "pubkey": "{\"@type\":\"/ethermint.crypto.v1.ethsecp256k1.PubKey\",\"key\":\"Aggm+J77xeXPyJMOnpdtEu+nmCG/ia9zudrm3kGs722z\"}",
+        "kycLevel": "KYC_LEVEL_TWO",
+        "status": "DID_STATUS_ACTIVE"
+      },
+      {
+        "did": "0000000000002",
+        "address": "me1p7s6k4ecrm2kl0rs6399k99pyuk322dc78dcxq",
+        "pubkey": "{\"@type\":\"/ethermint.crypto.v1.ethsecp256k1.PubKey\",\"key\":\"AqHK4uOBtHkCqB6LtZab+ggeuaqch0rJLbMuBswZm2El\"}",
+        "kycLevel": "KYC_LEVEL_TWO",
+        "status": "DID_STATUS_ACTIVE"
+      }
+    ]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+}

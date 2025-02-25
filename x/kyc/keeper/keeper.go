@@ -49,15 +49,15 @@ func (k *Keeper) PubKeyFromString(s string) (pk cryptotypes.PubKey, err error) {
 	return pk, err
 }
 
-func (k *Keeper) MustAccAddressFromPubkeyString(s string) sdk.AccAddress {
+func (k *Keeper) MustAccAddressFromPubkeyString(s string) (sdk.AccAddress, error) {
 	if len(s) > 0 {
 		pk, err := k.PubKeyFromString(s)
 		if err != nil {
-			panic(err)
+			return sdk.AccAddress{}, err
 		}
-		return sdk.AccAddress(pk.Address())
+		return sdk.AccAddress(pk.Address()), nil
 	}
-	return sdk.AccAddress{}
+	return sdk.AccAddress{}, fmt.Errorf("pubkey is empty")
 }
 
 func (k *Keeper) RegisterEventHandler(eventType string, priority int, module string, handler handler.HandlerFunc) {

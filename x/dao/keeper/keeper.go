@@ -18,6 +18,7 @@ type Keeper struct {
 	cdc        codec.BinaryCodec
 	storeKey   storetypes.StoreKey
 	authKeeper banktypes.AccountKeeper
+	kycHook    types.KycHook
 }
 
 func NewKeeper(
@@ -30,6 +31,10 @@ func NewKeeper(
 		storeKey:   storeKey,
 		authKeeper: ak,
 	}
+}
+
+func (k *Keeper) SetHook(kycHook types.KycHook) {
+	k.kycHook = kycHook
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

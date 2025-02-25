@@ -21,6 +21,7 @@ type DIDKeeper interface {
 	HasDID(ctx sdk.Context, addr sdk.AccAddress) bool
 	GetDID(ctx sdk.Context, addr sdk.AccAddress) (did string, found bool)
 	SetDID(ctx sdk.Context, addr sdk.AccAddress, did string)
+	DeleteDID(ctx sdk.Context, addr sdk.AccAddress)
 
 	HasDidInfo(ctx sdk.Context, did string) bool
 	GetDidInfo(ctx sdk.Context, did string) (info didtypes.DidInfo, found bool)

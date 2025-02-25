@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	sdkerrors "cosmossdk.io/errors"
 	"encoding/json"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/dao/types"
@@ -27,23 +28,20 @@ func (k msgServer) UpdateDao(goCtx context.Context, msg *types.MsgUpdateDao) (*t
 		return nil, types.ErrCreatorNotDao
 	}
 
-	oldAddresses, found := k.GetDaoAddresses(ctx)
+	oldDao, found := k.GetDaoAddresses(ctx)
 	if !found {
 		return nil, types.ErrNotFound
 	}
 
 	k.SetDaoAddresses(ctx, msg.DaoAddresses)
 
-	oldByte, err := json.Marshal(oldAddresses)
+	err := k.kycHook.SetKycIssers(ctx, []string{oldDao.GlobalDao, oldDao.MeidDao}, []string{msg.DaoAddresses.GlobalDao, msg.DaoAddresses.MeidDao})
 	if err != nil {
-		panic(err)
+		return nil, sdkerrors.Wrap(types.ErrSetKycIssuer, err.Error())
 	}
 
-	newByte, err := json.Marshal(msg.DaoAddresses)
-	if err != nil {
-		panic(err)
-	}
-
+	oldByte, _ := json.Marshal(oldDao)
+	newByte, _ := json.Marshal(msg.DaoAddresses)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeDaoUpdated,
@@ -51,6 +49,5 @@ func (k msgServer) UpdateDao(goCtx context.Context, msg *types.MsgUpdateDao) (*t
 			sdk.NewAttribute(types.AttributeKeyNewDaoAddresses, string(newByte)),
 		),
 	)
-
 	return &types.MsgUpdateDaoResponse{}, nil
 }

@@ -6,6 +6,7 @@ import (
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkaddr "github.com/cosmos/cosmos-sdk/types/address"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/types"
@@ -154,7 +155,10 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	holderInfo.RegionId = msg.RegionId
 	holderInfo.KycLevel = msg.Level
 	m.SetDidInfo(ctx, msg.Did, holderInfo)
-	address := m.MustAccAddressFromPubkeyString(holderInfo.Pubkey).String()
+	address, err := m.MustAccAddressFromPubkeyString(holderInfo.Pubkey)
+	if err != nil {
+		return &types.MsgUpdateResponse{}, errors.Wrap(err, "invalid pubkey")
+	}
 	// update KYC
 	kyc := msg.GetKYC()
 	m.SetKYC(ctx, msg.Did, kyc)
@@ -164,27 +168,29 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	m.AddFilters(ctx, msg.Did, [][]byte{[]byte(msg.RegionId)}, kyc)
 
 	// change reward
-	if err := m.TransferKycRegion(ctx, address, msg.Issuer, perRegionId, msg.RegionId); err != nil {
-		return &types.MsgUpdateResponse{}, err
+	if err := m.TransferKycRegion(ctx, address.String(), msg.Issuer, perRegionId, msg.RegionId); err != nil {
+		return &types.MsgUpdateResponse{}, sdkerrors.Wrap(types.ErrTransferRegion, err.Error())
 	}
 
 	if perLevel == didtypes.KYC_LEVEL_ONE && msg.Level == didtypes.KYC_LEVEL_TWO {
-		m.stkKeeper.SendInviteReward(ctx, msg.Inviter, address, msg.RegionId)
+		if err := m.stkKeeper.SendInviteReward(ctx, msg.Inviter, address.String(), msg.RegionId); err != nil {
+			return &types.MsgUpdateResponse{}, sdkerrors.Wrap(types.ErrInviteReward, err.Error())
+		}
 	}
 
 	// add event
 	event := sdk.NewEvent(types.EventTypeUpdate,
-		sdk.NewAttribute(types.AttributeKeyAddress, address),
+		sdk.NewAttribute(types.AttributeKeyAddress, address.String()),
 		sdk.NewAttribute(types.AttributeKeyRegionId, perRegionId),
 		sdk.NewAttribute(types.AttributeKeyRegionIdChanged, msg.RegionId),
 		sdk.NewAttribute(types.AttributeKeyLevel, perLevel.String()),
 		sdk.NewAttribute(types.AttributeKeyLevelChanged, msg.Level.String()),
 	)
 	ctx.EventManager().EmitEvent(event)
-	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, msg.Level, "update", m.takeSeq(ctx)))
+	ctx.EventManager().EmitEvent(types.NewKycEvent(address.String(), msg.Did, msg.Level, "update", m.takeSeq(ctx)))
 
 	// event post-handler
-	err := m.handlerReg.HandleEvent(ctx, types.EventTypeUpdate, event)
+	err = m.handlerReg.HandleEvent(ctx, types.EventTypeUpdate, event)
 	if err != nil {
 		return &types.MsgUpdateResponse{}, err
 	}
@@ -234,11 +240,14 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	m.DeleteFilters(ctx, msg.Did, filters)
 
 	// cancel reward
-	address := m.MustAccAddressFromPubkeyString(didInfo.Pubkey).String()
-	if err := m.DeleteApproveReward(ctx, address, string(kyc.Data)); err != nil {
+	address, err := m.MustAccAddressFromPubkeyString(didInfo.Pubkey)
+	if err != nil {
+		return &types.MsgRemoveResponse{}, sdkerrors.Wrap(types.ErrInvalidPubkey, err.Error())
+	}
+	if err := m.DeleteApproveReward(ctx, address.String(), string(kyc.Data)); err != nil {
 		return &types.MsgRemoveResponse{}, errors.Wrap(err, "delete reward failed")
 	}
-	ctx.EventManager().EmitEvent(types.NewKycEvent(address, msg.Did, didInfo.KycLevel, "remove", m.takeSeq(ctx)))
+	ctx.EventManager().EmitEvent(types.NewKycEvent(address.String(), msg.Did, didInfo.KycLevel, "remove", m.takeSeq(ctx)))
 	return &types.MsgRemoveResponse{}, nil
 }
 
