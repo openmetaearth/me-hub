@@ -40,7 +40,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
 	if !found || !slices.Contains(svc.Issuers, issuer) {
-		return &types.MsgApproveResponse{}, didtypes.ErrIssuerNotFound
+		return &types.MsgApproveResponse{}, sdkerrors.Wrap(didtypes.ErrInvalidIssuer, msg.Issuer)
 	}
 
 	issuerInfo, found := m.GetDidInfo(ctx, issuer)
@@ -123,7 +123,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	}
 	issuerInfo, found := m.GetDidInfo(ctx, issuer)
 	if !found || issuerInfo.Status != didtypes.DID_STATUS_ACTIVE {
-		return &types.MsgUpdateResponse{}, didtypes.ErrIssuerNotActive
+		return &types.MsgUpdateResponse{}, sdkerrors.Wrap(didtypes.ErrInvalidIssuer, msg.Issuer)
 	}
 
 	// check holder did

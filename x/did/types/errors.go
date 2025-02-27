@@ -23,6 +23,7 @@ var (
 	ErrIssuerExists    = errors.Register(ModuleName, 130, "issuer already exists")
 	ErrIssuerNotFound  = errors.Register(ModuleName, 131, "issuer not found")
 	ErrIssuerNotActive = errors.Register(ModuleName, 132, "issuer not active")
+	ErrInvalidIssuer   = errors.Register(ModuleName, 133, "invalid issuer")
 
 	ErrHolderExists    = errors.Register(ModuleName, 140, "holder already exists")
 	ErrHolderNotFound  = errors.Register(ModuleName, 141, "holder not found")

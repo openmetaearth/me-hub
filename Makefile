@@ -205,10 +205,10 @@ proto-download-deps:
 	mkdir -p "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
 	git init && \
-	git remote add origin "https://github.com/cosmos/cosmos-sdk.git" && \
+	git remote add origin "https://github.com/st-chain/cosmos-sdk.git" && \
 	git config core.sparseCheckout true && \
 	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
-	git pull origin release/v0.47.x && \
+	git pull origin me-hub/v0.47.13 && \
 	rm -f ./proto/buf.* && \
 	mv ./proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/cosmos_tmp"

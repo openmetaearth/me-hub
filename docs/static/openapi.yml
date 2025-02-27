@@ -4071,6 +4071,15 @@ paths:
                       shares:
                         type: string
                         description: shares define the delegation shares received.
+                      startHeight:
+                        type: string
+                        format: int64
+                      amount:
+                        type: string
+                      unmovable:
+                        type: string
+                      unMeidAmount:
+                        type: string
                     description: >-
                       Delegation represents the bond with tokens held by an
                       account. It is
@@ -6845,7 +6854,7 @@ paths:
           type: string
       tags:
         - Query
-  /metaearth/wstaking/review_record/{actionNumber}:
+  /metaearth/wstaking/review_record/{action_number}:
     get:
       operationId: QueryReviewRecordByID
       responses:
@@ -7060,7 +7069,7 @@ paths:
                           "value": "1.212s"
                         }
       parameters:
-        - name: actionNumber
+        - name: action_number
           in: path
           required: true
           type: string
@@ -29165,227 +29174,6 @@ paths:
           format: byte
       tags:
         - Query
-  /cosmos/auth/v1beta1/bech32/{address_string}:
-    get:
-      summary: AddressStringToBytes converts Address string to bytes
-      description: 'Since: cosmos-sdk 0.46'
-      operationId: AddressStringToBytes
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              address_bytes:
-                type: string
-                format: byte
-            description: >-
-              AddressStringToBytesResponse is the response type for AddressBytes
-              rpc method.
-
-
-              Since: cosmos-sdk 0.46
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                      description: >-
-                        A URL/resource name that uniquely identifies the type of
-                        the serialized
-
-                        protocol buffer message. This string must contain at
-                        least
-
-                        one "/" character. The last segment of the URL's path
-                        must represent
-
-                        the fully qualified name of the type (as in
-
-                        `path/google.protobuf.Duration`). The name should be in
-                        a canonical form
-
-                        (e.g., leading "." is not accepted).
-
-
-                        In practice, teams usually precompile into the binary
-                        all types that they
-
-                        expect it to use in the context of Any. However, for
-                        URLs which use the
-
-                        scheme `http`, `https`, or no scheme, one can optionally
-                        set up a type
-
-                        server that maps type URLs to message definitions as
-                        follows:
-
-
-                        * If no scheme is provided, `https` is assumed.
-
-                        * An HTTP GET on the URL must yield a
-                        [google.protobuf.Type][]
-                          value in binary format, or produce an error.
-                        * Applications are allowed to cache lookup results based
-                        on the
-                          URL, or have them precompiled into a binary to avoid any
-                          lookup. Therefore, binary compatibility needs to be preserved
-                          on changes to types. (Use versioned type names to manage
-                          breaking changes.)
-
-                        Note: this functionality is not currently available in
-                        the official
-
-                        protobuf release, and it is not used for type URLs
-                        beginning with
-
-                        type.googleapis.com.
-
-
-                        Schemes other than `http`, `https` (or the empty scheme)
-                        might be
-
-                        used with implementation specific semantics.
-                    value:
-                      type: string
-                      format: byte
-                      description: >-
-                        Must be a valid serialized protocol buffer of the above
-                        specified type.
-                  description: >-
-                    `Any` contains an arbitrary serialized protocol buffer
-                    message along with a
-
-                    URL that describes the type of the serialized message.
-
-
-                    Protobuf library provides support to pack/unpack Any values
-                    in the form
-
-                    of utility functions or additional generated methods of the
-                    Any type.
-
-
-                    Example 1: Pack and unpack a message in C++.
-
-                        Foo foo = ...;
-                        Any any;
-                        any.PackFrom(foo);
-                        ...
-                        if (any.UnpackTo(&foo)) {
-                          ...
-                        }
-
-                    Example 2: Pack and unpack a message in Java.
-
-                        Foo foo = ...;
-                        Any any = Any.pack(foo);
-                        ...
-                        if (any.is(Foo.class)) {
-                          foo = any.unpack(Foo.class);
-                        }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
-
-                    Example 3: Pack and unpack a message in Python.
-
-                        foo = Foo(...)
-                        any = Any()
-                        any.Pack(foo)
-                        ...
-                        if any.Is(Foo.DESCRIPTOR):
-                          any.Unpack(foo)
-                          ...
-
-                    Example 4: Pack and unpack a message in Go
-
-                         foo := &pb.Foo{...}
-                         any, err := anypb.New(foo)
-                         if err != nil {
-                           ...
-                         }
-                         ...
-                         foo := &pb.Foo{}
-                         if err := any.UnmarshalTo(foo); err != nil {
-                           ...
-                         }
-
-                    The pack methods provided by protobuf library will by
-                    default use
-
-                    'type.googleapis.com/full.type.name' as the type URL and the
-                    unpack
-
-                    methods only use the fully qualified type name after the
-                    last '/'
-
-                    in the type URL, for example "foo.bar.com/x/y.z" will yield
-                    type
-
-                    name "y.z".
-
-
-                    JSON
-
-
-                    The JSON representation of an `Any` value uses the regular
-
-                    representation of the deserialized, embedded message, with
-                    an
-
-                    additional field `@type` which contains the type URL.
-                    Example:
-
-                        package google.profile;
-                        message Person {
-                          string first_name = 1;
-                          string last_name = 2;
-                        }
-
-                        {
-                          "@type": "type.googleapis.com/google.profile.Person",
-                          "firstName": <string>,
-                          "lastName": <string>
-                        }
-
-                    If the embedded message type is well-known and has a custom
-                    JSON
-
-                    representation, that representation will be embedded adding
-                    a field
-
-                    `value` which holds the custom JSON in addition to the
-                    `@type`
-
-                    field. Example (for message [google.protobuf.Duration][]):
-
-                        {
-                          "@type": "type.googleapis.com/google.protobuf.Duration",
-                          "value": "1.212s"
-                        }
-      parameters:
-        - name: address_string
-          in: path
-          required: true
-          type: string
-      tags:
-        - Query
   /cosmos/auth/v1beta1/module_accounts:
     get:
       summary: ModuleAccounts returns all the existing module accounts.
@@ -41177,6 +40965,15 @@ paths:
                         shares:
                           type: string
                           description: shares define the delegation shares received.
+                        startHeight:
+                          type: string
+                          format: int64
+                        amount:
+                          type: string
+                        unmovable:
+                          type: string
+                        unMeidAmount:
+                          type: string
                       description: >-
                         Delegation represents the bond with tokens held by an
                         account. It is
@@ -42524,14 +42321,12 @@ paths:
                       default: BOND_STATUS_UNSPECIFIED
                     tokens:
                       type: string
-                      description: >-
-                        tokens define the delegated tokens (incl.
-                        self-delegation).
-                    delegator_shares:
+                      description: tokens define the staked tokens (incl. self-stake).
+                    staker_shares:
                       type: string
                       description: >-
-                        delegator_shares defines total shares issued to a
-                        validator's delegators.
+                        staker_shares defines total shares issued to a
+                        validator's stakers.
                     description:
                       description: >-
                         description defines the description terms for the
@@ -42559,6 +42354,8 @@ paths:
                         details:
                           type: string
                           description: details define other optional details.
+                        regionID:
+                          type: string
                     unbonding_height:
                       type: string
                       format: int64
@@ -42603,20 +42400,25 @@ paths:
                           description: >-
                             update_time is the last time the commission rate was
                             changed.
-                    min_self_delegation:
+                    min_self_stake:
                       type: string
                       description: >-
-                        min_self_delegation is the validator's self declared
-                        minimum self delegation.
+                        min_self_stake is the validator's self declared minimum
+                        self stake.
 
 
                         Since: cosmos-sdk 0.46
-                    unbonding_on_hold_ref_count:
+                    delegation_amount:
                       type: string
-                      format: int64
+                      title: count delegation amount
+                    meid_amount:
+                      type: string
+                      title: count meid amount
+                    owner_address:
+                      type: string
                       title: >-
-                        strictly positive if this validator's unbonding has been
-                        stopped by external modules
+                        owner_address defines the address of distribute gas
+                        income
                     unbonding_ids:
                       type: array
                       items:
@@ -42625,6 +42427,16 @@ paths:
                       title: >-
                         list of unbonding ids, each uniquely identifing an
                         unbonding of this validator
+                    unbonding_on_hold_ref_count:
+                      type: string
+                      format: int64
+                      title: >-
+                        strictly positive if this validator's unbonding has been
+                        stopped by external modules
+                    delegator_shares:
+                      type: string
+                    min_self_delegation:
+                      type: string
                   description: >-
                     Validator defines a validator, together with the total
                     amount of the
@@ -43147,14 +42959,12 @@ paths:
                     default: BOND_STATUS_UNSPECIFIED
                   tokens:
                     type: string
-                    description: >-
-                      tokens define the delegated tokens (incl.
-                      self-delegation).
-                  delegator_shares:
+                    description: tokens define the staked tokens (incl. self-stake).
+                  staker_shares:
                     type: string
                     description: >-
-                      delegator_shares defines total shares issued to a
-                      validator's delegators.
+                      staker_shares defines total shares issued to a validator's
+                      stakers.
                   description:
                     description: >-
                       description defines the description terms for the
@@ -43182,6 +42992,8 @@ paths:
                       details:
                         type: string
                         description: details define other optional details.
+                      regionID:
+                        type: string
                   unbonding_height:
                     type: string
                     format: int64
@@ -43225,20 +43037,23 @@ paths:
                         description: >-
                           update_time is the last time the commission rate was
                           changed.
-                  min_self_delegation:
+                  min_self_stake:
                     type: string
                     description: >-
-                      min_self_delegation is the validator's self declared
-                      minimum self delegation.
+                      min_self_stake is the validator's self declared minimum
+                      self stake.
 
 
                       Since: cosmos-sdk 0.46
-                  unbonding_on_hold_ref_count:
+                  delegation_amount:
                     type: string
-                    format: int64
-                    title: >-
-                      strictly positive if this validator's unbonding has been
-                      stopped by external modules
+                    title: count delegation amount
+                  meid_amount:
+                    type: string
+                    title: count meid amount
+                  owner_address:
+                    type: string
+                    title: owner_address defines the address of distribute gas income
                   unbonding_ids:
                     type: array
                     items:
@@ -43247,6 +43062,16 @@ paths:
                     title: >-
                       list of unbonding ids, each uniquely identifing an
                       unbonding of this validator
+                  unbonding_on_hold_ref_count:
+                    type: string
+                    format: int64
+                    title: >-
+                      strictly positive if this validator's unbonding has been
+                      stopped by external modules
+                  delegator_shares:
+                    type: string
+                  min_self_delegation:
+                    type: string
                 description: >-
                   Validator defines a validator, together with the total amount
                   of the
@@ -43782,14 +43607,12 @@ paths:
                           default: BOND_STATUS_UNSPECIFIED
                         tokens:
                           type: string
-                          description: >-
-                            tokens define the delegated tokens (incl.
-                            self-delegation).
-                        delegator_shares:
+                          description: tokens define the staked tokens (incl. self-stake).
+                        staker_shares:
                           type: string
                           description: >-
-                            delegator_shares defines total shares issued to a
-                            validator's delegators.
+                            staker_shares defines total shares issued to a
+                            validator's stakers.
                         description:
                           description: >-
                             description defines the description terms for the
@@ -43817,6 +43640,8 @@ paths:
                             details:
                               type: string
                               description: details define other optional details.
+                            regionID:
+                              type: string
                         unbonding_height:
                           type: string
                           format: int64
@@ -43862,20 +43687,25 @@ paths:
                               description: >-
                                 update_time is the last time the commission rate
                                 was changed.
-                        min_self_delegation:
+                        min_self_stake:
                           type: string
                           description: >-
-                            min_self_delegation is the validator's self declared
-                            minimum self delegation.
+                            min_self_stake is the validator's self declared
+                            minimum self stake.
 
 
                             Since: cosmos-sdk 0.46
-                        unbonding_on_hold_ref_count:
+                        delegation_amount:
                           type: string
-                          format: int64
+                          title: count delegation amount
+                        meid_amount:
+                          type: string
+                          title: count meid amount
+                        owner_address:
+                          type: string
                           title: >-
-                            strictly positive if this validator's unbonding has
-                            been stopped by external modules
+                            owner_address defines the address of distribute gas
+                            income
                         unbonding_ids:
                           type: array
                           items:
@@ -43884,6 +43714,16 @@ paths:
                           title: >-
                             list of unbonding ids, each uniquely identifing an
                             unbonding of this validator
+                        unbonding_on_hold_ref_count:
+                          type: string
+                          format: int64
+                          title: >-
+                            strictly positive if this validator's unbonding has
+                            been stopped by external modules
+                        delegator_shares:
+                          type: string
+                        min_self_delegation:
+                          type: string
                       description: >-
                         Validator defines a validator, together with the total
                         amount of the
@@ -44795,14 +44635,12 @@ paths:
                       default: BOND_STATUS_UNSPECIFIED
                     tokens:
                       type: string
-                      description: >-
-                        tokens define the delegated tokens (incl.
-                        self-delegation).
-                    delegator_shares:
+                      description: tokens define the staked tokens (incl. self-stake).
+                    staker_shares:
                       type: string
                       description: >-
-                        delegator_shares defines total shares issued to a
-                        validator's delegators.
+                        staker_shares defines total shares issued to a
+                        validator's stakers.
                     description:
                       description: >-
                         description defines the description terms for the
@@ -44830,6 +44668,8 @@ paths:
                         details:
                           type: string
                           description: details define other optional details.
+                        regionID:
+                          type: string
                     unbonding_height:
                       type: string
                       format: int64
@@ -44874,20 +44714,25 @@ paths:
                           description: >-
                             update_time is the last time the commission rate was
                             changed.
-                    min_self_delegation:
+                    min_self_stake:
                       type: string
                       description: >-
-                        min_self_delegation is the validator's self declared
-                        minimum self delegation.
+                        min_self_stake is the validator's self declared minimum
+                        self stake.
 
 
                         Since: cosmos-sdk 0.46
-                    unbonding_on_hold_ref_count:
+                    delegation_amount:
                       type: string
-                      format: int64
+                      title: count delegation amount
+                    meid_amount:
+                      type: string
+                      title: count meid amount
+                    owner_address:
+                      type: string
                       title: >-
-                        strictly positive if this validator's unbonding has been
-                        stopped by external modules
+                        owner_address defines the address of distribute gas
+                        income
                     unbonding_ids:
                       type: array
                       items:
@@ -44896,6 +44741,16 @@ paths:
                       title: >-
                         list of unbonding ids, each uniquely identifing an
                         unbonding of this validator
+                    unbonding_on_hold_ref_count:
+                      type: string
+                      format: int64
+                      title: >-
+                        strictly positive if this validator's unbonding has been
+                        stopped by external modules
+                    delegator_shares:
+                      type: string
+                    min_self_delegation:
+                      type: string
                   description: >-
                     Validator defines a validator, together with the total
                     amount of the
@@ -45416,14 +45271,12 @@ paths:
                     default: BOND_STATUS_UNSPECIFIED
                   tokens:
                     type: string
-                    description: >-
-                      tokens define the delegated tokens (incl.
-                      self-delegation).
-                  delegator_shares:
+                    description: tokens define the staked tokens (incl. self-stake).
+                  staker_shares:
                     type: string
                     description: >-
-                      delegator_shares defines total shares issued to a
-                      validator's delegators.
+                      staker_shares defines total shares issued to a validator's
+                      stakers.
                   description:
                     description: >-
                       description defines the description terms for the
@@ -45451,6 +45304,8 @@ paths:
                       details:
                         type: string
                         description: details define other optional details.
+                      regionID:
+                        type: string
                   unbonding_height:
                     type: string
                     format: int64
@@ -45494,20 +45349,23 @@ paths:
                         description: >-
                           update_time is the last time the commission rate was
                           changed.
-                  min_self_delegation:
+                  min_self_stake:
                     type: string
                     description: >-
-                      min_self_delegation is the validator's self declared
-                      minimum self delegation.
+                      min_self_stake is the validator's self declared minimum
+                      self stake.
 
 
                       Since: cosmos-sdk 0.46
-                  unbonding_on_hold_ref_count:
+                  delegation_amount:
                     type: string
-                    format: int64
-                    title: >-
-                      strictly positive if this validator's unbonding has been
-                      stopped by external modules
+                    title: count delegation amount
+                  meid_amount:
+                    type: string
+                    title: count meid amount
+                  owner_address:
+                    type: string
+                    title: owner_address defines the address of distribute gas income
                   unbonding_ids:
                     type: array
                     items:
@@ -45516,6 +45374,16 @@ paths:
                     title: >-
                       list of unbonding ids, each uniquely identifing an
                       unbonding of this validator
+                  unbonding_on_hold_ref_count:
+                    type: string
+                    format: int64
+                    title: >-
+                      strictly positive if this validator's unbonding has been
+                      stopped by external modules
+                  delegator_shares:
+                    type: string
+                  min_self_delegation:
+                    type: string
                 description: >-
                   Validator defines a validator, together with the total amount
                   of the
@@ -45780,6 +45648,15 @@ paths:
                         shares:
                           type: string
                           description: shares define the delegation shares received.
+                        startHeight:
+                          type: string
+                          format: int64
+                        amount:
+                          type: string
+                        unmovable:
+                          type: string
+                        unMeidAmount:
+                          type: string
                       description: >-
                         Delegation represents the bond with tokens held by an
                         account. It is
@@ -46118,6 +45995,15 @@ paths:
                       shares:
                         type: string
                         description: shares define the delegation shares received.
+                      startHeight:
+                        type: string
+                        format: int64
+                      amount:
+                        type: string
+                      unmovable:
+                        type: string
+                      unMeidAmount:
+                        type: string
                     description: >-
                       Delegation represents the bond with tokens held by an
                       account. It is
@@ -56385,6 +56271,15 @@ definitions:
       shares:
         type: string
         description: shares define the delegation shares received.
+      startHeight:
+        type: string
+        format: int64
+      amount:
+        type: string
+      unmovable:
+        type: string
+      unMeidAmount:
+        type: string
     description: |-
       Delegation represents the bond with tokens held by an account. It is
       owned by one delegator, and is associated with the voting power of one
@@ -56404,6 +56299,15 @@ definitions:
           shares:
             type: string
             description: shares define the delegation shares received.
+          startHeight:
+            type: string
+            format: int64
+          amount:
+            type: string
+          unmovable:
+            type: string
+          unMeidAmount:
+            type: string
         description: |-
           Delegation represents the bond with tokens held by an account. It is
           owned by one delegator, and is associated with the voting power of one
@@ -56446,6 +56350,15 @@ definitions:
               shares:
                 type: string
                 description: shares define the delegation shares received.
+              startHeight:
+                type: string
+                format: int64
+              amount:
+                type: string
+              unmovable:
+                type: string
+              unMeidAmount:
+                type: string
             description: >-
               Delegation represents the bond with tokens held by an account. It
               is
@@ -65541,18 +65454,6 @@ definitions:
 
 
       Since: cosmos-sdk 0.46
-  cosmos.auth.v1beta1.AddressStringToBytesResponse:
-    type: object
-    properties:
-      address_bytes:
-        type: string
-        format: byte
-    description: >-
-      AddressStringToBytesResponse is the response type for AddressBytes rpc
-      method.
-
-
-      Since: cosmos-sdk 0.46
   cosmos.auth.v1beta1.BaseAccount:
     type: object
     properties:
@@ -72255,6 +72156,8 @@ definitions:
       details:
         type: string
         description: details define other optional details.
+      regionID:
+        type: string
     description: Description defines a validator description.
   cosmos.staking.v1beta1.HistoricalInfo:
     type: object
@@ -72536,12 +72439,12 @@ definitions:
               default: BOND_STATUS_UNSPECIFIED
             tokens:
               type: string
-              description: tokens define the delegated tokens (incl. self-delegation).
-            delegator_shares:
+              description: tokens define the staked tokens (incl. self-stake).
+            staker_shares:
               type: string
               description: >-
-                delegator_shares defines total shares issued to a validator's
-                delegators.
+                staker_shares defines total shares issued to a validator's
+                stakers.
             description:
               description: description defines the description terms for the validator.
               type: object
@@ -72565,6 +72468,8 @@ definitions:
                 details:
                   type: string
                   description: details define other optional details.
+                regionID:
+                  type: string
             unbonding_height:
               type: string
               format: int64
@@ -72608,20 +72513,23 @@ definitions:
                   description: >-
                     update_time is the last time the commission rate was
                     changed.
-            min_self_delegation:
+            min_self_stake:
               type: string
               description: >-
-                min_self_delegation is the validator's self declared minimum
-                self delegation.
+                min_self_stake is the validator's self declared minimum self
+                stake.
 
 
                 Since: cosmos-sdk 0.46
-            unbonding_on_hold_ref_count:
+            delegation_amount:
               type: string
-              format: int64
-              title: >-
-                strictly positive if this validator's unbonding has been stopped
-                by external modules
+              title: count delegation amount
+            meid_amount:
+              type: string
+              title: count meid amount
+            owner_address:
+              type: string
+              title: owner_address defines the address of distribute gas income
             unbonding_ids:
               type: array
               items:
@@ -72630,6 +72538,16 @@ definitions:
               title: >-
                 list of unbonding ids, each uniquely identifing an unbonding of
                 this validator
+            unbonding_on_hold_ref_count:
+              type: string
+              format: int64
+              title: >-
+                strictly positive if this validator's unbonding has been stopped
+                by external modules
+            delegator_shares:
+              type: string
+            min_self_delegation:
+              type: string
           description: >-
             Validator defines a validator, together with the total amount of the
 
@@ -72724,6 +72642,15 @@ definitions:
                 shares:
                   type: string
                   description: shares define the delegation shares received.
+                startHeight:
+                  type: string
+                  format: int64
+                amount:
+                  type: string
+                unmovable:
+                  type: string
+                unMeidAmount:
+                  type: string
               description: >-
                 Delegation represents the bond with tokens held by an account.
                 It is
@@ -73055,12 +72982,12 @@ definitions:
             default: BOND_STATUS_UNSPECIFIED
           tokens:
             type: string
-            description: tokens define the delegated tokens (incl. self-delegation).
-          delegator_shares:
+            description: tokens define the staked tokens (incl. self-stake).
+          staker_shares:
             type: string
             description: >-
-              delegator_shares defines total shares issued to a validator's
-              delegators.
+              staker_shares defines total shares issued to a validator's
+              stakers.
           description:
             description: description defines the description terms for the validator.
             type: object
@@ -73084,6 +73011,8 @@ definitions:
               details:
                 type: string
                 description: details define other optional details.
+              regionID:
+                type: string
           unbonding_height:
             type: string
             format: int64
@@ -73125,20 +73054,23 @@ definitions:
                 type: string
                 format: date-time
                 description: update_time is the last time the commission rate was changed.
-          min_self_delegation:
+          min_self_stake:
             type: string
             description: >-
-              min_self_delegation is the validator's self declared minimum self
-              delegation.
+              min_self_stake is the validator's self declared minimum self
+              stake.
 
 
               Since: cosmos-sdk 0.46
-          unbonding_on_hold_ref_count:
+          delegation_amount:
             type: string
-            format: int64
-            title: >-
-              strictly positive if this validator's unbonding has been stopped
-              by external modules
+            title: count delegation amount
+          meid_amount:
+            type: string
+            title: count meid amount
+          owner_address:
+            type: string
+            title: owner_address defines the address of distribute gas income
           unbonding_ids:
             type: array
             items:
@@ -73147,6 +73079,16 @@ definitions:
             title: >-
               list of unbonding ids, each uniquely identifing an unbonding of
               this validator
+          unbonding_on_hold_ref_count:
+            type: string
+            format: int64
+            title: >-
+              strictly positive if this validator's unbonding has been stopped
+              by external modules
+          delegator_shares:
+            type: string
+          min_self_delegation:
+            type: string
         description: >-
           Validator defines a validator, together with the total amount of the
 
@@ -73374,12 +73316,12 @@ definitions:
               default: BOND_STATUS_UNSPECIFIED
             tokens:
               type: string
-              description: tokens define the delegated tokens (incl. self-delegation).
-            delegator_shares:
+              description: tokens define the staked tokens (incl. self-stake).
+            staker_shares:
               type: string
               description: >-
-                delegator_shares defines total shares issued to a validator's
-                delegators.
+                staker_shares defines total shares issued to a validator's
+                stakers.
             description:
               description: description defines the description terms for the validator.
               type: object
@@ -73403,6 +73345,8 @@ definitions:
                 details:
                   type: string
                   description: details define other optional details.
+                regionID:
+                  type: string
             unbonding_height:
               type: string
               format: int64
@@ -73446,20 +73390,23 @@ definitions:
                   description: >-
                     update_time is the last time the commission rate was
                     changed.
-            min_self_delegation:
+            min_self_stake:
               type: string
               description: >-
-                min_self_delegation is the validator's self declared minimum
-                self delegation.
+                min_self_stake is the validator's self declared minimum self
+                stake.
 
 
                 Since: cosmos-sdk 0.46
-            unbonding_on_hold_ref_count:
+            delegation_amount:
               type: string
-              format: int64
-              title: >-
-                strictly positive if this validator's unbonding has been stopped
-                by external modules
+              title: count delegation amount
+            meid_amount:
+              type: string
+              title: count meid amount
+            owner_address:
+              type: string
+              title: owner_address defines the address of distribute gas income
             unbonding_ids:
               type: array
               items:
@@ -73468,6 +73415,16 @@ definitions:
               title: >-
                 list of unbonding ids, each uniquely identifing an unbonding of
                 this validator
+            unbonding_on_hold_ref_count:
+              type: string
+              format: int64
+              title: >-
+                strictly positive if this validator's unbonding has been stopped
+                by external modules
+            delegator_shares:
+              type: string
+            min_self_delegation:
+              type: string
           description: >-
             Validator defines a validator, together with the total amount of the
 
@@ -73802,12 +73759,12 @@ definitions:
                   default: BOND_STATUS_UNSPECIFIED
                 tokens:
                   type: string
-                  description: tokens define the delegated tokens (incl. self-delegation).
-                delegator_shares:
+                  description: tokens define the staked tokens (incl. self-stake).
+                staker_shares:
                   type: string
                   description: >-
-                    delegator_shares defines total shares issued to a
-                    validator's delegators.
+                    staker_shares defines total shares issued to a validator's
+                    stakers.
                 description:
                   description: description defines the description terms for the validator.
                   type: object
@@ -73831,6 +73788,8 @@ definitions:
                     details:
                       type: string
                       description: details define other optional details.
+                    regionID:
+                      type: string
                 unbonding_height:
                   type: string
                   format: int64
@@ -73874,20 +73833,23 @@ definitions:
                       description: >-
                         update_time is the last time the commission rate was
                         changed.
-                min_self_delegation:
+                min_self_stake:
                   type: string
                   description: >-
-                    min_self_delegation is the validator's self declared minimum
-                    self delegation.
+                    min_self_stake is the validator's self declared minimum self
+                    stake.
 
 
                     Since: cosmos-sdk 0.46
-                unbonding_on_hold_ref_count:
+                delegation_amount:
                   type: string
-                  format: int64
-                  title: >-
-                    strictly positive if this validator's unbonding has been
-                    stopped by external modules
+                  title: count delegation amount
+                meid_amount:
+                  type: string
+                  title: count meid amount
+                owner_address:
+                  type: string
+                  title: owner_address defines the address of distribute gas income
                 unbonding_ids:
                   type: array
                   items:
@@ -73896,6 +73858,16 @@ definitions:
                   title: >-
                     list of unbonding ids, each uniquely identifing an unbonding
                     of this validator
+                unbonding_on_hold_ref_count:
+                  type: string
+                  format: int64
+                  title: >-
+                    strictly positive if this validator's unbonding has been
+                    stopped by external modules
+                delegator_shares:
+                  type: string
+                min_self_delegation:
+                  type: string
               description: >-
                 Validator defines a validator, together with the total amount of
                 the
@@ -74206,6 +74178,15 @@ definitions:
                 shares:
                   type: string
                   description: shares define the delegation shares received.
+                startHeight:
+                  type: string
+                  format: int64
+                amount:
+                  type: string
+                unmovable:
+                  type: string
+                unMeidAmount:
+                  type: string
               description: >-
                 Delegation represents the bond with tokens held by an account.
                 It is
@@ -74454,12 +74435,12 @@ definitions:
             default: BOND_STATUS_UNSPECIFIED
           tokens:
             type: string
-            description: tokens define the delegated tokens (incl. self-delegation).
-          delegator_shares:
+            description: tokens define the staked tokens (incl. self-stake).
+          staker_shares:
             type: string
             description: >-
-              delegator_shares defines total shares issued to a validator's
-              delegators.
+              staker_shares defines total shares issued to a validator's
+              stakers.
           description:
             description: description defines the description terms for the validator.
             type: object
@@ -74483,6 +74464,8 @@ definitions:
               details:
                 type: string
                 description: details define other optional details.
+              regionID:
+                type: string
           unbonding_height:
             type: string
             format: int64
@@ -74524,20 +74507,23 @@ definitions:
                 type: string
                 format: date-time
                 description: update_time is the last time the commission rate was changed.
-          min_self_delegation:
+          min_self_stake:
             type: string
             description: >-
-              min_self_delegation is the validator's self declared minimum self
-              delegation.
+              min_self_stake is the validator's self declared minimum self
+              stake.
 
 
               Since: cosmos-sdk 0.46
-          unbonding_on_hold_ref_count:
+          delegation_amount:
             type: string
-            format: int64
-            title: >-
-              strictly positive if this validator's unbonding has been stopped
-              by external modules
+            title: count delegation amount
+          meid_amount:
+            type: string
+            title: count meid amount
+          owner_address:
+            type: string
+            title: owner_address defines the address of distribute gas income
           unbonding_ids:
             type: array
             items:
@@ -74546,6 +74532,16 @@ definitions:
             title: >-
               list of unbonding ids, each uniquely identifing an unbonding of
               this validator
+          unbonding_on_hold_ref_count:
+            type: string
+            format: int64
+            title: >-
+              strictly positive if this validator's unbonding has been stopped
+              by external modules
+          delegator_shares:
+            type: string
+          min_self_delegation:
+            type: string
         description: >-
           Validator defines a validator, together with the total amount of the
 
@@ -74853,12 +74849,12 @@ definitions:
               default: BOND_STATUS_UNSPECIFIED
             tokens:
               type: string
-              description: tokens define the delegated tokens (incl. self-delegation).
-            delegator_shares:
+              description: tokens define the staked tokens (incl. self-stake).
+            staker_shares:
               type: string
               description: >-
-                delegator_shares defines total shares issued to a validator's
-                delegators.
+                staker_shares defines total shares issued to a validator's
+                stakers.
             description:
               description: description defines the description terms for the validator.
               type: object
@@ -74882,6 +74878,8 @@ definitions:
                 details:
                   type: string
                   description: details define other optional details.
+                regionID:
+                  type: string
             unbonding_height:
               type: string
               format: int64
@@ -74925,20 +74923,23 @@ definitions:
                   description: >-
                     update_time is the last time the commission rate was
                     changed.
-            min_self_delegation:
+            min_self_stake:
               type: string
               description: >-
-                min_self_delegation is the validator's self declared minimum
-                self delegation.
+                min_self_stake is the validator's self declared minimum self
+                stake.
 
 
                 Since: cosmos-sdk 0.46
-            unbonding_on_hold_ref_count:
+            delegation_amount:
               type: string
-              format: int64
-              title: >-
-                strictly positive if this validator's unbonding has been stopped
-                by external modules
+              title: count delegation amount
+            meid_amount:
+              type: string
+              title: count meid amount
+            owner_address:
+              type: string
+              title: owner_address defines the address of distribute gas income
             unbonding_ids:
               type: array
               items:
@@ -74947,6 +74948,16 @@ definitions:
               title: >-
                 list of unbonding ids, each uniquely identifing an unbonding of
                 this validator
+            unbonding_on_hold_ref_count:
+              type: string
+              format: int64
+              title: >-
+                strictly positive if this validator's unbonding has been stopped
+                by external modules
+            delegator_shares:
+              type: string
+            min_self_delegation:
+              type: string
           description: >-
             Validator defines a validator, together with the total amount of the
 
@@ -75524,12 +75535,10 @@ definitions:
         default: BOND_STATUS_UNSPECIFIED
       tokens:
         type: string
-        description: tokens define the delegated tokens (incl. self-delegation).
-      delegator_shares:
+        description: tokens define the staked tokens (incl. self-stake).
+      staker_shares:
         type: string
-        description: >-
-          delegator_shares defines total shares issued to a validator's
-          delegators.
+        description: staker_shares defines total shares issued to a validator's stakers.
       description:
         description: description defines the description terms for the validator.
         type: object
@@ -75551,6 +75560,8 @@ definitions:
           details:
             type: string
             description: details define other optional details.
+          regionID:
+            type: string
       unbonding_height:
         type: string
         format: int64
@@ -75592,20 +75603,21 @@ definitions:
             type: string
             format: date-time
             description: update_time is the last time the commission rate was changed.
-      min_self_delegation:
+      min_self_stake:
         type: string
-        description: >-
-          min_self_delegation is the validator's self declared minimum self
-          delegation.
-
+        description: |-
+          min_self_stake is the validator's self declared minimum self stake.
 
           Since: cosmos-sdk 0.46
-      unbonding_on_hold_ref_count:
+      delegation_amount:
         type: string
-        format: int64
-        title: >-
-          strictly positive if this validator's unbonding has been stopped by
-          external modules
+        title: count delegation amount
+      meid_amount:
+        type: string
+        title: count meid amount
+      owner_address:
+        type: string
+        title: owner_address defines the address of distribute gas income
       unbonding_ids:
         type: array
         items:
@@ -75614,6 +75626,16 @@ definitions:
         title: >-
           list of unbonding ids, each uniquely identifing an unbonding of this
           validator
+      unbonding_on_hold_ref_count:
+        type: string
+        format: int64
+        title: >-
+          strictly positive if this validator's unbonding has been stopped by
+          external modules
+      delegator_shares:
+        type: string
+      min_self_delegation:
+        type: string
     description: >-
       Validator defines a validator, together with the total amount of the
 
