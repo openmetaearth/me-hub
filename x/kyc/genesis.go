@@ -11,19 +11,16 @@ import (
 
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
-
 	var issuers []string
 
 	for _, issuer := range genState.Issuers {
-		address, err := k.MustAccAddressFromPubkeyString(issuer.Pubkey)
-		if err != nil {
-			panic(err)
-		}
-		if _, found := k.GetDID(ctx, address); found {
-			panic(fmt.Errorf("issuer %s already exists", address))
+		addr := sdk.MustAccAddressFromBech32(issuer.Address)
+
+		if _, found := k.GetDID(ctx, addr); found {
+			panic(fmt.Errorf("issuer %s already exists", addr.String()))
 		}
 
-		k.SetDID(ctx, address, issuer.Did)
+		k.SetDID(ctx, addr, issuer.Did)
 		k.SetDidInfo(ctx, issuer.Did, issuer)
 
 		issuers = append(issuers, issuer.Did)
