@@ -87,7 +87,7 @@ func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 	}
 
 	// NOTE: source funds are always UnBonded
-	newShares, err := k.Keeper.Delegate(ctx, delegatorAddress, msg.Amount.Amount, stakingtypes.Unbonded, validator, delegation)
+	newShares, err := k.Keeper.Delegate(ctx, delegatorAddress, msg.Amount.Amount, stakingtypes.Unbonded, validator, delegation, valAddr)
 	if err != nil {
 		return nil, err
 	}

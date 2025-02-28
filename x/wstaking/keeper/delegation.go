@@ -101,7 +101,7 @@ func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, tokens math.Int) {
 // tokenSrc indicates the bond status of the incoming funds.
 func (k Keeper) Delegate(
 	ctx sdk.Context, delAddr sdk.AccAddress, bondAmt math.Int, tokenSrc stakingtypes.BondStatus,
-	validator stakingtypes.Validator, delegation stakingtypes.Delegation,
+	validator stakingtypes.Validator, delegation stakingtypes.Delegation, valAddr sdk.ValAddress,
 ) (newShares sdk.Dec, err error) {
 	// In some situations, the exchange rate becomes invalid, e.g. if
 	// Validator loses all tokens due to slashing. In this case,
@@ -110,7 +110,7 @@ func (k Keeper) Delegate(
 		return math.LegacyZeroDec(), stakingtypes.ErrDelegatorShareExRateInvalid
 	}
 	if delegation.DelegatorAddress == "" {
-		delegation = stakingtypes.NewDelegation(delAddr, sdk.ValAddress{}, math.LegacyZeroDec())
+		delegation = stakingtypes.NewDelegation(delAddr, valAddr, math.LegacyZeroDec())
 	}
 	delegatorAddress := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
 	if tokenSrc == stakingtypes.Bonded {
@@ -140,7 +140,7 @@ func (k Keeper) Delegate(
 		sdk.NewAttribute(banktypes.AttributeKeyRecipient, poolAccI.GetAddress().String()),
 	))
 	// Update delegation
-	if strings.ToLower(validator.Description.RegionID) == strings.ToLower(types.ExperienceRegionName) {
+	if validator.Description.RegionID == types.ExperienceRegionId {
 		delegation.UnMeidAmount = delegation.UnMeidAmount.Add(bondAmt)
 	} else {
 		delegation.Amount = delegation.Amount.Add(bondAmt)
