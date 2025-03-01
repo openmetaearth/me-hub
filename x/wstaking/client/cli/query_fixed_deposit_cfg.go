@@ -2,9 +2,12 @@ package cli
 
 import (
 	"context"
+	sdkerrors "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/st-chain/me-hub/utils"
 	"github.com/st-chain/me-hub/x/wstaking/types"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"strconv"
@@ -12,11 +15,13 @@ import (
 
 func CmdListFixedDepositCfg() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-fixed-deposit-cfg",
-		Short: "show fixed deposit config",
+		Use:   "show-fixed-deposit-cfg [region-id,region-id,...]",
+		Short: "show some regions fixed deposit config by region ids",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			argRegionId := args[0]
+			regionIdStr := args[0]
+			newRegionIdStr := strings.Trim(regionIdStr, " ")
+			regionIds := strings.Split(newRegionIdStr, ",")
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -25,8 +30,15 @@ func CmdListFixedDepositCfg() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
+			for _, regionId := range regionIds {
+				_, err = utils.CheckRegionName(strings.ToUpper(regionId))
+				if err != nil {
+					return sdkerrors.Wrapf(types.ErrRegionName, err.Error())
+				}
+			}
+
 			params := &types.QueryFixedDepositCfgRequest{
-				RegionId: argRegionId,
+				RegionIds: regionIds,
 			}
 
 			res, err := queryClient.FixedDepositCfg(context.Background(), params)

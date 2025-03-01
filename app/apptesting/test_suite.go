@@ -157,7 +157,7 @@ func (s *KeeperTestHelper) InitializeDao() {
 }
 
 func (s *KeeperTestHelper) InitKyc(pubkey string) {
-	address := s.App.KycKeeper.MustAccAddressFromPubkeyString(pubkey)
+	address, _ := s.App.KycKeeper.MustAccAddressFromPubkeyString(pubkey)
 	if _, found := s.App.KycKeeper.GetDID(s.Ctx, address); found {
 		panic(fmt.Errorf("issuer %s already exists", address))
 	}
