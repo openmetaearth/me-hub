@@ -169,11 +169,11 @@ message QueryAllFixedDepositResponse {
 }
 
 message QueryFixedDepositCfgRequest {
-  string regionId = 1;
+  repeated string regionIds = 1;
 }
 
 message QueryFixedDepositCfgResponse {
-  repeated FixedDepositCfg  FixedDepositCfgs = 1 [(gogoproto.nullable) = false];
+  repeated RegionAllFixedDepositCfg  RegionFixedDepositCfgs = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryFixedDepositCfgByTermRequest {
