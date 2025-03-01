@@ -39,7 +39,7 @@ func (s *KeeperTestSuite) TestTransferKycRegion() {
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
 	inviter := accounts[0]
-	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter.String(), s.meEarthValidator.Description.RegionID, s.Dao.GlobalDao)
+	err = s.Keeper().KycReward(s.Ctx, inviter, s.meEarthValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address

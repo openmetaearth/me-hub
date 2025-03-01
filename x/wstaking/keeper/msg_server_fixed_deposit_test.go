@@ -160,7 +160,7 @@ func (s *KeeperTestSuite) TestRemoveFixedDepositCfg() {
 		})
 	s.Require().NoError(err)
 
-	_, err = s.queryClient.FixedDepositCfg(s.Ctx, &types.QueryFixedDepositCfgRequest{RegionId: types.MeEarthRegionId})
+	_, err = s.queryClient.FixedDepositCfg(s.Ctx, &types.QueryFixedDepositCfgRequest{RegionIds: []string{types.MeEarthRegionName}})
 	s.Require().ErrorIs(err, nil)
 }
 

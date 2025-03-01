@@ -74,12 +74,12 @@ func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
 			s.Require().ErrorIs(err, test.expErr)
 
 			if test.expErr == nil {
-				cfg, err := s.queryClient.FixedDepositCfg(s.Ctx, &types.QueryFixedDepositCfgRequest{RegionId: strings.ToLower(types.MeEarthRegionName)})
+				cfg, err := s.queryClient.FixedDepositCfg(s.Ctx, &types.QueryFixedDepositCfgRequest{RegionIds: []string{strings.ToLower(types.MeEarthRegionName)}})
 				s.Require().NoError(err)
-				s.Require().Equal(1, len(cfg.FixedDepositCfgs))
-				s.Require().Equal(strings.ToLower(types.MeEarthRegionName), cfg.FixedDepositCfgs[0].RegionId)
-				s.Require().Equal(int64(1), cfg.FixedDepositCfgs[0].Term)
-				s.Require().True(cfg.FixedDepositCfgs[0].Rate.Equal(sdk.MustNewDecFromStr("0.1")))
+				s.Require().Equal(1, len(cfg.RegionFixedDepositCfgs))
+				s.Require().Equal(strings.ToLower(types.MeEarthRegionName), cfg.RegionFixedDepositCfgs[0].RegionId)
+				s.Require().Equal(int64(1), cfg.RegionFixedDepositCfgs[0].RegionFixedDepositCfg[0].Term)
+				s.Require().True(cfg.RegionFixedDepositCfgs[0].RegionFixedDepositCfg[0].Rate.Equal(sdk.MustNewDecFromStr("0.1")))
 			}
 		})
 	}

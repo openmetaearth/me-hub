@@ -52,3 +52,18 @@ message FixedDepositCfg {
   ];
   FIXED_DEPOSIT_CFG_STATUS status = 4;
 }
+
+message RegionAllFixedDepositCfg {
+  string regionId = 1;
+  repeated RegionFixedDepositCfg RegionFixedDepositCfg = 2 [(gogoproto.nullable) = false];
+}
+
+message RegionFixedDepositCfg {
+  int64 term = 1;
+  string rate  = 2 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+  FIXED_DEPOSIT_CFG_STATUS status = 3;
+}

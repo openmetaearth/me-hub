@@ -62,7 +62,7 @@ func (s *KeeperTestSuite) TestKycReward_WithDelegation() {
 
 	// do kyc reward
 	inviter, _ := s.NewAccount()
-	err = s.Keeper().KycReward(s.Ctx, userAccount, inviter.String(), s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+	err = s.Keeper().KycReward(s.Ctx, inviter, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address
@@ -115,7 +115,7 @@ func (s *KeeperTestSuite) TestKycReward_WithoutDelegation() {
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
 	inviter, _ := s.NewAccount()
-	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter.String(), s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+	err = s.Keeper().KycReward(s.Ctx, inviter, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address
@@ -149,7 +149,7 @@ func (s *KeeperTestSuite) TestRemoveKycReward() {
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
 	inviter, _ := s.NewAccount()
-	err = s.Keeper().KycReward(s.Ctx, kycAccount, inviter.String(), s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+	err = s.Keeper().KycReward(s.Ctx, inviter, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address
@@ -200,7 +200,7 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithDelegation() {
 	})
 
 	inviter, _ := s.NewAccount()
-	err = s.Keeper().KycReward(s.Ctx, userAccount, inviter.String(), s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+	err = s.Keeper().KycReward(s.Ctx, userAccount, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address
@@ -271,7 +271,7 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithFixedDeposit() {
 	})
 
 	inviter, _ := s.NewAccount()
-	err = s.Keeper().KycReward(s.Ctx, userAccount, inviter.String(), s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+	err = s.Keeper().KycReward(s.Ctx, inviter, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address
