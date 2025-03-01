@@ -16,6 +16,14 @@ func (k Keeper) FixedDepositCfg(goCtx context.Context, req *types.QueryFixedDepo
 
 	var configs []types.RegionAllFixedDepositCfg
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if req.RegionIds == nil || len(req.RegionIds) == 0 {
+		regions := k.GetAllRegion(ctx)
+		for _, region := range regions {
+			req.RegionIds = append(req.RegionIds, region.RegionId)
+		}
+	}
+
 	for _, regionId := range req.RegionIds {
 		regionConfigs := k.GetAllFixedDepositCfg(ctx, regionId)
 		var regionFixedDepositCfgs []types.RegionFixedDepositCfg

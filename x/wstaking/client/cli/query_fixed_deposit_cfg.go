@@ -21,7 +21,19 @@ func CmdListFixedDepositCfg() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			regionIdStr := args[0]
 			newRegionIdStr := strings.Trim(regionIdStr, " ")
-			regionIds := strings.Split(newRegionIdStr, ",")
+
+			var regionIds []string
+			if newRegionIdStr == "" {
+				regionIds = []string{}
+			} else {
+				regionIds = strings.Split(newRegionIdStr, ",")
+				for _, regionId := range regionIds {
+					_, err := utils.CheckRegionName(strings.ToUpper(regionId))
+					if err != nil {
+						return sdkerrors.Wrapf(types.ErrRegionName, err.Error())
+					}
+				}
+			}
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -29,13 +41,6 @@ func CmdListFixedDepositCfg() *cobra.Command {
 			}
 
 			queryClient := types.NewQueryClient(clientCtx)
-
-			for _, regionId := range regionIds {
-				_, err = utils.CheckRegionName(strings.ToUpper(regionId))
-				if err != nil {
-					return sdkerrors.Wrapf(types.ErrRegionName, err.Error())
-				}
-			}
 
 			params := &types.QueryFixedDepositCfgRequest{
 				RegionIds: regionIds,
