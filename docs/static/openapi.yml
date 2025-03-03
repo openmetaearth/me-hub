@@ -5424,24 +5424,29 @@ paths:
           schema:
             type: object
             properties:
-              FixedDepositCfgs:
+              RegionFixedDepositCfgs:
                 type: array
                 items:
                   type: object
                   properties:
                     regionId:
                       type: string
-                    term:
-                      type: string
-                      format: int64
-                    rate:
-                      type: string
-                    status:
-                      type: string
-                      enum:
-                        - FIXED_DEPOSIT_CFG_ACTIVE
-                        - FIXED_DEPOSIT_CFG_INACTIVE
-                      default: FIXED_DEPOSIT_CFG_ACTIVE
+                    RegionFixedDepositCfg:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          term:
+                            type: string
+                            format: int64
+                          rate:
+                            type: string
+                          status:
+                            type: string
+                            enum:
+                              - FIXED_DEPOSIT_CFG_ACTIVE
+                              - FIXED_DEPOSIT_CFG_INACTIVE
+                            default: FIXED_DEPOSIT_CFG_ACTIVE
         default:
           description: An unexpected error response.
           schema:
@@ -5637,10 +5642,13 @@ paths:
                           "value": "1.212s"
                         }
       parameters:
-        - name: regionId
+        - name: regionIds
           in: query
           required: false
-          type: string
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Query
   /metaearth/wstaking/fixed_deposit_cfg_by_term:
@@ -56743,24 +56751,29 @@ definitions:
   metaearth.wstaking.QueryFixedDepositCfgResponse:
     type: object
     properties:
-      FixedDepositCfgs:
+      RegionFixedDepositCfgs:
         type: array
         items:
           type: object
           properties:
             regionId:
               type: string
-            term:
-              type: string
-              format: int64
-            rate:
-              type: string
-            status:
-              type: string
-              enum:
-                - FIXED_DEPOSIT_CFG_ACTIVE
-                - FIXED_DEPOSIT_CFG_INACTIVE
-              default: FIXED_DEPOSIT_CFG_ACTIVE
+            RegionFixedDepositCfg:
+              type: array
+              items:
+                type: object
+                properties:
+                  term:
+                    type: string
+                    format: int64
+                  rate:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - FIXED_DEPOSIT_CFG_ACTIVE
+                      - FIXED_DEPOSIT_CFG_INACTIVE
+                    default: FIXED_DEPOSIT_CFG_ACTIVE
   metaearth.wstaking.QueryFixedDepositTotalAmountResponse:
     type: object
     properties:
@@ -56978,6 +56991,41 @@ definitions:
         type: string
       fixed_deposit_amount:
         type: string
+  metaearth.wstaking.RegionAllFixedDepositCfg:
+    type: object
+    properties:
+      regionId:
+        type: string
+      RegionFixedDepositCfg:
+        type: array
+        items:
+          type: object
+          properties:
+            term:
+              type: string
+              format: int64
+            rate:
+              type: string
+            status:
+              type: string
+              enum:
+                - FIXED_DEPOSIT_CFG_ACTIVE
+                - FIXED_DEPOSIT_CFG_INACTIVE
+              default: FIXED_DEPOSIT_CFG_ACTIVE
+  metaearth.wstaking.RegionFixedDepositCfg:
+    type: object
+    properties:
+      term:
+        type: string
+        format: int64
+      rate:
+        type: string
+      status:
+        type: string
+        enum:
+          - FIXED_DEPOSIT_CFG_ACTIVE
+          - FIXED_DEPOSIT_CFG_INACTIVE
+        default: FIXED_DEPOSIT_CFG_ACTIVE
   metaearth.wstaking.ReviewRecord:
     type: object
     properties:
