@@ -47,6 +47,7 @@ import (
 	wnftkeeper "github.com/st-chain/me-hub/x/wnft/keeper"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"io/ioutil"
 	"log"
 	"os"
@@ -105,7 +106,7 @@ func CreateUpgradeHandler(
 		migrateGroup(ctx, homePath, keepers.GroupKeeper, keepers.StakingKeeper, keepers.KycKeeper)
 
 		ctx.Logger().Info("8.migrate delegation")
-		migrateDelegation(ctx, homePath, keepers.StakingKeeper)
+		migrateDelegation(ctx, homePath, keepers.StakingKeeper, keepers.KycKeeper)
 
 		// create a new module account
 		macc := authtypes.NewEmptyModuleAccount(streamermoduletypes.ModuleName)
@@ -635,8 +636,18 @@ func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper, sk *wsta
 	}
 }
 
-func migrateDelegation(ctx sdk.Context, homePath string, stakingKeeper *wstakingkeeper.Keeper) {
-	//stakingKeeper.IterateDelegations(ctx, func(delegation wstakingtypes.Delegation) (stop bool) {
-	//
-	//}
+func migrateDelegation(ctx sdk.Context, homePath string, stakingKeeper *wstakingkeeper.Keeper, kk *kyckeeper.Keeper) {
+	region, isFound := stakingKeeper.GetRegion(ctx, wstakingtypes.ExperienceRegionId)
+	if !isFound {
+		panic(fmt.Errorf("should have experience region"))
+	}
+	stakingKeeper.IterateAllDelegation(ctx, func(_ int64, del stakingtypes.Delegation) (stop bool) {
+		did, didFound := kk.GetDID(ctx, sdk.MustAccAddressFromBech32(del.DelegatorAddress))
+		_, kycFound := kk.GetKYC(ctx, did)
+		if !didFound && !kycFound {
+			del.ValidatorAddress = region.OperatorAddress
+			stakingKeeper.SetDelegation(ctx, del)
+		}
+		return false
+	})
 }

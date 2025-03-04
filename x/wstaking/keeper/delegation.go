@@ -252,3 +252,18 @@ func (k Keeper) removeDelegation(ctx sdk.Context, delegation stakingtypes.Delega
 	store.Delete(stakingtypes.GetDelegationKey(delegatorAddress, sdk.ValAddress{}))
 	return nil
 }
+
+func (k Keeper) IterateAllDelegation(ctx sdk.Context, fn func(index int64, del stakingtypes.Delegation) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+
+	iterator := sdk.KVStorePrefixIterator(store, stakingtypes.DelegationKey)
+	defer iterator.Close()
+
+	for i := int64(0); iterator.Valid(); iterator.Next() {
+		del := stakingtypes.MustUnmarshalDelegation(k.cdc, iterator.Value())
+		if stop := fn(i, del); stop {
+			break
+		}
+		i++
+	}
+}
