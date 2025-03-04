@@ -10,6 +10,7 @@ import {
   FixedDepositState,
   fixedDepositStateFromJSON,
   fixedDepositStateToJSON,
+  RegionAllFixedDepositCfg,
 } from "./fixed_deposit";
 import { Record, ReviewRecord } from "./record";
 import { Region } from "./region";
@@ -76,11 +77,11 @@ export interface QueryAllFixedDepositResponse {
 }
 
 export interface QueryFixedDepositCfgRequest {
-  regionId: string;
+  regionIds: string[];
 }
 
 export interface QueryFixedDepositCfgResponse {
-  FixedDepositCfgs: FixedDepositCfg[];
+  RegionFixedDepositCfgs: RegionAllFixedDepositCfg[];
 }
 
 export interface QueryFixedDepositCfgByTermRequest {
@@ -810,13 +811,13 @@ export const QueryAllFixedDepositResponse = {
 };
 
 function createBaseQueryFixedDepositCfgRequest(): QueryFixedDepositCfgRequest {
-  return { regionId: "" };
+  return { regionIds: [] };
 }
 
 export const QueryFixedDepositCfgRequest = {
   encode(message: QueryFixedDepositCfgRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.regionId !== "") {
-      writer.uint32(10).string(message.regionId);
+    for (const v of message.regionIds) {
+      writer.uint32(10).string(v!);
     }
     return writer;
   },
@@ -829,7 +830,7 @@ export const QueryFixedDepositCfgRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.regionId = reader.string();
+          message.regionIds.push(reader.string());
           break;
         default:
           reader.skipType(tag & 7);
@@ -840,30 +841,34 @@ export const QueryFixedDepositCfgRequest = {
   },
 
   fromJSON(object: any): QueryFixedDepositCfgRequest {
-    return { regionId: isSet(object.regionId) ? String(object.regionId) : "" };
+    return { regionIds: Array.isArray(object?.regionIds) ? object.regionIds.map((e: any) => String(e)) : [] };
   },
 
   toJSON(message: QueryFixedDepositCfgRequest): unknown {
     const obj: any = {};
-    message.regionId !== undefined && (obj.regionId = message.regionId);
+    if (message.regionIds) {
+      obj.regionIds = message.regionIds.map((e) => e);
+    } else {
+      obj.regionIds = [];
+    }
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<QueryFixedDepositCfgRequest>, I>>(object: I): QueryFixedDepositCfgRequest {
     const message = createBaseQueryFixedDepositCfgRequest();
-    message.regionId = object.regionId ?? "";
+    message.regionIds = object.regionIds?.map((e) => e) || [];
     return message;
   },
 };
 
 function createBaseQueryFixedDepositCfgResponse(): QueryFixedDepositCfgResponse {
-  return { FixedDepositCfgs: [] };
+  return { RegionFixedDepositCfgs: [] };
 }
 
 export const QueryFixedDepositCfgResponse = {
   encode(message: QueryFixedDepositCfgResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.FixedDepositCfgs) {
-      FixedDepositCfg.encode(v!, writer.uint32(10).fork()).ldelim();
+    for (const v of message.RegionFixedDepositCfgs) {
+      RegionAllFixedDepositCfg.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
@@ -876,7 +881,7 @@ export const QueryFixedDepositCfgResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.FixedDepositCfgs.push(FixedDepositCfg.decode(reader, reader.uint32()));
+          message.RegionFixedDepositCfgs.push(RegionAllFixedDepositCfg.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -888,25 +893,28 @@ export const QueryFixedDepositCfgResponse = {
 
   fromJSON(object: any): QueryFixedDepositCfgResponse {
     return {
-      FixedDepositCfgs: Array.isArray(object?.FixedDepositCfgs)
-        ? object.FixedDepositCfgs.map((e: any) => FixedDepositCfg.fromJSON(e))
+      RegionFixedDepositCfgs: Array.isArray(object?.RegionFixedDepositCfgs)
+        ? object.RegionFixedDepositCfgs.map((e: any) => RegionAllFixedDepositCfg.fromJSON(e))
         : [],
     };
   },
 
   toJSON(message: QueryFixedDepositCfgResponse): unknown {
     const obj: any = {};
-    if (message.FixedDepositCfgs) {
-      obj.FixedDepositCfgs = message.FixedDepositCfgs.map((e) => e ? FixedDepositCfg.toJSON(e) : undefined);
+    if (message.RegionFixedDepositCfgs) {
+      obj.RegionFixedDepositCfgs = message.RegionFixedDepositCfgs.map((e) =>
+        e ? RegionAllFixedDepositCfg.toJSON(e) : undefined
+      );
     } else {
-      obj.FixedDepositCfgs = [];
+      obj.RegionFixedDepositCfgs = [];
     }
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<QueryFixedDepositCfgResponse>, I>>(object: I): QueryFixedDepositCfgResponse {
     const message = createBaseQueryFixedDepositCfgResponse();
-    message.FixedDepositCfgs = object.FixedDepositCfgs?.map((e) => FixedDepositCfg.fromPartial(e)) || [];
+    message.RegionFixedDepositCfgs = object.RegionFixedDepositCfgs?.map((e) => RegionAllFixedDepositCfg.fromPartial(e))
+      || [];
     return message;
   },
 };

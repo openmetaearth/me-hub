@@ -197,6 +197,46 @@ export interface MsgTransferRegion {
 export interface MsgTransferRegionResponse {
 }
 
+export interface MsgIbcTransferFromRegionTreasure {
+  /** the port on which the packet will be sent */
+  sourcePort: string;
+  /** the channel by which the packet will be sent */
+  sourceChannel: string;
+  regionId: string;
+  /** the tokens to be transferred */
+  token:
+    | Coin
+    | undefined;
+  /**
+   * the recipient address on the destination chain
+   * string receiver = 5;
+   * Timeout height relative to the current block height.
+   * The timeout is disabled when set to 0.
+   */
+  timeoutHeight:
+    | Height
+    | undefined;
+  /**
+   * Timeout timestamp in absolute nanoseconds since unix epoch.
+   * The timeout is disabled when set to 0.
+   */
+  timeoutTimestamp: number;
+  /** optional memo */
+  memo: string;
+  /** tx creator address */
+  creator: string;
+}
+
+export interface Height {
+  /** the revision that the client is currently on */
+  revisionNumber: number;
+  /** the height within the given revision */
+  revisionHeight: number;
+}
+
+export interface MsgIbcTransferFromRegionTreasureResponse {
+}
+
 function createBaseMsgStake(): MsgStake {
   return { stakerAddress: "", validatorAddress: "", amount: undefined };
 }
@@ -2190,6 +2230,231 @@ export const MsgTransferRegionResponse = {
   },
 };
 
+function createBaseMsgIbcTransferFromRegionTreasure(): MsgIbcTransferFromRegionTreasure {
+  return {
+    sourcePort: "",
+    sourceChannel: "",
+    regionId: "",
+    token: undefined,
+    timeoutHeight: undefined,
+    timeoutTimestamp: 0,
+    memo: "",
+    creator: "",
+  };
+}
+
+export const MsgIbcTransferFromRegionTreasure = {
+  encode(message: MsgIbcTransferFromRegionTreasure, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.sourcePort !== "") {
+      writer.uint32(10).string(message.sourcePort);
+    }
+    if (message.sourceChannel !== "") {
+      writer.uint32(18).string(message.sourceChannel);
+    }
+    if (message.regionId !== "") {
+      writer.uint32(26).string(message.regionId);
+    }
+    if (message.token !== undefined) {
+      Coin.encode(message.token, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.timeoutHeight !== undefined) {
+      Height.encode(message.timeoutHeight, writer.uint32(50).fork()).ldelim();
+    }
+    if (message.timeoutTimestamp !== 0) {
+      writer.uint32(56).uint64(message.timeoutTimestamp);
+    }
+    if (message.memo !== "") {
+      writer.uint32(66).string(message.memo);
+    }
+    if (message.creator !== "") {
+      writer.uint32(74).string(message.creator);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgIbcTransferFromRegionTreasure {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgIbcTransferFromRegionTreasure();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.sourcePort = reader.string();
+          break;
+        case 2:
+          message.sourceChannel = reader.string();
+          break;
+        case 3:
+          message.regionId = reader.string();
+          break;
+        case 4:
+          message.token = Coin.decode(reader, reader.uint32());
+          break;
+        case 6:
+          message.timeoutHeight = Height.decode(reader, reader.uint32());
+          break;
+        case 7:
+          message.timeoutTimestamp = longToNumber(reader.uint64() as Long);
+          break;
+        case 8:
+          message.memo = reader.string();
+          break;
+        case 9:
+          message.creator = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgIbcTransferFromRegionTreasure {
+    return {
+      sourcePort: isSet(object.sourcePort) ? String(object.sourcePort) : "",
+      sourceChannel: isSet(object.sourceChannel) ? String(object.sourceChannel) : "",
+      regionId: isSet(object.regionId) ? String(object.regionId) : "",
+      token: isSet(object.token) ? Coin.fromJSON(object.token) : undefined,
+      timeoutHeight: isSet(object.timeoutHeight) ? Height.fromJSON(object.timeoutHeight) : undefined,
+      timeoutTimestamp: isSet(object.timeoutTimestamp) ? Number(object.timeoutTimestamp) : 0,
+      memo: isSet(object.memo) ? String(object.memo) : "",
+      creator: isSet(object.creator) ? String(object.creator) : "",
+    };
+  },
+
+  toJSON(message: MsgIbcTransferFromRegionTreasure): unknown {
+    const obj: any = {};
+    message.sourcePort !== undefined && (obj.sourcePort = message.sourcePort);
+    message.sourceChannel !== undefined && (obj.sourceChannel = message.sourceChannel);
+    message.regionId !== undefined && (obj.regionId = message.regionId);
+    message.token !== undefined && (obj.token = message.token ? Coin.toJSON(message.token) : undefined);
+    message.timeoutHeight !== undefined
+      && (obj.timeoutHeight = message.timeoutHeight ? Height.toJSON(message.timeoutHeight) : undefined);
+    message.timeoutTimestamp !== undefined && (obj.timeoutTimestamp = Math.round(message.timeoutTimestamp));
+    message.memo !== undefined && (obj.memo = message.memo);
+    message.creator !== undefined && (obj.creator = message.creator);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgIbcTransferFromRegionTreasure>, I>>(
+    object: I,
+  ): MsgIbcTransferFromRegionTreasure {
+    const message = createBaseMsgIbcTransferFromRegionTreasure();
+    message.sourcePort = object.sourcePort ?? "";
+    message.sourceChannel = object.sourceChannel ?? "";
+    message.regionId = object.regionId ?? "";
+    message.token = (object.token !== undefined && object.token !== null) ? Coin.fromPartial(object.token) : undefined;
+    message.timeoutHeight = (object.timeoutHeight !== undefined && object.timeoutHeight !== null)
+      ? Height.fromPartial(object.timeoutHeight)
+      : undefined;
+    message.timeoutTimestamp = object.timeoutTimestamp ?? 0;
+    message.memo = object.memo ?? "";
+    message.creator = object.creator ?? "";
+    return message;
+  },
+};
+
+function createBaseHeight(): Height {
+  return { revisionNumber: 0, revisionHeight: 0 };
+}
+
+export const Height = {
+  encode(message: Height, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.revisionNumber !== 0) {
+      writer.uint32(8).uint64(message.revisionNumber);
+    }
+    if (message.revisionHeight !== 0) {
+      writer.uint32(16).uint64(message.revisionHeight);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Height {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseHeight();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.revisionNumber = longToNumber(reader.uint64() as Long);
+          break;
+        case 2:
+          message.revisionHeight = longToNumber(reader.uint64() as Long);
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Height {
+    return {
+      revisionNumber: isSet(object.revisionNumber) ? Number(object.revisionNumber) : 0,
+      revisionHeight: isSet(object.revisionHeight) ? Number(object.revisionHeight) : 0,
+    };
+  },
+
+  toJSON(message: Height): unknown {
+    const obj: any = {};
+    message.revisionNumber !== undefined && (obj.revisionNumber = Math.round(message.revisionNumber));
+    message.revisionHeight !== undefined && (obj.revisionHeight = Math.round(message.revisionHeight));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Height>, I>>(object: I): Height {
+    const message = createBaseHeight();
+    message.revisionNumber = object.revisionNumber ?? 0;
+    message.revisionHeight = object.revisionHeight ?? 0;
+    return message;
+  },
+};
+
+function createBaseMsgIbcTransferFromRegionTreasureResponse(): MsgIbcTransferFromRegionTreasureResponse {
+  return {};
+}
+
+export const MsgIbcTransferFromRegionTreasureResponse = {
+  encode(_: MsgIbcTransferFromRegionTreasureResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgIbcTransferFromRegionTreasureResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgIbcTransferFromRegionTreasureResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgIbcTransferFromRegionTreasureResponse {
+    return {};
+  },
+
+  toJSON(_: MsgIbcTransferFromRegionTreasureResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgIbcTransferFromRegionTreasureResponse>, I>>(
+    _: I,
+  ): MsgIbcTransferFromRegionTreasureResponse {
+    const message = createBaseMsgIbcTransferFromRegionTreasureResponse();
+    return message;
+  },
+};
+
 /** Msg defines the staking Msg service. */
 export interface Msg {
   Stake(request: MsgStake): Promise<MsgStakeResponse>;
@@ -2214,6 +2479,9 @@ export interface Msg {
   NewRecord(request: MsgNewRecord): Promise<MsgNewRecordResponse>;
   ReviewRecord(request: MsgReviewRecord): Promise<MsgReviewRecordResponse>;
   TransferRegion(request: MsgTransferRegion): Promise<MsgTransferRegionResponse>;
+  IbcTransferFromRegionTreasure(
+    request: MsgIbcTransferFromRegionTreasure,
+  ): Promise<MsgIbcTransferFromRegionTreasureResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -2236,6 +2504,7 @@ export class MsgClientImpl implements Msg {
     this.NewRecord = this.NewRecord.bind(this);
     this.ReviewRecord = this.ReviewRecord.bind(this);
     this.TransferRegion = this.TransferRegion.bind(this);
+    this.IbcTransferFromRegionTreasure = this.IbcTransferFromRegionTreasure.bind(this);
   }
   Stake(request: MsgStake): Promise<MsgStakeResponse> {
     const data = MsgStake.encode(request).finish();
@@ -2331,6 +2600,14 @@ export class MsgClientImpl implements Msg {
     const data = MsgTransferRegion.encode(request).finish();
     const promise = this.rpc.request("metaearth.wstaking.Msg", "TransferRegion", data);
     return promise.then((data) => MsgTransferRegionResponse.decode(new _m0.Reader(data)));
+  }
+
+  IbcTransferFromRegionTreasure(
+    request: MsgIbcTransferFromRegionTreasure,
+  ): Promise<MsgIbcTransferFromRegionTreasureResponse> {
+    const data = MsgIbcTransferFromRegionTreasure.encode(request).finish();
+    const promise = this.rpc.request("metaearth.wstaking.Msg", "IbcTransferFromRegionTreasure", data);
+    return promise.then((data) => MsgIbcTransferFromRegionTreasureResponse.decode(new _m0.Reader(data)));
   }
 }
 

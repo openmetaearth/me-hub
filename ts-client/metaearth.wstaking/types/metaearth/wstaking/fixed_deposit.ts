@@ -100,6 +100,17 @@ export interface FixedDepositCfg {
   status: fixedDepositCfgStatus;
 }
 
+export interface RegionAllFixedDepositCfg {
+  regionId: string;
+  RegionFixedDepositCfg: RegionFixedDepositCfg[];
+}
+
+export interface RegionFixedDepositCfg {
+  term: number;
+  rate: string;
+  status: fixedDepositCfgStatus;
+}
+
 function createBaseFixedDeposit(): FixedDeposit {
   return {
     id: 0,
@@ -343,6 +354,140 @@ export const FixedDepositCfg = {
   fromPartial<I extends Exact<DeepPartial<FixedDepositCfg>, I>>(object: I): FixedDepositCfg {
     const message = createBaseFixedDepositCfg();
     message.regionId = object.regionId ?? "";
+    message.term = object.term ?? 0;
+    message.rate = object.rate ?? "";
+    message.status = object.status ?? 0;
+    return message;
+  },
+};
+
+function createBaseRegionAllFixedDepositCfg(): RegionAllFixedDepositCfg {
+  return { regionId: "", RegionFixedDepositCfg: [] };
+}
+
+export const RegionAllFixedDepositCfg = {
+  encode(message: RegionAllFixedDepositCfg, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.regionId !== "") {
+      writer.uint32(10).string(message.regionId);
+    }
+    for (const v of message.RegionFixedDepositCfg) {
+      RegionFixedDepositCfg.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): RegionAllFixedDepositCfg {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRegionAllFixedDepositCfg();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.regionId = reader.string();
+          break;
+        case 2:
+          message.RegionFixedDepositCfg.push(RegionFixedDepositCfg.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): RegionAllFixedDepositCfg {
+    return {
+      regionId: isSet(object.regionId) ? String(object.regionId) : "",
+      RegionFixedDepositCfg: Array.isArray(object?.RegionFixedDepositCfg)
+        ? object.RegionFixedDepositCfg.map((e: any) => RegionFixedDepositCfg.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: RegionAllFixedDepositCfg): unknown {
+    const obj: any = {};
+    message.regionId !== undefined && (obj.regionId = message.regionId);
+    if (message.RegionFixedDepositCfg) {
+      obj.RegionFixedDepositCfg = message.RegionFixedDepositCfg.map((e) =>
+        e ? RegionFixedDepositCfg.toJSON(e) : undefined
+      );
+    } else {
+      obj.RegionFixedDepositCfg = [];
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<RegionAllFixedDepositCfg>, I>>(object: I): RegionAllFixedDepositCfg {
+    const message = createBaseRegionAllFixedDepositCfg();
+    message.regionId = object.regionId ?? "";
+    message.RegionFixedDepositCfg = object.RegionFixedDepositCfg?.map((e) => RegionFixedDepositCfg.fromPartial(e))
+      || [];
+    return message;
+  },
+};
+
+function createBaseRegionFixedDepositCfg(): RegionFixedDepositCfg {
+  return { term: 0, rate: "", status: 0 };
+}
+
+export const RegionFixedDepositCfg = {
+  encode(message: RegionFixedDepositCfg, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.term !== 0) {
+      writer.uint32(8).int64(message.term);
+    }
+    if (message.rate !== "") {
+      writer.uint32(18).string(message.rate);
+    }
+    if (message.status !== 0) {
+      writer.uint32(24).int32(message.status);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): RegionFixedDepositCfg {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRegionFixedDepositCfg();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.term = longToNumber(reader.int64() as Long);
+          break;
+        case 2:
+          message.rate = reader.string();
+          break;
+        case 3:
+          message.status = reader.int32() as any;
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): RegionFixedDepositCfg {
+    return {
+      term: isSet(object.term) ? Number(object.term) : 0,
+      rate: isSet(object.rate) ? String(object.rate) : "",
+      status: isSet(object.status) ? fixedDepositCfgStatusFromJSON(object.status) : 0,
+    };
+  },
+
+  toJSON(message: RegionFixedDepositCfg): unknown {
+    const obj: any = {};
+    message.term !== undefined && (obj.term = Math.round(message.term));
+    message.rate !== undefined && (obj.rate = message.rate);
+    message.status !== undefined && (obj.status = fixedDepositCfgStatusToJSON(message.status));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<RegionFixedDepositCfg>, I>>(object: I): RegionFixedDepositCfg {
+    const message = createBaseRegionFixedDepositCfg();
     message.term = object.term ?? 0;
     message.rate = object.rate ?? "";
     message.status = object.status ?? 0;

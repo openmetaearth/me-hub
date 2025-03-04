@@ -50,6 +50,20 @@ export interface MetaearthwstakingFixedDepositCfg {
   status?: WstakingFIXEDDEPOSITCFGSTATUS;
 }
 
+export interface MetaearthwstakingHeight {
+  /**
+   * the revision that the client is currently on
+   * @format uint64
+   */
+  revision_number?: string;
+
+  /**
+   * the height within the given revision
+   * @format uint64
+   */
+  revision_height?: string;
+}
+
 export interface MetaearthwstakingRegion {
   regionId?: string;
   name?: string;
@@ -377,6 +391,8 @@ export interface WstakingMsgDoFixedDepositResponse {
   id?: string;
 }
 
+export type WstakingMsgIbcTransferFromRegionTreasureResponse = object;
+
 export interface WstakingMsgNewFixedDepositCfgResp {
   retcode?: string;
 }
@@ -525,7 +541,7 @@ export interface WstakingQueryFixedDepositCfgByTermResponse {
 }
 
 export interface WstakingQueryFixedDepositCfgResponse {
-  FixedDepositCfgs?: MetaearthwstakingFixedDepositCfg[];
+  RegionFixedDepositCfgs?: WstakingRegionAllFixedDepositCfg[];
 }
 
 export interface WstakingQueryFixedDepositTotalAmountResponse {
@@ -575,6 +591,18 @@ export interface WstakingRecord {
   recordNumber?: string;
   url?: string;
   from?: string;
+}
+
+export interface WstakingRegionAllFixedDepositCfg {
+  regionId?: string;
+  RegionFixedDepositCfg?: WstakingRegionFixedDepositCfg[];
+}
+
+export interface WstakingRegionFixedDepositCfg {
+  /** @format int64 */
+  term?: string;
+  rate?: string;
+  status?: WstakingFIXEDDEPOSITCFGSTATUS;
 }
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, ResponseType } from "axios";
@@ -848,7 +876,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * @name QueryFixedDepositCfg
    * @request GET:/metaearth/wstaking/fixed_deposit_cfg
    */
-  queryFixedDepositCfg = (query?: { regionId?: string }, params: RequestParams = {}) =>
+  queryFixedDepositCfg = (query?: { regionIds?: string[] }, params: RequestParams = {}) =>
     this.request<WstakingQueryFixedDepositCfgResponse, RpcStatus>({
       path: `/metaearth/wstaking/fixed_deposit_cfg`,
       method: "GET",

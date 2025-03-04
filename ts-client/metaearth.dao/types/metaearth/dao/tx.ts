@@ -4,20 +4,20 @@ import { DaoAddresses } from "./dao";
 
 export const protobufPackage = "metaearth.dao";
 
-export interface MsgUpdateGlobalDao {
+export interface MsgUpdateDao {
   creator: string;
   daoAddresses: DaoAddresses | undefined;
 }
 
-export interface MsgUpdateGlobalDaoResponse {
+export interface MsgUpdateDaoResponse {
 }
 
-function createBaseMsgUpdateGlobalDao(): MsgUpdateGlobalDao {
+function createBaseMsgUpdateDao(): MsgUpdateDao {
   return { creator: "", daoAddresses: undefined };
 }
 
-export const MsgUpdateGlobalDao = {
-  encode(message: MsgUpdateGlobalDao, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const MsgUpdateDao = {
+  encode(message: MsgUpdateDao, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.creator !== "") {
       writer.uint32(10).string(message.creator);
     }
@@ -27,10 +27,10 @@ export const MsgUpdateGlobalDao = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpdateGlobalDao {
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpdateDao {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMsgUpdateGlobalDao();
+    const message = createBaseMsgUpdateDao();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -48,14 +48,14 @@ export const MsgUpdateGlobalDao = {
     return message;
   },
 
-  fromJSON(object: any): MsgUpdateGlobalDao {
+  fromJSON(object: any): MsgUpdateDao {
     return {
       creator: isSet(object.creator) ? String(object.creator) : "",
       daoAddresses: isSet(object.daoAddresses) ? DaoAddresses.fromJSON(object.daoAddresses) : undefined,
     };
   },
 
-  toJSON(message: MsgUpdateGlobalDao): unknown {
+  toJSON(message: MsgUpdateDao): unknown {
     const obj: any = {};
     message.creator !== undefined && (obj.creator = message.creator);
     message.daoAddresses !== undefined
@@ -63,8 +63,8 @@ export const MsgUpdateGlobalDao = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<MsgUpdateGlobalDao>, I>>(object: I): MsgUpdateGlobalDao {
-    const message = createBaseMsgUpdateGlobalDao();
+  fromPartial<I extends Exact<DeepPartial<MsgUpdateDao>, I>>(object: I): MsgUpdateDao {
+    const message = createBaseMsgUpdateDao();
     message.creator = object.creator ?? "";
     message.daoAddresses = (object.daoAddresses !== undefined && object.daoAddresses !== null)
       ? DaoAddresses.fromPartial(object.daoAddresses)
@@ -73,19 +73,19 @@ export const MsgUpdateGlobalDao = {
   },
 };
 
-function createBaseMsgUpdateGlobalDaoResponse(): MsgUpdateGlobalDaoResponse {
+function createBaseMsgUpdateDaoResponse(): MsgUpdateDaoResponse {
   return {};
 }
 
-export const MsgUpdateGlobalDaoResponse = {
-  encode(_: MsgUpdateGlobalDaoResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const MsgUpdateDaoResponse = {
+  encode(_: MsgUpdateDaoResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpdateGlobalDaoResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpdateDaoResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMsgUpdateGlobalDaoResponse();
+    const message = createBaseMsgUpdateDaoResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -97,36 +97,36 @@ export const MsgUpdateGlobalDaoResponse = {
     return message;
   },
 
-  fromJSON(_: any): MsgUpdateGlobalDaoResponse {
+  fromJSON(_: any): MsgUpdateDaoResponse {
     return {};
   },
 
-  toJSON(_: MsgUpdateGlobalDaoResponse): unknown {
+  toJSON(_: MsgUpdateDaoResponse): unknown {
     const obj: any = {};
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<MsgUpdateGlobalDaoResponse>, I>>(_: I): MsgUpdateGlobalDaoResponse {
-    const message = createBaseMsgUpdateGlobalDaoResponse();
+  fromPartial<I extends Exact<DeepPartial<MsgUpdateDaoResponse>, I>>(_: I): MsgUpdateDaoResponse {
+    const message = createBaseMsgUpdateDaoResponse();
     return message;
   },
 };
 
 /** Msg defines the Msg service. */
 export interface Msg {
-  UpdateGlobalDao(request: MsgUpdateGlobalDao): Promise<MsgUpdateGlobalDaoResponse>;
+  UpdateDao(request: MsgUpdateDao): Promise<MsgUpdateDaoResponse>;
 }
 
 export class MsgClientImpl implements Msg {
   private readonly rpc: Rpc;
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.UpdateGlobalDao = this.UpdateGlobalDao.bind(this);
+    this.UpdateDao = this.UpdateDao.bind(this);
   }
-  UpdateGlobalDao(request: MsgUpdateGlobalDao): Promise<MsgUpdateGlobalDaoResponse> {
-    const data = MsgUpdateGlobalDao.encode(request).finish();
-    const promise = this.rpc.request("metaearth.dao.Msg", "UpdateGlobalDao", data);
-    return promise.then((data) => MsgUpdateGlobalDaoResponse.decode(new _m0.Reader(data)));
+  UpdateDao(request: MsgUpdateDao): Promise<MsgUpdateDaoResponse> {
+    const data = MsgUpdateDao.encode(request).finish();
+    const promise = this.rpc.request("metaearth.dao.Msg", "UpdateDao", data);
+    return promise.then((data) => MsgUpdateDaoResponse.decode(new _m0.Reader(data)));
   }
 }
 

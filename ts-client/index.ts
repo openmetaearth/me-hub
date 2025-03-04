@@ -14,6 +14,7 @@ import { Module as CosmosFeegrantV1Beta1, msgTypes as CosmosFeegrantV1Beta1MsgTy
 import { Module as CosmosGovV1, msgTypes as CosmosGovV1MsgTypes } from './cosmos.gov.v1'
 import { Module as CosmosGovV1Beta1, msgTypes as CosmosGovV1Beta1MsgTypes } from './cosmos.gov.v1beta1'
 import { Module as CosmosMintV1Beta1, msgTypes as CosmosMintV1Beta1MsgTypes } from './cosmos.mint.v1beta1'
+import { Module as CosmosNftV1Beta1, msgTypes as CosmosNftV1Beta1MsgTypes } from './cosmos.nft.v1beta1'
 import { Module as CosmosParamsV1Beta1, msgTypes as CosmosParamsV1Beta1MsgTypes } from './cosmos.params.v1beta1'
 import { Module as CosmosSlashingV1Beta1, msgTypes as CosmosSlashingV1Beta1MsgTypes } from './cosmos.slashing.v1beta1'
 import { Module as CosmosStakingV1Beta1, msgTypes as CosmosStakingV1Beta1MsgTypes } from './cosmos.staking.v1beta1'
@@ -44,7 +45,7 @@ import { Module as PacketforwardV1, msgTypes as PacketforwardV1MsgTypes } from '
 
 
 const Client = IgniteClient.plugin([
-    CosmosAuthV1Beta1, CosmosAuthzV1Beta1, CosmosBankV1Beta1, CosmosBaseNodeV1Beta1, CosmosBaseTendermintV1Beta1, CosmosConsensusV1, CosmosCrisisV1Beta1, CosmosEvidenceV1Beta1, CosmosFeegrantV1Beta1, CosmosGovV1, CosmosGovV1Beta1, CosmosMintV1Beta1, CosmosParamsV1Beta1, CosmosSlashingV1Beta1, CosmosStakingV1Beta1, CosmosTxV1Beta1, CosmosUpgradeV1Beta1, CosmosVestingV1Beta1, CosmwasmWasmV1, DymensionxyzDymensionDelayedack, DymensionxyzDymensionEibc, DymensionxyzDymensionRollapp, DymensionxyzDymensionSequencer, EthermintEvmV1, EthermintFeemarketV1, IbcApplicationsInterchainAccountsHostV1, IbcApplicationsTransferV1, IbcCoreChannelV1, IbcCoreClientV1, IbcCoreConnectionV1, MetaearthDao, MetaearthDid, MetaearthKyc, MetaearthMegroup, MetaearthStreamer, MetaearthWdistri, MetaearthWnft, MetaearthWstaking, PacketforwardV1
+    CosmosAuthV1Beta1, CosmosAuthzV1Beta1, CosmosBankV1Beta1, CosmosBaseNodeV1Beta1, CosmosBaseTendermintV1Beta1, CosmosConsensusV1, CosmosCrisisV1Beta1, CosmosEvidenceV1Beta1, CosmosFeegrantV1Beta1, CosmosGovV1, CosmosGovV1Beta1, CosmosMintV1Beta1, CosmosNftV1Beta1, CosmosParamsV1Beta1, CosmosSlashingV1Beta1, CosmosStakingV1Beta1, CosmosTxV1Beta1, CosmosUpgradeV1Beta1, CosmosVestingV1Beta1, CosmwasmWasmV1, DymensionxyzDymensionDelayedack, DymensionxyzDymensionEibc, DymensionxyzDymensionRollapp, DymensionxyzDymensionSequencer, EthermintEvmV1, EthermintFeemarketV1, IbcApplicationsInterchainAccountsHostV1, IbcApplicationsTransferV1, IbcCoreChannelV1, IbcCoreClientV1, IbcCoreConnectionV1, MetaearthDao, MetaearthDid, MetaearthKyc, MetaearthMegroup, MetaearthStreamer, MetaearthWdistri, MetaearthWnft, MetaearthWstaking, PacketforwardV1
 ]);
 
 const registry = new Registry([
@@ -60,6 +61,7 @@ const registry = new Registry([
   ...CosmosGovV1MsgTypes,
   ...CosmosGovV1Beta1MsgTypes,
   ...CosmosMintV1Beta1MsgTypes,
+  ...CosmosNftV1Beta1MsgTypes,
   ...CosmosParamsV1Beta1MsgTypes,
   ...CosmosSlashingV1Beta1MsgTypes,
   ...CosmosStakingV1Beta1MsgTypes,

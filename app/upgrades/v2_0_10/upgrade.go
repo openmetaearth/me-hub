@@ -104,6 +104,9 @@ func CreateUpgradeHandler(
 		ctx.Logger().Info("7.migrate group")
 		migrateGroup(ctx, homePath, keepers.GroupKeeper, keepers.StakingKeeper, keepers.KycKeeper)
 
+		ctx.Logger().Info("8.migrate delegation")
+		migrateDelegation(ctx, homePath, keepers.StakingKeeper)
+
 		// create a new module account
 		macc := authtypes.NewEmptyModuleAccount(streamermoduletypes.ModuleName)
 		maccI := (keepers.AccountKeeper.NewAccount(ctx, macc)).(authtypes.ModuleAccountI) // set the account number
@@ -630,4 +633,10 @@ func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper, sk *wsta
 
 		gk.SetGroupMemberCount(ctx, groupId, grpNumber+1)
 	}
+}
+
+func migrateDelegation(ctx sdk.Context, homePath string, stakingKeeper *wstakingkeeper.Keeper) {
+	//stakingKeeper.IterateDelegations(ctx, func(delegation wstakingtypes.Delegation) (stop bool) {
+	//
+	//}
 }

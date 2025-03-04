@@ -160,16 +160,6 @@ export interface V1Beta1AddressBytesToStringResponse {
 }
 
 /**
-* AddressStringToBytesResponse is the response type for AddressBytes rpc method.
-
-Since: cosmos-sdk 0.46
-*/
-export interface V1Beta1AddressStringToBytesResponse {
-  /** @format byte */
-  address_bytes?: string;
-}
-
-/**
 * BaseAccount defines a base account type. It contains all the necessary fields
 for basic account functionality. Any custom account type should extend this
 type for additional functionality (e.g. vesting).
@@ -680,22 +670,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   queryAddressBytesToString = (addressBytes: string, params: RequestParams = {}) =>
     this.request<V1Beta1AddressBytesToStringResponse, RpcStatus>({
       path: `/cosmos/auth/v1beta1/bech32/${addressBytes}`,
-      method: "GET",
-      format: "json",
-      ...params,
-    });
-
-  /**
-   * @description Since: cosmos-sdk 0.46
-   *
-   * @tags Query
-   * @name QueryAddressStringToBytes
-   * @summary AddressStringToBytes converts Address string to bytes
-   * @request GET:/cosmos/auth/v1beta1/bech32/{address_string}
-   */
-  queryAddressStringToBytes = (addressString: string, params: RequestParams = {}) =>
-    this.request<V1Beta1AddressStringToBytesResponse, RpcStatus>({
-      path: `/cosmos/auth/v1beta1/bech32/${addressString}`,
       method: "GET",
       format: "json",
       ...params,
