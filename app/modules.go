@@ -118,8 +118,10 @@ var ModuleBasics = module.NewBasicManager(
 	incentives.AppModuleBasic{},
 	txfees.AppModuleBasic{},
 	dao.AppModuleBasic{},
-	//nftmodule.AppModuleBasic{},
 	wnft.AppModuleBasic{},
 	wasm.AppModuleBasic{},
 	groupmodule.AppModuleBasic{},
+
+	//staking.AppModuleBasic{},
+	//nftmodule.AppModuleBasic{},
 )

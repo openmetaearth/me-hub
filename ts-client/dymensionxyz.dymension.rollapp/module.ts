@@ -7,8 +7,8 @@ import { msgTypes } from './registry';
 import { IgniteClient } from "../client"
 import { MissingWalletError } from "../helpers"
 import { Api } from "./rest";
-import { MsgUpdateState } from "./types/dymensionxyz/dymension/rollapp/tx";
 import { MsgCreateRollapp } from "./types/dymensionxyz/dymension/rollapp/tx";
+import { MsgUpdateState } from "./types/dymensionxyz/dymension/rollapp/tx";
 
 import { BlockDescriptor as typeBlockDescriptor} from "./types"
 import { BlockDescriptors as typeBlockDescriptors} from "./types"
@@ -24,13 +24,7 @@ import { StateInfo as typeStateInfo} from "./types"
 import { StateInfoSummary as typeStateInfoSummary} from "./types"
 import { BlockHeightToFinalizationQueue as typeBlockHeightToFinalizationQueue} from "./types"
 
-export { MsgUpdateState, MsgCreateRollapp };
-
-type sendMsgUpdateStateParams = {
-  value: MsgUpdateState,
-  fee?: StdFee,
-  memo?: string
-};
+export { MsgCreateRollapp, MsgUpdateState };
 
 type sendMsgCreateRollappParams = {
   value: MsgCreateRollapp,
@@ -38,13 +32,19 @@ type sendMsgCreateRollappParams = {
   memo?: string
 };
 
-
-type msgUpdateStateParams = {
+type sendMsgUpdateStateParams = {
   value: MsgUpdateState,
+  fee?: StdFee,
+  memo?: string
 };
+
 
 type msgCreateRollappParams = {
   value: MsgCreateRollapp,
+};
+
+type msgUpdateStateParams = {
+  value: MsgUpdateState,
 };
 
 
@@ -77,20 +77,6 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 
   return {
 		
-		async sendMsgUpdateState({ value, fee, memo }: sendMsgUpdateStateParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgUpdateState: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgUpdateState({ value: MsgUpdateState.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgUpdateState: Could not broadcast Tx: '+ e.message)
-			}
-		},
-		
 		async sendMsgCreateRollapp({ value, fee, memo }: sendMsgCreateRollappParams): Promise<DeliverTxResponse> {
 			if (!signer) {
 					throw new Error('TxClient:sendMsgCreateRollapp: Unable to sign Tx. Signer is not present.')
@@ -105,20 +91,34 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		
-		msgUpdateState({ value }: msgUpdateStateParams): EncodeObject {
-			try {
-				return { typeUrl: "/dymensionxyz.dymension.rollapp.MsgUpdateState", value: MsgUpdateState.fromPartial( value ) }  
+		async sendMsgUpdateState({ value, fee, memo }: sendMsgUpdateStateParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgUpdateState: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgUpdateState({ value: MsgUpdateState.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
-				throw new Error('TxClient:MsgUpdateState: Could not create message: ' + e.message)
+				throw new Error('TxClient:sendMsgUpdateState: Could not broadcast Tx: '+ e.message)
 			}
 		},
+		
 		
 		msgCreateRollapp({ value }: msgCreateRollappParams): EncodeObject {
 			try {
 				return { typeUrl: "/dymensionxyz.dymension.rollapp.MsgCreateRollapp", value: MsgCreateRollapp.fromPartial( value ) }  
 			} catch (e: any) {
 				throw new Error('TxClient:MsgCreateRollapp: Could not create message: ' + e.message)
+			}
+		},
+		
+		msgUpdateState({ value }: msgUpdateStateParams): EncodeObject {
+			try {
+				return { typeUrl: "/dymensionxyz.dymension.rollapp.MsgUpdateState", value: MsgUpdateState.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgUpdateState: Could not create message: ' + e.message)
 			}
 		},
 		

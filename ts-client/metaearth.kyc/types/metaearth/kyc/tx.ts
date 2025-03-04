@@ -27,6 +27,7 @@ export interface MsgUpdate {
   level: KycLevel;
   uri: string;
   hash: string;
+  inviter: string;
 }
 
 export interface MsgUpdateResponse {
@@ -231,7 +232,7 @@ export const MsgApproveResponse = {
 };
 
 function createBaseMsgUpdate(): MsgUpdate {
-  return { issuer: "", did: "", regionId: "", level: 0, uri: "", hash: "" };
+  return { issuer: "", did: "", regionId: "", level: 0, uri: "", hash: "", inviter: "" };
 }
 
 export const MsgUpdate = {
@@ -253,6 +254,9 @@ export const MsgUpdate = {
     }
     if (message.hash !== "") {
       writer.uint32(50).string(message.hash);
+    }
+    if (message.inviter !== "") {
+      writer.uint32(58).string(message.inviter);
     }
     return writer;
   },
@@ -282,6 +286,9 @@ export const MsgUpdate = {
         case 6:
           message.hash = reader.string();
           break;
+        case 7:
+          message.inviter = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -298,6 +305,7 @@ export const MsgUpdate = {
       level: isSet(object.level) ? kycLevelFromJSON(object.level) : 0,
       uri: isSet(object.uri) ? String(object.uri) : "",
       hash: isSet(object.hash) ? String(object.hash) : "",
+      inviter: isSet(object.inviter) ? String(object.inviter) : "",
     };
   },
 
@@ -309,6 +317,7 @@ export const MsgUpdate = {
     message.level !== undefined && (obj.level = kycLevelToJSON(message.level));
     message.uri !== undefined && (obj.uri = message.uri);
     message.hash !== undefined && (obj.hash = message.hash);
+    message.inviter !== undefined && (obj.inviter = message.inviter);
     return obj;
   },
 
@@ -320,6 +329,7 @@ export const MsgUpdate = {
     message.level = object.level ?? 0;
     message.uri = object.uri ?? "";
     message.hash = object.hash ?? "";
+    message.inviter = object.inviter ?? "";
     return message;
   },
 };

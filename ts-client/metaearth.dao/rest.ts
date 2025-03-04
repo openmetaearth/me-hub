@@ -19,7 +19,7 @@ export interface DaoDaoAddresses {
   airdrop_address?: string;
 }
 
-export type DaoMsgUpdateGlobalDaoResponse = object;
+export type DaoMsgUpdateDaoResponse = object;
 
 export interface DaoQueryGlobalDaoFeePoolResp {
   global_dao_fee_pool?: string;
