@@ -11,7 +11,7 @@ import (
 // preUpgradeCmd called by cosmovisor
 func PreUpgradeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pre-upgrade-v2_0_1",
+		Use:   "pre-upgrade-v2",
 		Short: "pre-upgrade, called by cosmovisor, before migrations upgrade",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {

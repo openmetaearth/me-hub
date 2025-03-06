@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
+	megrouptypes "github.com/st-chain/me-hub/x/megroup/types"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 )
 
@@ -121,14 +122,20 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	meidAdmin := dfd.daoKeeper.GetMeidDao(ctx)
 	freeGas := feePayer.String() == admin || feePayer.String() == meidAdmin
 
-	if !simulate && !freeGas {
+	for _, msg := range feeTx.GetMsgs() {
+		switch msg.(type) {
+		case *megrouptypes.MsgJoinGroup:
+			freeGas = true
+		}
+		break
+	}
+
+	if !freeGas && !simulate {
 		_, priority, err = dfd.txFeeChecker(ctx, tx)
 		if err != nil {
 			return ctx, err
 		}
-	}
 
-	if !freeGas && !simulate {
 		fee, err := sdk.ParseCoinsNormalized(feePending.String())
 		if err != nil {
 			return ctx, sdkerrors.Wrap(err, "")

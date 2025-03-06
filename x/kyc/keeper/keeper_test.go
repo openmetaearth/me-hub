@@ -66,7 +66,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.queryClient = queryClient
 
 	stakingKeeperMsgSrv := stakingkeeper.NewMsgServerImpl(app.StakingKeeper.Keeper)
-	stakingMsgServer := wstakingkeeper.NewMsgServerImpl(app.StakingKeeper, stakingKeeperMsgSrv)
+	stakingMsgServer := wstakingkeeper.NewMsgServerImpl(app.StakingKeeper, app.TransferKeeper, stakingKeeperMsgSrv)
 
 	suite.InitializeDao()
 
@@ -104,10 +104,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 func (s *KeeperTestSuite) TestPubKeyFromString() {
 	s.SetupTest()
 	pubkey := `{"@type":"/ethermint.crypto.v1.ethsecp256k1.PubKey","key":"A83z2Fnur8jc+tGvkCJjkZTBeJDLSObk8nVKOpY9P679"}`
-	accAddr := s.Keeper().MustAccAddressFromPubkeyString(pubkey)
+	accAddr, _ := s.Keeper().MustAccAddressFromPubkeyString(pubkey)
 	s.Require().Equal("me13w3mxrd9tvq3r6gzheqjuzf8pnaruvug5787yu", accAddr.String())
 
 	secp256k1Pubkey := `{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"A9Iwsz0CXw/AEVGq7wyM4wuNbcoeB1dXTBje1lRXvKBD"}`
-	secpAccAddr := s.Keeper().MustAccAddressFromPubkeyString(secp256k1Pubkey)
+	secpAccAddr, _ := s.Keeper().MustAccAddressFromPubkeyString(secp256k1Pubkey)
 	s.Require().Equal("me1kj3emedrrq66vdqf3pzpfjmytympl4j2a4xd0c", secpAccAddr.String())
 }
