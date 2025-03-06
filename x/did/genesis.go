@@ -11,7 +11,7 @@ import (
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k *keeper.Keeper, genState types.GenesisState) {
 	for _, info := range genState.Infos {
-		addr := k.MustAccAddressFromPubkeyString(info.Pubkey)
+		addr := sdk.MustAccAddressFromBech32(info.Address)
 		k.SetDID(ctx, addr, info.Did)
 		k.SetDidInfo(ctx, info.Did, info)
 	}

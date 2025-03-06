@@ -61,13 +61,6 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 
 	// check holder address and pubkey
 	address := sdk.MustAccAddressFromBech32(msg.Address)
-	pubkey, err := m.PubKeyFromString(msg.Pubkey)
-	if err != nil {
-		return &types.MsgApproveResponse{}, errors.Wrap(err, "invaild pubkey")
-	}
-	if !address.Equals(sdk.AccAddress(pubkey.Address())) {
-		return &types.MsgApproveResponse{}, didtypes.ErrHolderNotFound
-	}
 	did, found := m.GetDID(ctx, address)
 	if found && did != msg.Did {
 		// notice: holder must have not DID
@@ -155,10 +148,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	holderInfo.RegionId = msg.RegionId
 	holderInfo.KycLevel = msg.Level
 	m.SetDidInfo(ctx, msg.Did, holderInfo)
-	address, err := m.MustAccAddressFromPubkeyString(holderInfo.Pubkey)
-	if err != nil {
-		return &types.MsgUpdateResponse{}, errors.Wrap(err, "invalid pubkey")
-	}
+	address := sdk.MustAccAddressFromBech32(holderInfo.Address)
 	// update KYC
 	kyc := msg.GetKYC()
 	m.SetKYC(ctx, msg.Did, kyc)
@@ -190,7 +180,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	ctx.EventManager().EmitEvent(types.NewKycEvent(address.String(), msg.Did, msg.Level, "update", m.takeSeq(ctx)))
 
 	// event post-handler
-	err = m.handlerReg.HandleEvent(ctx, types.EventTypeUpdate, event)
+	err := m.handlerReg.HandleEvent(ctx, types.EventTypeUpdate, event)
 	if err != nil {
 		return &types.MsgUpdateResponse{}, err
 	}
@@ -240,10 +230,7 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	m.DeleteFilters(ctx, msg.Did, filters)
 
 	// cancel reward
-	address, err := m.MustAccAddressFromPubkeyString(didInfo.Pubkey)
-	if err != nil {
-		return &types.MsgRemoveResponse{}, sdkerrors.Wrap(types.ErrInvalidPubkey, err.Error())
-	}
+	address := sdk.MustAccAddressFromBech32(didInfo.Address)
 	if err := m.DeleteApproveReward(ctx, address.String(), string(kyc.Data)); err != nil {
 		return &types.MsgRemoveResponse{}, errors.Wrap(err, "delete reward failed")
 	}
