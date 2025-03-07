@@ -35,11 +35,13 @@ func NewKycEvent(address string, did string, level didTypes.KycLevel, action str
 	return sdkTypes.NewEvent("kyc_event", attributes...)
 }
 
-func NewSbtEvent(eventType, did, uri, hash string) sdkTypes.Event {
+func NewSbtEvent(eventType, did, uri, hash, regionId, kycLevel string) sdkTypes.Event {
 	attributes := []sdkTypes.Attribute{
 		{Key: "did", Value: did},
 		{Key: "uri", Value: uri},
 		{Key: "hash", Value: hash},
+		{Key: "regionId", Value: regionId},
+		{Key: "kycLevel", Value: kycLevel},
 	}
 	return sdkTypes.NewEvent(eventType, attributes...)
 }

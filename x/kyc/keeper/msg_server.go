@@ -2,6 +2,9 @@ package keeper
 
 import (
 	"context"
+	"slices"
+	"strings"
+
 	"cosmossdk.io/errors"
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,8 +14,6 @@ import (
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/types"
 	stktypes "github.com/st-chain/me-hub/x/wstaking/types"
-	"slices"
-	"strings"
 )
 
 type msgServer struct {
@@ -259,7 +260,8 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 	}
 
 	// check holder did
-	if !m.HasDidInfo(ctx, msg.Did) {
+	holderInfo, found := m.GetDidInfo(ctx, msg.Did)
+	if !found || holderInfo.Status != didtypes.DID_STATUS_ACTIVE {
 		return &types.MsgCreateSBTResponse{}, didtypes.ErrHolderNotFound
 	}
 	if !m.HasKYC(ctx, msg.Did) {
@@ -279,7 +281,7 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 		return &types.MsgCreateSBTResponse{}, errors.Wrap(err, "mint SBT failed")
 	}
 
-	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeCreateSBT, msg.Did, msg.Uri, msg.UriHash))
+	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeCreateSBT, msg.Did, msg.Uri, msg.UriHash, holderInfo.RegionId, holderInfo.KycLevel.String()))
 	return &types.MsgCreateSBTResponse{}, nil
 }
 
@@ -304,7 +306,8 @@ func (m msgServer) UpdateSBT(goCtx context.Context, msg *types.MsgUpdateSBT) (*t
 	}
 
 	// check holder did
-	if !m.HasDidInfo(ctx, msg.Did) {
+	holderInfo, fount := m.GetDidInfo(ctx, msg.Did)
+	if !fount {
 		return &types.MsgUpdateSBTResponse{}, didtypes.ErrHolderNotFound
 	}
 	if !m.HasKYC(ctx, msg.Did) {
@@ -326,7 +329,7 @@ func (m msgServer) UpdateSBT(goCtx context.Context, msg *types.MsgUpdateSBT) (*t
 		return &types.MsgUpdateSBTResponse{}, errors.Wrap(err, "update SBT failed")
 	}
 
-	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeUpdateSBT, msg.Did, msg.Uri, msg.UriHash))
+	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeUpdateSBT, msg.Did, msg.Uri, msg.UriHash, holderInfo.RegionId, holderInfo.KycLevel.String()))
 	return &types.MsgUpdateSBTResponse{}, nil
 }
 
@@ -351,7 +354,8 @@ func (m msgServer) DeleteSBT(goCtx context.Context, msg *types.MsgDeleteSBT) (*t
 	}
 
 	// check holder did
-	if !m.HasDidInfo(ctx, msg.Did) {
+	holderInfo, found := m.GetDidInfo(ctx, msg.Did)
+	if !found {
 		return &types.MsgDeleteSBTResponse{}, didtypes.ErrHolderNotFound
 	}
 
@@ -360,6 +364,6 @@ func (m msgServer) DeleteSBT(goCtx context.Context, msg *types.MsgDeleteSBT) (*t
 		return &types.MsgDeleteSBTResponse{}, errors.Wrap(err, "burn SBT failed")
 	}
 
-	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeDeleteSBT, msg.Did, "", ""))
+	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeDeleteSBT, msg.Did, "", "", holderInfo.RegionId, holderInfo.KycLevel.String()))
 	return &types.MsgDeleteSBTResponse{}, nil
 }
