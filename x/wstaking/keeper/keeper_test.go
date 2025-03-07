@@ -67,7 +67,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.Ctx = ctx
 
 	stakingKeeperMsgSrv := stakingkeeper.NewMsgServerImpl(app.StakingKeeper.Keeper)
-	suite.msgServer = wstakingkeeper.NewMsgServerImpl(app.StakingKeeper, stakingKeeperMsgSrv)
+	suite.msgServer = wstakingkeeper.NewMsgServerImpl(app.StakingKeeper, app.TransferKeeper, stakingKeeperMsgSrv)
 
 	suite.InitializeDao()
 
