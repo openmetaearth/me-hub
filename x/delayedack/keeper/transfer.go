@@ -36,7 +36,6 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 	packetID := commontypes.NewPacketUID(packetType, port, channel, packet.Sequence)
 	height, ok := types.PacketProofHeightFromCtx(ctx, packetID)
 	if !ok {
-		// TODO: should probably be a panic
 		err = errors.Wrapf(gerrc.ErrNotFound, "get proof height from context: packetID: %s", packetID)
 		return
 	}
