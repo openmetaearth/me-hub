@@ -10,6 +10,7 @@ import (
 const (
 	// TypeMsgSend nft message types
 	TypeMsgNewClass = "new_class"
+	TypeMsgMintNFT  = "mint_nft"
 )
 
 var (
@@ -88,6 +89,18 @@ func (m MsgMintNFT) ValidateBasic() error {
 func (m MsgMintNFT) GetSigners() []sdk.AccAddress {
 	signer, _ := sdk.AccAddressFromBech32(m.Sender)
 	return []sdk.AccAddress{signer}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgMintNFT) Route() string { return nft.RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgMintNFT) Type() string { return TypeMsgMintNFT }
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgMintNFT) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
 }
 
 func NewMsgMintNFT(class_id, token_id, uri, uriHash, sender string) *MsgMintNFT {
