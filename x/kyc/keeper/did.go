@@ -57,7 +57,7 @@ func (k Keeper) SetKycIssers(ctx sdk.Context, oldDaoAddress, newDaoAddress []str
 
 		didInfo, found := k.GetDidInfo(ctx, did)
 		if !found {
-			return fmt.Errorf("old address %s did info not exists, please create did info before repalce did info", dao)
+			return fmt.Errorf("old address %s did info not exists, please create did info before replace did info", dao)
 		}
 
 		didInfo.Address = newDaoAddress[i]

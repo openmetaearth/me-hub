@@ -270,7 +270,6 @@ func migrateKycModule(ctx sdk.Context, kycKeeper *kyckeeper.Keeper, path string)
 		if _, found := kycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(issuer.Address)); found {
 			panic(fmt.Errorf("issuer %s already exists", sdk.MustAccAddressFromBech32(issuer.Address)))
 		}
-
 		kycKeeper.SetDID(ctx, sdk.MustAccAddressFromBech32(issuer.Address), issuer.Did)
 		kycKeeper.SetDidInfo(ctx, issuer.Did, issuer)
 		issuerDids = append(issuerDids, issuer.Did)

@@ -16,7 +16,7 @@ func PreUpgradeCmd() *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
-			serverCtx.Logger.Info("pre-upgrade-v2_0_1 update config starting")
+			serverCtx.Logger.Info("pre-upgrade-v2 update config starting")
 			rootDir := serverCtx.Config.RootDir
 
 			config.SetConfigTemplate(config.DefaultConfigTemplate)
