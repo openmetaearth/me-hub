@@ -321,6 +321,13 @@ func migrateKycData(ctx sdk.Context,
 				KycLevel: didtypes.KycLevel(did.Level),
 				Status:   didtypes.DID_STATUS_ACTIVE,
 			}
+			vc := didtypes.Credential{
+				Did:  did.Did,
+				Sid:  service.Sid,
+				Uri:  did.KycUri,
+				Hash: did.KycUriHash,
+				Data: []byte(oldRecord.RegionId),
+			}
 			if did.Level != 2 {
 				stakingKeeper.SetInviterReward(ctx, oldRecord.Account)
 			}
@@ -331,14 +338,9 @@ func migrateKycData(ctx sdk.Context,
 				ctx,
 				didInfo.Did,
 				service.Sid,
-				didtypes.Credential{
-					Did:  did.Did,
-					Sid:  service.Sid,
-					Uri:  did.KycUri,
-					Hash: did.KycUriHash,
-					Data: []byte(oldRecord.RegionId),
-				},
+				vc,
 			)
+			didKeeper.AddFilters(ctx, did.Did, service.Sid, [][]byte{[]byte(oldRecord.RegionId)}, vc)
 			migrateNFTtoSBT(ctx, stakingKeeper, oldRecord, nftKeeper, kycKeeper, did)
 			stakingKeeper.RemoveMeid(ctx, oldRecord.Account, oldRecord.RegionId)
 		}
