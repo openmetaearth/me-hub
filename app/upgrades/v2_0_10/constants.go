@@ -58,7 +58,9 @@ var Upgrade = upgrades.Upgrade{
 			kyctypes.ModuleName,
 			megrouptypes.ModuleName,
 		},
-		Deleted: []string{},
+		Deleted: []string{
+			"checkin",
+		},
 	},
 	PreUpgradeCmd: PreUpgradeCmd(),
 }
