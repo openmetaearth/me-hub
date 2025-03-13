@@ -17,6 +17,9 @@ enum KycLevel {
   KYC_LEVEL_NONE   = 0 [ (gogoproto.enumvalue_customname) = "KYC_LEVEL_NONE " ];
   KYC_LEVEL_ONE    = 1 [ (gogoproto.enumvalue_customname) = "KYC_LEVEL_ONE " ];
   KYC_LEVEL_TWO    = 2 [ (gogoproto.enumvalue_customname) = "KYC_LEVEL_TWO" ];
+  KYC_LEVEL_THREE    = 3 [ (gogoproto.enumvalue_customname) = "KYC_LEVEL_THREE" ];
+  KYC_LEVEL_FOUR    = 4 [ (gogoproto.enumvalue_customname) = "KYC_LEVEL_FOUR" ];
+  KYC_LEVEL_FIVE    = 5 [ (gogoproto.enumvalue_customname) = "KYC_LEVEL_FIVE" ];
 }
 
 

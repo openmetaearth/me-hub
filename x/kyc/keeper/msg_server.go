@@ -91,7 +91,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 		return &types.MsgApproveResponse{}, errors.Wrap(err, "set reward failed")
 	}
 
-	if msg.Level == didtypes.KYC_LEVEL_TWO {
+	if msg.Level >= didtypes.KYC_LEVEL_TWO {
 		m.stkKeeper.SendInviteReward(ctx, msg.Inviter, msg.Address, msg.RegionId)
 	}
 
@@ -163,7 +163,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 		return &types.MsgUpdateResponse{}, sdkerrors.Wrap(types.ErrTransferRegion, err.Error())
 	}
 
-	if perLevel == didtypes.KYC_LEVEL_ONE && msg.Level == didtypes.KYC_LEVEL_TWO {
+	if perLevel == didtypes.KYC_LEVEL_ONE && msg.Level >= didtypes.KYC_LEVEL_TWO {
 		if err := m.stkKeeper.SendInviteReward(ctx, msg.Inviter, address.String(), msg.RegionId); err != nil {
 			return &types.MsgUpdateResponse{}, sdkerrors.Wrap(types.ErrInviteReward, err.Error())
 		}
