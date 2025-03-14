@@ -39,5 +39,5 @@ cd ..
 swagger-combine ./docs/config.json -o ./docs/static/openapi.yml -f yaml --continueOnConflictingPaths true --includeDefinitions true
 
 # clean swagger files
-# rm -rf ./tmp-swagger-gen
-#rm -rf "$SWAGGER_DIR"
+rm -rf ./tmp-swagger-gen
+rm -rf "$SWAGGER_DIR"

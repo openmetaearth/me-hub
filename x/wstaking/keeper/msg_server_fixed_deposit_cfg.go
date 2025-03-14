@@ -66,8 +66,13 @@ func (k MsgServer) RemoveFixedDepositCfg(goCtx context.Context, msg *types.MsgRe
 		return nil, types.ErrCheckGlobalDao
 	}
 
+	_, found := k.GetFixedDepositCfg(ctx, msg.RegionId, msg.Term)
+	if !found {
+		return nil, types.ErrRemoveFixedDepositConfig.Wrapf("fixed deposit config not found  for region(%s) and term(%d)", msg.RegionId, msg.Term)
+	}
+
 	count := k.GetFixedDepositCountOfCfg(ctx, msg.RegionId, msg.Term)
-	if count == 0 {
+	if count > 0 {
 		return nil, types.ErrRemoveFixedDepositConfig.Wrapf("remove fixed deposit config error:(%s)", types.ErrFixedDepositExistUnderConfig)
 	}
 

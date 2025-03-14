@@ -30,7 +30,7 @@ var (
 	ErrNoFixedDepositCountOfCfgFound   = sdkerrors.Register(ModuleName, 1122, "fixed deposit count under config not found")
 	ErrFixedDepositCountOfCfgIsZero    = sdkerrors.Register(ModuleName, 1123, "fixed deposit count under config is zero")
 	ErrFixedDepositConfigAlreadyExists = sdkerrors.Register(ModuleName, 1124, "fixed deposit config already exists")
-	ErrFixedDepositExistUnderConfig    = sdkerrors.Register(ModuleName, 1125, "fixed deposit exists under the config")
+	ErrFixedDepositExistUnderConfig    = sdkerrors.Register(ModuleName, 1125, "fixed deposit exists under this config")
 	ErrSetFixedDepositConfigRate       = sdkerrors.Register(ModuleName, 1126, "set fixed deposit config rate error")
 	ErrSetFixedDepositConfigStatus     = sdkerrors.Register(ModuleName, 1127, "set fixed deposit config status error")
 	ErrFixedDepositConfigInactive      = sdkerrors.Register(ModuleName, 1128, "fixed deposit config status inactive")
