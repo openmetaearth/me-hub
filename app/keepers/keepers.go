@@ -2,10 +2,11 @@ package keepers
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/nft"
-	groupTypes "github.com/st-chain/me-hub/x/megroup/types"
 	"path/filepath"
 	"strings"
+
+	"github.com/cosmos/cosmos-sdk/x/nft"
+	groupTypes "github.com/st-chain/me-hub/x/megroup/types"
 
 	wasmapp "github.com/CosmWasm/wasmd/app"
 	"github.com/CosmWasm/wasmd/x/wasm"
@@ -513,6 +514,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[kyctypes.StoreKey],
 		a.StakingKeeper,
+		a.AccountKeeper,
 		a.DidKeeper,
 		a.WNFTKeeper,
 	)

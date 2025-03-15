@@ -95,6 +95,11 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 		m.stkKeeper.SendInviteReward(ctx, msg.Inviter, msg.Address, msg.RegionId)
 	}
 
+	// add account if not exists
+	if !m.accountKeeper.HasAccount(ctx, address) {
+		m.accountKeeper.SetAccount(ctx, m.accountKeeper.NewAccountWithAddress(ctx, address))
+	}
+
 	// todo: update events
 	ctx.EventManager().EmitEvent(types.NewKycEvent(msg.Address, msg.Did, msg.Level, "approve", m.takeSeq(ctx)))
 	return &types.MsgApproveResponse{}, nil
