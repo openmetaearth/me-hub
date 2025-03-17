@@ -59,6 +59,10 @@ func (k Keeper) IsRollappsEnabled(ctx sdk.Context) bool {
 	return k.rollappKeeper.GetParams(ctx).RollappsEnabled
 }
 
+func (k Keeper) IsSkipDelayRollapp(ctx sdk.Context, rollappID string) bool {
+	return k.rollappKeeper.IsSkipDelayRollapp(ctx, rollappID)
+}
+
 func (k Keeper) getRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint64, error) {
 	// GetLatestFinalizedStateIndex
 	latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, chainID)

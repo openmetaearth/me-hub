@@ -13,6 +13,7 @@ import "gogoproto/gogo.proto";
 // Msg defines the Msg service.
 service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
+  rpc SkipDelayRollapp(MsgSkipDelayRollapp) returns (MsgSkipDelayRollappResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
 }
 
@@ -26,7 +27,7 @@ message MsgCreateRollapp {
   string rollappId = 2;// [(gogoproto.customname) = "ChainID"];
   // maxSequencers is the maximum number of sequencers
   uint64 maxSequencers = 6;
-  // permissionedAddresses is a bech32-encoded address list of the 
+  // permissionedAddresses is a bech32-encoded address list of the
   // sequencers that are allowed to serve this rollappId.
   // In the case of an empty list, the rollapp is considered permissionless
   repeated string permissionedAddresses = 7;
@@ -62,4 +63,14 @@ message MsgUpdateState {
 }
 
 message MsgUpdateStateResponse {
+}
+
+message MsgSkipDelayRollapp {
+  option (cosmos.msg.v1.signer) = "creator";
+  string creator = 1;
+  string rollappId = 2;
+  bool skip = 3;
+}
+
+message MsgSkipDelayRollappResponse {
 }

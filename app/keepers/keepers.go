@@ -408,6 +408,7 @@ func (a *AppKeepers) InitKeepers(
 		a.GetSubspace(rollappmoduletypes.ModuleName),
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ClientKeeper,
+		a.DaoKeeper,
 	)
 
 	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(

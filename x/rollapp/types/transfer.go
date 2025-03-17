@@ -20,6 +20,13 @@ func (d TransferData) IsRollapp() bool {
 	return d.Rollapp != nil
 }
 
+func (d TransferData) RollappId() string {
+	if d.Rollapp != nil {
+		return d.Rollapp.RollappId
+	}
+	return ""
+}
+
 // MustAmountInt returns the int amount. Should call validateBasic first!
 func (d TransferData) MustAmountInt() math.Int {
 	x, ok := sdk.NewIntFromString(d.Amount)

@@ -30,6 +30,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdShowStateInfo())
 	cmd.AddCommand(CmdShowLatestHeight())
 	cmd.AddCommand(CmdShowLatestStateIndex())
+	cmd.AddCommand(CmdShowSkipDelayRollapp())
 
 	return cmd
 }

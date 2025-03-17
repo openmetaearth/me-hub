@@ -6,8 +6,9 @@ var _ binary.ByteOrder
 
 const (
 	// RollappKeyPrefix is the prefix to retrieve all Rollapp
-	RollappKeyPrefix         = "Rollapp/value/"
-	RollappByEIP155KeyPrefix = "RollappByEIP155/value/"
+	RollappKeyPrefix          = "Rollapp/value/"
+	RollappByEIP155KeyPrefix  = "RollappByEIP155/value/"
+	SkipDelayRollappKeyPrefix = "SkipDelayRollapp/value/"
 )
 
 // RollappKey returns the store key to retrieve a Rollapp from the index fields

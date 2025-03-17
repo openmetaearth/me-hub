@@ -101,6 +101,10 @@ func (w IBCMiddleware) OnRecvPacket(
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
+	if w.Keeper.IsSkipDelayRollapp(ctx, transfer.RollappId()) {
+		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
+	}
+
 	rollappPacket := w.savePacket(ctx, packet, transfer, relayer, commontypes.RollappPacket_ON_RECV, nil)
 
 	err = w.EIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)

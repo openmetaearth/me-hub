@@ -102,3 +102,9 @@ func (k Keeper) RollappByEIP155(c context.Context, req *types.QueryGetRollappByE
 
 	return rollappResponse, nil
 }
+
+func (k Keeper) SkipDelayRollapp(c context.Context, req *types.QuerySkipDelayRollappRequest) (*types.QuerySkipDelayRollappResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	rollapps := k.GetSkipDelayRollapps(ctx)
+	return &types.QuerySkipDelayRollappResponse{Rollapps: rollapps}, nil
+}
