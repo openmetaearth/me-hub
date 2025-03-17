@@ -13,3 +13,8 @@ type IBCClientKeeper interface {
 type ChannelKeeper interface {
 	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
 }
+
+type DaoKeeper interface {
+	IsGlobalDao(ctx sdk.Context, address string) bool
+	GetGlobalDao(ctx sdk.Context) string
+}

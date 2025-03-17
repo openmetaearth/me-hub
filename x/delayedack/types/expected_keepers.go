@@ -26,6 +26,7 @@ type RollappKeeper interface {
 		packetData []byte,
 		raPortOnHub, raChanOnHub string,
 	) (data types.TransferData, err error)
+	IsSkipDelayRollapp(ctx sdk.Context, rollappId string) bool
 }
 
 type EIBCKeeper interface {

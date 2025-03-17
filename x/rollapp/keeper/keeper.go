@@ -23,6 +23,7 @@ type Keeper struct {
 	channelKeeper   types.ChannelKeeper
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
+	daoKeeper       types.DaoKeeper
 }
 
 func NewKeeper(
@@ -31,6 +32,7 @@ func NewKeeper(
 	ps paramtypes.Subspace,
 	channelKeeper types.ChannelKeeper,
 	ibcclientKeeper types.IBCClientKeeper,
+	daoKeeper types.DaoKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -44,6 +46,7 @@ func NewKeeper(
 		hooks:           nil,
 		channelKeeper:   channelKeeper,
 		ibcClientKeeper: ibcclientKeeper,
+		daoKeeper:       daoKeeper,
 	}
 	k.SetFinalizePendingFn(k.finalizePendingState)
 	return k

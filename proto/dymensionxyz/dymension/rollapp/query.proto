@@ -53,6 +53,11 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}";
   }
+
+  rpc SkipDelayRollapp(QuerySkipDelayRollappRequest) returns (QuerySkipDelayRollappResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/rollapp/skip_delay_rollapp";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -113,4 +118,11 @@ message QueryGetStateInfoRequest {
 
 message QueryGetStateInfoResponse {
   StateInfo stateInfo = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QuerySkipDelayRollappRequest {
+}
+
+message QuerySkipDelayRollappResponse {
+  repeated string rollapps = 1 [ (gogoproto.nullable) = false ];
 }
