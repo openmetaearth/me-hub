@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 
 	"github.com/spf13/cobra"
 
@@ -12,6 +13,7 @@ import (
 
 	"github.com/cosmos/gogoproto/proto"
 
+	"github.com/cosmos/cosmos-sdk/types/tx"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 )
 
@@ -56,6 +58,52 @@ If you supply a dash (-) argument in place of an input filename, the command rea
 		},
 	}
 	cmd.Flags().Bool("hex", true, "output with hex format")
+	flags.AddTxFlagsToCmd(cmd)
+	_ = cmd.Flags().MarkHidden(flags.FlagOutput) // encoding makes sense to output only json
+
+	return cmd
+}
+func GetDecodeRawTxCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use: "decode-raw-tx [tx_content]",
+
+		Short: "decode transactions generated offline with raw tx format",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			var txBz []byte
+			if useHex, _ := cmd.Flags().GetBool("hex"); useHex {
+				txBytes, err := hex.DecodeString(args[0])
+				if err != nil {
+					return fmt.Errorf("failed to decode hex tx: %s", err)
+				}
+				txBz = txBytes
+			} else {
+				txBz = []byte(args[0])
+			}
+			var rawTx tx.TxRaw
+			err := json.Unmarshal([]byte(txBz), &rawTx)
+			if err != nil {
+				return fmt.Errorf("failed to unmarshal raw tx: %s", err)
+			}
+			// re-encode it
+			txBytes, err := proto.Marshal(&rawTx)
+			if err != nil {
+				return fmt.Errorf("failed to marshal raw tx: %s", err)
+			}
+			decodeTx, err := clientCtx.TxConfig.TxDecoder()(txBytes)
+			if err != nil {
+				return fmt.Errorf("failed to decode raw tx: %s", err)
+			}
+			jsonTx, err := clientCtx.TxConfig.TxJSONEncoder()(decodeTx)
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintString(string(jsonTx) + "\n")
+		},
+	}
+	cmd.Flags().BoolP("hex", "x", false, "Treat input as hexadecimal instead of base64")
 	flags.AddTxFlagsToCmd(cmd)
 	_ = cmd.Flags().MarkHidden(flags.FlagOutput) // encoding makes sense to output only json
 
