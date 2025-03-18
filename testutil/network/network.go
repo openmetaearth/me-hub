@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/st-chain/me-hub/app"
-	"github.com/st-chain/me-hub/app/keepers"
 )
 
 type (
@@ -49,7 +48,7 @@ func DefaultConfig() network.Config {
 	encoding := app.MakeEncodingConfig()
 
 	// FIXME: add rand tmrand.Uint64() to chainID
-	cfg.ChainID = "dymension_1000-1"
+	cfg.ChainID = "me_1000-1"
 	cfg.AppConstructor = func(val network.ValidatorI) servertypes.Application {
 		return app.New(
 			val.GetCtx().Logger, cometbftdb.NewMemDB(), nil, true, map[int64]bool{}, val.GetCtx().Config.RootDir, 0,
@@ -60,7 +59,7 @@ func DefaultConfig() network.Config {
 		)
 	}
 
-	cfg.GenesisState = keepers.ModuleBasics.DefaultGenesis(encoding.Codec)
+	cfg.GenesisState = app.ModuleBasics.DefaultGenesis(encoding.Codec)
 	if evmGenesisStateJson, found := cfg.GenesisState[evmtypes.ModuleName]; found {
 		// force disable Enable Create of x/evm
 		var evmGenesisState evmtypes.GenesisState

@@ -24,12 +24,8 @@ func NewWithdrawRewardsCmd() *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Withdraw rewards from a given delegation address,
 and optionally withdraw validator commission if the delegation address given is a validator operator.
-
 Example:
-$ %s tx distribution withdraw-rewards --from mykey
-`,
-				version.AppName, bech32PrefixValAddr,
-			),
+$ %s tx distribution withdraw-rewards --from %saddress`, version.AppName, bech32PrefixValAddr),
 		),
 		//Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

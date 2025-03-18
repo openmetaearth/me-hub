@@ -369,7 +369,7 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 					},
 				},
 			},
-			errFinalizeIndices: []types.StateInfoIndex{{"rollapp1", 2}, {"rollapp3", 2}},
+			errFinalizeIndices: []types.StateInfoIndex{{RollappId: "rollapp1", Index: 2}, {RollappId: "rollapp3", Index: 2}},
 			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
 				{
 					CreationHeight: 1,
@@ -397,7 +397,7 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 					},
 				},
 			},
-			errFinalizeIndices: []types.StateInfoIndex{{"rollapp1", 1}, {"rollapp2", 2}},
+			errFinalizeIndices: []types.StateInfoIndex{{RollappId: "rollapp1", Index: 1}, {RollappId: "rollapp2", Index: 2}},
 			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
 				{
 					CreationHeight: 1,
@@ -437,7 +437,7 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 					},
 				},
 			},
-			errFinalizeIndices: []types.StateInfoIndex{{"rollapp1", 2}, {"rollapp3", 4}},
+			errFinalizeIndices: []types.StateInfoIndex{{RollappId: "rollapp1", Index: 2}, {RollappId: "rollapp2", Index: 4}},
 			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
 				{
 					CreationHeight: 1,

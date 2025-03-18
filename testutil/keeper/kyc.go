@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -30,7 +31,7 @@ func KycKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
 
-	k := keeper.NewKeeper(cdc, storeKey, nil, nil, nil)
+	k := keeper.NewKeeper(cdc, storeKey, nil, authkeeper.AccountKeeper{}, nil, nil)
 	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())
 
 	return k, ctx

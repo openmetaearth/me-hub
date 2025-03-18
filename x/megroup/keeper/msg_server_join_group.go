@@ -75,7 +75,7 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 		//get RegionTreasureAddr
 		region, found := k.stakingKeeper.GetRegion(ctx, groupInfo.RegionID)
 		if !found {
-			return nil, errors.Wrapf(types.ErrRegionNotExist, fmt.Sprintf("group's region = %d", groupInfo.RegionID))
+			return nil, errors.Wrapf(types.ErrRegionNotExist, fmt.Sprintf("group's region: %s", groupInfo.RegionID))
 		}
 		rewardsCoin := sdk.NewCoin(params.BaseDenom, math.NewInt(1000000))
 		err = k.bankKeeper.SendCoins(ctx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),

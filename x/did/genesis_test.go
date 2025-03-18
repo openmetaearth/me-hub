@@ -25,7 +25,7 @@ func TestInitExportGenesis(t *testing.T) {
 				Sid:         "kyc",
 				Name:        "kyc",
 				Description: "this is kyc test service.",
-				Issuer:      "1000000000000001",
+				Issuers:     []string{"00000000000001"},
 				Status:      types.SERVICE_STATUS_ACTIVE,
 			},
 		},

@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/st-chain/me-hub/testutil/sample"
 	"github.com/stretchr/testify/require"
-	"me-hub/testutil/sample"
 )
 
 func TestMsgCreateGroup_ValidateBasic(t *testing.T) {

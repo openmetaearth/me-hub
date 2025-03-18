@@ -15,7 +15,7 @@ func TestKeeper_Service(t *testing.T) {
 		Sid:         sid,
 		Name:        "test",
 		Description: "this is a test service.",
-		Issuer:      "1000000000000001",
+		Issuers:     []string{"0000000000001"},
 		Status:      didtypes.SERVICE_STATUS_ACTIVE,
 	}
 

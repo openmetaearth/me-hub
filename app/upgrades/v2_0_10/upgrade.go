@@ -389,7 +389,7 @@ func migrateNFTtoSBT(ctx sdk.Context,
 				},
 				sdk.MustAccAddressFromBech32(oldRecord.Account),
 			); err != nil {
-				panic(fmt.Sprintf("account: %s, did: %s, error: %v", oldRecord.Account, did, err))
+				panic(fmt.Sprintf("account: %s, did: %s, error: %v", oldRecord.Account, did.Did, err))
 			}
 		}
 	}
