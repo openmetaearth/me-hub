@@ -15,7 +15,7 @@ const (
 	TypeMsgUpdate = "update"
 )
 
-func NewMsgUpdate(issuer, did, regionId string, level didtypes.KycLevel, uri, hash string) *MsgUpdate {
+func NewMsgUpdate(issuer, did, regionId string, level didtypes.KycLevel, uri, hash, inviter string) *MsgUpdate {
 	return &MsgUpdate{
 		Issuer:   issuer,
 		Did:      did,
@@ -23,6 +23,7 @@ func NewMsgUpdate(issuer, did, regionId string, level didtypes.KycLevel, uri, ha
 		Level:    level,
 		Uri:      uri,
 		Hash:     hash,
+		Inviter:  inviter,
 	}
 }
 

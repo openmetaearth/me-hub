@@ -82,9 +82,9 @@ func CmdApprove() *cobra.Command {
 
 func CmdUpdate() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update [DID] [region ID] [level] [uri] [hash]",
+		Use:   "update [DID] [region ID] [level] [uri] [hash] [inviter]",
 		Short: "update KYC information",
-		Args:  cobra.ExactArgs(5),
+		Args:  cobra.ExactArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -99,6 +99,7 @@ func CmdUpdate() *cobra.Command {
 			}
 			uri := args[3]
 			hash := args[4]
+			inviter := args[5]
 
 			msg := types.NewMsgUpdate(
 				clientCtx.GetFromAddress().String(),
@@ -107,6 +108,7 @@ func CmdUpdate() *cobra.Command {
 				didtypes.KycLevel(level),
 				uri,
 				hash,
+				inviter,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
