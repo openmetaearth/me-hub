@@ -205,3 +205,23 @@ func (k Querier) QueryReviewRecordByID(goCtx context.Context, req *types.QueryRe
 	rr := k.GetReviewRecordByID(ctx, req.ActionNumber)
 	return &types.QueryReviewRecordByNumberResponse{ReviewRecord: rr}, nil
 }
+
+// Delegation queries delegate info for given validator delegator pair
+func (k Querier) AllDelegations(c context.Context, req *types.QueryAllDelegationsRequest) (*types.QueryAllDelegationsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	store := ctx.KVStore(k.storeKey)
+	queryStore := prefix.NewStore(store, stakingtypes.DelegationKey)
+
+	delegations := []stakingtypes.Delegation{}
+	pageRes, err := query.Paginate(queryStore, req.Pagination, func(key []byte, value []byte) error {
+		fmt.Println(key, value)
+		delegation := types.MustUnmarshalDelegation(k.cdc, value)
+		delegations = append(delegations, delegation)
+		return nil
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &types.QueryAllDelegationsResponse{Delegations: delegations, Pagination: pageRes}, nil
+}

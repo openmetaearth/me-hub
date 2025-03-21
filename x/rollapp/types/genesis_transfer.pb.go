@@ -27,9 +27,11 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // Each rollapp will have one of these items corresponding to it.
 type GenesisTransfers struct {
 	RollappID string `protobuf:"bytes,1,opt,name=rollappID,proto3" json:"rollappID,omitempty"`
-	// The total number of incoming ibc transfers to be fast tracked in the genesis transfer period
+	// The total number of incoming ibc transfers to be fast tracked in the
+	// genesis transfer period
 	NumTotal uint64 `protobuf:"varint,2,opt,name=numTotal,proto3" json:"numTotal,omitempty"`
-	// The number of transfers already processed, when this number reaches numTotal the genesis transfer window closes.
+	// The number of transfers already processed, when this number reaches
+	// numTotal the genesis transfer window closes.
 	NumReceived uint64 `protobuf:"varint,3,opt,name=numReceived,proto3" json:"numReceived,omitempty"`
 }
 

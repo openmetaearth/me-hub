@@ -13,7 +13,8 @@ import "gogoproto/gogo.proto";
 // Msg defines the Msg service.
 service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
-  rpc SkipDelayRollapp(MsgSkipDelayRollapp) returns (MsgSkipDelayRollappResponse);
+  rpc SkipDelayRollapp(MsgSkipDelayRollapp)
+      returns (MsgSkipDelayRollappResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
 }
 
@@ -24,7 +25,7 @@ message MsgCreateRollapp {
   string creator = 1;
   // rollappId is the unique identifier of the rollapp chain.
   // The rollappId follows the same standard as cosmos chain_id
-  string rollappId = 2;// [(gogoproto.customname) = "ChainID"];
+  string rollappId = 2; // [(gogoproto.customname) = "ChainID"];
   // maxSequencers is the maximum number of sequencers
   uint64 maxSequencers = 6;
   // permissionedAddresses is a bech32-encoded address list of the
@@ -36,9 +37,7 @@ message MsgCreateRollapp {
   reserved 10;
 }
 
-message MsgCreateRollappResponse {
-}
-
+message MsgCreateRollappResponse {}
 
 // MsgUpdateState updates a rollapp state with a block batch.
 // a block batch is a list of ordered blocks (by height)
@@ -58,12 +57,12 @@ message MsgUpdateState {
   // version is the version of the rollapp
   uint64 version = 6;
   // BDs is a list of block description objects (one per block)
-  // the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
-  BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
+  // the list must be ordered by height, starting from startHeight to
+  // startHeight+numBlocks-1
+  BlockDescriptors BDs = 7 [ (gogoproto.nullable) = false ];
 }
 
-message MsgUpdateStateResponse {
-}
+message MsgUpdateStateResponse {}
 
 message MsgSkipDelayRollapp {
   option (cosmos.msg.v1.signer) = "creator";
@@ -72,5 +71,4 @@ message MsgSkipDelayRollapp {
   bool skip = 3;
 }
 
-message MsgSkipDelayRollappResponse {
-}
+message MsgSkipDelayRollappResponse {}

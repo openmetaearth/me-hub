@@ -9,6 +9,6 @@ option go_package = "github.com/st-chain/me-hub/x/eibc/types";
 
 // GenesisState defines the eibc module's genesis state.
 message GenesisState {
-  Params params = 1 [(gogoproto.nullable) = false];
-  repeated DemandOrder demand_orders = 2 [(gogoproto.nullable) = false];
+  Params params = 1 [ (gogoproto.nullable) = false ];
+  repeated DemandOrder demand_orders = 2 [ (gogoproto.nullable) = false ];
 }

@@ -7,4 +7,3 @@ message MemberJoined {
   string address = 1;
   uint64 groupId = 2;
 }
-

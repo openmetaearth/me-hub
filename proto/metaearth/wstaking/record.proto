@@ -4,13 +4,13 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
 message Record {
-	string recordNumber =1;
-	string url=2;
-	string from=3;
+  string recordNumber = 1;
+  string url = 2;
+  string from = 3;
 }
-message ReviewRecord{
-	string recordHash =1;
-	string actionNumber=2;
-	string recordResult=3;
-	string reviewedAddress=4;
+message ReviewRecord {
+  string recordHash = 1;
+  string actionNumber = 2;
+  string recordResult = 3;
+  string reviewedAddress = 4;
 }

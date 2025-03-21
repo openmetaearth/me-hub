@@ -17,15 +17,13 @@ service Query {
 
   // Vote returns the vote for the specified address.
   rpc Vote(QueryVoteRequest) returns (QueryVoteResponse) {
-    option (google.api.http).get =
-        "/metaearth/sponsorship/vote/{voter}";
+    option (google.api.http).get = "/metaearth/sponsorship/vote/{voter}";
   }
 
   // Distribution returns the current distribution plan.
   rpc Distribution(QueryDistributionRequest)
       returns (QueryDistributionResponse) {
-    option (google.api.http).get =
-        "/metaearth/streamer/distribution";
+    option (google.api.http).get = "/metaearth/streamer/distribution";
   }
 }
 

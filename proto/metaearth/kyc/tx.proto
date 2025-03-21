@@ -23,21 +23,21 @@ service Msg {
 }
 
 message MsgApprove {
-  string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string issuer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string did = 2; // me-id
   string regionId = 3;
-  string address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string address = 4 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string pubkey = 5;
   did.KycLevel level = 6;
   string uri = 7;
   string hash = 8;
-  string inviter = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string inviter = 9 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 }
 
 message MsgApproveResponse {}
 
 message MsgUpdate {
-  string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string issuer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string did = 2;
   string regionId = 3;
   did.KycLevel level = 4;
@@ -49,14 +49,14 @@ message MsgUpdate {
 message MsgUpdateResponse {}
 
 message MsgRemove {
-  string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string issuer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string did = 2;
 }
 
 message MsgRemoveResponse {}
 
 message MsgCreateSBT {
-  string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string issuer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string did = 2;
   string uri = 3;
   string uriHash = 4;
@@ -66,7 +66,7 @@ message MsgCreateSBT {
 message MsgCreateSBTResponse {}
 
 message MsgUpdateSBT {
-  string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string issuer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string did = 2;
   string uri = 3;
   string uriHash = 4;
@@ -76,7 +76,7 @@ message MsgUpdateSBT {
 message MsgUpdateSBTResponse {}
 
 message MsgDeleteSBT {
-  string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string issuer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string did = 2;
 }
 

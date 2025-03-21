@@ -40,27 +40,23 @@ service Query {
 }
 
 message QueryDid {
-  string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 }
 
 message QueryDidResponse {
-  did.DidInfo info = 1 [(gogoproto.nullable) = false];
+  did.DidInfo info = 1 [ (gogoproto.nullable) = false ];
 }
 
-message QueryDidDocument {
-  string did = 1;
-}
+message QueryDidDocument { string did = 1; }
 
 message QueryDidDocumentResponse {
-  DidDocument doc = 1 [(gogoproto.nullable) = false];
+  DidDocument doc = 1 [ (gogoproto.nullable) = false ];
 }
 
-message QueryService {
-  string sid = 1;
-}
+message QueryService { string sid = 1; }
 
 message QueryServiceResponse {
-  Service service = 1 [(gogoproto.nullable) = false];
+  Service service = 1 [ (gogoproto.nullable) = false ];
 }
 
 message QueryCredential {
@@ -69,7 +65,7 @@ message QueryCredential {
 }
 
 message QueryCredentialResponse {
-  Credential credential = 1 [(gogoproto.nullable) = false];
+  Credential credential = 1 [ (gogoproto.nullable) = false ];
 }
 
 message QueryCredentials {
@@ -79,7 +75,7 @@ message QueryCredentials {
 }
 
 message QueryCredentialsResponse {
-  repeated Credential credentials = 1 [(gogoproto.nullable) = false];
+  repeated Credential credentials = 1 [ (gogoproto.nullable) = false ];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
@@ -88,6 +84,6 @@ message QueryDidInfosRequest {
 }
 
 message QueryDidInfosResponse {
-  repeated DidInfo infos = 1 [(gogoproto.nullable) = false];
+  repeated DidInfo infos = 1 [ (gogoproto.nullable) = false ];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

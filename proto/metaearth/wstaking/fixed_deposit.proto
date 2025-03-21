@@ -10,20 +10,25 @@ import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
 enum FixedDepositState {
-  ALL_STATE   = 0 [(gogoproto.enumvalue_customname) = "AllState"];
-  NOT_EXPIRED = 1 [(gogoproto.enumvalue_customname) = "NotExpired"];
-  EXPIRED     = 2 [(gogoproto.enumvalue_customname) = "Expired"];
+  ALL_STATE = 0 [ (gogoproto.enumvalue_customname) = "AllState" ];
+  NOT_EXPIRED = 1 [ (gogoproto.enumvalue_customname) = "NotExpired" ];
+  EXPIRED = 2 [ (gogoproto.enumvalue_customname) = "Expired" ];
 }
 
 message FixedDeposit {
-  uint64                    id         = 1;
-  string                    account    = 2;
-  cosmos.base.v1beta1.Coin  principal  = 3 [(gogoproto.nullable) = false];
-  cosmos.base.v1beta1.Coin  interest   = 4 [(gogoproto.nullable) = false];
-  google.protobuf.Timestamp start_time = 5 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
-  google.protobuf.Timestamp end_time   = 6 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
-  int64          term       = 7;
-  string rate = 8 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  uint64 id = 1;
+  string account = 2;
+  cosmos.base.v1beta1.Coin principal = 3 [ (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin interest = 4 [ (gogoproto.nullable) = false ];
+  google.protobuf.Timestamp start_time = 5
+      [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+  google.protobuf.Timestamp end_time = 6
+      [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+  int64 term = 7;
+  string rate = 8 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message FixedDepositTotal {
@@ -36,34 +41,35 @@ message FixedDepositTotal {
 enum FIXED_DEPOSIT_CFG_STATUS {
   option (gogoproto.goproto_enum_prefix) = false;
 
-  FIXED_DEPOSIT_CFG_ACTIVE = 0
-  [ (gogoproto.enumvalue_customname) = "RegionFixedDepositCfgStatusActive" ];
-  FIXED_DEPOSIT_CFG_INACTIVE = 1
-  [ (gogoproto.enumvalue_customname) = "RegionFixedDepositCfgStatusInactive" ];
+  FIXED_DEPOSIT_CFG_ACTIVE = 0 [ (gogoproto.enumvalue_customname) =
+                                     "RegionFixedDepositCfgStatusActive" ];
+  FIXED_DEPOSIT_CFG_INACTIVE = 1 [ (gogoproto.enumvalue_customname) =
+                                       "RegionFixedDepositCfgStatusInactive" ];
 }
 
 message FixedDepositCfg {
   string regionId = 1;
   int64 term = 2;
-  string rate  = 3 [
-    (cosmos_proto.scalar)  = "cosmos.Dec",
+  string rate = 3 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
   FIXED_DEPOSIT_CFG_STATUS status = 4;
 }
 
 message RegionAllFixedDepositCfg {
   string regionId = 1;
-  repeated RegionFixedDepositCfg RegionFixedDepositCfg = 2 [(gogoproto.nullable) = false];
+  repeated RegionFixedDepositCfg RegionFixedDepositCfg = 2
+      [ (gogoproto.nullable) = false ];
 }
 
 message RegionFixedDepositCfg {
   int64 term = 1;
-  string rate  = 2 [
-    (cosmos_proto.scalar)  = "cosmos.Dec",
+  string rate = 2 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
   FIXED_DEPOSIT_CFG_STATUS status = 3;
 }

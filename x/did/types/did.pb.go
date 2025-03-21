@@ -94,7 +94,8 @@ type DidInfo struct {
 	Did     string `protobuf:"bytes,1,opt,name=did,proto3" json:"did,omitempty"`
 	Address string `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
 	// public_key is mapped to the user address
-	// the issuer will use public_key to encrypt the user's certificate to ensure the privacy of the off-chain certificate
+	// the issuer will use public_key to encrypt the user's certificate to ensure
+	// the privacy of the off-chain certificate
 	Pubkey   string    `protobuf:"bytes,3,opt,name=pubkey,proto3" json:"pubkey,omitempty"`
 	Status   DidStatus `protobuf:"varint,4,opt,name=status,proto3,enum=metaearth.did.DidStatus" json:"status,omitempty"`
 	RegionId string    `protobuf:"bytes,5,opt,name=regionId,proto3" json:"regionId,omitempty"`

@@ -15,74 +15,71 @@ option go_package = "github.com/st-chain/me-hub/x/megroup/types";
 
 // Query defines the gRPC querier service.
 service Query {
-  
+
   // Parameters queries the parameters of the module.
-  rpc Params (QueryParamsRequest) returns (QueryParamsResponse) {
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/me-hub/megroup/params";
-  
   }
-  
+
   // Queries a list of Group items.
-  rpc Group    (QueryGetGroupRequest) returns (QueryGetGroupResponse) {
+  rpc Group(QueryGetGroupRequest) returns (QueryGetGroupResponse) {
     option (google.api.http).get = "/me-hub/megroup/group/{id}";
-  
   }
-  rpc GroupAll (QueryAllGroupRequest) returns (QueryAllGroupResponse) {
+  rpc GroupAll(QueryAllGroupRequest) returns (QueryAllGroupResponse) {
     option (google.api.http).get = "/me-hub/megroup/all_group";
-  
   }
-  rpc GroupByMember (QueryGroupByMemberRequest) returns (QueryGetGroupResponse) {
+  rpc GroupByMember(QueryGroupByMemberRequest) returns (QueryGetGroupResponse) {
     option (google.api.http).get = "/me-hub/megroup/group/{address}";
-
   }
 
-  
   // Queries a list of GroupMember items.
-  rpc GroupMember    (QueryGetGroupMemberRequest) returns (QueryGetGroupMemberResponse) {
+  rpc GroupMember(QueryGetGroupMemberRequest)
+      returns (QueryGetGroupMemberResponse) {
     option (google.api.http).get = "/me-hub/megroup/group_member/{address}";
-  
   }
-  rpc GroupMemberAll (QueryGroupAllMemberRequest) returns (QueryGroupAllMemberResponse) {
+  rpc GroupMemberAll(QueryGroupAllMemberRequest)
+      returns (QueryGroupAllMemberResponse) {
     option (google.api.http).get = "/me-hub/megroup/group_all_member/{groupID}";
-  
   }
-  
+
   // Queries a list of MemberJoined items.
-  //rpc MemberJoined    (QueryGetMemberJoinedRequest) returns (QueryGetMemberJoinedResponse) {
-    //option (google.api.http).get = "/me-hub/megroup/member_joined/{address}";
-  
+  // rpc MemberJoined    (QueryGetMemberJoinedRequest) returns
+  // (QueryGetMemberJoinedResponse) { option (google.api.http).get =
+  // "/me-hub/megroup/member_joined/{address}";
+
   //}
-  //rpc MemberJoinedAll (QueryAllMemberJoinedRequest) returns (QueryAllMemberJoinedResponse) {
-   // option (google.api.http).get = "/me-hub/megroup/member_joined";
-  
+  // rpc MemberJoinedAll (QueryAllMemberJoinedRequest) returns
+  // (QueryAllMemberJoinedResponse) {
+  // option (google.api.http).get = "/me-hub/megroup/member_joined";
+
   //}
-  
+
   // Queries a list of GroupMemberCount items.
-  rpc GroupMemberCount    (QueryGetGroupMemberCountRequest) returns (QueryGetGroupMemberCountResponse) {
-    option (google.api.http).get = "/me-hub/megroup/group_member_count/{groupId}";
-  
+  rpc GroupMemberCount(QueryGetGroupMemberCountRequest)
+      returns (QueryGetGroupMemberCountResponse) {
+    option (google.api.http).get =
+        "/me-hub/megroup/group_member_count/{groupId}";
   }
-  //rpc GroupMemberCountAll (QueryAllGroupMemberCountRequest) returns (QueryAllGroupMemberCountResponse) {
-  //  option (google.api.http).get = "/me-hub/megroup/group_member_count";
-  
-//  }
+  // rpc GroupMemberCountAll (QueryAllGroupMemberCountRequest) returns
+  // (QueryAllGroupMemberCountResponse) {
+  //   option (google.api.http).get = "/me-hub/megroup/group_member_count";
+
+  //  }
 }
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
 
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
-  
+
   // params holds all the parameters of this module.
-  Params params = 1 [(gogoproto.nullable) = false];
+  Params params = 1 [ (gogoproto.nullable) = false ];
 }
 
-message QueryGetGroupRequest {
-  uint64 id = 1;
-}
+message QueryGetGroupRequest { uint64 id = 1; }
 
 message QueryGetGroupResponse {
-  GroupInfo Group = 1 [(gogoproto.nullable) = false];
+  GroupInfo Group = 1 [ (gogoproto.nullable) = false ];
 }
 
 message QueryAllGroupRequest {
@@ -90,24 +87,20 @@ message QueryAllGroupRequest {
 }
 
 message QueryAllGroupResponse {
-  repeated GroupInfo     Group   = 1 [(gogoproto.nullable) = false];
-           cosmos.base.query.v1beta1.PageResponse pagination = 2;
+  repeated GroupInfo Group = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryGroupByMemberRequest{
-  string address = 1;
+message QueryGroupByMemberRequest { string address = 1; }
+
+message QueryGroupByMemberResponse {
+  GroupInfo Group = 1 [ (gogoproto.nullable) = false ];
 }
 
-message QueryGroupByMemberResponse{
-  GroupInfo Group = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryGetGroupMemberRequest {
-  string address = 1;
-}
+message QueryGetGroupMemberRequest { string address = 1; }
 
 message QueryGetGroupMemberResponse {
-  GroupMember GroupMember = 1 [(gogoproto.nullable) = false];
+  GroupMember GroupMember = 1 [ (gogoproto.nullable) = false ];
 }
 
 message QueryGroupAllMemberRequest {
@@ -117,16 +110,14 @@ message QueryGroupAllMemberRequest {
 
 message QueryGroupAllMemberResponse {
   uint64 groupID = 1;
-  repeated GroupMember                            GroupMember = 2 [(gogoproto.nullable) = false];
-           cosmos.base.query.v1beta1.PageResponse pagination  = 3;
+  repeated GroupMember GroupMember = 2 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 3;
 }
 
-message QueryGetMemberJoinedRequest {
-  string address = 1;
-}
+message QueryGetMemberJoinedRequest { string address = 1; }
 
 message QueryGetMemberJoinedResponse {
-  MemberJoined memberJoined = 1 [(gogoproto.nullable) = false];
+  MemberJoined memberJoined = 1 [ (gogoproto.nullable) = false ];
 }
 
 message QueryAllMemberJoinedRequest {
@@ -134,24 +125,20 @@ message QueryAllMemberJoinedRequest {
 }
 
 message QueryAllMemberJoinedResponse {
-  repeated MemberJoined                           memberJoined = 1 [(gogoproto.nullable) = false];
-           cosmos.base.query.v1beta1.PageResponse pagination   = 2;
+  repeated MemberJoined memberJoined = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryGetGroupMemberCountRequest {
-  uint64 groupId = 1;
-}
+message QueryGetGroupMemberCountRequest { uint64 groupId = 1; }
 
-message QueryGetGroupMemberCountResponse {
-  uint64 groupMemberCount = 1;
-}
+message QueryGetGroupMemberCountResponse { uint64 groupMemberCount = 1; }
 
 message QueryAllGroupMemberCountRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
 message QueryAllGroupMemberCountResponse {
-  repeated GroupMemberCount                       groupMemberCount = 1 [(gogoproto.nullable) = false];
-           cosmos.base.query.v1beta1.PageResponse pagination       = 2;
+  repeated GroupMemberCount groupMemberCount = 1
+      [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
-

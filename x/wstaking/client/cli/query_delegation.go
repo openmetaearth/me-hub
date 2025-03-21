@@ -5,9 +5,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/cosmos-sdk/version"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"strings"
 )
@@ -106,57 +108,47 @@ $ %s query staking delegation %s1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
 	return cmd
 }
 
-// GetCmdQueryDelegations implements the command to query all the delegations
-// made from one delegator.
-func GetCmdQueryDelegations() *cobra.Command {
-	bech32PrefixAccAddr := sdk.GetConfig().GetBech32AccountAddrPrefix()
-
+func CmdQueryAllDelegations() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delegations [delegator-addr]",
-		Short: "Query all delegations made by one delegator",
+		Use:   "all-delegations",
+		Short: "Query all delegations",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query delegations for an individual delegator on all validators.
-
 Example:
-$ %s query staking delegations %s1gghjut3ccd8ay0zduzj64hwre2fxs9ld75ru9p
+$ %s query staking all-delegations 
 `,
-				version.AppName, bech32PrefixAccAddr,
+				version.AppName,
 			),
 		),
-		Args: cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			//clientCtx, err := client.GetClientQueryContext(cmd)
-			//if err != nil {
-			//	return err
-			//}
-			//queryClient := types.NewQueryClient(clientCtx)
-			//
-			//delAddr, err := sdk.AccAddressFromBech32(args[0])
-			//if err != nil {
-			//	return err
-			//}
-			//
-			//pageReq, err := client.ReadPageRequest(cmd.Flags())
-			//if err != nil {
-			//	return err
-			//}
-			//
-			//params := &types.QueryDelegatorDelegationsRequest{
-			//	DelegatorAddr: delAddr.String(),
-			//	Pagination:    pageReq,
-			//}
-			//
-			//res, err := queryClient.DelegatorDelegations(cmd.Context(), params)
-			//if err != nil {
-			//	return err
-			//}
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
-			return nil //clientCtx.PrintProto(res)
+			queryClient := types.NewQueryClient(clientCtx)
+
+			params := &types.QueryAllDelegationsRequest{
+				Pagination: &query.PageRequest{
+					Key:        []byte(viper.GetString(flags.FlagPageKey)),
+					Offset:     viper.GetUint64(flags.FlagOffset),
+					Limit:      viper.GetUint64(flags.FlagLimit),
+					CountTotal: true,
+					Reverse:    false,
+				},
+			}
+
+			res, err := queryClient.AllDelegations(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintObjectLegacy(res.Delegations)
 		},
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
-	flags.AddPaginationFlagsToCmd(cmd, "delegations")
-
+	flags.AddPaginationFlagsToCmd(cmd, "all-delegations")
 	return cmd
 }

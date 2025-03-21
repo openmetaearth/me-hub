@@ -1,5 +1,6 @@
 syntax = "proto3";
-package metaearth.dao;;
+package metaearth.dao;
+;
 
 import "gogoproto/gogo.proto";
 // this line is used by starport scaffolding # genesis/proto/import
@@ -7,9 +8,10 @@ import "gogoproto/gogo.proto";
 option go_package = "github.com/st-chain/me-hub/x/dao/types";
 
 // GenesisState defines the sudo module's genesis state.
-message DaoAddresses{
-    string global_dao = 1 [(gogoproto.moretags) = "yaml:\"global_dao\""];
-    string meid_dao = 2 [(gogoproto.moretags) = "yaml:\"meid_dao\""];
-    string dev_operator = 3 [(gogoproto.moretags) = "yaml:\"dev_operator\""];
-    string airdrop_address = 4 [(gogoproto.moretags) = "yaml:\"airdrop_address\""];
+message DaoAddresses {
+  string global_dao = 1 [ (gogoproto.moretags) = "yaml:\"global_dao\"" ];
+  string meid_dao = 2 [ (gogoproto.moretags) = "yaml:\"meid_dao\"" ];
+  string dev_operator = 3 [ (gogoproto.moretags) = "yaml:\"dev_operator\"" ];
+  string airdrop_address = 4
+      [ (gogoproto.moretags) = "yaml:\"airdrop_address\"" ];
 }

@@ -131,7 +131,8 @@ type UnbondingStakeEntry struct {
 	CreationHeight int64 `protobuf:"varint,1,opt,name=creation_height,json=creationHeight,proto3" json:"creation_height,omitempty"`
 	// completion_time is the unix time for unbonding completion.
 	CompletionTime time.Time `protobuf:"bytes,2,opt,name=completion_time,json=completionTime,proto3,stdtime" json:"completion_time"`
-	// initial_balance defines the tokens initially scheduled to receive at completion.
+	// initial_balance defines the tokens initially scheduled to receive at
+	// completion.
 	InitialBalance github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=initial_balance,json=initialBalance,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"initial_balance"`
 	// balance defines the tokens to receive at completion.
 	Balance github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=balance,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"balance"`

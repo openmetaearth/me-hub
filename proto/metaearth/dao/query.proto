@@ -1,5 +1,6 @@
 syntax = "proto3";
-package metaearth.dao;;
+package metaearth.dao;
+;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -9,26 +10,22 @@ option go_package = "github.com/st-chain/me-hub/x/dao/types";
 
 // Query defines the gRPC querier service.
 service Query {
-    // Queries a list of admin items.
-	rpc GlobalDao(QueryGlobalDaoRequest) returns (QueryGlobalDaoResponse) {
-		option (google.api.http).get = "/metaearth/dao/global_dao";
-	}
+  // Queries a list of admin items.
+  rpc GlobalDao(QueryGlobalDaoRequest) returns (QueryGlobalDaoResponse) {
+    option (google.api.http).get = "/metaearth/dao/global_dao";
+  }
 
-	rpc GlobalDaoFeePool(QueryGlobalDaoFeePoolReq) returns (QueryGlobalDaoFeePoolResp) {
-		option (google.api.http).get = "/metaearth/dao/global_dao_fee_pool";
-	}
+  rpc GlobalDaoFeePool(QueryGlobalDaoFeePoolReq)
+      returns (QueryGlobalDaoFeePoolResp) {
+    option (google.api.http).get = "/metaearth/dao/global_dao_fee_pool";
+  }
 }
 
-message QueryGlobalDaoRequest {
-}
+message QueryGlobalDaoRequest {}
 
 message QueryGlobalDaoResponse {
-	DaoAddresses dao_addresses = 1 [(gogoproto.nullable) = false];
+  DaoAddresses dao_addresses = 1 [ (gogoproto.nullable) = false ];
 }
 
-message QueryGlobalDaoFeePoolReq {
-
-}
-message QueryGlobalDaoFeePoolResp {
-	string global_dao_fee_pool = 1;
-}
+message QueryGlobalDaoFeePoolReq {}
+message QueryGlobalDaoFeePoolResp { string global_dao_fee_pool = 1; }

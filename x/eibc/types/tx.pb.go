@@ -30,7 +30,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // MsgFulfillOrder defines the FulfillOrder request type.
 type MsgFulfillOrder struct {
-	// fulfiller_address is the bech32-encoded address of the account which the message was sent from.
+	// fulfiller_address is the bech32-encoded address of the account which the
+	// message was sent from.
 	FulfillerAddress string `protobuf:"bytes,1,opt,name=fulfiller_address,json=fulfillerAddress,proto3" json:"fulfiller_address,omitempty"`
 	// order_id is the unique identifier of the order to be fulfilled.
 	OrderId string `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`

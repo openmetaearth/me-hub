@@ -6,7 +6,6 @@ import "google/protobuf/duration.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/streamer/types";
 
-
 message DistrInfo {
   string total_weight = 1 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
@@ -14,7 +13,7 @@ message DistrInfo {
     (gogoproto.nullable) = false
   ];
 
-  repeated DistrRecord records =  2[ (gogoproto.nullable) = false ];
+  repeated DistrRecord records = 2 [ (gogoproto.nullable) = false ];
 }
 
 message DistrRecord {

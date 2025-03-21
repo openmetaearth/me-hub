@@ -10,7 +10,6 @@ import "metaearth/streamer/stream.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/streamer/types";
 
-
 // Query defines the gRPC querier service
 service Query {
   // ModuleToDistributeCoins returns coins that are going to be distributed
@@ -22,8 +21,7 @@ service Query {
 
   // StreamByID returns streams by their respective ID
   rpc StreamByID(StreamByIDRequest) returns (StreamByIDResponse) {
-    option (google.api.http).get =
-        "/metaearth/streamer/stream_by_id/{id}";
+    option (google.api.http).get = "/metaearth/streamer/stream_by_id/{id}";
   }
   // Streams returns both upcoming and active streams
   rpc Streams(StreamsRequest) returns (StreamsResponse) {
@@ -34,9 +32,9 @@ service Query {
     option (google.api.http).get = "/metaearth/streamer/active_streams";
   }
   // Returns scheduled streams that have not yet occurred
-  rpc UpcomingStreams(UpcomingStreamsRequest) returns (UpcomingStreamsResponse) {
-    option (google.api.http).get =
-        "/metaearth/streamer/upcoming_streams";
+  rpc UpcomingStreams(UpcomingStreamsRequest)
+      returns (UpcomingStreamsResponse) {
+    option (google.api.http).get = "/metaearth/streamer/upcoming_streams";
   }
 }
 

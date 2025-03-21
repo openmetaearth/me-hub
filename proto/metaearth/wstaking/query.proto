@@ -7,6 +7,7 @@ import "google/api/annotations.proto";
 import "metaearth/wstaking/region.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/staking/v1beta1/staking.proto";
 import "cosmos/query/v1/query.proto";
 import "amino/amino.proto";
 import "google/protobuf/timestamp.proto";
@@ -27,33 +28,45 @@ service Query {
     option (google.api.http).get = "/metaearth/wstaking/all-region";
   }
 
-  rpc DelegationRewards(QueryDelegationRewardsRequest) returns (QueryDelegationRewardsResponse) {
-    option (google.api.http).get = "/metaearth/wstaking/delegation-rewards/{delegator_address}";
+  rpc DelegationRewards(QueryDelegationRewardsRequest)
+      returns (QueryDelegationRewardsResponse) {
+    option (google.api.http).get =
+        "/metaearth/wstaking/delegation-rewards/{delegator_address}";
   }
 
-  rpc FixedDepositTotalAmount(QueryFixedDepositTotalAmountRequest) returns (QueryFixedDepositTotalAmountResponse) {
-    option (google.api.http).get = "/metaearth/wstaking/fixed_deposit_total_amount";
+  rpc FixedDepositTotalAmount(QueryFixedDepositTotalAmountRequest)
+      returns (QueryFixedDepositTotalAmountResponse) {
+    option (google.api.http).get =
+        "/metaearth/wstaking/fixed_deposit_total_amount";
   }
 
-  rpc FixedDepositAmountByMeid(QueryFixedDepositAmountByMeidRequest) returns (QueryFixedDepositAmountByMeidResponse) {
-    option (google.api.http).get = "/metaearth/wstaking/fixed_deposit_amount_by_meid/{account}";
+  rpc FixedDepositAmountByMeid(QueryFixedDepositAmountByMeidRequest)
+      returns (QueryFixedDepositAmountByMeidResponse) {
+    option (google.api.http).get =
+        "/metaearth/wstaking/fixed_deposit_amount_by_meid/{account}";
   }
 
   // Queries a list of FixedDepositByAcct items.
-  rpc FixedDepositByAcct(QueryFixedDepositByAcctRequest) returns (QueryFixedDepositByAcctResponse) {
-    option (google.api.http).get = "/metaearth/wstaking/fixed_deposit_by_acct/{account}/{query_type}";
+  rpc FixedDepositByAcct(QueryFixedDepositByAcctRequest)
+      returns (QueryFixedDepositByAcctResponse) {
+    option (google.api.http).get =
+        "/metaearth/wstaking/fixed_deposit_by_acct/{account}/{query_type}";
   }
 
-//  // Queries a list of FixedDepositByRegion items.
-//  rpc FixedDepositByRegion(QueryFixedDepositByRegionRequest) returns (QueryFixedDepositByRegionResponse) {
-//    option (google.api.http).get = "/cosmos/staking/v1beta1/fixed_deposit_by_region/{regionid}";
-//  }
+  //  // Queries a list of FixedDepositByRegion items.
+  //  rpc FixedDepositByRegion(QueryFixedDepositByRegionRequest) returns
+  //  (QueryFixedDepositByRegionResponse) {
+  //    option (google.api.http).get =
+  //    "/cosmos/staking/v1beta1/fixed_deposit_by_region/{regionid}";
+  //  }
 
   // Queries a list of FixedDeposit items.
-  rpc FixedDeposit(QueryGetFixedDepositRequest) returns (QueryGetFixedDepositResponse) {
+  rpc FixedDeposit(QueryGetFixedDepositRequest)
+      returns (QueryGetFixedDepositResponse) {
     option (google.api.http).get = "/metaearth/wstaking/fixed_deposit/{id}";
   }
-  rpc FixedDepositAll(QueryAllFixedDepositRequest) returns (QueryAllFixedDepositResponse) {
+  rpc FixedDepositAll(QueryAllFixedDepositRequest)
+      returns (QueryAllFixedDepositResponse) {
     option (google.api.http).get = "/metaearth/wstaking/fixed_deposit";
   }
 
@@ -64,39 +77,49 @@ service Query {
 
   rpc FixedDepositCfgByTerm(QueryFixedDepositCfgByTermRequest)
       returns (QueryFixedDepositCfgByTermResponse) {
-    option (google.api.http).get = "/metaearth/wstaking/fixed_deposit_cfg_by_term";
+    option (google.api.http).get =
+        "/metaearth/wstaking/fixed_deposit_cfg_by_term";
   }
 
   // Delegation queries delegate info for given validator delegator pair.
-  rpc Delegation(cosmos.staking.v1beta1.QueryDelegationRequest) returns (cosmos.staking.v1beta1.QueryDelegationResponse) {
+  rpc Delegation(cosmos.staking.v1beta1.QueryDelegationRequest)
+      returns (cosmos.staking.v1beta1.QueryDelegationResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get               = "/metaearth/wstaking/delegation/{delegator_addr}";
+    option (google.api.http).get =
+        "/metaearth/wstaking/delegation/{delegator_addr}";
+  }
+
+  rpc AllDelegations(QueryAllDelegationsRequest)
+      returns (QueryAllDelegationsResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get = "/metaearth/wstaking/all-delegations";
   }
 
   rpc Stakes(QueryStakesRequest) returns (QueryStakesResponse) {
     option (google.api.http).get = "/metaearth/wstaking/stakes";
   }
 
-  //Queries a list of Record 
+  // Queries a list of Record
   rpc QueryAllRecord(QueryAllRecords) returns (QueryAllRecordsResponse) {
     option (google.api.http).get = "/metaearth/wstaking/records";
   }
 
-  rpc QueryRecordByAddress(QueryRecordsByAddress) returns (QueryRecordsByAddressResponse) {
-    option (google.api.http).get =  "/metaearth/wstaking/record/{account}";
+  rpc QueryRecordByAddress(QueryRecordsByAddress)
+      returns (QueryRecordsByAddressResponse) {
+    option (google.api.http).get = "/metaearth/wstaking/record/{account}";
   }
 
-  rpc QueryReviewRecordByID(QueryReviewRecordByNumber) returns (QueryReviewRecordByNumberResponse) {
-    option (google.api.http).get =  "/metaearth/wstaking/review_record/{action_number}";
+  rpc QueryReviewRecordByID(QueryReviewRecordByNumber)
+      returns (QueryReviewRecordByNumberResponse) {
+    option (google.api.http).get =
+        "/metaearth/wstaking/review_record/{action_number}";
   }
 }
 
-message QueryRegionRequest {
-  string regionId = 1;
-}
+message QueryRegionRequest { string regionId = 1; }
 
 message QueryRegionResponse {
-  Region region = 1 [(gogoproto.nullable) = false];
+  Region region = 1 [ (gogoproto.nullable) = false ];
 }
 
 message QueryAllRegionRequest {
@@ -104,59 +127,60 @@ message QueryAllRegionRequest {
 }
 
 message QueryAllRegionResponse {
-  repeated Region                        region     = 1 [(gogoproto.nullable) = false];
+  repeated Region region = 1 [ (gogoproto.nullable) = false ];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryDelegationRewardsRequest {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   // delegator_address defines the delegator address to query for.
-  string delegator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string delegator_address = 1
+      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   // validator_address defines the validator address to query for.
-  string validator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string validator_address = 2
+      [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 }
 
 message QueryDelegationRewardsResponse {
   // rewards defines the rewards accrued by a delegation.
   repeated cosmos.base.v1beta1.DecCoin rewards = 1 [
-    (gogoproto.nullable)     = false,
-    (amino.dont_omitempty)   = true,
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"
   ];
 }
 
-
 message QueryFixedDepositByAcctRequest {
   //	cosmos.base.query.v1beta1.PageRequest pagination = 1;
-  string            account    = 2;
+  string account = 2;
   FixedDepositState query_type = 3;
 }
 
 message QueryFixedDepositByAcctResponse {
-  repeated FixedDeposit FixedDeposit = 1 [(gogoproto.nullable) = false];
+  repeated FixedDeposit FixedDeposit = 1 [ (gogoproto.nullable) = false ];
   //	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-//message QueryFixedDepositByRegionRequest {
-//  string regionid = 1;
+// message QueryFixedDepositByRegionRequest {
+//   string regionid = 1;
 ////  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 //  FixedDepositState query_type = 3;
 //}
 
-//message QueryFixedDepositByRegionResponse {
-//  repeated FixedDeposit FixedDeposit = 1 [(gogoproto.nullable) = false];
-//  //	cosmos.base.query.v1beta1.PageResponse pagination = 2;
-//}
+// message QueryFixedDepositByRegionResponse {
+//   repeated FixedDeposit FixedDeposit = 1 [(gogoproto.nullable) = false];
+//   //	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+// }
 
 message QueryGetFixedDepositRequest {
   string address = 1;
-  uint64 id      = 2;
+  uint64 id = 2;
 }
 
 message QueryGetFixedDepositResponse {
-  FixedDeposit FixedDeposit = 1 [(gogoproto.nullable) = false];
+  FixedDeposit FixedDeposit = 1 [ (gogoproto.nullable) = false ];
 }
 
 message QueryAllFixedDepositRequest {
@@ -164,16 +188,15 @@ message QueryAllFixedDepositRequest {
 }
 
 message QueryAllFixedDepositResponse {
-  repeated FixedDeposit                  FixedDeposit = 1 [(gogoproto.nullable) = false];
-  cosmos.base.query.v1beta1.PageResponse pagination   = 2;
+  repeated FixedDeposit FixedDeposit = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryFixedDepositCfgRequest {
-  repeated string regionIds = 1;
-}
+message QueryFixedDepositCfgRequest { repeated string regionIds = 1; }
 
 message QueryFixedDepositCfgResponse {
-  repeated RegionAllFixedDepositCfg  RegionFixedDepositCfgs = 1 [(gogoproto.nullable) = false];
+  repeated RegionAllFixedDepositCfg RegionFixedDepositCfgs = 1
+      [ (gogoproto.nullable) = false ];
 }
 
 message QueryFixedDepositCfgByTermRequest {
@@ -182,22 +205,31 @@ message QueryFixedDepositCfgByTermRequest {
 }
 
 message QueryFixedDepositCfgByTermResponse {
-  FixedDepositCfg  FixedDepositCfg = 1 [(gogoproto.nullable) = false];
+  FixedDepositCfg FixedDepositCfg = 1 [ (gogoproto.nullable) = false ];
 }
 
-message QueryFixedDepositTotalAmountRequest {
-}
+message QueryFixedDepositTotalAmountRequest {}
 
 message QueryFixedDepositTotalAmountResponse {
-  cosmos.base.v1beta1.Coin amount  = 7 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  cosmos.base.v1beta1.Coin amount = 7
+      [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
 }
 
-message QueryFixedDepositAmountByMeidRequest {
-  string account = 1;
-}
+message QueryFixedDepositAmountByMeidRequest { string account = 1; }
 
 message QueryFixedDepositAmountByMeidResponse {
-  cosmos.base.v1beta1.Coin amount  = 7 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  cosmos.base.v1beta1.Coin amount = 7
+      [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+}
+
+message QueryAllDelegationsRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllDelegationsResponse {
+  repeated cosmos.staking.v1beta1.Delegation delegations = 1
+      [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryStakesRequest {
@@ -205,33 +237,29 @@ message QueryStakesRequest {
 }
 
 message QueryStakesResponse {
-  repeated Stake stakes     = 1 [(gogoproto.nullable) = false];
+  repeated Stake stakes = 1 [ (gogoproto.nullable) = false ];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryAllRecords{
+message QueryAllRecords {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
 message QueryAllRecordsResponse {
-  repeated Record                           records        = 1 [(gogoproto.nullable) = false];
+  repeated Record records = 1 [ (gogoproto.nullable) = false ];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryRecordsByAddress{
-  string account = 1;
-}
+message QueryRecordsByAddress { string account = 1; }
 
 message QueryRecordsByAddressResponse {
-  repeated Record records = 1 [(gogoproto.nullable) = false];
-//  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+  repeated Record records = 1 [ (gogoproto.nullable) = false ];
+  //  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryReviewRecordByNumber{
-  string action_number = 1;
-}
+message QueryReviewRecordByNumber { string action_number = 1; }
 
 message QueryReviewRecordByNumberResponse {
-   ReviewRecord reviewRecord = 1 [(gogoproto.nullable) = false];
+  ReviewRecord reviewRecord = 1 [ (gogoproto.nullable) = false ];
   //  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

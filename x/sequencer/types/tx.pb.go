@@ -38,9 +38,11 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // MsgCreateSequencer defines a SDK message for creating a new sequencer.
 type MsgCreateSequencer struct {
-	// creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+	// creator is the bech32-encoded address of the sequencer account which is the
+	// account that the message was sent from.
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-	// pubkey is the public key of the sequencers' dymint client, as a Protobuf Any.
+	// pubkey is the public key of the sequencers' dymint client, as a Protobuf
+	// Any.
 	DymintPubKey *types.Any `protobuf:"bytes,2,opt,name=dymintPubKey,proto3" json:"dymintPubKey,omitempty"`
 	// rollappId defines the rollapp to which the sequencer belongs.
 	RollappId string `protobuf:"bytes,3,opt,name=rollappId,proto3" json:"rollappId,omitempty"`

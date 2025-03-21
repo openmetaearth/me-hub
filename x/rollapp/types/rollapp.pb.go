@@ -24,13 +24,16 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// RollappGenesisState is a partial repr of the state the hub can expect the rollapp to be in upon genesis
+// RollappGenesisState is a partial repr of the state the hub can expect the
+// rollapp to be in upon genesis
 type RollappGenesisState struct {
 	// If true, then full usage of the canonical ibc transfer channel is enabled.
-	// Note: in v3.1.0 and prior this field marked the completion of the 'genesis event'
-	// Keeping and renaming the field enables a seamless upgrade https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+	// Note: in v3.1.0 and prior this field marked the completion of the 'genesis
+	// event' Keeping and renaming the field enables a seamless upgrade
+	// https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
 	// to the new genesis transfer protocol
-	// Note: if this field is false, ibc transfers may still be allowed in one or either direction.
+	// Note: if this field is false, ibc transfers may still be allowed in one or
+	// either direction.
 	TransfersEnabled bool `protobuf:"varint,2,opt,name=transfers_enabled,json=transfersEnabled,proto3" json:"transfers_enabled,omitempty"`
 }
 
@@ -75,7 +78,8 @@ func (m *RollappGenesisState) GetTransfersEnabled() bool {
 }
 
 // Rollapp defines a rollapp object. First the RollApp is created and then
-// sequencers can be created and attached. The RollApp is identified by rollappId
+// sequencers can be created and attached. The RollApp is identified by
+// rollappId
 type Rollapp struct {
 	// The unique identifier of the rollapp chain.
 	// The rollappId follows the same standard as cosmos chain_id.
@@ -87,10 +91,12 @@ type Rollapp struct {
 	Version uint64 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
 	// maxSequencers is the maximum number of sequencers.
 	MaxSequencers uint64 `protobuf:"varint,4,opt,name=maxSequencers,proto3" json:"maxSequencers,omitempty"`
-	// permissionedAddresses is a bech32-encoded address list of the sequencers that are allowed to serve this rollappId.
-	// In the case of an empty list, the rollapp is considered permissionless.
+	// permissionedAddresses is a bech32-encoded address list of the sequencers
+	// that are allowed to serve this rollappId. In the case of an empty list, the
+	// rollapp is considered permissionless.
 	PermissionedAddresses []string `protobuf:"bytes,5,rep,name=permissionedAddresses,proto3" json:"permissionedAddresses,omitempty"`
-	// genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
+	// genesis_state is a partial repr of the state the hub can expect the rollapp
+	// to be in upon genesis
 	GenesisState RollappGenesisState `protobuf:"bytes,7,opt,name=genesis_state,json=genesisState,proto3" json:"genesis_state"`
 	// channel_id will be set to the canonical IBC channel of the rollapp.
 	ChannelId string `protobuf:"bytes,8,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`

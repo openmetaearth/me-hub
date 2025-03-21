@@ -204,7 +204,8 @@ func (m *QueryNftFilterRequest) GetTokenId() string {
 	return ""
 }
 
-// QueryNftFilterResponse is the response type for the Query/NftFilter RPC method
+// QueryNftFilterResponse is the response type for the Query/NftFilter RPC
+// method
 type QueryNftFilterResponse struct {
 	Nfts []*NftList `protobuf:"bytes,1,rep,name=nfts,proto3" json:"nfts,omitempty"`
 }

@@ -30,7 +30,8 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type MsgNewClass struct {
-	// class_id defines the unique identifier of the nft classification, similar to the contract address of ERC721
+	// class_id defines the unique identifier of the nft classification, similar
+	// to the contract address of ERC721
 	ClassId     string `protobuf:"bytes,1,opt,name=class_id,json=classId,proto3" json:"class_id,omitempty"`
 	TotalSupply uint64 `protobuf:"varint,2,opt,name=total_supply,json=totalSupply,proto3" json:"total_supply,omitempty"`
 	// sender is the address of the owner of nft
@@ -39,7 +40,8 @@ type MsgNewClass struct {
 	Symbol string `protobuf:"bytes,5,opt,name=symbol,proto3" json:"symbol,omitempty"`
 	// description is a brief description of nft classification. Optional
 	Description string `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
-	// uri for the class metadata stored off chain. It can define schema for Class and NFT `Data` attributes. Optional
+	// uri for the class metadata stored off chain. It can define schema for Class
+	// and NFT `Data` attributes. Optional
 	Uri string `protobuf:"bytes,7,opt,name=uri,proto3" json:"uri,omitempty"`
 	// uri_hash is a hash of the document pointed by uri. Optional
 	UriHash string `protobuf:"bytes,8,opt,name=uri_hash,json=uriHash,proto3" json:"uri_hash,omitempty"`
@@ -172,7 +174,8 @@ func (m *MsgNewClassResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgNewClassResponse proto.InternalMessageInfo
 
 type MsgMintNFT struct {
-	// class_id defines the unique identifier of the nft classification, similar to the contract address of ERC721
+	// class_id defines the unique identifier of the nft classification, similar
+	// to the contract address of ERC721
 	ClassId string `protobuf:"bytes,1,opt,name=class_id,json=classId,proto3" json:"class_id,omitempty"`
 	TokenId string `protobuf:"bytes,2,opt,name=token_id,json=tokenId,proto3" json:"token_id,omitempty"`
 	Uri     string `protobuf:"bytes,3,opt,name=uri,proto3" json:"uri,omitempty"`

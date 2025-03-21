@@ -8,24 +8,22 @@ option go_package = "github.com/st-chain/me-hub/x/megroup/types";
 
 // Msg defines the Msg service.
 service Msg {
-  rpc CreateGroup (MsgCreateGroup) returns (MsgCreateGroupResponse);
-  rpc UpdateGroup (MsgUpdateGroup) returns (MsgUpdateGroupResponse);
-  rpc DeleteGroup (MsgDeleteGroup) returns (MsgDeleteGroupResponse);
-  rpc JoinGroup   (MsgJoinGroup  ) returns (MsgJoinGroupResponse);
-  rpc LeaveGroup  (MsgLeaveGroupRequest) returns (MsgLeaveGroupResponse);
+  rpc CreateGroup(MsgCreateGroup) returns (MsgCreateGroupResponse);
+  rpc UpdateGroup(MsgUpdateGroup) returns (MsgUpdateGroupResponse);
+  rpc DeleteGroup(MsgDeleteGroup) returns (MsgDeleteGroupResponse);
+  rpc JoinGroup(MsgJoinGroup) returns (MsgJoinGroupResponse);
+  rpc LeaveGroup(MsgLeaveGroupRequest) returns (MsgLeaveGroupResponse);
 }
 message MsgCreateGroup {
-  string    creator   = 1;
+  string creator = 1;
   GroupInfo groupInfo = 2;
 }
 
-message MsgCreateGroupResponse {
-  uint64 id = 1;
-}
+message MsgCreateGroupResponse { uint64 id = 1; }
 
 message MsgUpdateGroup {
-  string    creator   = 1;
-  uint64    id        = 2;
+  string creator = 1;
+  uint64 id = 2;
   GroupInfo groupInfo = 3;
 }
 
@@ -33,24 +31,22 @@ message MsgUpdateGroupResponse {}
 
 message MsgDeleteGroup {
   string creator = 1;
-  uint64 id      = 2;
+  uint64 id = 2;
 }
 
 message MsgDeleteGroupResponse {}
 
 message MsgJoinGroup {
-  string creator          = 1;
-  uint64 groupId          = 2;
+  string creator = 1;
+  uint64 groupId = 2;
   string applicantAddress = 3;
 }
 
-message MsgJoinGroupResponse {
+message MsgJoinGroupResponse {}
+
+message MsgLeaveGroupRequest {
+  string creator = 1;
+  uint64 groupId = 2;
 }
 
-message MsgLeaveGroupRequest{
-  string creator      = 1;
-  uint64 groupId      = 2;
-}
-
-message MsgLeaveGroupResponse{
-}
+message MsgLeaveGroupResponse {}

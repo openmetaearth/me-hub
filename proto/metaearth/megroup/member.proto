@@ -8,20 +8,18 @@ import "google/protobuf/timestamp.proto";
 import "cosmos_proto/cosmos.proto";
 import "amino/amino.proto";
 
-
-
-
 message Member {
-    // address is the member's account address.
-    string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  
-    // weight is the member's voting weight that should be greater than 0.
-    string weight = 2;
-     // metadata is any arbitrary metadata attached to the member.
-    string metadata = 3; 
-     // added_at is a timestamp specifying when a member was added.
-     google.protobuf.Timestamp added_at = 4
-     [(gogoproto.nullable) = false, (amino.dont_omitempty) = true, (gogoproto.stdtime) = true];
+  // address is the member's account address.
+  string address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // weight is the member's voting weight that should be greater than 0.
+  string weight = 2;
+  // metadata is any arbitrary metadata attached to the member.
+  string metadata = 3;
+  // added_at is a timestamp specifying when a member was added.
+  google.protobuf.Timestamp added_at = 4 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.stdtime) = true
+  ];
 }
-
-

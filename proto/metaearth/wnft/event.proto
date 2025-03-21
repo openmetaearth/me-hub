@@ -9,6 +9,4 @@ message EventNewClass {
   string class_id = 1;
 
   string total_supply = 2;
-
 }
-

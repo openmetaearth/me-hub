@@ -3,9 +3,8 @@ package metaearth.did;
 
 option go_package = "github.com/st-chain/me-hub/x/did/types";
 
-
 message FilterLogger {
-  string did             = 1;
-  string sid             = 2;
+  string did = 1;
+  string sid = 2;
   repeated bytes filters = 3;
 }

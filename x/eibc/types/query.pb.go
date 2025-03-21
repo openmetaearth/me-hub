@@ -142,7 +142,8 @@ func (m *QueryParamsResponse) GetParams() Params {
 	return Params{}
 }
 
-// QueryGetDemandOrderRequest is the request type for the Query/GetDemandOrder RPC method.
+// QueryGetDemandOrderRequest is the request type for the Query/GetDemandOrder
+// RPC method.
 type QueryGetDemandOrderRequest struct {
 	// id of the demand order to get
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -188,7 +189,8 @@ func (m *QueryGetDemandOrderRequest) GetId() string {
 	return ""
 }
 
-// QueryDemandOrdersByStatusRequest is the request type for the Query/GetDemandOrdersByStatus RPC method.
+// QueryDemandOrdersByStatusRequest is the request type for the
+// Query/GetDemandOrdersByStatus RPC method.
 type QueryDemandOrdersByStatusRequest struct {
 	// status of the demand order
 	Status types.Status `protobuf:"varint,1,opt,name=status,proto3,enum=dymensionxyz.dymension.common.Status" json:"status,omitempty"`
@@ -297,7 +299,8 @@ func (m *QueryDemandOrdersByStatusRequest) GetRecipient() string {
 	return ""
 }
 
-// QueryGetDemandOrderResponse is the response type for the Query/GetDemandOrder RPC method.
+// QueryGetDemandOrderResponse is the response type for the Query/GetDemandOrder
+// RPC method.
 type QueryGetDemandOrderResponse struct {
 	// demand order with the given id
 	DemandOrder *DemandOrder `protobuf:"bytes,1,opt,name=demand_order,json=demandOrder,proto3" json:"demand_order,omitempty"`
@@ -343,7 +346,8 @@ func (m *QueryGetDemandOrderResponse) GetDemandOrder() *DemandOrder {
 	return nil
 }
 
-// QueryDemandOrdersByStatusResponse is the response type for the Query/GetDemandOrdersByStatus RPC method.
+// QueryDemandOrdersByStatusResponse is the response type for the
+// Query/GetDemandOrdersByStatus RPC method.
 type QueryDemandOrdersByStatusResponse struct {
 	// A list of demand orders with the given status
 	DemandOrders []*DemandOrder `protobuf:"bytes,1,rep,name=demand_orders,json=demandOrders,proto3" json:"demand_orders,omitempty"`
