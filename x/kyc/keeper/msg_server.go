@@ -2,10 +2,13 @@ package keeper
 
 import (
 	"context"
+	"encoding/hex"
+	wnfttypes "github.com/st-chain/me-hub/x/wnft/types"
 	"slices"
 	"strings"
 
 	"cosmossdk.io/errors"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkaddr "github.com/cosmos/cosmos-sdk/types/address"
@@ -274,12 +277,16 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 	}
 
 	// mint SBT to KYC module address
+	nftData, err := codectypes.NewAnyWithValue(&wnfttypes.Extension{Data: hex.EncodeToString(msg.Data)})
+	if err != nil {
+		return nil, err
+	}
 	sbt := nft.NFT{
 		ClassId: types.ModuleName,
 		Id:      msg.Did,
 		Uri:     msg.Uri,
 		UriHash: msg.UriHash,
-		Data:    types2.UnsafePackAny(msg.Data), // todo: check for encode
+		Data:    nftData, // todo: check for encode
 	}
 
 	if err := m.SetSBT(ctx, sbt, sdkaddr.Module(types.ModuleName)); err != nil {

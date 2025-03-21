@@ -49,8 +49,14 @@
     {
       "url": "./tmp-swagger-gen/metaearth/wnft/query.swagger.json",
       "operationIds": {
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/nft/v1beta1/query.swagger.json",
+      "operationIds": {
         "rename": {
-          "Params": "wNftParams"
+          "Params": "NftParams",
+          "Balance": "NftBalance"
         }
       }
     },

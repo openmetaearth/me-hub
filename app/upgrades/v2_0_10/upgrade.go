@@ -308,6 +308,23 @@ func migrateKycData(ctx sdk.Context,
 		panic(err)
 	}
 
+	_, classExist := nftKeeper.GetClass(ctx, kyctypes.ModuleName)
+	if !classExist {
+		err := nftKeeper.SaveClass(ctx, nft.Class{
+			Id:          kyctypes.ModuleName,
+			Name:        kyctypes.ModuleName,
+			Symbol:      "SBT",
+			Description: "Soul Bound Token",
+			Uri:         "",
+			UriHash:     "",
+			Data:        nil,
+			TotalSupply: 0,
+		})
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	// Iterate over old data and transform it into new data structure
 	for _, oldRecord := range meids {
 		did := didData[oldRecord.Account]
@@ -352,48 +369,25 @@ func migrateNFTtoSBT(ctx sdk.Context,
 	nftKeeper *wnftkeeper.Keeper,
 	kycKeeper *kyckeeper.Keeper,
 	did DidData) {
-	region, found := stakingKeeper.GetRegion(ctx, oldRecord.RegionId)
+	_, found := stakingKeeper.GetRegion(ctx, oldRecord.RegionId)
 	if !found {
 		panic(fmt.Sprintf("kyc: region %s not found", oldRecord.RegionId))
 	}
 
-	_, classExist := nftKeeper.GetClass(ctx, kyctypes.ModuleName)
-	if !classExist {
-		err := nftKeeper.SaveClass(ctx, nft.Class{
-			Id:          kyctypes.ModuleName,
-			Name:        kyctypes.ModuleName,
-			Symbol:      "SBT",
-			Description: "Soul Bound Token",
-			Uri:         "",
-			UriHash:     "",
-			Data:        nil,
-			TotalSupply: 0,
-		})
-		if err != nil {
-			panic(err)
-		}
+	if err := kycKeeper.SetSBT(
+		ctx,
+		nft.NFT{
+			ClassId: kyctypes.ModuleName,
+			Id:      did.Did,
+			Uri:     did.Uri,
+			UriHash: did.UriHash,
+			Data:    nil,
+		},
+		sdk.MustAccAddressFromBech32(oldRecord.Account),
+	); err != nil {
+		panic(fmt.Sprintf("account: %s, did: %s, error: %v", oldRecord.Account, did.Did, err))
 	}
-
-	meidNFT, nftFound := stakingKeeper.GetMeidNFTByAccount(ctx, oldRecord.Account)
-	if nftFound {
-		oldNft, f := nftKeeper.GetNFT(ctx, region.NftClassId, meidNFT.NftId)
-		if f {
-			if err := kycKeeper.SetSBT(
-				ctx,
-				nft.NFT{
-					ClassId: kyctypes.ModuleName,
-					Id:      did.Did,
-					Uri:     did.Uri,
-					UriHash: did.UriHash,
-					Data:    oldNft.Data,
-				},
-				sdk.MustAccAddressFromBech32(oldRecord.Account),
-			); err != nil {
-				panic(fmt.Sprintf("account: %s, did: %s, error: %v", oldRecord.Account, did.Did, err))
-			}
-		}
-	}
-	stakingKeeper.RemoveMeid(ctx, oldRecord.Account, oldRecord.RegionId)
+	stakingKeeper.RemoveMeidNFT(ctx, oldRecord.Account, oldRecord.RegionId)
 }
 
 func migrateNftUri(ctx sdk.Context,

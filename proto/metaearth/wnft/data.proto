@@ -1,0 +1,12 @@
+syntax = "proto3";
+package metaearth.wnft;
+
+option go_package = "github.com/st-chain/me-hub/x/wnft/types";
+
+import "gogoproto/gogo.proto";
+
+message Extension {
+  option (gogoproto.equal) = true;
+
+  string data = 1;
+}

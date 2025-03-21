@@ -28,12 +28,12 @@ func (k Keeper) GetMeidNFT(ctx sdk.Context, meidNFT string) (val types.MeidNFT, 
 }
 
 // RemoveMeidNFT removes a meidNFT from the store
-func (k Keeper) RemoveMeidNFT(ctx sdk.Context, meidNFT, account string) {
+func (k Keeper) RemoveMeidNFT(ctx sdk.Context, account, regionId string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidNFTKeyPrefix))
-	store.Delete(types.MeidNFTKey(meidNFT))
+	store.Delete(types.MeidNFTKey(account))
 
 	storeReg := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidNFTAccountKeyPrefix+account))
-	storeReg.Delete(types.MeidNFTKey(meidNFT))
+	storeReg.Delete(types.MeidNFTKey(account))
 }
 
 func (k Keeper) GetMeidNFTByAccount(ctx sdk.Context, account string) (val types.MeidNFT, found bool) {
