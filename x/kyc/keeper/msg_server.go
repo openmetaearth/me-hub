@@ -279,7 +279,7 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 	// mint SBT to KYC module address
 	nftData, err := codectypes.NewAnyWithValue(&wnfttypes.Extension{Data: hex.EncodeToString(msg.Data)})
 	if err != nil {
-		return nil, err
+		return &types.MsgCreateSBTResponse{}, err
 	}
 	sbt := nft.NFT{
 		ClassId: types.ModuleName,
