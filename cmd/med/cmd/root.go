@@ -232,6 +232,7 @@ func txCommand() *cobra.Command {
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		GetEncodeToRawTxCommand(),
+		GetDecodeRawTxCommand(),
 		authcmd.GetDecodeCommand(),
 		authcmd.GetAuxToFeeCommand(),
 	)
