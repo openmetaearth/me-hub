@@ -143,10 +143,17 @@ release:
 		echo "\033[91m.release-env is required for release\033[0m";\
 		exit 1;\
 	fi
+	@echo "Setting up GitHub token for Go modules"
+	@echo "machine github.com login ${GITHUB_TOKEN}" > ~/.netrc
+	@echo "machine api.github.com login ${GITHUB_TOKEN}" >> ~/.netrc
+	@go env -w GOPRIVATE=github.com/st-chain/*
+	@go mod download
+	@echo "Running release process"
 	docker run --rm --privileged -e CGO_ENABLED=1 \
 		--env-file .release-env \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/$(PACKAGE_NAME) \
+		-v ~/.netrc:/root/.netrc:ro \
 		-w /go/src/$(PACKAGE_NAME) \
 		ghcr.io/goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
 		release --clean --skip=validate --release-notes ./release-note.md
