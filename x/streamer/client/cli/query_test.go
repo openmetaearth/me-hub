@@ -42,8 +42,8 @@ func (suite *QueryTestSuite) CreateStream(distrTo []types.DistrRecord, coins sdk
 	return streamID, stream
 }
 
-func (suite *QueryTestSuite) CreateDefaultStream(coins sdk.Coins) (uint64, *types.Stream) {
-	return suite.CreateStream(defaultDistrInfo, coins, time.Now(), "day", 30)
+func (s *QueryTestSuite) CreateDefaultStream(coins sdk.Coins) (uint64, *types.Stream) {
+	return s.CreateStream(defaultDistrInfo, coins, time.Now(), "day", 30)
 }
 
 func (suite *QueryTestSuite) SetupSuite() {
@@ -102,8 +102,6 @@ func (s *QueryTestSuite) TestQueriesNeverAlterState() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		s.Run(tc.name, func() {
 			s.SetupSuite()
 			s.CreateDefaultStream(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2500))))

@@ -31,74 +31,70 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) Keeper() *keeper.Keeper {
-	return suite.App.KycKeeper
+func (s *KeeperTestSuite) Keeper() *keeper.Keeper {
+	return s.App.KycKeeper
 }
 
-func (suite *KeeperTestSuite) nextBlock() {
-	h := suite.Ctx.BlockHeight()
-	suite.Ctx = suite.Ctx.WithBlockHeight(h + 1)
-}
-
-func (suite *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(suite.T(), false)
+func (s *KeeperTestSuite) SetupTest() {
+	app := apptesting.Setup(s.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
 	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	stakingParams := stakingtypes.DefaultParams()
 	stakingParams.BondDenom = params.BaseDenom
-	app.StakingKeeper.SetParams(ctx, stakingParams)
+	err = app.StakingKeeper.SetParams(ctx, stakingParams)
+	s.Require().NoError(err)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	nativeQuerier := keeper.Querier{Keeper: app.KycKeeper}
 	types.RegisterQueryServer(queryHelper, nativeQuerier)
 	queryClient := types.NewQueryClient(queryHelper)
 
-	suite.App = app
+	s.App = app
 
-	suite.msgServer = keeper.NewMsgServerImpl(*app.KycKeeper)
-	suite.Ctx = ctx
-	suite.queryClient = queryClient
+	s.msgServer = keeper.NewMsgServerImpl(*app.KycKeeper)
+	s.Ctx = ctx
+	s.queryClient = queryClient
 
 	stakingKeeperMsgSrv := stakingkeeper.NewMsgServerImpl(app.StakingKeeper.Keeper)
 	stakingMsgServer := wstakingkeeper.NewMsgServerImpl(app.StakingKeeper, app.TransferKeeper, stakingKeeperMsgSrv)
 
-	suite.InitializeDao()
+	s.InitializeDao()
 
-	validators := suite.App.StakingKeeper.GetValidators(suite.Ctx, 10)
-	suite.Require().True(len(validators) >= 3)
-	suite.meEarthValidator = validators[0]
-	suite.experienceValidator = validators[1]
-	suite.usaValidator = validators[2]
+	validators := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
+	s.Require().True(len(validators) >= 3)
+	s.meEarthValidator = validators[0]
+	s.experienceValidator = validators[1]
+	s.usaValidator = validators[2]
 
 	newRegion := wstakingtypes.MsgNewRegion{
-		Creator:         suite.Dao.GlobalDao,
+		Creator:         s.Dao.GlobalDao,
 		Name:            wstakingtypes.ExperienceRegionName,
-		OperatorAddress: suite.experienceValidator.OperatorAddress,
+		OperatorAddress: s.experienceValidator.OperatorAddress,
 	}
-	_, err = stakingMsgServer.NewRegion(suite.Ctx, &newRegion)
-	suite.Require().NoError(err)
+	_, err = stakingMsgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
 
 	newRegion = wstakingtypes.MsgNewRegion{
-		Creator:         suite.Dao.GlobalDao,
+		Creator:         s.Dao.GlobalDao,
 		Name:            "USA",
-		OperatorAddress: suite.usaValidator.OperatorAddress,
+		OperatorAddress: s.usaValidator.OperatorAddress,
 	}
-	_, err = stakingMsgServer.NewRegion(suite.Ctx, &newRegion)
-	suite.Require().NoError(err)
+	_, err = stakingMsgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
 
 	newRegion = wstakingtypes.MsgNewRegion{
-		Creator:         suite.Dao.GlobalDao,
+		Creator:         s.Dao.GlobalDao,
 		Name:            wstakingtypes.MeEarthRegionName,
-		OperatorAddress: suite.meEarthValidator.OperatorAddress,
+		OperatorAddress: s.meEarthValidator.OperatorAddress,
 	}
-	_, err = stakingMsgServer.NewRegion(suite.Ctx, &newRegion)
-	suite.Require().NoError(err)
+	_, err = stakingMsgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
 }
 
 func (s *KeeperTestSuite) TestPubKeyFromString() {

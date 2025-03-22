@@ -8,7 +8,6 @@ import (
 
 	commontypes "github.com/st-chain/me-hub/x/common/types"
 	damodule "github.com/st-chain/me-hub/x/delayedack"
-	"github.com/st-chain/me-hub/x/rollapp/types"
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 )
 
@@ -266,7 +265,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			if tc.nothingFinalized {
 				stateInfo.Status = commontypes.Status_PENDING
 			} else {
-				suite.App.RollappKeeper.SetLatestFinalizedStateIndex(ctx, types.StateInfoIndex{
+				suite.App.RollappKeeper.SetLatestFinalizedStateIndex(ctx, rollapptypes.StateInfoIndex{
 					RollappId: rollapp,
 					Index:     stateInfo.GetIndex().Index,
 				})
@@ -281,12 +280,12 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 
 			suite.App.RollappKeeper.SetStateInfo(ctx, stateInfo2)
 			if stateInfo2.Status == commontypes.Status_FINALIZED {
-				suite.App.RollappKeeper.SetLatestFinalizedStateIndex(ctx, types.StateInfoIndex{
+				suite.App.RollappKeeper.SetLatestFinalizedStateIndex(ctx, rollapptypes.StateInfoIndex{
 					RollappId: rollapp,
 					Index:     stateInfo2.GetIndex().Index,
 				})
 			}
-			suite.App.RollappKeeper.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
+			suite.App.RollappKeeper.SetLatestStateInfoIndex(ctx, rollapptypes.StateInfoIndex{
 				RollappId: rollapp,
 				Index:     stateInfo2.GetIndex().Index,
 			})

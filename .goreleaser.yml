@@ -15,9 +15,10 @@ builds:
     goarch:
       - amd64
     flags:
-      - -tags=cgo
+      - -tags=cgo netgo ledger
+      - -trimpath
     ldflags:
-      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=dymension -X github.com/cosmos/cosmos-sdk/version.AppName=med -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=me -X github.com/cosmos/cosmos-sdk/version.AppName=med -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
   - id: "med-darwin-arm64"
     main: ./cmd/med
     binary: med
@@ -30,9 +31,10 @@ builds:
     goarch:
       - arm64
     flags:
-      - -tags=cgo
+      - -tags=cgo netgo ledger
+      - -trimpath
     ldflags:
-      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=dymension -X github.com/cosmos/cosmos-sdk/version.AppName=med -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=me -X github.com/cosmos/cosmos-sdk/version.AppName=med -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
   - id: "med-linux"
     main: ./cmd/med
     binary: med
@@ -60,9 +62,10 @@ builds:
     goarch:
       - arm64
     flags:
-      - -tags=cgo
+      - -tags=cgo netgo ledger
+      - -trimpath
     ldflags:
-      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=dymension -X github.com/cosmos/cosmos-sdk/version.AppName=med -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=me -X github.com/cosmos/cosmos-sdk/version.AppName=med -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
   - id: "med-windows"
     main: ./cmd/med
     binary: med
@@ -75,10 +78,11 @@ builds:
     goarch:
       - amd64
     flags:
-      - -tags=cgo
+      - -tags=cgo netgo ledger
+      - -trimpath
       - -buildmode=exe
     ldflags:
-      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=dymension -X github.com/cosmos/cosmos-sdk/version.AppName=med -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=me -X github.com/cosmos/cosmos-sdk/version.AppName=med -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
 
 archives:
   - name_template: '{{ .ProjectName }}_{{ .Version }}_{{- title .Os }}_{{ .Arch }}'
@@ -93,7 +97,9 @@ archives:
       - med-linux-arm64
   
 checksum:
-  name_template: 'checksums.txt'
+  name_template: SHA256SUMS-v{{.Version}}.txt
+  algorithm: sha256
+
 changelog:
   sort: asc
   filters:
@@ -102,3 +108,33 @@ changelog:
       - '^test:'
 snapshot:
   name_template: "{{ .Tag }}-next"
+
+release:
+  draft: true
+  replace_existing_draft: true
+  prerelease: auto
+  mode: keep-existing
+  header: |
+    # me {{ .Tag }} Release Notes
+  footer: |
+    ## 🔨 Build from source
+    
+    ```bash
+    git clone https://github.com/st-chain/me-hub.git
+    cd me-hub && git checkout {{ .Tag }}
+    make install
+    ```
+    
+    ## 🐳 Docker Images
+    
+    ```bash
+    docker pull ghcr.io/st-chain/me-hub:{{ .Version }}
+    ```
+    
+    ```bash
+    docker pull ghcr.io/st-chain/mevisor:{{ .Version }}
+    ```
+    
+    ## ⚡️ Download binaries
+    
+    Binaries for linux, darwin, and windows are available below.

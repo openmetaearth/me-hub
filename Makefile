@@ -126,69 +126,49 @@ docker-run-debug:
 ###                                Releasing                                ###
 ###############################################################################
 
-PACKAGE_NAME:=github.com/dymensionxyz/dymension
-GOLANG_CROSS_VERSION  = v1.22
+PACKAGE_NAME := $(shell go list -m)
+GOLANG_CROSS_VERSION  = v1.23
 GOPATH ?= '$(HOME)/go'
 release-dry-run:
-	docker run \
-		--rm \
-		--privileged \
-		-e CGO_ENABLED=1 \
+	docker run --rm --privileged -e CGO_ENABLED=1 \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/$(PACKAGE_NAME) \
 		-v ${GOPATH}/pkg:/go/pkg \
 		-w /go/src/$(PACKAGE_NAME) \
 		ghcr.io/goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
-		--clean --skip=validate --skip=publish --snapshot
+		release --clean --skip=validate --skip=publish --snapshot
 
 release:
 	@if [ ! -f ".release-env" ]; then \
 		echo "\033[91m.release-env is required for release\033[0m";\
 		exit 1;\
 	fi
-	docker run \
-		--rm \
-		--privileged \
-		-e CGO_ENABLED=1 \
+	docker run --rm --privileged -e CGO_ENABLED=1 \
 		--env-file .release-env \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/$(PACKAGE_NAME) \
 		-w /go/src/$(PACKAGE_NAME) \
 		ghcr.io/goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
-		release --clean --skip=validate
+		release --clean --skip=validate --release-notes ./release-note.md
 
 .PHONY: release-dry-run release
 
 ###############################################################################
 ###                                Proto                                    ###
 ###############################################################################
-
-# ------
-# NOTE: Link to the tendermintdev/sdk-proto-gen docker images:
-#       https://hub.docker.com/r/tendermintdev/sdk-proto-gen/tags
-#
-protoVer=v0.7
-protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
-containerProtoGen=cosmos-sdk-proto-gen-$(protoVer)
-containerProtoFmt=cosmos-sdk-proto-fmt-$(protoVer)
-# ------
-# NOTE: cosmos/proto-builder image is needed because clang-format is not installed
-#       on the tendermintdev/sdk-proto-gen docker image.
-#		Link to the cosmos/proto-builder docker images:
-#       https://github.com/cosmos/cosmos-sdk/pkgs/container/proto-builder
-#
 protoCosmosVer=0.14.0
 protoCosmosName=ghcr.io/cosmos/proto-builder:$(protoCosmosVer)
-protoCosmosImage=$(DOCKER) run --network host --rm -v $(CURDIR):/workspace --workdir /workspace $(protoCosmosName)
+protoCosmosImage=docker run --rm -v $(CURDIR):/workspace --user root --workdir /workspace $(protoCosmosName)
+
+proto-all: proto-format proto-gen
 
 proto-gen:
 	@echo "Generating Protobuf files"
-	$(protoCosmosImage) sh ./scripts/protocgen.sh
-	@go mod tidy
+	@$(protoCosmosImage) sh ./scripts/protocgen.sh
 
 proto-swagger-gen:
 	@echo "Downloading Protobuf dependencies"
-	@#make proto-download-deps
+	@make proto-download-deps
 	@echo "Generating Protobuf Swagger"
 	@$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
 
@@ -264,3 +244,57 @@ proto-download-deps:
 
 
 .PHONY: proto-gen proto-swagger-gen proto-format proto-lint proto-download-deps
+
+###############################################################################
+###                                Linting                                  ###
+###############################################################################
+
+golangci_version=v1.60.3
+
+lint-install:
+	@echo "--> Installing golangci-lint $(golangci_version)"
+	@if golangci-lint version --format json | jq .version | grep -q $(golangci_version); then \
+		echo "golangci-lint $(golangci_version) is already installed"; \
+	else \
+		echo "Installing golangci-lint $(golangci_version)"; \
+		go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(golangci_version); \
+	fi
+
+lint: lint-install
+	@echo "--> Running linter"
+	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab
+
+format: lint-install
+	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab --fix
+
+shell-lint:
+	# install shellcheck > https://github.com/koalaman/shellcheck
+	grep -r '^#!/usr/bin/env bash' --exclude-dir={node_modules,build} . | cut -d: -f1 | xargs shellcheck
+
+shell-format:
+	# install shfmt > https://github.com/mvdan/sh
+	#go install mvdan.cc/sh/v3/cmd/shfmt@v3.8.0
+	grep -r '^#!/usr/bin/env bash' --exclude-dir={node_modules,build} . | cut -d: -f1 | xargs shfmt -l -w -i 2
+
+.PHONY: format lint shell-lint shell-format
+
+###############################################################################
+###                           Tests & Simulation                            ###
+###############################################################################
+
+test:
+	@echo "--> Running tests"
+	go test -mod=readonly ./...
+
+test-count:
+	go test -mod=readonly -cpu 1 -count 1 -cover ./... | grep -v 'types\|cli\|no test files'
+
+test-nightly:
+	@TEST_INTEGRATION=true go test -mod=readonly -timeout 20m -cpu 4 -v -run TestIntegrationTest ./tests
+	@TEST_CROSSCHAIN=true go test -mod=readonly -cpu 4 -v -run TestCrosschainKeeperTestSuite ./x/crosschain/...
+
+mocks:
+	@go install go.uber.org/mock/mockgen@v0.4.0
+	mockgen -source=x/crosschain/types/expected_keepers.go -package mock -destination x/crosschain/mock/expected_keepers_mocks.go
+
+.PHONY: test test-count test-nightly mocks

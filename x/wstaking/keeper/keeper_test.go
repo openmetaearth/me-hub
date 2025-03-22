@@ -34,57 +34,53 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) Keeper() *wstakingkeeper.Keeper {
-	return suite.App.StakingKeeper
+func (s *KeeperTestSuite) Keeper() *wstakingkeeper.Keeper {
+	return s.App.StakingKeeper
 }
 
-func (suite *KeeperTestSuite) nextBlock() {
-	h := suite.Ctx.BlockHeight()
-	suite.Ctx = suite.Ctx.WithBlockHeight(h + 1)
-}
-
-func (suite *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(suite.T(), false)
+func (s *KeeperTestSuite) SetupTest() {
+	app := apptesting.Setup(s.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
 	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	stakingParams := stakingtypes.DefaultParams()
 	stakingParams.BondDenom = params.BaseDenom
-	app.StakingKeeper.SetParams(ctx, stakingParams)
+	err = app.StakingKeeper.SetParams(ctx, stakingParams)
+	s.Require().NoError(err)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	nativeQuerier := wstakingkeeper.Querier{Keeper: app.StakingKeeper}
 	types.RegisterQueryServer(queryHelper, nativeQuerier)
 	queryClient := types.NewQueryClient(queryHelper)
-	suite.queryClient = queryClient
+	s.queryClient = queryClient
 
-	suite.App = app
-	suite.Ctx = ctx
+	s.App = app
+	s.Ctx = ctx
 
 	stakingKeeperMsgSrv := stakingkeeper.NewMsgServerImpl(app.StakingKeeper.Keeper)
-	suite.msgServer = wstakingkeeper.NewMsgServerImpl(app.StakingKeeper, app.TransferKeeper, stakingKeeperMsgSrv)
+	s.msgServer = wstakingkeeper.NewMsgServerImpl(app.StakingKeeper, app.TransferKeeper, stakingKeeperMsgSrv)
 
-	suite.InitializeDao()
+	s.InitializeDao()
 
-	validators := suite.Keeper().GetValidators(suite.Ctx, 10)
-	suite.Require().True(len(validators) >= 3)
-	suite.meEarthValidator = validators[0]
-	suite.experienceValidator = validators[1]
-	suite.usaValidator = validators[2]
+	validators := s.Keeper().GetValidators(s.Ctx, 10)
+	s.Require().True(len(validators) >= 3)
+	s.meEarthValidator = validators[0]
+	s.experienceValidator = validators[1]
+	s.usaValidator = validators[2]
 
 	newRegion := types.MsgNewRegion{
-		Creator:         suite.Dao.GlobalDao,
+		Creator:         s.Dao.GlobalDao,
 		Name:            types.ExperienceRegionName,
-		OperatorAddress: suite.experienceValidator.OperatorAddress,
+		OperatorAddress: s.experienceValidator.OperatorAddress,
 	}
-	_, err = suite.msgServer.NewRegion(suite.Ctx, &newRegion)
+	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
 
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 }
 
 func SetValidatorV1(ctx sdk.Context, k *wstakingkeeper.Keeper, validator testutilstypes.ValidatorV1) {
@@ -110,7 +106,7 @@ func GetValidatorV2(ctx sdk.Context, k *wstakingkeeper.Keeper, addr sdk.ValAddre
 	return validator, true
 }
 
-func (suite *KeeperTestSuite) TestMigrateValidator() {
+func (s *KeeperTestSuite) TestMigrateValidator() {
 	val1 := testutilstypes.ValidatorV1{
 		OperatorAddress: "mevaloper139mq752delxv78jvtmwxhasyrycufsvr707ate",
 		ConsensusPubkey: nil,
@@ -136,23 +132,23 @@ func (suite *KeeperTestSuite) TestMigrateValidator() {
 		UnbondingIds:            nil,
 		UnbondingOnHoldRefCount: 0,
 	}
-	SetValidatorV1(suite.Ctx, suite.App.StakingKeeper, val1)
-	suite.T().Log(val1.String())
+	SetValidatorV1(s.Ctx, s.App.StakingKeeper, val1)
+	s.T().Log(val1.String())
 
 	addr, err := sdk.ValAddressFromBech32(val1.OperatorAddress)
 	if err != nil {
 		panic(err)
 	}
 	//test panicked: proto: wrong wireType = 2 for field UnbondingOnHoldRefCount
-	validator, found := GetValidatorV2(suite.Ctx, suite.App.StakingKeeper, addr)
-	require.True(suite.T(), found)
+	validator, found := GetValidatorV2(s.Ctx, s.App.StakingKeeper, addr)
+	require.True(s.T(), found)
 
-	validators := suite.App.StakingKeeper.GetAllValidators(suite.Ctx)
-	require.Equal(suite.T(), len(validators), 4)
+	validators := s.App.StakingKeeper.GetAllValidators(s.Ctx)
+	require.Equal(s.T(), len(validators), 4)
 	for _, v := range validators {
 		if v.OperatorAddress == validator.OperatorAddress {
-			suite.T().Log(validator.String())
-			require.Equal(suite.T(), validator.String(), v.String())
+			s.T().Log(validator.String())
+			require.Equal(s.T(), validator.String(), v.String())
 		}
 	}
 }

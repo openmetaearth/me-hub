@@ -123,6 +123,4 @@ message QueryGetStateInfoResponse {
 
 message QuerySkipDelayRollappRequest {}
 
-message QuerySkipDelayRollappResponse {
-  repeated string rollapps = 1 [ (gogoproto.nullable) = false ];
-}
+message QuerySkipDelayRollappResponse { repeated string rollapps = 1; }
