@@ -85,7 +85,14 @@ func (k Keeper) Unbond(ctx sdk.Context, delAmount math.Int, isMeid bool, delegat
 		amount = delAmount
 	}
 	delegation.StartHeight = ctx.BlockHeight()
-	k.SetDelegation(ctx, delegation)
+	if delegation.UnMeidAmount.Add(delegation.Amount).Add(delegation.Unmovable).Equal(sdk.ZeroInt()) {
+		err = k.removeDelegation(ctx, delegation)
+		if err != nil {
+			return amount, err
+		}
+	} else {
+		k.SetDelegation(ctx, delegation)
+	}
 	return amount, nil
 }
 
