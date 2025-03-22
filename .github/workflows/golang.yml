@@ -1,0 +1,63 @@
+name: Golang
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '.golangci.yml'
+      - '!**.pb.go'
+      - '!**.pb.gw.go'
+      - '!**.pulsar.go'
+      - '!**.sol.go'
+      - '!statik.go'
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '.golangci.yml'
+      - '.github/workflows/golang.yml'
+      - '!**.pb.go'
+      - '!**.pb.gw.go'
+      - '!**.pulsar.go'
+      - '!**.sol.go'
+      - '!statik.go'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+#  lint:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: actions/setup-go@v5
+#        with:
+#          go-version: '1.23'
+#      - run: |
+#          version=$(grep golangci_version= ./Makefile | awk -F '=' '{print $2}')
+#          echo "GOLANGCI_VERSION=$version" >> $GITHUB_ENV
+#      - uses: golangci/golangci-lint-action@v6
+#        with:
+#          version: ${{ env.GOLANGCI_VERSION }}
+#          args: --timeout 10m
+
+#  test:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: actions/setup-go@v5
+#        with:
+#          go-version: '1.23'
+#      - run: make test

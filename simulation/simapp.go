@@ -86,10 +86,8 @@ func GenAndDeliverMsgWithRandFees(
 			panic(err)
 		}
 		err = nil
-	} else {
-		if err != nil {
-			panic(err)
-		}
+	} else if err != nil {
+		panic(err)
 	}
 	return operationMsg, futureOperation, err
 }

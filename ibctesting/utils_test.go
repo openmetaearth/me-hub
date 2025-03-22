@@ -14,7 +14,6 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -212,8 +211,8 @@ func (s *utilSuite) newTransferPath(chainA, chainB *ibctesting.TestChain) *ibcte
 	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
 	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
 
-	path.EndpointA.ChannelConfig.Version = types.Version
-	path.EndpointB.ChannelConfig.Version = types.Version
+	path.EndpointA.ChannelConfig.Version = transfertypes.Version
+	path.EndpointB.ChannelConfig.Version = transfertypes.Version
 
 	return path
 }
@@ -227,11 +226,11 @@ func (s *utilSuite) getRollappToHubIBCDenomFromPacket(packet channeltypes.Packet
 
 func (s *utilSuite) getIBCDenomForChannel(channel string, denom string) string {
 	// since SendPacket did not prefix the denomination, we must prefix denomination here
-	sourcePrefix := types.GetDenomPrefix("transfer", channel)
+	sourcePrefix := transfertypes.GetDenomPrefix("transfer", channel)
 	// NOTE: sourcePrefix contains the trailing "/"
 	prefixedDenom := sourcePrefix + denom
 	// construct the denomination trace from the full raw denomination
-	denomTrace := types.ParseDenomTrace(prefixedDenom)
+	denomTrace := transfertypes.ParseDenomTrace(prefixedDenom)
 	return denomTrace.IBCDenom()
 }
 

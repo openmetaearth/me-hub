@@ -34,8 +34,7 @@ func (k Keeper) SetLastGroupID(ctx sdk.Context, groupID uint64) {
 func (k Keeper) AppendGroup(ctx sdk.Context, group *types.GroupInfo) error {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupKey))
 	if nil != store.Get(types.GetBytesFromUint64(group.Id)) {
-		return errors.Wrapf(types.ErrGroupCreateRepeated, fmt.Sprintf("group id has bee existed.groupID = %d",
-			group.Id))
+		return errors.Wrapf(types.ErrGroupCreateRepeated, "group id has bee existed.groupID = %d", group.Id)
 
 	}
 	appendedValue := k.cdc.MustMarshal(group)

@@ -13,7 +13,7 @@ import (
 )
 
 func createTestKycEventSeq(keeper *keeper.Keeper, ctx sdk.Context) types.KycEventSeq {
-	item := types.KycEventSeq{}
+	item := types.KycEventSeq{Seq: 0}
 	keeper.SetKycEventSeq(ctx, item)
 	return item
 }

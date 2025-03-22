@@ -55,7 +55,7 @@ func TestIncentivesExportGenesis(t *testing.T) {
 	require.Len(t, genesis.Gauges, 1)
 
 	// ensure the first gauge listed in the exported genesis explicitly matches expectation
-	require.Equal(t, genesis.Gauges[0], types.Gauge{
+	require.Equal(t, types.Gauge{
 		Id:                gaugeID,
 		IsPerpetual:       true,
 		DistributeTo:      &types.Gauge_Asset{Asset: &distrTo},
@@ -64,7 +64,7 @@ func TestIncentivesExportGenesis(t *testing.T) {
 		FilledEpochs:      0,
 		DistributedCoins:  sdk.Coins(nil),
 		StartTime:         startTime.UTC(),
-	})
+	}, genesis.Gauges[0])
 }
 
 // TestIncentivesInitGenesis takes a genesis state and tests initializing that genesis for the incentives module.

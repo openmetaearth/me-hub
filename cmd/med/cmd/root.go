@@ -19,7 +19,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 
 	"github.com/cosmos/cosmos-sdk/client/rpc"
-	"github.com/cosmos/cosmos-sdk/server"
 
 	dbm "github.com/cometbft/cometbft-db"
 	cometbftcfg "github.com/cometbft/cometbft/config"
@@ -91,13 +90,13 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 
 			customAppTemplate, customAppConfig := initAppConfig()
 			customTMConfig := initTendermintConfig()
-			err = server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
+			err = sdkserver.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
 			if err != nil {
 				return err
 			}
 			enableMeLogger, _ := cmd.Flags().GetBool("enable_me_hub_logger")
 			if os.Getenv("ENABLE_MEHUB_LOGGER") != "" || enableMeLogger {
-				ctx := server.GetServerContextFromCmd(cmd)
+				ctx := sdkserver.GetServerContextFromCmd(cmd)
 				ctx.Logger = logger.NewLogger("me-hub").WithEnvLevelOr("info").WithStacktrace(ipfslog.LevelError)
 			}
 			return nil
@@ -259,7 +258,7 @@ func (a appCreator) newApp(
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
-	baseappOptions := server.DefaultBaseappOptions(appOpts)
+	baseappOptions := sdkserver.DefaultBaseappOptions(appOpts)
 
 	skipUpgradeHeights := make(map[int64]bool)
 	for _, h := range cast.ToIntSlice(appOpts.Get(sdkserver.FlagUnsafeSkipUpgrades)) {
@@ -296,7 +295,7 @@ func (a appCreator) appExport(
 		return servertypes.ExportedApp{}, errors.New("application home not set")
 	}
 
-	baseappOptions := server.DefaultBaseappOptions(appOpts)
+	baseappOptions := sdkserver.DefaultBaseappOptions(appOpts)
 
 	skipUpgradeHeights := make(map[int64]bool)
 	for _, h := range cast.ToIntSlice(appOpts.Get(sdkserver.FlagUnsafeSkipUpgrades)) {

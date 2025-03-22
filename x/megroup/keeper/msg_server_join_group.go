@@ -133,7 +133,7 @@ func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupReq
 	if !found {
 		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("can not found group number count in LeaveGroup"))
 	}
-	if 0 == grpNumber {
+	if grpNumber == 0 {
 		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("group number is 0 in LeaveGroup"))
 	}
 

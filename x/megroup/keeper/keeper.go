@@ -147,7 +147,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 		if !found {
 			return fmt.Errorf("can not found preGroup number count while ready to levae preGourp in procKycRegionChange")
 		}
-		if 0 == preGroupNumber {
+		if preGroupNumber == 0 {
 			return fmt.Errorf("preGroup number is 0 while ready to levae preGourp in procKycRegionChange")
 		}
 		if err := k.deleteMemberFormGroup(sdkCtx, joined.GroupId, address); err != nil {

@@ -53,7 +53,10 @@ func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.
 		TotalSupply: msg.TotalSupply,
 	}
 
-	k.SaveClass(ctx, class)
+	err := k.SaveClass(ctx, class)
+	if err != nil {
+		return &types.MsgNewClassResponse{}, err
+	}
 	ctx.EventManager().EmitTypedEvent(&class)
 	return &types.MsgNewClassResponse{}, nil
 }
@@ -93,7 +96,7 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 		return nil, err
 	}
 
-	ctx.EventManager().EmitTypedEvent(&nft.EventMint{
+	_ = ctx.EventManager().EmitTypedEvent(&nft.EventMint{
 		ClassId: msg.ClassId,
 		Id:      msg.TokenId,
 		Owner:   msg.Sender,

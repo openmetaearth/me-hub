@@ -44,9 +44,10 @@ func (l MeLogger) WithStacktrace(traceLevel ipfslog.LogLevel) MeLogger {
 }
 
 func (l MeLogger) WithLevel(level string) MeLogger {
-	ipfslog.SetLogLevel(l.name, level)
+	ipfslog.SetLogLevel(l.name, level) //nolint:errcheck
 	return l
 }
+
 func (l MeLogger) WithEnvLevelOr(level string) MeLogger {
 	lv := os.Getenv("GOLOG_LOG_LEVEL")
 	if lv != "" {
