@@ -1,33 +1,78 @@
-FROM golang:1.23-bullseye AS go-builder
-ARG arch=x86_64
-ARG LINK_STATICALLY
+# syntax=docker/dockerfile:1
 
-WORKDIR /app
+# Please, when adding/editing this Dockerfile also take care of Dockerfile.cosmovisor as well
 
+ARG GO_VERSION="1.23"
+ARG RUNNER_IMAGE="gcr.io/distroless/static-debian11"
+ARG BUILD_TAGS="netgo,ledger,muslc"
+
+# --------------------------------------------------------
+# Builder
+# --------------------------------------------------------
+
+FROM golang:${GO_VERSION}-alpine3.20 as builder
+
+ARG GIT_VERSION
+ARG GIT_COMMIT
+ARG BUILD_TAGS
+
+RUN apk add --no-cache \
+    ca-certificates \
+    build-base \
+    linux-headers \
+    binutils-gold
+
+# Download go dependencies
+WORKDIR /me-hub
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/root/go/pkg/mod \
+    go mod download
+
+# Cosmwasm - Download correct libwasmvm version
+RUN ARCH=$(uname -m) && WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm | sed 's/.* //') && \
+    wget https://github.com/CosmWasm/wasmvm/releases/download/$WASMVM_VERSION/libwasmvm_muslc.$ARCH.a \
+    -O /lib/libwasmvm_muslc.$ARCH.a && \
+    # verify checksum
+    wget https://github.com/CosmWasm/wasmvm/releases/download/$WASMVM_VERSION/checksums.txt -O /tmp/checksums.txt && \
+    sha256sum /lib/libwasmvm_muslc.$ARCH.a | grep $(cat /tmp/checksums.txt | grep libwasmvm_muslc.$ARCH | cut -d ' ' -f 1) 
+
+# Copy the remaining files
 COPY . .
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    git \
-    libc6-dev
+# Build med binary
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/root/go/pkg/mod \
+    GOWORK=off go build \
+    -mod=readonly \
+    -tags "netgo,ledger,muslc" \
+    -ldflags \
+    "-X github.com/cosmos/cosmos-sdk/version.Name="me-hub" \
+    -X github.com/cosmos/cosmos-sdk/version.AppName="med" \
+    -X github.com/cosmos/cosmos-sdk/version.Version=${GIT_VERSION} \
+    -X github.com/cosmos/cosmos-sdk/version.Commit=${GIT_COMMIT} \
+    -X github.com/cosmos/cosmos-sdk/version.BuildTags=${BUILD_TAGS} \
+    -w -s -linkmode=external -extldflags '-Wl,-z,muldefs -static'" \
+    -trimpath \
+    -o /me-hub/build/med \
+    /me-hub/cmd/med/main.go
 
-RUN go mod download
-RUN make build
-RUN ldd ./build/med && \
-    LIB_PATH=$(ldd ./build/med | grep -o '/go/pkg/mod/github.com/!cosm!wasm/wasmvm@v1.3.0/internal/api/libwasmvm\.aarch64\.so') && \
-    echo "Library path found: $LIB_PATH" && \
-    cp "$LIB_PATH" /go/libwasmvm.aarch64.so
+# --------------------------------------------------------
+# Runner
+# --------------------------------------------------------
 
-FROM ubuntu:22.04
-WORKDIR root
-RUN apt-get update && apt-get install -y curl jq bash vim
+FROM ${RUNNER_IMAGE}
 
-COPY --from=go-builder /app/build/med /usr/local/bin/
-COPY --from=go-builder /go/libwasmvm.aarch64.so /lib/x86_64-linux-gnu/libwasmvm.aarch64.so
+COPY --from=builder /me-hub/build/med /bin/med
 
-ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu
+ENV HOME=/me-hub
+WORKDIR $HOME
 
-EXPOSE 36656/tcp 36657/tcp 36660/tcp 8090/tcp 1318/tcp 8545/tcp 8546/tcp
-VOLUME ["/root"]
+EXPOSE 26656
+EXPOSE 26657
+EXPOSE 1317
+# Note: uncomment the line below if you need pprof in localosmosis
+# We disable it by default in out main Dockerfile for security reasons
+# EXPOSE 6060
+
 ENTRYPOINT ["med"]

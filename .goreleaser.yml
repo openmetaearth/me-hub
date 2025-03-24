@@ -162,15 +162,15 @@ archives:
     format: tar.gz
     files:
       - none*
-  - id: binaries
-    builds:
-      - med-darwin-amd64
-      - med-darwin-arm64
-      - med-linux-amd64
-    name_template: "{{.ProjectName}}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
-    format: binary
-    files:
-      - none*
+#  - id: binaries
+#    builds:
+#      - med-darwin-amd64
+#      - med-darwin-arm64
+#      - med-linux-amd64
+#    name_template: "{{.ProjectName}}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+#    format: binary
+#    files:
+#      - none*
 
 checksum:
   name_template: SHA256SUMS-v{{.Version}}.txt
