@@ -1,101 +1,177 @@
+project_name: med
+
 before:
   hooks:
     - go mod download
+    - go mod tidy
+    - apt-get update && apt-get install -y libmvec-dev musl-dev=1.2.2-1
+
+env:
+  - CGO_ENABLED=1
 
 builds:
-  - id: "med-darwin"
-    main: ./cmd/med
+  - id: "med-darwin-amd64"
+    main: ./cmd/med/main.go
     binary: med
+    hooks:
+      pre:
+        - wget https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.COSMWASM_VERSION }}/libwasmvmstatic_darwin.a -O /lib/libwasmvmstatic_darwin.a
     env:
-      - CGO_ENABLED=1
       - CC=o64-clang
       - CXX=o64-clang++
+      - CGO_LDFLAGS=-L/lib -mmacosx-version-min=10.12
+      - CGO_CFLAGS=-mmacosx-version-min=10.12
     goos:
       - darwin
     goarch:
       - amd64
     flags:
-      - -tags=cgo netgo ledger
+      - -mod=readonly
       - -trimpath
     ldflags:
-      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=me -X github.com/cosmos/cosmos-sdk/version.AppName=med -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -X github.com/cosmos/cosmos-sdk/version.Name=me-hub
+      - -X github.com/cosmos/cosmos-sdk/version.AppName=med
+      - -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}}
+      - -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,static_wasm
+      - -s -w
+      - -linkmode=external
+    tags:
+      - netgo
+      - ledger
+      - static_wasm
+
   - id: "med-darwin-arm64"
-    main: ./cmd/med
+    main: ./cmd/med/main.go
     binary: med
+    hooks:
+      pre:
+        - wget https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.COSMWASM_VERSION }}/libwasmvmstatic_darwin.a -O /lib/libwasmvmstatic_darwin.a
     env:
-      - CGO_ENABLED=1
       - CC=oa64-clang
       - CXX=oa64-clang++
+      - CGO_LDFLAGS=-L/lib
     goos:
       - darwin
     goarch:
       - arm64
     flags:
-      - -tags=cgo netgo ledger
+      - -mod=readonly
       - -trimpath
     ldflags:
-      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=me -X github.com/cosmos/cosmos-sdk/version.AppName=med -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
-  - id: "med-linux"
+      - -X github.com/cosmos/cosmos-sdk/version.Name=me-hub
+      - -X github.com/cosmos/cosmos-sdk/version.AppName=med
+      - -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}}
+      - -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,static_wasm
+      - -s -w
+      - -linkmode=external
+    tags:
+      - netgo
+      - ledger
+      - static_wasm
+
+  - id: "med-linux-amd64"
     main: ./cmd/med
     binary: med
+    hooks:
+      pre:
+        - wget https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.COSMWASM_VERSION }}/libwasmvm_muslc.x86_64.a -O /lib/libwasmvm_muslc.x86_64.a
+        - cp /lib/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.a
+        - curl -LO https://musl.cc/x86_64-linux-musl-cross.tgz
+        - tar xf x86_64-linux-musl-cross.tgz
+        - mv x86_64-linux-musl-cross /opt/musl-cross
     env:
-      - CGO_ENABLED=1
-      - CC=gcc
-      - CXX=g++
+      - CC=/opt/musl-cross/bin/x86_64-linux-musl-gcc
+      - LD=/opt/musl-cross/bin/x86_64-linux-musl-ld
+      - CGO_LDFLAGS=-L/lib
     goos:
       - linux
     goarch:
       - amd64
     flags:
-      - -tags=cgo
-    ldflags:
-      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=dymension -X github.com/cosmos/cosmos-sdk/version.AppName=med -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
-  - id: "med-linux-arm64"
-    main: ./cmd/med
-    binary: med
-    env:
-      - CGO_ENABLED=1
-      - CC=aarch64-linux-gnu-gcc
-      - CXX=aarch64-linux-gnu-g++
-    goos:
-      - linux
-    goarch:
-      - arm64
-    flags:
-      - -tags=cgo netgo ledger
+      - -mod=readonly
       - -trimpath
     ldflags:
-      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=me -X github.com/cosmos/cosmos-sdk/version.AppName=med -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
-  - id: "med-windows"
-    main: ./cmd/med
-    binary: med
-    env:
-      - CGO_ENABLED=1
-      - CC=x86_64-w64-mingw32-gcc
-      - CXX=x86_64-w64-mingw32-g++
-    goos:
-      - windows
-    goarch:
-      - amd64
-    flags:
-      - -tags=cgo netgo ledger
-      - -trimpath
-      - -buildmode=exe
-    ldflags:
-      - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=me -X github.com/cosmos/cosmos-sdk/version.AppName=med -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -X github.com/cosmos/cosmos-sdk/version.Name=me-hub
+      - -X github.com/cosmos/cosmos-sdk/version.AppName=med
+      - -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}}
+      - -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+      - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,muslc,osusergo
+      - -s -w
+      - -linkmode=external
+      - -extldflags "-Wl,-z,muldefs -static"
+    tags:
+      - netgo
+      - ledger
+      - muslc
+      - osusergo
+
+#  - id: "med-linux-arm64"
+#    main: ./cmd/med
+#    binary: med
+#    hooks:
+#      pre:
+#        - wget https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.COSMWASM_VERSION }}/libwasmvm_muslc.aarch64.a -O /usr/lib/libwasmvm_muslc.aarch64.a
+#    env:
+#      - CC=aarch64-linux-gnu-gcc
+#      - CXX=aarch64-linux-gnu-g++
+#    goos:
+#      - linux
+#    goarch:
+#      - arm64
+#    flags:
+#      - -mod=readonly
+#      - -trimpath
+#    ldflags:
+#      - -s -w
+#      - -X github.com/cosmos/cosmos-sdk/version.Name=me-hub
+#      - -X github.com/cosmos/cosmos-sdk/version.AppName=med
+#      - -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}}
+#      - -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
+#      - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,muslc,osusergo
+#      - -w -s
+#      - -linkmode=external
+#      - -extldflags '-L/usr/lib -lwasmvm_muslc.aarch64 -Wl,-z,muldefs -lc -lrt -lpthread -lm --static'
+#    tags:
+#      - netgo
+#      - ledger
+#      - muslc
+#      - osusergo
+
+universal_binaries:
+  - id: med-darwin-universal
+    ids:
+      - med-darwin-arm64
+      - med-darwin-amd64
+    replace: false
+  - id: med-linux-universal
+    ids:
+      - med-linux-amd64
+    replace: false
 
 archives:
-  - name_template: '{{ .ProjectName }}_{{ .Version }}_{{- title .Os }}_{{ .Arch }}'
-    format_overrides:
-      - goos: windows
-        format: zip
+  - id: zipped
     builds:
       - med-darwin
       - med-darwin-arm64
-      - med-windows
       - med-linux
       - med-linux-arm64
-  
+    name_template: "{{.ProjectName}}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    format: tar.gz
+    files:
+      - none*
+  - id: binaries
+    builds:
+      - med-darwin
+      - med-darwin-arm64
+      - med-linux
+      - med-linux-arm64
+    name_template: "{{.ProjectName}}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    format: binary
+    files:
+      - none*
+
 checksum:
   name_template: SHA256SUMS-v{{.Version}}.txt
   algorithm: sha256

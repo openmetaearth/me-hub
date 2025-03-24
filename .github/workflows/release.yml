@@ -11,7 +11,8 @@ permissions: write-all
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    name: Create release
+    runs-on: b2-local
     environment: release
     steps:
       - name: Checkout
@@ -42,3 +43,9 @@ jobs:
 
       - name: Release publish
         run: make release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🧹 Clean release folder
+        run: |
+          sudo rm -rf dist

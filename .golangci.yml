@@ -17,7 +17,9 @@ issues:
     - ".*\\.pulsar\\.go$"
 
 linters:
+  disable-all: true
   enable:
+    - asciicheck
     - gofumpt
     - unconvert
     - unparam
@@ -41,10 +43,6 @@ linters:
     - typecheck
     - unused
     - copyloopvar
-  disable:
-    - nolintlint
-    - thelper
-    - testifylint
 
 linters-settings:
   staticcheck:
