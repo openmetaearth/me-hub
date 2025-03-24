@@ -146,7 +146,7 @@ release:
 	fi
 	@echo "Running release process"
 	@echo "COSMWASM version: $(COSMWASM_VERSION)"
-	docker run --privileged -e CGO_ENABLED=1 \
+	docker run --rm --privileged -e CGO_ENABLED=1 \
 		--env-file .release-env \
 		-e COSMWASM_VERSION=$(COSMWASM_VERSION) \
 		-v /var/run/docker.sock:/var/run/docker.sock \

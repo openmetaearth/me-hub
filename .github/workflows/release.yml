@@ -12,7 +12,7 @@ permissions: write-all
 jobs:
   release:
     name: Create release
-    runs-on: b2-local
+    runs-on: self-hosted
     environment: release
     steps:
       - name: Checkout

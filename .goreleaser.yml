@@ -5,6 +5,7 @@ before:
     - go mod download
     - go mod tidy
     - apt-get update && apt-get install -y libmvec-dev musl-dev=1.2.2-1
+    - sudo apt-get install build-essential
 
 env:
   - CGO_ENABLED=1
