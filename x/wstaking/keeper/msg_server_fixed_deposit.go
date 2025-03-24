@@ -317,6 +317,9 @@ func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWit
 	}
 
 	region.FixedDepositAmount = region.FixedDepositAmount.Sub(fixedDeposit.Principal.Amount)
+	if region.FixedDepositAmount.IsNegative() {
+		return &types.MsgWithdrawFixedDepositResponse{}, sdkerrors.Wrapf(types.ErrDoFixedWithDraw, "region fixed deposit amount(%s) less than zero", region.FixedDepositAmount.String())
+	}
 	k.SetRegion(ctx, region)
 
 	log.Info("withdraw fixed deposit",

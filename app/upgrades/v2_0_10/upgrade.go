@@ -85,6 +85,9 @@ func CreateUpgradeHandler(
 		ctx.Logger().Info("4.migrate validators")
 		migrateValidators(ctx, keepers.StakingKeeper)
 
+		ctx.Logger().Info("9.fixed deposit")
+		migrateFixedDeposit(ctx, keepers.StakingKeeper, keepers.KycKeeper)
+
 		ctx.Logger().Info("5.init kyc and did module")
 		homePath := GetPath(keepers.UpgradeKeeper)
 		migrateKycModule(ctx, keepers.KycKeeper, homePath)
@@ -645,4 +648,23 @@ func migrateDelegation(ctx sdk.Context, homePath string, stakingKeeper *wstaking
 		}
 		return false
 	})
+}
+
+func migrateFixedDeposit(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, kk *kyckeeper.Keeper) {
+	fixedDeposits := stakingKeeper.GetAllFixedDeposit(ctx)
+	for _, fixedDeposit := range fixedDeposits {
+		if fixedDeposit.Account == "" {
+			continue
+		}
+		meid, ok := stakingKeeper.GetMeid(ctx, fixedDeposit.Account)
+		if !ok {
+			panic(fmt.Errorf("meid not found: %s", fixedDeposit.Account))
+		}
+		region, found := stakingKeeper.GetRegion(ctx, meid.RegionId)
+		if !found {
+			panic(fmt.Errorf("region not found: %s", meid.RegionId))
+		}
+		region.FixedDepositAmount = region.FixedDepositAmount.Add(fixedDeposit.Principal.Amount)
+		stakingKeeper.SetRegion(ctx, region)
+	}
 }
