@@ -12,7 +12,7 @@ permissions: write-all
 jobs:
   release:
     name: Create release
-    runs-on: b2-local
+    runs-on: ubuntu-latest
     environment: release
     steps:
       - name: Checkout
@@ -22,6 +22,17 @@ jobs:
 
       - name: Fetch tags
         run: git fetch --force --tags
+
+      - name: Check for gcc
+        run: |
+          if ! command -v gcc &> /dev/null
+          then
+            echo "gcc not installed. Installing gcc..."
+            sudo apt update
+            sudo apt install gcc g++ make
+          else
+            echo "gcc is already installed."
+          fi
 
       - name: Generate release note
         run: |
@@ -35,11 +46,6 @@ jobs:
           echo 'GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}}' > .release-env
           echo 'GONOSUMDB=github.com/st-chain/*' > .release-env
           echo 'GOPRIVATE=github.com/st-chain/*' > .release-env
-
-      - name: Configure GitHub token for Go modules
-        run: |
-          echo "machine github.com login ${{ secrets.GITHUB_TOKEN }}" > ~/.netrc
-          echo "machine api.github.com login ${{ secrets.GITHUB_TOKEN }}" >> ~/.netrc
 
       - name: Release publish
         run: make release
