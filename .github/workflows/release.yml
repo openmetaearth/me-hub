@@ -12,7 +12,7 @@ permissions: write-all
 jobs:
   release:
     name: Create release
-    runs-on: b2-local
+    runs-on: self-hosted
     environment: release
     steps:
       - name: Checkout
@@ -22,6 +22,17 @@ jobs:
 
       - name: Fetch tags
         run: git fetch --force --tags
+
+      - name: Check for gcc
+        run: |
+          if ! command -v gcc &> /dev/null
+          then
+            echo "gcc not installed. Installing gcc..."
+            sudo apt update
+            sudo apt install gcc g++ make
+          else
+            echo "gcc is already installed."
+          fi
 
       - name: Generate release note
         run: |
