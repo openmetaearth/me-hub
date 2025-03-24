@@ -155,20 +155,18 @@ universal_binaries:
 archives:
   - id: zipped
     builds:
-      - med-darwin
+      - med-darwin-amd64
       - med-darwin-arm64
-      - med-linux
-      - med-linux-arm64
+      - med-linux-amd64
     name_template: "{{.ProjectName}}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     format: tar.gz
     files:
       - none*
   - id: binaries
     builds:
-      - med-darwin
+      - med-darwin-amd64
       - med-darwin-arm64
-      - med-linux
-      - med-linux-arm64
+      - med-linux-amd64
     name_template: "{{.ProjectName}}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     format: binary
     files:
@@ -203,16 +201,6 @@ release:
     make install
     ```
     
-    ## 🐳 Docker Images
-    
-    ```bash
-    docker pull ghcr.io/st-chain/me-hub:{{ .Version }}
-    ```
-    
-    ```bash
-    docker pull ghcr.io/st-chain/mevisor:{{ .Version }}
-    ```
-    
     ## ⚡️ Download binaries
     
-    Binaries for linux, darwin, and windows are available below.
+    Binaries for linux, darwin are available below.
