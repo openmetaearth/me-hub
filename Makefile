@@ -146,12 +146,13 @@ release:
 	fi
 	@echo "Running release process"
 	@echo "COSMWASM version: $(COSMWASM_VERSION)"
-	docker run --privileged -e CGO_ENABLED=1 \
+	docker run --rm --privileged \
+		-e GITHUB_TOKEN=$(GITHUB_TOKEN) \
+		-e CGO_ENABLED=1 \
 		--env-file .release-env \
 		-e COSMWASM_VERSION=$(COSMWASM_VERSION) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/$(PACKAGE_NAME) \
-		-v ~/.netrc:/root/.netrc:ro \
 		-w /go/src/$(PACKAGE_NAME) \
 		ghcr.io/goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
 		release --clean --skip=validate --release-notes ./release-note.md
