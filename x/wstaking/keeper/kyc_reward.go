@@ -50,13 +50,12 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, cre
 	}
 
 	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(types.EventTypeMeidNew,
+		sdk.NewEvent(types.EventTypeNewKyc,
 			sdk.NewAttribute(types.AttributeKeyAccount, account.String()),
 			sdk.NewAttribute(types.AttributeKeyRegionId, regionId),
 			sdk.NewAttribute(types.AttributeKeyCreator, creator),
-			sdk.NewAttribute(types.AttributeKeySendMeidInviteAddress, region.RegionTreasureAddr),
-			sdk.NewAttribute(types.AttributeKeyReceiveMeidInviteAddress_Society, k.daoKeeper.GetDevOperator(ctx)),
-			sdk.NewAttribute(types.AttributeKeyReceiveMeidInviteAddress_Node, ownerAddress),
+			sdk.NewAttribute(types.AttributeKeyKycRewardCommitteeAddress, k.daoKeeper.GetDevOperator(ctx)),
+			sdk.NewAttribute(types.AttributeKeyKycRewardNodeAddress, ownerAddress),
 			sdk.NewAttribute(types.AttributeKeyMeidNumAddReward, types.ValidatorReward.String()+params.BaseDenom),
 		),
 	)
@@ -181,6 +180,7 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 	if err != nil {
 		return fmt.Errorf("send kyc reward to validator, %v", err)
 	}
+
 	//committee rewards
 	err = k.bankKeeper.SendCoins(ctx,
 		treasureAddr.GetAddress(),
@@ -253,7 +253,7 @@ func (k Keeper) removeKycReward(ctx sdk.Context, delAddr sdk.AccAddress, valAddr
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeMeidRemove,
+			types.EventTypeRemoveKyc,
 			sdk.NewAttribute(types.AttributeKeyRegionId, region.RegionId),
 			sdk.NewAttribute(sdk.AttributeKeySender, region.RegionTreasureAddr),
 			sdk.NewAttribute(types.AttributeKeyReceiver, delAddr.String()),
@@ -438,7 +438,7 @@ func (k Keeper) transferUnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, 
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeMeidRemove,
+			types.EventTypeRemoveKyc,
 			sdk.NewAttribute(types.AttributeKeyRegionId, region.RegionId),
 			sdk.NewAttribute(sdk.AttributeKeySender, region.RegionTreasureAddr),
 			sdk.NewAttribute(types.AttributeKeyReceiver, delAddr.String()),

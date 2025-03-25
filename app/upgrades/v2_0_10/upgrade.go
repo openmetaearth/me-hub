@@ -30,6 +30,7 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	appkeepers "github.com/st-chain/me-hub/app/keepers"
 	"github.com/st-chain/me-hub/app/upgrades"
+	"github.com/st-chain/me-hub/utils"
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
@@ -96,7 +97,7 @@ func CreateUpgradeHandler(
 		migrateKycData(ctx, keepers.StakingKeeper, keepers.DidKeeper, keepers.KycKeeper, keepers.WNFTKeeper, homePath)
 
 		ctx.Logger().Info("6.migrate nft ipfs uri")
-		migrateNftUri(ctx, keepers.WNFTKeeper, homePath)
+		//migrateNftUri(ctx, keepers.WNFTKeeper, homePath)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -329,9 +330,10 @@ func migrateKycData(ctx sdk.Context,
 	}
 
 	// Iterate over old data and transform it into new data structure
+	didNumber := 9998887776660
 	for _, oldRecord := range meids {
-		did := didData[oldRecord.Account]
-		if len(did.Did) > 0 {
+		did, ok := didData[oldRecord.Account]
+		if ok && len(did.Did) > 0 {
 			didInfo := didtypes.DidInfo{
 				Did:      did.Did,
 				Address:  oldRecord.Account,
@@ -347,7 +349,7 @@ func migrateKycData(ctx sdk.Context,
 				Hash: did.KycUriHash,
 				Data: []byte(oldRecord.RegionId),
 			}
-			if did.Level != 2 {
+			if did.Level == 1 {
 				stakingKeeper.SetInviterReward(ctx, oldRecord.Account)
 			}
 			// write new data to the new module s storage
@@ -360,9 +362,38 @@ func migrateKycData(ctx sdk.Context,
 				vc,
 			)
 			didKeeper.AddFilters(ctx, did.Did, service.Sid, [][]byte{[]byte(oldRecord.RegionId)}, vc)
-			migrateNFTtoSBT(ctx, stakingKeeper, oldRecord, nftKeeper, kycKeeper, did)
-			stakingKeeper.RemoveMeid(ctx, oldRecord.Account, oldRecord.RegionId)
+		} else {
+			didStr := fmt.Sprintf("%d", didNumber)
+			didInfo := didtypes.DidInfo{
+				Did:      didStr,
+				Address:  oldRecord.Account,
+				Pubkey:   "",
+				RegionId: oldRecord.RegionId,
+				KycLevel: didtypes.KYC_LEVEL_ONE,
+				Status:   didtypes.DID_STATUS_ACTIVE,
+			}
+			vc := didtypes.Credential{
+				Did:  didStr,
+				Sid:  "kyc",
+				Uri:  "",
+				Hash: "",
+				Data: []byte(oldRecord.RegionId),
+			}
+			stakingKeeper.SetInviterReward(ctx, oldRecord.Account)
+			// write new data to the new module s storage
+			didKeeper.SetDID(ctx, sdk.MustAccAddressFromBech32(oldRecord.Account), didStr)
+			didKeeper.SetDidInfo(ctx, didInfo.Did, didInfo)
+			didKeeper.SetCredential(
+				ctx,
+				didInfo.Did,
+				service.Sid,
+				vc,
+			)
+			didKeeper.AddFilters(ctx, didStr, service.Sid, [][]byte{[]byte(oldRecord.RegionId)}, vc)
 		}
+		didNumber++
+		migrateNFTtoSBT(ctx, stakingKeeper, oldRecord, nftKeeper, kycKeeper, did)
+		stakingKeeper.RemoveMeid(ctx, oldRecord.Account, oldRecord.RegionId)
 	}
 }
 
@@ -404,7 +435,7 @@ func migrateNftUri(ctx sdk.Context,
 		}
 		nftList := nftKeeper.GetNFTsOfClass(ctx, class.Id)
 		for _, nftInfo := range nftList {
-			//nft.Uri = strings.ReplaceAll(nft.Uri, "ipfs://", "XXXXXXXXXXXXXXXXXXXXX") todo
+			//nftInfo.Uri =
 			err := nftKeeper.Update(ctx, nftInfo)
 			if err != nil {
 				panic(err)
@@ -468,6 +499,7 @@ func migrateRegionClassName(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keepe
 		if found {
 			nftKeeper.DeleteClass(ctx, class.Id)
 			class.Id = newClassId
+			class.Uri = utils.CalculateUriHash(class.Uri) // todo
 			err := nftKeeper.SaveClass(ctx, class)
 			if err != nil {
 				panic(err)
