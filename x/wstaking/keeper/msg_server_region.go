@@ -2,11 +2,8 @@ package keeper
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"strings"
 
-	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
@@ -60,10 +57,6 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	}
 
 	uri := ""
-	hasher := sha256.New()
-	_, err = hasher.Write(utils.UnsafeStrToBytes(uri))
-	errors.AssertNil(err)
-	uriHash := hasher.Sum(nil)
 
 	nftClass := nft.Class{
 		Id:          types.GetClassId(msg.Name),
@@ -71,7 +64,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 		Symbol:      types.GetClassSymbol(msg.Name),
 		Description: types.GetClassDescription(regionId),
 		Uri:         uri,
-		UriHash:     hex.EncodeToString(uriHash),
+		UriHash:     utils.CalculateUriHash(uri),
 	}
 	_, nftClassFound := k.nftKeeper.GetClass(ctx, nftClass.Id)
 	if !nftClassFound {
