@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	MainnetV1ChainId  = "me-chain"
+	MainnetV1ChainId  = "mechain"
 	MainnetV2ChainId  = "mechain_100-1"
 	MainnetEvmChainID = 100
 
