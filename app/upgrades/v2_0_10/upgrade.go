@@ -94,7 +94,13 @@ func CreateUpgradeHandler(
 		migrateKycModule(ctx, keepers.KycKeeper, homePath)
 
 		ctx.Logger().Info("6.migrate kyc and did")
-		migrateKycData(ctx, keepers.StakingKeeper, keepers.DidKeeper, keepers.KycKeeper, keepers.WNFTKeeper, homePath)
+		migrateKycData(ctx,
+			keepers.StakingKeeper,
+			keepers.DidKeeper,
+			keepers.KycKeeper,
+			keepers.WNFTKeeper,
+			keepers.GroupKeeper,
+			homePath)
 
 		ctx.Logger().Info("6.migrate nft ipfs uri")
 		//migrateNftUri(ctx, keepers.WNFTKeeper, homePath)
@@ -293,6 +299,7 @@ func migrateKycData(ctx sdk.Context,
 	didKeeper *didkeeper.Keeper,
 	kycKeeper *kyckeeper.Keeper,
 	nftKeeper *wnftkeeper.Keeper,
+	gk *groupkeeper.Keeper,
 	homePath string) {
 	// get all data from old module
 	meids := stakingKeeper.GetAllMeid(ctx)
@@ -332,6 +339,10 @@ func migrateKycData(ctx sdk.Context,
 	// Iterate over old data and transform it into new data structure
 	didNumber := 9998887776660
 	for _, oldRecord := range meids {
+		didStr := fmt.Sprintf("%d", didNumber)
+		if kycKeeper.HasDidInfo(ctx, didStr) {
+			didNumber++
+		}
 		did, ok := didData[oldRecord.Account]
 		if ok && len(did.Did) > 0 {
 			didInfo := didtypes.DidInfo{
@@ -363,7 +374,6 @@ func migrateKycData(ctx sdk.Context,
 			)
 			didKeeper.AddFilters(ctx, did.Did, service.Sid, [][]byte{[]byte(oldRecord.RegionId)}, vc)
 		} else {
-			didStr := fmt.Sprintf("%d", didNumber)
 			didInfo := didtypes.DidInfo{
 				Did:      didStr,
 				Address:  oldRecord.Account,
@@ -393,6 +403,13 @@ func migrateKycData(ctx sdk.Context,
 		}
 		didNumber++
 		migrateNFTtoSBT(ctx, stakingKeeper, oldRecord, nftKeeper, kycKeeper, did)
+
+		if oldRecord.RewardType == 1 {
+			gk.SetMemberJoined(ctx, megrouptypes.MemberJoined{
+				Address: oldRecord.Account,
+				GroupId: 0,
+			})
+		}
 		stakingKeeper.RemoveMeid(ctx, oldRecord.Account, oldRecord.RegionId)
 	}
 }
