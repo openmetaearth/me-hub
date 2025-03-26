@@ -1,4 +1,4 @@
-package v2_0_12
+package v2_0_13
 
 import (
 	"fmt"
@@ -33,71 +33,50 @@ func CreateUpgradeHandler(
 			}
 		}
 
-		migrateFixedDeposit(ctx, keepers.StakingKeeper, keepers.KycKeeper, keepers.DidKeeper, keepers.WNFTKeeper)
+		migrateMeids(ctx, keepers.StakingKeeper, keepers.KycKeeper, keepers.DidKeeper, keepers.WNFTKeeper)
 		logger.Info("upgrade finished.")
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}
 }
 
-func migrateFixedDeposit(ctx sdk.Context, sk *wstakingkeeper.Keeper, kk *kyckeeper.Keeper, didKeeper *didkeeper.Keeper,
+func migrateMeids(ctx sdk.Context, sk *wstakingkeeper.Keeper, kk *kyckeeper.Keeper, didKeeper *didkeeper.Keeper,
 	nftKeeper *wnftkeeper.Keeper,
 ) {
-	fixedDeposits := sk.GetAllFixedDeposit(ctx)
-	didNumber := 9998887776660
-	for _, fixedDeposit := range fixedDeposits {
-		if fixedDeposit.Account == "" {
-			continue
-		}
-
-		regionId := ""
-		did, didFound := kk.GetDID(ctx, sdk.MustAccAddressFromBech32(fixedDeposit.Account))
+	meids := sk.GetAllMeid(ctx)
+	didNumber := 9988887776660
+	for _, meid := range meids {
+		_, didFound := kk.GetDID(ctx, sdk.MustAccAddressFromBech32(meid.Account))
 		if !didFound {
 			didStr := fmt.Sprintf("%d", didNumber)
-			meid, found := sk.GetMeid(ctx, fixedDeposit.Account)
-			if found {
-				didInfo := didtypes.DidInfo{
-					Did:      didStr,
-					Address:  meid.Account,
-					Pubkey:   "",
-					RegionId: meid.RegionId,
-					KycLevel: didtypes.KYC_LEVEL_ONE,
-					Status:   didtypes.DID_STATUS_ACTIVE,
-				}
-				vc := didtypes.Credential{
-					Did:  didStr,
-					Sid:  "kyc",
-					Uri:  "",
-					Hash: "",
-					Data: []byte(meid.RegionId),
-				}
-				sk.SetInviterReward(ctx, meid.Account)
-				// write new data to the new module s storage
-				didKeeper.SetDID(ctx, sdk.MustAccAddressFromBech32(meid.Account), didStr)
-				didKeeper.SetDidInfo(ctx, didInfo.Did, didInfo)
-				didKeeper.SetCredential(
-					ctx,
-					didInfo.Did,
-					"kyc",
-					vc,
-				)
-				didKeeper.AddFilters(ctx, didStr, "kyc", [][]byte{[]byte(meid.RegionId)}, vc)
-				migrateNFTtoSBT(ctx, sk, meid, nftKeeper, kk, didStr)
+			didInfo := didtypes.DidInfo{
+				Did:      didStr,
+				Address:  meid.Account,
+				Pubkey:   "",
+				RegionId: meid.RegionId,
+				KycLevel: didtypes.KYC_LEVEL_ONE,
+				Status:   didtypes.DID_STATUS_ACTIVE,
 			}
-			didNumber++
-			regionId = meid.RegionId
-		} else {
-			kycData, ok := kk.GetKYC(ctx, did)
-			if !ok {
-				panic(fmt.Errorf("kyc data not found: %s", did))
+			vc := didtypes.Credential{
+				Did:  didStr,
+				Sid:  "kyc",
+				Uri:  "",
+				Hash: "",
+				Data: []byte(meid.RegionId),
 			}
-			regionId = string(kycData.Data)
+			sk.SetInviterReward(ctx, meid.Account)
+			// write new data to the new module s storage
+			didKeeper.SetDID(ctx, sdk.MustAccAddressFromBech32(meid.Account), didStr)
+			didKeeper.SetDidInfo(ctx, didInfo.Did, didInfo)
+			didKeeper.SetCredential(
+				ctx,
+				didInfo.Did,
+				"kyc",
+				vc,
+			)
+			didKeeper.AddFilters(ctx, didStr, "kyc", [][]byte{[]byte(meid.RegionId)}, vc)
+			migrateNFTtoSBT(ctx, sk, meid, nftKeeper, kk, didStr)
 		}
-		region, found := sk.GetRegion(ctx, regionId)
-		if !found {
-			panic(fmt.Errorf("region not found: %s", regionId))
-		}
-		region.FixedDepositAmount = region.FixedDepositAmount.Add(fixedDeposit.Principal.Amount)
-		sk.SetRegion(ctx, region)
+		didNumber++
 	}
 }
 
@@ -118,8 +97,8 @@ func migrateNFTtoSBT(ctx sdk.Context,
 		nft.NFT{
 			ClassId: kyctypes.ModuleName,
 			Id:      didStr,
-			Uri:     "aa",
-			UriHash: "aa",
+			Uri:     "",
+			UriHash: "",
 			Data:    nil,
 		},
 		sdk.MustAccAddressFromBech32(oldRecord.Account),

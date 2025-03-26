@@ -499,7 +499,7 @@ func migrateRegionClassName(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keepe
 		if found {
 			nftKeeper.DeleteClass(ctx, class.Id)
 			class.Id = newClassId
-			class.Uri = utils.CalculateUriHash(class.Uri) // todo
+			class.Uri = utils.CalculateUriHash(class.Uri)
 			err := nftKeeper.SaveClass(ctx, class)
 			if err != nil {
 				panic(err)
@@ -685,9 +685,6 @@ func migrateDelegation(ctx sdk.Context, homePath string, stakingKeeper *wstaking
 func migrateFixedDeposit(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, kk *kyckeeper.Keeper) {
 	fixedDeposits := stakingKeeper.GetAllFixedDeposit(ctx)
 	for _, fixedDeposit := range fixedDeposits {
-		if fixedDeposit.Account == "" {
-			continue
-		}
 		meid, ok := stakingKeeper.GetMeid(ctx, fixedDeposit.Account)
 		if !ok {
 			panic(fmt.Errorf("meid not found: %s", fixedDeposit.Account))

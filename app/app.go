@@ -6,7 +6,7 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_12"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_13"
 	"io"
 	"io/fs"
 	"net/http"
@@ -87,7 +87,7 @@ var (
 	// Upgrades contains the upgrade handlers for the application
 	Upgrades = []upgrades.Upgrade{
 		v2_0_10.Upgrade,
-		v2_0_12.Upgrade,
+		v2_0_13.Upgrade,
 	}
 )
 
