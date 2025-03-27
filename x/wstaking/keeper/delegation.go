@@ -99,7 +99,7 @@ func (k Keeper) Unbond(ctx sdk.Context, delAmount math.Int, isMeid bool, delegat
 // bondedTokensToNotBonded transfers coins from the bonded to the not bonded pool within staking
 func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, tokens math.Int) {
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokens))
-	if err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, stakingtypes.BondedPoolName, stakingtypes.NotBondedPoolName, coins); err != nil {
+	if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, stakingtypes.BondedPoolName, stakingtypes.NotBondedPoolName, coins, "BondedTokensToNotBonded"); err != nil {
 		panic(err)
 	}
 }
@@ -216,7 +216,7 @@ func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.A
 	coins := sdk.NewCoins(coin)
 	// add coins to user account
 	if !coin.Amount.IsZero() {
-		err = k.bankKeeper.SendCoins(ctx, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), del.GetDelegatorAddr(), coins)
+		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), del.GetDelegatorAddr(), coins, fmt.Sprintf("WithdrawDelegationRewards_%s", region.RegionId))
 		if err != nil {
 			return nil, err
 		}

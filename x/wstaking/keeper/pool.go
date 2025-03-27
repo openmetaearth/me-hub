@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -25,7 +27,9 @@ func (k Keeper) TotalBondedStakePool(ctx sdk.Context) math.Int {
 // bondedStakeTokensToNotBonded transfers coins from the bonded to the not bonded pool within staking
 func (k Keeper) BondedStakeTokensToNotBonded(ctx sdk.Context, tokens math.Int) {
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokens))
-	if err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.BondedStakePoolName, types.NotBondedStakePoolName, coins); err != nil {
+	if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, types.BondedStakePoolName, types.NotBondedStakePoolName, coins,
+		fmt.Sprintf("BondedStakeTokensToNotBonded_SendCoinsFromBondedStakePoolToNotBondedStakePool"),
+	); err != nil {
 		panic(err)
 	}
 }
@@ -33,7 +37,9 @@ func (k Keeper) BondedStakeTokensToNotBonded(ctx sdk.Context, tokens math.Int) {
 // notBondedStakeTokensToBonded transfers coins from the not bonded to the bonded pool within staking
 func (k Keeper) NotBondedStakeTokensToBonded(ctx sdk.Context, tokens math.Int) {
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokens))
-	if err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.NotBondedStakePoolName, types.BondedStakePoolName, coins); err != nil {
+	if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, types.NotBondedStakePoolName, types.BondedStakePoolName, coins,
+		fmt.Sprintf("NotBondedStakeTokensToBonded_SendCoinsFromNotBondedStakePoolToBondedStakePool"),
+	); err != nil {
 		panic(err)
 	}
 }

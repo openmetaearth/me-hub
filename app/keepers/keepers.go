@@ -233,14 +233,6 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 	)
 
-	//a.BankKeeper = bankkeeper.NewBaseKeeper(
-	//	appCodec,
-	//	a.keys[banktypes.StoreKey],
-	//	a.AccountKeeper,
-	//	moduleAccountAddrs,
-	//	govModuleAddress,
-	//)
-
 	a.DaoKeeper = daokeeper.NewKeeper(
 		appCodec,
 		a.keys[daotypes.StoreKey],
@@ -267,13 +259,6 @@ func (a *AppKeepers) InitKeepers(
 		a.BankKeeper,
 	)
 
-	//a.StakingKeeper = stakingkeeper.NewKeeper(
-	//	appCodec,
-	//	a.keys[stakingtypes.StoreKey],
-	//	a.AccountKeeper,
-	//	a.BankKeeper,
-	//	govModuleAddress,
-	//)
 	a.StakingKeeper = wstakingkeeper.NewKeeper(
 		appCodec,
 		a.keys[stakingtypes.StoreKey],

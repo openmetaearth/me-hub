@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/st-chain/me-hub/app/params"
-	minttypes "github.com/st-chain/me-hub/x/wmint/types"
-	"github.com/st-chain/me-hub/x/wstaking/types"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/st-chain/me-hub/app/params"
+	minttypes "github.com/st-chain/me-hub/x/wmint/types"
+	"github.com/st-chain/me-hub/x/wstaking/types"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -125,7 +126,7 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 	}
 
 	//1. send principal from user account principal module account
-	err = k.bankKeeper.SendCoinsFromAccountToModule(
+	err = k.bankKeeper.Extend().SendCoinsFromAccountToModule(
 		ctx,
 		accAddr,
 		types.FixedDepositPrincipalPool,
@@ -136,11 +137,13 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 	}
 
 	//2. send interest from region base account to region interest account
-	err = k.bankKeeper.SendCoins(
+	err = k.bankKeeper.Extend().SendCoinsWithTag(
 		ctx,
 		regionBaseAddr,
 		regionInterestAddr,
-		sdk.NewCoins(interest))
+		sdk.NewCoins(interest),
+		fmt.Sprintf("DoFixedDeposit_SendInterestFromRegionBaseAccountToRegionInterestAccount_%s", region.RegionId),
+	)
 	if err != nil {
 		return nil, types.ErrDoFixedDeposit.Wrapf("send coin from account(%s) to interest account(%s) error (%s)",
 			accAddr.String(), regionInterestAddr.String(), err)
@@ -263,19 +266,23 @@ func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWit
 	expired := fixedDeposit.EndTime.Unix() <= ctx.BlockTime().Unix()
 	if expired {
 		//1. deposit period has expired, send the principal from principal module account to user account
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx,
+		err = k.bankKeeper.Extend().SendCoinsFromModuleToAccountWithTag(ctx,
 			types.FixedDepositPrincipalPool,
 			accAddr,
-			sdk.NewCoins(fixedDeposit.Principal))
+			sdk.NewCoins(fixedDeposit.Principal),
+			fmt.Sprintf("WithdrawFixedDeposit_SendPrincipalFromPrincipalModuleAccountToUserAccount_%s", region.RegionId),
+		)
 		if err != nil {
 			return nil, types.ErrDoFixedWithDraw.Wrapf("send coin from principal vault to account error (%s)", err)
 		}
 
 		//2. deposit period has expired, send the interest from interest account to user account
-		err = k.bankKeeper.SendCoins(ctx,
+		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
 			regionInterestAddr,
 			accAddr,
-			sdk.NewCoins(fixedDeposit.Interest))
+			sdk.NewCoins(fixedDeposit.Interest),
+			fmt.Sprintf("WithdrawFixedDeposit_SendInterestFromInterestAccountToUserAccount_%s", region.RegionId),
+		)
 		if err != nil {
 			return nil, types.ErrDoFixedWithDraw.Wrapf("send coin from interest vault to account error (%s)", err)
 		}
