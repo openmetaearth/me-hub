@@ -19,10 +19,12 @@ func (k Keeper) SendInviteReward(ctx sdk.Context, inviter, invitee, regionId str
 		if hasInviterReward {
 			return nil
 		}
-		err := k.bankKeeper.SendCoins(ctx,
+		err := k.bankKeeper.Extend().SendCoinsWithTag(ctx,
 			sdk.MustAccAddressFromBech32(region.RegionTreasureAddr),
 			sdk.MustAccAddressFromBech32(inviter),
-			sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.InviteReward)))
+			sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.InviteReward)),
+			fmt.Sprintf("SendInviteReward_InviteReward_%s", region.RegionId),
+		)
 		if err != nil {
 			return fmt.Errorf("send kyc reward to inviter, %v", err)
 		}

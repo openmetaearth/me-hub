@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -151,11 +152,13 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 		return nil, sdkerrors.Wrapf(types.ErrUnknownAccount, "receiver account %s format error %s", msg.Receiver, err)
 	}
 
-	err = k.bankKeeper.SendCoins(
+	err = k.bankKeeper.Extend().SendCoinsWithTag(
 		ctx,
 		fromAddr,
 		toAddr,
-		msg.Amount)
+		msg.Amount,
+		fmt.Sprintf("WithdrawFromRegion_SendCoinsFromRegionTreasureAccountToUserAccount_%s", region.RegionId),
+	)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "region %s have enough balance", region.RegionTreasureAddr)
 	}

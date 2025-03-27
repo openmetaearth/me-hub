@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/st-chain/me-hub/x/wstaking/types"
@@ -20,11 +21,13 @@ func (k MsgServer) WithdrawFromGlobalDaoFeePool(goCtx context.Context, msg *type
 	}
 
 	fromAddr := k.daoKeeper.GetGlobalDaoFeePoolAddr(ctx)
-	err = k.bankKeeper.SendCoins(
+	err = k.bankKeeper.Extend().SendCoinsWithTag(
 		ctx,
 		fromAddr,
 		toAddr,
-		msg.Amount)
+		msg.Amount,
+		"WithdrawFromGlobalDaoFeePool_SendCoinsFromGlobalDaoFeePoolToUserAccount",
+	)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(err, "retrieve fee from global fee pool error: from(%s), to (%s)", fromAddr, toAddr.String())
 	}

@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"context"
+	"fmt"
+	"strconv"
+
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"fmt"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -16,7 +18,6 @@ import (
 	kycTypes "github.com/st-chain/me-hub/x/kyc/types"
 	"github.com/st-chain/me-hub/x/megroup/types"
 	stakingTypes "github.com/st-chain/me-hub/x/wstaking/types"
-	"strconv"
 )
 
 type kycHookFunc func(ctx sdk.Context, eventType string, beforeData interface{}, afterData interface{}) error
@@ -210,14 +211,14 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 			return errors.Wrapf(types.ErrRegionNotExist, fmt.Sprintf("group's region = %s", nowRegionID))
 		}
 		rewardsCoin := sdk.NewCoin(params.BaseDenom, math.NewInt(1000000))
-		err = k.bankKeeper.SendCoins(sdkCtx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
-			sdk.MustAccAddressFromBech32(address), sdk.NewCoins(rewardsCoin))
+		err = k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(sdkCtx, region.GetRegionTreasureAddr(),
+			address, sdk.NewCoins(rewardsCoin), fmt.Sprintf("ProcKycRegionChange_JoinGroupReward_SendRewardsFromRegionTreasureToAddress_%s", region.RegionId))
 		if err != nil {
 			return errors.Wrapf(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
 				err.Error(), region.GetRegionTreasureAddr(), address))
 		}
-		err = k.bankKeeper.SendCoins(sdkCtx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
-			sdk.MustAccAddressFromBech32(newGrpInfo.Admin), sdk.NewCoins(rewardsCoin))
+		err = k.bankKeeper.Extend().SendCoinsWithTag(sdkCtx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
+			sdk.MustAccAddressFromBech32(newGrpInfo.Admin), sdk.NewCoins(rewardsCoin), fmt.Sprintf("ProcKycRegionChange_JoinGroupReward_SendRewardsFromRegionTreasureToAdmin_%s", region.RegionId))
 		if err != nil {
 			return errors.Wrapf(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
 				err.Error(), region.GetRegionTreasureAddr(), newGrpInfo.Admin))
