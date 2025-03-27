@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -20,7 +19,7 @@ func GetCmdQueryStakes() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 			params := &types.QueryStakesRequest{}
-			res, err := queryClient.Stakes(context.Background(), params)
+			res, err := queryClient.Stakes(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

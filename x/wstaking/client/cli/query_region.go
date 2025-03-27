@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -27,7 +26,7 @@ func GetCmdQueryRegion() *cobra.Command {
 			params := &types.QueryRegionRequest{
 				RegionId: strings.ToLower(argRegionId),
 			}
-			res, err := queryClient.Region(context.Background(), params)
+			res, err := queryClient.Region(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -54,7 +53,7 @@ func GetCmdQueryAllRegion() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			params := &types.QueryAllRegionRequest{}
-			res, err := queryClient.AllRegion(context.Background(), params)
+			res, err := queryClient.AllRegion(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"context"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -22,7 +20,7 @@ func CmdShowRecordByAddress() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 			param := &types.QueryRecordsByAddress{Account: address}
-			res, err := queryClient.QueryRecordByAddress(context.Background(), param)
+			res, err := queryClient.QueryRecordByAddress(cmd.Context(), param)
 			if err != nil {
 				return err
 			}
@@ -33,6 +31,7 @@ func CmdShowRecordByAddress() *cobra.Command {
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
+
 func CmdShowAllRecord() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "all-records",
@@ -51,7 +50,7 @@ func CmdShowAllRecord() *cobra.Command {
 			params := &types.QueryAllRecords{
 				Pagination: pageReq,
 			}
-			res, err := queryClient.QueryAllRecord(context.Background(), params)
+			res, err := queryClient.QueryAllRecord(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -61,6 +60,7 @@ func CmdShowAllRecord() *cobra.Command {
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
+
 func CmdShowReviewRecord() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show-review-record [actionNumber]",
@@ -74,7 +74,7 @@ func CmdShowReviewRecord() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 			param := types.QueryReviewRecordByNumber{ActionNumber: id}
-			res, err := queryClient.QueryReviewRecordByID(context.Background(), &param)
+			res, err := queryClient.QueryReviewRecordByID(cmd.Context(), &param)
 			if err != nil {
 				return err
 			}
