@@ -29,6 +29,7 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	appkeepers "github.com/st-chain/me-hub/app/keepers"
+	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/app/upgrades"
 	"github.com/st-chain/me-hub/utils"
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
@@ -45,6 +46,7 @@ import (
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencertypes "github.com/st-chain/me-hub/x/sequencer/types"
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
+	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
 	wnftkeeper "github.com/st-chain/me-hub/x/wnft/keeper"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
@@ -87,7 +89,7 @@ func CreateUpgradeHandler(
 		migrateValidators(ctx, keepers.StakingKeeper)
 
 		ctx.Logger().Info("9.fixed deposit")
-		migrateFixedDeposit(ctx, keepers.StakingKeeper, keepers.KycKeeper)
+		migrateFixedDeposit(ctx, keepers.StakingKeeper, keepers.KycKeeper, keepers.BankKeeper)
 
 		ctx.Logger().Info("5.init kyc and did module")
 		homePath := GetPath(keepers.UpgradeKeeper)
@@ -699,9 +701,13 @@ func migrateDelegation(ctx sdk.Context, homePath string, stakingKeeper *wstaking
 	})
 }
 
-func migrateFixedDeposit(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, kk *kyckeeper.Keeper) {
+func migrateFixedDeposit(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, kk *kyckeeper.Keeper, bk wbankkeeper.BaseKeeperWrapper) {
+	balance := bk.GetBalance(ctx, authtypes.NewModuleAddress(wstakingtypes.FixedDepositPrincipalPool), params.BaseDenom)
+
 	fixedDeposits := stakingKeeper.GetAllFixedDeposit(ctx)
+	totalDeposit := sdk.ZeroInt()
 	for _, fixedDeposit := range fixedDeposits {
+		totalDeposit = totalDeposit.Add(fixedDeposit.Principal.Amount)
 		meid, ok := stakingKeeper.GetMeid(ctx, fixedDeposit.Account)
 		if !ok {
 			panic(fmt.Errorf("meid not found: %s", fixedDeposit.Account))
@@ -712,5 +718,18 @@ func migrateFixedDeposit(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, 
 		}
 		region.FixedDepositAmount = region.FixedDepositAmount.Add(fixedDeposit.Principal.Amount)
 		stakingKeeper.SetRegion(ctx, region)
+	}
+
+	if !balance.Amount.Equal(totalDeposit) {
+		panic(fmt.Sprintf("total deposit amount is not equal to the balance: %s, %s", totalDeposit, balance.Amount))
+	}
+
+	totalDepositInRegion := sdk.ZeroInt()
+	regions := stakingKeeper.GetAllRegion(ctx)
+	for _, region := range regions {
+		totalDepositInRegion = totalDepositInRegion.Add(region.FixedDepositAmount)
+	}
+	if !balance.Amount.Equal(totalDepositInRegion) {
+		panic(fmt.Sprintf("total deposit amount in region is not equal to the balance: %s, %s", totalDeposit, balance.Amount))
 	}
 }
