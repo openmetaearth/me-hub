@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"context"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -14,7 +12,10 @@ func CmdListSequencer() *cobra.Command {
 		Use:   "list-sequencer",
 		Short: "list all sequencer",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			pageReq, err := client.ReadPageRequest(cmd.Flags())
 			if err != nil {
@@ -27,7 +28,7 @@ func CmdListSequencer() *cobra.Command {
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.Sequencers(context.Background(), params)
+			res, err := queryClient.Sequencers(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -48,7 +49,10 @@ func CmdShowSequencer() *cobra.Command {
 		Short: "shows a sequencer",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			queryClient := types.NewQueryClient(clientCtx)
 
@@ -58,7 +62,7 @@ func CmdShowSequencer() *cobra.Command {
 				SequencerAddress: argSequencerAddress,
 			}
 
-			res, err := queryClient.Sequencer(context.Background(), params)
+			res, err := queryClient.Sequencer(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

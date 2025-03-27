@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"context"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -15,7 +13,10 @@ func CmdShowSequencersByRollapp() *cobra.Command {
 		Short: "shows a sequencers_by_rollapp",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			queryClient := types.NewQueryClient(clientCtx)
 
@@ -25,7 +26,7 @@ func CmdShowSequencersByRollapp() *cobra.Command {
 				RollappId: argRollappId,
 			}
 
-			res, err := queryClient.SequencersByRollapp(context.Background(), params)
+			res, err := queryClient.SequencersByRollapp(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

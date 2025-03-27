@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	sdkerrors "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -46,7 +45,7 @@ func CmdListFixedDepositCfg() *cobra.Command {
 				RegionIds: regionIds,
 			}
 
-			res, err := queryClient.FixedDepositCfg(context.Background(), params)
+			res, err := queryClient.FixedDepositCfg(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -86,7 +85,7 @@ func CmdQueryFixedDepositCfg() *cobra.Command {
 				Term:     term,
 			}
 
-			res, err := queryClient.FixedDepositCfgByTerm(context.Background(), params)
+			res, err := queryClient.FixedDepositCfgByTerm(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

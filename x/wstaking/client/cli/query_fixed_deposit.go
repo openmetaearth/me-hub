@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"strconv"
 	"strings"
 
@@ -32,7 +31,7 @@ func CmdListFixedDeposit() *cobra.Command {
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.FixedDepositAll(context.Background(), params)
+			res, err := queryClient.FixedDepositAll(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -69,7 +68,7 @@ func CmdShowFixedDeposit() *cobra.Command {
 				Id: id,
 			}
 
-			res, err := queryClient.FixedDeposit(context.Background(), params)
+			res, err := queryClient.FixedDeposit(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -187,7 +186,7 @@ func CmdShowFixedDepositAmountByAcct() *cobra.Command {
 				Account: argAccount,
 			}
 
-			res, err := queryClient.FixedDepositAmountByMeid(context.Background(), params)
+			res, err := queryClient.FixedDepositAmountByMeid(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -216,7 +215,7 @@ func CmdShowFixedDepositTotalAmount() *cobra.Command {
 
 			params := &types.QueryFixedDepositTotalAmountRequest{}
 
-			res, err := queryClient.FixedDepositTotalAmount(context.Background(), params)
+			res, err := queryClient.FixedDepositTotalAmount(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
