@@ -95,7 +95,9 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	}
 
 	if msg.Level >= didtypes.KYC_LEVEL_TWO {
-		m.stkKeeper.SendInviteReward(ctx, msg.Inviter, msg.Address, msg.RegionId)
+		if err := m.stkKeeper.SendInviteReward(ctx, msg.Inviter, msg.Address, msg.RegionId); err != nil {
+			return &types.MsgApproveResponse{}, sdkerrors.Wrap(types.ErrInviteReward, err.Error())
+		}
 	}
 
 	// add account if not exists
