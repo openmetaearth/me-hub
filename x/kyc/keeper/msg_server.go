@@ -293,7 +293,7 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 		return &types.MsgCreateSBTResponse{}, errors.Wrap(err, "mint SBT failed")
 	}
 
-	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeCreateSBT, msg.Did, msg.Uri, msg.UriHash, holderInfo.RegionId, holderInfo.KycLevel.String()))
+	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeCreateSBT, msg.Did, msg.Uri, msg.UriHash, holderInfo.RegionId, holderInfo.KycLevel.String(), holderInfo.Address))
 	return &types.MsgCreateSBTResponse{}, nil
 }
 
@@ -341,7 +341,7 @@ func (m msgServer) UpdateSBT(goCtx context.Context, msg *types.MsgUpdateSBT) (*t
 		return &types.MsgUpdateSBTResponse{}, errors.Wrap(err, "update SBT failed")
 	}
 
-	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeUpdateSBT, msg.Did, msg.Uri, msg.UriHash, holderInfo.RegionId, holderInfo.KycLevel.String()))
+	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeUpdateSBT, msg.Did, msg.Uri, msg.UriHash, holderInfo.RegionId, holderInfo.KycLevel.String(), holderInfo.Address))
 	return &types.MsgUpdateSBTResponse{}, nil
 }
 
@@ -376,6 +376,6 @@ func (m msgServer) DeleteSBT(goCtx context.Context, msg *types.MsgDeleteSBT) (*t
 		return &types.MsgDeleteSBTResponse{}, errors.Wrap(err, "burn SBT failed")
 	}
 
-	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeDeleteSBT, msg.Did, "", "", holderInfo.RegionId, holderInfo.KycLevel.String()))
+	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeDeleteSBT, msg.Did, "", "", holderInfo.RegionId, holderInfo.KycLevel.String(), holderInfo.Address))
 	return &types.MsgDeleteSBTResponse{}, nil
 }
