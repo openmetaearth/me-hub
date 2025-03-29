@@ -444,7 +444,7 @@ func (k Keeper) transferUnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, 
 	}
 
 	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAddr, delAddr, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())),
-		fmt.Sprintf("TransferUnRegisterMeid_UserCurrentInterestSettlement_%s", &region.RegionId),
+		fmt.Sprintf("TransferUnRegisterMeid_UserCurrentInterestSettlement_%s", region.RegionId),
 	)
 	if err != nil {
 		return amount, err
