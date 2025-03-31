@@ -730,6 +730,9 @@ func migrateFixedDeposit(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, 
 	totalDepositInRegion := sdk.ZeroInt()
 	regions := stakingKeeper.GetAllRegion(ctx)
 	for _, region := range regions {
+		if region.FixedDepositAmount.IsNil() {
+			region.FixedDepositAmount = sdk.ZeroInt()
+		}
 		totalDepositInRegion = totalDepositInRegion.Add(region.FixedDepositAmount)
 	}
 	if !balance.Amount.Equal(totalDepositInRegion) {
