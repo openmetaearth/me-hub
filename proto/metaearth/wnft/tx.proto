@@ -15,6 +15,9 @@ service Msg {
 
   // MintNFT defines a method to new nft.
   rpc MintNFT(MsgMintNFT) returns (MsgMintNFTResponse);
+
+  // Send defines a method to send a nft from one account to another account.
+  rpc Send(MsgSend) returns (MsgSendResponse);
 }
 
 message MsgNewClass {
@@ -67,3 +70,22 @@ message MsgMintNFT {
 
 // MsgMintResponse defines the Msg/Mint response type.
 message MsgMintNFTResponse {}
+
+// MsgSend represents a message to send a nft from one account to another account.
+message MsgSend {
+  option (cosmos.msg.v1.signer) = "sender";
+
+  // class_id defines the unique identifier of the nft classification, similar to the contract address of ERC721
+  string class_id = 1;
+
+  // id defines the unique identification of nft
+  string id = 2;
+
+  // sender is the address of the owner of nft
+  string sender = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // receiver is the receiver address of nft
+  string receiver = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+// MsgSendResponse defines the Msg/Send response type.
+message MsgSendResponse {}

@@ -109,3 +109,49 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 
 	return &types.MsgMintNFTResponse{}, nil
 }
+
+// Send implements Send method of the types.MsgServer.
+func (k MsgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSendResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	owner := k.GetOwner(ctx, msg.ClassId, msg.Id)
+	if !owner.Equals(sender) {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not the owner of nft %s", sender, msg.Id)
+	}
+
+	receiver, err := sdk.AccAddressFromBech32(msg.Receiver)
+	if err != nil {
+		return nil, err
+	}
+
+	class, found := k.GetClass(ctx, msg.ClassId)
+	if !found {
+		return nil, sdkerrors.Wrap(nft.ErrClassNotExists, msg.ClassId)
+	}
+
+	myNFT, found := k.GetNFT(ctx, msg.ClassId, msg.Id)
+	if !found {
+		return nil, sdkerrors.Wrap(nft.ErrNFTNotExists, msg.Id)
+	}
+
+	if err := k.Transfer(ctx, msg.ClassId, msg.Id, receiver); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeSendNFT,
+			sdk.NewAttribute(types.AttributeKeyClassID, msg.ClassId),
+			sdk.NewAttribute(types.AttributeKeyTokenID, msg.Id),
+			sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
+			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
+			sdk.NewAttribute(types.AttributeKeyUri, myNFT.Uri),
+			sdk.NewAttribute(types.AttributeKeyClassName, class.Name),
+		),
+	})
+	return &types.MsgSendResponse{}, nil
+}
