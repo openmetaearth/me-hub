@@ -186,6 +186,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 		sdk.NewAttribute(types.AttributeKeyRegionIdChanged, msg.RegionId),
 		sdk.NewAttribute(types.AttributeKeyLevel, perLevel.String()),
 		sdk.NewAttribute(types.AttributeKeyLevelChanged, msg.Level.String()),
+		sdk.NewAttribute(types.AttributeKeyInviter, msg.Inviter),
 	)
 	ctx.EventManager().EmitEvent(event)
 	ctx.EventManager().EmitEvent(types.NewKycEvent(address.String(), msg.Did, msg.Level, "update", m.takeSeq(ctx)))

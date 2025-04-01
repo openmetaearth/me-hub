@@ -22,6 +22,7 @@ const (
 	AttributeKeyRegionIdChanged = "region_id_changed"
 	AttributeKeyLevel           = "level"
 	AttributeKeyLevelChanged    = "level_changed"
+	AttributeKeyInviter         = "inviter"
 )
 
 func NewKycEvent(address string, did string, level didTypes.KycLevel, action string, seq uint64) sdkTypes.Event {
