@@ -43,6 +43,7 @@ func NewSbtEvent(eventType, did, uri, hash, regionId, kycLevel, meIdAddress stri
 		{Key: "regionId", Value: regionId},
 		{Key: "kycLevel", Value: kycLevel},
 		{Key: "meIdAddress", Value: meIdAddress},
+		{Key: "class_id", Value: ModuleName},
 	}
 	return sdkTypes.NewEvent(eventType, attributes...)
 }
