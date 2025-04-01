@@ -96,10 +96,15 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 		return nil, err
 	}
 
-	_ = ctx.EventManager().EmitTypedEvent(&nft.EventMint{
-		ClassId: msg.ClassId,
-		Id:      msg.TokenId,
-		Owner:   msg.Sender,
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeMintNFT,
+			sdk.NewAttribute(types.AttributeKeyClassID, msg.ClassId),
+			sdk.NewAttribute(types.AttributeKeyTokenID, msg.TokenId),
+			sdk.NewAttribute(types.AttributeKeyOwner, msg.Sender),
+			sdk.NewAttribute(types.AttributeKeyUri, msg.Uri),
+			sdk.NewAttribute(types.AttributeKeyClassName, class.Name),
+		),
 	})
 
 	return &types.MsgMintNFTResponse{}, nil
