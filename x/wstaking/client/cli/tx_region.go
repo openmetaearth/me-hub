@@ -89,11 +89,11 @@ func CmdRemoveRegion() *cobra.Command {
 func CmdWithdrawFromRegion() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "withdraw-from-region [region-id] [receiver] [amount]",
-		Short: "Send coins from region-treasury to receiver by global admin",
+		Short: "Send coins from region-treasury to receiver by global dao",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Send coins from region-treasury to receiver by global admin.
+			fmt.Sprintf(`Send coins from region-treasury to receiver by global dao.
 Example:
-$ %s tx staking withdraw-from-region me_earth me1h47kmp4q5vkwjw350y5v5ecuzjtmct4zmrlhwf 100mec --from global-admin
+$ %s tx staking withdraw-from-region me_earth me1h47kmp4q5vkwjw350y5v5ecuzjtmct4zmrlhwf 100mec --from global-dao
 `,
 				version.AppName,
 			),

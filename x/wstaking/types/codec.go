@@ -12,8 +12,15 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgStake{}, "cosmos-sdk/MsgStake", nil)
 	cdc.RegisterConcrete(&MsgUnstake{}, "cosmos-sdk/MsgUnstake", nil)
 	cdc.RegisterConcrete(&MsgNewRegion{}, "cosmos-sdk/MsgNewRegion", nil)
-	cdc.RegisterConcrete(&MsgWithdrawDelegatorReward{}, "cosmos-sdk/MsgWithdrawDelegatorReward", nil)
 	cdc.RegisterConcrete(&MsgRemoveRegion{}, "cosmos-sdk/MsgRemoveRegion", nil)
+	cdc.RegisterConcrete(&MsgDoFixedDeposit{}, "cosmos-sdk/MsgDoFixedDeposit", nil)
+	cdc.RegisterConcrete(&MsgWithdrawFixedDeposit{}, "cosmos-sdk/MsgWithdrawFixedDeposit", nil)
+	cdc.RegisterConcrete(&MsgWithdrawDelegatorReward{}, "cosmos-sdk/MsgWithdrawDelegatorReward", nil)
+	cdc.RegisterConcrete(&MsgRemoveFixedDepositCfg{}, "cosmos-sdk/MsgRemoveFixedDepositCfg", nil)
+	cdc.RegisterConcrete(&MsgWithdrawFromRegion{}, "cosmos-sdk/MsgWithdrawFromRegion", nil)
+	cdc.RegisterConcrete(&MsgWithdrawFromGlobalDaoFeePool{}, "cosmos-sdk/MsgWithdrawFromGlobalDaoFeePool", nil)
+	cdc.RegisterConcrete(&MsgWithdrawFromTreasury{}, "cosmos-sdk/MsgWithdrawFromTreasury", nil)
+	cdc.RegisterConcrete(&MsgIbcTransferFromRegionTreasure{}, "cosmos-sdk/MsgIbcTransferFromRegionTreasure", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -28,6 +35,10 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgSetFixedDepositCfgStatus{},
 		&MsgDoFixedDeposit{},
 		&MsgWithdrawFixedDeposit{},
+		&MsgWithdrawFromRegion{},
+		&MsgWithdrawFromGlobalDaoFeePool{},
+		&MsgIbcTransferFromRegionTreasure{},
+		&MsgWithdrawFromTreasury{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

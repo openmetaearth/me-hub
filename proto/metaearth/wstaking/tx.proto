@@ -54,6 +54,8 @@ service Msg {
       returns (MsgWithdrawFromRegionResp);
   rpc WithdrawFromGlobalDaoFeePool(MsgWithdrawFromGlobalDaoFeePool)
       returns (MsgWithdrawFromGlobalDaoFeePoolResp);
+  rpc WithdrawFromTreasury(MsgWithdrawFromTreasury)
+      returns (MsgWithdrawFromTreasuryResp);
   rpc NewRecord(MsgNewRecord) returns (MsgNewRecordResponse);
   rpc ReviewRecord(MsgReviewRecord) returns (MsgReviewRecordResponse);
   rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
@@ -171,6 +173,18 @@ message MsgWithdrawFromGlobalDaoFeePool {
 }
 
 message MsgWithdrawFromGlobalDaoFeePoolResp {}
+
+message MsgWithdrawFromTreasury {
+  string withdrawer = 1;
+  string receiver = 2;
+  repeated cosmos.base.v1beta1.Coin amount = 3 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message MsgWithdrawFromTreasuryResp {}
 
 // MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator
 // from a single validator.

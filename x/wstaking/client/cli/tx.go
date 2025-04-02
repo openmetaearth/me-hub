@@ -54,6 +54,7 @@ func NewTxCmd() *cobra.Command {
 		CmdNewRegion(),
 		// CmdRemoveRegion(),
 		CmdWithdrawFromRegion(),
+		CmdWithdrawFromTreasury(),
 		CmdWithdrawFromGlobalDaoFeePool(),
 		CmdNewRecord(),
 		CmdNewReviewRecord(),

@@ -95,4 +95,5 @@ var (
 	ErrDistributionOther       = sdkerrors.Register(ModuleName, 1228, "distribution err.")
 	ErrResetValidator          = sdkerrors.Register(ModuleName, 1229, "reset validator error")
 	ErrHooks                   = sdkerrors.Register(ModuleName, 1301, "hooks error")
+	ErrWithdrawFromTreasury    = sdkerrors.Register(ModuleName, 1302, "withdraw from treasury error")
 )
