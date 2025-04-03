@@ -290,9 +290,11 @@ func (m *MsgMintNFTResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgMintNFTResponse proto.InternalMessageInfo
 
-// MsgSend represents a message to send a nft from one account to another account.
+// MsgSend represents a message to send a nft from one account to another
+// account.
 type MsgSend struct {
-	// class_id defines the unique identifier of the nft classification, similar to the contract address of ERC721
+	// class_id defines the unique identifier of the nft classification, similar
+	// to the contract address of ERC721
 	ClassId string `protobuf:"bytes,1,opt,name=class_id,json=classId,proto3" json:"class_id,omitempty"`
 	// id defines the unique identification of nft
 	Id string `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
