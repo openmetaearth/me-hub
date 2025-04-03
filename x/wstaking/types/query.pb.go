@@ -1691,7 +1691,7 @@ type QueryClient interface {
 	FixedDepositAmountByMeid(ctx context.Context, in *QueryFixedDepositAmountByMeidRequest, opts ...grpc.CallOption) (*QueryFixedDepositAmountByMeidResponse, error)
 	// Queries a list of FixedDepositByAcct items.
 	FixedDepositByAcct(ctx context.Context, in *QueryFixedDepositByAcctRequest, opts ...grpc.CallOption) (*QueryFixedDepositByAcctResponse, error)
-	//  // Queries a list of FixedDepositByRegion items.
+	// Queries a list of FixedDepositByRegion items.
 	FixedDepositByRegion(ctx context.Context, in *QueryFixedDepositByRegionRequest, opts ...grpc.CallOption) (*QueryFixedDepositByRegionResponse, error)
 	// Queries a list of FixedDeposit items.
 	FixedDeposit(ctx context.Context, in *QueryGetFixedDepositRequest, opts ...grpc.CallOption) (*QueryGetFixedDepositResponse, error)
@@ -1879,7 +1879,7 @@ type QueryServer interface {
 	FixedDepositAmountByMeid(context.Context, *QueryFixedDepositAmountByMeidRequest) (*QueryFixedDepositAmountByMeidResponse, error)
 	// Queries a list of FixedDepositByAcct items.
 	FixedDepositByAcct(context.Context, *QueryFixedDepositByAcctRequest) (*QueryFixedDepositByAcctResponse, error)
-	//  // Queries a list of FixedDepositByRegion items.
+	// Queries a list of FixedDepositByRegion items.
 	FixedDepositByRegion(context.Context, *QueryFixedDepositByRegionRequest) (*QueryFixedDepositByRegionResponse, error)
 	// Queries a list of FixedDeposit items.
 	FixedDeposit(context.Context, *QueryGetFixedDepositRequest) (*QueryGetFixedDepositResponse, error)
