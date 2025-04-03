@@ -81,7 +81,8 @@ export interface StreamerStream {
   start_time?: string;
 
   /**
-   * distr_epoch_identifier is what epoch type di-stribution will be triggered by
+   * distr_epoch_identifier is what epoch type di-stribution will be triggered
+   * by
    * (day, week, etc.)
    */
   distr_epoch_identifier?: string;

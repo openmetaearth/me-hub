@@ -49,12 +49,22 @@ export interface MsgUpdateState {
   version: number;
   /**
    * BDs is a list of block description objects (one per block)
-   * the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
+   * the list must be ordered by height, starting from startHeight to
+   * startHeight+numBlocks-1
    */
   BDs: BlockDescriptors | undefined;
 }
 
 export interface MsgUpdateStateResponse {
+}
+
+export interface MsgSkipDelayRollapp {
+  creator: string;
+  rollappId: string;
+  skip: boolean;
+}
+
+export interface MsgSkipDelayRollappResponse {
 }
 
 function createBaseMsgCreateRollapp(): MsgCreateRollapp {
@@ -322,9 +332,116 @@ export const MsgUpdateStateResponse = {
   },
 };
 
+function createBaseMsgSkipDelayRollapp(): MsgSkipDelayRollapp {
+  return { creator: "", rollappId: "", skip: false };
+}
+
+export const MsgSkipDelayRollapp = {
+  encode(message: MsgSkipDelayRollapp, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.creator !== "") {
+      writer.uint32(10).string(message.creator);
+    }
+    if (message.rollappId !== "") {
+      writer.uint32(18).string(message.rollappId);
+    }
+    if (message.skip === true) {
+      writer.uint32(24).bool(message.skip);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSkipDelayRollapp {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgSkipDelayRollapp();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.creator = reader.string();
+          break;
+        case 2:
+          message.rollappId = reader.string();
+          break;
+        case 3:
+          message.skip = reader.bool();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgSkipDelayRollapp {
+    return {
+      creator: isSet(object.creator) ? String(object.creator) : "",
+      rollappId: isSet(object.rollappId) ? String(object.rollappId) : "",
+      skip: isSet(object.skip) ? Boolean(object.skip) : false,
+    };
+  },
+
+  toJSON(message: MsgSkipDelayRollapp): unknown {
+    const obj: any = {};
+    message.creator !== undefined && (obj.creator = message.creator);
+    message.rollappId !== undefined && (obj.rollappId = message.rollappId);
+    message.skip !== undefined && (obj.skip = message.skip);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgSkipDelayRollapp>, I>>(object: I): MsgSkipDelayRollapp {
+    const message = createBaseMsgSkipDelayRollapp();
+    message.creator = object.creator ?? "";
+    message.rollappId = object.rollappId ?? "";
+    message.skip = object.skip ?? false;
+    return message;
+  },
+};
+
+function createBaseMsgSkipDelayRollappResponse(): MsgSkipDelayRollappResponse {
+  return {};
+}
+
+export const MsgSkipDelayRollappResponse = {
+  encode(_: MsgSkipDelayRollappResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSkipDelayRollappResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgSkipDelayRollappResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgSkipDelayRollappResponse {
+    return {};
+  },
+
+  toJSON(_: MsgSkipDelayRollappResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgSkipDelayRollappResponse>, I>>(_: I): MsgSkipDelayRollappResponse {
+    const message = createBaseMsgSkipDelayRollappResponse();
+    return message;
+  },
+};
+
 /** Msg defines the Msg service. */
 export interface Msg {
   CreateRollapp(request: MsgCreateRollapp): Promise<MsgCreateRollappResponse>;
+  SkipDelayRollapp(request: MsgSkipDelayRollapp): Promise<MsgSkipDelayRollappResponse>;
   UpdateState(request: MsgUpdateState): Promise<MsgUpdateStateResponse>;
 }
 
@@ -333,12 +450,19 @@ export class MsgClientImpl implements Msg {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.CreateRollapp = this.CreateRollapp.bind(this);
+    this.SkipDelayRollapp = this.SkipDelayRollapp.bind(this);
     this.UpdateState = this.UpdateState.bind(this);
   }
   CreateRollapp(request: MsgCreateRollapp): Promise<MsgCreateRollappResponse> {
     const data = MsgCreateRollapp.encode(request).finish();
     const promise = this.rpc.request("dymensionxyz.dymension.rollapp.Msg", "CreateRollapp", data);
     return promise.then((data) => MsgCreateRollappResponse.decode(new _m0.Reader(data)));
+  }
+
+  SkipDelayRollapp(request: MsgSkipDelayRollapp): Promise<MsgSkipDelayRollappResponse> {
+    const data = MsgSkipDelayRollapp.encode(request).finish();
+    const promise = this.rpc.request("dymensionxyz.dymension.rollapp.Msg", "SkipDelayRollapp", data);
+    return promise.then((data) => MsgSkipDelayRollappResponse.decode(new _m0.Reader(data)));
   }
 
   UpdateState(request: MsgUpdateState): Promise<MsgUpdateStateResponse> {

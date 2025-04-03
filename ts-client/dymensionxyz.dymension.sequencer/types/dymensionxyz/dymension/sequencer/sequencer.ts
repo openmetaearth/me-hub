@@ -14,9 +14,15 @@ export const protobufPackage = "dymensionxyz.dymension.sequencer";
  * The sequencer could be attached to only one rollapp (rollappId).
  */
 export interface Sequencer {
-  /** sequencerAddress is the bech32-encoded address of the sequencer account which is the account that the message was sent from. */
+  /**
+   * sequencerAddress is the bech32-encoded address of the sequencer account
+   * which is the account that the message was sent from.
+   */
   sequencerAddress: string;
-  /** pubkey is the public key of the sequencers' dymint client, as a Protobuf Any. */
+  /**
+   * pubkey is the public key of the sequencers' dymint client, as a Protobuf
+   * Any.
+   */
   dymintPubKey:
     | Any
     | undefined;
@@ -26,7 +32,10 @@ export interface Sequencer {
   description:
     | Description
     | undefined;
-  /** jailed defined whether the sequencer has been jailed from bonded status or not. */
+  /**
+   * jailed defined whether the sequencer has been jailed from bonded status or
+   * not.
+   */
   jailed: boolean;
   /** proposer defines whether the sequencer is a proposer or not. */
   proposer: boolean;
@@ -34,9 +43,15 @@ export interface Sequencer {
   status: OperatingStatus;
   /** tokens define the delegated tokens (incl. self-delegation). */
   tokens: Coin[];
-  /** unbonding_height defines, if unbonding, the height at which this sequencer has begun unbonding. */
+  /**
+   * unbonding_height defines, if unbonding, the height at which this sequencer
+   * has begun unbonding.
+   */
   unbondingHeight: number;
-  /** unbond_time defines, if unbonding, the min time for the sequencer to complete unbonding. */
+  /**
+   * unbond_time defines, if unbonding, the min time for the sequencer to
+   * complete unbonding.
+   */
   unbondTime: Date | undefined;
 }
 

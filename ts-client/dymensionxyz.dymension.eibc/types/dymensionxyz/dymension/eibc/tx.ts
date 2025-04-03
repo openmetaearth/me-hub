@@ -5,7 +5,10 @@ export const protobufPackage = "dymensionxyz.dymension.eibc";
 
 /** MsgFulfillOrder defines the FulfillOrder request type. */
 export interface MsgFulfillOrder {
-  /** fulfiller_address is the bech32-encoded address of the account which the message was sent from. */
+  /**
+   * fulfiller_address is the bech32-encoded address of the account which the
+   * message was sent from.
+   */
   fulfillerAddress: string;
   /** order_id is the unique identifier of the order to be fulfilled. */
   orderId: string;

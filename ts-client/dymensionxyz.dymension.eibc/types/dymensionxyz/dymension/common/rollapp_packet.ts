@@ -16,7 +16,10 @@ export interface RollappPacket {
   type: RollappPacket_Type;
   /** stores the result of onAck, onTimeout or onRecv/writeAck */
   error: string;
-  /** who was the original person who gets the money (recipient of ics20 transfer) of the packet? */
+  /**
+   * who was the original person who gets the money (recipient of ics20
+   * transfer) of the packet?
+   */
   originalTransferTarget: string;
 }
 

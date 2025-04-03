@@ -22,8 +22,8 @@ export interface Params {
   disputePeriodInBlocks: number;
   /**
    * deployer_whitelist is a list of the
-   * accounts that are allowed to create a rollapp and maximum number of rollapps.
-   * In the case of an empty list, there are no restrictions
+   * accounts that are allowed to create a rollapp and maximum number of
+   * rollapps. In the case of an empty list, there are no restrictions
    */
   deployerWhitelist: DeployerParams[];
   rollappsEnabled: boolean;

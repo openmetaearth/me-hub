@@ -27,7 +27,10 @@ export interface CommonRollappPacket {
   /** stores the result of onAck, onTimeout or onRecv/writeAck */
   error?: string;
 
-  /** who was the original person who gets the money (recipient of ics20 transfer) of the packet? */
+  /**
+   * who was the original person who gets the money (recipient of ics20
+   * transfer) of the packet?
+   */
   original_transfer_target?: string;
 }
 
@@ -75,13 +78,14 @@ export interface DymensiondelayedackParams {
   bridging_fee?: string;
 
   /**
-   * `delete_packets_epoch_limit` is the hard limit of the number of finalized rollapp packets
-   * that will be deleted from the store on every epoch end.
-   * As deleting finalized rollapp packets is meant to keep the store from growing,
+   * `delete_packets_epoch_limit` is the hard limit of the number of finalized
+   * rollapp packets that will be deleted from the store on every epoch end. As
+   * deleting finalized rollapp packets is meant to keep the store from growing,
    * it is more of a "nice to have" rather than a "must have" feature,
    * this is a way to limit the time it takes to do so,
-   * even if it means potentially causing the store to temporarily grow by piling up packets
-   * that weren't deleted but rather "postponed", to subsequent epochs.
+   * even if it means potentially causing the store to temporarily grow by
+   * piling up packets that weren't deleted but rather "postponed", to
+   * subsequent epochs.
    * @format int32
    */
   delete_packets_epoch_limit?: number;

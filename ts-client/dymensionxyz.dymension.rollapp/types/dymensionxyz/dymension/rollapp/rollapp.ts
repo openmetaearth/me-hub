@@ -5,21 +5,27 @@ import { StateInfoIndex } from "./state_info";
 
 export const protobufPackage = "dymensionxyz.dymension.rollapp";
 
-/** RollappGenesisState is a partial repr of the state the hub can expect the rollapp to be in upon genesis */
+/**
+ * RollappGenesisState is a partial repr of the state the hub can expect the
+ * rollapp to be in upon genesis
+ */
 export interface RollappGenesisState {
   /**
    * If true, then full usage of the canonical ibc transfer channel is enabled.
-   * Note: in v3.1.0 and prior this field marked the completion of the 'genesis event'
-   * Keeping and renaming the field enables a seamless upgrade https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+   * Note: in v3.1.0 and prior this field marked the completion of the 'genesis
+   * event' Keeping and renaming the field enables a seamless upgrade
+   * https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
    * to the new genesis transfer protocol
-   * Note: if this field is false, ibc transfers may still be allowed in one or either direction.
+   * Note: if this field is false, ibc transfers may still be allowed in one or
+   * either direction.
    */
   transfersEnabled: boolean;
 }
 
 /**
  * Rollapp defines a rollapp object. First the RollApp is created and then
- * sequencers can be created and attached. The RollApp is identified by rollappId
+ * sequencers can be created and attached. The RollApp is identified by
+ * rollappId
  */
 export interface Rollapp {
   /**
@@ -37,11 +43,15 @@ export interface Rollapp {
   /** maxSequencers is the maximum number of sequencers. */
   maxSequencers: number;
   /**
-   * permissionedAddresses is a bech32-encoded address list of the sequencers that are allowed to serve this rollappId.
-   * In the case of an empty list, the rollapp is considered permissionless.
+   * permissionedAddresses is a bech32-encoded address list of the sequencers
+   * that are allowed to serve this rollappId. In the case of an empty list, the
+   * rollapp is considered permissionless.
    */
   permissionedAddresses: string[];
-  /** genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis */
+  /**
+   * genesis_state is a partial repr of the state the hub can expect the rollapp
+   * to be in upon genesis
+   */
   genesisState:
     | RollappGenesisState
     | undefined;
