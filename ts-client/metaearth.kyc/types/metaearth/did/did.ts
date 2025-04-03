@@ -9,6 +9,9 @@ export enum KycLevel {
   KYC_LEVEL_NONE = 0,
   KYC_LEVEL_ONE = 1,
   KYC_LEVEL_TWO = 2,
+  KYC_LEVEL_THREE = 3,
+  KYC_LEVEL_FOUR = 4,
+  KYC_LEVEL_FIVE = 5,
   UNRECOGNIZED = -1,
 }
 
@@ -23,6 +26,15 @@ export function kycLevelFromJSON(object: any): KycLevel {
     case 2:
     case "KYC_LEVEL_TWO":
       return KycLevel.KYC_LEVEL_TWO;
+    case 3:
+    case "KYC_LEVEL_THREE":
+      return KycLevel.KYC_LEVEL_THREE;
+    case 4:
+    case "KYC_LEVEL_FOUR":
+      return KycLevel.KYC_LEVEL_FOUR;
+    case 5:
+    case "KYC_LEVEL_FIVE":
+      return KycLevel.KYC_LEVEL_FIVE;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -38,6 +50,12 @@ export function kycLevelToJSON(object: KycLevel): string {
       return "KYC_LEVEL_ONE";
     case KycLevel.KYC_LEVEL_TWO:
       return "KYC_LEVEL_TWO";
+    case KycLevel.KYC_LEVEL_THREE:
+      return "KYC_LEVEL_THREE";
+    case KycLevel.KYC_LEVEL_FOUR:
+      return "KYC_LEVEL_FOUR";
+    case KycLevel.KYC_LEVEL_FIVE:
+      return "KYC_LEVEL_FIVE";
     case KycLevel.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -85,7 +103,8 @@ export interface DidInfo {
   address: string;
   /**
    * public_key is mapped to the user address
-   * the issuer will use public_key to encrypt the user's certificate to ensure the privacy of the off-chain certificate
+   * the issuer will use public_key to encrypt the user's certificate to ensure
+   * the privacy of the off-chain certificate
    */
   pubkey: string;
   status: DidStatus;

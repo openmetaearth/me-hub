@@ -29,8 +29,8 @@ export interface DymensionrollappParams {
 
   /**
    * deployer_whitelist is a list of the
-   * accounts that are allowed to create a rollapp and maximum number of rollapps.
-   * In the case of an empty list, there are no restrictions
+   * accounts that are allowed to create a rollapp and maximum number of
+   * rollapps. In the case of an empty list, there are no restrictions
    */
   deployer_whitelist?: RollappDeployerParams[];
   rollapps_enabled?: boolean;
@@ -60,12 +60,16 @@ export interface DymensionrollappRollapp {
   maxSequencers?: string;
 
   /**
-   * permissionedAddresses is a bech32-encoded address list of the sequencers that are allowed to serve this rollappId.
-   * In the case of an empty list, the rollapp is considered permissionless.
+   * permissionedAddresses is a bech32-encoded address list of the sequencers
+   * that are allowed to serve this rollappId. In the case of an empty list, the
+   * rollapp is considered permissionless.
    */
   permissionedAddresses?: string[];
 
-  /** genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis */
+  /**
+   * genesis_state is a partial repr of the state the hub can expect the rollapp
+   * to be in upon genesis
+   */
   genesis_state?: RollappRollappGenesisState;
 
   /** channel_id will be set to the canonical IBC channel of the rollapp. */
@@ -123,7 +127,8 @@ export interface DymensionrollappStateInfo {
 
   /**
    * BDs is a list of block description objects (one per block)
-   * the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
+   * the list must be ordered by height, starting from startHeight to
+   * startHeight+numBlocks-1
    * BlockDescriptors defines list of BlockDescriptor.
    */
   BDs?: RollappBlockDescriptors;
@@ -151,7 +156,8 @@ export interface RollappBlockDescriptor {
   height?: string;
 
   /**
-   * stateRoot is a 32 byte array of the hash of the block (state root of the block)
+   * stateRoot is a 32 byte array of the hash of the block (state root of the
+   * block)
    * @format byte
    */
   stateRoot?: string;
@@ -173,6 +179,8 @@ export interface RollappDeployerParams {
 }
 
 export type RollappMsgCreateRollappResponse = object;
+
+export type RollappMsgSkipDelayRollappResponse = object;
 
 export type RollappMsgUpdateStateResponse = object;
 
@@ -229,13 +237,19 @@ export interface RollappQueryParamsResponse {
   params?: DymensionrollappParams;
 }
 
+export interface RollappQuerySkipDelayRollappResponse {
+  rollapps?: string[];
+}
+
 export interface RollappRollappGenesisState {
   /**
    * If true, then full usage of the canonical ibc transfer channel is enabled.
-   * Note: in v3.1.0 and prior this field marked the completion of the 'genesis event'
-   * Keeping and renaming the field enables a seamless upgrade https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+   * Note: in v3.1.0 and prior this field marked the completion of the 'genesis
+   * event' Keeping and renaming the field enables a seamless upgrade
+   * https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
    * to the new genesis transfer protocol
-   * Note: if this field is false, ibc transfers may still be allowed in one or either direction.
+   * Note: if this field is false, ibc transfers may still be allowed in one or
+   * either direction.
    */
   transfers_enabled?: boolean;
 }
@@ -264,7 +278,8 @@ export interface RollappStateInfoIndex {
 
   /**
    * index is a sequential increasing number, updating on each
-   * state update used for indexing to a specific state info, the first index is 1
+   * state update used for indexing to a specific state info, the first index is
+   * 1
    * @format uint64
    */
   index?: string;
@@ -570,6 +585,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   queryRollapp = (rollappId: string, params: RequestParams = {}) =>
     this.request<RollappQueryGetRollappResponse, GooglerpcStatus>({
       path: `/dymensionxyz/dymension/rollapp/rollapp/${rollappId}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QuerySkipDelayRollapp
+   * @request GET:/dymensionxyz/dymension/rollapp/skip_delay_rollapp
+   */
+  querySkipDelayRollapp = (params: RequestParams = {}) =>
+    this.request<RollappQuerySkipDelayRollappResponse, GooglerpcStatus>({
+      path: `/dymensionxyz/dymension/rollapp/skip_delay_rollapp`,
       method: "GET",
       format: "json",
       ...params,

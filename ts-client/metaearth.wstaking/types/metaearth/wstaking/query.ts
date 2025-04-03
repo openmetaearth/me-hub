@@ -4,6 +4,7 @@ import _m0 from "protobufjs/minimal";
 import { PageRequest, PageResponse } from "../../cosmos/base/query/v1beta1/pagination";
 import { Coin, DecCoin } from "../../cosmos/base/v1beta1/coin";
 import { QueryDelegationRequest, QueryDelegationResponse } from "../../cosmos/staking/v1beta1/query";
+import { Delegation } from "../../cosmos/staking/v1beta1/staking";
 import {
   FixedDeposit,
   FixedDepositCfg,
@@ -106,6 +107,15 @@ export interface QueryFixedDepositAmountByMeidRequest {
 
 export interface QueryFixedDepositAmountByMeidResponse {
   amount: Coin | undefined;
+}
+
+export interface QueryAllDelegationsRequest {
+  pagination: PageRequest | undefined;
+}
+
+export interface QueryAllDelegationsResponse {
+  delegations: Delegation[];
+  pagination: PageResponse | undefined;
 }
 
 export interface QueryStakesRequest {
@@ -1225,6 +1235,121 @@ export const QueryFixedDepositAmountByMeidResponse = {
   },
 };
 
+function createBaseQueryAllDelegationsRequest(): QueryAllDelegationsRequest {
+  return { pagination: undefined };
+}
+
+export const QueryAllDelegationsRequest = {
+  encode(message: QueryAllDelegationsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryAllDelegationsRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryAllDelegationsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAllDelegationsRequest {
+    return { pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined };
+  },
+
+  toJSON(message: QueryAllDelegationsRequest): unknown {
+    const obj: any = {};
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageRequest.toJSON(message.pagination) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryAllDelegationsRequest>, I>>(object: I): QueryAllDelegationsRequest {
+    const message = createBaseQueryAllDelegationsRequest();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseQueryAllDelegationsResponse(): QueryAllDelegationsResponse {
+  return { delegations: [], pagination: undefined };
+}
+
+export const QueryAllDelegationsResponse = {
+  encode(message: QueryAllDelegationsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.delegations) {
+      Delegation.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryAllDelegationsResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryAllDelegationsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.delegations.push(Delegation.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAllDelegationsResponse {
+    return {
+      delegations: Array.isArray(object?.delegations) ? object.delegations.map((e: any) => Delegation.fromJSON(e)) : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+    };
+  },
+
+  toJSON(message: QueryAllDelegationsResponse): unknown {
+    const obj: any = {};
+    if (message.delegations) {
+      obj.delegations = message.delegations.map((e) => e ? Delegation.toJSON(e) : undefined);
+    } else {
+      obj.delegations = [];
+    }
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageResponse.toJSON(message.pagination) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryAllDelegationsResponse>, I>>(object: I): QueryAllDelegationsResponse {
+    const message = createBaseQueryAllDelegationsResponse();
+    message.delegations = object.delegations?.map((e) => Delegation.fromPartial(e)) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    return message;
+  },
+};
+
 function createBaseQueryStakesRequest(): QueryStakesRequest {
   return { pagination: undefined };
 }
@@ -1672,6 +1797,7 @@ export interface Query {
   FixedDepositCfgByTerm(request: QueryFixedDepositCfgByTermRequest): Promise<QueryFixedDepositCfgByTermResponse>;
   /** Delegation queries delegate info for given validator delegator pair. */
   Delegation(request: QueryDelegationRequest): Promise<QueryDelegationResponse>;
+  AllDelegations(request: QueryAllDelegationsRequest): Promise<QueryAllDelegationsResponse>;
   Stakes(request: QueryStakesRequest): Promise<QueryStakesResponse>;
   /** Queries a list of Record */
   QueryAllRecord(request: QueryAllRecords): Promise<QueryAllRecordsResponse>;
@@ -1694,6 +1820,7 @@ export class QueryClientImpl implements Query {
     this.FixedDepositCfg = this.FixedDepositCfg.bind(this);
     this.FixedDepositCfgByTerm = this.FixedDepositCfgByTerm.bind(this);
     this.Delegation = this.Delegation.bind(this);
+    this.AllDelegations = this.AllDelegations.bind(this);
     this.Stakes = this.Stakes.bind(this);
     this.QueryAllRecord = this.QueryAllRecord.bind(this);
     this.QueryRecordByAddress = this.QueryRecordByAddress.bind(this);
@@ -1765,6 +1892,12 @@ export class QueryClientImpl implements Query {
     const data = QueryDelegationRequest.encode(request).finish();
     const promise = this.rpc.request("metaearth.wstaking.Query", "Delegation", data);
     return promise.then((data) => QueryDelegationResponse.decode(new _m0.Reader(data)));
+  }
+
+  AllDelegations(request: QueryAllDelegationsRequest): Promise<QueryAllDelegationsResponse> {
+    const data = QueryAllDelegationsRequest.encode(request).finish();
+    const promise = this.rpc.request("metaearth.wstaking.Query", "AllDelegations", data);
+    return promise.then((data) => QueryAllDelegationsResponse.decode(new _m0.Reader(data)));
   }
 
   Stakes(request: QueryStakesRequest): Promise<QueryStakesResponse> {

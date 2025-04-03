@@ -29,7 +29,8 @@ export interface Stream {
     | Date
     | undefined;
   /**
-   * distr_epoch_identifier is what epoch type di-stribution will be triggered by
+   * distr_epoch_identifier is what epoch type di-stribution will be triggered
+   * by
    * (day, week, etc.)
    */
   distrEpochIdentifier: string;

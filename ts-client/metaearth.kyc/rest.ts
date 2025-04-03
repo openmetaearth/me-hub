@@ -38,7 +38,8 @@ export interface DidDidInfo {
 
   /**
    * public_key is mapped to the user address
-   * the issuer will use public_key to encrypt the user's certificate to ensure the privacy of the off-chain certificate
+   * the issuer will use public_key to encrypt the user's certificate to ensure
+   * the privacy of the off-chain certificate
    */
   pubkey?: string;
   status?: DidDidStatus;
@@ -57,6 +58,9 @@ export enum DidKycLevel {
   KYC_LEVEL_NONE = "KYC_LEVEL_NONE",
   KYC_LEVEL_ONE = "KYC_LEVEL_ONE",
   KYC_LEVEL_TWO = "KYC_LEVEL_TWO",
+  KYC_LEVEL_THREE = "KYC_LEVEL_THREE",
+  KYC_LEVEL_FOUR = "KYC_LEVEL_FOUR",
+  KYC_LEVEL_FIVE = "KYC_LEVEL_FIVE",
 }
 
 export interface DidService {

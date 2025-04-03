@@ -8,7 +8,10 @@ export const protobufPackage = "dymensionxyz.dymension.rollapp";
 export interface BlockDescriptor {
   /** height is the height of the block */
   height: number;
-  /** stateRoot is a 32 byte array of the hash of the block (state root of the block) */
+  /**
+   * stateRoot is a 32 byte array of the hash of the block (state root of the
+   * block)
+   */
   stateRoot: Uint8Array;
 }
 

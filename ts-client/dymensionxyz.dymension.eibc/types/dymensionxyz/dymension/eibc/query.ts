@@ -56,13 +56,19 @@ export interface QueryParamsResponse {
   params: Params | undefined;
 }
 
-/** QueryGetDemandOrderRequest is the request type for the Query/GetDemandOrder RPC method. */
+/**
+ * QueryGetDemandOrderRequest is the request type for the Query/GetDemandOrder
+ * RPC method.
+ */
 export interface QueryGetDemandOrderRequest {
   /** id of the demand order to get */
   id: string;
 }
 
-/** QueryDemandOrdersByStatusRequest is the request type for the Query/GetDemandOrdersByStatus RPC method. */
+/**
+ * QueryDemandOrdersByStatusRequest is the request type for the
+ * Query/GetDemandOrdersByStatus RPC method.
+ */
 export interface QueryDemandOrdersByStatusRequest {
   /** status of the demand order */
   status: Status;
@@ -82,13 +88,19 @@ export interface QueryDemandOrdersByStatusRequest {
   recipient: string;
 }
 
-/** QueryGetDemandOrderResponse is the response type for the Query/GetDemandOrder RPC method. */
+/**
+ * QueryGetDemandOrderResponse is the response type for the Query/GetDemandOrder
+ * RPC method.
+ */
 export interface QueryGetDemandOrderResponse {
   /** demand order with the given id */
   demandOrder: DemandOrder | undefined;
 }
 
-/** QueryDemandOrdersByStatusResponse is the response type for the Query/GetDemandOrdersByStatus RPC method. */
+/**
+ * QueryDemandOrdersByStatusResponse is the response type for the
+ * Query/GetDemandOrdersByStatus RPC method.
+ */
 export interface QueryDemandOrdersByStatusResponse {
   /** A list of demand orders with the given status */
   demandOrders: DemandOrder[];

@@ -44,7 +44,10 @@ export interface UnbondingStakeEntry {
   completionTime:
     | Date
     | undefined;
-  /** initial_balance defines the tokens initially scheduled to receive at completion. */
+  /**
+   * initial_balance defines the tokens initially scheduled to receive at
+   * completion.
+   */
   initialBalance: string;
   /** balance defines the tokens to receive at completion. */
   balance: string;

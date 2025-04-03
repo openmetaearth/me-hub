@@ -7,8 +7,9 @@ import { msgTypes } from './registry';
 import { IgniteClient } from "../client"
 import { MissingWalletError } from "../helpers"
 import { Api } from "./rest";
-import { MsgCreateRollapp } from "./types/dymensionxyz/dymension/rollapp/tx";
+import { MsgSkipDelayRollapp } from "./types/dymensionxyz/dymension/rollapp/tx";
 import { MsgUpdateState } from "./types/dymensionxyz/dymension/rollapp/tx";
+import { MsgCreateRollapp } from "./types/dymensionxyz/dymension/rollapp/tx";
 
 import { BlockDescriptor as typeBlockDescriptor} from "./types"
 import { BlockDescriptors as typeBlockDescriptors} from "./types"
@@ -24,10 +25,10 @@ import { StateInfo as typeStateInfo} from "./types"
 import { StateInfoSummary as typeStateInfoSummary} from "./types"
 import { BlockHeightToFinalizationQueue as typeBlockHeightToFinalizationQueue} from "./types"
 
-export { MsgCreateRollapp, MsgUpdateState };
+export { MsgSkipDelayRollapp, MsgUpdateState, MsgCreateRollapp };
 
-type sendMsgCreateRollappParams = {
-  value: MsgCreateRollapp,
+type sendMsgSkipDelayRollappParams = {
+  value: MsgSkipDelayRollapp,
   fee?: StdFee,
   memo?: string
 };
@@ -38,13 +39,23 @@ type sendMsgUpdateStateParams = {
   memo?: string
 };
 
-
-type msgCreateRollappParams = {
+type sendMsgCreateRollappParams = {
   value: MsgCreateRollapp,
+  fee?: StdFee,
+  memo?: string
+};
+
+
+type msgSkipDelayRollappParams = {
+  value: MsgSkipDelayRollapp,
 };
 
 type msgUpdateStateParams = {
   value: MsgUpdateState,
+};
+
+type msgCreateRollappParams = {
+  value: MsgCreateRollapp,
 };
 
 
@@ -77,17 +88,17 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 
   return {
 		
-		async sendMsgCreateRollapp({ value, fee, memo }: sendMsgCreateRollappParams): Promise<DeliverTxResponse> {
+		async sendMsgSkipDelayRollapp({ value, fee, memo }: sendMsgSkipDelayRollappParams): Promise<DeliverTxResponse> {
 			if (!signer) {
-					throw new Error('TxClient:sendMsgCreateRollapp: Unable to sign Tx. Signer is not present.')
+					throw new Error('TxClient:sendMsgSkipDelayRollapp: Unable to sign Tx. Signer is not present.')
 			}
 			try {			
 				const { address } = (await signer.getAccounts())[0]; 
 				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgCreateRollapp({ value: MsgCreateRollapp.fromPartial(value) })
+				let msg = this.msgSkipDelayRollapp({ value: MsgSkipDelayRollapp.fromPartial(value) })
 				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
-				throw new Error('TxClient:sendMsgCreateRollapp: Could not broadcast Tx: '+ e.message)
+				throw new Error('TxClient:sendMsgSkipDelayRollapp: Could not broadcast Tx: '+ e.message)
 			}
 		},
 		
@@ -105,12 +116,26 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		
-		msgCreateRollapp({ value }: msgCreateRollappParams): EncodeObject {
-			try {
-				return { typeUrl: "/dymensionxyz.dymension.rollapp.MsgCreateRollapp", value: MsgCreateRollapp.fromPartial( value ) }  
+		async sendMsgCreateRollapp({ value, fee, memo }: sendMsgCreateRollappParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgCreateRollapp: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgCreateRollapp({ value: MsgCreateRollapp.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
-				throw new Error('TxClient:MsgCreateRollapp: Could not create message: ' + e.message)
+				throw new Error('TxClient:sendMsgCreateRollapp: Could not broadcast Tx: '+ e.message)
+			}
+		},
+		
+		
+		msgSkipDelayRollapp({ value }: msgSkipDelayRollappParams): EncodeObject {
+			try {
+				return { typeUrl: "/dymensionxyz.dymension.rollapp.MsgSkipDelayRollapp", value: MsgSkipDelayRollapp.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgSkipDelayRollapp: Could not create message: ' + e.message)
 			}
 		},
 		
@@ -119,6 +144,14 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 				return { typeUrl: "/dymensionxyz.dymension.rollapp.MsgUpdateState", value: MsgUpdateState.fromPartial( value ) }  
 			} catch (e: any) {
 				throw new Error('TxClient:MsgUpdateState: Could not create message: ' + e.message)
+			}
+		},
+		
+		msgCreateRollapp({ value }: msgCreateRollappParams): EncodeObject {
+			try {
+				return { typeUrl: "/dymensionxyz.dymension.rollapp.MsgCreateRollapp", value: MsgCreateRollapp.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgCreateRollapp: Could not create message: ' + e.message)
 			}
 		},
 		

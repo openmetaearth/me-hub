@@ -78,6 +78,13 @@ export interface QueryGetStateInfoResponse {
   stateInfo: StateInfo | undefined;
 }
 
+export interface QuerySkipDelayRollappRequest {
+}
+
+export interface QuerySkipDelayRollappResponse {
+  rollapps: string[];
+}
+
 function createBaseQueryParamsRequest(): QueryParamsRequest {
   return {};
 }
@@ -827,6 +834,98 @@ export const QueryGetStateInfoResponse = {
   },
 };
 
+function createBaseQuerySkipDelayRollappRequest(): QuerySkipDelayRollappRequest {
+  return {};
+}
+
+export const QuerySkipDelayRollappRequest = {
+  encode(_: QuerySkipDelayRollappRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QuerySkipDelayRollappRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQuerySkipDelayRollappRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): QuerySkipDelayRollappRequest {
+    return {};
+  },
+
+  toJSON(_: QuerySkipDelayRollappRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QuerySkipDelayRollappRequest>, I>>(_: I): QuerySkipDelayRollappRequest {
+    const message = createBaseQuerySkipDelayRollappRequest();
+    return message;
+  },
+};
+
+function createBaseQuerySkipDelayRollappResponse(): QuerySkipDelayRollappResponse {
+  return { rollapps: [] };
+}
+
+export const QuerySkipDelayRollappResponse = {
+  encode(message: QuerySkipDelayRollappResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.rollapps) {
+      writer.uint32(10).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QuerySkipDelayRollappResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQuerySkipDelayRollappResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.rollapps.push(reader.string());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QuerySkipDelayRollappResponse {
+    return { rollapps: Array.isArray(object?.rollapps) ? object.rollapps.map((e: any) => String(e)) : [] };
+  },
+
+  toJSON(message: QuerySkipDelayRollappResponse): unknown {
+    const obj: any = {};
+    if (message.rollapps) {
+      obj.rollapps = message.rollapps.map((e) => e);
+    } else {
+      obj.rollapps = [];
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QuerySkipDelayRollappResponse>, I>>(
+    object: I,
+  ): QuerySkipDelayRollappResponse {
+    const message = createBaseQuerySkipDelayRollappResponse();
+    message.rollapps = object.rollapps?.map((e) => e) || [];
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Parameters queries the parameters of the module. */
@@ -843,6 +942,7 @@ export interface Query {
   LatestStateIndex(request: QueryGetLatestStateIndexRequest): Promise<QueryGetLatestStateIndexResponse>;
   /** Queries a StateInfo by index. */
   StateInfo(request: QueryGetStateInfoRequest): Promise<QueryGetStateInfoResponse>;
+  SkipDelayRollapp(request: QuerySkipDelayRollappRequest): Promise<QuerySkipDelayRollappResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -856,6 +956,7 @@ export class QueryClientImpl implements Query {
     this.LatestHeight = this.LatestHeight.bind(this);
     this.LatestStateIndex = this.LatestStateIndex.bind(this);
     this.StateInfo = this.StateInfo.bind(this);
+    this.SkipDelayRollapp = this.SkipDelayRollapp.bind(this);
   }
   Params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
     const data = QueryParamsRequest.encode(request).finish();
@@ -897,6 +998,12 @@ export class QueryClientImpl implements Query {
     const data = QueryGetStateInfoRequest.encode(request).finish();
     const promise = this.rpc.request("dymensionxyz.dymension.rollapp.Query", "StateInfo", data);
     return promise.then((data) => QueryGetStateInfoResponse.decode(new _m0.Reader(data)));
+  }
+
+  SkipDelayRollapp(request: QuerySkipDelayRollappRequest): Promise<QuerySkipDelayRollappResponse> {
+    const data = QuerySkipDelayRollappRequest.encode(request).finish();
+    const promise = this.rpc.request("dymensionxyz.dymension.rollapp.Query", "SkipDelayRollapp", data);
+    return promise.then((data) => QuerySkipDelayRollappResponse.decode(new _m0.Reader(data)));
   }
 }
 

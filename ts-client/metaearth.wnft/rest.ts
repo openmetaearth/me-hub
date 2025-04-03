@@ -30,6 +30,11 @@ export type WnftMsgMintNFTResponse = object;
  */
 export type WnftMsgNewClassResponse = object;
 
+/**
+ * MsgSendResponse defines the Msg/Send response type.
+ */
+export type WnftMsgSendResponse = object;
+
 export interface WnftNftList {
   class_id?: string;
   token_id?: string;
@@ -176,7 +181,7 @@ export class HttpClient<SecurityDataType = unknown> {
 }
 
 /**
- * @title metaearth/wnft/event.proto
+ * @title metaearth/wnft/data.proto
  * @version version not set
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {

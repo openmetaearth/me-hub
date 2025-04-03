@@ -30,10 +30,16 @@ export interface DymensionsequencerParams {
 The sequencer could be attached to only one rollapp (rollappId).
 */
 export interface DymensionsequencerSequencer {
-  /** sequencerAddress is the bech32-encoded address of the sequencer account which is the account that the message was sent from. */
+  /**
+   * sequencerAddress is the bech32-encoded address of the sequencer account
+   * which is the account that the message was sent from.
+   */
   sequencerAddress?: string;
 
-  /** pubkey is the public key of the sequencers' dymint client, as a Protobuf Any. */
+  /**
+   * pubkey is the public key of the sequencers' dymint client, as a Protobuf
+   * Any.
+   */
   dymintPubKey?: ProtobufAny;
 
   /** rollappId defines the rollapp to which the sequencer belongs. */
@@ -42,7 +48,10 @@ export interface DymensionsequencerSequencer {
   /** description defines the descriptive terms for the sequencer. */
   description?: SequencerDescription;
 
-  /** jailed defined whether the sequencer has been jailed from bonded status or not. */
+  /**
+   * jailed defined whether the sequencer has been jailed from bonded status or
+   * not.
+   */
   jailed?: boolean;
 
   /** proposer defines whether the sequencer is a proposer or not. */
@@ -55,13 +64,15 @@ export interface DymensionsequencerSequencer {
   tokens?: V1Beta1Coin[];
 
   /**
-   * unbonding_height defines, if unbonding, the height at which this sequencer has begun unbonding.
+   * unbonding_height defines, if unbonding, the height at which this sequencer
+   * has begun unbonding.
    * @format int64
    */
   unbonding_height?: string;
 
   /**
-   * unbond_time defines, if unbonding, the min time for the sequencer to complete unbonding.
+   * unbond_time defines, if unbonding, the min time for the sequencer to
+   * complete unbonding.
    * @format date-time
    */
   unbond_time?: string;
@@ -219,9 +230,11 @@ export interface SequencerMsgUnbondResponse {
 }
 
 /**
-* - OPERATING_STATUS_UNBONDED: OPERATING_STATUS_UNBONDED defines a sequencer that is not active and won't be scheduled
+* - OPERATING_STATUS_UNBONDED: OPERATING_STATUS_UNBONDED defines a sequencer that is not active and won't
+be scheduled
  - OPERATING_STATUS_UNBONDING: UNBONDING defines a sequencer that is currently unbonding.
- - OPERATING_STATUS_BONDED: OPERATING_STATUS_BONDED defines a sequencer that is bonded and can be scheduled
+ - OPERATING_STATUS_BONDED: OPERATING_STATUS_BONDED defines a sequencer that is bonded and can be
+scheduled
 */
 export enum SequencerOperatingStatus {
   OPERATING_STATUS_UNBONDED = "OPERATING_STATUS_UNBONDED",

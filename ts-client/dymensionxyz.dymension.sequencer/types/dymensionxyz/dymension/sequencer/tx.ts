@@ -9,9 +9,15 @@ export const protobufPackage = "dymensionxyz.dymension.sequencer";
 
 /** MsgCreateSequencer defines a SDK message for creating a new sequencer. */
 export interface MsgCreateSequencer {
-  /** creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from. */
+  /**
+   * creator is the bech32-encoded address of the sequencer account which is the
+   * account that the message was sent from.
+   */
   creator: string;
-  /** pubkey is the public key of the sequencers' dymint client, as a Protobuf Any. */
+  /**
+   * pubkey is the public key of the sequencers' dymint client, as a Protobuf
+   * Any.
+   */
   dymintPubKey:
     | Any
     | undefined;

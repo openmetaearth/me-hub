@@ -25,7 +25,10 @@ export interface QueryNftFilterRequest {
   tokenId: string;
 }
 
-/** QueryNftFilterResponse is the response type for the Query/NftFilter RPC method */
+/**
+ * QueryNftFilterResponse is the response type for the Query/NftFilter RPC
+ * method
+ */
 export interface QueryNftFilterResponse {
   nfts: NftList[];
 }
