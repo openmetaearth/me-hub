@@ -45,11 +45,11 @@ var (
 	ErrSendCoinToGlobalAdmin = sdkerrors.Register(ModuleName, 1146, "send coins to region vault error")
 	ErrGetGlobalAdmin        = sdkerrors.Register(ModuleName, 1147, "get global admin error")
 	ErrCheckGlobalDao        = sdkerrors.Register(ModuleName, 1148, "invalid global dao")
-
-	ErrDidExists       = sdkerrors.Register(ModuleName, 1150, "did already exists")
-	ErrDidNotExists    = sdkerrors.Register(ModuleName, 1151, "did not exists")
-	ErrSendKycReward   = sdkerrors.Register(ModuleName, 1152, "send kyc reward")
-	ErrRemoveKycReward = sdkerrors.Register(ModuleName, 1153, "remove kyc reward")
+	ErrKycNotExists          = sdkerrors.Register(ModuleName, 1149, "kyc not exists")
+	ErrDidExists             = sdkerrors.Register(ModuleName, 1150, "did already exists")
+	ErrDidNotExists          = sdkerrors.Register(ModuleName, 1151, "did not exists")
+	ErrSendKycReward         = sdkerrors.Register(ModuleName, 1152, "send kyc reward")
+	ErrRemoveKycReward       = sdkerrors.Register(ModuleName, 1153, "remove kyc reward")
 
 	ErrRegionAlreadyExist       = sdkerrors.Register(ModuleName, 1162, "region already exist")
 	ErrRegionNotExist           = sdkerrors.Register(ModuleName, 1163, "region not exist")
