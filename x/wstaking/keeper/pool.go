@@ -25,10 +25,10 @@ func (k Keeper) TotalBondedStakePool(ctx sdk.Context) math.Int {
 }
 
 // bondedStakeTokensToNotBonded transfers coins from the bonded to the not bonded pool within staking
-func (k Keeper) BondedStakeTokensToNotBonded(ctx sdk.Context, tokens math.Int) {
+func (k Keeper) BondedStakeTokensToNotBonded(ctx sdk.Context, tokens math.Int, regionID string) {
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokens))
 	if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, types.BondedStakePoolName, types.NotBondedStakePoolName, coins,
-		fmt.Sprintf("BondedStakeTokensToNotBonded_SendCoinsFromBondedStakePoolToNotBondedStakePool"),
+		fmt.Sprintf("BondedStakeTokensToNotBonded_SendCoinsFromBondedStakePoolToNotBondedStakePool_%s", regionID),
 	); err != nil {
 		panic(err)
 	}

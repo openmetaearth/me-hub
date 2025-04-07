@@ -64,7 +64,7 @@ func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt math.Int,
 			k.NotBondedStakeTokensToBonded(ctx, bondAmt)
 		case tokenSrc == stakingtypes.Bonded && !validator.IsBonded():
 			// transfer pools
-			k.BondedStakeTokensToNotBonded(ctx, bondAmt)
+			k.BondedStakeTokensToNotBonded(ctx, bondAmt, validator.Description.RegionID)
 		default:
 			panic("unknown token source bond status")
 		}
@@ -176,7 +176,7 @@ func (k Keeper) Unstake(
 
 	// transfer the validator tokens to the not bonded pool
 	if validator.IsBonded() {
-		k.BondedStakeTokensToNotBonded(ctx, returnAmount)
+		k.BondedStakeTokensToNotBonded(ctx, returnAmount, validator.Description.RegionID)
 	}
 
 	completionTime := ctx.BlockHeader().Time
