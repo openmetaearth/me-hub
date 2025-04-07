@@ -126,11 +126,13 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 	}
 
 	//1. send principal from user account principal module account
-	err = k.bankKeeper.Extend().SendCoinsFromAccountToModule(
+	err = k.bankKeeper.Extend().SendCoinsFromAccountToModuleWithTag(
 		ctx,
 		accAddr,
 		types.FixedDepositPrincipalPool,
-		sdk.NewCoins(msg.Principal))
+		sdk.NewCoins(msg.Principal),
+		fmt.Sprintf("DoFixedDeposit_SendPrincipal_%s", region.RegionId),
+	)
 	if err != nil {
 		return nil, types.ErrDoFixedDeposit.Wrapf("send coin from region base account(%s) to principal module account(%s) error (%s)",
 			regionBaseAddr.String(), types.FixedDepositPrincipalPool, err)
