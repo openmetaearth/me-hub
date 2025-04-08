@@ -115,7 +115,7 @@ func (k MsgServer) CreateValidator(
 	// move coins from the msg.Address account to a (self-delegation) delegator account
 	// the validator account and global shares are updated within here
 	// NOTE source will always be from a wallet which are unbonded
-	_, err = k.Keeper.Stake(ctx, delegatorAddress, msg.Value.Amount, stakingtypes.Unbonded, validator, true,"create_validator")
+	_, err = k.Keeper.Stake(ctx, delegatorAddress, msg.Value.Amount, stakingtypes.Unbonded, validator, true,"create_validator_"+msg.Description.RegionID)
 	if err != nil {
 		return nil, err
 	}
