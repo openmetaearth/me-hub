@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 	"fmt"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	wnfttypes "github.com/st-chain/me-hub/x/wnft/types"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -58,7 +60,13 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	}
 
 	uri := ""
-
+	classMetadata := &wnfttypes.ClassMetadata{
+		Creator: msg.Creator,
+	}
+	metadata, err := codectypes.NewAnyWithValue(classMetadata)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "%v", err)
+	}
 	nftClass := nft.Class{
 		Id:          types.GetClassId(msg.Name),
 		Name:        types.GetClassName(msg.Name),
@@ -66,7 +74,9 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 		Description: types.GetClassDescription(regionId),
 		Uri:         uri,
 		UriHash:     utils.CalculateUriHash(uri),
+		Data:        metadata,
 	}
+
 	_, nftClassFound := k.nftKeeper.GetClass(ctx, nftClass.Id)
 	if !nftClassFound {
 		err = k.nftKeeper.SaveClass(ctx, nftClass)
@@ -97,7 +107,6 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 		}
 	}
 
-	//
 	ctx.EventManager().EmitEvent(event4Nft)
 	event4NewRegion := utils.GenEventCompactAttr(types.EventNewRegion, region)
 	ctx.EventManager().EmitEvent(event4NewRegion)

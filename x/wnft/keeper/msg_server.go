@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
@@ -43,17 +44,14 @@ func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid class name %s", msg.ClassId)
 	}
 
-	//denomMetadata := &types.DenomMetadata{
-	//	Creator:          creator.String(),
-	//	Schema:           schema,
-	//	MintRestricted:   mintRestricted,
-	//	UpdateRestricted: updateRestricted,
-	//	Data:             data,
-	//}
-	//metadata, err := codectypes.NewAnyWithValue(denomMetadata)
-	//if err != nil {
-	//	return err
-	//}
+	classMetadata := &types.ClassMetadata{
+		Creator: msg.Sender,
+	}
+
+	metadata, err := codectypes.NewAnyWithValue(classMetadata)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "%v", err)
+	}
 
 	class := nft.Class{
 		Id:          msg.ClassId,
@@ -63,9 +61,10 @@ func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.
 		Uri:         msg.Uri,
 		UriHash:     msg.UriHash,
 		TotalSupply: msg.TotalSupply,
+		Data:        metadata,
 	}
 
-	err := k.SaveClass(ctx, class)
+	err = k.SaveClass(ctx, class)
 	if err != nil {
 		return &types.MsgNewClassResponse{}, err
 	}
@@ -85,6 +84,16 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 	if !ok {
 		return nil, sdkerrors.Wrap(nft.ErrClassNotExists, msg.ClassId)
 	}
+
+	var classMetadata types.ClassMetadata
+	if err := k.cdc.Unmarshal(class.Data.GetValue(), &classMetadata); err != nil {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "%v", err)
+	}
+
+	if classMetadata.Creator != msg.Sender {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not the creator of class %s", msg.Sender, msg.ClassId)
+	}
+
 	tokenId, err := strconv.ParseUint(msg.TokenId, 10, 64)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id")
