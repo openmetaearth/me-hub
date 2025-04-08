@@ -471,6 +471,21 @@ export type WstakingMsgWithdrawFromGlobalDaoFeePoolResp = object;
 
 export type WstakingMsgWithdrawFromRegionResp = object;
 
+export interface WstakingQueryAllDelegationsResponse {
+  delegations?: Stakingv1Beta1Delegation[];
+
+  /**
+   * PageResponse is to be embedded in gRPC response messages where the
+   * corresponding request message has used PageRequest.
+   *
+   *  message SomeResponse {
+   *          repeated Bar results = 1;
+   *          PageResponse page = 2;
+   *  }
+   */
+  pagination?: V1Beta1PageResponse;
+}
+
 export interface WstakingQueryAllFixedDepositResponse {
   FixedDeposit?: MetaearthwstakingFixedDeposit[];
 
@@ -730,6 +745,31 @@ export class HttpClient<SecurityDataType = unknown> {
  * @version version not set
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryAllDelegations
+   * @request GET:/metaearth/wstaking/all-delegations
+   */
+  queryAllDelegations = (
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+      "pagination.reverse"?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<WstakingQueryAllDelegationsResponse, RpcStatus>({
+      path: `/metaearth/wstaking/all-delegations`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
   /**
    * No description
    *

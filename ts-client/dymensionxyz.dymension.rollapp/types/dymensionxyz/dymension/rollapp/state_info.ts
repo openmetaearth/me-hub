@@ -10,8 +10,10 @@ export const protobufPackage = "dymensionxyz.dymension.rollapp";
  * StateInfoIndex is the data used for indexing and retrieving a StateInfo
  * it updated and saved with every UpdateState in StateInfo.
  * We use the this structure also for:
- * 1. LatestStateInfoIndex which defines the rollapps' current (latest) index of the last UpdateState
- * 2. LatestFinalizedStateIndex which defines the rollapps' current (latest) index of the latest StateInfo that was finalized
+ * 1. LatestStateInfoIndex which defines the rollapps' current (latest) index of
+ * the last UpdateState
+ * 2. LatestFinalizedStateIndex which defines the rollapps' current (latest)
+ * index of the latest StateInfo that was finalized
  */
 export interface StateInfoIndex {
   /**
@@ -22,7 +24,8 @@ export interface StateInfoIndex {
   rollappId: string;
   /**
    * index is a sequential increasing number, updating on each
-   * state update used for indexing to a specific state info, the first index is 1
+   * state update used for indexing to a specific state info, the first index is
+   * 1
    */
   index: number;
 }
@@ -52,7 +55,8 @@ export interface StateInfo {
   status: Status;
   /**
    * BDs is a list of block description objects (one per block)
-   * the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
+   * the list must be ordered by height, starting from startHeight to
+   * startHeight+numBlocks-1
    */
   BDs: BlockDescriptors | undefined;
 }
@@ -72,7 +76,10 @@ export interface StateInfoSummary {
   creationHeight: number;
 }
 
-/** BlockHeightToFinalizationQueue defines a map from block height to list of states to finalized */
+/**
+ * BlockHeightToFinalizationQueue defines a map from block height to list of
+ * states to finalized
+ */
 export interface BlockHeightToFinalizationQueue {
   /** creationHeight is the block height that the state should be finalized */
   creationHeight: number;

@@ -2461,12 +2461,18 @@ export interface Msg {
   Unstake(request: MsgUnstake): Promise<MsgUnstakeResponse>;
   NewRegion(request: MsgNewRegion): Promise<MsgNewRegionResponse>;
   RemoveRegion(request: MsgRemoveRegion): Promise<MsgRemoveRegionResponse>;
-  /** rpc UnmeidWithdrawDelegatorReward(MsgUnmeidWithdrawDelegatorReward) returns (MsgUnmeidWithdrawDelegatorRewardResponse); */
+  /**
+   * rpc UnmeidWithdrawDelegatorReward(MsgUnmeidWithdrawDelegatorReward)
+   *  returns (MsgUnmeidWithdrawDelegatorRewardResponse);
+   */
   WithdrawDelegatorReward(request: MsgWithdrawDelegatorReward): Promise<MsgWithdrawDelegatorRewardResponse>;
   /**
-   * rpc RetrieveCoinsFromRegion(MsgRetrieveCoinsFromRegion) returns (MsgRetrieveCoinsFromRegionResp);
+   * rpc RetrieveCoinsFromRegion(MsgRetrieveCoinsFromRegion) returns
+   *  (MsgRetrieveCoinsFromRegionResp);
    *  rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
-   *  rpc RetrieveFeeFromGlobalAdminFeePool(MsgRetrieveFeeFromGlobalAdminFeePool) returns (MsgRetrieveFeeFromGlobalAdminFeePoolResp);
+   *  rpc
+   *  RetrieveFeeFromGlobalAdminFeePool(MsgRetrieveFeeFromGlobalAdminFeePool)
+   *  returns (MsgRetrieveFeeFromGlobalAdminFeePoolResp);
    */
   NewFixedDepositCfg(request: MsgNewFixedDepositCfg): Promise<MsgNewFixedDepositCfgResp>;
   SetFixedDepositCfgStatus(request: MsgSetFixedDepositCfgStatus): Promise<MsgSetFixedDepositCfgStatusResp>;

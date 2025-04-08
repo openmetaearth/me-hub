@@ -10,9 +10,15 @@ export const protobufPackage = "dymensionxyz.dymension.rollapp";
  */
 export interface GenesisTransfers {
   rollappID: string;
-  /** The total number of incoming ibc transfers to be fast tracked in the genesis transfer period */
+  /**
+   * The total number of incoming ibc transfers to be fast tracked in the
+   * genesis transfer period
+   */
   numTotal: number;
-  /** The number of transfers already processed, when this number reaches numTotal the genesis transfer window closes. */
+  /**
+   * The number of transfers already processed, when this number reaches
+   * numTotal the genesis transfer window closes.
+   */
   numReceived: number;
 }
 

@@ -211,8 +211,8 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 			return errors.Wrapf(types.ErrRegionNotExist, fmt.Sprintf("group's region = %s", nowRegionID))
 		}
 		rewardsCoin := sdk.NewCoin(params.BaseDenom, math.NewInt(1000000))
-		err = k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(sdkCtx, region.GetRegionTreasureAddr(),
-			address, sdk.NewCoins(rewardsCoin), fmt.Sprintf("ProcKycRegionChange_JoinGroupReward_SendRewardsFromRegionTreasureToAddress_%s", region.RegionId))
+		err = k.bankKeeper.Extend().SendCoinsWithTag(sdkCtx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
+			sdk.MustAccAddressFromBech32(address), sdk.NewCoins(rewardsCoin), fmt.Sprintf("ProcKycRegionChange_JoinGroupReward_SendRewardsFromRegionTreasureToAddress_%s", region.RegionId))
 		if err != nil {
 			return errors.Wrapf(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
 				err.Error(), region.GetRegionTreasureAddr(), address))
