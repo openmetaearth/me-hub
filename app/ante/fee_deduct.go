@@ -308,20 +308,11 @@ func (dfd DeductFeeDecorator) checkFunds(ctx sdk.Context, tx sdk.Tx, feePayer st
 	if _, exists := userSendAmount[feePayer]; !exists {
 		userSendAmount[feePayer] = fees
 	}
-	for address, coins := range userSendAmount {
-		if len(coins) <= 0 {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid fee amount: %s", coins)
-		}
-
-		balance := dfd.bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(address), coins[0].Denom)
-		sendTotalAmount := sdk.ZeroInt()
-
-		for _, coin := range coins {
-			sendTotalAmount = sendTotalAmount.Add(coin.Amount)
-		}
-
-		if balance.Amount.LT(sendTotalAmount) {
-			return sdkerrors.ErrInsufficientFunds.Wrapf("address %s expect %v, got %v", address, sendTotalAmount.String(), balance.Amount.String())
+	for address, sendAmount := range userSendAmount {
+		balance := dfd.bk.GetAllBalances(ctx, sdk.MustAccAddressFromBech32(address))
+		if !balance.IsAnyGTE(sendAmount) {
+			return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "check funds for %s; got: %s required: %s",
+				address, balance, sendAmount)
 		}
 	}
 	return nil

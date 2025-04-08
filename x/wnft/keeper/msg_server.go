@@ -43,6 +43,18 @@ func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid class name %s", msg.ClassId)
 	}
 
+	//denomMetadata := &types.DenomMetadata{
+	//	Creator:          creator.String(),
+	//	Schema:           schema,
+	//	MintRestricted:   mintRestricted,
+	//	UpdateRestricted: updateRestricted,
+	//	Data:             data,
+	//}
+	//metadata, err := codectypes.NewAnyWithValue(denomMetadata)
+	//if err != nil {
+	//	return err
+	//}
+
 	class := nft.Class{
 		Id:          msg.ClassId,
 		Name:        msg.Name,

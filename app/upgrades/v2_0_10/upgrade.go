@@ -120,7 +120,7 @@ func CreateUpgradeHandler(
 		migrateGroup(ctx, homePath, keepers.GroupKeeper, keepers.StakingKeeper, keepers.KycKeeper)
 
 		ctx.Logger().Info("11.migrate delegation")
-		migrateDelegation(ctx, homePath, keepers.StakingKeeper, keepers.KycKeeper)
+		MigrateDelegation(ctx, keepers.StakingKeeper, keepers.KycKeeper)
 
 		// create a new module account
 		macc := authtypes.NewEmptyModuleAccount(streamermoduletypes.ModuleName)
@@ -370,12 +370,16 @@ func MigrateKycData(ctx sdk.Context,
 	for _, meid := range meids {
 		did, ok := didData[meid.Account]
 		if ok && len(did.Did) > 0 {
+			didLevel := didtypes.KycLevel(did.Level)
+			if did.Level == 0 {
+				didLevel = didtypes.KYC_LEVEL_ONE
+			}
 			didInfo := didtypes.DidInfo{
 				Did:      did.Did,
 				Address:  meid.Account,
 				Pubkey:   accountPubkey[meid.Account],
 				RegionId: meid.RegionId,
-				KycLevel: didtypes.KycLevel(did.Level),
+				KycLevel: didLevel,
 				Status:   didtypes.DID_STATUS_ACTIVE,
 			}
 			vc := didtypes.Credential{
@@ -681,18 +685,26 @@ func migrateGroup(ctx sdk.Context, path string, gk *groupkeeper.Keeper, sk *wsta
 	}
 }
 
-func migrateDelegation(ctx sdk.Context, homePath string, stakingKeeper *wstakingkeeper.Keeper, kk *kyckeeper.Keeper) {
-	region, isFound := stakingKeeper.GetRegion(ctx, wstakingtypes.ExperienceRegionId)
+func MigrateDelegation(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, kk *kyckeeper.Keeper) {
+	// experience region has no validator address
+	expRegion, isFound := stakingKeeper.GetRegion(ctx, wstakingtypes.ExperienceRegionId)
 	if !isFound {
 		panic(fmt.Errorf("should have experience region"))
 	}
 	stakingKeeper.IterateAllDelegation(ctx, func(_ int64, del stakingtypes.Delegation) (stop bool) {
 		did, didFound := kk.GetDID(ctx, sdk.MustAccAddressFromBech32(del.DelegatorAddress))
-		_, kycFound := kk.GetKYC(ctx, did)
-		if !didFound && !kycFound {
-			del.ValidatorAddress = region.OperatorAddress
-			stakingKeeper.SetDelegation(ctx, del)
+		if didFound {
+			kyc, kycFound := kk.GetKYC(ctx, did)
+			if kycFound {
+				region, regionFound := stakingKeeper.GetRegion(ctx, string(kyc.Data))
+				if regionFound {
+					del.ValidatorAddress = region.OperatorAddress
+				}
+			}
+		} else {
+			del.ValidatorAddress = expRegion.OperatorAddress
 		}
+		stakingKeeper.SetDelegation(ctx, del)
 		return false
 	})
 }

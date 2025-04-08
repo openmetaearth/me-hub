@@ -3,9 +3,11 @@ package v2_0_10_test
 import (
 	"encoding/json"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_10"
 	"github.com/st-chain/me-hub/utils"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"testing"
 	"time"
@@ -237,4 +239,80 @@ func (s *UpgradeTestSuite) TestMigrateFixedDeposit() {
 	// Verify the total deposit amount is equal to the balance
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, authtypes.NewModuleAddress(wstakingtypes.FixedDepositPrincipalPool), params.BaseDenom)
 	s.Require().Equal(sdk.NewInt(1000).String(), balance.Amount.String())
+}
+
+func (s *UpgradeTestSuite) TestMigrateDelegation() {
+	// Set up the experience region
+	expRegion := wstakingtypes.Region{
+		RegionId:        wstakingtypes.ExperienceRegionId,
+		OperatorAddress: "expOperatorAddress",
+	}
+	s.App.StakingKeeper.SetRegion(s.Ctx, expRegion)
+
+	testRegion := wstakingtypes.Region{
+		RegionId:        wstakingtypes.MeEarthRegionId,
+		OperatorAddress: "testOperatorAddress",
+	}
+	s.App.StakingKeeper.SetRegion(s.Ctx, testRegion)
+
+	// Set up a delegator and delegation
+	delegator := sdk.MustAccAddressFromBech32(s.mockAddress1)
+	testDid := "0000000000011"
+	s.App.StakingKeeper.SetDelegation(s.Ctx, stakingtypes.Delegation{
+		DelegatorAddress: delegator.String(),
+		ValidatorAddress: "",
+	})
+
+	// Verify the initial state (no OperatorAddress)
+	delegation, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator, sdk.ValAddress{})
+	s.Require().True(found)
+	s.Require().Equal("", delegation.ValidatorAddress)
+
+	// Set up KYC data for the delegator
+	s.App.KycKeeper.SetDID(s.Ctx, delegator, testDid)
+	s.App.KycKeeper.SetKYC(s.Ctx, testDid, didtypes.Credential{
+		Did:  testDid,
+		Sid:  "kyc",
+		Data: []byte(wstakingtypes.MeEarthRegionId),
+	})
+
+	// Call the MigrateDelegation function
+	v2_0_10.MigrateDelegation(s.Ctx, s.App.StakingKeeper, s.App.KycKeeper)
+
+	delegation, found = s.App.StakingKeeper.GetDelegation(s.Ctx, delegator, sdk.ValAddress{})
+	s.Require().True(found)
+	s.Require().Equal("testOperatorAddress", delegation.ValidatorAddress)
+
+	// Case 2: No Experience Region Validator Address
+	delegator2 := sdk.MustAccAddressFromBech32(s.mockAddress2)
+	s.App.StakingKeeper.SetDelegation(s.Ctx, stakingtypes.Delegation{
+		DelegatorAddress: delegator2.String(),
+		ValidatorAddress: "",
+	})
+
+	v2_0_10.MigrateDelegation(s.Ctx, s.App.StakingKeeper, s.App.KycKeeper)
+
+	delegation2, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator2, sdk.ValAddress{})
+	s.Require().True(found)
+	s.Require().Equal(expRegion.OperatorAddress, delegation2.ValidatorAddress)
+
+	// Case 3: Validator Address Needs to Be Changed
+	delegator3 := sdk.MustAccAddressFromBech32(s.mockAddress3)
+	s.App.StakingKeeper.SetDelegation(s.Ctx, stakingtypes.Delegation{
+		DelegatorAddress: delegator3.String(),
+		ValidatorAddress: "oldOperatorAddress",
+	})
+
+	s.App.KycKeeper.SetDID(s.Ctx, delegator3, "testDid3")
+	s.App.KycKeeper.SetKYC(s.Ctx, "testDid3", didtypes.Credential{
+		Did:  "testDid3",
+		Sid:  "kyc",
+		Data: []byte(wstakingtypes.MeEarthRegionId),
+	})
+
+	v2_0_10.MigrateDelegation(s.Ctx, s.App.StakingKeeper, s.App.KycKeeper)
+
+	delegation3, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator3, sdk.ValAddress{})
+	s.Require().True(found)
+	s.Require().Equal(testRegion.OperatorAddress, delegation3.ValidatorAddress)
 }
