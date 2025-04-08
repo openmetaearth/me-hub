@@ -10,3 +10,9 @@ message Extension {
 
   string data = 1;
 }
+
+message ClassMetadata {
+  option (gogoproto.equal) = true;
+
+  string creator = 1;
+}
