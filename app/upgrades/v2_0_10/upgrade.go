@@ -343,10 +343,10 @@ func MigrateKycData(ctx sdk.Context,
 		panic(fmt.Sprintf("read did: %v", err))
 	}
 
-	accountPubkey, err := kycPubkeyReader.ReadKycPubkey(filepath.Join(homePath, kycPubkeyFilePath))
-	if err != nil {
-		panic(err)
-	}
+	//accountPubkey, err := kycPubkeyReader.ReadKycPubkey(filepath.Join(homePath, kycPubkeyFilePath))
+	//if err != nil {
+	//	panic(err)
+	//}
 
 	_, classExist := nftKeeper.GetClass(ctx, kyctypes.ModuleName)
 	if !classExist {
@@ -377,7 +377,7 @@ func MigrateKycData(ctx sdk.Context,
 			didInfo := didtypes.DidInfo{
 				Did:      did.Did,
 				Address:  meid.Account,
-				Pubkey:   accountPubkey[meid.Account],
+				Pubkey:   did.PubKey,
 				RegionId: meid.RegionId,
 				KycLevel: didLevel,
 				Status:   didtypes.DID_STATUS_ACTIVE,
@@ -697,9 +697,10 @@ func MigrateDelegation(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, kk
 			kyc, kycFound := kk.GetKYC(ctx, did)
 			if kycFound {
 				region, regionFound := stakingKeeper.GetRegion(ctx, string(kyc.Data))
-				if regionFound {
-					del.ValidatorAddress = region.OperatorAddress
+				if !regionFound {
+					panic(fmt.Errorf("region not found: %s", string(kyc.Data)))
 				}
+				del.ValidatorAddress = region.OperatorAddress
 			}
 		} else {
 			del.ValidatorAddress = expRegion.OperatorAddress

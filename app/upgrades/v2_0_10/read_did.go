@@ -18,6 +18,7 @@ type DidData struct {
 	UriHash    string `json:"uri_hash"`
 	KycUri     string `json:"kyc_uri"`
 	KycUriHash string `json:"kyc_uri_hash"`
+	PubKey     string `json:"pubkey"`
 }
 
 func (r RealDIDReader) ReadDID(filePath string) (map[string]DidData, error) {
