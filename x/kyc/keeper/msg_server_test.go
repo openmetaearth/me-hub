@@ -15,8 +15,6 @@ import (
 )
 
 func (s *KeeperTestSuite) TestApprove() {
-	s.SetupTest()
-
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
@@ -33,6 +31,7 @@ func (s *KeeperTestSuite) TestApprove() {
 		Uri:      "http://127.0.0.1/8001",
 		Hash:     "aaaa",
 		Inviter:  inviter.String(),
+		Level:    2,
 	}
 	_, err := s.msgServer.Approve(s.Ctx, msg)
 	s.Require().NoError(err)
@@ -46,8 +45,11 @@ func (s *KeeperTestSuite) TestApprove() {
 	s.Require().True(found)
 	s.Require().Equal(region.DelegateAmount.String(), wstakingtypes.Bonus.String())
 
+	valAddress, err := sdk.ValAddressFromBech32(region.OperatorAddress)
+	s.Require().NoError(err)
+
 	// check user's delegation
-	delegation, f := s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
+	delegation, f := s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, valAddress)
 	s.Require().True(f)
 	s.Require().Equal(delegation.Unmovable.String(), wstakingtypes.Bonus.String())
 
@@ -77,6 +79,7 @@ func (s *KeeperTestSuite) TestRemove() {
 		Uri:      "http://127.0.0.1/8001",
 		Hash:     "aaaa",
 		Inviter:  inviter.String(),
+		Level:    2,
 	}
 	_, err := s.msgServer.Approve(s.Ctx, msg)
 	s.Require().NoError(err)
@@ -130,6 +133,7 @@ func (s *KeeperTestSuite) TestUpdate() {
 		Uri:      "http://127.0.0.1/8001",
 		Hash:     "aaaa",
 		Inviter:  inviter.String(),
+		Level:    2,
 	})
 	s.Require().NoError(err)
 
@@ -142,7 +146,7 @@ func (s *KeeperTestSuite) TestUpdate() {
 	s.Require().True(found)
 	s.Require().Equal(region.DelegateAmount.String(), wstakingtypes.Bonus.String())
 
-	delegation, f := s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
+	delegation, f := s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, s.meEarthValidator.GetOperator())
 	s.Require().True(f)
 	s.Require().Equal(delegation.Unmovable.String(), wstakingtypes.Bonus.String())
 	s.Require().Equal(delegation.ValidatorAddress, s.meEarthValidator.OperatorAddress)
@@ -158,9 +162,9 @@ func (s *KeeperTestSuite) TestUpdate() {
 	})
 	s.Require().NoError(err)
 
-	delegation, f = s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
+	delegation, f = s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, s.usaValidator.GetOperator())
 	s.Require().True(f)
 	s.Require().Equal(delegation.Unmovable.String(), wstakingtypes.Bonus.String())
-	s.Require().Equal(delegation.ValidatorAddress, s.usaValidator.OperatorAddress)
+	s.Require().Equal(s.usaValidator.OperatorAddress, delegation.ValidatorAddress)
 	s.Require().EqualValues(delegation.StartHeight, wmintTypes.OneDayTotalBlocks+1)
 }

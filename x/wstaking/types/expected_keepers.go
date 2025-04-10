@@ -61,6 +61,11 @@ type KycKeeper interface {
 	GetKYC(ctx sdk.Context, did string) (kyc didtypes.Credential, found bool)
 }
 
+type DidKeeper interface {
+	IteratorCredentialsByFilter(ctx sdk.Context, sid string, filter []byte, cb func(delegation didtypes.Credential) (stop bool))
+	GetDidInfo(ctx sdk.Context, did string) (info didtypes.DidInfo, found bool)
+}
+
 type GroupKeeper interface {
 	CreateGroupByRegion(sdkCtx sdk.Context, regionInfo Region) (uint64, error)
 	UpdateGroupAdmin(ctx sdk.Context, regionID string, admin string)

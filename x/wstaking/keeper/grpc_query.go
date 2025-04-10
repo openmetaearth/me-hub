@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -112,27 +111,23 @@ func (k Querier) Delegation(c context.Context, req *stakingtypes.QueryDelegation
 	if err != nil {
 		return nil, err
 	}
-	//regionID := strings.ToLower(types.ExperienceRegionName)
-	//meid, found := k.GetMeid(ctx, req.DelegatorAddr)
-	//if found {
-	//regionID = meid.RegionId
-	//}
-	//region, isFound := k.GetRegion(ctx, regionID)
-	//if !isFound {
-	//	return nil, types.ErrRegionNotExist.Wrapf("region not found=%s", regionID)
-	//}
-	//valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
-	//if valErr != nil {
-	//	return nil, valErr
-	//}
-	delegation, found := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
+
+	regionId := k.GetRegionIdByAccount(ctx, delAddr)
+	region, isFound := k.GetRegion(ctx, regionId)
+	if !isFound {
+		return nil, types.ErrRegionNotExist.Wrapf("region not found=%s", regionId)
+	}
+	valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
+	if valErr != nil {
+		return nil, valErr
+	}
+	delegation, found := k.GetDelegation(ctx, delAddr, valAddr)
 	if !found {
 		return nil, status.Errorf(
 			codes.NotFound,
 			"delegation with delegator %s not found for validator",
 			req.DelegatorAddr)
 	}
-
 	delResponse, err := DelegationToDelegationResponse(ctx, k.Keeper, delegation)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())

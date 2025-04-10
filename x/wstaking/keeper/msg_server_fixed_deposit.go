@@ -2,10 +2,8 @@ package keeper
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/st-chain/me-hub/app/params"
@@ -41,8 +39,8 @@ func (k MsgServer) GetFixedDepositInterest(cfg *types.FixedDepositCfg, principal
 
 func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDeposit) (*types.MsgDoFixedDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	regionId, err, done := k.GetRegionIdByAccount(ctx, msg.Account)
-	if done {
+	regionId, err := k.MustGetKycRegionIdByAccount(ctx, msg.Account)
+	if err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrDidNotExists, err.Error())
 	}
 
@@ -196,28 +194,14 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 	return &types.MsgDoFixedDepositResponse{Id: id}, nil
 }
 
-func (k MsgServer) GetRegionIdByAccount(ctx sdk.Context, account string) (string, error, bool) {
-	did, ok := k.kycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(account))
-	if !ok {
-		return "", sdkerrors.Wrapf(types.ErrDidNotExists, "meid with account %s not exist", account), true
-	}
-
-	kycData, _ := k.kycKeeper.GetKYC(ctx, did)
-	regionId := string(kycData.Data)
-	if regionId == strings.ToLower(types.ExperienceRegionName) {
-		return "", errors.New(fmt.Sprintf("experience region cannot do fixed deposit")), true
-	}
-	return regionId, nil, false
-}
-
 func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWithdrawFixedDeposit) (*types.MsgWithdrawFixedDepositResponse, error) {
 	var interest sdk.Coin
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	log := ctx.Logger()
 
-	regionId, err2, done := k.GetRegionIdByAccount(ctx, msg.Account)
-	if done {
-		return nil, sdkerrors.Wrapf(types.ErrDoFixedWithDraw, err2.Error())
+	regionId, err := k.MustGetKycRegionIdByAccount(ctx, msg.Account)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrDoFixedWithDraw, err.Error())
 	}
 
 	fixedDeposit, isFound := k.GetFixedDeposit(ctx, msg.Id)

@@ -98,7 +98,8 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	if regionId == strings.ToLower(types.ExperienceRegionName) {
 		region.DepositInterestAddr = ""
 	}
-	event4Nft := utils.GenEventCompactAttr(types.EventNewNftClass, nftClass)
+
+	event4Nft := utils.GenEventCompactAttrWithBytes(types.EventNewNftClass, k.cdc.MustMarshal(&nftClass))
 	k.SetRegion(ctx, region)
 	//create megroup
 	if regionId != strings.ToLower(types.ExperienceRegionName) {

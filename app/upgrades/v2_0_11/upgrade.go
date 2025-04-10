@@ -40,7 +40,7 @@ func MigrateDelegation(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keeper, kk
 	if !isFound {
 		panic(fmt.Errorf("should have experience region"))
 	}
-	stakingKeeper.IterateAllDelegation(ctx, func(_ int64, del stakingtypes.Delegation) (stop bool) {
+	stakingKeeper.IterateAllDelegations(ctx, func(del stakingtypes.Delegation) (stop bool) {
 		did, didFound := kk.GetDID(ctx, sdk.MustAccAddressFromBech32(del.DelegatorAddress))
 		if didFound {
 			kyc, kycFound := kk.GetKYC(ctx, did)

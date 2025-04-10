@@ -2,7 +2,8 @@ package keeper
 
 import (
 	"fmt"
-	"strings"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
+	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	"time"
 
 	"cosmossdk.io/math"
@@ -160,15 +161,10 @@ func (k Keeper) Delegate(
 
 // WithdrawDelegationRewards withdraw rewards from a delegation
 func (k Keeper) WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error) {
-	regionID := strings.ToLower(types.ExperienceRegionName)
-	did, ok := k.kycKeeper.GetDID(ctx, delAddr)
-	if ok {
-		kycData, _ := k.kycKeeper.GetKYC(ctx, did)
-		regionID = string(kycData.Data)
-	}
-	region, hasRegion := k.GetRegion(ctx, regionID)
+	regionId := k.GetRegionIdByAccount(ctx, delAddr)
+	region, hasRegion := k.GetRegion(ctx, regionId)
 	if !hasRegion {
-		return nil, fmt.Errorf("%s region not exist", regionID)
+		return nil, fmt.Errorf("%s region not exist", regionId)
 	}
 	rewards, err := k.internalWithdrawDelegationRewards(ctx, delAddr, region)
 	if err != nil {
@@ -246,6 +242,20 @@ func NewDelegationResp(del stakingtypes.Delegation, balance sdk.Coin) stakingtyp
 	}
 }
 
+func (k Keeper) GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	key := stakingtypes.GetDelegationKey(delAddr, sdk.ValAddress{})
+
+	value := store.Get(key)
+	if value == nil {
+		return delegation, false
+	}
+
+	delegation = stakingtypes.MustUnmarshalDelegation(k.cdc, value)
+
+	return delegation, true
+}
+
 func (k Keeper) SetDelegation(ctx sdk.Context, delegation stakingtypes.Delegation) {
 	delegatorAddress := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
 	store := ctx.KVStore(k.storeKey)
@@ -260,17 +270,48 @@ func (k Keeper) removeDelegation(ctx sdk.Context, delegation stakingtypes.Delega
 	return nil
 }
 
-func (k Keeper) IterateAllDelegation(ctx sdk.Context, fn func(index int64, del stakingtypes.Delegation) (stop bool)) {
+func (k *Keeper) SetChangeDelegationValidator(ctx sdk.Context, regionId string) {
+	store := ctx.KVStore(k.storeKey)
+	key := append(types.ChangeDelegationValidatorKey, []byte(regionId)...)
+	store.Set(key, []byte(regionId))
+}
+
+func (k *Keeper) DeleteChangeDelegationValidator(ctx sdk.Context, regionId string) {
+	store := ctx.KVStore(k.storeKey)
+	key := append(types.ChangeDelegationValidatorKey, []byte(regionId)...)
+	store.Delete(key)
+}
+
+func (k *Keeper) GetAllChangeDelegationValidator(ctx sdk.Context) []string {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, stakingtypes.DelegationKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ChangeDelegationValidatorKey)
 	defer iterator.Close()
 
-	for i := int64(0); iterator.Valid(); iterator.Next() {
-		del := stakingtypes.MustUnmarshalDelegation(k.cdc, iterator.Value())
-		if stop := fn(i, del); stop {
-			break
+	regionIds := []string{}
+	for ; iterator.Valid(); iterator.Next() {
+		regionIds = append(regionIds, string(iterator.Value()))
+	}
+	return regionIds
+}
+
+func (k *Keeper) ChangeDelegationValidator(ctx sdk.Context) {
+	regionIds := k.GetAllChangeDelegationValidator(ctx)
+	for _, regionId := range regionIds {
+		region, found := k.GetRegion(ctx, regionId)
+		if found {
+			k.didKeeper.IteratorCredentialsByFilter(ctx, kyctypes.ModuleName, []byte(regionId), func(vc didtypes.Credential) (stop bool) {
+				info, found := k.didKeeper.GetDidInfo(ctx, vc.Did)
+				if found {
+					delegation, f := k.GetDelegation(ctx, sdk.MustAccAddressFromBech32(info.Address), sdk.ValAddress{})
+					if f {
+						delegation.ValidatorAddress = region.OperatorAddress
+						k.SetDelegation(ctx, delegation)
+					}
+				}
+				return false
+			})
+			k.DeleteChangeDelegationValidator(ctx, regionId)
 		}
-		i++
 	}
 }
