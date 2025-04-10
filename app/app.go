@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_11"
 	"io"
@@ -143,15 +142,7 @@ func New(
 		TxConfig:          encodingConfig.TxConfig,
 		Amino:             encodingConfig.Amino,
 	})
-	// todo opc Mempool type
-	// Setup Mempool and Proposal Handlers
-	baseAppOptions = append(baseAppOptions, func(app *baseapp.BaseApp) {
-		mempool := mempool.NoOpMempool{}
-		app.SetMempool(mempool)
-		handler := baseapp.NewDefaultProposalHandler(mempool, app)
-		app.SetPrepareProposal(handler.PrepareProposalHandler())
-		app.SetProcessProposal(handler.ProcessProposalHandler())
-	})
+
 	bApp := baseapp.NewBaseApp(appparams.Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 
 	bApp.SetCommitMultiStoreTracer(traceStore)

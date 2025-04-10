@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"errors"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"io"
 	"os"
 
@@ -258,12 +260,26 @@ func (a appCreator) newApp(
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
-	baseappOptions := sdkserver.DefaultBaseappOptions(appOpts)
+	baseAppOptions := sdkserver.DefaultBaseappOptions(appOpts)
 
 	skipUpgradeHeights := make(map[int64]bool)
 	for _, h := range cast.ToIntSlice(appOpts.Get(sdkserver.FlagUnsafeSkipUpgrades)) {
 		skipUpgradeHeights[int64(h)] = true
 	}
+
+	// NOTE we use custom transaction decoder that supports the sdk.Tx interface instead of sdk.StdTx
+	// Setup Mempool and Proposal Handlers
+	baseAppOptions = append(baseAppOptions, func(app *baseapp.BaseApp) {
+		maxTxs := cast.ToInt(appOpts.Get(sdkserver.FlagMempoolMaxTxs))
+		if maxTxs <= 0 {
+			maxTxs = DefaultMaxTxs
+		}
+		mpool := mempool.NewPriorityMempool(mempool.PriorityNonceWithMaxTx(maxTxs))
+		handler := baseapp.NewDefaultProposalHandler(mpool, app)
+		app.SetMempool(mpool)
+		app.SetPrepareProposal(handler.PrepareProposalHandler())
+		app.SetProcessProposal(handler.ProcessProposalHandler())
+	})
 
 	return app.New(
 		logger,
@@ -275,7 +291,7 @@ func (a appCreator) newApp(
 		cast.ToUint(appOpts.Get(sdkserver.FlagInvCheckPeriod)),
 		a.encodingConfig,
 		appOpts,
-		baseappOptions...,
+		baseAppOptions...,
 	)
 }
 

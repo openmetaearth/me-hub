@@ -6,6 +6,8 @@ import (
 	ethcmd "github.com/evmos/ethermint/cmd/config"
 )
 
+const DefaultMaxTxs = 5000
+
 func initSDKConfig() {
 	// Set additional config. prefix and denoms registered on app init
 	config := sdk.GetConfig()
