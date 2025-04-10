@@ -24,7 +24,6 @@ func (k *Keeper) GetKYCsByRegion(
 	regionId string,
 	pageReq *query.PageRequest,
 ) (KYCs []didtypes.Credential, pageRes *query.PageResponse, err error) {
-
 	return k.didKeeper.GetCredentialsByFilter(ctx, types.ModuleName, []byte(regionId), pageReq)
 }
 

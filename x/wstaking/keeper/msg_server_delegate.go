@@ -11,21 +11,13 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"strings"
 	"time"
 )
 
 // Delegate defines a method for performing a delegation of coins from a delegator to a validator
 func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate) (*stakingtypes.MsgDelegateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	did, _ := k.kycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.DelegatorAddress))
-	kycData, ok := k.kycKeeper.GetKYC(ctx, did)
-	var regionId string
-	if !ok {
-		regionId = strings.ToLower(types.ExperienceRegionName)
-	} else {
-		regionId = string(kycData.Data)
-	}
+	regionId := k.GetRegionIdByAccount(ctx, sdk.MustAccAddressFromBech32(msg.DelegatorAddress))
 	region, isFound := k.GetRegion(ctx, regionId)
 	if !isFound {
 		return nil, types.ErrRegionNotExist
@@ -62,7 +54,7 @@ func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 		)
 	}
 
-	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, sdk.ValAddress{})
+	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, validator.GetOperator())
 	rewards := sdk.ZeroDec()
 	var regionTreasureAddr sdk.AccAddress
 	if isOK {

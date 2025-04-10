@@ -94,12 +94,13 @@ func (k Keeper) queryFixedDepositByRegionRecursively(ctx sdk.Context, req *types
 		if err := k.cdc.Unmarshal(value, &fd); err != nil {
 			return err
 		}
-		did, _ := k.kycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(fd.Account))
-		kycData, ok := k.kycKeeper.GetKYC(ctx, did)
-		if !ok {
-			return types.ErrKycNotExists
+
+		regionId, err := k.MustGetKycRegionIdByAccount(ctx, fd.Account)
+		if err != nil {
+			return err
 		}
-		if kycData.Data != nil && string(kycData.Data) == req.RegionId {
+
+		if regionId == req.RegionId {
 			switch req.QueryType {
 			case types.FixedDepositState_AllState:
 				fixedDeposits = append(fixedDeposits, fd)

@@ -124,7 +124,6 @@ func (suite *KeeperTestHelper) StateNotAltered() {
 
 func (s *KeeperTestHelper) InitializeDao() {
 	globalDaoPrivKey, _ := ethsecp256k1.GenerateKey()
-	globalDaoAddress := sdk.AccAddress(globalDaoPrivKey.PubKey().Address().Bytes())
 	globalDaoAcc := authtypes.NewBaseAccount(globalDaoPrivKey.PubKey().Address().Bytes(), globalDaoPrivKey.PubKey(), 1, 0)
 	//globalOutput, _ := keyring.NewKeyOutput("global_dao", keyring.TypeLocal, globalDaoAddress, globalDaoPrivKey.PubKey())
 
@@ -149,10 +148,10 @@ func (s *KeeperTestHelper) InitializeDao() {
 	s.Require().True(found)
 	s.Dao = dao
 
-	s.InitKyc(globalDaoAddress, "0000000000001", wstakingtypes.MeEarthRegionId)
+	s.InitKyc(globalDaoAcc.GetAddress(), "0000000000001", wstakingtypes.MeEarthRegionId)
 
 	_ = s.App.BankKeeper.MintCoins(s.Ctx, mintypes.ModuleName, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000000000)})
-	_ = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, globalDaoAddress, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
+	_ = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, globalDaoAcc.GetAddress(), sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
 	_ = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, airdropAddress, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
 }
 
@@ -174,7 +173,7 @@ func (s *KeeperTestHelper) InitKyc(address sdk.AccAddress, did string, regionId 
 		Sid:         kyctypes.ModuleName,
 		Name:        kyctypes.ModuleName,
 		Description: "The KYC verifiable credential issuer based The DID(Decentralized Identity).",
-		Issuers:     []string{address.String()},
+		Issuers:     []string{did},
 		Status:      didtypes.SERVICE_STATUS_ACTIVE,
 	}
 	s.App.DidKeeper.SetService(s.Ctx, service.Sid, service)

@@ -21,3 +21,12 @@ func GenEventCompactAttr(eventType string, data interface{}) sdk.Event {
 	})
 	return ev
 }
+
+func GenEventCompactAttrWithBytes(eventType string, data []byte) sdk.Event {
+	ev := sdk.NewEvent(eventType)
+	ev.Attributes = append(ev.Attributes, types.EventAttribute{
+		Key:   EventDataKey,
+		Value: string(data),
+	})
+	return ev
+}

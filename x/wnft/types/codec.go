@@ -12,6 +12,7 @@ import (
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgNewClass{}, "cosmos-sdk/MsgNewClass", nil)
 	cdc.RegisterConcrete(&MsgMintNFT{}, "cosmos-sdk/MsgMintNFT", nil)
+	cdc.RegisterConcrete(&ClassMetadata{}, "metaearth.wnft.ClassMetadata", nil)
 }
 
 // RegisterInterfaces registers the interfaces types with the interface registry.

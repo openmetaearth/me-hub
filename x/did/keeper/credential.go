@@ -88,3 +88,17 @@ func (k Keeper) DeleteCredential(ctx sdk.Context, did, sid string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetCredentialKey(did, sid))
 }
+
+func (k Keeper) IteratorCredentialsByFilter(ctx sdk.Context, sid string, filter []byte, cb func(delegation types.Credential) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetFilterPrefixBySidAndFilter(sid, filter))
+	iterator := sdk.KVStorePrefixIterator(store, nil)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var vc types.Credential
+		k.cdc.MustUnmarshal(iterator.Value(), &vc)
+		if cb(vc) {
+			break
+		}
+	}
+}

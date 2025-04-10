@@ -29,5 +29,6 @@ func BeginBlock(ctx sdk.Context, k *keeper.Keeper) {
 }
 
 func EndBlock(ctx sdk.Context, k *keeper.Keeper) []abci.ValidatorUpdate {
+	k.ChangeDelegationValidator(ctx)
 	return k.BlockValidatorUpdates(ctx)
 }

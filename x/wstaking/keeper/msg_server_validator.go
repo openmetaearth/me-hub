@@ -115,7 +115,7 @@ func (k MsgServer) CreateValidator(
 	// move coins from the msg.Address account to a (self-delegation) delegator account
 	// the validator account and global shares are updated within here
 	// NOTE source will always be from a wallet which are unbonded
-	_, err = k.Keeper.Stake(ctx, delegatorAddress, msg.Value.Amount, stakingtypes.Unbonded, validator, true,"create_validator_"+msg.Description.RegionID)
+	_, err = k.Keeper.Stake(ctx, delegatorAddress, msg.Value.Amount, stakingtypes.Unbonded, validator, true, "create_validator_"+msg.Description.RegionID)
 	if err != nil {
 		return nil, err
 	}
@@ -256,14 +256,6 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 	stake.ValidatorAddress = newValOperAddr.String()
 	k.SetStake(ctx, stake)
 
-	k.IterateAllDelegations(ctx, func(delegation stakingtypes.Delegation) bool {
-		if delegation.ValidatorAddress == validator.OperatorAddress {
-			delegation.ValidatorAddress = newValOperAddr.String()
-			k.SetDelegation(ctx, delegation)
-		}
-		return false
-	})
-
 	validator.OperatorAddress = newValOperAddr.String()
 	validator.OwnerAddress = newValAddr.String()
 
@@ -274,11 +266,14 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 
 	k.SetValidator(ctx, validator)
 	k.SetValidatorByPowerIndex(ctx, validator)
+	// bond region again
 	k.BondRegion(ctx, validator, validator.Tokens, true)
 
 	if validator.Status == stakingtypes.Unbonding {
 		k.InsertUnbondingValidatorQueue(ctx, validator)
 	}
+
+	k.SetChangeDelegationValidator(ctx, validator.Description.RegionID)
 
 	ctx.Logger().Info("==>new validator", "validator", validator.String(), "owner", validator.OwnerAddress)
 	if err := k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {

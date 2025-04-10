@@ -19,14 +19,8 @@ import (
 
 // Undelegate defines a method for performing an undelegation from a delegate and a validator
 func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndelegate) (*stakingtypes.MsgUndelegateResponse, error) {
-	var region types.Region
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	regionID := strings.ToLower(types.ExperienceRegionName)
-	did, ok := k.kycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.DelegatorAddress))
-	if ok {
-		kycData, _ := k.kycKeeper.GetKYC(ctx, did)
-		regionID = string(kycData.Data)
-	}
+	regionID := k.GetRegionIdByAccount(ctx, sdk.MustAccAddressFromBech32(msg.DelegatorAddress))
 	region, isFound := k.GetRegion(ctx, regionID)
 	if !isFound {
 		return nil, types.ErrRegionNotExist
@@ -62,7 +56,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 
 	// current interest balance * personal withdrawal pledge limit / district total pledge limit
 	//person_dele_inte := region.DelegateInterest.Mul(sdk.NewDecFromInt(msg.Amount.Amount).Quo(sdk.NewDecFromInt(validator.DelegationAmount)))
-	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, sdk.ValAddress{})
+	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, val.GetOperator())
 	if !isOK {
 		return nil, types.ErrEmptyDelegationDistInfo
 	}

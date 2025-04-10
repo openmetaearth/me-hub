@@ -54,7 +54,7 @@ func (s *KeeperTestSuite) TestKycReward_WithDelegation() {
 	s.Require().NoError(err)
 	s.Require().Equal(expVal.DelegationAmount.String(), delegateAmount.String())
 
-	delegation, f := s.Keeper().GetDelegation(s.Ctx, userAccount, sdk.ValAddress{})
+	delegation, f := s.Keeper().GetDelegation(s.Ctx, userAccount, expVal.GetOperator())
 	s.Require().True(f)
 	s.Require().Equal(delegation.UnMeidAmount.String(), delegateAmount.String())
 	s.Require().Equal(delegation.Unmovable.String(), sdk.NewInt(0).String())
@@ -62,12 +62,14 @@ func (s *KeeperTestSuite) TestKycReward_WithDelegation() {
 
 	// do kyc reward
 	inviter, _ := s.NewAccount()
-	err = s.Keeper().KycReward(s.Ctx, inviter, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+	err = s.Keeper().KycReward(s.Ctx, userAccount, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+	s.Require().NoError(err)
+	err = s.Keeper().SendInviteReward(s.Ctx, inviter.String(), userAccount.String(), s.usaValidator.Description.RegionID)
 	s.Require().NoError(err)
 
 	// check invite address
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(inviter.String()), params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), types.InviteReward.String())
+	s.Require().Equal(types.InviteReward.String(), balance.Amount.String())
 
 	// after kyc reward
 	// check experience region DelegateAmount
@@ -91,7 +93,7 @@ func (s *KeeperTestSuite) TestKycReward_WithDelegation() {
 	s.Require().NoError(err)
 	s.Require().Equal(delegateAmount.String(), usaVal.DelegationAmount.String())
 
-	delegation, f = s.Keeper().GetDelegation(s.Ctx, userAccount, sdk.ValAddress{})
+	delegation, f = s.Keeper().GetDelegation(s.Ctx, userAccount, usaValAddress)
 	s.Require().True(f)
 	s.Require().Equal(sdk.NewInt(0).String(), delegation.UnMeidAmount.String())
 	s.Require().Equal(types.Bonus.String(), delegation.Unmovable.String())

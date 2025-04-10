@@ -39,7 +39,7 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, cre
 
 	validator.MeidAmount = validator.MeidAmount.Add(types.Bonus)
 
-	err = k.SendKycRewards(ctx, account, valAddr, validator, region)
+	err = k.sendKycRewards(ctx, account, valAddr, validator, region)
 	if err != nil {
 		return sdkerrors.Wrapf(types.ErrSendKycReward, err.Error())
 	}
@@ -64,20 +64,6 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, cre
 }
 
 func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionId string) error {
-	delegation, found := k.GetDelegation(ctx, account, sdk.ValAddress{})
-	if !found {
-		return types.ErrNoDelegatorForAddress
-	}
-
-	if delegation.Amount.Add(delegation.UnMeidAmount).GT(sdk.ZeroInt()) {
-		return types.ErrRemoveKyc.Wrap(fmt.Sprintf("The current user(%s) have delegate, need to withdraw.", account))
-	}
-
-	fixedCount := len(k.GetFixedDepositByAcct(ctx, account.String()))
-	if fixedCount > 0 {
-		return types.ErrRemoveKyc.Wrap(fmt.Sprintf("The current user(%s) have fixed deposit, need to withdraw.", account))
-	}
-
 	region, found := k.GetRegion(ctx, regionId)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrRegionNotExist, fmt.Sprintf("%s not exists", regionId))
@@ -93,30 +79,97 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 		return fmt.Errorf("region bonded validator not found")
 	}
 
-	_, err = k.removeKycReward(ctx, account, valAddr, region)
+	delegation, found := k.GetDelegation(ctx, account, valAddr)
+	if !found {
+		return types.ErrNoDelegatorForAddress
+	}
+
+	if delegation.Amount.Add(delegation.UnMeidAmount).GT(sdk.ZeroInt()) {
+		return types.ErrRemoveKyc.Wrap(fmt.Sprintf("The current user(%s) have delegate, need to withdraw.", account))
+	}
+
+	fixedCount := len(k.GetFixedDepositByAcct(ctx, account.String()))
+	if fixedCount > 0 {
+		return types.ErrRemoveKyc.Wrap(fmt.Sprintf("The current user(%s) have fixed deposit, need to withdraw.", account))
+	}
+
+	region.DelegateAmount = region.DelegateAmount.Sub(types.Bonus).Sub(delegation.Amount)
+	if region.DelegateAmount.LT(sdk.ZeroInt()) {
+		return errors.New("remove kyc error: region delegation amount less than 0")
+	}
+
+	rewards, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
+	if err != nil {
+		return types.ErrCalculateInterest.Wrap(err.Error())
+	}
+
+	// settle interest
+	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
+		sdk.MustAccAddressFromBech32(region.RegionTreasureAddr),
+		account,
+		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())),
+		fmt.Sprintf("RemoveKycReward_UserCurrentInterestSettlement_%s", region.RegionId),
+	)
+	if err != nil {
+		return fmt.Errorf("settle interest error: %v", err)
+	}
+
+	if region.DelegateInterest.GTE(rewards) {
+		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
+	}
+
+	if delegation.Unmovable.LTE(sdk.ZeroInt()) {
+		return types.ErrDidExists
+	}
+
+	delegation.Unmovable = sdk.ZeroInt()
+	delegation.StartHeight = ctx.BlockHeight()
+
+	experienceRegion, found := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegionName))
+	if !found {
+		return types.ErrExperienceRegionNotExist
+	}
+	delegation.ValidatorAddress = experienceRegion.OperatorAddress
+	if delegation.Amount.IsZero() && delegation.UnMeidAmount.IsZero() {
+		err = k.removeDelegation(ctx, delegation)
+		if err != nil {
+			return err
+		}
+	} else {
+		k.SetDelegation(ctx, delegation)
+	}
+	k.SetRegion(ctx, region)
+
+	validator.DelegationAmount = validator.DelegationAmount.Sub(delegation.Amount)
+	validator.MeidAmount = validator.MeidAmount.Sub(types.Bonus)
+	k.SetValidator(ctx, validator)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeRemoveKyc,
+			sdk.NewAttribute(types.AttributeKeyRegionId, region.RegionId),
+			sdk.NewAttribute(sdk.AttributeKeySender, region.RegionTreasureAddr),
+			sdk.NewAttribute(types.AttributeKeyReceiver, account.String()),
+			sdk.NewAttribute(types.AttributeKeyPersonalDelegateInterest, rewards.String()+params.BaseDenom),
+		),
+	})
+	return nil
+}
+
+func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
+	validator stakingtypes.Validator, region types.Region) (err error) {
+	experienceRegion, hasRegion := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegionName))
+	if !hasRegion {
+		return types.ErrExpRegionNotExist
+	}
+
+	experienceValAddress, err := sdk.ValAddressFromBech32(experienceRegion.OperatorAddress)
 	if err != nil {
 		return err
 	}
 
-	validator.MeidAmount = validator.MeidAmount.Sub(types.Bonus)
-	k.SetValidator(ctx, validator)
-	return nil
-}
-
-func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
-	validator stakingtypes.Validator, region types.Region) (err error) {
-	delegation, found := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
+	delegation, found := k.GetDelegation(ctx, delAddr, experienceValAddress)
 	if found {
-		experienceRegion, hasRegion := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegionName))
-		if !hasRegion {
-			return types.ErrExpRegionNotExist
-		}
-
-		experienceValAddress, err := sdk.ValAddressFromBech32(experienceRegion.OperatorAddress)
-		if err != nil {
-			return err
-		}
-
 		if delegation.Unmovable.GT(sdk.ZeroInt()) {
 			return types.ErrDidExists
 		}
@@ -168,7 +221,7 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 	// Update delegation
 	delegation.Unmovable = types.Bonus //delegation.Unmovable.Add(bondAmt)
 	delegation.StartHeight = ctx.BlockHeight()
-	delegation.ValidatorAddress = validatorAddr.String()
+	delegation.ValidatorAddress = validator.OperatorAddress
 	treasureAddr := k.GetRegionAccount(ctx, types.RegionAccountTypeBase, region.RegionId)
 
 	// validator rewards
@@ -209,82 +262,14 @@ func (k Keeper) SendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 	return nil
 }
 
-func (k Keeper) removeKycReward(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, region types.Region) (amount math.Int, err error) {
-	delegation, found := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
-	if !found {
-		return amount, stakingtypes.ErrNoDelegatorForAddress
-	}
-
-	region.DelegateAmount = region.DelegateAmount.Sub(types.Bonus).Sub(delegation.Amount)
-	if region.DelegateAmount.LT(sdk.ZeroInt()) {
-		return amount, errors.New("remove kyc error: region delegation amount less than 0")
-	}
-
-	rewards, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
-	if err != nil {
-		return amount, types.ErrCalculateInterest.Wrap(err.Error())
-	}
-
-	// settle interest
-	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
-		sdk.MustAccAddressFromBech32(region.RegionTreasureAddr),
-		delAddr,
-		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())),
-		fmt.Sprintf("RemoveKycReward_UserCurrentInterestSettlement_%s", region.RegionId),
-	)
-	if err != nil {
-		return amount, fmt.Errorf("settle interest error: %v", err)
-	}
-
-	if region.DelegateInterest.GTE(rewards) {
-		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
-	}
-
-	if delegation.Unmovable.LTE(sdk.ZeroInt()) {
-		return amount, types.ErrDidExists
-	}
-
-	delegation.Unmovable = sdk.ZeroInt()
-	delegation.StartHeight = ctx.BlockHeight()
-
-	experienceRegion, found := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegionName))
-	if !found {
-		return amount, types.ErrExperienceRegionNotExist
-	}
-	delegation.ValidatorAddress = experienceRegion.OperatorAddress
-	if delegation.Amount.IsZero() && delegation.UnMeidAmount.IsZero() {
-		err = k.removeDelegation(ctx, delegation)
-		if err != nil {
-			return amount, err
-		}
-	} else {
-		k.SetDelegation(ctx, delegation)
-	}
-	k.SetRegion(ctx, region)
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeRemoveKyc,
-			sdk.NewAttribute(types.AttributeKeyRegionId, region.RegionId),
-			sdk.NewAttribute(sdk.AttributeKeySender, region.RegionTreasureAddr),
-			sdk.NewAttribute(types.AttributeKeyReceiver, delAddr.String()),
-			sdk.NewAttribute(types.AttributeKeyPersonalDelegateInterest, rewards.String()+params.BaseDenom),
-		),
-	})
-	return amount, nil
-}
-
-func (k Keeper) transferDeposit(ctx sdk.Context, toRegion types.Region, userAddr, fromRegionID string) error {
+func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion types.Region, userAddr string) error {
 	// GetFixedDepositByAcct returns the list of fixedDeposits of an account
 	fixedDeposits := k.GetFixedDepositByAcct(ctx, userAddr)
 	if len(fixedDeposits) == 0 {
 		//if no have deposit，no need to execute the following logic
 		return nil
 	}
-	fromRegion, found := k.GetRegion(ctx, fromRegionID)
-	if !found {
-		return errors.New(fmt.Sprintf("the current user(%s) has no delegation in region(%s)", userAddr, fromRegionID))
-	}
+
 	fromTreasureAddr, accErr := sdk.AccAddressFromBech32(fromRegion.RegionTreasureAddr)
 	if accErr != nil {
 		return accErr
@@ -323,7 +308,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, toRegion types.Region, userAddr
 		if err != nil {
 			return err
 		}
-		err = k.DecreaseFixedDepositCountOfCfg(ctx, fromRegionID, fixed.Term)
+		err = k.DecreaseFixedDepositCountOfCfg(ctx, fromRegion.RegionId, fixed.Term)
 		if err != nil {
 			return err
 		}
@@ -350,7 +335,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, toRegion types.Region, userAddr
 		fromDepositInterestAddr,
 		fromTreasureAddr,
 		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, totalFixedInterestCoin)),
-		fmt.Sprintf("TransferDepositInterest_RecoveringDepositInterestOfFromRegion_%s", fromRegionID),
+		fmt.Sprintf("TransferDepositInterest_RecoveringDepositInterestOfFromRegion_%s", fromRegion.RegionId),
 	)
 	if err != nil {
 		return errors.New(fmt.Sprintf("recovering deposit interest of fromRegion:%s", err.Error()))
@@ -359,7 +344,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, toRegion types.Region, userAddr
 		sdk.NewEvent(
 			types.EventTransferRegionSettlementFixedDeposit,
 			sdk.NewAttribute(types.AttributeKeyTransferAddress, userAddr),
-			sdk.NewAttribute(types.AttributeKeyFromRegion, fromRegionID),
+			sdk.NewAttribute(types.AttributeKeyFromRegion, fromRegion.RegionId),
 			sdk.NewAttribute(types.AttributeKeyToRegion, toRegion.RegionId),
 			sdk.NewAttribute(types.AttributeKeyFixedDeposit, totalFixedInterestCoin.String()+params.BaseDenom),
 		),

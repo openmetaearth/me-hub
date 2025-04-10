@@ -23,14 +23,17 @@ import (
 // UpgradeTestSuite defines the structure for the upgrade test suite
 type UpgradeTestSuite struct {
 	suite.Suite
-	Ctx             sdk.Context
-	App             *app.App
-	DIDReader       v2_0_10.DIDReader
-	KycPubkeyReader v2_0_10.KycPubkeyReader
-	mockAddress1    string
-	mockAddress2    string
-	mockAddress3    string
-	mockDid1        string
+	Ctx                 sdk.Context
+	App                 *app.App
+	DIDReader           v2_0_10.DIDReader
+	KycPubkeyReader     v2_0_10.KycPubkeyReader
+	mockAddress1        string
+	mockAddress2        string
+	mockAddress3        string
+	mockDid1            string
+	meEarthValidator    stakingtypes.Validator
+	experienceValidator stakingtypes.Validator
+	usaValidator        stakingtypes.Validator
 }
 
 func TestUpgradeTestSuite(t *testing.T) {
@@ -39,7 +42,7 @@ func TestUpgradeTestSuite(t *testing.T) {
 
 func (s *UpgradeTestSuite) SetupTest() {
 	s.App = apptesting.Setup(s.T(), false)
-	s.Ctx = s.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
+	s.Ctx = s.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "mechain_100-1", Time: time.Now().UTC()})
 	s.mockAddress1 = "me18uungln5qxndqelavjnzny6z87v530hmm74dtm" // maple skin present glad name second struggle correct submit learn guitar refuse common become sphere output pattern annual riot master tent buddy aisle abuse
 	s.mockAddress2 = "me1lepklhvskft6cr5e0lzce0vwgpjtq6esmkjdga" // upon gate call badge film access impact adjust slow uncle trust path remove drip pulp pact already grape mouse benefit era bridge annual frost
 	s.mockAddress3 = "me1vlljzn8mhy68dgatgl8hn24a0sgx2vk8ffm8hd" // upon gate call badge film access impact adjust slow uncle trust path remove drip pulp pact already grape mouse benefit era bridge annual frost
@@ -52,6 +55,7 @@ func (s *UpgradeTestSuite) SetupTest() {
 				UriHash:    "e00d196344dbd54550dadeab1167302ef39fade96eb211e302693a512ef131e1",
 				KycUri:     "https://example.com/kyc/metadata.json",
 				KycUriHash: "e00d196344dbd54550dadeab1167302ef39fade96eb211e302693a512ef131e2",
+				PubKey:     "{\"@type\":\"/cosmos.crypto.secp256k1.PubKey\",\"key\":\"Anmi0DiLED1oGRiVIPO4n6HSnk7iArQBdeR1HnHxodmB\"}",
 			},
 		},
 		Err: nil,
@@ -61,6 +65,11 @@ func (s *UpgradeTestSuite) SetupTest() {
 			s.mockAddress1: "{\"@type\":\"/cosmos.crypto.secp256k1.PubKey\",\"key\":\"Anmi0DiLED1oGRiVIPO4n6HSnk7iArQBdeR1HnHxodmB\"}",
 		},
 	}
+	validators := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
+	s.Require().True(len(validators) >= 3)
+	s.meEarthValidator = validators[0]
+	s.experienceValidator = validators[1]
+	s.usaValidator = validators[2]
 }
 
 func (s *UpgradeTestSuite) TestReadDidData() {
@@ -245,13 +254,13 @@ func (s *UpgradeTestSuite) TestMigrateDelegation() {
 	// Set up the experience region
 	expRegion := wstakingtypes.Region{
 		RegionId:        wstakingtypes.ExperienceRegionId,
-		OperatorAddress: "expOperatorAddress",
+		OperatorAddress: s.experienceValidator.OperatorAddress,
 	}
 	s.App.StakingKeeper.SetRegion(s.Ctx, expRegion)
 
 	testRegion := wstakingtypes.Region{
 		RegionId:        wstakingtypes.MeEarthRegionId,
-		OperatorAddress: "testOperatorAddress",
+		OperatorAddress: s.meEarthValidator.OperatorAddress,
 	}
 	s.App.StakingKeeper.SetRegion(s.Ctx, testRegion)
 
@@ -279,9 +288,9 @@ func (s *UpgradeTestSuite) TestMigrateDelegation() {
 	// Call the MigrateDelegation function
 	v2_0_10.MigrateDelegation(s.Ctx, s.App.StakingKeeper, s.App.KycKeeper)
 
-	delegation, found = s.App.StakingKeeper.GetDelegation(s.Ctx, delegator, sdk.ValAddress{})
+	delegation, found = s.App.StakingKeeper.GetDelegation(s.Ctx, delegator, s.meEarthValidator.GetOperator())
 	s.Require().True(found)
-	s.Require().Equal("testOperatorAddress", delegation.ValidatorAddress)
+	s.Require().Equal(s.meEarthValidator.OperatorAddress, delegation.ValidatorAddress)
 
 	// Case 2: No Experience Region Validator Address
 	delegator2 := sdk.MustAccAddressFromBech32(s.mockAddress2)
@@ -292,7 +301,7 @@ func (s *UpgradeTestSuite) TestMigrateDelegation() {
 
 	v2_0_10.MigrateDelegation(s.Ctx, s.App.StakingKeeper, s.App.KycKeeper)
 
-	delegation2, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator2, sdk.ValAddress{})
+	delegation2, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator2, s.experienceValidator.GetOperator())
 	s.Require().True(found)
 	s.Require().Equal(expRegion.OperatorAddress, delegation2.ValidatorAddress)
 
@@ -300,7 +309,7 @@ func (s *UpgradeTestSuite) TestMigrateDelegation() {
 	delegator3 := sdk.MustAccAddressFromBech32(s.mockAddress3)
 	s.App.StakingKeeper.SetDelegation(s.Ctx, stakingtypes.Delegation{
 		DelegatorAddress: delegator3.String(),
-		ValidatorAddress: "oldOperatorAddress",
+		ValidatorAddress: s.experienceValidator.OperatorAddress,
 	})
 
 	s.App.KycKeeper.SetDID(s.Ctx, delegator3, "testDid3")
@@ -312,7 +321,7 @@ func (s *UpgradeTestSuite) TestMigrateDelegation() {
 
 	v2_0_10.MigrateDelegation(s.Ctx, s.App.StakingKeeper, s.App.KycKeeper)
 
-	delegation3, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator3, sdk.ValAddress{})
+	delegation3, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator3, s.meEarthValidator.GetOperator())
 	s.Require().True(found)
 	s.Require().Equal(testRegion.OperatorAddress, delegation3.ValidatorAddress)
 }

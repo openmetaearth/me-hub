@@ -28,6 +28,7 @@ type KeeperTestSuite struct {
 	meEarthValidator    stakingtypes.Validator
 	experienceValidator stakingtypes.Validator
 	usaValidator        stakingtypes.Validator
+	TestAccs            []sdk.AccAddress
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -81,6 +82,8 @@ func (s *KeeperTestSuite) SetupTest() {
 	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
 
 	s.Require().NoError(err)
+
+	s.TestAccs = s.NewAccounts(3)
 }
 
 func SetValidatorV1(ctx sdk.Context, k *wstakingkeeper.Keeper, validator testutilstypes.ValidatorV1) {

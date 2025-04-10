@@ -1,16 +1,54 @@
 package keeper
 
 import (
+	sdkerrors "cosmossdk.io/errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
+	"strings"
 )
 
+func (k Keeper) GetRegionIdByAccount(ctx sdk.Context, address sdk.AccAddress) string {
+	regionId := strings.ToLower(types.ExperienceRegionName)
+	did, ok := k.kycKeeper.GetDID(ctx, address)
+	if !ok {
+		return regionId
+	}
+	kycData, ok := k.kycKeeper.GetKYC(ctx, did)
+	if !ok {
+		return regionId
+	}
+	return string(kycData.Data)
+}
+
+func (k Keeper) MustGetKycRegionIdByAccount(ctx sdk.Context, account string) (string, error) {
+	did, ok := k.kycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(account))
+	if !ok {
+		return "", sdkerrors.Wrapf(types.ErrDidNotExists, "did with account %s not exist", account)
+	}
+	kycData, ok := k.kycKeeper.GetKYC(ctx, did)
+	if !ok {
+		return "", sdkerrors.Wrapf(types.ErrKycNotExists, "kyc with account %s not exist", account)
+	}
+	return string(kycData.Data), nil
+}
+
 func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creator, fromRegionId, toRegionId string) error {
-	toRegion, isFound := k.GetRegion(ctx, toRegionId)
-	if !isFound {
+
+	fromRegion, found := k.GetRegion(ctx, fromRegionId)
+	if !found {
+		return types.ErrRegionNotExist
+	}
+
+	fromValAddr, valErr := sdk.ValAddressFromBech32(fromRegion.OperatorAddress)
+	if valErr != nil {
+		return valErr
+	}
+
+	toRegion, found := k.GetRegion(ctx, toRegionId)
+	if !found {
 		return types.ErrRegionNotExist
 	}
 
@@ -18,20 +56,25 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 	if valErr != nil {
 		return valErr
 	}
+
 	validator, found := k.GetValidator(ctx, valAddr)
 	if !found {
 		return stakingtypes.ErrNoValidatorFound
 	}
 
-	delegation, found := k.GetDelegation(ctx, address, sdk.ValAddress{})
+	delegation, found := k.GetDelegation(ctx, address, fromValAddr)
 	if !found {
 		return types.ErrNoDelegatorForAddress
 	}
+	delegation.ValidatorAddress = toRegion.OperatorAddress
+	k.SetDelegation(ctx, delegation)
+
 	// Handling fixed deposits
-	err := k.transferDeposit(ctx, toRegion, address.String(), fromRegionId)
+	err := k.transferDeposit(ctx, fromRegion, toRegion, address.String())
 	if err != nil {
 		return types.ErrTransferRegion.Wrap(err.Error())
 	}
+
 	// fix validator meid amount
 	validator.DelegationAmount = validator.DelegationAmount.Add(delegation.Amount)
 	if validator.Tokens.LT(validator.DelegationAmount) {
