@@ -109,13 +109,14 @@ func (msg MsgMintNFT) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func NewMsgMintNFT(class_id, token_id, uri, uriHash, sender string) *MsgMintNFT {
+func NewMsgMintNFT(class_id, token_id, uri, uriHash, sender, receiver string) *MsgMintNFT {
 	return &MsgMintNFT{
-		ClassId: class_id,
-		TokenId: token_id,
-		Uri:     uri,
-		UriHash: uriHash,
-		Creator: sender,
+		ClassId:  class_id,
+		TokenId:  token_id,
+		Uri:      uri,
+		UriHash:  uriHash,
+		Creator:  sender,
+		Receiver: receiver,
 	}
 }
 
