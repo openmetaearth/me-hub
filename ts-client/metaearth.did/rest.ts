@@ -112,17 +112,13 @@ export enum DidServiceStatus {
 }
 
 export interface MetaearthdidCredential {
-  /** MEIDNFT.umeid */
   did?: string;
-
-  /** MEID.creator */
   sid?: string;
   hash?: string;
   uri?: string;
 
   /**
    * data is an app specific data of the credential. Optional
-   * MEID.regionId
    * @format byte
    */
   data?: string;

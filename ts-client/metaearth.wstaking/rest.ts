@@ -551,6 +551,21 @@ export interface WstakingQueryFixedDepositByAcctResponse {
   FixedDeposit?: MetaearthwstakingFixedDeposit[];
 }
 
+export interface WstakingQueryFixedDepositByRegionResponse {
+  FixedDeposit?: MetaearthwstakingFixedDeposit[];
+
+  /**
+   * PageResponse is to be embedded in gRPC response messages where the
+   * corresponding request message has used PageRequest.
+   *
+   *  message SomeResponse {
+   *          repeated Bar results = 1;
+   *          PageResponse page = 2;
+   *  }
+   */
+  pagination?: V1Beta1PageResponse;
+}
+
 export interface WstakingQueryFixedDepositCfgByTermResponse {
   FixedDepositCfg?: MetaearthwstakingFixedDepositCfg;
 }
@@ -745,6 +760,34 @@ export class HttpClient<SecurityDataType = unknown> {
  * @version version not set
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryFixedDepositByRegion
+   * @summary Queries a list of FixedDepositByRegion items.
+   * @request GET:/cosmos/staking/v1beta1/fixed_deposit_by_region/{region_id}
+   */
+  queryFixedDepositByRegion = (
+    regionId: string,
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+      "pagination.reverse"?: boolean;
+      query_type?: "ALL_STATE" | "NOT_EXPIRED" | "EXPIRED";
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<WstakingQueryFixedDepositByRegionResponse, RpcStatus>({
+      path: `/cosmos/staking/v1beta1/fixed_deposit_by_region/${regionId}`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
   /**
    * No description
    *

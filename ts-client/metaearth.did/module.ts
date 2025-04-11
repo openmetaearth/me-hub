@@ -8,14 +8,14 @@ import { IgniteClient } from "../client"
 import { MissingWalletError } from "../helpers"
 import { Api } from "./rest";
 import { MsgUpdateDidStatus } from "./types/metaearth/did/tx";
-import { MsgUpdateServiceStatus } from "./types/metaearth/did/tx";
-import { MsgRemoveDid } from "./types/metaearth/did/tx";
-import { MsgRemoveService } from "./types/metaearth/did/tx";
-import { MsgCreateDid } from "./types/metaearth/did/tx";
-import { MsgCreateService } from "./types/metaearth/did/tx";
 import { MsgUpdateVC } from "./types/metaearth/did/tx";
-import { MsgRemoveVC } from "./types/metaearth/did/tx";
+import { MsgUpdateServiceStatus } from "./types/metaearth/did/tx";
+import { MsgCreateService } from "./types/metaearth/did/tx";
 import { MsgCreateVC } from "./types/metaearth/did/tx";
+import { MsgRemoveService } from "./types/metaearth/did/tx";
+import { MsgRemoveVC } from "./types/metaearth/did/tx";
+import { MsgCreateDid } from "./types/metaearth/did/tx";
+import { MsgRemoveDid } from "./types/metaearth/did/tx";
 
 import { Credential as typeCredential} from "./types"
 import { DidInfo as typeDidInfo} from "./types"
@@ -25,40 +25,10 @@ import { Service as typeService} from "./types"
 import { MsgRemoveDidResponse as typeMsgRemoveDidResponse} from "./types"
 import { MsgRemoveServiceResponse as typeMsgRemoveServiceResponse} from "./types"
 
-export { MsgUpdateDidStatus, MsgUpdateServiceStatus, MsgRemoveDid, MsgRemoveService, MsgCreateDid, MsgCreateService, MsgUpdateVC, MsgRemoveVC, MsgCreateVC };
+export { MsgUpdateDidStatus, MsgUpdateVC, MsgUpdateServiceStatus, MsgCreateService, MsgCreateVC, MsgRemoveService, MsgRemoveVC, MsgCreateDid, MsgRemoveDid };
 
 type sendMsgUpdateDidStatusParams = {
   value: MsgUpdateDidStatus,
-  fee?: StdFee,
-  memo?: string
-};
-
-type sendMsgUpdateServiceStatusParams = {
-  value: MsgUpdateServiceStatus,
-  fee?: StdFee,
-  memo?: string
-};
-
-type sendMsgRemoveDidParams = {
-  value: MsgRemoveDid,
-  fee?: StdFee,
-  memo?: string
-};
-
-type sendMsgRemoveServiceParams = {
-  value: MsgRemoveService,
-  fee?: StdFee,
-  memo?: string
-};
-
-type sendMsgCreateDidParams = {
-  value: MsgCreateDid,
-  fee?: StdFee,
-  memo?: string
-};
-
-type sendMsgCreateServiceParams = {
-  value: MsgCreateService,
   fee?: StdFee,
   memo?: string
 };
@@ -69,8 +39,14 @@ type sendMsgUpdateVCParams = {
   memo?: string
 };
 
-type sendMsgRemoveVCParams = {
-  value: MsgRemoveVC,
+type sendMsgUpdateServiceStatusParams = {
+  value: MsgUpdateServiceStatus,
+  fee?: StdFee,
+  memo?: string
+};
+
+type sendMsgCreateServiceParams = {
+  value: MsgCreateService,
   fee?: StdFee,
   memo?: string
 };
@@ -81,41 +57,65 @@ type sendMsgCreateVCParams = {
   memo?: string
 };
 
+type sendMsgRemoveServiceParams = {
+  value: MsgRemoveService,
+  fee?: StdFee,
+  memo?: string
+};
+
+type sendMsgRemoveVCParams = {
+  value: MsgRemoveVC,
+  fee?: StdFee,
+  memo?: string
+};
+
+type sendMsgCreateDidParams = {
+  value: MsgCreateDid,
+  fee?: StdFee,
+  memo?: string
+};
+
+type sendMsgRemoveDidParams = {
+  value: MsgRemoveDid,
+  fee?: StdFee,
+  memo?: string
+};
+
 
 type msgUpdateDidStatusParams = {
   value: MsgUpdateDidStatus,
-};
-
-type msgUpdateServiceStatusParams = {
-  value: MsgUpdateServiceStatus,
-};
-
-type msgRemoveDidParams = {
-  value: MsgRemoveDid,
-};
-
-type msgRemoveServiceParams = {
-  value: MsgRemoveService,
-};
-
-type msgCreateDidParams = {
-  value: MsgCreateDid,
-};
-
-type msgCreateServiceParams = {
-  value: MsgCreateService,
 };
 
 type msgUpdateVCParams = {
   value: MsgUpdateVC,
 };
 
-type msgRemoveVCParams = {
-  value: MsgRemoveVC,
+type msgUpdateServiceStatusParams = {
+  value: MsgUpdateServiceStatus,
+};
+
+type msgCreateServiceParams = {
+  value: MsgCreateService,
 };
 
 type msgCreateVCParams = {
   value: MsgCreateVC,
+};
+
+type msgRemoveServiceParams = {
+  value: MsgRemoveService,
+};
+
+type msgRemoveVCParams = {
+  value: MsgRemoveVC,
+};
+
+type msgCreateDidParams = {
+  value: MsgCreateDid,
+};
+
+type msgRemoveDidParams = {
+  value: MsgRemoveDid,
 };
 
 
@@ -162,6 +162,20 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
+		async sendMsgUpdateVC({ value, fee, memo }: sendMsgUpdateVCParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgUpdateVC: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgUpdateVC({ value: MsgUpdateVC.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+			} catch (e: any) {
+				throw new Error('TxClient:sendMsgUpdateVC: Could not broadcast Tx: '+ e.message)
+			}
+		},
+		
 		async sendMsgUpdateServiceStatus({ value, fee, memo }: sendMsgUpdateServiceStatusParams): Promise<DeliverTxResponse> {
 			if (!signer) {
 					throw new Error('TxClient:sendMsgUpdateServiceStatus: Unable to sign Tx. Signer is not present.')
@@ -173,48 +187,6 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
 				throw new Error('TxClient:sendMsgUpdateServiceStatus: Could not broadcast Tx: '+ e.message)
-			}
-		},
-		
-		async sendMsgRemoveDid({ value, fee, memo }: sendMsgRemoveDidParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgRemoveDid: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgRemoveDid({ value: MsgRemoveDid.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgRemoveDid: Could not broadcast Tx: '+ e.message)
-			}
-		},
-		
-		async sendMsgRemoveService({ value, fee, memo }: sendMsgRemoveServiceParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgRemoveService: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgRemoveService({ value: MsgRemoveService.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgRemoveService: Could not broadcast Tx: '+ e.message)
-			}
-		},
-		
-		async sendMsgCreateDid({ value, fee, memo }: sendMsgCreateDidParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgCreateDid: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgCreateDid({ value: MsgCreateDid.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgCreateDid: Could not broadcast Tx: '+ e.message)
 			}
 		},
 		
@@ -232,17 +204,31 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		async sendMsgUpdateVC({ value, fee, memo }: sendMsgUpdateVCParams): Promise<DeliverTxResponse> {
+		async sendMsgCreateVC({ value, fee, memo }: sendMsgCreateVCParams): Promise<DeliverTxResponse> {
 			if (!signer) {
-					throw new Error('TxClient:sendMsgUpdateVC: Unable to sign Tx. Signer is not present.')
+					throw new Error('TxClient:sendMsgCreateVC: Unable to sign Tx. Signer is not present.')
 			}
 			try {			
 				const { address } = (await signer.getAccounts())[0]; 
 				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgUpdateVC({ value: MsgUpdateVC.fromPartial(value) })
+				let msg = this.msgCreateVC({ value: MsgCreateVC.fromPartial(value) })
 				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
-				throw new Error('TxClient:sendMsgUpdateVC: Could not broadcast Tx: '+ e.message)
+				throw new Error('TxClient:sendMsgCreateVC: Could not broadcast Tx: '+ e.message)
+			}
+		},
+		
+		async sendMsgRemoveService({ value, fee, memo }: sendMsgRemoveServiceParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgRemoveService: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgRemoveService({ value: MsgRemoveService.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+			} catch (e: any) {
+				throw new Error('TxClient:sendMsgRemoveService: Could not broadcast Tx: '+ e.message)
 			}
 		},
 		
@@ -260,17 +246,31 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		async sendMsgCreateVC({ value, fee, memo }: sendMsgCreateVCParams): Promise<DeliverTxResponse> {
+		async sendMsgCreateDid({ value, fee, memo }: sendMsgCreateDidParams): Promise<DeliverTxResponse> {
 			if (!signer) {
-					throw new Error('TxClient:sendMsgCreateVC: Unable to sign Tx. Signer is not present.')
+					throw new Error('TxClient:sendMsgCreateDid: Unable to sign Tx. Signer is not present.')
 			}
 			try {			
 				const { address } = (await signer.getAccounts())[0]; 
 				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgCreateVC({ value: MsgCreateVC.fromPartial(value) })
+				let msg = this.msgCreateDid({ value: MsgCreateDid.fromPartial(value) })
 				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
 			} catch (e: any) {
-				throw new Error('TxClient:sendMsgCreateVC: Could not broadcast Tx: '+ e.message)
+				throw new Error('TxClient:sendMsgCreateDid: Could not broadcast Tx: '+ e.message)
+			}
+		},
+		
+		async sendMsgRemoveDid({ value, fee, memo }: sendMsgRemoveDidParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgRemoveDid: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgRemoveDid({ value: MsgRemoveDid.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+			} catch (e: any) {
+				throw new Error('TxClient:sendMsgRemoveDid: Could not broadcast Tx: '+ e.message)
 			}
 		},
 		
@@ -283,35 +283,19 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
+		msgUpdateVC({ value }: msgUpdateVCParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.did.MsgUpdateVC", value: MsgUpdateVC.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgUpdateVC: Could not create message: ' + e.message)
+			}
+		},
+		
 		msgUpdateServiceStatus({ value }: msgUpdateServiceStatusParams): EncodeObject {
 			try {
 				return { typeUrl: "/metaearth.did.MsgUpdateServiceStatus", value: MsgUpdateServiceStatus.fromPartial( value ) }  
 			} catch (e: any) {
 				throw new Error('TxClient:MsgUpdateServiceStatus: Could not create message: ' + e.message)
-			}
-		},
-		
-		msgRemoveDid({ value }: msgRemoveDidParams): EncodeObject {
-			try {
-				return { typeUrl: "/metaearth.did.MsgRemoveDid", value: MsgRemoveDid.fromPartial( value ) }  
-			} catch (e: any) {
-				throw new Error('TxClient:MsgRemoveDid: Could not create message: ' + e.message)
-			}
-		},
-		
-		msgRemoveService({ value }: msgRemoveServiceParams): EncodeObject {
-			try {
-				return { typeUrl: "/metaearth.did.MsgRemoveService", value: MsgRemoveService.fromPartial( value ) }  
-			} catch (e: any) {
-				throw new Error('TxClient:MsgRemoveService: Could not create message: ' + e.message)
-			}
-		},
-		
-		msgCreateDid({ value }: msgCreateDidParams): EncodeObject {
-			try {
-				return { typeUrl: "/metaearth.did.MsgCreateDid", value: MsgCreateDid.fromPartial( value ) }  
-			} catch (e: any) {
-				throw new Error('TxClient:MsgCreateDid: Could not create message: ' + e.message)
 			}
 		},
 		
@@ -323,11 +307,19 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		msgUpdateVC({ value }: msgUpdateVCParams): EncodeObject {
+		msgCreateVC({ value }: msgCreateVCParams): EncodeObject {
 			try {
-				return { typeUrl: "/metaearth.did.MsgUpdateVC", value: MsgUpdateVC.fromPartial( value ) }  
+				return { typeUrl: "/metaearth.did.MsgCreateVC", value: MsgCreateVC.fromPartial( value ) }  
 			} catch (e: any) {
-				throw new Error('TxClient:MsgUpdateVC: Could not create message: ' + e.message)
+				throw new Error('TxClient:MsgCreateVC: Could not create message: ' + e.message)
+			}
+		},
+		
+		msgRemoveService({ value }: msgRemoveServiceParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.did.MsgRemoveService", value: MsgRemoveService.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgRemoveService: Could not create message: ' + e.message)
 			}
 		},
 		
@@ -339,11 +331,19 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		msgCreateVC({ value }: msgCreateVCParams): EncodeObject {
+		msgCreateDid({ value }: msgCreateDidParams): EncodeObject {
 			try {
-				return { typeUrl: "/metaearth.did.MsgCreateVC", value: MsgCreateVC.fromPartial( value ) }  
+				return { typeUrl: "/metaearth.did.MsgCreateDid", value: MsgCreateDid.fromPartial( value ) }  
 			} catch (e: any) {
-				throw new Error('TxClient:MsgCreateVC: Could not create message: ' + e.message)
+				throw new Error('TxClient:MsgCreateDid: Could not create message: ' + e.message)
+			}
+		},
+		
+		msgRemoveDid({ value }: msgRemoveDidParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.did.MsgRemoveDid", value: MsgRemoveDid.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgRemoveDid: Could not create message: ' + e.message)
 			}
 		},
 		

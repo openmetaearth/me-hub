@@ -41,16 +41,23 @@ export interface MsgMintNFT {
   /** uri_hash is a hash of the document pointed by uri */
   uriHash: string;
   /** sender is the address of the owner of nft */
-  sender: string;
+  creator: string;
+  receiver: string;
 }
 
 /** MsgMintResponse defines the Msg/Mint response type. */
 export interface MsgMintNFTResponse {
 }
 
-/** MsgSend represents a message to send a nft from one account to another account. */
+/**
+ * MsgSend represents a message to send a nft from one account to another
+ * account.
+ */
 export interface MsgSend {
-  /** class_id defines the unique identifier of the nft classification, similar to the contract address of ERC721 */
+  /**
+   * class_id defines the unique identifier of the nft classification, similar
+   * to the contract address of ERC721
+   */
   classId: string;
   /** id defines the unique identification of nft */
   id: string;
@@ -216,7 +223,7 @@ export const MsgNewClassResponse = {
 };
 
 function createBaseMsgMintNFT(): MsgMintNFT {
-  return { classId: "", tokenId: "", uri: "", uriHash: "", sender: "" };
+  return { classId: "", tokenId: "", uri: "", uriHash: "", creator: "", receiver: "" };
 }
 
 export const MsgMintNFT = {
@@ -233,8 +240,11 @@ export const MsgMintNFT = {
     if (message.uriHash !== "") {
       writer.uint32(34).string(message.uriHash);
     }
-    if (message.sender !== "") {
-      writer.uint32(42).string(message.sender);
+    if (message.creator !== "") {
+      writer.uint32(42).string(message.creator);
+    }
+    if (message.receiver !== "") {
+      writer.uint32(50).string(message.receiver);
     }
     return writer;
   },
@@ -259,7 +269,10 @@ export const MsgMintNFT = {
           message.uriHash = reader.string();
           break;
         case 5:
-          message.sender = reader.string();
+          message.creator = reader.string();
+          break;
+        case 6:
+          message.receiver = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -275,7 +288,8 @@ export const MsgMintNFT = {
       tokenId: isSet(object.tokenId) ? String(object.tokenId) : "",
       uri: isSet(object.uri) ? String(object.uri) : "",
       uriHash: isSet(object.uriHash) ? String(object.uriHash) : "",
-      sender: isSet(object.sender) ? String(object.sender) : "",
+      creator: isSet(object.creator) ? String(object.creator) : "",
+      receiver: isSet(object.receiver) ? String(object.receiver) : "",
     };
   },
 
@@ -285,7 +299,8 @@ export const MsgMintNFT = {
     message.tokenId !== undefined && (obj.tokenId = message.tokenId);
     message.uri !== undefined && (obj.uri = message.uri);
     message.uriHash !== undefined && (obj.uriHash = message.uriHash);
-    message.sender !== undefined && (obj.sender = message.sender);
+    message.creator !== undefined && (obj.creator = message.creator);
+    message.receiver !== undefined && (obj.receiver = message.receiver);
     return obj;
   },
 
@@ -295,7 +310,8 @@ export const MsgMintNFT = {
     message.tokenId = object.tokenId ?? "";
     message.uri = object.uri ?? "";
     message.uriHash = object.uriHash ?? "";
-    message.sender = object.sender ?? "";
+    message.creator = object.creator ?? "";
+    message.receiver = object.receiver ?? "";
     return message;
   },
 };

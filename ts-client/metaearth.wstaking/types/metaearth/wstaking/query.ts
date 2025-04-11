@@ -59,6 +59,17 @@ export interface QueryFixedDepositByAcctResponse {
   FixedDeposit: FixedDeposit[];
 }
 
+export interface QueryFixedDepositByRegionRequest {
+  regionId: string;
+  pagination: PageRequest | undefined;
+  queryType: FixedDepositState;
+}
+
+export interface QueryFixedDepositByRegionResponse {
+  FixedDeposit: FixedDeposit[];
+  pagination: PageResponse | undefined;
+}
+
 export interface QueryGetFixedDepositRequest {
   address: string;
   id: number;
@@ -591,6 +602,147 @@ export const QueryFixedDepositByAcctResponse = {
   ): QueryFixedDepositByAcctResponse {
     const message = createBaseQueryFixedDepositByAcctResponse();
     message.FixedDeposit = object.FixedDeposit?.map((e) => FixedDeposit.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseQueryFixedDepositByRegionRequest(): QueryFixedDepositByRegionRequest {
+  return { regionId: "", pagination: undefined, queryType: 0 };
+}
+
+export const QueryFixedDepositByRegionRequest = {
+  encode(message: QueryFixedDepositByRegionRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.regionId !== "") {
+      writer.uint32(10).string(message.regionId);
+    }
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.queryType !== 0) {
+      writer.uint32(24).int32(message.queryType);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryFixedDepositByRegionRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryFixedDepositByRegionRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.regionId = reader.string();
+          break;
+        case 2:
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          break;
+        case 3:
+          message.queryType = reader.int32() as any;
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryFixedDepositByRegionRequest {
+    return {
+      regionId: isSet(object.regionId) ? String(object.regionId) : "",
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+      queryType: isSet(object.queryType) ? fixedDepositStateFromJSON(object.queryType) : 0,
+    };
+  },
+
+  toJSON(message: QueryFixedDepositByRegionRequest): unknown {
+    const obj: any = {};
+    message.regionId !== undefined && (obj.regionId = message.regionId);
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageRequest.toJSON(message.pagination) : undefined);
+    message.queryType !== undefined && (obj.queryType = fixedDepositStateToJSON(message.queryType));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryFixedDepositByRegionRequest>, I>>(
+    object: I,
+  ): QueryFixedDepositByRegionRequest {
+    const message = createBaseQueryFixedDepositByRegionRequest();
+    message.regionId = object.regionId ?? "";
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    message.queryType = object.queryType ?? 0;
+    return message;
+  },
+};
+
+function createBaseQueryFixedDepositByRegionResponse(): QueryFixedDepositByRegionResponse {
+  return { FixedDeposit: [], pagination: undefined };
+}
+
+export const QueryFixedDepositByRegionResponse = {
+  encode(message: QueryFixedDepositByRegionResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.FixedDeposit) {
+      FixedDeposit.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryFixedDepositByRegionResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryFixedDepositByRegionResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.FixedDeposit.push(FixedDeposit.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryFixedDepositByRegionResponse {
+    return {
+      FixedDeposit: Array.isArray(object?.FixedDeposit)
+        ? object.FixedDeposit.map((e: any) => FixedDeposit.fromJSON(e))
+        : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+    };
+  },
+
+  toJSON(message: QueryFixedDepositByRegionResponse): unknown {
+    const obj: any = {};
+    if (message.FixedDeposit) {
+      obj.FixedDeposit = message.FixedDeposit.map((e) => e ? FixedDeposit.toJSON(e) : undefined);
+    } else {
+      obj.FixedDeposit = [];
+    }
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageResponse.toJSON(message.pagination) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryFixedDepositByRegionResponse>, I>>(
+    object: I,
+  ): QueryFixedDepositByRegionResponse {
+    const message = createBaseQueryFixedDepositByRegionResponse();
+    message.FixedDeposit = object.FixedDeposit?.map((e) => FixedDeposit.fromPartial(e)) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
@@ -1790,6 +1942,8 @@ export interface Query {
   ): Promise<QueryFixedDepositAmountByMeidResponse>;
   /** Queries a list of FixedDepositByAcct items. */
   FixedDepositByAcct(request: QueryFixedDepositByAcctRequest): Promise<QueryFixedDepositByAcctResponse>;
+  /** Queries a list of FixedDepositByRegion items. */
+  FixedDepositByRegion(request: QueryFixedDepositByRegionRequest): Promise<QueryFixedDepositByRegionResponse>;
   /** Queries a list of FixedDeposit items. */
   FixedDeposit(request: QueryGetFixedDepositRequest): Promise<QueryGetFixedDepositResponse>;
   FixedDepositAll(request: QueryAllFixedDepositRequest): Promise<QueryAllFixedDepositResponse>;
@@ -1815,6 +1969,7 @@ export class QueryClientImpl implements Query {
     this.FixedDepositTotalAmount = this.FixedDepositTotalAmount.bind(this);
     this.FixedDepositAmountByMeid = this.FixedDepositAmountByMeid.bind(this);
     this.FixedDepositByAcct = this.FixedDepositByAcct.bind(this);
+    this.FixedDepositByRegion = this.FixedDepositByRegion.bind(this);
     this.FixedDeposit = this.FixedDeposit.bind(this);
     this.FixedDepositAll = this.FixedDepositAll.bind(this);
     this.FixedDepositCfg = this.FixedDepositCfg.bind(this);
@@ -1862,6 +2017,12 @@ export class QueryClientImpl implements Query {
     const data = QueryFixedDepositByAcctRequest.encode(request).finish();
     const promise = this.rpc.request("metaearth.wstaking.Query", "FixedDepositByAcct", data);
     return promise.then((data) => QueryFixedDepositByAcctResponse.decode(new _m0.Reader(data)));
+  }
+
+  FixedDepositByRegion(request: QueryFixedDepositByRegionRequest): Promise<QueryFixedDepositByRegionResponse> {
+    const data = QueryFixedDepositByRegionRequest.encode(request).finish();
+    const promise = this.rpc.request("metaearth.wstaking.Query", "FixedDepositByRegion", data);
+    return promise.then((data) => QueryFixedDepositByRegionResponse.decode(new _m0.Reader(data)));
   }
 
   FixedDeposit(request: QueryGetFixedDepositRequest): Promise<QueryGetFixedDepositResponse> {

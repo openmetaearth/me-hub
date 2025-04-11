@@ -90,8 +90,8 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "%v", err)
 	}
 
-	if classMetadata.Creator != msg.Sender {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not the creator of class %s", msg.Sender, msg.ClassId)
+	if classMetadata.Creator != msg.Creator {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not the creator of class %s", msg.Creator, msg.ClassId)
 	}
 
 	tokenId, err := strconv.ParseUint(msg.TokenId, 10, 64)
@@ -102,7 +102,10 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 	if tokenId < 1 || tokenId > class.TotalSupply {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id")
 	}
-	receiver, err := sdk.AccAddressFromBech32(msg.Sender)
+	receiver, err := sdk.AccAddressFromBech32(msg.Receiver)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Receiver)
+	}
 
 	if err = k.Mint(ctx,
 		nft.NFT{
@@ -122,7 +125,7 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 			types.EventTypeMintNFT,
 			sdk.NewAttribute(types.AttributeKeyClassID, msg.ClassId),
 			sdk.NewAttribute(types.AttributeKeyTokenID, msg.TokenId),
-			sdk.NewAttribute(types.AttributeKeyOwner, msg.Sender),
+			sdk.NewAttribute(types.AttributeKeyOwner, msg.Receiver),
 			sdk.NewAttribute(types.AttributeKeyUri, msg.Uri),
 			sdk.NewAttribute(types.AttributeKeyClassName, class.Name),
 		),

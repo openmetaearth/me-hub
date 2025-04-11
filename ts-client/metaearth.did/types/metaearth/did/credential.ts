@@ -5,9 +5,7 @@ export const protobufPackage = "metaearth.did";
 
 /** verifiable credential */
 export interface Credential {
-  /** MEIDNFT.umeid */
   did: string;
-  /** MEID.creator */
   sid: string;
   hash: string;
   uri: string;

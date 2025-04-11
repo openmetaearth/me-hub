@@ -7,11 +7,11 @@ import { msgTypes } from './registry';
 import { IgniteClient } from "../client"
 import { MissingWalletError } from "../helpers"
 import { Api } from "./rest";
+import { MsgDeleteGroup } from "./types/metaearth/megroup/tx";
+import { MsgCreateGroup } from "./types/metaearth/megroup/tx";
 import { MsgUpdateGroup } from "./types/metaearth/megroup/tx";
 import { MsgJoinGroup } from "./types/metaearth/megroup/tx";
-import { MsgCreateGroup } from "./types/metaearth/megroup/tx";
 import { MsgLeaveGroupRequest } from "./types/metaearth/megroup/tx";
-import { MsgDeleteGroup } from "./types/metaearth/megroup/tx";
 
 import { Group as typeGroup} from "./types"
 import { GroupInfo as typeGroupInfo} from "./types"
@@ -28,7 +28,19 @@ import { QueryAllMemberJoinedResponse as typeQueryAllMemberJoinedResponse} from 
 import { QueryAllGroupMemberCountRequest as typeQueryAllGroupMemberCountRequest} from "./types"
 import { QueryAllGroupMemberCountResponse as typeQueryAllGroupMemberCountResponse} from "./types"
 
-export { MsgUpdateGroup, MsgJoinGroup, MsgCreateGroup, MsgLeaveGroupRequest, MsgDeleteGroup };
+export { MsgDeleteGroup, MsgCreateGroup, MsgUpdateGroup, MsgJoinGroup, MsgLeaveGroupRequest };
+
+type sendMsgDeleteGroupParams = {
+  value: MsgDeleteGroup,
+  fee?: StdFee,
+  memo?: string
+};
+
+type sendMsgCreateGroupParams = {
+  value: MsgCreateGroup,
+  fee?: StdFee,
+  memo?: string
+};
 
 type sendMsgUpdateGroupParams = {
   value: MsgUpdateGroup,
@@ -42,24 +54,20 @@ type sendMsgJoinGroupParams = {
   memo?: string
 };
 
-type sendMsgCreateGroupParams = {
-  value: MsgCreateGroup,
-  fee?: StdFee,
-  memo?: string
-};
-
 type sendMsgLeaveGroupRequestParams = {
   value: MsgLeaveGroupRequest,
   fee?: StdFee,
   memo?: string
 };
 
-type sendMsgDeleteGroupParams = {
+
+type msgDeleteGroupParams = {
   value: MsgDeleteGroup,
-  fee?: StdFee,
-  memo?: string
 };
 
+type msgCreateGroupParams = {
+  value: MsgCreateGroup,
+};
 
 type msgUpdateGroupParams = {
   value: MsgUpdateGroup,
@@ -69,16 +77,8 @@ type msgJoinGroupParams = {
   value: MsgJoinGroup,
 };
 
-type msgCreateGroupParams = {
-  value: MsgCreateGroup,
-};
-
 type msgLeaveGroupRequestParams = {
   value: MsgLeaveGroupRequest,
-};
-
-type msgDeleteGroupParams = {
-  value: MsgDeleteGroup,
 };
 
 
@@ -111,6 +111,34 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 
   return {
 		
+		async sendMsgDeleteGroup({ value, fee, memo }: sendMsgDeleteGroupParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgDeleteGroup: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgDeleteGroup({ value: MsgDeleteGroup.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+			} catch (e: any) {
+				throw new Error('TxClient:sendMsgDeleteGroup: Could not broadcast Tx: '+ e.message)
+			}
+		},
+		
+		async sendMsgCreateGroup({ value, fee, memo }: sendMsgCreateGroupParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgCreateGroup: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgCreateGroup({ value: MsgCreateGroup.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+			} catch (e: any) {
+				throw new Error('TxClient:sendMsgCreateGroup: Could not broadcast Tx: '+ e.message)
+			}
+		},
+		
 		async sendMsgUpdateGroup({ value, fee, memo }: sendMsgUpdateGroupParams): Promise<DeliverTxResponse> {
 			if (!signer) {
 					throw new Error('TxClient:sendMsgUpdateGroup: Unable to sign Tx. Signer is not present.')
@@ -139,20 +167,6 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		async sendMsgCreateGroup({ value, fee, memo }: sendMsgCreateGroupParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgCreateGroup: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgCreateGroup({ value: MsgCreateGroup.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgCreateGroup: Could not broadcast Tx: '+ e.message)
-			}
-		},
-		
 		async sendMsgLeaveGroupRequest({ value, fee, memo }: sendMsgLeaveGroupRequestParams): Promise<DeliverTxResponse> {
 			if (!signer) {
 					throw new Error('TxClient:sendMsgLeaveGroupRequest: Unable to sign Tx. Signer is not present.')
@@ -167,20 +181,22 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		async sendMsgDeleteGroup({ value, fee, memo }: sendMsgDeleteGroupParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgDeleteGroup: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgDeleteGroup({ value: MsgDeleteGroup.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+		
+		msgDeleteGroup({ value }: msgDeleteGroupParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.megroup.MsgDeleteGroup", value: MsgDeleteGroup.fromPartial( value ) }  
 			} catch (e: any) {
-				throw new Error('TxClient:sendMsgDeleteGroup: Could not broadcast Tx: '+ e.message)
+				throw new Error('TxClient:MsgDeleteGroup: Could not create message: ' + e.message)
 			}
 		},
 		
+		msgCreateGroup({ value }: msgCreateGroupParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.megroup.MsgCreateGroup", value: MsgCreateGroup.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgCreateGroup: Could not create message: ' + e.message)
+			}
+		},
 		
 		msgUpdateGroup({ value }: msgUpdateGroupParams): EncodeObject {
 			try {
@@ -198,27 +214,11 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		msgCreateGroup({ value }: msgCreateGroupParams): EncodeObject {
-			try {
-				return { typeUrl: "/metaearth.megroup.MsgCreateGroup", value: MsgCreateGroup.fromPartial( value ) }  
-			} catch (e: any) {
-				throw new Error('TxClient:MsgCreateGroup: Could not create message: ' + e.message)
-			}
-		},
-		
 		msgLeaveGroupRequest({ value }: msgLeaveGroupRequestParams): EncodeObject {
 			try {
 				return { typeUrl: "/metaearth.megroup.MsgLeaveGroupRequest", value: MsgLeaveGroupRequest.fromPartial( value ) }  
 			} catch (e: any) {
 				throw new Error('TxClient:MsgLeaveGroupRequest: Could not create message: ' + e.message)
-			}
-		},
-		
-		msgDeleteGroup({ value }: msgDeleteGroupParams): EncodeObject {
-			try {
-				return { typeUrl: "/metaearth.megroup.MsgDeleteGroup", value: MsgDeleteGroup.fromPartial( value ) }  
-			} catch (e: any) {
-				throw new Error('TxClient:MsgDeleteGroup: Could not create message: ' + e.message)
 			}
 		},
 		

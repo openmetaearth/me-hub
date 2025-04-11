@@ -79,17 +79,21 @@ func (m MsgMintNFT) ValidateBasic() error {
 		return ErrEmptyUri
 	}
 
-	_, err := sdk.AccAddressFromBech32(m.Sender)
+	_, err := sdk.AccAddressFromBech32(m.Creator)
 	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid sender address (%s)", m.Sender)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid sender address (%s)", m.Creator)
 	}
 
+	_, err = sdk.AccAddressFromBech32(m.Receiver)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid receiver address (%s)", m.Receiver)
+	}
 	return nil
 }
 
 // GetSigners returns the expected signers for MsgMintNFT.
 func (m MsgMintNFT) GetSigners() []sdk.AccAddress {
-	signer, _ := sdk.AccAddressFromBech32(m.Sender)
+	signer, _ := sdk.AccAddressFromBech32(m.Creator)
 	return []sdk.AccAddress{signer}
 }
 
@@ -111,7 +115,7 @@ func NewMsgMintNFT(class_id, token_id, uri, uriHash, sender string) *MsgMintNFT 
 		TokenId: token_id,
 		Uri:     uri,
 		UriHash: uriHash,
-		Sender:  sender,
+		Creator: sender,
 	}
 }
 
