@@ -191,7 +191,7 @@ release:
   prerelease: false
   mode: keep-existing
   header: |
-    # me {{ .Tag }} Release Notes
+    # me-hub {{ .Tag }} Release Notes
   footer: |
     ## 🔨 Build from source
     
@@ -200,6 +200,21 @@ release:
     cd me-hub && git checkout {{ .Tag }}
     make install
     ```
+    
+    ## 🐳 Docker Images
+    
+    As an alternative to installing and running med on your system, you may run med in a Docker container.
+
+    ```bash
+    docker pull ghcr.io/st-chain/me-hub:{{ .Version }}
+    ```
+ 
+    Example run:
+
+    ```bash
+    docker run ghcr.io/st-chain/me-hub:{{ .Version }} version
+    # v{{ .Version }}
+    ````
     
     ## ⚡️ Download binaries
     

@@ -15,6 +15,14 @@
       }
     },
     {
+      "url": "./tmp-swagger-gen/metaearth/megroup/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "megroupParams"
+        }
+      }
+    },
+    {
       "url": "./tmp-swagger-gen/metaearth/did/query.swagger.json",
       "operationIds": {
         "rename": {
