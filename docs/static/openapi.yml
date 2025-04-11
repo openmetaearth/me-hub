@@ -249,172 +249,6 @@ paths:
           type: boolean
       tags:
         - Query
-  /me-hub/megroup/group/{address}:
-    get:
-      operationId: GroupByMember
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              Group:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    format: uint64
-                    description: id is the unique ID of the group.
-                  admin:
-                    type: string
-                    description: admin is the account address of the group's admin.
-                  metadata:
-                    type: string
-                    description: >-
-                      metadata is any arbitrary metadata to attached to the
-                      group.
-                  version:
-                    type: string
-                    format: uint64
-                    title: >-
-                      version is used to track changes to a group's membership
-                      structure that
-
-                      would break existing proposals. Whenever any members
-                      weight is changed,
-
-                      or any member is added or removed this version is
-                      incremented and will
-
-                      cause proposals based on older versions of this group to
-                      fail
-                  total_weight:
-                    type: string
-                    description: total_weight is the sum of the group members' weights.
-                  created_at:
-                    type: string
-                    format: date-time
-                    description: >-
-                      created_at is a timestamp specifying when a group was
-                      created.
-                  regionID:
-                    type: string
-                description: >-
-                  GroupInfo represents the high-level on-chain information for a
-                  group.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: address
-          in: path
-          required: true
-          type: string
-      tags:
-        - Query
-  /me-hub/megroup/group/{id}:
-    get:
-      summary: Queries a list of Group items.
-      operationId: Group
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              Group:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    format: uint64
-                    description: id is the unique ID of the group.
-                  admin:
-                    type: string
-                    description: admin is the account address of the group's admin.
-                  metadata:
-                    type: string
-                    description: >-
-                      metadata is any arbitrary metadata to attached to the
-                      group.
-                  version:
-                    type: string
-                    format: uint64
-                    title: >-
-                      version is used to track changes to a group's membership
-                      structure that
-
-                      would break existing proposals. Whenever any members
-                      weight is changed,
-
-                      or any member is added or removed this version is
-                      incremented and will
-
-                      cause proposals based on older versions of this group to
-                      fail
-                  total_weight:
-                    type: string
-                    description: total_weight is the sum of the group members' weights.
-                  created_at:
-                    type: string
-                    format: date-time
-                    description: >-
-                      created_at is a timestamp specifying when a group was
-                      created.
-                  regionID:
-                    type: string
-                description: >-
-                  GroupInfo represents the high-level on-chain information for a
-                  group.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: id
-          in: path
-          required: true
-          type: string
-          format: uint64
-      tags:
-        - Query
   /me-hub/megroup/group_all_member/{groupID}:
     get:
       operationId: GroupMemberAll
@@ -569,6 +403,172 @@ paths:
           in: query
           required: false
           type: boolean
+      tags:
+        - Query
+  /me-hub/megroup/group_by_address/{address}:
+    get:
+      operationId: GroupByMember
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              Group:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uint64
+                    description: id is the unique ID of the group.
+                  admin:
+                    type: string
+                    description: admin is the account address of the group's admin.
+                  metadata:
+                    type: string
+                    description: >-
+                      metadata is any arbitrary metadata to attached to the
+                      group.
+                  version:
+                    type: string
+                    format: uint64
+                    title: >-
+                      version is used to track changes to a group's membership
+                      structure that
+
+                      would break existing proposals. Whenever any members
+                      weight is changed,
+
+                      or any member is added or removed this version is
+                      incremented and will
+
+                      cause proposals based on older versions of this group to
+                      fail
+                  total_weight:
+                    type: string
+                    description: total_weight is the sum of the group members' weights.
+                  created_at:
+                    type: string
+                    format: date-time
+                    description: >-
+                      created_at is a timestamp specifying when a group was
+                      created.
+                  regionID:
+                    type: string
+                description: >-
+                  GroupInfo represents the high-level on-chain information for a
+                  group.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: address
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /me-hub/megroup/group_by_id/{id}:
+    get:
+      summary: Queries a list of Group items.
+      operationId: Group
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              Group:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uint64
+                    description: id is the unique ID of the group.
+                  admin:
+                    type: string
+                    description: admin is the account address of the group's admin.
+                  metadata:
+                    type: string
+                    description: >-
+                      metadata is any arbitrary metadata to attached to the
+                      group.
+                  version:
+                    type: string
+                    format: uint64
+                    title: >-
+                      version is used to track changes to a group's membership
+                      structure that
+
+                      would break existing proposals. Whenever any members
+                      weight is changed,
+
+                      or any member is added or removed this version is
+                      incremented and will
+
+                      cause proposals based on older versions of this group to
+                      fail
+                  total_weight:
+                    type: string
+                    description: total_weight is the sum of the group members' weights.
+                  created_at:
+                    type: string
+                    format: date-time
+                    description: >-
+                      created_at is a timestamp specifying when a group was
+                      created.
+                  regionID:
+                    type: string
+                description: >-
+                  GroupInfo represents the high-level on-chain information for a
+                  group.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          format: uint64
       tags:
         - Query
   /me-hub/megroup/group_member/{address}:

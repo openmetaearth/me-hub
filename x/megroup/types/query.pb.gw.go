@@ -729,11 +729,11 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 var (
 	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"me-hub", "megroup", "params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Group_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"me-hub", "megroup", "group", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Group_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"me-hub", "megroup", "group_by_id", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_GroupAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"me-hub", "megroup", "all_group"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GroupByMember_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"me-hub", "megroup", "group", "address"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_GroupByMember_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"me-hub", "megroup", "group_by_address", "address"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_GroupMember_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"me-hub", "megroup", "group_member", "address"}, "", runtime.AssumeColonVerbOpt(true)))
 
