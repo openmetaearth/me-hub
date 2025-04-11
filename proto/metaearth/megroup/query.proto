@@ -23,13 +23,13 @@ service Query {
 
   // Queries a list of Group items.
   rpc Group(QueryGetGroupRequest) returns (QueryGetGroupResponse) {
-    option (google.api.http).get = "/me-hub/megroup/group/{id}";
+    option (google.api.http).get = "/me-hub/megroup/group_by_id/{id}";
   }
   rpc GroupAll(QueryAllGroupRequest) returns (QueryAllGroupResponse) {
     option (google.api.http).get = "/me-hub/megroup/all_group";
   }
   rpc GroupByMember(QueryGroupByMemberRequest) returns (QueryGetGroupResponse) {
-    option (google.api.http).get = "/me-hub/megroup/group/{address}";
+    option (google.api.http).get = "/me-hub/megroup/group_by_address/{address}";
   }
 
   // Queries a list of GroupMember items.
@@ -139,6 +139,6 @@ message QueryAllGroupMemberCountRequest {
 
 message QueryAllGroupMemberCountResponse {
   repeated GroupMemberCount groupMemberCount = 1
-      [ (gogoproto.nullable) = false ];
+  [ (gogoproto.nullable) = false ];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
