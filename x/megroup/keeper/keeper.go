@@ -156,6 +156,8 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 		}
 		k.SetGroupMemberCount(sdkCtx, joined.GroupId, preGroupNumber-1)
 
+	} else {
+		return nil
 	}
 	if 0 == newGrpId {
 		if preJoinedGroupID > 0 {
