@@ -16,6 +16,11 @@ import (
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 )
 
+const (
+	gasEstimationDeductFeeDecorator = 50_000
+	priorityScalingFactor           = 100_000_000
+)
+
 // DeductFeeDecorator deducts fees from the first signer of the tx
 // If the first signer does not have the funds to pay for the fees, return with InsufficientFunds error
 // Call next AnteHandler if fees successfully deducted
@@ -106,7 +111,12 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
 	}
 
-	if !simulate && ctx.BlockHeight() > 0 && feeTx.GetGas() == 0 {
+	if simulate {
+		ctx.GasMeter().ConsumeGas(gasEstimationDeductFeeDecorator, "deduct fee decorator")
+		return next(ctx, tx, simulate)
+	}
+
+	if ctx.BlockHeight() > 0 && feeTx.GetGas() == 0 {
 		return ctx, sdkerrors.Wrap(sdkerrors.ErrInvalidGasLimit, "must provide positive gas")
 	}
 
@@ -132,12 +142,12 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			break
 		}
 
-		if !freeGas {
-			_, priority, err = dfd.txFeeChecker(ctx, tx)
-			if err != nil {
-				return ctx, err
-			}
+		_, priority, err = dfd.txFeeChecker(ctx, tx)
+		if err != nil {
+			return ctx, err
+		}
 
+		if !freeGas {
 			fee, err := sdk.ParseCoinsNormalized(feePending.String())
 			if err != nil {
 				return ctx, sdkerrors.Wrap(err, "")
@@ -351,7 +361,8 @@ func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 		}
 	}
 
-	priority := getTxPriority(feeCoins, int64(gas))
+	priority := getTxPriorityByFee(feeCoins)
+	//priority := getTxPriority(feeCoins, int64(gas))
 	return feeCoins, priority, nil
 }
 
@@ -363,7 +374,22 @@ func getTxPriority(fee sdk.Coins, gas int64) int64 {
 	var priority int64
 	for _, c := range fee {
 		p := int64(math.MaxInt64)
-		gasPrice := c.Amount.MulRaw(100000000).QuoRaw(gas)
+		gasPrice := c.Amount.MulRaw(int64(priorityScalingFactor)).QuoRaw(gas)
+		if gasPrice.IsInt64() {
+			p = gasPrice.Int64()
+		}
+		if priority == 0 || p < priority {
+			priority = p
+		}
+	}
+	return priority
+}
+
+func getTxPriorityByFee(fee sdk.Coins) int64 {
+	var priority int64
+	for _, c := range fee {
+		p := int64(math.MaxInt64)
+		gasPrice := c.Amount
 		if gasPrice.IsInt64() {
 			p = gasPrice.Int64()
 		}

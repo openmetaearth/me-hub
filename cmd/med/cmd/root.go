@@ -274,9 +274,15 @@ func (a appCreator) newApp(
 		if maxTxs <= 0 {
 			maxTxs = DefaultMaxTxs
 		}
-		mpool := mempool.NewPriorityMempool(mempool.PriorityNonceWithMaxTx(maxTxs))
-		handler := baseapp.NewDefaultProposalHandler(mpool, app)
-		app.SetMempool(mpool)
+		priorityMempool := mempool.NewPriorityMempool(
+			mempool.PriorityNonceWithMaxTx(maxTxs),
+			mempool.PriorityNonceWithTxReplacement(func(op, np int64, oTx, nTx sdk.Tx) bool {
+				threshold := int64(100 + 1)
+				return np >= op*threshold/100
+			}),
+		)
+		handler := baseapp.NewDefaultProposalHandler(priorityMempool, app)
+		app.SetMempool(priorityMempool)
 		app.SetPrepareProposal(handler.PrepareProposalHandler())
 		app.SetProcessProposal(handler.ProcessProposalHandler())
 	})

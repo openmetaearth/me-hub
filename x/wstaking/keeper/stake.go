@@ -244,6 +244,7 @@ func (k Keeper) UnStakeBond(
 	if validator.DelegatorShares.IsZero() && validator.IsUnbonded() {
 		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
 		k.RemoveValidator(ctx, validator.GetOperator())
+		k.RemoveRegion(ctx, validator.Description.RegionID)
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
