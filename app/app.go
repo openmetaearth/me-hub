@@ -90,6 +90,8 @@ var (
 	}
 )
 
+const DefaultMaxTxs = 5000
+
 func init() {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -144,10 +146,10 @@ func New(
 	})
 
 	bApp := baseapp.NewBaseApp(appparams.Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
-
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
+	bApp.SetTxEncoder(encodingConfig.TxConfig.TxEncoder())
 
 	app := &App{
 		BaseApp:           bApp,

@@ -267,25 +267,29 @@ func (a appCreator) newApp(
 		skipUpgradeHeights[int64(h)] = true
 	}
 
+	baseAppOptions = append(baseAppOptions, func(bapp *baseapp.BaseApp) {
+		bapp.SetMempool(mempool.NoOpMempool{})
+	})
+
 	// NOTE we use custom transaction decoder that supports the sdk.Tx interface instead of sdk.StdTx
 	// Setup Mempool and Proposal Handlers
-	baseAppOptions = append(baseAppOptions, func(app *baseapp.BaseApp) {
-		maxTxs := cast.ToInt(appOpts.Get(sdkserver.FlagMempoolMaxTxs))
-		if maxTxs <= 0 {
-			maxTxs = DefaultMaxTxs
-		}
-		priorityMempool := mempool.NewPriorityMempool(
-			mempool.PriorityNonceWithMaxTx(maxTxs),
-			mempool.PriorityNonceWithTxReplacement(func(op, np int64, oTx, nTx sdk.Tx) bool {
-				threshold := int64(100 + 1)
-				return np >= op*threshold/100
-			}),
-		)
-		handler := baseapp.NewDefaultProposalHandler(priorityMempool, app)
-		app.SetMempool(priorityMempool)
-		app.SetPrepareProposal(handler.PrepareProposalHandler())
-		app.SetProcessProposal(handler.ProcessProposalHandler())
-	})
+	//baseAppOptions = append(baseAppOptions, func(bapp *baseapp.BaseApp) {
+	//	maxTxs := cast.ToInt(appOpts.Get(sdkserver.FlagMempoolMaxTxs))
+	//	if maxTxs <= 0 {
+	//		maxTxs = 5000
+	//	}
+	//	priorityMempool := mempool.NewPriorityMempool(
+	//		mempool.PriorityNonceWithMaxTx(maxTxs),
+	//		mempool.PriorityNonceWithTxReplacement(func(op, np int64, oTx, nTx sdk.Tx) bool {
+	//			threshold := int64(100 + 1)
+	//			return np >= op*threshold/100
+	//		}),
+	//	)
+	//	//handler := baseapp.NewDefaultProposalHandler(priorityMempool, bapp)
+	//	bapp.SetMempool(priorityMempool)
+	//	bapp.SetPrepareProposal(baseapp.NoOpPrepareProposal())
+	//	bapp.SetProcessProposal(baseapp.NoOpProcessProposal())
+	//})
 
 	return app.New(
 		logger,
@@ -317,14 +321,14 @@ func (a appCreator) appExport(
 		return servertypes.ExportedApp{}, errors.New("application home not set")
 	}
 
-	baseappOptions := sdkserver.DefaultBaseappOptions(appOpts)
+	baseAppOptions := sdkserver.DefaultBaseappOptions(appOpts)
 
 	skipUpgradeHeights := make(map[int64]bool)
 	for _, h := range cast.ToIntSlice(appOpts.Get(sdkserver.FlagUnsafeSkipUpgrades)) {
 		skipUpgradeHeights[int64(h)] = true
 	}
 
-	app := app.New(
+	newApp := app.New(
 		logger,
 		db,
 		traceStore,
@@ -334,14 +338,14 @@ func (a appCreator) appExport(
 		cast.ToUint(appOpts.Get(sdkserver.FlagInvCheckPeriod)),
 		a.encodingConfig,
 		appOpts,
-		baseappOptions...,
+		baseAppOptions...,
 	)
 
 	if height != -1 {
-		if err := app.LoadHeight(height); err != nil {
+		if err := newApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	}
 
-	return app.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
+	return newApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
 }
