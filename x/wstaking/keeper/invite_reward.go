@@ -10,32 +10,34 @@ import (
 )
 
 func (k Keeper) SendInviteReward(ctx sdk.Context, inviter, invitee, regionId string) error {
-	if len(inviter) > 0 {
-		region, found := k.GetRegion(ctx, regionId)
-		if !found {
-			return types.ErrRegionNotExist
-		}
-		hasInviterReward := k.HasInviterReward(ctx, invitee)
-		if hasInviterReward {
-			return nil
-		}
-		if err := k.bankKeeper.Extend().SendCoinsWithTag(ctx,
-			sdk.MustAccAddressFromBech32(region.RegionTreasureAddr),
-			sdk.MustAccAddressFromBech32(inviter),
-			sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.InviteReward)),
-			fmt.Sprintf("SendInviteReward_InviteReward_%s", region.RegionId),
-		); err != nil {
-			return fmt.Errorf("send kyc reward to inviter, %v", err)
-		}
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(types.EventInviteReward,
-				sdk.NewAttribute(types.AttributeKeyKycInviterRewardSender, region.RegionTreasureAddr),
-				sdk.NewAttribute(types.AttributeKeyKycInviter, inviter),
-				sdk.NewAttribute(types.AttributeKeyKycInvitee, invitee),
-				sdk.NewAttribute(types.AttributeKeyKycInviterReward, types.InviteReward.String()),
-			),
-		)
+	if inviter == "" {
+		return nil
 	}
+
+	region, found := k.GetRegion(ctx, regionId)
+	if !found {
+		return types.ErrRegionNotExist
+	}
+	hasInviterReward := k.HasInviterReward(ctx, invitee)
+	if hasInviterReward {
+		return nil
+	}
+	if err := k.bankKeeper.Extend().SendCoinsWithTag(ctx,
+		sdk.MustAccAddressFromBech32(region.RegionTreasureAddr),
+		sdk.MustAccAddressFromBech32(inviter),
+		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.InviteReward)),
+		fmt.Sprintf("SendInviteReward_InviteReward_%s", region.RegionId),
+	); err != nil {
+		return fmt.Errorf("send kyc reward to inviter, %v", err)
+	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(types.EventInviteReward,
+			sdk.NewAttribute(types.AttributeKeyKycInviterRewardSender, region.RegionTreasureAddr),
+			sdk.NewAttribute(types.AttributeKeyKycInviter, inviter),
+			sdk.NewAttribute(types.AttributeKeyKycInvitee, invitee),
+			sdk.NewAttribute(types.AttributeKeyKycInviterReward, types.InviteReward.String()),
+		),
+	)
 	return nil
 }
 

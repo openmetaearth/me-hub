@@ -112,7 +112,8 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 
 	deAmount := region.DelegateAmount
 
-	interestAmountDec := sdk.NewDecFromInt(deAmount).Mul(sdk.NewDecFromInt(region.RegionShare)).Mul(sdk.NewDecFromInt(totalRewardsPerBlock)).Quo(sdk.NewDecFromInt(totalSupply).Mul(sdk.NewDecFromInt(initAllocationFunds)))
+	interestAmountDec := sdk.NewDecFromInt(deAmount).Mul(sdk.NewDecFromInt(region.RegionShare)).Mul(sdk.NewDecFromInt(totalRewardsPerBlock)).
+		Quo(sdk.NewDecFromInt(totalSupply).Mul(sdk.NewDecFromInt(initAllocationFunds)))
 
 	remainingBalance := sdk.NewDecFromInt(k.bankKeeper.GetBalance(ctx, regionBaseAddr, interest.Denom).Amount).Sub(interestAmountDec.Add(region.DelegateInterest))
 	if remainingBalance.Sub(sdk.NewDecFromInt(interest.Amount)).LT(sdk.ZeroDec()) {

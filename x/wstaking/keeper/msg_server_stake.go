@@ -60,7 +60,7 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 	}
 
 	// NOTE: source funds are always unbonded
-	newShares, err := k.Keeper.Stake(ctx, sdk.MustAccAddressFromBech32(msg.StakerAddress), msg.Amount.Amount, stakingtypes.Unbonded, validator, true, "stake_"+region.RegionId)
+	newShares, err := k.Keeper.Stake(ctx, sdk.MustAccAddressFromBech32(msg.StakerAddress), msg.Amount.Amount, stakingtypes.Unbonded, validator, true, "stake_"+validator.Description.RegionID)
 	if err != nil {
 		return nil, err
 	}
