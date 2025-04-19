@@ -12,8 +12,8 @@ BUILDDIR ?= $(CURDIR)/build
 
 # Dependencies version
 DEPS_COSMOS_SDK_VERSION := $(shell cat go.sum | grep 'github.com/st-chain/cosmos-sdk' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
-DEPS_ETHERMINT_VERSION := $(shell cat go.sum | grep 'github.com/dymensionxyz/ethermint' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
-DEPS_OSMOSIS_VERSION := $(shell cat go.sum | grep 'github.com/dymensionxyz/osmosis' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_ETHERMINT_VERSION := $(shell cat go.sum | grep 'github.com/st-chain/ethermint' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_OSMOSIS_VERSION := $(shell cat go.sum | grep 'github.com/st-chain/osmosis' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_IBC_GO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/ibc-go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_COSMOS_PROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos-proto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_COSMOS_GOGOPROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/gogoproto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
@@ -115,9 +115,6 @@ build-linux-debug: go.sum
 docker-build:
 	DOCKER_BUILDKIT=1 docker build -t ghcr.io/me-hub/med:2.0.0 -f Dockerfile .
 
-docker-build-e2e-debug:
-	DOCKER_BUILDKIT=1 CGO_ENABLED=0 docker build -t ghcr.io/dymensionxyz/dymension:e2e-debug -f Dockerfile.debug .
-
 docker-run-debug:
 	@DOCKER_BUILDKIT=1 docker-compose -f docker-compose.debug.yml up
 
@@ -201,7 +198,7 @@ proto-download-deps:
 	mkdir -p "$(THIRD_PARTY_DIR)/ethermint_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/ethermint_tmp" && \
 	git init && \
-	git remote add origin "https://github.com/dymensionxyz/ethermint.git" && \
+	git remote add origin "https://github.com/st-chain/ethermint.git" && \
 	git config core.sparseCheckout true && \
 	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
 	git fetch --depth=1 origin "$(DEPS_ETHERMINT_VERSION)" && \
