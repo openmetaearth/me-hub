@@ -1,5 +1,5 @@
-#!/bin/sh
 
+#!/bin/sh
 # Common commands
 genesis_config_cmds="$(dirname "$0")/src/genesis_config_commands.sh"
 
@@ -33,6 +33,9 @@ JSONRPC_WS_ADDRESS=${JSONRPC_WS_ADDRESS:-"0.0.0.0:9546"}
 
 TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000umec"} #1M MEC (1e6mec = 1e6 * 1e18 = 1e24umec )
 STAKING_AMOUNT=${STAKING_AMOUNT:-"10000000000000000umec"} #67% is staked (inflation goal)
+
+KEY_NAME_SEQUENCER=${KEY_NAME_SEQUENCER:-"sequencer"}
+SEQUENCER_TOKEN_AMOUNT=${SEQUENCER_TOKEN_AMOUNT:-"100000000000000umec"} #1M MEC (1e6mec = 1e6 * 1e18 = 1e24umec )
 
 # Validate mechain binary exists
 export PATH=$PATH:$HOME/go/bin
@@ -110,8 +113,10 @@ echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test
 med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
 med add-genesis-stake-pool
 med add-genesis-m-accounts
-
 med gentx_DAO --pubkey "$(med keys show "$KEY_NAME" -p)"
+
+med keys add "$KEY_NAME_SEQUENCER" --key-type secp256k1 --keyring-backend test 
+med add-genesis-account "$KEY_NAME_SEQUENCER" "$SEQUENCER_TOKEN_AMOUNT"
 
 jq '.app_state["dao"]["dao_addresses"]["global_dao"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 jq '.app_state["dao"]["dao_addresses"]["meid_dao"] = "me1p7s6k4ecrm2kl0rs6399k99pyuk322dc78dcxq"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
@@ -125,6 +130,7 @@ med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend
 med collect-gentxs
 
 set_authorised_deployer_account "$(med keys show "$KEY_NAME" -a --keyring-backend test)"
+set_authorised_deployer_account "$(med keys show "$KEY_NAME_SEQUENCER" -a --keyring-backend test)"
 
 med validate-genesis
 #med start
