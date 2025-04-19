@@ -39,7 +39,7 @@ func BenchmarkSimulation(b *testing.B) {
 
 	encoding := app.MakeEncodingConfig()
 
-	dymdApp := app.New(
+	medApp := app.New(
 		logger,
 		db,
 		nil,
@@ -55,17 +55,17 @@ func BenchmarkSimulation(b *testing.B) {
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		b,
 		os.Stdout,
-		dymdApp.BaseApp,
-		simapp.AppStateFn(dymdApp.AppCodec(), dymdApp.SimulationManager(), app.NewDefaultGenesisState(dymdApp.AppCodec())),
+		medApp.BaseApp,
+		simapp.AppStateFn(medApp.AppCodec(), medApp.SimulationManager(), app.NewDefaultGenesisState(medApp.AppCodec())),
 		simulationtypes.RandomAccounts,
-		simapp.SimulationOperations(dymdApp, dymdApp.AppCodec(), config),
-		dymdApp.ModuleAccountAddrs(),
+		simapp.SimulationOperations(medApp, medApp.AppCodec(), config),
+		medApp.ModuleAccountAddrs(),
 		config,
-		dymdApp.AppCodec(),
+		medApp.AppCodec(),
 	)
 
 	// export state and simParams before the simulation error is checked
-	err = simapp.CheckExportSimulation(dymdApp, config, simParams)
+	err = simapp.CheckExportSimulation(medApp, config, simParams)
 	require.NoError(b, err)
 	require.NoError(b, simErr)
 

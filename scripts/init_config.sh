@@ -29,13 +29,13 @@ STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000000000000000adym"} #67% staked
 
 # Validate dymension binary exists
 export PATH=$PATH:$HOME/go/bin
-if ! command -v dymd > /dev/null; then
+if ! command -v med > /dev/null; then
   echo "dymension binary not found in $PATH"
   exit 1
 fi
 
 # Create and init dymension chain
-dymd init "$MONIKER_NAME" --chain-id="$CHAIN_ID"
+med init "$MONIKER_NAME" --chain-id="$CHAIN_ID"
 
 # Set chain parameters
 set_consenus_params
@@ -48,7 +48,7 @@ set_epochs_params
 set_incentives_params
 
 # Setup genesis account and transaction
-dymd keys add "$KEY_NAME" --keyring-backend test
-dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
-dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
-dymd collect-gentxs
+med keys add "$KEY_NAME" --keyring-backend test
+med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
+med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
+med collect-gentxs

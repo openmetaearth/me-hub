@@ -1,4 +1,4 @@
-# Dymension Non-Commercial License
+# ME Non-Commercial License
 
 This license contains the terms and conditions under which Yolo Labs Ltd. ("Company") makes available its Software. Your use of the Software is subject to these terms and conditions.
 
@@ -8,18 +8,18 @@ If Licensee makes available a copy of the Software to any third party, the Softw
 
 Licensee must ensure that any third party who gets a copy of any part of the Software from Licensee also gets a copy of the terms of this license or the respective license URL, as well as copies of any plain-text lines beginning with Required Notice that the licensor provided with the software.
 
-For example: “Required Notice: Copyright Yolo Labs Ltd. (https://github.com/dymensionxyz)“. These terms do not allow Licensee to sublicense or transfer any of Licensee’s rights to anyone else. These terms do not imply any other licenses not expressly granted in this license.
+For example: “Required Notice: Copyright Yolo Labs Ltd. (https://github.com/st-chain)“. These terms do not allow Licensee to sublicense or transfer any of Licensee’s rights to anyone else. These terms do not imply any other licenses not expressly granted in this license.
 
-If Licensee violates any of these terms or uses the Software in a way not authorized under this license, the license granted to Licensee ends immediately. If Licensee makes, or authorizes any other person to make, any written claim that the Software, or any other Dymension Product (see below), infringes or contributes to the infringement of any patent, all rights granted to Licensee under this license end immediately.
+If Licensee violates any of these terms or uses the Software in a way not authorized under this license, the license granted to Licensee ends immediately. If Licensee makes, or authorizes any other person to make, any written claim that the Software, or any other ME Product (see below), infringes or contributes to the infringement of any patent, all rights granted to Licensee under this license end immediately.
 
 As far as the law allows, the Software is provided AS IS, without any warranty or condition, and Company will not be liable to Licensee for any damages arising out of these terms or the use or nature of the Software, under any kind of legal claim.
 
 ## Terms in this license are used as follows:
-- “Software” means the blockchain software developed by the Company, which is the implementation of the Dymension blockchains available at “https://github.com/dymensionxyz”.
+- “Software” means the blockchain software developed by the Company, which is the implementation of the ME blockchains available at “https://github.com/st-chain”.
 - “Designated Blockchains” refer to blockchains that:
-  - Solely utilize the Dymension blockchain identified by the unique chain identifier “dymension_1100-1" for Inter-Blockchain Communication (IBC). This means the blockchain cannot have any other IBC connections to any other blockchains.
+  - Solely utilize the ME blockchain identified by the unique chain identifier “ME_1100-1" for Inter-Blockchain Communication (IBC). This means the blockchain cannot have any other IBC connections to any other blockchains.
   - A blockchain can become a Designated Blockchain by meeting this criterion.
-- A “Dymension Product” is any product or service offered by the Company or its affiliates.
+- A “ME Product” is any product or service offered by the Company or its affiliates.
 - “Non-Commercial Use” means academic, scientific, or research and development use, or evaluating the Software (such as. through auditing), but does not include the creation of a publicly available blockchain, precompiled smart contracts, or other distributed-ledger technology systems that facilitate any transaction of economic value.
 - “Commercial Use” is any use that is not a Non-Commercial Use.
 - To “use” means any use, modification, distribution or other exploitation of the Software or any part of it.
