@@ -15,12 +15,10 @@ import (
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	eibctypes "github.com/st-chain/me-hub/x/eibc/types"
-	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	megrouptypes "github.com/st-chain/me-hub/x/megroup/types"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
-	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 )
 
 const (
@@ -38,7 +36,6 @@ var Upgrade = upgrades.Upgrade{
 		Added: []string{
 			rollappmoduletypes.ModuleName,
 			sequencermoduletypes.ModuleName,
-			streamermoduletypes.ModuleName,
 			packetforwardtypes.ModuleName,
 			delayedacktypes.ModuleName,
 			eibctypes.ModuleName,
@@ -50,7 +47,6 @@ var Upgrade = upgrades.Upgrade{
 			epochstypes.ModuleName,
 			gammtypes.ModuleName,
 			poolmanagertypes.ModuleName,
-			incentivestypes.ModuleName,
 			txfeestypes.ModuleName,
 			// me keys
 			daotypes.ModuleName,

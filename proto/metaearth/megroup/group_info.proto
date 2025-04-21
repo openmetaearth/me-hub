@@ -1,12 +1,12 @@
 syntax = "proto3";
 package metaearth.megroup;
 
-option go_package = "github.com/st-chain/me-hub/x/megroup/types";
-
+import "amino/amino.proto";
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
-import "cosmos_proto/cosmos.proto";
-import "amino/amino.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/megroup/types";
 
 //
 // State
@@ -18,7 +18,7 @@ message GroupInfo {
   uint64 id = 1;
 
   // admin is the account address of the group's admin.
-  string admin = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string admin = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   // metadata is any arbitrary metadata to attached to the group.
   string metadata = 3;

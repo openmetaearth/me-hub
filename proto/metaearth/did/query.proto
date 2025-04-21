@@ -25,7 +25,7 @@ service Query {
   rpc DidInfos(QueryDidInfos) returns (QueryDidInfosResponse) {
     option (google.api.http).get = "/metaearth/did/did_infos";
   }
-  
+
   rpc DidDocument(QueryDidDocument) returns (QueryDidDocumentResponse) {
     option (google.api.http).get = "/metaearth/did/didDocument";
   }
@@ -48,17 +48,19 @@ service Query {
 }
 
 message QueryDid {
-  string address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 message QueryDidResponse {
-  did.DidInfo info = 1 [ (gogoproto.nullable) = false ];
+  did.DidInfo info = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryDidInfo { string did = 1; }
+message QueryDidInfo {
+  string did = 1;
+}
 
 message QueryDidInfoResponse {
-  DidInfo info = 1 [ (gogoproto.nullable) = false ];
+  DidInfo info = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryDidInfos {
@@ -66,20 +68,24 @@ message QueryDidInfos {
 }
 
 message QueryDidInfosResponse {
-  repeated DidInfo infos = 1 [ (gogoproto.nullable) = false ];
+  repeated DidInfo infos = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryDidDocument { string did = 1; }
-
-message QueryDidDocumentResponse {
-  DidDocument doc = 1 [ (gogoproto.nullable) = false ];
+message QueryDidDocument {
+  string did = 1;
 }
 
-message QueryService { string sid = 1; }
+message QueryDidDocumentResponse {
+  DidDocument doc = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryService {
+  string sid = 1;
+}
 
 message QueryServiceResponse {
-  Service service = 1 [ (gogoproto.nullable) = false ];
+  Service service = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryServices {
@@ -87,7 +93,7 @@ message QueryServices {
 }
 
 message QueryServicesResponse {
-  repeated Service services = 1 [ (gogoproto.nullable) = false ];
+  repeated Service services = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
@@ -97,7 +103,7 @@ message QueryCredential {
 }
 
 message QueryCredentialResponse {
-  Credential credential = 1 [ (gogoproto.nullable) = false ];
+  Credential credential = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryCredentials {
@@ -107,6 +113,6 @@ message QueryCredentials {
 }
 
 message QueryCredentialsResponse {
-  repeated Credential credentials = 1 [ (gogoproto.nullable) = false ];
+  repeated Credential credentials = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

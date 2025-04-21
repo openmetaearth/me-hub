@@ -8,8 +8,7 @@ option go_package = "github.com/st-chain/me-hub/x/eibc/types";
 // Msg defines the Msg service.
 service Msg {
   rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
-  rpc UpdateDemandOrder(MsgUpdateDemandOrder)
-      returns (MsgUpdateDemandOrderResponse) {}
+  rpc UpdateDemandOrder(MsgUpdateDemandOrder) returns (MsgUpdateDemandOrderResponse) {}
 }
 
 // MsgFulfillOrder defines the FulfillOrder request type.

@@ -8,17 +8,15 @@ option go_package = "github.com/st-chain/me-hub/x/wnft/types";
 // Query defines the gRPC querier service.
 service Query {
   // Classes queries Address
-  rpc ClassAddress(QueryClassAddressRequest)
-      returns (QueryClassAddressResponse) {
-    option (google.api.http).get =
-        "/cosmos/nft/v1beta1/class_address/{address}/{class_id}";
+  rpc ClassAddress(QueryClassAddressRequest) returns (QueryClassAddressResponse) {
+    option (google.api.http).get = "/cosmos/nft/v1beta1/class_address/{address}/{class_id}";
   }
 
   //  queries nft filter
   rpc NftFilter(QueryNftFilterRequest) returns (QueryNftFilterResponse) {
     option (google.api.http) = {
-      post : "/cosmos/nft/v1beta1/nft_filter"
-      body : "*"
+      post: "/cosmos/nft/v1beta1/nft_filter"
+      body: "*"
     };
   }
 }
@@ -51,7 +49,9 @@ message QueryNftFilterRequest {
 
 // QueryNftFilterResponse is the response type for the Query/NftFilter RPC
 // method
-message QueryNftFilterResponse { repeated NftList nfts = 1; }
+message QueryNftFilterResponse {
+  repeated NftList nfts = 1;
+}
 
 message NftList {
   string class_id = 1;

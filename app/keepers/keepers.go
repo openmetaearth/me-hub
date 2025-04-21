@@ -90,8 +90,6 @@ import (
 	eibckeeper "github.com/st-chain/me-hub/x/eibc/keeper"
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
 	evmkeeper "github.com/st-chain/me-hub/x/evm/keeper"
-	incentiveskeeper "github.com/st-chain/me-hub/x/incentives/keeper"
-	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	kyckeeper "github.com/st-chain/me-hub/x/kyc/keeper"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	groupkeeper "github.com/st-chain/me-hub/x/megroup/keeper"
@@ -101,9 +99,6 @@ import (
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencermodulekeeper "github.com/st-chain/me-hub/x/sequencer/keeper"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
-	streamermodule "github.com/st-chain/me-hub/x/streamer"
-	streamermodulekeeper "github.com/st-chain/me-hub/x/streamer/keeper"
-	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	vfchooks "github.com/st-chain/me-hub/x/vfc/hooks"
 	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
@@ -153,7 +148,6 @@ type AppKeepers struct {
 	PoolManagerKeeper *poolmanagerkeeper.Keeper
 	LockupKeeper      *lockupkeeper.Keeper
 	EpochsKeeper      *epochskeeper.Keeper
-	IncentivesKeeper  *incentiveskeeper.Keeper
 	TxFeesKeeper      *txfeeskeeper.Keeper
 
 	// make scoped keepers public for test purposes
@@ -162,7 +156,6 @@ type AppKeepers struct {
 
 	RollappKeeper   *rollappmodulekeeper.Keeper
 	SequencerKeeper sequencermodulekeeper.Keeper
-	StreamerKeeper  streamermodulekeeper.Keeper
 	EIBCKeeper      eibckeeper.Keeper
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
@@ -405,27 +398,6 @@ func (a *AppKeepers) InitKeepers(
 		a.RollappKeeper,
 	)
 
-	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
-		a.keys[incentivestypes.StoreKey],
-		a.GetSubspace(incentivestypes.ModuleName),
-		a.BankKeeper,
-		a.LockupKeeper,
-		a.EpochsKeeper,
-		a.DistrKeeper,
-		a.TxFeesKeeper,
-		a.RollappKeeper,
-		&a.SequencerKeeper,
-	)
-
-	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
-		a.keys[streamermoduletypes.StoreKey],
-		a.GetSubspace(streamermoduletypes.ModuleName),
-		a.BankKeeper,
-		a.EpochsKeeper,
-		a.AccountKeeper,
-		a.IncentivesKeeper,
-	)
-
 	a.EIBCKeeper = *eibckeeper.NewKeeper(
 		appCodec,
 		a.keys[eibcmoduletypes.StoreKey],
@@ -529,7 +501,6 @@ func (a *AppKeepers) InitKeepers(
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(a.ParamsKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(a.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(a.IBCKeeper.ClientKeeper)).
-		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(a.StreamerKeeper)).
 		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(a.RollappKeeper)).
 		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(a.DenomMetadataKeeper)).
 		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(a.EvmKeeper.Keeper))
@@ -615,14 +586,7 @@ func (a *AppKeepers) SetupHooks() {
 	a.GAMMKeeper.SetHooks(
 		gammtypes.NewMultiGammHooks(
 			// insert gamm hooks receivers here
-			a.StreamerKeeper.Hooks(),
 			a.TxFeesKeeper.Hooks(),
-		),
-	)
-
-	a.IncentivesKeeper.SetHooks(
-		incentivestypes.NewMultiIncentiveHooks(
-		// insert incentive hooks receivers here
 		),
 	)
 
@@ -634,8 +598,6 @@ func (a *AppKeepers) SetupHooks() {
 	a.EpochsKeeper.SetHooks(
 		epochstypes.NewMultiEpochHooks(
 			// insert epochs hooks receivers here
-			a.IncentivesKeeper.Hooks(),
-			a.StreamerKeeper.Hooks(),
 			a.TxFeesKeeper.Hooks(),
 			a.DelayedAckKeeper.GetEpochHooks(),
 		),
@@ -653,7 +615,6 @@ func (a *AppKeepers) SetupHooks() {
 		// insert rollapp hooks receivers here
 		a.SequencerKeeper.RollappHooks(),
 		a.delayedAckMiddleware,
-		a.StreamerKeeper.Hooks(),
 	))
 }
 
@@ -689,7 +650,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibcexported.ModuleName)
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
 	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
-	paramsKeeper.Subspace(streamermoduletypes.ModuleName)
 	paramsKeeper.Subspace(denommetadatamoduletypes.ModuleName)
 	paramsKeeper.Subspace(delayedacktypes.ModuleName)
 	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
@@ -706,7 +666,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(lockuptypes.ModuleName)
 	paramsKeeper.Subspace(epochstypes.ModuleName)
 	paramsKeeper.Subspace(gammtypes.ModuleName)
-	paramsKeeper.Subspace(incentivestypes.ModuleName)
 	paramsKeeper.Subspace(txfeestypes.ModuleName)
 
 	paramsKeeper.Subspace(wasmtypes.ModuleName)

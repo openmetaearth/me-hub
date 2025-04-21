@@ -33,12 +33,10 @@ import (
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
-	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	gourpTypes "github.com/st-chain/me-hub/x/megroup/types"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
-	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 )
 
@@ -117,7 +115,6 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	consensusparamtypes.StoreKey,
 	rollappmoduletypes.StoreKey,
 	sequencermoduletypes.StoreKey,
-	streamermoduletypes.StoreKey,
 	packetforwardtypes.StoreKey,
 	delayedacktypes.StoreKey,
 	eibcmoduletypes.StoreKey,
@@ -132,7 +129,6 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	epochstypes.StoreKey,
 	gammtypes.StoreKey,
 	poolmanagertypes.StoreKey,
-	incentivestypes.StoreKey,
 	txfeestypes.StoreKey,
 	// me keys
 	daotypes.StoreKey,
@@ -140,5 +136,4 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	wasmtypes.StoreKey,
 	//megroup
 	gourpTypes.StoreKey,
-
 )

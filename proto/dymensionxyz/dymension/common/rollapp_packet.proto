@@ -1,9 +1,9 @@
 syntax = "proto3";
 package dymensionxyz.dymension.common;
 
+import "dymensionxyz/dymension/common/status.proto";
 import "gogoproto/gogo.proto";
 import "ibc/core/channel/v1/channel.proto";
-import "dymensionxyz/dymension/common/status.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/common/types";
 

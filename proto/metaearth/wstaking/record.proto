@@ -1,5 +1,6 @@
 syntax = "proto3";
 package metaearth.wstaking;
+
 import "gogoproto/gogo.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/wstaking/types";

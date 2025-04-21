@@ -8,8 +8,7 @@ option go_package = "github.com/st-chain/me-hub/x/delayedack/types";
 // Params defines the parameters for the module.
 message Params {
   option (gogoproto.goproto_stringer) = false;
-  string epoch_identifier = 1
-      [ (gogoproto.moretags) = "yaml:\"epoch_identifier\"" ];
+  string epoch_identifier = 1 [(gogoproto.moretags) = "yaml:\"epoch_identifier\""];
 
   string bridging_fee = 2 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
@@ -24,6 +23,5 @@ message Params {
   // even if it means potentially causing the store to temporarily grow by
   // piling up packets that weren't deleted but rather "postponed", to
   // subsequent epochs.
-  int32 delete_packets_epoch_limit = 3
-      [ (gogoproto.moretags) = "yaml:\"delete_packets_epoch_limit\"" ];
+  int32 delete_packets_epoch_limit = 3 [(gogoproto.moretags) = "yaml:\"delete_packets_epoch_limit\""];
 }

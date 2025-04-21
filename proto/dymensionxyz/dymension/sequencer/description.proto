@@ -5,7 +5,6 @@ option go_package = "github.com/st-chain/me-hub/x/sequencer/types";
 
 // Description defines a sequencer description.
 message Description {
-
   // moniker defines a human-readable name for the sequencer.
   string moniker = 1;
   // identity defines an optional identity signature (ex. UPort or Keybase).

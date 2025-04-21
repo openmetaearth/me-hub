@@ -19,8 +19,7 @@ service Msg {
   //  rpc RemoveDid(MsgRemoveDid) returns (MsgRemoveDidResponse);
 
   rpc CreateService(MsgCreateService) returns (MsgCreateServiceResponse);
-  rpc UpdateServiceStatus(MsgUpdateServiceStatus)
-      returns (MsgUpdateServiceStatusResponse);
+  rpc UpdateServiceStatus(MsgUpdateServiceStatus) returns (MsgUpdateServiceStatusResponse);
   //  rpc RemoveService(MsgRemoveService) returns (MsgRemoveServiceResponse);
 
   rpc CreateVC(MsgCreateVC) returns (MsgCreateVCResponse);
