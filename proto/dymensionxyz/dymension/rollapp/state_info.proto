@@ -1,12 +1,11 @@
 syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
-option go_package = "github.com/st-chain/me-hub/x/rollapp/types";
-
+import "dymensionxyz/dymension/common/status.proto";
+import "dymensionxyz/dymension/rollapp/block_descriptor.proto";
 import "gogoproto/gogo.proto";
 
-import "dymensionxyz/dymension/rollapp/block_descriptor.proto";
-import "dymensionxyz/dymension/common/status.proto";
+option go_package = "github.com/st-chain/me-hub/x/rollapp/types";
 
 // StateInfoIndex is the data used for indexing and retrieving a StateInfo
 // it updated and saved with every UpdateState in StateInfo.
@@ -30,7 +29,7 @@ message StateInfoIndex {
 message StateInfo {
   // stateInfoIndex defines what rollapp the state belongs to
   // and in which index it can be referenced
-  StateInfoIndex stateInfoIndex = 1 [ (gogoproto.nullable) = false ];
+  StateInfoIndex stateInfoIndex = 1 [(gogoproto.nullable) = false];
   // sequencer is the bech32-encoded address of the sequencer sent the update
   string sequencer = 2;
   // startHeight is the block height of the first block in the batch
@@ -48,14 +47,14 @@ message StateInfo {
   // BDs is a list of block description objects (one per block)
   // the list must be ordered by height, starting from startHeight to
   // startHeight+numBlocks-1
-  BlockDescriptors BDs = 9 [ (gogoproto.nullable) = false ];
+  BlockDescriptors BDs = 9 [(gogoproto.nullable) = false];
 }
 
 // StateInfoSummary is a compact representation of StateInfo
 message StateInfoSummary {
   // stateInfoIndex defines what rollapp the state belongs to
   // and in which index it can be referenced
-  StateInfoIndex stateInfoIndex = 1 [ (gogoproto.nullable) = false ];
+  StateInfoIndex stateInfoIndex = 1 [(gogoproto.nullable) = false];
   // status is the status of the state update
   common.Status status = 2;
   // creationHeight is the height at which the UpdateState took place
@@ -69,6 +68,5 @@ message BlockHeightToFinalizationQueue {
   uint64 creationHeight = 1;
   // finalizationQueue is a list of states that are waiting to be finalized
   // when the block height becomes creationHeight
-  repeated StateInfoIndex finalizationQueue = 2
-      [ (gogoproto.nullable) = false ];
+  repeated StateInfoIndex finalizationQueue = 2 [(gogoproto.nullable) = false];
 }

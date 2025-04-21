@@ -5,16 +5,14 @@ package dymensionxyz.dymension.rollapp;
 import "cosmos/msg/v1/msg.proto";
 import "dymensionxyz/dymension/rollapp/block_descriptor.proto";
 import "dymensionxyz/dymension/rollapp/rollapp.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/rollapp/types";
-
-import "gogoproto/gogo.proto";
 
 // Msg defines the Msg service.
 service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
-  rpc SkipDelayRollapp(MsgSkipDelayRollapp)
-      returns (MsgSkipDelayRollappResponse);
+  rpc SkipDelayRollapp(MsgSkipDelayRollapp) returns (MsgSkipDelayRollappResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
 }
 
@@ -59,7 +57,7 @@ message MsgUpdateState {
   // BDs is a list of block description objects (one per block)
   // the list must be ordered by height, starting from startHeight to
   // startHeight+numBlocks-1
-  BlockDescriptors BDs = 7 [ (gogoproto.nullable) = false ];
+  BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
 }
 
 message MsgUpdateStateResponse {}

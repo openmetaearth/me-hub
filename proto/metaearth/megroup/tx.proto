@@ -19,7 +19,9 @@ message MsgCreateGroup {
   GroupInfo groupInfo = 2;
 }
 
-message MsgCreateGroupResponse { uint64 id = 1; }
+message MsgCreateGroupResponse {
+  uint64 id = 1;
+}
 
 message MsgUpdateGroup {
   string creator = 1;
