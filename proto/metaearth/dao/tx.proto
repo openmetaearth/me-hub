@@ -1,21 +1,23 @@
 syntax = "proto3";
 package metaearth.dao;
 
+import "cosmos/msg/v1/msg.proto";
 import "gogoproto/gogo.proto";
 import "metaearth/dao/dao.proto";
-import "cosmos/msg/v1/msg.proto";
 
 // this line is used by starport scaffolding # proto/tx/import
 
 option go_package = "github.com/st-chain/me-hub/x/dao/types";
 
 // Msg defines the Msg service.
-service Msg { rpc UpdateDao(MsgUpdateDao) returns (MsgUpdateDaoResponse); }
+service Msg {
+  rpc UpdateDao(MsgUpdateDao) returns (MsgUpdateDaoResponse);
+}
 
 message MsgUpdateDao {
   option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
-  DaoAddresses dao_addresses = 2 [ (gogoproto.nullable) = false ];
+  DaoAddresses dao_addresses = 2 [(gogoproto.nullable) = false];
 }
 
 message MsgUpdateDaoResponse {}

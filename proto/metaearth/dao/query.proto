@@ -14,8 +14,7 @@ service Query {
     option (google.api.http).get = "/metaearth/dao/global_dao";
   }
 
-  rpc GlobalDaoFeePool(QueryGlobalDaoFeePoolReq)
-      returns (QueryGlobalDaoFeePoolResp) {
+  rpc GlobalDaoFeePool(QueryGlobalDaoFeePoolReq) returns (QueryGlobalDaoFeePoolResp) {
     option (google.api.http).get = "/metaearth/dao/global_dao_fee_pool";
   }
 }
@@ -23,8 +22,10 @@ service Query {
 message QueryGlobalDaoRequest {}
 
 message QueryGlobalDaoResponse {
-  DaoAddresses dao_addresses = 1 [ (gogoproto.nullable) = false ];
+  DaoAddresses dao_addresses = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryGlobalDaoFeePoolReq {}
-message QueryGlobalDaoFeePoolResp { string global_dao_fee_pool = 1; }
+message QueryGlobalDaoFeePoolResp {
+  string global_dao_fee_pool = 1;
+}

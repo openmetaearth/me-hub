@@ -8,5 +8,5 @@ option go_package = "github.com/st-chain/me-hub/x/dao/types";
 
 // GenesisState defines the sudo module's genesis state.
 message GenesisState {
-  DaoAddresses dao_addresses = 1 [ (gogoproto.nullable) = false ];
+  DaoAddresses dao_addresses = 1 [(gogoproto.nullable) = false];
 }

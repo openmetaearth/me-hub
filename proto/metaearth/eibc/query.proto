@@ -1,13 +1,13 @@
 syntax = "proto3";
 package metaearth.eibc;
 
+import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "cosmos/base/query/v1beta1/pagination.proto";
-import "metaearth/eibc/params.proto";
-import "metaearth/eibc/demand_order.proto";
-import "metaearth/common/status.proto";
 import "metaearth/common/rollapp_packet.proto";
+import "metaearth/common/status.proto";
+import "metaearth/eibc/demand_order.proto";
+import "metaearth/eibc/params.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/eibc/types";
 
@@ -18,16 +18,12 @@ service Query {
     option (google.api.http).get = "/metaearth/eibc/params";
   }
   // Queries a Demand Order by id.
-  rpc DemandOrderById(QueryGetDemandOrderRequest)
-      returns (QueryGetDemandOrderResponse) {
-    option (google.api.http).get =
-        "/metaearth/eibc/demand_order/{id}";
+  rpc DemandOrderById(QueryGetDemandOrderRequest) returns (QueryGetDemandOrderResponse) {
+    option (google.api.http).get = "/metaearth/eibc/demand_order/{id}";
   }
   // Queries a list of demand orders by status.
-  rpc DemandOrdersByStatus(QueryDemandOrdersByStatusRequest)
-      returns (QueryDemandOrdersByStatusResponse) {
-    option (google.api.http).get =
-        "/metaearth/eibc/demand_orders/{status}";
+  rpc DemandOrdersByStatus(QueryDemandOrdersByStatusRequest) returns (QueryDemandOrdersByStatusResponse) {
+    option (google.api.http).get = "/metaearth/eibc/demand_orders/{status}";
   }
 }
 
@@ -37,7 +33,7 @@ message QueryParamsRequest {}
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
   // params holds all the parameters of this module.
-  Params params = 1 [ (gogoproto.nullable) = false ];
+  Params params = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryGetDemandOrderRequest is the request type for the Query/GetDemandOrder

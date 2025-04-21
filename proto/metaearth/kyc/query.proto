@@ -1,15 +1,15 @@
 syntax = "proto3";
 package metaearth.kyc;
 
-import "gogoproto/gogo.proto";
-import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "cosmos/nft/v1beta1/nft.proto";
 import "cosmos_proto/cosmos.proto";
-import "metaearth/kyc/protocol.proto";
-import "metaearth/did/did.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
 import "metaearth/did/credential.proto";
+import "metaearth/did/did.proto";
 import "metaearth/kyc/kyc_event_seq.proto";
+import "metaearth/kyc/protocol.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/kyc/types";
 
@@ -38,15 +38,15 @@ service Query {
 message QueryProtocol {}
 
 message QueryProtocolResponse {
-  Protocol protocol = 1 [ (gogoproto.nullable) = false ];
+  Protocol protocol = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryDID {
-  string address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 message QueryDIDResponse {
-  did.DidInfo info = 1 [ (gogoproto.nullable) = false ];
+  did.DidInfo info = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryDIDs {
@@ -55,14 +55,16 @@ message QueryDIDs {
 }
 
 message QueryDIDsResponse {
-  repeated did.DidInfo infos = 1 [ (gogoproto.nullable) = false ];
+  repeated did.DidInfo infos = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryKYC { string did = 1; }
+message QueryKYC {
+  string did = 1;
+}
 
 message QueryKYCResponse {
-  did.Credential kyc = 1 [ (gogoproto.nullable) = false ];
+  did.Credential kyc = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryKYCs {
@@ -71,14 +73,16 @@ message QueryKYCs {
 }
 
 message QueryKYCsResponse {
-  repeated did.Credential KYCs = 1 [ (gogoproto.nullable) = false ];
+  repeated did.Credential KYCs = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QuerySBT { string did = 1; }
+message QuerySBT {
+  string did = 1;
+}
 
 message QuerySBTResponse {
-  cosmos.nft.v1beta1.NFT sbt = 1 [ (gogoproto.nullable) = false ];
+  cosmos.nft.v1beta1.NFT sbt = 1 [(gogoproto.nullable) = false];
 }
 
 // message QuerySBTs {

@@ -1,9 +1,9 @@
 syntax = "proto3";
 package metaearth.rollapp;
 
+import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "cosmos/base/query/v1beta1/pagination.proto";
 import "metaearth/rollapp/params.proto";
 import "metaearth/rollapp/rollapp.proto";
 import "metaearth/rollapp/state_info.proto";
@@ -18,15 +18,12 @@ service Query {
   }
   // Queries a Rollapp by index.
   rpc Rollapp(QueryGetRollappRequest) returns (QueryGetRollappResponse) {
-    option (google.api.http).get =
-        "/metaearth/rollapp/rollapp/{rollappId}";
+    option (google.api.http).get = "/metaearth/rollapp/rollapp/{rollappId}";
   }
 
   // Queries a Rollapp by index.
-  rpc RollappByEIP155(QueryGetRollappByEIP155Request)
-      returns (QueryGetRollappResponse) {
-    option (google.api.http).get =
-        "/metaearth/rollapp/eip155/{eip155}";
+  rpc RollappByEIP155(QueryGetRollappByEIP155Request) returns (QueryGetRollappResponse) {
+    option (google.api.http).get = "/metaearth/rollapp/eip155/{eip155}";
   }
 
   // Queries a list of Rollapp items.
@@ -35,29 +32,22 @@ service Query {
   }
 
   // Queries a LatestHeight by rollapp-id.
-  rpc LatestHeight(QueryGetLatestHeightRequest)
-      returns (QueryGetLatestHeightResponse) {
-    option (google.api.http).get =
-        "/metaearth/rollapp/latest_height/{rollappId}";
+  rpc LatestHeight(QueryGetLatestHeightRequest) returns (QueryGetLatestHeightResponse) {
+    option (google.api.http).get = "/metaearth/rollapp/latest_height/{rollappId}";
   }
 
   // Queries a LatestStateIndex by rollapp-id.
-  rpc LatestStateIndex(QueryGetLatestStateIndexRequest)
-      returns (QueryGetLatestStateIndexResponse) {
-    option (google.api.http).get =
-        "/metaearth/rollapp/latest_state_index/{rollappId}";
+  rpc LatestStateIndex(QueryGetLatestStateIndexRequest) returns (QueryGetLatestStateIndexResponse) {
+    option (google.api.http).get = "/metaearth/rollapp/latest_state_index/{rollappId}";
   }
 
   // Queries a StateInfo by index.
   rpc StateInfo(QueryGetStateInfoRequest) returns (QueryGetStateInfoResponse) {
-    option (google.api.http).get =
-        "/metaearth/rollapp/state_info/{rollappId}/{index}";
+    option (google.api.http).get = "/metaearth/rollapp/state_info/{rollappId}/{index}";
   }
 
-  rpc SkipDelayRollapp(QuerySkipDelayRollappRequest)
-      returns (QuerySkipDelayRollappResponse) {
-    option (google.api.http).get =
-        "/metaearth/rollapp/skip_delay_rollapp";
+  rpc SkipDelayRollapp(QuerySkipDelayRollappRequest) returns (QuerySkipDelayRollappResponse) {
+    option (google.api.http).get = "/metaearth/rollapp/skip_delay_rollapp";
   }
 }
 
@@ -67,19 +57,25 @@ message QueryParamsRequest {}
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
   // params holds all the parameters of this module.
-  Params params = 1 [ (gogoproto.nullable) = false ];
+  Params params = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryGetRollappRequest { string rollappId = 1; }
+message QueryGetRollappRequest {
+  string rollappId = 1;
+}
 
-message QueryGetRollappByEIP155Request { uint64 eip155 = 1; }
+message QueryGetRollappByEIP155Request {
+  uint64 eip155 = 1;
+}
 
 message QueryGetLatestHeightRequest {
   string rollappId = 1;
   bool finalized = 2;
 }
 
-message QueryGetLatestHeightResponse { uint64 height = 1; }
+message QueryGetLatestHeightResponse {
+  uint64 height = 1;
+}
 
 message QueryGetLatestStateIndexRequest {
   string rollappId = 1;
@@ -87,11 +83,11 @@ message QueryGetLatestStateIndexRequest {
 }
 
 message QueryGetLatestStateIndexResponse {
-  StateInfoIndex stateIndex = 1 [ (gogoproto.nullable) = false ];
+  StateInfoIndex stateIndex = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryGetRollappResponse {
-  Rollapp rollapp = 1 [ (gogoproto.nullable) = false ];
+  Rollapp rollapp = 1 [(gogoproto.nullable) = false];
   // Defines the index of the last rollapp UpdateState.
   StateInfoIndex latestStateIndex = 2;
   // Defines the index of the last rollapp UpdateState that was finalized.
@@ -106,7 +102,7 @@ message QueryAllRollappRequest {
 }
 
 message QueryAllRollappResponse {
-  repeated RollappSummary rollapp = 1 [ (gogoproto.nullable) = false ];
+  repeated RollappSummary rollapp = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
@@ -118,9 +114,11 @@ message QueryGetStateInfoRequest {
 }
 
 message QueryGetStateInfoResponse {
-  StateInfo stateInfo = 1 [ (gogoproto.nullable) = false ];
+  StateInfo stateInfo = 1 [(gogoproto.nullable) = false];
 }
 
 message QuerySkipDelayRollappRequest {}
 
-message QuerySkipDelayRollappResponse { repeated string rollapps = 1; }
+message QuerySkipDelayRollappResponse {
+  repeated string rollapps = 1;
+}

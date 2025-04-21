@@ -1,5 +1,6 @@
 syntax = "proto3";
 package metaearth.sequencer;
+
 import "gogoproto/gogo.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/sequencer/types";
@@ -9,12 +10,10 @@ enum OperatingStatus {
   option (gogoproto.goproto_enum_prefix) = false;
   // OPERATING_STATUS_UNBONDED defines a sequencer that is not active and won't
   // be scheduled
-  OPERATING_STATUS_UNBONDED = 0
-      [ (gogoproto.enumvalue_customname) = "Unbonded" ];
+  OPERATING_STATUS_UNBONDED = 0 [(gogoproto.enumvalue_customname) = "Unbonded"];
   // UNBONDING defines a sequencer that is currently unbonding.
-  OPERATING_STATUS_UNBONDING = 1
-      [ (gogoproto.enumvalue_customname) = "Unbonding" ];
+  OPERATING_STATUS_UNBONDING = 1 [(gogoproto.enumvalue_customname) = "Unbonding"];
   // OPERATING_STATUS_BONDED defines a sequencer that is bonded and can be
   // scheduled
-  OPERATING_STATUS_BONDED = 2 [ (gogoproto.enumvalue_customname) = "Bonded" ];
+  OPERATING_STATUS_BONDED = 2 [(gogoproto.enumvalue_customname) = "Bonded"];
 }

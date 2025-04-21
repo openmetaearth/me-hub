@@ -56,11 +56,10 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	"github.com/st-chain/me-hub/x/dao"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
-	did "github.com/st-chain/me-hub/x/did"
+	"github.com/st-chain/me-hub/x/did"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
-	kyc "github.com/st-chain/me-hub/x/kyc"
+	"github.com/st-chain/me-hub/x/kyc"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
-	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	"github.com/st-chain/me-hub/x/wbank"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	wdistr "github.com/st-chain/me-hub/x/wdistri"
@@ -75,18 +74,15 @@ import (
 	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
 	denommetadatamodule "github.com/st-chain/me-hub/x/denommetadata"
 	eibcmodule "github.com/st-chain/me-hub/x/eibc"
-	"github.com/st-chain/me-hub/x/incentives"
 	groupmodule "github.com/st-chain/me-hub/x/megroup"
 	groupTypes "github.com/st-chain/me-hub/x/megroup/types"
 	rollappmodule "github.com/st-chain/me-hub/x/rollapp"
 	sequencermodule "github.com/st-chain/me-hub/x/sequencer"
-	streamermodule "github.com/st-chain/me-hub/x/streamer"
 
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
 	denommetadatamoduletypes "github.com/st-chain/me-hub/x/denommetadata/types"
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
 	meevm "github.com/st-chain/me-hub/x/evm"
-	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
 )
@@ -123,7 +119,6 @@ func (a *AppKeepers) SetupModules(
 		ibctransfer.NewAppModule(a.TransferKeeper),
 		rollappmodule.NewAppModule(appCodec, a.RollappKeeper, a.AccountKeeper, a.BankKeeper),
 		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper, a.AccountKeeper, a.BankKeeper),
-		streamermodule.NewAppModule(a.StreamerKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
 		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper),
 		denommetadatamodule.NewAppModule(a.DenomMetadataKeeper, *a.EvmKeeper, a.BankKeeper),
 		eibcmodule.NewAppModule(appCodec, a.EIBCKeeper, a.AccountKeeper, a.BankKeeper),
@@ -144,7 +139,6 @@ func (a *AppKeepers) SetupModules(
 		epochs.NewAppModule(*a.EpochsKeeper),
 		gamm.NewAppModule(appCodec, *a.GAMMKeeper, a.AccountKeeper, a.BankKeeper),
 		poolmanager.NewAppModule(*a.PoolManagerKeeper, a.GAMMKeeper),
-		incentives.NewAppModule(*a.IncentivesKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
 		txfees.NewAppModule(*a.TxFeesKeeper),
 		dao.NewAppModule(appCodec, a.DaoKeeper),
 
@@ -161,7 +155,6 @@ func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 	}
 
 	// exclude the streamer as we want him to be able to get external incentives
-	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
 	return modAccAddrs
 }
@@ -181,12 +174,10 @@ var MaccPerms = map[string][]string{
 	ibctransfertypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},
 	sequencermoduletypes.ModuleName:                    {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 	rollappmoduletypes.ModuleName:                      {},
-	streamermoduletypes.ModuleName:                     nil,
 	evmtypes.ModuleName:                                {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account.
 	evmtypes.ModuleVirtualFrontierContractDeployerName: nil,                                  // used for deploying virtual frontier bank contract.
 	gammtypes.ModuleName:                               {authtypes.Minter, authtypes.Burner},
 	lockuptypes.ModuleName:                             {authtypes.Minter, authtypes.Burner},
-	incentivestypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
 	wstakingtypes.FixedDepositPrincipalPool:            nil,
 	wasmtypes.ModuleName:                               {authtypes.Burner},
 	groupTypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
@@ -219,14 +210,12 @@ var BeginBlockers = []string{
 	paramstypes.ModuleName,
 	rollappmoduletypes.ModuleName,
 	sequencermoduletypes.ModuleName,
-	streamermoduletypes.ModuleName,
 	denommetadatamoduletypes.ModuleName,
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
 	lockuptypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
-	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	daotypes.ModuleName,
@@ -261,7 +250,6 @@ var EndBlockers = []string{
 	packetforwardtypes.ModuleName,
 	rollappmoduletypes.ModuleName,
 	sequencermoduletypes.ModuleName,
-	streamermoduletypes.ModuleName,
 	denommetadatamoduletypes.ModuleName,
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
@@ -269,7 +257,6 @@ var EndBlockers = []string{
 	lockuptypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
-	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	daotypes.ModuleName,
@@ -305,7 +292,6 @@ var InitGenesis = []string{
 	feegrant.ModuleName,
 	rollappmoduletypes.ModuleName,
 	sequencermoduletypes.ModuleName,
-	streamermoduletypes.ModuleName,
 	denommetadatamoduletypes.ModuleName, // must after `x/bank` to trigger hooks
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
@@ -313,7 +299,6 @@ var InitGenesis = []string{
 	lockuptypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
-	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	wasmtypes.ModuleName,

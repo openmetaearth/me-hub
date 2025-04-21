@@ -17,7 +17,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/utilities"
-	types_0 "github.com/st-chain/me-hub/x/common/types"
+	types_2 "github.com/st-chain/me-hub/x/common/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
@@ -127,13 +127,13 @@ func request_Query_DemandOrdersByStatus_0(ctx context.Context, marshaler runtime
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "status")
 	}
 
-	e, err = runtime.Enum(val, types_0.Status_value)
+	e, err = runtime.Enum(val, types_2.Status_value)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "status", err)
 	}
 
-	protoReq.Status = types_0.Status(e)
+	protoReq.Status = types_2.Status(e)
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -164,13 +164,13 @@ func local_request_Query_DemandOrdersByStatus_0(ctx context.Context, marshaler r
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "status")
 	}
 
-	e, err = runtime.Enum(val, types_0.Status_value)
+	e, err = runtime.Enum(val, types_2.Status_value)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "status", err)
 	}
 
-	protoReq.Status = types_0.Status(e)
+	protoReq.Status = types_2.Status(e)
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)

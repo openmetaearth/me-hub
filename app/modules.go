@@ -39,7 +39,6 @@ import (
 	denommetadatamoduleclient "github.com/st-chain/me-hub/x/denommetadata/client"
 	did "github.com/st-chain/me-hub/x/did"
 	"github.com/st-chain/me-hub/x/eibc"
-	"github.com/st-chain/me-hub/x/incentives"
 	kyc "github.com/st-chain/me-hub/x/kyc"
 	groupmodule "github.com/st-chain/me-hub/x/megroup"
 	"github.com/st-chain/me-hub/x/rollapp"
@@ -51,8 +50,6 @@ import (
 
 	rollappmoduleclient "github.com/st-chain/me-hub/x/rollapp/client"
 	"github.com/st-chain/me-hub/x/sequencer"
-	"github.com/st-chain/me-hub/x/streamer"
-	streamermoduleclient "github.com/st-chain/me-hub/x/streamer/client"
 )
 
 // ModuleBasics defines the module BasicManager is in charge of setting up basic,
@@ -65,7 +62,6 @@ var ModuleBasics = module.NewBasicManager(
 	wbank.AppModuleBasic{},
 	capability.AppModuleBasic{},
 	consensus.AppModuleBasic{},
-	//staking.AppModuleBasic{},
 	wstaking.AppModuleBasic{},
 	wmint.AppModuleBasic{},
 	wdistri.AppModuleBasic{},
@@ -75,10 +71,6 @@ var ModuleBasics = module.NewBasicManager(
 		upgradeclient.LegacyCancelProposalHandler,
 		ibcclientclient.UpdateClientProposalHandler,
 		ibcclientclient.UpgradeProposalHandler,
-		streamermoduleclient.CreateStreamHandler,
-		streamermoduleclient.TerminateStreamHandler,
-		streamermoduleclient.ReplaceStreamHandler,
-		streamermoduleclient.UpdateStreamHandler,
 		rollappmoduleclient.SubmitFraudHandler,
 		denommetadatamoduleclient.CreateDenomMetadataHandler,
 		denommetadatamoduleclient.UpdateDenomMetadataHandler,
@@ -96,7 +88,6 @@ var ModuleBasics = module.NewBasicManager(
 	vesting.AppModuleBasic{},
 	rollapp.AppModuleBasic{},
 	sequencer.AppModuleBasic{},
-	streamer.AppModuleBasic{},
 	denommetadata.AppModuleBasic{},
 	packetforward.AppModuleBasic{},
 	delayedack.AppModuleBasic{},
@@ -115,13 +106,9 @@ var ModuleBasics = module.NewBasicManager(
 	epochs.AppModuleBasic{},
 	gamm.AppModuleBasic{},
 	poolmanager.AppModuleBasic{},
-	incentives.AppModuleBasic{},
 	txfees.AppModuleBasic{},
 	dao.AppModuleBasic{},
 	wnft.AppModuleBasic{},
 	wasm.AppModuleBasic{},
 	groupmodule.AppModuleBasic{},
-
-	//staking.AppModuleBasic{},
-	//nftmodule.AppModuleBasic{},
 )

@@ -1,12 +1,12 @@
 syntax = "proto3";
 package metaearth.delayedack;
 
+import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "cosmos/base/query/v1beta1/pagination.proto";
-import "metaearth/delayedack/params.proto";
-import "metaearth/common/status.proto";
 import "metaearth/common/rollapp_packet.proto";
+import "metaearth/common/status.proto";
+import "metaearth/delayedack/params.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/delayedack/types";
 
@@ -18,10 +18,8 @@ service Query {
   }
 
   // Queries a list of RollappPacket items by rollappID.
-  rpc GetPackets(QueryRollappPacketsRequest)
-      returns (QueryRollappPacketListResponse) {
-    option (google.api.http).get =
-        "/metaearth/delayedack/packets/{rollappId}/{status}";
+  rpc GetPackets(QueryRollappPacketsRequest) returns (QueryRollappPacketListResponse) {
+    option (google.api.http).get = "/metaearth/delayedack/packets/{rollappId}/{status}";
   }
 }
 
@@ -31,7 +29,7 @@ message QueryParamsRequest {}
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
   // params holds all the parameters of this module.
-  Params params = 1 [ (gogoproto.nullable) = false ];
+  Params params = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryRollappPacketsRequest {
@@ -42,7 +40,6 @@ message QueryRollappPacketsRequest {
 }
 
 message QueryRollappPacketListResponse {
-  repeated common.RollappPacket rollappPackets = 1
-      [ (gogoproto.nullable) = false ];
+  repeated common.RollappPacket rollappPackets = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

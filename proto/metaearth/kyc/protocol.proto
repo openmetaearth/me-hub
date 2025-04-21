@@ -14,6 +14,6 @@ message Region {
 }
 
 message Protocol {
-  did.Service service = 1 [ (gogoproto.nullable) = false ];
-  repeated Region regions = 2 [ (gogoproto.nullable) = false ];
+  did.Service service = 1 [(gogoproto.nullable) = false];
+  repeated Region regions = 2 [(gogoproto.nullable) = false];
 }

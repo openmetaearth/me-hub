@@ -38,14 +38,12 @@ import (
 	didkeeper "github.com/st-chain/me-hub/x/did/keeper"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	eibctypes "github.com/st-chain/me-hub/x/eibc/types"
-	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	kyckeeper "github.com/st-chain/me-hub/x/kyc/keeper"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	groupkeeper "github.com/st-chain/me-hub/x/megroup/keeper"
 	megrouptypes "github.com/st-chain/me-hub/x/megroup/types"
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencertypes "github.com/st-chain/me-hub/x/sequencer/types"
-	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
 	wnftkeeper "github.com/st-chain/me-hub/x/wnft/keeper"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
@@ -122,11 +120,6 @@ func CreateUpgradeHandler(
 		ctx.Logger().Info("11.migrate delegation")
 		MigrateDelegation(ctx, keepers.StakingKeeper, keepers.KycKeeper)
 
-		// create a new module account
-		macc := authtypes.NewEmptyModuleAccount(streamermoduletypes.ModuleName)
-		maccI := (keepers.AccountKeeper.NewAccount(ctx, macc)).(authtypes.ModuleAccountI) // set the account number
-		keepers.AccountKeeper.SetModuleAccount(ctx, maccI)
-
 		// check
 		CheckDao(ctx, keepers.AccountKeeper, keepers.DaoKeeper)
 
@@ -177,11 +170,6 @@ func migrateModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
 	//	panic(err)
 	//}
 	//baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
-
-	// create a new module account
-	macc := authtypes.NewEmptyModuleAccount(streamermoduletypes.ModuleName)
-	maccI := (keepers.AccountKeeper.NewAccount(ctx, macc)).(authtypes.ModuleAccountI) // set the account number
-	keepers.AccountKeeper.SetModuleAccount(ctx, maccI)
 }
 
 func setNewModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
@@ -204,9 +192,6 @@ func setNewModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
 
 	feemarketParams := feemarkettypes.DefaultParams()
 	keepers.FeeMarketKeeper.SetParams(ctx, feemarketParams)
-
-	incentivesParams := incentivestypes.DefaultGenesis()
-	keepers.IncentivesKeeper.InitGenesis(ctx, *incentivesParams)
 
 	gammParams := gammtypes.DefaultGenesis()
 	keepers.GAMMKeeper.InitGenesis(ctx, *gammParams, nil)
