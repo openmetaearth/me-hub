@@ -1,6 +1,5 @@
 syntax = "proto3";
 package metaearth.dao;
-;
 
 import "gogoproto/gogo.proto";
 import "metaearth/dao/dao.proto";

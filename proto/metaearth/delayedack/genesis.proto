@@ -1,0 +1,17 @@
+syntax = "proto3";
+package metaearth.delayedack;
+
+import "gogoproto/gogo.proto";
+import "metaearth/delayedack/params.proto";
+import "metaearth/common/rollapp_packet.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/delayedack/types";
+
+// GenesisState defines the delayedack module's genesis state.
+message GenesisState {
+  // params are all the parameters of the module
+  Params params = 1 [ (gogoproto.nullable) = false ];
+  // streams are all streams that should exist at genesis
+  repeated common.RollappPacket rollapp_packets = 2
+      [ (gogoproto.nullable) = false ];
+}
