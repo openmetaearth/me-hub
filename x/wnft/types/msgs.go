@@ -46,7 +46,7 @@ func (msg MsgNewClass) ValidateBasic() error {
 
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid sender address (%s)", msg.Sender)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", msg.Sender)
 	}
 
 	return nil
@@ -81,12 +81,12 @@ func (m MsgMintNFT) ValidateBasic() error {
 
 	_, err := sdk.AccAddressFromBech32(m.Creator)
 	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid sender address (%s)", m.Creator)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid mint address (%s)", m.Creator)
 	}
 
 	_, err = sdk.AccAddressFromBech32(m.Receiver)
 	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid receiver address (%s)", m.Receiver)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address (%s)", m.Receiver)
 	}
 	return nil
 }
@@ -132,12 +132,12 @@ func (m MsgSend) ValidateBasic() error {
 
 	_, err := sdk.AccAddressFromBech32(m.Sender)
 	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid sender address (%s)", m.Sender)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", m.Sender)
 	}
 
 	_, err = sdk.AccAddressFromBech32(m.Receiver)
 	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "Invalid receiver address (%s)", m.Receiver)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address (%s)", m.Receiver)
 	}
 	return nil
 }

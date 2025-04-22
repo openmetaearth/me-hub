@@ -5,17 +5,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"io"
 	"os"
 	"path/filepath"
-
-	tmtypes "github.com/cometbft/cometbft/types"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -156,26 +155,38 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			// ref: https://github.com/cosmos/cosmos-sdk/issues/8177
 			createValCfg.Amount = amount
 
+			msgs := make([]sdk.Msg, 0, 2)
 			// create a 'create-validator' message
 			txBldr, msg, err := cli.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory, true)
 			if err != nil {
 				return errors.Wrap(err, "failed to build create-validator message")
 			}
+			msgs = append(msgs, msg)
 
 			if key.GetType() == keyring.TypeOffline || key.GetType() == keyring.TypeMulti {
 				cmd.PrintErrln("Offline key passed in. Use `tx sign` command to sign.")
 				return txBldr.PrintUnsignedTx(clientCtx, msg)
 			}
 
+			validator := msg.(*stakingtypes.MsgCreateValidator)
+			msgCreateRegion := wstakingtypes.NewMsgNewRegion(
+				clientCtx.GetFromAddress().String(),
+				wstakingtypes.MeEarthRegionId,
+				wstakingtypes.MeEarthRegionName,
+				validator.ValidatorAddress)
+			msgs = append(msgs, msgCreateRegion)
+
 			// write the unsigned transaction to the buffer
 			w := bytes.NewBuffer([]byte{})
 			clientCtx = clientCtx.WithOutput(w)
 
-			if err = msg.ValidateBasic(); err != nil {
-				return err
+			for _, m := range msgs {
+				if err = m.ValidateBasic(); err != nil {
+					return err
+				}
 			}
 
-			if err = txBldr.PrintUnsignedTx(clientCtx, msg); err != nil {
+			if err = txBldr.PrintUnsignedTx(clientCtx, msgs...); err != nil {
 				return errors.Wrap(err, "failed to print unsigned std tx")
 			}
 
