@@ -70,7 +70,7 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 	k.SetDelegation(ctx, delegation)
 
 	// Handling fixed deposits
-	err := k.transferDeposit(ctx, fromRegion, toRegion, address.String())
+	err := k.transferDeposit(ctx, &fromRegion, &toRegion, address.String())
 	if err != nil {
 		return types.ErrTransferRegion.Wrap(err.Error())
 	}
@@ -86,15 +86,18 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 	validator.MeidAmount = validator.MeidAmount.Add(types.Bonus)
 	k.SetValidator(ctx, validator)
 
-	err = k.transferRemoveMeid(ctx, address.String(), fromRegionId, delegation)
+	err = k.transferRemoveMeid(ctx, address.String(), &fromRegion, delegation)
 	if err != nil {
 		return types.ErrTransferRegion.Wrap(err.Error())
 	}
 
-	err = k.transferNewMeid(ctx, toRegion, address.String(), valAddr, delegation)
+	err = k.transferNewMeid(ctx, &toRegion, address.String(), valAddr, delegation)
 	if err != nil {
 		return types.ErrTransferRegion.Wrap(err.Error())
 	}
+
+	k.SetRegion(ctx, fromRegion)
+	k.SetRegion(ctx, toRegion)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
