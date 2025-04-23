@@ -124,7 +124,7 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 
 				rollupStore.Set([]byte(types.KEY_LAST_ELECTION_TIME), types.Int64ToBytes(blkTime))
 				//设置
-				electResult := types.QueryElectionResponse{
+				electResult := types.ElectionResult{
 					ElectionTime:   uint64(blkTime),
 					BlockHeight:    uint64(ctx.BlockHeight()),
 					NodeStatusList: electList,
@@ -139,7 +139,7 @@ func (k *Keeper) ProcElection(ctx sdk.Context) error {
 				if err != nil {
 					return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("Marshal(electResult) error.err = %s", err.Error()))
 				}
-				strRes = string(res)
+				strRes = hex.EncodeToString(res)
 				ctx.EventManager().EmitEvent(
 					sdk.NewEvent(
 						types.EvtElection,
@@ -483,7 +483,7 @@ func (k Keeper) RevaluateSequencer(ctx sdk.Context, address, rollappID string) e
 		store := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(rollappID))
 		electionData := store.Get([]byte(types.KEY_LAST_ELECTION_INFO))
 
-		resp := &types.QueryElectionResponse{
+		resp := &types.ElectionResult{
 			ElectionTime:   0,
 			BlockHeight:    0,
 			NodeStatusList: nil,
@@ -496,42 +496,38 @@ func (k Keeper) RevaluateSequencer(ctx sdk.Context, address, rollappID string) e
 		bIsProcSequencer := false
 		bIsNeedRewriteData := false
 		deleteKey := int(0)
+		nodeStatusModifyList := new(types.NodeStatusModifyList)
 		for key, val := range resp.NodeStatusList { //这么操作的前提是NodeStatusList是按照金额从大到小排序的
 			if val.Address == address {
-				beforeStatus := ""
-				afterStatus := ""
+				beforeStatus := types.NodeNormal
+				afterStatus := types.NodeNormal
 				if types.NodeSequencer == val.Status {
 					bIsProcSequencer = true
-					beforeStatus = strconv.Itoa(int(types.NodeSequencer))
-					afterStatus = strconv.Itoa(int(types.NodeNormal))
+					beforeStatus = types.NodeSequencer
+					afterStatus = types.NodeNormal
 					val.Status = types.NodeNormal
 					bIsNeedRewriteData = true
 				} else if types.NodeBackup == val.Status {
-					beforeStatus = strconv.Itoa(int(types.NodeBackup))
-					afterStatus = strconv.Itoa(int(types.NodeNormal))
+					beforeStatus = types.NodeBackup
+					afterStatus = types.NodeNormal
 					val.Status = types.NodeNormal
 					bIsNeedRewriteData = true
 				}
 				if bIsNeedRewriteData { //产生了状态变更事件
 					deleteKey = key
-					bondNodeAddress := ""
-					if bondAddrBytes := k.getDelegatorBondNodeAddr(ctx, rollappID, address); bondAddrBytes != nil {
-						bondNodeAddress = hex.EncodeToString(bondAddrBytes)
+					//bondNodeAddress := ""
+					bondAddrBytes := k.getDelegatorBondNodeAddr(ctx, rollappID, address)
+					if bondAddrBytes == nil {
+						panic(fmt.Errorf("can not found BondNodeAddress from address.stakerAddress = %s", address))
 					}
+					//bondNodeAddress = hex.EncodeToString(bondAddrBytes)
+					nodeStatusModifyList.NodeStatusList = append(nodeStatusModifyList.NodeStatusList, &types.NodeStatusModify{
+						StakerAddress:   val.Address,
+						BeforeStatus:    beforeStatus,
+						AfterStatus:     afterStatus,
+						BondNodeAddress: bondAddrBytes,
+					})
 
-					ctx.EventManager().EmitEvent(
-						sdk.NewEvent(
-							types.EvtSequencerChange,
-							sdk.NewAttribute("rollappID", rollappID),
-							sdk.NewAttribute("moduleName", types.MODULE_NAME),
-							sdk.NewAttribute("address", address),
-							sdk.NewAttribute("bondNodeAddress", bondNodeAddress),
-							sdk.NewAttribute("blockHeight", strconv.FormatInt(ctx.BlockHeight(), 10)),
-							sdk.NewAttribute("blockTime", strconv.FormatInt(ctx.BlockTime().Unix(), 10)),
-							sdk.NewAttribute("beforeStatus", beforeStatus),
-							sdk.NewAttribute("afterStatus", afterStatus),
-						),
-					)
 				}
 				if !bIsProcSequencer {
 					//如果处理的不是sequencer的话，则可以跳出循环了,因为只有处理的是sequencer，才需要让备用节点顶上
@@ -543,23 +539,17 @@ func (k Keeper) RevaluateSequencer(ctx sdk.Context, address, rollappID string) e
 					if types.NodeBackup == val.Status {
 						//这里选择第一个备选节点作为sequencer，然后调出循环
 						val.Status = types.NodeSequencer
-						bondNodeAddress := ""
-						if bondAddrBytes := k.getDelegatorBondNodeAddr(ctx, rollappID, val.Address); bondAddrBytes != nil {
-							bondNodeAddress = hex.EncodeToString(bondAddrBytes)
+						bondAddrBytes := k.getDelegatorBondNodeAddr(ctx, rollappID, val.Address)
+						if nil == bondAddrBytes {
+							panic(fmt.Errorf("can not found BondNodeAddress from address.stakerAddress = %s", address))
 						}
-						ctx.EventManager().EmitEvent(
-							sdk.NewEvent(
-								types.EvtSequencerChange,
-								sdk.NewAttribute("rollappID", rollappID),
-								sdk.NewAttribute("moduleName", types.MODULE_NAME),
-								sdk.NewAttribute("address", val.Address),
-								sdk.NewAttribute("bondNodeAddress", bondNodeAddress),
-								sdk.NewAttribute("blockHeight", strconv.FormatInt(ctx.BlockHeight(), 10)),
-								sdk.NewAttribute("blockTime", strconv.FormatInt(ctx.BlockTime().Unix(), 10)),
-								sdk.NewAttribute("beforeStatus", strconv.Itoa(int(types.NodeBackup))),
-								sdk.NewAttribute("afterStatus", strconv.Itoa(int(val.Status))),
-							),
-						)
+						//bondNodeAddress = hex.EncodeToString(bondAddrBytes)
+						nodeStatusModifyList.NodeStatusList = append(nodeStatusModifyList.NodeStatusList, &types.NodeStatusModify{
+							StakerAddress:   address,
+							BeforeStatus:    types.NodeBackup,
+							AfterStatus:     val.Status,
+							BondNodeAddress: bondAddrBytes,
+						})
 						break
 					}
 				}
@@ -574,6 +564,21 @@ func (k Keeper) RevaluateSequencer(ctx sdk.Context, address, rollappID string) e
 			}
 			resData := k.cdc.MustMarshal(resp)
 			store.Set([]byte(types.KEY_LAST_ELECTION_INFO), resData)
+			nodeListsData, err := k.cdc.Marshal(nodeStatusModifyList)
+			if err != nil {
+				return errorsmod.Wrapf(types.ErrProcessErr, fmt.Sprintf("Marshal(nodeStatusModifyList) error.err = %s,"+
+					"nodeStatusModifyList = %s", err.Error(), nodeStatusModifyList.String()))
+			}
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EvtSequencerChange,
+					sdk.NewAttribute("moduleName", types.MODULE_NAME),
+					sdk.NewAttribute(types.EvtAttrRollappID, rollappID),
+					sdk.NewAttribute(types.EvtAttrBlockHeight, strconv.FormatInt(ctx.BlockHeight(), 10)),
+					sdk.NewAttribute(types.EvtAttrBlockTime, strconv.FormatInt(ctx.BlockTime().Unix(), 10)),
+					sdk.NewAttribute(types.EvtAttrNodeStatusModifyList, hex.EncodeToString(nodeListsData)),
+				),
+			)
 		}
 
 	}

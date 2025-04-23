@@ -40,11 +40,7 @@ func (t Keeper) QueryElectionResult(ctx context.Context, req *types.QueryElectio
 	store := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(req.RollappId))
 	data := store.Get([]byte(types.KEY_LAST_ELECTION_INFO))
 
-	resp := &types.QueryElectionResponse{
-		ElectionTime:   0,
-		BlockHeight:    0,
-		NodeStatusList: nil,
-	}
+	resp := new(types.QueryElectionResponse)
 	if nil == data {
 		return resp, nil
 	}
@@ -64,11 +60,7 @@ func (t Keeper) GetPreviousElectionResult(ctx context.Context, rollappID string)
 	store := prefix.NewStore(kvStore, types.GetRollupAppKeyPrefix(rollappID))
 	data := store.Get([]byte(types.KEY_PREVIOUS_ELECTION_INFO))
 
-	resp := &types.QueryElectionResponse{
-		ElectionTime:   0,
-		BlockHeight:    0,
-		NodeStatusList: nil,
-	}
+	resp := new(types.QueryElectionResponse)
 	if nil == data {
 		return resp, nil
 	}

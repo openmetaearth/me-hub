@@ -513,11 +513,11 @@ func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId strin
 	}
 	voteNumber := uint32(0)
 	sequencerLen := uint32(0)
-	if 0 == resp.ElectionTime || nil == resp.NodeStatusList { //表明没有进行过选举，此时应该采用最初创建RollApp中的Sequencer
+	if 0 == resp.Result.ElectionTime || nil == resp.Result.NodeStatusList { //表明没有进行过选举，此时应该采用最初创建RollApp中的Sequencer
 		return errorsmod.Wrapf(types.ErrLogic, "election info is empty in verifyRollupBlkConsensus")
 	}
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	voteNumber, sequencerLen, err = k.Keeper.calcElectSequencerVoteForBlock(sdkCtx, rollAppId, lightBlock, resp.NodeStatusList)
+	voteNumber, sequencerLen, err = k.Keeper.calcElectSequencerVoteForBlock(sdkCtx, rollAppId, lightBlock, resp.Result.NodeStatusList)
 
 	if err != nil {
 		return err
@@ -530,14 +530,14 @@ func (k msgServer) verifyRollupBlkConsensus(ctx context.Context, rollAppId strin
 		//能进到这里，之前的查询竞选说明有数据，也就是有竞选过
 
 		param := k.rollupKeeper.GetParams(sdkCtx)
-		tmp := sdkCtx.BlockTime().Unix() - int64(resp.ElectionTime)
+		tmp := sdkCtx.BlockTime().Unix() - int64(resp.Result.ElectionTime)
 		if tmp <= int64(param.ElectionInterimTime) { //当前时间间隔<=选举过渡期，则允许使用之前的选举Sequencer进行判断
 			preElect, err := k.rollupKeeper.GetPreviousElectionResult(ctx, rollAppId)
 			if err != nil {
 				return err
 			}
-			if preElect.NodeStatusList != nil && len(preElect.NodeStatusList) > 0 { //如果有存在上一次的数据
-				voteNumber, sequencerLen, err = k.Keeper.calcElectSequencerVoteForBlock(sdkCtx, rollAppId, lightBlock, preElect.NodeStatusList)
+			if preElect.Result.NodeStatusList != nil && len(preElect.Result.NodeStatusList) > 0 { //如果有存在上一次的数据
+				voteNumber, sequencerLen, err = k.Keeper.calcElectSequencerVoteForBlock(sdkCtx, rollAppId, lightBlock, preElect.Result.NodeStatusList)
 				if err != nil {
 					return fmt.Errorf("%s in second time", err.Error())
 				}

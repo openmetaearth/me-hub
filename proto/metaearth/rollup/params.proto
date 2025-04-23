@@ -1,5 +1,5 @@
 syntax = "proto3";
-package dymensionxyz.dymension.rollup;
+package metaearth.rollup;
 
 import "gogoproto/gogo.proto";
 

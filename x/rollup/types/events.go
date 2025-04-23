@@ -21,3 +21,10 @@ const (
 	//bondAddress
 	EvtBondRollappNodeAddress = "EventBondRollappNodeAddress" //DA挑战者欺诈事件
 )
+
+const (
+	EvtAttrRollappID            = "rollappID"   // rollapp id
+	EvtAttrBlockHeight          = "blockHeight" // block height
+	EvtAttrBlockTime            = "blockTime"
+	EvtAttrNodeStatusModifyList = "nodeStatusModifyList" // block time
+)

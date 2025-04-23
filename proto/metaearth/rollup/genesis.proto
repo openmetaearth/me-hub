@@ -1,8 +1,8 @@
 syntax = "proto3";
-package dymensionxyz.dymension.rollup;
+package metaearth.rollup;
 
 import "gogoproto/gogo.proto";
-import "dymensionxyz/dymension/rollup/params.proto";
+import "metaearth/rollup/params.proto";
 
 // this line is used by starport scaffolding # genesis/proto/import
 

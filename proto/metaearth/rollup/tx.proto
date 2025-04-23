@@ -1,9 +1,9 @@
 syntax = "proto3";
-package dymensionxyz.dymension.rollup;
+package metaearth.rollup;
 
 import "gogoproto/gogo.proto";
-import "dymensionxyz/dymension/rollup/staking.proto";
-import "dymensionxyz/dymension/rollup/params.proto";
+import "metaearth/rollup/staking.proto";
+import "metaearth/rollup/params.proto";
 option go_package = "github.com/st-chain/me-hub/x/rollup/types";
 
 

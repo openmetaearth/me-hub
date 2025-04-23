@@ -1,9 +1,10 @@
 syntax = "proto3";
-package dymensionxyz.dymension.rollup;
+package metaearth.rollup;
 
 import "gogoproto/gogo.proto";
-import "dymensionxyz/dymension/rollup/params.proto";
-import "dymensionxyz/dymension/rollup/data_def.proto";
+import "metaearth/rollup/params.proto";
+import "metaearth/rollup/data_def.proto";
+import "google/api/annotations.proto";
 option go_package = "github.com/st-chain/me-hub/x/rollup/types";
 
 message QueryParamsRequest {
@@ -19,9 +20,7 @@ message QueryElectionRequest {
   string rollappId = 1;
 }
 message QueryElectionResponse {
-  uint64 electionTime = 1;
-  uint64 blockHeight = 2;
-  repeated ElectionNodeStatus nodeStatusList = 3;
+    ElectionResult result = 1;
 }
 message QueryStakeRequest{
   string rollappId = 1;
@@ -53,8 +52,16 @@ message QueryNodeStatusResponse{
 
 // Msg defines the Msg service.
 service Query {
-  rpc QueryParams(QueryParamsRequest) returns (QueryParamsResponse) {}
-  rpc QueryElectionResult(QueryElectionRequest) returns(QueryElectionResponse){}
-  rpc QueryStake(QueryStakeRequest) returns(QueryStakeResponse){}
-  rpc QueryStakeBondNode(QueryStakeBondNodeRequest) returns(QueryStakeBondNodeResponse){}
+  rpc QueryParams(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/metaearth/rollup/query_params";
+  }
+  rpc QueryElectionResult(QueryElectionRequest) returns(QueryElectionResponse){
+    option (google.api.http).get = "/metaearth/rollup/query_election_result/{rollappId}";
+  }
+  rpc QueryStake(QueryStakeRequest) returns(QueryStakeResponse){
+    option (google.api.http).get = "/metaearth/rollup/query_stake/{rollappId}/{address}";
+  }
+  rpc QueryStakeBondNode(QueryStakeBondNodeRequest) returns(QueryStakeBondNodeResponse){
+    option (google.api.http).get = "/metaearth/rollup/query_stake_bond_node/{rollappId}/{stakeAddr}";
+  }
 }

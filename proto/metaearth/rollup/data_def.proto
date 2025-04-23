@@ -1,0 +1,35 @@
+syntax = "proto3";
+package metaearth.rollup;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/rollup/types";
+
+message MsgStakeInfo{
+  uint64 stakeAmount = 1;
+  uint64 applyUnStakeAmount = 2;
+}
+
+message ElectionNodeStatus{
+  string address = 1 ;
+  uint64 stakeAmount = 2 ;
+  int32  status =3 ;
+  bytes bondNodeAddress = 4;
+}
+
+message ElectionResult {
+  uint64 electionTime = 1;
+  uint64 blockHeight = 2;
+  repeated ElectionNodeStatus nodeStatusList = 3;
+}
+
+message NodeStatusModify{
+  string stakerAddress = 1;
+  int32  beforeStatus = 2;
+  int32  afterStatus = 3;
+  bytes bondNodeAddress = 4;
+}
+
+message NodeStatusModifyList{
+  repeated NodeStatusModify nodeStatusList = 1;
+}
