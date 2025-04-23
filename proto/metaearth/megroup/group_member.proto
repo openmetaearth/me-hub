@@ -1,0 +1,11 @@
+syntax = "proto3";
+package metaearth.megroup;
+
+import "metaearth/megroup/member.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/megroup/types";
+
+message GroupMember {
+  uint64 group_id = 1;
+  Member member = 2;
+}

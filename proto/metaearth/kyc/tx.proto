@@ -1,0 +1,83 @@
+syntax = "proto3";
+package metaearth.kyc;
+
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "metaearth/did/did.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/kyc/types";
+
+// Msg defines the Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  rpc Approve(MsgApprove) returns (MsgApproveResponse);
+  rpc Update(MsgUpdate) returns (MsgUpdateResponse);
+  rpc Remove(MsgRemove) returns (MsgRemoveResponse);
+
+  rpc CreateSBT(MsgCreateSBT) returns (MsgCreateSBTResponse);
+  rpc UpdateSBT(MsgUpdateSBT) returns (MsgUpdateSBTResponse);
+  rpc DeleteSBT(MsgDeleteSBT) returns (MsgDeleteSBTResponse);
+}
+
+message MsgApprove {
+  string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string did = 2; // me-id
+  string regionId = 3;
+  string address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string pubkey = 5;
+  did.KycLevel level = 6;
+  string uri = 7;
+  string hash = 8;
+  string inviter = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message MsgApproveResponse {}
+
+message MsgUpdate {
+  string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string did = 2;
+  string regionId = 3;
+  did.KycLevel level = 4;
+  string uri = 5;
+  string hash = 6;
+  string inviter = 7;
+}
+
+message MsgUpdateResponse {}
+
+message MsgRemove {
+  string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string did = 2;
+}
+
+message MsgRemoveResponse {}
+
+message MsgCreateSBT {
+  string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string did = 2;
+  string uri = 3;
+  string uriHash = 4;
+  bytes data = 5;
+}
+
+message MsgCreateSBTResponse {}
+
+message MsgUpdateSBT {
+  string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string did = 2;
+  string uri = 3;
+  string uriHash = 4;
+  bytes data = 5;
+}
+
+message MsgUpdateSBTResponse {}
+
+message MsgDeleteSBT {
+  string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string did = 2;
+}
+
+message MsgDeleteSBTResponse {}

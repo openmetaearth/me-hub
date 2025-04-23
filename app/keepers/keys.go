@@ -1,6 +1,7 @@
 package keepers
 
 import (
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -30,12 +31,13 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
-	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
+	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
+	gourpTypes "github.com/st-chain/me-hub/x/megroup/types"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
 	rollupmoduletypes "github.com/st-chain/me-hub/x/rollup/types"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
-	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 )
 
@@ -114,22 +116,26 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	consensusparamtypes.StoreKey,
 	rollappmoduletypes.StoreKey,
 	sequencermoduletypes.StoreKey,
-	streamermoduletypes.StoreKey,
 	packetforwardtypes.StoreKey,
 	delayedacktypes.StoreKey,
 	eibcmoduletypes.StoreKey,
 	// ethermint keys
 	evmtypes.StoreKey,
 	feemarkettypes.StoreKey,
+	// did keys
+	didtypes.StoreKey,
+	kyctypes.StoreKey,
 	// osmosis keys
 	lockuptypes.StoreKey,
 	epochstypes.StoreKey,
 	gammtypes.StoreKey,
 	poolmanagertypes.StoreKey,
-	incentivestypes.StoreKey,
 	txfeestypes.StoreKey,
 	// me keys
 	daotypes.StoreKey,
 	nftkeeper.StoreKey,
+	wasmtypes.StoreKey,
+	//megroup
+	gourpTypes.StoreKey,
 	rollupmoduletypes.StoreKey,
 )

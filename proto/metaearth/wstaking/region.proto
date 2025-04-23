@@ -1,0 +1,48 @@
+syntax = "proto3";
+package metaearth.wstaking;
+
+import "amino/amino.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "tendermint/types/types.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
+
+enum REGION_ACCOUNT_TYPE {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  REGION_ACCOUNT_TYPE_BASE = 0 [(gogoproto.enumvalue_customname) = "RegionAccountTypeBase"];
+  REGION_ACCOUNT_TYPE_DEPOSIT_INTEREST = 1 [(gogoproto.enumvalue_customname) = "RegionAccountTypeDepositInterest"];
+}
+
+message Region {
+  string regionId = 1;
+  string name = 2;
+  string creator = 3;
+  string operator_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string nft_class_id = 5;
+  string region_treasure_addr = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string deposit_interest_addr = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // tokens define the region tokens share
+  string region_share = 9 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  string delegate_interest = 10 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string delegate_amount = 11 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  string fixed_deposit_amount = 12 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}

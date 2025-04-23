@@ -25,32 +25,22 @@ import (
 	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/gov/client"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/nft"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
-	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v7/modules/core"
-	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	"github.com/evmos/ethermint/x/evm"
-	evmclient "github.com/evmos/ethermint/x/evm/client"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
@@ -66,14 +56,18 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	"github.com/st-chain/me-hub/x/dao"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
+	"github.com/st-chain/me-hub/x/did"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 	rollupkeepertypes "github.com/st-chain/me-hub/x/rollup/types"
-	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
+	"github.com/st-chain/me-hub/x/kyc"
+	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	"github.com/st-chain/me-hub/x/wbank"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
-	"github.com/st-chain/me-hub/x/wdistri"
 	wdistr "github.com/st-chain/me-hub/x/wdistri"
 	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
+	"github.com/st-chain/me-hub/x/wgov"
 	"github.com/st-chain/me-hub/x/wmint"
+	"github.com/st-chain/me-hub/x/wnft"
 	"github.com/st-chain/me-hub/x/wstaking"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 
@@ -81,94 +75,17 @@ import (
 	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
 	denommetadatamodule "github.com/st-chain/me-hub/x/denommetadata"
 	eibcmodule "github.com/st-chain/me-hub/x/eibc"
-	"github.com/st-chain/me-hub/x/incentives"
+	groupmodule "github.com/st-chain/me-hub/x/megroup"
+	groupTypes "github.com/st-chain/me-hub/x/megroup/types"
 	rollappmodule "github.com/st-chain/me-hub/x/rollapp"
 	sequencermodule "github.com/st-chain/me-hub/x/sequencer"
-	streamermodule "github.com/st-chain/me-hub/x/streamer"
 
-	"github.com/st-chain/me-hub/x/delayedack"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
-	"github.com/st-chain/me-hub/x/denommetadata"
-	denommetadatamoduleclient "github.com/st-chain/me-hub/x/denommetadata/client"
 	denommetadatamoduletypes "github.com/st-chain/me-hub/x/denommetadata/types"
-	"github.com/st-chain/me-hub/x/eibc"
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
 	meevm "github.com/st-chain/me-hub/x/evm"
-	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
-	"github.com/st-chain/me-hub/x/rollapp"
-
-	nftmodule "github.com/cosmos/cosmos-sdk/x/nft/module"
-	rollappmoduleclient "github.com/st-chain/me-hub/x/rollapp/client"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
-	rollupmodule "github.com/st-chain/me-hub/x/rollup"
-	"github.com/st-chain/me-hub/x/sequencer"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
-	"github.com/st-chain/me-hub/x/streamer"
-	streamermoduleclient "github.com/st-chain/me-hub/x/streamer/client"
-)
-
-// ModuleBasics defines the module BasicManager is in charge of setting up basic,
-// non-dependant module elements, such as codec registration
-// and genesis verification.
-var ModuleBasics = module.NewBasicManager(
-	auth.AppModuleBasic{},
-	authzmodule.AppModuleBasic{},
-	genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-	wbank.AppModuleBasic{},
-	capability.AppModuleBasic{},
-	consensus.AppModuleBasic{},
-	//staking.AppModuleBasic{},
-	wstaking.AppModuleBasic{},
-	wmint.AppModuleBasic{},
-	wdistri.AppModuleBasic{},
-	gov.NewAppModuleBasic([]client.ProposalHandler{
-		paramsclient.ProposalHandler,
-		upgradeclient.LegacyProposalHandler,
-		upgradeclient.LegacyCancelProposalHandler,
-		ibcclientclient.UpdateClientProposalHandler,
-		ibcclientclient.UpgradeProposalHandler,
-		streamermoduleclient.CreateStreamHandler,
-		streamermoduleclient.TerminateStreamHandler,
-		streamermoduleclient.ReplaceStreamHandler,
-		streamermoduleclient.UpdateStreamHandler,
-		rollappmoduleclient.SubmitFraudHandler,
-		denommetadatamoduleclient.CreateDenomMetadataHandler,
-		denommetadatamoduleclient.UpdateDenomMetadataHandler,
-		evmclient.UpdateVirtualFrontierBankContractProposalHandler,
-	}),
-	params.AppModuleBasic{},
-	crisis.AppModuleBasic{},
-	slashing.AppModuleBasic{},
-	feegrantmodule.AppModuleBasic{},
-	ibc.AppModuleBasic{},
-	ibctm.AppModuleBasic{},
-	upgrade.AppModuleBasic{},
-	evidence.AppModuleBasic{},
-	transfer.AppModuleBasic{},
-	vesting.AppModuleBasic{},
-	rollapp.AppModuleBasic{},
-	sequencer.AppModuleBasic{},
-	streamer.AppModuleBasic{},
-	denommetadata.AppModuleBasic{},
-	packetforward.AppModuleBasic{},
-	delayedack.AppModuleBasic{},
-	eibc.AppModuleBasic{},
-	rollupmodule.AppModuleBasic{},
-
-	// Ethermint modules
-	evm.AppModuleBasic{},
-	feemarket.AppModuleBasic{},
-
-	// Osmosis modules
-	lockup.AppModuleBasic{},
-	epochs.AppModuleBasic{},
-	gamm.AppModuleBasic{},
-	poolmanager.AppModuleBasic{},
-	incentives.AppModuleBasic{},
-	txfees.AppModuleBasic{},
-	dao.AppModuleBasic{},
-	nftmodule.AppModuleBasic{},
-	wasm.AppModuleBasic{},
 )
 
 func (a *AppKeepers) SetupModules(
@@ -190,11 +107,11 @@ func (a *AppKeepers) SetupModules(
 		feegrantmodule.NewAppModule(appCodec, a.AccountKeeper, a.BankKeeper, a.FeeGrantKeeper, encodingConfig.InterfaceRegistry),
 		crisis.NewAppModule(a.CrisisKeeper, skipGenesisInvariants, a.GetSubspace(crisistypes.ModuleName)),
 		consensus.NewAppModule(appCodec, a.ConsensusParamsKeeper),
-		gov.NewAppModule(appCodec, a.GovKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(govtypes.ModuleName)),
+		wgov.NewAppModule(appCodec, a.GovKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(govtypes.ModuleName)),
 		wmint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil, a.GetSubspace(minttypes.ModuleName)),
 		slashing.NewAppModule(appCodec, a.SlashingKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(slashingtypes.ModuleName)),
 		wdistr.NewAppModule(appCodec, *a.DistrKeeper, a.AccountKeeper, a.BankKeeper),
-		wstaking.NewAppModule(appCodec, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
+		wstaking.NewAppModule(appCodec, a.StakingKeeper, a.TransferKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
 		upgrade.NewAppModule(a.UpgradeKeeper),
 		evidence.NewAppModule(a.EvidenceKeeper),
 		ibc.NewAppModule(a.IBCKeeper),
@@ -203,7 +120,6 @@ func (a *AppKeepers) SetupModules(
 		ibctransfer.NewAppModule(a.TransferKeeper),
 		rollappmodule.NewAppModule(appCodec, a.RollappKeeper, a.AccountKeeper, a.BankKeeper),
 		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper, a.AccountKeeper, a.BankKeeper),
-		streamermodule.NewAppModule(a.StreamerKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
 		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper),
 		denommetadatamodule.NewAppModule(a.DenomMetadataKeeper, *a.EvmKeeper, a.BankKeeper),
 		eibcmodule.NewAppModule(appCodec, a.EIBCKeeper, a.AccountKeeper, a.BankKeeper),
@@ -213,14 +129,21 @@ func (a *AppKeepers) SetupModules(
 		meevm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName)),
 		feemarket.NewAppModule(a.FeeMarketKeeper, a.GetSubspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())),
 
+		// did app modules
+		did.NewAppModule(appCodec, a.DidKeeper),
+		kyc.NewAppModule(appCodec, a.KycKeeper),
+
+		// me-group
+		groupmodule.NewAppModule(appCodec, *a.GroupKeeper),
 		// osmosis modules
 		lockup.NewAppModule(*a.LockupKeeper, a.AccountKeeper, a.BankKeeper),
 		epochs.NewAppModule(*a.EpochsKeeper),
 		gamm.NewAppModule(appCodec, *a.GAMMKeeper, a.AccountKeeper, a.BankKeeper),
 		poolmanager.NewAppModule(*a.PoolManagerKeeper, a.GAMMKeeper),
-		incentives.NewAppModule(*a.IncentivesKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
 		txfees.NewAppModule(*a.TxFeesKeeper),
 		dao.NewAppModule(appCodec, a.DaoKeeper),
+		wnft.NewAppModule(appCodec, a.WNFTKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
+		wasm.NewAppModule(appCodec, &a.WasmKeeper, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, bApp.MsgServiceRouter(), a.GetSubspace(wasmtypes.ModuleName)),
 	}
 }
 
@@ -232,7 +155,6 @@ func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 	}
 
 	// exclude the streamer as we want him to be able to get external incentives
-	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
 	return modAccAddrs
 }
@@ -245,24 +167,23 @@ var MaccPerms = map[string][]string{
 	minttypes.ModuleName:                               {authtypes.Minter},
 	stakingtypes.BondedPoolName:                        {authtypes.Burner, authtypes.Staking},
 	stakingtypes.NotBondedPoolName:                     {authtypes.Burner, authtypes.Staking},
-	stakingtypes.BondedStakePoolName:                   {authtypes.Burner, authtypes.Staking},
-	stakingtypes.NotBondedStakePoolName:                {authtypes.Burner, authtypes.Staking},
+	wstakingtypes.BondedStakePoolName:                  {authtypes.Burner, authtypes.Staking},
+	wstakingtypes.NotBondedStakePoolName:               {authtypes.Burner, authtypes.Staking},
 	wstakingtypes.StakePoolName:                        {authtypes.Staking},
 	govtypes.ModuleName:                                {authtypes.Burner},
 	ibctransfertypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},
 	sequencermoduletypes.ModuleName:                    {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 	rollappmoduletypes.ModuleName:                      {},
 	rollupkeepertypes.MODULE_NAME:                      {},
-	streamermoduletypes.ModuleName:                     nil,
 	evmtypes.ModuleName:                                {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account.
 	evmtypes.ModuleVirtualFrontierContractDeployerName: nil,                                  // used for deploying virtual frontier bank contract.
 	gammtypes.ModuleName:                               {authtypes.Minter, authtypes.Burner},
 	lockuptypes.ModuleName:                             {authtypes.Minter, authtypes.Burner},
-	incentivestypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
-	txfeestypes.ModuleName:                             {authtypes.Burner},
 	wstakingtypes.FixedDepositPrincipalPool:            nil,
-	nft.ModuleName:                                     nil,
 	wasmtypes.ModuleName:                               {authtypes.Burner},
+	groupTypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
+	txfeestypes.ModuleName:                             {authtypes.Burner},
+	nft.ModuleName:                                     nil,
 }
 
 var BeginBlockers = []string{
@@ -290,14 +211,12 @@ var BeginBlockers = []string{
 	paramstypes.ModuleName,
 	rollappmoduletypes.ModuleName,
 	sequencermoduletypes.ModuleName,
-	streamermoduletypes.ModuleName,
 	denommetadatamoduletypes.ModuleName,
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
 	lockuptypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
-	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 
@@ -305,6 +224,10 @@ var BeginBlockers = []string{
 
 	daotypes.ModuleName,
 	wasmtypes.ModuleName,
+	didtypes.ModuleName,
+	kyctypes.ModuleName,
+	nft.ModuleName,
+	groupTypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -331,7 +254,6 @@ var EndBlockers = []string{
 	packetforwardtypes.ModuleName,
 	rollappmoduletypes.ModuleName,
 	sequencermoduletypes.ModuleName,
-	streamermoduletypes.ModuleName,
 	denommetadatamoduletypes.ModuleName,
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
@@ -339,7 +261,6 @@ var EndBlockers = []string{
 	lockuptypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
-	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 
@@ -347,6 +268,10 @@ var EndBlockers = []string{
 
 	daotypes.ModuleName,
 	wasmtypes.ModuleName,
+	didtypes.ModuleName,
+	kyctypes.ModuleName,
+	nft.ModuleName,
+	groupTypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -374,7 +299,6 @@ var InitGenesis = []string{
 	feegrant.ModuleName,
 	rollappmoduletypes.ModuleName,
 	sequencermoduletypes.ModuleName,
-	streamermoduletypes.ModuleName,
 	denommetadatamoduletypes.ModuleName, // must after `x/bank` to trigger hooks
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
@@ -382,11 +306,14 @@ var InitGenesis = []string{
 	lockuptypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
-	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 
 	rollupkeepertypes.MODULE_NAME,
 
 	wasmtypes.ModuleName,
+	didtypes.ModuleName,
+	kyctypes.ModuleName,
+	nft.ModuleName,
+	groupTypes.ModuleName,
 }

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 )
 
@@ -18,7 +19,7 @@ func init() {
 }
 
 func CheckRegionName(name string) (string, error) {
-	err := "input region name=" + name +
+	err := "input region name " + name +
 		" is not find.It does not comply with the rules." +
 		"Please use the United Nations standard ISO 3166-1 three-letter code, " +
 		"and if there are multiple countries, please use the following format ex: CHN-USA-GBR"
@@ -29,6 +30,21 @@ func CheckRegionName(name string) (string, error) {
 		}
 	}
 	return "", nil
+}
+
+func CheckIsRegionName(name string) bool {
+	re := regexp.MustCompile(`^.+-NFT-CLASS-ID$`)
+	if !re.MatchString(name) {
+		return false
+	}
+
+	nameSli := strings.Split(name, "-")
+	for _, code := range nameSli {
+		if _, isFind := regionNameMap[code]; isFind {
+			return true
+		}
+	}
+	return false
 }
 
 var RegionName = `ABW-阿鲁巴,

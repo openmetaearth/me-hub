@@ -5,7 +5,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/x/nft"
+	groupTypes "github.com/st-chain/me-hub/x/megroup/types"
+
+	wasmapp "github.com/CosmWasm/wasmd/app"
 	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -28,7 +33,6 @@ import (
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
-	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -72,29 +76,23 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
-
+	"github.com/st-chain/me-hub/x/bridgingfee"
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
-	evmkeeper "github.com/st-chain/me-hub/x/evm/keeper"
-	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
-	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
-	wdistrkeeper "github.com/st-chain/me-hub/x/wdistri/keeper"
-	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
-	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
-
-	wasmapp "github.com/CosmWasm/wasmd/app"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	"github.com/st-chain/me-hub/x/bridgingfee"
 	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
 	delayedackkeeper "github.com/st-chain/me-hub/x/delayedack/keeper"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
 	denommetadatamodule "github.com/st-chain/me-hub/x/denommetadata"
 	denommetadatamodulekeeper "github.com/st-chain/me-hub/x/denommetadata/keeper"
 	denommetadatamoduletypes "github.com/st-chain/me-hub/x/denommetadata/types"
+	didkeeper "github.com/st-chain/me-hub/x/did/keeper"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 	eibckeeper "github.com/st-chain/me-hub/x/eibc/keeper"
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
-	incentiveskeeper "github.com/st-chain/me-hub/x/incentives/keeper"
-	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
+	evmkeeper "github.com/st-chain/me-hub/x/evm/keeper"
+	kyckeeper "github.com/st-chain/me-hub/x/kyc/keeper"
+	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
+	groupkeeper "github.com/st-chain/me-hub/x/megroup/keeper"
 	rollappmodule "github.com/st-chain/me-hub/x/rollapp"
 	rollappmodulekeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
 	"github.com/st-chain/me-hub/x/rollapp/transfergenesis"
@@ -103,10 +101,14 @@ import (
 	rollupkeepertypes "github.com/st-chain/me-hub/x/rollup/types"
 	sequencermodulekeeper "github.com/st-chain/me-hub/x/sequencer/keeper"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
-	streamermodule "github.com/st-chain/me-hub/x/streamer"
-	streamermodulekeeper "github.com/st-chain/me-hub/x/streamer/keeper"
-	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	vfchooks "github.com/st-chain/me-hub/x/vfc/hooks"
+	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
+	wdistrkeeper "github.com/st-chain/me-hub/x/wdistri/keeper"
+	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
+	wgovkeeper "github.com/st-chain/me-hub/x/wgov/keeper"
+	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
+	wnftkeeper "github.com/st-chain/me-hub/x/wnft/keeper"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 )
@@ -121,7 +123,7 @@ type AppKeepers struct {
 	SlashingKeeper                slashingkeeper.Keeper
 	MintKeeper                    wmintkeeper.Keeper
 	DistrKeeper                   *wdistrkeeper.Keeper
-	GovKeeper                     *govkeeper.Keeper
+	GovKeeper                     *wgovkeeper.Keeper
 	CrisisKeeper                  *crisiskeeper.Keeper
 	UpgradeKeeper                 *upgradekeeper.Keeper
 	ParamsKeeper                  paramskeeper.Keeper
@@ -139,12 +141,14 @@ type AppKeepers struct {
 	EvmKeeper       *evmkeeper.Keeper
 	FeeMarketKeeper feemarketkeeper.Keeper
 
+	// did keeper
+	DidKeeper *didkeeper.Keeper
+	KycKeeper *kyckeeper.Keeper
 	// Osmosis keepers
 	GAMMKeeper        *gammkeeper.Keeper
 	PoolManagerKeeper *poolmanagerkeeper.Keeper
 	LockupKeeper      *lockupkeeper.Keeper
 	EpochsKeeper      *epochskeeper.Keeper
-	IncentivesKeeper  *incentiveskeeper.Keeper
 	TxFeesKeeper      *txfeeskeeper.Keeper
 
 	// make scoped keepers public for test purposes
@@ -153,7 +157,6 @@ type AppKeepers struct {
 
 	RollappKeeper   *rollappmodulekeeper.Keeper
 	SequencerKeeper sequencermodulekeeper.Keeper
-	StreamerKeeper  streamermodulekeeper.Keeper
 	EIBCKeeper      eibckeeper.Keeper
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
@@ -162,8 +165,9 @@ type AppKeepers struct {
 	RollupKeeper *rollupkeeper.Keeper
 
 	DaoKeeper  daokeeper.Keeper
-	NFTKeeper  nftkeeper.Keeper
+	WNFTKeeper          *wnftkeeper.Keeper
 	WasmKeeper wasmkeeper.Keeper
+	GroupKeeper         *groupkeeper.Keeper
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -226,17 +230,11 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 	)
 
-	//a.BankKeeper = bankkeeper.NewBaseKeeper(
-	//	appCodec,
-	//	a.keys[banktypes.StoreKey],
-	//	a.AccountKeeper,
-	//	moduleAccountAddrs,
-	//	govModuleAddress,
-	//)
 
 	a.DaoKeeper = daokeeper.NewKeeper(
 		appCodec,
 		a.keys[daotypes.StoreKey],
+		a.AccountKeeper,
 	)
 
 	a.BankKeeper = wbankkeeper.NewKeeper(
@@ -252,27 +250,20 @@ func (a *AppKeepers) InitKeepers(
 		appCodec, a.keys[crisistypes.StoreKey], invCheckPeriod, a.BankKeeper, authtypes.FeeCollectorName, govModuleAddress,
 	)
 
-	a.NFTKeeper = nftkeeper.NewKeeper(
-		a.keys[nftkeeper.StoreKey],
+	a.WNFTKeeper = wnftkeeper.NewKeeper(
 		appCodec,
+		a.keys[nftkeeper.StoreKey],
 		a.AccountKeeper,
 		a.BankKeeper,
 	)
 
-	//a.StakingKeeper = stakingkeeper.NewKeeper(
-	//	appCodec,
-	//	a.keys[stakingtypes.StoreKey],
-	//	a.AccountKeeper,
-	//	a.BankKeeper,
-	//	govModuleAddress,
-	//)
 	a.StakingKeeper = wstakingkeeper.NewKeeper(
 		appCodec,
 		a.keys[stakingtypes.StoreKey],
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.DaoKeeper,
-		a.NFTKeeper,
+		a.WNFTKeeper,
 		govModuleAddress,
 	)
 
@@ -286,7 +277,7 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 	)
 
-	a.StakingKeeper.WMintKeeper = a.MintKeeper
+	a.StakingKeeper.SetMintKeeper(a.MintKeeper)
 
 	a.DistrKeeper = wdistrkeeper.NewKeeper(
 		appCodec,
@@ -402,6 +393,7 @@ func (a *AppKeepers) InitKeepers(
 		a.GetSubspace(rollappmoduletypes.ModuleName),
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ClientKeeper,
+		a.DaoKeeper,
 	)
 
 	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
@@ -411,27 +403,6 @@ func (a *AppKeepers) InitKeepers(
 		a.GetSubspace(sequencermoduletypes.ModuleName),
 		a.BankKeeper,
 		a.RollappKeeper,
-	)
-
-	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
-		a.keys[incentivestypes.StoreKey],
-		a.GetSubspace(incentivestypes.ModuleName),
-		a.BankKeeper,
-		a.LockupKeeper,
-		a.EpochsKeeper,
-		a.DistrKeeper,
-		a.TxFeesKeeper,
-		a.RollappKeeper,
-		&a.SequencerKeeper,
-	)
-
-	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
-		a.keys[streamermoduletypes.StoreKey],
-		a.GetSubspace(streamermoduletypes.ModuleName),
-		a.BankKeeper,
-		a.EpochsKeeper,
-		a.AccountKeeper,
-		a.IncentivesKeeper,
 	)
 
 	a.EIBCKeeper = *eibckeeper.NewKeeper(
@@ -508,8 +479,36 @@ func (a *AppKeepers) InitKeepers(
 		wasmOpts...,
 	)
 
-	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
+	// Create did Keepers
+	a.DidKeeper = didkeeper.NewKeeper(
+		appCodec,
+		a.keys[didtypes.StoreKey],
+		a.DaoKeeper,
+	)
 
+	a.KycKeeper = kyckeeper.NewKeeper(
+		appCodec,
+		a.keys[kyctypes.StoreKey],
+		a.StakingKeeper,
+		a.AccountKeeper,
+		a.DidKeeper,
+		a.WNFTKeeper,
+	)
+	a.StakingKeeper.SetKycKeeper(a.KycKeeper)
+	a.StakingKeeper.SetDidKeeper(a.DidKeeper)
+	a.DaoKeeper.SetHook(a.KycKeeper)
+	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
+	a.GroupKeeper = groupkeeper.NewKeeper(
+		appCodec,
+		a.keys[groupTypes.StoreKey],
+		a.GetSubspace(groupTypes.ModuleName),
+		a.AccountKeeper,
+		a.BankKeeper,
+		a.StakingKeeper,
+		a.DaoKeeper,
+		a.KycKeeper,
+	)
+	a.StakingKeeper.SetGroupKeeper(a.GroupKeeper)
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
 	// by granting the governance module the right to execute the message.
@@ -519,7 +518,6 @@ func (a *AppKeepers) InitKeepers(
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(a.ParamsKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(a.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(a.IBCKeeper.ClientKeeper)).
-		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(a.StreamerKeeper)).
 		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(a.RollappKeeper)).
 		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(a.DenomMetadataKeeper)).
 		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(a.EvmKeeper.Keeper))
@@ -531,7 +529,7 @@ func (a *AppKeepers) InitKeepers(
 	)
 
 	govConfig := govtypes.DefaultConfig()
-	a.GovKeeper = govkeeper.NewKeeper(
+	a.GovKeeper = wgovkeeper.NewKeeper(
 		appCodec, a.keys[govtypes.StoreKey], a.AccountKeeper, a.BankKeeper,
 		a.StakingKeeper, bApp.MsgServiceRouter(), govConfig, govModuleAddress,
 	)
@@ -605,14 +603,7 @@ func (a *AppKeepers) SetupHooks() {
 	a.GAMMKeeper.SetHooks(
 		gammtypes.NewMultiGammHooks(
 			// insert gamm hooks receivers here
-			a.StreamerKeeper.Hooks(),
 			a.TxFeesKeeper.Hooks(),
-		),
-	)
-
-	a.IncentivesKeeper.SetHooks(
-		incentivestypes.NewMultiIncentiveHooks(
-		// insert incentive hooks receivers here
 		),
 	)
 
@@ -624,8 +615,6 @@ func (a *AppKeepers) SetupHooks() {
 	a.EpochsKeeper.SetHooks(
 		epochstypes.NewMultiEpochHooks(
 			// insert epochs hooks receivers here
-			a.IncentivesKeeper.Hooks(),
-			a.StreamerKeeper.Hooks(),
 			a.TxFeesKeeper.Hooks(),
 			a.DelayedAckKeeper.GetEpochHooks(),
 		),
@@ -643,7 +632,6 @@ func (a *AppKeepers) SetupHooks() {
 		// insert rollapp hooks receivers here
 		a.SequencerKeeper.RollappHooks(),
 		a.delayedAckMiddleware,
-		a.StreamerKeeper.Hooks(),
 	))
 }
 
@@ -679,7 +667,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibcexported.ModuleName)
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
 	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
-	paramsKeeper.Subspace(streamermoduletypes.ModuleName)
 	paramsKeeper.Subspace(denommetadatamoduletypes.ModuleName)
 	paramsKeeper.Subspace(delayedacktypes.ModuleName)
 	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
@@ -689,12 +676,17 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(evmtypes.ModuleName)
 	paramsKeeper.Subspace(feemarkettypes.ModuleName)
 
+	// did subspace
+	paramsKeeper.Subspace(didtypes.ModuleName)
+	paramsKeeper.Subspace(kyctypes.ModuleName)
 	// osmosis subspaces
 	paramsKeeper.Subspace(lockuptypes.ModuleName)
 	paramsKeeper.Subspace(epochstypes.ModuleName)
 	paramsKeeper.Subspace(gammtypes.ModuleName)
-	paramsKeeper.Subspace(incentivestypes.ModuleName)
 	paramsKeeper.Subspace(txfeestypes.ModuleName)
 
+	paramsKeeper.Subspace(wasmtypes.ModuleName)
+	paramsKeeper.Subspace(nft.ModuleName)
+	paramsKeeper.Subspace(groupTypes.ModuleName)
 	return paramsKeeper
 }

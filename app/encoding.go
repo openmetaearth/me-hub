@@ -5,7 +5,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 
-	"github.com/st-chain/me-hub/app/keepers"
 	"github.com/st-chain/me-hub/app/params"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,8 +37,8 @@ func MakeEncodingConfig() params.EncodingConfig {
 	RegisterLegacyAminoCodec(encodingConfig.Amino)
 	RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
-	keepers.ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
-	keepers.ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
+	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	return encodingConfig
 }
 

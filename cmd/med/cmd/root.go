@@ -2,10 +2,17 @@ package cmd
 
 import (
 	"errors"
-	ethermintserver "github.com/evmos/ethermint/server"
-	v2 "github.com/st-chain/me-hub/app/upgrades/v2"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"io"
 	"os"
+
+	"github.com/evmos/ethermint/crypto/hd"
+
+	ethermintserver "github.com/evmos/ethermint/server"
+	v2 "github.com/st-chain/me-hub/app/upgrades/v2_0_10"
+
+	"github.com/st-chain/me-hub/logger"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -14,7 +21,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 
 	"github.com/cosmos/cosmos-sdk/client/rpc"
-	"github.com/cosmos/cosmos-sdk/server"
 
 	dbm "github.com/cometbft/cometbft-db"
 	cometbftcfg "github.com/cometbft/cometbft/config"
@@ -28,18 +34,16 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
 	// this line is used by starport scaffolding # root/moduleImport
 
 	"github.com/st-chain/me-hub/app"
-	"github.com/st-chain/me-hub/app/keepers"
 	appparams "github.com/st-chain/me-hub/app/params"
 
 	ethermintclient "github.com/evmos/ethermint/client"
-	"github.com/evmos/ethermint/crypto/hd"
 	servercfg "github.com/evmos/ethermint/server/config"
 )
 
@@ -60,13 +64,13 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 	rootCmd := &cobra.Command{
 		Use: "med",
 		Short: `
-______   __   __  __   __  _______  __    _  _______  ___   _______  __    _    __   __  __   __  _______
-|      | |  | |  ||  |_|  ||       ||  |  | ||       ||   | |       ||  |  | |  |  | |  ||  | |  ||  _    |
-|  _    ||  |_|  ||       ||    ___||   |_| ||  _____||   | |   _   ||   |_| |  |  |_|  ||  | |  || |_|   |
-| | |   ||       ||       ||   |___ |       || |_____ |   | |  | |  ||       |  |       ||  |_|  ||       |
-| |_|   ||_     _||       ||    ___||  _    ||_____  ||   | |  |_|  ||  _    |  |       ||       ||  _   |
-|       |  |   |  | ||_|| ||   |___ | | |   | _____| ||   | |       || | |   |  |   _   ||       || |_|   |
-|______|   |___|  |_|   |_||_______||_|  |__||_______||___| |_______||_|  |__|  |__| |__||_______||_______|
+ __   __  _______  _______  _______    _______  _______  ______    _______  __   __ 
+|  |_|  ||       ||       ||   _   |  |       ||   _   ||    _ |  |       ||  | |  |
+|       ||    ___||_     _||  |_|  |  |    ___||  |_|  ||   | ||  |_     _||  |_|  |
+|       ||   |___   |   |  |       |  |   |___ |       ||   |_||_   |   |  |       |
+|       ||    ___|  |   |  |       |  |    ___||       ||    __  |  |   |  |       |
+| ||_|| ||   |___   |   |  |   _   |  |   |___ |   _   ||   |  | |  |   |  |   _   |
+|_|   |_||_______|  |___|  |__| |__|  |_______||__| |__||___|  |_|  |___|  |__| |__|
 		`,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
@@ -87,11 +91,19 @@ ______   __   __  __   __  _______  __    _  _______  ___   _______  __    _    
 
 			customAppTemplate, customAppConfig := initAppConfig()
 			customTMConfig := initTendermintConfig()
-
-			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
+			err = sdkserver.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
+			if err != nil {
+				return err
+			}
+			enableMeLogger, _ := cmd.Flags().GetBool("enable_me_hub_logger")
+			if os.Getenv("ENABLE_MEHUB_LOGGER") != "" || enableMeLogger {
+				ctx := sdkserver.GetServerContextFromCmd(cmd)
+				ctx.Logger = logger.NewLogger("me-hub").WithEnvLevelOr("info").WithStacktrace(ipfslog.LevelError)
+			}
+			return nil
 		},
 	}
-
+	rootCmd.PersistentFlags().Bool("enable_me_hub_logger", false, "use me-hub logger instead of cosmos lib logger")
 	initRootCmd(rootCmd, encodingConfig)
 
 	return rootCmd, encodingConfig
@@ -127,17 +139,17 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 	a := appCreator{encodingConfig}
 	rootCmd.AddCommand(
 		ethermintclient.ValidateChainID(
-			genutilcli.InitCmd(keepers.ModuleBasics, app.DefaultNodeHome),
+			genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
 		),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, genutiltypes.DefaultMessageValidator),
+		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, app.GenTxMessageValidator),
 		genutilcli.MigrateGenesisCmd(),
 		GenTxCmd(
-			keepers.ModuleBasics,
+			app.ModuleBasics,
 			encodingConfig.TxConfig,
 			banktypes.GenesisBalancesIterator{},
 			app.DefaultNodeHome,
 		),
-		genutilcli.ValidateGenesisCmd(keepers.ModuleBasics),
+		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		AddGenesisAccountCmd(app.DefaultNodeHome),
 		cometbftcli.NewCompletionCmd(rootCmd, true),
 		debug.Cmd(),
@@ -145,6 +157,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		pruning.PruningCmd(a.newApp),
 		AddGenesisStakePoolAccountCmd(app.DefaultNodeHome),
 		AddGenesisModuleAccountsCmd(app.DefaultNodeHome),
+		SetDAOCmd(),
 	)
 
 	// add server commands
@@ -187,14 +200,13 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		authcmd.GetAccountCmd(),
 		rpc.ValidatorCommand(),
 		rpc.BlockCommand(),
 		authcmd.QueryTxsByEventsCmd(),
 		authcmd.QueryTxCmd(),
 	)
 
-	keepers.ModuleBasics.AddQueryCommands(cmd)
+	app.ModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -219,11 +231,13 @@ func txCommand() *cobra.Command {
 		flags.LineBreak,
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
+		GetEncodeToRawTxCommand(),
+		GetDecodeRawTxCommand(),
 		authcmd.GetDecodeCommand(),
 		authcmd.GetAuxToFeeCommand(),
 	)
 
-	keepers.ModuleBasics.AddTxCommands(cmd)
+	app.ModuleBasics.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -245,12 +259,36 @@ func (a appCreator) newApp(
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
-	baseappOptions := server.DefaultBaseappOptions(appOpts)
+	baseAppOptions := sdkserver.DefaultBaseappOptions(appOpts)
 
 	skipUpgradeHeights := make(map[int64]bool)
 	for _, h := range cast.ToIntSlice(appOpts.Get(sdkserver.FlagUnsafeSkipUpgrades)) {
 		skipUpgradeHeights[int64(h)] = true
 	}
+
+	baseAppOptions = append(baseAppOptions, func(bapp *baseapp.BaseApp) {
+		bapp.SetMempool(mempool.NoOpMempool{})
+	})
+
+	// NOTE we use custom transaction decoder that supports the sdk.Tx interface instead of sdk.StdTx
+	// Setup Mempool and Proposal Handlers
+	//baseAppOptions = append(baseAppOptions, func(bapp *baseapp.BaseApp) {
+	//	maxTxs := cast.ToInt(appOpts.Get(sdkserver.FlagMempoolMaxTxs))
+	//	if maxTxs <= 0 {
+	//		maxTxs = 5000
+	//	}
+	//	priorityMempool := mempool.NewPriorityMempool(
+	//		mempool.PriorityNonceWithMaxTx(maxTxs),
+	//		mempool.PriorityNonceWithTxReplacement(func(op, np int64, oTx, nTx sdk.Tx) bool {
+	//			threshold := int64(100 + 1)
+	//			return np >= op*threshold/100
+	//		}),
+	//	)
+	//	//handler := baseapp.NewDefaultProposalHandler(priorityMempool, bapp)
+	//	bapp.SetMempool(priorityMempool)
+	//	bapp.SetPrepareProposal(baseapp.NoOpPrepareProposal())
+	//	bapp.SetProcessProposal(baseapp.NoOpProcessProposal())
+	//})
 
 	return app.New(
 		logger,
@@ -262,7 +300,7 @@ func (a appCreator) newApp(
 		cast.ToUint(appOpts.Get(sdkserver.FlagInvCheckPeriod)),
 		a.encodingConfig,
 		appOpts,
-		baseappOptions...,
+		baseAppOptions...,
 	)
 }
 
@@ -282,23 +320,31 @@ func (a appCreator) appExport(
 		return servertypes.ExportedApp{}, errors.New("application home not set")
 	}
 
-	app := app.New(
+	baseAppOptions := sdkserver.DefaultBaseappOptions(appOpts)
+
+	skipUpgradeHeights := make(map[int64]bool)
+	for _, h := range cast.ToIntSlice(appOpts.Get(sdkserver.FlagUnsafeSkipUpgrades)) {
+		skipUpgradeHeights[int64(h)] = true
+	}
+
+	newApp := app.New(
 		logger,
 		db,
 		traceStore,
-		height == -1, // -1: no height provided
-		map[int64]bool{},
-		homePath,
-		uint(1),
+		height == -1,
+		skipUpgradeHeights,
+		cast.ToString(appOpts.Get(flags.FlagHome)),
+		cast.ToUint(appOpts.Get(sdkserver.FlagInvCheckPeriod)),
 		a.encodingConfig,
 		appOpts,
+		baseAppOptions...,
 	)
 
 	if height != -1 {
-		if err := app.LoadHeight(height); err != nil {
+		if err := newApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	}
 
-	return app.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
+	return newApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
 }

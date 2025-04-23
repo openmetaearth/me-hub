@@ -11,9 +11,9 @@ DOCKER := $(shell which docker)
 BUILDDIR ?= $(CURDIR)/build
 
 # Dependencies version
-DEPS_COSMOS_SDK_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos-sdk' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
-DEPS_ETHERMINT_VERSION := $(shell cat go.sum | grep 'github.com/dymensionxyz/ethermint' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
-DEPS_OSMOSIS_VERSION := $(shell cat go.sum | grep 'github.com/dymensionxyz/osmosis' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_COSMOS_SDK_VERSION := $(shell cat go.sum | grep 'github.com/st-chain/cosmos-sdk' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_ETHERMINT_VERSION := $(shell cat go.sum | grep 'github.com/st-chain/ethermint' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_OSMOSIS_VERSION := $(shell cat go.sum | grep 'github.com/st-chain/osmosis' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_IBC_GO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/ibc-go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_COSMOS_PROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos-proto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_COSMOS_GOGOPROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/gogoproto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
@@ -91,20 +91,29 @@ all: install
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/med
 
-.PHONY: build build-debug
+.PHONY: build build-debug build-linux build-test
 
 build: go.sum
 	go build $(BUILD_FLAGS) -o $(BUILDDIR)/med ./cmd/med
+
+TRIGGER_BLOCKS ?= 100
+build-test: go.sum
+	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)) -X github.com/st-chain/me-hub/x/wmint/types.OneDayTotalBlocks=$(TRIGGER_BLOCKS))
+	go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -o $(BUILDDIR)/med ./cmd/med
 
 build-debug: go.sum
 	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)))
 	go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -gcflags "all=-N -l" -o $(BUILDDIR)/med ./cmd/med
 
-docker-build-e2e:
-	@DOCKER_BUILDKIT=1 docker build -t ghcr.io/dymensionxyz/dymension:e2e -f Dockerfile .
+build-linux: go.sum
+	CC=x86_64-unknown-linux-gnu-gcc CGO_ENABLED=1 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o $(BUILDDIR)/med ./cmd/med
 
-docker-build-e2e-debug:
-	@DOCKER_BUILDKIT=1 CGO_ENABLED=0 docker build -t ghcr.io/dymensionxyz/dymension:e2e-debug -f Dockerfile.debug .
+build-linux-debug: go.sum
+	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)))
+	CC=x86_64-unknown-linux-gnu-gcc CGO_ENABLED=1 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -gcflags "all=-N -l" -o $(BUILDDIR)/med-debug ./cmd/med
+
+docker-build:
+	DOCKER_BUILDKIT=1 docker build -t ghcr.io/me-hub/med:2.0.0 -f Dockerfile .
 
 docker-run-debug:
 	@DOCKER_BUILDKIT=1 docker-compose -f docker-compose.debug.yml up
@@ -113,69 +122,57 @@ docker-run-debug:
 ###                                Releasing                                ###
 ###############################################################################
 
-PACKAGE_NAME:=github.com/dymensionxyz/dymension
-GOLANG_CROSS_VERSION  = v1.22
+PACKAGE_NAME := $(shell go list -m)
+GOLANG_CROSS_VERSION  = v1.23
 GOPATH ?= '$(HOME)/go'
+COSMWASM_VERSION := $(shell go list -m github.com/CosmWasm/wasmvm | sed 's/.* //')
 release-dry-run:
-	docker run \
-		--rm \
-		--privileged \
-		-e CGO_ENABLED=1 \
+	docker run --privileged -e CGO_ENABLED=1 \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/$(PACKAGE_NAME) \
 		-v ${GOPATH}/pkg:/go/pkg \
 		-w /go/src/$(PACKAGE_NAME) \
 		ghcr.io/goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
-		--clean --skip=validate --skip=publish --snapshot
+		release --clean --skip=validate --skip=publish --snapshot
 
 release:
 	@if [ ! -f ".release-env" ]; then \
 		echo "\033[91m.release-env is required for release\033[0m";\
 		exit 1;\
 	fi
-	docker run \
-		--rm \
-		--privileged \
+	@echo "Running release process"
+	@echo "COSMWASM version: $(COSMWASM_VERSION)"
+	docker run --rm --privileged \
+		-e GITHUB_TOKEN=$(GITHUB_TOKEN) \
 		-e CGO_ENABLED=1 \
 		--env-file .release-env \
+		-e COSMWASM_VERSION=$(COSMWASM_VERSION) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/$(PACKAGE_NAME) \
 		-w /go/src/$(PACKAGE_NAME) \
 		ghcr.io/goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
-		release --clean --skip=validate
+		release --clean --skip=validate --release-notes ./release-note.md
 
 .PHONY: release-dry-run release
 
 ###############################################################################
 ###                                Proto                                    ###
 ###############################################################################
-
-# ------
-# NOTE: Link to the tendermintdev/sdk-proto-gen docker images:
-#       https://hub.docker.com/r/tendermintdev/sdk-proto-gen/tags
-#
-protoVer=v0.7
-protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
-containerProtoGen=cosmos-sdk-proto-gen-$(protoVer)
-containerProtoFmt=cosmos-sdk-proto-fmt-$(protoVer)
-# ------
-# NOTE: cosmos/proto-builder image is needed because clang-format is not installed
-#       on the tendermintdev/sdk-proto-gen docker image.
-#		Link to the cosmos/proto-builder docker images:
-#       https://github.com/cosmos/cosmos-sdk/pkgs/container/proto-builder
-#
 protoCosmosVer=0.14.0
 protoCosmosName=ghcr.io/cosmos/proto-builder:$(protoCosmosVer)
-protoCosmosImage=$(DOCKER) run --network host --rm -v $(CURDIR):/workspace --workdir /workspace $(protoCosmosName)
+protoCosmosImage=docker run --rm -v $(CURDIR):/workspace --user root --workdir /workspace $(protoCosmosName)
+
+proto-all: proto-format proto-gen
 
 proto-gen:
 	@echo "Generating Protobuf files"
-	$(protoCosmosImage) sh ./scripts/protocgen.sh
-	@go mod tidy
+	@$(protoCosmosImage) sh ./scripts/protocgen.sh
 
 proto-swagger-gen:
+	@echo "Downloading Protobuf dependencies"
+	@make proto-download-deps
 	@echo "Generating Protobuf Swagger"
-	$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
+	@$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
 
 proto-format:
 	@$(protoCosmosImage) find ./ -name "*.proto" -exec clang-format -i {} \;
@@ -190,11 +187,10 @@ proto-download-deps:
 	mkdir -p "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
 	git init && \
-	git remote add origin "https://github.com/cosmos/cosmos-sdk.git" && \
+	git remote add origin "https://github.com/st-chain/cosmos-sdk.git" && \
 	git config core.sparseCheckout true && \
 	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
-	git fetch --depth=1 origin "$(DEPS_COSMOS_SDK_VERSION)" && \
-	git checkout FETCH_HEAD && \
+	git pull origin me-hub/v0.47.13 && \
 	rm -f ./proto/buf.* && \
 	mv ./proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/cosmos_tmp"
@@ -202,7 +198,7 @@ proto-download-deps:
 	mkdir -p "$(THIRD_PARTY_DIR)/ethermint_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/ethermint_tmp" && \
 	git init && \
-	git remote add origin "https://github.com/dymensionxyz/ethermint.git" && \
+	git remote add origin "https://github.com/st-chain/ethermint.git" && \
 	git config core.sparseCheckout true && \
 	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
 	git fetch --depth=1 origin "$(DEPS_ETHERMINT_VERSION)" && \
@@ -210,18 +206,6 @@ proto-download-deps:
 	rm -f ./proto/buf.* && \
 	mv ./proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/ethermint_tmp"
-
-	mkdir -p "$(THIRD_PARTY_DIR)/osmosis_tmp" && \
-	cd "$(THIRD_PARTY_DIR)/osmosis_tmp" && \
-	git init && \
-	git remote add origin "https://github.com/dymensionxyz/osmosis.git" && \
-	git config core.sparseCheckout true && \
-	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
-	git fetch --depth=1 origin "$(DEPS_OSMOSIS_VERSION)" && \
-	git checkout FETCH_HEAD && \
-	rm -f ./proto/buf.* && \
-	mv ./proto/* ..
-	rm -rf "$(THIRD_PARTY_DIR)/osmosis_tmp"
 
 	mkdir -p "$(THIRD_PARTY_DIR)/ibc_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/ibc_tmp" && \
@@ -257,4 +241,62 @@ proto-download-deps:
 	mkdir -p "$(THIRD_PARTY_DIR)/confio/ics23" && \
 	curl -sSL https://raw.githubusercontent.com/confio/ics23/$(DEPS_CONFIO_ICS23_VERSION)/proofs.proto > "$(THIRD_PARTY_DIR)/proofs.proto"
 
+	mkdir -p "$(THIRD_PARTY_DIR)/cosmos/ics23/v1" && \
+	curl -sSL "https://raw.githubusercontent.com/cosmos/ics23/refs/heads/master/proto/cosmos/ics23/v1/proofs.proto" > "$(THIRD_PARTY_DIR)/cosmos/ics23/v1/proofs.proto"
+
+
 .PHONY: proto-gen proto-swagger-gen proto-format proto-lint proto-download-deps
+
+###############################################################################
+###                                Linting                                  ###
+###############################################################################
+
+golangci_version=v1.60.3
+
+lint-install:
+	@echo "--> Installing golangci-lint $(golangci_version)"
+	@if golangci-lint version --format json | jq .version | grep -q $(golangci_version); then \
+		echo "golangci-lint $(golangci_version) is already installed"; \
+	else \
+		echo "Installing golangci-lint $(golangci_version)"; \
+		go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(golangci_version); \
+	fi
+
+lint: lint-install
+	@echo "--> Running linter"
+	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab
+
+format: lint-install
+	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab --fix
+
+shell-lint:
+	# install shellcheck > https://github.com/koalaman/shellcheck
+	grep -r '^#!/usr/bin/env bash' --exclude-dir={node_modules,build} . | cut -d: -f1 | xargs shellcheck
+
+shell-format:
+	# install shfmt > https://github.com/mvdan/sh
+	#go install mvdan.cc/sh/v3/cmd/shfmt@v3.8.0
+	grep -r '^#!/usr/bin/env bash' --exclude-dir={node_modules,build} . | cut -d: -f1 | xargs shfmt -l -w -i 2
+
+.PHONY: format lint shell-lint shell-format
+
+###############################################################################
+###                           Tests & Simulation                            ###
+###############################################################################
+
+test:
+	@echo "--> Running tests"
+	go test -mod=readonly ./...
+
+test-count:
+	go test -mod=readonly -cpu 1 -count 1 -cover ./... | grep -v 'types\|cli\|no test files'
+
+test-nightly:
+	@TEST_INTEGRATION=true go test -mod=readonly -timeout 20m -cpu 4 -v -run TestIntegrationTest ./tests
+	@TEST_CROSSCHAIN=true go test -mod=readonly -cpu 4 -v -run TestCrosschainKeeperTestSuite ./x/crosschain/...
+
+mocks:
+	@go install go.uber.org/mock/mockgen@v0.4.0
+	mockgen -source=x/crosschain/types/expected_keepers.go -package mock -destination x/crosschain/mock/expected_keepers_mocks.go
+
+.PHONY: test test-count test-nightly mocks

@@ -5,13 +5,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	tmtypes "github.com/cometbft/cometbft/types"
+	"github.com/cosmos/cosmos-sdk/codec"
+	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"io"
 	"os"
 	"path/filepath"
-
-	tmtypes "github.com/cometbft/cometbft/types"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -123,7 +126,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			if err != nil {
 				return err
 			}
-			err = genutil.ValidateAccountInGenesis(genesisState, genBalIterator, addr, coins, cdc)
+			err = ValidateAccountInGenesis(genesisState, genBalIterator, addr, coins, cdc)
 			if err != nil {
 				return errors.Wrap(err, "failed to validate account in genesis")
 			}
@@ -152,26 +155,38 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			// ref: https://github.com/cosmos/cosmos-sdk/issues/8177
 			createValCfg.Amount = amount
 
+			msgs := make([]sdk.Msg, 0, 2)
 			// create a 'create-validator' message
 			txBldr, msg, err := cli.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory, true)
 			if err != nil {
 				return errors.Wrap(err, "failed to build create-validator message")
 			}
+			msgs = append(msgs, msg)
 
 			if key.GetType() == keyring.TypeOffline || key.GetType() == keyring.TypeMulti {
 				cmd.PrintErrln("Offline key passed in. Use `tx sign` command to sign.")
 				return txBldr.PrintUnsignedTx(clientCtx, msg)
 			}
 
+			validator := msg.(*stakingtypes.MsgCreateValidator)
+			msgCreateRegion := wstakingtypes.NewMsgNewRegion(
+				clientCtx.GetFromAddress().String(),
+				wstakingtypes.MeEarthRegionId,
+				wstakingtypes.MeEarthRegionName,
+				validator.ValidatorAddress)
+			msgs = append(msgs, msgCreateRegion)
+
 			// write the unsigned transaction to the buffer
 			w := bytes.NewBuffer([]byte{})
 			clientCtx = clientCtx.WithOutput(w)
 
-			if err = msg.ValidateBasic(); err != nil {
-				return err
+			for _, m := range msgs {
+				if err = m.ValidateBasic(); err != nil {
+					return err
+				}
 			}
 
-			if err = txBldr.PrintUnsignedTx(clientCtx, msg); err != nil {
+			if err = txBldr.PrintUnsignedTx(clientCtx, msgs...); err != nil {
 				return errors.Wrap(err, "failed to print unsigned std tx")
 			}
 
@@ -256,4 +271,54 @@ func writeSignedGenTx(clientCtx client.Context, outputDocument string, tx sdk.Tx
 	_, err = fmt.Fprintf(outputFile, "%s\n", json)
 
 	return err
+}
+
+// ValidateAccountInGenesis checks that the provided account has a sufficient
+// balance in the set of genesis accounts.
+func ValidateAccountInGenesis(
+	appGenesisState map[string]json.RawMessage, genBalIterator types.GenesisBalancesIterator,
+	addr sdk.Address, coins sdk.Coins, cdc codec.JSONCodec,
+) error {
+	var stakingData wstakingtypes.GenesisState
+	cdc.MustUnmarshalJSON(appGenesisState[stakingtypes.ModuleName], &stakingData)
+	bondDenom := stakingData.Params.BondDenom
+
+	var err error
+
+	accountIsInGenesis := false
+
+	genBalIterator.IterateGenesisBalances(cdc, appGenesisState,
+		func(bal bankexported.GenesisBalance) (stop bool) {
+			accAddress := bal.GetAddress()
+			accCoins := bal.GetCoins()
+
+			// ensure that account is in genesis
+			if accAddress.Equals(addr) {
+				// ensure account contains enough funds of default bond denom
+				if coins.AmountOf(bondDenom).GT(accCoins.AmountOf(bondDenom)) {
+					err = fmt.Errorf(
+						"account %s has a balance in genesis, but it only has %v%s available to stake, not %v%s",
+						addr, accCoins.AmountOf(bondDenom), bondDenom, coins.AmountOf(bondDenom), bondDenom,
+					)
+
+					return true
+				}
+
+				accountIsInGenesis = true
+				return true
+			}
+
+			return false
+		},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if !accountIsInGenesis {
+		return fmt.Errorf("account %s does not have a balance in the genesis state", addr)
+	}
+
+	return nil
 }

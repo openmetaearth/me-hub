@@ -1,0 +1,13 @@
+syntax = "proto3";
+package metaearth.wdistri;
+
+import "cosmos/distribution/v1beta1/distribution.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/wdistri/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+  cosmos.distribution.v1beta1.Params distributionParams = 1 [(gogoproto.nullable) = false];
+}

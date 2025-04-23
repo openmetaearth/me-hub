@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_11"
 	"io"
 	"io/fs"
 	"net/http"
@@ -21,7 +21,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	"github.com/st-chain/me-hub/app/keepers"
 	"github.com/st-chain/me-hub/app/upgrades"
-	v2 "github.com/st-chain/me-hub/app/upgrades/v2"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_10"
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -84,8 +84,12 @@ var (
 	DefaultNodeHome string
 
 	// Upgrades contains the upgrade handlers for the application
-	Upgrades = []upgrades.Upgrade{v2.Upgrade}
+	Upgrades = []upgrades.Upgrade{
+		v2_0_10.Upgrade,
+		v2_0_11.Upgrade,
+	}
 )
+const DefaultMaxTxs = 5000
 
 func init() {
 	userHomeDir, err := os.UserHomeDir()
@@ -139,20 +143,13 @@ func New(
 		TxConfig:          encodingConfig.TxConfig,
 		Amino:             encodingConfig.Amino,
 	})
-	// todo opc Mempool type
-	// Setup Mempool and Proposal Handlers
-	baseAppOptions = append(baseAppOptions, func(app *baseapp.BaseApp) {
-		mempool := mempool.NoOpMempool{}
-		app.SetMempool(mempool)
-		handler := baseapp.NewDefaultProposalHandler(mempool, app)
-		app.SetPrepareProposal(handler.PrepareProposalHandler())
-		app.SetProcessProposal(handler.ProcessProposalHandler())
-	})
+
 	bApp := baseapp.NewBaseApp(appparams.Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
+	bApp.SetTxEncoder(encodingConfig.TxConfig.TxEncoder())
 
 	app := &App{
 		BaseApp:           bApp,
@@ -232,6 +229,7 @@ func New(
 		RollappKeeper:          *app.RollappKeeper,
 		DaoKeeper:              app.DaoKeeper,
 		StakingKeeper:          app.StakingKeeper,
+		KycKeeper:              app.KycKeeper,
 		WasmViewKeeper:         app.WasmKeeper,
 	})
 	if err != nil {
@@ -256,6 +254,8 @@ func New(
 		panic(err)
 	}
 	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
+	// setup upgrade handlers
+	app.setupUpgradeHandlers()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -332,13 +332,14 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register grpc-gateway routes for all modules.
-	keepers.ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {
 		RegisterSwaggerAPI(clientCtx, apiSvr.Router)
 	}
 	HealthcheckRegister(clientCtx, apiSvr.Router)
+	docs.RegisterOpenAPIService(appparams.Name, apiSvr.Router)
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.

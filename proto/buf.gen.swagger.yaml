@@ -8,3 +8,6 @@ plugins:
       - fqn_for_swagger_name=true
       - simple_operation_ids=true
     strategy: all
+  # - local: protoc-gen-openapi
+  #   out: ./docs/static
+  #   strategy: all

@@ -1,0 +1,50 @@
+syntax = "proto3";
+package metaearth.did;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "metaearth/did/credential.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/did/types";
+
+// kyc level enum
+enum KycLevel {
+  option (gogoproto.goproto_enum_stringer) = true;
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  KYC_LEVEL_NONE = 0 [(gogoproto.enumvalue_customname) = "KYC_LEVEL_NONE "];
+  KYC_LEVEL_ONE = 1 [(gogoproto.enumvalue_customname) = "KYC_LEVEL_ONE "];
+  KYC_LEVEL_TWO = 2 [(gogoproto.enumvalue_customname) = "KYC_LEVEL_TWO"];
+  KYC_LEVEL_THREE = 3 [(gogoproto.enumvalue_customname) = "KYC_LEVEL_THREE"];
+  KYC_LEVEL_FOUR = 4 [(gogoproto.enumvalue_customname) = "KYC_LEVEL_FOUR"];
+  KYC_LEVEL_FIVE = 5 [(gogoproto.enumvalue_customname) = "KYC_LEVEL_FIVE"];
+}
+
+// did status enum
+enum DidStatus {
+  option (gogoproto.goproto_enum_stringer) = true;
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  DID_STATUS_INACTIVE = 0 [(gogoproto.enumvalue_customname) = "DID_STATUS_INACTIVE "];
+  DID_STATUS_ACTIVE = 1 [(gogoproto.enumvalue_customname) = "DID_STATUS_ACTIVE"];
+}
+
+message DidInfo {
+  // same as the MEID
+  string did = 1; // MEIDNFT.umeid
+  string address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"]; // MEID.account
+  // public_key is mapped to the user address
+  // the issuer will use public_key to encrypt the user's certificate to ensure
+  // the privacy of the off-chain certificate
+  string pubkey = 3;
+  DidStatus status = 4;
+  string regionId = 5; // unused!
+  KycLevel kycLevel = 6;
+}
+
+// did document
+message DidDocument {
+  DidInfo info = 1 [(gogoproto.nullable) = false];
+  repeated Credential vcs = 2 [(gogoproto.nullable) = false];
+}

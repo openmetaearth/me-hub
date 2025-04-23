@@ -1,13 +1,22 @@
 package apptesting
 
 import (
+	"fmt"
 	"github.com/cometbft/cometbft/libs/rand"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
-
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/st-chain/me-hub/app"
+	"github.com/st-chain/me-hub/app/params"
+	"github.com/st-chain/me-hub/x/dao/types"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
+	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/stretchr/testify/suite"
 
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
@@ -15,6 +24,7 @@ import (
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencerkeeper "github.com/st-chain/me-hub/x/sequencer/keeper"
 
+	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	sequencertypes "github.com/st-chain/me-hub/x/sequencer/types"
 )
 
@@ -27,6 +37,7 @@ type KeeperTestHelper struct {
 	suite.Suite
 	App *app.App
 	Ctx sdk.Context
+	Dao daotypes.DaoAddresses
 }
 
 func (s *KeeperTestHelper) CreateDefaultRollapp() string {
@@ -109,4 +120,83 @@ func (suite *KeeperTestHelper) StateNotAltered() {
 	suite.App.Commit()
 	newState := suite.App.ExportState(suite.Ctx)
 	suite.Require().Equal(oldState, newState)
+}
+
+func (s *KeeperTestHelper) InitializeDao() {
+	globalDaoPrivKey, _ := ethsecp256k1.GenerateKey()
+	globalDaoAcc := authtypes.NewBaseAccount(globalDaoPrivKey.PubKey().Address().Bytes(), globalDaoPrivKey.PubKey(), 1, 0)
+	//globalOutput, _ := keyring.NewKeyOutput("global_dao", keyring.TypeLocal, globalDaoAddress, globalDaoPrivKey.PubKey())
+
+	meidDao, _ := ethsecp256k1.GenerateKey()
+	meidDaoAcc := authtypes.NewBaseAccount(meidDao.PubKey().Address().Bytes(), meidDao.PubKey(), 1, 0)
+
+	devOperator, _ := ethsecp256k1.GenerateKey()
+	devOperatorAcc := authtypes.NewBaseAccount(devOperator.PubKey().Address().Bytes(), devOperator.PubKey(), 2, 0)
+
+	airdrop, _ := ethsecp256k1.GenerateKey()
+	airdropAcc := authtypes.NewBaseAccount(airdrop.PubKey().Address().Bytes(), airdrop.PubKey(), 3, 0)
+	airdropAddress := sdk.AccAddress(airdrop.PubKey().Address().Bytes())
+
+	s.App.DaoKeeper.SetDaoAddresses(s.Ctx, types.DaoAddresses{
+		GlobalDao:      globalDaoAcc.Address,
+		MeidDao:        meidDaoAcc.Address,
+		DevOperator:    devOperatorAcc.Address,
+		AirdropAddress: airdropAcc.Address,
+	})
+
+	dao, found := s.App.DaoKeeper.GetDaoAddresses(s.Ctx)
+	s.Require().True(found)
+	s.Dao = dao
+
+	s.InitKyc(globalDaoAcc.GetAddress(), "0000000000001", wstakingtypes.MeEarthRegionId)
+
+	_ = s.App.BankKeeper.MintCoins(s.Ctx, mintypes.ModuleName, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000000000)})
+	_ = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, globalDaoAcc.GetAddress(), sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
+	_ = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, airdropAddress, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
+}
+
+func (s *KeeperTestHelper) InitKyc(address sdk.AccAddress, did string, regionId string) {
+	//address, _ := s.App.KycKeeper.MustAccAddressFromPubkeyString(pubkey)
+	if _, found := s.App.KycKeeper.GetDID(s.Ctx, address); found {
+		panic(fmt.Errorf("issuer %s already exists", address))
+	}
+
+	s.App.DidKeeper.SetDID(s.Ctx, address, did)
+	s.App.DidKeeper.SetDidInfo(s.Ctx, did, didtypes.DidInfo{
+		Did:     did,
+		Address: address.String(),
+		Pubkey:  "",
+		Status:  didtypes.DID_STATUS_ACTIVE,
+	})
+
+	service := didtypes.Service{
+		Sid:         kyctypes.ModuleName,
+		Name:        kyctypes.ModuleName,
+		Description: "The KYC verifiable credential issuer based The DID(Decentralized Identity).",
+		Issuers:     []string{did},
+		Status:      didtypes.SERVICE_STATUS_ACTIVE,
+	}
+	s.App.DidKeeper.SetService(s.Ctx, service.Sid, service)
+
+	kyc := didtypes.NewCredential(did, service.Sid, "", "", []byte(regionId))
+	s.App.KycKeeper.SetKYC(s.Ctx, did, kyc)
+	s.App.KycKeeper.AddFilters(s.Ctx, did, [][]byte{[]byte(regionId)}, kyc)
+}
+
+func (s *KeeperTestHelper) NewAccount() (sdk.AccAddress, string) {
+	globalDaoPrivKey, _ := ethsecp256k1.GenerateKey()
+	globalDaoAddress := sdk.AccAddress(globalDaoPrivKey.PubKey().Address().Bytes())
+	globalOutput, _ := keyring.NewKeyOutput("global_dao", keyring.TypeLocal, globalDaoAddress, globalDaoPrivKey.PubKey())
+	return globalDaoAddress, globalOutput.PubKey
+}
+
+func (s *KeeperTestHelper) NewAccounts(count int) []sdk.AccAddress {
+	accounts := make([]sdk.AccAddress, count)
+	for i := 0; i < count; i++ {
+		key, _ := ethsecp256k1.GenerateKey()
+		address := sdk.AccAddress(key.PubKey().Address().Bytes())
+		//account := authtypes.NewBaseAccount(airdrop.PubKey().Address().Bytes(), airdrop.PubKey(), 3, 0)
+		accounts[i] = address
+	}
+	return accounts
 }

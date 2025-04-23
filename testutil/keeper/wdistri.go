@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	"testing"
 
 	"github.com/st-chain/me-hub/x/wdistri/keeper"
@@ -20,7 +21,7 @@ import (
 
 func WdistriKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
-	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
+	memStoreKey := storetypes.NewMemoryStoreKey("transient")
 
 	db := tmdb.NewMemDB()
 	stateStore := store.NewCommitMultiStore(db)
@@ -40,12 +41,11 @@ func WdistriKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
-		memStoreKey,
 		paramsSubspace,
 		nil,
 		nil,
 		nil,
-		"",
+		wbanktypes.TreasuryPoolName,
 		"",
 	)
 

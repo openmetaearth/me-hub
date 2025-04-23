@@ -105,6 +105,10 @@ func (r RollappKeeperStub) GetValidTransfer(ctx sdk.Context, packetData []byte, 
 	return rollapptypes.TransferData{}, nil
 }
 
+func (r RollappKeeperStub) IsSkipDelayRollapp(ctx sdk.Context, rollappId string) bool {
+	return false
+}
+
 type SequencerKeeperStub struct{}
 
 func (SequencerKeeperStub) GetSequencer(ctx sdk.Context, sequencerAddress string) (val sequencertypes.Sequencer, found bool) {

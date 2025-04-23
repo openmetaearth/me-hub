@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-
-	"github.com/st-chain/me-hub/app/keepers"
 )
 
 // The genesis state of the blockchain is represented here as a map of raw json
@@ -19,6 +17,6 @@ type GenesisState map[string]json.RawMessage
 
 // NewDefaultGenesisState generates the default state for the application.
 func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
-	defaultGenesisState := keepers.ModuleBasics.DefaultGenesis(cdc)
+	defaultGenesisState := ModuleBasics.DefaultGenesis(cdc)
 	return defaultGenesisState
 }
