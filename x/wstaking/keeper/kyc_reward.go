@@ -295,8 +295,10 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion types.Regi
 		}
 		depositConfigMap[cfg.Term] = cfg.Rate
 	}
+	totalFixedDepositByAcc := sdk.ZeroInt()
 	totalFixedInterestCoin := sdk.ZeroInt()
 	for _, fixed := range fixedDeposits {
+		totalFixedDepositByAcc = totalFixedDepositByAcc.Add(fixed.Principal.Amount)
 		totalFixedInterestCoin = totalFixedInterestCoin.Add(fixed.Interest.Amount)
 		//check toRegion deposit config is exist and deposit rate is equal
 		rate, exists := depositConfigMap[fixed.Term]
@@ -313,6 +315,10 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion types.Regi
 			return err
 		}
 	}
+	fromRegion.FixedDepositAmount = fromRegion.FixedDepositAmount.Sub(totalFixedDepositByAcc)
+	toRegion.FixedDepositAmount = toRegion.FixedDepositAmount.Add(totalFixedDepositByAcc)
+	k.SetRegion(ctx, fromRegion)
+	k.SetRegion(ctx, toRegion)
 	treasuryBalances := k.bankKeeper.GetBalance(ctx, toTreasureAddr, params.BaseDenom)
 	// check toRegion treasury  when subtract original delegation interest,is the balance sufficient.
 	if treasuryBalances.Amount.LT(toRegion.DelegateInterest.RoundInt().Add(totalFixedInterestCoin)) {
@@ -330,6 +336,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion types.Regi
 	if err != nil {
 		return errors.New(fmt.Sprintf("pay deposit interest of toRegion:%s", err.Error()))
 	}
+
 	//recovering deposit interest
 	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
 		fromDepositInterestAddr,
