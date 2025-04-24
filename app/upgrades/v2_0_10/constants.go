@@ -24,6 +24,7 @@ import (
 const (
 	UpgradeName       = "v2.0.10"
 	didFilePath       = "/config/did.json"
+	nftFilePath       = "/config/nft.json"
 	issuerFilePath    = "/config/issuer.json"
 	kycPubkeyFilePath = "/config/kyc_pubkey.json"
 	groupFilePath     = "/config/genesis1.3.json" // need export 1.3 genesis

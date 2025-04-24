@@ -3,6 +3,7 @@ package v2_0_10_test
 import (
 	"encoding/json"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/nft"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_10"
@@ -27,6 +28,7 @@ type UpgradeTestSuite struct {
 	App                 *app.App
 	DIDReader           v2_0_10.DIDReader
 	KycPubkeyReader     v2_0_10.KycPubkeyReader
+	NftReader           v2_0_10.NftReader
 	mockAddress1        string
 	mockAddress2        string
 	mockAddress3        string
@@ -65,6 +67,7 @@ func (s *UpgradeTestSuite) SetupTest() {
 			s.mockAddress1: "{\"@type\":\"/cosmos.crypto.secp256k1.PubKey\",\"key\":\"Anmi0DiLED1oGRiVIPO4n6HSnk7iArQBdeR1HnHxodmB\"}",
 		},
 	}
+
 	validators := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
 	s.Require().True(len(validators) >= 3)
 	s.meEarthValidator = validators[0]
@@ -324,4 +327,83 @@ func (s *UpgradeTestSuite) TestMigrateDelegation() {
 	delegation3, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator3, s.meEarthValidator.GetOperator())
 	s.Require().True(found)
 	s.Require().Equal(testRegion.OperatorAddress, delegation3.ValidatorAddress)
+}
+
+func (s *UpgradeTestSuite) TestMigrateNftUri() {
+	// Setup initial state with 3 NFT classes and 6 NFTs
+	class1 := "class1"
+	class2 := "class2"
+	class3 := "class3"
+
+	s.NftReader = MockNftReader{
+		Data: map[string]map[string]v2_0_10.NftUri{
+			class1: {
+				"nft1": {URI: "https://example.com/new_nft1", URIHash: "new_hash1"},
+				"nft2": {URI: "https://example.com/new_nft2", URIHash: "new_hash2"},
+			},
+			class2: {
+				"nft1": {URI: "https://example.com/new_nft1", URIHash: "new_hash1"},
+				"nft2": {URI: "https://example.com/new_nft2", URIHash: "new_hash2"},
+			},
+			class3: {
+				"nft1": {URI: "https://example.com/new_nft1", URIHash: "new_hash1"},
+			},
+		},
+		Err: nil,
+	}
+
+	nftUriData := map[string]map[string]v2_0_10.NftUri{
+		class1: {
+			"nft1": {URI: "https://example.com/class1/nft1", URIHash: utils.CalculateUriHash("https://example.com/class1/nft1")},
+			"nft2": {URI: "https://example.com/class1/nft2", URIHash: utils.CalculateUriHash("https://example.com/class1/nft2")},
+		},
+		class2: {
+			"nft1": {URI: "https://example.com/class2/nft1", URIHash: utils.CalculateUriHash("https://example.com/class2/nft1")},
+			"nft2": {URI: "https://example.com/class2/nft2", URIHash: utils.CalculateUriHash("https://example.com/class2/nft2")},
+		},
+		class3: {
+			"nft1": {URI: "https://example.com/class3/nft1", URIHash: utils.CalculateUriHash("https://example.com/class3/nft1")},
+			"nft2": {URI: "https://example.com/class3/nft2", URIHash: utils.CalculateUriHash("https://example.com/class3/nft2")},
+		},
+	}
+
+	// Save the NFT classes and NFTs in the keeper
+	for classID, nftData := range nftUriData {
+		err := s.App.WNFTKeeper.SaveClass(s.Ctx, nft.Class{Id: classID})
+		s.Require().NoError(err)
+		for nftID, n := range nftData {
+			err = s.App.WNFTKeeper.Mint(s.Ctx, nft.NFT{
+				ClassId: classID,
+				Id:      nftID,
+				Uri:     n.URI,
+				UriHash: n.URIHash,
+			},
+				sdk.MustAccAddressFromBech32(s.mockAddress1))
+			s.Require().NoError(err)
+		}
+	}
+
+	// Call the MigrateNftUri function
+	v2_0_10.MigrateNftUri(s.Ctx, s.App.WNFTKeeper, "dummy_path", s.NftReader)
+
+	expectedNft, err := s.NftReader.ReadNft("dummy_path")
+	s.Require().NoError(err)
+
+	// Verify the URI changes for each NFT
+	for classID, nftData := range nftUriData {
+		for nftID, _ := range nftData {
+			updatedNFT, found := s.App.WNFTKeeper.GetNFT(s.Ctx, classID, nftID)
+			s.Require().True(found, "NFT not found: %s/%s", classID, nftID)
+
+			expectedURI := expectedNft[classID][nftID].URI
+			expectedURIHash := expectedNft[classID][nftID].URIHash
+			if classID == class3 && nftID == "nft2" {
+				expectedURI = nftUriData[classID][nftID].URI
+				expectedURIHash = nftUriData[classID][nftID].URIHash
+			}
+
+			s.Require().Equal(expectedURI, updatedNFT.Uri, "URI mismatch for NFT: %s/%s", classID, nftID)
+			s.Require().Equal(expectedURIHash, updatedNFT.UriHash, "URI hash mismatch for NFT: %s/%s", classID, nftID)
+		}
+	}
 }

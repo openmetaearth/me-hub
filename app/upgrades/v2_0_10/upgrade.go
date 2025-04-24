@@ -105,7 +105,7 @@ func CreateUpgradeHandler(
 			RealKycPubkeyReader{})
 
 		ctx.Logger().Info("8.migrate nft ipfs uri")
-		//migrateNftUri(ctx, keepers.WNFTKeeper, homePath)
+		MigrateNftUri(ctx, keepers.WNFTKeeper, homePath, RealNftReader{})
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -463,19 +463,31 @@ func migrateNFTtoSBT(ctx sdk.Context,
 	stakingKeeper.RemoveMeidNFT(ctx, oldRecord.Account, oldRecord.RegionId)
 }
 
-func migrateNftUri(ctx sdk.Context,
-	nftKeeper *wnftkeeper.Keeper,
-	homePath string) {
+func MigrateNftUri(ctx sdk.Context, nftKeeper *wnftkeeper.Keeper, homePath string, nftReader NftReader) {
+	nftData, err := nftReader.ReadNft(filepath.Join(homePath, nftFilePath))
+	if err != nil {
+		panic(fmt.Sprintf("read nft: %v", err))
+	}
 	classlist := nftKeeper.GetClasses(ctx)
-
 	for _, class := range classlist {
 		if class.Id == kyctypes.ModuleName {
 			continue
 		}
+		classData, ok := nftData[class.Id]
+		if !ok {
+			continue
+		}
 		nftList := nftKeeper.GetNFTsOfClass(ctx, class.Id)
-		for _, nftInfo := range nftList {
-			//nftInfo.Uri =
-			err := nftKeeper.Update(ctx, nftInfo)
+		for _, nft := range nftList {
+			nftUri, ok := classData[nft.Id]
+			if !ok {
+				continue
+			}
+
+			nft.Uri = nftUri.URI
+			nft.UriHash = nftUri.URIHash
+
+			err := nftKeeper.Update(ctx, nft)
 			if err != nil {
 				panic(err)
 			}
