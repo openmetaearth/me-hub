@@ -470,6 +470,9 @@ func MigrateNftUri(ctx sdk.Context, nftKeeper *wnftkeeper.Keeper, homePath strin
 	}
 	classlist := nftKeeper.GetClasses(ctx)
 	for _, class := range classlist {
+		if class == nil {
+			continue
+		}
 		if class.Id == kyctypes.ModuleName {
 			continue
 		}
@@ -477,17 +480,31 @@ func MigrateNftUri(ctx sdk.Context, nftKeeper *wnftkeeper.Keeper, homePath strin
 		if !ok {
 			continue
 		}
+
+		if classData.ClassURI != "" {
+			class.Uri = classData.ClassURI
+		}
+		if classData.ClassURIHash != "" {
+			class.UriHash = classData.ClassURIHash
+		}
+		err = nftKeeper.UpdateClass(ctx, *class)
+		if err != nil {
+			panic(fmt.Errorf("update class in migrate nft: %v", err))
+		}
+
 		nftList := nftKeeper.GetNFTsOfClass(ctx, class.Id)
 		for _, nft := range nftList {
-			nftUri, ok := classData[nft.Id]
+			nftUriData, ok := classData.NftData[nft.Id]
 			if !ok {
 				continue
 			}
-
-			nft.Uri = nftUri.URI
-			nft.UriHash = nftUri.URIHash
-
-			err := nftKeeper.Update(ctx, nft)
+			if nftUriData.URI != "" {
+				nft.Uri = nftUriData.URI
+			}
+			if nftUriData.URIHash != "" {
+				nft.UriHash = nftUriData.URIHash
+			}
+			err = nftKeeper.Update(ctx, nft)
 			if err != nil {
 				panic(err)
 			}
@@ -513,10 +530,9 @@ func migrateRegionClassName(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keepe
 		newClassId := regionObj.NftClassId[:len(regionObj.NftClassId)-1]
 		class, found := nftKeeper.GetClass(ctx, regionObj.NftClassId)
 		if found {
-			nftKeeper.DeleteClass(ctx, class.Id)
 			class.Id = newClassId
 			class.Uri = utils.CalculateUriHash(class.Uri)
-			err := nftKeeper.SaveClass(ctx, class)
+			err := nftKeeper.UpdateClass(ctx, class)
 			if err != nil {
 				panic(err)
 			}

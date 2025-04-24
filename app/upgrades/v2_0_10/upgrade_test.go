@@ -333,45 +333,57 @@ func (s *UpgradeTestSuite) TestMigrateNftUri() {
 	// Setup initial state with 3 NFT classes and 6 NFTs
 	class1 := "class1"
 	class2 := "class2"
-	class3 := "class3"
 
 	s.NftReader = MockNftReader{
-		Data: map[string]map[string]v2_0_10.NftUri{
+		Data: map[string]v2_0_10.ClassUri{
 			class1: {
-				"nft1": {URI: "https://example.com/new_nft1", URIHash: "new_hash1"},
-				"nft2": {URI: "https://example.com/new_nft2", URIHash: "new_hash2"},
+				ClassURI:     "new_class_uri_1",
+				ClassURIHash: utils.CalculateUriHash("new_class_uri_1"),
+				NftData: map[string]v2_0_10.NftUri{
+					"nft1": {URI: "https://example.com/new_nft1", URIHash: utils.CalculateUriHash("https://example.com/new_nft1")},
+					"nft2": {URI: "https://example.com/new_nft2", URIHash: utils.CalculateUriHash("https://example.com/new_nft2")},
+				},
 			},
 			class2: {
-				"nft1": {URI: "https://example.com/new_nft1", URIHash: "new_hash1"},
-				"nft2": {URI: "https://example.com/new_nft2", URIHash: "new_hash2"},
-			},
-			class3: {
-				"nft1": {URI: "https://example.com/new_nft1", URIHash: "new_hash1"},
+				//ClassURI:     "new_class_uri_2",
+				//ClassURIHash: utils.CalculateUriHash("new_class_uri_2"),
+				NftData: map[string]v2_0_10.NftUri{
+					"nft1": {URI: "https://example.com/new_nft1", URIHash: utils.CalculateUriHash("https://example.com/new_nft1")},
+					//"nft2": {URI: "https://example.com/new_nft2", URIHash: utils.CalculateUriHash("https://example.com/new_nft2")},
+				},
 			},
 		},
 		Err: nil,
 	}
 
-	nftUriData := map[string]map[string]v2_0_10.NftUri{
+	setNftUriData := map[string]v2_0_10.ClassUri{
 		class1: {
-			"nft1": {URI: "https://example.com/class1/nft1", URIHash: utils.CalculateUriHash("https://example.com/class1/nft1")},
-			"nft2": {URI: "https://example.com/class1/nft2", URIHash: utils.CalculateUriHash("https://example.com/class1/nft2")},
+			ClassURI:     "https://example.com/class1",
+			ClassURIHash: utils.CalculateUriHash("https://example.com/class1"),
+			NftData: map[string]v2_0_10.NftUri{
+				"nft1": {URI: "https://example.com/class1/nft1", URIHash: utils.CalculateUriHash("https://example.com/class1/nft1")},
+				"nft2": {URI: "https://example.com/class1/nft2", URIHash: utils.CalculateUriHash("https://example.com/class1/nft2")},
+			},
 		},
 		class2: {
-			"nft1": {URI: "https://example.com/class2/nft1", URIHash: utils.CalculateUriHash("https://example.com/class2/nft1")},
-			"nft2": {URI: "https://example.com/class2/nft2", URIHash: utils.CalculateUriHash("https://example.com/class2/nft2")},
-		},
-		class3: {
-			"nft1": {URI: "https://example.com/class3/nft1", URIHash: utils.CalculateUriHash("https://example.com/class3/nft1")},
-			"nft2": {URI: "https://example.com/class3/nft2", URIHash: utils.CalculateUriHash("https://example.com/class3/nft2")},
+			ClassURI:     "https://example.com/class2",
+			ClassURIHash: utils.CalculateUriHash("https://example.com/class2"),
+			NftData: map[string]v2_0_10.NftUri{
+				"nft1": {URI: "https://example.com/class1/nft1", URIHash: utils.CalculateUriHash("https://example.com/class1/nft1")},
+				"nft2": {URI: "https://example.com/class1/nft2", URIHash: utils.CalculateUriHash("https://example.com/class1/nft2")},
+			},
 		},
 	}
 
 	// Save the NFT classes and NFTs in the keeper
-	for classID, nftData := range nftUriData {
-		err := s.App.WNFTKeeper.SaveClass(s.Ctx, nft.Class{Id: classID})
+	for classID, classData := range setNftUriData {
+		err := s.App.WNFTKeeper.SaveClass(s.Ctx, nft.Class{
+			Id:      classID,
+			Uri:     classData.ClassURI,
+			UriHash: classData.ClassURIHash,
+		})
 		s.Require().NoError(err)
-		for nftID, n := range nftData {
+		for nftID, n := range classData.NftData {
 			err = s.App.WNFTKeeper.Mint(s.Ctx, nft.NFT{
 				ClassId: classID,
 				Id:      nftID,
@@ -386,20 +398,33 @@ func (s *UpgradeTestSuite) TestMigrateNftUri() {
 	// Call the MigrateNftUri function
 	v2_0_10.MigrateNftUri(s.Ctx, s.App.WNFTKeeper, "dummy_path", s.NftReader)
 
-	expectedNft, err := s.NftReader.ReadNft("dummy_path")
+	expectedData, err := s.NftReader.ReadNft("dummy_path")
 	s.Require().NoError(err)
 
 	// Verify the URI changes for each NFT
-	for classID, nftData := range nftUriData {
-		for nftID, _ := range nftData {
+	for classID, classData := range setNftUriData {
+		updatedClass, f := s.App.WNFTKeeper.GetClass(s.Ctx, classID)
+		s.Require().True(f, "Class not found: %s", classID)
+		expectedClassURI := expectedData[classID].ClassURI
+		expectedClassURIHash := expectedData[classID].ClassURIHash
+
+		if classID == class2 {
+			expectedClassURI = setNftUriData[classID].ClassURI
+			expectedClassURIHash = setNftUriData[classID].ClassURIHash
+		}
+
+		s.Require().Equal(expectedClassURI, updatedClass.Uri, "URI mismatch for NFT: %s", classID)
+		s.Require().Equal(expectedClassURIHash, updatedClass.UriHash, "URI hash mismatch for NFT: %s", classID)
+
+		for nftID, _ := range classData.NftData {
 			updatedNFT, found := s.App.WNFTKeeper.GetNFT(s.Ctx, classID, nftID)
 			s.Require().True(found, "NFT not found: %s/%s", classID, nftID)
 
-			expectedURI := expectedNft[classID][nftID].URI
-			expectedURIHash := expectedNft[classID][nftID].URIHash
-			if classID == class3 && nftID == "nft2" {
-				expectedURI = nftUriData[classID][nftID].URI
-				expectedURIHash = nftUriData[classID][nftID].URIHash
+			expectedURI := expectedData[classID].NftData[nftID].URI
+			expectedURIHash := expectedData[classID].NftData[nftID].URIHash
+			if classID == class2 && nftID == "nft2" {
+				expectedURI = setNftUriData[classID].NftData[nftID].URI
+				expectedURIHash = setNftUriData[classID].NftData[nftID].URIHash
 			}
 
 			s.Require().Equal(expectedURI, updatedNFT.Uri, "URI mismatch for NFT: %s/%s", classID, nftID)

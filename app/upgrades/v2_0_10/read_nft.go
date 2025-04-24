@@ -6,18 +6,24 @@ import (
 )
 
 type NftReader interface {
-	ReadNft(filePath string) (map[string]map[string]NftUri, error)
+	ReadNft(filePath string) (map[string]ClassUri, error)
 }
 
 type RealNftReader struct{}
 
-type NftUri struct {
-	URI     string `json:"uri"`
-	URIHash string `json:"uri_hash"`
+type ClassUri struct {
+	ClassURI     string            `json:"class_uri"`
+	ClassURIHash string            `json:"class_uri_hash"`
+	NftData      map[string]NftUri `json:"nft_data"`
 }
 
-func (r RealNftReader) ReadNft(filePath string) (map[string]map[string]NftUri, error) {
-	data := map[string]map[string]NftUri{}
+type NftUri struct {
+	URI     string `json:"nft_uri"`
+	URIHash string `json:"nft_uri_hash"`
+}
+
+func (r RealNftReader) ReadNft(filePath string) (map[string]ClassUri, error) {
+	data := map[string]ClassUri{}
 	fileContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return data, err

@@ -3,6 +3,7 @@ package v2_0_10
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/st-chain/me-hub/utils"
 	"os"
 	"testing"
 
@@ -16,18 +17,30 @@ func TestReadNft(t *testing.T) {
 	defer os.Remove(tempFile.Name()) // Clean up the file after the test
 
 	// Prepare mock NFT data
-	mockData := map[string]map[string]NftUri{
-		"collection1": {
-			"nft1": {URI: "https://example.com/nft1", URIHash: "hash1"},
-			"nft2": {URI: "https://example.com/nft2", URIHash: "hash2"},
+	mockData := map[string]ClassUri{
+		"class1": {
+			ClassURI:     "https://example.com/class1",
+			ClassURIHash: utils.CalculateUriHash("https://example.com/class1"),
+			NftData: map[string]NftUri{
+				"nft1": {URI: "https://example.com/nft1", URIHash: utils.CalculateUriHash("https://example.com/nft1")},
+				"nft2": {URI: "https://example.com/nft2", URIHash: utils.CalculateUriHash("https://example.com/nft2")},
+			},
 		},
-		"collection2": {
-			"nft1": {URI: "https://example.com/nft1", URIHash: "hash1"},
-			"nft2": {URI: "https://example.com/nft2", URIHash: "hash2"},
+		"class2": {
+			ClassURI:     "https://example.com/class2",
+			ClassURIHash: utils.CalculateUriHash("https://example.com/class1"),
+			NftData: map[string]NftUri{
+				"nft1": {URI: "https://example.com/nft1", URIHash: utils.CalculateUriHash("https://example.com/nft1")},
+				"nft2": {URI: "https://example.com/nft2", URIHash: utils.CalculateUriHash("https://example.com/nft2")},
+			},
 		},
-		"collection3": {
-			"nft1": {URI: "https://example.com/nft1", URIHash: "hash1"},
-			"nft2": {URI: "https://example.com/nft2", URIHash: "hash2"},
+		"class3": {
+			ClassURI:     "https://example.com/class3",
+			ClassURIHash: utils.CalculateUriHash("https://example.com/class1"),
+			NftData: map[string]NftUri{
+				"nft1": {URI: "https://example.com/nft1", URIHash: utils.CalculateUriHash("https://example.com/nft1")},
+				"nft2": {URI: "https://example.com/nft2", URIHash: utils.CalculateUriHash("https://example.com/nft2")},
+			},
 		},
 	}
 
