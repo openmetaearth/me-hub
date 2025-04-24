@@ -14,6 +14,7 @@ option go_package = "github.com/st-chain/me-hub/x/rollapp/types";
 // Msg defines the Msg service.
 service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
+  rpc SkipDelayRollapp(MsgSkipDelayRollapp) returns (MsgSkipDelayRollappResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
   //new added
   rpc SubmitBlockDAInfo(MsgBlkDAInfo) returns (MsgBlkDAResponse);

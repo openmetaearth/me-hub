@@ -57,6 +57,10 @@ service Query {
         "/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}";
   }
 
+  rpc SkipDelayRollapp(QuerySkipDelayRollappRequest) returns (QuerySkipDelayRollappResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/rollapp/skip_delay_rollapp";
+  }
+
   //==============================new added==============================
   rpc GetLastSubmitBlockInfo(MsgLastSubmitBlkRequest) returns (MsgLastSubmitBlkResponse){
     option (google.api.http).get =
@@ -139,4 +143,9 @@ message QueryGetStateInfoRequest {
 
 message QueryGetStateInfoResponse {
   StateInfo stateInfo = 1 [ (gogoproto.nullable) = false ];
+}
+message QuerySkipDelayRollappRequest {}
+
+message QuerySkipDelayRollappResponse {
+  repeated string rollapps = 1;
 }

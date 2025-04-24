@@ -81,6 +81,9 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 	// Use the packet as a basis for a fee transfer
 	feeData := transfer
 	fee := w.delayedAckKeeper.BridgingFeeFromAmt(ctx, transfer.MustAmountInt())
+	if fee.IsZero() {
+		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
+	}
 	feeData.Amount = fee.String()
 	feeData.Receiver = w.feeModuleAddr.String()
 

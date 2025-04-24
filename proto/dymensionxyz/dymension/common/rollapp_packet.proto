@@ -1,9 +1,9 @@
 syntax = "proto3";
 package dymensionxyz.dymension.common;
 
+import "dymensionxyz/dymension/common/status.proto";
 import "gogoproto/gogo.proto";
 import "ibc/core/channel/v1/channel.proto"; 
-import "dymensionxyz/dymension/common/status.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/common/types";
 
@@ -23,6 +23,7 @@ message RollappPacket {
     Type type = 7;
     // stores the result of onAck, onTimeout or onRecv/writeAck
     string error = 8;
-    // who was the original person who gets the money (recipient of ics20 transfer) of the packet?
+  // who was the original person who gets the money (recipient of ics20
+  // transfer) of the packet?
     string original_transfer_target = 9;
   }

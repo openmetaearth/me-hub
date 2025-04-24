@@ -1,4 +1,3 @@
-dymension-testnet.pem
 vue/
 release/
 bin/
@@ -8,3 +7,11 @@ build/
 .DS_Store
 proposal.json
 .go-version
+swagger-proto
+github.com
+tmp-swagger-gen
+third_party
+.release-env
+release-note.md
+dist
+out

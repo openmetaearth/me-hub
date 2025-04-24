@@ -1,65 +1,144 @@
 run:
-  concurrency: 4
   timeout: 5m
   tests: true
-  modules-download-mode: readonly
+  go: '1.23'
+  allow-parallel-runners: true
 
-output:
-  # Format: colored-line-number|line-number|json|colored-tab|tab|checkstyle|code-climate|junit-xml|github-actions|teamcity
-  #
-  # Multiple can be specified by separating them by comma, output can be provided
-  # for each of them by separating format name and path by colon symbol.
-  # Output path can be either `stdout`, `stderr` or path to the file to write to.
-  # Example: "checkstyle:report.xml,json:stdout,colored-line-number"
-  #
-  # Default: colored-line-number
-  format: colored-line-number
-  # Print lines of code with issue.
-  # Default: true
-  print-issued-lines: true
-  # Print linter name in the end of issue text.
-  # Default: true
-  print-linter-name: true
-  # Make issues output unique by line.
-  # Default: true
-  uniq-by-line: true
-  # Add a prefix to the output file references.
-  # Default: ""
-  path-prefix: ""
-  # Sort results by: filepath, line and column.
-  # Default: false
-  sort-results: true
+issues:
+  max-same-issues: 20
+  exclude-dirs:
+    - 'types/legacy'
+  exclude-files:
+    - '.*\\legacy\\_.*\\.go$'
+    - '.*\\legacy\\.go$'
+    - '.*\\.sol\\.go$'
+    - ".*\\.pb\\.go$"
+    - ".*\\.pb\\.gw\\.go$"
+    - ".*\\.pulsar\\.go$"
 
 linters:
   disable-all: true
   enable:
-    - errcheck
-    - gocyclo
-    - gofmt
+    - asciicheck
     - gofumpt
-    - goimports
+    - unconvert
+    - unparam
+    - stylecheck
+    - gocyclo
+    - errorlint
+    - prealloc
+    - gocritic
+    - gci
+    - dogsled
     - gosec
+    - errcheck
+    - goconst
     - gosimple
     - govet
     - ineffassign
     - misspell
-    - revive
+    - nakedret
     - staticcheck
+    - revive
     - typecheck
-    - unconvert
     - unused
-    - errorlint
-
-issues:
-  exclude-use-default: false
-  exclude:
-    - "^.*SA1019.*$" # Excluding SA1019 errors
+    - copyloopvar
 
 linters-settings:
-  revive:
-    rules:
-      - name: exported
-        severity: warning
-        disabled: true
+  staticcheck:
+    checks: [ "all", "-SA1019" ]
+  stylecheck:
+    checks: [ "all", "-ST1003" ]
+  gocyclo:
+    min-complexity: 15
+  gocritic:
+    disabled-checks: [ "assignOp", "ifElseChain", "appendAssign" ]
+  misspell:
+    locale: US
+  gofumpt:
+    extra-rules: true
+  dogsled:
+    max-blank-identifiers: 6
+  nolintlint:
+    allow-unused: false
+    require-explanation: true
+    require-specific: false
+  gosimple:
+    checks: [ "all" ]
+  gosec:
+    excludes: [ "G115" ]
+  gci:
+    custom-order: true
+    sections:
+      - standard # Standard section: captures all standard packages.
+      - default # Default section: contains all imports that could not be matched to another section type.
+      - prefix(github.com/st-chain/me-hub)
   errcheck:
-    check-type-assertions: true
+    check-type-assertions: false
+    check-blank: false
+  unused:
+    field-writes-are-uses: false
+    exported-fields-are-used: false
+    local-variables-are-used: false
+  revive:
+    # https://golangci-lint.run/usage/linters/#revive
+    enable-all-rules: true
+    # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md
+    rules:
+      - name: max-control-nesting
+        disabled: false
+        exclude:
+          - "**/doctor.go"
+      - name: blank-imports
+        disabled: false
+        exclude:
+          - "**/app.go"
+      - name: function-result-limit
+        disabled: false
+        arguments:
+          - 4
+      - name: unhandled-error
+        arguments:
+          - "fmt.Printf"
+          - "fmt.Println"
+          - "strings.Builder.WriteString"
+      - name: var-naming
+        arguments:
+          - [ "ID", "IDS", "URL", "JSON", "RPC" ] # AllowList
+          - [ "" ] # DenyList
+          - - upperCaseConst: true
+
+      - name: line-length-limit
+        disabled: true
+      - name: cyclomatic
+        disabled: true
+      - name: use-any
+        disabled: true
+      - name: add-constant
+        disabled: true
+      - name: import-shadowing
+        disabled: true
+      - name: function-length
+        disabled: true
+      - name: unused-parameter
+        disabled: true
+      - name: unused-receiver
+        disabled: true
+      - name: max-public-structs
+        disabled: true
+      - name: cognitive-complexity
+        disabled: true
+      - name: flag-parameter
+        disabled: true
+      - name: indent-error-flow
+        disabled: true
+      - name: argument-limit
+        disabled: true
+      - name: bare-return
+        disabled: true
+      - name: nested-structs
+        disabled: true
+      - name: unchecked-type-assertion
+        disabled: true
+      - name: comment-spacings
+        disabled: true

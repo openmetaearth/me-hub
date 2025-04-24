@@ -1,34 +1,20 @@
-# 初始化仓库，确保依赖正确
-``` sh
-git submodule init && git submodule update
-```
-
-
-# Dymension Offical Doc
-# Dymension Hub
-
-![image](./docs/dymension.png)
-
-![license](https://img.shields.io/github/license/dymensionxyz/dymension)
-![Go](https://img.shields.io/badge/go-1.18-blue.svg)
-![issues](https://img.shields.io/github/issues/dymensionxyz/dymension)
-![tests](https://github.com/dymensionxyz/dymint/actions/workflows/test.yml/badge.svg?branch=main)
-![lint](https://github.com/dymensionxyz/dymint/actions/workflows/lint.yml/badge.svg?branch=main)
+# ME Hub 
+![license](https://img.shields.io/github/license/st-chain/me-hub)
+![Go](https://img.shields.io/badge/go-1.23-blue.svg)
+![issues](https://img.shields.io/github/issues/st-chain/me-hub)
 
 ## Overview
 
-Welcome to the Dymension Hub, the **Settlement Layer of the Dymension protocol**.
+Welcome to the ME Hub, the **Settlement Layer of the ME protocol**.
 
-This guide will walk you through the steps required to set up and run a Dymension Hub full node.
+This guide will walk you through the steps required to set up and run a ME Hub full node.
 
 ## Table of Contents
 
-- [Dymension Hub](#dymension-hub)
-  - [Overview](#overview)
-  - [Table of Contents](#table-of-contents)
+- [ME Hub](#ME-hub)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
-  - [Initializing `dymd`](#initializing-dymd)
+  - [Initializing `med`](#initializing-med)
   - [Running the Chain](#running-the-chain)
   - [Bootstrapping liquidity pools](#bootstrapping-liquidity-pools)
   - [Adding incentives](#adding-incentives)
@@ -41,36 +27,36 @@ This guide will walk you through the steps required to set up and run a Dymensio
 
 ## Prerequisites
 
-- [Go (v1.18 or above)](https://go.dev/doc/install)
+- [Go (v1.23 or above)](https://go.dev/doc/install)
 
 ## Installation
 
-Clone `dymension`:
+Clone `me-hub`:
 
 ```sh
-git clone https://github.com/dymensionxyz/dymension.git
-cd dymension
+git clone https://github.com/st-chain/me-hub.git
+cd me-hub
 make install
 ```
 
-Check that the dymd binaries have been successfully installed:
+Check that the med binaries have been successfully installed:
 
 ```sh
 med version
 ```
 
-If the dymd command is not found an error message is returned,
+If the med command is not found an error message is returned,
 confirm that your [GOPATH](https://go.dev/doc/gopath_code#GOPATH) is correctly configured by running the following command:
 
 ```sh
 export PATH=$PATH:$(go env GOPATH)/bin
 ```
 
-## Initializing `dymd`
+## Initializing `med`
 
 - Using the setup script:
 
-  This method is preferred as it preconfigured to support [running rollapps locally](https://github.com/dymensionxyz/roller)
+  This method is preferred as it preconfigured to support [running rollapps locally](https://github.com/st-chain/rollapp)
 
   ```sh
   bash scripts/setup_local.sh
@@ -81,18 +67,18 @@ export PATH=$PATH:$(go env GOPATH)/bin
   First, set the following environment variables:
 
   ```sh
-  export CHAIN_ID="dymension_100-1"
+  export CHAIN_ID="mechain_100-1"
   export KEY_NAME="hub-user"
   export MONIKER_NAME="local"
   ```
 
-  Second, create genesis and init dymension chain:
+  Second, create genesis and init ME chain:
 
   ```sh
   med init "$MONIKER_NAME" --chain-id "$CHAIN_ID"
   ```
 
-  Third, set parameters to ensure denom is udym:
+  Third, set parameters to ensure denom is umec:
 
   ```sh
   bash scripts/set_params.sh
@@ -102,8 +88,8 @@ export PATH=$PATH:$(go env GOPATH)/bin
 
   ```sh
   med keys add "$KEY_NAME" --keyring-backend test
-  med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" 1000dym
-  med gentx "$KEY_NAME" 670dym --chain-id "$CHAIN_ID" --keyring-backend test
+  med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" 1000umec
+  med gentx "$KEY_NAME" 670mec --chain-id "$CHAIN_ID" --keyring-backend test
   med collect-gentxs
   ```
 
@@ -189,7 +175,7 @@ Then you can run the debugger with the following config for `launch.json` in VSC
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Dymension Debug Container",
+            "name": "ME Debug Container",
             "type": "go",
             "request": "attach",
             "mode": "remote",
@@ -218,11 +204,11 @@ func (q Querier) Params(goCtx context.Context, req *types.QueryParamsRequest) (*
 }
 ```
 
-Open your browser and go to `http://localhost:1318/dymensionxyz/dymension/eibc/params` and you will see debugger stop and print the value at the breakpoint.
+Open your browser and go to `http://localhost:1318/st-chain/me-hub/eibc/params` and you will see debugger stop and print the value at the breakpoint.
 
 ## Developer
 
-For support, join our [Discord](http://discord.gg/dymension) community and find us in the Developer section.
+For support, join our [Discord](http://discord.gg/ME) community and find us in the Developer section.
 
 ### Setup push hooks
 
