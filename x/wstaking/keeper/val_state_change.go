@@ -48,7 +48,7 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 				types.EventTypeCompleteUnStakeBonding,
 				sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
 				sdk.NewAttribute(types.AttributeKeyValidator, svPair.ValidatorAddress),
-				sdk.NewAttribute(types.AttributeKeyDelegator, svPair.StakerAddress),
+				sdk.NewAttribute(types.AttributeKeyStaker, svPair.StakerAddress),
 			),
 		)
 	}
@@ -70,7 +70,7 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 			sdk.NewEvent(
 				types.EventTypeCompleteUnDelBonding,
 				sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-				sdk.NewAttribute(types.AttributeKeyRegionId, strings.ToLower(types.ExperienceRegion)),
+				sdk.NewAttribute(types.AttributeKeyRegionId, strings.ToLower(types.ExperienceRegionName)),
 				sdk.NewAttribute(types.AttributeKeyDelegator, dvPair.DelegatorAddress),
 			),
 		)

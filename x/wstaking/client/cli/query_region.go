@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -15,7 +14,10 @@ func GetCmdQueryRegion() *cobra.Command {
 		Short: "query a region",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			queryClient := types.NewQueryClient(clientCtx)
 
@@ -24,7 +26,7 @@ func GetCmdQueryRegion() *cobra.Command {
 			params := &types.QueryRegionRequest{
 				RegionId: strings.ToLower(argRegionId),
 			}
-			res, err := queryClient.Region(context.Background(), params)
+			res, err := queryClient.Region(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -43,12 +45,15 @@ func GetCmdQueryAllRegion() *cobra.Command {
 		Short: "query all region",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			queryClient := types.NewQueryClient(clientCtx)
 
 			params := &types.QueryAllRegionRequest{}
-			res, err := queryClient.AllRegion(context.Background(), params)
+			res, err := queryClient.AllRegion(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

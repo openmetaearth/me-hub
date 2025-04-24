@@ -19,15 +19,15 @@ func (k MsgServer) CreateValidator(
 ) (*stakingtypes.MsgCreateValidatorResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.DelegatorAddress) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.DelegatorAddress) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
-	_, err := utils.CheckRegionName(strings.ToUpper(msg.Description.RegionId))
+	_, err := utils.CheckRegionName(strings.ToUpper(msg.Description.RegionID))
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrRegionName, msg.Description.RegionId)
+		return nil, sdkerrors.Wrapf(types.ErrRegionName, msg.Description.RegionID)
 	}
-	msg.Description.RegionId = strings.ToLower(msg.Description.RegionId)
+	msg.Description.RegionID = strings.ToLower(msg.Description.RegionID)
 
 	valAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if err != nil {
@@ -80,6 +80,7 @@ func (k MsgServer) CreateValidator(
 			)
 		}
 	}
+
 	validator, err := stakingtypes.NewValidator(valAddr, pk, msg.Description)
 	if err != nil {
 		return nil, err
@@ -106,7 +107,6 @@ func (k MsgServer) CreateValidator(
 	k.SetValidator(ctx, validator)
 	k.SetValidatorByConsAddr(ctx, validator)
 	k.SetNewValidatorByPowerIndex(ctx, validator)
-
 	// call the after-creation hook
 	if err := k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (k MsgServer) CreateValidator(
 	// move coins from the msg.Address account to a (self-delegation) delegator account
 	// the validator account and global shares are updated within here
 	// NOTE source will always be from a wallet which are unbonded
-	_, err = k.Keeper.Stake(ctx, delegatorAddress, msg.Value.Amount, stakingtypes.Unbonded, validator, true)
+	_, err = k.Keeper.Stake(ctx, delegatorAddress, msg.Value.Amount, stakingtypes.Unbonded, validator, true, "create_validator_"+msg.Description.RegionID)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +135,7 @@ func (k MsgServer) CreateValidator(
 func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEditValidator) (*stakingtypes.MsgEditValidatorResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.StakerAddress) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.StakerAddress) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
@@ -148,18 +148,42 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 	if !found {
 		return nil, stakingtypes.ErrNoValidatorFound
 	}
-
+	oldRegionId := validator.Description.RegionID
 	// replace all editable fields (clients should autofill existing values)
 	description, err := validator.Description.UpdateDescription(msg.Description)
 	if err != nil {
 		return nil, err
 	}
-	validator.Description.Details = description.Details
-	validator.Description.Identity = description.Identity
-	validator.Description.Moniker = description.Moniker
-	validator.Description.SecurityContact = description.SecurityContact
-	validator.Description.Website = description.Website
-	validator.Description.RegionId = description.RegionId
+	if msg.Description.RegionID == stakingtypes.DoNotModifyDesc {
+		description.RegionID = oldRegionId
+		validator.Description = description
+	} else {
+		if _, err := utils.CheckRegionName(strings.ToUpper(msg.Description.RegionID)); err != nil {
+			return nil, types.ErrRegionName
+		}
+		// remove duplication
+		validators := k.GetAllValidators(ctx)
+		for _, v := range validators {
+			if v.Description.RegionID == msg.Description.RegionID {
+				return nil, types.ErrValidatorRegionDuplication
+			}
+		}
+		k.UnBondRegion(ctx, oldRegionId)
+		description.RegionID = msg.Description.RegionID
+		validator.Description = description
+		region, f := k.GetRegion(ctx, msg.Description.RegionID)
+		if f && region.OperatorAddress == "" {
+			k.BondRegion(ctx, validator, validator.Tokens, true)
+		}
+	}
+
+	//region, f := k.GetRegion(ctx, validator.Description.RegionID)
+	//if !f {
+	//	return nil, sdkerrors.Wrapf(types.ErrRegionNotExist, "please set region first")
+	//}
+	//if region.OperatorAddress != validator.OperatorAddress {
+	//	return nil, fmt.Errorf("region id already bound to another validator(%s), please set region first", region.OperatorAddress)
+	//}
 
 	if msg.CommissionRate != nil {
 		commission, err := k.UpdateValidatorCommission(ctx, validator, *msg.CommissionRate)
@@ -176,21 +200,16 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 	}
 
 	if msg.OwnerAddress != "" {
-		ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+		err = k.resetValidator(ctx,
+			sdk.MustAccAddressFromBech32(msg.StakerAddress),
+			sdk.MustAccAddressFromBech32(msg.OwnerAddress),
+			validator)
 		if err != nil {
-			return nil, err
+			return nil, sdkerrors.Wrapf(types.ErrResetValidator, err.Error())
 		}
-		acc := k.AuthKeeper.GetAccount(ctx, ownerAddress)
-		if acc != nil {
-			_, ok := acc.(authtypes.ModuleAccountI)
-			if ok {
-				return nil, types.ErrValidatorOwnerAddress
-			}
-		}
-		validator.OwnerAddress = msg.OwnerAddress
+	} else {
+		k.SetValidator(ctx, validator)
 	}
-
-	k.SetValidator(ctx, validator)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -199,108 +218,75 @@ func (k MsgServer) EditValidator(goCtx context.Context, msg *stakingtypes.MsgEdi
 			sdk.NewAttribute(stakingtypes.AttributeKeyMinSelfDelegation, validator.MinSelfDelegation.String()),
 		),
 	})
-
 	return &stakingtypes.MsgEditValidatorResponse{}, nil
 }
 
-func (k MsgServer) ResetValidator(goCtx context.Context, msg *types.MsgResetValidator) (*types.MsgResetValidatorResponse, error) {
+func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.AccAddress, validator stakingtypes.Validator) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	oldValOperator := validator.GetOperator()
 
-	stakerAddress, err := sdk.AccAddressFromBech32(msg.StakerAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.StakerAddress) {
-		return nil, types.ErrCheckGlobalDao
-	}
-
-	valAddr, err := sdk.ValAddressFromBech32(msg.ValOperAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	validator, found := k.GetValidator(ctx, valAddr)
-	if !found {
-		return nil, stakingtypes.ErrNoValidatorFound
-	}
-
-	newValAddr, err := sdk.AccAddressFromBech32(msg.NewValidatorAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	acc := k.AuthKeeper.GetAccount(ctx, newValAddr)
+	acc := k.authKeeper.GetAccount(ctx, newValAddr)
 	if acc != nil {
 		_, ok := acc.(authtypes.ModuleAccountI)
 		if ok {
-			return nil, types.ErrValidatorAddress
+			return types.ErrValidatorAddress
 		}
 	}
 
 	newValOperAddr := sdk.ValAddress(newValAddr)
 	_, exist := k.GetValidator(ctx, newValOperAddr)
 	if exist {
-		return nil, types.ErrValidatorExist
+		return types.ErrValidatorExist
 	}
 
-	ctx.Logger().Info("==>old validator", "old validator", validator.GetOperator(), "old owner", validator.OwnerAddress)
+	ctx.Logger().Info("==>old validator", "old validator", validator.String(), "old owner", validator.OwnerAddress)
 
-	stake, found := k.GetStake(ctx, stakerAddress, validator.GetOperator())
+	stake, found := k.GetStake(ctx, staker, validator.GetOperator())
 	if !found {
-		return nil, types.ErrNoStake
+		return sdkerrors.Wrapf(types.ErrNoStake, "stake(%s) for operator(%s) not found", staker, validator.GetOperator())
 	}
+	k.RemoveStake(ctx, stake)
 
 	k.RemoveValidator(ctx, validator.GetOperator())
 	k.DeleteLastValidatorPower(ctx, validator.GetOperator())
-	if validator.Status == stakingtypes.Unbonding || validator.UnbondingHeight > 0 {
+	if validator.Status == stakingtypes.Unbonding {
 		k.DeleteValidatorQueue(ctx, validator)
 	}
 
 	stake.ValidatorAddress = newValOperAddr.String()
 	k.SetStake(ctx, stake)
 
-	k.IterateAllDelegations(ctx, func(delegation stakingtypes.Delegation) bool {
-		if delegation.ValidatorAddress == validator.OperatorAddress {
-			delegation.ValidatorAddress = newValOperAddr.String()
-			k.SetDelegation(ctx, delegation)
-		}
-		return false
-	})
-
-	region, isFound := k.GetRegion(ctx, validator.Description.RegionId)
-	if !isFound {
-		return nil, sdkerrors.Wrapf(types.ErrRegion, "region id(%s) not found", validator.Description.RegionId)
-	}
-
 	validator.OperatorAddress = newValOperAddr.String()
 	validator.OwnerAddress = newValAddr.String()
-	region.OperatorAddress = newValOperAddr.String()
-	err = k.SetValidatorByConsAddr(ctx, validator)
+
+	err := k.SetValidatorByConsAddr(ctx, validator)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	k.SetValidator(ctx, validator)
 	k.SetValidatorByPowerIndex(ctx, validator)
-	k.SetRegion(ctx, region)
+	// bond region again
+	k.BondRegion(ctx, validator, validator.Tokens, true)
 
-	if validator.Status == stakingtypes.Unbonding || validator.UnbondingHeight > 0 {
+	if validator.Status == stakingtypes.Unbonding {
 		k.InsertUnbondingValidatorQueue(ctx, validator)
 	}
 
-	ctx.Logger().Info("==>new validator", "validator", validator.OperatorAddress, "owner", validator.OwnerAddress)
+	k.SetChangeDelegationValidator(ctx, validator.Description.RegionID)
+
+	ctx.Logger().Info("==>new validator", "validator", validator.String(), "owner", validator.OwnerAddress)
 	if err := k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
-		return nil, err
+		return err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeResetValidator,
-			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValOperAddress),
-			sdk.NewAttribute(types.AttributeKeyNewValidator, msg.NewValidatorAddress),
+			sdk.NewAttribute(types.AttributeKeyValidator, oldValOperator.String()),
+			sdk.NewAttribute(types.AttributeKeyNewValidator, newValOperAddr.String()),
 			sdk.NewAttribute(types.AttributeKeyNewOwnerAddress, validator.OwnerAddress),
 		),
 	})
-	return &types.MsgResetValidatorResponse{}, nil
+	return nil
 }

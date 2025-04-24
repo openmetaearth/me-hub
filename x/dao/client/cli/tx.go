@@ -25,7 +25,7 @@ func GetTxCmd() *cobra.Command {
 
 func CmdUpdateGlobalDao() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-global-dao [GlobalDao] [MeidDao] [DevOperator] [AirdropAddress]",
+		Use:   "update-dao [GlobalDao] [MeidDao] [DevOperator] [AirdropAddress]",
 		Short: "Broadcast message",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -40,7 +40,7 @@ func CmdUpdateGlobalDao() *cobra.Command {
 				DevOperator:    args[2],
 				AirdropAddress: args[3],
 			}
-			msg := types.NewMsgUpdateGlobalDao(
+			msg := types.NewMsgUpdateDao(
 				clientCtx.GetFromAddress(),
 				daoAddresses,
 			)

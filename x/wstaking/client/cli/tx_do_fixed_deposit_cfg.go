@@ -156,7 +156,7 @@ func CmdSetFixedDepositCfgRate() *cobra.Command {
 
 			term, err := strconv.ParseInt(argTerm, 10, 64)
 			if err != nil {
-				return types.ErrParameter.Wrapf("period error", err)
+				return types.ErrParameter.Wrapf("period error: %v", err)
 			}
 
 			rate, err := sdk.NewDecFromStr(argRate)

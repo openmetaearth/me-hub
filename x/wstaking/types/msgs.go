@@ -1,13 +1,14 @@
 package types
 
 import (
-	"cosmossdk.io/math"
 	"fmt"
+	gomath "math"
+
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
-	gomath "math"
 )
 
 const (
@@ -16,11 +17,15 @@ const (
 	TypeMsgWithdrawDelegatorReward           = "withdraw_delegator_reward"
 	TypeMsgRemoveRegion                      = "remove-region"
 	TypeMsgRetrieveFeeFromGlobalAdminFeePool = "retrieve-fee-from-global-admin-fee-pool"
+	TypeMsgRecord                            = "new_record"
+	TypeReviewRecord                         = "review_record"
 	TypeMsgStake                             = "stake"
-	TypeMsgUnstake                           = "begin_unstaking"
+	TypeMsgUnstake                           = "unstake"
 	TypeMsgWithdrawFromRegion                = "withdraw_from_region"
 	TypeMsgWithdrawFromGlobalDaoFeePool      = "withdraw_from_global_dao_fee_pool"
 	TypeMsgResetValidator                    = "create_validator"
+	TypeMsgNewMeid                           = "new_meid"
+	TypeMsgRemoveMeid                        = "remove_meid"
 )
 
 var (
@@ -31,7 +36,6 @@ var (
 	_ sdk.Msg = &MsgWithdrawDelegatorReward{}
 	_ sdk.Msg = &MsgWithdrawFromRegion{}
 	_ sdk.Msg = &MsgWithdrawFromGlobalDaoFeePool{}
-	_ sdk.Msg = &MsgResetValidator{}
 )
 
 // NewMsgStake creates a new MsgStake instance.
@@ -147,7 +151,6 @@ func (msg MsgUnstake) ValidateBasic() error {
 func NewMsgNewRegion(creator string, regionId string, name string, validator string) *MsgNewRegion {
 	return &MsgNewRegion{
 		Creator:         creator,
-		RegionId:        regionId,
 		Name:            name,
 		OperatorAddress: validator,
 	}
@@ -276,6 +279,87 @@ func (msg *MsgWithdrawFromRegion) ValidateBasic() error {
 	return nil
 }
 
+// NewMsgRecord creates a new MsgNewRecord instance.
+func NewMsgRecord(actionNum, url, addr string) *MsgNewRecord {
+	return &MsgNewRecord{
+		ActionNumber: actionNum,
+		ActionUrl:    url,
+		From:         addr,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgNewRecord) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgNewRecord) Type() string { return TypeMsgRecord }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgNewRecord) GetSigners() []sdk.AccAddress {
+	staker, _ := sdk.AccAddressFromBech32(msg.From)
+	return []sdk.AccAddress{staker}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgNewRecord) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgNewRecord) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.From); err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid staker address: %s", err)
+	}
+	return nil
+}
+
+// NewMsgReviewRecord creates a new MsgReviewRecord instance.
+func NewMsgReviewRecord(hash, result, address, id, reviewedAddress string) *MsgReviewRecord {
+	return &MsgReviewRecord{
+		RecordHash:      hash,
+		ReviewResult:    result,
+		From:            address,
+		ActionNumber:    id,
+		ReviewedAddress: reviewedAddress,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgReviewRecord) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgReviewRecord) Type() string { return TypeReviewRecord }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgReviewRecord) GetSigners() []sdk.AccAddress {
+	staker, _ := sdk.AccAddressFromBech32(msg.From)
+	return []sdk.AccAddress{staker}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgReviewRecord) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgReviewRecord) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.From); err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid staker address: %s", err)
+	}
+	if msg.ReviewResult == "" {
+		return sdkerrors.ErrInvalidRequest.Wrap("invalid review result")
+	}
+	if msg.RecordHash == "" {
+		return sdkerrors.ErrInvalidRequest.Wrap("invalid record hash")
+	}
+	if msg.ActionNumber == "" {
+		return sdkerrors.ErrInvalidRequest.Wrap("invalid action number")
+	}
+	return nil
+}
+
 func NewMsgWithdrawFromGlobalDaoFeePool(withdrawer string, amount sdk.Coins) *MsgWithdrawFromGlobalDaoFeePool {
 	return &MsgWithdrawFromGlobalDaoFeePool{
 		Withdrawer: withdrawer,
@@ -331,12 +415,11 @@ func NewMsgDelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.C
 // NewMsgUndelegate creates a new MsgUndelegate instance.
 //
 //nolint:interfacer
-func NewMsgUndelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin, isMeid bool) *types.MsgUndelegate {
+func NewMsgUndelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) *types.MsgUndelegate {
 	return &types.MsgUndelegate{
 		DelegatorAddress: delAddr.String(),
 		ValidatorAddress: valAddr.String(),
 		Amount:           amount,
-		IsMeid:           isMeid,
 	}
 }
 
@@ -378,39 +461,34 @@ func (msg MsgWithdrawDelegatorReward) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgResetValidator(stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, newValAddr sdk.Address) *MsgResetValidator {
-	return &MsgResetValidator{
-		StakerAddress:       stakerAddr.String(),
-		ValOperAddress:      valAddr.String(),
-		NewValidatorAddress: newValAddr.String(),
+func NewMsgTransferRegion(from, to, creatorAddr string, address []string) *MsgTransferRegion {
+	return &MsgTransferRegion{FromRegion: from, ToRegion: to, Address: address, Creator: creatorAddr}
+}
+func (msg *MsgTransferRegion) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgTransferRegion) Type() string {
+	return "msg_transfer_meid"
+}
+
+func (msg *MsgTransferRegion) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
 	}
+	return []sdk.AccAddress{creator}
 }
 
-func (msg MsgResetValidator) Route() string { return RouterKey }
-func (msg MsgResetValidator) Type() string  { return TypeMsgResetValidator }
-func (msg MsgResetValidator) GetSigners() []sdk.AccAddress {
-	staker, _ := sdk.AccAddressFromBech32(msg.StakerAddress)
-	addrs := []sdk.AccAddress{staker}
-	return addrs
-}
-
-func (msg MsgResetValidator) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
+func (msg *MsgTransferRegion) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgResetValidator) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.StakerAddress)
+func (msg *MsgTransferRegion) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid staker address: %v", err)
-	}
-	_, err = sdk.ValAddressFromBech32(msg.ValOperAddress)
-	if err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid validator operator address: %v", err)
-	}
-	_, err = sdk.AccAddressFromBech32(msg.NewValidatorAddress)
-	if err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid new validator address: %v", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
 }

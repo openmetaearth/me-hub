@@ -35,5 +35,6 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdGetSubmitBlockDaInfo())
 	cmd.AddCommand(CmGetAppendingDaFraudChallenge())
 	cmd.AddCommand(CmdVerifyCommitmentProof())
+	cmd.AddCommand(CmdShowSkipDelayRollapp())
 	return cmd
 }

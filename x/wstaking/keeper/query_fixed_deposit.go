@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 
@@ -17,9 +19,10 @@ func (k Keeper) FixedDepositAll(c context.Context, req *types.QueryAllFixedDepos
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	fixedDeposits := k.GetAllFixedDeposit(ctx)
 
-	return &types.QueryAllFixedDepositResponse{FixedDeposit: fixedDeposits}, nil
+	fixedDeposits, pageRes, err := k.GetAllFixedDepositWithPage(ctx, req)
+
+	return &types.QueryAllFixedDepositResponse{FixedDeposit: fixedDeposits, Pagination: pageRes}, err
 }
 
 func (k Keeper) FixedDeposit(c context.Context, req *types.QueryGetFixedDepositRequest) (*types.QueryGetFixedDepositResponse, error) {
@@ -52,8 +55,6 @@ func (k Keeper) FixedDepositByAcct(goCtx context.Context, req *types.QueryFixedD
 	}
 	for _, v := range tmpList {
 		switch req.QueryType {
-		//case types.AllState:
-		//	fixedDeposits = append(fixedDeposits, v)
 		case types.FixedDepositState_NotExpired:
 			if ctx.BlockTime().Before(v.EndTime) {
 				fixedDeposits = append(fixedDeposits, v)
@@ -64,7 +65,6 @@ func (k Keeper) FixedDepositByAcct(goCtx context.Context, req *types.QueryFixedD
 			}
 		}
 	}
-
 	return &types.QueryFixedDepositByAcctResponse{FixedDeposit: fixedDeposits}, nil
 }
 
@@ -76,36 +76,59 @@ func (k Keeper) FixedDepositByRegion(goCtx context.Context, req *types.QueryFixe
 		return nil, status.Error(codes.InvalidArgument, "invalid query type")
 	}
 
-	//todo
-	//ctx := sdk.UnwrapSDKContext(goCtx)
-	//var fixedDeposits []types.FixedDeposit
-	//meidList := k.GetMeidByRegion(ctx, req.Regionid)
-	//for _, meid := range meidList {
-	//	tmpList := k.GetFixedDepositByAcct(ctx, meid.Account)
-	//	if req.QueryType == types.FixedDepositState_AllState {
-	//		fixedDeposits = append(fixedDeposits, tmpList...)
-	//		continue
-	//	} else {
-	//		for _, v := range tmpList {
-	//			switch req.QueryType {
-	//			//case types.AllState:
-	//			//	fixedDeposits = append(fixedDeposits, v)
-	//			case types.FixedDepositState_NotExpired:
-	//				if ctx.BlockTime().Before(v.EndTime) {
-	//					fixedDeposits = append(fixedDeposits, v)
-	//				}
-	//			case types.FixedDepositState_Expired:
-	//				if ctx.BlockTime().After(v.EndTime) {
-	//					fixedDeposits = append(fixedDeposits, v)
-	//				}
-	//			}
-	//		}
-	//	}
-	//
-	//}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	fixedDeposits, pageRes, err := k.queryFixedDepositByRegionRecursively(ctx, req, nil)
+	if err != nil {
+		return nil, err
+	}
 
-	//return &types.QueryFixedDepositByRegionResponse{FixedDeposit: fixedDeposits}, nil
-	return nil, nil
+	return &types.QueryFixedDepositByRegionResponse{FixedDeposit: fixedDeposits, Pagination: pageRes}, nil
+}
+
+func (k Keeper) queryFixedDepositByRegionRecursively(ctx sdk.Context, req *types.QueryFixedDepositByRegionRequest, accumulated []types.FixedDeposit) ([]types.FixedDeposit, *query.PageResponse, error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKey))
+	fixedDeposits := make([]types.FixedDeposit, 0)
+
+	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
+		var fd types.FixedDeposit
+		if err := k.cdc.Unmarshal(value, &fd); err != nil {
+			return err
+		}
+
+		regionId, err := k.MustGetKycRegionIdByAccount(ctx, fd.Account)
+		if err != nil {
+			return err
+		}
+
+		if regionId == req.RegionId {
+			switch req.QueryType {
+			case types.FixedDepositState_AllState:
+				fixedDeposits = append(fixedDeposits, fd)
+			case types.FixedDepositState_NotExpired:
+				if ctx.BlockTime().Before(fd.EndTime) {
+					fixedDeposits = append(fixedDeposits, fd)
+				}
+			case types.FixedDepositState_Expired:
+				if ctx.BlockTime().After(fd.EndTime) {
+					fixedDeposits = append(fixedDeposits, fd)
+				}
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	accumulated = append(accumulated, fixedDeposits...)
+
+	if len(accumulated) < int(req.Pagination.Limit) && pageRes.NextKey != nil {
+		req.Pagination.Key = pageRes.NextKey
+		return k.queryFixedDepositByRegionRecursively(ctx, req, accumulated)
+	}
+
+	return accumulated, pageRes, nil
 }
 
 func (k Keeper) FixedDepositTotalAmount(goCtx context.Context, req *types.QueryFixedDepositTotalAmountRequest) (*types.QueryFixedDepositTotalAmountResponse, error) {

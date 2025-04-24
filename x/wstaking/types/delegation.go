@@ -13,7 +13,6 @@ func MustUnmarshalDelegation(cdc codec.BinaryCodec, value []byte) stakingtypes.D
 	if err != nil {
 		panic(err)
 	}
-
 	return delegation
 }
 

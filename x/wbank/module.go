@@ -2,9 +2,6 @@ package wbank
 
 import (
 	"fmt"
-	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -12,9 +9,7 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/st-chain/me-hub/x/wbank/client/cli"
 	"github.com/st-chain/me-hub/x/wbank/keeper"
-	"github.com/st-chain/me-hub/x/wbank/types"
 )
 
 // AppModuleBasic defines the basic application module used by the wrapped bank module.
@@ -41,24 +36,12 @@ func NewAppModule(
 	}
 }
 
-// RegisterInterfaces registers the module's interface types
-func (a AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {
-	types.RegisterInterfaces(reg)
-	banktypes.RegisterInterfaces(reg)
-}
-
-// GetTxCmd returns the root tx command for the staking module.
-func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.NewTxCmd()
-}
-
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	// copied the bank's RegisterServices to replace with the keeper wrapper
 	bankMsgSrv := bankkeeper.NewMsgServerImpl(am.keeper)
 	banktypes.RegisterMsgServer(cfg.MsgServer(), bankMsgSrv)
 	banktypes.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper, bankMsgSrv))
 
 	m := bankkeeper.NewMigrator(am.keeper.BaseKeeper, am.legacySubspace)
 	if err := cfg.RegisterMigration(banktypes.ModuleName, 1, m.Migrate1to2); err != nil {

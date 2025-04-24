@@ -2,6 +2,9 @@ package keeper
 
 import (
 	"fmt"
+	"github.com/cometbft/cometbft/crypto"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 
 	"github.com/cometbft/cometbft/libs/log"
 
@@ -12,18 +15,26 @@ import (
 )
 
 type Keeper struct {
-	cdc      codec.BinaryCodec
-	storeKey storetypes.StoreKey
+	cdc        codec.BinaryCodec
+	storeKey   storetypes.StoreKey
+	authKeeper banktypes.AccountKeeper
+	kycHook    types.KycHook
 }
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
+	ak banktypes.AccountKeeper,
 ) Keeper {
 	return Keeper{
-		cdc:      cdc,
-		storeKey: storeKey,
+		cdc:        cdc,
+		storeKey:   storeKey,
+		authKeeper: ak,
 	}
+}
+
+func (k *Keeper) SetHook(kycHook types.KycHook) {
+	k.kycHook = kycHook
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
@@ -79,14 +90,6 @@ func (k Keeper) GetAirdropAddress(ctx sdk.Context) string {
 	return ""
 }
 
-func (k Keeper) GetValidatorAddress(ctx sdk.Context) string {
-	dao, found := k.GetDaoAddresses(ctx)
-	if found {
-		return dao.ValidatorAddress
-	}
-	return ""
-}
-
 func (k Keeper) IsGlobalDao(ctx sdk.Context, address string) bool {
 	dao, found := k.GetDaoAddresses(ctx)
 	if !found {
@@ -103,10 +106,12 @@ func (k Keeper) IsMeidDao(ctx sdk.Context, address string) bool {
 	return dao.MeidDao == address
 }
 
-func (k Keeper) IsValidatorDao(ctx sdk.Context, address string) bool {
-	dao, found := k.GetDaoAddresses(ctx)
-	if !found {
-		return false
+func (k Keeper) GetGlobalDaoFeePoolAddr(ctx sdk.Context) sdk.AccAddress {
+	addr := sdk.AccAddress(crypto.AddressHash([]byte(wstakingtypes.GlobalDaoFeePool)))
+	account := k.authKeeper.GetAccount(ctx, addr)
+	if account == nil {
+		k.authKeeper.SetAccount(ctx, k.authKeeper.NewAccountWithAddress(ctx, addr))
+		return addr
 	}
-	return dao.ValidatorAddress == address
+	return account.GetAddress()
 }

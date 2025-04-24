@@ -1,16 +1,18 @@
 package cli
 
 import (
-	"cosmossdk.io/math"
+	"errors"
 	"fmt"
+	gomath "math"
+	"os"
+	"strings"
+
+	"cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"github.com/st-chain/me-hub/app/params"
-	gomath "math"
-	"os"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -25,7 +27,7 @@ import (
 // default values
 var (
 	DefaultTokens                  = sdk.TokensFromConsensusPower(100, sdk.DefaultPowerReduction)
-	defaultAmount                  = DefaultTokens.String() + sdk.DefaultBondDenom
+	defaultAmount                  = DefaultTokens.String() + params.BaseDenom
 	defaultCommissionRate          = "0.1"
 	defaultCommissionMaxRate       = "0.2"
 	defaultCommissionMaxChangeRate = "0.01"
@@ -50,18 +52,21 @@ func NewTxCmd() *cobra.Command {
 		NewUnstakeCmd(),
 		NewStakeCmd(),
 		CmdNewRegion(),
-		CmdRemoveRegion(),
+		// CmdRemoveRegion(),
 		CmdWithdrawFromRegion(),
 		CmdWithdrawFromGlobalDaoFeePool(),
+		CmdNewRecord(),
+		CmdNewReviewRecord(),
+		// CmdTransferRegion(),
 		NewDelegateCmd(),
 		NewUndelegateCmd(),
-		NewFixedDepositCmd(),          //定期质押
-		NewFixedWithdrawCmd(),         //定期收益提取
-		CmdRemoveFixedDepositCfg(),    //删除定期配置
-		CmdSetFixedDepositCfgStatus(), //修改定期期限
-		CmdSetFixedDepositCfgRate(),   //修改定期利率
-		CmdNewFixedDepositCfg(),       //创建定期配置
-		NewResetValidatorCmd(),
+		NewFixedDepositCmd(),
+		NewFixedWithdrawCmd(),
+		CmdRemoveFixedDepositCfg(),
+		CmdSetFixedDepositCfgStatus(),
+		CmdSetFixedDepositCfgRate(),
+		CmdNewFixedDepositCfg(),
+		NewIbcTransferFromRegionTreasureCmd(),
 	)
 
 	return stakingTxCmd
@@ -134,8 +139,8 @@ func NewCreateExperienceNodeCmd() *cobra.Command {
 
 			msgCreateRegion := types.NewMsgNewRegion(
 				clientCtx.GetFromAddress().String(),
-				strings.ToLower(types.ExperienceRegion),
-				types.ExperienceRegion,
+				strings.ToLower(types.ExperienceRegionName),
+				types.ExperienceRegionName,
 				msgCreateValidator.ValidatorAddress)
 			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msgCreateValidator, msgCreateRegion)
 		},
@@ -194,7 +199,7 @@ $ %s tx staking edit-validator %s1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm --owner
 			details, _ := cmd.Flags().GetString(FlagDetails)
 			regionId, _ := cmd.Flags().GetString(FlagRegionId)
 			description := stakingtypes.NewDescription(moniker, identity, website, security, details)
-			description.RegionId = regionId
+			description.RegionID = regionId
 
 			var newRate *sdk.Dec
 			commissionRate, _ := cmd.Flags().GetString(FlagCommissionRate)
@@ -260,7 +265,7 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		details,
 	)
 	regionId, _ := fs.GetString(FlagRegionId)
-	description.RegionId = regionId
+	description.RegionID = regionId
 
 	// get the initial validator commission parameters
 	rateStr, _ := fs.GetString(FlagCommissionRate)
@@ -284,10 +289,14 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 
 	validatorAddress, _ := fs.GetString(FlagValidatorAddress)
 
+	accValidatorAddress, err := sdk.AccAddressFromBech32(validatorAddress)
+	if err != nil {
+		return txf, nil, err
+	}
 	msg := &stakingtypes.MsgCreateValidator{
 		Description:       description,
 		DelegatorAddress:  globalDao.String(),
-		ValidatorAddress:  sdk.ValAddress(sdk.MustAccAddressFromBech32(validatorAddress)).String(),
+		ValidatorAddress:  sdk.ValAddress(accValidatorAddress).String(),
 		Pubkey:            pkAny,
 		Value:             amount,
 		Commission:        commissionRates,
@@ -345,7 +354,7 @@ func CreateValidatorMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaultsDesc
 
 // NewDelegateCmd returns a CLI command handler for creating a MsgDelegate transaction.
 func NewDelegateCmd() *cobra.Command {
-	//bech32PrefixValAddr := sdk.GetConfig().GetBech32ValidatorAddrPrefix()
+	// bech32PrefixValAddr := sdk.GetConfig().GetBech32ValidatorAddrPrefix()
 
 	cmd := &cobra.Command{
 		Use:   "delegate [amount] ",
@@ -375,13 +384,16 @@ $ %s tx staking delegate 1000mec --from mykey
 				return err
 			}
 			delAddr := clientCtx.GetFromAddress()
-
-			validatorAddress, err := cmd.Flags().GetString(FlagValidatorAddress)
-			if err != nil {
-				return err
+			if delAddr.Empty() {
+				return errors.New("from address is empty")
 			}
+			//validatorAddress, err := cmd.Flags().GetString(FlagValidatorAddress)
+			//if err != nil {
+			//	return err
+			//}
 
-			msg := types.NewMsgDelegate(delAddr, sdk.ValAddress(sdk.MustAccAddressFromBech32(validatorAddress)), amount, "")
+			// msg := types.NewMsgDelegate(delAddr, sdk.ValAddress(sdk.MustAccAddressFromBech32(validatorAddress)), amount, "")
+			msg := types.NewMsgDelegate(delAddr, sdk.ValAddress{}, amount, "")
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -541,7 +553,7 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 		config.SecurityContact,
 		config.Details,
 	)
-	description.RegionId = config.RegionId
+	description.RegionID = config.RegionId
 
 	// get the initial validator commission parameters
 	rateStr := config.CommissionRate
@@ -615,45 +627,6 @@ func CmdWithdrawFromGlobalDaoFeePool() *cobra.Command {
 			msg := types.NewMsgWithdrawFromGlobalDaoFeePool(
 				clientCtx.GetFromAddress().String(),
 				amount,
-			)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func NewResetValidatorCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "reset-validator [val-oper-address] [new-val-address]",
-		Short:   "reset-validator val-oper-address new-val-address",
-		Example: fmt.Sprintf("%s tx staking reset-validator mevaloper1tg8erk8z8yfz455rzzfv7jalye5fzgpujvt9xy me1raclycgud252j0vduzqpts9xmtkayh9ypxkec2", version.AppName),
-		Args:    cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			valAddr, err := sdk.ValAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
-
-			newValAddr, err := sdk.AccAddressFromBech32(args[1])
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgResetValidator(
-				clientCtx.GetFromAddress(),
-				valAddr,
-				newValAddr,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

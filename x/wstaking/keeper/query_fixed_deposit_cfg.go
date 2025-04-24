@@ -14,9 +14,33 @@ func (k Keeper) FixedDepositCfg(goCtx context.Context, req *types.QueryFixedDepo
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
+	var configs []types.RegionAllFixedDepositCfg
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	configs := k.GetAllFixedDepositCfg(ctx, req.RegionId)
-	return &types.QueryFixedDepositCfgResponse{FixedDepositCfgs: configs}, nil
+
+	if req.RegionIds == nil || len(req.RegionIds) == 0 {
+		regions := k.GetAllRegion(ctx)
+		for _, region := range regions {
+			req.RegionIds = append(req.RegionIds, region.RegionId)
+		}
+	}
+
+	for _, regionId := range req.RegionIds {
+		regionConfigs := k.GetAllFixedDepositCfg(ctx, regionId)
+		var regionFixedDepositCfgs []types.RegionFixedDepositCfg
+		for _, config := range regionConfigs {
+			regionFixedDepositCfgs = append(regionFixedDepositCfgs, types.RegionFixedDepositCfg{
+				Term:   config.Term,
+				Rate:   config.Rate,
+				Status: config.Status,
+			})
+		}
+		configs = append(configs, types.RegionAllFixedDepositCfg{
+			RegionId:              regionId,
+			RegionFixedDepositCfg: regionFixedDepositCfgs,
+		})
+	}
+
+	return &types.QueryFixedDepositCfgResponse{RegionFixedDepositCfgs: configs}, nil
 }
 
 func (k Keeper) FixedDepositCfgByTerm(goCtx context.Context, req *types.QueryFixedDepositCfgByTermRequest) (*types.QueryFixedDepositCfgByTermResponse, error) {

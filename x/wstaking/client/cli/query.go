@@ -19,26 +19,27 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	stakingQueryCmd.AddCommand(
-		stakingcli.GetCmdQueryDelegation(),
-		stakingcli.GetCmdQueryDelegations(),
-		stakingcli.GetCmdQueryUnbondingDelegation(),
+		//stakingcli.GetCmdQueryDelegations(),
 		stakingcli.GetCmdQueryUnbondingDelegations(),
-		stakingcli.GetCmdQueryRedelegation(),
-		stakingcli.GetCmdQueryRedelegations(),
+		//stakingcli.GetCmdQueryRedelegation(),
+		//stakingcli.GetCmdQueryRedelegations(),
 		stakingcli.GetCmdQueryValidator(),
 		stakingcli.GetCmdQueryValidators(),
-		stakingcli.GetCmdQueryValidatorDelegations(),
+		//stakingcli.GetCmdQueryValidatorDelegations(),
 		stakingcli.GetCmdQueryValidatorUnbondingDelegations(),
-		stakingcli.GetCmdQueryValidatorRedelegations(),
+		//stakingcli.GetCmdQueryValidatorRedelegations(),
 		stakingcli.GetCmdQueryHistoricalInfo(),
 		stakingcli.GetCmdQueryParams(),
-		stakingcli.GetCmdQueryPool(),
+		//stakingcli.GetCmdQueryPool(),
 	)
 
 	stakingQueryCmd.AddCommand(
 		GetCmdQueryRegion(),
 		GetCmdQueryAllRegion(),
 		GetCmdQueryDelegatorRewards(),
+		GetCmdQueryDelegation(),
+		CmdQueryAllDelegations(),
+		GetCmdQueryStakes(),
 	)
 
 	stakingQueryCmd.AddCommand(
@@ -50,6 +51,9 @@ func GetQueryCmd() *cobra.Command {
 		CmdQueryFixedDepositCfg(),
 		CmdShowFixedDepositTotalAmount(),
 		CmdShowFixedDepositAmountByAcct(),
+		CmdShowAllRecord(),
+		CmdShowRecordByAddress(),
+		CmdShowReviewRecord(),
 	)
 
 	return stakingQueryCmd

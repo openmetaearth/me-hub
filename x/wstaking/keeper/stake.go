@@ -15,7 +15,7 @@ import (
 // Stake performs a stake, set/update everything necessary within the store.
 // tokenSrc indicates the bond status of the incoming funds.
 func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt math.Int,
-	tokenSrc stakingtypes.BondStatus, validator stakingtypes.Validator, subtractAccount bool) (newShares sdk.Dec, err error) {
+	tokenSrc stakingtypes.BondStatus, validator stakingtypes.Validator, subtractAccount bool, tag string) (newShares sdk.Dec, err error) {
 	// In some situations, the exchange rate becomes invalid, e.g. if
 	// Validator loses all tokens due to slashing. In this case,
 	// make all future stakes invalid.
@@ -41,15 +41,15 @@ func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt math.Int,
 
 		switch {
 		case validator.IsBonded():
-			recipientModule = stakingtypes.BondedStakePoolName
+			recipientModule = types.BondedStakePoolName
 		case validator.IsUnbonding(), validator.IsUnbonded():
-			recipientModule = stakingtypes.NotBondedStakePoolName
+			recipientModule = types.NotBondedStakePoolName
 		default:
 			panic("invalid validator status")
 		}
 
 		coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), bondAmt))
-		if err := k.BankKeeper.StakeCoinsFromModuleToModule(ctx, types.StakePoolName, recipientModule, coins); err != nil {
+		if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, types.StakePoolName, recipientModule, coins, tag); err != nil {
 			return sdk.Dec{}, err
 		}
 	} else {
@@ -64,7 +64,7 @@ func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt math.Int,
 			k.NotBondedStakeTokensToBonded(ctx, bondAmt)
 		case tokenSrc == stakingtypes.Bonded && !validator.IsBonded():
 			// transfer pools
-			k.BondedStakeTokensToNotBonded(ctx, bondAmt)
+			k.BondedStakeTokensToNotBonded(ctx, bondAmt, validator.Description.RegionID)
 		default:
 			panic("unknown token source bond status")
 		}
@@ -75,7 +75,7 @@ func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt math.Int,
 	// Update stake
 	stake.Shares = stake.Shares.Add(newShares)
 	k.SetStake(ctx, stake)
-
+	k.BondRegion(ctx, validator, stake.Shares.TruncateInt(), true)
 	return newShares, nil
 }
 
@@ -88,44 +88,58 @@ func (k Keeper) GetStake(ctx sdk.Context, stakerAddr sdk.AccAddress, valAddr sdk
 	if value == nil {
 		return stake, false
 	}
-
-	stake = types.MustUnmarshalStake(k.cdc, value)
-
+	k.cdc.MustUnmarshal(value, &stake)
 	return stake, true
 }
 
 // SetStake sets a stake.
 func (k Keeper) SetStake(ctx sdk.Context, stake types.Stake) {
 	stakerAddress := sdk.MustAccAddressFromBech32(stake.StakerAddress)
-
 	store := ctx.KVStore(k.storeKey)
-	b := types.MustMarshalStake(k.cdc, stake)
-	store.Set(types.GetStakeKey(stakerAddress, stake.GetValidatorAddr()), b)
+	store.Set(types.GetStakeKey(stakerAddress, stake.GetValidatorAddr()), k.cdc.MustMarshal(&stake))
 }
 
-// IterateAllStakes iterates through all of the stakes.
+// IterateAllDelegations iterates through all of the delegations.
 func (k Keeper) IterateAllStakes(ctx sdk.Context, cb func(stake types.Stake) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-
 	iterator := sdk.KVStorePrefixIterator(store, types.StakeKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		stake := types.MustUnmarshalStake(k.cdc, iterator.Value())
+		var stake types.Stake
+		k.cdc.MustUnmarshal(iterator.Value(), &stake)
 		if cb(stake) {
 			break
 		}
 	}
 }
 
-// GetAllStakes returns all stakes used during genesis dump.
 func (k Keeper) GetAllStakes(ctx sdk.Context) (stakes []types.Stake) {
 	k.IterateAllStakes(ctx, func(stake types.Stake) bool {
 		stakes = append(stakes, stake)
 		return false
 	})
-
 	return stakes
+}
+
+func (k Keeper) IterateStakes(ctx sdk.Context, delAddr sdk.AccAddress,
+	fn func(index int64, del types.Stake) (stop bool),
+) {
+	store := ctx.KVStore(k.storeKey)
+	stakerPrefixKey := types.GetStakesKey(delAddr)
+
+	iterator := sdk.KVStorePrefixIterator(store, stakerPrefixKey) // smallest to largest
+	defer iterator.Close()
+
+	for i := int64(0); iterator.Valid(); iterator.Next() {
+		del := types.Stake{}
+		k.cdc.MustUnmarshal(iterator.Value(), &del)
+		stop := fn(i, del)
+		if stop {
+			break
+		}
+		i++
+	}
 }
 
 // HasMaxUnbondingStakeEntries - check if unbonding stake has maximum number of entries.
@@ -162,7 +176,7 @@ func (k Keeper) Unstake(
 
 	// transfer the validator tokens to the not bonded pool
 	if validator.IsBonded() {
-		k.BondedStakeTokensToNotBonded(ctx, returnAmount)
+		k.BondedStakeTokensToNotBonded(ctx, returnAmount, validator.Description.RegionID)
 	}
 
 	completionTime := ctx.BlockHeader().Time
@@ -212,47 +226,34 @@ func (k Keeper) UnStakeBond(
 
 	if stake.Shares.IsZero() {
 		err = k.RemoveStake(ctx, stake)
+		if err != nil {
+			return amount, err
+		}
+		k.UnBondRegion(ctx, validator.Description.RegionID)
 	} else {
+		k.BondRegion(ctx, validator, stake.Shares.TruncateInt(), false)
 		k.SetStake(ctx, stake)
 		// call the after stake modification hook
 		//err = k.AfterDelegationModified(ctx, stakerAddress, stake.GetValidatorAddr())
 	}
 
-	if err != nil {
-		return amount, err
-	}
-
 	// remove the shares and coins from the validator
 	// NOTE that the amount is later (in keeper.Stake) moved between staking module pools
 	validator, amount = k.RemoveValidatorTokensAndShares(ctx, validator, shares)
-	//regions := k.GetAllRegion(ctx)
-	//for _, region := range regions {
-	//	if region.OperatorAddress == validator.OperatorAddress {
-	//		region.RegionShare = validator.Tokens
-	//		k.SetRegion(ctx, region)
-	//	}
-	//}
-
-	region, found := k.GetRegion(ctx, validator.Description.RegionId)
-	if found {
-		region.RegionShare = validator.Tokens
-		k.SetRegion(ctx, region)
-		//return nil, types.ErrValidatorRegion.Wrapf("%s not found", validator.Description.RegionID)
-	}
 
 	if validator.DelegatorShares.IsZero() && validator.IsUnbonded() {
 		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
 		k.RemoveValidator(ctx, validator.GetOperator())
+		k.RemoveRegion(ctx, validator.Description.RegionID)
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUnstake,
 			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, validator.OperatorAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()+params.BaseDenom),
-			sdk.NewAttribute(types.AttributeKeyRegionId, region.RegionId),
+			sdk.NewAttribute(types.AttributeKeyRegionId, validator.Description.RegionID),
 		),
 	})
-
 	return amount, nil
 }
 
@@ -348,13 +349,12 @@ func (k Keeper) SetUnbondingStake(ctx sdk.Context, ubs types.UnbondingStake) {
 	stakerAddress := sdk.MustAccAddressFromBech32(ubs.StakerAddress)
 
 	store := ctx.KVStore(k.storeKey)
-	bz := types.MustMarshalUBS(k.cdc, ubs)
 	addr, err := sdk.ValAddressFromBech32(ubs.ValidatorAddress)
 	if err != nil {
 		panic(err)
 	}
 	key := types.GetUBSKey(stakerAddress, addr)
-	store.Set(key, bz)
+	store.Set(key, k.cdc.MustMarshal(&ubs))
 	store.Set(types.GetUBSByValIndexKey(stakerAddress, addr), []byte{}) // index, store empty bytes
 }
 
@@ -368,8 +368,7 @@ func (k Keeper) GetUnbondingStake(ctx sdk.Context, stakerAddr sdk.AccAddress, va
 		return ubs, false
 	}
 
-	ubs = types.MustUnmarshalUBS(k.cdc, value)
-
+	k.cdc.MustUnmarshal(value, &ubs)
 	return ubs, true
 }
 
@@ -388,18 +387,17 @@ func (k Keeper) RemoveUnbondingStake(ctx sdk.Context, ubd types.UnbondingStake) 
 }
 
 // IterateUnbondingStakes iterates through all of the unbonding stakes.
-func (k Keeper) IterateUnbondingStakes(ctx sdk.Context, fn func(index int64, ubd types.UnbondingStake) (stop bool)) {
+func (k Keeper) IterateUnbondingStakes(ctx sdk.Context, cb func(ubs types.UnbondingStake) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-
 	iterator := sdk.KVStorePrefixIterator(store, types.UnbondingStakeKey)
 	defer iterator.Close()
 
-	for i := int64(0); iterator.Valid(); iterator.Next() {
-		ubs := types.MustUnmarshalUBS(k.cdc, iterator.Value())
-		if stop := fn(i, ubs); stop {
+	for ; iterator.Valid(); iterator.Next() {
+		ubs := types.UnbondingStake{}
+		k.cdc.MustUnmarshal(iterator.Value(), &ubs)
+		if cb(ubs) {
 			break
 		}
-		i++
 	}
 }
 
@@ -450,8 +448,8 @@ func (k Keeper) CompleteStakeUnBonding(ctx sdk.Context, stakerAddr sdk.AccAddres
 			// track unstake only when remaining or truncated shares are non-zero
 			if !entry.Balance.IsZero() {
 				amt := sdk.NewCoin(bondDenom, entry.Balance)
-				if err := k.BankKeeper.UnstakeCoinsFromModuleToModule(
-					ctx, stakingtypes.NotBondedStakePoolName, types.StakePoolName, sdk.NewCoins(amt),
+				if err := k.bankKeeper.UnstakeCoinsFromModuleToModule(
+					ctx, types.NotBondedStakePoolName, types.StakePoolName, sdk.NewCoins(amt),
 				); err != nil {
 					return nil, err
 				}

@@ -6,7 +6,6 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	commontypes "github.com/st-chain/me-hub/x/common/types"
-	"github.com/st-chain/me-hub/x/rollapp/types"
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 )
 
@@ -19,13 +18,14 @@ type RollappKeeper interface {
 	GetParams(ctx sdk.Context) rollapptypes.Params
 	GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (val rollapptypes.StateInfo, found bool)
 	MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) rollapptypes.StateInfo
-	GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val types.StateInfoIndex, found bool)
-	GetAllRollapps(ctx sdk.Context) (list []types.Rollapp)
+	GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfoIndex, found bool)
+	GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp)
 	GetValidTransfer(
 		ctx sdk.Context,
 		packetData []byte,
 		raPortOnHub, raChanOnHub string,
-	) (data types.TransferData, err error)
+	) (data rollapptypes.TransferData, err error)
+	IsSkipDelayRollapp(ctx sdk.Context, rollappId string) bool
 }
 
 type EIBCKeeper interface {

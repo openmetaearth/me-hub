@@ -6,25 +6,25 @@ import (
 )
 
 var (
-	_ sdk.Msg = &MsgUpdateGlobalDao{}
+	_ sdk.Msg = &MsgUpdateDao{}
 )
 
-func NewMsgUpdateGlobalDao(creator sdk.AccAddress, addresses DaoAddresses) *MsgUpdateGlobalDao {
-	return &MsgUpdateGlobalDao{
+func NewMsgUpdateDao(creator sdk.AccAddress, addresses DaoAddresses) *MsgUpdateDao {
+	return &MsgUpdateDao{
 		Creator:      creator.String(),
 		DaoAddresses: addresses,
 	}
 }
 
-func (msg *MsgUpdateGlobalDao) Route() string {
+func (msg *MsgUpdateDao) Route() string {
 	return RouterKey
 }
 
-func (msg *MsgUpdateGlobalDao) Type() string {
-	return "UpdateGlobalDao"
+func (msg *MsgUpdateDao) Type() string {
+	return "UpdateDao"
 }
 
-func (msg *MsgUpdateGlobalDao) GetSigners() []sdk.AccAddress {
+func (msg *MsgUpdateDao) GetSigners() []sdk.AccAddress {
 	creator, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		panic("invalid creator address")
@@ -32,15 +32,31 @@ func (msg *MsgUpdateGlobalDao) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{creator}
 }
 
-func (msg *MsgUpdateGlobalDao) GetSignBytes() []byte {
+func (msg *MsgUpdateDao) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgUpdateGlobalDao) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Creator)
+func (msg *MsgUpdateDao) ValidateBasic() error {
+	if len(msg.DaoAddresses.GlobalDao) > 0 {
+		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.GlobalDao); err != nil {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.GlobalDao)
+		}
+	}
+	if len(msg.DaoAddresses.MeidDao) > 0 {
+		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.MeidDao); err != nil {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.MeidDao)
+		}
+	}
+	if len(msg.DaoAddresses.AirdropAddress) > 0 {
+		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.AirdropAddress); err != nil {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.AirdropAddress)
+		}
+	}
+	if len(msg.DaoAddresses.AirdropAddress) > 0 {
+		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.AirdropAddress); err != nil {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.AirdropAddress)
+		}
 	}
 	return nil
 }

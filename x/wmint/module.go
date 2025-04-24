@@ -10,7 +10,6 @@ import (
 	mintexported "github.com/cosmos/cosmos-sdk/x/mint/exported"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/st-chain/me-hub/x/wmint/keeper"
 )
 
@@ -48,8 +47,8 @@ func NewAppModule(
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	mintypes.RegisterMsgServer(cfg.MsgServer(), mintkeeper.NewMsgServerImpl(am.keeper.Keeper))
-	mintypes.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	minttypes.RegisterMsgServer(cfg.MsgServer(), mintkeeper.NewMsgServerImpl(am.keeper.Keeper))
+	minttypes.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	m := mintkeeper.NewMigrator(am.keeper.Keeper, am.legacySubspace)
 

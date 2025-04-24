@@ -165,9 +165,9 @@ type AppKeepers struct {
 	RollupKeeper *rollupkeeper.Keeper
 
 	DaoKeeper  daokeeper.Keeper
-	WNFTKeeper          *wnftkeeper.Keeper
+	WNFTKeeper *wnftkeeper.Keeper
 	WasmKeeper wasmkeeper.Keeper
-	GroupKeeper         *groupkeeper.Keeper
+	GroupKeeper *groupkeeper.Keeper
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey

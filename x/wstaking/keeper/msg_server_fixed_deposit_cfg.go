@@ -10,13 +10,13 @@ import (
 func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFixedDepositCfg) (*types.MsgNewFixedDepositCfgResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Admin) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Dao) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
 	_, found := k.GetRegion(ctx, msg.RegionId)
 	if !found {
-		return nil, types.ErrAddFixedDepositConfig.Wrapf("add fixed deposit config error, region not exist (%s)", msg.RegionId)
+		return nil, types.ErrRegionName.Wrapf("add fixed deposit config error, region not exist (%s)", msg.RegionId)
 	}
 
 	if msg.Term <= 0 {
@@ -49,7 +49,7 @@ func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFi
 	k.InitFixedDepositCountOfCfg(ctx, msg.RegionId, msg.Term)
 
 	event := sdk.NewEvent(types.EventTypeAddFixedDepositCfg,
-		sdk.NewAttribute(types.AttributeKeyAccount, msg.Admin),
+		sdk.NewAttribute(types.AttributeKeyAccount, msg.Dao),
 		sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
 		sdk.NewAttribute(types.AttributeKeyTerm, strconv.FormatInt(msg.Term, 10)),
 		sdk.NewAttribute(types.AttributeKeyRate, msg.Rate.String()),
@@ -62,12 +62,17 @@ func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFi
 func (k MsgServer) RemoveFixedDepositCfg(goCtx context.Context, msg *types.MsgRemoveFixedDepositCfg) (*types.MsgRemoveFixedDepositCfgResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Admin) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Admin) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
+	_, found := k.GetFixedDepositCfg(ctx, msg.RegionId, msg.Term)
+	if !found {
+		return nil, types.ErrRemoveFixedDepositConfig.Wrapf("fixed deposit config not found  for region(%s) and term(%d)", msg.RegionId, msg.Term)
+	}
+
 	count := k.GetFixedDepositCountOfCfg(ctx, msg.RegionId, msg.Term)
-	if count != 0 {
+	if count > 0 {
 		return nil, types.ErrRemoveFixedDepositConfig.Wrapf("remove fixed deposit config error:(%s)", types.ErrFixedDepositExistUnderConfig)
 	}
 
@@ -86,7 +91,7 @@ func (k MsgServer) RemoveFixedDepositCfg(goCtx context.Context, msg *types.MsgRe
 func (k MsgServer) SetFixedDepositCfgStatus(goCtx context.Context, msg *types.MsgSetFixedDepositCfgStatus) (*types.MsgSetFixedDepositCfgStatusResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Admin) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Admin) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
@@ -111,7 +116,7 @@ func (k MsgServer) SetFixedDepositCfgStatus(goCtx context.Context, msg *types.Ms
 func (k MsgServer) SetFixedDepositCfgRate(goCtx context.Context, msg *types.MsgSetFixedDepositCfgRate) (*types.MsgSetFixedDepositCfgRateResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.Admin) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Admin) {
 		return nil, types.ErrCheckGlobalDao
 	}
 

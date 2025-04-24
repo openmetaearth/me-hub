@@ -33,7 +33,7 @@ func (suite *HooksTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
 
 	denomIbcNotExists := createDenomMetadata("ibc/not_exists", "NE", 9)
 
-	hooks := vfchooks.NewVirtualFrontierBankContractRegistrationHook(*suite.App.EvmKeeper)
+	hooks := vfchooks.NewVirtualFrontierBankContractRegistrationHook(*suite.App.EvmKeeper.Keeper)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(0) // ignore invoking x/evm exec for contract deployment
 

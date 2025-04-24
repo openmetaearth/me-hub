@@ -8,9 +8,11 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/st-chain/me-hub/app/apptesting"
+	"github.com/st-chain/me-hub/app/params"
 	testutilstypes "github.com/st-chain/me-hub/testutil/types"
-	"github.com/st-chain/me-hub/x/wstaking/keeper"
+	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -21,38 +23,70 @@ import (
 type KeeperTestSuite struct {
 	apptesting.KeeperTestHelper
 
-	msgServer   types.MsgServer
-	queryClient types.QueryClient
+	msgServer           wstakingkeeper.MsgServer
+	queryClient         types.QueryClient
+	meEarthValidator    stakingtypes.Validator
+	experienceValidator stakingtypes.Validator
+	usaValidator        stakingtypes.Validator
+	TestAccs            []sdk.AccAddress
 }
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(suite.T(), false)
+func (s *KeeperTestSuite) Keeper() *wstakingkeeper.Keeper {
+	return s.App.StakingKeeper
+}
+
+func (s *KeeperTestSuite) SetupTest() {
+	app := apptesting.Setup(s.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
 	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
-	app.StakingKeeper.SetParams(ctx, stakingtypes.DefaultParams())
+	stakingParams := stakingtypes.DefaultParams()
+	stakingParams.BondDenom = params.BaseDenom
+	err = app.StakingKeeper.SetParams(ctx, stakingParams)
+	s.Require().NoError(err)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, app.StakingKeeper)
+	nativeQuerier := wstakingkeeper.Querier{Keeper: app.StakingKeeper}
+	types.RegisterQueryServer(queryHelper, nativeQuerier)
 	queryClient := types.NewQueryClient(queryHelper)
+	s.queryClient = queryClient
 
-	suite.App = app
+	s.App = app
+	s.Ctx = ctx
+
 	stakingKeeperMsgSrv := stakingkeeper.NewMsgServerImpl(app.StakingKeeper.Keeper)
-	suite.msgServer = keeper.NewMsgServerImpl(app.StakingKeeper, stakingKeeperMsgSrv)
-	suite.Ctx = ctx
-	suite.queryClient = queryClient
+	s.msgServer = wstakingkeeper.NewMsgServerImpl(app.StakingKeeper, app.TransferKeeper, stakingKeeperMsgSrv)
+
+	s.InitializeDao()
+
+	validators := s.Keeper().GetValidators(s.Ctx, 10)
+	s.Require().True(len(validators) >= 3)
+	s.meEarthValidator = validators[0]
+	s.experienceValidator = validators[1]
+	s.usaValidator = validators[2]
+
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            types.ExperienceRegionName,
+		OperatorAddress: s.experienceValidator.OperatorAddress,
+	}
+	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
+
+	s.Require().NoError(err)
+
+	s.TestAccs = s.NewAccounts(3)
 }
 
-func SetValidatorV1(ctx sdk.Context, k *keeper.Keeper, validator testutilstypes.ValidatorV1) {
+func SetValidatorV1(ctx sdk.Context, k *wstakingkeeper.Keeper, validator testutilstypes.ValidatorV1) {
 	store := ctx.KVStore(k.GetStoreKey())
 	bz := k.GetCdc().MustMarshal(&validator)
 	addr, err := sdk.ValAddressFromBech32(validator.OperatorAddress)
@@ -62,7 +96,7 @@ func SetValidatorV1(ctx sdk.Context, k *keeper.Keeper, validator testutilstypes.
 	store.Set(stakingtypes.GetValidatorKey(addr), bz)
 }
 
-func GetValidatorV2(ctx sdk.Context, k *keeper.Keeper, addr sdk.ValAddress) (validator testutilstypes.ValidatorV2, found bool) {
+func GetValidatorV2(ctx sdk.Context, k *wstakingkeeper.Keeper, addr sdk.ValAddress) (validator testutilstypes.ValidatorV2, found bool) {
 	store := ctx.KVStore(k.GetStoreKey())
 	value := store.Get(stakingtypes.GetValidatorKey(addr))
 	if value == nil {
@@ -75,7 +109,7 @@ func GetValidatorV2(ctx sdk.Context, k *keeper.Keeper, addr sdk.ValAddress) (val
 	return validator, true
 }
 
-func (suite *KeeperTestSuite) TestStakingValidator() {
+func (s *KeeperTestSuite) TestMigrateValidator() {
 	val1 := testutilstypes.ValidatorV1{
 		OperatorAddress: "mevaloper139mq752delxv78jvtmwxhasyrycufsvr707ate",
 		ConsensusPubkey: nil,
@@ -89,7 +123,7 @@ func (suite *KeeperTestSuite) TestStakingValidator() {
 			Website:         "",
 			SecurityContact: "",
 			Details:         "",
-			RegionId:        "usa",
+			RegionID:        "usa",
 		},
 		UnbondingHeight:         0,
 		UnbondingTime:           time.Time{},
@@ -101,23 +135,23 @@ func (suite *KeeperTestSuite) TestStakingValidator() {
 		UnbondingIds:            nil,
 		UnbondingOnHoldRefCount: 0,
 	}
-	SetValidatorV1(suite.Ctx, suite.App.StakingKeeper, val1)
-	suite.T().Log(val1.String())
+	SetValidatorV1(s.Ctx, s.App.StakingKeeper, val1)
+	s.T().Log(val1.String())
 
 	addr, err := sdk.ValAddressFromBech32(val1.OperatorAddress)
 	if err != nil {
 		panic(err)
 	}
 	//test panicked: proto: wrong wireType = 2 for field UnbondingOnHoldRefCount
-	validator, found := GetValidatorV2(suite.Ctx, suite.App.StakingKeeper, addr)
-	require.True(suite.T(), found)
+	validator, found := GetValidatorV2(s.Ctx, s.App.StakingKeeper, addr)
+	require.True(s.T(), found)
 
-	validators := suite.App.StakingKeeper.GetAllValidators(suite.Ctx)
-	require.Equal(suite.T(), len(validators), 2)
+	validators := s.App.StakingKeeper.GetAllValidators(s.Ctx)
+	require.Equal(s.T(), len(validators), 4)
 	for _, v := range validators {
 		if v.OperatorAddress == validator.OperatorAddress {
-			suite.T().Log(validator.String())
-			require.Equal(suite.T(), validator.String(), v.String())
+			s.T().Log(validator.String())
+			require.Equal(s.T(), validator.String(), v.String())
 		}
 	}
 }

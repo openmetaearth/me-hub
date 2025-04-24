@@ -1,0 +1,25 @@
+name: Protobuf
+
+on:
+  pull_request:
+    paths:
+      - "proto/**"
+      - ".github/workflows/proto.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run proto format and generate
+        run: |
+          make proto-all
+      - name: Check diff
+        run: git diff --exit-code

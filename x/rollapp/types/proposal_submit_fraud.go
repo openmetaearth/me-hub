@@ -53,9 +53,9 @@ func (sfp *SubmitFraudProposal) ValidateBasic() error {
 		return ErrInvalidRollappID
 	}
 
-	if sfp.IbcClientId == "" {
-		return ErrInvalidClientState
-	}
+	//if sfp.IbcClientId == "" {
+	//	return ErrInvalidClientState
+	//}
 
 	if sfp.FraudelentHeight == 0 {
 		return ErrInvalidHeight

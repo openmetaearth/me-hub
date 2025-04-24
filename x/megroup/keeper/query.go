@@ -1,0 +1,7 @@
+package keeper
+
+import (
+	"github.com/st-chain/me-hub/x/megroup/types"
+)
+
+var _ types.QueryServer = Keeper{}

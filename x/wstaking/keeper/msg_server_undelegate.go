@@ -2,6 +2,12 @@ package keeper
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,31 +15,15 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // Undelegate defines a method for performing an undelegation from a delegate and a validator
 func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndelegate) (*stakingtypes.MsgUndelegateResponse, error) {
-	var region types.Region
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	// TODO: check meid
-	meid, isFound := k.GetMeid(ctx, msg.DelegatorAddress)
-	if msg.IsMeid {
-		if !isFound {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "is-meid is true, you're meid")
-		}
-		region, isFound = k.GetRegion(ctx, meid.RegionId)
-		if !isFound {
-			return nil, types.ErrRegionNotExist
-		}
-	} else {
-		region, isFound = k.GetRegion(ctx, strings.ToLower(types.ExperienceRegion))
-		if !isFound {
-			return nil, types.ErrRegionNotExist
-		}
+	regionID := k.GetRegionIdByAccount(ctx, sdk.MustAccAddressFromBech32(msg.DelegatorAddress))
+	region, isFound := k.GetRegion(ctx, regionID)
+	if !isFound {
+		return nil, types.ErrRegionNotExist
 	}
 	msg.ValidatorAddress = region.OperatorAddress
 	valAddr, err := sdk.ValAddressFromBech32(msg.ValidatorAddress)
@@ -45,7 +35,10 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	if err != nil {
 		return nil, err
 	}
-
+	regionTreasureAddr, err := sdk.AccAddressFromBech32(region.RegionTreasureAddr)
+	if err != nil {
+		return nil, err
+	}
 	bondDenom := k.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
 		return nil, sdkerrors.Wrapf(
@@ -63,39 +56,43 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 
 	// current interest balance * personal withdrawal pledge limit / district total pledge limit
 	//person_dele_inte := region.DelegateInterest.Mul(sdk.NewDecFromInt(msg.Amount.Amount).Quo(sdk.NewDecFromInt(validator.DelegationAmount)))
-	del := k.Delegation(ctx, delegatorAddress, valAddr)
-	if del == nil {
+	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, val.GetOperator())
+	if !isOK {
 		return nil, types.ErrEmptyDelegationDistInfo
 	}
-	delegation, isOK := del.(stakingtypes.Delegation)
-	if !isOK {
-		return nil, sdkerrors.Wrap(types.ErrAssertionFailed, "type Delegation assertion failed")
-	}
 
-	rewards, err := k.WithdrawDelegationRewards(ctx, delegatorAddress, valAddr)
+	userTotalStaking := delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable)
+	rewards, err := k.CalculateInterest(ctx, userTotalStaking, delegation.StartHeight)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrWithdrawDelegateReward, err.Error())
+		return nil, types.ErrCalculateInterest.Wrap(err.Error())
 	}
-
-	if msg.IsMeid {
-		if delegation.Amount.LT(msg.Amount.Amount) {
-			return nil, types.ErrNotEnoughDelegationAmount
-		}
+	if region.DelegateInterest.GTE(rewards) {
+		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
 	} else {
-		if delegation.UnMeidAmount.LT(msg.Amount.Amount) {
-			return nil, types.ErrNotEnoughDelegationAmount
-		}
+		return nil, errors.New(fmt.Sprintf("undelegate err,region(%s) total interest not enough.need pay %s,only have %s",
+			region.RegionId, rewards.String(), region.DelegateInterest.String()))
 	}
 
-	completionTime, returnAmount, err := k.Keeper.Undelegate(ctx, delegatorAddress, valAddr, msg.IsMeid, msg.Amount.Amount)
+	isMeid := true
+	if strings.ToLower(val.Description.RegionID) == strings.ToLower(types.ExperienceRegionName) {
+		isMeid = false
+	}
+
+	completionTime, returnAmount, err := k.Keeper.Undelegate(ctx, delegatorAddress, valAddr, isMeid, msg.Amount.Amount, delegation)
 	if err != nil {
 		return nil, err
 	}
-	region.DelegateAmount = region.DelegateAmount.Sub(msg.Amount.Amount)
+	region.DelegateAmount = region.DelegateAmount.Sub(returnAmount)
 	k.SetRegion(ctx, region)
-	val.DelegationAmount = val.DelegationAmount.Sub(msg.Amount.Amount)
+	val.DelegationAmount = val.DelegationAmount.Sub(returnAmount)
 	k.SetValidator(ctx, val)
-
+	//send delegation rewards
+	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())),
+		fmt.Sprintf("Undelegate_SendRewardsFromRegionTreasureAccountToUserAccount_%s", region.RegionId),
+	)
+	if err != nil {
+		return nil, err
+	}
 	if msg.Amount.Amount.IsInt64() {
 		defer func() {
 			telemetry.IncrCounter(1, stakingtypes.ModuleName, "undelegate")
@@ -106,20 +103,20 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 			)
 		}()
 	}
-	delegateTreasure := k.AuthKeeper.GetModuleAccount(ctx, stakingtypes.BondedPoolName)
+	delegateTreasure := k.authKeeper.GetModuleAccount(ctx, stakingtypes.BondedPoolName)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUnDelegate,
 			sdk.NewAttribute(stakingtypes.AttributeKeyValidator, msg.ValidatorAddress),
 			sdk.NewAttribute(types.AttributeKeyRegionId, region.RegionId),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, returnAmount.String()+params.BaseDenom),
-			sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
+			sdk.NewAttribute(stakingtypes.AttributeKeyCompletionTime, completionTime.UTC().Format(time.RFC3339)),
 			sdk.NewAttribute(types.AttributeKeyAmountDelegateInterest, region.DelegateInterest.String()+params.BaseDenom),
-			sdk.NewAttribute(stakingtypes.BondedPoolName, delegateTreasure.String()),
+			sdk.NewAttribute(stakingtypes.BondedPoolName, delegateTreasure.GetAddress().String()),
 			sdk.NewAttribute(types.AttributeKeyRegionTreasure, region.RegionTreasureAddr),
 			sdk.NewAttribute(types.AttributeKeyDelegatorAddress, delegatorAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyPersonalDelegateInterest, rewards.AmountOf(params.BaseDenom).String()+params.BaseDenom),
-			sdk.NewAttribute(types.AttributeKeyIsMeid, strconv.FormatBool(msg.IsMeid)),
+			sdk.NewAttribute(types.AttributeKeyPersonalDelegateInterest, rewards.String()+params.BaseDenom),
+			sdk.NewAttribute(types.AttributeKeyIsMeid, strconv.FormatBool(isMeid)),
 		),
 	})
 

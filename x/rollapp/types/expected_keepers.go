@@ -34,4 +34,6 @@ type RollupKeeper interface {
 type DaoKeeper interface {
 	IsGlobalDao(ctx sdk.Context, address string) bool
 	IsValidatorDao(ctx sdk.Context, address string) bool
+	GetGlobalDao(ctx sdk.Context) string
+
 }

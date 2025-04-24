@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/st-chain/me-hub/app/params"
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
+
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -50,7 +53,7 @@ func TestKeeperTestSuite(t *testing.T) {
 func (suite *KeeperTestSuite) SetupTest() {
 	t := suite.T()
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
-	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
+	memStoreKey := storetypes.NewMemoryStoreKey("transient")
 	db := tmdb.NewMemDB()
 	stateStore := store.NewCommitMultiStore(db)
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
@@ -86,12 +89,11 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.wdistriKeeper = NewKeeper(
 		cdc,
 		storeKey,
-		memStoreKey,
 		paramsSubspace,
 		suite.authKeeper,
 		suite.bankKeeper,
 		suite.stakingKeeper,
-		"treasury_pool",
+		wbanktypes.TreasuryPoolName,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	suite.msgServer = NewMsgServerImpl(*suite.wdistriKeeper)
@@ -99,17 +101,16 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func (suite *KeeperTestSuite) TestGetAuthority() {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
-	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
+
 	NewKeeperWithAuthority := func(authority string) *Keeper {
 		return NewKeeper(
 			suite.encCfg.Codec,
 			storeKey,
-			memStoreKey,
 			suite.paramsSubspace,
 			suite.authKeeper,
 			suite.bankKeeper,
 			suite.stakingKeeper,
-			"treasury_pool",
+			wbanktypes.TreasuryPoolName,
 			authority,
 		)
 	}
@@ -233,7 +234,7 @@ func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int
 func (suite *KeeperTestSuite) SetMockGetBalance(ctx sdk.Context, fee sdkmath.Int) {
 	acc := authtypes.NewModuleAddress(suite.wdistriKeeper.feeCollectorName)
 	suite.authKeeper.EXPECT().GetModuleAddress(suite.wdistriKeeper.feeCollectorName).Return(acc)
-	suite.bankKeeper.EXPECT().GetBalance(ctx, acc, suite.wdistriKeeper.baseDenom).Return(sdk.NewCoin(suite.wdistriKeeper.baseDenom, fee))
+	suite.bankKeeper.EXPECT().GetBalance(ctx, acc, params.BaseDenom).Return(sdk.NewCoin(params.BaseDenom, fee))
 }
 func (suite *KeeperTestSuite) HelperNewContextWith(height int64) sdk.Context {
 	return sdk.NewContext(suite.ctx.MultiStore(), tmproto.Header{Time: tmtime.Now(), Height: height}, false, log.NewNopLogger())
@@ -245,7 +246,7 @@ type coinAndAddr struct {
 }
 
 func (suite *KeeperTestSuite) setMockSendCoinsFromModuleToAccountExpect(ctx sdk.Context, want ...coinAndAddr) {
-	baseDenom := suite.wdistriKeeper.baseDenom
+	baseDenom := params.BaseDenom
 	for _, w := range want {
 		suite.bankKeeper.EXPECT().
 			SendCoinsFromModuleToAccount(
@@ -256,4 +257,3 @@ func (suite *KeeperTestSuite) setMockSendCoinsFromModuleToAccountExpect(ctx sdk.
 			).Return(nil)
 	}
 }
-

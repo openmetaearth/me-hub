@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"strconv"
 	"strings"
 
@@ -16,7 +15,10 @@ func CmdListFixedDeposit() *cobra.Command {
 		Use:   "list-fixed-deposit",
 		Short: "list all fixed_deposit",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			pageReq, err := client.ReadPageRequest(cmd.Flags())
 			if err != nil {
@@ -29,7 +31,7 @@ func CmdListFixedDeposit() *cobra.Command {
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.FixedDepositAll(context.Background(), params)
+			res, err := queryClient.FixedDepositAll(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -50,7 +52,10 @@ func CmdShowFixedDeposit() *cobra.Command {
 		Short: "show a fixed_deposit",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			queryClient := types.NewQueryClient(clientCtx)
 
@@ -63,7 +68,7 @@ func CmdShowFixedDeposit() *cobra.Command {
 				Id: id,
 			}
 
-			res, err := queryClient.FixedDeposit(context.Background(), params)
+			res, err := queryClient.FixedDeposit(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -93,7 +98,10 @@ func CmdFixedDepositByAcct() *cobra.Command {
 				return types.ErrParameter.Wrap("period error")
 			}
 
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			queryClient := types.NewQueryClient(clientCtx)
 
@@ -121,16 +129,17 @@ var _ = strconv.Itoa(0)
 
 func CmdFixedDepositByRegion() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-fixed-deposit-by-region [regionid] [query_type]",
-		Short: "show fixed_deposit-by-region",
-		Args:  cobra.ExactArgs(2),
+		Use:     "fixed-deposit-by-region [region-id] [query_type]",
+		Short:   "show fixed_deposit-by-region",
+		Example: "med q staking fixed-deposit-by-region me_earth ALL_STATE",
+		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqRegionId := args[0]
 			reqQueryType := args[1]
 
 			queryType, ok := types.FixedDepositState_value[strings.ToUpper(strings.Trim(reqQueryType, " "))]
 			if !ok {
-				return types.ErrParameter.Wrap("period error")
+				return types.ErrParameter.Wrap("query type invalid")
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -138,13 +147,18 @@ func CmdFixedDepositByRegion() *cobra.Command {
 				return err
 			}
 
-			queryClient := types.NewQueryClient(clientCtx)
-
-			params := &types.QueryFixedDepositByRegionRequest{
-				Regionid:  reqRegionId,
-				QueryType: types.FixedDepositState(queryType),
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
 			}
 
+			params := &types.QueryFixedDepositByRegionRequest{
+				RegionId:   reqRegionId,
+				QueryType:  types.FixedDepositState(queryType),
+				Pagination: pageReq,
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
 			res, err := queryClient.FixedDepositByRegion(cmd.Context(), params)
 			if err != nil {
 				return err
@@ -165,7 +179,10 @@ func CmdShowFixedDepositAmountByAcct() *cobra.Command {
 		Short: "show the fixed deposit amount of an account",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			queryClient := types.NewQueryClient(clientCtx)
 
@@ -175,7 +192,7 @@ func CmdShowFixedDepositAmountByAcct() *cobra.Command {
 				Account: argAccount,
 			}
 
-			res, err := queryClient.FixedDepositAmountByMeid(context.Background(), params)
+			res, err := queryClient.FixedDepositAmountByMeid(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -195,13 +212,16 @@ func CmdShowFixedDepositTotalAmount() *cobra.Command {
 		Short: "show the total amount of all fixed_Deposits",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			queryClient := types.NewQueryClient(clientCtx)
 
 			params := &types.QueryFixedDepositTotalAmountRequest{}
 
-			res, err := queryClient.FixedDepositTotalAmount(context.Background(), params)
+			res, err := queryClient.FixedDepositTotalAmount(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"context"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -14,7 +12,10 @@ func CmdListRollapp() *cobra.Command {
 		Use:   "list",
 		Short: "Query all rollapps currently registered in the hub",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			pageReq, err := client.ReadPageRequest(cmd.Flags())
 			if err != nil {
@@ -27,7 +28,7 @@ func CmdListRollapp() *cobra.Command {
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.RollappAll(context.Background(), params)
+			res, err := queryClient.RollappAll(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -58,7 +59,7 @@ func CmdShowRollapp() *cobra.Command {
 				RollappId: argRollappId,
 			}
 
-			res, err := queryClient.Rollapp(context.Background(), params)
+			res, err := queryClient.Rollapp(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -69,5 +70,26 @@ func CmdShowRollapp() *cobra.Command {
 
 	flags.AddQueryFlagsToCmd(cmd)
 
+	return cmd
+}
+
+func CmdShowSkipDelayRollapp() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "skip-delay-rollapps",
+		Short: "Query skip delayed rollapp",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+			params := &types.QuerySkipDelayRollappRequest{}
+			res, err := queryClient.SkipDelayRollapp(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

@@ -14,11 +14,10 @@ const DefaultIndex uint64 = 1
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
 		DaoAddresses: DaoAddresses{
-			GlobalDao:        "",
-			MeidDao:          "",
-			DevOperator:      "",
-			AirdropAddress:   "",
-			ValidatorAddress: "",
+			GlobalDao:      "",
+			MeidDao:        "",
+			DevOperator:    "",
+			AirdropAddress: "",
 		},
 	}
 }
@@ -44,11 +43,6 @@ func (gs GenesisState) Validate() error {
 	_, err = sdk.AccAddressFromBech32(gs.DaoAddresses.AirdropAddress)
 	if err != nil {
 		return fmt.Errorf("invalid airdrop address %s", gs.DaoAddresses.AirdropAddress)
-	}
-
-	_, err = sdk.AccAddressFromBech32(gs.DaoAddresses.ValidatorAddress)
-	if err != nil {
-		return fmt.Errorf("invalid validator address %s", gs.DaoAddresses.ValidatorAddress)
 	}
 
 	return nil

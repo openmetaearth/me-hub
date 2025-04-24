@@ -76,8 +76,8 @@ type Params struct {
 	// during that period, any user could submit fraud proof
 	DisputePeriodInBlocks uint64 `protobuf:"varint,1,opt,name=dispute_period_in_blocks,json=disputePeriodInBlocks,proto3" json:"dispute_period_in_blocks,omitempty" yaml:"dispute_period_in_blocks"`
 	// deployer_whitelist is a list of the
-	// accounts that are allowed to create a rollapp and maximum number of rollapps.
-	// In the case of an empty list, there are no restrictions
+	// accounts that are allowed to create a rollapp and maximum number of
+	// rollapps. In the case of an empty list, there are no restrictions
 	DeployerWhitelist []DeployerParams `protobuf:"bytes,2,rep,name=deployer_whitelist,json=deployerWhitelist,proto3" json:"deployer_whitelist" yaml:"deployer_whitelist"`
 	RollappsEnabled   bool             `protobuf:"varint,3,opt,name=rollapps_enabled,json=rollappsEnabled,proto3" json:"rollapps_enabled,omitempty" yaml:"rollapps_enabled"`
 }

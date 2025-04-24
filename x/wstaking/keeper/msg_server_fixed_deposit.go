@@ -3,11 +3,12 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/st-chain/me-hub/app/params"
 	minttypes "github.com/st-chain/me-hub/x/wmint/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"strconv"
-	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,20 +39,9 @@ func (k MsgServer) GetFixedDepositInterest(cfg *types.FixedDepositCfg, principal
 
 func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDeposit) (*types.MsgDoFixedDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	//meid, ok := k.Keeper.GetMeid(ctx, msg.Account)
-	//if !ok {
-	//	return nil, types.ErrDoFixedWithDraw.Wrapf("only meid user can do fixed deposit (%s)", types.ErrMeidNotExists)
-	//}
-	//
-	//if meid.RegionId == strings.ToLower(types.ExperienceRegion) || meid.RegionName == types.ExperienceRegion {
-	//	return nil, types.ErrDoFixedWithDraw.Wrapf("experience region cannot do fixed deposit")
-	//}
-
-	//todo : mock
-	meid := types.Meid{
-		Account:  msg.Account,
-		RegionId: "me_earth",
+	regionId, err := k.MustGetKycRegionIdByAccount(ctx, msg.Account)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrDidNotExists, err.Error())
 	}
 
 	if !msg.Principal.Amount.IsPositive() {
@@ -73,7 +63,7 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 	startTime := ctx.BlockTime()
 	endTime := startTime.Add(duration)
 
-	config, ok := k.GetFixedDepositCfg(ctx, meid.RegionId, msg.Term)
+	config, ok := k.GetFixedDepositCfg(ctx, regionId, msg.Term)
 	if !ok {
 		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit, "get fixed deposit config error (%s)", types.ErrNoFixedDepositCountOfCfgFound)
 	}
@@ -93,9 +83,9 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 	}
 
 	//principal from user account to principal vault, interest from base vault to interest vault
-	region, found := k.GetRegion(ctx, meid.RegionId)
+	region, found := k.GetRegion(ctx, regionId)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit, "region id(%s) no exist", meid.RegionId)
+		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit, "region id(%s) no exist", regionId)
 	}
 	regionBaseAddr, err := sdk.AccAddressFromBech32(region.RegionTreasureAddr)
 	if err != nil {
@@ -106,52 +96,55 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit, "region interest account(%s) format error (%s)", region.DepositInterestAddr, err)
 	}
 
-	principalAddr := k.AuthKeeper.GetModuleAddress(types.FixedDepositPrincipalPool)
+	principalAddr := k.authKeeper.GetModuleAddress(types.FixedDepositPrincipalPool)
 	if principalAddr == nil {
 		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit, fmt.Sprintf("%s module account has not been set", types.FixedDepositPrincipalPool))
 	}
 
-	if coin := k.BankKeeper.GetBalance(ctx, accAddr, msg.Principal.Denom); coin.IsLT(msg.Principal) {
+	if coin := k.bankKeeper.GetBalance(ctx, accAddr, msg.Principal.Denom); coin.IsLT(msg.Principal) {
 		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit, "account %s balance(%s) less deposit coin(%s)", accAddr.String(), coin.String(), msg.Principal.String())
 	}
-	//if coin := k.bankKeeper.GetBalance(ctx, regionBaseAddr, interest.Denom); coin.IsLT(interest) {
-	//	return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit, "region account base address %s balance(%s) less interest coin(%s)", regionBaseAddr.String(), coin.String(), interest.String())
-	//}
 
-	totalRewardsPerBlockTemp := k.WMintKeeper.GetPerBlockMintCoinAmount(ctx)
+	totalRewardsPerBlockTemp := k.mintKeeper.GetPerBlockMintCoinAmount(ctx)
 	totalRewardsPerBlock := sdk.NewIntFromBigInt(&totalRewardsPerBlockTemp)
 	totalSupply := sdk.NewInt(types.CaclTotalSupply).MulRaw(100000000)
 	initAllocationFunds := sdk.NewInt(minttypes.TotalMintCoinsAmount)
 
 	deAmount := region.DelegateAmount
 
-	interestAmountDec := sdk.NewDecFromInt(deAmount).Mul(sdk.NewDecFromInt(region.RegionShare)).Mul(sdk.NewDecFromInt(totalRewardsPerBlock)).Quo(sdk.NewDecFromInt(totalSupply).Mul(sdk.NewDecFromInt(initAllocationFunds)))
+	interestAmountDec := sdk.NewDecFromInt(deAmount).Mul(sdk.NewDecFromInt(region.RegionShare)).Mul(sdk.NewDecFromInt(totalRewardsPerBlock)).
+		Quo(sdk.NewDecFromInt(totalSupply).Mul(sdk.NewDecFromInt(initAllocationFunds)))
 
-	remainingBalance := sdk.NewDecFromInt(k.BankKeeper.GetBalance(ctx, regionBaseAddr, interest.Denom).Amount).Sub(interestAmountDec.Add(region.DelegateInterest))
+	remainingBalance := sdk.NewDecFromInt(k.bankKeeper.GetBalance(ctx, regionBaseAddr, interest.Denom).Amount).Sub(interestAmountDec.Add(region.DelegateInterest))
 	if remainingBalance.Sub(sdk.NewDecFromInt(interest.Amount)).LT(sdk.ZeroDec()) {
 		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit,
 			"region account base address %s balance(%s) less interest coin(%s)",
 			regionBaseAddr.String(),
-			k.BankKeeper.GetBalance(ctx, regionBaseAddr, interest.Denom).String(),
+			k.bankKeeper.GetBalance(ctx, regionBaseAddr, interest.Denom).String(),
 			interest.String())
 	}
 
 	//1. send principal from user account principal module account
-	err = k.BankKeeper.SendCoinsFromAccountToModule(
+	err = k.bankKeeper.Extend().SendCoinsFromAccountToModuleWithTag(
 		ctx,
 		accAddr,
 		types.FixedDepositPrincipalPool,
-		sdk.NewCoins(msg.Principal))
+		sdk.NewCoins(msg.Principal),
+		fmt.Sprintf("DoFixedDeposit_SendPrincipal_%d", msg.Term),
+	)
 	if err != nil {
 		return nil, types.ErrDoFixedDeposit.Wrapf("send coin from region base account(%s) to principal module account(%s) error (%s)",
 			regionBaseAddr.String(), types.FixedDepositPrincipalPool, err)
 	}
+
 	//2. send interest from region base account to region interest account
-	err = k.BankKeeper.SendCoins(
+	err = k.bankKeeper.Extend().SendCoinsWithTag(
 		ctx,
 		regionBaseAddr,
 		regionInterestAddr,
-		sdk.NewCoins(interest))
+		sdk.NewCoins(interest),
+		fmt.Sprintf("DoFixedDeposit_SendInterestFromRegionBaseAccountToRegionInterestAccount_%d", msg.Term),
+	)
 	if err != nil {
 		return nil, types.ErrDoFixedDeposit.Wrapf("send coin from account(%s) to interest account(%s) error (%s)",
 			accAddr.String(), regionInterestAddr.String(), err)
@@ -175,6 +168,9 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 			region.RegionId, msg.Term, err)
 	}
 
+	region.FixedDepositAmount = region.FixedDepositAmount.Add(fixedDeposit.Principal.Amount)
+	k.SetRegion(ctx, region)
+
 	amount, found := k.GetFixedDepositTotalAmount(ctx)
 	if !found {
 		k.SetFixedDepositTotalAmount(ctx, types.FixedDepositTotal{Amount: fixedDeposit.Principal})
@@ -182,9 +178,9 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 		k.SetFixedDepositTotalAmount(ctx, types.FixedDepositTotal{Amount: amount.Amount.Add(fixedDeposit.Principal)})
 	}
 
-	event := sdk.NewEvent(types.EventTypeDoFixedDeposit,
+	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeDoFixedDeposit,
 		sdk.NewAttribute(types.AttributeKeyId, fmt.Sprintf("%d", id)),
-		sdk.NewAttribute(types.AttributeKeyRegionId, meid.RegionId),
+		sdk.NewAttribute(types.AttributeKeyRegionId, regionId),
 		sdk.NewAttribute(types.AttributeKeyAccount, msg.Account),
 		sdk.NewAttribute(types.AttributeKeyPrincipalAddr, principalAddr.String()),
 		sdk.NewAttribute(types.AttributeKeyPrincipal, msg.Principal.String()),
@@ -195,25 +191,18 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 		sdk.NewAttribute(types.AttributeKeyEndTime, fixedDeposit.EndTime.String()),
 		sdk.NewAttribute(types.AttributeKeyRate, fixedDeposit.Rate.String()),
 		sdk.NewAttribute(types.AttributeKeyTerm, strconv.FormatInt(fixedDeposit.Term, 10)),
-	)
-	ctx.EventManager().EmitEvent(event)
+	))
 	return &types.MsgDoFixedDepositResponse{Id: id}, nil
 }
 
-func (k MsgServer) DoFixedWithdraw(goCtx context.Context, msg *types.MsgDoFixedWithdraw) (*types.MsgDoFixedWithdrawResponse, error) {
+func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWithdrawFixedDeposit) (*types.MsgWithdrawFixedDepositResponse, error) {
 	var interest sdk.Coin
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	log := ctx.Logger()
 
-	//meid, ok := k.Keeper.GetMeid(ctx, msg.Account)
-	//if !ok {
-	//	return nil, types.ErrDoFixedWithDraw.Wrapf("only meid user can withdraw fixed deposit (%s)", types.ErrMeidNotExists)
-	//}
-
-	//todo : mock
-	meid := types.Meid{
-		Account:  msg.Account,
-		RegionId: "me_earth",
+	regionId, err := k.MustGetKycRegionIdByAccount(ctx, msg.Account)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrDoFixedWithDraw, err.Error())
 	}
 
 	fixedDeposit, isFound := k.GetFixedDeposit(ctx, msg.Id)
@@ -233,27 +222,27 @@ func (k MsgServer) DoFixedWithdraw(goCtx context.Context, msg *types.MsgDoFixedW
 
 	//expired: principal from principal vault to user account addr; interest from interest vault to user account
 	//no expired: principal from principal vault to user account addr; interest from interest vault to base vault
-	region, found := k.GetRegion(ctx, meid.RegionId)
+	region, found := k.GetRegion(ctx, regionId)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit, "region id(%s) no exist", meid.RegionId)
+		return nil, sdkerrors.Wrapf(types.ErrDoFixedWithDraw, "region id(%s) no exist", regionId)
 	}
 	regionInterestAddr, err := sdk.AccAddressFromBech32(region.DepositInterestAddr)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit, "region interest account(%s) format error (%s)", region.DepositInterestAddr, err)
+		return nil, sdkerrors.Wrapf(types.ErrDoFixedWithDraw, "region interest account(%s) format error (%s)", region.DepositInterestAddr, err)
 	}
-	principalAddr := k.AuthKeeper.GetModuleAddress(types.FixedDepositPrincipalPool)
+	principalAddr := k.authKeeper.GetModuleAddress(types.FixedDepositPrincipalPool)
 	if principalAddr == nil {
-		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit, fmt.Sprintf("%s module account has not been set", types.FixedDepositPrincipalPool))
+		return nil, sdkerrors.Wrapf(types.ErrDoFixedWithDraw, fmt.Sprintf("%s module account has not been set", types.FixedDepositPrincipalPool))
 	}
 
-	if coin := k.BankKeeper.GetBalance(ctx, principalAddr, fixedDeposit.Principal.Denom); coin.IsLT(fixedDeposit.Principal) {
-		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit,
+	if coin := k.bankKeeper.GetBalance(ctx, principalAddr, fixedDeposit.Principal.Denom); coin.IsLT(fixedDeposit.Principal) {
+		return nil, sdkerrors.Wrapf(types.ErrDoFixedWithDraw,
 			"principal account %s balance(%s) less principal coin(%s)",
 			principalAddr.String(),
 			coin.String(),
 			fixedDeposit.Principal.String())
 	}
-	if coin := k.BankKeeper.GetBalance(ctx, regionInterestAddr, fixedDeposit.Interest.Denom); coin.IsLT(fixedDeposit.Interest) {
+	if coin := k.bankKeeper.GetBalance(ctx, regionInterestAddr, fixedDeposit.Interest.Denom); coin.IsLT(fixedDeposit.Interest) {
 		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit,
 			"region interest account %s balance(%s) less interest coin(%s)",
 			regionInterestAddr.String(),
@@ -264,19 +253,23 @@ func (k MsgServer) DoFixedWithdraw(goCtx context.Context, msg *types.MsgDoFixedW
 	expired := fixedDeposit.EndTime.Unix() <= ctx.BlockTime().Unix()
 	if expired {
 		//1. deposit period has expired, send the principal from principal module account to user account
-		err = k.BankKeeper.SendCoinsFromModuleToAccount(ctx,
+		err = k.bankKeeper.Extend().SendCoinsFromModuleToAccountWithTag(ctx,
 			types.FixedDepositPrincipalPool,
 			accAddr,
-			sdk.NewCoins(fixedDeposit.Principal))
+			sdk.NewCoins(fixedDeposit.Principal),
+			fmt.Sprintf("WithdrawFixedDeposit_SendPrincipalFromPrincipalModuleAccountToUserAccount_%d", fixedDeposit.Term),
+		)
 		if err != nil {
 			return nil, types.ErrDoFixedWithDraw.Wrapf("send coin from principal vault to account error (%s)", err)
 		}
 
 		//2. deposit period has expired, send the interest from interest account to user account
-		err = k.BankKeeper.SendCoins(ctx,
+		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
 			regionInterestAddr,
 			accAddr,
-			sdk.NewCoins(fixedDeposit.Interest))
+			sdk.NewCoins(fixedDeposit.Interest),
+			fmt.Sprintf("WithdrawFixedDeposit_SendInterestFromInterestAccountToUserAccount_%d", fixedDeposit.Term),
+		)
 		if err != nil {
 			return nil, types.ErrDoFixedWithDraw.Wrapf("send coin from interest vault to account error (%s)", err)
 		}
@@ -287,7 +280,7 @@ func (k MsgServer) DoFixedWithdraw(goCtx context.Context, msg *types.MsgDoFixedW
 			sdk.NewEvent(types.EventTypeDoFixedWithDraw,
 				sdk.NewAttribute(types.AttributeKeyId, fmt.Sprintf("%d", fixedDeposit.Id)),
 				sdk.NewAttribute(types.AttributeKeyExpired, "expired"),
-				sdk.NewAttribute(types.AttributeKeyRegionId, meid.RegionId),
+				sdk.NewAttribute(types.AttributeKeyRegionId, regionId),
 				sdk.NewAttribute(types.AttributeKeyAccount, msg.Account),
 				sdk.NewAttribute(types.AttributeKeyPrincipalAddr, principalAddr.String()),
 				sdk.NewAttribute(types.AttributeKeyPrincipal, fixedDeposit.Principal.String()),
@@ -302,13 +295,14 @@ func (k MsgServer) DoFixedWithdraw(goCtx context.Context, msg *types.MsgDoFixedW
 
 		err = k.Keeper.DecreaseFixedDepositCountOfCfg(ctx, region.RegionId, fixedDeposit.Term)
 		if err != nil {
-			return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit,
+			return nil, sdkerrors.Wrapf(types.ErrDoFixedWithDraw,
 				"decrease fixed deposit count under the current config error, region(%s) term (%s) error(%s)",
 				region.RegionId, fixedDeposit.Term, err)
 		}
 	} else {
 		return nil, types.ErrDoFixedWithDraw.Wrapf("withdraw fixed deposit error (%s)", types.ErrFixedDepositNotExpired)
 	}
+
 	k.RemoveFixedDeposit(ctx, msg.Id)
 
 	amount, found := k.GetFixedDepositTotalAmount(ctx)
@@ -316,7 +310,13 @@ func (k MsgServer) DoFixedWithdraw(goCtx context.Context, msg *types.MsgDoFixedW
 		k.SetFixedDepositTotalAmount(ctx, types.FixedDepositTotal{Amount: amount.Amount.Sub(fixedDeposit.Principal)})
 	}
 
-	log.Info("me-chain do fixed withdraw",
+	region.FixedDepositAmount = region.FixedDepositAmount.Sub(fixedDeposit.Principal.Amount)
+	if region.FixedDepositAmount.IsNegative() {
+		return &types.MsgWithdrawFixedDepositResponse{}, sdkerrors.Wrapf(types.ErrDoFixedWithDraw, "region fixed deposit amount(%s) less than zero", region.FixedDepositAmount.String())
+	}
+	k.SetRegion(ctx, region)
+
+	log.Info("withdraw fixed deposit",
 		"period expired:", expired,
 		", account:", fixedDeposit.Account,
 		", principal:", fixedDeposit.Principal,
@@ -327,7 +327,7 @@ func (k MsgServer) DoFixedWithdraw(goCtx context.Context, msg *types.MsgDoFixedW
 		", rate", fixedDeposit.Rate.String(),
 	)
 
-	return &types.MsgDoFixedWithdrawResponse{
+	return &types.MsgWithdrawFixedDepositResponse{
 		Principal: fixedDeposit.Principal,
 		Interest:  fixedDeposit.Interest,
 		Term:      fixedDeposit.Term,

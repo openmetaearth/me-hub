@@ -11,4 +11,5 @@ var (
 	ErrCreatorNotDao              = sdkerrors.Register(ModuleName, 1, "creator is not dao error")
 	ErrLastAddressEqualNewAddress = sdkerrors.Register(ModuleName, 2, "last address euqal new address error")
 	ErrNotFound                   = sdkerrors.Register(ModuleName, 3, "not found")
+	ErrSetKycIssuer               = sdkerrors.Register(ModuleName, 4, "set kyc issuer")
 )

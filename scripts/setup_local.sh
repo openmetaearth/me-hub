@@ -1,5 +1,7 @@
 #!/bin/sh
+
 set -x
+
 # Common commands
 genesis_config_cmds="$(dirname "$0")/src/genesis_config_commands.sh"
 
@@ -19,7 +21,10 @@ APP_CONFIG_FILE="$CONFIG_DIRECTORY/app.toml"
 GENESIS_FILE="$CONFIG_DIRECTORY/genesis.json"
 CHAIN_ID=${CHAIN_ID:-"mechain_100-1"}
 MONIKER_NAME=${MONIKER_NAME:-"local"}
+
 KEY_NAME=${KEY_NAME:-"hub-user"}
+
+
 MNEMONIC="curtain hat remain song receive tower stereo hope frog cheap brown plate raccoon post reflect wool sail salmon game salon group glimpse adult shift"
 
 # Setting non-default ports to avoid port conflicts when running local rollapp
@@ -33,6 +38,7 @@ JSONRPC_WS_ADDRESS=${JSONRPC_WS_ADDRESS:-"0.0.0.0:9546"}
 
 TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000umec"} #1M MEC (1e6mec = 1e6 * 1e18 = 1e24umec )
 STAKING_AMOUNT=${STAKING_AMOUNT:-"10000000000000000umec"} #67% is staked (inflation goal)
+
 
 # Validate mechain binary exists
 export PATH=$PATH:$HOME/go/bin
@@ -104,6 +110,7 @@ if [ ! "$answer" != "${answer#[Nn]}" ] ;then
   med add-genesis-account $(med keys show pools --keyring-backend test -a) 1000000000000000000000000umec,10000000000uatom,500000000000uusd
   # Give some uatom to the local-user as well
   med add-genesis-account $(med keys show user --keyring-backend test -a) 1000000000000000000000umec,10000000000uatom
+
 fi
 
 echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test
@@ -116,6 +123,7 @@ jq '.app_state["dao"]["dao_addresses"]["meid_dao"] = "me139mq752delxv78jvtmwxhas
 jq '.app_state["dao"]["dao_addresses"]["dev_operator"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 jq '.app_state["dao"]["dao_addresses"]["airdrop_address"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 
+
 validator_address=$(med keys show "$KEY_NAME" -a --keyring-backend test)
 
 med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test --region-id me_earth --validator-address "$validator_address"
@@ -125,3 +133,4 @@ set_authorised_deployer_account "$(med keys show "$KEY_NAME" -a --keyring-backen
 
 med validate-genesis
 med start
+

@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
@@ -48,7 +49,7 @@ func (k Keeper) CreateRegionAccount(ctx sdk.Context, accountType types.REGION_AC
 	regionAcc := k.GetRegionAccount(ctx, accountType, regionId)
 	if regionAcc == nil {
 		vaultAddr := types.GetRegionAccountAddr(accountType, regionId)
-		k.AuthKeeper.SetAccount(ctx, k.AuthKeeper.NewAccountWithAddress(ctx, vaultAddr))
+		k.authKeeper.SetAccount(ctx, k.authKeeper.NewAccountWithAddress(ctx, vaultAddr))
 		return vaultAddr
 	}
 	return regionAcc.GetAddress()
@@ -56,7 +57,7 @@ func (k Keeper) CreateRegionAccount(ctx sdk.Context, accountType types.REGION_AC
 
 func (k Keeper) GetRegionAccount(ctx sdk.Context, accountType types.REGION_ACCOUNT_TYPE, regionId string) authtypes.AccountI {
 	vaultAddr := types.GetRegionAccountAddr(accountType, regionId)
-	return k.AuthKeeper.GetAccount(ctx, vaultAddr)
+	return k.authKeeper.GetAccount(ctx, vaultAddr)
 }
 
 // GetAllRegion returns all region
@@ -71,4 +72,28 @@ func (k Keeper) GetAllRegionI(ctx sdk.Context) (list []types.RegionI) {
 		list = append(list, &val)
 	}
 	return
+}
+
+func (k Keeper) BondRegion(ctx sdk.Context, validator stakingtypes.Validator, tokens sdk.Int, changeOperator bool) {
+	region, found := k.GetRegion(ctx, validator.Description.RegionID)
+	if !found {
+		return
+	}
+	if changeOperator {
+		region.OperatorAddress = validator.OperatorAddress
+		k.groupKeeper.UpdateGroupAdmin(ctx, validator.Description.RegionID, validator.OwnerAddress)
+	}
+	region.RegionShare = tokens
+	k.SetRegion(ctx, region)
+}
+
+func (k Keeper) UnBondRegion(ctx sdk.Context, regionId string) {
+	region, found := k.GetRegion(ctx, regionId)
+	if !found {
+		return
+	}
+	region.RegionShare = sdk.ZeroInt()
+	region.OperatorAddress = ""
+	k.SetRegion(ctx, region)
+	k.groupKeeper.UpdateGroupAdmin(ctx, regionId, "")
 }

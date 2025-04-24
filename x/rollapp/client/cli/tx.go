@@ -26,5 +26,6 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdRegisterRollappInitInfo())
 	cmd.AddCommand(CmdChallengeDaFraud())
 	cmd.AddCommand(CmdSubmitDaFraudVerifyData())
+	cmd.AddCommand(CmdSkipDelayRollapp())
 	return cmd
 }

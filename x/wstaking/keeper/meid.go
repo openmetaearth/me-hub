@@ -66,15 +66,10 @@ func (k Keeper) GetMeidByRegion(ctx sdk.Context, regionId string) (list []types.
 	return
 }
 
-func (k Keeper) GetValOwnerAddress(ctx sdk.Context, meidAddress string) (string, error) {
-	meid, ok := k.GetMeid(ctx, meidAddress)
+func (k Keeper) GetValOwnerAddress(ctx sdk.Context, regionId string) (string, error) {
+	region, ok := k.GetRegion(ctx, regionId)
 	if !ok {
-		return "", sdkerrors.Wrapf(types.ErrMeidNotExists, "meid with account %s not exist", meidAddress)
-	}
-
-	region, ok := k.GetRegion(ctx, meid.RegionId)
-	if !ok {
-		return "", sdkerrors.Wrapf(types.ErrRegionNotExist, "region(%s) not found", meid.RegionId)
+		return "", sdkerrors.Wrapf(types.ErrRegionNotExist, "region(%s) not found", regionId)
 	}
 
 	valAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)

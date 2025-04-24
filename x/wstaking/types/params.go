@@ -1,15 +1,17 @@
 package types
 
 import (
-	"cosmossdk.io/math"
 	"errors"
 	"fmt"
+
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/app/params"
 )
 
 const (
 	MinDelegateAmount = "0.01"
+	GlobalRegion      = "ME_EARTH"
 )
 
 func CheckMinDelegate(amount math.Int) error {
@@ -17,7 +19,7 @@ func CheckMinDelegate(amount math.Int) error {
 	delAmount := sdk.NewDecFromInt(amount).Mul(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
 	minAmount, _ := sdk.NewDecFromStr(MinDelegateAmount)
 	if delAmount.LT(minAmount) {
-		errStr := fmt.Sprintf("minimum delegate amount is %s,not less than this value.input value = %s",
+		errStr := fmt.Sprintf("minimum delegate amount is %s, delegate value is %s",
 			MinDelegateAmount, amount.String())
 		return errors.New(errStr)
 	}

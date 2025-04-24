@@ -19,7 +19,7 @@ import (
 func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.MsgStakeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.StakerAddress) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.StakerAddress) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
@@ -52,7 +52,7 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 		return nil, sdkerrors.Wrapf(types.ErrHooks, "before stake:%+v", err)
 	}
 
-	region, found := k.Keeper.GetRegion(ctx, validator.Description.RegionId)
+	region, found := k.Keeper.GetRegion(ctx, validator.Description.RegionID)
 	if found {
 		region.RegionShare = region.RegionShare.Add(msg.Amount.Amount)
 		k.Keeper.SetRegion(ctx, region)
@@ -60,7 +60,7 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 	}
 
 	// NOTE: source funds are always unbonded
-	newShares, err := k.Keeper.Stake(ctx, sdk.MustAccAddressFromBech32(msg.StakerAddress), msg.Amount.Amount, stakingtypes.Unbonded, validator, true)
+	newShares, err := k.Keeper.Stake(ctx, sdk.MustAccAddressFromBech32(msg.StakerAddress), msg.Amount.Amount, stakingtypes.Unbonded, validator, true, "stake_"+validator.Description.RegionID)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyNewShares, newShares.String()),
-			sdk.NewAttribute(types.AttributeKeyRegionId, validator.Description.RegionId),
+			sdk.NewAttribute(types.AttributeKeyRegionId, validator.Description.RegionID),
 		),
 	})
 
@@ -98,7 +98,7 @@ func (k MsgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 		return nil, err
 	}
 
-	if !k.DaoKeeper.IsGlobalDao(ctx, msg.StakerAddress) {
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.StakerAddress) {
 		return nil, types.ErrCheckGlobalDao
 	}
 
@@ -107,9 +107,7 @@ func (k MsgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 		return nil, err
 	}
 
-	shares, err := k.ValidateUnbondAmount(
-		ctx, stakerAddress, addr, msg.Amount.Amount,
-	)
+	shares, err := k.ValidateUnbondAmount(ctx, stakerAddress, addr, msg.Amount.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +143,7 @@ func (k MsgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 			types.EventTypeUnstake,
 			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
+			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.UTC().Format(time.RFC3339)),
 		),
 	})
 
