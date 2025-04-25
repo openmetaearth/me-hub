@@ -18,6 +18,7 @@ func DefaultGenesis() *GenesisState {
 			MeidDao:        "",
 			DevOperator:    "",
 			AirdropAddress: "",
+			ValidatorAddress: "",
 		},
 	}
 }
@@ -45,5 +46,9 @@ func (gs GenesisState) Validate() error {
 		return fmt.Errorf("invalid airdrop address %s", gs.DaoAddresses.AirdropAddress)
 	}
 
+	_, err = sdk.AccAddressFromBech32(gs.DaoAddresses.ValidatorAddress)
+	if err != nil {
+		return fmt.Errorf("invalid validator address %s", gs.DaoAddresses.ValidatorAddress)
+	}
 	return nil
 }

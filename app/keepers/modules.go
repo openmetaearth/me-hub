@@ -58,9 +58,9 @@ import (
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	"github.com/st-chain/me-hub/x/did"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
-	rollupkeepertypes "github.com/st-chain/me-hub/x/rollup/types"
 	"github.com/st-chain/me-hub/x/kyc"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
+	rollupkeepertypes "github.com/st-chain/me-hub/x/rollup/types"
 	"github.com/st-chain/me-hub/x/wbank"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	wdistr "github.com/st-chain/me-hub/x/wdistri"
@@ -78,6 +78,7 @@ import (
 	groupmodule "github.com/st-chain/me-hub/x/megroup"
 	groupTypes "github.com/st-chain/me-hub/x/megroup/types"
 	rollappmodule "github.com/st-chain/me-hub/x/rollapp"
+	rollupmodule "github.com/st-chain/me-hub/x/rollup"
 	sequencermodule "github.com/st-chain/me-hub/x/sequencer"
 
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"

@@ -58,5 +58,12 @@ func (msg *MsgUpdateDao) ValidateBasic() error {
 			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.AirdropAddress)
 		}
 	}
+
+	if len(msg.DaoAddresses.ValidatorAddress) > 0 {
+		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.ValidatorAddress); err != nil {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.ValidatorAddress)
+		}
+	}
+
 	return nil
 }

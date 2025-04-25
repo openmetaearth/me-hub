@@ -8,7 +8,7 @@ import "dymensionxyz/dymension/rollapp/rollapp.proto";
 import "dymensionxyz/dymension/rollapp/state_info.proto";
 import "dymensionxyz/dymension/rollapp/blockDA_L2.proto";
 import "dymensionxyz/dymension/rollapp/da_fraud.proto";
-import "dymensionxyz/dymension/rollup/query.proto";
+import "metaearth/rollup/query.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
@@ -74,7 +74,7 @@ service Query {
        option (google.api.http).get =
       "/dymensionxyz/dymension/rollapp/get_da_fraud_challenge_info/{creator}";
   }
-  rpc QueryElectionResult(rollup.QueryElectionRequest) returns(rollup.QueryElectionResponse){}
+  rpc QueryElectionResult(metaearth.rollup.QueryElectionRequest) returns(metaearth.rollup.QueryElectionResponse){}
 
 }
 

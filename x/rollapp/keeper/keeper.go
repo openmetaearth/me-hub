@@ -22,16 +22,12 @@ type Keeper struct {
 	ibcClientKeeper types.IBCClientKeeper
 	channelKeeper   types.ChannelKeeper
 
-	rollupKeeper    types.RollupKeeper
+	rollupKeeper types.RollupKeeper
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 
 	daoKeeper             types.DaoKeeper
 	mapRollappAssociateDa map[string][]byte
-
-
-	daoKeeper       types.DaoKeeper
-
 }
 
 func NewKeeper(
@@ -56,7 +52,7 @@ func NewKeeper(
 		channelKeeper:         channelKeeper,
 		ibcClientKeeper:       ibcclientKeeper,
 		mapRollappAssociateDa: nil,
-		daoKeeper:       daoKeeper,
+		daoKeeper:             daoKeeper,
 	}
 	k.SetFinalizePendingFn(k.finalizePendingState)
 	return k
@@ -85,7 +81,6 @@ func (k *Keeper) GetHooks() types.MultiRollappHooks {
 	return k.hooks
 }
 
-
 func (k *Keeper) SetRollupKeeper(rollupKeeper types.RollupKeeper) {
 	k.rollupKeeper = rollupKeeper
 }
@@ -93,4 +88,3 @@ func (k *Keeper) SetRollupKeeper(rollupKeeper types.RollupKeeper) {
 func (k *Keeper) SetDaoKeeper(dKeeper types.DaoKeeper) {
 	k.daoKeeper = dKeeper
 }
-
