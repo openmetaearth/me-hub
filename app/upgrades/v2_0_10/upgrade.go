@@ -42,6 +42,7 @@ import (
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	groupkeeper "github.com/st-chain/me-hub/x/megroup/keeper"
 	megrouptypes "github.com/st-chain/me-hub/x/megroup/types"
+	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencertypes "github.com/st-chain/me-hub/x/sequencer/types"
 	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
@@ -81,7 +82,7 @@ func CreateUpgradeHandler(
 		setNewModuleParams(ctx, keepers)
 
 		ctx.Logger().Info("3.migrate dao module")
-		MigrateDao(ctx, keepers.AccountKeeper, keepers.DaoKeeper)
+		MigrateDao(ctx, keepers.AccountKeeper, keepers.DaoKeeper, keepers.RollappKeeper)
 
 		ctx.Logger().Info("4.migrate validators")
 		migrateValidators(ctx, keepers.StakingKeeper)
@@ -183,9 +184,8 @@ func setNewModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
 	evmParams := evmtypes.DefaultParams()
 	keepers.EvmKeeper.SetParams(ctx, evmParams)
 
-	// overwrite params for rollapp module due to proto change
-	rollappParams := rollapptypes.DefaultParams()
-	keepers.RollappKeeper.SetParams(ctx, rollappParams)
+	//rollappParams := rollapptypes.DefaultParams()
+	//keepers.RollappKeeper.SetParams(ctx, rollappParams)
 
 	sequencerParams := sequencertypes.DefaultParams()
 	keepers.SequencerKeeper.SetParams(ctx, sequencerParams)
@@ -227,7 +227,7 @@ func setNewModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
 	}
 }
 
-func MigrateDao(ctx sdk.Context, ak authkeeper.AccountKeeper, dk daokeeper.Keeper) {
+func MigrateDao(ctx sdk.Context, ak authkeeper.AccountKeeper, dk daokeeper.Keeper, rk *rollappkeeper.Keeper) {
 	daoAddresses := daotypes.DaoAddresses{
 		GlobalDao:      ak.GetAccountAddressByID(ctx, 0),
 		MeidDao:        ak.GetAccountAddressByID(ctx, 1),
@@ -235,6 +235,14 @@ func MigrateDao(ctx sdk.Context, ak authkeeper.AccountKeeper, dk daokeeper.Keepe
 		AirdropAddress: ak.GetAccountAddressByID(ctx, 3),
 	}
 	dk.SetDaoAddresses(ctx, daoAddresses)
+
+	rollappParams := rollapptypes.DefaultParams()
+	rollappParams.DisputePeriodInBlocks = 50
+	rollappParams.DeployerWhitelist = []rollapptypes.DeployerParams{
+		{Address: daoAddresses.GlobalDao},
+		{Address: daoAddresses.MeidDao},
+	}
+	rk.SetParams(ctx, rollappParams)
 }
 
 func CheckDao(ctx sdk.Context, ak authkeeper.AccountKeeper, dk daokeeper.Keeper) {

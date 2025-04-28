@@ -370,7 +370,7 @@ func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router) {
 	}
 
 	staticServer := http.FileServer(http.FS(staticFS))
-	rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", staticServer))
+	rtr.PathPrefix("/").Handler(http.StripPrefix("/", staticServer))
 }
 
 // SimulationManager implements the SimulationApp interface

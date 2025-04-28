@@ -59,3 +59,19 @@ func TestReadNft(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, mockData, result)
 }
+
+func TestReadNftFromFile(t *testing.T) {
+	filePath := "./configs/nft.json"
+
+	reader := RealNftReader{}
+	result, err := reader.ReadNft(filePath)
+	require.NoError(t, err)
+	//t.Logf("Read NFT data: %+v", result)
+	for class, classUri := range result {
+		fmt.Printf("ClassId: %s, ClassURI: %s, ClassURIHash: %s\n", class, classUri.ClassURI, classUri.ClassURIHash)
+		for nft, nftUri := range classUri.NftData {
+			fmt.Printf(" NftId: %s, NftURI: %s, NftURIHash: %s\n", nft, nftUri.URI, nftUri.URIHash)
+		}
+	}
+
+}

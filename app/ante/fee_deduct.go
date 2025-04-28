@@ -17,9 +17,11 @@ import (
 )
 
 const (
-	gasEstimationDeductFeeDecorator = 50_000
+	gasEstimationDeductFeeDecorator = 10_000
 	priorityScalingFactor           = 100_000_000
 )
+
+//var minimumFee = sdk.NewCoin(params.BaseDenom, sdk.NewInt(10000))
 
 // DeductFeeDecorator deducts fees from the first signer of the tx
 // If the first signer does not have the funds to pay for the fees, return with InsufficientFunds error
@@ -355,6 +357,10 @@ func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 				return nil, 0, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeCoins, requiredFees)
 			}
 		}
+
+		//if feeCoins[0].IsLT(minimumFee) {
+		//	return nil, 0, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "fee must greater than %s: %s", minimumFee.String(), feeCoins.String())
+		//}
 	}
 
 	priority := getTxPriorityByFee(feeCoins)
