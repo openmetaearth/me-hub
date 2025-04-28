@@ -294,6 +294,16 @@ func migrateKycModule(ctx sdk.Context, kycKeeper *kyckeeper.Keeper, path string)
 		}
 		kycKeeper.SetDID(ctx, sdk.MustAccAddressFromBech32(issuer.Address), issuer.Did)
 		kycKeeper.SetDidInfo(ctx, issuer.Did, issuer)
+
+		vc := didtypes.Credential{
+			Did:  issuer.Did,
+			Sid:  kyctypes.ModuleName,
+			Hash: "",
+			Uri:  "",
+			Data: []byte(issuer.RegionId),
+		}
+		kycKeeper.SetKYC(ctx, issuer.Did, vc)
+		kycKeeper.AddFilters(ctx, issuer.Did, [][]byte{[]byte(issuer.RegionId)}, vc)
 		issuerDids = append(issuerDids, issuer.Did)
 	}
 	service := didtypes.Service{
