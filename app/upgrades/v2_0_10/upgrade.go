@@ -548,9 +548,10 @@ func migrateRegionClassName(ctx sdk.Context, stakingKeeper *wstakingkeeper.Keepe
 		newClassId := regionObj.NftClassId[:len(regionObj.NftClassId)-1]
 		class, found := nftKeeper.GetClass(ctx, regionObj.NftClassId)
 		if found {
+			nftKeeper.DeleteClass(ctx, class.Id)
 			class.Id = newClassId
 			class.Uri = utils.CalculateUriHash(class.Uri)
-			err := nftKeeper.UpdateClass(ctx, class)
+			err := nftKeeper.SaveClass(ctx, class)
 			if err != nil {
 				panic(err)
 			}
