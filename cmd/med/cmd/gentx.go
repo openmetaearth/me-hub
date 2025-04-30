@@ -15,6 +15,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -168,13 +169,15 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 				return txBldr.PrintUnsignedTx(clientCtx, msg)
 			}
 
-			validator := msg.(*stakingtypes.MsgCreateValidator)
-			msgCreateRegion := wstakingtypes.NewMsgNewRegion(
-				clientCtx.GetFromAddress().String(),
-				wstakingtypes.MeEarthRegionId,
-				wstakingtypes.MeEarthRegionName,
-				validator.ValidatorAddress)
-			msgs = append(msgs, msgCreateRegion)
+			msgCreateValidator := msg.(*stakingtypes.MsgCreateValidator)
+			if msgCreateValidator.Description.RegionID != "" {
+				msgCreateRegion := wstakingtypes.NewMsgNewRegion(
+					clientCtx.GetFromAddress().String(),
+					msgCreateValidator.Description.RegionID,
+					strings.ToUpper(msgCreateValidator.Description.RegionID),
+					msgCreateValidator.ValidatorAddress)
+				msgs = append(msgs, msgCreateRegion)
+			}
 
 			// write the unsigned transaction to the buffer
 			w := bytes.NewBuffer([]byte{})

@@ -181,7 +181,7 @@ type MsgMintNFT struct {
 	Uri     string `protobuf:"bytes,3,opt,name=uri,proto3" json:"uri,omitempty"`
 	// uri_hash is a hash of the document pointed by uri
 	UriHash string `protobuf:"bytes,4,opt,name=uri_hash,json=uriHash,proto3" json:"uri_hash,omitempty"`
-	// sender is the address of the owner of nft
+	// creator is the address of the owner of nft class.
 	Creator  string `protobuf:"bytes,5,opt,name=creator,proto3" json:"creator,omitempty"`
 	Receiver string `protobuf:"bytes,6,opt,name=receiver,proto3" json:"receiver,omitempty"`
 }
