@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	gasEstimationDeductFeeDecorator = 10_000
+	gasEstimationDeductFeeDecorator = 100_000
 	priorityScalingFactor           = 100_000_000
 )
 
