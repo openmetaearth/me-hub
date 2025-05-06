@@ -6,29 +6,28 @@ import (
 	"encoding/json"
 	"fmt"
 	tmtypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/codec"
-	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
-	"io"
-	"os"
-	"path/filepath"
-	"strings"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
+	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 	"github.com/st-chain/me-hub/x/wstaking/client/cli"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 // GenTxCmd builds the application's gentx command.
@@ -163,12 +162,6 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 				return errors.Wrap(err, "failed to build create-validator message")
 			}
 			msgs = append(msgs, msg)
-
-			if key.GetType() == keyring.TypeOffline || key.GetType() == keyring.TypeMulti {
-				cmd.PrintErrln("Offline key passed in. Use `tx sign` command to sign.")
-				return txBldr.PrintUnsignedTx(clientCtx, msg)
-			}
-
 			msgCreateValidator := msg.(*stakingtypes.MsgCreateValidator)
 			if msgCreateValidator.Description.RegionID != "" {
 				msgCreateRegion := wstakingtypes.NewMsgNewRegion(
@@ -177,6 +170,11 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 					strings.ToUpper(msgCreateValidator.Description.RegionID),
 					msgCreateValidator.ValidatorAddress)
 				msgs = append(msgs, msgCreateRegion)
+			}
+
+			if key.GetType() == keyring.TypeOffline || key.GetType() == keyring.TypeMulti {
+				cmd.PrintErrln("Offline key passed in. Use `tx sign` command to sign.")
+				return txBldr.PrintUnsignedTx(clientCtx, msg)
 			}
 
 			// write the unsigned transaction to the buffer

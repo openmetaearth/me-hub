@@ -9,6 +9,7 @@ import (
 )
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
+	cdc.RegisterConcrete(&MsgUpdateValidator{}, "cosmos-sdk/MsgUpdateValidator", nil)
 	cdc.RegisterConcrete(&MsgStake{}, "cosmos-sdk/MsgStake", nil)
 	cdc.RegisterConcrete(&MsgUnstake{}, "cosmos-sdk/MsgUnstake", nil)
 	cdc.RegisterConcrete(&MsgNewRegion{}, "cosmos-sdk/MsgNewRegion", nil)
@@ -18,6 +19,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgUpdateValidator{},
 		&MsgStake{},
 		&MsgUnstake{},
 		&MsgNewRegion{},
