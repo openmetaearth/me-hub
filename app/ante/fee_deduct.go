@@ -140,12 +140,12 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			break
 		}
 
-		_, priority, err = dfd.txFeeChecker(ctx, tx)
-		if err != nil {
-			return ctx, err
-		}
-
 		if !freeGas {
+			_, priority, err = dfd.txFeeChecker(ctx, tx)
+			if err != nil {
+				return ctx, err
+			}
+
 			fee, err := sdk.ParseCoinsNormalized(feePending.String())
 			if err != nil {
 				return ctx, sdkerrors.Wrap(err, "")
