@@ -337,10 +337,10 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {
-		RegisterSwaggerAPI(clientCtx, apiSvr.Router)
+		//RegisterSwaggerAPI(clientCtx, apiSvr.Router)
+		docs.RegisterOpenAPIService(appparams.Name, apiSvr.Router)
 	}
 	HealthcheckRegister(clientCtx, apiSvr.Router)
-	docs.RegisterOpenAPIService(appparams.Name, apiSvr.Router)
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
@@ -370,7 +370,7 @@ func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router) {
 	}
 
 	staticServer := http.FileServer(http.FS(staticFS))
-	rtr.PathPrefix("/").Handler(http.StripPrefix("/", staticServer))
+	rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", staticServer))
 }
 
 // SimulationManager implements the SimulationApp interface
