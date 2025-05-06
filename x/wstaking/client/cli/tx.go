@@ -48,7 +48,7 @@ func NewTxCmd() *cobra.Command {
 		NewWithdrawRewardsCmd(),
 		NewCreateValidatorCmd(),
 		NewCreateExperienceNodeCmd(),
-		NewEditValidatorCmd(),
+		NewUpdateValidatorCmd(),
 		NewUnstakeCmd(),
 		NewStakeCmd(),
 		CmdNewRegion(),
@@ -166,19 +166,19 @@ func NewCreateExperienceNodeCmd() *cobra.Command {
 }
 
 // NewEditValidatorCmd returns a CLI command handler for creating a MsgEditValidator transaction.
-func NewEditValidatorCmd() *cobra.Command {
+func NewUpdateValidatorCmd() *cobra.Command {
 	bech32PrefixValAddr := sdk.GetConfig().GetBech32ValidatorAddrPrefix()
 	bech32PrefixAccAddr := sdk.GetConfig().GetBech32AccountAddrPrefix()
 
 	cmd := &cobra.Command{
-		Use:   "edit-validator [validator-operator-addr]",
+		Use:   "update-validator [validator-operator-addr]",
 		Args:  cobra.ExactArgs(1),
-		Short: "edit an existing validator info",
+		Short: "update an existing validator info",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Edit an existing validator info.
 
 Example:
-$ %s tx staking edit-validator %s1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm --owner-address %s14yeg99jxzk2hfc3kye97kunudw7cug2pm2t5xe --from mykey
+$ %s tx staking update-validator %s1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm --owner-address %s14yeg99jxzk2hfc3kye97kunudw7cug2pm2t5xe --from mykey
 `,
 				version.AppName, bech32PrefixValAddr, bech32PrefixAccAddr,
 			),
@@ -214,7 +214,7 @@ $ %s tx staking edit-validator %s1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm --owner
 
 			ownerAddress, _ := cmd.Flags().GetString(FlagOwnerAddress)
 
-			msg := &stakingtypes.MsgEditValidator{
+			msg := &types.MsgUpdateValidator{
 				Description:       description,
 				CommissionRate:    newRate,
 				StakerAddress:     staker.String(),

@@ -26,6 +26,7 @@ const (
 	EventTypeDelegateTransfer                 = "delegate_transfer"
 	EventTypeRemoveRegion                     = "remove_region"
 	EventInviteReward                         = "invite_reward"
+	EventTypeUpdateValidator                  = "update_validator"
 )
 
 const (

@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	gomath "math"
 
 	"cosmossdk.io/math"
@@ -401,7 +400,6 @@ func (msg *MsgWithdrawFromGlobalDaoFeePool) ValidateBasic() error {
 //nolint:interfacer
 func NewMsgDelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin, valStr string) *types.MsgDelegate {
 	valAddrStr := valAddr.String()
-	fmt.Println(valAddrStr)
 	//if valStr == NotBondedPoolName && valAddr.Empty() {
 	//	valAddrStr = valStr
 	//}
