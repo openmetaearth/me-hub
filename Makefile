@@ -170,7 +170,7 @@ proto-gen:
 
 proto-swagger-gen:
 	@echo "Downloading Protobuf dependencies"
-	@make proto-download-deps
+	@#make proto-download-deps
 	@echo "Generating Protobuf Swagger"
 	@$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
 
@@ -201,7 +201,7 @@ proto-download-deps:
 	git remote add origin "https://github.com/st-chain/ethermint.git" && \
 	git config core.sparseCheckout true && \
 	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
-	git fetch --depth=1 origin "$(DEPS_ETHERMINT_VERSION)" && \
+	git pull origin dev && \
 	git checkout FETCH_HEAD && \
 	rm -f ./proto/buf.* && \
 	mv ./proto/* ..

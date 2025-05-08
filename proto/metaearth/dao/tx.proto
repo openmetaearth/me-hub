@@ -12,6 +12,7 @@ option go_package = "github.com/st-chain/me-hub/x/dao/types";
 // Msg defines the Msg service.
 service Msg {
   rpc UpdateDao(MsgUpdateDao) returns (MsgUpdateDaoResponse);
+  rpc FreeGasAccount(MsgFreeGasAccount) returns (MsgFreeGasAccountResponse);
 }
 
 message MsgUpdateDao {
@@ -21,3 +22,16 @@ message MsgUpdateDao {
 }
 
 message MsgUpdateDaoResponse {}
+
+message MsgFreeGasAccount {
+  option (cosmos.msg.v1.signer) = "creator";
+  string creator = 1;
+  repeated FreeGasAccount accounts = 2 [(gogoproto.nullable) = false];
+}
+
+message FreeGasAccount {
+  string address = 1;
+  bool is_free = 2;
+}
+
+message MsgFreeGasAccountResponse {}

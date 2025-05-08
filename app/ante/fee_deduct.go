@@ -127,11 +127,13 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	feePayer := feeTx.FeePayer()
 	feeGranter := feeTx.FeeGranter()
 
-	if !simulate {
-		admin := dfd.daoKeeper.GetGlobalDao(ctx)
-		meidAdmin := dfd.daoKeeper.GetMeidDao(ctx)
-		freeGas := feePayer.String() == admin || feePayer.String() == meidAdmin
+	admin := dfd.daoKeeper.GetGlobalDao(ctx)
+	meidAdmin := dfd.daoKeeper.GetMeidDao(ctx)
+	isFreeGasAccount := dfd.daoKeeper.IsFreeGasAccount(ctx, feePayer.String())
+	isAdmin := feePayer.String() == admin || feePayer.String() == meidAdmin
+	freeGas := isFreeGasAccount || isAdmin
 
+	if !simulate {
 		for _, msg := range feeTx.GetMsgs() {
 			switch msg.(type) {
 			case *megrouptypes.MsgJoinGroup:

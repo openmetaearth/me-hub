@@ -4,6 +4,128 @@ info:
   description: ''
   version: 1.0.0
 paths:
+  /metaearth/dao/free_gas_accounts:
+    get:
+      operationId: FreeGasAccounts
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              addresses:
+                type: array
+                items:
+                  type: string
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
   /metaearth/dao/global_dao:
     get:
       summary: Queries a list of admin items.
@@ -1099,9 +1221,83 @@ paths:
           type: string
       tags:
         - Query
+  /metaearth/did/didInfo:
+    get:
+      operationId: DidInfo
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              info:
+                type: object
+                properties:
+                  did:
+                    type: string
+                    title: same as the MEID
+                  address:
+                    type: string
+                  pubkey:
+                    type: string
+                    title: >-
+                      public_key is mapped to the user address
+
+                      the issuer will use public_key to encrypt the user's
+                      certificate to ensure
+
+                      the privacy of the off-chain certificate
+                  status:
+                    type: string
+                    enum:
+                      - DID_STATUS_INACTIVE
+                      - DID_STATUS_ACTIVE
+                    default: DID_STATUS_INACTIVE
+                    title: did status enum
+                  regionId:
+                    type: string
+                  kycLevel:
+                    type: string
+                    enum:
+                      - KYC_LEVEL_NONE
+                      - KYC_LEVEL_ONE
+                      - KYC_LEVEL_TWO
+                      - KYC_LEVEL_THREE
+                      - KYC_LEVEL_FOUR
+                      - KYC_LEVEL_FIVE
+                    default: KYC_LEVEL_NONE
+                    title: kyc level enum
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: did
+          in: query
+          required: false
+          type: string
+      tags:
+        - Query
   /metaearth/did/did_infos:
     get:
-      summary: Queries a list of DidInfos items.
       operationId: DidInfos
       responses:
         '200':
@@ -1314,6 +1510,147 @@ paths:
           in: query
           required: false
           type: string
+      tags:
+        - Query
+  /metaearth/did/services:
+    get:
+      operationId: Services
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              services:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    sid:
+                      type: string
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    issuers:
+                      type: array
+                      items:
+                        type: string
+                    status:
+                      type: string
+                      enum:
+                        - SERVICE_STATUS_INACTIVE
+                        - SERVICE_STATUS_ACTIVE
+                      default: SERVICE_STATUS_INACTIVE
+                      title: credential service status enum
+                  title: credential service
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   /metaearth/kyc/DID:
@@ -3084,883 +3421,6 @@ paths:
                           "@type": "type.googleapis.com/google.protobuf.Duration",
                           "value": "1.212s"
                         }
-      tags:
-        - Query
-  /metaearth/streamer/active_streams:
-    get:
-      summary: ActiveStreams returns active streams
-      operationId: ActiveStreams
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              data:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                      format: uint64
-                      title: id is the unique ID of a Stream
-                    distribute_to:
-                      description: distribute_to is the distr_info.
-                      type: object
-                      properties:
-                        total_weight:
-                          type: string
-                        records:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              gauge_id:
-                                type: string
-                                format: uint64
-                              weight:
-                                type: string
-                    coins:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          denom:
-                            type: string
-                          amount:
-                            type: string
-                        description: >-
-                          Coin defines a token with a denomination and an
-                          amount.
-
-
-                          NOTE: The amount field is an Int which implements the
-                          custom method
-
-                          signatures required by gogoproto.
-                      title: >-
-                        coins is the total amount of coins that have been in the
-                        stream
-
-                        Can distribute multiple coin denoms
-                    start_time:
-                      type: string
-                      format: date-time
-                      title: start_time is the distribution start time
-                    distr_epoch_identifier:
-                      type: string
-                      title: >-
-                        distr_epoch_identifier is what epoch type di-stribution
-                        will be triggered
-
-                        by
-
-                        (day, week, etc.)
-                    num_epochs_paid_over:
-                      type: string
-                      format: uint64
-                      title: >-
-                        num_epochs_paid_over is the number of total epochs
-                        distribution will be
-
-                        completed over
-                    filled_epochs:
-                      type: string
-                      format: uint64
-                      title: >-
-                        filled_epochs is the number of epochs distribution has
-                        been completed on
-
-                        already
-                    distributed_coins:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          denom:
-                            type: string
-                          amount:
-                            type: string
-                        description: >-
-                          Coin defines a token with a denomination and an
-                          amount.
-
-
-                          NOTE: The amount field is an Int which implements the
-                          custom method
-
-                          signatures required by gogoproto.
-                      title: >-
-                        distributed_coins are coins that have been distributed
-                        already
-                  description: >-
-                    Stream is an object that stores and distributes yields to
-                    recipients who
-
-                    satisfy certain conditions. Currently streams support
-                    conditions around the
-
-                    duration for which a given denom is locked.
-                title: Active gagues only
-              pagination:
-                title: Pagination defines pagination for the response
-                type: object
-                properties:
-                  next_key:
-                    type: string
-                    format: byte
-                    description: |-
-                      next_key is the key to be passed to PageRequest.key to
-                      query the next page most efficiently. It will be empty if
-                      there are no more results.
-                  total:
-                    type: string
-                    format: uint64
-                    title: >-
-                      total is total number of results available if
-                      PageRequest.count_total
-
-                      was set, its value is undefined otherwise
-                description: >-
-                  PageResponse is to be embedded in gRPC response messages where
-                  the
-
-                  corresponding request message has used PageRequest.
-
-                   message SomeResponse {
-                           repeated Bar results = 1;
-                           PageResponse page = 2;
-                   }
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: pagination.key
-          description: |-
-            key is a value returned in PageResponse.next_key to begin
-            querying the next page most efficiently. Only one of offset or key
-            should be set.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: pagination.offset
-          description: >-
-            offset is a numeric offset that can be used when key is unavailable.
-
-            It is less efficient than using key. Only one of offset or key
-            should
-
-            be set.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.limit
-          description: >-
-            limit is the total number of results to be returned in the result
-            page.
-
-            If left empty it will default to a value to be set by each app.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.count_total
-          description: >-
-            count_total is set to true  to indicate that the result set should
-            include
-
-            a count of the total number of items available for pagination in
-            UIs.
-
-            count_total is only respected when offset is used. It is ignored
-            when key
-
-            is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
-      tags:
-        - Query
-  /metaearth/streamer/module_to_distribute_coins:
-    get:
-      summary: ModuleToDistributeCoins returns coins that are going to be distributed
-      operationId: ModuleToDistributeCoins
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              coins:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    denom:
-                      type: string
-                    amount:
-                      type: string
-                  description: >-
-                    Coin defines a token with a denomination and an amount.
-
-
-                    NOTE: The amount field is an Int which implements the custom
-                    method
-
-                    signatures required by gogoproto.
-                title: Coins that have yet to be distributed
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      tags:
-        - Query
-  /metaearth/streamer/stream_by_id/{id}:
-    get:
-      summary: StreamByID returns streams by their respective ID
-      operationId: StreamByID
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              stream:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    format: uint64
-                    title: id is the unique ID of a Stream
-                  distribute_to:
-                    description: distribute_to is the distr_info.
-                    type: object
-                    properties:
-                      total_weight:
-                        type: string
-                      records:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            gauge_id:
-                              type: string
-                              format: uint64
-                            weight:
-                              type: string
-                  coins:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        denom:
-                          type: string
-                        amount:
-                          type: string
-                      description: >-
-                        Coin defines a token with a denomination and an amount.
-
-
-                        NOTE: The amount field is an Int which implements the
-                        custom method
-
-                        signatures required by gogoproto.
-                    title: >-
-                      coins is the total amount of coins that have been in the
-                      stream
-
-                      Can distribute multiple coin denoms
-                  start_time:
-                    type: string
-                    format: date-time
-                    title: start_time is the distribution start time
-                  distr_epoch_identifier:
-                    type: string
-                    title: >-
-                      distr_epoch_identifier is what epoch type di-stribution
-                      will be triggered
-
-                      by
-
-                      (day, week, etc.)
-                  num_epochs_paid_over:
-                    type: string
-                    format: uint64
-                    title: >-
-                      num_epochs_paid_over is the number of total epochs
-                      distribution will be
-
-                      completed over
-                  filled_epochs:
-                    type: string
-                    format: uint64
-                    title: >-
-                      filled_epochs is the number of epochs distribution has
-                      been completed on
-
-                      already
-                  distributed_coins:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        denom:
-                          type: string
-                        amount:
-                          type: string
-                      description: >-
-                        Coin defines a token with a denomination and an amount.
-
-
-                        NOTE: The amount field is an Int which implements the
-                        custom method
-
-                        signatures required by gogoproto.
-                    title: >-
-                      distributed_coins are coins that have been distributed
-                      already
-                description: >-
-                  Stream is an object that stores and distributes yields to
-                  recipients who
-
-                  satisfy certain conditions. Currently streams support
-                  conditions around the
-
-                  duration for which a given denom is locked.
-                title: Stream that corresponds to provided gague ID
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: id
-          description: Gague ID being queried
-          in: path
-          required: true
-          type: string
-          format: uint64
-      tags:
-        - Query
-  /metaearth/streamer/streams:
-    get:
-      summary: Streams returns both upcoming and active streams
-      operationId: Streams
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              data:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                      format: uint64
-                      title: id is the unique ID of a Stream
-                    distribute_to:
-                      description: distribute_to is the distr_info.
-                      type: object
-                      properties:
-                        total_weight:
-                          type: string
-                        records:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              gauge_id:
-                                type: string
-                                format: uint64
-                              weight:
-                                type: string
-                    coins:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          denom:
-                            type: string
-                          amount:
-                            type: string
-                        description: >-
-                          Coin defines a token with a denomination and an
-                          amount.
-
-
-                          NOTE: The amount field is an Int which implements the
-                          custom method
-
-                          signatures required by gogoproto.
-                      title: >-
-                        coins is the total amount of coins that have been in the
-                        stream
-
-                        Can distribute multiple coin denoms
-                    start_time:
-                      type: string
-                      format: date-time
-                      title: start_time is the distribution start time
-                    distr_epoch_identifier:
-                      type: string
-                      title: >-
-                        distr_epoch_identifier is what epoch type di-stribution
-                        will be triggered
-
-                        by
-
-                        (day, week, etc.)
-                    num_epochs_paid_over:
-                      type: string
-                      format: uint64
-                      title: >-
-                        num_epochs_paid_over is the number of total epochs
-                        distribution will be
-
-                        completed over
-                    filled_epochs:
-                      type: string
-                      format: uint64
-                      title: >-
-                        filled_epochs is the number of epochs distribution has
-                        been completed on
-
-                        already
-                    distributed_coins:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          denom:
-                            type: string
-                          amount:
-                            type: string
-                        description: >-
-                          Coin defines a token with a denomination and an
-                          amount.
-
-
-                          NOTE: The amount field is an Int which implements the
-                          custom method
-
-                          signatures required by gogoproto.
-                      title: >-
-                        distributed_coins are coins that have been distributed
-                        already
-                  description: >-
-                    Stream is an object that stores and distributes yields to
-                    recipients who
-
-                    satisfy certain conditions. Currently streams support
-                    conditions around the
-
-                    duration for which a given denom is locked.
-                title: Upcoming and active streams
-              pagination:
-                title: Pagination defines pagination for the response
-                type: object
-                properties:
-                  next_key:
-                    type: string
-                    format: byte
-                    description: |-
-                      next_key is the key to be passed to PageRequest.key to
-                      query the next page most efficiently. It will be empty if
-                      there are no more results.
-                  total:
-                    type: string
-                    format: uint64
-                    title: >-
-                      total is total number of results available if
-                      PageRequest.count_total
-
-                      was set, its value is undefined otherwise
-                description: >-
-                  PageResponse is to be embedded in gRPC response messages where
-                  the
-
-                  corresponding request message has used PageRequest.
-
-                   message SomeResponse {
-                           repeated Bar results = 1;
-                           PageResponse page = 2;
-                   }
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: pagination.key
-          description: |-
-            key is a value returned in PageResponse.next_key to begin
-            querying the next page most efficiently. Only one of offset or key
-            should be set.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: pagination.offset
-          description: >-
-            offset is a numeric offset that can be used when key is unavailable.
-
-            It is less efficient than using key. Only one of offset or key
-            should
-
-            be set.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.limit
-          description: >-
-            limit is the total number of results to be returned in the result
-            page.
-
-            If left empty it will default to a value to be set by each app.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.count_total
-          description: >-
-            count_total is set to true  to indicate that the result set should
-            include
-
-            a count of the total number of items available for pagination in
-            UIs.
-
-            count_total is only respected when offset is used. It is ignored
-            when key
-
-            is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
-      tags:
-        - Query
-  /metaearth/streamer/upcoming_streams:
-    get:
-      summary: Returns scheduled streams that have not yet occurred
-      operationId: UpcomingStreams
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              data:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                      format: uint64
-                      title: id is the unique ID of a Stream
-                    distribute_to:
-                      description: distribute_to is the distr_info.
-                      type: object
-                      properties:
-                        total_weight:
-                          type: string
-                        records:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              gauge_id:
-                                type: string
-                                format: uint64
-                              weight:
-                                type: string
-                    coins:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          denom:
-                            type: string
-                          amount:
-                            type: string
-                        description: >-
-                          Coin defines a token with a denomination and an
-                          amount.
-
-
-                          NOTE: The amount field is an Int which implements the
-                          custom method
-
-                          signatures required by gogoproto.
-                      title: >-
-                        coins is the total amount of coins that have been in the
-                        stream
-
-                        Can distribute multiple coin denoms
-                    start_time:
-                      type: string
-                      format: date-time
-                      title: start_time is the distribution start time
-                    distr_epoch_identifier:
-                      type: string
-                      title: >-
-                        distr_epoch_identifier is what epoch type di-stribution
-                        will be triggered
-
-                        by
-
-                        (day, week, etc.)
-                    num_epochs_paid_over:
-                      type: string
-                      format: uint64
-                      title: >-
-                        num_epochs_paid_over is the number of total epochs
-                        distribution will be
-
-                        completed over
-                    filled_epochs:
-                      type: string
-                      format: uint64
-                      title: >-
-                        filled_epochs is the number of epochs distribution has
-                        been completed on
-
-                        already
-                    distributed_coins:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          denom:
-                            type: string
-                          amount:
-                            type: string
-                        description: >-
-                          Coin defines a token with a denomination and an
-                          amount.
-
-
-                          NOTE: The amount field is an Int which implements the
-                          custom method
-
-                          signatures required by gogoproto.
-                      title: >-
-                        distributed_coins are coins that have been distributed
-                        already
-                  description: >-
-                    Stream is an object that stores and distributes yields to
-                    recipients who
-
-                    satisfy certain conditions. Currently streams support
-                    conditions around the
-
-                    duration for which a given denom is locked.
-                title: Streams whose distribution is upcoming
-              pagination:
-                title: Pagination defines pagination for the response
-                type: object
-                properties:
-                  next_key:
-                    type: string
-                    format: byte
-                    description: |-
-                      next_key is the key to be passed to PageRequest.key to
-                      query the next page most efficiently. It will be empty if
-                      there are no more results.
-                  total:
-                    type: string
-                    format: uint64
-                    title: >-
-                      total is total number of results available if
-                      PageRequest.count_total
-
-                      was set, its value is undefined otherwise
-                description: >-
-                  PageResponse is to be embedded in gRPC response messages where
-                  the
-
-                  corresponding request message has used PageRequest.
-
-                   message SomeResponse {
-                           repeated Bar results = 1;
-                           PageResponse page = 2;
-                   }
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: pagination.key
-          description: |-
-            key is a value returned in PageResponse.next_key to begin
-            querying the next page most efficiently. Only one of offset or key
-            should be set.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: pagination.offset
-          description: >-
-            offset is a numeric offset that can be used when key is unavailable.
-
-            It is less efficient than using key. Only one of offset or key
-            should
-
-            be set.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.limit
-          description: >-
-            limit is the total number of results to be returned in the result
-            page.
-
-            If left empty it will default to a value to be set by each app.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.count_total
-          description: >-
-            count_total is set to true  to indicate that the result set should
-            include
-
-            a count of the total number of items available for pagination in
-            UIs.
-
-            count_total is only respected when offset is used. It is ignored
-            when key
-
-            is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
       tags:
         - Query
   /me-hub/wdistri/params:
@@ -58066,6 +57526,83 @@ paths:
       tags:
         - Service
 definitions:
+  cosmos.base.query.v1beta1.PageRequest:
+    type: object
+    properties:
+      key:
+        type: string
+        format: byte
+        description: |-
+          key is a value returned in PageResponse.next_key to begin
+          querying the next page most efficiently. Only one of offset or key
+          should be set.
+      offset:
+        type: string
+        format: uint64
+        description: |-
+          offset is a numeric offset that can be used when key is unavailable.
+          It is less efficient than using key. Only one of offset or key should
+          be set.
+      limit:
+        type: string
+        format: uint64
+        description: >-
+          limit is the total number of results to be returned in the result
+          page.
+
+          If left empty it will default to a value to be set by each app.
+      count_total:
+        type: boolean
+        description: >-
+          count_total is set to true  to indicate that the result set should
+          include
+
+          a count of the total number of items available for pagination in UIs.
+
+          count_total is only respected when offset is used. It is ignored when
+          key
+
+          is set.
+      reverse:
+        type: boolean
+        description: >-
+          reverse is set to true if results are to be returned in the descending
+          order.
+
+
+          Since: cosmos-sdk 0.43
+    description: |-
+      message SomeRequest {
+               Foo some_parameter = 1;
+               PageRequest pagination = 2;
+       }
+    title: |-
+      PageRequest is to be embedded in gRPC request messages for efficient
+      pagination. Ex:
+  cosmos.base.query.v1beta1.PageResponse:
+    type: object
+    properties:
+      next_key:
+        type: string
+        format: byte
+        description: |-
+          next_key is the key to be passed to PageRequest.key to
+          query the next page most efficiently. It will be empty if
+          there are no more results.
+      total:
+        type: string
+        format: uint64
+        title: |-
+          total is total number of results available if PageRequest.count_total
+          was set, its value is undefined otherwise
+    description: |-
+      PageResponse is to be embedded in gRPC response messages where the
+      corresponding request message has used PageRequest.
+
+       message SomeResponse {
+               repeated Bar results = 1;
+               PageResponse page = 2;
+       }
   google.protobuf.Any:
     type: object
     properties:
@@ -58417,6 +57954,39 @@ definitions:
       airdrop_address:
         type: string
     description: GenesisState defines the sudo module's genesis state.
+  metaearth.dao.QueryFreeGasAccountsResp:
+    type: object
+    properties:
+      addresses:
+        type: array
+        items:
+          type: string
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
   metaearth.dao.QueryGlobalDaoFeePoolResp:
     type: object
     properties:
@@ -58437,83 +58007,6 @@ definitions:
           airdrop_address:
             type: string
         description: GenesisState defines the sudo module's genesis state.
-  cosmos.base.query.v1beta1.PageRequest:
-    type: object
-    properties:
-      key:
-        type: string
-        format: byte
-        description: |-
-          key is a value returned in PageResponse.next_key to begin
-          querying the next page most efficiently. Only one of offset or key
-          should be set.
-      offset:
-        type: string
-        format: uint64
-        description: |-
-          offset is a numeric offset that can be used when key is unavailable.
-          It is less efficient than using key. Only one of offset or key should
-          be set.
-      limit:
-        type: string
-        format: uint64
-        description: >-
-          limit is the total number of results to be returned in the result
-          page.
-
-          If left empty it will default to a value to be set by each app.
-      count_total:
-        type: boolean
-        description: >-
-          count_total is set to true  to indicate that the result set should
-          include
-
-          a count of the total number of items available for pagination in UIs.
-
-          count_total is only respected when offset is used. It is ignored when
-          key
-
-          is set.
-      reverse:
-        type: boolean
-        description: >-
-          reverse is set to true if results are to be returned in the descending
-          order.
-
-
-          Since: cosmos-sdk 0.43
-    description: |-
-      message SomeRequest {
-               Foo some_parameter = 1;
-               PageRequest pagination = 2;
-       }
-    title: |-
-      PageRequest is to be embedded in gRPC request messages for efficient
-      pagination. Ex:
-  cosmos.base.query.v1beta1.PageResponse:
-    type: object
-    properties:
-      next_key:
-        type: string
-        format: byte
-        description: |-
-          next_key is the key to be passed to PageRequest.key to
-          query the next page most efficiently. It will be empty if
-          there are no more results.
-      total:
-        type: string
-        format: uint64
-        title: |-
-          total is total number of results available if PageRequest.count_total
-          was set, its value is undefined otherwise
-    description: |-
-      PageResponse is to be embedded in gRPC response messages where the
-      corresponding request message has used PageRequest.
-
-       message SomeResponse {
-               repeated Bar results = 1;
-               PageResponse page = 2;
-       }
   metaearth.megroup.GroupInfo:
     type: object
     properties:
@@ -59059,6 +58552,46 @@ definitions:
                   title: data is an app specific data of the credential. Optional
               title: verifiable credential
         title: did document
+  metaearth.did.QueryDidInfoResponse:
+    type: object
+    properties:
+      info:
+        type: object
+        properties:
+          did:
+            type: string
+            title: same as the MEID
+          address:
+            type: string
+          pubkey:
+            type: string
+            title: >-
+              public_key is mapped to the user address
+
+              the issuer will use public_key to encrypt the user's certificate
+              to ensure
+
+              the privacy of the off-chain certificate
+          status:
+            type: string
+            enum:
+              - DID_STATUS_INACTIVE
+              - DID_STATUS_ACTIVE
+            default: DID_STATUS_INACTIVE
+            title: did status enum
+          regionId:
+            type: string
+          kycLevel:
+            type: string
+            enum:
+              - KYC_LEVEL_NONE
+              - KYC_LEVEL_ONE
+              - KYC_LEVEL_TWO
+              - KYC_LEVEL_THREE
+              - KYC_LEVEL_FOUR
+              - KYC_LEVEL_FIVE
+            default: KYC_LEVEL_NONE
+            title: kyc level enum
   metaearth.did.QueryDidInfosResponse:
     type: object
     properties:
@@ -59191,6 +58724,58 @@ definitions:
             default: SERVICE_STATUS_INACTIVE
             title: credential service status enum
         title: credential service
+  metaearth.did.QueryServicesResponse:
+    type: object
+    properties:
+      services:
+        type: array
+        items:
+          type: object
+          properties:
+            sid:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            issuers:
+              type: array
+              items:
+                type: string
+            status:
+              type: string
+              enum:
+                - SERVICE_STATUS_INACTIVE
+                - SERVICE_STATUS_ACTIVE
+              default: SERVICE_STATUS_INACTIVE
+              title: credential service status enum
+          title: credential service
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
   metaearth.did.Service:
     type: object
     properties:
@@ -59856,645 +59441,6 @@ definitions:
         type: array
         items:
           type: string
-  cosmos.base.v1beta1.Coin:
-    type: object
-    properties:
-      denom:
-        type: string
-      amount:
-        type: string
-    description: |-
-      Coin defines a token with a denomination and an amount.
-
-      NOTE: The amount field is an Int which implements the custom method
-      signatures required by gogoproto.
-  metaearth.streamer.ActiveStreamsResponse:
-    type: object
-    properties:
-      data:
-        type: array
-        items:
-          type: object
-          properties:
-            id:
-              type: string
-              format: uint64
-              title: id is the unique ID of a Stream
-            distribute_to:
-              description: distribute_to is the distr_info.
-              type: object
-              properties:
-                total_weight:
-                  type: string
-                records:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      gauge_id:
-                        type: string
-                        format: uint64
-                      weight:
-                        type: string
-            coins:
-              type: array
-              items:
-                type: object
-                properties:
-                  denom:
-                    type: string
-                  amount:
-                    type: string
-                description: >-
-                  Coin defines a token with a denomination and an amount.
-
-
-                  NOTE: The amount field is an Int which implements the custom
-                  method
-
-                  signatures required by gogoproto.
-              title: |-
-                coins is the total amount of coins that have been in the stream
-                Can distribute multiple coin denoms
-            start_time:
-              type: string
-              format: date-time
-              title: start_time is the distribution start time
-            distr_epoch_identifier:
-              type: string
-              title: >-
-                distr_epoch_identifier is what epoch type di-stribution will be
-                triggered
-
-                by
-
-                (day, week, etc.)
-            num_epochs_paid_over:
-              type: string
-              format: uint64
-              title: >-
-                num_epochs_paid_over is the number of total epochs distribution
-                will be
-
-                completed over
-            filled_epochs:
-              type: string
-              format: uint64
-              title: >-
-                filled_epochs is the number of epochs distribution has been
-                completed on
-
-                already
-            distributed_coins:
-              type: array
-              items:
-                type: object
-                properties:
-                  denom:
-                    type: string
-                  amount:
-                    type: string
-                description: >-
-                  Coin defines a token with a denomination and an amount.
-
-
-                  NOTE: The amount field is an Int which implements the custom
-                  method
-
-                  signatures required by gogoproto.
-              title: distributed_coins are coins that have been distributed already
-          description: >-
-            Stream is an object that stores and distributes yields to recipients
-            who
-
-            satisfy certain conditions. Currently streams support conditions
-            around the
-
-            duration for which a given denom is locked.
-        title: Active gagues only
-      pagination:
-        title: Pagination defines pagination for the response
-        type: object
-        properties:
-          next_key:
-            type: string
-            format: byte
-            description: |-
-              next_key is the key to be passed to PageRequest.key to
-              query the next page most efficiently. It will be empty if
-              there are no more results.
-          total:
-            type: string
-            format: uint64
-            title: >-
-              total is total number of results available if
-              PageRequest.count_total
-
-              was set, its value is undefined otherwise
-        description: |-
-          PageResponse is to be embedded in gRPC response messages where the
-          corresponding request message has used PageRequest.
-
-           message SomeResponse {
-                   repeated Bar results = 1;
-                   PageResponse page = 2;
-           }
-  metaearth.streamer.DistrInfo:
-    type: object
-    properties:
-      total_weight:
-        type: string
-      records:
-        type: array
-        items:
-          type: object
-          properties:
-            gauge_id:
-              type: string
-              format: uint64
-            weight:
-              type: string
-  metaearth.streamer.DistrRecord:
-    type: object
-    properties:
-      gauge_id:
-        type: string
-        format: uint64
-      weight:
-        type: string
-  metaearth.streamer.ModuleToDistributeCoinsResponse:
-    type: object
-    properties:
-      coins:
-        type: array
-        items:
-          type: object
-          properties:
-            denom:
-              type: string
-            amount:
-              type: string
-          description: |-
-            Coin defines a token with a denomination and an amount.
-
-            NOTE: The amount field is an Int which implements the custom method
-            signatures required by gogoproto.
-        title: Coins that have yet to be distributed
-  metaearth.streamer.Stream:
-    type: object
-    properties:
-      id:
-        type: string
-        format: uint64
-        title: id is the unique ID of a Stream
-      distribute_to:
-        description: distribute_to is the distr_info.
-        type: object
-        properties:
-          total_weight:
-            type: string
-          records:
-            type: array
-            items:
-              type: object
-              properties:
-                gauge_id:
-                  type: string
-                  format: uint64
-                weight:
-                  type: string
-      coins:
-        type: array
-        items:
-          type: object
-          properties:
-            denom:
-              type: string
-            amount:
-              type: string
-          description: |-
-            Coin defines a token with a denomination and an amount.
-
-            NOTE: The amount field is an Int which implements the custom method
-            signatures required by gogoproto.
-        title: |-
-          coins is the total amount of coins that have been in the stream
-          Can distribute multiple coin denoms
-      start_time:
-        type: string
-        format: date-time
-        title: start_time is the distribution start time
-      distr_epoch_identifier:
-        type: string
-        title: >-
-          distr_epoch_identifier is what epoch type di-stribution will be
-          triggered
-
-          by
-
-          (day, week, etc.)
-      num_epochs_paid_over:
-        type: string
-        format: uint64
-        title: >-
-          num_epochs_paid_over is the number of total epochs distribution will
-          be
-
-          completed over
-      filled_epochs:
-        type: string
-        format: uint64
-        title: >-
-          filled_epochs is the number of epochs distribution has been completed
-          on
-
-          already
-      distributed_coins:
-        type: array
-        items:
-          type: object
-          properties:
-            denom:
-              type: string
-            amount:
-              type: string
-          description: |-
-            Coin defines a token with a denomination and an amount.
-
-            NOTE: The amount field is an Int which implements the custom method
-            signatures required by gogoproto.
-        title: distributed_coins are coins that have been distributed already
-    description: >-
-      Stream is an object that stores and distributes yields to recipients who
-
-      satisfy certain conditions. Currently streams support conditions around
-      the
-
-      duration for which a given denom is locked.
-  metaearth.streamer.StreamByIDResponse:
-    type: object
-    properties:
-      stream:
-        type: object
-        properties:
-          id:
-            type: string
-            format: uint64
-            title: id is the unique ID of a Stream
-          distribute_to:
-            description: distribute_to is the distr_info.
-            type: object
-            properties:
-              total_weight:
-                type: string
-              records:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    gauge_id:
-                      type: string
-                      format: uint64
-                    weight:
-                      type: string
-          coins:
-            type: array
-            items:
-              type: object
-              properties:
-                denom:
-                  type: string
-                amount:
-                  type: string
-              description: >-
-                Coin defines a token with a denomination and an amount.
-
-
-                NOTE: The amount field is an Int which implements the custom
-                method
-
-                signatures required by gogoproto.
-            title: |-
-              coins is the total amount of coins that have been in the stream
-              Can distribute multiple coin denoms
-          start_time:
-            type: string
-            format: date-time
-            title: start_time is the distribution start time
-          distr_epoch_identifier:
-            type: string
-            title: >-
-              distr_epoch_identifier is what epoch type di-stribution will be
-              triggered
-
-              by
-
-              (day, week, etc.)
-          num_epochs_paid_over:
-            type: string
-            format: uint64
-            title: >-
-              num_epochs_paid_over is the number of total epochs distribution
-              will be
-
-              completed over
-          filled_epochs:
-            type: string
-            format: uint64
-            title: >-
-              filled_epochs is the number of epochs distribution has been
-              completed on
-
-              already
-          distributed_coins:
-            type: array
-            items:
-              type: object
-              properties:
-                denom:
-                  type: string
-                amount:
-                  type: string
-              description: >-
-                Coin defines a token with a denomination and an amount.
-
-
-                NOTE: The amount field is an Int which implements the custom
-                method
-
-                signatures required by gogoproto.
-            title: distributed_coins are coins that have been distributed already
-        description: >-
-          Stream is an object that stores and distributes yields to recipients
-          who
-
-          satisfy certain conditions. Currently streams support conditions
-          around the
-
-          duration for which a given denom is locked.
-        title: Stream that corresponds to provided gague ID
-  metaearth.streamer.StreamsResponse:
-    type: object
-    properties:
-      data:
-        type: array
-        items:
-          type: object
-          properties:
-            id:
-              type: string
-              format: uint64
-              title: id is the unique ID of a Stream
-            distribute_to:
-              description: distribute_to is the distr_info.
-              type: object
-              properties:
-                total_weight:
-                  type: string
-                records:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      gauge_id:
-                        type: string
-                        format: uint64
-                      weight:
-                        type: string
-            coins:
-              type: array
-              items:
-                type: object
-                properties:
-                  denom:
-                    type: string
-                  amount:
-                    type: string
-                description: >-
-                  Coin defines a token with a denomination and an amount.
-
-
-                  NOTE: The amount field is an Int which implements the custom
-                  method
-
-                  signatures required by gogoproto.
-              title: |-
-                coins is the total amount of coins that have been in the stream
-                Can distribute multiple coin denoms
-            start_time:
-              type: string
-              format: date-time
-              title: start_time is the distribution start time
-            distr_epoch_identifier:
-              type: string
-              title: >-
-                distr_epoch_identifier is what epoch type di-stribution will be
-                triggered
-
-                by
-
-                (day, week, etc.)
-            num_epochs_paid_over:
-              type: string
-              format: uint64
-              title: >-
-                num_epochs_paid_over is the number of total epochs distribution
-                will be
-
-                completed over
-            filled_epochs:
-              type: string
-              format: uint64
-              title: >-
-                filled_epochs is the number of epochs distribution has been
-                completed on
-
-                already
-            distributed_coins:
-              type: array
-              items:
-                type: object
-                properties:
-                  denom:
-                    type: string
-                  amount:
-                    type: string
-                description: >-
-                  Coin defines a token with a denomination and an amount.
-
-
-                  NOTE: The amount field is an Int which implements the custom
-                  method
-
-                  signatures required by gogoproto.
-              title: distributed_coins are coins that have been distributed already
-          description: >-
-            Stream is an object that stores and distributes yields to recipients
-            who
-
-            satisfy certain conditions. Currently streams support conditions
-            around the
-
-            duration for which a given denom is locked.
-        title: Upcoming and active streams
-      pagination:
-        title: Pagination defines pagination for the response
-        type: object
-        properties:
-          next_key:
-            type: string
-            format: byte
-            description: |-
-              next_key is the key to be passed to PageRequest.key to
-              query the next page most efficiently. It will be empty if
-              there are no more results.
-          total:
-            type: string
-            format: uint64
-            title: >-
-              total is total number of results available if
-              PageRequest.count_total
-
-              was set, its value is undefined otherwise
-        description: |-
-          PageResponse is to be embedded in gRPC response messages where the
-          corresponding request message has used PageRequest.
-
-           message SomeResponse {
-                   repeated Bar results = 1;
-                   PageResponse page = 2;
-           }
-  metaearth.streamer.UpcomingStreamsResponse:
-    type: object
-    properties:
-      data:
-        type: array
-        items:
-          type: object
-          properties:
-            id:
-              type: string
-              format: uint64
-              title: id is the unique ID of a Stream
-            distribute_to:
-              description: distribute_to is the distr_info.
-              type: object
-              properties:
-                total_weight:
-                  type: string
-                records:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      gauge_id:
-                        type: string
-                        format: uint64
-                      weight:
-                        type: string
-            coins:
-              type: array
-              items:
-                type: object
-                properties:
-                  denom:
-                    type: string
-                  amount:
-                    type: string
-                description: >-
-                  Coin defines a token with a denomination and an amount.
-
-
-                  NOTE: The amount field is an Int which implements the custom
-                  method
-
-                  signatures required by gogoproto.
-              title: |-
-                coins is the total amount of coins that have been in the stream
-                Can distribute multiple coin denoms
-            start_time:
-              type: string
-              format: date-time
-              title: start_time is the distribution start time
-            distr_epoch_identifier:
-              type: string
-              title: >-
-                distr_epoch_identifier is what epoch type di-stribution will be
-                triggered
-
-                by
-
-                (day, week, etc.)
-            num_epochs_paid_over:
-              type: string
-              format: uint64
-              title: >-
-                num_epochs_paid_over is the number of total epochs distribution
-                will be
-
-                completed over
-            filled_epochs:
-              type: string
-              format: uint64
-              title: >-
-                filled_epochs is the number of epochs distribution has been
-                completed on
-
-                already
-            distributed_coins:
-              type: array
-              items:
-                type: object
-                properties:
-                  denom:
-                    type: string
-                  amount:
-                    type: string
-                description: >-
-                  Coin defines a token with a denomination and an amount.
-
-
-                  NOTE: The amount field is an Int which implements the custom
-                  method
-
-                  signatures required by gogoproto.
-              title: distributed_coins are coins that have been distributed already
-          description: >-
-            Stream is an object that stores and distributes yields to recipients
-            who
-
-            satisfy certain conditions. Currently streams support conditions
-            around the
-
-            duration for which a given denom is locked.
-        title: Streams whose distribution is upcoming
-      pagination:
-        title: Pagination defines pagination for the response
-        type: object
-        properties:
-          next_key:
-            type: string
-            format: byte
-            description: |-
-              next_key is the key to be passed to PageRequest.key to
-              query the next page most efficiently. It will be empty if
-              there are no more results.
-          total:
-            type: string
-            format: uint64
-            title: >-
-              total is total number of results available if
-              PageRequest.count_total
-
-              was set, its value is undefined otherwise
-        description: |-
-          PageResponse is to be embedded in gRPC response messages where the
-          corresponding request message has used PageRequest.
-
-           message SomeResponse {
-                   repeated Bar results = 1;
-                   PageResponse page = 2;
-           }
   cosmos.distribution.v1beta1.Params:
     type: object
     properties:
@@ -61700,6 +60646,18 @@ definitions:
         format: uint64
         title: amount is the number of all NFTs from the given class
     title: QuerySupplyResponse is the response type for the Query/Supply RPC method
+  cosmos.base.v1beta1.Coin:
+    type: object
+    properties:
+      denom:
+        type: string
+      amount:
+        type: string
+    description: |-
+      Coin defines a token with a denomination and an amount.
+
+      NOTE: The amount field is an Int which implements the custom method
+      signatures required by gogoproto.
   cosmos.base.v1beta1.DecCoin:
     type: object
     properties:
