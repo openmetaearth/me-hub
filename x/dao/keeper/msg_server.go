@@ -51,3 +51,22 @@ func (k msgServer) UpdateDao(goCtx context.Context, msg *types.MsgUpdateDao) (*t
 	)
 	return &types.MsgUpdateDaoResponse{}, nil
 }
+
+func (k msgServer) FreeGasAccount(goCtx context.Context, msg *types.MsgFreeGasAccount) (*types.MsgFreeGasAccountResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	isGlobalDao := k.IsGlobalDao(ctx, msg.Creator)
+	if !isGlobalDao {
+		return nil, types.ErrCreatorNotDao
+	}
+
+	for _, account := range msg.Accounts {
+		if account.IsFree {
+			k.SetFreeGasAccount(ctx, account.Address)
+		} else {
+			k.RemoveFreeGasAccount(ctx, account.Address)
+		}
+	}
+
+	return &types.MsgFreeGasAccountResponse{}, nil
+}

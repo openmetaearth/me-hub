@@ -18,7 +18,8 @@ const (
 )
 
 var (
-	DaoAddressesPrefix = []byte{0x00}
+	DaoAddressesPrefix    = []byte{0x00}
+	FreeGasAddressePrefix = []byte{0x01}
 )
 
 func KeyPrefix(p string) []byte {

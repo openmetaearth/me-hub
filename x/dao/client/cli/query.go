@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -22,6 +21,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 
 	cmd.AddCommand(CmdDaoAddress())
 	cmd.AddCommand(CmdGlobalDaoFeePool())
+	cmd.AddCommand(CmdGetFreeGasAccount())
 	return cmd
 }
 
@@ -74,5 +74,35 @@ func CmdGlobalDaoFeePool() *cobra.Command {
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func CmdGetFreeGasAccount() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "free-gas-accounts",
+		Short: "Query global dao fee pool",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			pageReq, _ := client.ReadPageRequest(cmd.Flags())
+
+			res, err := queryClient.FreeGasAccounts(cmd.Context(), &types.QueryFreeGasAccountsReq{
+				Pagination: pageReq,
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	return cmd
 }

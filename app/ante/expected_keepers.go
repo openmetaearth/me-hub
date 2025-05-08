@@ -13,6 +13,7 @@ type DaoKeeper interface {
 	GetGlobalDao(ctx sdk.Context) string
 	GetMeidDao(ctx sdk.Context) string
 	GetGlobalDaoFeePoolAddr(ctx sdk.Context) sdk.AccAddress
+	IsFreeGasAccount(ctx sdk.Context, address string) bool
 }
 
 type BankKeeper interface {

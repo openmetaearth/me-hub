@@ -10,12 +10,14 @@ import (
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUpdateDao{}, "dao/MsgUpdateGlobalDao", nil)
+	cdc.RegisterConcrete(&MsgFreeGasAccount{}, "dao/MsgFreeGasAccount", nil)
 	// this line is used by starport scaffolding # 2
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgUpdateDao{},
+		&MsgFreeGasAccount{},
 	)
 	// this line is used by starport scaffolding # 3
 
