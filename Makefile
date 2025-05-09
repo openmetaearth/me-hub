@@ -2,6 +2,7 @@
 
 COMMIT := $(shell git log -1 --format='%H')
 VERSION ?= $(shell git describe --tags --always)
+TAG ?= latest
 
 PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
 LEDGER_ENABLED ?= true
@@ -112,8 +113,13 @@ build-linux-debug: go.sum
 	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)))
 	CC=x86_64-unknown-linux-gnu-gcc CGO_ENABLED=1 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -gcflags "all=-N -l" -o $(BUILDDIR)/med-debug ./cmd/med
 
-docker-build:
-	DOCKER_BUILDKIT=1 docker build -t ghcr.io/me-hub/med:2.0.0 -f Dockerfile .
+docker-github:
+	DOCKER_BUILDKIT=1 docker build -t ghcr.io/me-hub/med:latest -f Dockerfile .
+
+# docker pull --platform=linux/amd64 ubuntu:24.04
+docker-local: build-linux
+	@DOCKER_BUILDKIT=1 docker build -t 192.168.0.79/me-hub/med:$(TAG) -f Dockerfile_local .
+	@docker push 192.168.0.79/me-hub/med:$(TAG)
 
 docker-run-debug:
 	@DOCKER_BUILDKIT=1 docker-compose -f docker-compose.debug.yml up
