@@ -13,5 +13,5 @@ var (
 	ErrNotFound                   = sdkerrors.Register(ModuleName, 3, "not found")
 	ErrSetKycIssuer               = sdkerrors.Register(ModuleName, 4, "set kyc issuer")
 	ErrFreeGasAccountAlreadyExist = sdkerrors.Register(ModuleName, 5, "free gas account already exist")
-	ErrAccountAlreadyFree         = sdkerrors.Register(ModuleName, 6, "account already free")
+	ErrAccountIsNotFree           = sdkerrors.Register(ModuleName, 6, "account is already not free")
 )
