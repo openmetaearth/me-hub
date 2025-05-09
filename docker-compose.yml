@@ -1,8 +1,19 @@
----
-version: "3"
 services:
-  node:
+  node1:
+    container_name: node1
+    image: 192.168.0.79/me-hub/med:latest
     build:
       context: .
-      dockerfile: Dockerfile
-    command: sh ./scripts/start_localnode.sh
+      dockerfile: Dockerfile_local
+    command:
+      - med
+      - start
+    restart: always
+    ports:
+      - 26657:36657
+      - 26656:36656
+      - 9090:8090
+      - 1317:1318
+      - 8545:9545
+    volumes:
+      - /Users/aris/.mechain:/root/.mechain

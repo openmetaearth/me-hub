@@ -1,0 +1,29 @@
+FROM --platform=linux/amd64 ubuntu:24.04
+
+RUN apt-get update && \
+    apt-get install -y ca-certificates tzdata libc6 wget git && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set the timezone to Asia/Shanghai
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Cosmwasm - Download correct libwasmvm version
+RUN ARCH=$(uname -m) && WASMVM_VERSION=v1.3.0 && \
+    wget https://github.com/CosmWasm/wasmvm/releases/download/$WASMVM_VERSION/libwasmvm.$ARCH.so \
+    -O /lib/libwasmvm.$ARCH.so && \
+    # verify checksum
+    wget https://github.com/CosmWasm/wasmvm/releases/download/$WASMVM_VERSION/checksums.txt -O /tmp/checksums.txt && \
+    sha256sum /lib/libwasmvm.$ARCH.so | grep $(cat /tmp/checksums.txt | grep libwasmvm.$ARCH | cut -d ' ' -f 1)
+
+COPY ./build/med /usr/local/bin/med
+RUN chmod +x /usr/local/bin/med
+
+WORKDIR /root
+VOLUME ["/root"]
+
+EXPOSE 36656/tcp 36657/tcp 36660/tcp 8090/tcp 1318/tcp
+
+CMD ["/usr/local/bin/med"]
+
+
