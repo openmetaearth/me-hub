@@ -77,7 +77,7 @@ func (k msgServer) FreeGasAccount(goCtx context.Context, msg *types.MsgFreeGasAc
 				k.SetFreeGasAccount(ctx, account.Address)
 				attributes = append(attributes, sdk.NewAttribute(types.AttributeKeySetFreeGasAddress, account.Address))
 			} else {
-				return nil, sdkerrors.Wrap(types.ErrAccountAlreadyFree, account.Address)
+				return nil, sdkerrors.Wrap(types.ErrAccountIsNotFree, account.Address)
 			}
 		}
 	}
