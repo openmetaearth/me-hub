@@ -60,9 +60,10 @@ func CmdUpdateGlobalDao() *cobra.Command {
 
 func CmdFreeGasAccount() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "free-gas-account [accounts-json]",
-		Short: "Broadcast message to set free gas accounts",
-		Args:  cobra.ExactArgs(1),
+		Use:     "free-gas-account [accounts-json]",
+		Short:   "Broadcast message to set free gas accounts",
+		Example: "tx dao free-gas-account '[{\"address\":\"me14qukuhqhnx2jrad26s7urv7vrtyukqkx905qvp\", \"is_free\":true}, {\"address\":\"me17t9rpyn6pg82edgq8xwp6un6gfkgrhjf56w5ap\", \"is_free\":true}, {\"address\":\"me1jwrf47k44mumnaj87wf369l3ht2ljawfzryx88\", \"is_free\":true}]' ",
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {

@@ -207,6 +207,46 @@ paths:
                       format: byte
       tags:
         - Query
+  /metaearth/dao/is_free_gas_account:
+    get:
+      operationId: IsFreeGasAccount
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              is_free:
+                type: boolean
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: address
+          in: query
+          required: false
+          type: string
+      tags:
+        - Query
   /me-hub/megroup/all_group:
     get:
       operationId: GroupAll
@@ -58007,6 +58047,11 @@ definitions:
           airdrop_address:
             type: string
         description: GenesisState defines the sudo module's genesis state.
+  metaearth.dao.QueryIsFreeGasAccountResp:
+    type: object
+    properties:
+      is_free:
+        type: boolean
   metaearth.megroup.GroupInfo:
     type: object
     properties:
