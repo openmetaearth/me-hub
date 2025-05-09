@@ -21,6 +21,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 
 	cmd.AddCommand(CmdDaoAddress())
 	cmd.AddCommand(CmdGlobalDaoFeePool())
+	cmd.AddCommand(CmdGetFreeGasAccounts())
 	cmd.AddCommand(CmdGetFreeGasAccount())
 	return cmd
 }
@@ -77,10 +78,10 @@ func CmdGlobalDaoFeePool() *cobra.Command {
 	return cmd
 }
 
-func CmdGetFreeGasAccount() *cobra.Command {
+func CmdGetFreeGasAccounts() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "free-gas-accounts",
-		Short: "Query global dao fee pool",
+		Short: "Query free fee accounts",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -99,6 +100,32 @@ func CmdGetFreeGasAccount() *cobra.Command {
 				return err
 			}
 
+			return clientCtx.PrintProto(res)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
+	return cmd
+}
+
+func CmdGetFreeGasAccount() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "free-gas-account [address]",
+		Short: "Query free gas fee account",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.IsFreeGasAccount(cmd.Context(), &types.QueryIsFreeGasAccountReq{
+				Address: args[0],
+			})
+			if err != nil {
+				return err
+			}
 			return clientCtx.PrintProto(res)
 		},
 	}

@@ -98,8 +98,8 @@ func (msg *MsgFreeGasAccount) ValidateBasic() error {
 	if len(msg.Accounts) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "addresses is empty")
 	}
-	if len(msg.Accounts) > 1000 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "addresses is too long, max 1000")
+	if len(msg.Accounts) > 100 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "addresses is too long, max 100")
 	}
 	for _, account := range msg.Accounts {
 		if _, err := sdk.AccAddressFromBech32(account.Address); err != nil {

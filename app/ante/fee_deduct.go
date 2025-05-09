@@ -129,7 +129,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 
 	admin := dfd.daoKeeper.GetGlobalDao(ctx)
 	meidAdmin := dfd.daoKeeper.GetMeidDao(ctx)
-	isFreeGasAccount := dfd.daoKeeper.IsFreeGasAccount(ctx, feePayer.String())
+	isFreeGasAccount := dfd.daoKeeper.CheckFreeGasAccount(ctx, feePayer.String())
 	isAdmin := feePayer.String() == admin || feePayer.String() == meidAdmin
 	freeGas := isFreeGasAccount || isAdmin
 

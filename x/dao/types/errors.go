@@ -12,4 +12,6 @@ var (
 	ErrLastAddressEqualNewAddress = sdkerrors.Register(ModuleName, 2, "last address euqal new address error")
 	ErrNotFound                   = sdkerrors.Register(ModuleName, 3, "not found")
 	ErrSetKycIssuer               = sdkerrors.Register(ModuleName, 4, "set kyc issuer")
+	ErrFreeGasAccountAlreadyExist = sdkerrors.Register(ModuleName, 5, "free gas account already exist")
+	ErrAccountAlreadyFree         = sdkerrors.Register(ModuleName, 6, "account already free")
 )

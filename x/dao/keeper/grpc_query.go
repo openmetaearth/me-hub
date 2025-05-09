@@ -41,6 +41,10 @@ func (k Keeper) FreeGasAccounts(goCtx context.Context, req *types.QueryFreeGasAc
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-
 	return &types.QueryFreeGasAccountsResp{Addresses: accounts, Pagination: pageRes}, nil
+}
+
+func (k Keeper) IsFreeGasAccount(goCtx context.Context, req *types.QueryIsFreeGasAccountReq) (*types.QueryIsFreeGasAccountResp, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	return &types.QueryIsFreeGasAccountResp{IsFree: k.CheckFreeGasAccount(ctx, req.Address)}, nil
 }

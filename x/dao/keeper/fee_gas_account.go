@@ -17,7 +17,7 @@ func (k Keeper) RemoveFreeGasAccount(ctx sdk.Context, address string) {
 	store.Delete(key)
 }
 
-func (k Keeper) IsFreeGasAccount(ctx sdk.Context, address string) bool {
+func (k Keeper) CheckFreeGasAccount(ctx sdk.Context, address string) bool {
 	store := ctx.KVStore(k.storeKey)
 	key := append(types.FreeGasAddressePrefix, []byte(address)...)
 	value := store.Get(key)
