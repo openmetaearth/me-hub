@@ -113,6 +113,11 @@ build-linux-debug: go.sum
 	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)))
 	CC=x86_64-unknown-linux-gnu-gcc CGO_ENABLED=1 TARGET_CC=clang LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -gcflags "all=-N -l" -o $(BUILDDIR)/med-debug ./cmd/med
 
+###############################################################################
+###                                Docker                                ###
+###############################################################################
+.PHONY: docker-github docker-local docker-run-debug
+
 docker-github:
 	DOCKER_BUILDKIT=1 docker build -t ghcr.io/me-hub/med:latest -f Dockerfile .
 
