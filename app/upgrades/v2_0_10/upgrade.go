@@ -225,6 +225,13 @@ func setNewModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
 			panic(fmt.Sprintf("wasm init genesis: %v", err))
 		}
 	}
+
+	govParams := keepers.GovKeeper.GetParams(ctx)
+	govParams.BurnVoteQuorum = false
+	govParams.BurnVoteVeto = false
+	govParams.BurnProposalDepositPrevote = false
+
+	keepers.GovKeeper.SetParams(ctx, govParams)
 }
 
 func MigrateDao(ctx sdk.Context, ak authkeeper.AccountKeeper, dk daokeeper.Keeper, rk *rollappkeeper.Keeper) {
