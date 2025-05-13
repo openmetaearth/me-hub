@@ -16,9 +16,9 @@ var (
 	// UnbondingTime time.Duration `protobuf:"bytes,2,opt,name=unbonding_time,json=unbondingTime,proto3,stdduration" json:"unbonding_time"`
 
 	// MinBond is the minimum bond required to be a validator
-	DefaultMinBond uint64 = 100
+	DefaultMinBond uint64 = 0
 	// UnbondingTime is the time duration for unbonding
-	DefaultUnbondingTime time.Duration = time.Hour * 24 * 7 * 2 // 2 weeks
+	DefaultUnbondingTime time.Duration = time.Hour * 24 * 7 // 1 weeks
 
 	// KeyMinBond is store's key for MinBond Params
 	KeyMinBond = []byte("MinBond")
