@@ -137,8 +137,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	querier := stakingkeeper.Querier{Keeper: am.keeper.Keeper}
 	stakingtypes.RegisterQueryServer(cfg.QueryServer(), querier)
-	nativeQuerier := keeper.Querier{Keeper: am.keeper}
-	types.RegisterQueryServer(cfg.QueryServer(), nativeQuerier)
+	wstakingQuerier := keeper.Querier{Keeper: am.keeper}
+	types.RegisterQueryServer(cfg.QueryServer(), wstakingQuerier)
 
 	m := stakingkeeper.NewMigrator(am.keeper.Keeper, am.legacySubspace)
 	if err := cfg.RegisterMigration(stakingtypes.ModuleName, 1, m.Migrate1to2); err != nil {
