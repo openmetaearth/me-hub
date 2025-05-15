@@ -44,6 +44,7 @@ import (
 	kyc "github.com/st-chain/me-hub/x/kyc"
 	groupmodule "github.com/st-chain/me-hub/x/megroup"
 	"github.com/st-chain/me-hub/x/rollapp"
+	"github.com/st-chain/me-hub/x/rollup"
 	"github.com/st-chain/me-hub/x/wbank"
 	"github.com/st-chain/me-hub/x/wdistri"
 	"github.com/st-chain/me-hub/x/wmint"
@@ -94,6 +95,7 @@ var ModuleBasics = module.NewBasicManager(
 	packetforward.AppModuleBasic{},
 	delayedack.AppModuleBasic{},
 	eibc.AppModuleBasic{},
+	rollup.AppModuleBasic{},
 
 	// Ethermint modules
 	evm.AppModuleBasic{},
