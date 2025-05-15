@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/evidence"
 	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/gov/client"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
@@ -46,6 +45,7 @@ import (
 	"github.com/st-chain/me-hub/x/rollapp"
 	"github.com/st-chain/me-hub/x/wbank"
 	"github.com/st-chain/me-hub/x/wdistri"
+	"github.com/st-chain/me-hub/x/wgov"
 	"github.com/st-chain/me-hub/x/wmint"
 	"github.com/st-chain/me-hub/x/wnft"
 	"github.com/st-chain/me-hub/x/wstaking"
@@ -67,7 +67,7 @@ var ModuleBasics = module.NewBasicManager(
 	wstaking.AppModuleBasic{},
 	wmint.AppModuleBasic{},
 	wdistri.AppModuleBasic{},
-	gov.NewAppModuleBasic([]client.ProposalHandler{
+	wgov.NewAppModuleBasic([]client.ProposalHandler{
 		paramsclient.ProposalHandler,
 		upgradeclient.LegacyProposalHandler,
 		upgradeclient.LegacyCancelProposalHandler,

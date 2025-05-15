@@ -71,6 +71,14 @@
       }
     },
     {
+      "url": "./tmp-swagger-gen/metaearth/wgov/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "WGovParams"
+        }
+      }
+    },
+    {
       "url": "./tmp-swagger-gen/dymensionxyz/dymension/delayedack/query.swagger.json",
       "operationIds": {
         "rename": {
