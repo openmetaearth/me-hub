@@ -7,6 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
 	"github.com/st-chain/me-hub/utils"
+	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	"github.com/st-chain/me-hub/x/wnft/types"
 	"strconv"
 )
@@ -140,6 +141,10 @@ func (k MsgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return nil, err
+	}
+
+	if msg.ClassId == kyctypes.ModuleName {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "SBT is not allowed to be transferred to others")
 	}
 
 	owner := k.GetOwner(ctx, msg.ClassId, msg.Id)

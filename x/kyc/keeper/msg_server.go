@@ -11,7 +11,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkaddr "github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
@@ -292,7 +291,7 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 		Data:    nftData, // todo: check for encode
 	}
 
-	if err := m.SetSBT(ctx, sbt, sdkaddr.Module(types.ModuleName)); err != nil {
+	if err := m.SetSBT(ctx, sbt, sdk.MustAccAddressFromBech32(holderInfo.Address)); err != nil {
 		return &types.MsgCreateSBTResponse{}, errors.Wrap(err, "mint SBT failed")
 	}
 
