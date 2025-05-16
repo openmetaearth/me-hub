@@ -376,9 +376,11 @@ func MigrateKycData(ctx sdk.Context,
 	}
 
 	// Iterate over old data and transform it into new data structure
-	didNumber := 9998887776660
 	for _, meid := range meids {
 		did, ok := didData[meid.Account]
+		if !(ok && len(did.Did) > 0) {
+			panic(fmt.Sprintf("did not found, account: %s, please upgrade later.", meid.Account))
+		}
 		if ok && len(did.Did) > 0 {
 			didLevel := didtypes.KycLevel(did.Level)
 			if did.Level == 0 {
@@ -414,6 +416,7 @@ func MigrateKycData(ctx sdk.Context,
 			didKeeper.AddFilters(ctx, did.Did, service.Sid, [][]byte{[]byte(meid.RegionId)}, vc)
 			migrateNFTtoSBT(ctx, stakingKeeper, meid, nftKeeper, kycKeeper, did)
 		} else {
+			didNumber := 9998887776660
 			didStr := fmt.Sprintf("%d", didNumber)
 			for kycKeeper.HasDidInfo(ctx, didStr) {
 				didNumber++
@@ -485,7 +488,11 @@ func migrateNFTtoSBT(ctx sdk.Context,
 	); err != nil {
 		panic(fmt.Sprintf("account: %s, did: %s, error: %v", oldRecord.Account, did.Did, err))
 	}
-	stakingKeeper.RemoveMeidNFT(ctx, oldRecord.Account, oldRecord.RegionId)
+	meidNft, found := stakingKeeper.GetMeidNFT(ctx, oldRecord.Account)
+	if found {
+		nftKeeper.Burn(ctx, strings.ToUpper(oldRecord.RegionId)+"-NFT-CLASS-ID-", meidNft.NftId)
+		stakingKeeper.RemoveMeidNFT(ctx, oldRecord.Account, oldRecord.RegionId)
+	}
 }
 
 func MigrateNftUri(ctx sdk.Context, nftKeeper *wnftkeeper.Keeper, homePath string, nftReader NftReader) {
@@ -495,12 +502,10 @@ func MigrateNftUri(ctx sdk.Context, nftKeeper *wnftkeeper.Keeper, homePath strin
 	}
 	classlist := nftKeeper.GetClasses(ctx)
 	for _, class := range classlist {
-		if class == nil {
+		if class == nil || class.Id == kyctypes.ModuleName {
 			continue
 		}
-		if class.Id == kyctypes.ModuleName {
-			continue
-		}
+
 		classData, ok := nftData[class.Id]
 		if !ok {
 			continue
