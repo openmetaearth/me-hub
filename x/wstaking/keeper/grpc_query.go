@@ -210,7 +210,6 @@ func (k Querier) AllDelegations(c context.Context, req *types.QueryAllDelegation
 
 	delegations := []stakingtypes.Delegation{}
 	pageRes, err := query.Paginate(queryStore, req.Pagination, func(key []byte, value []byte) error {
-		fmt.Println(key, value)
 		delegation := types.MustUnmarshalDelegation(k.cdc, value)
 		delegations = append(delegations, delegation)
 		return nil
