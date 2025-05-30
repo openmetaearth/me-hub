@@ -111,11 +111,10 @@ func (w IBCModule) OnRecvPacket(
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	if w.rollappKeeper.IsSkipDelayRollapp(ctx, transfer.RollappId()) {
+	ra := transfer.Rollapp
+	if ra.GenesisState.TransfersEnabled && w.rollappKeeper.IsSkipDelayRollapp(ctx, transfer.RollappId()) {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
-
-	ra := transfer.Rollapp
 
 	memo, err := getMemo(transfer.GetMemo())
 	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
