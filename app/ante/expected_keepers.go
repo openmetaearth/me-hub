@@ -1,6 +1,7 @@
 package ante
 
 import (
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
@@ -29,4 +30,9 @@ type StakingKeeper interface {
 type KycKeeper interface {
 	GetDID(ctx sdk.Context, addr sdk.AccAddress) (string, bool)
 	GetKYC(ctx sdk.Context, did string) (kyc didtypes.Credential, found bool)
+}
+
+type WasmKeeper interface {
+	HasContractInfo(ctx sdk.Context, contractAddress sdk.AccAddress) bool
+	GetContractInfo(ctx sdk.Context, contractAddress sdk.AccAddress) *wasmtypes.ContractInfo
 }
