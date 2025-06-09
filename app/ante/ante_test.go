@@ -2,9 +2,10 @@ package ante_test
 
 import (
 	"fmt"
+	"github.com/golang/mock/gomock"
+	"github.com/st-chain/me-hub/app/ante/mock"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/stretchr/testify/suite"
@@ -33,11 +34,13 @@ import (
 type AnteTestSuite struct {
 	suite.Suite
 
-	ctx         sdk.Context
-	app         *app.App
-	clientCtx   client.Context
-	anteHandler sdk.AnteHandler
-	txBuilder   client.TxBuilder
+	ctx               sdk.Context
+	app               *app.App
+	clientCtx         client.Context
+	anteHandler       sdk.AnteHandler
+	txBuilder         client.TxBuilder
+	mockStakingKeeper *mock.MockStakingKeeper
+	mockDaoKeeper     *mock.MockDaoKeeper
 }
 
 func TestAnteTestSuite(t *testing.T) {
@@ -54,6 +57,11 @@ func (s *AnteTestSuite) SetupTest(isCheckTx bool) {
 		WithTxConfig(txConfig).
 		WithCodec(s.app.AppCodec())
 
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+	mockStakingKeeper := mock.NewMockStakingKeeper(ctrl)
+	mockDaoKeeper := mock.NewMockDaoKeeper(ctrl)
+
 	anteHandler, err := ante.NewAnteHandler(
 		ante.HandlerOptions{
 			AccountKeeper:   &s.app.AccountKeeper,
@@ -61,41 +69,52 @@ func (s *AnteTestSuite) SetupTest(isCheckTx bool) {
 			IBCKeeper:       s.app.IBCKeeper,
 			EvmKeeper:       s.app.EvmKeeper,
 			FeeMarketKeeper: s.app.FeeMarketKeeper,
-			TxFeesKeeper:    s.app.TxFeesKeeper,
 			FeegrantKeeper:  s.app.FeeGrantKeeper,
 			SignModeHandler: txConfig.SignModeHandler(),
+			DaoKeeper:       mockDaoKeeper,
+			StakingKeeper:   mockStakingKeeper,
+			KycKeeper:       s.app.KycKeeper,
+			WasmViewKeeper:  s.app.WasmKeeper,
+			TxFeesKeeper:    s.app.TxFeesKeeper,
 		},
 	)
 
 	s.Require().NoError(err)
+	s.mockStakingKeeper = mockStakingKeeper
+	s.mockDaoKeeper = mockDaoKeeper
 	s.anteHandler = anteHandler
 }
 
 func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	suite.SetupTest(false)
-	privkey, _ := ethsecp256k1.GenerateKey()
-	key, err := privkey.ToECDSA()
-	suite.Require().NoError(err)
-	addr := crypto.PubkeyToAddress(key.PublicKey)
+	addr, privKey := NewAccountWithEthPrivKey()
+
+	proposerOwner := NewAccount()
+	suite.mockStakingKeeper.EXPECT().GetProposerOwnerAddress(gomock.Any()).Return(proposerOwner.Address, nil)
+	devOperator := NewAccount()
+	suite.mockDaoKeeper.EXPECT().GetDevOperator(gomock.Any()).Return(devOperator.Address)
+	suite.mockDaoKeeper.EXPECT().GetGlobalDao(gomock.Any()).Return(devOperator.Address)
+	suite.mockDaoKeeper.EXPECT().GetMeidDao(gomock.Any()).Return(devOperator.Address)
+	suite.mockDaoKeeper.EXPECT().GetGlobalDaoFeePoolAddr(gomock.Any()).Return(devOperator.GetAddress())
+	suite.mockDaoKeeper.EXPECT().CheckFreeGasAccount(gomock.Any(), addr.Address).Return(false)
 
 	amt := sdk.NewInt(100)
-	err = testutil.FundAccount(
+	err := testutil.FundAccount(
 		suite.app.BankKeeper,
 		suite.ctx,
-		privkey.PubKey().Address().Bytes(),
-		sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, amt)),
+		addr.GetAddress(),
+		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, amt)),
 	)
 	suite.Require().NoError(err)
 
-	acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
+	acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.GetAddress())
 	suite.Require().NoError(acc.SetSequence(1))
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
-	from := acc.GetAddress()
-	recipient := sdk.AccAddress(common.Address{}.Bytes())
-	msgSend := banktypes.NewMsgSend(from, recipient, sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, sdk.NewInt(1))))
+	recipient := NewAccount()
+	msgSend := banktypes.NewMsgSend(acc.GetAddress(), recipient.GetAddress(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1))))
 
-	txBuilder := suite.CreateTestEIP712CosmosTxBuilder(privkey, []sdk.Msg{msgSend})
+	txBuilder := suite.CreateTestEIP712CosmosTxBuilder(privKey, []sdk.Msg{msgSend})
 	_, err = suite.anteHandler(suite.ctx, txBuilder.GetTx(), false)
 
 	suite.Require().NoError(err)
@@ -105,7 +124,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	priv cryptotypes.PrivKey, msgs []sdk.Msg,
 ) client.TxBuilder {
 	txConfig := suite.clientCtx.TxConfig
-	coinAmount := sdk.NewCoin(params.DisplayDenom, sdk.NewInt(20))
+	coinAmount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(20))
 	fees := sdk.NewCoins(coinAmount)
 
 	pc, err := ethermint.ParseChainID(suite.ctx.ChainID())

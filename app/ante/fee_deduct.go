@@ -29,13 +29,13 @@ const (
 // CONTRACT: Tx must implement FeeTx interface to use DeductFeeDecorator
 type DeductFeeDecorator struct {
 	ak             ante.AccountKeeper
-	bk             BankKeeper
+	BankKeeper     BankKeeper
 	feegrantKeeper ante.FeegrantKeeper
 	daoKeeper      DaoKeeper
 	stakingKeeper  StakingKeeper
 	kycKeeper      KycKeeper
 	txFeeChecker   ante.TxFeeChecker
-	wasmKeeper     wasmtypes.ViewKeeper
+	wasmKeeper     WasmKeeper
 }
 
 func NewDeductFeeDecorator(
@@ -46,7 +46,7 @@ func NewDeductFeeDecorator(
 	sk StakingKeeper,
 	kycKeeper KycKeeper,
 	tfc ante.TxFeeChecker,
-	wk wasmtypes.ViewKeeper,
+	wk WasmKeeper,
 ) DeductFeeDecorator {
 	if tfc == nil {
 		tfc = checkTxFeeWithValidatorMinGasPrices
@@ -58,7 +58,7 @@ func NewDeductFeeDecorator(
 
 	return DeductFeeDecorator{
 		ak:             ak,
-		bk:             bk,
+		BankKeeper:     bk,
 		feegrantKeeper: fk,
 		daoKeeper:      dk,
 		stakingKeeper:  sk,
@@ -168,7 +168,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 				}
 				deductFeesFrom = feeGranter
 			}
-			err = dfd.checkFunds(ctx, tx, deductFeesFrom.String(), fee)
+			err = dfd.CheckFunds(ctx, tx, deductFeesFrom.String(), fee)
 			if err != nil {
 				return ctx, err
 			}
@@ -256,7 +256,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 					Coins:   globalFee})
 				feeReceiverTypes = append(feeReceiverTypes, wbanktypes.FeeReceiverGlobalDaoFeePool)
 
-				err = dfd.bk.FeeToReceivers(ctx, inputs, outputs, feeReceiverTypes)
+				err = dfd.BankKeeper.FeeToReceivers(ctx, inputs, outputs, feeReceiverTypes)
 				if err != nil {
 					return ctx, err
 				}
@@ -272,54 +272,53 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	return next(newCtx, tx, simulate)
 }
 
-func (dfd DeductFeeDecorator) checkFunds(ctx sdk.Context, tx sdk.Tx, feePayer string, fees sdk.Coins) error {
+func (dfd DeductFeeDecorator) CheckFunds(ctx sdk.Context, tx sdk.Tx, feePayer string, fees sdk.Coins) error {
 	if len(fees.Denoms()) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "denom is empty")
 	}
+
+	fromAddress := ""
 	userSendAmount := make(map[string]sdk.Coins)
 	for _, msg := range tx.GetMsgs() {
 		switch txMsg := msg.(type) {
 		case *banktypes.MsgSend:
+			fromAddress = txMsg.FromAddress
 			sendAmount := userSendAmount[txMsg.FromAddress]
 			sendAmount = sendAmount.Add(txMsg.Amount...)
-			if txMsg.FromAddress == feePayer {
-				sendAmount = sendAmount.Add(fees...)
-			}
 			userSendAmount[txMsg.FromAddress] = sendAmount
 		case *banktypes.MsgMultiSend:
 			if len(txMsg.Inputs) == 0 {
 				return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "no input coins provided")
 			}
-			fromAddress := txMsg.Inputs[0].Address
+			fromAddress = txMsg.Inputs[0].Address
 			sendAmount := userSendAmount[fromAddress]
 			for _, output := range txMsg.Outputs {
 				sendAmount = sendAmount.Add(output.Coins...)
 			}
-			if fromAddress == feePayer {
-				sendAmount = sendAmount.Add(fees...)
-			}
 			userSendAmount[fromAddress] = sendAmount
 		case *stakingtypes.MsgDelegate:
+			fromAddress = txMsg.DelegatorAddress
 			sendAmount := userSendAmount[txMsg.DelegatorAddress]
 			sendAmount = sendAmount.Add(txMsg.Amount)
-			if txMsg.DelegatorAddress == feePayer {
-				sendAmount = sendAmount.Add(fees...)
-			}
 			userSendAmount[txMsg.DelegatorAddress] = sendAmount
 		case *wstakingtypes.MsgDoFixedDeposit:
+			fromAddress = txMsg.Account
 			sendAmount := userSendAmount[txMsg.Account]
 			sendAmount = sendAmount.Add(txMsg.Principal)
-			if txMsg.Account == feePayer {
-				sendAmount = sendAmount.Add(fees...)
-			}
 			userSendAmount[txMsg.Account] = sendAmount
 		}
 	}
+
 	if _, exists := userSendAmount[feePayer]; !exists {
 		userSendAmount[feePayer] = fees
+	} else {
+		if fromAddress == feePayer {
+			userSendAmount[feePayer] = userSendAmount[feePayer].Add(fees...)
+		}
 	}
+
 	for address, sendAmount := range userSendAmount {
-		balance := dfd.bk.GetAllBalances(ctx, sdk.MustAccAddressFromBech32(address))
+		balance := dfd.BankKeeper.GetAllBalances(ctx, sdk.MustAccAddressFromBech32(address))
 		if !balance.IsAnyGTE(sendAmount) {
 			return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "check funds for %s; got: %s required: %s",
 				address, balance, sendAmount)

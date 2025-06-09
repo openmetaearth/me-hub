@@ -307,7 +307,10 @@ test-nightly:
 	@TEST_CROSSCHAIN=true go test -mod=readonly -cpu 4 -v -run TestCrosschainKeeperTestSuite ./x/crosschain/...
 
 mocks:
-	@go install go.uber.org/mock/mockgen@v0.4.0
-	mockgen -source=x/crosschain/types/expected_keepers.go -package mock -destination x/crosschain/mock/expected_keepers_mocks.go
+mocks:
+	@go install github.com/golang/mock/gomock
+	@go install github.com/golang/mock/mockgen
+	#mockgen -source=x/wdistri/types/expected_keepers.go -package mock -destination x/wdistri/types/mock/expected_keepers_mock.go
+	mockgen -source=app/ante/expected_keepers.go -package mock -destination app/ante/mock/expected_keepers_mocks.go
 
 .PHONY: test test-count test-nightly mocks
