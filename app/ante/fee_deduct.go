@@ -19,6 +19,7 @@ import (
 const (
 	gasEstimationDeductFeeDecorator = 100_000
 	priorityScalingFactor           = 100_000_000
+	msgLimits                       = 2000
 )
 
 //var minimumFee = sdk.NewCoin(params.BaseDenom, sdk.NewInt(10000))
@@ -111,6 +112,10 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	feeTx, ok := tx.(sdk.FeeTx)
 	if !ok {
 		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
+	}
+
+	if len(feeTx.GetMsgs()) > msgLimits {
+		return ctx, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "messages should not exceed %d", msgLimits)
 	}
 
 	if simulate {
