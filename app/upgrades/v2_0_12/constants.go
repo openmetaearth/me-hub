@@ -1,4 +1,4 @@
-package v2_0_11
+package v2_0_12
 
 import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	UpgradeName = "v2.0.11"
+	UpgradeName = "v2.0.12"
 )
 
 var Upgrade = upgrades.Upgrade{
