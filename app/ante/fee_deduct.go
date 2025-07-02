@@ -3,6 +3,7 @@ package ante
 import (
 	"fmt"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/st-chain/me-hub/app/params"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"math"
 
@@ -22,7 +23,7 @@ const (
 	msgLimits                       = 2000
 )
 
-//var minimumFee = sdk.NewCoin(params.BaseDenom, sdk.NewInt(10000))
+var minimumFee = sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(10000)))
 
 // DeductFeeDecorator deducts fees from the first signer of the tx
 // If the first signer does not have the funds to pay for the fees, return with InsufficientFunds error
@@ -173,6 +174,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 				}
 				deductFeesFrom = feeGranter
 			}
+
 			err = dfd.CheckFunds(ctx, tx, deductFeesFrom.String(), fee)
 			if err != nil {
 				return ctx, err
@@ -347,6 +349,9 @@ func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 	// if this is a CheckTx. This is only for local mempool purposes, and thus
 	// is only ran on check tx.
 	if ctx.IsCheckTx() {
+		if !feeCoins.IsAllGTE(minimumFee) {
+			return sdk.Coins{}, 0, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "fee must greater than or equal %s: got %s", minimumFee.String(), feeCoins.String())
+		}
 		minGasPrices := ctx.MinGasPrices()
 		if !minGasPrices.IsZero() {
 			requiredFees := make(sdk.Coins, len(minGasPrices))
@@ -363,14 +368,9 @@ func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 				return nil, 0, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeCoins, requiredFees)
 			}
 		}
-
-		//if feeCoins[0].IsLT(minimumFee) {
-		//	return nil, 0, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "fee must greater than %s: %s", minimumFee.String(), feeCoins.String())
-		//}
 	}
 
 	priority := getTxPriorityByFee(feeCoins)
-	//priority := getTxPriority(feeCoins, int64(gas))
 	return feeCoins, priority, nil
 }
 
@@ -405,6 +405,5 @@ func getTxPriorityByFee(fee sdk.Coins) int64 {
 			priority = p
 		}
 	}
-
 	return priority
 }

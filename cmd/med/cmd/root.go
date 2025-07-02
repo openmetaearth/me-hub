@@ -23,6 +23,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 
 	dbm "github.com/cometbft/cometbft-db"
+	cometbftcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cometbftcfg "github.com/cometbft/cometbft/config"
 	cometbftcli "github.com/cometbft/cometbft/libs/cli"
 	"github.com/cometbft/cometbft/libs/log"
@@ -106,6 +107,7 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 	rootCmd.PersistentFlags().Bool("enable_me_hub_logger", false, "use me-hub logger instead of cosmos lib logger")
 	initRootCmd(rootCmd, encodingConfig)
 
+	rootCmd.AddCommand(cometbftcmd.RootCmd)
 	return rootCmd, encodingConfig
 }
 
