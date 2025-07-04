@@ -20,7 +20,7 @@ import (
 const (
 	gasEstimationDeductFeeDecorator = 100_000
 	priorityScalingFactor           = 100_000_000
-	msgLimits                       = 2000
+	msgLimits                       = 1000
 )
 
 var minimumFee = sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(10000)))
@@ -121,7 +121,6 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 
 	if simulate {
 		ctx.GasMeter().ConsumeGas(gasEstimationDeductFeeDecorator, "deduct fee decorator")
-		return next(ctx, tx, simulate)
 	}
 
 	var (
@@ -139,21 +138,21 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	isAdmin := feePayer.String() == admin || feePayer.String() == meidAdmin
 	freeGas := isFreeGasAccount || isAdmin
 
-	if !simulate {
-		for _, msg := range feeTx.GetMsgs() {
-			switch msg.(type) {
-			case *megrouptypes.MsgJoinGroup:
-				freeGas = true
-			}
-			break
+	for _, msg := range feeTx.GetMsgs() {
+		switch msg.(type) {
+		case *megrouptypes.MsgJoinGroup:
+			freeGas = true
+		}
+		break
+	}
+
+	if !freeGas {
+		_, priority, err = dfd.txFeeChecker(ctx, tx)
+		if err != nil {
+			return ctx, err
 		}
 
-		if !freeGas {
-			_, priority, err = dfd.txFeeChecker(ctx, tx)
-			if err != nil {
-				return ctx, err
-			}
-
+		if !simulate {
 			fee, err := sdk.ParseCoinsNormalized(feePending.String())
 			if err != nil {
 				return ctx, sdkerrors.Wrap(err, "")
