@@ -272,6 +272,7 @@ replace (
 	github.com/cosmos/cosmos-sdk => github.com/st-chain/cosmos-sdk v0.47.14-0.20250702035509-9429ad74079c
 	github.com/evmos/ethermint => github.com/st-chain/ethermint v0.0.0-20250220093514-1c7546e01918
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+	github.com/ipfs/go-log/v2 => github.com/st-chain/go-log/v2 v2.7.0
 	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1
 	github.com/osmosis-labs/osmosis/v15 => github.com/st-chain/osmosis/v15 v15.2.1-0.20250310064437-06f94a73ca2a
 	//  broken goleveldb
