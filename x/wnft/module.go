@@ -1,11 +1,15 @@
 package wnft
 
 import (
+	"context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/nft"
 	nftmodule "github.com/cosmos/cosmos-sdk/x/nft/module"
+	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	"github.com/st-chain/me-hub/x/wnft/client/cli"
 	"github.com/st-chain/me-hub/x/wnft/keeper"
@@ -13,18 +17,23 @@ import (
 )
 
 var (
-	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.AppModule           = AppModule{}
-	_ module.AppModuleSimulation = AppModule{}
+	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModule      = AppModule{}
 )
 
 // AppModuleBasic implements the basic application module for the wrapped nft module.
 type AppModuleBasic struct {
 	nftmodule.AppModuleBasic
+	cdc codec.Codec
+}
+
+func NewAppModuleBasic(cdc codec.Codec, basic nftmodule.AppModuleBasic) AppModuleBasic {
+	return AppModuleBasic{cdc: cdc, AppModuleBasic: basic}
 }
 
 // AppModule implements an application module for the wnft module.
 type AppModule struct {
+	AppModuleBasic
 	nftmodule.AppModule
 	keeper *keeper.Keeper
 }
@@ -32,15 +41,16 @@ type AppModule struct {
 // NewAppModule creates a new wnft AppModule object.
 func NewAppModule(
 	cdc codec.Codec,
-	keeper *keeper.Keeper,
+	keeper keeper.Keeper,
 	ak nft.AccountKeeper,
 	bk nft.BankKeeper,
 	registry codectypes.InterfaceRegistry,
 ) AppModule {
 	nftModule := nftmodule.NewAppModule(cdc, keeper.Keeper, ak, bk, registry)
 	return AppModule{
-		AppModule: nftModule,
-		keeper:    keeper,
+		AppModuleBasic: NewAppModuleBasic(cdc, nftModule.AppModuleBasic),
+		AppModule:      nftModule,
+		keeper:         &keeper,
 	}
 }
 
@@ -48,8 +58,7 @@ func NewAppModule(
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper, am.keeper.Keeper))
 
-	querier := keeper.Querier{Keeper: am.keeper}
-	types.RegisterQueryServer(cfg.QueryServer(), querier)
+	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	nft.RegisterQueryServer(cfg.QueryServer(), am.keeper.Keeper)
 }
@@ -67,4 +76,27 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 func (a AppModuleBasic) RegisterInterfaces(reg codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(reg)
 	nft.RegisterInterfaces(reg)
+}
+
+// RegisterRESTRoutes registers the capability module's REST service handlers.
+func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
+}
+
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module.
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	if err := nft.RegisterQueryHandlerClient(context.Background(), mux, nft.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
+	// nolint: errcheck, gosec
+	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+}
+
+func (AppModuleBasic) RegisterCodec(cdc *codec.LegacyAmino) {
+	nft.RegisterCodec(cdc)
+	types.RegisterCodec(cdc)
+}
+
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	nft.RegisterCodec(cdc)
+	types.RegisterCodec(cdc)
 }

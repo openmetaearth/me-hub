@@ -142,7 +142,7 @@ func (a *AppKeepers) SetupModules(
 		txfees.NewAppModule(*a.TxFeesKeeper),
 		dao.NewAppModule(appCodec, a.DaoKeeper),
 
-		wnft.NewAppModule(appCodec, a.WNFTKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
+		wnft.NewAppModule(appCodec, *a.WNFTKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
 		wasm.NewAppModule(appCodec, &a.WasmKeeper, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, bApp.MsgServiceRouter(), a.GetSubspace(wasmtypes.ModuleName)),
 	}
 }

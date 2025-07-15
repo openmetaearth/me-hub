@@ -3528,7 +3528,7 @@ paths:
                       format: byte
       tags:
         - Query
-  /cosmos/nft/v1beta1/class_address/{address}/{class_id}:
+  /metaearth/wnft/class_address/{address}/{class_id}:
     get:
       summary: Classes queries Address
       operationId: ClassAddress
@@ -3584,7 +3584,7 @@ paths:
           type: string
       tags:
         - Query
-  /cosmos/nft/v1beta1/nft_filter:
+  /metaearth/wnft/nft_filter:
     post:
       summary: queries nft filter
       operationId: NftFilter
