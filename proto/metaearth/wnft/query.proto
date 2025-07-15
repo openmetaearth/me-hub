@@ -1,6 +1,9 @@
 syntax = "proto3";
 package metaearth.wnft;
 
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/wnft/types";
@@ -9,13 +12,13 @@ option go_package = "github.com/st-chain/me-hub/x/wnft/types";
 service Query {
   // Classes queries Address
   rpc ClassAddress(QueryClassAddressRequest) returns (QueryClassAddressResponse) {
-    option (google.api.http).get = "/cosmos/nft/v1beta1/class_address/{address}/{class_id}";
+    option (google.api.http).get = "/metaearth/wnft/class_address/{address}/{class_id}";
   }
 
   //  queries nft filter
   rpc NftFilter(QueryNftFilterRequest) returns (QueryNftFilterResponse) {
     option (google.api.http) = {
-      post: "/cosmos/nft/v1beta1/nft_filter"
+      post: "/metaearth/wnft/nft_filter"
       body: "*"
     };
   }
