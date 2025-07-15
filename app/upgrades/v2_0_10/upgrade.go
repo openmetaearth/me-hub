@@ -206,7 +206,7 @@ func setNewModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
 	keepers.TxFeesKeeper.InitGenesis(ctx, *txfeeParams)
 
 	sequences := make([]wasmtypes.Sequence, 0)
-	for _, k := range [][]byte{wasmtypes.KeyLastCodeID, wasmtypes.KeyLastInstanceID} {
+	for _, k := range [][]byte{wasmtypes.KeySequenceCodeID, wasmtypes.KeySequenceInstanceID} {
 		sequences = append(sequences, wasmtypes.Sequence{
 			IDKey: k,
 			Value: keepers.WasmKeeper.PeekAutoIncrementID(ctx, k),

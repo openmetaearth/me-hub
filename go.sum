@@ -219,8 +219,8 @@ github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1/go.mod h1:xomTg6
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/ChainSafe/go-schnorrkel v1.0.0 h1:3aDA67lAykLaG1y3AOjs88dMxC88PgUuHRrLeDnvGIM=
 github.com/ChainSafe/go-schnorrkel v1.0.0/go.mod h1:dpzHYVxLZcp8pjlV+O+UR8K0Hp/z7vcchBSbMBEhCw4=
-github.com/CosmWasm/wasmd v0.41.0 h1:fmwxSbwb50zZDcBaayYFRLIaSFca+EFld1WOaQi49jg=
-github.com/CosmWasm/wasmd v0.41.0/go.mod h1:0Sds1q2IsPaTN1gHa3BNOYcUFgtGvxH7CXEXPgoihns=
+github.com/CosmWasm/wasmd v0.43.0 h1:4xQAiNf6Ej+TuYe4PXwrtVJ9C+xyFrbsdqHH/kU9Vxk=
+github.com/CosmWasm/wasmd v0.43.0/go.mod h1:gpri8YvkRErBz+qDme5jOThGZmSlHfyN532bWibXOl4=
 github.com/CosmWasm/wasmvm v1.4.1 h1:YgodVlBrXa2HJZzOXjWDH0EIRwQzK3zuA73dDPRRLS4=
 github.com/CosmWasm/wasmvm v1.4.1/go.mod h1:fXB+m2gyh4v9839zlIXdMZGeLAxqUdYdFQqYsTha2hc=
 github.com/DATA-DOG/go-sqlmock v1.3.3/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=

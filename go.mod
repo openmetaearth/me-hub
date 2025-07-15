@@ -8,7 +8,7 @@ require (
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/simapp v0.0.0-20230608160436-666c345ad23d
 	cosmossdk.io/tools/rosetta v0.2.1
-	github.com/CosmWasm/wasmd v0.41.0
+	github.com/CosmWasm/wasmd v0.43.0
 	github.com/armon/go-metrics v0.4.1
 	github.com/bufbuild/buf v1.9.0
 	github.com/cometbft/cometbft v0.37.5
