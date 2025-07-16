@@ -32,7 +32,6 @@ var _ types.MsgServer = msgServer{}
 
 func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types.MsgApproveResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call Approve", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx)
@@ -349,7 +348,6 @@ func (m msgServer) UpdateSBT(goCtx context.Context, msg *types.MsgUpdateSBT) (*t
 
 func (m msgServer) DeleteSBT(goCtx context.Context, msg *types.MsgDeleteSBT) (*types.MsgDeleteSBTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call DeleteSBT", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx)

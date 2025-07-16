@@ -29,7 +29,6 @@ func (m msgServer) CreateDid(goCtx context.Context, msg *types.MsgCreateDid) (*t
 
 func (m msgServer) UpdateDidStatus(goCtx context.Context, msg *types.MsgUpdateDidStatus) (*types.MsgUpdateDidStatusResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call UpdateDidStatus", "msg", msg)
 
 	if !m.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
 		return &types.MsgUpdateDidStatusResponse{}, types.ErrPermissionDenial
@@ -69,7 +68,6 @@ func (m msgServer) UpdateDidStatus(goCtx context.Context, msg *types.MsgUpdateDi
 
 func (m msgServer) CreateService(goCtx context.Context, msg *types.MsgCreateService) (*types.MsgCreateServiceResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call CreateService", "msg", msg)
 
 	if !m.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
 		return &types.MsgCreateServiceResponse{}, types.ErrPermissionDenial
@@ -97,7 +95,6 @@ func (m msgServer) CreateService(goCtx context.Context, msg *types.MsgCreateServ
 
 func (m msgServer) UpdateServiceStatus(goCtx context.Context, msg *types.MsgUpdateServiceStatus) (*types.MsgUpdateServiceStatusResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call UpdateServiceStatus", "msg", msg)
 
 	if !m.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
 		return &types.MsgUpdateServiceStatusResponse{}, types.ErrPermissionDenial
@@ -136,7 +133,6 @@ func (m msgServer) UpdateServiceStatus(goCtx context.Context, msg *types.MsgUpda
 
 func (m msgServer) CreateVC(goCtx context.Context, msg *types.MsgCreateVC) (*types.MsgCreateVCResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call CreateVC", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx, msg.Sid)
@@ -177,7 +173,6 @@ func (m msgServer) CreateVC(goCtx context.Context, msg *types.MsgCreateVC) (*typ
 
 func (m msgServer) UpdateVC(goCtx context.Context, msg *types.MsgUpdateVC) (*types.MsgUpdateVCResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call UpdateVC", "msg", msg)
 
 	// check vc
 	if found := m.HasCredential(ctx, msg.Did, msg.Sid); !found {
@@ -218,7 +213,6 @@ func (m msgServer) UpdateVC(goCtx context.Context, msg *types.MsgUpdateVC) (*typ
 
 func (m msgServer) RemoveVC(goCtx context.Context, msg *types.MsgRemoveVC) (*types.MsgRemoveVCResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call RemoveVC", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx, msg.Sid)

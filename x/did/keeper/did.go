@@ -23,7 +23,6 @@ func (k Keeper) GetDID(ctx sdk.Context, addr sdk.AccAddress) (string, bool) {
 }
 
 func (k Keeper) SetDID(ctx sdk.Context, addr sdk.AccAddress, did string) {
-	k.Logger(ctx).Debug("call SetDID", "addr", addr.String(), "did", did)
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetDIDKey(addr), []byte(did))
 }
