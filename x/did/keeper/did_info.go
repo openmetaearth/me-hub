@@ -38,7 +38,6 @@ func (k Keeper) GetDidInfos(ctx sdk.Context) (infos []types.DidInfo) {
 }
 
 func (k Keeper) SetDidInfo(ctx sdk.Context, did string, info types.DidInfo) {
-	k.Logger(ctx).Debug("call SetDidInfo", "did", did, "didInfo", info)
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetDidInfoKey(did), k.cdc.MustMarshal(&info))
 }
