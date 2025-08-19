@@ -16,4 +16,4 @@ release-note.md
 dist
 out
 app/upgrades/v2_0_10/configs/nft.json
-
+.test
