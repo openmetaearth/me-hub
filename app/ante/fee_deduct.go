@@ -2,10 +2,11 @@ package ante
 
 import (
 	"fmt"
+	"math"
+
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
-	"math"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -146,132 +147,129 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		break
 	}
 
-	if !freeGas {
+	if !freeGas && !simulate {
 		_, priority, err = dfd.txFeeChecker(ctx, tx)
 		if err != nil {
 			return ctx, err
 		}
+		fee, err := sdk.ParseCoinsNormalized(feePending.String())
+		if err != nil {
+			return ctx, sdkerrors.Wrap(err, "")
+		}
 
-		if !simulate {
-			fee, err := sdk.ParseCoinsNormalized(feePending.String())
-			if err != nil {
-				return ctx, sdkerrors.Wrap(err, "")
+		deductFeesFrom := feePayer
+
+		// if fee granter set deduct fee from fee granter account.
+		// this works with only when fee grant enabled.
+		if feeGranter != nil {
+			if dfd.daoKeeper == nil {
+				return ctx, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "fee grants are not enabled")
+			} else if !feeGranter.Equals(feePayer) {
+				err := dfd.feegrantKeeper.UseGrantedFees(ctx, feeGranter, feePayer, fee, tx.GetMsgs())
+				if err != nil {
+					return ctx, sdkerrors.Wrapf(err, "%s not allowed to pay fees from %s", feeGranter, feePayer)
+				}
+			}
+			deductFeesFrom = feeGranter
+		}
+
+		err = dfd.CheckFunds(ctx, tx, deductFeesFrom.String(), fee)
+		if err != nil {
+			return ctx, err
+		}
+		// deduct the fees
+		if !fee.IsZero() {
+			// DeductFees deducts fees from the given account.
+			if !fee.IsValid() {
+				return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "invalid fee amount: %s", fee)
 			}
 
-			deductFeesFrom := feePayer
+			fee10 := make(sdk.Coins, len(fee))
+			fee20 := make(sdk.Coins, len(fee))
+			fee30 := make(sdk.Coins, len(fee))
+			fee40 := make(sdk.Coins, len(fee))
 
-			// if fee granter set deduct fee from fee granter account.
-			// this works with only when fee grant enabled.
-			if feeGranter != nil {
-				if dfd.daoKeeper == nil {
-					return ctx, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "fee grants are not enabled")
-				} else if !feeGranter.Equals(feePayer) {
-					err := dfd.feegrantKeeper.UseGrantedFees(ctx, feeGranter, feePayer, fee, tx.GetMsgs())
-					if err != nil {
-						return ctx, sdkerrors.Wrapf(err, "%s not allowed to pay fees from %s", feeGranter, feePayer)
-					}
+			rate10 := sdk.MustNewDecFromStr("0.1")
+			rate20 := sdk.MustNewDecFromStr("0.2")
+			rate30 := sdk.MustNewDecFromStr("0.3")
+
+			for i, f := range fee {
+				if f.Amount.LT(sdk.NewInt(10)) {
+					return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "fee must greater than 10: %s", fee)
 				}
-				deductFeesFrom = feeGranter
+				fee10[i] = sdk.NewCoin(f.Denom, rate10.MulInt(f.Amount).TruncateInt())
+				fee20[i] = sdk.NewCoin(f.Denom, rate20.MulInt(f.Amount).TruncateInt())
+				fee30[i] = sdk.NewCoin(f.Denom, rate30.MulInt(f.Amount).TruncateInt())
+				fee40[i] = sdk.NewCoin(f.Denom, f.Amount.Sub(fee10[i].Amount).Sub(fee20[i].Amount).Sub(fee30[i].Amount))
+			}
+			inputs := []banktypes.Input{
+				{
+					Address: deductFeesFrom.String(),
+					Coins:   fee,
+				},
 			}
 
-			err = dfd.CheckFunds(ctx, tx, deductFeesFrom.String(), fee)
-			if err != nil {
-				return ctx, err
+			outputs := []banktypes.Output{}
+			feeReceiverTypes := []wbanktypes.FeeReceiverType{}
+			outputs = append(outputs, banktypes.Output{
+				Address: dfd.daoKeeper.GetDevOperator(ctx),
+				Coins:   fee10,
+			})
+			feeReceiverTypes = append(feeReceiverTypes, wbanktypes.FeeReceiverDevOperator)
+
+			fee20Address := ""
+			fee20ReceiverType := wbanktypes.FeeReceiverKycRegionOwner
+
+			kyc, isKyc := didtypes.Credential{}, false
+			did, hasDid := dfd.kycKeeper.GetDID(ctx, deductFeesFrom)
+			if hasDid {
+				kyc, isKyc = dfd.kycKeeper.GetKYC(ctx, did)
 			}
-			// deduct the fees
-			if !fee.IsZero() {
-				// DeductFees deducts fees from the given account.
-				if !fee.IsValid() {
-					return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "invalid fee amount: %s", fee)
+			if isKyc {
+				fee20Address, err = dfd.stakingKeeper.GetValOwnerAddress(ctx, string(kyc.Data))
+				if err != nil {
+					return ctx, fmt.Errorf("couldn't get validator from kyc address: %s", deductFeesFrom.String())
 				}
-
-				fee10 := make(sdk.Coins, len(fee))
-				fee20 := make(sdk.Coins, len(fee))
-				fee30 := make(sdk.Coins, len(fee))
-				fee40 := make(sdk.Coins, len(fee))
-
-				rate10 := sdk.MustNewDecFromStr("0.1")
-				rate20 := sdk.MustNewDecFromStr("0.2")
-				rate30 := sdk.MustNewDecFromStr("0.3")
-
-				for i, f := range fee {
-					if f.Amount.LT(sdk.NewInt(10)) {
-						return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "fee must greater than 10: %s", fee)
-					}
-					fee10[i] = sdk.NewCoin(f.Denom, rate10.MulInt(f.Amount).TruncateInt())
-					fee20[i] = sdk.NewCoin(f.Denom, rate20.MulInt(f.Amount).TruncateInt())
-					fee30[i] = sdk.NewCoin(f.Denom, rate30.MulInt(f.Amount).TruncateInt())
-					fee40[i] = sdk.NewCoin(f.Denom, f.Amount.Sub(fee10[i].Amount).Sub(fee20[i].Amount).Sub(fee30[i].Amount))
-				}
-				inputs := []banktypes.Input{
-					{
-						Address: deductFeesFrom.String(),
-						Coins:   fee,
-					},
-				}
-
-				outputs := []banktypes.Output{}
-				feeReceiverTypes := []wbanktypes.FeeReceiverType{}
-				outputs = append(outputs, banktypes.Output{
-					Address: dfd.daoKeeper.GetDevOperator(ctx),
-					Coins:   fee10,
-				})
-				feeReceiverTypes = append(feeReceiverTypes, wbanktypes.FeeReceiverDevOperator)
-
-				fee20Address := ""
-				fee20ReceiverType := wbanktypes.FeeReceiverKycRegionOwner
-
-				kyc, isKyc := didtypes.Credential{}, false
-				did, hasDid := dfd.kycKeeper.GetDID(ctx, deductFeesFrom)
-				if hasDid {
-					kyc, isKyc = dfd.kycKeeper.GetKYC(ctx, did)
-				}
-				if isKyc {
-					fee20Address, err = dfd.stakingKeeper.GetValOwnerAddress(ctx, string(kyc.Data))
-					if err != nil {
-						return ctx, fmt.Errorf("couldn't get validator from kyc address: %s", deductFeesFrom.String())
-					}
-				} else {
-					fee20Address, err = dfd.stakingKeeper.GetProposerOwnerAddress(ctx)
-					if err != nil {
-						return ctx, err
-					}
-					fee20ReceiverType = wbanktypes.FeeReceiverProposerOwner
-				}
-
-				outputs = append(outputs, banktypes.Output{Address: fee20Address, Coins: fee20})
-				feeReceiverTypes = append(feeReceiverTypes, fee20ReceiverType)
-
-				fee40Address := ""
-				globalFee := sdk.NewCoins()
-				contractOwner, ok := dfd.ParseWasmMsgContractCreator(ctx, tx)
-				if ok {
-					fee40Address = contractOwner
-					fee40ReceiverTypes := wbanktypes.FeeReceiverContractCreator
-					feeReceiverTypes = append(feeReceiverTypes, fee40ReceiverTypes)
-					outputs = append(outputs, banktypes.Output{
-						Address: fee40Address,
-						Coins:   fee40,
-					})
-				} else {
-					globalFee = fee30.Add(fee40...)
-				}
-
-				outputs = append(outputs, banktypes.Output{
-					Address: dfd.daoKeeper.GetGlobalDaoFeePoolAddr(ctx).String(),
-					Coins:   globalFee})
-				feeReceiverTypes = append(feeReceiverTypes, wbanktypes.FeeReceiverGlobalDaoFeePool)
-
-				err = dfd.BankKeeper.FeeToReceivers(ctx, inputs, outputs, feeReceiverTypes)
+			} else {
+				fee20Address, err = dfd.stakingKeeper.GetProposerOwnerAddress(ctx)
 				if err != nil {
 					return ctx, err
 				}
-				ctx.EventManager().EmitEvent(
-					sdk.NewEvent(sdk.EventTypeTx,
-						sdk.NewAttribute(sdk.AttributeKeyFee, feeTx.GetFee().String()),
-					),
-				)
+				fee20ReceiverType = wbanktypes.FeeReceiverProposerOwner
 			}
+
+			outputs = append(outputs, banktypes.Output{Address: fee20Address, Coins: fee20})
+			feeReceiverTypes = append(feeReceiverTypes, fee20ReceiverType)
+
+			fee40Address := ""
+			globalFee := sdk.NewCoins()
+			contractOwner, ok := dfd.ParseWasmMsgContractCreator(ctx, tx)
+			if ok {
+				fee40Address = contractOwner
+				fee40ReceiverTypes := wbanktypes.FeeReceiverContractCreator
+				feeReceiverTypes = append(feeReceiverTypes, fee40ReceiverTypes)
+				outputs = append(outputs, banktypes.Output{
+					Address: fee40Address,
+					Coins:   fee40,
+				})
+			} else {
+				globalFee = fee30.Add(fee40...)
+			}
+
+			outputs = append(outputs, banktypes.Output{
+				Address: dfd.daoKeeper.GetGlobalDaoFeePoolAddr(ctx).String(),
+				Coins:   globalFee})
+			feeReceiverTypes = append(feeReceiverTypes, wbanktypes.FeeReceiverGlobalDaoFeePool)
+
+			err = dfd.BankKeeper.FeeToReceivers(ctx, inputs, outputs, feeReceiverTypes)
+			if err != nil {
+				return ctx, err
+			}
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(sdk.EventTypeTx,
+					sdk.NewAttribute(sdk.AttributeKeyFee, feeTx.GetFee().String()),
+				),
+			)
 		}
 	}
 	newCtx := ctx.WithPriority(priority)
