@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"strconv"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -9,7 +11,6 @@ import (
 	"github.com/st-chain/me-hub/utils"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	"github.com/st-chain/me-hub/x/wnft/types"
-	"strconv"
 )
 
 // MsgServer is wrapper staking customParamsKeeper message server.

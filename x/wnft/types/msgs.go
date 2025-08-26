@@ -2,6 +2,7 @@ package types
 
 import (
 	"cosmossdk.io/errors"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
@@ -42,6 +43,14 @@ func (msg MsgNewClass) ValidateBasic() error {
 
 	if msg.TotalSupply == 0 && msg.ClassId != "kyc" {
 		return ErrEmptyTotalSupply
+	}
+
+	if len(msg.Name) == 0 {
+		return fmt.Errorf("invalid class name: %s", msg.Name)
+	}
+
+	if len(msg.Symbol) == 0 {
+		return fmt.Errorf("invalid class symbol: %s", msg.Symbol)
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Sender)

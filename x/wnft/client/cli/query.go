@@ -51,7 +51,7 @@ func GetCmdQueryClassAddress() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "class-address [class-id] [owner]",
 		Args:    cobra.ExactArgs(2),
-		Short:   "query information and status related to the specified NFT class (album)；.",
+		Short:   "query information and status related to the specified NFT class (album).",
 		Example: fmt.Sprintf(`$ %s query %s class-address [class-id] [owner]`, version.AppName, nft.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
