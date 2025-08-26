@@ -242,7 +242,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			feeReceiverTypes = append(feeReceiverTypes, fee20ReceiverType)
 
 			fee40Address := ""
-			globalFee := sdk.NewCoins()
+			globalFee := fee30
 			contractOwner, ok := dfd.ParseWasmMsgContractCreator(ctx, tx)
 			if ok {
 				fee40Address = contractOwner
