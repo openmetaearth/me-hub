@@ -1,0 +1,28 @@
+package types
+
+const (
+	EventTypeBondedRelayer          = "bonded_relayer"
+	EventTypeUnBondedRelayer        = "unbonded_relayer"
+	EventTypeSendToExternal         = "send_to_external"
+	EventTypeSendToExternalCanceled = "send_to_external_canceled"
+	EventTypeRelayerSetUpdate       = "relayer_set_update"
+	EventTypeContractEvent          = "observation"
+)
+
+const (
+	AttributeKeyReceiver             = "receiver"
+	AttributeKeySlashAmount          = "slash_amount"
+	AttributeKeyUnbondAmount         = "unbond_amount"
+	AttributeKeyExternalAddress      = "external_address"
+	AttributeKeyOutgoingTxID         = "outgoing_tx_id"
+	AttributeKeyOutgoingTxIds        = "outgoing_tx_ids"
+	AttributeKeyOutgoingBatchNonce   = "batch_nonce"
+	AttributeKeyOutgoingBatchTimeout = "outgoing_batch_timeout"
+	AttributeKeyRelayerSetNonce      = "relayer_set_nonce"
+	AttributeKeyRelayerSetLen        = "relayer_set_len"
+	AttributeKeyClaimType            = "claim_type"
+	AttributeKeyEventNonce           = "event_nonce"
+	AttributeKeyClaimHash            = "claim_hash"
+	AttributeKeyBlockHeight          = "block_height"
+	AttributeKeyStateSuccess         = "state_success"
+)

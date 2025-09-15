@@ -1,0 +1,305 @@
+syntax = "proto3";
+package metaearth.gravity.v1;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "metaearth/gravity/v1/tx.proto";
+import "metaearth/gravity/v1/types.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/gravity/types";
+
+// Query defines the gRPC querier service
+service Query {
+  // Deployments queries deployments
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/gravity/v1/params";
+  }
+  rpc CurrentRelayerSet(QueryCurrentRelayerSetRequest) returns (QueryCurrentRelayerSetResponse) {
+    option (google.api.http).get = "/gravity/v1/relayer_set/current";
+  }
+  rpc RelayerSetRequest(QueryRelayerSetRequestRequest) returns (QueryRelayerSetRequestResponse) {
+    option (google.api.http).get = "/gravity/v1/relayer_set/request";
+  }
+  rpc RelayerSetConfirm(QueryRelayerSetConfirmRequest) returns (QueryRelayerSetConfirmResponse) {
+    option (google.api.http).get = "/gravity/v1/relayer_set/confirm";
+  }
+  rpc RelayerSetConfirmsByNonce(QueryRelayerSetConfirmsByNonceRequest) returns (QueryRelayerSetConfirmsByNonceResponse) {
+    option (google.api.http).get = "/gravity/v1/relayer_set/confirms";
+  }
+  rpc LastRelayerSetRequests(QueryLastRelayerSetRequestsRequest) returns (QueryLastRelayerSetRequestsResponse) {
+    option (google.api.http).get = "/gravity/v1/relayer_set/requests";
+  }
+  rpc LastPendingRelayerSetRequestByAddr(QueryLastPendingRelayerSetRequestByAddrRequest) returns (QueryLastPendingRelayerSetRequestByAddrResponse) {
+    option (google.api.http).get = "/gravity/v1/relayer_set/last";
+  }
+  rpc LastPendingBatchRequestByAddr(QueryLastPendingBatchRequestByAddrRequest) returns (QueryLastPendingBatchRequestByAddrResponse) {
+    option (google.api.http).get = "/gravity/v1/batch/last";
+  }
+  rpc LastEventNonceByAddr(QueryLastEventNonceByAddrRequest) returns (QueryLastEventNonceByAddrResponse) {
+    option (google.api.http).get = "/gravity/v1/relayer/event_nonce";
+  }
+  rpc LastEventBlockHeightByAddr(QueryLastEventBlockHeightByAddrRequest) returns (QueryLastEventBlockHeightByAddrResponse) {
+    option (google.api.http).get = "/gravity/v1/relayer/event/block_height";
+  }
+  rpc BatchFees(QueryBatchFeeRequest) returns (QueryBatchFeeResponse) {
+    option (google.api.http).get = "/gravity/v1/batch_fees";
+  }
+  rpc LastObservedBlockHeight(QueryLastObservedBlockHeightRequest) returns (QueryLastObservedBlockHeightResponse) {
+    option (google.api.http).get = "/gravity/v1/observed/block_height";
+  }
+  rpc OutgoingTxBatches(QueryOutgoingTxBatchesRequest) returns (QueryOutgoingTxBatchesResponse) {
+    option (google.api.http).get = "/gravity/v1/batch/outgoing_tx";
+  }
+  rpc BatchRequestByNonce(QueryBatchRequestByNonceRequest) returns (QueryBatchRequestByNonceResponse) {
+    option (google.api.http).get = "/gravity/v1/batch/request";
+  }
+  rpc BatchConfirm(QueryBatchConfirmRequest) returns (QueryBatchConfirmResponse) {
+    option (google.api.http).get = "/gravity/v1/batch/confirm";
+  }
+  rpc BatchConfirms(QueryBatchConfirmsRequest) returns (QueryBatchConfirmsResponse) {
+    option (google.api.http).get = "/gravity/v1/batch/confirms";
+  }
+  rpc TokenToDenom(QueryTokenToDenomRequest) returns (QueryTokenToDenomResponse) {
+    option (google.api.http).get = "/gravity/v1/denom";
+  }
+  rpc DenomToToken(QueryDenomToTokenRequest) returns (QueryDenomToTokenResponse) {
+    option (google.api.http).get = "/gravity/v1/token";
+  }
+  rpc GetRelayerByAddr(QueryRelayerByAddrRequest) returns (QueryRelayerResponse) {
+    option (google.api.http).get = "/gravity/v1/relayer_by_addr";
+  }
+  rpc GetRelayerByExternalAddr(QueryRelayerByExternalAddrRequest) returns (QueryRelayerResponse) {
+    option (google.api.http).get = "/gravity/v1/relayer_by_external_addr";
+  }
+  rpc GetRelayerByBridgerAddr(QueryRelayerByBridgerAddrRequest) returns (QueryRelayerResponse) {
+    option (google.api.http).get = "/gravity/v1/relayer_by_bridger_addr";
+  }
+  rpc GetPendingSendToExternal(QueryPendingSendToExternalRequest) returns (QueryPendingSendToExternalResponse) {
+    option (google.api.http).get = "/gravity/v1/pending_send_to_external";
+  }
+  // Validators queries all relayer that match the given status.
+  rpc Relayers(QueryRelayersRequest) returns (QueryRelayersResponse) {
+    option (google.api.http).get = "/gravity/v1/relayers";
+  }
+  rpc ProjectedBatchTimeoutHeight(QueryProjectedBatchTimeoutHeightRequest) returns (QueryProjectedBatchTimeoutHeightResponse) {
+    option (google.api.http).get = "/gravity/v1/projected_batch_timeout";
+  }
+  rpc BridgeTokens(QueryBridgeTokensRequest) returns (QueryBridgeTokensResponse) {
+    option (google.api.http).get = "/gravity/v1/bridge_tokens";
+  }
+  rpc BridgeCoinByDenom(QueryBridgeCoinByDenomRequest) returns (QueryBridgeCoinByDenomResponse) {
+    option (google.api.http).get = "/gravity/v1/bridge_coin_by_denom";
+  }
+  rpc BridgeChainList(QueryBridgeChainListRequest) returns (QueryBridgeChainListResponse) {
+    option (google.api.http).get = "/gravity/v1/bridge_chain_list";
+  }
+}
+
+message QueryParamsRequest {
+  string chain_name = 1;
+}
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryCurrentRelayerSetRequest {
+  string chain_name = 1;
+}
+message QueryCurrentRelayerSetResponse {
+  RelayerSet relayer_set = 1;
+}
+
+message QueryRelayerSetRequestRequest {
+  string chain_name = 1;
+  uint64 nonce = 2;
+}
+message QueryRelayerSetRequestResponse {
+  RelayerSet relayer_set = 1;
+}
+
+message QueryRelayerSetConfirmRequest {
+  string chain_name = 1;
+  string bridger_address = 2;
+  uint64 nonce = 3;
+}
+message QueryRelayerSetConfirmResponse {
+  MsgRelayerSetConfirm confirm = 1;
+}
+
+message QueryRelayerSetConfirmsByNonceRequest {
+  string chain_name = 1;
+  uint64 nonce = 2;
+}
+message QueryRelayerSetConfirmsByNonceResponse {
+  repeated MsgRelayerSetConfirm confirms = 1;
+}
+
+message QueryLastRelayerSetRequestsRequest {
+  string chain_name = 1;
+}
+message QueryLastRelayerSetRequestsResponse {
+  repeated RelayerSet relayer_sets = 1;
+}
+
+message QueryLastPendingRelayerSetRequestByAddrRequest {
+  string chain_name = 1;
+  string bridger_address = 2;
+}
+message QueryLastPendingRelayerSetRequestByAddrResponse {
+  repeated RelayerSet relayer_sets = 1;
+}
+
+message QueryBatchFeeRequest {
+  string chain_name = 1;
+  repeated MinBatchFee minBatchFees = 2 [(gogoproto.nullable) = false];
+}
+message QueryBatchFeeResponse {
+  repeated BatchFees batch_fees = 1;
+}
+
+message QueryLastPendingBatchRequestByAddrRequest {
+  string chain_name = 1;
+  string bridger_address = 2;
+}
+message QueryLastPendingBatchRequestByAddrResponse {
+  OutgoingTxBatch batch = 1;
+}
+
+message QueryOutgoingTxBatchesRequest {
+  string chain_name = 1;
+}
+message QueryOutgoingTxBatchesResponse {
+  repeated OutgoingTxBatch batches = 1;
+}
+
+message QueryBatchRequestByNonceRequest {
+  string chain_name = 1;
+  string token_contract = 2;
+  uint64 nonce = 3;
+}
+message QueryBatchRequestByNonceResponse {
+  OutgoingTxBatch batch = 1;
+}
+
+message QueryBatchConfirmRequest {
+  string chain_name = 1;
+  string token_contract = 2;
+  string bridger_address = 3;
+  uint64 nonce = 4;
+}
+message QueryBatchConfirmResponse {
+  MsgConfirmBatch confirm = 1;
+}
+
+message QueryBatchConfirmsRequest {
+  string chain_name = 1;
+  string token_contract = 2;
+  uint64 nonce = 3;
+}
+message QueryBatchConfirmsResponse {
+  repeated MsgConfirmBatch confirms = 1;
+}
+
+message QueryLastEventNonceByAddrRequest {
+  string chain_name = 1;
+  string bridger_address = 2;
+}
+message QueryLastEventNonceByAddrResponse {
+  uint64 event_nonce = 1;
+}
+
+message QueryTokenToDenomRequest {
+  string chain_name = 1;
+  string token = 2;
+}
+message QueryTokenToDenomResponse {
+  string denom = 1;
+}
+
+message QueryDenomToTokenRequest {
+  string chain_name = 1;
+  string denom = 2;
+}
+message QueryDenomToTokenResponse {
+  string token = 1;
+}
+
+message QueryRelayerByAddrRequest {
+  string chain_name = 1;
+  string relayer_address = 2;
+}
+message QueryRelayerResponse {
+  Relayer relayer = 1;
+}
+
+message QueryRelayerByExternalAddrRequest {
+  string chain_name = 1;
+  string external_address = 2;
+}
+message QueryRelayerByBridgerAddrRequest {
+  string chain_name = 1;
+  string bridger_address = 2;
+}
+message QueryPendingSendToExternalRequest {
+  string chain_name = 1;
+  string sender_address = 2;
+}
+message QueryPendingSendToExternalResponse {
+  repeated OutgoingTransferTx transfers_in_batches = 1;
+  repeated OutgoingTransferTx unbatched_transfers = 2;
+}
+
+message QueryLastObservedBlockHeightRequest {
+  string chain_name = 1;
+}
+message QueryLastObservedBlockHeightResponse {
+  uint64 external_block_height = 1;
+  uint64 block_height = 2;
+}
+
+message QueryLastEventBlockHeightByAddrRequest {
+  string chain_name = 1;
+  string bridger_address = 2;
+}
+message QueryLastEventBlockHeightByAddrResponse {
+  uint64 block_height = 1;
+}
+
+message QueryRelayersRequest {
+  string chain_name = 1;
+}
+message QueryRelayersResponse {
+  // relayers contains all the queried relayers.
+  repeated Relayer relayers = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryProjectedBatchTimeoutHeightRequest {
+  string chain_name = 1;
+}
+message QueryProjectedBatchTimeoutHeightResponse {
+  uint64 timeout_height = 1;
+}
+
+message QueryBridgeTokensRequest {
+  string chain_name = 1;
+}
+message QueryBridgeTokensResponse {
+  repeated BridgeToken bridge_tokens = 1;
+}
+
+message QueryBridgeCoinByDenomRequest {
+  string chain_name = 1;
+  string denom = 2;
+}
+message QueryBridgeCoinByDenomResponse {
+  cosmos.base.v1beta1.Coin coin = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryBridgeChainListRequest {}
+message QueryBridgeChainListResponse {
+  repeated string chain_names = 1;
+}
