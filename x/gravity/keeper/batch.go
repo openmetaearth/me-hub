@@ -70,7 +70,6 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, tokenContract, feeReceive 
 	}
 	batchEvent := sdk.NewEvent(
 		types.EventTypeOutgoingBatch,
-		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprint(nextID)),
 		sdk.NewAttribute(types.AttributeKeyOutgoingTxIds, eventBatchNonceTxIds.String()),
 		sdk.NewAttribute(types.AttributeKeyOutgoingBatchTimeout, fmt.Sprint(batch.BatchTimeout)),
@@ -112,7 +111,7 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, b
 		// If the iterated batches nonce is lower than the one that was just executed, cancel it
 		if iterBatch.BatchNonce < batch.BatchNonce && iterBatch.TokenContract == tokenContract {
 			if err := k.CancelOutgoingTxBatch(ctx, tokenContract, iterBatch.BatchNonce); err != nil {
-				panic(fmt.Sprintf("Failed cancel out batch %s %d while trying to execute failed: %s", batch.TokenContract, batch.BatchNonce, err))
+				panic(fmt.Sprintf("Failed cancel out batch %s-%d while trying to execute failed: %s", batch.TokenContract, batch.BatchNonce, err))
 			}
 		}
 		return false
@@ -121,12 +120,6 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, b
 	// Delete batch since it is finished
 	k.DeleteBatch(ctx, batch)
 	k.DeleteBatchConfirm(ctx, batch.BatchNonce, batch.TokenContract)
-	// Delete outgoing transfer relation
-	for _, tx := range batch.Transactions {
-		if k.erc20Keeper.HasOutgoingTransferRelation(ctx, k.moduleName, tx.Id) {
-			k.erc20Keeper.DeleteOutgoingTransferRelation(ctx, k.moduleName, tx.Id)
-		}
-	}
 }
 
 // StoreBatch stores a transaction batch
@@ -200,7 +193,6 @@ func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, tokenContract string, bat
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOutgoingBatchCanceled,
-		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprint(batchNonce)),
 	))
 	return nil

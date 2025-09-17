@@ -1,22 +1,29 @@
 package cli
 
 import (
-	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/st-chain/me-hub/x/kyc/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cobra"
+
+	"github.com/st-chain/me-hub/x/gravity/types"
 )
 
-// GetTxCmd returns the transaction commands for this module
-func GetTxCmd() *cobra.Command {
+func GetTxCmd(subCmd ...*cobra.Command) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
+		Short:                      "Crosschain transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	cmd.AddCommand()
+	cmd.AddCommand(subCmd...)
 	return cmd
+}
+
+func GetTxSubCmds(chainName string) []*cobra.Command {
+	cmds := []*cobra.Command{}
+	for _, command := range cmds {
+		flags.AddTxFlagsToCmd(command)
+	}
+	return cmds
 }

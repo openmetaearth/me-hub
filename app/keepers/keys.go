@@ -29,6 +29,7 @@ import (
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
@@ -136,4 +137,6 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	wasmtypes.StoreKey,
 	//megroup
 	gourpTypes.StoreKey,
+	// crosschain
+	bsctypes.StoreKey,
 )

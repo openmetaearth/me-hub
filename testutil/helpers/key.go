@@ -3,6 +3,7 @@ package helpers
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
+	"github.com/st-chain/me-hub/utils"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -17,8 +18,6 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	hd2 "github.com/evmos/ethermint/crypto/hd"
 	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
-
-	fxtypes "github.com/functionx/fx-core/v7/types"
 )
 
 func NewMnemonic() string {
@@ -113,7 +112,7 @@ func AddressToBytesByModule(addr, module string) ([]byte, error) {
 		}
 		return tronAddr.Bytes(), nil
 	}
-	if err := fxtypes.ValidateEthereumAddress(addr); err != nil {
+	if err := utils.ValidateEthereumAddress(addr); err != nil {
 		return nil, err
 	}
 	return common.HexToAddress(addr).Bytes(), nil

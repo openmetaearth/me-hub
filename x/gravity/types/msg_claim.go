@@ -244,11 +244,11 @@ func (m *MsgBridgeTokenClaim) GetSignBytes() []byte {
 }
 
 func (m *MsgBridgeTokenClaim) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.RelayerAddress)}
 }
 
 func (m *MsgBridgeTokenClaim) GetClaimer() sdk.AccAddress {
-	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
+	return sdk.MustAccAddressFromBech32(m.RelayerAddress)
 }
 
 func (m *MsgBridgeTokenClaim) GetType() ClaimType {
@@ -256,7 +256,7 @@ func (m *MsgBridgeTokenClaim) GetType() ClaimType {
 }
 
 func (m *MsgBridgeTokenClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d%s/%s/%s/%d/%s/", m.BlockHeight, m.EventNonce, m.TokenContract, m.Name, m.Symbol, m.Decimals, m.ChannelIbc)
+	path := fmt.Sprintf("%d/%d%s/%s/%s/%d/", m.BlockHeight, m.EventNonce, m.TokenContract, m.Name, m.Symbol, m.Decimals)
 	return tmhash.Sum([]byte(path))
 }
 

@@ -2,10 +2,12 @@ package keepers
 
 import (
 	"fmt"
+	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
 	"path/filepath"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/x/nft"
+	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
 	groupTypes "github.com/st-chain/me-hub/x/megroup/types"
 
 	wasmapp "github.com/CosmWasm/wasmd/app"
@@ -164,6 +166,8 @@ type AppKeepers struct {
 	WNFTKeeper          *wnftkeeper.Keeper
 	WasmKeeper          wasmkeeper.Keeper
 	GroupKeeper         *groupkeeper.Keeper
+
+	BscKeeper *gravitykeeper.Keeper
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -492,6 +496,16 @@ func (a *AppKeepers) InitKeepers(
 		a.KycKeeper,
 	)
 	a.StakingKeeper.SetGroupKeeper(a.GroupKeeper)
+
+	a.BscKeeper = gravitykeeper.NewKeeper(
+		bsctypes.ModuleName,
+		appCodec,
+		a.keys[bsctypes.StoreKey],
+		a.BankKeeper,
+		a.AccountKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
 	// by granting the governance module the right to execute the message.

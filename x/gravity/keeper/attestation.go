@@ -150,7 +150,7 @@ func (k Keeper) DeleteAttestation(ctx sdk.Context, claim types.ExternalClaim) {
 // IterateAttestationAndClaim iterates through all attestations
 func (k Keeper) IterateAttestationAndClaim(ctx sdk.Context, cb func(*types.Attestation, types.ExternalClaim) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GravityAttestationKey)
+	iter := sdk.KVStorePrefixIterator(store, types.RelayerAttestationKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
@@ -170,7 +170,7 @@ func (k Keeper) IterateAttestationAndClaim(ctx sdk.Context, cb func(*types.Attes
 // IterateAttestations iterates through all attestations
 func (k Keeper) IterateAttestations(ctx sdk.Context, cb func(*types.Attestation) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GravityAttestationKey)
+	iter := sdk.KVStorePrefixIterator(store, types.RelayerAttestationKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {

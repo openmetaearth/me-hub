@@ -202,7 +202,7 @@ func (s MsgServer) RelayerSetConfirm(c context.Context, msg *types.MsgRelayerSet
 func (s MsgServer) RelayerSetUpdateClaim(c context.Context, msg *types.MsgRelayerSetUpdatedClaim) (*types.MsgRelayerSetUpdatedClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	relayerAddress := sdk.MustAccAddressFromBech32(msg.RelayerAddress)
-	err := s.checkIsOracle(ctx, relayerAddress)
+	err := s.checkIsRelayer(ctx, relayerAddress)
 	if err != nil {
 		return nil, err
 	}

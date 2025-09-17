@@ -262,3 +262,12 @@ func (k Keeper) SetLastObservedRelayerSet(ctx sdk.Context, oracleSet *types.Rela
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.LastObservedRelayerSetKey, k.cdc.MustMarshal(oracleSet))
 }
+
+func (k Keeper) GetLastRelayerSlashBlockHeight(ctx sdk.Context) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	data := store.Get(types.LastRelayerSlashBlockHeight)
+	if len(data) == 0 {
+		return 0
+	}
+	return sdk.BigEndianToUint64(data)
+}

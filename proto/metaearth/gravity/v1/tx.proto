@@ -251,7 +251,7 @@ message MsgBridgeTokenClaim {
   string name = 4;
   string symbol = 5;
   uint64 decimals = 6;
-  string bridger_address = 7;
+  string relayer_address = 7;
   string chain_name = 8;
 }
 

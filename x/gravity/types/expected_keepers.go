@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stktypes "github.com/st-chain/me-hub/x/wstaking/types"
 )
 
@@ -28,3 +29,16 @@ type BankKeeper interface {
 	GetSupply(ctx sdk.Context, denom string) sdk.Coin
 	IterateAllDenomMetaData(ctx sdk.Context, cb func(banktypes.Metadata) bool)
 }
+
+type (
+	ParamSet = paramtypes.ParamSet
+	// Subspace defines an interface that implements the legacy x/params Subspace
+	// type.
+	//
+	// NOTE: This is used solely for migration of x/params managed parameters.
+	Subspace interface {
+		GetParamSet(ctx sdk.Context, ps ParamSet)
+		HasKeyTable() bool
+		WithKeyTable(table paramtypes.KeyTable) paramtypes.Subspace
+	}
+)

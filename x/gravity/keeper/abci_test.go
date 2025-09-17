@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/st-chain/me-hub/utils"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,21 +14,17 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/st-chain/me-hub/testutil/helpers"
-	fxtypes "github.com/st-chain/me-hub/types"
 	"github.com/st-chain/me-hub/x/gravity/types"
-	trontypes "github.com/st-chain/me-hub/x/tron/types"
 )
 
 func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
-	normalMsg := &types.MsgBondedGravity{
-		GravityAddress:   suite.oracleAddrs[0].String(),
-		BridgerAddress:   suite.bridgerAddrs[0].String(),
-		ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
-		ValidatorAddress: suite.valAddrs[0].String(),
-		DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
-		ChainName:        suite.chainName,
+	normalMsg := &types.MsgBondedRelayer{
+		RelayerAddress:  suite.oracleAddrs[0].String(),
+		ExternalAddress: suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
+		DelegateAmount:  types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
+		ChainName:       suite.chainName,
 	}
-	_, err := suite.MsgServer().BondedGravity(sdk.WrapSDKContext(suite.ctx), normalMsg)
+	_, err := suite.MsgServer().BondedRelayer(sdk.WrapSDKContext(suite.ctx), normalMsg)
 	require.NoError(suite.T(), err)
 
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
@@ -76,32 +73,30 @@ func (suite *KeeperTestSuite) TestABCIEndBlockDepositClaim() {
 
 	allBalances := suite.app.BankKeeper.GetAllBalances(suite.ctx, sdk.MustAccAddressFromBech32(sendToFxClaim.Receiver))
 	denom := fmt.Sprintf("%s%s", suite.chainName, bridgeToken)
-	trace, err := fxtypes.GetIbcDenomTrace(denom, addBridgeTokenClaim.ChannelIbc)
+	trace, err := utils.GetIbcDenomTrace(denom, addBridgeTokenClaim.ChannelIbc)
 	suite.NoError(err)
 	denom = trace.IBCDenom()
 	require.EqualValues(suite.T(), fmt.Sprintf("%s%s", sendToFxClaim.Amount.String(), denom), allBalances.String())
 }
 
-func (suite *KeeperTestSuite) TestGravityUpdate() {
+func (suite *KeeperTestSuite) TestRelayerUpdate() {
 	if len(suite.oracleAddrs) < 10 {
 		return
 	}
 	for i := 0; i < 10; i++ {
-		msgBondedGravity := &types.MsgBondedGravity{
-			GravityAddress:   suite.oracleAddrs[i].String(),
-			BridgerAddress:   suite.bridgerAddrs[i].String(),
-			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
-			ValidatorAddress: suite.valAddrs[i].String(),
-			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
-			ChainName:        suite.chainName,
+		msgBondedRelayer := &types.MsgBondedRelayer{
+			RelayerAddress:  suite.oracleAddrs[i].String(),
+			ExternalAddress: suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
+			DelegateAmount:  types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
+			ChainName:       suite.chainName,
 		}
-		require.NoError(suite.T(), msgBondedGravity.ValidateBasic())
-		_, err := suite.MsgServer().BondedGravity(sdk.WrapSDKContext(suite.ctx), msgBondedGravity)
+		require.NoError(suite.T(), msgBondedRelayer.ValidateBasic())
+		_, err := suite.MsgServer().BondedRelayer(sdk.WrapSDKContext(suite.ctx), msgBondedRelayer)
 
 		require.NoError(suite.T(), err)
 		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
-		oracleSets := suite.Keeper().GetGravitySets(suite.ctx)
+		oracleSets := suite.Keeper().GetRelayerSets(suite.ctx)
 		require.NotNil(suite.T(), oracleSets)
 		require.EqualValues(suite.T(), i+1, len(oracleSets))
 
@@ -164,14 +159,14 @@ func (suite *KeeperTestSuite) TestGravityUpdate() {
 
 	proposalHandler := crosschain.NewCrosschainProposalHandler(suite.app.CrosschainKeeper)
 
-	var newGravityList []string
+	var newRelayerList []string
 	for i := 0; i < 7; i++ {
-		newGravityList = append(newGravityList, suite.oracleAddrs[i].String())
+		newRelayerList = append(newRelayerList, suite.oracleAddrs[i].String())
 	}
-	err = proposalHandler(suite.ctx, &types.UpdateChainGravitysProposal{ // nolint:staticcheck
+	err = proposalHandler(suite.ctx, &types.UpdateChainRelayersProposal{ // nolint:staticcheck
 		Title:       "proposal 1: try update chain oracle power >= 30%, expect error",
 		Description: "",
-		Gravitys:    newGravityList,
+		Relayers:    newRelayerList,
 		ChainName:   suite.chainName,
 	})
 	require.ErrorIs(suite.T(), types.ErrInvalid, err)
@@ -180,42 +175,42 @@ func (suite *KeeperTestSuite) TestGravityUpdate() {
 	actualTotalPower := suite.Keeper().GetLastTotalPower(suite.ctx)
 	require.True(suite.T(), expectTotalPower.Equal(actualTotalPower))
 
-	expectMaxChangePower := types.AttestationProposalGravityChangePowerThreshold.Mul(expectTotalPower).Quo(sdkmath.NewInt(100))
+	expectMaxChangePower := types.AttestationProposalRelayerChangePowerThreshold.Mul(expectTotalPower).Quo(sdkmath.NewInt(100))
 
 	expectDeletePower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(3)).Quo(sdk.DefaultPowerReduction)
 	require.EqualValues(suite.T(), fmt.Sprintf("max change power, maxChangePowerThreshold: %s, deleteTotalPower: %s: %s", expectMaxChangePower.String(), expectDeletePower.String(), types.ErrInvalid), err.Error())
 
-	var newGravityList2 []string
+	var newRelayerList2 []string
 	for i := 0; i < 8; i++ {
-		newGravityList2 = append(newGravityList2, suite.oracleAddrs[i].String())
+		newRelayerList2 = append(newRelayerList2, suite.oracleAddrs[i].String())
 	}
-	err = proposalHandler(suite.ctx, &types.UpdateChainGravitysProposal{ // nolint:staticcheck
+	err = proposalHandler(suite.ctx, &types.UpdateChainRelayersProposal{ // nolint:staticcheck
 		Title:       "proposal 2: try update chain oracle power <= 30%, expect success",
 		Description: "",
-		Gravitys:    newGravityList2,
+		Relayers:    newRelayerList2,
 		ChainName:   suite.chainName,
 	})
 	require.NoError(suite.T(), err)
 }
 
-func (suite *KeeperTestSuite) TestAttestationAfterGravityUpdate() {
+func (suite *KeeperTestSuite) TestAttestationAfterRelayerUpdate() {
 	if len(suite.bridgerAddrs) < 20 {
 		return
 	}
 	for i := 0; i < 20; i++ {
-		msgBondedGravity := &types.MsgBondedGravity{
-			GravityAddress:   suite.oracleAddrs[i].String(),
+		msgBondedRelayer := &types.MsgBondedRelayer{
+			RelayerAddress:   suite.oracleAddrs[i].String(),
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.valAddrs[i].String(),
 			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
-		_, err := suite.MsgServer().BondedGravity(sdk.WrapSDKContext(suite.ctx), msgBondedGravity)
+		_, err := suite.MsgServer().BondedRelayer(sdk.WrapSDKContext(suite.ctx), msgBondedRelayer)
 		require.NoError(suite.T(), err)
 		suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
-		oracleSets := suite.Keeper().GetGravitySets(suite.ctx)
+		oracleSets := suite.Keeper().GetRelayerSets(suite.ctx)
 		require.NotNil(suite.T(), oracleSets)
 		require.EqualValues(suite.T(), i+1, len(oracleSets))
 
@@ -306,12 +301,12 @@ func (suite *KeeperTestSuite) TestAttestationAfterGravityUpdate() {
 		require.NotNil(suite.T(), secondClaimAttestation.Votes)
 		require.EqualValues(suite.T(), 6, len(secondClaimAttestation.Votes))
 
-		var newGravityList []string
+		var newRelayerList []string
 		for i := 0; i < 15; i++ {
-			newGravityList = append(newGravityList, suite.oracleAddrs[i].String())
+			newRelayerList = append(newRelayerList, suite.oracleAddrs[i].String())
 		}
-		_, err := suite.MsgServer().UpdateChainGravitys(suite.ctx, &types.MsgUpdateChainGravitys{
-			Gravitys:  newGravityList,
+		_, err := suite.MsgServer().UpdateChainRelayers(suite.ctx, &types.MsgUpdateChainRelayers{
+			Relayers:  newRelayerList,
 			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 			ChainName: suite.chainName,
 		})
@@ -325,19 +320,19 @@ func (suite *KeeperTestSuite) TestAttestationAfterGravityUpdate() {
 		require.NotNil(suite.T(), secondClaimAttestation.Votes)
 		require.EqualValues(suite.T(), 6, len(secondClaimAttestation.Votes))
 
-		activeGravitys := suite.Keeper().GetAllGravitys(suite.ctx, true)
-		require.NotNil(suite.T(), activeGravitys)
-		require.EqualValues(suite.T(), 15, len(activeGravitys))
+		activeRelayers := suite.Keeper().GetAllRelayers(suite.ctx, true)
+		require.NotNil(suite.T(), activeRelayers)
+		require.EqualValues(suite.T(), 15, len(activeRelayers))
 		for i := 0; i < 15; i++ {
-			require.NotNil(suite.T(), newGravityList[i], activeGravitys[i].GravityAddress)
+			require.NotNil(suite.T(), newRelayerList[i], activeRelayers[i].RelayerAddress)
 		}
 
-		var newGravityList2 []string
+		var newRelayerList2 []string
 		for i := 0; i < 11; i++ {
-			newGravityList2 = append(newGravityList2, suite.oracleAddrs[i].String())
+			newRelayerList2 = append(newRelayerList2, suite.oracleAddrs[i].String())
 		}
-		_, err = suite.MsgServer().UpdateChainGravitys(suite.ctx, &types.MsgUpdateChainGravitys{
-			Gravitys:  newGravityList2,
+		_, err = suite.MsgServer().UpdateChainRelayers(suite.ctx, &types.MsgUpdateChainRelayers{
+			Relayers:  newRelayerList2,
 			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 			ChainName: suite.chainName,
 		})
@@ -351,19 +346,19 @@ func (suite *KeeperTestSuite) TestAttestationAfterGravityUpdate() {
 		require.NotNil(suite.T(), secondClaimAttestation.Votes)
 		require.EqualValues(suite.T(), 6, len(secondClaimAttestation.Votes))
 
-		activeGravitys = suite.Keeper().GetAllGravitys(suite.ctx, true)
-		require.NotNil(suite.T(), activeGravitys)
-		require.EqualValues(suite.T(), 11, len(activeGravitys))
+		activeRelayers = suite.Keeper().GetAllRelayers(suite.ctx, true)
+		require.NotNil(suite.T(), activeRelayers)
+		require.EqualValues(suite.T(), 11, len(activeRelayers))
 		for i := 0; i < 11; i++ {
-			require.NotNil(suite.T(), newGravityList2[i], activeGravitys[i].GravityAddress)
+			require.NotNil(suite.T(), newRelayerList2[i], activeRelayers[i].RelayerAddress)
 		}
 
-		var newGravityList3 []string
+		var newRelayerList3 []string
 		for i := 0; i < 10; i++ {
-			newGravityList3 = append(newGravityList3, suite.oracleAddrs[i].String())
+			newRelayerList3 = append(newRelayerList3, suite.oracleAddrs[i].String())
 		}
-		_, err = suite.MsgServer().UpdateChainGravitys(suite.ctx, &types.MsgUpdateChainGravitys{
-			Gravitys:  newGravityList3,
+		_, err = suite.MsgServer().UpdateChainRelayers(suite.ctx, &types.MsgUpdateChainRelayers{
+			Relayers:  newRelayerList3,
 			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 			ChainName: suite.chainName,
 		})
@@ -377,11 +372,11 @@ func (suite *KeeperTestSuite) TestAttestationAfterGravityUpdate() {
 		require.NotNil(suite.T(), secondClaimAttestation.Votes)
 		require.EqualValues(suite.T(), 6, len(secondClaimAttestation.Votes))
 
-		activeGravitys = suite.Keeper().GetAllGravitys(suite.ctx, true)
-		require.NotNil(suite.T(), activeGravitys)
-		require.EqualValues(suite.T(), 10, len(activeGravitys))
+		activeRelayers = suite.Keeper().GetAllRelayers(suite.ctx, true)
+		require.NotNil(suite.T(), activeRelayers)
+		require.EqualValues(suite.T(), 10, len(activeRelayers))
 		for i := 0; i < 10; i++ {
-			require.NotNil(suite.T(), newGravityList3[i], activeGravitys[i].GravityAddress)
+			require.NotNil(suite.T(), newRelayerList3[i], activeRelayers[i].RelayerAddress)
 		}
 
 		secondBridgeTokenClaim.BridgerAddress = suite.bridgerAddrs[6].String()
@@ -399,54 +394,54 @@ func (suite *KeeperTestSuite) TestAttestationAfterGravityUpdate() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestGravityDelete() {
+func (suite *KeeperTestSuite) TestRelayerDelete() {
 	for i := 0; i < len(suite.oracleAddrs); i++ {
-		msgBondedGravity := &types.MsgBondedGravity{
-			GravityAddress:   suite.oracleAddrs[i].String(),
+		msgBondedRelayer := &types.MsgBondedRelayer{
+			RelayerAddress:   suite.oracleAddrs[i].String(),
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.valAddrs[i].String(),
 			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
-		require.NoError(suite.T(), msgBondedGravity.ValidateBasic())
-		_, err := suite.MsgServer().BondedGravity(sdk.WrapSDKContext(suite.ctx), msgBondedGravity)
+		require.NoError(suite.T(), msgBondedRelayer.ValidateBasic())
+		_, err := suite.MsgServer().BondedRelayer(sdk.WrapSDKContext(suite.ctx), msgBondedRelayer)
 		require.NoError(suite.T(), err)
 	}
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
-	allGravitys := suite.Keeper().GetAllGravitys(suite.ctx, false)
-	require.NotNil(suite.T(), allGravitys)
-	require.EqualValues(suite.T(), len(suite.oracleAddrs), len(allGravitys))
+	allRelayers := suite.Keeper().GetAllRelayers(suite.ctx, false)
+	require.NotNil(suite.T(), allRelayers)
+	require.EqualValues(suite.T(), len(suite.oracleAddrs), len(allRelayers))
 
 	oracle := suite.oracleAddrs[0]
 	bridger := suite.bridgerAddrs[0]
 	externalAddress := suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey)
 
-	oracleAddr, found := suite.Keeper().GetGravityAddressByBridgerKey(suite.ctx, bridger)
+	oracleAddr, found := suite.Keeper().GetRelayerAddressByBridgerKey(suite.ctx, bridger)
 	require.True(suite.T(), found)
 	require.EqualValues(suite.T(), oracle.String(), oracleAddr.String())
 
-	oracleAddr, found = suite.Keeper().GetGravityByExternalAddress(suite.ctx, externalAddress)
+	oracleAddr, found = suite.Keeper().GetRelayerByExternalAddress(suite.ctx, externalAddress)
 	require.True(suite.T(), found)
 	require.EqualValues(suite.T(), oracle.String(), oracleAddr.String())
 
-	oracleData, found := suite.Keeper().GetGravity(suite.ctx, oracle)
+	oracleData, found := suite.Keeper().GetRelayer(suite.ctx, oracle)
 	require.True(suite.T(), found)
 	require.NotNil(suite.T(), oracleData)
-	require.EqualValues(suite.T(), oracle.String(), oracleData.GravityAddress)
+	require.EqualValues(suite.T(), oracle.String(), oracleData.RelayerAddress)
 	require.EqualValues(suite.T(), bridger.String(), oracleData.BridgerAddress)
 	require.EqualValues(suite.T(), externalAddress, oracleData.ExternalAddress)
 
 	require.True(suite.T(), sdkmath.NewInt(10*1e3).MulRaw(1e18).Equal(oracleData.DelegateAmount))
 
-	newGravityAddressList := make([]string, 0, len(suite.oracleAddrs)-1)
+	newRelayerAddressList := make([]string, 0, len(suite.oracleAddrs)-1)
 	for _, address := range suite.oracleAddrs[1:] {
-		newGravityAddressList = append(newGravityAddressList, address.String())
+		newRelayerAddressList = append(newRelayerAddressList, address.String())
 	}
 
-	_, err := suite.MsgServer().UpdateChainGravitys(suite.ctx, &types.MsgUpdateChainGravitys{
-		Gravitys:  newGravityAddressList,
+	_, err := suite.MsgServer().UpdateChainRelayers(suite.ctx, &types.MsgUpdateChainRelayers{
+		Relayers:  newRelayerAddressList,
 		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		ChainName: suite.chainName,
 	})
@@ -454,46 +449,46 @@ func (suite *KeeperTestSuite) TestGravityDelete() {
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
-	oracleAddr, found = suite.Keeper().GetGravityAddressByBridgerKey(suite.ctx, bridger)
+	oracleAddr, found = suite.Keeper().GetRelayerAddressByBridgerKey(suite.ctx, bridger)
 	require.True(suite.T(), found)
 	require.Equal(suite.T(), oracleAddr, oracle)
 
-	oracleAddr, found = suite.Keeper().GetGravityByExternalAddress(suite.ctx, externalAddress)
+	oracleAddr, found = suite.Keeper().GetRelayerByExternalAddress(suite.ctx, externalAddress)
 	require.True(suite.T(), found)
 	require.Equal(suite.T(), oracleAddr, oracle)
 
-	oracleData, found = suite.Keeper().GetGravity(suite.ctx, oracle)
+	oracleData, found = suite.Keeper().GetRelayer(suite.ctx, oracle)
 	require.True(suite.T(), found)
 }
 
-func (suite *KeeperTestSuite) TestGravitySetSlash() {
+func (suite *KeeperTestSuite) TestRelayerSetSlash() {
 	for i := 0; i < len(suite.oracleAddrs); i++ {
-		msgBondedGravity := &types.MsgBondedGravity{
-			GravityAddress:   suite.oracleAddrs[i].String(),
+		msgBondedRelayer := &types.MsgBondedRelayer{
+			RelayerAddress:   suite.oracleAddrs[i].String(),
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.valAddrs[i].String(),
 			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
-		require.NoError(suite.T(), msgBondedGravity.ValidateBasic())
-		_, err := suite.MsgServer().BondedGravity(sdk.WrapSDKContext(suite.ctx), msgBondedGravity)
+		require.NoError(suite.T(), msgBondedRelayer.ValidateBasic())
+		_, err := suite.MsgServer().BondedRelayer(sdk.WrapSDKContext(suite.ctx), msgBondedRelayer)
 		require.NoError(suite.T(), err)
 	}
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	suite.Keeper().EndBlocker(suite.ctx)
 
-	allGravitys := suite.Keeper().GetAllGravitys(suite.ctx, false)
-	require.NotNil(suite.T(), allGravitys)
-	require.Equal(suite.T(), len(suite.oracleAddrs), len(allGravitys))
+	allRelayers := suite.Keeper().GetAllRelayers(suite.ctx, false)
+	require.NotNil(suite.T(), allRelayers)
+	require.Equal(suite.T(), len(suite.oracleAddrs), len(allRelayers))
 
-	oracleSets := suite.Keeper().GetGravitySets(suite.ctx)
+	oracleSets := suite.Keeper().GetRelayerSets(suite.ctx)
 	require.NotNil(suite.T(), oracleSets)
 	require.EqualValues(suite.T(), 1, len(oracleSets))
 
 	for i := 0; i < len(suite.oracleAddrs)-1; i++ {
-		externalAddress, signature := suite.SignGravitySetConfirm(suite.externalPris[i], oracleSets[0])
-		oracleSetConfirm := &types.MsgGravitySetConfirm{
+		externalAddress, signature := suite.SignRelayerSetConfirm(suite.externalPris[i], oracleSets[0])
+		oracleSetConfirm := &types.MsgRelayerSetConfirm{
 			Nonce:           oracleSets[0].Nonce,
 			BridgerAddress:  suite.bridgerAddrs[i].String(),
 			ExternalAddress: externalAddress,
@@ -501,7 +496,7 @@ func (suite *KeeperTestSuite) TestGravitySetSlash() {
 			ChainName:       suite.chainName,
 		}
 		require.NoError(suite.T(), oracleSetConfirm.ValidateBasic())
-		_, err := suite.MsgServer().GravitySetConfirm(sdk.WrapSDKContext(suite.ctx), oracleSetConfirm)
+		_, err := suite.MsgServer().RelayerSetConfirm(sdk.WrapSDKContext(suite.ctx), oracleSetConfirm)
 		require.NoError(suite.T(), err)
 	}
 
@@ -510,7 +505,7 @@ func (suite *KeeperTestSuite) TestGravitySetSlash() {
 	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	suite.app.EndBlock(abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
-	oracle, found := suite.Keeper().GetGravity(suite.ctx, suite.oracleAddrs[len(suite.oracleAddrs)-1])
+	oracle, found := suite.Keeper().GetRelayer(suite.ctx, suite.oracleAddrs[len(suite.oracleAddrs)-1])
 	require.True(suite.T(), found)
 	require.True(suite.T(), oracle.Online)
 	require.Equal(suite.T(), int64(0), oracle.SlashTimes)
@@ -518,24 +513,24 @@ func (suite *KeeperTestSuite) TestGravitySetSlash() {
 	suite.ctx = suite.ctx.WithBlockHeight(oracleSetHeight + int64(suite.Keeper().GetParams(suite.ctx).SignedWindow) + 1)
 	suite.Keeper().EndBlocker(suite.ctx)
 
-	oracle, found = suite.Keeper().GetGravity(suite.ctx, suite.oracleAddrs[len(suite.oracleAddrs)-1])
+	oracle, found = suite.Keeper().GetRelayer(suite.ctx, suite.oracleAddrs[len(suite.oracleAddrs)-1])
 	require.True(suite.T(), found)
 	require.False(suite.T(), oracle.Online)
 	require.Equal(suite.T(), int64(1), oracle.SlashTimes)
 }
 
-func (suite *KeeperTestSuite) TestSlashGravity() {
+func (suite *KeeperTestSuite) TestSlashRelayer() {
 	for i := 0; i < len(suite.oracleAddrs); i++ {
-		msgBondedGravity := &types.MsgBondedGravity{
-			GravityAddress:   suite.oracleAddrs[i].String(),
+		msgBondedRelayer := &types.MsgBondedRelayer{
+			RelayerAddress:   suite.oracleAddrs[i].String(),
 			BridgerAddress:   suite.bridgerAddrs[i].String(),
 			ExternalAddress:  suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
 			ValidatorAddress: suite.valAddrs[i].String(),
 			DelegateAmount:   types.NewDelegateAmount(sdkmath.NewInt(10 * 1e3).MulRaw(1e18)),
 			ChainName:        suite.chainName,
 		}
-		require.NoError(suite.T(), msgBondedGravity.ValidateBasic())
-		_, err := suite.MsgServer().BondedGravity(sdk.WrapSDKContext(suite.ctx), msgBondedGravity)
+		require.NoError(suite.T(), msgBondedRelayer.ValidateBasic())
+		_, err := suite.MsgServer().BondedRelayer(sdk.WrapSDKContext(suite.ctx), msgBondedRelayer)
 		require.NoError(suite.T(), err)
 	}
 
@@ -543,14 +538,14 @@ func (suite *KeeperTestSuite) TestSlashGravity() {
 	err := suite.Keeper().SetParams(suite.ctx, &params)
 	suite.Require().NoError(err)
 	for i := 0; i < len(suite.oracleAddrs); i++ {
-		oracle, found := suite.Keeper().GetGravity(suite.ctx, suite.oracleAddrs[i])
+		oracle, found := suite.Keeper().GetRelayer(suite.ctx, suite.oracleAddrs[i])
 		require.True(suite.T(), found)
 		require.True(suite.T(), oracle.Online)
 		require.Equal(suite.T(), int64(0), oracle.SlashTimes)
 
-		suite.Keeper().SlashGravity(suite.ctx, oracle.GravityAddress)
+		suite.Keeper().SlashRelayer(suite.ctx, oracle.RelayerAddress)
 
-		oracle, found = suite.Keeper().GetGravity(suite.ctx, suite.oracleAddrs[i])
+		oracle, found = suite.Keeper().GetRelayer(suite.ctx, suite.oracleAddrs[i])
 		require.True(suite.T(), found)
 		require.False(suite.T(), oracle.Online)
 		require.Equal(suite.T(), int64(1), oracle.SlashTimes)
@@ -558,14 +553,14 @@ func (suite *KeeperTestSuite) TestSlashGravity() {
 
 	// repeat slash test.
 	for i := 0; i < len(suite.oracleAddrs); i++ {
-		oracle, found := suite.Keeper().GetGravity(suite.ctx, suite.oracleAddrs[i])
+		oracle, found := suite.Keeper().GetRelayer(suite.ctx, suite.oracleAddrs[i])
 		require.True(suite.T(), found)
 		require.False(suite.T(), oracle.Online)
 		require.Equal(suite.T(), int64(1), oracle.SlashTimes)
 
-		suite.Keeper().SlashGravity(suite.ctx, oracle.GravityAddress)
+		suite.Keeper().SlashRelayer(suite.ctx, oracle.RelayerAddress)
 
-		oracle, found = suite.Keeper().GetGravity(suite.ctx, suite.oracleAddrs[i])
+		oracle, found = suite.Keeper().GetRelayer(suite.ctx, suite.oracleAddrs[i])
 		require.True(suite.T(), found)
 		require.False(suite.T(), oracle.Online)
 		require.Equal(suite.T(), int64(1), oracle.SlashTimes)

@@ -7,6 +7,9 @@ const (
 	EventTypeSendToExternalCanceled = "send_to_external_canceled"
 	EventTypeRelayerSetUpdate       = "relayer_set_update"
 	EventTypeContractEvent          = "observation"
+	EventTypeOutgoingBatch          = "outgoing_batch"
+	EventTypeOutgoingBatchCanceled  = "outgoing_batch_canceled"
+	EventTypeIncreaseBridgeFee      = "increase_bridge_fee"
 )
 
 const (
@@ -25,4 +28,5 @@ const (
 	AttributeKeyClaimHash            = "claim_hash"
 	AttributeKeyBlockHeight          = "block_height"
 	AttributeKeyStateSuccess         = "state_success"
+	AttributeKeyIncreaseFee          = "increase_fee"
 )

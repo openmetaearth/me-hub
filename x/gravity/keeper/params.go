@@ -62,6 +62,6 @@ func (k Keeper) GetIbcTransferTimeoutHeight(ctx sdk.Context) uint64 {
 	return k.GetParams(ctx).IbcTransferTimeoutHeight
 }
 
-func (k Keeper) GetOracleSetUpdatePowerChangePercent(ctx sdk.Context) sdk.Dec {
+func (k Keeper) GetRelayerSetUpdatePowerChangePercent(ctx sdk.Context) sdk.Dec {
 	return k.GetParams(ctx).RelayerSetUpdatePowerChangePercent
 }

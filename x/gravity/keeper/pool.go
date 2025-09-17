@@ -18,7 +18,7 @@ import (
 // - persists an OutgoingTx
 // - adds the TX to the `available` TX pool via a second index
 func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
-	bridgeToken := k.GetDenomBridgeToken(ctx, amount.Denom)
+	bridgeToken, _ := k.GetBridgeTokenByDenom(ctx, amount.Denom)
 	if bridgeToken == nil {
 		return 0, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
@@ -45,8 +45,8 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		Id:          nextTxID,
 		Sender:      sender.String(),
 		DestAddress: receiver,
-		Token:       types.NewERC20Token(amount.Amount, bridgeToken.Token),
-		Fee:         types.NewERC20Token(fee.Amount, bridgeToken.Token),
+		Token:       types.NewERC20Token(amount.Amount, bridgeToken.Contract),
+		Fee:         types.NewERC20Token(fee.Amount, bridgeToken.Contract),
 	}
 
 	if err := k.AddUnbatchedTx(ctx, outgoing); err != nil {
@@ -102,7 +102,7 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	}
 
 	// query denom, if not exist, return error
-	bridgeToken := k.GetBridgeTokenDenom(ctx, tx.Token.Contract)
+	bridgeToken, _ := k.GetBridgeTokenByContract(ctx, tx.Token.Contract)
 	if bridgeToken == nil {
 		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Invalid token, contract %s", tx.Token.Contract)
 	}
@@ -136,33 +136,23 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 	if err != nil {
 		return errorsmod.Wrapf(types.ErrInvalid, "txId %d not in unbatched index! Must be in a batch!", txId)
 	}
-	bridgeToken := k.GetDenomBridgeToken(ctx, addBridgeFee.Denom)
+	bridgeToken, _ := k.GetBridgeTokenByDenom(ctx, addBridgeFee.Denom)
 	if bridgeToken == nil {
 		return errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
 
-	if tx.Fee.Contract != bridgeToken.Token {
+	if tx.Fee.Contract != bridgeToken.Contract {
 		return errorsmod.Wrap(types.ErrInvalid, "token not equal tx fee token")
 	}
 
-	// If the coin is a gravity voucher, burn the coins. If not, check if there is a deployed ERC20 contract representing it.
-	// If there is, lock the coins.
-	isOriginOrConverted := k.erc20Keeper.IsOriginOrConvertedDenom(ctx, bridgeToken.Denom)
-	if isOriginOrConverted {
-		// lock coins in module
-		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, sdk.NewCoins(addBridgeFee)); err != nil {
-			return err
-		}
-	} else {
-		// If it is an external blockchain asset we burn it send coins to module in prep for burn
-		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, sdk.NewCoins(addBridgeFee)); err != nil {
-			return err
-		}
+	// If it is an external blockchain asset we burn it send coins to module in prep for burn
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, sdk.NewCoins(addBridgeFee)); err != nil {
+		return err
+	}
 
-		// burn vouchers to send them back to external blockchain
-		if err := k.bankKeeper.BurnCoins(ctx, k.moduleName, sdk.NewCoins(addBridgeFee)); err != nil {
-			return err
-		}
+	// burn vouchers to send them back to external blockchain
+	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(addBridgeFee)); err != nil {
+		return err
 	}
 
 	if err := k.removeUnbatchedTx(ctx, tx.Fee, txId); err != nil {

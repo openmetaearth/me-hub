@@ -171,7 +171,7 @@ func (k Keeper) SetLastRelayerSlashBlockHeight(ctx sdk.Context, blockHeight uint
 	store.Set(types.LastRelayerSlashBlockHeight, sdk.Uint64ToBigEndian(blockHeight))
 }
 
-func (s Keeper) checkIsOracle(ctx sdk.Context, addr sdk.AccAddress) error {
+func (s Keeper) checkIsRelayer(ctx sdk.Context, addr sdk.AccAddress) error {
 	relayer, found := s.GetRelayer(ctx, addr)
 	if !found {
 		return types.ErrNotFoundRelayer

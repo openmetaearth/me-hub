@@ -318,7 +318,7 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 
 // --- Oracle(S) --- //
 
-func (m *Relayer) GetOracle() sdk.AccAddress {
+func (m *Relayer) GetRelayer() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.RelayerAddress)
 }
 
@@ -331,11 +331,6 @@ func (m *Relayer) GetSlashAmount(slashFraction sdk.Dec) sdk.Coin {
 
 func (m *Relayer) GetPower() sdkmath.Int {
 	return m.DelegateAmount.Quo(sdk.DefaultPowerReduction)
-}
-
-func (m *Relayer) GetDelegateAddress(moduleName string) sdk.AccAddress {
-	data := append(m.GetOracle(), []byte(moduleName)...)
-	return crypto.Keccak256(data)[12:]
 }
 
 type Relayers []Relayer

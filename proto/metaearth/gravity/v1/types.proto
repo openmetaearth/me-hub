@@ -208,7 +208,6 @@ message Params {
     (gogoproto.nullable) = false
   ];
   uint64 ibc_transfer_timeout_height = 8;
-  repeated string relayers = 9 [(gogoproto.nullable) = true];
-  cosmos.base.v1beta1.Coin min_delegate = 10 [(gogoproto.nullable) = false];
-  cosmos.base.v1beta1.Coin max_delegate = 11 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin min_delegate = 9 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin max_delegate = 10 [(gogoproto.nullable) = false];
 }

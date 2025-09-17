@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/functionx/fx-core/v7/testutil/helpers"
+	"github.com/st-chain/me-hub/testutil/helpers"
 )
 
 func TestPrivKeyFromMnemonic(t *testing.T) {

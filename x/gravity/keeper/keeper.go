@@ -13,6 +13,8 @@ import (
 
 // Keeper is wrapper of did keeper and nft keeper.
 type Keeper struct {
+	moduleName string
+
 	cdc           codec.Codec
 	storeKey      storetypes.StoreKey
 	bankKeeper    types.BankKeeper
@@ -21,16 +23,20 @@ type Keeper struct {
 }
 
 func NewKeeper(
+	moduleName string,
 	cdc codec.Codec,
 	storeKey storetypes.StoreKey,
 	bankKeeper types.BankKeeper,
 	accountKeeper authkeeper.AccountKeeper,
+	authority string,
 ) *Keeper {
 	return &Keeper{
+		moduleName:    moduleName,
 		cdc:           cdc,
 		storeKey:      storeKey,
 		bankKeeper:    bankKeeper,
 		accountKeeper: accountKeeper,
+		authority:     authority,
 	}
 }
 

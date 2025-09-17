@@ -14,44 +14,47 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 	signedWindow := k.GetSignedWindow(ctx)
 	k.slashing(ctx, signedWindow)
 	k.cleanupTimedOutBatches(ctx)
-	k.createGravitySetRequest(ctx)
-	k.pruneGravitySet(ctx, signedWindow)
+	k.createRelayerSetRequest(ctx)
+	k.pruneRelayerSet(ctx, signedWindow)
 }
 
-func (k Keeper) createGravitySetRequest(ctx sdk.Context) {
-	if currentGravitySet, isNeed := k.isNeedGravitySetRequest(ctx); isNeed {
-		k.AddGravitySetRequest(ctx, currentGravitySet)
+func (k Keeper) createRelayerSetRequest(ctx sdk.Context) {
+	if currentRelayerSet, isNeed := k.isNeedRelayerSetRequest(ctx); isNeed {
+		k.AddRelayerSetRequest(ctx, currentRelayerSet)
 	}
 }
 
-func (k Keeper) isNeedGravitySetRequest(ctx sdk.Context) (*types.GravitySet, bool) {
-	currentGravitySet := k.GetCurrentGravitySet(ctx)
-	// 1. get latest GravitySet
-	latestGravitySet := k.GetLatestGravitySet(ctx)
-	if latestGravitySet == nil {
-		return currentGravitySet, true
+func (k Keeper) isNeedRelayerSetRequest(ctx sdk.Context) (*types.RelayerSet, bool) {
+	currentRelayerSet := k.GetCurrentRelayerSet(ctx)
+
+	// 1. get latest RelayerSet
+	latestRelayerSet := k.GetLatestRelayerSet(ctx)
+	if latestRelayerSet == nil {
+		return currentRelayerSet, true
 	}
-	// 2. Gravity slash
-	if k.GetLastGravitySlashBlockHeight(ctx) == uint64(ctx.BlockHeight()) {
+
+	// 2. Relayer slash
+	if k.GetLastRelayerSlashBlockHeight(ctx) == uint64(ctx.BlockHeight()) {
 		k.Logger(ctx).Info("oracle set change", "has oracle slash in block", ctx.BlockHeight())
-		return currentGravitySet, true
+		return currentRelayerSet, true
 	}
+
 	// 3. Power diff
-	powerDiff := fmt.Sprintf("%.8f", types.BridgeValidators(currentGravitySet.Members).PowerDiff(latestGravitySet.Members))
+	powerDiff := fmt.Sprintf("%.8f", types.BridgeValidators(currentRelayerSet.Members).PowerDiff(latestRelayerSet.Members))
 	powerDiffDec, err := sdk.NewDecFromStr(powerDiff)
 	if err != nil {
 		panic(fmt.Errorf("covert power diff to dec err, powerDiff: %v, err: %w", powerDiff, err))
 	}
 
-	oracleSetUpdatePowerChangePercent := k.GetGravitySetUpdatePowerChangePercent(ctx)
+	oracleSetUpdatePowerChangePercent := k.GetRelayerSetUpdatePowerChangePercent(ctx)
 	if oracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
 		oracleSetUpdatePowerChangePercent = sdk.OneDec()
 	}
 	if powerDiffDec.GTE(oracleSetUpdatePowerChangePercent) {
 		k.Logger(ctx).Info("oracle set change", "change threshold", oracleSetUpdatePowerChangePercent.String(), "powerDiff", powerDiff)
-		return currentGravitySet, true
+		return currentRelayerSet, true
 	}
-	return currentGravitySet, false
+	return currentRelayerSet, false
 }
 
 func (k Keeper) slashing(ctx sdk.Context, signedWindow uint64) {
@@ -59,60 +62,60 @@ func (k Keeper) slashing(ctx sdk.Context, signedWindow uint64) {
 		return
 	}
 	// Slash oracle for not confirming oracle set requests, batch requests
-	oracles := k.GetAllGravitys(ctx, true)
+	oracles := k.GetAllRelayers(ctx, true)
 	oracleSetHasSlash := k.oracleSetSlashing(ctx, oracles, signedWindow)
 	batchHasSlash := k.batchSlashing(ctx, oracles, signedWindow)
 	if oracleSetHasSlash || batchHasSlash {
-		k.CommonSetGravityTotalPower(ctx)
+		k.SetLastTotalPower(ctx)
 	}
 }
 
-func (k Keeper) oracleSetSlashing(ctx sdk.Context, oracles types.Gravitys, signedWindow uint64) (hasSlash bool) {
+func (k Keeper) oracleSetSlashing(ctx sdk.Context, oracles types.Relayers, signedWindow uint64) (hasSlash bool) {
 	maxHeight := uint64(ctx.BlockHeight()) - signedWindow
-	unSlashedGravitySets := k.GetUnSlashedGravitySets(ctx, maxHeight)
+	unSlashedRelayerSets := k.GetUnSlashedRelayerSets(ctx, maxHeight)
 
 	// Find all verifiers that meet the penalty to change the signature consensus
-	for _, oracleSet := range unSlashedGravitySets {
-		confirmGravityMap := make(map[string]struct{})
-		k.IterateGravitySetConfirmByNonce(ctx, oracleSet.Nonce, func(confirm *types.MsgGravitySetConfirm) bool {
-			confirmGravityMap[confirm.ExternalAddress] = struct{}{}
+	for _, oracleSet := range unSlashedRelayerSets {
+		confirmRelayerMap := make(map[string]struct{})
+		k.IterateRelayerSetConfirmByNonce(ctx, oracleSet.Nonce, func(confirm *types.MsgRelayerSetConfirm) bool {
+			confirmRelayerMap[confirm.ExternalAddress] = struct{}{}
 			return false
 		})
 		for i := 0; i < len(oracles); i++ {
 			if uint64(oracles[i].StartHeight) > oracleSet.Height {
 				continue
 			}
-			if _, ok := confirmGravityMap[oracles[i].ExternalAddress]; !ok {
-				k.Logger(ctx).Info("slash oracle by oracle set", "oracleAddress", oracles[i].GravityAddress,
+			if _, ok := confirmRelayerMap[oracles[i].ExternalAddress]; !ok {
+				k.Logger(ctx).Info("slash oracle by oracle set", "oracleAddress", oracles[i].RelayerAddress,
 					"oracleSetNonce", oracleSet.Nonce, "oracleSetHeight", oracleSet.Height, "blockHeight", ctx.BlockHeight())
-				k.SlashGravity(ctx, oracles[i].GravityAddress)
+				k.SlashRelayer(ctx, oracles[i].RelayerAddress)
 				hasSlash = true
 			}
 		}
 		// then we set the latest slashed oracleSet  nonce
-		k.SetLastSlashedGravitySetNonce(ctx, oracleSet.Nonce)
+		k.SetLastSlashedRelayerSetNonce(ctx, oracleSet.Nonce)
 	}
 	return hasSlash
 }
 
-func (k Keeper) batchSlashing(ctx sdk.Context, oracles types.Gravitys, signedWindow uint64) (hasSlash bool) {
+func (k Keeper) batchSlashing(ctx sdk.Context, oracles types.Relayers, signedWindow uint64) (hasSlash bool) {
 	maxHeight := uint64(ctx.BlockHeight()) - signedWindow
 	unSlashedBatches := k.GetUnSlashedBatches(ctx, maxHeight)
 
 	for _, batch := range unSlashedBatches {
-		confirmGravityMap := make(map[string]struct{})
+		confirmRelayerMap := make(map[string]struct{})
 		k.IterateBatchConfirmByNonceAndTokenContract(ctx, batch.BatchNonce, batch.TokenContract, func(confirm *types.MsgConfirmBatch) bool {
-			confirmGravityMap[confirm.ExternalAddress] = struct{}{}
+			confirmRelayerMap[confirm.ExternalAddress] = struct{}{}
 			return false
 		})
 		for i := 0; i < len(oracles); i++ {
 			if uint64(oracles[i].StartHeight) > batch.Block {
 				continue
 			}
-			if _, ok := confirmGravityMap[oracles[i].ExternalAddress]; !ok {
-				k.Logger(ctx).Info("slash oracle by batch", "oracleAddress", oracles[i].GravityAddress,
+			if _, ok := confirmRelayerMap[oracles[i].ExternalAddress]; !ok {
+				k.Logger(ctx).Info("slash oracle by batch", "oracleAddress", oracles[i].RelayerAddress,
 					"batchNonce", batch.BatchNonce, "batchHeight", batch.Block, "blockHeight", ctx.BlockHeight())
-				k.SlashGravity(ctx, oracles[i].GravityAddress)
+				k.SlashRelayer(ctx, oracles[i].RelayerAddress)
 				hasSlash = true
 			}
 		}
@@ -146,22 +149,22 @@ func (k Keeper) cleanupTimedOutBatches(ctx sdk.Context) {
 	})
 }
 
-func (k Keeper) pruneGravitySet(ctx sdk.Context, signedGravitySetsWindow uint64) {
-	// Gravity set pruning
-	// prune all Gravity sets with a nonce less than the
+func (k Keeper) pruneRelayerSet(ctx sdk.Context, signedRelayerSetsWindow uint64) {
+	// Relayer set pruning
+	// prune all Relayer sets with a nonce less than the
 	// last observed nonce, they can't be submitted any longer
 	//
 	// Only prune oracleSets after the signed oracleSets window has passed
 	// so that slashing can occur the block before we remove them
-	lastObserved := k.GetLastObservedGravitySet(ctx)
+	lastObserved := k.GetLastObservedRelayerSet(ctx)
 	currentBlock := uint64(ctx.BlockHeight())
-	tooEarly := currentBlock < signedGravitySetsWindow
+	tooEarly := currentBlock < signedRelayerSetsWindow
 	if lastObserved != nil && !tooEarly {
-		earliestToPrune := currentBlock - signedGravitySetsWindow
-		k.IterateGravitySets(ctx, false, func(set *types.GravitySet) bool {
+		earliestToPrune := currentBlock - signedRelayerSetsWindow
+		k.IterateRelayerSets(ctx, false, func(set *types.RelayerSet) bool {
 			if earliestToPrune > set.Height && lastObserved.Nonce > set.Nonce {
-				k.DeleteGravitySet(ctx, set.Nonce)
-				k.DeleteGravitySetConfirm(ctx, set.Nonce)
+				k.DeleteRelayerSet(ctx, set.Nonce)
+				k.DeleteRelayerSetConfirm(ctx, set.Nonce)
 			}
 			return false
 		})
@@ -205,7 +208,7 @@ func (k Keeper) pruneAttestations(ctx sdk.Context) {
 
 	// This iterates over all keys (event nonces) in the attestation mapping. Each value contains
 	// a slice with one or more attestations at that event nonce. There can be multiple attestations
-	// at one event nonce when Gravitys disagree about what event happened at that nonce.
+	// at one event nonce when Relayers disagree about what event happened at that nonce.
 	for _, nonce := range nonces {
 		// This iterates over all attestations at a particular event nonce.
 		// They are ordered by when the first attestation at the event nonce was received.

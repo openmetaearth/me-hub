@@ -1,13 +1,12 @@
 package types
 
 import (
-	"errors"
 	"fmt"
+	"github.com/st-chain/me-hub/app/params"
+	"github.com/st-chain/me-hub/utils"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	fxtypes "github.com/st-chain/me-hub/types"
 )
 
 const (
@@ -33,13 +32,14 @@ func DefaultParams() Params {
 	return Params{
 		GravityId:                          "me-gravity",
 		AverageBlockTime:                   7_000,
-		AverageExternalBlockTime:           5_000,
 		ExternalBatchTimeout:               12 * 3600 * 1000,
+		AverageExternalBlockTime:           5_000,
 		SignedWindow:                       30_000,
 		SlashFraction:                      sdk.NewDecWithPrec(8, 1), // 80%
 		RelayerSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
 		IbcTransferTimeoutHeight:           20_000,
-		Relayers:                           nil,
+		MinDelegate:                        sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1_000_000)),   // 1 MEC
+		MaxDelegate:                        sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(100_000_000)), // 100 MEC
 	}
 }
 
@@ -49,7 +49,7 @@ func (m *Params) ValidateBasic() error {
 	if len(m.GravityId) == 0 {
 		return fmt.Errorf("gravityId cannpt be empty")
 	}
-	if _, err := fxtypes.StrToByte32(m.GravityId); err != nil {
+	if _, err := utils.StrToByte32(m.GravityId); err != nil {
 		return err
 	}
 	if m.AverageBlockTime < 100 {
@@ -73,26 +73,23 @@ func (m *Params) ValidateBasic() error {
 	if m.IbcTransferTimeoutHeight <= 1 {
 		return fmt.Errorf("invalid ibc transfer timeout too short")
 	}
-	if m.OracleSetUpdatePowerChangePercent.IsNegative() {
-		return fmt.Errorf("attempted to powet change percent with a negative: %v", m.OracleSetUpdatePowerChangePercent)
+	if m.RelayerSetUpdatePowerChangePercent.IsNegative() {
+		return fmt.Errorf("attempted to powet change percent with a negative: %v", m.RelayerSetUpdatePowerChangePercent)
 	}
-	if m.OracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
-		return fmt.Errorf("powet change percent too large: %s", m.OracleSetUpdatePowerChangePercent)
+	if m.RelayerSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
+		return fmt.Errorf("powet change percent too large: %s", m.RelayerSetUpdatePowerChangePercent)
 	}
-	if !m.DelegateThreshold.IsValid() || !m.DelegateThreshold.IsPositive() {
+	if !m.MinDelegate.IsValid() || !m.MinDelegate.IsPositive() {
 		return fmt.Errorf("invalid delegate threshold")
 	}
-	if m.DelegateThreshold.Denom != fxtypes.DefaultDenom {
+	if m.MinDelegate.Denom != params.BaseDenom {
 		return fmt.Errorf("oracle delegate denom must FX")
 	}
-	if m.DelegateMultiple <= 0 {
-		return fmt.Errorf("invalid delegate multiple")
+	if !m.MaxDelegate.IsValid() || !m.MaxDelegate.IsPositive() {
+		return fmt.Errorf("invalid delegate threshold")
 	}
-	if len(m.Oracles) > 0 {
-		return errors.New("deprecated oracles")
-	}
-	if m.BridgeCallTimeout <= 3_600_000 {
-		return fmt.Errorf("invalid bridge call timeout")
+	if m.MaxDelegate.Denom != params.BaseDenom {
+		return fmt.Errorf("oracle delegate denom must FX")
 	}
 	return nil
 }

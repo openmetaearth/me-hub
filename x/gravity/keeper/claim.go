@@ -12,13 +12,12 @@ import (
 // translated from the message to the Ethereum claim interface
 func (s MsgServer) claimHandlerCommon(ctx sdk.Context, msg types.ExternalClaim) (err error) {
 	bridgerAddr := msg.GetClaimer()
-	oracleAddr, err := s.checkBridgerIsOracle(ctx, bridgerAddr)
-	if err != nil {
+	if err := s.checkIsRelayer(ctx, bridgerAddr); err != nil {
 		return err
 	}
 
 	// Add the claim to the store
-	if _, err := s.Attest(ctx, oracleAddr, msg); err != nil {
+	if _, err := s.Attest(ctx, bridgerAddr, msg); err != nil {
 		return err
 	}
 

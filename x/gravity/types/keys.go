@@ -18,13 +18,10 @@ var (
 	RelayerKey                  = []byte{0x12}
 	RelayerAddressByExternalKey = []byte{0x13}
 
-	// RelayerAddressByBridgerKey key bridger address -> value oracle address
-	RelayerAddressByBridgerKey = []byte{0x14}
-
-	// RelayerSetRequestKey indexes oracle set requests by nonce
+	// RelayerSetRequestKey indexes relayer set requests by nonce
 	RelayerSetRequestKey = []byte{0x15}
 
-	// RelayerSetConfirmKey indexes oracle set confirmations by nonce and the validator account address
+	// RelayerSetConfirmKey indexes relayer set confirmations by nonce and the validator account address
 	RelayerSetConfirmKey = []byte{0x16}
 
 	// RelayerAttestationKey attestation details by nonce and validator address
