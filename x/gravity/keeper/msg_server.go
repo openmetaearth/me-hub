@@ -189,12 +189,6 @@ func (s MsgServer) RelayerSetConfirm(c context.Context, msg *types.MsgRelayerSet
 		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
 	}
 	s.SetRelayerSetConfirm(ctx, relayerAddress, msg)
-
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.RelayerAddress),
-	))
 	return &types.MsgRelayerSetConfirmResponse{}, nil
 }
 
@@ -221,8 +215,11 @@ func (s MsgServer) RelayerSetUpdateClaim(c context.Context, msg *types.MsgRelaye
 }
 
 func (s MsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	ctx := sdk.UnwrapSDKContext(c)
+	if err := s.claimHandlerCommon(ctx, msg); err != nil {
+		return nil, err
+	}
+	return &types.MsgBridgeTokenClaimResponse{}, nil
 }
 
 func (s MsgServer) SendToMeClaim(c context.Context, msg *types.MsgSendToMeClaim) (*types.MsgSendToMeClaimResponse, error) {
@@ -231,11 +228,6 @@ func (s MsgServer) SendToMeClaim(c context.Context, msg *types.MsgSendToMeClaim)
 		return nil, err
 	}
 	return &types.MsgSendToMeClaimResponse{}, nil
-}
-
-func (s MsgServer) BridgeCallClaim(ctx context.Context, claim *types.MsgBridgeCallClaim) (*types.MsgBridgeCallClaimResponse, error) {
-	//TODO implement me
-	panic("implement me")
 }
 
 func (s MsgServer) SendToExternal(c context.Context, msg *types.MsgSendToExternal) (*types.MsgSendToExternalResponse, error) {
@@ -259,29 +251,92 @@ func (s MsgServer) CancelSendToExternal(c context.Context, msg *types.MsgCancelS
 	return &types.MsgCancelSendToExternalResponse{}, nil
 }
 
-func (s MsgServer) SendToExternalClaim(ctx context.Context, claim *types.MsgSendToExternalClaim) (*types.MsgSendToExternalClaimResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (s MsgServer) SendToExternalClaim(c context.Context, msg *types.MsgSendToExternalClaim) (*types.MsgSendToExternalClaimResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	if err := s.claimHandlerCommon(ctx, msg); err != nil {
+		return nil, err
+	}
+	return &types.MsgSendToExternalClaimResponse{}, nil
 }
 
-func (s MsgServer) RequestBatch(ctx context.Context, batch *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (*types.MsgRequestBatchResponse, error) {
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "sender address")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	bridgeToken, _ := s.GetBridgeTokenByDenom(ctx, msg.Denom)
+	if bridgeToken == nil {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
+	}
+
+	if err := s.checkIsRelayer(ctx, sender); err != nil {
+		return nil, err
+	}
+
+	batch, err := s.BuildOutgoingTxBatch(ctx, bridgeToken.Contract, msg.FeeReceive, types.OutgoingTxBatchSize, msg.MinimumFee, msg.BaseFee)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		sdk.EventTypeMessage,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
+	))
+
+	return &types.MsgRequestBatchResponse{
+		BatchNonce: batch.BatchNonce,
+	}, nil
 }
 
-func (s MsgServer) ConfirmBatch(ctx context.Context, batch *types.MsgConfirmBatch) (*types.MsgConfirmBatchResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (*types.MsgConfirmBatchResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	// fetch the outgoing batch given the nonce
+	batch := s.GetOutgoingTxBatch(ctx, msg.TokenContract, msg.Nonce)
+	if batch == nil {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "couldn't find batch")
+	}
+
+	checkpoint, err := batch.GetCheckpoint(s.GetGravityID(ctx))
+	if err != nil {
+		return nil, errorsmod.Wrap(types.ErrInvalid, err.Error())
+	}
+
+	relayerAddr, err := s.confirmHandlerCommon(ctx, msg.ExternalAddress, msg.Signature, checkpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if we already have this confirm
+	if s.GetBatchConfirm(ctx, msg.TokenContract, msg.Nonce, relayerAddr) != nil {
+		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
+	}
+
+	s.SetBatchConfirm(ctx, relayerAddr, msg)
+	return &types.MsgConfirmBatchResponse{}, nil
 }
 
-func (s MsgServer) IncreaseBridgeFee(ctx context.Context, fee *types.MsgIncreaseBridgeFee) (*types.MsgIncreaseBridgeFeeResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (s MsgServer) IncreaseBridgeFee(c context.Context, msg *types.MsgIncreaseBridgeFee) (*types.MsgIncreaseBridgeFeeResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	if err := s.AddUnbatchedTxBridgeFee(ctx, msg.TransactionId, sdk.MustAccAddressFromBech32(msg.Sender), msg.AddBridgeFee); err != nil {
+		return nil, err
+	}
+	return &types.MsgIncreaseBridgeFeeResponse{}, nil
 }
 
-func (s MsgServer) UpdateChainRelayers(ctx context.Context, relayers *types.MsgUpdateChainRelayers) (*types.MsgUpdateChainRelayersResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (s MsgServer) UpdateChainRelayers(c context.Context, msg *types.MsgUpdateChainRelayers) (*types.MsgUpdateChainRelayersResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	if !s.daoKeeper.IsDao(ctx, msg.Authority) {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority")
+	}
+	if err := s.UpdateProposalRelayers(ctx, msg.Relayers); err != nil {
+		return nil, err
+	}
+	return &types.MsgUpdateChainRelayersResponse{}, nil
 }
 
 func (s MsgServer) UpdateParams(c context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {

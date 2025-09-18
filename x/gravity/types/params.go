@@ -10,22 +10,16 @@ import (
 )
 
 const (
-	MaxOracleSize                  = 21
-	DefaultOracleDelegateThreshold = 10
-	OutgoingTxBatchSize            = 100
-	MaxResults                     = 100
-	MaxOracleSetRequestsResults    = 5
-	MaxKeepEventSize               = 100
-	DefBridgeCallTimeout           = 604_800_000 // 7 * 24 * 3600 * 1000
-	MaxGasLimit                    = 30_000_000
-	MaxLiquidationSize             = 100
+	OutgoingTxBatchSize = 100
+	MaxKeepEventSize    = 100
+	MaxGasLimit         = 30_000_000
 )
 
 var (
 	// AttestationVotesPowerThreshold threshold of votes power to succeed
 	AttestationVotesPowerThreshold = sdkmath.NewInt(66)
 
-	AttestationRelayerChangePowerThreshold = sdkmath.NewInt(30)
+	AttestationProposalRelayerChangePowerThreshold = sdkmath.NewInt(30)
 )
 
 func DefaultParams() Params {
@@ -37,9 +31,9 @@ func DefaultParams() Params {
 		SignedWindow:                       30_000,
 		SlashFraction:                      sdk.NewDecWithPrec(8, 1), // 80%
 		RelayerSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 10%
-		IbcTransferTimeoutHeight:           20_000,
-		MinDelegate:                        sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1_000_000)),   // 1 MEC
-		MaxDelegate:                        sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(100_000_000)), // 100 MEC
+		MaxRelayers:                        5,
+		MinDelegate:                        sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(100_000_000)),    // 1 MEC
+		MaxDelegate:                        sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10_000_000_000)), // 100 MEC
 	}
 }
 
@@ -62,7 +56,7 @@ func (m *Params) ValidateBasic() error {
 		return fmt.Errorf("invalid average external block time, too short for latency limitations")
 	}
 	if m.SignedWindow <= 1 {
-		return fmt.Errorf("invalid signed window too short")
+		return fmt.Errorf("invalid signed window, too short")
 	}
 	if m.SlashFraction.IsNegative() {
 		return fmt.Errorf("attempted to slash with a negative slash factor: %v", m.SlashFraction)
@@ -70,8 +64,8 @@ func (m *Params) ValidateBasic() error {
 	if m.SlashFraction.GT(sdk.OneDec()) {
 		return fmt.Errorf("slash factor too large: %s", m.SlashFraction)
 	}
-	if m.IbcTransferTimeoutHeight <= 1 {
-		return fmt.Errorf("invalid ibc transfer timeout too short")
+	if m.MaxRelayers < 1 {
+		return fmt.Errorf("invalid max relayers, too short")
 	}
 	if m.RelayerSetUpdatePowerChangePercent.IsNegative() {
 		return fmt.Errorf("attempted to powet change percent with a negative: %v", m.RelayerSetUpdatePowerChangePercent)

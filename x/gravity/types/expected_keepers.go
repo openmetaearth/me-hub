@@ -42,3 +42,7 @@ type (
 		WithKeyTable(table paramtypes.KeyTable) paramtypes.Subspace
 	}
 )
+
+type DaoKeeper interface {
+	IsDao(ctx sdk.Context, address string) bool
+}

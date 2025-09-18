@@ -211,12 +211,12 @@ func (m *MsgSendToExternalClaim) GetSignBytes() []byte {
 }
 
 func (m *MsgSendToExternalClaim) GetClaimer() sdk.AccAddress {
-	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
+	return sdk.MustAccAddressFromBech32(m.RelayerAddress)
 }
 
 // GetSigners defines whose signature is required
 func (m *MsgSendToExternalClaim) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.RelayerAddress)}
 }
 
 // Route should return the name of the module

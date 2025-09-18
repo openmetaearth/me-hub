@@ -54,10 +54,13 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+	"github.com/st-chain/me-hub/x/bsc"
+	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
 	"github.com/st-chain/me-hub/x/dao"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	"github.com/st-chain/me-hub/x/did"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
+	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 	"github.com/st-chain/me-hub/x/kyc"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	"github.com/st-chain/me-hub/x/wbank"
@@ -144,6 +147,8 @@ func (a *AppKeepers) SetupModules(
 
 		wnft.NewAppModule(appCodec, *a.WNFTKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
 		wasm.NewAppModule(appCodec, &a.WasmKeeper, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, bApp.MsgServiceRouter(), a.GetSubspace(wasmtypes.ModuleName)),
+
+		bsc.NewAppModule(a.BscKeeper),
 	}
 }
 
@@ -177,12 +182,13 @@ var MaccPerms = map[string][]string{
 	evmtypes.ModuleName:                                {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account.
 	evmtypes.ModuleVirtualFrontierContractDeployerName: nil,                                  // used for deploying virtual frontier bank contract.
 	gammtypes.ModuleName:                               {authtypes.Minter, authtypes.Burner},
-	lockuptypes.ModuleName:                             {authtypes.Minter, authtypes.Burner},
 	wstakingtypes.FixedDepositPrincipalPool:            nil,
 	wasmtypes.ModuleName:                               {authtypes.Burner},
 	groupTypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
 	txfeestypes.ModuleName:                             {authtypes.Burner},
 	nft.ModuleName:                                     nil,
+	bsctypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
+	gravitytypes.ModuleName:                            {authtypes.Minter, authtypes.Burner},
 }
 
 var BeginBlockers = []string{
@@ -224,6 +230,7 @@ var BeginBlockers = []string{
 	kyctypes.ModuleName,
 	nft.ModuleName,
 	groupTypes.ModuleName,
+	bsctypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -265,6 +272,7 @@ var EndBlockers = []string{
 	kyctypes.ModuleName,
 	nft.ModuleName,
 	groupTypes.ModuleName,
+	bsctypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -306,4 +314,5 @@ var InitGenesis = []string{
 	kyctypes.ModuleName,
 	nft.ModuleName,
 	groupTypes.ModuleName,
+	bsctypes.ModuleName,
 }

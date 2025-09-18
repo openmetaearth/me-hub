@@ -207,7 +207,7 @@ message Params {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
-  uint64 ibc_transfer_timeout_height = 8;
+  uint64 max_relayers = 8;
   cosmos.base.v1beta1.Coin min_delegate = 9 [(gogoproto.nullable) = false];
   cosmos.base.v1beta1.Coin max_delegate = 10 [(gogoproto.nullable) = false];
 }

@@ -167,7 +167,7 @@ type AppKeepers struct {
 	WasmKeeper          wasmkeeper.Keeper
 	GroupKeeper         *groupkeeper.Keeper
 
-	BscKeeper *gravitykeeper.Keeper
+	BscKeeper gravitykeeper.Keeper
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -503,6 +503,7 @@ func (a *AppKeepers) InitKeepers(
 		a.keys[bsctypes.StoreKey],
 		a.BankKeeper,
 		a.AccountKeeper,
+		a.DaoKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 

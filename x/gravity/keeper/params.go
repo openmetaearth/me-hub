@@ -58,8 +58,8 @@ func (k Keeper) GetSignedWindow(ctx sdk.Context) uint64 {
 	return k.GetParams(ctx).SignedWindow
 }
 
-func (k Keeper) GetIbcTransferTimeoutHeight(ctx sdk.Context) uint64 {
-	return k.GetParams(ctx).IbcTransferTimeoutHeight
+func (k Keeper) GetMaxRelayers(ctx sdk.Context) uint64 {
+	return k.GetParams(ctx).MaxRelayers
 }
 
 func (k Keeper) GetRelayerSetUpdatePowerChangePercent(ctx sdk.Context) sdk.Dec {

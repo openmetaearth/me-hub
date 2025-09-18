@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -12,10 +13,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/st-chain/me-hub/x/bsc/client/cli"
 	"github.com/st-chain/me-hub/x/bsc/types"
+	gravitycli "github.com/st-chain/me-hub/x/gravity/client/cli"
 	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
 	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 )
@@ -68,12 +68,12 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.Ser
 
 // GetQueryCmd implements app module basic
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
+	return gravitycli.GetQueryCmd(types.ModuleName)
 }
 
 // GetTxCmd implements app module basic
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd()
+	return gravitycli.GetTxCmd(types.ModuleName)
 }
 
 // RegisterInterfaces implements app bmodule basic
@@ -87,13 +87,12 @@ func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {}
 type AppModule struct {
 	AppModuleBasic
 	keeper gravitykeeper.Keeper
-	// legacySubspace is used solely for migration of x/params managed parameters
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(cdc codec.Codec, keeper gravitykeeper.Keeper) AppModule {
+func NewAppModule(keeper gravitykeeper.Keeper) AppModule {
 	return AppModule{
-		AppModuleBasic: NewAppModuleBasic(cdc),
+		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
 	}
 }

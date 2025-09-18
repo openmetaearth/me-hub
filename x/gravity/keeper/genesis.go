@@ -58,7 +58,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	for i := 0; i < len(state.BatchConfirms); i++ {
 		confirm := state.BatchConfirms[i]
 		for _, oracle := range state.Relayers {
-			if confirm.BridgerAddress == oracle.RelayerAddress {
+			if confirm.RelayerAddress == oracle.RelayerAddress {
 				// 0x22
 				k.SetBatchConfirm(ctx, oracle.GetRelayer(), &confirm)
 			}

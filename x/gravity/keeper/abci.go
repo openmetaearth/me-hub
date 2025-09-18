@@ -62,15 +62,15 @@ func (k Keeper) slashing(ctx sdk.Context, signedWindow uint64) {
 		return
 	}
 	// Slash oracle for not confirming oracle set requests, batch requests
-	oracles := k.GetAllRelayers(ctx, true)
-	oracleSetHasSlash := k.oracleSetSlashing(ctx, oracles, signedWindow)
-	batchHasSlash := k.batchSlashing(ctx, oracles, signedWindow)
-	if oracleSetHasSlash || batchHasSlash {
+	relayers := k.GetAllRelayers(ctx, true)
+	relayerSetHasSlash := k.relayerSetSlashing(ctx, relayers, signedWindow)
+	batchHasSlash := k.batchSlashing(ctx, relayers, signedWindow)
+	if relayerSetHasSlash || batchHasSlash {
 		k.SetLastTotalPower(ctx)
 	}
 }
 
-func (k Keeper) oracleSetSlashing(ctx sdk.Context, oracles types.Relayers, signedWindow uint64) (hasSlash bool) {
+func (k Keeper) relayerSetSlashing(ctx sdk.Context, oracles types.Relayers, signedWindow uint64) (hasSlash bool) {
 	maxHeight := uint64(ctx.BlockHeight()) - signedWindow
 	unSlashedRelayerSets := k.GetUnSlashedRelayerSets(ctx, maxHeight)
 

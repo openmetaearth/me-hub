@@ -223,7 +223,7 @@ message MsgRequestBatchResponse {
 message MsgConfirmBatch {
   uint64 nonce = 1;
   string token_contract = 2;
-  string bridger_address = 3;
+  string relayer_address = 3;
   string external_address = 4;
   string signature = 5;
   string chain_name = 6;
@@ -238,7 +238,7 @@ message MsgSendToExternalClaim {
   uint64 block_height = 2;
   uint64 batch_nonce = 3;
   string token_contract = 4;
-  string bridger_address = 5;
+  string relayer_address = 5;
   string chain_name = 6;
 }
 
@@ -256,22 +256,6 @@ message MsgBridgeTokenClaim {
 }
 
 message MsgBridgeTokenClaimResponse {}
-
-// Deprecated: after block 5713000
-message MsgSetOrchestratorAddress {
-  string relayer_address = 1;
-  string bridger_address = 2;
-  string external_address = 3;
-  cosmos.base.v1beta1.Coin deposit = 4 [(gogoproto.nullable) = false];
-  string chain_name = 5;
-}
-
-// Deprecated: after block 5713000
-message MsgAddRelayerDeposit {
-  string relayer_address = 1;
-  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
-  string chain_name = 3;
-}
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
 message MsgUpdateParams {
