@@ -1,0 +1,339 @@
+package keeper
+
+import (
+	"context"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/st-chain/me-hub/x/gravity/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+var _ types.QueryServer = QueryServer{}
+
+type QueryServer struct {
+	Keeper
+}
+
+func NewQueryServerImpl(keeper Keeper) types.QueryServer {
+	return &QueryServer{Keeper: keeper}
+}
+
+func (k QueryServer) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	params := k.GetParams(sdk.UnwrapSDKContext(c))
+	return &types.QueryParamsResponse{Params: params}, nil
+}
+
+func (k QueryServer) CurrentRelayerSet(c context.Context, _ *types.QueryCurrentRelayerSetRequest) (*types.QueryCurrentRelayerSetResponse, error) {
+	return &types.QueryCurrentRelayerSetResponse{RelayerSet: k.GetCurrentRelayerSet(sdk.UnwrapSDKContext(c))}, nil
+}
+
+func (k QueryServer) RelayerSetRequest(c context.Context, req *types.QueryRelayerSetRequestRequest) (*types.QueryRelayerSetRequestResponse, error) {
+	return &types.QueryRelayerSetRequestResponse{RelayerSet: k.GetRelayerSet(sdk.UnwrapSDKContext(c), req.Nonce)}, nil
+}
+
+func (k QueryServer) RelayerSetConfirm(c context.Context, req *types.QueryRelayerSetConfirmRequest) (*types.QueryRelayerSetConfirmResponse, error) {
+	if req.GetNonce() <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "nonce")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	return &types.QueryRelayerSetConfirmResponse{Confirm: k.GetRelayerSetConfirm(ctx, req.Nonce, sdk.MustAccAddressFromBech32(req.RelayerAddress))}, nil
+}
+
+func (k QueryServer) RelayerSetConfirmsByNonce(c context.Context, req *types.QueryRelayerSetConfirmsByNonceRequest) (*types.QueryRelayerSetConfirmsByNonceResponse, error) {
+	if req.GetNonce() <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "nonce")
+	}
+	var confirms []*types.MsgRelayerSetConfirm
+	k.IterateRelayerSetConfirmByNonce(sdk.UnwrapSDKContext(c), req.Nonce, func(confirm *types.MsgRelayerSetConfirm) bool {
+		confirms = append(confirms, confirm)
+		return false
+	})
+	return &types.QueryRelayerSetConfirmsByNonceResponse{Confirms: confirms}, nil
+}
+
+func (k QueryServer) LastRelayerSetRequests(c context.Context, req *types.QueryLastRelayerSetRequestsRequest) (*types.QueryLastRelayerSetRequestsResponse, error) {
+	var relayerSets []*types.RelayerSet
+	ctx := sdk.UnwrapSDKContext(c)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.RelayerSetRequestKey)
+	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
+		var relayerSet types.RelayerSet
+		if err := k.cdc.Unmarshal(value, &relayerSet); err != nil {
+			return status.Errorf(codes.Internal, "failed to unmarshal relayerSet: %v", err)
+		}
+		relayerSets = append(relayerSets, &relayerSet)
+		return nil
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &types.QueryLastRelayerSetRequestsResponse{RelayerSets: relayerSets, Pagination: pageRes}, nil
+}
+
+func (k QueryServer) LastPendingRelayerSetRequestByAddr(c context.Context, req *types.QueryLastPendingRelayerSetRequestByAddrRequest) (*types.QueryLastPendingRelayerSetRequestByAddrResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	relayer, ok := k.GetRelayer(ctx, sdk.MustAccAddressFromBech32(req.RelayerAddress))
+	if !ok {
+		return nil, types.ErrNotFoundRelayer
+	}
+	var pendingRelaySetReq []*types.RelayerSet
+	k.IterateRelayerSets(ctx, false, func(relaySet *types.RelayerSet) bool {
+		if relayer.StartHeight > int64(relaySet.Height) {
+			return false
+		}
+		// found is true if the operatorAddr has signed the oracle set we are currently looking at
+		// if this oracle set has NOT been signed by oracleAddr, store it in pendingOracleSetReq and exit the loop
+		if found := k.GetRelayerSetConfirm(ctx, relaySet.Nonce, relayer.GetRelayer()) != nil; !found {
+			pendingRelaySetReq = append(pendingRelaySetReq, relaySet)
+		}
+		// if we have more than 100 unconfirmed requests in
+		// our array we should exit, pagination
+		return len(pendingRelaySetReq) == 100
+	})
+	return &types.QueryLastPendingRelayerSetRequestByAddrResponse{RelayerSets: pendingRelaySetReq}, nil
+}
+
+func (k QueryServer) LastPendingBatchRequestByAddr(c context.Context, req *types.QueryLastPendingBatchRequestByAddrRequest) (*types.QueryLastPendingBatchRequestByAddrResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	RelayerAddress := sdk.MustAccAddressFromBech32(req.RelayerAddress)
+	relayer, ok := k.GetRelayer(ctx, RelayerAddress)
+	if !ok {
+		return nil, types.ErrNotFoundRelayer
+	}
+	var pendingBatchReq *types.OutgoingTxBatch
+	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
+		// filter startHeight before confirm
+		if relayer.StartHeight > int64(batch.Block) {
+			return false
+		}
+		foundConfirm := k.GetBatchConfirm(ctx, batch.TokenContract, batch.BatchNonce, RelayerAddress) != nil
+		if !foundConfirm {
+			pendingBatchReq = batch
+			return true
+		}
+		return false
+	})
+	return &types.QueryLastPendingBatchRequestByAddrResponse{Batch: pendingBatchReq}, nil
+}
+
+func (k QueryServer) LastEventNonceByAddr(c context.Context, req *types.QueryLastEventNonceByAddrRequest) (*types.QueryLastEventNonceByAddrResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	lastEventNonce := k.GetLastEventNonceByRelayer(ctx, sdk.MustAccAddressFromBech32(req.RelayerAddress))
+	return &types.QueryLastEventNonceByAddrResponse{EventNonce: lastEventNonce}, nil
+}
+
+func (k QueryServer) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLastEventBlockHeightByAddrRequest) (*types.QueryLastEventBlockHeightByAddrResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	lastEventBlockHeight := k.GetLastEventBlockHeightByRelayer(ctx, sdk.MustAccAddressFromBech32(req.RelayerAddress))
+	return &types.QueryLastEventBlockHeightByAddrResponse{BlockHeight: lastEventBlockHeight}, nil
+}
+
+func (k QueryServer) LastObservedBlockHeight(c context.Context, _ *types.QueryLastObservedBlockHeightRequest) (*types.QueryLastObservedBlockHeightResponse, error) {
+	blockHeight := k.GetLastObservedBlockHeight(sdk.UnwrapSDKContext(c))
+	return &types.QueryLastObservedBlockHeightResponse{
+		ExternalBlockHeight: blockHeight.ExternalBlockHeight,
+		BlockHeight:         blockHeight.BlockHeight,
+	}, nil
+}
+
+func (k QueryServer) OutgoingTxBatches(c context.Context, req *types.QueryOutgoingTxBatchesRequest) (*types.QueryOutgoingTxBatchesResponse, error) {
+	var batches []*types.OutgoingTxBatch
+	ctx := sdk.UnwrapSDKContext(c)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutgoingTxBatchKey)
+	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
+		var batch types.OutgoingTxBatch
+		if err := k.cdc.Unmarshal(value, &batch); err != nil {
+			return status.Errorf(codes.Internal, "failed to unmarshal batch: %v", err)
+		}
+		batches = append(batches, &batch)
+		return nil
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &types.QueryOutgoingTxBatchesResponse{Batches: batches, Pagination: pageRes}, nil
+}
+
+func (k QueryServer) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequestByNonceRequest) (*types.QueryBatchRequestByNonceResponse, error) {
+	if err := types.ValidateExternalAddr(req.ChainName, req.GetTokenContract()); err != nil {
+		return nil, status.Error(codes.InvalidArgument, "token contract address")
+	}
+	if req.GetNonce() <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "nonce")
+	}
+	foundBatch := k.GetOutgoingTxBatch(sdk.UnwrapSDKContext(c), req.TokenContract, req.Nonce)
+	if foundBatch == nil {
+		return nil, status.Error(codes.NotFound, "tx batch")
+	}
+	return &types.QueryBatchRequestByNonceResponse{Batch: foundBatch}, nil
+}
+
+func (k QueryServer) BatchConfirm(c context.Context, req *types.QueryBatchConfirmRequest) (*types.QueryBatchConfirmResponse, error) {
+	if err := types.ValidateExternalAddr(req.ChainName, req.GetTokenContract()); err != nil {
+		return nil, status.Error(codes.InvalidArgument, "token contract address")
+	}
+	if req.GetNonce() <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "nonce")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	RelayerAddress := sdk.MustAccAddressFromBech32(req.RelayerAddress)
+	_, ok := k.GetRelayer(ctx, RelayerAddress)
+	if !ok {
+		return nil, types.ErrNotFoundRelayer
+	}
+	confirm := k.GetBatchConfirm(ctx, req.TokenContract, req.Nonce, RelayerAddress)
+	return &types.QueryBatchConfirmResponse{Confirm: confirm}, nil
+}
+
+func (k QueryServer) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRequest) (*types.QueryBatchConfirmsResponse, error) {
+	if err := types.ValidateExternalAddr(req.ChainName, req.GetTokenContract()); err != nil {
+		return nil, status.Error(codes.InvalidArgument, "token contract address")
+	}
+	if req.GetNonce() <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "nonce")
+	}
+	var confirms []*types.MsgConfirmBatch
+	k.IterateBatchConfirmByNonceAndTokenContract(sdk.UnwrapSDKContext(c), req.Nonce, req.TokenContract, func(confirm *types.MsgConfirmBatch) bool {
+		confirms = append(confirms, confirm)
+		return false
+	})
+	return &types.QueryBatchConfirmsResponse{Confirms: confirms}, nil
+}
+
+func (k QueryServer) Relayer(c context.Context, req *types.QueryRelayerRequest) (*types.QueryRelayerResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	if req.RelayerAddress == "" && req.ExternalAddress == "" {
+		return nil, status.Error(codes.InvalidArgument, "either relayer address or external address must be provided.")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	relayer := types.Relayer{}
+	found := false
+	if req.RelayerAddress != "" {
+		relayerAddress, err := sdk.AccAddressFromBech32(req.RelayerAddress)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "relayer address")
+		}
+		relayer, found = k.GetRelayer(ctx, relayerAddress)
+		if !found {
+			return nil, types.ErrNotFoundRelayer
+		}
+	}
+	if req.ExternalAddress != "" {
+		relayerAddress, found := k.GetRelayerByExternalAddress(ctx, req.ExternalAddress)
+		if !found {
+			return nil, types.ErrNotFoundRelayer
+		}
+		relayer, found = k.GetRelayer(ctx, relayerAddress)
+		if !found {
+			return nil, types.ErrNotFoundRelayer
+		}
+	}
+	if !found {
+		return nil, types.ErrNotFoundRelayer
+	}
+	return &types.QueryRelayerResponse{Relayer: &relayer}, nil
+}
+
+func (k QueryServer) Relayers(c context.Context, _ *types.QueryRelayersRequest) (*types.QueryRelayersResponse, error) {
+	relays := k.GetAllRelayers(sdk.UnwrapSDKContext(c), false)
+	return &types.QueryRelayersResponse{Relayers: relays}, nil
+}
+
+func (k QueryServer) GetPendingSendToExternal(c context.Context, req *types.QueryPendingSendToExternalRequest) (*types.QueryPendingSendToExternalResponse, error) {
+	if _, err := sdk.AccAddressFromBech32(req.GetSenderAddress()); err != nil {
+		return nil, status.Error(codes.InvalidArgument, "sender address")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	var batches []*types.OutgoingTxBatch
+	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
+		batches = append(batches, batch)
+		return false
+	})
+	res := &types.QueryPendingSendToExternalResponse{
+		TransfersInBatches: make([]*types.OutgoingTransferTx, 0),
+		UnbatchedTransfers: make([]*types.OutgoingTransferTx, 0),
+	}
+	for _, batch := range batches {
+		for _, tx := range batch.Transactions {
+			if tx.Sender == req.SenderAddress {
+				res.TransfersInBatches = append(res.TransfersInBatches, tx)
+			}
+		}
+	}
+	k.IterateUnbatchedTransactions(ctx, "", func(tx *types.OutgoingTransferTx) bool {
+		if tx.Sender == req.SenderAddress {
+			res.UnbatchedTransfers = append(res.UnbatchedTransfers, tx)
+		}
+		return false
+	})
+	return res, nil
+}
+
+func (k QueryServer) ProjectedBatchTimeoutHeight(c context.Context, _ *types.QueryProjectedBatchTimeoutHeightRequest) (*types.QueryProjectedBatchTimeoutHeightResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	batchTimeout := k.GetBatchTimeoutHeight(ctx)
+	return &types.QueryProjectedBatchTimeoutHeightResponse{TimeoutHeight: batchTimeout}, nil
+}
+
+func (k QueryServer) BridgeTokens(c context.Context, req *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
+	bridgeTokens := make([]*types.BridgeToken, 0)
+	ctx := sdk.UnwrapSDKContext(c)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.BridgeTokenByDenomKey)
+	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
+		var bridgeToken types.BridgeToken
+		if err := k.cdc.Unmarshal(value, &bridgeToken); err != nil {
+			return status.Errorf(codes.Internal, "failed to unmarshal bridgeToken: %v", err)
+		}
+		bridgeTokens = append(bridgeTokens, &bridgeToken)
+		return nil
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &types.QueryBridgeTokensResponse{BridgeTokens: bridgeTokens, Pagination: pageRes}, nil
+}
+
+func (k QueryServer) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinByDenomRequest) (*types.QueryBridgeCoinByDenomResponse, error) {
+	if len(req.GetDenom()) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "bridge coin by denom request must contain a denom")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	var bridgeCoinMetaData banktypes.Metadata
+	k.bankKeeper.IterateAllDenomMetaData(ctx, func(metadata banktypes.Metadata) bool {
+		if metadata.GetBase() == req.GetDenom() {
+			bridgeCoinMetaData = metadata
+			return true
+		}
+		if len(metadata.GetDenomUnits()) == 0 {
+			return false
+		}
+		for _, alias := range metadata.GetDenomUnits()[0].GetAliases() {
+			if alias == req.GetDenom() {
+				bridgeCoinMetaData = metadata
+				return true
+			}
+		}
+		return false
+	})
+	if len(bridgeCoinMetaData.GetBase()) == 0 {
+		return nil, status.Error(codes.NotFound, "wrong bridge coin")
+	}
+
+	token, _ := k.GetBridgeTokenByDenom(ctx, req.Denom)
+	if token == nil {
+		return nil, status.Error(codes.NotFound, "denom")
+	}
+
+	supply := k.bankKeeper.GetSupply(ctx, req.Denom)
+	return &types.QueryBridgeCoinByDenomResponse{BridgeToken: token, Coin: supply}, nil
+}
+
+func (k QueryServer) BridgeChainList(_ context.Context, _ *types.QueryBridgeChainListRequest) (*types.QueryBridgeChainListResponse, error) {
+	return &types.QueryBridgeChainListResponse{ChainNames: types.GetSupportChains()}, nil
+}

@@ -80,7 +80,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, tokenContract, feeReceive 
 
 // GetBatchTimeoutHeight This gets the batch timeout height in External blocks.
 func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) uint64 {
-	currentFxHeight := ctx.BlockHeight()
+	currentMeHeight := ctx.BlockHeight()
 	params := k.GetParams(ctx)
 	// we store the last observed Cosmos and Ethereum heights, we do not concern ourselves if these values
 	// are zero because no batch can be produced if the last Ethereum block height is not first populated by a deposit event.
@@ -89,7 +89,7 @@ func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) uint64 {
 		return 0
 	}
 	// we project how long it has been in milliseconds since the last Ethereum block height was observed
-	projectedMillis := (uint64(currentFxHeight) - heights.BlockHeight) * params.AverageBlockTime
+	projectedMillis := (uint64(currentMeHeight) - heights.BlockHeight) * params.AverageBlockTime
 	// we convert that projection into the current Ethereum height using the average Ethereum block time in millis
 	projectedCurrentEthereumHeight := (projectedMillis / params.AverageExternalBlockTime) + heights.ExternalBlockHeight
 	// we convert our target time for block timeouts (lets say 12 hours) into a number of blocks to

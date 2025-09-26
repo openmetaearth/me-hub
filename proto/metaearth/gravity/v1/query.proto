@@ -45,9 +45,6 @@ service Query {
   rpc LastEventBlockHeightByAddr(QueryLastEventBlockHeightByAddrRequest) returns (QueryLastEventBlockHeightByAddrResponse) {
     option (google.api.http).get = "/gravity/v1/relayer/event/block_height";
   }
-  rpc BatchFees(QueryBatchFeeRequest) returns (QueryBatchFeeResponse) {
-    option (google.api.http).get = "/gravity/v1/batch_fees";
-  }
   rpc LastObservedBlockHeight(QueryLastObservedBlockHeightRequest) returns (QueryLastObservedBlockHeightResponse) {
     option (google.api.http).get = "/gravity/v1/observed/block_height";
   }
@@ -63,20 +60,8 @@ service Query {
   rpc BatchConfirms(QueryBatchConfirmsRequest) returns (QueryBatchConfirmsResponse) {
     option (google.api.http).get = "/gravity/v1/batch/confirms";
   }
-  rpc TokenToDenom(QueryTokenToDenomRequest) returns (QueryTokenToDenomResponse) {
-    option (google.api.http).get = "/gravity/v1/denom";
-  }
-  rpc DenomToToken(QueryDenomToTokenRequest) returns (QueryDenomToTokenResponse) {
-    option (google.api.http).get = "/gravity/v1/token";
-  }
-  rpc GetRelayerByAddr(QueryRelayerByAddrRequest) returns (QueryRelayerResponse) {
-    option (google.api.http).get = "/gravity/v1/relayer_by_addr";
-  }
-  rpc GetRelayerByExternalAddr(QueryRelayerByExternalAddrRequest) returns (QueryRelayerResponse) {
-    option (google.api.http).get = "/gravity/v1/relayer_by_external_addr";
-  }
-  rpc GetRelayerByBridgerAddr(QueryRelayerByBridgerAddrRequest) returns (QueryRelayerResponse) {
-    option (google.api.http).get = "/gravity/v1/relayer_by_bridger_addr";
+  rpc Relayer(QueryRelayerRequest) returns (QueryRelayerResponse) {
+    option (google.api.http).get = "/gravity/v1/relayer";
   }
   rpc GetPendingSendToExternal(QueryPendingSendToExternalRequest) returns (QueryPendingSendToExternalResponse) {
     option (google.api.http).get = "/gravity/v1/pending_send_to_external";
@@ -123,7 +108,7 @@ message QueryRelayerSetRequestResponse {
 
 message QueryRelayerSetConfirmRequest {
   string chain_name = 1;
-  string bridger_address = 2;
+  string relayer_address = 2;
   uint64 nonce = 3;
 }
 message QueryRelayerSetConfirmResponse {
@@ -140,30 +125,26 @@ message QueryRelayerSetConfirmsByNonceResponse {
 
 message QueryLastRelayerSetRequestsRequest {
   string chain_name = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 message QueryLastRelayerSetRequestsResponse {
   repeated RelayerSet relayer_sets = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryLastPendingRelayerSetRequestByAddrRequest {
   string chain_name = 1;
-  string bridger_address = 2;
+  string relayer_address = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 message QueryLastPendingRelayerSetRequestByAddrResponse {
   repeated RelayerSet relayer_sets = 1;
-}
-
-message QueryBatchFeeRequest {
-  string chain_name = 1;
-  repeated MinBatchFee minBatchFees = 2 [(gogoproto.nullable) = false];
-}
-message QueryBatchFeeResponse {
-  repeated BatchFees batch_fees = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryLastPendingBatchRequestByAddrRequest {
   string chain_name = 1;
-  string bridger_address = 2;
+  string relayer_address = 2;
 }
 message QueryLastPendingBatchRequestByAddrResponse {
   OutgoingTxBatch batch = 1;
@@ -171,9 +152,11 @@ message QueryLastPendingBatchRequestByAddrResponse {
 
 message QueryOutgoingTxBatchesRequest {
   string chain_name = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 message QueryOutgoingTxBatchesResponse {
   repeated OutgoingTxBatch batches = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryBatchRequestByNonceRequest {
@@ -188,7 +171,7 @@ message QueryBatchRequestByNonceResponse {
 message QueryBatchConfirmRequest {
   string chain_name = 1;
   string token_contract = 2;
-  string bridger_address = 3;
+  string relayer_address = 3;
   uint64 nonce = 4;
 }
 message QueryBatchConfirmResponse {
@@ -206,44 +189,21 @@ message QueryBatchConfirmsResponse {
 
 message QueryLastEventNonceByAddrRequest {
   string chain_name = 1;
-  string bridger_address = 2;
+  string relayer_address = 2;
 }
 message QueryLastEventNonceByAddrResponse {
   uint64 event_nonce = 1;
 }
 
-message QueryTokenToDenomRequest {
-  string chain_name = 1;
-  string token = 2;
-}
-message QueryTokenToDenomResponse {
-  string denom = 1;
-}
-
-message QueryDenomToTokenRequest {
-  string chain_name = 1;
-  string denom = 2;
-}
-message QueryDenomToTokenResponse {
-  string token = 1;
-}
-
-message QueryRelayerByAddrRequest {
+message QueryRelayerRequest {
   string chain_name = 1;
   string relayer_address = 2;
+  string external_address = 3;
 }
 message QueryRelayerResponse {
   Relayer relayer = 1;
 }
 
-message QueryRelayerByExternalAddrRequest {
-  string chain_name = 1;
-  string external_address = 2;
-}
-message QueryRelayerByBridgerAddrRequest {
-  string chain_name = 1;
-  string bridger_address = 2;
-}
 message QueryPendingSendToExternalRequest {
   string chain_name = 1;
   string sender_address = 2;
@@ -263,7 +223,7 @@ message QueryLastObservedBlockHeightResponse {
 
 message QueryLastEventBlockHeightByAddrRequest {
   string chain_name = 1;
-  string bridger_address = 2;
+  string relayer_address = 2;
 }
 message QueryLastEventBlockHeightByAddrResponse {
   uint64 block_height = 1;
@@ -286,9 +246,11 @@ message QueryProjectedBatchTimeoutHeightResponse {
 
 message QueryBridgeTokensRequest {
   string chain_name = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 message QueryBridgeTokensResponse {
   repeated BridgeToken bridge_tokens = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryBridgeCoinByDenomRequest {
@@ -296,7 +258,8 @@ message QueryBridgeCoinByDenomRequest {
   string denom = 2;
 }
 message QueryBridgeCoinByDenomResponse {
-  cosmos.base.v1beta1.Coin coin = 1 [(gogoproto.nullable) = false];
+  BridgeToken bridge_token = 1;
+  cosmos.base.v1beta1.Coin coin = 2 [(gogoproto.nullable) = false];
 }
 
 message QueryBridgeChainListRequest {}

@@ -12,10 +12,10 @@ var (
 	ErrNonContiguousEventNonce = errorsmod.Register(ModuleName, 6, "non contiguous event nonce")
 	ErrNotFound                = errorsmod.Register(ModuleName, 7, "not found")
 
-	ErrNotProposedRelayer = errorsmod.Register(ModuleName, 7, "not proposed relayer")
-	ErrNotFoundRelayer    = errorsmod.Register(ModuleName, 8, "not found relayer")
-	ErrRelayerNotOnLine   = errorsmod.Register(ModuleName, 9, "relayer not on line")
+	ErrNotProposedRelayer = errorsmod.Register(ModuleName, 8, "not proposed relayer")
+	ErrNotFoundRelayer    = errorsmod.Register(ModuleName, 9, "not found relayer")
+	ErrRelayerNotOnLine   = errorsmod.Register(ModuleName, 10, "relayer not on line")
 
-	ErrDelegateAmountBelowMinimum = errorsmod.Register(ModuleName, 10, "delegate amount must be greater than relayer stake threshold")
-	ErrDelegateAmountAboveMaximum = errorsmod.Register(ModuleName, 11, "delegate amount must be less than double relayer stake threshold")
+	ErrDelegateAmountBelowMinimum = errorsmod.Register(ModuleName, 11, "delegate amount must be greater than relayer stake threshold")
+	ErrDelegateAmountAboveMaximum = errorsmod.Register(ModuleName, 12, "delegate amount must be less than double relayer stake threshold")
 )

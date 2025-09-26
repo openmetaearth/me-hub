@@ -52,7 +52,7 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 
 	ctx = ctx.WithGasMeter(gasMeter)
 	k.SetLastEventNonceByRelayer(ctx, relayerAddr, claim.GetEventNonce())
-	k.SetLastEventBlockHeightByOracle(ctx, relayerAddr, claim.GetBlockHeight())
+	k.SetLastEventBlockHeightByRelayer(ctx, relayerAddr, claim.GetBlockHeight())
 	return att, nil
 }
 
@@ -256,7 +256,22 @@ func (k Keeper) DelLastEventNonceByRelayer(ctx sdk.Context, relayerAddr sdk.AccA
 }
 
 // SetLastEventNonceByGravity sets the latest event nonce for a give oracle
-func (k Keeper) SetLastEventNonceByRelayer(ctx sdk.Context, relayerAddr sdk.AccAddress, eventNonce uint64) {
+func (k Keeper) SetLastEventNonceByRelayer(ctx sdk.Context, relay sdk.AccAddress, eventNonce uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetLastEventNonceByRelayerKey(relayerAddr), sdk.Uint64ToBigEndian(eventNonce))
+	store.Set(types.GetLastEventNonceByRelayerKey(relay), sdk.Uint64ToBigEndian(eventNonce))
+}
+
+func (k Keeper) SetLastEventBlockHeightByRelayer(ctx sdk.Context, relay sdk.AccAddress, blockHeight uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetLastEventBlockHeightByRelayerKey(relay), sdk.Uint64ToBigEndian(blockHeight))
+}
+
+func (k Keeper) GetLastEventBlockHeightByRelayer(ctx sdk.Context, relay sdk.AccAddress) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetLastEventBlockHeightByRelayerKey(relay)
+	if !store.Has(key) {
+		return 0
+	}
+	data := store.Get(key)
+	return sdk.BigEndianToUint64(data)
 }

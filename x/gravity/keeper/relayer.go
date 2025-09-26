@@ -181,8 +181,3 @@ func (s Keeper) checkIsRelayer(ctx sdk.Context, addr sdk.AccAddress) error {
 	}
 	return nil
 }
-
-func (k Keeper) SetLastEventBlockHeightByOracle(ctx sdk.Context, oracleAddr sdk.AccAddress, blockHeight uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetLastEventBlockHeightByRelayerKey(oracleAddr), sdk.Uint64ToBigEndian(blockHeight))
-}

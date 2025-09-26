@@ -127,7 +127,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 				// 0x23
 				k.SetLastEventNonceByRelayer(ctx, oracle, claim.GetEventNonce())
 				// 0x35
-				k.SetLastEventBlockHeightByOracle(ctx, oracle, claim.GetBlockHeight())
+				k.SetLastEventBlockHeightByRelayer(ctx, oracle, claim.GetBlockHeight())
 			}
 		}
 	}

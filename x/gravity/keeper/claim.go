@@ -41,16 +41,16 @@ func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, signatureAddr, signatur
 		return nil, types.ErrNotFoundRelayer
 	}
 
-	oracle, found := s.GetRelayer(ctx, relayerAddr)
+	relayer, found := s.GetRelayer(ctx, relayerAddr)
 	if !found {
 		return nil, types.ErrNotFoundRelayer
 	}
 
-	if oracle.ExternalAddress != signatureAddr {
-		return nil, errorsmod.Wrapf(types.ErrInvalid, "got %s, expected %s", signatureAddr, oracle.ExternalAddress)
+	if relayer.ExternalAddress != signatureAddr {
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "got %s, expected %s", signatureAddr, relayer.ExternalAddress)
 	}
-	if err = types.ValidateEthereumSignature(checkpoint, sigBytes, oracle.ExternalAddress); err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", oracle.ExternalAddress, hex.EncodeToString(checkpoint), signature))
+	if err = types.ValidateEthereumSignature(checkpoint, sigBytes, relayer.ExternalAddress); err != nil {
+		return nil, errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", relayer.ExternalAddress, hex.EncodeToString(checkpoint), signature))
 	}
 	return relayerAddr, nil
 }

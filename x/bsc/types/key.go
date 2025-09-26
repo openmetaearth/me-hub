@@ -1,5 +1,7 @@
 package types
 
+import gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
+
 const (
 	// ModuleName is the name of the module
 	ModuleName = "bsc"
@@ -7,3 +9,7 @@ const (
 	// StoreKey to be used when creating the KVStore
 	StoreKey = ModuleName
 )
+
+func init() {
+	gravitytypes.RegisterExternalAddress(ModuleName, gravitytypes.EthereumAddress{})
+}
