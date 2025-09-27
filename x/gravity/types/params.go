@@ -25,9 +25,9 @@ var (
 func DefaultParams() Params {
 	return Params{
 		GravityId:                          "me-gravity",
-		AverageBlockTime:                   7_000,
+		AverageBlockTime:                   5_000,
 		ExternalBatchTimeout:               24 * 3600 * 1000, // 24 hours
-		AverageExternalBlockTime:           5_000,            // 5 seconds
+		AverageExternalBlockTime:           1_000,            // 5 seconds
 		SignedWindow:                       30_000,
 		SlashFraction:                      sdk.NewDecWithPrec(8, 1), // 80%
 		RelayerSetUpdatePowerChangePercent: sdk.NewDecWithPrec(2, 1), // 20%

@@ -21,7 +21,6 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgBridgeTokenClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeTokenClaim"), nil)
 
 	cdc.RegisterConcrete(&MsgSendToMeClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgSendToMeClaim"), nil)
-	cdc.RegisterConcrete(&MsgBridgeCallClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeCallClaim"), nil)
 
 	cdc.RegisterConcrete(&MsgSendToExternal{}, fmt.Sprintf("%s/%s", ModuleName, "MsgSendToExternal"), nil)
 	cdc.RegisterConcrete(&MsgCancelSendToExternal{}, fmt.Sprintf("%s/%s", ModuleName, "MsgCancelSendToExternal"), nil)
@@ -41,23 +40,16 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgBondedRelayer{},
 		&MsgAddDelegate{},
 		&MsgWithdrawReward{},
-
 		&MsgRelayerSetConfirm{},
 		&MsgRelayerSetUpdatedClaim{},
-
 		&MsgBridgeTokenClaim{},
-
 		&MsgSendToMeClaim{},
-		&MsgBridgeCallClaim{},
-
 		&MsgSendToExternal{},
 		&MsgCancelSendToExternal{},
 		&MsgIncreaseBridgeFee{},
 		&MsgSendToExternalClaim{},
-
 		&MsgRequestBatch{},
 		&MsgConfirmBatch{},
-
 		&MsgUpdateParams{},
 		&MsgUpdateChainRelayers{},
 	)
@@ -67,16 +59,9 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		(*ExternalClaim)(nil),
 		&MsgSendToExternalClaim{},
 		&MsgSendToMeClaim{},
-		&MsgBridgeCallClaim{},
 		&MsgBridgeTokenClaim{},
 		&MsgRelayerSetUpdatedClaim{},
 	)
-
-	//registry.RegisterImplementations(
-	//	(*govv1betal.Content)(nil),
-	//	&InitCrossChainParamsProposal{},
-	//	&UpdateChainRelayersProposal{},
-	//)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 

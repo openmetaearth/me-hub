@@ -26,7 +26,6 @@ func (k Keeper) createRelayerSetRequest(ctx sdk.Context) {
 
 func (k Keeper) isNeedRelayerSetRequest(ctx sdk.Context) (*types.RelayerSet, bool) {
 	currentRelayerSet := k.GetCurrentRelayerSet(ctx)
-
 	// 1. get latest RelayerSet
 	latestRelayerSet := k.GetLatestRelayerSet(ctx)
 	if latestRelayerSet == nil {

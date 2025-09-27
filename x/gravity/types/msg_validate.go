@@ -83,11 +83,6 @@ func (m2 MsgValidate) MsgSendToMeClaimValidate(m *MsgSendToMeClaim) (err error) 
 	return nil
 }
 
-func (m2 MsgValidate) MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (m2 MsgValidate) MsgSendToExternalValidate(m *MsgSendToExternal) (err error) {
 	//TODO implement me
 	panic("implement me")

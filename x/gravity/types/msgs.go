@@ -12,7 +12,6 @@ type MsgValidateBasic interface {
 	MsgSendToExternalClaimValidate(m *MsgSendToExternalClaim) (err error)
 
 	MsgSendToMeClaimValidate(m *MsgSendToMeClaim) (err error)
-	MsgBridgeCallClaimValidate(m *MsgBridgeCallClaim) (err error)
 	MsgSendToExternalValidate(m *MsgSendToExternal) (err error)
 
 	MsgRequestBatchValidate(m *MsgRequestBatch) (err error)

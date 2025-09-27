@@ -48,7 +48,6 @@ type ExternalClaim interface {
 
 var (
 	_ ExternalClaim = &MsgSendToMeClaim{}
-	_ ExternalClaim = &MsgBridgeCallClaim{}
 	_ ExternalClaim = &MsgBridgeTokenClaim{}
 	_ ExternalClaim = &MsgSendToExternalClaim{}
 	_ ExternalClaim = &MsgRelayerSetUpdatedClaim{}
@@ -100,87 +99,6 @@ func (m *MsgSendToMeClaim) Route() string { return RouterKey }
 func (m *MsgSendToMeClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d%s/%s/%s/%s", m.BlockHeight, m.EventNonce, m.TokenContract, m.Sender, m.Amount.String(), m.Receiver)
 	return tmhash.Sum([]byte(path))
-}
-
-// MsgBridgeCallClaim
-
-// GetType returns the type of the claim
-func (m *MsgBridgeCallClaim) GetType() ClaimType {
-	return CLAIM_TYPE_SEND_TO_ME
-}
-
-// ValidateBasic performs stateless checks
-func (m *MsgBridgeCallClaim) ValidateBasic() (err error) {
-	if router, ok := msgValidateBasicRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
-	} else {
-		return router.MsgBridgeCallClaimValidate(m)
-	}
-}
-
-// GetSignBytes encodes the message for signing
-func (m *MsgBridgeCallClaim) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-func (m *MsgBridgeCallClaim) GetClaimer() sdk.AccAddress {
-	return sdk.MustAccAddressFromBech32(m.BridgerAddress)
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgBridgeCallClaim) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.BridgerAddress)}
-}
-
-// Type should return the action
-func (m *MsgBridgeCallClaim) Type() string { return TypeMsgBridgeCallClaim }
-
-// Route should return the name of the module
-func (m *MsgBridgeCallClaim) Route() string { return RouterKey }
-
-// ClaimHash Hash implements BridgeSendToExternal.Hash
-func (m *MsgBridgeCallClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d/%s/%s/%s/%s/%s/%s/%s/%d", m.BlockHeight, m.EventNonce, m.DstChainId, m.Sender, m.Receiver, m.To, m.Asset, m.Message, m.Value.String(), m.GasLimit)
-	return tmhash.Sum([]byte(path))
-}
-
-// GetAddressBytes parse addr to bytes
-func (m *MsgBridgeCallClaim) GetAddressBytes(addr string) ([]byte, error) {
-	if router, ok := msgValidateBasicRouter[m.ChainName]; !ok {
-		return nil, errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
-	} else {
-		return router.AddressToBytes(addr)
-	}
-}
-
-// MustSenderBytes parse sender to bytes
-func (m *MsgBridgeCallClaim) MustSenderBytes() []byte {
-	addr, err := m.GetAddressBytes(m.Sender)
-	if err != nil {
-		panic(err)
-	}
-	return addr
-}
-
-// MustReceiverBytes parse receiver to bytes
-func (m *MsgBridgeCallClaim) MustReceiverBytes() []byte {
-	addr, err := m.GetAddressBytes(m.Receiver)
-	if err != nil {
-		panic(err)
-	}
-	return addr
-}
-
-// MustToBytes parse to addr to bytes
-func (m *MsgBridgeCallClaim) MustToBytes() []byte {
-	if len(m.To) == 0 {
-		return []byte{}
-	}
-	addr, err := m.GetAddressBytes(m.To)
-	if err != nil {
-		panic(err)
-	}
-	return addr
 }
 
 // MsgSendToExternalClaim

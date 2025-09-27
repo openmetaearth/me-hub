@@ -14,35 +14,22 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 		panic(err)
 	}
 
-	// 0x24
 	k.SetLastObservedEventNonce(ctx, state.LastObservedEventNonce)
-	// 0x32
 	k.SetLastObservedBlockHeight(ctx, state.LastObservedBlockHeight.ExternalBlockHeight, state.LastObservedBlockHeight.BlockHeight)
-	// 0x38
 	k.SetProposalRelayer(ctx, &state.ProposalRelayer)
-	// 0x33
 	k.SetLastObservedRelayerSet(ctx, &state.LastObservedRelayerSet)
-
-	// 0x28
 	k.SetLastSlashedRelayerSetNonce(ctx, state.LastSlashedRelayerSetNonce)
-
-	// 0x30
 	k.SetLastSlashedBatchBlock(ctx, state.LastSlashedBatchBlock)
-
 	for _, relayer := range state.Relayers {
-		// 0x12
 		relayerAddress := sdk.MustAccAddressFromBech32(relayer.RelayerAddress)
 		k.SetRelayer(ctx, relayerAddress, relayer)
-		// 0x13
 		k.SetRelayerByExternalAddress(ctx, relayer.ExternalAddress, relayerAddress)
 	}
-	// 0x39
 	k.SetLastTotalPower(ctx)
 
 	latestOracleSetNonce := uint64(0)
 	for i := 0; i < len(state.RelayerSets); i++ {
 		set := state.RelayerSets[i]
-		// 0x15 0x29
 		if set.Nonce > latestOracleSetNonce {
 			latestOracleSetNonce = set.Nonce
 		}
@@ -51,7 +38,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	k.SetLatestRelayerSetNonce(ctx, latestOracleSetNonce)
 
 	for _, bridgeToken := range state.BridgeTokens {
-		// 0x26 0x27
 		k.AddBridgeToken(ctx, bridgeToken)
 	}
 
@@ -59,7 +45,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 		confirm := state.BatchConfirms[i]
 		for _, oracle := range state.Relayers {
 			if confirm.RelayerAddress == oracle.RelayerAddress {
-				// 0x22
 				k.SetBatchConfirm(ctx, oracle.GetRelayer(), &confirm)
 			}
 		}
@@ -68,7 +53,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 		confirm := state.RelayerSetConfirms[i]
 		for _, oracle := range state.Relayers {
 			if confirm.RelayerAddress == oracle.GetRelayerAddress() {
-				// 0x16
 				k.SetRelayerSetConfirm(ctx, oracle.GetRelayer(), &confirm)
 			}
 		}
@@ -76,7 +60,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 
 	for i := 0; i < len(state.UnbatchedTransfers); i++ {
 		transfer := state.UnbatchedTransfers[i]
-		// 0x18
 		if err := k.AddUnbatchedTx(ctx, &transfer); err != nil {
 			panic(err)
 		}
@@ -84,7 +67,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 
 	for i := 0; i < len(state.Batches); i++ {
 		batch := state.Batches[i]
-		// 0x20 0x21
 		if err := k.StoreBatch(ctx, &batch); err != nil {
 			panic(err)
 		}
@@ -98,14 +80,12 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 			panic("couldn't cast to claim")
 		}
 
-		// 0x17
 		k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), &att)
 	}
 
 	// reset attestation state of specific validators
 	// this must be done after the above to be correct
 	for i := 0; i < len(state.Attestations); i++ {
-
 		att := state.Attestations[i]
 		claim, err := types.UnpackAttestationClaim(k.cdc, &att)
 		if err != nil {
@@ -124,9 +104,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 			oracle := sdk.MustAccAddressFromBech32(vote)
 			last := k.GetLastEventNonceByRelayer(ctx, oracle)
 			if claim.GetEventNonce() > last {
-				// 0x23
 				k.SetLastEventNonceByRelayer(ctx, oracle, claim.GetEventNonce())
-				// 0x35
 				k.SetLastEventBlockHeightByRelayer(ctx, oracle, claim.GetBlockHeight())
 			}
 		}

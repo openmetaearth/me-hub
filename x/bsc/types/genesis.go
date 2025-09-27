@@ -7,7 +7,7 @@ import (
 func DefaultGenesisState() *gravitytypes.GenesisState {
 	params := gravitytypes.DefaultParams()
 	params.GravityId = "me-bsc-bridge"
-	params.AverageExternalBlockTime = 3_000
+	params.AverageExternalBlockTime = 1_000
 	return &gravitytypes.GenesisState{
 		Params: params,
 	}

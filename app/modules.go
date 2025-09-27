@@ -34,6 +34,7 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/x/lockup"
 	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
+	"github.com/st-chain/me-hub/x/bsc"
 	"github.com/st-chain/me-hub/x/dao"
 	"github.com/st-chain/me-hub/x/delayedack"
 	"github.com/st-chain/me-hub/x/denommetadata"
@@ -113,6 +114,7 @@ var ModuleBasics = module.NewBasicManager(
 	wnft.AppModuleBasic{},
 	wasm.AppModuleBasic{},
 	groupmodule.AppModuleBasic{},
+	bsc.AppModuleBasic{},
 )
 
 func GenTxMessageValidator(msgs []sdk.Msg) error {

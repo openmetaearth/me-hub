@@ -60,7 +60,6 @@ import (
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	"github.com/st-chain/me-hub/x/did"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
-	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 	"github.com/st-chain/me-hub/x/kyc"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	"github.com/st-chain/me-hub/x/wbank"
@@ -188,7 +187,6 @@ var MaccPerms = map[string][]string{
 	txfeestypes.ModuleName:                             {authtypes.Burner},
 	nft.ModuleName:                                     nil,
 	bsctypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
-	gravitytypes.ModuleName:                            {authtypes.Minter, authtypes.Burner},
 }
 
 var BeginBlockers = []string{

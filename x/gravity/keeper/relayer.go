@@ -137,7 +137,6 @@ func (k Keeper) GetAllRelayers(ctx sdk.Context, isOnline bool) (relayers types.R
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.RelayerKey)
 	defer iterator.Close()
-
 	for ; iterator.Valid(); iterator.Next() {
 		var relayer types.Relayer
 		k.cdc.MustUnmarshal(iterator.Value(), &relayer)
