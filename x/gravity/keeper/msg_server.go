@@ -328,7 +328,7 @@ func (s MsgServer) IncreaseBridgeFee(c context.Context, msg *types.MsgIncreaseBr
 	return &types.MsgIncreaseBridgeFeeResponse{}, nil
 }
 
-func (s MsgServer) UpdateChainRelayers(c context.Context, msg *types.MsgUpdateChainRelayers) (*types.MsgUpdateChainRelayersResponse, error) {
+func (s MsgServer) ProposalRelayers(c context.Context, msg *types.MsgProposalRelayers) (*types.MsgProposalRelayersResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	if !s.daoKeeper.IsDao(ctx, msg.Authority) {
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority")
@@ -336,7 +336,7 @@ func (s MsgServer) UpdateChainRelayers(c context.Context, msg *types.MsgUpdateCh
 	if err := s.UpdateProposalRelayers(ctx, msg.Relayers); err != nil {
 		return nil, err
 	}
-	return &types.MsgUpdateChainRelayersResponse{}, nil
+	return &types.MsgProposalRelayersResponse{}, nil
 }
 
 func (s MsgServer) UpdateParams(c context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {

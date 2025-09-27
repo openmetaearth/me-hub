@@ -13,6 +13,7 @@ const (
 	TypeMsgAddDelegate       = "add_delegate"
 	TypeMsgUnbondedRelayer   = "unbonded_relayer"
 	TypeMsgRelayerSetConfirm = "relayer_set_confirm"
+	TypeMsgProposalRelayers  = "update_relayers"
 	TypeMsgUpdateParams      = "update_params"
 )
 
@@ -95,6 +96,33 @@ func (m *MsgUnbondedRelayer) GetSignBytes() []byte {
 
 func (m *MsgUnbondedRelayer) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.RelayerAddress)}
+}
+
+// MsgProposalRelayers //
+
+// Route implements the sdk.Msg interface.
+func (m *MsgProposalRelayers) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (m *MsgProposalRelayers) Type() string { return TypeMsgProposalRelayers }
+
+func (m *MsgProposalRelayers) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Authority)}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (m *MsgProposalRelayers) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+func (m *MsgProposalRelayers) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the creator is not a valid bech32 address")
+	}
+	if len(m.Relayers) == 0 {
+		return sdkerrors.ErrInvalidRequest.Wrap("relayers list cannot be empty")
+	}
+	return nil
 }
 
 // MsgRelayerSetConfirm //

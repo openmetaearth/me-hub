@@ -35,7 +35,7 @@ service Msg {
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 
   rpc IncreaseBridgeFee(MsgIncreaseBridgeFee) returns (MsgIncreaseBridgeFeeResponse);
-  rpc UpdateChainRelayers(MsgUpdateChainRelayers) returns (MsgUpdateChainRelayersResponse);
+  rpc ProposalRelayers(MsgProposalRelayers) returns (MsgProposalRelayersResponse);
 }
 
 message MsgBondedRelayer {
@@ -264,7 +264,7 @@ message MsgIncreaseBridgeFee {
 
 message MsgIncreaseBridgeFeeResponse {}
 
-message MsgUpdateChainRelayers {
+message MsgProposalRelayers {
   string chain_name = 1;
   option (cosmos.msg.v1.signer) = "authority";
 
@@ -274,4 +274,4 @@ message MsgUpdateChainRelayers {
   repeated string relayers = 3;
 }
 
-message MsgUpdateChainRelayersResponse {}
+message MsgProposalRelayersResponse {}

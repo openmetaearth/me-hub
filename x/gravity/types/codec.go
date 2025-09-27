@@ -32,7 +32,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 
 	// register Proposal
 	cdc.RegisterConcrete(&MsgUpdateParams{}, fmt.Sprintf("%s/%s", ModuleName, "MsgUpdateParams"), nil)
-	cdc.RegisterConcrete(&MsgUpdateChainRelayers{}, fmt.Sprintf("%s/%s", ModuleName, "MsgUpdateChainRelayers"), nil)
+	cdc.RegisterConcrete(&MsgProposalRelayers{}, fmt.Sprintf("%s/%s", ModuleName, "MsgUpdateChainRelayers"), nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -51,7 +51,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgRequestBatch{},
 		&MsgConfirmBatch{},
 		&MsgUpdateParams{},
-		&MsgUpdateChainRelayers{},
+		&MsgProposalRelayers{},
 	)
 
 	registry.RegisterInterface(

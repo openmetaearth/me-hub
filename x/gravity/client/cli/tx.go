@@ -43,6 +43,7 @@ func getTxSubCmds(chainName string) []*cobra.Command {
 		CmdBondedRelayer(chainName),
 		CmdUnbondedRelayer(chainName),
 		CmdAddDelegate(chainName),
+		CmdProposalRelayers(chainName),
 
 		// send to external chain
 		CmdSendToExternal(chainName),
@@ -129,6 +130,51 @@ func CmdAddDelegate(chainName string) *cobra.Command {
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
 	}
+	return cmd
+}
+
+func CmdProposalRelayers(chainName string) *cobra.Command {
+	var relayers []string
+
+	cmd := &cobra.Command{
+		Use:   "proposal-relayers --relayers addr1,addr2[,addrN]",
+		Short: "Propose a new relayer set",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			cliCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			if len(relayers) == 0 {
+				return fmt.Errorf("at least one relayer is required")
+			}
+			// Clean the relayer list: trim spaces, remove duplicates and empty entries
+			clean := make([]string, 0, len(relayers))
+			seen := make(map[string]struct{})
+			for _, r := range relayers {
+				r = strings.TrimSpace(r)
+				if r == "" {
+					continue
+				}
+				if _, ok := seen[r]; ok {
+					continue
+				}
+				seen[r] = struct{}{}
+				clean = append(clean, r)
+			}
+			if len(clean) == 0 {
+				return fmt.Errorf("at least one relayer is required")
+			}
+
+			msg := &types.MsgProposalRelayers{
+				ChainName: chainName,
+				Authority: cliCtx.GetFromAddress().String(),
+				Relayers:  clean,
+			}
+			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
+		},
+	}
+	cmd.Flags().StringSliceVar(&relayers, "relayers", nil, "relayer addresses")
 	return cmd
 }
 
