@@ -72,8 +72,6 @@ import (
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	lockupkeeper "github.com/osmosis-labs/osmosis/v15/x/lockup/keeper"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	poolmanagerkeeper "github.com/osmosis-labs/osmosis/v15/x/poolmanager/keeper"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
@@ -148,7 +146,6 @@ type AppKeepers struct {
 	// Osmosis keepers
 	GAMMKeeper        *gammkeeper.Keeper
 	PoolManagerKeeper *poolmanagerkeeper.Keeper
-	LockupKeeper      *lockupkeeper.Keeper
 	EpochsKeeper      *epochskeeper.Keeper
 	TxFeesKeeper      *txfeeskeeper.Keeper
 
@@ -330,13 +327,6 @@ func (a *AppKeepers) InitKeepers(
 		))
 
 	// Osmosis keepers
-	a.LockupKeeper = lockupkeeper.NewKeeper(
-		a.keys[lockuptypes.StoreKey],
-		a.GetSubspace(lockuptypes.ModuleName),
-		a.AccountKeeper,
-		a.BankKeeper,
-	)
-
 	a.EpochsKeeper = epochskeeper.NewKeeper(
 		a.keys[epochstypes.StoreKey],
 	)
@@ -586,12 +576,6 @@ func (a *AppKeepers) SetupHooks() {
 		wstakingtypes.NewMultiWstakingHooks(wstakingtypes.NewMultiWstakingHooks(a.DistrKeeper.Hooks())),
 	)
 	// register the staking hooks
-	a.LockupKeeper.SetHooks(
-		lockuptypes.NewMultiLockupHooks(
-		// insert lockup hooks receivers here
-		),
-	)
-
 	a.DenomMetadataKeeper.SetHooks(
 		denommetadatamoduletypes.NewMultiDenomMetadataHooks(
 			vfchooks.NewVirtualFrontierBankContractRegistrationHook(*a.EvmKeeper.Keeper),
@@ -678,7 +662,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(kyctypes.ModuleName)
 
 	// osmosis subspaces
-	paramsKeeper.Subspace(lockuptypes.ModuleName)
 	paramsKeeper.Subspace(epochstypes.ModuleName)
 	paramsKeeper.Subspace(gammtypes.ModuleName)
 	paramsKeeper.Subspace(txfeestypes.ModuleName)

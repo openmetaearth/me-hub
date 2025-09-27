@@ -26,7 +26,6 @@ import (
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
@@ -126,7 +125,6 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	didtypes.StoreKey,
 	kyctypes.StoreKey,
 	// osmosis keys
-	lockuptypes.StoreKey,
 	epochstypes.StoreKey,
 	gammtypes.StoreKey,
 	poolmanagertypes.StoreKey,

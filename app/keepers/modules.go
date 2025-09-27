@@ -48,8 +48,6 @@ import (
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	"github.com/osmosis-labs/osmosis/v15/x/gamm"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	"github.com/osmosis-labs/osmosis/v15/x/lockup"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
@@ -137,7 +135,6 @@ func (a *AppKeepers) SetupModules(
 		groupmodule.NewAppModule(appCodec, *a.GroupKeeper),
 
 		// osmosis modules
-		lockup.NewAppModule(*a.LockupKeeper, a.AccountKeeper, a.BankKeeper),
 		epochs.NewAppModule(*a.EpochsKeeper),
 		gamm.NewAppModule(appCodec, *a.GAMMKeeper, a.AccountKeeper, a.BankKeeper),
 		poolmanager.NewAppModule(*a.PoolManagerKeeper, a.GAMMKeeper),
@@ -217,7 +214,6 @@ var BeginBlockers = []string{
 	denommetadatamoduletypes.ModuleName,
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
-	lockuptypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
 	txfeestypes.ModuleName,
@@ -259,7 +255,6 @@ var EndBlockers = []string{
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
 	epochstypes.ModuleName,
-	lockuptypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
 	txfeestypes.ModuleName,
@@ -302,7 +297,6 @@ var InitGenesis = []string{
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
 	epochstypes.ModuleName,
-	lockuptypes.ModuleName,
 	gammtypes.ModuleName,
 	poolmanagertypes.ModuleName,
 	txfeestypes.ModuleName,

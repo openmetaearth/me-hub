@@ -31,7 +31,6 @@ import (
 	"github.com/evmos/ethermint/x/feemarket"
 	"github.com/osmosis-labs/osmosis/v15/x/epochs"
 	"github.com/osmosis-labs/osmosis/v15/x/gamm"
-	"github.com/osmosis-labs/osmosis/v15/x/lockup"
 	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	"github.com/st-chain/me-hub/x/bsc"
@@ -105,7 +104,6 @@ var ModuleBasics = module.NewBasicManager(
 	kyc.AppModuleBasic{},
 
 	// Osmosis modules
-	lockup.AppModuleBasic{},
 	epochs.AppModuleBasic{},
 	gamm.AppModuleBasic{},
 	poolmanager.AppModuleBasic{},
