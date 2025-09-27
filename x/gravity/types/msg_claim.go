@@ -11,16 +11,9 @@ import (
 
 const (
 	TypeMsgSendToMeClaim          = "send_to_me_claim"
-	TypeMsgBridgeCallClaim        = "bridge_call_claim"
-	TypeMsgSendToExternal         = "send_to_external"
-	TypeMsgCancelSendToExternal   = "cancel_send_to_external"
 	TypeMsgSendToExternalClaim    = "send_to_external_claim"
 	TypeMsgRelayerSetUpdatedClaim = "relayer_set_updated_claim"
 	TypeMsgBridgeTokenClaim       = "bridge_token_claim"
-	TypeMsgRelayerSetConfirm      = "relayer_set_confirm"
-	TypeMsgRequestBatch           = "request_batch"
-	TypeMsgConfirmBatch           = "confirm_batch"
-	TypeMsgUpdateParams           = "update_params"
 )
 
 // ExternalClaim represents a claim on ethereum state
@@ -66,13 +59,32 @@ func (m *MsgSendToMeClaim) GetType() ClaimType {
 	return CLAIM_TYPE_SEND_TO_ME
 }
 
-// ValidateBasic performs stateless checks
 func (m *MsgSendToMeClaim) ValidateBasic() (err error) {
-	if router, ok := msgValidateBasicRouter[m.ChainName]; !ok {
+	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
-	} else {
-		return router.MsgSendToMeClaimValidate(m)
 	}
+	if _, err = sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid relayer address: %s", err)
+	}
+	if err = ValidateExternalAddr(m.ChainName, m.Sender); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
+	}
+	if err = ValidateExternalAddr(m.ChainName, m.TokenContract); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
+	}
+	if _, err = sdk.AccAddressFromBech32(m.Receiver); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid receiver address: %s", err)
+	}
+	if m.Amount.IsNil() || m.Amount.IsNegative() {
+		return errortypes.ErrInvalidRequest.Wrap("invalid amount")
+	}
+	if m.EventNonce == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
+	}
+	if m.BlockHeight == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero block height")
+	}
+	return nil
 }
 
 // GetSignBytes encodes the message for signing
@@ -101,7 +113,7 @@ func (m *MsgSendToMeClaim) ClaimHash() []byte {
 	return tmhash.Sum([]byte(path))
 }
 
-// MsgSendToExternalClaim
+// MsgSendToExternalClaim //
 
 // GetType returns the claim type
 func (m *MsgSendToExternalClaim) GetType() ClaimType {
@@ -110,11 +122,25 @@ func (m *MsgSendToExternalClaim) GetType() ClaimType {
 
 // ValidateBasic performs stateless checks
 func (m *MsgSendToExternalClaim) ValidateBasic() (err error) {
-	if router, ok := msgValidateBasicRouter[m.ChainName]; !ok {
+	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
-	} else {
-		return router.MsgSendToExternalClaimValidate(m)
 	}
+	if _, err = sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid relayer address: %s", err)
+	}
+	if err = ValidateExternalAddr(m.ChainName, m.TokenContract); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
+	}
+	if m.EventNonce == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
+	}
+	if m.BlockHeight == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero block height")
+	}
+	if m.BatchNonce == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero batch nonce")
+	}
+	return nil
 }
 
 // ClaimHash Hash implements SendToFxBatch.Hash
@@ -143,18 +169,35 @@ func (m *MsgSendToExternalClaim) Route() string { return RouterKey }
 // Type should return the action
 func (m *MsgSendToExternalClaim) Type() string { return TypeMsgSendToExternalClaim }
 
-// MsgBridgeTokenClaim
+// MsgBridgeTokenClaim //
 
 func (m *MsgBridgeTokenClaim) Route() string { return RouterKey }
 
 func (m *MsgBridgeTokenClaim) Type() string { return TypeMsgBridgeTokenClaim }
 
 func (m *MsgBridgeTokenClaim) ValidateBasic() (err error) {
-	if router, ok := msgValidateBasicRouter[m.ChainName]; !ok {
+	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
-	} else {
-		return router.MsgBridgeTokenClaimValidate(m)
 	}
+	if _, err = sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+	}
+	if err = ValidateExternalAddr(m.ChainName, m.TokenContract); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid token contract: %s", err)
+	}
+	if len(m.Name) == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("empty token name")
+	}
+	if len(m.Symbol) == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("empty token symbol")
+	}
+	if m.EventNonce == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
+	}
+	if m.BlockHeight == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero block height")
+	}
+	return nil
 }
 
 func (m *MsgBridgeTokenClaim) GetSignBytes() []byte {
@@ -178,7 +221,7 @@ func (m *MsgBridgeTokenClaim) ClaimHash() []byte {
 	return tmhash.Sum([]byte(path))
 }
 
-// MsgRelayerSetUpdatedClaim
+// MsgRelayerSetUpdatedClaim //
 
 // GetType returns the type of the claim
 func (m *MsgRelayerSetUpdatedClaim) GetType() ClaimType {
@@ -187,11 +230,30 @@ func (m *MsgRelayerSetUpdatedClaim) GetType() ClaimType {
 
 // ValidateBasic performs stateless checks
 func (m *MsgRelayerSetUpdatedClaim) ValidateBasic() (err error) {
-	if router, ok := msgValidateBasicRouter[m.ChainName]; !ok {
+	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
-	} else {
-		return router.MsgRelayerSetUpdatedClaimValidate(m)
 	}
+	if _, err = sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
+		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+	}
+	if len(m.Members) == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("empty members")
+	}
+	for _, member := range m.Members {
+		if err = ValidateExternalAddr(m.ChainName, member.ExternalAddress); err != nil {
+			return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
+		}
+		if member.Power == 0 {
+			return errortypes.ErrInvalidRequest.Wrap("zero power")
+		}
+	}
+	if m.EventNonce == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
+	}
+	if m.BlockHeight == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero block height")
+	}
+	return nil
 }
 
 // GetSignBytes encodes the message for signing

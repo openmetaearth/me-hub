@@ -63,12 +63,15 @@ service Query {
   rpc Relayer(QueryRelayerRequest) returns (QueryRelayerResponse) {
     option (google.api.http).get = "/gravity/v1/relayer";
   }
-  rpc GetPendingSendToExternal(QueryPendingSendToExternalRequest) returns (QueryPendingSendToExternalResponse) {
-    option (google.api.http).get = "/gravity/v1/pending_send_to_external";
-  }
   // Validators queries all relayer that match the given status.
   rpc Relayers(QueryRelayersRequest) returns (QueryRelayersResponse) {
     option (google.api.http).get = "/gravity/v1/relayers";
+  }
+  rpc ProposalRelayers(QueryProposalRelayersRequest) returns (QueryProposalRelayersResponse) {
+    option (google.api.http).get = "/gravity/v1/proposal_relayers";
+  }
+  rpc GetPendingSendToExternal(QueryPendingSendToExternalRequest) returns (QueryPendingSendToExternalResponse) {
+    option (google.api.http).get = "/gravity/v1/pending_send_to_external";
   }
   rpc ProjectedBatchTimeoutHeight(QueryProjectedBatchTimeoutHeightRequest) returns (QueryProjectedBatchTimeoutHeightResponse) {
     option (google.api.http).get = "/gravity/v1/projected_batch_timeout";
@@ -235,6 +238,13 @@ message QueryRelayersRequest {
 message QueryRelayersResponse {
   // relayers contains all the queried relayers.
   repeated Relayer relayers = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryProposalRelayersRequest {
+  string chain_name = 1;
+}
+message QueryProposalRelayersResponse {
+  ProposalRelayer proposal_relayer = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryProjectedBatchTimeoutHeightRequest {

@@ -71,19 +71,19 @@ func (m *Params) ValidateBasic() error {
 		return fmt.Errorf("attempted to powet change percent with a negative: %v", m.RelayerSetUpdatePowerChangePercent)
 	}
 	if m.RelayerSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
-		return fmt.Errorf("powet change percent too large: %s", m.RelayerSetUpdatePowerChangePercent)
+		return fmt.Errorf("power change percent too large: %s", m.RelayerSetUpdatePowerChangePercent)
 	}
 	if !m.MinDelegate.IsValid() || !m.MinDelegate.IsPositive() {
 		return fmt.Errorf("invalid delegate threshold")
 	}
 	if m.MinDelegate.Denom != params.BaseDenom {
-		return fmt.Errorf("oracle delegate denom must FX")
+		return fmt.Errorf("relayer delegate denom must umec")
 	}
 	if !m.MaxDelegate.IsValid() || !m.MaxDelegate.IsPositive() {
 		return fmt.Errorf("invalid delegate threshold")
 	}
 	if m.MaxDelegate.Denom != params.BaseDenom {
-		return fmt.Errorf("oracle delegate denom must FX")
+		return fmt.Errorf("relayer delegate denom must umec")
 	}
 	return nil
 }

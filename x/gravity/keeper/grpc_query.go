@@ -243,6 +243,11 @@ func (k QueryServer) Relayers(c context.Context, _ *types.QueryRelayersRequest) 
 	return &types.QueryRelayersResponse{Relayers: relays}, nil
 }
 
+func (k QueryServer) ProposalRelayers(c context.Context, _ *types.QueryProposalRelayersRequest) (*types.QueryProposalRelayersResponse, error) {
+	relays, _ := k.GetProposalRelayer(sdk.UnwrapSDKContext(c))
+	return &types.QueryProposalRelayersResponse{ProposalRelayer: relays}, nil
+}
+
 func (k QueryServer) GetPendingSendToExternal(c context.Context, req *types.QueryPendingSendToExternalRequest) (*types.QueryPendingSendToExternalResponse, error) {
 	if _, err := sdk.AccAddressFromBech32(req.GetSenderAddress()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "sender address")
