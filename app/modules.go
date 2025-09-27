@@ -29,10 +29,6 @@ import (
 	"github.com/evmos/ethermint/x/evm"
 	evmclient "github.com/evmos/ethermint/x/evm/client"
 	"github.com/evmos/ethermint/x/feemarket"
-	"github.com/osmosis-labs/osmosis/v15/x/epochs"
-	"github.com/osmosis-labs/osmosis/v15/x/gamm"
-	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
-	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	"github.com/st-chain/me-hub/x/bsc"
 	"github.com/st-chain/me-hub/x/dao"
 	"github.com/st-chain/me-hub/x/delayedack"
@@ -103,11 +99,6 @@ var ModuleBasics = module.NewBasicManager(
 	did.AppModuleBasic{},
 	kyc.AppModuleBasic{},
 
-	// Osmosis modules
-	epochs.AppModuleBasic{},
-	gamm.AppModuleBasic{},
-	poolmanager.AppModuleBasic{},
-	txfees.AppModuleBasic{},
 	dao.AppModuleBasic{},
 	wnft.AppModuleBasic{},
 	wasm.AppModuleBasic{},

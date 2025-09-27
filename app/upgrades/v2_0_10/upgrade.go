@@ -24,10 +24,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
-	epochtypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
-	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
-	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	appkeepers "github.com/st-chain/me-hub/app/keepers"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/app/upgrades"
@@ -193,17 +189,17 @@ func setNewModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
 	feemarketParams := feemarkettypes.DefaultParams()
 	keepers.FeeMarketKeeper.SetParams(ctx, feemarketParams)
 
-	gammParams := gammtypes.DefaultGenesis()
-	keepers.GAMMKeeper.InitGenesis(ctx, *gammParams, nil)
+	//gammParams := gammtypes.DefaultGenesis()
+	//keepers.GAMMKeeper.InitGenesis(ctx, *gammParams, nil)
 
-	poolParams := poolmanagertypes.DefaultGenesis()
-	keepers.PoolManagerKeeper.InitGenesis(ctx, poolParams)
+	//poolParams := poolmanagertypes.DefaultGenesis()
+	//keepers.PoolManagerKeeper.InitGenesis(ctx, poolParams)
 
-	epochParams := epochtypes.DefaultGenesis()
-	keepers.EpochsKeeper.InitGenesis(ctx, *epochParams)
+	//epochParams := epochtypes.DefaultGenesis()
+	//keepers.EpochsKeeper.InitGenesis(ctx, *epochParams)
 
-	txfeeParams := txfeestypes.DefaultGenesis()
-	keepers.TxFeesKeeper.InitGenesis(ctx, *txfeeParams)
+	//txfeeParams := txfeestypes.DefaultGenesis()
+	//keepers.TxFeesKeeper.InitGenesis(ctx, *txfeeParams)
 
 	sequences := make([]wasmtypes.Sequence, 0)
 	for _, k := range [][]byte{wasmtypes.KeySequenceCodeID, wasmtypes.KeySequenceInstanceID} {

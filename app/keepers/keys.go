@@ -24,10 +24,6 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
-	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
-	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
-	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
@@ -124,11 +120,6 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	// did keys
 	didtypes.StoreKey,
 	kyctypes.StoreKey,
-	// osmosis keys
-	epochstypes.StoreKey,
-	gammtypes.StoreKey,
-	poolmanagertypes.StoreKey,
-	txfeestypes.StoreKey,
 	// me keys
 	daotypes.StoreKey,
 	nftkeeper.StoreKey,

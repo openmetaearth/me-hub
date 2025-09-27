@@ -68,14 +68,6 @@ import (
 	"github.com/evmos/ethermint/x/evm/vm/geth"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
-	epochskeeper "github.com/osmosis-labs/osmosis/v15/x/epochs/keeper"
-	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
-	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
-	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	poolmanagerkeeper "github.com/osmosis-labs/osmosis/v15/x/poolmanager/keeper"
-	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
-	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
-	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	"github.com/st-chain/me-hub/x/bridgingfee"
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
@@ -142,12 +134,6 @@ type AppKeepers struct {
 	// did keeper
 	DidKeeper *didkeeper.Keeper
 	KycKeeper *kyckeeper.Keeper
-
-	// Osmosis keepers
-	GAMMKeeper        *gammkeeper.Keeper
-	PoolManagerKeeper *poolmanagerkeeper.Keeper
-	EpochsKeeper      *epochskeeper.Keeper
-	TxFeesKeeper      *txfeeskeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -325,40 +311,6 @@ func (a *AppKeepers) InitKeepers(
 			tracer,
 			a.GetSubspace(evmtypes.ModuleName),
 		))
-
-	// Osmosis keepers
-	a.EpochsKeeper = epochskeeper.NewKeeper(
-		a.keys[epochstypes.StoreKey],
-	)
-
-	gammKeeper := gammkeeper.NewKeeper(
-		appCodec, a.keys[gammtypes.StoreKey],
-		a.GetSubspace(gammtypes.ModuleName),
-		a.AccountKeeper,
-		a.BankKeeper, a.DistrKeeper,
-	)
-	a.GAMMKeeper = &gammKeeper
-
-	a.PoolManagerKeeper = poolmanagerkeeper.NewKeeper(
-		a.keys[poolmanagertypes.StoreKey],
-		a.GAMMKeeper,
-		a.BankKeeper,
-		a.AccountKeeper,
-	)
-
-	txFeesKeeper := txfeeskeeper.NewKeeper(
-		a.keys[txfeestypes.StoreKey],
-		a.GetSubspace(txfeestypes.ModuleName),
-		a.AccountKeeper,
-		a.EpochsKeeper,
-		a.BankKeeper,
-		a.PoolManagerKeeper,
-		a.GAMMKeeper,
-	)
-	a.TxFeesKeeper = &txFeesKeeper
-
-	a.GAMMKeeper.SetPoolManager(a.PoolManagerKeeper)
-	a.GAMMKeeper.SetTxFees(a.TxFeesKeeper)
 
 	// Create IBC Keeper
 	a.IBCKeeper = ibckeeper.NewKeeper(
@@ -540,7 +492,7 @@ func (a *AppKeepers) InitTransferStack() {
 		a.TransferStack.(ibctransfer.IBCModule),
 		a.DelayedAckKeeper,
 		a.TransferKeeper,
-		a.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
+		a.AccountKeeper.GetModuleAddress(wstakingtypes.BridgeFeePool),
 		*a.RollappKeeper,
 	)
 	a.TransferStack = packetforwardmiddleware.NewIBCMiddleware(
@@ -582,25 +534,10 @@ func (a *AppKeepers) SetupHooks() {
 		),
 	)
 
-	a.GAMMKeeper.SetHooks(
-		gammtypes.NewMultiGammHooks(
-			// insert gamm hooks receivers here
-			a.TxFeesKeeper.Hooks(),
-		),
-	)
-
 	a.DelayedAckKeeper.SetHooks(delayedacktypes.NewMultiDelayedAckHooks(
 		// insert delayedAck hooks receivers here
 		a.EIBCKeeper.GetDelayedAckHooks(),
 	))
-
-	a.EpochsKeeper.SetHooks(
-		epochstypes.NewMultiEpochHooks(
-			// insert epochs hooks receivers here
-			a.TxFeesKeeper.Hooks(),
-			a.DelayedAckKeeper.GetEpochHooks(),
-		),
-	)
 
 	a.EIBCKeeper.SetHooks(eibcmoduletypes.NewMultiEIBCHooks(
 		// insert eibc hooks receivers here
@@ -660,11 +597,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	// did subspace
 	paramsKeeper.Subspace(didtypes.ModuleName)
 	paramsKeeper.Subspace(kyctypes.ModuleName)
-
-	// osmosis subspaces
-	paramsKeeper.Subspace(epochstypes.ModuleName)
-	paramsKeeper.Subspace(gammtypes.ModuleName)
-	paramsKeeper.Subspace(txfeestypes.ModuleName)
 
 	paramsKeeper.Subspace(wasmtypes.ModuleName)
 	paramsKeeper.Subspace(nft.ModuleName)
