@@ -6,14 +6,27 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
 )
+
+var (
+	Amino     = codec.NewLegacyAmino()
+	ModuleCdc = codec.NewAminoCodec(codec.NewLegacyAmino())
+)
+
+func init() {
+	RegisterCodec(ModuleCdc.LegacyAmino)
+
+	// Register all Amino interfaces and concrete types on the authz Amino codec so that this can later be
+	// used to properly serialize MsgGrant and MsgExec instances
+	RegisterCodec(authzcodec.Amino)
+}
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterInterface((*ExternalClaim)(nil), nil)
 
 	cdc.RegisterConcrete(&MsgBondedRelayer{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBondedRelayer"), nil)
 	cdc.RegisterConcrete(&MsgAddDelegate{}, fmt.Sprintf("%s/%s", ModuleName, "MsgAddDelegate"), nil)
-	cdc.RegisterConcrete(&MsgWithdrawReward{}, fmt.Sprintf("%s/%s", ModuleName, "MsgWithdrawReward"), nil)
 
 	cdc.RegisterConcrete(&MsgRelayerSetConfirm{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRelayerSetConfirm"), nil)
 	cdc.RegisterConcrete(&MsgRelayerSetUpdatedClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRelayerSetUpdatedClaim"), nil)
@@ -30,16 +43,14 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgRequestBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRequestBatch"), nil)
 	cdc.RegisterConcrete(&MsgConfirmBatch{}, fmt.Sprintf("%s/%s", ModuleName, "MsgConfirmBatch"), nil)
 
-	// register Proposal
 	cdc.RegisterConcrete(&MsgUpdateParams{}, fmt.Sprintf("%s/%s", ModuleName, "MsgUpdateParams"), nil)
-	cdc.RegisterConcrete(&MsgProposalRelayers{}, fmt.Sprintf("%s/%s", ModuleName, "MsgUpdateChainRelayers"), nil)
+	cdc.RegisterConcrete(&MsgProposalRelayers{}, fmt.Sprintf("%s/%s", ModuleName, "MsgProposalRelayers"), nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgBondedRelayer{},
 		&MsgAddDelegate{},
-		&MsgWithdrawReward{},
 		&MsgRelayerSetConfirm{},
 		&MsgRelayerSetUpdatedClaim{},
 		&MsgBridgeTokenClaim{},
@@ -64,8 +75,3 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
-
-var (
-	Amino     = codec.NewLegacyAmino()
-	ModuleCdc = codec.NewProtoCodec(cdctypes.NewInterfaceRegistry())
-)

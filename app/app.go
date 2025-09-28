@@ -3,6 +3,8 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
+	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 	"io"
 	"io/fs"
 	"net/http"
@@ -206,7 +208,8 @@ func New(
 	app.mm.RegisterInvariants(app.CrisisKeeper)
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
-	app.mm.RegisterServices(app.configurator)
+	//app.mm.RegisterServices(app.configurator)
+	app.RegisterServices(app.configurator)
 
 	// initialize stores
 	app.MountKVStores(keepers.KVStoreKeys)
@@ -414,4 +417,12 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 		// configure store loader with the store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades))
 	}
+}
+
+// RegisterServices registers all module services
+func (app *App) RegisterServices(cfg module.Configurator) {
+	app.mm.RegisterServices(cfg)
+	gravitytypes.RegisterQueryServer(cfg.QueryServer(), app.GravityRouterKeeper)
+	gravitytypes.RegisterMsgServer(cfg.MsgServer(), gravitykeeper.NewMsgServerRouterImpl(app.GravityRouterKeeper))
+
 }

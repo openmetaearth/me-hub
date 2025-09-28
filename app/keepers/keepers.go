@@ -103,6 +103,11 @@ import (
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 )
 
+type GravityKeepers struct {
+	BscKeeper gravitykeeper.Keeper
+	//TronKeeper gravitykeeper.Keeper
+}
+
 type AppKeepers struct {
 	// keepers
 	AccountKeeper                 authkeeper.AccountKeeper
@@ -150,7 +155,8 @@ type AppKeepers struct {
 	WasmKeeper          wasmkeeper.Keeper
 	GroupKeeper         *groupkeeper.Keeper
 
-	BscKeeper gravitykeeper.Keeper
+	GravityRouterKeeper gravitykeeper.RouterKeeper
+	GravityKeepers
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -448,6 +454,11 @@ func (a *AppKeepers) InitKeepers(
 		a.DaoKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+
+	// add gravity router
+	gravityRouter := gravitykeeper.NewRouter()
+	gravityRouter.AddRoute(bsctypes.ModuleName, gravitykeeper.NewModuleHandler(a.BscKeeper))
+	a.GravityRouterKeeper = gravitykeeper.NewRouterKeeper(gravityRouter)
 
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow

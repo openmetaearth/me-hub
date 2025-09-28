@@ -62,13 +62,6 @@ message MsgUnbondedRelayer {
 
 message MsgUnbondedRelayerResponse {}
 
-message MsgWithdrawReward {
-  string chain_name = 1;
-  string relayer_address = 2;
-}
-
-message MsgWithdrawRewardResponse {}
-
 // MsgRelayerSetConfirm
 // this is the message sent by the validators when they wish to submit their
 // signatures over the validator set at a given block height. A validator must

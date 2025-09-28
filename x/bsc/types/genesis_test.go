@@ -8,18 +8,18 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	fxtypes "github.com/st-chain/me-hub/types"
-	crosschaintypes "github.com/st-chain/me-hub/x/gravity/types"
+	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 )
 
 func TestDefaultGenesisState(t *testing.T) {
 	tests := []struct {
 		name string
-		want *crosschaintypes.GenesisState
+		want *gravitytypes.GenesisState
 	}{
 		{
 			name: "bsc default genesis",
-			want: &crosschaintypes.GenesisState{
-				Params: crosschaintypes.Params{
+			want: &gravitytypes.GenesisState{
+				Params: gravitytypes.Params{
 					GravityId:                         "fx-bsc-bridge",
 					AverageBlockTime:                  7_000,
 					AverageExternalBlockTime:          3_000,

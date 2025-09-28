@@ -135,7 +135,6 @@ func CmdAddDelegate(chainName string) *cobra.Command {
 
 func CmdProposalRelayers(chainName string) *cobra.Command {
 	var relayers []string
-
 	cmd := &cobra.Command{
 		Use:   "proposal-relayers --relayers addr1,addr2[,addrN]",
 		Short: "Propose a new relayer set",
