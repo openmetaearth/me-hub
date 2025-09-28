@@ -35,6 +35,22 @@ func (k RouterKeeper) ProposalRelayers(c context.Context, req *types.QueryPropos
 	}
 }
 
+func (k RouterKeeper) Relayer(c context.Context, req *types.QueryRelayerRequest) (*types.QueryRelayerResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.Relayer(c, req)
+	}
+}
+
+func (k RouterKeeper) Relayers(c context.Context, req *types.QueryRelayersRequest) (*types.QueryRelayersResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.Relayers(c, req)
+	}
+}
+
 func (k RouterKeeper) CurrentRelayerSet(c context.Context, req *types.QueryCurrentRelayerSetRequest) (*types.QueryCurrentRelayerSetResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
@@ -131,14 +147,6 @@ func (k RouterKeeper) LastEventNonceByAddr(c context.Context, req *types.QueryLa
 	}
 }
 
-func (k RouterKeeper) Relayer(c context.Context, req *types.QueryRelayerRequest) (*types.QueryRelayerResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
-		return nil, err
-	} else {
-		return queryServer.Relayer(c, req)
-	}
-}
-
 func (k RouterKeeper) GetPendingSendToExternal(c context.Context, req *types.QueryPendingSendToExternalRequest) (*types.QueryPendingSendToExternalResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
@@ -160,14 +168,6 @@ func (k RouterKeeper) LastEventBlockHeightByAddr(c context.Context, req *types.Q
 		return nil, err
 	} else {
 		return queryServer.LastEventBlockHeightByAddr(c, req)
-	}
-}
-
-func (k RouterKeeper) Relayers(c context.Context, req *types.QueryRelayersRequest) (*types.QueryRelayersResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
-		return nil, err
-	} else {
-		return queryServer.Relayers(c, req)
 	}
 }
 

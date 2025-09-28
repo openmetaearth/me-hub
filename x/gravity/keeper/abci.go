@@ -19,12 +19,12 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 }
 
 func (k Keeper) createRelayerSetRequest(ctx sdk.Context) {
-	if currentRelayerSet, isNeed := k.isNeedRelayerSetRequest(ctx); isNeed {
-		k.AddRelayerSetRequest(ctx, currentRelayerSet)
+	if currentRelayerSet, isNeed := k.isNeedRelayerSetChange(ctx); isNeed {
+		k.AddRelayerSetChange(ctx, currentRelayerSet)
 	}
 }
 
-func (k Keeper) isNeedRelayerSetRequest(ctx sdk.Context) (*types.RelayerSet, bool) {
+func (k Keeper) isNeedRelayerSetChange(ctx sdk.Context) (*types.RelayerSet, bool) {
 	currentRelayerSet := k.GetCurrentRelayerSet(ctx)
 	// 1. get latest RelayerSet
 	latestRelayerSet := k.GetLatestRelayerSet(ctx)
@@ -34,7 +34,7 @@ func (k Keeper) isNeedRelayerSetRequest(ctx sdk.Context) (*types.RelayerSet, boo
 
 	// 2. Relayer slash
 	if k.GetLastRelayerSlashBlockHeight(ctx) == uint64(ctx.BlockHeight()) {
-		k.Logger(ctx).Info("oracle set change", "has oracle slash in block", ctx.BlockHeight())
+		k.Logger(ctx).Info("relayer set change", "has relayer slash in block", ctx.BlockHeight())
 		return currentRelayerSet, true
 	}
 
@@ -45,12 +45,12 @@ func (k Keeper) isNeedRelayerSetRequest(ctx sdk.Context) (*types.RelayerSet, boo
 		panic(fmt.Errorf("covert power diff to dec err, powerDiff: %v, err: %w", powerDiff, err))
 	}
 
-	oracleSetUpdatePowerChangePercent := k.GetRelayerSetUpdatePowerChangePercent(ctx)
-	if oracleSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
-		oracleSetUpdatePowerChangePercent = sdk.OneDec()
+	relayerSetUpdatePowerChangePercent := k.GetRelayerSetUpdatePowerChangePercent(ctx)
+	if relayerSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
+		relayerSetUpdatePowerChangePercent = sdk.OneDec()
 	}
-	if powerDiffDec.GTE(oracleSetUpdatePowerChangePercent) {
-		k.Logger(ctx).Info("oracle set change", "change threshold", oracleSetUpdatePowerChangePercent.String(), "powerDiff", powerDiff)
+	if powerDiffDec.GTE(relayerSetUpdatePowerChangePercent) {
+		k.Logger(ctx).Info("relayer set change", "change threshold", relayerSetUpdatePowerChangePercent.String(), "powerDiff", powerDiff)
 		return currentRelayerSet, true
 	}
 	return currentRelayerSet, false
@@ -60,7 +60,7 @@ func (k Keeper) slashing(ctx sdk.Context, signedWindow uint64) {
 	if uint64(ctx.BlockHeight()) <= signedWindow {
 		return
 	}
-	// Slash oracle for not confirming oracle set requests, batch requests
+	// Slash relayer for not confirming relayer set requests, batch requests
 	relayers := k.GetAllRelayers(ctx, true)
 	relayerSetHasSlash := k.relayerSetSlashing(ctx, relayers, signedWindow)
 	batchHasSlash := k.batchSlashing(ctx, relayers, signedWindow)
@@ -69,35 +69,35 @@ func (k Keeper) slashing(ctx sdk.Context, signedWindow uint64) {
 	}
 }
 
-func (k Keeper) relayerSetSlashing(ctx sdk.Context, oracles types.Relayers, signedWindow uint64) (hasSlash bool) {
+func (k Keeper) relayerSetSlashing(ctx sdk.Context, relayers types.Relayers, signedWindow uint64) (hasSlash bool) {
 	maxHeight := uint64(ctx.BlockHeight()) - signedWindow
 	unSlashedRelayerSets := k.GetUnSlashedRelayerSets(ctx, maxHeight)
 
 	// Find all verifiers that meet the penalty to change the signature consensus
-	for _, oracleSet := range unSlashedRelayerSets {
+	for _, relayerSet := range unSlashedRelayerSets {
 		confirmRelayerMap := make(map[string]struct{})
-		k.IterateRelayerSetConfirmByNonce(ctx, oracleSet.Nonce, func(confirm *types.MsgRelayerSetConfirm) bool {
+		k.IterateRelayerSetConfirmByNonce(ctx, relayerSet.Nonce, func(confirm *types.MsgRelayerSetConfirm) bool {
 			confirmRelayerMap[confirm.ExternalAddress] = struct{}{}
 			return false
 		})
-		for i := 0; i < len(oracles); i++ {
-			if uint64(oracles[i].StartHeight) > oracleSet.Height {
+		for i := 0; i < len(relayers); i++ {
+			if uint64(relayers[i].StartHeight) > relayerSet.Height {
 				continue
 			}
-			if _, ok := confirmRelayerMap[oracles[i].ExternalAddress]; !ok {
-				k.Logger(ctx).Info("slash oracle by oracle set", "oracleAddress", oracles[i].RelayerAddress,
-					"oracleSetNonce", oracleSet.Nonce, "oracleSetHeight", oracleSet.Height, "blockHeight", ctx.BlockHeight())
-				k.SlashRelayer(ctx, oracles[i].RelayerAddress)
+			if _, ok := confirmRelayerMap[relayers[i].ExternalAddress]; !ok {
+				k.Logger(ctx).Info("slash relayer by relayer set", "relayerAddress", relayers[i].RelayerAddress,
+					"relayerSetNonce", relayerSet.Nonce, "relayerSetHeight", relayerSet.Height, "blockHeight", ctx.BlockHeight())
+				k.SlashRelayer(ctx, relayers[i].RelayerAddress)
 				hasSlash = true
 			}
 		}
-		// then we set the latest slashed oracleSet  nonce
-		k.SetLastSlashedRelayerSetNonce(ctx, oracleSet.Nonce)
+		// then we set the latest slashed relayerSet  nonce
+		k.SetLastSlashedRelayerSetNonce(ctx, relayerSet.Nonce)
 	}
 	return hasSlash
 }
 
-func (k Keeper) batchSlashing(ctx sdk.Context, oracles types.Relayers, signedWindow uint64) (hasSlash bool) {
+func (k Keeper) batchSlashing(ctx sdk.Context, relayers types.Relayers, signedWindow uint64) (hasSlash bool) {
 	maxHeight := uint64(ctx.BlockHeight()) - signedWindow
 	unSlashedBatches := k.GetUnSlashedBatches(ctx, maxHeight)
 
@@ -107,14 +107,14 @@ func (k Keeper) batchSlashing(ctx sdk.Context, oracles types.Relayers, signedWin
 			confirmRelayerMap[confirm.ExternalAddress] = struct{}{}
 			return false
 		})
-		for i := 0; i < len(oracles); i++ {
-			if uint64(oracles[i].StartHeight) > batch.Block {
+		for i := 0; i < len(relayers); i++ {
+			if uint64(relayers[i].StartHeight) > batch.Block {
 				continue
 			}
-			if _, ok := confirmRelayerMap[oracles[i].ExternalAddress]; !ok {
-				k.Logger(ctx).Info("slash oracle by batch", "oracleAddress", oracles[i].RelayerAddress,
+			if _, ok := confirmRelayerMap[relayers[i].ExternalAddress]; !ok {
+				k.Logger(ctx).Info("slash relayer by batch", "relayerAddress", relayers[i].RelayerAddress,
 					"batchNonce", batch.BatchNonce, "batchHeight", batch.Block, "blockHeight", ctx.BlockHeight())
-				k.SlashRelayer(ctx, oracles[i].RelayerAddress)
+				k.SlashRelayer(ctx, relayers[i].RelayerAddress)
 				hasSlash = true
 			}
 		}
@@ -153,7 +153,7 @@ func (k Keeper) pruneRelayerSet(ctx sdk.Context, signedRelayerSetsWindow uint64)
 	// prune all Relayer sets with a nonce less than the
 	// last observed nonce, they can't be submitted any longer
 	//
-	// Only prune oracleSets after the signed oracleSets window has passed
+	// Only prune relayerSets after the signed relayerSets window has passed
 	// so that slashing can occur the block before we remove them
 	lastObserved := k.GetLastObservedRelayerSet(ctx)
 	currentBlock := uint64(ctx.BlockHeight())
@@ -183,7 +183,7 @@ func (k Keeper) pruneAttestations(ctx sdk.Context) {
 
 	// we delete all attestations earlier than the current event nonce
 	// minus some buffer value. This buffer value is purely to allow
-	// frontends and other UI components to view recent oracle history
+	// frontends and other UI components to view recent relayer history
 	cutoff := lastNonce - types.MaxKeepEventSize
 	claimMap := make(map[uint64][]types.ExternalClaim)
 	// We make a slice with all the event nonces that are in the attestation mapping

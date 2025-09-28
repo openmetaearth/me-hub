@@ -39,12 +39,12 @@ func (k Keeper) GetCurrentRelayerSet(ctx sdk.Context) *types.RelayerSet {
 			ExternalAddress: relayer.ExternalAddress,
 		})
 	}
-	oracleSetNonce := k.GetLatestRelayerSetNonce(ctx) + 1
-	return types.NewRelayerSet(oracleSetNonce, uint64(ctx.BlockHeight()), bridgeValidators)
+	relayerSetNonce := k.GetLatestRelayerSetNonce(ctx) + 1
+	return types.NewRelayerSet(relayerSetNonce, uint64(ctx.BlockHeight()), bridgeValidators)
 }
 
-// AddRelayerSetRequest returns a new instance of the Relayer BridgeValidatorSet
-func (k Keeper) AddRelayerSetRequest(ctx sdk.Context, currentRelayerSet *types.RelayerSet) {
+// AddRelayerSetChange returns a new instance of the Relayer BridgeValidatorSet
+func (k Keeper) AddRelayerSetChange(ctx sdk.Context, currentRelayerSet *types.RelayerSet) {
 	// if currentRelayerSet member is empty, not store RelayerSet.
 	if len(currentRelayerSet.Members) == 0 {
 		return
@@ -66,30 +66,30 @@ func (k Keeper) AddRelayerSetRequest(ctx sdk.Context, currentRelayerSet *types.R
 	))
 }
 
-// StoreRelayerSet is for storing a oracle set at a given height
-func (k Keeper) StoreRelayerSet(ctx sdk.Context, oracleSet *types.RelayerSet) {
+// StoreRelayerSet is for storing a relayer set at a given height
+func (k Keeper) StoreRelayerSet(ctx sdk.Context, relayerSet *types.RelayerSet) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetRelayerSetKey(oracleSet.Nonce), k.cdc.MustMarshal(oracleSet))
+	store.Set(types.GetRelayerSetKey(relayerSet.Nonce), k.cdc.MustMarshal(relayerSet))
 }
 
-// HasRelayerSetRequest returns true if a oracleSet defined by a nonce exists
+// HasRelayerSetRequest returns true if a relayerSet defined by a nonce exists
 func (k Keeper) HasRelayerSetRequest(ctx sdk.Context, nonce uint64) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.GetRelayerSetKey(nonce))
 }
 
-// DeleteRelayerSet deletes the oracleSet at a given nonce from state
+// DeleteRelayerSet deletes the relayerSet at a given nonce from state
 func (k Keeper) DeleteRelayerSet(ctx sdk.Context, nonce uint64) {
 	ctx.KVStore(k.storeKey).Delete(types.GetRelayerSetKey(nonce))
 }
 
-// SetLatestRelayerSetNonce sets the latest oracleSet nonce
+// SetLatestRelayerSetNonce sets the latest relayerSet nonce
 func (k Keeper) SetLatestRelayerSetNonce(ctx sdk.Context, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.LatestRelayerSetNonce, sdk.Uint64ToBigEndian(nonce))
 }
 
-// GetLatestRelayerSetNonce returns the latest oracleSet nonce
+// GetLatestRelayerSetNonce returns the latest relayerSet nonce
 func (k Keeper) GetLatestRelayerSetNonce(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	data := store.Get(types.LatestRelayerSetNonce)
@@ -99,19 +99,19 @@ func (k Keeper) GetLatestRelayerSetNonce(ctx sdk.Context) uint64 {
 	return sdk.BigEndianToUint64(data)
 }
 
-// GetRelayerSet returns a oracleSet by nonce
+// GetRelayerSet returns a relayerSet by nonce
 func (k Keeper) GetRelayerSet(ctx sdk.Context, nonce uint64) *types.RelayerSet {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetRelayerSetKey(nonce))
 	if bz == nil {
 		return nil
 	}
-	var oracleSet types.RelayerSet
-	k.cdc.MustUnmarshal(bz, &oracleSet)
-	return &oracleSet
+	var relayerSet types.RelayerSet
+	k.cdc.MustUnmarshal(bz, &relayerSet)
+	return &relayerSet
 }
 
-// IterateRelayerSets returns all oracleSet
+// IterateRelayerSets returns all relayerSet
 func (k Keeper) IterateRelayerSets(ctx sdk.Context, reverse bool, cb func(*types.RelayerSet) bool) {
 	store := ctx.KVStore(k.storeKey)
 	var iter sdk.Iterator
@@ -123,37 +123,37 @@ func (k Keeper) IterateRelayerSets(ctx sdk.Context, reverse bool, cb func(*types
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
-		var oracleSet types.RelayerSet
-		k.cdc.MustUnmarshal(iter.Value(), &oracleSet)
+		var relayerSet types.RelayerSet
+		k.cdc.MustUnmarshal(iter.Value(), &relayerSet)
 		// cb returns true to stop early
-		if cb(&oracleSet) {
+		if cb(&relayerSet) {
 			break
 		}
 	}
 }
 
 // GetRelayerSets used in testing
-func (k Keeper) GetRelayerSets(ctx sdk.Context) (oracleSets types.RelayerSets) {
+func (k Keeper) GetRelayerSets(ctx sdk.Context) (relayerSets types.RelayerSets) {
 	k.IterateRelayerSets(ctx, false, func(set *types.RelayerSet) bool {
-		oracleSets = append(oracleSets, set)
+		relayerSets = append(relayerSets, set)
 		return false
 	})
 	return
 }
 
-// GetLatestRelayerSet returns the latest oracle set in state
+// GetLatestRelayerSet returns the latest relayer set in state
 func (k Keeper) GetLatestRelayerSet(ctx sdk.Context) *types.RelayerSet {
 	latestRelayerSetNonce := k.GetLatestRelayerSetNonce(ctx)
 	return k.GetRelayerSet(ctx, latestRelayerSetNonce)
 }
 
-// SetLastSlashedRelayerSetNonce sets the latest slashed oracleSet nonce
+// SetLastSlashedRelayerSetNonce sets the latest slashed relayerSet nonce
 func (k Keeper) SetLastSlashedRelayerSetNonce(ctx sdk.Context, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.LastSlashedRelayerSetNonce, sdk.Uint64ToBigEndian(nonce))
 }
 
-// GetLastSlashedRelayerSetNonce returns the latest slashed oracleSet nonce
+// GetLastSlashedRelayerSetNonce returns the latest slashed relayerSet nonce
 func (k Keeper) GetLastSlashedRelayerSetNonce(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	data := store.Get(types.LastSlashedRelayerSetNonce)
@@ -163,12 +163,12 @@ func (k Keeper) GetLastSlashedRelayerSetNonce(ctx sdk.Context) uint64 {
 	return sdk.BigEndianToUint64(data)
 }
 
-// GetUnSlashedRelayerSets returns all the unSlashed oracle sets in state
-func (k Keeper) GetUnSlashedRelayerSets(ctx sdk.Context, maxHeight uint64) (oracleSets types.RelayerSets) {
+// GetUnSlashedRelayerSets returns all the unSlashed relayer sets in state
+func (k Keeper) GetUnSlashedRelayerSets(ctx sdk.Context, maxHeight uint64) (relayerSets types.RelayerSets) {
 	lastSlashedRelayerSetNonce := k.GetLastSlashedRelayerSetNonce(ctx) + 1
-	k.IterateRelayerSetByNonce(ctx, lastSlashedRelayerSetNonce, func(oracleSet *types.RelayerSet) bool {
-		if maxHeight > oracleSet.Height {
-			oracleSets = append(oracleSets, oracleSet)
+	k.IterateRelayerSetByNonce(ctx, lastSlashedRelayerSetNonce, func(relayerSet *types.RelayerSet) bool {
+		if maxHeight > relayerSet.Height {
+			relayerSets = append(relayerSets, relayerSet)
 			return false
 		}
 		return true
@@ -176,7 +176,7 @@ func (k Keeper) GetUnSlashedRelayerSets(ctx sdk.Context, maxHeight uint64) (orac
 	return
 }
 
-// IterateRelayerSetByNonce iterates through all oracleSet by nonce
+// IterateRelayerSetByNonce iterates through all relayerSet by nonce
 func (k Keeper) IterateRelayerSetByNonce(ctx sdk.Context, startNonce uint64, cb func(*types.RelayerSet) bool) {
 	store := ctx.KVStore(k.storeKey)
 	startKey := append(types.RelayerSetRequestKey, sdk.Uint64ToBigEndian(startNonce)...)
@@ -185,10 +185,10 @@ func (k Keeper) IterateRelayerSetByNonce(ctx sdk.Context, startNonce uint64, cb 
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
-		oracleSet := new(types.RelayerSet)
-		k.cdc.MustUnmarshal(iter.Value(), oracleSet)
+		relayerSet := new(types.RelayerSet)
+		k.cdc.MustUnmarshal(iter.Value(), relayerSet)
 		// cb returns true to stop early
-		if cb(oracleSet) {
+		if cb(relayerSet) {
 			break
 		}
 	}
@@ -196,10 +196,10 @@ func (k Keeper) IterateRelayerSetByNonce(ctx sdk.Context, startNonce uint64, cb 
 
 // --- ORACLE SET CONFIRMS --- //
 
-// GetRelayerSetConfirm returns a oracleSet confirmation by a nonce and external address
-func (k Keeper) GetRelayerSetConfirm(ctx sdk.Context, nonce uint64, oracleAddr sdk.AccAddress) *types.MsgRelayerSetConfirm {
+// GetRelayerSetConfirm returns a relayerSet confirmation by a nonce and external address
+func (k Keeper) GetRelayerSetConfirm(ctx sdk.Context, nonce uint64, relayerAddr sdk.AccAddress) *types.MsgRelayerSetConfirm {
 	store := ctx.KVStore(k.storeKey)
-	entity := store.Get(types.GetRelayerSetConfirmKey(nonce, oracleAddr))
+	entity := store.Get(types.GetRelayerSetConfirmKey(nonce, relayerAddr))
 	if entity == nil {
 		return nil
 	}
@@ -208,14 +208,14 @@ func (k Keeper) GetRelayerSetConfirm(ctx sdk.Context, nonce uint64, oracleAddr s
 	return &confirm
 }
 
-// SetRelayerSetConfirm sets a oracleSet confirmation
-func (k Keeper) SetRelayerSetConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, oracleSetConfirm *types.MsgRelayerSetConfirm) {
+// SetRelayerSetConfirm sets a relayerSet confirmation
+func (k Keeper) SetRelayerSetConfirm(ctx sdk.Context, relayerAddr sdk.AccAddress, relayerSetConfirm *types.MsgRelayerSetConfirm) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetRelayerSetConfirmKey(oracleSetConfirm.Nonce, oracleAddr)
-	store.Set(key, k.cdc.MustMarshal(oracleSetConfirm))
+	key := types.GetRelayerSetConfirmKey(relayerSetConfirm.Nonce, relayerAddr)
+	store.Set(key, k.cdc.MustMarshal(relayerSetConfirm))
 }
 
-// IterateRelayerSetConfirmByNonce iterates through all oracleSet confirms by nonce
+// IterateRelayerSetConfirmByNonce iterates through all relayerSet confirms by nonce
 func (k Keeper) IterateRelayerSetConfirmByNonce(ctx sdk.Context, nonce uint64, cb func(*types.MsgRelayerSetConfirm) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.GetRelayerSetConfirmKey(nonce, sdk.AccAddress{}))
@@ -241,8 +241,8 @@ func (k Keeper) DeleteRelayerSetConfirm(ctx sdk.Context, nonce uint64) {
 	}
 }
 
-// GetLastObservedRelayerSet retrieves the last observed oracle set from the store
-// WARNING: This value is not an up to date oracle set on Ethereum, it is a oracle set
+// GetLastObservedRelayerSet retrieves the last observed relayer set from the store
+// WARNING: This value is not an up to date relayer set on Ethereum, it is a relayer set
 // that AT ONE POINT was the one in the bridge on Ethereum. If you assume that it's up
 // to date you may break the bridge
 func (k Keeper) GetLastObservedRelayerSet(ctx sdk.Context) *types.RelayerSet {
@@ -252,15 +252,15 @@ func (k Keeper) GetLastObservedRelayerSet(ctx sdk.Context) *types.RelayerSet {
 	if len(bytes) == 0 {
 		return nil
 	}
-	oracleSet := types.RelayerSet{}
-	k.cdc.MustUnmarshal(bytes, &oracleSet)
-	return &oracleSet
+	relayerSet := types.RelayerSet{}
+	k.cdc.MustUnmarshal(bytes, &relayerSet)
+	return &relayerSet
 }
 
-// SetLastObservedRelayerSet updates the last observed oracle set in the store
-func (k Keeper) SetLastObservedRelayerSet(ctx sdk.Context, oracleSet *types.RelayerSet) {
+// SetLastObservedRelayerSet updates the last observed relayer set in the store
+func (k Keeper) SetLastObservedRelayerSet(ctx sdk.Context, relayerSet *types.RelayerSet) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.LastObservedRelayerSetKey, k.cdc.MustMarshal(oracleSet))
+	store.Set(types.LastObservedRelayerSetKey, k.cdc.MustMarshal(relayerSet))
 }
 
 func (k Keeper) GetLastRelayerSlashBlockHeight(ctx sdk.Context) uint64 {

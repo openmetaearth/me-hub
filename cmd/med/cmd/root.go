@@ -8,9 +8,9 @@ import (
 	"os"
 
 	"github.com/evmos/ethermint/crypto/hd"
-
 	ethermintserver "github.com/evmos/ethermint/server"
 	v2 "github.com/st-chain/me-hub/app/upgrades/v2_0_10"
+	mecli "github.com/st-chain/me-hub/client/cli"
 
 	"github.com/st-chain/me-hub/logger"
 
@@ -188,6 +188,8 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 	)
 
 	rootCmd.AddCommand(v2.PreUpgradeCmd())
+
+	rootCmd.AddCommand(mecli.Debug())
 }
 
 // queryCommand returns the sub-command to send queries to the app

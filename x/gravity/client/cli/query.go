@@ -161,7 +161,7 @@ func CmdRelayer(chainName string) *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			input := args[0]
-			var req types.QueryRelayerRequest
+			req := types.QueryRelayerRequest{ChainName: chainName}
 			var relayerValid, externalValid bool
 			if _, err := sdk.AccAddressFromBech32(input); err == nil {
 				req.RelayerAddress = input

@@ -54,7 +54,7 @@ func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer)
 	if msg.DelegateAmount.Amount.GT(s.GetGravityMaxDelegate(ctx).Amount) {
 		return nil, types.ErrDelegateAmountAboveMaximum
 	}
-	if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, relayerAddress, types.ModuleName, sdk.NewCoins(msg.DelegateAmount)); err != nil {
+	if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, relayerAddress, s.moduleName, sdk.NewCoins(msg.DelegateAmount)); err != nil {
 		return nil, err
 	}
 	s.SetRelayer(ctx, relayerAddress, relayer)
@@ -65,7 +65,7 @@ func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer)
 		types.EventTypeBondedRelayer,
 		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.RelayerAddress),
-		sdk.NewAttribute(types.AttributeKeyReceiver, authtypes.NewModuleAddress(types.ModuleName).String()),
+		sdk.NewAttribute(types.AttributeKeyReceiver, authtypes.NewModuleAddress(s.moduleName).String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, msg.DelegateAmount.String()),
 		sdk.NewAttribute(types.AttributeKeyExternalAddress, msg.ExternalAddress),
 	))
@@ -99,7 +99,7 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 		return nil, types.ErrDelegateAmountAboveMaximum
 	}
 
-	if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, relayerAddress, types.ModuleName, sdk.NewCoins(msg.Amount)); err != nil {
+	if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, relayerAddress, s.moduleName, sdk.NewCoins(msg.Amount)); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeBondedRelayer,
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.RelayerAddress),
-		sdk.NewAttribute(types.AttributeKeyReceiver, authtypes.NewModuleAddress(types.ModuleName).String()),
+		sdk.NewAttribute(types.AttributeKeyReceiver, authtypes.NewModuleAddress(s.moduleName).String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 	))
 	return &types.MsgAddDelegateResponse{}, nil
@@ -140,14 +140,14 @@ func (s MsgServer) UnbondedRelayer(c context.Context, msg *types.MsgUnbondedRela
 
 	slashAmount := relayer.GetSlashAmount(s.GetSlashFraction(ctx))
 	if slashAmount.IsPositive() {
-		if err := s.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.SlashingModuleAccount, sdk.NewCoins(slashAmount)); err != nil {
+		if err := s.bankKeeper.SendCoinsFromModuleToModule(ctx, s.moduleName, types.SlashingModuleAccount, sdk.NewCoins(slashAmount)); err != nil {
 			return nil, err
 		}
 	}
 
 	unbondAmount := relayer.DelegateAmount.Sub(slashAmount.Amount)
 	if unbondAmount.IsPositive() {
-		if err := s.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, relayerAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, unbondAmount))); err != nil {
+		if err := s.bankKeeper.SendCoinsFromModuleToAccount(ctx, s.moduleName, relayerAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, unbondAmount))); err != nil {
 			return nil, err
 		}
 	}
@@ -159,7 +159,7 @@ func (s MsgServer) UnbondedRelayer(c context.Context, msg *types.MsgUnbondedRela
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeUnBondedRelayer,
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.RelayerAddress),
-		sdk.NewAttribute(types.AttributeKeyReceiver, authtypes.NewModuleAddress(types.ModuleName).String()),
+		sdk.NewAttribute(types.AttributeKeyReceiver, authtypes.NewModuleAddress(s.moduleName).String()),
 		sdk.NewAttribute(types.AttributeKeySlashAmount, slashAmount.String()),
 		sdk.NewAttribute(types.AttributeKeyUnbondAmount, unbondAmount.String()),
 	))
@@ -188,11 +188,12 @@ func (s MsgServer) RelayerSetConfirm(c context.Context, msg *types.MsgRelayerSet
 	if s.GetRelayerSetConfirm(ctx, msg.Nonce, relayerAddress) != nil {
 		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
 	}
+
 	s.SetRelayerSetConfirm(ctx, relayerAddress, msg)
 	return &types.MsgRelayerSetConfirmResponse{}, nil
 }
 
-// RelayerSetUpdateClaim handles claims for executing a oracle set update on Ethereum
+// RelayerSetUpdateClaim handles claims for executing a relayer set update on Ethereum
 func (s MsgServer) RelayerSetUpdateClaim(c context.Context, msg *types.MsgRelayerSetUpdatedClaim) (*types.MsgRelayerSetUpdatedClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	relayerAddress := sdk.MustAccAddressFromBech32(msg.RelayerAddress)

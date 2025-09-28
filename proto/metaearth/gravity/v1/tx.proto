@@ -87,8 +87,7 @@ message MsgRelayerSetConfirm {
 
 message MsgRelayerSetConfirmResponse {}
 
-// This informs the Cosmos module that a validator
-// set has been updated.
+// This informs the Cosmos module that a relayer set has been updated.
 message MsgRelayerSetUpdatedClaim {
   uint64 event_nonce = 1;
   uint64 block_height = 2;
