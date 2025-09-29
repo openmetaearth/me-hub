@@ -31,10 +31,10 @@ func (k Keeper) HasBridgeToken(ctx sdk.Context, tokenContract string) bool {
 	return store.Has(types.GetBridgeTokenByContractKey(tokenContract))
 }
 
-func (k Keeper) AddBridgeToken(ctx sdk.Context, token types.BridgeToken) {
+func (k Keeper) SetBridgeToken(ctx sdk.Context, token *types.BridgeToken) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetBridgeTokenByDenomKey(token.Denom), k.cdc.MustMarshal(&token))
-	store.Set(types.GetBridgeTokenByContractKey(token.Contract), k.cdc.MustMarshal(&token))
+	store.Set(types.GetBridgeTokenByDenomKey(token.Denom), k.cdc.MustMarshal(token))
+	store.Set(types.GetBridgeTokenByContractKey(token.Contract), k.cdc.MustMarshal(token))
 }
 
 func (k Keeper) IterateBridgeTokenToDenom(ctx sdk.Context, cb func(*types.BridgeToken) bool) {

@@ -43,8 +43,8 @@ func (k Keeper) GetCurrentRelayerSet(ctx sdk.Context) *types.RelayerSet {
 	return types.NewRelayerSet(relayerSetNonce, uint64(ctx.BlockHeight()), bridgeValidators)
 }
 
-// AddRelayerSetChange returns a new instance of the Relayer BridgeValidatorSet
-func (k Keeper) AddRelayerSetChange(ctx sdk.Context, currentRelayerSet *types.RelayerSet) {
+// AddRelayerSetChangeRequest returns a new instance of the Relayer BridgeValidatorSet
+func (k Keeper) AddRelayerSetChangeRequest(ctx sdk.Context, currentRelayerSet *types.RelayerSet) {
 	// if currentRelayerSet member is empty, not store RelayerSet.
 	if len(currentRelayerSet.Members) == 0 {
 		return

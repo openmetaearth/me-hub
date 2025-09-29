@@ -27,33 +27,33 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	}
 	k.SetLastTotalPower(ctx)
 
-	latestOracleSetNonce := uint64(0)
+	latestRelayerSetNonce := uint64(0)
 	for i := 0; i < len(state.RelayerSets); i++ {
 		set := state.RelayerSets[i]
-		if set.Nonce > latestOracleSetNonce {
-			latestOracleSetNonce = set.Nonce
+		if set.Nonce > latestRelayerSetNonce {
+			latestRelayerSetNonce = set.Nonce
 		}
 		k.StoreRelayerSet(ctx, &set)
 	}
-	k.SetLatestRelayerSetNonce(ctx, latestOracleSetNonce)
+	k.SetLatestRelayerSetNonce(ctx, latestRelayerSetNonce)
 
 	for _, bridgeToken := range state.BridgeTokens {
-		k.AddBridgeToken(ctx, bridgeToken)
+		k.SetBridgeToken(ctx, &bridgeToken)
 	}
 
 	for i := 0; i < len(state.BatchConfirms); i++ {
 		confirm := state.BatchConfirms[i]
-		for _, oracle := range state.Relayers {
-			if confirm.RelayerAddress == oracle.RelayerAddress {
-				k.SetBatchConfirm(ctx, oracle.GetRelayer(), &confirm)
+		for _, relayer := range state.Relayers {
+			if confirm.RelayerAddress == relayer.RelayerAddress {
+				k.SetBatchConfirm(ctx, relayer.GetRelayer(), &confirm)
 			}
 		}
 	}
 	for i := 0; i < len(state.RelayerSetConfirms); i++ {
 		confirm := state.RelayerSetConfirms[i]
-		for _, oracle := range state.Relayers {
-			if confirm.RelayerAddress == oracle.GetRelayerAddress() {
-				k.SetRelayerSetConfirm(ctx, oracle.GetRelayer(), &confirm)
+		for _, relayer := range state.Relayers {
+			if confirm.RelayerAddress == relayer.GetRelayerAddress() {
+				k.SetRelayerSetConfirm(ctx, relayer.GetRelayer(), &confirm)
 			}
 		}
 	}
@@ -93,7 +93,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 		}
 		// reconstruct the latest event nonce for every validator
 		// if somehow this genesis state is saved when all attestations
-		// have been cleaned up GetLastEventNonceByOracle handles that case
+		// have been cleaned up GetLastEventNonceByRelayer handles that case
 		//
 		// if we where to save and load the last event nonce for every validator
 		// then we would need to carry that state forever across all chain restarts
@@ -101,11 +101,11 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 		// while all attestations have already been cleaned up we can do this instead and
 		// not carry around every validators event nonce counter forever.
 		for _, vote := range att.Votes {
-			oracle := sdk.MustAccAddressFromBech32(vote)
-			last := k.GetLastEventNonceByRelayer(ctx, oracle)
+			relayer := sdk.MustAccAddressFromBech32(vote)
+			last := k.GetLastEventNonceByRelayer(ctx, relayer)
 			if claim.GetEventNonce() > last {
-				k.SetLastEventNonceByRelayer(ctx, oracle, claim.GetEventNonce())
-				k.SetLastEventBlockHeightByRelayer(ctx, oracle, claim.GetBlockHeight())
+				k.SetLastEventNonceByRelayer(ctx, relayer, claim.GetEventNonce())
+				k.SetLastEventBlockHeightByRelayer(ctx, relayer, claim.GetBlockHeight())
 			}
 		}
 	}
@@ -122,8 +122,8 @@ func ExportGenesis(ctx sdk.Context, k Keeper) *types.GenesisState {
 		state.Relayers = append(state.Relayers, re)
 		return false
 	})
-	k.IterateRelayerSets(ctx, false, func(oracleSet *types.RelayerSet) bool {
-		state.RelayerSets = append(state.RelayerSets, *oracleSet)
+	k.IterateRelayerSets(ctx, false, func(relayerSet *types.RelayerSet) bool {
+		state.RelayerSets = append(state.RelayerSets, *relayerSet)
 		return false
 	})
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {

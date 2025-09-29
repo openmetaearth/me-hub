@@ -1,19 +1,25 @@
 package keeper_test
 
 import (
+	"crypto/ecdsa"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/st-chain/me-hub/app/apptesting"
 	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/x/kyc/keeper"
-	"github.com/st-chain/me-hub/x/kyc/types"
+	"github.com/st-chain/me-hub/testutil/helpers"
+	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
+	"github.com/st-chain/me-hub/x/gravity/keeper"
+	"github.com/st-chain/me-hub/x/gravity/types"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/suite"
+	tmrand "github.com/tendermint/tendermint/libs/rand"
 	"testing"
 )
 
@@ -25,17 +31,55 @@ type KeeperTestSuite struct {
 	meEarthValidator    stakingtypes.Validator
 	experienceValidator stakingtypes.Validator
 	usaValidator        stakingtypes.Validator
+
+	relayerAddrs []sdk.AccAddress
+	externalPris []*ecdsa.PrivateKey
+	chainName    string
 }
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (s *KeeperTestSuite) Keeper() *keeper.Keeper {
-	return s.App.KycKeeper
+func TestGravityKeeperTestSuite(t *testing.T) {
+	subModules := []string{
+		bsctypes.ModuleName,
+		//trontypes.ModuleName,
+	}
+	for _, moduleName := range subModules {
+		suite.Run(t, &KeeperTestSuite{
+			chainName: moduleName,
+		})
+	}
+}
+
+func (s *KeeperTestSuite) MsgServer() types.MsgServer {
+	//if suite.chainName == trontypes.ModuleName {
+	//	return tronkeeper.NewMsgServerImpl(suite.app.TronKeeper)
+	//}
+	return keeper.NewMsgServerImpl(s.Keeper())
+}
+
+func (s *KeeperTestSuite) QueryClient() types.QueryClient {
+	queryHelper := baseapp.NewQueryServerTestHelper(s.Ctx, s.App.InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, keeper.NewQueryServerImpl(s.Keeper()))
+	return types.NewQueryClient(queryHelper)
+}
+
+func (s *KeeperTestSuite) Keeper() keeper.Keeper {
+	switch s.chainName {
+	case bsctypes.ModuleName:
+		return s.App.BscKeeper
+	//case trontypes.ModuleName:
+	//	return s.App.TronKeeper.Keeper
+	default:
+		panic("invalid chain name")
+	}
 }
 
 func (s *KeeperTestSuite) SetupTest() {
+	valNumber := tmrand.Intn(5) + 4
+
 	app := apptesting.Setup(s.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
@@ -51,13 +95,9 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.Require().NoError(err)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	nativeQuerier := keeper.Querier{Keeper: app.KycKeeper}
-	types.RegisterQueryServer(queryHelper, nativeQuerier)
 	queryClient := types.NewQueryClient(queryHelper)
 
 	s.App = app
-
-	s.msgServer = keeper.NewMsgServerImpl(*app.KycKeeper)
 	s.Ctx = ctx
 	s.queryClient = queryClient
 
@@ -95,15 +135,51 @@ func (s *KeeperTestSuite) SetupTest() {
 	}
 	_, err = stakingMsgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
+
+	s.relayerAddrs = s.NewAccounts(valNumber)
+	s.externalPris = helpers.CreateMultiECDSA(valNumber)
+
+	proposalRelayer := &types.ProposalRelayer{}
+	for _, relayer := range s.relayerAddrs {
+		proposalRelayer.Relayers = append(proposalRelayer.Relayers, relayer.String())
+	}
+	s.Keeper().SetProposalRelayer(s.Ctx, proposalRelayer)
 }
 
-func (s *KeeperTestSuite) TestPubKeyFromString() {
+func (s *KeeperTestSuite) SetupSubTest() {
 	s.SetupTest()
-	pubkey := `{"@type":"/ethermint.crypto.v1.ethsecp256k1.PubKey","key":"A83z2Fnur8jc+tGvkCJjkZTBeJDLSObk8nVKOpY9P679"}`
-	accAddr, _ := s.Keeper().MustAccAddressFromPubkeyString(pubkey)
-	s.Require().Equal("me13w3mxrd9tvq3r6gzheqjuzf8pnaruvug5787yu", accAddr.String())
+}
 
-	secp256k1Pubkey := `{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"A9Iwsz0CXw/AEVGq7wyM4wuNbcoeB1dXTBje1lRXvKBD"}`
-	secpAccAddr, _ := s.Keeper().MustAccAddressFromPubkeyString(secp256k1Pubkey)
-	s.Require().Equal("me1kj3emedrrq66vdqf3pzpfjmytympl4j2a4xd0c", secpAccAddr.String())
+func (s *KeeperTestSuite) SignRelayerSetConfirm(external *ecdsa.PrivateKey, relayerSet *types.RelayerSet) (string, []byte) {
+	externalAddress := crypto.PubkeyToAddress(external.PublicKey).String()
+	gravityId := s.Keeper().GetGravityID(s.Ctx)
+	checkpoint, err := relayerSet.GetCheckpoint(gravityId)
+	s.NoError(err)
+	signature, err := types.NewEthereumSignature(checkpoint, external)
+	s.NoError(err)
+	//if trontypes.ModuleName == s.chainName {
+	//	externalAddress = tronaddress.PubkeyToAddress(external.PublicKey).String()
+	//
+	//	checkpoint, err = trontypes.GetCheckpointRelayerSet(relayerSet, gravityId)
+	//	s.Require().NoError(err)
+	//
+	//	signature, err = trontypes.NewTronSignature(checkpoint, external)
+	//	s.Require().NoError(err)
+	//}
+	return externalAddress, signature
+}
+
+func (s *KeeperTestSuite) SendClaim(externalClaim types.ExternalClaim) {
+	var err error
+	switch claim := externalClaim.(type) {
+	case *types.MsgSendToMeClaim:
+		_, err = s.MsgServer().SendToMeClaim(s.Ctx, claim)
+		s.NoError(err)
+		s.Require().NoError(err)
+	}
+}
+
+func (s *KeeperTestSuite) PubKeyToExternalAddr(publicKey ecdsa.PublicKey) string {
+	address := crypto.PubkeyToAddress(publicKey)
+	return types.ExternalAddrToStr(s.chainName, address.Bytes())
 }

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 	"strings"
 
@@ -26,13 +27,15 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			return errorsmod.Wrap(types.ErrInvalid, "receiver address")
 		}
 
-		if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
+		if err := k.bankKeeper.MintCoins(ctx, k.moduleName, sdk.NewCoins(coin)); err != nil {
 			return errorsmod.Wrapf(err, "mint vouchers coins")
 		}
-
-		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, receiveAddr, sdk.NewCoins(coin)); err != nil {
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiveAddr, sdk.NewCoins(coin)); err != nil {
 			return errorsmod.Wrap(err, "transfer vouchers")
 		}
+		// record supply so we can withdraw it later
+		bridgeToken.Supply = bridgeToken.Supply.Add(claim.Amount)
+		k.SetBridgeToken(ctx, bridgeToken)
 
 	case *types.MsgSendToExternalClaim:
 		k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)
@@ -43,15 +46,16 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		if isExist {
 			return errorsmod.Wrap(types.ErrInvalid, "bridge token is exist")
 		}
-
+		k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token", claim.TokenContract)
 		bridgeToken := types.BridgeToken{
 			Contract: claim.TokenContract,
 			Denom:    strings.ToLower(claim.Symbol),
 			Name:     claim.Name,
 			Symbol:   claim.Symbol,
 			Decimal:  claim.Decimals,
+			Supply:   sdkmath.ZeroInt(),
 		}
-		k.AddBridgeToken(ctx, bridgeToken)
+		k.SetBridgeToken(ctx, &bridgeToken)
 		k.Logger(ctx).Info("add bridge token success", "symbol", claim.Symbol, "token", claim.TokenContract, "denom", bridgeToken.Denom)
 
 	case *types.MsgRelayerSetUpdatedClaim:

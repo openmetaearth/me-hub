@@ -3,7 +3,9 @@ package helpers
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/utils"
+	"github.com/st-chain/me-hub/x/gravity/types"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -137,4 +139,18 @@ func NewPubKeyFromHex(pk string) (res cryptotypes.PubKey) {
 		panic(errorsmod.Wrap(errortypes.ErrInvalidPubKey, "invalid pubkey size"))
 	}
 	return &ed25519.PubKey{Key: pkBytes}
+}
+
+func GenHexAddress() common.Address {
+	return common.BytesToAddress(NewEthPrivKey().PubKey().Address())
+}
+
+func GenExternalAddr(module string) string {
+	addr := GenHexAddress()
+	return types.ExternalAddrToStr(module, addr.Bytes())
+}
+
+// GenAccAddress generates an cosmos-sdk accAddress
+func GenAccAddress() sdk.AccAddress {
+	return NewPriKey().PubKey().Address().Bytes()
 }

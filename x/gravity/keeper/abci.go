@@ -14,13 +14,13 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 	signedWindow := k.GetSignedWindow(ctx)
 	k.slashing(ctx, signedWindow)
 	k.cleanupTimedOutBatches(ctx)
-	k.createRelayerSetRequest(ctx)
+	k.createRelayerSetChangeRequest(ctx)
 	k.pruneRelayerSet(ctx, signedWindow)
 }
 
-func (k Keeper) createRelayerSetRequest(ctx sdk.Context) {
+func (k Keeper) createRelayerSetChangeRequest(ctx sdk.Context) {
 	if currentRelayerSet, isNeed := k.isNeedRelayerSetChange(ctx); isNeed {
-		k.AddRelayerSetChange(ctx, currentRelayerSet)
+		k.AddRelayerSetChangeRequest(ctx, currentRelayerSet)
 	}
 }
 

@@ -14,36 +14,32 @@ import (
 func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 	testCases := []struct {
 		Name              string
-		GravityAddress    sdk.AccAddress
-		BridgerAddress    sdk.AccAddress
+		RelayerAddress    sdk.AccAddress
 		StartHeight       int64
 		ExpectStartHeight uint64
 	}{
 		{
-			Name:              "oracle start height with 1, expect oracle set block 3",
-			GravityAddress:    suite.oracleAddrs[0],
-			BridgerAddress:    suite.bridgerAddrs[0],
+			Name:              "relayer start height with 1, expect relayer set block 3",
+			RelayerAddress:    suite.relayerAddrs[0],
 			StartHeight:       1,
 			ExpectStartHeight: 3,
 		},
 		{
-			Name:              "oracle start height with 2, expect oracle set block 2",
-			GravityAddress:    suite.oracleAddrs[1],
-			BridgerAddress:    suite.bridgerAddrs[1],
+			Name:              "relayer start height with 2, expect relayer set block 2",
+			RelayerAddress:    suite.relayerAddrs[1],
 			StartHeight:       2,
 			ExpectStartHeight: 3,
 		},
 		{
-			Name:              "oracle start height with 3, expect oracle set block 1",
-			GravityAddress:    suite.oracleAddrs[2],
-			BridgerAddress:    suite.bridgerAddrs[2],
+			Name:              "relayer start height with 3, expect relayer set block 1",
+			RelayerAddress:    suite.relayerAddrs[2],
 			StartHeight:       3,
 			ExpectStartHeight: 3,
 		},
 	}
 	for i := uint64(1); i <= 3; i++ {
-		suite.ctx = suite.ctx.WithBlockHeight(int64(i))
-		err := suite.Keeper().StoreBatch(suite.ctx, &types.OutgoingTxBatch{
+		suite.Ctx = suite.Ctx.WithBlockHeight(int64(i))
+		err := suite.Keeper().StoreBatch(suite.Ctx, &types.OutgoingTxBatch{
 			Block:      i,
 			BatchNonce: i,
 			Transactions: types.OutgoingTransferTxs{{
@@ -55,25 +51,22 @@ func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 		require.NoError(suite.T(), err)
 	}
 
-	wrapSDKContext := sdk.WrapSDKContext(suite.ctx)
+	wrapSDKContext := sdk.WrapSDKContext(suite.Ctx)
 	for _, testCase := range testCases {
-		oracle := types.Gravity{
-			GravityAddress: testCase.GravityAddress.String(),
-			BridgerAddress: testCase.BridgerAddress.String(),
+		relayer := types.Relayer{
+			RelayerAddress: testCase.RelayerAddress.String(),
 			StartHeight:    testCase.StartHeight,
 		}
-		// save oracle
-		suite.Keeper().SetGravity(suite.ctx, oracle)
-		suite.Keeper().SetGravityByBridger(suite.ctx, testCase.BridgerAddress, oracle.GetGravity())
+		suite.Keeper().SetRelayer(suite.Ctx, testCase.RelayerAddress, relayer)
 
-		response, err := suite.Keeper().LastPendingBatchRequestByAddr(wrapSDKContext,
+		response, err := suite.QueryClient().LastPendingBatchRequestByAddr(wrapSDKContext,
 			&types.QueryLastPendingBatchRequestByAddrRequest{
-				BridgerAddress: testCase.BridgerAddress.String(),
+				RelayerAddress: testCase.RelayerAddress.String(),
 			})
-		require.NoError(suite.T(), err, testCase.Name)
-		require.NotNil(suite.T(), response, testCase.Name)
-		require.NotNil(suite.T(), response.Batch, testCase.Name)
-		require.EqualValues(suite.T(), testCase.ExpectStartHeight, response.Batch.Block, testCase.Name)
+		suite.Require().NoError(err, testCase.Name)
+		suite.Require().NotNil(response, testCase.Name)
+		suite.Require().NotNil(response.Batch, testCase.Name)
+		suite.Require().EqualValues(testCase.ExpectStartHeight, response.Batch.Block, testCase.Name)
 	}
 }
 
@@ -101,10 +94,10 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
 		Block:         100,
 		FeeReceive:    helpers.GenerateAddress().Hex(),
 	}
-	suite.NoError(suite.Keeper().StoreBatch(suite.ctx, batch))
+	suite.NoError(suite.Keeper().StoreBatch(suite.Ctx, batch))
 
-	suite.Equal(uint64(0), suite.Keeper().GetLastSlashedBatchBlock(suite.ctx))
-	batches := suite.Keeper().GetUnSlashedBatches(suite.ctx, batch.Block+1)
+	suite.Equal(uint64(0), suite.Keeper().GetLastSlashedBatchBlock(suite.Ctx))
+	batches := suite.Keeper().GetUnSlashedBatches(suite.Ctx, batch.Block+1)
 	suite.Equal(1, len(batches))
 
 	msgConfirmBatch := &types.MsgConfirmBatch{
@@ -112,17 +105,17 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
 		TokenContract: tokenContract,
 		ChainName:     suite.chainName,
 	}
-	for i, oracle := range suite.oracleAddrs {
-		msgConfirmBatch.BridgerAddress = suite.bridgerAddrs[i].String()
+	for i, relayer := range suite.relayerAddrs {
+		msgConfirmBatch.RelayerAddress = suite.relayerAddrs[i].String()
 		msgConfirmBatch.ExternalAddress = crypto.PubkeyToAddress(suite.externalPris[i].PublicKey).String()
-		suite.Keeper().SetBatchConfirm(suite.ctx, oracle, msgConfirmBatch)
+		suite.Keeper().SetBatchConfirm(suite.Ctx, relayer, msgConfirmBatch)
 	}
-	suite.Keeper().OutgoingTxBatchExecuted(suite.ctx, batch.TokenContract, batch.BatchNonce)
+	suite.Keeper().OutgoingTxBatchExecuted(suite.Ctx, batch.TokenContract, batch.BatchNonce)
 
-	for _, oracle := range suite.oracleAddrs {
-		suite.Nil(suite.Keeper().GetBatchConfirm(suite.ctx, batch.TokenContract, batch.BatchNonce, oracle))
+	for _, relayer := range suite.relayerAddrs {
+		suite.Nil(suite.Keeper().GetBatchConfirm(suite.Ctx, batch.TokenContract, batch.BatchNonce, relayer))
 	}
-	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.ctx, batch.TokenContract, batch.BatchNonce))
+	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, batch.TokenContract, batch.BatchNonce))
 }
 
 func (suite *KeeperTestSuite) TestKeeper_IterateBatchBySlashedBatchBlock() {
@@ -151,10 +144,10 @@ func (suite *KeeperTestSuite) TestKeeper_IterateBatchBySlashedBatchBlock() {
 			Block:         uint64(100 + i),
 			FeeReceive:    helpers.GenerateAddress().Hex(),
 		}
-		suite.NoError(suite.Keeper().StoreBatch(suite.ctx, batch))
+		suite.NoError(suite.Keeper().StoreBatch(suite.Ctx, batch))
 	}
 	var batchs []*types.OutgoingTxBatch
-	suite.Keeper().IterateBatchByBlockHeight(suite.ctx, 100+1, uint64(100+index+1),
+	suite.Keeper().IterateBatchByBlockHeight(suite.Ctx, 100+1, uint64(100+index+1),
 		func(batch *types.OutgoingTxBatch) bool {
 			batchs = append(batchs, batch)
 			return false

@@ -56,6 +56,10 @@ message BridgeToken {
   string name = 3;
   string symbol = 4;
   uint64 decimal = 5;
+  string supply = 6 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // ClaimType is the cosmos type of an event from the counterpart chain that can

@@ -26,6 +26,52 @@ func (k QueryServer) Params(c context.Context, _ *types.QueryParamsRequest) (*ty
 	return &types.QueryParamsResponse{Params: params}, nil
 }
 
+func (k QueryServer) ProposalRelayers(c context.Context, _ *types.QueryProposalRelayersRequest) (*types.QueryProposalRelayersResponse, error) {
+	relays, _ := k.GetProposalRelayer(sdk.UnwrapSDKContext(c))
+	return &types.QueryProposalRelayersResponse{ProposalRelayer: relays}, nil
+}
+
+func (k QueryServer) Relayer(c context.Context, req *types.QueryRelayerRequest) (*types.QueryRelayerResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	if req.RelayerAddress == "" && req.ExternalAddress == "" {
+		return nil, status.Error(codes.InvalidArgument, "either relayer address or external address must be provided.")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	relayer := types.Relayer{}
+	found := false
+	if req.RelayerAddress != "" {
+		relayerAddress, err := sdk.AccAddressFromBech32(req.RelayerAddress)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "relayer address")
+		}
+		relayer, found = k.GetRelayer(ctx, relayerAddress)
+		if !found {
+			return nil, types.ErrNotFoundRelayer
+		}
+	}
+	if req.ExternalAddress != "" {
+		relayerAddress, found := k.GetRelayerByExternalAddress(ctx, req.ExternalAddress)
+		if !found {
+			return nil, types.ErrNotFoundRelayer
+		}
+		relayer, found = k.GetRelayer(ctx, relayerAddress)
+		if !found {
+			return nil, types.ErrNotFoundRelayer
+		}
+	}
+	if !found {
+		return nil, types.ErrNotFoundRelayer
+	}
+	return &types.QueryRelayerResponse{Relayer: &relayer}, nil
+}
+
+func (k QueryServer) Relayers(c context.Context, _ *types.QueryRelayersRequest) (*types.QueryRelayersResponse, error) {
+	relays := k.GetAllRelayers(sdk.UnwrapSDKContext(c), false)
+	return &types.QueryRelayersResponse{Relayers: relays}, nil
+}
+
 func (k QueryServer) CurrentRelayerSet(c context.Context, _ *types.QueryCurrentRelayerSetRequest) (*types.QueryCurrentRelayerSetResponse, error) {
 	return &types.QueryCurrentRelayerSetResponse{RelayerSet: k.GetCurrentRelayerSet(sdk.UnwrapSDKContext(c))}, nil
 }
@@ -200,52 +246,6 @@ func (k QueryServer) BatchConfirms(c context.Context, req *types.QueryBatchConfi
 		return false
 	})
 	return &types.QueryBatchConfirmsResponse{Confirms: confirms}, nil
-}
-
-func (k QueryServer) Relayer(c context.Context, req *types.QueryRelayerRequest) (*types.QueryRelayerResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	if req.RelayerAddress == "" && req.ExternalAddress == "" {
-		return nil, status.Error(codes.InvalidArgument, "either relayer address or external address must be provided.")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-	relayer := types.Relayer{}
-	found := false
-	if req.RelayerAddress != "" {
-		relayerAddress, err := sdk.AccAddressFromBech32(req.RelayerAddress)
-		if err != nil {
-			return nil, status.Error(codes.InvalidArgument, "relayer address")
-		}
-		relayer, found = k.GetRelayer(ctx, relayerAddress)
-		if !found {
-			return nil, types.ErrNotFoundRelayer
-		}
-	}
-	if req.ExternalAddress != "" {
-		relayerAddress, found := k.GetRelayerByExternalAddress(ctx, req.ExternalAddress)
-		if !found {
-			return nil, types.ErrNotFoundRelayer
-		}
-		relayer, found = k.GetRelayer(ctx, relayerAddress)
-		if !found {
-			return nil, types.ErrNotFoundRelayer
-		}
-	}
-	if !found {
-		return nil, types.ErrNotFoundRelayer
-	}
-	return &types.QueryRelayerResponse{Relayer: &relayer}, nil
-}
-
-func (k QueryServer) Relayers(c context.Context, _ *types.QueryRelayersRequest) (*types.QueryRelayersResponse, error) {
-	relays := k.GetAllRelayers(sdk.UnwrapSDKContext(c), false)
-	return &types.QueryRelayersResponse{Relayers: relays}, nil
-}
-
-func (k QueryServer) ProposalRelayers(c context.Context, _ *types.QueryProposalRelayersRequest) (*types.QueryProposalRelayersResponse, error) {
-	relays, _ := k.GetProposalRelayer(sdk.UnwrapSDKContext(c))
-	return &types.QueryProposalRelayersResponse{ProposalRelayer: relays}, nil
 }
 
 func (k QueryServer) GetPendingSendToExternal(c context.Context, req *types.QueryPendingSendToExternalRequest) (*types.QueryPendingSendToExternalResponse, error) {

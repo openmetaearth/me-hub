@@ -447,8 +447,7 @@ func (m *MsgRelayerSetConfirmResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRelayerSetConfirmResponse proto.InternalMessageInfo
 
-// This informs the Cosmos module that a validator
-// set has been updated.
+// This informs the Cosmos module that a relayer set has been updated.
 type MsgRelayerSetUpdatedClaim struct {
 	EventNonce      uint64            `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
 	BlockHeight     uint64            `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
