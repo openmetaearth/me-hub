@@ -23,6 +23,10 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		return 0, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
 
+	if amount.Amount.GT(bridgeToken.Supply) {
+		return 0, errorsmod.Wrapf(types.ErrInvalid, "amount %s exceeds bridge token supply %s", amount.Amount.String(), bridgeToken.Supply.String())
+	}
+
 	totalInVouchers := sdk.NewCoins(amount.Add(fee))
 
 	// If it is an external blockchain asset we burn it send coins to module in prep for burn
