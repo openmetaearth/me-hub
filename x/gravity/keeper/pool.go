@@ -23,8 +23,10 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		return 0, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
 
+	// TODO: also check other outgoing txs to make sure we don't exceed supply
 	if amount.Amount.GT(bridgeToken.Supply) {
-		return 0, errorsmod.Wrapf(types.ErrInvalid, "amount %s exceeds bridge token supply %s", amount.Amount.String(), bridgeToken.Supply.String())
+		return 0, errorsmod.Wrapf(types.ErrInvalid, "transfer to %s chain, amount %s exceeds bridge token supply %s",
+			k.moduleName, amount.Amount.String(), bridgeToken.Supply.String())
 	}
 
 	totalInVouchers := sdk.NewCoins(amount.Add(fee))

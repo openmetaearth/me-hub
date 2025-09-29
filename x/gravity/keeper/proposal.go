@@ -3,7 +3,6 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/gravity/types"
 )
@@ -11,8 +10,7 @@ import (
 func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error {
 	maxRelayers := k.GetMaxRelayers(ctx)
 	if len(relayers) > int(maxRelayers) {
-		return errorsmod.Wrapf(types.ErrInvalid,
-			fmt.Sprintf("relayer length must be less than or equal: %d", maxRelayers))
+		return errorsmod.Wrapf(types.ErrInvalid, "relayer length must be less than or equal: %d", maxRelayers)
 	}
 
 	newRelayerMap := make(map[string]bool, len(relayers))
@@ -48,7 +46,7 @@ func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error
 	}
 
 	maxChangePowerThreshold := types.AttestationProposalRelayerChangePowerThreshold.Mul(totalPower).Quo(sdkmath.NewInt(100))
-	k.Logger(ctx).Info("update chain oracles proposal",
+	k.Logger(ctx).Info("update chain relayers proposal",
 		"maxChangePowerThreshold", maxChangePowerThreshold.String(),
 		"deleteTotalPower", deleteTotalPower.String())
 	if deleteTotalPower.GT(sdkmath.ZeroInt()) && deleteTotalPower.GTE(maxChangePowerThreshold) {

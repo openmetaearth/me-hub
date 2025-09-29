@@ -129,8 +129,8 @@ func (k QueryServer) LastPendingRelayerSetRequestByAddr(c context.Context, req *
 		if relayer.StartHeight > int64(relaySet.Height) {
 			return false
 		}
-		// found is true if the operatorAddr has signed the oracle set we are currently looking at
-		// if this oracle set has NOT been signed by oracleAddr, store it in pendingOracleSetReq and exit the loop
+		// found is true if the operatorAddr has signed the relayer set we are currently looking at
+		// if this relayer set has NOT been signed by relayerAddr, store it in pendingOracleSetReq and exit the loop
 		if found := k.GetRelayerSetConfirm(ctx, relaySet.Nonce, relayer.GetRelayer()) != nil; !found {
 			pendingRelaySetReq = append(pendingRelaySetReq, relaySet)
 		}

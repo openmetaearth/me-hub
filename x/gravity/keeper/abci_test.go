@@ -35,7 +35,7 @@ func (s *KeeperTestSuite) TestEndBlockDepositClaim() {
 		TokenContract:  bridgeTokenContract,
 		Name:           "Test Token",
 		Symbol:         "TEST",
-		Decimals:       18,
+		Decimals:       6,
 		RelayerAddress: s.relayerAddrs[0].String(),
 		ChainName:      s.chainName,
 	}
@@ -62,6 +62,10 @@ func (s *KeeperTestSuite) TestEndBlockDepositClaim() {
 
 	allBalances := s.App.BankKeeper.GetAllBalances(s.Ctx, sdk.MustAccAddressFromBech32(sendToMeClaim.Receiver))
 	s.Require().EqualValues(sdk.Coin{Amount: sendToMeClaim.Amount, Denom: strings.ToLower(addBridgeTokenClaim.GetSymbol())}.String(), allBalances.String())
+
+	bridgeToken, err := s.Keeper().GetBridgeTokenByContract(s.Ctx, bridgeTokenContract)
+	s.Require().NoError(err)
+	s.Require().EqualValues(sendToMeClaim.Amount, bridgeToken.Supply)
 }
 
 func (s *KeeperTestSuite) TestRelayerUpdate() {
@@ -81,9 +85,9 @@ func (s *KeeperTestSuite) TestRelayerUpdate() {
 		s.Require().NoError(err)
 		s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
 		s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
-		oracleSets := s.Keeper().GetRelayerSets(s.Ctx)
-		s.Require().NotNil(oracleSets)
-		s.Require().EqualValues(i+1, len(oracleSets))
+		relayerSets := s.Keeper().GetRelayerSets(s.Ctx)
+		s.Require().NotNil(relayerSets)
+		s.Require().EqualValues(i+1, len(relayerSets))
 
 		power := s.Keeper().GetLastTotalPower(s.Ctx)
 		expectPower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
@@ -186,9 +190,9 @@ func (s *KeeperTestSuite) TestRelayerUpdate() {
 //		s.Require().NoError(err)
 //		s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
 //		s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
-//		oracleSets := s.Keeper().GetRelayerSets(s.Ctx)
-//		s.Require().NotNil(oracleSets)
-//		s.Require().EqualValues(i+1, len(oracleSets))
+//		relayerSets := s.Keeper().GetRelayerSets(s.Ctx)
+//		s.Require().NotNil(relayerSets)
+//		s.Require().EqualValues(i+1, len(relayerSets))
 //
 //		power := s.Keeper().GetLastTotalPower(s.Ctx)
 //		expectPower := sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Mul(sdkmath.NewInt(int64(i + 1))).Quo(sdk.DefaultPowerReduction)
@@ -383,26 +387,26 @@ func (s *KeeperTestSuite) TestRelayerUpdate() {
 //	s.Require().NotNil(allRelayers)
 //	s.Require().EqualValues(len(s.relayerAddrs), len(allRelayers))
 //
-//	oracle := s.relayerAddrs[0]
+//	relayer := s.relayerAddrs[0]
 //	bridger := s.bridgerAddrs[0]
 //	externalAddress := s.PubKeyToExternalAddr(s.externalPris[0].PublicKey)
 //
-//	oracleAddr, found := s.Keeper().GetRelayerAddrByBridgerAddr(s.Ctx, bridger)
+//	relayerAddr, found := s.Keeper().GetRelayerAddrByBridgerAddr(s.Ctx, bridger)
 //	s.Require().True(found)
-//	s.Require().EqualValues(oracle.String(), oracleAddr.String())
+//	s.Require().EqualValues(relayer.String(), relayerAddr.String())
 //
-//	oracleAddr, found = s.Keeper().GetRelayerAddrByExternalAddr(s.Ctx, externalAddress)
+//	relayerAddr, found = s.Keeper().GetRelayerAddrByExternalAddr(s.Ctx, externalAddress)
 //	s.Require().True(found)
-//	s.Require().EqualValues(oracle.String(), oracleAddr.String())
+//	s.Require().EqualValues(relayer.String(), relayerAddr.String())
 //
-//	oracleData, found := s.Keeper().GetRelayer(s.Ctx, oracle)
+//	relayerData, found := s.Keeper().GetRelayer(s.Ctx, relayer)
 //	s.Require().True(found)
-//	s.Require().NotNil(oracleData)
-//	s.Require().EqualValues(oracle.String(), oracleData.RelayerAddress)
-//	s.Require().EqualValues(bridger.String(), oracleData.BridgerAddress)
-//	s.Require().EqualValues(externalAddress, oracleData.ExternalAddress)
+//	s.Require().NotNil(relayerData)
+//	s.Require().EqualValues(relayer.String(), relayerData.RelayerAddress)
+//	s.Require().EqualValues(bridger.String(), relayerData.BridgerAddress)
+//	s.Require().EqualValues(externalAddress, relayerData.ExternalAddress)
 //
-//	s.Require().True(sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Equal(oracleData.DelegateAmount))
+//	s.Require().True(sdkmath.NewInt(10 * 1e3).MulRaw(1e18).Equal(relayerData.DelegateAmount))
 //
 //	newRelayerAddressList := make([]string, 0, len(s.relayerAddrs)-1)
 //	for _, address := range s.relayerAddrs[1:] {
@@ -418,15 +422,15 @@ func (s *KeeperTestSuite) TestRelayerUpdate() {
 //	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 //	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
 //
-//	oracleAddr, found = s.Keeper().GetRelayerAddrByBridgerAddr(s.Ctx, bridger)
+//	relayerAddr, found = s.Keeper().GetRelayerAddrByBridgerAddr(s.Ctx, bridger)
 //	s.Require().True(found)
-//	s.Require().Equal(oracleAddr, oracle)
+//	s.Require().Equal(relayerAddr, relayer)
 //
-//	oracleAddr, found = s.Keeper().GetRelayerAddrByExternalAddr(s.Ctx, externalAddress)
+//	relayerAddr, found = s.Keeper().GetRelayerAddrByExternalAddr(s.Ctx, externalAddress)
 //	s.Require().True(found)
-//	s.Require().Equal(oracleAddr, oracle)
+//	s.Require().Equal(relayerAddr, relayer)
 //
-//	oracleData, found = s.Keeper().GetRelayer(s.Ctx, oracle)
+//	relayerData, found = s.Keeper().GetRelayer(s.Ctx, relayer)
 //	s.Require().True(found)
 //}
 //
@@ -451,41 +455,41 @@ func (s *KeeperTestSuite) TestRelayerUpdate() {
 //	s.Require().NotNil(allRelayers)
 //	s.Require().Equal(len(s.relayerAddrs), len(allRelayers))
 //
-//	oracleSets := s.Keeper().GetRelayerSets(s.Ctx)
-//	s.Require().NotNil(oracleSets)
-//	s.Require().EqualValues(1, len(oracleSets))
+//	relayerSets := s.Keeper().GetRelayerSets(s.Ctx)
+//	s.Require().NotNil(relayerSets)
+//	s.Require().EqualValues(1, len(relayerSets))
 //
 //	for i := 0; i < len(s.relayerAddrs)-1; i++ {
-//		externalAddress, signature := s.SignRelayerSetConfirm(s.externalPris[i], oracleSets[0])
-//		oracleSetConfirm := &types.MsgRelayerSetConfirm{
-//			Nonce:           oracleSets[0].Nonce,
+//		externalAddress, signature := s.SignRelayerSetConfirm(s.externalPris[i], relayerSets[0])
+//		relayerSetConfirm := &types.MsgRelayerSetConfirm{
+//			Nonce:           relayerSets[0].Nonce,
 //			BridgerAddress:  s.bridgerAddrs[i].String(),
 //			ExternalAddress: externalAddress,
 //			Signature:       hex.EncodeToString(signature),
 //			ChainName:       s.chainName,
 //		}
-//		s.Require().NoError(oracleSetConfirm.ValidateBasic())
-//		_, err := s.MsgServer().RelayerSetConfirm(sdk.WrapSDKContext(s.Ctx), oracleSetConfirm)
+//		s.Require().NoError(relayerSetConfirm.ValidateBasic())
+//		_, err := s.MsgServer().RelayerSetConfirm(sdk.WrapSDKContext(s.Ctx), relayerSetConfirm)
 //		s.Require().NoError(err)
 //	}
 //
 //	s.Keeper().EndBlocker(s.Ctx)
-//	oracleSetHeight := int64(oracleSets[0].Height)
+//	relayerSetHeight := int64(relayerSets[0].Height)
 //	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 //	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
 //
-//	oracle, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[len(s.relayerAddrs)-1])
+//	relayer, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[len(s.relayerAddrs)-1])
 //	s.Require().True(found)
-//	s.Require().True(oracle.Online)
-//	s.Require().Equal(int64(0), oracle.SlashTimes)
+//	s.Require().True(relayer.Online)
+//	s.Require().Equal(int64(0), relayer.SlashTimes)
 //
-//	s.Ctx = s.Ctx.WithBlockHeight(oracleSetHeight + int64(s.Keeper().GetParams(s.Ctx).SignedWindow) + 1)
+//	s.Ctx = s.Ctx.WithBlockHeight(relayerSetHeight + int64(s.Keeper().GetParams(s.Ctx).SignedWindow) + 1)
 //	s.Keeper().EndBlocker(s.Ctx)
 //
-//	oracle, found = s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[len(s.relayerAddrs)-1])
+//	relayer, found = s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[len(s.relayerAddrs)-1])
 //	s.Require().True(found)
-//	s.Require().False(oracle.Online)
-//	s.Require().Equal(int64(1), oracle.SlashTimes)
+//	s.Require().False(relayer.Online)
+//	s.Require().Equal(int64(1), relayer.SlashTimes)
 //}
 //
 //func (s *KeeperTestSuite) TestSlashRelayer() {
@@ -507,31 +511,31 @@ func (s *KeeperTestSuite) TestRelayerUpdate() {
 //	err := s.Keeper().SetParams(s.Ctx, &params)
 //	s.Require().NoError(err)
 //	for i := 0; i < len(s.relayerAddrs); i++ {
-//		oracle, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[i])
+//		relayer, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[i])
 //		s.Require().True(found)
-//		s.Require().True(oracle.Online)
-//		s.Require().Equal(int64(0), oracle.SlashTimes)
+//		s.Require().True(relayer.Online)
+//		s.Require().Equal(int64(0), relayer.SlashTimes)
 //
-//		s.Keeper().SlashRelayer(s.Ctx, oracle.RelayerAddress)
+//		s.Keeper().SlashRelayer(s.Ctx, relayer.RelayerAddress)
 //
-//		oracle, found = s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[i])
+//		relayer, found = s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[i])
 //		s.Require().True(found)
-//		s.Require().False(oracle.Online)
-//		s.Require().Equal(int64(1), oracle.SlashTimes)
+//		s.Require().False(relayer.Online)
+//		s.Require().Equal(int64(1), relayer.SlashTimes)
 //	}
 //
 //	// repeat slash test.
 //	for i := 0; i < len(s.relayerAddrs); i++ {
-//		oracle, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[i])
+//		relayer, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[i])
 //		s.Require().True(found)
-//		s.Require().False(oracle.Online)
-//		s.Require().Equal(int64(1), oracle.SlashTimes)
+//		s.Require().False(relayer.Online)
+//		s.Require().Equal(int64(1), relayer.SlashTimes)
 //
-//		s.Keeper().SlashRelayer(s.Ctx, oracle.RelayerAddress)
+//		s.Keeper().SlashRelayer(s.Ctx, relayer.RelayerAddress)
 //
-//		oracle, found = s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[i])
+//		relayer, found = s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[i])
 //		s.Require().True(found)
-//		s.Require().False(oracle.Online)
-//		s.Require().Equal(int64(1), oracle.SlashTimes)
+//		s.Require().False(relayer.Online)
+//		s.Require().Equal(int64(1), relayer.SlashTimes)
 //	}
 //}

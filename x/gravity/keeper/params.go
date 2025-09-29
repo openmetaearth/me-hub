@@ -31,7 +31,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params *types.Params) error {
 // GetGravityID returns the GravityID is essentially a salt value
 // for bridge signatures, provided each chain running Gravity has a unique ID
 // it won't be possible to play back signatures from one bridge onto another
-// even if they share a oracle set.
+// even if they share a relayer set.
 //
 // The lifecycle of the GravityID is that it is set in the Genesis file
 // read from the live chain for the contract deployment, once a Gravity contract

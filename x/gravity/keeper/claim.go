@@ -20,13 +20,6 @@ func (s MsgServer) claimHandlerCommon(ctx sdk.Context, msg types.ExternalClaim) 
 	if _, err := s.Attest(ctx, bridgerAddr, msg); err != nil {
 		return err
 	}
-
-	// Emit the handle message event
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeySender, bridgerAddr.String()),
-	))
-
 	return nil
 }
 

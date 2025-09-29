@@ -282,10 +282,10 @@ func (k Keeper) IterateBatchByBlockHeight(ctx sdk.Context, start uint64, end uin
 
 // --- BATCH CONFIRMS --- //
 
-// GetBatchConfirm returns a batch confirmation given its nonce, the token contract, and a oracle address
-func (k Keeper) GetBatchConfirm(ctx sdk.Context, tokenContract string, batchNonce uint64, oracleAddr sdk.AccAddress) *types.MsgConfirmBatch {
+// GetBatchConfirm returns a batch confirmation given its nonce, the token contract, and a relayer address
+func (k Keeper) GetBatchConfirm(ctx sdk.Context, tokenContract string, batchNonce uint64, relayerAddr sdk.AccAddress) *types.MsgConfirmBatch {
 	store := ctx.KVStore(k.storeKey)
-	entity := store.Get(types.GetBatchConfirmKey(tokenContract, batchNonce, oracleAddr))
+	entity := store.Get(types.GetBatchConfirmKey(tokenContract, batchNonce, relayerAddr))
 	if entity == nil {
 		return nil
 	}
@@ -294,10 +294,10 @@ func (k Keeper) GetBatchConfirm(ctx sdk.Context, tokenContract string, batchNonc
 	return &confirm
 }
 
-// SetBatchConfirm sets a batch confirmation by a oracle
-func (k Keeper) SetBatchConfirm(ctx sdk.Context, oracleAddr sdk.AccAddress, batch *types.MsgConfirmBatch) {
+// SetBatchConfirm sets a batch confirmation by a relayer
+func (k Keeper) SetBatchConfirm(ctx sdk.Context, relayerAddr sdk.AccAddress, batch *types.MsgConfirmBatch) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetBatchConfirmKey(batch.TokenContract, batch.Nonce, oracleAddr)
+	key := types.GetBatchConfirmKey(batch.TokenContract, batch.Nonce, relayerAddr)
 	store.Set(key, k.cdc.MustMarshal(batch))
 }
 

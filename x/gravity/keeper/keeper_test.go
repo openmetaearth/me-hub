@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,6 +17,7 @@ import (
 	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
 	"github.com/st-chain/me-hub/x/gravity/keeper"
 	"github.com/st-chain/me-hub/x/gravity/types"
+	minttypes "github.com/st-chain/me-hub/x/wmint/types"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/suite"
@@ -35,10 +37,6 @@ type KeeperTestSuite struct {
 	relayerAddrs []sdk.AccAddress
 	externalPris []*ecdsa.PrivateKey
 	chainName    string
-}
-
-func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
 }
 
 func TestGravityKeeperTestSuite(t *testing.T) {
@@ -73,7 +71,7 @@ func (s *KeeperTestSuite) Keeper() keeper.Keeper {
 	//case trontypes.ModuleName:
 	//	return s.App.TronKeeper.Keeper
 	default:
-		panic("invalid chain name")
+		panic(fmt.Sprintf("invalid chain name:%s", s.chainName))
 	}
 }
 
@@ -141,6 +139,8 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	proposalRelayer := &types.ProposalRelayer{}
 	for _, relayer := range s.relayerAddrs {
+		err = s.App.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, relayer, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 10000000000)})
+		s.Require().NoError(err)
 		proposalRelayer.Relayers = append(proposalRelayer.Relayers, relayer.String())
 	}
 	s.Keeper().SetProposalRelayer(s.Ctx, proposalRelayer)

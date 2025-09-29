@@ -6,24 +6,26 @@ import (
 	"github.com/st-chain/me-hub/x/gravity/types"
 )
 
-func (k Keeper) GetBridgeTokenByContract(ctx sdk.Context, tokenContract string) (bridgeToken *types.BridgeToken, err error) {
+func (k Keeper) GetBridgeTokenByContract(ctx sdk.Context, tokenContract string) (*types.BridgeToken, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetBridgeTokenByContractKey(tokenContract))
 	if len(bz) == 0 {
 		return nil, types.ErrNotFound
 	}
+	bridgeToken := &types.BridgeToken{}
 	k.cdc.MustUnmarshal(bz, bridgeToken)
-	return
+	return bridgeToken, nil
 }
 
-func (k Keeper) GetBridgeTokenByDenom(ctx sdk.Context, denom string) (bridgeToken *types.BridgeToken, err error) {
+func (k Keeper) GetBridgeTokenByDenom(ctx sdk.Context, denom string) (*types.BridgeToken, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetBridgeTokenByDenomKey(denom))
 	if len(bz) == 0 {
 		return nil, types.ErrNotFound
 	}
+	bridgeToken := &types.BridgeToken{}
 	k.cdc.MustUnmarshal(bz, bridgeToken)
-	return
+	return bridgeToken, nil
 }
 
 func (k Keeper) HasBridgeToken(ctx sdk.Context, tokenContract string) bool {
@@ -37,7 +39,7 @@ func (k Keeper) SetBridgeToken(ctx sdk.Context, token *types.BridgeToken) {
 	store.Set(types.GetBridgeTokenByContractKey(token.Contract), k.cdc.MustMarshal(token))
 }
 
-func (k Keeper) IterateBridgeTokenToDenom(ctx sdk.Context, cb func(*types.BridgeToken) bool) {
+func (k Keeper) IterateBridgeTokenByDenom(ctx sdk.Context, cb func(*types.BridgeToken) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.BridgeTokenByDenomKey)
 	defer iter.Close()

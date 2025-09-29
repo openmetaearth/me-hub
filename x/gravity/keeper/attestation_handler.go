@@ -46,7 +46,6 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		if isExist {
 			return errorsmod.Wrap(types.ErrInvalid, "bridge token is exist")
 		}
-		k.Logger(ctx).Info("add bridge token claim", "symbol", claim.Symbol, "token", claim.TokenContract)
 		bridgeToken := types.BridgeToken{
 			Contract: claim.TokenContract,
 			Denom:    strings.ToLower(claim.Symbol),
@@ -67,14 +66,14 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		if claim.RelayerSetNonce != 0 {
 			trustedOracleSet := k.GetRelayerSet(ctx, claim.RelayerSetNonce)
 			if trustedOracleSet == nil {
-				ctx.Logger().Error("Received attestation for a oracle set which does not exist in store", "oracleSetNonce", claim.RelayerSetNonce, "claim", claim)
-				return errorsmod.Wrapf(types.ErrInvalid, "attested oracleSet (%v) does not exist in store", claim.RelayerSetNonce)
+				ctx.Logger().Error("Received attestation for a relayer set which does not exist in store", "relayerSetNonce", claim.RelayerSetNonce, "claim", claim)
+				return errorsmod.Wrapf(types.ErrInvalid, "attested relayerSet (%v) does not exist in store", claim.RelayerSetNonce)
 			}
 
 			// overwrite the height, since it's not part of the claim
 			observedOracleSet.Height = trustedOracleSet.Height
 			if _, err := trustedOracleSet.Equal(observedOracleSet); err != nil {
-				panic(fmt.Sprintf("Potential bridge highjacking: observed oracleSet (%+v) does not match stored oracleSet (%+v)! %s", observedOracleSet, trustedOracleSet, err.Error()))
+				panic(fmt.Sprintf("Potential bridge highjacking: observed relayerSet (%+v) does not match stored relayerSet (%+v)! %s", observedOracleSet, trustedOracleSet, err.Error()))
 			}
 		}
 		k.SetLastObservedRelayerSet(ctx, observedOracleSet)

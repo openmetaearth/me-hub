@@ -30,11 +30,11 @@ func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer)
 	}
 	// check relayer address is not existed
 	if _, found := s.GetRelayer(ctx, relayerAddress); found {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle existed bridger address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "relayer existed bridger address")
 	}
-	// check external address is bound to oracle
+	// check external address is bound to relayer
 	if _, found := s.GetRelayerByExternalAddress(ctx, msg.ExternalAddress); found {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "external address is bound to oracle")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "external address is bound to relayer")
 	}
 	minThreshold := s.GetGravityMinDelegate(ctx)
 	relayer := types.Relayer{
@@ -135,7 +135,7 @@ func (s MsgServer) UnbondedRelayer(c context.Context, msg *types.MsgUnbondedRela
 	}
 
 	if relayer.Online {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "oracle on line")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "relayer on line")
 	}
 
 	slashAmount := relayer.GetSlashAmount(s.GetSlashFraction(ctx))
@@ -171,7 +171,7 @@ func (s MsgServer) RelayerSetConfirm(c context.Context, msg *types.MsgRelayerSet
 
 	relayerSet := s.GetRelayerSet(ctx, msg.Nonce)
 	if relayerSet == nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "couldn't find oracleSet")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "couldn't find relayerSet")
 	}
 
 	checkpoint, err := relayerSet.GetCheckpoint(s.GetGravityID(ctx))

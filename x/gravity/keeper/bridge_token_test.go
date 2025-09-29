@@ -7,18 +7,29 @@ import (
 
 func (suite *KeeperTestSuite) TestKeeper_BridgeToken() {
 	tokenContract := helpers.GenerateAddress().Hex()
-
-	suite.Keeper().AddBridgeToken(suite.Ctx)
+	tokenContract2 := helpers.GenerateAddress().Hex()
+	denom := "test"
 
 	bridgeToken := &types.BridgeToken{Contract: tokenContract, Denom: denom}
-	suite.EqualValues(bridgeToken, suite.Keeper().GetBridgeTokenDenom(suite.ctx, tokenContract))
+	suite.Keeper().SetBridgeToken(suite.Ctx, bridgeToken)
 
-	suite.EqualValues(bridgeToken, suite.Keeper().GetDenomBridgeToken(suite.ctx, denom))
+	suite.Keeper().SetBridgeToken(suite.Ctx, &types.BridgeToken{Contract: tokenContract2, Denom: "test2"})
 
-	suite.Keeper().IterateBridgeTokenToDenom(suite.ctx, func(bt *types.BridgeToken) bool {
-		suite.Equal(bt.Token, tokenContract)
-		suite.Equal(bt.Denom, denom)
-		suite.T().Log(bt.Token, bt.Denom)
+	b1, err := suite.Keeper().GetBridgeTokenByDenom(suite.Ctx, denom)
+	suite.NoError(err)
+	suite.EqualValues(bridgeToken, b1)
+
+	b2, err := suite.Keeper().GetBridgeTokenByContract(suite.Ctx, tokenContract)
+	suite.NoError(err)
+	suite.EqualValues(bridgeToken, b2)
+
+	suite.Keeper().IterateBridgeTokenByDenom(suite.Ctx, func(bt *types.BridgeToken) bool {
+		if bt.Denom == denom {
+			suite.Equal(bt.Contract, tokenContract)
+		}
+		if bt.Denom == "test2" {
+			suite.Equal(bt.Contract, tokenContract2)
+		}
 		return false
 	})
 }

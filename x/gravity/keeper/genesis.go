@@ -150,7 +150,7 @@ func ExportGenesis(ctx sdk.Context, k Keeper) *types.GenesisState {
 			return false
 		})
 	}
-	k.IterateBridgeTokenToDenom(ctx, func(erc20ToDenom *types.BridgeToken) bool {
+	k.IterateBridgeTokenByDenom(ctx, func(erc20ToDenom *types.BridgeToken) bool {
 		state.BridgeTokens = append(state.BridgeTokens, *erc20ToDenom)
 		return false
 	})

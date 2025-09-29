@@ -17,7 +17,7 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 	if err != nil {
 		return nil, errorsmod.Wrap(types.ErrUnknown, "msg to any")
 	}
-	// Check that the nonce of this event is exactly one higher than the last nonce stored by this oracle.
+	// Check that the nonce of this event is exactly one higher than the last nonce stored by this relayer.
 	// We check the event nonce in processAttestation as well, but checking it here gives individual eth signers a chance to retry,
 	// and prevents validators from submitting two claims with the same nonce.
 	// This prevents there being two attestations with the same nonce that get 2/3s of the votes
@@ -42,7 +42,7 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 		}
 	}
 
-	// Add the oracle's vote to this attestation
+	// Add the relayer's vote to this attestation
 	att.Votes = append(att.Votes, relayerAddr.String())
 	k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
@@ -67,17 +67,17 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 	requiredPower := types.AttestationVotesPowerThreshold.Mul(totalPower).Quo(sdkmath.NewInt(100))
 	attestationPower := sdkmath.NewInt(0)
 
-	for _, oracleStr := range att.Votes {
-		relayerAddr := sdk.MustAccAddressFromBech32(oracleStr)
-		oracle, found := k.GetRelayer(ctx, relayerAddr)
+	for _, relayerStr := range att.Votes {
+		relayerAddr := sdk.MustAccAddressFromBech32(relayerStr)
+		relayer, found := k.GetRelayer(ctx, relayerAddr)
 		if !found {
-			k.Logger(ctx).Error("TryAttestation", "not found oracle", relayerAddr.String(), "claimEventNonce",
+			k.Logger(ctx).Error("TryAttestation", "not found relayer", relayerAddr.String(), "claimEventNonce",
 				claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
 			continue
 		}
-		oraclePower := oracle.GetPower()
+		relayerPower := relayer.GetPower()
 		// Add it to the attestation power's sum
-		attestationPower = attestationPower.Add(oraclePower)
+		attestationPower = attestationPower.Add(relayerPower)
 		if attestationPower.LT(requiredPower) {
 			continue
 		}
@@ -225,7 +225,7 @@ func (k Keeper) SetLastObservedBlockHeight(ctx sdk.Context, externalBlockHeight,
 	store.Set(types.LastObservedBlockHeightKey, k.cdc.MustMarshal(&height))
 }
 
-// GetLastEventNonceByGravity returns the latest event nonce for a given oracle
+// GetLastEventNonceByGravity returns the latest event nonce for a given relayer
 func (k Keeper) GetLastEventNonceByRelayer(ctx sdk.Context, relayerAddr sdk.AccAddress) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bytes := store.Get(types.GetLastEventNonceByRelayerKey(relayerAddr))
@@ -245,7 +245,7 @@ func (k Keeper) GetLastEventNonceByRelayer(ctx sdk.Context, relayerAddr sdk.AccA
 	return sdk.BigEndianToUint64(bytes)
 }
 
-// DelLastEventNonceByGravity delete the latest event nonce for a given oracle
+// DelLastEventNonceByGravity delete the latest event nonce for a given relayer
 func (k Keeper) DelLastEventNonceByRelayer(ctx sdk.Context, relayerAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetLastEventNonceByRelayerKey(relayerAddr)
@@ -255,7 +255,7 @@ func (k Keeper) DelLastEventNonceByRelayer(ctx sdk.Context, relayerAddr sdk.AccA
 	store.Delete(key)
 }
 
-// SetLastEventNonceByGravity sets the latest event nonce for a give oracle
+// SetLastEventNonceByGravity sets the latest event nonce for a give relayer
 func (k Keeper) SetLastEventNonceByRelayer(ctx sdk.Context, relay sdk.AccAddress, eventNonce uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetLastEventNonceByRelayerKey(relay), sdk.Uint64ToBigEndian(eventNonce))
