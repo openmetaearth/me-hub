@@ -6,7 +6,7 @@ const (
 	EventTypeSendToExternal         = "send_to_external"
 	EventTypeSendToExternalCanceled = "send_to_external_canceled"
 	EventTypeRelayerSetUpdate       = "relayer_set_update"
-	EventTypeContractEvent          = "observation"
+	EventTypeContractEvent          = "contract_event_claim"
 	EventTypeOutgoingBatch          = "outgoing_batch"
 	EventTypeOutgoingBatchCanceled  = "outgoing_batch_canceled"
 	EventTypeIncreaseBridgeFee      = "increase_bridge_fee"

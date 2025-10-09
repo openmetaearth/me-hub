@@ -76,7 +76,7 @@ func (s *KeeperTestSuite) Keeper() keeper.Keeper {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	valNumber := tmrand.Intn(5) + 4
+	valNumber := tmrand.Intn(10) + 4
 
 	app := apptesting.Setup(s.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})

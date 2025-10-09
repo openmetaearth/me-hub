@@ -134,8 +134,8 @@ func (k Keeper) IterateRelayerSets(ctx sdk.Context, reverse bool, cb func(*types
 
 // GetRelayerSets used in testing
 func (k Keeper) GetRelayerSets(ctx sdk.Context) (relayerSets types.RelayerSets) {
-	k.IterateRelayerSets(ctx, false, func(set *types.RelayerSet) bool {
-		relayerSets = append(relayerSets, set)
+	k.IterateRelayerSets(ctx, false, func(relayer *types.RelayerSet) bool {
+		relayerSets = append(relayerSets, relayer)
 		return false
 	})
 	return
