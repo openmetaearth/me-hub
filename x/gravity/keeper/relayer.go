@@ -157,7 +157,6 @@ func (k Keeper) SlashRelayer(ctx sdk.Context, relayerAddrStr string) {
 	if !relayer.Online {
 		return
 	}
-
 	relayer.Online = false
 	relayer.SlashTimes += 1
 	k.SetRelayer(ctx, relayerAddr, relayer)

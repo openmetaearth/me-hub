@@ -13,7 +13,6 @@ import (
 func (k Keeper) EndBlocker(ctx sdk.Context) {
 	signedWindow := k.GetSignedWindow(ctx)
 	k.slashing(ctx, signedWindow)
-	k.cleanupTimedOutBatches(ctx)
 	k.createRelayerSetChangeRequest(ctx)
 	k.pruneRelayerSet(ctx, signedWindow)
 }

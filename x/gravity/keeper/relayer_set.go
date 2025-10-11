@@ -61,6 +61,7 @@ func (k Keeper) AddRelayerSetChangeRequest(ctx sdk.Context, currentRelayerSet *t
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeRelayerSetUpdate,
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyRelayerSetNonce, fmt.Sprint(currentRelayerSet.Nonce)),
 		sdk.NewAttribute(types.AttributeKeyRelayerSetLen, fmt.Sprint(len(currentRelayerSet.Members))),
 	))

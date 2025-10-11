@@ -49,14 +49,13 @@ func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error
 	k.Logger(ctx).Info("update chain relayers proposal",
 		"maxChangePowerThreshold", maxChangePowerThreshold.String(),
 		"deleteTotalPower", deleteTotalPower.String())
-	if deleteTotalPower.GT(sdkmath.ZeroInt()) && deleteTotalPower.GTE(maxChangePowerThreshold) {
+	if deleteTotalPower.GTE(maxChangePowerThreshold) {
 		return errorsmod.Wrapf(types.ErrInvalid, "max change power, "+
 			"maxChangePowerThreshold: %s, deleteTotalPower: %s", maxChangePowerThreshold.String(), deleteTotalPower.String())
 	}
 
 	// update proposal relayer
 	k.SetProposalRelayer(ctx, &types.ProposalRelayer{Relayers: relayers})
-
 	for _, unbondedOracle := range unbondedOracleList {
 		if err := k.UnbondedRelayerFromProposal(ctx, unbondedOracle); err != nil {
 			return err
@@ -67,7 +66,7 @@ func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error
 
 func (k Keeper) UnbondedRelayerFromProposal(ctx sdk.Context, relayer types.Relayer) error {
 	relayerAddress := sdk.MustAccAddressFromBech32(relayer.RelayerAddress)
-	//if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, relayerAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, relayer.DelegateAmount))); err != nil {
+	//if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, relayerAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, relayer.DelegateAmount))); err != nil {
 	//	return nil
 	//}
 	relayer.Online = false

@@ -3,6 +3,7 @@ package types
 const (
 	EventTypeBondedRelayer          = "bonded_relayer"
 	EventTypeUnBondedRelayer        = "unbonded_relayer"
+	EventTypeRelayerSetConfirm      = "relayer_set_confirm"
 	EventTypeSendToExternal         = "send_to_external"
 	EventTypeSendToExternalCanceled = "send_to_external_canceled"
 	EventTypeRelayerSetUpdate       = "relayer_set_update"

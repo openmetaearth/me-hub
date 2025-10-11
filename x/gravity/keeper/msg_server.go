@@ -114,6 +114,7 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeBondedRelayer,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.RelayerAddress),
 		sdk.NewAttribute(types.AttributeKeyReceiver, authtypes.NewModuleAddress(s.moduleName).String()),
 		sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
@@ -158,6 +159,7 @@ func (s MsgServer) UnbondedRelayer(c context.Context, msg *types.MsgUnbondedRela
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeUnBondedRelayer,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.RelayerAddress),
 		sdk.NewAttribute(types.AttributeKeyReceiver, authtypes.NewModuleAddress(s.moduleName).String()),
 		sdk.NewAttribute(types.AttributeKeySlashAmount, slashAmount.String()),
@@ -190,6 +192,12 @@ func (s MsgServer) RelayerSetConfirm(c context.Context, msg *types.MsgRelayerSet
 	}
 
 	s.SetRelayerSetConfirm(ctx, relayerAddress, msg)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeRelayerSetConfirm,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.RelayerAddress),
+	))
 	return &types.MsgRelayerSetConfirmResponse{}, nil
 }
 

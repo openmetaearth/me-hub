@@ -17,11 +17,11 @@ import (
 	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
 	"github.com/st-chain/me-hub/x/gravity/keeper"
 	"github.com/st-chain/me-hub/x/gravity/types"
+	trontypes "github.com/st-chain/me-hub/x/tron/types"
 	minttypes "github.com/st-chain/me-hub/x/wmint/types"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/suite"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 	"testing"
 )
 
@@ -34,9 +34,10 @@ type KeeperTestSuite struct {
 	experienceValidator stakingtypes.Validator
 	usaValidator        stakingtypes.Validator
 
-	relayerAddrs []sdk.AccAddress
-	externalPris []*ecdsa.PrivateKey
-	chainName    string
+	relayerAddrs  []sdk.AccAddress
+	relayerNumber int
+	externalPris  []*ecdsa.PrivateKey
+	chainName     string
 }
 
 func TestGravityKeeperTestSuite(t *testing.T) {
@@ -76,7 +77,6 @@ func (s *KeeperTestSuite) Keeper() keeper.Keeper {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	valNumber := tmrand.Intn(10) + 4
 
 	app := apptesting.Setup(s.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
@@ -134,14 +134,16 @@ func (s *KeeperTestSuite) SetupTest() {
 	_, err = stakingMsgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
 
-	s.relayerAddrs = s.NewAccounts(valNumber)
-	s.externalPris = helpers.CreateMultiECDSA(valNumber)
+	s.relayerNumber = 10
+	s.relayerAddrs = s.NewAccounts(s.relayerNumber)
+	s.Require().EqualValues(s.relayerNumber, len(s.relayerAddrs))
+	s.externalPris = helpers.CreateMultiECDSA(s.relayerNumber)
 
 	proposalRelayer := &types.ProposalRelayer{}
-	for _, relayer := range s.relayerAddrs {
-		err = s.App.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, relayer, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 10000000000)})
+	for i := 0; i < s.relayerNumber; i++ {
+		err = s.App.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, s.relayerAddrs[i], sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 10000000000)})
 		s.Require().NoError(err)
-		proposalRelayer.Relayers = append(proposalRelayer.Relayers, relayer.String())
+		proposalRelayer.Relayers = append(proposalRelayer.Relayers, s.relayerAddrs[i].String())
 	}
 	s.Keeper().SetProposalRelayer(s.Ctx, proposalRelayer)
 }
@@ -157,15 +159,15 @@ func (s *KeeperTestSuite) SignRelayerSetConfirm(external *ecdsa.PrivateKey, rela
 	s.NoError(err)
 	signature, err := types.NewEthereumSignature(checkpoint, external)
 	s.NoError(err)
-	//if trontypes.ModuleName == s.chainName {
-	//	externalAddress = tronaddress.PubkeyToAddress(external.PublicKey).String()
-	//
-	//	checkpoint, err = trontypes.GetCheckpointRelayerSet(relayerSet, gravityId)
-	//	s.Require().NoError(err)
-	//
-	//	signature, err = trontypes.NewTronSignature(checkpoint, external)
-	//	s.Require().NoError(err)
-	//}
+	if trontypes.ModuleName == s.chainName {
+		//externalAddress = tronaddress.PubkeyToAddress(external.PublicKey).String()
+		//
+		//checkpoint, err = trontypes.GetCheckpointRelayerSet(relayerSet, gravityId)
+		//s.Require().NoError(err)
+		//
+		//signature, err = trontypes.NewTronSignature(checkpoint, external)
+		//s.Require().NoError(err)
+	}
 	return externalAddress, signature
 }
 

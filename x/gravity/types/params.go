@@ -17,9 +17,8 @@ const (
 
 var (
 	// AttestationVotesPowerThreshold threshold of votes power to succeed
-	AttestationVotesPowerThreshold = sdkmath.NewInt(66)
-
-	AttestationProposalRelayerChangePowerThreshold = sdkmath.NewInt(30)
+	AttestationVotesPowerThreshold                 = sdkmath.NewInt(66)
+	AttestationProposalRelayerChangePowerThreshold = sdkmath.NewInt(34)
 )
 
 func DefaultParams() Params {
@@ -31,7 +30,7 @@ func DefaultParams() Params {
 		SignedWindow:                       30_000,
 		SlashFraction:                      sdk.NewDecWithPrec(8, 1), // 80%
 		RelayerSetUpdatePowerChangePercent: sdk.NewDecWithPrec(2, 1), // 20%
-		MaxRelayers:                        5,
+		MaxRelayers:                        10,
 		MinDelegate:                        sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(100_000_000)),    // 1 MEC
 		MaxDelegate:                        sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10_000_000_000)), // 100 MEC
 	}
