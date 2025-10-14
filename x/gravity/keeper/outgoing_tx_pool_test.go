@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
-
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
@@ -11,10 +9,11 @@ import (
 	"github.com/st-chain/me-hub/x/gravity/types"
 )
 
-func (s *KeeperTestSuite) TestKeeper_Outgoing() {
+func (s *KeeperTestSuite) TestKeeper_OutgoingAncCancel() {
 	sender := helpers.GenerateAddress().Bytes()
 	bridgeToken := helpers.GenerateAddress().Hex()
-	denom := fmt.Sprintf("%s%s", s.chainName, bridgeToken)
+
+	denom := "test"
 	s.Equal(sdk.NewCoin(denom, sdkmath.ZeroInt()), s.App.BankKeeper.GetSupply(s.Ctx, denom))
 
 	sendAmount := sdk.NewCoin(denom, sdkmath.NewInt(int64(tmrand.Uint32()*2)))
@@ -24,9 +23,9 @@ func (s *KeeperTestSuite) TestKeeper_Outgoing() {
 	s.NoError(err)
 	s.Equal(sendAmount, s.App.BankKeeper.GetSupply(s.Ctx, denom))
 
-	s.Keeper().SetBridgeToken(s.Ctx, &types.BridgeToken{Contract: bridgeToken, Denom: denom})
-
+	s.Keeper().SetBridgeToken(s.Ctx, &types.BridgeToken{Contract: bridgeToken, Denom: denom, Supply: sendAmount.Amount})
 	s.Equal(s.App.BankKeeper.GetAllBalances(s.Ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
+
 	receiver := helpers.GenerateAddress().Hex()
 	amount := sdk.NewCoin(denom, sendAmount.Amount.QuoRaw(2))
 	txId, err := s.Keeper().AddToOutgoingPool(s.Ctx, sender, receiver, amount, amount)
@@ -38,6 +37,5 @@ func (s *KeeperTestSuite) TestKeeper_Outgoing() {
 	_, err = s.Keeper().RemoveFromOutgoingPoolAndRefund(s.Ctx, txId, sender)
 	s.NoError(err)
 	s.Equal(s.App.BankKeeper.GetAllBalances(s.Ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
-
 	s.Equal(sendAmount, s.App.BankKeeper.GetSupply(s.Ctx, denom))
 }

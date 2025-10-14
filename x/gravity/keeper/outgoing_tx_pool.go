@@ -118,16 +118,16 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	totalToRefundCoins := sdk.NewCoins(totalToRefund)
 
 	// check bridge denom is origin denom or converted alias
-	if err = k.bankKeeper.MintCoins(ctx, types.ModuleName, totalToRefundCoins); err != nil {
+	if err = k.bankKeeper.MintCoins(ctx, k.moduleName, totalToRefundCoins); err != nil {
 		return sdk.Coin{}, errorsmod.Wrapf(err, "mint vouchers coins: %s", totalToRefundCoins)
 	}
-	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, totalToRefundCoins); err != nil {
+	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
 		return sdk.Coin{}, errorsmod.Wrap(err, "transfer vouchers")
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeSendToExternalCanceled,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(txId)),
 	))
 	return totalToRefund, nil
