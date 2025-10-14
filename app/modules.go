@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+
 	"github.com/CosmWasm/wasmd/x/wasm"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -34,6 +35,7 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/x/lockup"
 	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
+	"github.com/st-chain/me-hub/x/blacklist"
 	"github.com/st-chain/me-hub/x/dao"
 	"github.com/st-chain/me-hub/x/delayedack"
 	"github.com/st-chain/me-hub/x/denommetadata"
@@ -102,6 +104,7 @@ var ModuleBasics = module.NewBasicManager(
 	// did modules
 	did.AppModuleBasic{},
 	kyc.AppModuleBasic{},
+	blacklist.AppModuleBasic{},
 
 	// Osmosis modules
 	lockup.AppModuleBasic{},

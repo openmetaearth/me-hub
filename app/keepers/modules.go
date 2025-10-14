@@ -54,6 +54,8 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+	"github.com/st-chain/me-hub/x/blacklist"
+	blacklisttypes "github.com/st-chain/me-hub/x/blacklist/types"
 	"github.com/st-chain/me-hub/x/dao"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	"github.com/st-chain/me-hub/x/did"
@@ -130,6 +132,7 @@ func (a *AppKeepers) SetupModules(
 		// did app modules
 		did.NewAppModule(appCodec, a.DidKeeper),
 		kyc.NewAppModule(appCodec, a.KycKeeper),
+		blacklist.NewAppModule(appCodec, *a.BlacklistKeeper, a.GetSubspace(blacklisttypes.ModuleName)),
 
 		// me-group
 		groupmodule.NewAppModule(appCodec, *a.GroupKeeper),
@@ -222,6 +225,7 @@ var BeginBlockers = []string{
 	wasmtypes.ModuleName,
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
+	blacklisttypes.ModuleName,
 	nft.ModuleName,
 	groupTypes.ModuleName,
 }
@@ -263,6 +267,7 @@ var EndBlockers = []string{
 	wasmtypes.ModuleName,
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
+	blacklisttypes.ModuleName,
 	nft.ModuleName,
 	groupTypes.ModuleName,
 }
@@ -304,6 +309,7 @@ var InitGenesis = []string{
 	wasmtypes.ModuleName,
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
+	blacklisttypes.ModuleName,
 	nft.ModuleName,
 	groupTypes.ModuleName,
 }

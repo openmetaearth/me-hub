@@ -1,0 +1,12 @@
+syntax = "proto3";
+package metaearth.blacklist;
+
+import "gogoproto/gogo.proto";
+import "metaearth/blacklist/blacklist.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/blacklist/types";
+
+// Genesis state for the blacklist module
+message GenesisState {
+  Blacklist blacklist = 1 [(gogoproto.nullable) = false];
+}

@@ -1,0 +1,21 @@
+syntax = "proto3";
+package metaearth.blacklist;
+
+import "cosmos/msg/v1/msg.proto";
+import "gogoproto/gogo.proto";
+import "metaearth/blacklist/blacklist.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/blacklist/types";
+
+// Msg defines the Msg service.
+service Msg {
+  rpc UpdateBlacklist(MsgUpdateBlacklist) returns (MsgUpdateBlacklistResponse);
+}
+
+message MsgUpdateBlacklist {
+  string creator = 1;
+  repeated string addresses_to_remove = 2;
+  repeated string addresses_to_add = 3;
+}
+
+message MsgUpdateBlacklistResponse {}

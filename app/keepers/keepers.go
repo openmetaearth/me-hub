@@ -76,6 +76,8 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+	blacklistkeeper "github.com/st-chain/me-hub/x/blacklist/keeper"
+	blacklisttypes "github.com/st-chain/me-hub/x/blacklist/types"
 	"github.com/st-chain/me-hub/x/bridgingfee"
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
@@ -140,8 +142,9 @@ type AppKeepers struct {
 	FeeMarketKeeper feemarketkeeper.Keeper
 
 	// did keeper
-	DidKeeper *didkeeper.Keeper
-	KycKeeper *kyckeeper.Keeper
+	DidKeeper       *didkeeper.Keeper
+	KycKeeper       *kyckeeper.Keeper
+	BlacklistKeeper *blacklistkeeper.Keeper
 
 	// Osmosis keepers
 	GAMMKeeper        *gammkeeper.Keeper
@@ -479,6 +482,13 @@ func (a *AppKeepers) InitKeepers(
 	a.StakingKeeper.SetKycKeeper(a.KycKeeper)
 	a.StakingKeeper.SetDidKeeper(a.DidKeeper)
 	a.DaoKeeper.SetHook(a.KycKeeper)
+
+	// Create blacklist Keeper
+	a.BlacklistKeeper = blacklistkeeper.NewKeeper(
+		appCodec,
+		a.keys[blacklisttypes.StoreKey],
+		a.memKeys[blacklisttypes.StoreKey],
+	)
 
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
 	a.GroupKeeper = groupkeeper.NewKeeper(

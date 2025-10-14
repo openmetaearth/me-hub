@@ -1,0 +1,8 @@
+syntax = "proto3";
+package metaearth.blacklist;
+
+option go_package = "github.com/st-chain/me-hub/x/blacklist/types";
+
+message Blacklist {
+  repeated string addresses = 1;
+}

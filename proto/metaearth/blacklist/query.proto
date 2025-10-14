@@ -1,0 +1,26 @@
+syntax = "proto3";
+package metaearth.blacklist;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "metaearth/blacklist/blacklist.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/blacklist/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  rpc Blacklist(QueryBlacklistRequest) returns (QueryBlacklistResponse) {
+    option (google.api.http).get = "/metaearth/blacklist/blacklist";
+  }
+}
+
+message QueryBlacklistRequest {
+  string address = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryBlacklistResponse {
+  Blacklist blacklist = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
