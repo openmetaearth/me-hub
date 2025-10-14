@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	TypeMsgSendToMeClaim          = "send_to_me_claim"
-	TypeMsgSendToExternalClaim    = "send_to_external_claim"
-	TypeMsgRelayerSetUpdatedClaim = "relayer_set_updated_claim"
-	TypeMsgBridgeTokenClaim       = "bridge_token_claim"
+	TypeMsgSendToMeClaim         = "send_to_me_claim"
+	TypeMsgSendToExternalClaim   = "send_to_external_claim"
+	TypeMsgRelayerSetUpdateClaim = "relayer_set_updated_claim"
+	TypeMsgBridgeTokenClaim      = "bridge_token_claim"
 )
 
 // ExternalClaim represents a claim on ethereum state
@@ -43,7 +43,7 @@ var (
 	_ ExternalClaim = &MsgSendToMeClaim{}
 	_ ExternalClaim = &MsgBridgeTokenClaim{}
 	_ ExternalClaim = &MsgSendToExternalClaim{}
-	_ ExternalClaim = &MsgRelayerSetUpdatedClaim{}
+	_ ExternalClaim = &MsgRelayerSetUpdateClaim{}
 )
 
 func UnpackAttestationClaim(cdc codectypes.AnyUnpacker, att *Attestation) (ExternalClaim, error) {
@@ -221,15 +221,15 @@ func (m *MsgBridgeTokenClaim) ClaimHash() []byte {
 	return tmhash.Sum([]byte(path))
 }
 
-// MsgRelayerSetUpdatedClaim //
+// MsgRelayerSetUpdateClaim //
 
 // GetType returns the type of the claim
-func (m *MsgRelayerSetUpdatedClaim) GetType() ClaimType {
+func (m *MsgRelayerSetUpdateClaim) GetType() ClaimType {
 	return CLAIM_TYPE_RELAYER_SET_UPDATED
 }
 
 // ValidateBasic performs stateless checks
-func (m *MsgRelayerSetUpdatedClaim) ValidateBasic() (err error) {
+func (m *MsgRelayerSetUpdateClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
@@ -257,27 +257,27 @@ func (m *MsgRelayerSetUpdatedClaim) ValidateBasic() (err error) {
 }
 
 // GetSignBytes encodes the message for signing
-func (m *MsgRelayerSetUpdatedClaim) GetSignBytes() []byte {
+func (m *MsgRelayerSetUpdateClaim) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
-func (m *MsgRelayerSetUpdatedClaim) GetClaimer() sdk.AccAddress {
+func (m *MsgRelayerSetUpdateClaim) GetClaimer() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.RelayerAddress)
 }
 
 // GetSigners defines whose signature is required
-func (m *MsgRelayerSetUpdatedClaim) GetSigners() []sdk.AccAddress {
+func (m *MsgRelayerSetUpdateClaim) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.RelayerAddress)}
 }
 
 // Type should return the action
-func (m *MsgRelayerSetUpdatedClaim) Type() string { return TypeMsgRelayerSetUpdatedClaim }
+func (m *MsgRelayerSetUpdateClaim) Type() string { return TypeMsgRelayerSetUpdateClaim }
 
 // Route should return the name of the module
-func (m *MsgRelayerSetUpdatedClaim) Route() string { return RouterKey }
+func (m *MsgRelayerSetUpdateClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeSendToExternal.Hash
-func (m *MsgRelayerSetUpdatedClaim) ClaimHash() []byte {
+func (m *MsgRelayerSetUpdateClaim) ClaimHash() []byte {
 	path := fmt.Sprintf("%d/%d/%d/%v/", m.BlockHeight, m.RelayerSetNonce, m.EventNonce, m.Members)
 	return tmhash.Sum([]byte(path))
 }

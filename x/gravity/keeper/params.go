@@ -42,11 +42,11 @@ func (k Keeper) GetGravityID(ctx sdk.Context) string {
 	return k.GetParams(ctx).GravityId
 }
 
-func (k Keeper) GetGravityMinDelegate(ctx sdk.Context) sdk.Coin {
+func (k Keeper) GetGravityMinDelegate(ctx sdk.Context) sdk.Int {
 	return k.GetParams(ctx).MinDelegate
 }
 
-func (k Keeper) GetGravityMaxDelegate(ctx sdk.Context) sdk.Coin {
+func (k Keeper) GetGravityMaxDelegate(ctx sdk.Context) sdk.Int {
 	return k.GetParams(ctx).MaxDelegate
 }
 

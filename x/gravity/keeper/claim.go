@@ -23,27 +23,23 @@ func (s MsgServer) claimHandlerCommon(ctx sdk.Context, msg types.ExternalClaim) 
 	return nil
 }
 
-func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, signatureAddr, signature string, checkpoint []byte) (sdk.AccAddress, error) {
+func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, relayerAddr sdk.AccAddress, signatureAddr, signature string, checkpoint []byte) error {
 	sigBytes, err := hex.DecodeString(signature)
 	if err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "signature decoding")
-	}
-
-	relayerAddr, found := s.GetRelayerByExternalAddress(ctx, signatureAddr)
-	if !found {
-		return nil, types.ErrNotFoundRelayer
+		return errorsmod.Wrap(types.ErrInvalid, "signature decoding")
 	}
 
 	relayer, found := s.GetRelayer(ctx, relayerAddr)
 	if !found {
-		return nil, types.ErrNotFoundRelayer
+		return types.ErrNotFoundRelayer
 	}
 
 	if relayer.ExternalAddress != signatureAddr {
-		return nil, errorsmod.Wrapf(types.ErrInvalid, "got %s, expected %s", signatureAddr, relayer.ExternalAddress)
+		return errorsmod.Wrapf(types.ErrExternalAddressNotMatch, "got %s, expected %s", signatureAddr, relayer.ExternalAddress)
 	}
+
 	if err = types.ValidateEthereumSignature(checkpoint, sigBytes, relayer.ExternalAddress); err != nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", relayer.ExternalAddress, hex.EncodeToString(checkpoint), signature))
+		return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", relayer.ExternalAddress, hex.EncodeToString(checkpoint), signature))
 	}
-	return relayerAddr, nil
+	return nil
 }

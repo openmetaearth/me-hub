@@ -32,12 +32,12 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 	totalInVouchers := sdk.NewCoins(amount.Add(fee))
 
 	// If it is an external blockchain asset we burn it send coins to module in prep for burn
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, totalInVouchers); err != nil {
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, totalInVouchers); err != nil {
 		return 0, err
 	}
 
 	// burn vouchers to send them back to external blockchain
-	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, totalInVouchers); err != nil {
+	if err := k.bankKeeper.BurnCoins(ctx, k.moduleName, totalInVouchers); err != nil {
 		return 0, err
 	}
 
@@ -61,7 +61,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeSendToExternal,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(nextTxID)),
 	))
 

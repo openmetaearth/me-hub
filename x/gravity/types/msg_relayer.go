@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/utils"
 )
 
@@ -44,6 +45,9 @@ func (m *MsgBondedRelayer) ValidateBasic() error {
 	if !m.DelegateAmount.IsValid() || m.DelegateAmount.IsNegative() {
 		return sdkerrors.ErrInvalidRequest.Wrap("invalid delegation amount")
 	}
+	if m.DelegateAmount.Denom != params.BaseDenom {
+		return sdkerrors.ErrInvalidRequest.Wrapf("delegate denom got %s, expected %s", m.DelegateAmount.Denom, params.BaseDenom)
+	}
 	return nil
 }
 
@@ -70,6 +74,9 @@ func (m *MsgAddDelegate) ValidateBasic() error {
 	}
 	if !m.Amount.IsValid() || m.Amount.IsNegative() {
 		return sdkerrors.ErrInvalidRequest.Wrap("invalid delegation amount")
+	}
+	if m.Amount.Denom != params.BaseDenom {
+		return sdkerrors.ErrInvalidRequest.Wrapf("delegate denom got %s, expected %s", m.Amount.Denom, params.BaseDenom)
 	}
 	return nil
 }

@@ -47,7 +47,7 @@ func (s *KeeperTestSuite) TestDepositClaim() {
 	s.Require().NoError(err)
 
 	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
-	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	s.Keeper().EndBlocker(s.Ctx)
 
 	sendToMeClaim := &types.MsgSendToMeClaim{
 		EventNonce:     2,

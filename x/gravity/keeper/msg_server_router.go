@@ -54,7 +54,7 @@ func (k msgServer) RelayerSetConfirm(ctx context.Context, msg *types.MsgRelayerS
 	}
 }
 
-func (k msgServer) RelayerSetUpdateClaim(ctx context.Context, msg *types.MsgRelayerSetUpdatedClaim) (*types.MsgRelayerSetUpdatedClaimResponse, error) {
+func (k msgServer) RelayerSetUpdateClaim(ctx context.Context, msg *types.MsgRelayerSetUpdateClaim) (*types.MsgRelayerSetUpdateClaimResponse, error) {
 	if server, err := k.getMsgServerByChainName(msg.GetChainName()); err != nil {
 		return nil, err
 	} else {

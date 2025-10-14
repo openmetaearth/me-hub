@@ -24,7 +24,7 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 	// in the endBlocker.
 	lastEventNonce := k.GetLastEventNonceByRelayer(ctx, relayerAddr)
 	if claim.GetEventNonce() != lastEventNonce+1 {
-		return nil, errorsmod.Wrapf(types.ErrNonContiguousEventNonce, "got %v, expected %v", claim.GetEventNonce(), lastEventNonce+1)
+		return nil, errorsmod.Wrapf(types.ErrNonContinuousEventNonce, "got %v, expected %v", claim.GetEventNonce(), lastEventNonce+1)
 	}
 
 	gasMeter := ctx.GasMeter()
@@ -91,6 +91,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		err := k.processAttestation(ctx, claim)
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeContractEvent,
+			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 			sdk.NewAttribute(types.AttributeKeyClaimType, claim.GetType().String()),
 			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.GetEventNonce())),
 			sdk.NewAttribute(types.AttributeKeyClaimHash, fmt.Sprint(hex.EncodeToString(claim.ClaimHash()))),

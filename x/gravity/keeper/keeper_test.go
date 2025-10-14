@@ -79,24 +79,23 @@ func (s *KeeperTestSuite) Keeper() keeper.Keeper {
 func (s *KeeperTestSuite) SetupTest() {
 
 	app := apptesting.Setup(s.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	s.Ctx = app.NewContext(false, cometbftproto.Header{Height: 0, ChainID: apptesting.TestChainID})
+	s.App = app
 
-	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
+	err := app.AccountKeeper.SetParams(s.Ctx, authtypes.DefaultParams())
 	s.Require().NoError(err)
 
-	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	err = app.BankKeeper.SetParams(s.Ctx, banktypes.DefaultParams())
 	s.Require().NoError(err)
 
 	stakingParams := stakingtypes.DefaultParams()
 	stakingParams.BondDenom = params.BaseDenom
-	err = app.StakingKeeper.SetParams(ctx, stakingParams)
+	err = app.StakingKeeper.SetParams(s.Ctx, stakingParams)
 	s.Require().NoError(err)
 
-	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
+	queryHelper := baseapp.NewQueryServerTestHelper(s.Ctx, app.InterfaceRegistry())
 	queryClient := types.NewQueryClient(queryHelper)
 
-	s.App = app
-	s.Ctx = ctx
 	s.queryClient = queryClient
 
 	stakingKeeperMsgSrv := stakingkeeper.NewMsgServerImpl(app.StakingKeeper.Keeper)
@@ -141,7 +140,7 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	proposalRelayer := &types.ProposalRelayer{}
 	for i := 0; i < s.relayerNumber; i++ {
-		err = s.App.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, s.relayerAddrs[i], sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 10000000000)})
+		err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, minttypes.ModuleName, s.relayerAddrs[i], sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 10000000000)})
 		s.Require().NoError(err)
 		proposalRelayer.Relayers = append(proposalRelayer.Relayers, s.relayerAddrs[i].String())
 	}

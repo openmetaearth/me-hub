@@ -28,6 +28,9 @@ func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer)
 	if !s.IsProposalRelayer(ctx, msg.RelayerAddress) {
 		return nil, types.ErrNotProposedRelayer
 	}
+	if msg.DelegateAmount.Denom != params.BaseDenom {
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.DelegateAmount.Denom, params.BaseDenom)
+	}
 	// check relayer address is not existed
 	if _, found := s.GetRelayer(ctx, relayerAddress); found {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "relayer existed bridger address")
@@ -45,15 +48,13 @@ func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer)
 		Online:          true,
 		SlashTimes:      0,
 	}
-	if minThreshold.Denom != msg.DelegateAmount.Denom {
-		return nil, errorsmod.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.DelegateAmount.Denom, minThreshold.Denom)
-	}
-	if msg.DelegateAmount.IsLT(minThreshold) {
+	if msg.DelegateAmount.Amount.LT(minThreshold) {
 		return nil, types.ErrDelegateAmountBelowMinimum
 	}
-	if msg.DelegateAmount.Amount.GT(s.GetGravityMaxDelegate(ctx).Amount) {
+	if msg.DelegateAmount.Amount.GT(s.GetGravityMaxDelegate(ctx)) {
 		return nil, types.ErrDelegateAmountAboveMaximum
 	}
+
 	if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, relayerAddress, s.moduleName, sdk.NewCoins(msg.DelegateAmount)); err != nil {
 		return nil, err
 	}
@@ -78,6 +79,9 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	if !s.IsProposalRelayer(ctx, msg.RelayerAddress) {
 		return nil, types.ErrNotProposedRelayer
 	}
+	if msg.Amount.Denom != params.BaseDenom {
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.Amount.Denom, params.BaseDenom)
+	}
 	if _, found := s.GetRelayer(ctx, relayerAddress); !found {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "no found bridger address")
 	}
@@ -86,21 +90,30 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 		return nil, types.ErrNotFoundRelayer
 	}
 
-	minThreshold := s.GetGravityMinDelegate(ctx)
-	if minThreshold.Denom != msg.Amount.Denom {
-		return nil, errorsmod.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.Amount.Denom, minThreshold.Denom)
+	clearSlashAmount := relayer.GetSlashAmount(s.GetSlashFraction(ctx))
+	if clearSlashAmount.IsPositive() && msg.Amount.Amount.LT(clearSlashAmount.Amount) {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "not sufficient slash amount")
+	}
+	if clearSlashAmount.IsPositive() {
+		if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, relayerAddress, types.SlashingModuleAccount, sdk.NewCoins(clearSlashAmount)); err != nil {
+			return nil, err
+		}
 	}
 
-	relayer.DelegateAmount = relayer.DelegateAmount.Add(msg.Amount.Amount)
-	if relayer.DelegateAmount.LT(minThreshold.Amount) {
+	delegateCoin := msg.Amount.Sub(clearSlashAmount)
+	minThreshold := s.GetGravityMinDelegate(ctx)
+	relayer.DelegateAmount = relayer.DelegateAmount.Add(delegateCoin.Amount)
+	if relayer.DelegateAmount.LT(minThreshold) {
 		return nil, types.ErrDelegateAmountBelowMinimum
 	}
-	if relayer.DelegateAmount.GT(s.GetGravityMaxDelegate(ctx).Amount) {
+	if relayer.DelegateAmount.GT(s.GetGravityMaxDelegate(ctx)) {
 		return nil, types.ErrDelegateAmountAboveMaximum
 	}
 
-	if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, relayerAddress, s.moduleName, sdk.NewCoins(msg.Amount)); err != nil {
-		return nil, err
+	if delegateCoin.IsPositive() {
+		if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, relayerAddress, s.moduleName, sdk.NewCoins(delegateCoin)); err != nil {
+			return nil, err
+		}
 	}
 
 	if !relayer.Online {
@@ -113,7 +126,7 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	s.SetLastTotalPower(ctx)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeBondedRelayer,
+		types.EventTypeAddDelegate,
 		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
 		sdk.NewAttribute(sdk.AttributeKeySender, msg.RelayerAddress),
 		sdk.NewAttribute(types.AttributeKeyReceiver, authtypes.NewModuleAddress(s.moduleName).String()),
@@ -181,8 +194,8 @@ func (s MsgServer) RelayerSetConfirm(c context.Context, msg *types.MsgRelayerSet
 		return nil, errorsmod.Wrap(types.ErrInvalid, err.Error())
 	}
 
-	relayerAddress, err := s.confirmHandlerCommon(ctx, msg.ExternalAddress, msg.Signature, checkpoint)
-	if err != nil {
+	relayerAddress := sdk.MustAccAddressFromBech32(msg.RelayerAddress)
+	if err = s.confirmHandlerCommon(ctx, relayerAddress, msg.ExternalAddress, msg.Signature, checkpoint); err != nil {
 		return nil, err
 	}
 
@@ -202,7 +215,7 @@ func (s MsgServer) RelayerSetConfirm(c context.Context, msg *types.MsgRelayerSet
 }
 
 // RelayerSetUpdateClaim handles claims for executing a relayer set update on Ethereum
-func (s MsgServer) RelayerSetUpdateClaim(c context.Context, msg *types.MsgRelayerSetUpdatedClaim) (*types.MsgRelayerSetUpdatedClaimResponse, error) {
+func (s MsgServer) RelayerSetUpdateClaim(c context.Context, msg *types.MsgRelayerSetUpdateClaim) (*types.MsgRelayerSetUpdateClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	relayerAddress := sdk.MustAccAddressFromBech32(msg.RelayerAddress)
 	err := s.checkIsRelayer(ctx, relayerAddress)
@@ -220,7 +233,7 @@ func (s MsgServer) RelayerSetUpdateClaim(c context.Context, msg *types.MsgRelaye
 	if _, err := s.Attest(ctx, relayerAddress, msg); err != nil {
 		return nil, err
 	}
-	return &types.MsgRelayerSetUpdatedClaimResponse{}, nil
+	return &types.MsgRelayerSetUpdateClaimResponse{}, nil
 }
 
 func (s MsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {
@@ -290,12 +303,6 @@ func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		sdk.EventTypeMessage,
-		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
-		sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender),
-	))
-
 	return &types.MsgRequestBatchResponse{
 		BatchNonce: batch.BatchNonce,
 	}, nil
@@ -315,17 +322,17 @@ func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (
 		return nil, errorsmod.Wrap(types.ErrInvalid, err.Error())
 	}
 
-	relayerAddr, err := s.confirmHandlerCommon(ctx, msg.ExternalAddress, msg.Signature, checkpoint)
-	if err != nil {
+	relayerAddress := sdk.MustAccAddressFromBech32(msg.RelayerAddress)
+	if err = s.confirmHandlerCommon(ctx, relayerAddress, msg.ExternalAddress, msg.Signature, checkpoint); err != nil {
 		return nil, err
 	}
 
 	// check if we already have this confirm
-	if s.GetBatchConfirm(ctx, msg.TokenContract, msg.Nonce, relayerAddr) != nil {
+	if s.GetBatchConfirm(ctx, msg.TokenContract, msg.Nonce, relayerAddress) != nil {
 		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
 	}
 
-	s.SetBatchConfirm(ctx, relayerAddr, msg)
+	s.SetBatchConfirm(ctx, relayerAddress, msg)
 	return &types.MsgConfirmBatchResponse{}, nil
 }
 

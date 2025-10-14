@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/utils"
 
 	sdkmath "cosmossdk.io/math"
@@ -11,7 +10,7 @@ import (
 
 const (
 	OutgoingTxBatchSize = 100
-	MaxKeepEventSize    = 100
+	MaxKeepEventSize    = 20
 	MaxGasLimit         = 30_000_000
 )
 
@@ -31,8 +30,8 @@ func DefaultParams() Params {
 		SlashFraction:                      sdk.NewDecWithPrec(8, 1), // 80%
 		RelayerSetUpdatePowerChangePercent: sdk.NewDecWithPrec(2, 1), // 20%
 		MaxRelayers:                        10,
-		MinDelegate:                        sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(100_000_000)),    // 1 MEC
-		MaxDelegate:                        sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10_000_000_000)), // 100 MEC
+		MinDelegate:                        sdkmath.NewInt(100_000_000),    // 1 MEC
+		MaxDelegate:                        sdkmath.NewInt(10_000_000_000), // 100 MEC
 	}
 }
 
@@ -72,17 +71,11 @@ func (m *Params) ValidateBasic() error {
 	if m.RelayerSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
 		return fmt.Errorf("power change percent too large: %s", m.RelayerSetUpdatePowerChangePercent)
 	}
-	if !m.MinDelegate.IsValid() || !m.MinDelegate.IsPositive() {
+	if !m.MinDelegate.IsPositive() {
 		return fmt.Errorf("invalid delegate threshold")
 	}
-	if m.MinDelegate.Denom != params.BaseDenom {
-		return fmt.Errorf("relayer delegate denom must umec")
-	}
-	if !m.MaxDelegate.IsValid() || !m.MaxDelegate.IsPositive() {
+	if !m.MaxDelegate.IsPositive() {
 		return fmt.Errorf("invalid delegate threshold")
-	}
-	if m.MaxDelegate.Denom != params.BaseDenom {
-		return fmt.Errorf("relayer delegate denom must umec")
 	}
 	return nil
 }

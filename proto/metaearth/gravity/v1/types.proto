@@ -212,6 +212,12 @@ message Params {
     (gogoproto.nullable) = false
   ];
   uint64 max_relayers = 8;
-  cosmos.base.v1beta1.Coin min_delegate = 9 [(gogoproto.nullable) = false];
-  cosmos.base.v1beta1.Coin max_delegate = 10 [(gogoproto.nullable) = false];
+  string min_delegate = 9 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  string max_delegate = 10 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }

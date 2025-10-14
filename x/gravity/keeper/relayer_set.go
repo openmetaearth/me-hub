@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"github.com/st-chain/me-hub/utils"
 	"math"
 
 	sdkmath "cosmossdk.io/math"
@@ -38,6 +39,10 @@ func (k Keeper) GetCurrentRelayerSet(ctx sdk.Context) *types.RelayerSet {
 			Power:           power.Uint64(),
 			ExternalAddress: relayer.ExternalAddress,
 		})
+	}
+	for i := range bridgeValidators {
+		// normalize power, use 10000 as the base, meaning 50.01% is 5001.
+		bridgeValidators[i].Power = sdkmath.NewUint(bridgeValidators[i].Power).MulUint64(utils.PowerBase).QuoUint64(totalPower).Uint64()
 	}
 	relayerSetNonce := k.GetLatestRelayerSetNonce(ctx) + 1
 	return types.NewRelayerSet(relayerSetNonce, uint64(ctx.BlockHeight()), bridgeValidators)

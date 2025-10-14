@@ -35,7 +35,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, tokenContract, feeReceive 
 		return nil, err
 	}
 	if len(selectedTx) == 0 {
-		return nil, errorsmod.Wrap(types.ErrEmpty, "no batch tx")
+		return nil, errorsmod.Wrap(types.ErrEmpty, "no batch tx selected")
 	}
 	if types.OutgoingTransferTxs(selectedTx).TotalFee().LT(minimumFee) {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "total fee less than minimum fee")

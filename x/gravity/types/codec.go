@@ -29,7 +29,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgAddDelegate{}, fmt.Sprintf("%s/%s", ModuleName, "MsgAddDelegate"), nil)
 
 	cdc.RegisterConcrete(&MsgRelayerSetConfirm{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRelayerSetConfirm"), nil)
-	cdc.RegisterConcrete(&MsgRelayerSetUpdatedClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRelayerSetUpdatedClaim"), nil)
+	cdc.RegisterConcrete(&MsgRelayerSetUpdateClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgRelayerSetUpdateClaim"), nil)
 
 	cdc.RegisterConcrete(&MsgBridgeTokenClaim{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBridgeTokenClaim"), nil)
 
@@ -52,7 +52,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgBondedRelayer{},
 		&MsgAddDelegate{},
 		&MsgRelayerSetConfirm{},
-		&MsgRelayerSetUpdatedClaim{},
+		&MsgRelayerSetUpdateClaim{},
 		&MsgBridgeTokenClaim{},
 		&MsgSendToMeClaim{},
 		&MsgSendToExternal{},
@@ -71,7 +71,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgSendToExternalClaim{},
 		&MsgSendToMeClaim{},
 		&MsgBridgeTokenClaim{},
-		&MsgRelayerSetUpdatedClaim{},
+		&MsgRelayerSetUpdateClaim{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
