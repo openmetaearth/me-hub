@@ -12,6 +12,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	blacklisttypes "github.com/st-chain/me-hub/x/blacklist/types"
 	"github.com/st-chain/me-hub/x/wbank/types"
 )
 
@@ -20,6 +21,7 @@ type BaseKeeperWrapper struct {
 	bankkeeper.BaseKeeper
 	ak banktypes.AccountKeeper
 	dk types.DaoKeeper
+	bl blacklisttypes.BlacklistKeeper
 }
 
 // NewKeeper returns a new BaseKeeperWrapper instance.
@@ -30,11 +32,13 @@ func NewKeeper(
 	dk types.DaoKeeper,
 	blockedAddrs map[string]bool,
 	authority string,
+	bl blacklisttypes.BlacklistKeeper,
 ) BaseKeeperWrapper {
 	return BaseKeeperWrapper{
 		BaseKeeper: bankkeeper.NewBaseKeeper(cdc, storeKey, ak, blockedAddrs, authority),
 		ak:         ak,
 		dk:         dk,
+		bl:         bl,
 	}
 }
 
@@ -167,6 +171,9 @@ func (k BankKeeperExtend) SendCoinsFromModuleToModuleWithTag(
 func (k BankKeeperExtend) SendCoinsFromAccountToModuleWithTag(
 	ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins, tag ...string,
 ) error {
+	if k.bl.IsBlackList(ctx, senderAddr) {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to transfer", senderAddr)
+	}
 	recipientAcc := k.ak.GetModuleAccount(ctx, recipientModule)
 	if recipientAcc == nil {
 		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", recipientModule))
@@ -176,6 +183,10 @@ func (k BankKeeperExtend) SendCoinsFromAccountToModuleWithTag(
 }
 
 func (k BankKeeperExtend) SendCoinsWithTag(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins, tag ...string) error {
+	if k.bl.IsBlackList(ctx, fromAddr) {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to transfer", fromAddr)
+	}
+
 	err := k.SendCoins(ctx, fromAddr, toAddr, amt)
 	if err != nil {
 		return err

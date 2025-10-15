@@ -1,0 +1,12 @@
+syntax = "proto3";
+package metaearth.wbank;
+
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/wbank/types";
+
+// Msg defines the bank Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+}

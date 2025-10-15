@@ -68,3 +68,19 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		Blacklist: blacklist,
 	}
 }
+
+// IsBlackList checks if an address is in the blacklist
+func (k Keeper) IsBlackList(ctx sdk.Context, addr sdk.AccAddress) bool {
+	blacklist, found := k.GetBlacklist(ctx)
+	if !found {
+		return false
+	}
+
+	for _, blacklistedAddr := range blacklist.Addresses {
+		if blacklistedAddr == addr.String() {
+			return true
+		}
+	}
+
+	return false
+}

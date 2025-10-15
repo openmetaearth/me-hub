@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+
 	"github.com/cometbft/cometbft/crypto"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"

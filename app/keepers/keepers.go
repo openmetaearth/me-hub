@@ -235,6 +235,13 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 	)
 
+	// Create blacklist Keeper
+	a.BlacklistKeeper = blacklistkeeper.NewKeeper(
+		appCodec,
+		a.keys[blacklisttypes.StoreKey],
+		a.memKeys[blacklisttypes.StoreKey],
+	)
+
 	a.BankKeeper = wbankkeeper.NewKeeper(
 		appCodec,
 		a.keys[banktypes.StoreKey],
@@ -242,6 +249,7 @@ func (a *AppKeepers) InitKeepers(
 		a.DaoKeeper,
 		moduleAccountAddrs,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		a.BlacklistKeeper,
 	)
 
 	a.CrisisKeeper = crisiskeeper.NewKeeper(
@@ -482,13 +490,6 @@ func (a *AppKeepers) InitKeepers(
 	a.StakingKeeper.SetKycKeeper(a.KycKeeper)
 	a.StakingKeeper.SetDidKeeper(a.DidKeeper)
 	a.DaoKeeper.SetHook(a.KycKeeper)
-
-	// Create blacklist Keeper
-	a.BlacklistKeeper = blacklistkeeper.NewKeeper(
-		appCodec,
-		a.keys[blacklisttypes.StoreKey],
-		a.memKeys[blacklisttypes.StoreKey],
-	)
 
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
 	a.GroupKeeper = groupkeeper.NewKeeper(

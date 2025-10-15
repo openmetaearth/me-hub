@@ -1,15 +1,24 @@
 package wbank
 
 import (
+	"encoding/json"
 	"fmt"
+
+	"cosmossdk.io/api/tendermint/abci"
 	"github.com/cosmos/cosmos-sdk/codec"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/st-chain/me-hub/x/wbank/types"
+
 	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/spf13/cobra"
 
 	"github.com/st-chain/me-hub/x/wbank/keeper"
+	"github.com/st-chain/me-hub/x/wstaking/client/cli"
 )
 
 // AppModuleBasic defines the basic application module used by the wrapped bank module.
@@ -36,11 +45,30 @@ func NewAppModule(
 	}
 }
 
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+	var genesisState banktypes.GenesisState
+	cdc.MustUnmarshalJSON(data, &genesisState)
+	am.keeper.InitGenesis(ctx, &genesisState)
+	return []abci.ValidatorUpdate{}
+}
+
+// RegisterInterfaces registers the module's interface types
+func (a AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {
+	types.RegisterInterfaces(reg)
+	banktypes.RegisterInterfaces(reg)
+}
+
+// GetTxCmd returns the root tx command for the staking module.
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.NewTxCmd()
+}
+
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	// copied the bank's RegisterServices to replace with the keeper wrapper
-	bankMsgSrv := bankkeeper.NewMsgServerImpl(am.keeper)
-	banktypes.RegisterMsgServer(cfg.MsgServer(), bankMsgSrv)
+	bankMsgSrv := bankkeeper.NewMsgServerImpl(am.keeper.BaseKeeper)
+	banktypes.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper, bankMsgSrv))
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper, bankMsgSrv))
 	banktypes.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	m := bankkeeper.NewMigrator(am.keeper.BaseKeeper, am.legacySubspace)
