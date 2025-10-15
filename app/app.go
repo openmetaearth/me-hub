@@ -9,14 +9,12 @@ import (
 	"os"
 	"path/filepath"
 
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_11"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_12"
-
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_11"
 
 	simappparams "cosmossdk.io/simapp/params"
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -89,7 +87,7 @@ var (
 	Upgrades = []upgrades.Upgrade{
 		v2_0_10.Upgrade,
 		v2_0_11.Upgrade,
-		v2_0_12.Upgrade,
+		v2_0_13.Upgrade,
 	}
 )
 
