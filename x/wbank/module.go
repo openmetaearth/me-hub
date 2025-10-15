@@ -48,7 +48,8 @@ func NewAppModule(
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState banktypes.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
-	am.keeper.InitGenesis(ctx, &genesisState)
+
+	bank.InitGenesis(am.keeper, ctx, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 

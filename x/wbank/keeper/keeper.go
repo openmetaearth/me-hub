@@ -18,10 +18,20 @@ import (
 
 // BaseKeeperWrapper is a wrapper of the cosmos-sdk bank module.
 type BaseKeeperWrapper struct {
-	bankkeeper.BaseKeeper
-	ak banktypes.AccountKeeper
-	dk types.DaoKeeper
-	bl blacklisttypes.BlacklistKeeper
+	bankkeeper.Keeper
+}
+
+// NewBaseKeeper returns a new BaseKeeperWrapper instance.
+func NewBaseKeeper(
+	cdc codec.BinaryCodec,
+	storeKey storetypes.StoreKey,
+	ak banktypes.AccountKeeper,
+	blockedAddrs map[string]bool,
+	authority string,
+) BaseKeeperWrapper {
+	return BaseKeeperWrapper{
+		Keeper: bankkeeper.NewBaseKeeper(cdc, storeKey, ak, blockedAddrs, authority),
+	}
 }
 
 // NewKeeper returns a new BaseKeeperWrapper instance.
@@ -35,10 +45,7 @@ func NewKeeper(
 	bl blacklisttypes.BlacklistKeeper,
 ) BaseKeeperWrapper {
 	return BaseKeeperWrapper{
-		BaseKeeper: bankkeeper.NewBaseKeeper(cdc, storeKey, ak, blockedAddrs, authority),
-		ak:         ak,
-		dk:         dk,
-		bl:         bl,
+		Keeper: bankkeeper.NewBaseKeeper(cdc, storeKey, ak, blockedAddrs, authority),
 	}
 }
 
