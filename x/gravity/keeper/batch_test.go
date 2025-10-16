@@ -70,7 +70,7 @@ func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
+func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfirm() {
 	tokenContract := helpers.GenerateAddress().Hex()
 	batch := &types.OutgoingTxBatch{
 		BatchNonce:   1,
@@ -95,8 +95,8 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
 		FeeReceive:    helpers.GenerateAddress().Hex(),
 	}
 	suite.NoError(suite.Keeper().StoreBatch(suite.Ctx, batch))
-
 	suite.Equal(uint64(0), suite.Keeper().GetLastSlashedBatchBlock(suite.Ctx))
+
 	batches := suite.Keeper().GetUnSlashedBatches(suite.Ctx, batch.Block+1)
 	suite.Equal(1, len(batches))
 
@@ -118,7 +118,7 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfig() {
 	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, batch.TokenContract, batch.BatchNonce))
 }
 
-func (suite *KeeperTestSuite) TestKeeper_IterateBatchBySlashedBatchBlock() {
+func (suite *KeeperTestSuite) TestKeeper_IterateBatch() {
 	index := tmrand.Intn(100)
 	for i := 1; i <= index; i++ {
 		tokenContract := helpers.GenerateAddress().Hex()

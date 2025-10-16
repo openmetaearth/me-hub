@@ -28,7 +28,7 @@ func CreateUpgradeHandler(
 			}
 		}
 
-		logger.Info("1. ")
+		logger.Info("1. upgrade for x/gravity module, set params")
 
 		logger.Info("upgrade finished successfully.")
 		return mm.RunMigrations(ctx, configurator, fromVM)

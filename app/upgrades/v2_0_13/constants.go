@@ -9,6 +9,7 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	"github.com/st-chain/me-hub/app/upgrades"
 	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
+	trontypes "github.com/st-chain/me-hub/x/tron/types"
 )
 
 const (
@@ -21,6 +22,7 @@ var Upgrade = upgrades.Upgrade{
 	StoreUpgrades: storetypes.StoreUpgrades{
 		Added: []string{
 			bsctypes.ModuleName,
+			trontypes.ModuleName,
 		},
 		Deleted: []string{
 			lockuptypes.ModuleName,

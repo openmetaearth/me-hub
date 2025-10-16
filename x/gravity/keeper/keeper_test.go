@@ -184,3 +184,7 @@ func (s *KeeperTestSuite) PubKeyToExternalAddr(publicKey ecdsa.PublicKey) string
 	address := crypto.PubkeyToAddress(publicKey)
 	return types.ExternalAddrToStr(s.chainName, address.Bytes())
 }
+
+func (suite *KeeperTestSuite) Commit(block ...int64) {
+	suite.Ctx = apptesting.MintBlock(suite.App, suite.Ctx, block...)
+}
