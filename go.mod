@@ -1,6 +1,6 @@
 module github.com/st-chain/me-hub
 
-go 1.24
+go 1.24.0
 
 toolchain go1.24.7
 
@@ -46,8 +46,8 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/tendermint/tendermint v0.34.29
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
-	golang.org/x/net v0.38.0
-	golang.org/x/tools v0.29.0
+	golang.org/x/net v0.45.0
+	golang.org/x/tools v0.37.0
 	gonum.org/v1/gonum v0.8.2
 	google.golang.org/genproto/googleapis/api v0.0.0-20250227231956-55c901821b1e
 	google.golang.org/grpc v1.71.0
@@ -259,13 +259,14 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.36.0 // indirect
-	golang.org/x/mod v0.22.0 // indirect
+	golang.org/x/crypto v0.42.0 // indirect
+	golang.org/x/mod v0.28.0 // indirect
 	golang.org/x/oauth2 v0.25.0 // indirect
-	golang.org/x/sync v0.12.0 // indirect
-	golang.org/x/sys v0.31.0 // indirect
-	golang.org/x/term v0.30.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/sys v0.36.0 // indirect
+	golang.org/x/telemetry v0.0.0-20250908211612-aef8a434d053 // indirect
+	golang.org/x/term v0.35.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
 	golang.org/x/time v0.9.0 // indirect
 	google.golang.org/api v0.169.0 // indirect
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect

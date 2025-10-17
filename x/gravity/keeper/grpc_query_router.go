@@ -187,11 +187,19 @@ func (k RouterKeeper) BridgeTokens(c context.Context, req *types.QueryBridgeToke
 	}
 }
 
-func (k RouterKeeper) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinByDenomRequest) (*types.QueryBridgeCoinByDenomResponse, error) {
+func (k RouterKeeper) BridgeToken(c context.Context, req *types.QueryBridgeTokenRequest) (*types.QueryBridgeTokenResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
 	} else {
-		return queryServer.BridgeCoinByDenom(c, req)
+		return queryServer.BridgeToken(c, req)
+	}
+}
+
+func (k RouterKeeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.BatchFees(c, req)
 	}
 }
 

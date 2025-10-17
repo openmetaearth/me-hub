@@ -53,6 +53,8 @@ import (
 	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 	"github.com/st-chain/me-hub/x/kyc"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
+	"github.com/st-chain/me-hub/x/tron"
+	trontypes "github.com/st-chain/me-hub/x/tron/types"
 	"github.com/st-chain/me-hub/x/wbank"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	wdistr "github.com/st-chain/me-hub/x/wdistri"
@@ -132,6 +134,7 @@ func (a *AppKeepers) SetupModules(
 		wasm.NewAppModule(appCodec, &a.WasmKeeper, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, bApp.MsgServiceRouter(), a.GetSubspace(wasmtypes.ModuleName)),
 
 		bsc.NewAppModule(a.BscKeeper),
+		tron.NewAppModule(a.TronKeeper),
 	}
 }
 
@@ -167,6 +170,7 @@ var MaccPerms = map[string][]string{
 	groupTypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
 	nft.ModuleName:                                     nil,
 	bsctypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
+	trontypes.ModuleName:                               {authtypes.Minter, authtypes.Burner},
 	gravitytypes.SlashingModuleAccount:                 {authtypes.Minter, authtypes.Burner},
 }
 
@@ -205,6 +209,7 @@ var BeginBlockers = []string{
 	nft.ModuleName,
 	groupTypes.ModuleName,
 	bsctypes.ModuleName,
+	trontypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -242,6 +247,7 @@ var EndBlockers = []string{
 	nft.ModuleName,
 	groupTypes.ModuleName,
 	bsctypes.ModuleName,
+	trontypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -279,4 +285,5 @@ var InitGenesis = []string{
 	nft.ModuleName,
 	groupTypes.ModuleName,
 	bsctypes.ModuleName,
+	trontypes.ModuleName,
 }

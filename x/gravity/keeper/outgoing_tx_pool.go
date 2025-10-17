@@ -20,21 +20,21 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		return 0, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
 
+	totalInVouchers := amount.Add(fee)
 	// TODO: also check other outgoing txs to make sure we don't exceed supply
-	if amount.Amount.GT(bridgeToken.Supply) {
+	if totalInVouchers.Amount.GT(bridgeToken.Supply) {
 		return 0, errorsmod.Wrapf(types.ErrInvalid, "transfer to %s chain, amount %s exceeds bridge token supply %s",
-			k.moduleName, amount.Amount.String(), bridgeToken.Supply.String())
+			k.moduleName, totalInVouchers.Amount.String(), bridgeToken.Supply.String())
 	}
 
-	totalInVouchers := sdk.NewCoins(amount.Add(fee))
-
+	sendCoins := sdk.NewCoins(totalInVouchers)
 	// If it is an external blockchain asset we burn it send coins to module in prep for burn
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, totalInVouchers); err != nil {
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, sendCoins); err != nil {
 		return 0, err
 	}
 
 	// burn vouchers to send them back to external blockchain
-	if err := k.bankKeeper.BurnCoins(ctx, k.moduleName, totalInVouchers); err != nil {
+	if err := k.bankKeeper.BurnCoins(ctx, k.moduleName, sendCoins); err != nil {
 		return 0, err
 	}
 
@@ -48,8 +48,8 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		Id:          nextTxID,
 		Sender:      sender.String(),
 		DestAddress: receiver,
-		Token:       types.NewERC20Token(amount.Amount, bridgeToken.Contract),
-		Fee:         types.NewERC20Token(fee.Amount, bridgeToken.Contract),
+		Token:       types.NewERC20Token(amount.Amount, bridgeToken.ContractAddress),
+		Fee:         types.NewERC20Token(fee.Amount, bridgeToken.ContractAddress),
 	}
 
 	if err := k.AddUnbatchedTx(ctx, outgoing); err != nil {

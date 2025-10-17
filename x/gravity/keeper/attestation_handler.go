@@ -47,12 +47,12 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			return errorsmod.Wrap(types.ErrInvalid, "bridge token is exist")
 		}
 		bridgeToken := types.BridgeToken{
-			Contract: claim.TokenContract,
-			Denom:    strings.ToLower(claim.Symbol),
-			Name:     claim.Name,
-			Symbol:   claim.Symbol,
-			Decimal:  claim.Decimals,
-			Supply:   sdkmath.ZeroInt(),
+			ContractAddress: claim.TokenContract,
+			Denom:           strings.ToLower(claim.Symbol),
+			Name:            claim.Name,
+			Symbol:          claim.Symbol,
+			Decimal:         claim.Decimals,
+			Supply:          sdkmath.ZeroInt(),
 		}
 		k.SetBridgeToken(ctx, &bridgeToken)
 		k.Logger(ctx).Info("add bridge token success", "symbol", claim.Symbol, "token", claim.TokenContract, "denom", bridgeToken.Denom)

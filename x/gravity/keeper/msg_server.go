@@ -298,7 +298,7 @@ func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 		return nil, err
 	}
 
-	batch, err := s.BuildOutgoingTxBatch(ctx, bridgeToken.Contract, msg.FeeReceive, types.OutgoingTxBatchSize, msg.MinimumFee, msg.BaseFee)
+	batch, err := s.BuildOutgoingTxBatch(ctx, bridgeToken.ContractAddress, msg.FeeReceive, types.OutgoingTxBatchSize, msg.MinimumFee, msg.BaseFee)
 	if err != nil {
 		return nil, err
 	}

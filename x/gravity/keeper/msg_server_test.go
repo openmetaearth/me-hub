@@ -517,12 +517,12 @@ func (s *KeeperTestSuite) TestClaimMsgGasConsumed() {
 				msg, ok := claimMsg.(*types.MsgSendToMeClaim)
 				s.True(ok)
 				s.Keeper().SetBridgeToken(s.Ctx, &types.BridgeToken{
-					Contract: msg.TokenContract,
-					Denom:    "test",
-					Name:     "Test Token",
-					Symbol:   "TEST",
-					Decimal:  6,
-					Supply:   sdk.NewInt(0),
+					ContractAddress: msg.TokenContract,
+					Denom:           "test",
+					Name:            "Test Token",
+					Symbol:          "TEST",
+					Decimal:         6,
+					Supply:          sdk.NewInt(0),
 				})
 				for i, relayer := range s.relayerAddrs {
 					eventNonce := s.Keeper().GetLastEventNonceByRelayer(s.Ctx, relayer)
@@ -832,7 +832,7 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 
 	bridgeDenomData, _ := s.Keeper().GetBridgeTokenByDenom(s.Ctx, "usdt")
 	s.Require().NotNil(bridgeDenomData)
-	s.Require().EqualValues(tokenContract, bridgeDenomData.Contract)
+	s.Require().EqualValues(tokenContract, bridgeDenomData.ContractAddress)
 
 	// 4. sendToMe.
 	sendToMeReceiveAddr := s.relayerAddrs[0]

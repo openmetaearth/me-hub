@@ -18,19 +18,19 @@ import (
 //   - select available transactions from the outgoing transaction pool sorted by fee desc
 //   - persist an outgoing batch object with an incrementing ID = nonce
 //   - emit an event
-func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, tokenContract, feeReceive string, maxElements uint, minimumFee, baseFee sdkmath.Int) (*types.OutgoingTxBatch, error) {
+func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceive string, maxElements uint, minimumFee, baseFee sdkmath.Int) (*types.OutgoingTxBatch, error) {
 	if maxElements == 0 {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "max elements value")
 	}
 
 	// if there is a more profitable batch for this token type do not create a new batch
-	if lastBatch := k.GetLastOutgoingBatchByTokenType(ctx, tokenContract); lastBatch != nil {
-		currentFees := k.GetBatchFeesByTokenType(ctx, tokenContract, maxElements, baseFee)
+	if lastBatch := k.GetLastOutgoingBatchByTokenType(ctx, contractAddress); lastBatch != nil {
+		currentFees := k.GetBatchFeesByTokenType(ctx, contractAddress, maxElements, baseFee)
 		if lastBatch.GetFees().GT(currentFees.TotalFees) {
 			return nil, errorsmod.Wrap(types.ErrInvalid, "new batch would not be more profitable")
 		}
 	}
-	selectedTx, err := k.pickUnBatchedTx(ctx, tokenContract, maxElements, baseFee)
+	selectedTx, err := k.pickUnBatchedTx(ctx, contractAddress, maxElements, baseFee)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, tokenContract, feeReceive 
 		BatchNonce:    nextID,
 		BatchTimeout:  batchTimeout,
 		Transactions:  selectedTx,
-		TokenContract: tokenContract,
+		TokenContract: contractAddress,
 		FeeReceive:    feeReceive,
 		Block:         uint64(ctx.BlockHeight()), // set the current block height when storing the batch
 	}
@@ -100,17 +100,17 @@ func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) uint64 {
 
 // OutgoingTxBatchExecuted is run when the Cosmos chain detects that a batch has been executed on Ethereum
 // It frees all the transactions in the batch, then cancels all earlier batches
-func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, tokenContract string, batchNonce uint64) {
-	batch := k.GetOutgoingTxBatch(ctx, tokenContract, batchNonce)
+func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, contractAddress string, batchNonce uint64) {
+	batch := k.GetOutgoingTxBatch(ctx, contractAddress, batchNonce)
 	if batch == nil {
-		panic(fmt.Sprintf("unknown batch nonce for outgoing tx batch %s %d", tokenContract, batchNonce))
+		panic(fmt.Sprintf("unknown batch nonce for outgoing tx batch %s %d", contractAddress, batchNonce))
 	}
 
 	// Iterate through remaining batches
 	k.IterateOutgoingTxBatches(ctx, func(iterBatch *types.OutgoingTxBatch) bool {
 		// If the iterated batches nonce is lower than the one that was just executed, cancel it
-		if iterBatch.BatchNonce < batch.BatchNonce && iterBatch.TokenContract == tokenContract {
-			if err := k.CancelOutgoingTxBatch(ctx, tokenContract, iterBatch.BatchNonce); err != nil {
+		if iterBatch.BatchNonce < batch.BatchNonce && iterBatch.TokenContract == contractAddress {
+			if err := k.CancelOutgoingTxBatch(ctx, contractAddress, iterBatch.BatchNonce); err != nil {
 				panic(fmt.Sprintf("Failed cancel out batch %s-%d while trying to execute failed: %s", batch.TokenContract, batch.BatchNonce, err))
 			}
 		}
@@ -145,10 +145,10 @@ func (k Keeper) DeleteBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) {
 }
 
 // pickUnBatchedTx find Tx in pool and remove from "available" second index
-func (k Keeper) pickUnBatchedTx(ctx sdk.Context, tokenContract string, maxElements uint, baseFee sdkmath.Int) ([]*types.OutgoingTransferTx, error) {
+func (k Keeper) pickUnBatchedTx(ctx sdk.Context, contractAddress string, maxElements uint, baseFee sdkmath.Int) ([]*types.OutgoingTransferTx, error) {
 	var selectedTx []*types.OutgoingTransferTx
 	var err error
-	k.IterateUnbatchedTransactions(ctx, tokenContract, func(tx *types.OutgoingTransferTx) bool {
+	k.IterateUnbatchedTransactions(ctx, contractAddress, func(tx *types.OutgoingTransferTx) bool {
 		if tx.Fee.Amount.LT(baseFee) {
 			return true
 		}
@@ -164,9 +164,9 @@ func (k Keeper) pickUnBatchedTx(ctx sdk.Context, tokenContract string, maxElemen
 }
 
 // GetOutgoingTxBatch loads a batch object. Returns nil when not exists.
-func (k Keeper) GetOutgoingTxBatch(ctx sdk.Context, tokenContract string, batchNonce uint64) *types.OutgoingTxBatch {
+func (k Keeper) GetOutgoingTxBatch(ctx sdk.Context, contractAddress string, batchNonce uint64) *types.OutgoingTxBatch {
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetOutgoingTxBatchKey(tokenContract, batchNonce)
+	key := types.GetOutgoingTxBatchKey(contractAddress, batchNonce)
 	bz := store.Get(key)
 	if len(bz) == 0 {
 		return nil
@@ -177,8 +177,8 @@ func (k Keeper) GetOutgoingTxBatch(ctx sdk.Context, tokenContract string, batchN
 }
 
 // CancelOutgoingTxBatch releases all TX in the batch and deletes the batch
-func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, tokenContract string, batchNonce uint64) error {
-	batch := k.GetOutgoingTxBatch(ctx, tokenContract, batchNonce)
+func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, contractAddress string, batchNonce uint64) error {
+	batch := k.GetOutgoingTxBatch(ctx, contractAddress, batchNonce)
 	if batch == nil {
 		return types.ErrUnknown
 	}

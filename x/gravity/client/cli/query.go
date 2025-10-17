@@ -711,19 +711,22 @@ func CmdGetRelayerEventBlockHeight(chainName string) *cobra.Command {
 
 func CmdGetBridgeCoinByDenom(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bridge-token [denom]",
+		Use:   "bridge-token [denom] [contract-address]",
 		Short: "Query bridge coin from contract address",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
+
 			denom := args[0]
-			res, err := queryClient.BridgeCoinByDenom(cmd.Context(), &types.QueryBridgeCoinByDenomRequest{
-				ChainName: chainName,
-				Denom:     denom,
+			contract := args[1]
+			res, err := queryClient.BridgeToken(cmd.Context(), &types.QueryBridgeTokenRequest{
+				ChainName:       chainName,
+				Denom:           denom,
+				ContractAddress: contract,
 			})
 			if err != nil {
 				return err

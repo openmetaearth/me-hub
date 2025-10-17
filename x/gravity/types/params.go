@@ -12,6 +12,7 @@ const (
 	OutgoingTxBatchSize = 100
 	MaxKeepEventSize    = 20
 	MaxGasLimit         = 30_000_000
+	MaxResults          = 100
 )
 
 var (
@@ -25,7 +26,7 @@ func DefaultParams() Params {
 		GravityId:                          "me-gravity",
 		AverageBlockTime:                   5_000,
 		ExternalBatchTimeout:               24 * 3600 * 1000, // 24 hours
-		AverageExternalBlockTime:           1_000,            // 5 seconds
+		AverageExternalBlockTime:           1_000,            // 1 seconds
 		SignedWindow:                       30_000,
 		SlashFraction:                      sdk.NewDecWithPrec(8, 1), // 80%
 		RelayerSetUpdatePowerChangePercent: sdk.NewDecWithPrec(2, 1), // 20%

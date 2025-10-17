@@ -11,10 +11,10 @@ import (
 )
 
 // GetCheckpointRelayerSet returns the checkpoint
-func GetCheckpointRelayerSet(oracleSet *types.RelayerSet, gravityIDStr string) ([]byte, error) {
-	addresses := make([]string, len(oracleSet.Members))
-	powers := make([]*big.Int, len(oracleSet.Members))
-	for i, member := range oracleSet.Members {
+func GetCheckpointRelayerSet(relayerSet *types.RelayerSet, gravityIDStr string) ([]byte, error) {
+	addresses := make([]string, len(relayerSet.Members))
+	powers := make([]*big.Int, len(relayerSet.Members))
+	for i, member := range relayerSet.Members {
 		addresses[i] = member.ExternalAddress
 		powers[i] = big.NewInt(int64(member.Power))
 	}
@@ -31,7 +31,7 @@ func GetCheckpointRelayerSet(oracleSet *types.RelayerSet, gravityIDStr string) (
 	params := []abi.Param{
 		{"bytes32": gravityID},
 		{"bytes32": checkpoint},
-		{"uint256": big.NewInt(int64(oracleSet.Nonce))},
+		{"uint256": big.NewInt(int64(relayerSet.Nonce))},
 		{"address[]": addresses},
 		{"uint256[]": powers},
 	}

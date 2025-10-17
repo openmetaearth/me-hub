@@ -5,7 +5,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/st-chain/me-hub/x/gravity/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -60,9 +59,6 @@ func (k QueryServer) Relayer(c context.Context, req *types.QueryRelayerRequest) 
 		if !found {
 			return nil, types.ErrNotFoundRelayer
 		}
-	}
-	if !found {
-		return nil, types.ErrNotFoundRelayer
 	}
 	return &types.QueryRelayerResponse{Relayer: &relayer}, nil
 }
@@ -303,42 +299,53 @@ func (k QueryServer) BridgeTokens(c context.Context, req *types.QueryBridgeToken
 	return &types.QueryBridgeTokensResponse{BridgeTokens: bridgeTokens, Pagination: pageRes}, nil
 }
 
-func (k QueryServer) BridgeCoinByDenom(c context.Context, req *types.QueryBridgeCoinByDenomRequest) (*types.QueryBridgeCoinByDenomResponse, error) {
-	if len(req.GetDenom()) == 0 {
+func (k QueryServer) BridgeToken(c context.Context, req *types.QueryBridgeTokenRequest) (*types.QueryBridgeTokenResponse, error) {
+	if len(req.GetDenom()) == 0 && len(req.GetContractAddress()) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "bridge coin by denom request must contain a denom")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	var bridgeCoinMetaData banktypes.Metadata
-	k.bankKeeper.IterateAllDenomMetaData(ctx, func(metadata banktypes.Metadata) bool {
-		if metadata.GetBase() == req.GetDenom() {
-			bridgeCoinMetaData = metadata
-			return true
+	var bridgeToken *types.BridgeToken
+	if len(req.GetContractAddress()) > 0 {
+		bridgeToken, _ = k.GetBridgeTokenByContract(ctx, req.ContractAddress)
+		if bridgeToken == nil {
+			return nil, status.Error(codes.NotFound, "contract")
 		}
-		if len(metadata.GetDenomUnits()) == 0 {
-			return false
-		}
-		for _, alias := range metadata.GetDenomUnits()[0].GetAliases() {
-			if alias == req.GetDenom() {
-				bridgeCoinMetaData = metadata
-				return true
-			}
-		}
-		return false
-	})
-	if len(bridgeCoinMetaData.GetBase()) == 0 {
-		return nil, status.Error(codes.NotFound, "wrong bridge coin")
 	}
-
-	token, _ := k.GetBridgeTokenByDenom(ctx, req.Denom)
-	if token == nil {
+	if len(req.GetDenom()) > 0 {
+		if bridgeToken != nil && bridgeToken.Denom != req.Denom {
+			return nil, status.Error(codes.NotFound, "denom and contract do not match")
+		}
+		bridgeToken, _ = k.GetBridgeTokenByDenom(ctx, req.Denom)
+		if bridgeToken == nil {
+			return nil, status.Error(codes.NotFound, "bridge token")
+		}
+	}
+	if bridgeToken == nil {
 		return nil, status.Error(codes.NotFound, "denom")
 	}
-
-	supply := k.bankKeeper.GetSupply(ctx, req.Denom)
-	return &types.QueryBridgeCoinByDenomResponse{BridgeToken: token, Coin: supply}, nil
+	supply := k.bankKeeper.GetSupply(ctx, bridgeToken.Denom)
+	return &types.QueryBridgeTokenResponse{BridgeToken: bridgeToken, TotalSupply: supply}, nil
 }
 
 func (k QueryServer) BridgeChainList(_ context.Context, _ *types.QueryBridgeChainListRequest) (*types.QueryBridgeChainListResponse, error) {
 	return &types.QueryBridgeChainListResponse{ChainNames: types.GetSupportChains()}, nil
+}
+
+// BatchFees queries the batch fees from unbatched pool
+func (k QueryServer) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
+	if req.GetMinBatchFees() == nil {
+		req.MinBatchFees = make([]types.MinBatchFee, 0)
+	}
+	for _, fee := range req.MinBatchFees {
+		if fee.BaseFee.IsNil() || fee.BaseFee.IsNegative() {
+			return nil, status.Error(codes.InvalidArgument, "base fee")
+		}
+
+		if err := types.ValidateExternalAddr(req.ChainName, fee.TokenContract); err != nil {
+			return nil, status.Error(codes.InvalidArgument, "token contract")
+		}
+	}
+	allBatchFees := k.GetAllBatchFees(sdk.UnwrapSDKContext(c), types.MaxResults, req.MinBatchFees)
+	return &types.QueryBatchFeeResponse{BatchFees: allBatchFees}, nil
 }

@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/utils"
 	"github.com/st-chain/me-hub/x/gravity/types"
+	trontypes "github.com/st-chain/me-hub/x/tron/types"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -148,6 +149,11 @@ func GenHexAddress() common.Address {
 func GenExternalAddr(module string) string {
 	addr := GenHexAddress()
 	return types.ExternalAddrToStr(module, addr.Bytes())
+}
+
+// HexAddrToTronAddr returns a Tron address from an hex string.
+func HexAddrToTronAddr(str string) string {
+	return types.ExternalAddrToStr(trontypes.ModuleName, common.FromHex(str))
 }
 
 // GenAccAddress generates an cosmos-sdk accAddress

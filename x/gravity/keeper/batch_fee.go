@@ -90,7 +90,7 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 		return errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 	}
 
-	if tx.Fee.Contract != bridgeToken.Contract {
+	if tx.Fee.Contract != bridgeToken.ContractAddress {
 		return errorsmod.Wrap(types.ErrInvalid, "token not equal tx fee token")
 	}
 

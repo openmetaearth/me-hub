@@ -510,3 +510,15 @@ func MintBlock(myApp *app.App, ctx sdk.Context, block ...int64) sdk.Context {
 	}
 	return ctx
 }
+
+func AddTestAddr(myApp *app.App, ctx sdk.Context, addr sdk.AccAddress, coins sdk.Coins) {
+	err := myApp.BankKeeper.MintCoins(ctx, minttypes.ModuleName, coins)
+	if err != nil {
+		panic(err)
+	}
+
+	err = myApp.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, coins)
+	if err != nil {
+		panic(err)
+	}
+}

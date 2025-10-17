@@ -3,6 +3,8 @@ package keepers
 import (
 	"fmt"
 	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
+	tronkeeper "github.com/st-chain/me-hub/x/tron/keeper"
+	trontypes "github.com/st-chain/me-hub/x/tron/types"
 	"path/filepath"
 	"strings"
 
@@ -104,8 +106,8 @@ import (
 )
 
 type GravityKeepers struct {
-	BscKeeper gravitykeeper.Keeper
-	//TronKeeper gravitykeeper.Keeper
+	BscKeeper  gravitykeeper.Keeper
+	TronKeeper tronkeeper.Keeper
 }
 
 type AppKeepers struct {
@@ -455,9 +457,21 @@ func (a *AppKeepers) InitKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	a.TronKeeper = tronkeeper.NewKeeper(gravitykeeper.NewKeeper(
+		trontypes.ModuleName,
+		appCodec,
+		a.keys[trontypes.StoreKey],
+		a.BankKeeper,
+		a.AccountKeeper,
+		a.DaoKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	))
+
 	// add gravity router
 	gravityRouter := gravitykeeper.NewRouter()
-	gravityRouter.AddRoute(bsctypes.ModuleName, gravitykeeper.NewModuleHandler(a.BscKeeper))
+	gravityRouter.
+		AddRoute(bsctypes.ModuleName, gravitykeeper.NewModuleHandler(a.BscKeeper)).
+		AddRoute(trontypes.ModuleName, tronkeeper.NewModuleHandler(a.TronKeeper))
 	a.GravityRouterKeeper = gravitykeeper.NewRouterKeeper(gravityRouter)
 
 	// Register the proposal types

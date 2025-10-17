@@ -26,7 +26,7 @@ func (s MsgServer) claimHandlerCommon(ctx sdk.Context, msg types.ExternalClaim) 
 func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, relayerAddr sdk.AccAddress, signatureAddr, signature string, checkpoint []byte) error {
 	sigBytes, err := hex.DecodeString(signature)
 	if err != nil {
-		return errorsmod.Wrap(types.ErrInvalid, "signature decoding")
+		return errorsmod.Wrap(types.ErrInvalid, "signature decoding failed")
 	}
 
 	relayer, found := s.GetRelayer(ctx, relayerAddr)

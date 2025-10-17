@@ -33,6 +33,7 @@ import (
 	gourpTypes "github.com/st-chain/me-hub/x/megroup/types"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
+	trontypes "github.com/st-chain/me-hub/x/tron/types"
 	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 )
 
@@ -126,6 +127,7 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	wasmtypes.StoreKey,
 	//megroup
 	gourpTypes.StoreKey,
-	// crosschain
+	// gravity bridge
 	bsctypes.StoreKey,
+	trontypes.StoreKey,
 )

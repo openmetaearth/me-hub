@@ -10,10 +10,10 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeToken() {
 	tokenContract2 := helpers.GenerateAddress().Hex()
 	denom := "test"
 
-	bridgeToken := &types.BridgeToken{Contract: tokenContract, Denom: denom}
+	bridgeToken := &types.BridgeToken{ContractAddress: tokenContract, Denom: denom}
 	suite.Keeper().SetBridgeToken(suite.Ctx, bridgeToken)
 
-	suite.Keeper().SetBridgeToken(suite.Ctx, &types.BridgeToken{Contract: tokenContract2, Denom: "test2"})
+	suite.Keeper().SetBridgeToken(suite.Ctx, &types.BridgeToken{ContractAddress: tokenContract2, Denom: "test2"})
 
 	b1, err := suite.Keeper().GetBridgeTokenByDenom(suite.Ctx, denom)
 	suite.NoError(err)
@@ -25,10 +25,10 @@ func (suite *KeeperTestSuite) TestKeeper_BridgeToken() {
 
 	suite.Keeper().IterateBridgeTokenByDenom(suite.Ctx, func(bt *types.BridgeToken) bool {
 		if bt.Denom == denom {
-			suite.Equal(bt.Contract, tokenContract)
+			suite.Equal(bt.ContractAddress, tokenContract)
 		}
 		if bt.Denom == "test2" {
-			suite.Equal(bt.Contract, tokenContract2)
+			suite.Equal(bt.ContractAddress, tokenContract2)
 		}
 		return false
 	})

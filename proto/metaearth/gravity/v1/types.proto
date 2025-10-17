@@ -51,7 +51,7 @@ message LastObservedBlockHeight {
 
 // BridgeToken
 message BridgeToken {
-  string contract = 1;
+  string contract_address = 1;
   string denom = 2;
   string name = 3;
   string symbol = 4;

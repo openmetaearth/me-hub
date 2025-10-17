@@ -23,7 +23,7 @@ func (s *KeeperTestSuite) TestKeeper_OutgoingAncCancel() {
 	s.NoError(err)
 	s.Equal(sendAmount, s.App.BankKeeper.GetSupply(s.Ctx, denom))
 
-	s.Keeper().SetBridgeToken(s.Ctx, &types.BridgeToken{Contract: bridgeToken, Denom: denom, Supply: sendAmount.Amount})
+	s.Keeper().SetBridgeToken(s.Ctx, &types.BridgeToken{ContractAddress: bridgeToken, Denom: denom, Supply: sendAmount.Amount})
 	s.Equal(s.App.BankKeeper.GetAllBalances(s.Ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
 
 	receiver := helpers.GenerateAddress().Hex()
