@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_12"
 	"io"
 	"io/fs"
 	"net/http"
@@ -87,7 +88,7 @@ var (
 	Upgrades = []upgrades.Upgrade{
 		v2_0_10.Upgrade,
 		v2_0_11.Upgrade,
-		v2_0_13.Upgrade,
+		v2_0_12.Upgrade,
 	}
 )
 

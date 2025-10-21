@@ -1,4 +1,4 @@
-package v2_0_13
+package v2_0_12
 
 import (
 	"fmt"
@@ -40,7 +40,7 @@ func CreateUpgradeHandler(
 		if err != nil {
 			panic(fmt.Errorf("failed to get consensus params: %w", err))
 		}
-		consensusParams.Block.MaxGas = 500000000 // suppose 10,000,000 * 50 txs or 100,000 * 5000 txs
+		consensusParams.Block.MaxGas = 300000000 // suppose 10,000,000 * 30 txs or 100,000 * 3000 txs
 		keepers.ConsensusParamsKeeper.Set(ctx, consensusParams)
 
 		logger.Info("upgrade finished successfully.")
