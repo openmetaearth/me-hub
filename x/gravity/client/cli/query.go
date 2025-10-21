@@ -276,8 +276,8 @@ func CmdGetLastRelayerSetRequests(chainName string) *cobra.Command {
 
 func CmdGetPendingRelayerSetRequest(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pending-relayer-set-request [bridger]",
-		Short: "Query the latest relayer-set request which has not been signed by a particular relayer bridger",
+		Use:   "pending-relayer-set-request [relayer]",
+		Short: "Query the latest relayer-set request which has not been signed by a particular relayer relayer",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -286,12 +286,12 @@ func CmdGetPendingRelayerSetRequest(chainName string) *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			bridgerAddr, err := sdk.AccAddressFromBech32(args[0])
+			relayerAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 			res, err := queryClient.LastPendingRelayerSetRequestByAddr(cmd.Context(), &types.QueryLastPendingRelayerSetRequestByAddrRequest{
-				RelayerAddress: bridgerAddr.String(),
+				RelayerAddress: relayerAddr.String(),
 				ChainName:      chainName,
 			})
 			if err != nil {
@@ -305,8 +305,8 @@ func CmdGetPendingRelayerSetRequest(chainName string) *cobra.Command {
 
 func CmdGetRelayerSetConfirm(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "relayer-set-confirm [nonce] [bridger-address]",
-		Short: "Query relayer-set confirmation with a particular nonce from a particular relayer bridger",
+		Use:   "relayer-set-confirm [nonce] [relayer-address]",
+		Short: "Query relayer-set confirmation with a particular nonce from a particular relayer relayer",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -319,13 +319,13 @@ func CmdGetRelayerSetConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			bridgerAddr, err := sdk.AccAddressFromBech32(args[1])
+			relayerAddr, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {
 				return err
 			}
 			res, err := queryClient.RelayerSetConfirm(cmd.Context(), &types.QueryRelayerSetConfirmRequest{
 				Nonce:          nonce,
-				RelayerAddress: bridgerAddr.String(),
+				RelayerAddress: relayerAddr.String(),
 				ChainName:      chainName,
 			})
 			if err != nil {
@@ -368,8 +368,8 @@ func CmdGetRelayerSetConfirms(chainName string) *cobra.Command {
 
 func CmdGetPendingOutgoingTXBatchRequest(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pending-batch-request [bridger-address]",
-		Short: "Query the latest outgoing TX batch request which has not been signed by a particular relayer bridger address",
+		Use:   "pending-batch-request [relayer-address]",
+		Short: "Query the latest outgoing TX batch request which has not been signed by a particular relayer relayer address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -378,12 +378,12 @@ func CmdGetPendingOutgoingTXBatchRequest(chainName string) *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			bridgerAddr, err := sdk.AccAddressFromBech32(args[0])
+			relayerAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 			res, err := queryClient.LastPendingBatchRequestByAddr(cmd.Context(), &types.QueryLastPendingBatchRequestByAddrRequest{
-				RelayerAddress: bridgerAddr.String(),
+				RelayerAddress: relayerAddr.String(),
 				ChainName:      chainName,
 			})
 			if err != nil {
@@ -397,8 +397,8 @@ func CmdGetPendingOutgoingTXBatchRequest(chainName string) *cobra.Command {
 
 func CmdBatchConfirm(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "batch-confirm [token-contract] [nonce] [bridger-address]",
-		Short: "Query outgoing tx batches confirm by relayer bridger address",
+		Use:   "batch-confirm [token-contract] [nonce] [relayer-address]",
+		Short: "Query outgoing tx batches confirm by relayer relayer address",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -415,7 +415,7 @@ func CmdBatchConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			bridgerAddr, err := sdk.AccAddressFromBech32(args[2])
+			relayerAddr, err := sdk.AccAddressFromBech32(args[2])
 			if err != nil {
 				return err
 			}
@@ -423,7 +423,7 @@ func CmdBatchConfirm(chainName string) *cobra.Command {
 				ChainName:      chainName,
 				TokenContract:  tokenContract,
 				Nonce:          nonce,
-				RelayerAddress: bridgerAddr.String(),
+				RelayerAddress: relayerAddr.String(),
 			})
 			if err != nil {
 				return err
@@ -629,8 +629,8 @@ func CmdGetBridgeTokens(chainName string) *cobra.Command {
 
 func CmdGetRelayerEventNonce(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "event-nonce [bridger-address]",
-		Short: "Query last event nonce by bridger address",
+		Use:   "event-nonce [relayer-address]",
+		Short: "Query last event nonce by relayer address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -639,13 +639,13 @@ func CmdGetRelayerEventNonce(chainName string) *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			bridgerAddr, err := sdk.AccAddressFromBech32(args[0])
+			relayerAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 			res, err := queryClient.LastEventNonceByAddr(cmd.Context(), &types.QueryLastEventNonceByAddrRequest{
 				ChainName:      chainName,
-				RelayerAddress: bridgerAddr.String(),
+				RelayerAddress: relayerAddr.String(),
 			})
 			if err != nil {
 				return err
@@ -682,8 +682,8 @@ func CmdGetLastObservedEventNonce(chainName string) *cobra.Command {
 
 func CmdGetRelayerEventBlockHeight(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "event-block-height [bridger-address]",
-		Short: "Query last event block height by bridger address",
+		Use:   "event-block-height [relayer-address]",
+		Short: "Query last event block height by relayer address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -692,12 +692,12 @@ func CmdGetRelayerEventBlockHeight(chainName string) *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			bridgerAddr, err := sdk.AccAddressFromBech32(args[0])
+			relayerAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 			res, err := queryClient.LastEventBlockHeightByAddr(cmd.Context(), &types.QueryLastEventBlockHeightByAddrRequest{
-				RelayerAddress: bridgerAddr.String(),
+				RelayerAddress: relayerAddr.String(),
 				ChainName:      chainName,
 			})
 			if err != nil {

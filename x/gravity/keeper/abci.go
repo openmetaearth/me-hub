@@ -45,9 +45,6 @@ func (k Keeper) isNeedRelayerSetChange(ctx sdk.Context) (*types.RelayerSet, bool
 	}
 
 	relayerSetUpdatePowerChangePercent := k.GetRelayerSetUpdatePowerChangePercent(ctx)
-	if relayerSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
-		relayerSetUpdatePowerChangePercent = sdk.OneDec()
-	}
 	if powerDiffDec.GTE(relayerSetUpdatePowerChangePercent) {
 		k.Logger(ctx).Info("relayer set change", "change threshold", relayerSetUpdatePowerChangePercent.String(), "powerDiff", powerDiff)
 		return currentRelayerSet, true

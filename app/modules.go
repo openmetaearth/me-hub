@@ -39,6 +39,7 @@ import (
 	kyc "github.com/st-chain/me-hub/x/kyc"
 	groupmodule "github.com/st-chain/me-hub/x/megroup"
 	"github.com/st-chain/me-hub/x/rollapp"
+	"github.com/st-chain/me-hub/x/tron"
 	"github.com/st-chain/me-hub/x/wbank"
 	"github.com/st-chain/me-hub/x/wdistri"
 	"github.com/st-chain/me-hub/x/wgov"
@@ -104,6 +105,7 @@ var ModuleBasics = module.NewBasicManager(
 	wasm.AppModuleBasic{},
 	groupmodule.AppModuleBasic{},
 	bsc.AppModuleBasic{},
+	tron.AppModuleBasic{},
 )
 
 func GenTxMessageValidator(msgs []sdk.Msg) error {

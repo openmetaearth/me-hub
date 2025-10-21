@@ -1,14 +1,14 @@
 package types
 
 import (
-	crosschaintypes "github.com/st-chain/me-hub/x/gravity/types"
+	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 )
 
-func DefaultGenesisState() *crosschaintypes.GenesisState {
-	params := crosschaintypes.DefaultParams()
-	params.GravityId = "fx-tron-bridge"
+func DefaultGenesisState() *gravitytypes.GenesisState {
+	params := gravitytypes.DefaultParams()
+	params.GravityId = "me-tron-bridge"
 	params.AverageExternalBlockTime = 3_000
-	return &crosschaintypes.GenesisState{
+	return &gravitytypes.GenesisState{
 		Params: params,
 	}
 }

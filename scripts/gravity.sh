@@ -4,6 +4,13 @@ RelayerMnemonic="also dune road lumber jeans tiny float pulse escape must wheel 
 CHAIN_ID=${CHAIN_ID:-"mechain_100-1"}
 KEY_NAME=${KEY_NAME:-"global_dao"}
 KEYRING="test"
+CHAIN=${CHAIN:-"tron"}
+#CHAIN=${CHAIN:-"bsc"}
+
+if [ -z "$CHAIN" ]; then
+  echo "Error: CHAIN environment variable is not set." >&2
+  exit 1
+fi
 
 # cache: r1_address ... r5_address
 get_relayers() {
@@ -34,7 +41,9 @@ proposal-relayers() {
   get_relayers
   relayers_csv=$(printf "%s," "$r1_address" "$r2_address" "$r3_address" "$r4_address" "$r5_address")
   relayers_csv=${relayers_csv%,}
-  med tx bsc proposal-relayers --relayers "$relayers_csv" --from "$KEY_NAME" --chain-id "$CHAIN_ID" --keyring-backend $KEYRING -y --gas-prices 0.02umec --gas auto --gas-adjustment 1.3
+  med tx "$CHAIN" proposal-relayers --relayers "$relayers_csv" --from "$KEY_NAME" --chain-id "$CHAIN_ID" --keyring-backend $KEYRING -y --gas-prices 0.02umec --gas auto --gas-adjustment 1.3
+  sleep 5
+  med q $"$CHAIN" proposal-relayers
 }
 
 bonded-relayer() {
@@ -46,15 +55,15 @@ bonded-relayer() {
   done
   for i in 1 2 3 4 5; do
     eval "hexv=\$r${i}_hex"
-    med tx bsc bonded-relayer "$hexv" 100000000umec --from r${i} --chain-id "$CHAIN_ID" --keyring-backend $KEYRING -y --gas-prices 0.02umec --gas 500000
+    med tx "$CHAIN" bonded-relayer "$hexv" 100000000umec --from r${i} --chain-id "$CHAIN_ID" --keyring-backend $KEYRING -y --gas-prices 0.02umec --gas 500000
   done
 }
 
 add-delegate() {
   get_relayers
-  med tx bsc add-delegate 100000000umec --from r1 --chain-id "$CHAIN_ID" --keyring-backend $KEYRING -y --gas-prices 0.02umec --gas 500000
+  med tx "$CHAIN" add-delegate 100000000umec --from r1 --chain-id "$CHAIN_ID" --keyring-backend $KEYRING -y --gas-prices 0.02umec --gas 500000
   sleep 5
-  med q bsc relayer $r1_address
+  med q "$CHAIN" relayer $r1_address
 }
 
 

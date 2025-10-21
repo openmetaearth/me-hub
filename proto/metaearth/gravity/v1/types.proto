@@ -203,11 +203,11 @@ message Params {
   uint64 external_batch_timeout = 3;
   uint64 average_external_block_time = 4;
   uint64 signed_window = 5;
-  bytes slash_fraction = 6 [
+  string slash_fraction = 6 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
-  bytes relayer_set_update_power_change_percent = 7 [
+  string relayer_set_update_power_change_percent = 7 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];

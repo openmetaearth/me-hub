@@ -17,6 +17,7 @@ var (
 	ErrExternalAddressNotMatch = errorsmod.Register(ModuleName, 10, "external address not match relayer")
 	ErrRelayerNotOnLine        = errorsmod.Register(ModuleName, 11, "relayer not on line")
 
-	ErrDelegateAmountBelowMinimum = errorsmod.Register(ModuleName, 12, "delegate amount must be greater than relayer stake threshold")
-	ErrDelegateAmountAboveMaximum = errorsmod.Register(ModuleName, 13, "delegate amount must be less than relayer stake threshold")
+	ErrDelegateAmountBelowMinimum  = errorsmod.Register(ModuleName, 12, "delegate amount must be greater than relayer stake threshold")
+	ErrDelegateAmountAboveMaximum  = errorsmod.Register(ModuleName, 13, "delegate amount must be less than relayer stake threshold")
+	ErrMaxChangePowerLimitExceeded = errorsmod.Register(ModuleName, 14, "mac change power limit exceeded")
 )

@@ -7,12 +7,12 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/st-chain/me-hub/testutil/helpers"
 
-	crosschaintypes "github.com/st-chain/me-hub/x/gravity/types"
+	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 	trontypes "github.com/st-chain/me-hub/x/tron/types"
 )
 
 func (s *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
-	var msg *crosschaintypes.MsgConfirmBatch
+	var msg *gravitytypes.MsgConfirmBatch
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -21,7 +21,7 @@ func (s *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 		{
 			name: "couldn't find batch",
 			malleate: func() {
-				msg = &crosschaintypes.MsgConfirmBatch{
+				msg = &gravitytypes.MsgConfirmBatch{
 					Nonce:          tmrand.Uint64(),
 					TokenContract:  helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 					RelayerAddress: helpers.GenAccAddress().String(),
@@ -33,7 +33,7 @@ func (s *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 			name: "not found relayer",
 			malleate: func() {
 				newOutgoingTx := s.NewOutgoingTxBatch()
-				msg = &crosschaintypes.MsgConfirmBatch{
+				msg = &gravitytypes.MsgConfirmBatch{
 					Nonce:          newOutgoingTx.BatchNonce,
 					TokenContract:  newOutgoingTx.TokenContract,
 					RelayerAddress: helpers.GenAccAddress().String(),
@@ -46,7 +46,7 @@ func (s *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 			malleate: func() {
 				newOutgoingTx := s.NewOutgoingTxBatch()
 				relayer, externalKey := s.NewRelayer()
-				msg = &crosschaintypes.MsgConfirmBatch{
+				msg = &gravitytypes.MsgConfirmBatch{
 					Nonce:           newOutgoingTx.BatchNonce,
 					TokenContract:   newOutgoingTx.TokenContract,
 					RelayerAddress:  relayer.String(),
@@ -61,7 +61,7 @@ func (s *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 			malleate: func() {
 				newOutgoingTx := s.NewOutgoingTxBatch()
 				relayer, externalKey := s.NewRelayer()
-				params, err := s.queryServer.Params(sdk.WrapSDKContext(s.Ctx), &crosschaintypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
+				params, err := s.queryServer.Params(sdk.WrapSDKContext(s.Ctx), &gravitytypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
 				s.Require().NoError(err)
 				batchHash, err := trontypes.GetCheckpointConfirmBatch(newOutgoingTx, params.Params.GravityId)
 				s.Require().NoError(err)
@@ -69,7 +69,7 @@ func (s *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 				s.Require().NoError(err)
 				signature, err := trontypes.NewTronSignature(batchHash, key)
 				s.Require().NoError(err)
-				msg = &crosschaintypes.MsgConfirmBatch{
+				msg = &gravitytypes.MsgConfirmBatch{
 					Nonce:           newOutgoingTx.BatchNonce,
 					TokenContract:   newOutgoingTx.TokenContract,
 					RelayerAddress:  relayer.String(),
@@ -94,7 +94,7 @@ func (s *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 }
 
 func (s *KeeperTestSuite) Test_msgServer_RelayerSetConfirm() {
-	var msg *crosschaintypes.MsgRelayerSetConfirm
+	var msg *gravitytypes.MsgRelayerSetConfirm
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -103,7 +103,7 @@ func (s *KeeperTestSuite) Test_msgServer_RelayerSetConfirm() {
 		{
 			name: "couldn't find relayerSet",
 			malleate: func() {
-				msg = &crosschaintypes.MsgRelayerSetConfirm{
+				msg = &gravitytypes.MsgRelayerSetConfirm{
 					Nonce:          tmrand.Uint64(),
 					RelayerAddress: helpers.GenAccAddress().String(),
 				}
@@ -114,7 +114,7 @@ func (s *KeeperTestSuite) Test_msgServer_RelayerSetConfirm() {
 			name: "not found relayer",
 			malleate: func() {
 				newRelayerSet := s.NewRelayerSet(helpers.NewEthPrivKey())
-				msg = &crosschaintypes.MsgRelayerSetConfirm{
+				msg = &gravitytypes.MsgRelayerSetConfirm{
 					Nonce:           newRelayerSet.Nonce,
 					RelayerAddress:  helpers.GenAccAddress().String(),
 					ExternalAddress: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
@@ -127,7 +127,7 @@ func (s *KeeperTestSuite) Test_msgServer_RelayerSetConfirm() {
 			malleate: func() {
 				relayer, externalKey := s.NewRelayer()
 				newRelayerSet := s.NewRelayerSet(externalKey)
-				msg = &crosschaintypes.MsgRelayerSetConfirm{
+				msg = &gravitytypes.MsgRelayerSetConfirm{
 					Nonce:           newRelayerSet.Nonce,
 					RelayerAddress:  relayer.String(),
 					ExternalAddress: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
@@ -143,13 +143,13 @@ func (s *KeeperTestSuite) Test_msgServer_RelayerSetConfirm() {
 				newRelayerSet := s.NewRelayerSet(externalKey)
 				key, err := externalKey.(*ethsecp256k1.PrivKey).ToECDSA()
 				s.Require().NoError(err)
-				params, err := s.queryServer.Params(sdk.WrapSDKContext(s.Ctx), &crosschaintypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
+				params, err := s.queryServer.Params(sdk.WrapSDKContext(s.Ctx), &gravitytypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
 				s.Require().NoError(err)
 				relayerSetHash, err := trontypes.GetCheckpointRelayerSet(newRelayerSet, params.Params.GravityId)
 				s.Require().NoError(err)
 				signature, err := trontypes.NewTronSignature(relayerSetHash, key)
 				s.Require().NoError(err)
-				msg = &crosschaintypes.MsgRelayerSetConfirm{
+				msg = &gravitytypes.MsgRelayerSetConfirm{
 					Nonce:           newRelayerSet.Nonce,
 					RelayerAddress:  relayer.String(),
 					ExternalAddress: helpers.HexAddrToTronAddr(externalKey.PubKey().Address().String()),

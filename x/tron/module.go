@@ -13,9 +13,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	crosschaincli "github.com/st-chain/me-hub/x/gravity/client/cli"
+	gravitycli "github.com/st-chain/me-hub/x/gravity/client/cli"
 	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
-	crosschaintypes "github.com/st-chain/me-hub/x/gravity/types"
+	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 	"github.com/st-chain/me-hub/x/tron/keeper"
 	"github.com/st-chain/me-hub/x/tron/types"
 )
@@ -43,7 +43,7 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 
 // ValidateGenesis implements app module basic
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingConfig, data json.RawMessage) error {
-	var state crosschaintypes.GenesisState
+	var state gravitytypes.GenesisState
 	if err := cdc.UnmarshalJSON(data, &state); err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
 	}
@@ -52,12 +52,12 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingCo
 
 // GetQueryCmd implements app module basic
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return crosschaincli.GetQueryCmd(types.ModuleName)
+	return gravitycli.GetQueryCmd(types.ModuleName)
 }
 
 // GetTxCmd implements app module basic
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return crosschaincli.GetTxCmd(types.ModuleName)
+	return gravitycli.GetTxCmd(types.ModuleName)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway
@@ -97,7 +97,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 // InitGenesis initializes the genesis state for this module and implements app module.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState crosschaintypes.GenesisState
+	var genesisState gravitytypes.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 
 	gravitykeeper.InitGenesis(ctx, am.keeper.Keeper, &genesisState)
@@ -112,7 +112,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (am AppModule) ConsensusVersion() uint64 {
-	return 5
+	return 1
 }
 
 // EndBlock implements app module
