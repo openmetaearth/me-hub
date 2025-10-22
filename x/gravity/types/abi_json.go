@@ -21,7 +21,7 @@ import (
 
 var (
 	outgoingBatchTxCheckpointABI abi.ABI
-	oracleSetCheckpointABI       abi.ABI
+	relayerSetCheckpointABI      abi.ABI
 )
 
 func init() {
@@ -47,8 +47,8 @@ func init() {
 		]
 	}]`
 
-		// OracleSetCheckpointABIJSON checks the ETH ABI for compatibility of the RelayerSet update message
-		oracleSetCheckpointABIJSON = `[{
+		// RelayerSetCheckpointABIJSON checks the ETH ABI for compatibility of the RelayerSet update message
+		relayerSetCheckpointABIJSON = `[{
 		"name": "checkpoint",
 		"stateMutability": "pure",
 		"type": "function",
@@ -70,7 +70,7 @@ func init() {
 	if err != nil {
 		panic(err.Error())
 	}
-	oracleSetCheckpointABI, err = abi.JSON(strings.NewReader(oracleSetCheckpointABIJSON))
+	relayerSetCheckpointABI, err = abi.JSON(strings.NewReader(relayerSetCheckpointABIJSON))
 	if err != nil {
 		panic(err.Error())
 	}

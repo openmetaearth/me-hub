@@ -39,7 +39,7 @@ func getQuerySubCmds(chainName string) []*cobra.Command {
 		CmdGetProposalRelayers(chainName),
 
 		// query relayer set
-		CmdGetCurrentRelayerSet(chainName),
+		CmdGetNewRelayerSet(chainName),
 		CmdGetRelayerSetRequest(chainName),
 
 		// need relayer consensus sign
@@ -184,9 +184,9 @@ func CmdRelayer(chainName string) *cobra.Command {
 	return cmd
 }
 
-func CmdGetCurrentRelayerSet(chainName string) *cobra.Command {
+func CmdGetNewRelayerSet(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "current-relayer-set",
+		Use:   "new-relayer-set",
 		Short: "Query current relayer-set",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -196,7 +196,7 @@ func CmdGetCurrentRelayerSet(chainName string) *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.CurrentRelayerSet(cmd.Context(), &types.QueryCurrentRelayerSetRequest{
+			res, err := queryClient.NewRelayerSet(cmd.Context(), &types.QueryNewRelayerSetRequest{
 				ChainName: chainName,
 			})
 			if err != nil {

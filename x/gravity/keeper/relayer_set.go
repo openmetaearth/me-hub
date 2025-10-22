@@ -11,9 +11,9 @@ import (
 	"github.com/st-chain/me-hub/x/gravity/types"
 )
 
-// --- ORACLE SET REQUESTS --- //
+// --- RELAYER SET REQUESTS --- //
 
-// GetCurrentRelayerSet gets powers from the store and normalizes them
+// GetNewRelayerSet gets powers from the store and normalizes them
 // into an integer percentage with a resolution of uint32 Max meaning
 // a given validators 'Relayer power' is computed as
 // Cosmos power / total cosmos power = x / uint32 Max
@@ -24,7 +24,7 @@ import (
 // total voting power. This is an acceptable rounding error since floating
 // point may cause consensus problems if different floating point unit
 // implementations are involved.
-func (k Keeper) GetCurrentRelayerSet(ctx sdk.Context) *types.RelayerSet {
+func (k Keeper) GetNewRelayerSet(ctx sdk.Context) *types.RelayerSet {
 	allRelayers := k.GetAllRelayers(ctx, true)
 	bridgeValidators := make([]types.BridgeValidator, 0, len(allRelayers))
 	var totalPower uint64
@@ -49,16 +49,16 @@ func (k Keeper) GetCurrentRelayerSet(ctx sdk.Context) *types.RelayerSet {
 }
 
 // AddRelayerSetChangeRequest returns a new instance of the Relayer BridgeValidatorSet
-func (k Keeper) AddRelayerSetChangeRequest(ctx sdk.Context, currentRelayerSet *types.RelayerSet) {
-	// if currentRelayerSet member is empty, not store RelayerSet.
-	if len(currentRelayerSet.Members) == 0 {
+func (k Keeper) AddRelayerSetChangeRequest(ctx sdk.Context, NewRelayerSet *types.RelayerSet) {
+	// if NewRelayerSet member is empty, not store RelayerSet.
+	if len(NewRelayerSet.Members) == 0 {
 		return
 	}
-	k.StoreRelayerSet(ctx, currentRelayerSet)
-	k.SetLatestRelayerSetNonce(ctx, currentRelayerSet.Nonce)
+	k.StoreRelayerSet(ctx, NewRelayerSet)
+	k.SetLatestRelayerSetNonce(ctx, NewRelayerSet.Nonce)
 	k.SetLastTotalPower(ctx)
 
-	// checkpoint, err := currentRelayerSet.GetCheckpoint(k.GetRelayerID(ctx))
+	// checkpoint, err := NewRelayerSet.GetCheckpoint(k.GetRelayerID(ctx))
 	// if err != nil {
 	// 	panic(err)
 	// }
@@ -67,8 +67,8 @@ func (k Keeper) AddRelayerSetChangeRequest(ctx sdk.Context, currentRelayerSet *t
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeRelayerSetUpdate,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyRelayerSetNonce, fmt.Sprint(currentRelayerSet.Nonce)),
-		sdk.NewAttribute(types.AttributeKeyRelayerSetLen, fmt.Sprint(len(currentRelayerSet.Members))),
+		sdk.NewAttribute(types.AttributeKeyRelayerSetNonce, fmt.Sprint(NewRelayerSet.Nonce)),
+		sdk.NewAttribute(types.AttributeKeyRelayerSetLen, fmt.Sprint(len(NewRelayerSet.Members))),
 	))
 }
 
@@ -200,7 +200,7 @@ func (k Keeper) IterateRelayerSetByNonce(ctx sdk.Context, startNonce uint64, cb 
 	}
 }
 
-// --- ORACLE SET CONFIRMS --- //
+// --- RELAYER SET CONFIRMS --- //
 
 // GetRelayerSetConfirm returns a relayerSet confirmation by a nonce and external address
 func (k Keeper) GetRelayerSetConfirm(ctx sdk.Context, nonce uint64, relayerAddr sdk.AccAddress) *types.MsgRelayerSetConfirm {

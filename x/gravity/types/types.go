@@ -100,7 +100,7 @@ func (b BridgeValidators) PowerDiff(c BridgeValidators) float64 {
 		delta += math.Abs(float64(v))
 	}
 
-	return math.Abs(delta / float64(math.MaxUint32))
+	return math.Abs(delta / float64(utils.PowerBase))
 }
 
 // TotalPower returns the total power in the bridge validator set
@@ -160,7 +160,7 @@ func (b BridgeValidators) Equal(o BridgeValidators) bool {
 	return true
 }
 
-// --- OracleSet(S) --- //
+// --- RelayerSet(S) --- //
 
 func NewRelayerSet(nonce, height uint64, members BridgeValidators) *RelayerSet {
 	sort.Sort(members)
@@ -194,7 +194,7 @@ func (m *RelayerSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// the word 'checkpoint' needs to be the same as the 'name' above in the checkpointAbiJson
 	// but other than that it's a constant that has no impact on the output. This is because
 	// it gets encoded as a function name which we must then discard.
-	packBytes, packErr := oracleSetCheckpointABI.Pack("checkpoint", gravityID, checkpoint, big.NewInt(int64(m.Nonce)), memberAddresses, convertedPowers)
+	packBytes, packErr := relayerSetCheckpointABI.Pack("checkpoint", gravityID, checkpoint, big.NewInt(int64(m.Nonce)), memberAddresses, convertedPowers)
 
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
@@ -211,15 +211,15 @@ func (m *RelayerSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 
 func (m *RelayerSet) Equal(o *RelayerSet) (bool, error) {
 	if m.Height != o.Height {
-		return false, errorsmod.Wrap(ErrInvalid, "oracle set heights mismatch")
+		return false, errorsmod.Wrap(ErrInvalid, "relayer set heights mismatch")
 	}
 
 	if m.Nonce != o.Nonce {
-		return false, errorsmod.Wrap(ErrInvalid, "oracle set nonce mismatch")
+		return false, errorsmod.Wrap(ErrInvalid, "relayer set nonce mismatch")
 	}
 
 	if !BridgeValidators(m.Members).Equal(o.Members) {
-		return false, errorsmod.Wrap(ErrInvalid, "oracle set members mismatch")
+		return false, errorsmod.Wrap(ErrInvalid, "relayer set members mismatch")
 	}
 
 	return true, nil
@@ -316,7 +316,7 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	return crypto.Keccak256Hash(abiEncodedBatch[4:]).Bytes(), nil
 }
 
-// --- Oracle(S) --- //
+// --- Relayer(S) --- //
 
 func (m *Relayer) GetRelayer() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.RelayerAddress)

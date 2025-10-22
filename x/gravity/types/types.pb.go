@@ -872,7 +872,7 @@ func (m *MinBatchFee) GetTokenContract() string {
 
 // relayer_set_update_power_change_percent
 //
-// If power change between validators of CurrentRelayerSet and latest relayer set
+// If power change between validators of NewRelayerSet and latest relayer set
 // request is > 10%
 type Params struct {
 	GravityId                          string                                 `protobuf:"bytes,1,opt,name=gravity_id,json=gravityId,proto3" json:"gravity_id,omitempty"`

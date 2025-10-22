@@ -51,11 +51,11 @@ func (k RouterKeeper) Relayers(c context.Context, req *types.QueryRelayersReques
 	}
 }
 
-func (k RouterKeeper) CurrentRelayerSet(c context.Context, req *types.QueryCurrentRelayerSetRequest) (*types.QueryCurrentRelayerSetResponse, error) {
+func (k RouterKeeper) NewRelayerSet(c context.Context, req *types.QueryNewRelayerSetRequest) (*types.QueryNewRelayerSetResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
 	} else {
-		return queryServer.CurrentRelayerSet(c, req)
+		return queryServer.NewRelayerSet(c, req)
 	}
 }
 

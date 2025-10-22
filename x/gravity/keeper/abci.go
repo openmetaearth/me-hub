@@ -18,27 +18,27 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 }
 
 func (k Keeper) createRelayerSetChangeRequest(ctx sdk.Context) {
-	if currentRelayerSet, isNeed := k.isNeedRelayerSetChange(ctx); isNeed {
-		k.AddRelayerSetChangeRequest(ctx, currentRelayerSet)
+	if NewRelayerSet, isNeed := k.isNeedRelayerSetChange(ctx); isNeed {
+		k.AddRelayerSetChangeRequest(ctx, NewRelayerSet)
 	}
 }
 
 func (k Keeper) isNeedRelayerSetChange(ctx sdk.Context) (*types.RelayerSet, bool) {
-	currentRelayerSet := k.GetCurrentRelayerSet(ctx)
+	newRelayerSet := k.GetNewRelayerSet(ctx)
 	// 1. get latest RelayerSet
 	latestRelayerSet := k.GetLatestRelayerSet(ctx)
 	if latestRelayerSet == nil {
-		return currentRelayerSet, true
+		return newRelayerSet, true
 	}
 
 	// 2. Relayer slash
 	if k.GetLastRelayerSlashBlockHeight(ctx) == uint64(ctx.BlockHeight()) {
 		k.Logger(ctx).Info("relayer set change", "has relayer slash in block", ctx.BlockHeight())
-		return currentRelayerSet, true
+		return newRelayerSet, true
 	}
 
 	// 3. Power diff
-	powerDiff := fmt.Sprintf("%.8f", types.BridgeValidators(currentRelayerSet.Members).PowerDiff(latestRelayerSet.Members))
+	powerDiff := fmt.Sprintf("%.8f", types.BridgeValidators(newRelayerSet.Members).PowerDiff(latestRelayerSet.Members))
 	powerDiffDec, err := sdk.NewDecFromStr(powerDiff)
 	if err != nil {
 		panic(fmt.Errorf("covert power diff to dec err, powerDiff: %v, err: %w", powerDiff, err))
@@ -47,9 +47,9 @@ func (k Keeper) isNeedRelayerSetChange(ctx sdk.Context) (*types.RelayerSet, bool
 	relayerSetUpdatePowerChangePercent := k.GetRelayerSetUpdatePowerChangePercent(ctx)
 	if powerDiffDec.GTE(relayerSetUpdatePowerChangePercent) {
 		k.Logger(ctx).Info("relayer set change", "change threshold", relayerSetUpdatePowerChangePercent.String(), "powerDiff", powerDiff)
-		return currentRelayerSet, true
+		return newRelayerSet, true
 	}
-	return currentRelayerSet, false
+	return newRelayerSet, false
 }
 
 func (k Keeper) slashing(ctx sdk.Context, signedWindow uint64) {

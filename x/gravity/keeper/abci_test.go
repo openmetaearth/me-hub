@@ -159,7 +159,7 @@ func (s *KeeperTestSuite) TestProposalRelayers() {
 		Authority: s.Dao.GlobalDao,
 		Relayers:  newRelayerList,
 	})
-	s.Require().ErrorIs(types.ErrInvalid, err) // try update chain oracle power >= 30%, expect error
+	s.Require().ErrorIs(types.ErrInvalid, err) // try update chain relayer power >= 30%, expect error
 
 	expectTotalPower := sdkmath.NewInt(10 * 1e8).Mul(sdkmath.NewInt(10)).Quo(sdk.DefaultPowerReduction)
 	actualTotalPower := s.Keeper().GetLastTotalPower(s.Ctx)

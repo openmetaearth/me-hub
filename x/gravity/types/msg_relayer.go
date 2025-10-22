@@ -92,7 +92,7 @@ func (m *MsgUnbondedRelayer) ValidateBasic() (err error) {
 		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid oracle address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid relayer address: %s", err)
 	}
 	return nil
 }

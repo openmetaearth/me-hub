@@ -7,7 +7,7 @@ import (
 	"github.com/st-chain/me-hub/x/gravity/types"
 )
 
-// --- PROPOSAL ORACLE --- //
+// --- PROPOSAL RELAYER --- //
 func (k Keeper) SetProposalRelayer(ctx sdk.Context, proposalRelayer *types.ProposalRelayer) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.ProposalRelayerKey, k.cdc.MustMarshal(proposalRelayer))
@@ -87,7 +87,7 @@ func (k Keeper) SetLastTotalPower(ctx sdk.Context) {
 	store.Set(types.LastTotalPowerKey, k.cdc.MustMarshal(&sdk.IntProto{Int: totalPower}))
 }
 
-// --- ORACLES --- //
+// --- RELAYERS --- //
 func (k Keeper) IterateRelayer(ctx sdk.Context, cb func(relayer types.Relayer) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.RelayerKey)
@@ -163,7 +163,7 @@ func (k Keeper) SlashRelayer(ctx sdk.Context, relayerAddrStr string) {
 	k.SetLastRelayerSlashBlockHeight(ctx, uint64(ctx.BlockHeight()))
 }
 
-// SetLastOracleSlashBlockHeight sets the last proposal block height
+// SetLastRelayerSlashBlockHeight sets the last proposal block height
 func (k Keeper) SetLastRelayerSlashBlockHeight(ctx sdk.Context, blockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.LastRelayerSlashBlockHeight, sdk.Uint64ToBigEndian(blockHeight))

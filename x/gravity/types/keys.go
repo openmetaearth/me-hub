@@ -40,10 +40,10 @@ var (
 	// OutgoingTxBatchBlockKey indexes outgoing tx batches under a block height and token address
 	OutgoingTxBatchBlockKey = []byte{0x21}
 
-	// BatchConfirmKey indexes oracle confirmations by token contract address
+	// BatchConfirmKey indexes relayer confirmations by token contract address
 	BatchConfirmKey = []byte{0x22}
 
-	// LastEventNonceByRelayerKey indexes latest event nonce by oracle
+	// LastEventNonceByRelayerKey indexes latest event nonce by relayer
 	LastEventNonceByRelayerKey = []byte{0x23}
 
 	// LastObservedEventNonceKey indexes the latest event nonce
@@ -64,10 +64,10 @@ var (
 	// BridgeTokenByDenom prefixes the index of assets external token to denom
 	BridgeTokenByDenomKey = []byte{0x27}
 
-	// LastSlashedRelayerSetNonce indexes the latest slashed oracleSet nonce
+	// LastSlashedRelayerSetNonce indexes the latest slashed relayerSet nonce
 	LastSlashedRelayerSetNonce = []byte{0x28}
 
-	// LatestRelayerSetNonce indexes the latest oracleSet nonce
+	// LatestRelayerSetNonce indexes the latest relayerSet nonce
 	LatestRelayerSetNonce = []byte{0x29}
 
 	// LastSlashedBatchBlock indexes the latest slashed batch block height
@@ -82,19 +82,19 @@ var (
 	// LastObservedRelayerSetKey indexes the latest observed RelayerSet nonce
 	LastObservedRelayerSetKey = []byte{0x33}
 
-	// LastEventBlockHeightByRelayerKey indexes latest event blockHeight by oracle
+	// LastEventBlockHeightByRelayerKey indexes latest event blockHeight by relayer
 	LastEventBlockHeightByRelayerKey = []byte{0x35}
 
 	// Deprecated: PastExternalSignatureCheckpointKey indexes eth signature checkpoints that have existed
 	PastExternalSignatureCheckpointKey = []byte{0x36}
 
-	// LastRelayerSlashBlockHeight indexes the last oracle slash block height
+	// LastRelayerSlashBlockHeight indexes the last relayer slash block height
 	LastRelayerSlashBlockHeight = []byte{0x37}
 
 	// ProposalRelayerKey -> value ProposalRelayer
 	ProposalRelayerKey = []byte{0x38}
 
-	// LastTotalPowerKey oracle set total power
+	// LastTotalPowerKey relayer set total power
 	LastTotalPowerKey = []byte{0x39}
 
 	// ParamsKey is the prefix for params key
@@ -105,8 +105,8 @@ var (
 )
 
 // GetRelayerKey returns the following key format
-func GetRelayerKey(oracle sdk.AccAddress) []byte {
-	return append(RelayerKey, oracle.Bytes()...)
+func GetRelayerKey(relayer sdk.AccAddress) []byte {
+	return append(RelayerKey, relayer.Bytes()...)
 }
 
 // GetRelayerAddressByExternalKey returns the following key format
@@ -120,8 +120,8 @@ func GetRelayerSetKey(nonce uint64) []byte {
 }
 
 // GetRelayerSetConfirmKey returns the following key format
-func GetRelayerSetConfirmKey(nonce uint64, oracleAddr sdk.AccAddress) []byte {
-	return append(RelayerSetConfirmKey, append(sdk.Uint64ToBigEndian(nonce), oracleAddr.Bytes()...)...)
+func GetRelayerSetConfirmKey(nonce uint64, relayerAddr sdk.AccAddress) []byte {
+	return append(RelayerSetConfirmKey, append(sdk.Uint64ToBigEndian(nonce), relayerAddr.Bytes()...)...)
 }
 
 // GetAttestationKey returns the following key format
@@ -157,18 +157,18 @@ func GetOutgoingTxBatchBlockKey(blockHeight uint64) []byte {
 }
 
 // GetBatchConfirmKey returns the following key format
-func GetBatchConfirmKey(tokenContract string, batchNonce uint64, oracleAddr sdk.AccAddress) []byte {
-	return append(BatchConfirmKey, append([]byte(tokenContract), append(sdk.Uint64ToBigEndian(batchNonce), oracleAddr.Bytes()...)...)...)
+func GetBatchConfirmKey(tokenContract string, batchNonce uint64, relayerAddr sdk.AccAddress) []byte {
+	return append(BatchConfirmKey, append([]byte(tokenContract), append(sdk.Uint64ToBigEndian(batchNonce), relayerAddr.Bytes()...)...)...)
 }
 
 // GetLastEventNonceByRelayerKey returns the following key format
-func GetLastEventNonceByRelayerKey(oracleAddr sdk.AccAddress) []byte {
-	return append(LastEventNonceByRelayerKey, oracleAddr.Bytes()...)
+func GetLastEventNonceByRelayerKey(relayerAddr sdk.AccAddress) []byte {
+	return append(LastEventNonceByRelayerKey, relayerAddr.Bytes()...)
 }
 
 // GetLastEventBlockHeightByRelayerKey returns the following key format
-func GetLastEventBlockHeightByRelayerKey(oracleAddr sdk.AccAddress) []byte {
-	return append(LastEventBlockHeightByRelayerKey, oracleAddr.Bytes()...)
+func GetLastEventBlockHeightByRelayerKey(relayerAddr sdk.AccAddress) []byte {
+	return append(LastEventBlockHeightByRelayerKey, relayerAddr.Bytes()...)
 }
 
 // GetBridgeTokenByContract returns the following key format

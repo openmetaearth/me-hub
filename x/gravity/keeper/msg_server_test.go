@@ -136,7 +136,7 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 		expectDelegateAmount func(msg *types.MsgAddDelegate) sdkmath.Int
 	}{
 		{
-			name: "error - sender not oracle",
+			name: "error - sender not relayer",
 			preRun: func(msg *types.MsgAddDelegate) {
 				msg.RelayerAddress = sdk.AccAddress(tmrand.Bytes(20)).String()
 			},
@@ -767,13 +767,13 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	sort.Sort(externalRelayerMembers)
 
 	// 2. RelayerSetConfirm
-	latestOracleSetNonce := s.Keeper().GetLatestRelayerSetNonce(s.Ctx)
-	s.Require().EqualValues(1, latestOracleSetNonce)
-	nonce1OracleSet := s.Keeper().GetRelayerSet(s.Ctx, 1)
+	latestRelayerSetNonce := s.Keeper().GetLatestRelayerSetNonce(s.Ctx)
+	s.Require().EqualValues(1, latestRelayerSetNonce)
+	nonce1RelayerSet := s.Keeper().GetRelayerSet(s.Ctx, 1)
 	gravityId := s.Keeper().GetGravityID(s.Ctx)
-	checkpoint, err := nonce1OracleSet.GetCheckpoint(gravityId)
+	checkpoint, err := nonce1RelayerSet.GetCheckpoint(gravityId)
 	if trontypes.ModuleName == s.chainName {
-		checkpoint, err = trontypes.GetCheckpointRelayerSet(nonce1OracleSet, gravityId)
+		checkpoint, err = trontypes.GetCheckpointRelayerSet(nonce1RelayerSet, gravityId)
 	}
 	for i := range s.relayerAddrs {
 		external2Signature, err := types.NewEthereumSignature(checkpoint, s.externalPris[i])
@@ -782,7 +782,7 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 		}
 
 		msg := &types.MsgRelayerSetConfirm{
-			Nonce:           nonce1OracleSet.Nonce,
+			Nonce:           nonce1RelayerSet.Nonce,
 			RelayerAddress:  s.relayerAddrs[i].String(),
 			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
 			Signature:       hex.EncodeToString(external2Signature),

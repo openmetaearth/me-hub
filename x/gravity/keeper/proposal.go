@@ -18,7 +18,7 @@ func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error
 		newRelayerMap[relayer] = true
 	}
 
-	var unbondedOracleList []types.Relayer
+	var unbondedRelayerList []types.Relayer
 	totalPower, deleteTotalPower := sdkmath.ZeroInt(), sdkmath.ZeroInt()
 
 	allRelayers := k.GetAllRelayers(ctx, false)
@@ -38,7 +38,7 @@ func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error
 		}
 		// relayer not in new proposal and relayer in old proposal
 		if _, ok := oldRelayerMap[relayer.RelayerAddress]; ok {
-			unbondedOracleList = append(unbondedOracleList, relayer)
+			unbondedRelayerList = append(unbondedRelayerList, relayer)
 			if relayer.Online {
 				deleteTotalPower = deleteTotalPower.Add(relayer.GetPower())
 			}
@@ -53,8 +53,8 @@ func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error
 
 	// update proposal relayer
 	k.SetProposalRelayer(ctx, &types.ProposalRelayer{Relayers: relayers})
-	for _, unbondedOracle := range unbondedOracleList {
-		if err := k.UnbondedRelayerFromProposal(ctx, unbondedOracle); err != nil {
+	for _, unbondedRelayer := range unbondedRelayerList {
+		if err := k.UnbondedRelayerFromProposal(ctx, unbondedRelayer); err != nil {
 			return err
 		}
 	}

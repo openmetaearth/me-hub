@@ -29,7 +29,7 @@ func DefaultParams() Params {
 		AverageExternalBlockTime:           1_000,            // 1 seconds
 		SignedWindow:                       30_000,
 		SlashFraction:                      sdk.NewDecWithPrec(8, 1), // 80%
-		RelayerSetUpdatePowerChangePercent: sdk.NewDecWithPrec(2, 1), // 20%
+		RelayerSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 20%
 		MaxRelayers:                        10,
 		MinDelegate:                        sdkmath.NewInt(100_000_000),    // 1 MEC
 		MaxDelegate:                        sdkmath.NewInt(10_000_000_000), // 100 MEC

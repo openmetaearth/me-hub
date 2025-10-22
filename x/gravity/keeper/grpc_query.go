@@ -68,8 +68,8 @@ func (k QueryServer) Relayers(c context.Context, _ *types.QueryRelayersRequest) 
 	return &types.QueryRelayersResponse{Relayers: relays}, nil
 }
 
-func (k QueryServer) CurrentRelayerSet(c context.Context, _ *types.QueryCurrentRelayerSetRequest) (*types.QueryCurrentRelayerSetResponse, error) {
-	return &types.QueryCurrentRelayerSetResponse{RelayerSet: k.GetCurrentRelayerSet(sdk.UnwrapSDKContext(c))}, nil
+func (k QueryServer) NewRelayerSet(c context.Context, _ *types.QueryNewRelayerSetRequest) (*types.QueryNewRelayerSetResponse, error) {
+	return &types.QueryNewRelayerSetResponse{RelayerSet: k.GetNewRelayerSet(sdk.UnwrapSDKContext(c))}, nil
 }
 
 func (k QueryServer) RelayerSetRequest(c context.Context, req *types.QueryRelayerSetRequestRequest) (*types.QueryRelayerSetRequestResponse, error) {
@@ -126,7 +126,7 @@ func (k QueryServer) LastPendingRelayerSetRequestByAddr(c context.Context, req *
 			return false
 		}
 		// found is true if the operatorAddr has signed the relayer set we are currently looking at
-		// if this relayer set has NOT been signed by relayerAddr, store it in pendingOracleSetReq and exit the loop
+		// if this relayer set has NOT been signed by relayerAddr, store it in pendingRelayerSetReq and exit the loop
 		if found := k.GetRelayerSetConfirm(ctx, relaySet.Nonce, relayer.GetRelayer()) != nil; !found {
 			pendingRelaySetReq = append(pendingRelaySetReq, relaySet)
 		}

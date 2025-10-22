@@ -18,8 +18,8 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/gravity/v1/params";
   }
-  rpc CurrentRelayerSet(QueryCurrentRelayerSetRequest) returns (QueryCurrentRelayerSetResponse) {
-    option (google.api.http).get = "/gravity/v1/relayer_set/current";
+  rpc NewRelayerSet(QueryNewRelayerSetRequest) returns (QueryNewRelayerSetResponse) {
+    option (google.api.http).get = "/gravity/v1/relayer_set/new";
   }
   rpc RelayerSetRequest(QueryRelayerSetRequestRequest) returns (QueryRelayerSetRequestResponse) {
     option (google.api.http).get = "/gravity/v1/relayer_set/request";
@@ -97,10 +97,10 @@ message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryCurrentRelayerSetRequest {
+message QueryNewRelayerSetRequest {
   string chain_name = 1;
 }
-message QueryCurrentRelayerSetResponse {
+message QueryNewRelayerSetResponse {
   RelayerSet relayer_set = 1;
 }
 
