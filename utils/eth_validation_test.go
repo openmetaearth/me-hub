@@ -1,6 +1,7 @@
-package utils
+package utils_test
 
 import (
+	"github.com/st-chain/me-hub/utils"
 	"strings"
 	"testing"
 
@@ -29,7 +30,7 @@ func TestIsEmptyHash(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expEmpty, IsEmptyHash(tc.hash), tc.name)
+		require.Equal(t, tc.expEmpty, utils.IsEmptyHash(tc.hash), tc.name)
 	}
 }
 
@@ -52,7 +53,7 @@ func TestIsZeroEthereumAddress(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		require.Equal(t, tc.expEmpty, IsZeroEthereumAddress(tc.address), tc.name)
+		require.Equal(t, tc.expEmpty, utils.IsZeroEthereumAddress(tc.address), tc.name)
 	}
 }
 
@@ -83,7 +84,7 @@ func TestValidateEthereumAddress(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		err := ValidateEthereumAddress(tc.address)
+		err := utils.ValidateEthereumAddress(tc.address)
 
 		if tc.expError {
 			require.Error(t, err, tc.name)

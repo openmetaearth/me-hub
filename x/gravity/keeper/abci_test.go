@@ -382,7 +382,7 @@ func (s *KeeperTestSuite) TestRelayerDelete() {
 	proposalRelayers, found := s.Keeper().GetProposalRelayer(s.Ctx)
 	s.Require().True(found)
 	s.Require().EqualValues(s.relayerNumber, len(proposalRelayers.Relayers))
-	nonce := s.Keeper().GetLatestRelayerSetNonce(s.Ctx)
+	nonce := s.Keeper().GetLastRelayerSetNonce(s.Ctx)
 	s.Require().EqualValues(0, nonce)
 
 	for i := 0; i < len(s.relayerAddrs); i++ {
@@ -425,9 +425,9 @@ func (s *KeeperTestSuite) TestRelayerDelete() {
 	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
 
-	nonce = s.Keeper().GetLatestRelayerSetNonce(s.Ctx)
+	nonce = s.Keeper().GetLastRelayerSetNonce(s.Ctx)
 	s.Require().EqualValues(2, nonce)
-	relayerSet := s.Keeper().GetLatestRelayerSet(s.Ctx)
+	relayerSet := s.Keeper().GetLastRelayerSet(s.Ctx)
 	s.Require().EqualValues(nonce, relayerSet.Nonce)
 	s.Require().EqualValues(9, len(relayerSet.Members))
 

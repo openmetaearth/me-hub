@@ -13,7 +13,7 @@ import (
 
 // --- RELAYER SET REQUESTS --- //
 
-// GetNewRelayerSet gets powers from the store and normalizes them
+// GetCurrentRelayerSet gets powers from the store and normalizes them
 // into an integer percentage with a resolution of uint32 Max meaning
 // a given validators 'Relayer power' is computed as
 // Cosmos power / total cosmos power = x / uint32 Max
@@ -24,7 +24,7 @@ import (
 // total voting power. This is an acceptable rounding error since floating
 // point may cause consensus problems if different floating point unit
 // implementations are involved.
-func (k Keeper) GetNewRelayerSet(ctx sdk.Context) *types.RelayerSet {
+func (k Keeper) GetCurrentRelayerSet(ctx sdk.Context) *types.RelayerSet {
 	allRelayers := k.GetAllRelayers(ctx, true)
 	bridgeValidators := make([]types.BridgeValidator, 0, len(allRelayers))
 	var totalPower uint64
@@ -44,21 +44,21 @@ func (k Keeper) GetNewRelayerSet(ctx sdk.Context) *types.RelayerSet {
 		// normalize power, use 10000 as the base, meaning 50.01% is 5001.
 		bridgeValidators[i].Power = sdkmath.NewUint(bridgeValidators[i].Power).MulUint64(utils.PowerBase).QuoUint64(totalPower).Uint64()
 	}
-	relayerSetNonce := k.GetLatestRelayerSetNonce(ctx) + 1
-	return types.NewRelayerSet(relayerSetNonce, uint64(ctx.BlockHeight()), bridgeValidators)
+	relayerSetNonce := k.GetLastRelayerSetNonce(ctx) + 1
+	return types.CurrentRelayerSet(relayerSetNonce, uint64(ctx.BlockHeight()), bridgeValidators)
 }
 
 // AddRelayerSetChangeRequest returns a new instance of the Relayer BridgeValidatorSet
-func (k Keeper) AddRelayerSetChangeRequest(ctx sdk.Context, NewRelayerSet *types.RelayerSet) {
-	// if NewRelayerSet member is empty, not store RelayerSet.
-	if len(NewRelayerSet.Members) == 0 {
+func (k Keeper) AddRelayerSetChangeRequest(ctx sdk.Context, CurrentRelayerSet *types.RelayerSet) {
+	// if CurrentRelayerSet member is empty, not store RelayerSet.
+	if len(CurrentRelayerSet.Members) == 0 {
 		return
 	}
-	k.StoreRelayerSet(ctx, NewRelayerSet)
-	k.SetLatestRelayerSetNonce(ctx, NewRelayerSet.Nonce)
+	k.StoreRelayerSet(ctx, CurrentRelayerSet)
+	k.SetLastRelayerSetNonce(ctx, CurrentRelayerSet.Nonce)
 	k.SetLastTotalPower(ctx)
 
-	// checkpoint, err := NewRelayerSet.GetCheckpoint(k.GetRelayerID(ctx))
+	// checkpoint, err := CurrentRelayerSet.GetCheckpoint(k.GetRelayerID(ctx))
 	// if err != nil {
 	// 	panic(err)
 	// }
@@ -67,8 +67,8 @@ func (k Keeper) AddRelayerSetChangeRequest(ctx sdk.Context, NewRelayerSet *types
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeRelayerSetUpdate,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyRelayerSetNonce, fmt.Sprint(NewRelayerSet.Nonce)),
-		sdk.NewAttribute(types.AttributeKeyRelayerSetLen, fmt.Sprint(len(NewRelayerSet.Members))),
+		sdk.NewAttribute(types.AttributeKeyRelayerSetNonce, fmt.Sprint(CurrentRelayerSet.Nonce)),
+		sdk.NewAttribute(types.AttributeKeyRelayerSetLen, fmt.Sprint(len(CurrentRelayerSet.Members))),
 	))
 }
 
@@ -90,13 +90,13 @@ func (k Keeper) DeleteRelayerSet(ctx sdk.Context, nonce uint64) {
 }
 
 // SetLatestRelayerSetNonce sets the latest relayerSet nonce
-func (k Keeper) SetLatestRelayerSetNonce(ctx sdk.Context, nonce uint64) {
+func (k Keeper) SetLastRelayerSetNonce(ctx sdk.Context, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.LatestRelayerSetNonce, sdk.Uint64ToBigEndian(nonce))
 }
 
-// GetLatestRelayerSetNonce returns the latest relayerSet nonce
-func (k Keeper) GetLatestRelayerSetNonce(ctx sdk.Context) uint64 {
+// GetLastRelayerSetNonce returns the latest relayerSet nonce
+func (k Keeper) GetLastRelayerSetNonce(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	data := store.Get(types.LatestRelayerSetNonce)
 	if len(data) == 0 {
@@ -147,9 +147,9 @@ func (k Keeper) GetRelayerSets(ctx sdk.Context) (relayerSets types.RelayerSets) 
 	return
 }
 
-// GetLatestRelayerSet returns the latest relayer set in state
-func (k Keeper) GetLatestRelayerSet(ctx sdk.Context) *types.RelayerSet {
-	latestRelayerSetNonce := k.GetLatestRelayerSetNonce(ctx)
+// GetLastRelayerSet returns the latest relayer set in state
+func (k Keeper) GetLastRelayerSet(ctx sdk.Context) *types.RelayerSet {
+	latestRelayerSetNonce := k.GetLastRelayerSetNonce(ctx)
 	return k.GetRelayerSet(ctx, latestRelayerSetNonce)
 }
 

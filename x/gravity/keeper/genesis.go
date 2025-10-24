@@ -35,7 +35,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 		}
 		k.StoreRelayerSet(ctx, &set)
 	}
-	k.SetLatestRelayerSetNonce(ctx, latestRelayerSetNonce)
+	k.SetLastRelayerSetNonce(ctx, latestRelayerSetNonce)
 
 	for _, bridgeToken := range state.BridgeTokens {
 		k.SetBridgeToken(ctx, &bridgeToken)

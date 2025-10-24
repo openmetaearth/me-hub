@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_13"
 	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
 	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 	"io"
@@ -92,6 +93,7 @@ var (
 		v2_0_10.Upgrade,
 		v2_0_11.Upgrade,
 		v2_0_12.Upgrade,
+		v2_0_13.Upgrade,
 	}
 )
 

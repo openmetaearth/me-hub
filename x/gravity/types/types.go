@@ -162,7 +162,7 @@ func (b BridgeValidators) Equal(o BridgeValidators) bool {
 
 // --- RelayerSet(S) --- //
 
-func NewRelayerSet(nonce, height uint64, members BridgeValidators) *RelayerSet {
+func CurrentRelayerSet(nonce, height uint64, members BridgeValidators) *RelayerSet {
 	sort.Sort(members)
 	return &RelayerSet{
 		Nonce:   nonce,

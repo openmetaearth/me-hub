@@ -148,15 +148,15 @@ func (s *KeeperTestSuite) NewRelayer() (sdk.AccAddress, cryptotypes.PrivKey) {
 	return relayer, externalKey
 }
 
-func (s *KeeperTestSuite) NewRelayerSet(externalKey cryptotypes.PrivKey) *gravitytypes.RelayerSet {
-	newRelayerSet := gravitytypes.NewRelayerSet(tmrand.Uint64(), tmrand.Uint64(), gravitytypes.BridgeValidators{
+func (s *KeeperTestSuite) CurrentRelayerSet(externalKey cryptotypes.PrivKey) *gravitytypes.RelayerSet {
+	currentRelayerSet := gravitytypes.CurrentRelayerSet(tmrand.Uint64(), tmrand.Uint64(), gravitytypes.BridgeValidators{
 		{
 			Power:           tmrand.Uint64(),
 			ExternalAddress: helpers.HexAddrToTronAddr(externalKey.PubKey().Address().String()),
 		},
 	})
-	s.App.TronKeeper.StoreRelayerSet(s.Ctx, newRelayerSet)
-	return newRelayerSet
+	s.App.TronKeeper.StoreRelayerSet(s.Ctx, currentRelayerSet)
+	return currentRelayerSet
 }
 
 func (s *KeeperTestSuite) NewBridgeToken(bridger sdk.AccAddress) []gravitytypes.BridgeToken {

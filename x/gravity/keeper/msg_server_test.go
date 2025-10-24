@@ -288,13 +288,13 @@ func (s *KeeperTestSuite) TestMsgSetRelayerSetConfirm() {
 	_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), normalMsg)
 	s.Require().NoError(err)
 
-	latestRelayerSetNonce := s.Keeper().GetLatestRelayerSetNonce(s.Ctx)
+	latestRelayerSetNonce := s.Keeper().GetLastRelayerSetNonce(s.Ctx)
 	s.Require().EqualValues(0, latestRelayerSetNonce)
 
 	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 	s.Keeper().EndBlocker(s.Ctx)
 
-	latestRelayerSetNonce = s.Keeper().GetLatestRelayerSetNonce(s.Ctx)
+	latestRelayerSetNonce = s.Keeper().GetLastRelayerSetNonce(s.Ctx)
 	s.Require().EqualValues(1, latestRelayerSetNonce)
 
 	s.Require().True(s.Keeper().HasRelayerSetRequest(s.Ctx, 1))
@@ -397,7 +397,7 @@ func (s *KeeperTestSuite) TestMsgSetRelayerSetConfirm() {
 	_, err = s.MsgServer().RelayerSetConfirm(sdk.WrapSDKContext(s.Ctx), normalRelayerSetConfirmMsg)
 	s.Require().NoError(err)
 
-	endBlockBeforeLatestRelayerSet := s.Keeper().GetLatestRelayerSet(s.Ctx)
+	endBlockBeforeLatestRelayerSet := s.Keeper().GetLastRelayerSet(s.Ctx)
 	s.Require().NotNil(endBlockBeforeLatestRelayerSet)
 }
 
@@ -414,7 +414,7 @@ func (s *KeeperTestSuite) TestClaimWithRelayerOnline() {
 	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 	s.Keeper().EndBlocker(s.Ctx)
 
-	latestRelayerSetNonce := s.Keeper().GetLatestRelayerSetNonce(s.Ctx)
+	latestRelayerSetNonce := s.Keeper().GetLastRelayerSetNonce(s.Ctx)
 	s.Require().EqualValues(1, latestRelayerSetNonce)
 
 	nonce1RelayerSet := s.Keeper().GetRelayerSet(s.Ctx, latestRelayerSetNonce)
@@ -767,7 +767,7 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	sort.Sort(externalRelayerMembers)
 
 	// 2. RelayerSetConfirm
-	latestRelayerSetNonce := s.Keeper().GetLatestRelayerSetNonce(s.Ctx)
+	latestRelayerSetNonce := s.Keeper().GetLastRelayerSetNonce(s.Ctx)
 	s.Require().EqualValues(1, latestRelayerSetNonce)
 	nonce1RelayerSet := s.Keeper().GetRelayerSet(s.Ctx, 1)
 	gravityId := s.Keeper().GetGravityID(s.Ctx)

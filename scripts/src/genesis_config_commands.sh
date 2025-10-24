@@ -141,3 +141,84 @@ set_kyc_issuers() {
       }
     ]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
+
+set_tron_relayer_set() {
+    echo "setting tron relayer set"
+    jq '.app_state.tron.relayers = [
+      {
+                "delegate_amount": "100000000",
+                "external_address": "0x2Af9729ca13181E775Db6A9391d7166D58Cfc7b1",
+                "online": true,
+                "relayer_address": "me19tuh989pxxq7wawmd2fer4ckd4vvl3a3sepez8",
+                "slash_times": "0",
+                "start_height": "0"
+              },
+              {
+                "delegate_amount": "100000000",
+                "external_address": "0x2CB0D517cFcAE8b41d40136934FD6cC70c05b61a",
+                "online": true,
+                "relayer_address": "me19jcd2970et5tg82qzd5nfltvcuxqtds6csztm7",
+                "slash_times": "0",
+                "start_height": "0"
+              },
+              {
+                "delegate_amount": "100000000",
+                "external_address": "0xb14a10e2B4D0145DeC29a6aFB02277df7D58de8e",
+                "online": true,
+                "relayer_address": "me1k99ppc456q29mmpf56hmqgnhma743h5w2dj0n2",
+                "slash_times": "0",
+                "start_height": "0"
+              },
+              {
+                "delegate_amount": "100000000",
+                "external_address": "0xc7e09805116C987CefDCa885288aB2985dFaABAc",
+                "online": true,
+                "relayer_address": "me1clsfspg3djv8em7u4zzj3z4jnpwl42ava2exrx",
+                "slash_times": "0",
+                "start_height": "0"
+              },
+              {
+                "delegate_amount": "100000000",
+                "external_address": "0xEfCFa8fEC25aFe5B3161bFF73a8a840cBe78Dbcb",
+                "online": true,
+                "relayer_address": "me1al863lkzttl9kvtphlmn4z5ypjl83k7tk9hv27",
+                "slash_times": "0",
+                "start_height": "0"
+              }
+    ]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.app_state.tron.relayer_sets = [
+          {
+                    "height": "0",
+                    "members": [
+                      {
+                        "external_address": "0x2Af9729ca13181E775Db6A9391d7166D58Cfc7b1",
+                        "power": "2000"
+                      },
+                      {
+                        "external_address": "0x2CB0D517cFcAE8b41d40136934FD6cC70c05b61a",
+                        "power": "2000"
+                      },
+                      {
+                        "external_address": "0xEfCFa8fEC25aFe5B3161bFF73a8a840cBe78Dbcb",
+                        "power": "2000"
+                      },
+                      {
+                        "external_address": "0xb14a10e2B4D0145DeC29a6aFB02277df7D58de8e",
+                        "power": "2000"
+                      },
+                      {
+                        "external_address": "0xc7e09805116C987CefDCa885288aB2985dFaABAc",
+                        "power": "2000"
+                      }
+                    ],
+                    "nonce": "1"
+                  }
+        ]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+        jq '.app_state.tron.proposal_relayer.relayers = [
+                  "me19tuh989pxxq7wawmd2fer4ckd4vvl3a3sepez8",
+                  "me1k99ppc456q29mmpf56hmqgnhma743h5w2dj0n2",
+                  "me1al863lkzttl9kvtphlmn4z5ypjl83k7tk9hv27",
+                  "me1clsfspg3djv8em7u4zzj3z4jnpwl42ava2exrx",
+                  "me19jcd2970et5tg82qzd5nfltvcuxqtds6csztm7"
+                ]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+}

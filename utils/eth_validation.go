@@ -56,5 +56,5 @@ func ToChecksummed(addr []byte) string {
 	if len(addr) == 20 {
 		return common.BytesToAddress(addr).Hex() // EIP-55
 	}
-	return fmt.Sprintf("0x%s", hex.EncodeToString(addr)) // 非20字节保持原样
+	return fmt.Sprintf("0x%s", hex.EncodeToString(addr))
 }

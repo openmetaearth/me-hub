@@ -113,9 +113,9 @@ func (s *KeeperTestSuite) Test_msgServer_RelayerSetConfirm() {
 		{
 			name: "not found relayer",
 			malleate: func() {
-				newRelayerSet := s.NewRelayerSet(helpers.NewEthPrivKey())
+				currentRelayerSet := s.CurrentRelayerSet(helpers.NewEthPrivKey())
 				msg = &gravitytypes.MsgRelayerSetConfirm{
-					Nonce:           newRelayerSet.Nonce,
+					Nonce:           currentRelayerSet.Nonce,
 					RelayerAddress:  helpers.GenAccAddress().String(),
 					ExternalAddress: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 				}
@@ -126,9 +126,9 @@ func (s *KeeperTestSuite) Test_msgServer_RelayerSetConfirm() {
 			name: "signature decoding",
 			malleate: func() {
 				relayer, externalKey := s.NewRelayer()
-				newRelayerSet := s.NewRelayerSet(externalKey)
+				currentRelayerSet := s.CurrentRelayerSet(externalKey)
 				msg = &gravitytypes.MsgRelayerSetConfirm{
-					Nonce:           newRelayerSet.Nonce,
+					Nonce:           currentRelayerSet.Nonce,
 					RelayerAddress:  relayer.String(),
 					ExternalAddress: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 					Signature:       helpers.GenHexAddress().Hex(),
@@ -140,17 +140,17 @@ func (s *KeeperTestSuite) Test_msgServer_RelayerSetConfirm() {
 			name: "relayer set confirm",
 			malleate: func() {
 				relayer, externalKey := s.NewRelayer()
-				newRelayerSet := s.NewRelayerSet(externalKey)
+				currentRelayerSet := s.CurrentRelayerSet(externalKey)
 				key, err := externalKey.(*ethsecp256k1.PrivKey).ToECDSA()
 				s.Require().NoError(err)
 				params, err := s.queryServer.Params(sdk.WrapSDKContext(s.Ctx), &gravitytypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
 				s.Require().NoError(err)
-				relayerSetHash, err := trontypes.GetCheckpointRelayerSet(newRelayerSet, params.Params.GravityId)
+				relayerSetHash, err := trontypes.GetCheckpointRelayerSet(currentRelayerSet, params.Params.GravityId)
 				s.Require().NoError(err)
 				signature, err := trontypes.NewTronSignature(relayerSetHash, key)
 				s.Require().NoError(err)
 				msg = &gravitytypes.MsgRelayerSetConfirm{
-					Nonce:           newRelayerSet.Nonce,
+					Nonce:           currentRelayerSet.Nonce,
 					RelayerAddress:  relayer.String(),
 					ExternalAddress: helpers.HexAddrToTronAddr(externalKey.PubKey().Address().String()),
 					Signature:       hex.EncodeToString(signature),

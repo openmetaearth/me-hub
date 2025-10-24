@@ -53,10 +53,10 @@ bonded-relayer() {
     eval "hex_addr=\$(med me-debug addr \$addr | awk -F': *' '/^hex:/ {print \$2}')"
     eval "r${i}_hex=\$hex_addr"
   done
-  for i in 3 4 5; do
+  for i in 1 2 3 4 5; do
     eval "hexv=\$r${i}_hex"
     med tx "$CHAIN" bonded-relayer "$hexv" 100000000umec --from r${i} --chain-id "$CHAIN_ID" --keyring-backend $KEYRING -y --gas-prices 0.02umec --gas 500000
-    sleep 500000
+#    sleep 500000
   done
 }
 
@@ -66,8 +66,6 @@ add-delegate() {
   sleep 5
   med q "$CHAIN" relayer $r1_address
 }
-
-
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   "$@" || { echo "exec $0 failed: $*"; exit 1; }
