@@ -44,25 +44,38 @@ func CreateUpgradeHandler(
 			"me1clsfspg3djv8em7u4zzj3z4jnpwl42ava2exrx",
 			"me1al863lkzttl9kvtphlmn4z5ypjl83k7tk9hv27",
 		}
-		bscGenesis := bsctypes.DefaultGenesisState()
-		InitGravityGenesis(ctx, proposalRelayers, bscGenesis, keepers, bsctypes.ModuleName)
 
-		tronGenesis := trontypes.DefaultGenesisState()
-		InitGravityGenesis(ctx, proposalRelayers, tronGenesis, keepers, trontypes.ModuleName)
+		// delegate total amount to module account
+		delegateAmount := sdk.NewInt(1 * 1e8)
+		for _, relayerAddr := range proposalRelayers {
+			if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), bsctypes.ModuleName,
+				sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
+				panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
+			}
+			if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), trontypes.ModuleName,
+				sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
+				panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
+			}
+		}
+
+		bscGenState := GenGravityGenesis(ctx.BlockHeight(), proposalRelayers, bsctypes.DefaultGenesisState(), delegateAmount, bsctypes.ModuleName)
+		gravitykeeper.InitGenesis(ctx, keepers.BscKeeper, bscGenState)
+
+		tronGenstate := GenGravityGenesis(ctx.BlockHeight(), proposalRelayers, trontypes.DefaultGenesisState(), delegateAmount, trontypes.ModuleName)
+		gravitykeeper.InitGenesis(ctx, keepers.TronKeeper.Keeper, tronGenstate)
 
 		logger.Info("upgrade finished successfully.")
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}
 }
 
-func InitGravityGenesis(ctx sdk.Context, proposalRelayers []string, defaultGenesis *gravitytypes.GenesisState, keepers *appkeepers.AppKeepers, moduleName string) {
+func GenGravityGenesis(height int64, proposalRelayers []string, defaultGenesis *gravitytypes.GenesisState, delegateAmount sdk.Int, moduleName string) *gravitytypes.GenesisState {
 	// 1. set proposal relayers
 	defaultGenesis.ProposalRelayer = types.ProposalRelayer{
 		Relayers: proposalRelayers,
 	}
 
 	// 2. set relayers
-	delegateAmount := sdk.NewInt(1 * 1e8)
 	var err error
 	for _, relayerAddr := range proposalRelayers {
 		externalAddress := ""
@@ -82,22 +95,20 @@ func InitGravityGenesis(ctx sdk.Context, proposalRelayers []string, defaultGenes
 			RelayerAddress:  relayerAddr,
 			ExternalAddress: externalAddress,
 			DelegateAmount:  delegateAmount,
-			StartHeight:     ctx.BlockHeight(),
+			StartHeight:     height,
 			Online:          true,
 			SlashTimes:      0,
 		}
 		defaultGenesis.Relayers = append(defaultGenesis.Relayers, relayer)
-
-		// delegate total amount to module account
-		if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), moduleName,
-			sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
-			panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
-		}
 	}
 
 	// 3. relayer set
 	var totalPower uint64
-	var members []types.BridgeValidator
+	relayerSet := types.RelayerSet{
+		Nonce:   1,
+		Height:  uint64(height),
+		Members: []types.BridgeValidator{},
+	}
 	for _, relayer := range defaultGenesis.Relayers {
 		power := relayer.GetPower()
 		if power.LTE(sdkmath.ZeroInt()) {
@@ -108,23 +119,13 @@ func InitGravityGenesis(ctx sdk.Context, proposalRelayers []string, defaultGenes
 			Power:           power.Uint64(),
 			ExternalAddress: relayer.ExternalAddress,
 		}
-		defaultGenesis.RelayerSets[0].Members = append(defaultGenesis.RelayerSets[0].Members, bridgeVal)
+		relayerSet.Members = append(relayerSet.Members, bridgeVal)
 	}
-	for i := range members {
-		members[i].Power = sdkmath.NewUint(members[i].Power).MulUint64(utils.PowerBase).QuoUint64(totalPower).Uint64()
+	for i := range relayerSet.Members {
+		relayerSet.Members[i].Power = sdkmath.NewUint(relayerSet.Members[i].Power).MulUint64(utils.PowerBase).QuoUint64(totalPower).Uint64()
 	}
-	defaultGenesis.RelayerSets = []types.RelayerSet{
-		{
-			Nonce:   1,
-			Height:  uint64(ctx.BlockHeight()),
-			Members: members,
-		},
-	}
-	if moduleName == bsctypes.ModuleName {
-		gravitykeeper.InitGenesis(ctx, keepers.BscKeeper, defaultGenesis)
-	} else if moduleName == trontypes.ModuleName {
-		gravitykeeper.InitGenesis(ctx, keepers.TronKeeper.Keeper, defaultGenesis)
-	}
+	defaultGenesis.RelayerSets = []types.RelayerSet{relayerSet}
+	return defaultGenesis
 }
 
 //func setNewModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {

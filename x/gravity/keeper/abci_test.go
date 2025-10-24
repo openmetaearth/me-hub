@@ -77,7 +77,7 @@ func (s *KeeperTestSuite) TestProposalRelayers() {
 	s.Require().True(found)
 	s.Require().EqualValues(s.relayerNumber, len(proposalRelayers.Relayers))
 
-	// init 4 relayers
+	// init 10 relayers
 	for i := 0; i < s.relayerNumber; i++ {
 		msgBondedRelayer := &types.MsgBondedRelayer{
 			RelayerAddress:  s.relayerAddrs[i].String(),
@@ -159,7 +159,7 @@ func (s *KeeperTestSuite) TestProposalRelayers() {
 		Authority: s.Dao.GlobalDao,
 		Relayers:  newRelayerList,
 	})
-	s.Require().ErrorIs(types.ErrInvalid, err) // try update chain relayer power >= 30%, expect error
+	s.Require().ErrorIs(types.ErrMaxChangePowerLimitExceeded, err) // try update chain relayer power >= 30%, expect error
 
 	expectTotalPower := sdkmath.NewInt(10 * 1e8).Mul(sdkmath.NewInt(10)).Quo(sdk.DefaultPowerReduction)
 	actualTotalPower := s.Keeper().GetLastTotalPower(s.Ctx)
@@ -167,7 +167,7 @@ func (s *KeeperTestSuite) TestProposalRelayers() {
 
 	expectMaxChangePower := types.AttestationProposalRelayerChangePowerThreshold.Mul(expectTotalPower).Quo(sdkmath.NewInt(100))
 	expectDeletePower := sdkmath.NewInt(10 * 1e8).Mul(sdkmath.NewInt(4)).Quo(sdk.DefaultPowerReduction)
-	s.Require().EqualValues(fmt.Sprintf("max change power, maxChangePowerThreshold: %s, deleteTotalPower: %s: %s", expectMaxChangePower.String(), expectDeletePower.String(), types.ErrInvalid), err.Error())
+	s.Require().EqualValues(fmt.Sprintf("maxChangePowerThreshold: %s, deleteTotalPower: %s: %s", expectMaxChangePower.String(), expectDeletePower.String(), types.ErrMaxChangePowerLimitExceeded), err.Error())
 
 	var newRelayerList2 []string
 	for i := 0; i < 7; i++ {

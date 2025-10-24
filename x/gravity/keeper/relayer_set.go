@@ -44,7 +44,7 @@ func (k Keeper) GetCurrentRelayerSet(ctx sdk.Context) *types.RelayerSet {
 		// normalize power, use 10000 as the base, meaning 50.01% is 5001.
 		bridgeValidators[i].Power = sdkmath.NewUint(bridgeValidators[i].Power).MulUint64(utils.PowerBase).QuoUint64(totalPower).Uint64()
 	}
-	relayerSetNonce := k.GetLastRelayerSetNonce(ctx) + 1
+	relayerSetNonce := k.GetLastRelayerSetNonce(ctx)
 	return types.CurrentRelayerSet(relayerSetNonce, uint64(ctx.BlockHeight()), bridgeValidators)
 }
 
@@ -54,6 +54,7 @@ func (k Keeper) AddRelayerSetChangeRequest(ctx sdk.Context, CurrentRelayerSet *t
 	if len(CurrentRelayerSet.Members) == 0 {
 		return
 	}
+	CurrentRelayerSet.Nonce = k.GetLastRelayerSetNonce(ctx) + 1
 	k.StoreRelayerSet(ctx, CurrentRelayerSet)
 	k.SetLastRelayerSetNonce(ctx, CurrentRelayerSet.Nonce)
 	k.SetLastTotalPower(ctx)

@@ -153,6 +153,7 @@ func (s *KeeperTestSuite) TestKeeper_DeleteRelayerSetConfirm() {
 	params.SignedWindow = 10
 	err := s.Keeper().SetParams(s.Ctx, &params)
 	s.Require().NoError(err)
+	s.Ctx = s.Ctx.WithBlockHeight(1)
 	s.Commit()
 	for _, relayer := range s.relayerAddrs {
 		s.NotNil(s.Keeper().GetRelayerSetConfirm(s.Ctx, relayerSet.Nonce, relayer))
