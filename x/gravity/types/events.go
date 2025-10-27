@@ -10,6 +10,7 @@ const (
 	EventTypeRelayerSetUpdate       = "relayer_set_update"
 	EventTypeContractEvent          = "contract_event_claim"
 	EventTypeOutgoingBatch          = "outgoing_batch"
+	EventTypeOutgoingBatchConfirm   = "outgoing_batch_confirm"
 	EventTypeOutgoingBatchCanceled  = "outgoing_batch_canceled"
 	EventTypeIncreaseBridgeFee      = "increase_bridge_fee"
 )
@@ -22,6 +23,7 @@ const (
 	AttributeKeyOutgoingTxID         = "outgoing_tx_id"
 	AttributeKeyOutgoingTxIds        = "outgoing_tx_ids"
 	AttributeKeyOutgoingBatchNonce   = "batch_nonce"
+	AttributeKeyTokenContract        = "token_contract"
 	AttributeKeyOutgoingBatchTimeout = "outgoing_batch_timeout"
 	AttributeKeyRelayerSetNonce      = "relayer_set_nonce"
 	AttributeKeyRelayerSetLen        = "relayer_set_len"

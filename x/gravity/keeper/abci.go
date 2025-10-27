@@ -57,12 +57,13 @@ func (k Keeper) slashing(ctx sdk.Context, signedWindow uint64) {
 		return
 	}
 	// Slash relayer for not confirming relayer set requests, batch requests
-	relayers := k.GetAllRelayers(ctx, true)
-	relayerSetHasSlash := k.relayerSetSlashing(ctx, relayers, signedWindow)
-	batchHasSlash := k.batchSlashing(ctx, relayers, signedWindow)
-	if relayerSetHasSlash || batchHasSlash {
-		k.SetLastTotalPower(ctx)
-	}
+
+	//relayers := k.GetAllRelayers(ctx, true)
+	//relayerSetHasSlash := k.relayerSetSlashing(ctx, relayers, signedWindow)
+	//batchHasSlash := k.batchSlashing(ctx, relayers, signedWindow)
+	//if relayerSetHasSlash || batchHasSlash {
+	//	k.SetLastTotalPower(ctx)
+	//}
 }
 
 func (k Keeper) relayerSetSlashing(ctx sdk.Context, relayers types.Relayers, signedWindow uint64) (hasSlash bool) {

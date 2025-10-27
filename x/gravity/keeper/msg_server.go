@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	errorsmod "cosmossdk.io/errors"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -333,6 +334,14 @@ func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (
 	}
 
 	s.SetBatchConfirm(ctx, relayerAddress, msg)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeOutgoingBatchConfirm,
+		sdk.NewAttribute(sdk.AttributeKeyModule, msg.ChainName),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.RelayerAddress),
+		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprintf("%d", msg.Nonce)),
+		sdk.NewAttribute(types.AttributeKeyTokenContract, msg.TokenContract),
+	))
 	return &types.MsgConfirmBatchResponse{}, nil
 }
 
