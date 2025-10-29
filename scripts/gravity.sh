@@ -24,11 +24,11 @@ get_relayers() {
 }
 
 init-account() {
-  echo "$RelayerMnemonic" | med keys add r1 --recover --keyring-backend $KEYRING --key-type eth_secp256k1 --account 1
-  echo "$RelayerMnemonic" | med keys add r2 --recover --keyring-backend $KEYRING --key-type eth_secp256k1 --account 2
-  echo "$RelayerMnemonic" | med keys add r3 --recover --keyring-backend $KEYRING --key-type eth_secp256k1 --account 3
-  echo "$RelayerMnemonic" | med keys add r4 --recover --keyring-backend $KEYRING --key-type eth_secp256k1 --account 4
-  echo "$RelayerMnemonic" | med keys add r5 --recover --keyring-backend $KEYRING --key-type eth_secp256k1 --account 5
+  echo "$RelayerMnemonic" | med keys add r1 --recover --keyring-backend $KEYRING --key-type eth_secp256k1 --index 1
+  echo "$RelayerMnemonic" | med keys add r2 --recover --keyring-backend $KEYRING --key-type eth_secp256k1 --index 2
+  echo "$RelayerMnemonic" | med keys add r3 --recover --keyring-backend $KEYRING --key-type eth_secp256k1 --index 3
+  echo "$RelayerMnemonic" | med keys add r4 --recover --keyring-backend $KEYRING --key-type eth_secp256k1 --index 4
+  echo "$RelayerMnemonic" | med keys add r5 --recover --keyring-backend $KEYRING --key-type eth_secp256k1 --index 5
   get_relayers
   for i in 1 2 3 4 5; do
     eval "addr=\$r${i}_address"

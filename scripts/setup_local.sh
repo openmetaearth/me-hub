@@ -113,7 +113,7 @@ echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test
 med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
 med add-genesis-stake-pool
 med add-genesis-m-accounts
-med gen-relayers "me19tuh989pxxq7wawmd2fer4ckd4vvl3a3sepez8,me19jcd2970et5tg82qzd5nfltvcuxqtds6csztm7,me1k99ppc456q29mmpf56hmqgnhma743h5w2dj0n2,me1clsfspg3djv8em7u4zzj3z4jnpwl42ava2exrx,me1al863lkzttl9kvtphlmn4z5ypjl83k7tk9hv27" "10000000000umec"
+med gen-relayers "me1frjhlw9slyy7mrhmk0r4vytkyldxqtkf326amv,me1c5zp26c0gq2klk87nrpff3y52u34zn4ydug2yd,me1hrxxjeqae2y5wx3kxcljzns9f2lguygu9qngxh,me14jazxhme3ptv00k52fza5rravx4xn27qs0slz2,me1qdhu5h5g0qwhdpl4q553v7gcmltdr4w3lnqnjg" "10000000000umec"
 med gentx_DAO --pubkey "$(med keys show "$KEY_NAME" -p)"
 
 med keys add "$KEY_NAME_SEQUENCER" --key-type secp256k1 --keyring-backend test 

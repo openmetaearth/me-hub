@@ -70,6 +70,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 	}
 	batchEvent := sdk.NewEvent(
 		types.EventTypeOutgoingBatch,
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprint(nextID)),
 		sdk.NewAttribute(types.AttributeKeyOutgoingTxIds, eventBatchNonceTxIds.String()),
 		sdk.NewAttribute(types.AttributeKeyOutgoingBatchTimeout, fmt.Sprint(batch.BatchTimeout)),
