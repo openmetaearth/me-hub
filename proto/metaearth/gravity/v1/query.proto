@@ -225,6 +225,7 @@ message QueryLastObservedBlockHeightRequest {
 message QueryLastObservedBlockHeightResponse {
   uint64 external_block_height = 1;
   uint64 block_height = 2;
+  uint64 last_observed_event_nonce = 3;
 }
 
 message QueryLastEventBlockHeightByAddrRequest {

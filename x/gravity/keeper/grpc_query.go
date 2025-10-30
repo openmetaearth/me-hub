@@ -174,9 +174,11 @@ func (k QueryServer) LastEventBlockHeightByAddr(c context.Context, req *types.Qu
 
 func (k QueryServer) LastObservedBlockHeight(c context.Context, _ *types.QueryLastObservedBlockHeightRequest) (*types.QueryLastObservedBlockHeightResponse, error) {
 	blockHeight := k.GetLastObservedBlockHeight(sdk.UnwrapSDKContext(c))
+	nonce := k.GetLastObservedEventNonce(sdk.UnwrapSDKContext(c))
 	return &types.QueryLastObservedBlockHeightResponse{
-		ExternalBlockHeight: blockHeight.ExternalBlockHeight,
-		BlockHeight:         blockHeight.BlockHeight,
+		ExternalBlockHeight:    blockHeight.ExternalBlockHeight,
+		BlockHeight:            blockHeight.BlockHeight,
+		LastObservedEventNonce: nonce,
 	}, nil
 }
 
