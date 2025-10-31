@@ -30,10 +30,10 @@ func CreateUpgradeHandler(
 			}
 		}
 
-		logger.Info("1. Starting WNFT class data migration...")
-		if err := migrateWNFTClassData(ctx, keepers); err != nil {
-			return nil, fmt.Errorf("failed to migrate WNFT class data: %w", err)
-		}
+		//logger.Info("1. Starting WNFT class data migration...")
+		//if err := migrateWNFTClassData(ctx, keepers); err != nil {
+		//	return nil, fmt.Errorf("failed to migrate WNFT class data: %w", err)
+		//}
 
 		logger.Info("2. set block max gas")
 		consensusParams, err := keepers.ConsensusParamsKeeper.Get(ctx)
