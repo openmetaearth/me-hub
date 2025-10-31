@@ -20,7 +20,6 @@ service Msg {
 
   rpc SendToMeClaim(MsgSendToMeClaim) returns (MsgSendToMeClaimResponse);
   rpc BridgeTokenClaim(MsgBridgeTokenClaim) returns (MsgBridgeTokenClaimResponse);
-  //  rpc BridgeCallClaim(MsgBridgeCallClaim) returns (MsgBridgeCallClaimResponse); // from A-chain to ME, then to B-chain, no demand
 
   rpc SendToExternal(MsgSendToExternal) returns (MsgSendToExternalResponse);
   rpc CancelSendToExternal(MsgCancelSendToExternal) returns (MsgCancelSendToExternalResponse);

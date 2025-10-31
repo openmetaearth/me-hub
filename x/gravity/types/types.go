@@ -2,11 +2,13 @@ package types
 
 import (
 	"bytes"
+	"github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/utils"
 	"math"
 	"math/big"
 	"sort"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -172,7 +174,7 @@ func CurrentRelayerSet(nonce, height uint64, members BridgeValidators) *RelayerS
 }
 
 // GetCheckpoint returns the checkpoint
-func (m *RelayerSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
+func (r *RelayerSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// the contract argument is not a arbitrary length array but a fixed length 32 byte
 	// array, therefore we have to utf8 encode the string (the default in this case) and
 	// then copy the variable length encoded data into a fixed length array. This function
@@ -181,20 +183,22 @@ func (m *RelayerSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "parse gravity id")
 	}
-	checkpointBytes := []uint8("checkpoint")
-	var checkpoint [32]uint8
-	copy(checkpoint[:], checkpointBytes)
+	checkpoint, err := utils.StrToByte32("checkpoint")
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "parse checkpoint")
+	}
 
-	memberAddresses := make([]gethcommon.Address, len(m.Members))
-	convertedPowers := make([]*big.Int, len(m.Members))
-	for i, m := range m.Members {
-		memberAddresses[i] = gethcommon.HexToAddress(m.ExternalAddress)
+	memberAddresses := make([]gethcommon.Address, len(r.Members))
+	convertedPowers := make([]*big.Int, len(r.Members))
+	for i, m := range r.Members {
+		//memberAddresses[i] = gethcommon.HexToAddress(m.ExternalAddress)
+		memberAddresses[i] = toHexAddr(gravityIDStr, m.ExternalAddress)
 		convertedPowers[i] = big.NewInt(int64(m.Power))
 	}
 	// the word 'checkpoint' needs to be the same as the 'name' above in the checkpointAbiJson
 	// but other than that it's a constant that has no impact on the output. This is because
 	// it gets encoded as a function name which we must then discard.
-	packBytes, packErr := relayerSetCheckpointABI.Pack("checkpoint", gravityID, checkpoint, big.NewInt(int64(m.Nonce)), memberAddresses, convertedPowers)
+	packBytes, packErr := relayerSetCheckpointABI.Pack("checkpoint", gravityID, checkpoint, big.NewInt(int64(r.Nonce)), memberAddresses, convertedPowers)
 
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
@@ -276,9 +280,10 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	}
 
 	// Create the methodName argument which salts the signature
-	methodNameBytes := []uint8("transactionBatch")
-	var batchMethodName [32]uint8
-	copy(batchMethodName[:], methodNameBytes)
+	batchMethodName, err := utils.StrToByte32("transactionBatch")
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "parse transactionBatch")
+	}
 
 	// Run through the elements of the batch and serialize them
 	txAmounts := make([]*big.Int, len(m.Transactions))
@@ -286,7 +291,8 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	txFees := make([]*big.Int, len(m.Transactions))
 	for i, tx := range m.Transactions {
 		txAmounts[i] = tx.Token.Amount.BigInt()
-		txDestinations[i] = gethcommon.HexToAddress(tx.DestAddress)
+		//txDestinations[i] = gethcommon.HexToAddress(tx.DestAddress)
+		txDestinations[i] = toHexAddr(gravityIDString, tx.DestAddress)
 		txFees[i] = tx.Fee.Amount.BigInt()
 	}
 
@@ -300,9 +306,9 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 		txDestinations,
 		txFees,
 		big.NewInt(int64(m.BatchNonce)),
-		gethcommon.HexToAddress(m.TokenContract),
+		toHexAddr(gravityIDString, m.TokenContract),
 		big.NewInt(int64(m.BatchTimeout)),
-		gethcommon.HexToAddress(m.FeeReceive),
+		toHexAddr(gravityIDString, m.FeeReceive),
 	)
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
@@ -366,4 +372,15 @@ func (bs OutgoingTransferTxs) TotalFee() sdkmath.Int {
 		totalFee = totalFee.Add(tx.Fee.Amount)
 	}
 	return totalFee
+}
+
+func toHexAddr(gravityId, addr string) gethcommon.Address {
+	if strings.Contains(gravityId, "tron") {
+		tronAddr, err := address.Base58ToAddress(addr)
+		if err != nil {
+			panic(err)
+		}
+		return gethcommon.BytesToAddress(tronAddr.Bytes()[1:])
+	}
+	return gethcommon.HexToAddress(addr)
 }

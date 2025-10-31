@@ -6,6 +6,7 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/gravity/types"
+	trontypes "github.com/st-chain/me-hub/x/tron/types"
 )
 
 // claimHandlerCommon is an internal function that provides common code for processing claims once they are
@@ -38,8 +39,14 @@ func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, relayerAddr sdk.AccAddr
 		return errorsmod.Wrapf(types.ErrExternalAddressNotMatch, "got %s, expected %s", signatureAddr, relayer.ExternalAddress)
 	}
 
-	if err = types.ValidateEthereumSignature(checkpoint, sigBytes, relayer.ExternalAddress); err != nil {
-		return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", relayer.ExternalAddress, hex.EncodeToString(checkpoint), signature))
+	if s.moduleName == trontypes.ModuleName {
+		if err = trontypes.ValidateTronSignature(checkpoint, sigBytes, relayer.ExternalAddress); err != nil {
+			return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", relayer.ExternalAddress, hex.EncodeToString(checkpoint), signature))
+		}
+	} else {
+		if err = types.ValidateEthereumSignature(checkpoint, sigBytes, relayer.ExternalAddress); err != nil {
+			return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", relayer.ExternalAddress, hex.EncodeToString(checkpoint), signature))
+		}
 	}
 	return nil
 }

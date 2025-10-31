@@ -62,7 +62,7 @@ func CreateUpgradeHandler(
 		gravitykeeper.InitGenesis(ctx, keepers.BscKeeper, bscGenState)
 
 		tronGenstate := GenGravityGenesis(ctx.BlockHeight(), proposalRelayers, trontypes.DefaultGenesisState(), delegateAmount, trontypes.ModuleName)
-		gravitykeeper.InitGenesis(ctx, keepers.TronKeeper.Keeper, tronGenstate)
+		gravitykeeper.InitGenesis(ctx, keepers.TronKeeper, tronGenstate)
 
 		logger.Info("upgrade finished successfully.")
 		return mm.RunMigrations(ctx, configurator, fromVM)

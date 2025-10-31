@@ -16,7 +16,6 @@ import (
 	gravitycli "github.com/st-chain/me-hub/x/gravity/client/cli"
 	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
 	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
-	"github.com/st-chain/me-hub/x/tron/keeper"
 	"github.com/st-chain/me-hub/x/tron/types"
 )
 
@@ -73,11 +72,11 @@ func (AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {}
 // AppModule object for module implementation
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper gravitykeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(keeper keeper.Keeper) AppModule {
+func NewAppModule(keeper gravitykeeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
@@ -89,7 +88,7 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	migrator := gravitykeeper.NewMigrator(am.keeper.Keeper)
+	migrator := gravitykeeper.NewMigrator(am.keeper)
 	if err := cfg.RegisterMigration(am.Name(), 4, migrator.Migrate); err != nil {
 		panic(err)
 	}
@@ -100,13 +99,13 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 	var genesisState gravitytypes.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 
-	gravitykeeper.InitGenesis(ctx, am.keeper.Keeper, &genesisState)
+	gravitykeeper.InitGenesis(ctx, am.keeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis exports the current genesis state to a json.RawMessage
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	state := gravitykeeper.ExportGenesis(ctx, am.keeper.Keeper)
+	state := gravitykeeper.ExportGenesis(ctx, am.keeper)
 	return cdc.MustMarshalJSON(state)
 }
 

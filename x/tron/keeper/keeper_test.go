@@ -11,7 +11,6 @@ import (
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/testutil/helpers"
 	"github.com/st-chain/me-hub/x/gravity/keeper"
-	tronkeeper "github.com/st-chain/me-hub/x/tron/keeper"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/suite"
@@ -99,10 +98,10 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.Require().NoError(err)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(s.Ctx, s.App.InterfaceRegistry())
-	gravitytypes.RegisterQueryServer(queryHelper, keeper.NewQueryServerImpl(s.App.TronKeeper.Keeper))
+	gravitytypes.RegisterQueryServer(queryHelper, keeper.NewQueryServerImpl(s.App.TronKeeper))
 	s.queryServer = gravitytypes.NewQueryClient(queryHelper)
 
-	s.msgServer = tronkeeper.NewMsgServerImpl(s.App.TronKeeper)
+	s.msgServer = keeper.NewMsgServerImpl(s.App.TronKeeper)
 	s.signer = helpers.NewSigner(helpers.NewEthPrivKey())
 	apptesting.AddTestAddr(s.App, s.Ctx, s.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e8)))))
 }
