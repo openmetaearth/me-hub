@@ -19,6 +19,7 @@ DEPS_IBC_GO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/ibc-go' | gr
 DEPS_COSMOS_PROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos-proto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_COSMOS_GOGOPROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/gogoproto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_CONFIO_ICS23_VERSION := go/$(shell cat go.sum | grep 'github.com/confio/ics23/go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_WASM_VERSION := $(shell cat go.sum | grep 'github.com/CosmWasm/wasmd' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 
 export GO111MODULE = on
 
@@ -197,26 +198,24 @@ THIRD_PARTY_DIR=$(SWAGGER_DIR)/third_party
 proto-download-deps:
 	mkdir -p "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
-	git init && \
-	git remote add origin "https://github.com/st-chain/cosmos-sdk.git" && \
-	git config core.sparseCheckout true && \
-	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
-	git pull origin me-hub/v0.47.13 && \
-	rm -f ./proto/buf.* && \
-	mv ./proto/* ..
+	git clone -b me-hub/v0.47.13 --single-branch --depth 1 https://github.com/st-chain/cosmos-sdk.git && \
+	rm -f ./cosmos-sdk/proto/buf.* && \
+	mv ./cosmos-sdk/proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/cosmos_tmp"
 
 	mkdir -p "$(THIRD_PARTY_DIR)/ethermint_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/ethermint_tmp" && \
-	git init && \
-	git remote add origin "https://github.com/st-chain/ethermint.git" && \
-	git config core.sparseCheckout true && \
-	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
-	git pull origin dev && \
-	git checkout FETCH_HEAD && \
-	rm -f ./proto/buf.* && \
-	mv ./proto/* ..
+	git clone -b dev --single-branch --depth 1 https://github.com/st-chain/ethermint.git && \
+	rm -f ./ethermint/proto/buf.* && \
+	mv ./ethermint/proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/ethermint_tmp"
+
+	mkdir -p "$(THIRD_PARTY_DIR)/wasm_tmp" && \
+	cd "$(THIRD_PARTY_DIR)/wasm_tmp" && \
+	git clone --branch v0.43.0 --single-branch --depth 1 https://github.com/CosmWasm/wasmd.git && \
+	rm -f ./wasmd/proto/buf.* && \
+	mv ./wasmd/proto/* ..
+	rm -rf "$(THIRD_PARTY_DIR)/wasm_tmp"
 
 	mkdir -p "$(THIRD_PARTY_DIR)/ibc_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/ibc_tmp" && \
