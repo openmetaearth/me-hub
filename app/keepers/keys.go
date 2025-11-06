@@ -28,13 +28,13 @@ import (
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
-	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
 	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 )
 
 // GenerateKeys generates new keys (KV Store, Transient store, and memory store).
@@ -116,6 +116,7 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	packetforwardtypes.StoreKey,
 	delayedacktypes.StoreKey,
 	eibcmoduletypes.StoreKey,
+	didtypes.StoreKey,
 	// ethermint keys
 	evmtypes.StoreKey,
 	feemarkettypes.StoreKey,
@@ -126,5 +127,4 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	poolmanagertypes.StoreKey,
 	incentivestypes.StoreKey,
 	txfeestypes.StoreKey,
-	daotypes.StoreKey,
 )

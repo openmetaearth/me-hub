@@ -10,6 +10,7 @@ import (
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -29,12 +30,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/gov/client"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/mint"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
@@ -64,17 +67,14 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
-	"github.com/st-chain/me-hub/x/dao"
-	daotypes "github.com/st-chain/me-hub/x/dao/types"
+
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
-	"github.com/st-chain/me-hub/x/wbank"
-	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
-	"github.com/st-chain/me-hub/x/wmint"
-	"github.com/st-chain/me-hub/x/wstaking"
 
 	appparams "github.com/st-chain/me-hub/app/params"
 	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
 	denommetadatamodule "github.com/st-chain/me-hub/x/denommetadata"
+	"github.com/st-chain/me-hub/x/did"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 	eibcmodule "github.com/st-chain/me-hub/x/eibc"
 	"github.com/st-chain/me-hub/x/incentives"
 	rollappmodule "github.com/st-chain/me-hub/x/rollapp"
@@ -105,13 +105,12 @@ import (
 var ModuleBasics = module.NewBasicManager(
 	auth.AppModuleBasic{},
 	authzmodule.AppModuleBasic{},
+	bank.AppModuleBasic{},
 	genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-	wbank.AppModuleBasic{},
 	capability.AppModuleBasic{},
 	consensus.AppModuleBasic{},
-	//staking.AppModuleBasic{},
-	wstaking.AppModuleBasic{},
-	wmint.AppModuleBasic{},
+	staking.AppModuleBasic{},
+	mint.AppModuleBasic{},
 	distribution.AppModuleBasic{},
 	gov.NewAppModuleBasic([]client.ProposalHandler{
 		paramsclient.ProposalHandler,
@@ -145,6 +144,7 @@ var ModuleBasics = module.NewBasicManager(
 	packetforward.AppModuleBasic{},
 	delayedack.AppModuleBasic{},
 	eibc.AppModuleBasic{},
+	did.AppModuleBasic{},
 
 	// Ethermint modules
 	evm.AppModuleBasic{},
@@ -157,7 +157,6 @@ var ModuleBasics = module.NewBasicManager(
 	poolmanager.AppModuleBasic{},
 	incentives.AppModuleBasic{},
 	txfees.AppModuleBasic{},
-	dao.AppModuleBasic{},
 )
 
 func (a *AppKeepers) SetupModules(
@@ -172,18 +171,18 @@ func (a *AppKeepers) SetupModules(
 			encodingConfig.TxConfig,
 		),
 		auth.NewAppModule(appCodec, a.AccountKeeper, nil, a.GetSubspace(authtypes.ModuleName)),
+		bank.NewAppModule(appCodec, a.BankKeeper, a.AccountKeeper, a.GetSubspace(banktypes.ModuleName)),
 		authzmodule.NewAppModule(appCodec, a.AuthzKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
 		vesting.NewAppModule(a.AccountKeeper, a.BankKeeper),
-		wbank.NewAppModule(appCodec, a.BankKeeper, a.AccountKeeper, a.GetSubspace(banktypes.ModuleName)),
 		capability.NewAppModule(appCodec, *a.CapabilityKeeper, false),
 		feegrantmodule.NewAppModule(appCodec, a.AccountKeeper, a.BankKeeper, a.FeeGrantKeeper, encodingConfig.InterfaceRegistry),
 		crisis.NewAppModule(a.CrisisKeeper, skipGenesisInvariants, a.GetSubspace(crisistypes.ModuleName)),
 		consensus.NewAppModule(appCodec, a.ConsensusParamsKeeper),
+		staking.NewAppModule(appCodec, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
+		mint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil, a.GetSubspace(minttypes.ModuleName)),
 		gov.NewAppModule(appCodec, a.GovKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(govtypes.ModuleName)),
-		wmint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil, a.GetSubspace(minttypes.ModuleName)),
 		slashing.NewAppModule(appCodec, a.SlashingKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(slashingtypes.ModuleName)),
 		distr.NewAppModule(appCodec, a.DistrKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(distrtypes.ModuleName)),
-		wstaking.NewAppModule(appCodec, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
 		upgrade.NewAppModule(a.UpgradeKeeper),
 		evidence.NewAppModule(a.EvidenceKeeper),
 		ibc.NewAppModule(a.IBCKeeper),
@@ -196,6 +195,7 @@ func (a *AppKeepers) SetupModules(
 		delayedackmodule.NewAppModule(appCodec, a.DelayedAckKeeper),
 		denommetadatamodule.NewAppModule(a.DenomMetadataKeeper, *a.EvmKeeper, a.BankKeeper),
 		eibcmodule.NewAppModule(appCodec, a.EIBCKeeper, a.AccountKeeper, a.BankKeeper),
+		did.NewAppModule(appCodec, &a.DIDKeeper),
 
 		// Ethermint app modules
 		evm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
@@ -208,7 +208,6 @@ func (a *AppKeepers) SetupModules(
 		poolmanager.NewAppModule(*a.PoolManagerKeeper, a.GAMMKeeper),
 		incentives.NewAppModule(*a.IncentivesKeeper, a.AccountKeeper, a.BankKeeper, a.EpochsKeeper),
 		txfees.NewAppModule(*a.TxFeesKeeper),
-		dao.NewAppModule(appCodec, a.DaoKeeper),
 	}
 }
 
@@ -229,7 +228,6 @@ func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 var maccPerms = map[string][]string{
 	authtypes.FeeCollectorName:                         nil,
 	distrtypes.ModuleName:                              nil,
-	wbanktypes.TreasuryPoolName:                        nil,
 	minttypes.ModuleName:                               {authtypes.Minter},
 	stakingtypes.BondedPoolName:                        {authtypes.Burner, authtypes.Staking},
 	stakingtypes.NotBondedPoolName:                     {authtypes.Burner, authtypes.Staking},
@@ -250,11 +248,10 @@ var BeginBlockers = []string{
 	epochstypes.ModuleName,
 	upgradetypes.ModuleName,
 	capabilitytypes.ModuleName,
-	minttypes.ModuleName,
+	didtypes.ModuleName,
 	distrtypes.ModuleName,
 	slashingtypes.ModuleName,
 	evidencetypes.ModuleName,
-	stakingtypes.ModuleName,
 	vestingtypes.ModuleName,
 	feemarkettypes.ModuleName,
 	evmtypes.ModuleName,
@@ -281,13 +278,11 @@ var BeginBlockers = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
-	daotypes.ModuleName,
 }
 
 var EndBlockers = []string{
 	crisistypes.ModuleName,
 	govtypes.ModuleName,
-	stakingtypes.ModuleName,
 	capabilitytypes.ModuleName,
 	authtypes.ModuleName,
 	authz.ModuleName,
@@ -297,7 +292,6 @@ var EndBlockers = []string{
 	evmtypes.ModuleName,
 	slashingtypes.ModuleName,
 	vestingtypes.ModuleName,
-	minttypes.ModuleName,
 	genutiltypes.ModuleName,
 	evidencetypes.ModuleName,
 	feegrant.ModuleName,
@@ -319,7 +313,6 @@ var EndBlockers = []string{
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
-	daotypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -328,14 +321,11 @@ var InitGenesis = []string{
 	authz.ModuleName,
 	banktypes.ModuleName,
 	distrtypes.ModuleName,
-	daotypes.ModuleName,
-	stakingtypes.ModuleName,
 	vestingtypes.ModuleName,
 	slashingtypes.ModuleName,
 	feemarkettypes.ModuleName,
 	evmtypes.ModuleName,
 	govtypes.ModuleName,
-	minttypes.ModuleName,
 	crisistypes.ModuleName,
 	ibcexported.ModuleName,
 	genutiltypes.ModuleName,

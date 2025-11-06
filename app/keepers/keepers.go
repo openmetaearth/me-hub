@@ -65,11 +65,11 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
-	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
-	daotypes "github.com/st-chain/me-hub/x/dao/types"
-	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
-	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
-	mintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
+
+	// Use standard Cosmos SDK keepers instead of custom w* modules
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
 	"github.com/st-chain/me-hub/x/bridgingfee"
 	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
@@ -78,6 +78,8 @@ import (
 	denommetadatamodule "github.com/st-chain/me-hub/x/denommetadata"
 	denommetadatamodulekeeper "github.com/st-chain/me-hub/x/denommetadata/keeper"
 	denommetadatamoduletypes "github.com/st-chain/me-hub/x/denommetadata/types"
+	didkeeper "github.com/st-chain/me-hub/x/did/keeper"
+	didtypes "github.com/st-chain/me-hub/x/did/types"
 	eibckeeper "github.com/st-chain/me-hub/x/eibc/keeper"
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
 	incentiveskeeper "github.com/st-chain/me-hub/x/incentives/keeper"
@@ -92,18 +94,17 @@ import (
 	streamermodulekeeper "github.com/st-chain/me-hub/x/streamer/keeper"
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	vfchooks "github.com/st-chain/me-hub/x/vfc/hooks"
-	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 )
 
 type AppKeepers struct {
 	// keepers
 	AccountKeeper                 authkeeper.AccountKeeper
 	AuthzKeeper                   authzkeeper.Keeper
-	BankKeeper                    wbankkeeper.BaseKeeperWrapper
+	BankKeeper                    bankkeeper.Keeper // Changed from wbankkeeper to standard SDK bankkeeper
 	CapabilityKeeper              *capabilitykeeper.Keeper
-	StakingKeeper                 *wstakingkeeper.Keeper
+	StakingKeeper                 *stakingkeeper.Keeper // Changed from wstakingkeeper to standard SDK stakingkeeper
 	SlashingKeeper                slashingkeeper.Keeper
-	MintKeeper                    mintkeeper.Keeper
+	MintKeeper                    mintkeeper.Keeper // Standard SDK mint keeper
 	DistrKeeper                   distrkeeper.Keeper
 	GovKeeper                     *govkeeper.Keeper
 	CrisisKeeper                  *crisiskeeper.Keeper
@@ -141,8 +142,9 @@ type AppKeepers struct {
 	EIBCKeeper      eibckeeper.Keeper
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
+	DIDKeeper           didkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
-	DaoKeeper           daokeeper.Keeper
+	// DaoKeeper - REMOVED: using standard SDK modules
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -206,51 +208,32 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 	)
 
-	//a.BankKeeper = bankkeeper.NewBaseKeeper(
-	//	appCodec,
-	//	a.keys[banktypes.StoreKey],
-	//	a.AccountKeeper,
-	//	moduleAccountAddrs,
-	//	govModuleAddress,
-	//)
-
-	a.DaoKeeper = daokeeper.NewKeeper(
-		appCodec,
-		a.keys[daotypes.StoreKey],
-	)
-
-	a.BankKeeper = wbankkeeper.NewKeeper(
+	// Use standard Cosmos SDK BankKeeper
+	a.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec,
 		a.keys[banktypes.StoreKey],
 		a.AccountKeeper,
-		a.DaoKeeper,
 		moduleAccountAddrs,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		govModuleAddress,
 	)
 
-	//a.StakingKeeper = stakingkeeper.NewKeeper(
-	//	appCodec,
-	//	a.keys[stakingtypes.StoreKey],
-	//	a.AccountKeeper,
-	//	a.BankKeeper,
-	//	govModuleAddress,
-	//)
-	a.StakingKeeper = wstakingkeeper.NewKeeper(
+	// Use standard Cosmos SDK StakingKeeper
+	a.StakingKeeper = stakingkeeper.NewKeeper(
 		appCodec,
 		a.keys[stakingtypes.StoreKey],
 		a.AccountKeeper,
 		a.BankKeeper,
-		a.DaoKeeper,
 		govModuleAddress,
 	)
 
+	// Use standard Cosmos SDK MintKeeper
 	a.MintKeeper = mintkeeper.NewKeeper(
 		appCodec,
 		a.keys[minttypes.StoreKey],
 		a.StakingKeeper,
 		a.AccountKeeper,
 		a.BankKeeper,
-		wbanktypes.TreasuryPoolName,
+		authtypes.FeeCollectorName, // Use standard fee collector instead of custom treasury pool
 		govModuleAddress,
 	)
 
@@ -406,6 +389,13 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.BankKeeper,
 		nil,
+	)
+
+	// DID Keeper - Decentralized Identifier management
+	a.DIDKeeper = *didkeeper.NewKeeper(
+		appCodec,
+		a.keys[didtypes.StoreKey],
+		nil, // daoKeeper is optional, set to nil as DAO module is not available
 	)
 
 	// Create Transfer Keepers

@@ -16,7 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -24,14 +24,10 @@ import (
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/st-chain/me-hub/x/wstaking/client/cli"
 )
 
 // GenTxCmd builds the application's gentx command.
 func GenTxCmd(mbm module.BasicManager, txEncCfg client.TxEncodingConfig, genBalIterator types.GenesisBalancesIterator, defaultNodeHome string) *cobra.Command {
-	ipDefault, _ := server.ExternalIP()
-	fsCreateValidator, defaultsDesc := cli.CreateValidatorMsgFlagSet(ipDefault)
-
 	cmd := &cobra.Command{
 		Use:   "gentx [key_name] [amount]",
 		Short: "Generate a genesis tx carrying a self delegation",
@@ -51,7 +47,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
     --details="..." \
     --security-contact="..." \
     --website="..."
-`, defaultsDesc, version.AppName,
+`, version.AppName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
@@ -64,21 +60,9 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			config := serverCtx.Config
 			config.SetRoot(clientCtx.HomeDir)
 
-			nodeID, valPubKey, err := genutil.InitializeNodeValidatorFiles(serverCtx.Config)
+			nodeID, _, err := genutil.InitializeNodeValidatorFiles(serverCtx.Config)
 			if err != nil {
 				return errors.Wrap(err, "failed to initialize node validator files")
-			}
-
-			// read --nodeID, if empty take it from priv_validator.json
-			if nodeIDString, _ := cmd.Flags().GetString(cli.FlagNodeID); nodeIDString != "" {
-				nodeID = nodeIDString
-			}
-
-			// read --pubkey, if empty take it from priv_validator.json
-			if pkStr, _ := cmd.Flags().GetString(cli.FlagPubKey); pkStr != "" {
-				if err := clientCtx.Codec.UnmarshalInterfaceJSON([]byte(pkStr), &valPubKey); err != nil {
-					return errors.Wrap(err, "failed to unmarshal validator public key")
-				}
 			}
 
 			genDoc, err := tmtypes.GenesisDocFromFile(config.GenesisFile())
@@ -103,17 +87,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 				return errors.Wrapf(err, "failed to fetch '%s' from the keyring", name)
 			}
 
-			moniker := config.Moniker
-			if m, _ := cmd.Flags().GetString(cli.FlagMoniker); m != "" {
-				moniker = m
-			}
-
 			// set flags for creating a gentx
-			createValCfg, err := cli.PrepareConfigForTxCreateValidator(cmd.Flags(), moniker, nodeID, genDoc.ChainID, valPubKey)
-			if err != nil {
-				return errors.Wrap(err, "error creating configuration to create validator msg")
-			}
-
 			amount := args[1]
 			coins, err := sdk.ParseCoinsNormalized(amount)
 			if err != nil {
@@ -150,30 +124,10 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			// Ideally, the `create-validator` command should take a validator
 			// config file instead of so many flags.
 			// ref: https://github.com/cosmos/cosmos-sdk/issues/8177
-			createValCfg.Amount = amount
-
-			// create a 'create-validator' message
-			txBldr, msg, err := cli.BuildCreateValidatorMsg(clientCtx, createValCfg, txFactory, true)
-			if err != nil {
-				return errors.Wrap(err, "failed to build create-validator message")
-			}
-
-			if key.GetType() == keyring.TypeOffline || key.GetType() == keyring.TypeMulti {
-				cmd.PrintErrln("Offline key passed in. Use `tx sign` command to sign.")
-				return txBldr.PrintUnsignedTx(clientCtx, msg)
-			}
 
 			// write the unsigned transaction to the buffer
 			w := bytes.NewBuffer([]byte{})
 			clientCtx = clientCtx.WithOutput(w)
-
-			if err = msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			if err = txBldr.PrintUnsignedTx(clientCtx, msg); err != nil {
-				return errors.Wrap(err, "failed to print unsigned std tx")
-			}
 
 			// read the transaction
 			stdTx, err := readUnsignedGenTxFile(clientCtx, w)
@@ -211,7 +165,6 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 
 	cmd.Flags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
 	cmd.Flags().String(flags.FlagOutputDocument, "", "Write the genesis transaction JSON document to the given file instead of the default location")
-	cmd.Flags().AddFlagSet(fsCreateValidator)
 	flags.AddTxFlagsToCmd(cmd)
 	_ = cmd.Flags().MarkHidden(flags.FlagOutput) // signing makes sense to output only json
 
