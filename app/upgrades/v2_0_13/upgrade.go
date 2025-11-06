@@ -38,11 +38,11 @@ func CreateUpgradeHandler(
 
 		logger.Info("1. upgrade for x/gravity module, set params")
 		proposalRelayers := []string{
-			"me19tuh989pxxq7wawmd2fer4ckd4vvl3a3sepez8",
-			"me19jcd2970et5tg82qzd5nfltvcuxqtds6csztm7",
-			"me1k99ppc456q29mmpf56hmqgnhma743h5w2dj0n2",
-			"me1clsfspg3djv8em7u4zzj3z4jnpwl42ava2exrx",
-			"me1al863lkzttl9kvtphlmn4z5ypjl83k7tk9hv27",
+			"me1frjhlw9slyy7mrhmk0r4vytkyldxqtkf326amv",
+			"me1c5zp26c0gq2klk87nrpff3y52u34zn4ydug2yd",
+			"me1hrxxjeqae2y5wx3kxcljzns9f2lguygu9qngxh",
+			"me14jazxhme3ptv00k52fza5rravx4xn27qs0slz2",
+			"me1qdhu5h5g0qwhdpl4q553v7gcmltdr4w3lnqnjg",
 		}
 
 		// delegate total amount to module account
@@ -105,7 +105,7 @@ func GenGravityGenesis(height int64, proposalRelayers []string, defaultGenesis *
 	// 3. relayer set
 	var totalPower uint64
 	relayerSet := types.RelayerSet{
-		Nonce:   1,
+		Nonce:   0,
 		Height:  uint64(height),
 		Members: []types.BridgeValidator{},
 	}
