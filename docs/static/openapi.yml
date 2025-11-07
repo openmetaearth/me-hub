@@ -49411,60 +49411,36 @@ paths:
                 items:
                   type: object
                   properties:
-                    delegation:
-                      type: object
-                      properties:
-                        delegator_address:
-                          type: string
-                          description: >-
-                            delegator_address is the bech32-encoded address of
-                            the delegator.
-                        validator_address:
-                          type: string
-                          description: >-
-                            validator_address is the bech32-encoded address of
-                            the validator.
-                        shares:
-                          type: string
-                          description: shares define the delegation shares received.
-                        startHeight:
-                          type: string
-                          format: int64
-                        amount:
-                          type: string
-                        unmovable:
-                          type: string
-                        unMeidAmount:
-                          type: string
+                    delegator_address:
+                      type: string
                       description: >-
-                        Delegation represents the bond with tokens held by an
-                        account. It is
-
-                        owned by one delegator, and is associated with the
-                        voting power of one
-
+                        delegator_address is the bech32-encoded address of the
+                        delegator.
+                    validator_address:
+                      type: string
+                      description: >-
+                        validator_address is the bech32-encoded address of the
                         validator.
-                    balance:
-                      type: object
-                      properties:
-                        denom:
-                          type: string
-                        amount:
-                          type: string
-                      description: >-
-                        Coin defines a token with a denomination and an amount.
-
-
-                        NOTE: The amount field is an Int which implements the
-                        custom method
-
-                        signatures required by gogoproto.
+                    shares:
+                      type: string
+                      description: shares define the delegation shares received.
+                    startHeight:
+                      type: string
+                      format: int64
+                    amount:
+                      type: string
+                    unmovable:
+                      type: string
+                    unMeidAmount:
+                      type: string
                   description: >-
-                    DelegationResponse is equivalent to Delegation except that
-                    it contains a
+                    Delegation represents the bond with tokens held by an
+                    account. It is
 
-                    balance in addition to shares which is more suitable for
-                    client responses.
+                    owned by one delegator, and is associated with the voting
+                    power of one
+
+                    validator.
               pagination:
                 description: pagination defines the pagination in the response.
                 type: object
@@ -79212,60 +79188,35 @@ definitions:
         items:
           type: object
           properties:
-            delegation:
-              type: object
-              properties:
-                delegator_address:
-                  type: string
-                  description: >-
-                    delegator_address is the bech32-encoded address of the
-                    delegator.
-                validator_address:
-                  type: string
-                  description: >-
-                    validator_address is the bech32-encoded address of the
-                    validator.
-                shares:
-                  type: string
-                  description: shares define the delegation shares received.
-                startHeight:
-                  type: string
-                  format: int64
-                amount:
-                  type: string
-                unmovable:
-                  type: string
-                unMeidAmount:
-                  type: string
+            delegator_address:
+              type: string
               description: >-
-                Delegation represents the bond with tokens held by an account.
-                It is
-
-                owned by one delegator, and is associated with the voting power
-                of one
-
+                delegator_address is the bech32-encoded address of the
+                delegator.
+            validator_address:
+              type: string
+              description: >-
+                validator_address is the bech32-encoded address of the
                 validator.
-            balance:
-              type: object
-              properties:
-                denom:
-                  type: string
-                amount:
-                  type: string
-              description: >-
-                Coin defines a token with a denomination and an amount.
-
-
-                NOTE: The amount field is an Int which implements the custom
-                method
-
-                signatures required by gogoproto.
+            shares:
+              type: string
+              description: shares define the delegation shares received.
+            startHeight:
+              type: string
+              format: int64
+            amount:
+              type: string
+            unmovable:
+              type: string
+            unMeidAmount:
+              type: string
           description: >-
-            DelegationResponse is equivalent to Delegation except that it
-            contains a
+            Delegation represents the bond with tokens held by an account. It is
 
-            balance in addition to shares which is more suitable for client
-            responses.
+            owned by one delegator, and is associated with the voting power of
+            one
+
+            validator.
       pagination:
         description: pagination defines the pagination in the response.
         type: object
