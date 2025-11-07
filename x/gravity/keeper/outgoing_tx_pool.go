@@ -125,6 +125,7 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 		types.EventTypeSendToExternalCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(txId)),
+		sdk.NewAttribute(types.AttributeKeyRefundAmount, totalToRefundCoins.String()),
 	))
 	return totalToRefund, nil
 }
