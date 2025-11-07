@@ -390,6 +390,10 @@ func (a *AppKeepers) InitKeepers(
 		panic(fmt.Sprintf("error while reading wasm config: %s", err))
 	}
 
+	// Add custom query plugins for KYC module
+
+	allWasmOpts := append(wasmOpts, a.SetupCustomMsgs())
+
 	// The last arguments can contain custom message handlers, and custom query handlers,
 	// if we want to allow any custom callbacks
 	availableCapabilities := strings.Join(wasmapp.AllCapabilities(), ",")
@@ -411,7 +415,7 @@ func (a *AppKeepers) InitKeepers(
 		wasmConfig,
 		availableCapabilities,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		wasmOpts...,
+		allWasmOpts...,
 	)
 
 	// Create did Keepers

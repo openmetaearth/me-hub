@@ -30,17 +30,17 @@ func CreateUpgradeHandler(
 			}
 		}
 
-		logger.Info("1. Starting WNFT class data migration...")
-		if err := migrateWNFTClassData(ctx, keepers); err != nil {
-			return nil, fmt.Errorf("failed to migrate WNFT class data: %w", err)
-		}
+		//logger.Info("1. Starting WNFT class data migration...")
+		//if err := migrateWNFTClassData(ctx, keepers); err != nil {
+		//	return nil, fmt.Errorf("failed to migrate WNFT class data: %w", err)
+		//}
 
 		logger.Info("2. set block max gas")
 		consensusParams, err := keepers.ConsensusParamsKeeper.Get(ctx)
 		if err != nil {
 			panic(fmt.Errorf("failed to get consensus params: %w", err))
 		}
-		consensusParams.Block.MaxGas = 300000000 // suppose 10,000,000 * 50 txs or 100,000 * 5000 txs
+		consensusParams.Block.MaxGas = 300000000 // suppose 10,000,000 * 30 txs or 100,000 * 3000 txs
 		keepers.ConsensusParamsKeeper.Set(ctx, consensusParams)
 
 		logger.Info("upgrade finished successfully.")

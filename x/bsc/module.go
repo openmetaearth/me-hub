@@ -1,6 +1,7 @@
 package bsc
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -64,7 +65,9 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {}
 func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	gravitytypes.RegisterQueryHandlerClient(context.Background(), mux, gravitytypes.NewQueryClient(clientCtx))
+}
 
 // GetQueryCmd implements app module basic
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {

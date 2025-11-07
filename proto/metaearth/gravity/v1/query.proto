@@ -19,49 +19,49 @@ service Query {
     option (google.api.http).get = "/gravity/v1/params";
   }
   rpc CurrentRelayerSet(QueryCurrentRelayerSetRequest) returns (QueryCurrentRelayerSetResponse) {
-    option (google.api.http).get = "/gravity/v1/relayer_set/current";
+    option (google.api.http).get = "/gravity/v1/current_relayer_set";
   }
   rpc RelayerSetRequest(QueryRelayerSetRequestRequest) returns (QueryRelayerSetRequestResponse) {
-    option (google.api.http).get = "/gravity/v1/relayer_set/request";
+    option (google.api.http).get = "/gravity/v1/relayer_set_request";
   }
   rpc RelayerSetConfirm(QueryRelayerSetConfirmRequest) returns (QueryRelayerSetConfirmResponse) {
-    option (google.api.http).get = "/gravity/v1/relayer_set/confirm";
+    option (google.api.http).get = "/gravity/v1/relayer_set_confirm";
   }
   rpc RelayerSetConfirmsByNonce(QueryRelayerSetConfirmsByNonceRequest) returns (QueryRelayerSetConfirmsByNonceResponse) {
-    option (google.api.http).get = "/gravity/v1/relayer_set/confirms";
+    option (google.api.http).get = "/gravity/v1/relayer_set_confirms_by_nonce";
   }
   rpc LastRelayerSetRequests(QueryLastRelayerSetRequestsRequest) returns (QueryLastRelayerSetRequestsResponse) {
-    option (google.api.http).get = "/gravity/v1/relayer_set/requests";
+    option (google.api.http).get = "/gravity/v1/last_relayer_set_requests";
   }
   rpc LastPendingRelayerSetRequestByAddr(QueryLastPendingRelayerSetRequestByAddrRequest) returns (QueryLastPendingRelayerSetRequestByAddrResponse) {
-    option (google.api.http).get = "/gravity/v1/relayer_set/last";
+    option (google.api.http).get = "/gravity/v1/last_pending_relayer_set_request_by_addr";
   }
   rpc LastPendingBatchRequestByAddr(QueryLastPendingBatchRequestByAddrRequest) returns (QueryLastPendingBatchRequestByAddrResponse) {
-    option (google.api.http).get = "/gravity/v1/batch/last";
+    option (google.api.http).get = "/gravity/v1/last_pending_batch_request_by_addr";
   }
   rpc LastEventNonceByAddr(QueryLastEventNonceByAddrRequest) returns (QueryLastEventNonceByAddrResponse) {
-    option (google.api.http).get = "/gravity/v1/relayer/event_nonce";
+    option (google.api.http).get = "/gravity/v1/last_event_nonce_by_addr";
   }
   rpc LastEventBlockHeightByAddr(QueryLastEventBlockHeightByAddrRequest) returns (QueryLastEventBlockHeightByAddrResponse) {
-    option (google.api.http).get = "/gravity/v1/relayer/event/block_height";
+    option (google.api.http).get = "/gravity/v1/last_event_block_height_by_addr";
   }
   rpc LastObservedBlockHeight(QueryLastObservedBlockHeightRequest) returns (QueryLastObservedBlockHeightResponse) {
-    option (google.api.http).get = "/gravity/v1/observed/block_height";
+    option (google.api.http).get = "/gravity/v1/last_observed_block_height";
   }
   rpc OutgoingTxBatches(QueryOutgoingTxBatchesRequest) returns (QueryOutgoingTxBatchesResponse) {
-    option (google.api.http).get = "/gravity/v1/batch/outgoing_tx";
+    option (google.api.http).get = "/gravity/v1/outgoing_tx_batches";
   }
   rpc BatchFees(QueryBatchFeeRequest) returns (QueryBatchFeeResponse) {
-    option (google.api.http).get = "/gravity/v1/batch/batch_fees";
+    option (google.api.http).get = "/gravity/v1/batch_fees";
   }
   rpc BatchRequestByNonce(QueryBatchRequestByNonceRequest) returns (QueryBatchRequestByNonceResponse) {
-    option (google.api.http).get = "/gravity/v1/batch/request";
+    option (google.api.http).get = "/gravity/v1/batch_request_by_nonce";
   }
   rpc BatchConfirm(QueryBatchConfirmRequest) returns (QueryBatchConfirmResponse) {
-    option (google.api.http).get = "/gravity/v1/batch/confirm";
+    option (google.api.http).get = "/gravity/v1/batch_confirm";
   }
   rpc BatchConfirms(QueryBatchConfirmsRequest) returns (QueryBatchConfirmsResponse) {
-    option (google.api.http).get = "/gravity/v1/batch/confirms";
+    option (google.api.http).get = "/gravity/v1/batch_confirms";
   }
   rpc Relayer(QueryRelayerRequest) returns (QueryRelayerResponse) {
     option (google.api.http).get = "/gravity/v1/relayer";
@@ -77,7 +77,7 @@ service Query {
     option (google.api.http).get = "/gravity/v1/pending_send_to_external";
   }
   rpc ProjectedBatchTimeoutHeight(QueryProjectedBatchTimeoutHeightRequest) returns (QueryProjectedBatchTimeoutHeightResponse) {
-    option (google.api.http).get = "/gravity/v1/projected_batch_timeout";
+    option (google.api.http).get = "/gravity/v1/projected_batch_timeout_height";
   }
   rpc BridgeTokens(QueryBridgeTokensRequest) returns (QueryBridgeTokensResponse) {
     option (google.api.http).get = "/gravity/v1/bridge_tokens";
