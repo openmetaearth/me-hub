@@ -67,11 +67,12 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
 	// Use standard Cosmos SDK keepers instead of custom w* modules
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
 	"github.com/st-chain/me-hub/x/bridgingfee"
+	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
+	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
 	delayedackkeeper "github.com/st-chain/me-hub/x/delayedack/keeper"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
@@ -94,13 +95,15 @@ import (
 	streamermodulekeeper "github.com/st-chain/me-hub/x/streamer/keeper"
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 	vfchooks "github.com/st-chain/me-hub/x/vfc/hooks"
+
+	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
 )
 
 type AppKeepers struct {
 	// keepers
 	AccountKeeper                 authkeeper.AccountKeeper
 	AuthzKeeper                   authzkeeper.Keeper
-	BankKeeper                    bankkeeper.Keeper // Changed from wbankkeeper to standard SDK bankkeeper
+	BankKeeper                    wbankkeeper.BaseKeeperWrapper // Wrapper for custom bank functionality
 	CapabilityKeeper              *capabilitykeeper.Keeper
 	StakingKeeper                 *stakingkeeper.Keeper // Changed from wstakingkeeper to standard SDK stakingkeeper
 	SlashingKeeper                slashingkeeper.Keeper
@@ -144,7 +147,7 @@ type AppKeepers struct {
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DIDKeeper           didkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
-	// DaoKeeper - REMOVED: using standard SDK modules
+	DaoKeeper           daokeeper.Keeper
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -196,7 +199,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[authtypes.StoreKey],
 		authtypes.ProtoBaseAccount,
-		maccPerms,
+		MaccPerms,
 		sdk.GetConfig().GetBech32AccountAddrPrefix(),
 		govModuleAddress,
 	)
@@ -208,11 +211,12 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 	)
 
-	// Use standard Cosmos SDK BankKeeper
-	a.BankKeeper = bankkeeper.NewBaseKeeper(
+	// Use WBank Keeper with DAO integration
+	a.BankKeeper = wbankkeeper.NewKeeper(
 		appCodec,
 		a.keys[banktypes.StoreKey],
 		a.AccountKeeper,
+		&a.DaoKeeper,
 		moduleAccountAddrs,
 		govModuleAddress,
 	)
@@ -395,7 +399,24 @@ func (a *AppKeepers) InitKeepers(
 	a.DIDKeeper = *didkeeper.NewKeeper(
 		appCodec,
 		a.keys[didtypes.StoreKey],
-		nil, // daoKeeper is optional, set to nil as DAO module is not available
+		&a.DaoKeeper, // Use real DaoKeeper
+	)
+
+
+	a.AccountKeeper = authkeeper.NewAccountKeeper(
+		appCodec,
+		a.keys[authtypes.StoreKey],
+		authtypes.ProtoBaseAccount,
+		MaccPerms,
+		sdk.GetConfig().GetBech32AccountAddrPrefix(),
+		govModuleAddress,
+	)
+
+	// DAO Keeper - Decentralized Autonomous Organization management
+	a.DaoKeeper = daokeeper.NewKeeper(
+		appCodec,
+		a.keys[daotypes.StoreKey],
+		a.AccountKeeper,
 	)
 
 	// Create Transfer Keepers

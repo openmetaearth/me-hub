@@ -1,0 +1,57 @@
+syntax = "proto3";
+package metaearth.dao;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "metaearth/dao/dao.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/dao/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Queries a list of admin items.
+  rpc GlobalDao(QueryGlobalDaoRequest) returns (QueryGlobalDaoResponse) {
+    option (google.api.http).get = "/metaearth/dao/global_dao";
+  }
+
+  rpc GlobalDaoFeePool(QueryGlobalDaoFeePoolReq) returns (QueryGlobalDaoFeePoolResp) {
+    option (google.api.http).get = "/metaearth/dao/global_dao_fee_pool";
+  }
+
+  rpc FreeGasAccounts(QueryFreeGasAccountsReq) returns (QueryFreeGasAccountsResp) {
+    option (google.api.http).get = "/metaearth/dao/free_gas_accounts";
+  }
+
+  rpc IsFreeGasAccount(QueryIsFreeGasAccountReq) returns (QueryIsFreeGasAccountResp) {
+    option (google.api.http).get = "/metaearth/dao/is_free_gas_account";
+  }
+}
+
+message QueryGlobalDaoRequest {}
+
+message QueryGlobalDaoResponse {
+  DaoAddresses dao_addresses = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryGlobalDaoFeePoolReq {}
+message QueryGlobalDaoFeePoolResp {
+  string global_dao_fee_pool = 1;
+}
+
+message QueryFreeGasAccountsReq {
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryFreeGasAccountsResp {
+  repeated string addresses = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryIsFreeGasAccountReq {
+  string address = 1;
+}
+
+message QueryIsFreeGasAccountResp {
+  bool is_free = 1;
+}

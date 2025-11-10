@@ -71,6 +71,8 @@ import (
 	streamermoduletypes "github.com/st-chain/me-hub/x/streamer/types"
 
 	appparams "github.com/st-chain/me-hub/app/params"
+	"github.com/st-chain/me-hub/x/dao"
+	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
 	denommetadatamodule "github.com/st-chain/me-hub/x/denommetadata"
 	"github.com/st-chain/me-hub/x/did"
@@ -80,6 +82,7 @@ import (
 	rollappmodule "github.com/st-chain/me-hub/x/rollapp"
 	sequencermodule "github.com/st-chain/me-hub/x/sequencer"
 	streamermodule "github.com/st-chain/me-hub/x/streamer"
+	"github.com/st-chain/me-hub/x/wbank"
 
 	"github.com/st-chain/me-hub/x/delayedack"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
@@ -145,6 +148,8 @@ var ModuleBasics = module.NewBasicManager(
 	delayedack.AppModuleBasic{},
 	eibc.AppModuleBasic{},
 	did.AppModuleBasic{},
+	dao.AppModuleBasic{},
+	wbank.AppModuleBasic{},
 
 	// Ethermint modules
 	evm.AppModuleBasic{},
@@ -196,6 +201,8 @@ func (a *AppKeepers) SetupModules(
 		denommetadatamodule.NewAppModule(a.DenomMetadataKeeper, *a.EvmKeeper, a.BankKeeper),
 		eibcmodule.NewAppModule(appCodec, a.EIBCKeeper, a.AccountKeeper, a.BankKeeper),
 		did.NewAppModule(appCodec, &a.DIDKeeper),
+		dao.NewAppModule(appCodec, a.DaoKeeper),
+		wbank.NewAppModule(appCodec, a.BankKeeper, a.AccountKeeper, a.GetSubspace(banktypes.ModuleName)),
 
 		// Ethermint app modules
 		evm.NewAppModule(a.EvmKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
@@ -214,7 +221,7 @@ func (a *AppKeepers) SetupModules(
 // ModuleAccountAddrs returns all the app's module account addresses.
 func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
-	for acc := range maccPerms {
+	for acc := range MaccPerms {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
@@ -225,7 +232,7 @@ func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 }
 
 // module account permissions
-var maccPerms = map[string][]string{
+var MaccPerms = map[string][]string{
 	authtypes.FeeCollectorName:                         nil,
 	distrtypes.ModuleName:                              nil,
 	minttypes.ModuleName:                               {authtypes.Minter},
@@ -249,6 +256,7 @@ var BeginBlockers = []string{
 	upgradetypes.ModuleName,
 	capabilitytypes.ModuleName,
 	didtypes.ModuleName,
+	daotypes.ModuleName,
 	distrtypes.ModuleName,
 	slashingtypes.ModuleName,
 	evidencetypes.ModuleName,
