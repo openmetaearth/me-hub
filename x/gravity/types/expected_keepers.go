@@ -28,6 +28,7 @@ type BankKeeper interface {
 	GetDenomMetaData(ctx sdk.Context, denom string) (banktypes.Metadata, bool)
 	GetSupply(ctx sdk.Context, denom string) sdk.Coin
 	IterateAllDenomMetaData(ctx sdk.Context, cb func(banktypes.Metadata) bool)
+	SetDenomMetaData(ctx sdk.Context, denomMetaData banktypes.Metadata)
 }
 
 type (

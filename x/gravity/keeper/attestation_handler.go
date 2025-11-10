@@ -3,6 +3,7 @@ package keeper
 import (
 	sdkmath "cosmossdk.io/math"
 	"fmt"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -55,6 +56,25 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			Supply:          sdkmath.ZeroInt(),
 		}
 		k.SetBridgeToken(ctx, &bridgeToken)
+		k.bankKeeper.SetDenomMetaData(ctx, banktypes.Metadata{
+			Description: "",
+			DenomUnits: []*banktypes.DenomUnit{
+				{
+					Denom:    bridgeToken.Denom,
+					Exponent: uint32(0),
+				},
+				{
+					Denom:    claim.Symbol,
+					Exponent: uint32(claim.Decimals),
+				},
+			},
+			Base:    bridgeToken.Denom,
+			Display: claim.Symbol,
+			Name:    claim.Name,
+			Symbol:  claim.Symbol,
+			URI:     "",
+			URIHash: "",
+		})
 		k.Logger(ctx).Info("add bridge token success", "symbol", claim.Symbol, "token", claim.TokenContract, "denom", bridgeToken.Denom)
 
 	case *types.MsgRelayerSetUpdateClaim:
