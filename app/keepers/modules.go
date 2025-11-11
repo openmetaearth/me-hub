@@ -27,17 +27,17 @@ import (
 	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
+	// "github.com/cosmos/cosmos-sdk/x/gov" // Replaced by wgov
 	"github.com/cosmos/cosmos-sdk/x/gov/client"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/mint"
+	// "github.com/cosmos/cosmos-sdk/x/mint" // Replaced by wmint
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
+	// "github.com/cosmos/cosmos-sdk/x/staking" // Replaced by wstaking
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
@@ -112,8 +112,8 @@ var ModuleBasics = module.NewBasicManager(
 	genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
 	capability.AppModuleBasic{},
 	consensus.AppModuleBasic{},
-	staking.AppModuleBasic{},
-	mint.AppModuleBasic{},
+	wstaking.AppModuleBasic{},
+	wmint.AppModuleBasic{},
 	distribution.AppModuleBasic{},
 	gov.NewAppModuleBasic([]client.ProposalHandler{
 		paramsclient.ProposalHandler,
@@ -183,9 +183,9 @@ func (a *AppKeepers) SetupModules(
 		feegrantmodule.NewAppModule(appCodec, a.AccountKeeper, a.BankKeeper, a.FeeGrantKeeper, encodingConfig.InterfaceRegistry),
 		crisis.NewAppModule(a.CrisisKeeper, skipGenesisInvariants, a.GetSubspace(crisistypes.ModuleName)),
 		consensus.NewAppModule(appCodec, a.ConsensusParamsKeeper),
-		staking.NewAppModule(appCodec, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
+		wstaking.NewAppModule(appCodec, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
 		mint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil, a.GetSubspace(minttypes.ModuleName)),
-		gov.NewAppModule(appCodec, a.GovKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(govtypes.ModuleName)),
+		wgov.NewAppModule(appCodec, a.GovKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(govtypes.ModuleName)),
 		slashing.NewAppModule(appCodec, a.SlashingKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(slashingtypes.ModuleName)),
 		distr.NewAppModule(appCodec, a.DistrKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(distrtypes.ModuleName)),
 		upgrade.NewAppModule(a.UpgradeKeeper),

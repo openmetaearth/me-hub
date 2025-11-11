@@ -1,0 +1,338 @@
+syntax = "proto3";
+package metaearth.wstaking;
+
+import "amino/amino.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos/staking/v1beta1/staking.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+import "ibc/applications/transfer/v1/transfer.proto";
+import "ibc/core/client/v1/client.proto";
+import "metaearth/wstaking/fixed_deposit.proto";
+import "metaearth/wstaking/region.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
+
+// Msg defines the staking Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+  rpc Stake(MsgStake) returns (MsgStakeResponse);
+  rpc Unstake(MsgUnstake) returns (MsgUnstakeResponse);
+
+  rpc UpdateValidator(MsgUpdateValidator) returns (MsgUpdateValidatorResponse);
+
+  //  rpc CurrentDeposit(MsgCurrentDeposit) returns (MsgCurrentDepositResponse);
+  //  rpc CurrentWithdraw(MsgCurrentWithdraw) returns
+  //  (MsgCurrentWithdrawResponse);
+
+  rpc NewRegion(MsgNewRegion) returns (MsgNewRegionResponse);
+  rpc RemoveRegion(MsgRemoveRegion) returns (MsgRemoveRegionResponse);
+  rpc WithdrawDelegatorReward(MsgWithdrawDelegatorReward) returns (MsgWithdrawDelegatorRewardResponse);
+  //  rpc UnmeidWithdrawDelegatorReward(MsgUnmeidWithdrawDelegatorReward)
+  //  returns (MsgUnmeidWithdrawDelegatorRewardResponse);
+
+  //  rpc RetrieveCoinsFromRegion(MsgRetrieveCoinsFromRegion) returns
+  //  (MsgRetrieveCoinsFromRegionResp);
+  //  rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
+  //  rpc
+  //  RetrieveFeeFromGlobalAdminFeePool(MsgRetrieveFeeFromGlobalAdminFeePool)
+  //  returns (MsgRetrieveFeeFromGlobalAdminFeePoolResp);
+  rpc NewFixedDepositCfg(MsgNewFixedDepositCfg) returns (MsgNewFixedDepositCfgResp);
+  rpc SetFixedDepositCfgStatus(MsgSetFixedDepositCfgStatus) returns (MsgSetFixedDepositCfgStatusResp);
+  rpc SetFixedDepositCfgRate(MsgSetFixedDepositCfgRate) returns (MsgSetFixedDepositCfgRateResp);
+  rpc DoFixedDeposit(MsgDoFixedDeposit) returns (MsgDoFixedDepositResponse);
+  rpc WithdrawFixedDeposit(MsgWithdrawFixedDeposit) returns (MsgWithdrawFixedDepositResponse);
+  rpc RemoveFixedDepositCfg(MsgRemoveFixedDepositCfg) returns (MsgRemoveFixedDepositCfgResp);
+  rpc WithdrawFromRegion(MsgWithdrawFromRegion) returns (MsgWithdrawFromRegionResp);
+  rpc WithdrawFromGlobalDaoFeePool(MsgWithdrawFromGlobalDaoFeePool) returns (MsgWithdrawFromGlobalDaoFeePoolResp);
+  rpc NewRecord(MsgNewRecord) returns (MsgNewRecordResponse);
+  rpc ReviewRecord(MsgReviewRecord) returns (MsgReviewRecordResponse);
+  rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
+  rpc IbcTransferFromRegionTreasure(MsgIbcTransferFromRegionTreasure) returns (MsgIbcTransferFromRegionTreasureResponse);
+}
+
+// MsgUpdateValidator defines a SDK message for editing an existing validator.
+message MsgUpdateValidator {
+  option (cosmos.msg.v1.signer) = "validator_address";
+  option (amino.name) = "cosmos-sdk/MsgUpdateValidator";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  cosmos.staking.v1beta1.Description description = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+  string staker_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // We pass a reference to the new commission rate and min self delegation as
+  // it's not mandatory to update. If not updated, the deserialized rate will be
+  // zero with no way to distinguish if an update was intended.
+  // REF: #2373
+  string commission_rate = 3 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec"
+  ];
+  string min_self_delegation = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  string owner_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string operator_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// MsgUpdateValidatorResponse defines the Msg/UpdateValidator response type.
+message MsgUpdateValidatorResponse {}
+
+// MsgStake defines a SDK message for performing a stake of coins
+// from a staker to a validator.
+message MsgStake {
+  option (cosmos.msg.v1.signer) = "staker_address";
+
+  option (gogoproto.equal) = false;
+
+  string staker_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string validator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
+}
+
+// MsgStakeResponse defines the Msg/Stake response type.
+message MsgStakeResponse {}
+
+// MsgUnstake defines a SDK message for performing an unstake from a
+// stake and a validator.
+message MsgUnstake {
+  option (cosmos.msg.v1.signer) = "staker_address";
+
+  option (gogoproto.equal) = false;
+
+  string staker_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string validator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
+}
+
+// MsgUnstakeResponse defines the Msg/MsgUnstake response type.
+message MsgUnstakeResponse {
+  google.protobuf.Timestamp completion_time = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true
+  ];
+}
+
+message MsgFixedDepositCfg {
+  string admin = 1;
+  string regionId = 2;
+  int64 term = 3;
+  string rate = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+}
+message MsgFixedDepositCfgResp {
+  string retcode = 1;
+}
+
+message MsgRemoveFixedDepositCfg {
+  string admin = 1;
+  string regionId = 2;
+  int64 term = 3;
+}
+message MsgRemoveFixedDepositCfgResp {
+  string retcode = 1;
+}
+
+message MsgSetFixedDepositCfgStatus {
+  string admin = 1;
+  string regionId = 2;
+  int64 term = 3;
+  FIXED_DEPOSIT_CFG_STATUS status = 4;
+}
+message MsgSetFixedDepositCfgStatusResp {
+  string retcode = 1;
+}
+
+message MsgSetFixedDepositCfgRate {
+  string admin = 1;
+  string regionId = 2;
+  int64 term = 3;
+  string rate = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+}
+message MsgSetFixedDepositCfgRateResp {
+  string retcode = 1;
+}
+
+message MsgNewRegion {
+  string creator = 1;
+  string name = 2;
+  string operator_address = 3;
+}
+
+message MsgNewRegionResponse {
+  string region_id = 1;
+}
+
+message MsgRemoveRegion {
+  string creator = 1;
+  string region_id = 2;
+}
+
+message MsgRemoveRegionResponse {
+  string retcode = 1;
+}
+
+message MsgWithdrawFromRegion {
+  string withdrawer = 1;
+  string region_id = 2;
+  string receiver = 3;
+  repeated cosmos.base.v1beta1.Coin amount = 4 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message MsgWithdrawFromRegionResp {}
+
+message MsgWithdrawFromGlobalDaoFeePool {
+  string withdrawer = 1;
+  repeated cosmos.base.v1beta1.Coin amount = 2 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message MsgWithdrawFromGlobalDaoFeePoolResp {}
+
+// MsgWithdrawDelegatorReward represents delegation withdrawal to a delegator
+// from a single validator.
+message MsgWithdrawDelegatorReward {
+  option (cosmos.msg.v1.signer) = "delegator_address";
+  option (amino.name) = "cosmos-sdk/MsgWithdrawDelegationReward";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string delegator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string validator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// MsgWithdrawDelegatorRewardResponse defines the Msg/WithdrawDelegatorReward
+// response type.
+message MsgWithdrawDelegatorRewardResponse {
+  // Since: cosmos-sdk 0.46
+  repeated cosmos.base.v1beta1.Coin amount = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message MsgNewFixedDepositCfg {
+  string dao = 1;
+  string regionId = 2;
+  int64 term = 3;
+  string rate = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message MsgNewFixedDepositCfgResp {
+  string retcode = 1;
+}
+
+message MsgDoFixedDeposit {
+  string account = 1;
+  cosmos.base.v1beta1.Coin principal = 2 [(gogoproto.nullable) = false];
+  int64 term = 4;
+}
+
+message MsgDoFixedDepositResponse {
+  uint64 id = 1;
+}
+
+message MsgWithdrawFixedDeposit {
+  string account = 1;
+  uint64 id = 2;
+}
+
+message MsgWithdrawFixedDepositResponse {
+  cosmos.base.v1beta1.Coin principal = 1 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin interest = 2 [(gogoproto.nullable) = false];
+  int64 term = 3;
+  string rate = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message MsgNewRecord {
+  string actionNumber = 1;
+  string actionUrl = 2;
+  string from = 3;
+}
+
+message MsgNewRecordResponse {}
+
+message MsgReviewRecord {
+  string recordHash = 1;
+  string reviewResult = 2;
+  string from = 3;
+  string ActionNumber = 4;
+  string reviewedAddress = 5;
+}
+
+message MsgReviewRecordResponse {}
+
+message MsgTransferRegion {
+  string fromRegion = 1;
+  string toRegion = 2;
+  repeated string address = 3;
+  string creator = 4;
+}
+message MsgTransferRegionResponse {}
+
+message MsgIbcTransferFromRegionTreasure {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // the port on which the packet will be sent
+  string source_port = 1 [(gogoproto.moretags) = "yaml:\"source_port\""];
+  // the channel by which the packet will be sent
+  string source_channel = 2 [(gogoproto.moretags) = "yaml:\"source_channel\""];
+  string regionId = 3;
+  // the tokens to be transferred
+  cosmos.base.v1beta1.Coin token = 4 [(gogoproto.nullable) = false];
+
+  // the recipient address on the destination chain
+  // string receiver = 5;
+  // Timeout height relative to the current block height.
+  // The timeout is disabled when set to 0.
+  Height timeout_height = 6 [
+    (gogoproto.moretags) = "yaml:\"timeout_height\"",
+    (gogoproto.nullable) = false
+  ];
+  // Timeout timestamp in absolute nanoseconds since unix epoch.
+  // The timeout is disabled when set to 0.
+  uint64 timeout_timestamp = 7 [(gogoproto.moretags) = "yaml:\"timeout_timestamp\""];
+  // optional memo
+  string memo = 8;
+  // tx creator address
+  string creator = 9;
+}
+
+message Height {
+  // the revision that the client is currently on
+  uint64 revision_number = 1 [(gogoproto.moretags) = "yaml:\"revision_number\""];
+  // the height within the given revision
+  uint64 revision_height = 2 [(gogoproto.moretags) = "yaml:\"revision_height\""];
+}
+
+message MsgIbcTransferFromRegionTreasureResponse {}

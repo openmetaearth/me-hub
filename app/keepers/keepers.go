@@ -22,7 +22,7 @@ import (
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
-	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
+	// govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper" // Replaced by wgovkeeper
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -67,7 +67,7 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
 	// Use standard Cosmos SDK keepers instead of custom w* modules
-	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	// mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper" // Replaced by wmintkeeper
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
 	"github.com/st-chain/me-hub/x/bridgingfee"
@@ -97,6 +97,8 @@ import (
 	vfchooks "github.com/st-chain/me-hub/x/vfc/hooks"
 
 	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
+	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
+	wgovkeeper "github.com/st-chain/me-hub/x/wgov/keeper"
 )
 
 type AppKeepers struct {
@@ -107,9 +109,9 @@ type AppKeepers struct {
 	CapabilityKeeper              *capabilitykeeper.Keeper
 	StakingKeeper                 *stakingkeeper.Keeper // Changed from wstakingkeeper to standard SDK stakingkeeper
 	SlashingKeeper                slashingkeeper.Keeper
-	MintKeeper                    mintkeeper.Keeper // Standard SDK mint keeper
+	MintKeeper                    wmintkeeper.Keeper // Custom WMint keeper with enhanced features
 	DistrKeeper                   distrkeeper.Keeper
-	GovKeeper                     *govkeeper.Keeper
+	GovKeeper                     *wgovkeeper.Keeper
 	CrisisKeeper                  *crisiskeeper.Keeper
 	UpgradeKeeper                 *upgradekeeper.Keeper
 	ParamsKeeper                  paramskeeper.Keeper
@@ -230,14 +232,14 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 	)
 
-	// Use standard Cosmos SDK MintKeeper
-	a.MintKeeper = mintkeeper.NewKeeper(
+	// Use WMint Keeper with enhanced features
+	a.MintKeeper = wmintkeeper.NewKeeper(
 		appCodec,
 		a.keys[minttypes.StoreKey],
-		a.StakingKeeper,
+		&a.StakingKeeper,
 		a.AccountKeeper,
 		a.BankKeeper,
-		authtypes.FeeCollectorName, // Use standard fee collector instead of custom treasury pool
+		&a.DaoKeeper,
 		govModuleAddress,
 	)
 
@@ -465,9 +467,16 @@ func (a *AppKeepers) InitKeepers(
 	)
 
 	govConfig := govtypes.DefaultConfig()
-	a.GovKeeper = govkeeper.NewKeeper(
-		appCodec, a.keys[govtypes.StoreKey], a.AccountKeeper, a.BankKeeper,
-		a.StakingKeeper, bApp.MsgServiceRouter(), govConfig, govModuleAddress,
+	a.GovKeeper = wgovkeeper.NewKeeper(
+		appCodec,
+		a.keys[govtypes.StoreKey],
+		a.AccountKeeper,
+		a.BankKeeper,
+		a.StakingKeeper,
+		govRouter,
+		bApp.MsgServiceRouter(),
+		govConfig,
+		govModuleAddress,
 	)
 	a.GovKeeper.SetLegacyRouter(govRouter)
 
