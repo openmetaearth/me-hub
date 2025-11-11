@@ -25,8 +25,8 @@ func DefaultParams() Params {
 	return Params{
 		GravityId:                          "me-gravity",
 		AverageBlockTime:                   5_000,
-		ExternalBatchTimeout:               24 * 3600 * 1000, // 24 hours
-		AverageExternalBlockTime:           1_000,            // 1 seconds
+		ExternalBatchTimeout:               1 * 3600 * 1000, // 1 hours
+		AverageExternalBlockTime:           1_000,           // 1 seconds
 		SignedWindow:                       30_000,
 		SlashFraction:                      sdk.NewDecWithPrec(8, 1), // 80%
 		RelayerSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 20%
@@ -40,7 +40,7 @@ func DefaultParams() Params {
 // nolint:gocyclo
 func (m *Params) ValidateBasic() error {
 	if len(m.GravityId) == 0 {
-		return fmt.Errorf("gravityId cannpt be empty")
+		return fmt.Errorf("gravityId cannot be empty")
 	}
 	if _, err := utils.StrToByte32(m.GravityId); err != nil {
 		return err

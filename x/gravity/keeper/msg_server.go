@@ -120,9 +120,9 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	if !relayer.Online {
 		relayer.Online = true
 		relayer.StartHeight = ctx.BlockHeight()
-		relayer.SlashTimes = 0
 	}
 
+	relayer.SlashTimes = 0
 	s.SetRelayer(ctx, relayerAddress, relayer)
 	s.SetLastTotalPower(ctx)
 
@@ -141,7 +141,7 @@ func (s MsgServer) UnbondedRelayer(c context.Context, msg *types.MsgUnbondedRela
 	ctx := sdk.UnwrapSDKContext(c)
 
 	if s.IsProposalRelayer(ctx, msg.RelayerAddress) {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "need to pass a proposal to unbind")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "need to pass a proposal to unbond")
 	}
 
 	relayer, found := s.GetRelayer(ctx, relayerAddress)
