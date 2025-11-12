@@ -1,5 +1,4 @@
 assets/
-docs/
 networks/
 proto/
 tools/
@@ -11,3 +10,16 @@ tests/cl-go-client
 go.work
 go.work.sum
 *.md
+# Exclude markdown files in docs but keep Go source files needed for build
+docs/*.md
+build/
+.test/
+*.tar.gz
+*.zip
+node_modules/
+coverage/
+# Docker folder - exclude docs but keep scripts
+docker/docs/
+docker/*.md
+# Keep vendor directory - needed for building with private dependencies
+!vendor/
