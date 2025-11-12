@@ -1,0 +1,207 @@
+name: Build ME-Chain Private Network Docker Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      genesis_accounts:
+        description: 'Genesis accounts (format: name1:amount1,name2:amount2) - leave empty to use JSON format'
+        required: false
+        default: ''
+      genesis_accounts_json:
+        description: 'Genesis accounts JSON (format: [{"name":"alice","amount":"1000000000000000000000umec"}])'
+        required: false
+        default: '[{"name":"alice","amount":"2000000000000000000000umec"},{"name":"bob","amount":"1000000000000000000000umec"},{"name":"charlie","amount":"500000000000000000000umec"}]'
+      tag:
+        description: 'Docker image tag'
+        required: false
+        default: 'latest'
+      push_to_registry:
+        description: 'Push to GitHub Container Registry'
+        required: false
+        type: boolean
+        default: false
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'docker/**'
+      - 'Dockerfile'
+      - '.github/workflows/build-private-net.yml'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/private-net
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Get git metadata
+        id: meta
+        run: |
+          echo "version=$(git describe --tags --always)" >> $GITHUB_OUTPUT
+          echo "commit=$(git log -1 --format='%H')" >> $GITHUB_OUTPUT
+          echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
+      - name: Determine image tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            TAG="latest"
+          elif [ "${{ github.ref }}" = "refs/heads/develop" ]; then
+            TAG="dev"
+          else
+            TAG="${{ steps.meta.outputs.short_sha }}"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Using tag: $TAG"
+
+      - name: Prepare genesis accounts configuration
+        id: accounts
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ -n "${{ github.event.inputs.genesis_accounts }}" ]; then
+              echo "Using simple format genesis accounts"
+              echo "format=simple" >> $GITHUB_OUTPUT
+              echo "accounts=${{ github.event.inputs.genesis_accounts }}" >> $GITHUB_OUTPUT
+            elif [ -n "${{ github.event.inputs.genesis_accounts_json }}" ]; then
+              echo "Using JSON format genesis accounts"
+              echo "format=json" >> $GITHUB_OUTPUT
+              echo "accounts=${{ github.event.inputs.genesis_accounts_json }}" >> $GITHUB_OUTPUT
+            else
+              echo "No genesis accounts specified"
+              echo "format=none" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "Using default configuration (no additional accounts)"
+            echo "format=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Docker image (simple format)
+        if: steps.accounts.outputs.format == 'simple'
+        run: |
+          make docker-private-net \
+            TAG=${{ steps.tag.outputs.tag }} \
+            GENESIS_ACCOUNTS="${{ steps.accounts.outputs.accounts }}"
+
+      - name: Build Docker image (JSON format)
+        if: steps.accounts.outputs.format == 'json'
+        run: |
+          make docker-private-net \
+            TAG=${{ steps.tag.outputs.tag }} \
+            GENESIS_ACCOUNTS_JSON='${{ steps.accounts.outputs.accounts }}'
+
+      - name: Build Docker image (default)
+        if: steps.accounts.outputs.format == 'none'
+        run: |
+          make docker-private-net TAG=${{ steps.tag.outputs.tag }}
+
+      - name: Test Docker image
+        run: |
+          echo "Starting container for testing..."
+          docker run -d \
+            --name test-mechain \
+            -p 36657:36657 \
+            -p 1318:1318 \
+            -p 9545:9545 \
+            me-hub/private-net:${{ steps.tag.outputs.tag }}
+
+          echo "Waiting for chain to start..."
+          sleep 30
+
+          echo "Checking chain status..."
+          docker exec test-mechain med status || true
+
+          echo "Listing genesis accounts..."
+          docker exec test-mechain med keys list --keyring-backend test
+
+          echo "Checking RPC endpoint..."
+          curl -s http://localhost:36657/status | jq .
+
+          echo "Stopping test container..."
+          docker stop test-mechain
+          docker rm test-mechain
+
+      - name: Log in to GitHub Container Registry
+        if: github.event.inputs.push_to_registry == 'true' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag and push image
+        if: github.event.inputs.push_to_registry == 'true' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        run: |
+          docker tag me-hub/private-net:${{ steps.tag.outputs.tag }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+
+          # Also push with commit SHA as tag
+          docker tag me-hub/private-net:${{ steps.tag.outputs.tag }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.short_sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.short_sha }}
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Tag:** ${{ steps.tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Git Version:** ${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Git Commit:** ${{ steps.meta.outputs.commit }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Date:** ${{ steps.meta.outputs.date }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.accounts.outputs.format }}" = "simple" ]; then
+            echo "### Genesis Accounts (Simple Format)" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "${{ steps.accounts.outputs.accounts }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.accounts.outputs.format }}" = "json" ]; then
+            echo "### Genesis Accounts (JSON Format)" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            echo '${{ steps.accounts.outputs.accounts }}' | jq . >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### Genesis Accounts" >> $GITHUB_STEP_SUMMARY
+            echo "Using default configuration (no additional accounts)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Run the image" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "docker run -d -p 36657:36657 -p 1318:1318 -p 9545:9545 -p 8090:8090 \\" >> $GITHUB_STEP_SUMMARY
+          echo "  --name mechain-private-net \\" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event.inputs.push_to_registry }}" = "true" ] || [ "${{ github.ref }}" = "refs/heads/main" ] || [ "${{ github.ref }}" = "refs/heads/develop" ]; then
+            echo "  ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "  me-hub/private-net:${{ steps.tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: build-logs
+          path: |
+            vendor/
+          retention-days: 7

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Non-interactive setup script for Docker private network
 # This script is based on setup_local.sh but removes all interactive prompts
 
@@ -99,6 +99,54 @@ med keys add user --keyring-backend test
 med add-genesis-account $(med keys show pools --keyring-backend test -a) 1000000000000000000000000umec
 # Give some uatom to the local-user as well
 med add-genesis-account $(med keys show user --keyring-backend test -a) 1000000000000000000000umec
+
+# ---------------------------------------------------------------------------- #
+#                     Create additional genesis accounts                       #
+# ---------------------------------------------------------------------------- #
+# Support creating multiple accounts via environment variables
+# Format for GENESIS_ACCOUNTS: "account1:amount1,account2:amount2,..."
+# Example: GENESIS_ACCOUNTS="test1:1000000000000000000000umec,test2:500000000000000000000umec"
+#
+# Or use GENESIS_ACCOUNTS_JSON for more control:
+# Example: GENESIS_ACCOUNTS_JSON='[{"name":"test1","amount":"1000000000000000000000umec","mnemonic":"..."},{"name":"test2","amount":"500000000000000000000umec"}]'
+
+if [ -n "$GENESIS_ACCOUNTS" ]; then
+  echo "Creating additional genesis accounts from GENESIS_ACCOUNTS..."
+  echo "$GENESIS_ACCOUNTS" | tr ',' '\n' | while IFS=':' read -r account_name account_amount; do
+    # Use default amount if not specified
+    account_amount="${account_amount:-1000000000000000000000umec}"
+
+    if [ -n "$account_name" ]; then
+      echo "Creating account: $account_name with amount: $account_amount"
+      med keys add "$account_name" --keyring-backend test
+      med add-genesis-account $(med keys show "$account_name" --keyring-backend test -a) "$account_amount"
+    fi
+  done
+fi
+
+if [ -n "$GENESIS_ACCOUNTS_JSON" ]; then
+  echo "Creating additional genesis accounts from GENESIS_ACCOUNTS_JSON..."
+  account_count=$(echo "$GENESIS_ACCOUNTS_JSON" | jq '. | length')
+
+  for i in $(seq 0 $((account_count - 1))); do
+    account_name=$(echo "$GENESIS_ACCOUNTS_JSON" | jq -r ".[$i].name")
+    account_amount=$(echo "$GENESIS_ACCOUNTS_JSON" | jq -r ".[$i].amount // \"1000000000000000000000umec\"")
+    account_mnemonic=$(echo "$GENESIS_ACCOUNTS_JSON" | jq -r ".[$i].mnemonic // empty")
+
+    if [ -n "$account_name" ]; then
+      echo "Creating account: $account_name with amount: $account_amount"
+
+      if [ -n "$account_mnemonic" ]; then
+        echo "Using provided mnemonic for $account_name"
+        echo "$account_mnemonic" | med keys add "$account_name" --recover --keyring-backend test
+      else
+        med keys add "$account_name" --keyring-backend test
+      fi
+
+      med add-genesis-account $(med keys show "$account_name" --keyring-backend test -a) "$account_amount"
+    fi
+  done
+fi
 
 echo "Setting up main account..."
 echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test

@@ -9,6 +9,8 @@ FROM golang:1.23-bullseye as go-builder
 ARG arch=x86_64
 ARG GIT_VERSION
 ARG GIT_COMMIT
+ARG GENESIS_ACCOUNTS=""
+ARG GENESIS_ACCOUNTS_JSON=""
 
 WORKDIR /me-hub
 
@@ -64,6 +66,17 @@ ENV CHAIN_ID="mechain_100-1"
 ENV MONIKER_NAME="local"
 ENV KEY_NAME="global_dao"
 ENV HOME="/root"
+
+# Genesis accounts configuration
+# Format: "account1:amount1,account2:amount2,..."
+# Example: GENESIS_ACCOUNTS="test1:1000000000000000000000umec,test2:500000000000000000000umec"
+ARG GENESIS_ACCOUNTS
+ENV GENESIS_ACCOUNTS=${GENESIS_ACCOUNTS}
+
+# Alternative JSON format for more control (supports mnemonic)
+# Example: GENESIS_ACCOUNTS_JSON='[{"name":"test1","amount":"1000000000000000000000umec","mnemonic":"..."}]'
+ARG GENESIS_ACCOUNTS_JSON
+ENV GENESIS_ACCOUNTS_JSON=${GENESIS_ACCOUNTS_JSON}
 
 # Expose ports
 # P2P

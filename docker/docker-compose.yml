@@ -28,6 +28,11 @@ services:
             - MONIKER_NAME=local
             - KEY_NAME=global_dao
             - TZ=Asia/Shanghai
+            # Genesis accounts configuration (optional)
+            # Simple format: "name1:amount1,name2:amount2"
+            # - GENESIS_ACCOUNTS=alice:1000000000000000000000umec,bob:1000000000000000000000umec
+            # JSON format for more control (supports mnemonic)
+            # - GENESIS_ACCOUNTS_JSON=[{"name":"alice","amount":"2000000000000000000000umec"}]
         volumes:
             # Persistent data volume (optional - comment out for ephemeral chain)
             - mechain-data:/root/.mechain

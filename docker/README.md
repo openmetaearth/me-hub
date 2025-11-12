@@ -101,6 +101,82 @@ docker exec mechain-private-net med query bank balances \
 | **user** | Test user account | 1,000,000 MEC |
 | **sequencer** | Sequencer account | 0.0001 MEC |
 
+## 🎯 Creating Custom Genesis Accounts
+
+You can create additional genesis accounts at **build time** or **runtime** using environment variables. This is especially useful for CI/CD pipelines and automated testing.
+
+📖 **See [GENESIS_ACCOUNTS.md](GENESIS_ACCOUNTS.md) for detailed documentation.**
+
+### Quick Examples
+
+#### Build Time Configuration
+
+```bash
+# Simple format: Create multiple accounts with specified amounts
+make docker-private-net \
+  GENESIS_ACCOUNTS="alice:1000000000000000000000umec,bob:1000000000000000000000umec"
+
+# JSON format: More control (can specify mnemonics)
+make docker-private-net \
+  GENESIS_ACCOUNTS_JSON='[{"name":"alice","amount":"2000000000000000000000umec"}]'
+```
+
+#### Runtime Configuration
+
+```bash
+# Add accounts when starting the container
+docker run -d \
+  -p 36657:36657 -p 1318:1318 -p 9545:9545 -p 8090:8090 \
+  -e GENESIS_ACCOUNTS="test1:1000000000000000000000umec,test2:500000000000000000000umec" \
+  --name mechain-private-net \
+  me-hub/private-net:latest
+```
+
+#### Docker Compose Configuration
+
+Edit `docker/docker-compose.yml`:
+
+```yaml
+services:
+  mechain-private-net:
+    environment:
+      - GENESIS_ACCOUNTS=alice:1000000000000000000000umec,bob:1000000000000000000000umec
+```
+
+### Verify Custom Accounts
+
+```bash
+# List all accounts
+docker exec mechain-private-net med keys list --keyring-backend test
+
+# Check balance of custom account
+docker exec mechain-private-net med keys show alice --keyring-backend test -a
+docker exec mechain-private-net med query bank balances <alice_address>
+
+# Or use the test script
+chmod +x docker/scripts/test_genesis_accounts.sh
+./docker/scripts/test_genesis_accounts.sh
+```
+
+### GitHub Actions Integration
+
+Create custom test networks automatically:
+
+```yaml
+- name: Build test network with custom accounts
+  run: |
+    make docker-private-net \
+      GENESIS_ACCOUNTS="alice:10000000000000000000000umec,bob:5000000000000000000000umec"
+```
+
+For complete documentation including:
+- JSON format with mnemonic support
+- Amount calculation reference
+- GitHub Actions workflow examples
+- Troubleshooting guide
+
+**👉 See [GENESIS_ACCOUNTS.md](GENESIS_ACCOUNTS.md)**
+
 ## 🧪 Test Connection
 
 ```bash
@@ -207,6 +283,8 @@ Customize chain configuration through environment variables:
 | `MONIKER_NAME` | local | Node name |
 | `KEY_NAME` | global_dao | Main account name |
 | `TZ` | Asia/Shanghai | Timezone setting |
+| `GENESIS_ACCOUNTS` | "" | Custom genesis accounts (simple format) |
+| `GENESIS_ACCOUNTS_JSON` | "" | Custom genesis accounts (JSON format) |
 
 **Example**:
 ```bash
@@ -355,6 +433,7 @@ docker exec mechain-private-net curl http://localhost:1318/cosmos/base/tendermin
 
 ## 📚 Related Documentation
 
+- [Genesis Accounts Configuration](GENESIS_ACCOUNTS.md) - **Detailed guide for creating custom accounts**
 - [Quick Start Guide](QUICKSTART.md)
 - [ME-Chain Main Documentation](../README.md)
 
@@ -362,14 +441,16 @@ docker exec mechain-private-net curl http://localhost:1318/cosmos/base/tendermin
 
 ```
 docker/
-├── Dockerfile              # Docker image definition
-├── docker-compose.yml      # Docker Compose configuration
-├── README.md              # This document
-├── QUICKSTART.md          # Quick start guide
+├── Dockerfile                    # Docker image definition
+├── docker-compose.yml            # Docker Compose configuration
+├── README.md                     # This document
+├── QUICKSTART.md                 # Quick start guide
+├── GENESIS_ACCOUNTS.md           # Genesis accounts configuration guide
 └── scripts/
-    ├── setup_local_docker.sh    # Chain initialization script
-    ├── start_private_net.sh     # Container startup script
-    └── test_private_net.sh      # Automated test script
+    ├── setup_local_docker.sh         # Chain initialization script
+    ├── start_private_net.sh          # Container startup script
+    ├── test_private_net.sh           # Automated test script
+    └── test_genesis_accounts.sh      # Genesis accounts verification script
 ```
 
 ## 💡 Best Practices

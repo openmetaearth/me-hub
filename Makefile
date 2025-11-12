@@ -137,6 +137,10 @@ docker-run-debug:
 	@DOCKER_BUILDKIT=1 docker-compose -f docker-compose.debug.yml up
 
 # Build and optionally run a pre-initialized single-node private network
+# Usage:
+#   make docker-private-net
+#   make docker-private-net GENESIS_ACCOUNTS="test1:1000000000000000000000umec,test2:500000000000000000000umec"
+#   make docker-private-net GENESIS_ACCOUNTS_JSON='[{"name":"alice","amount":"2000000000000000000000umec"}]'
 docker-private-net:
 	@echo "Preparing vendor directory for Docker build..."
 	@go mod vendor
@@ -144,6 +148,8 @@ docker-private-net:
 	@DOCKER_BUILDKIT=1 docker build \
 		--build-arg GIT_VERSION=$(VERSION) \
 		--build-arg GIT_COMMIT=$(COMMIT) \
+		$(if $(GENESIS_ACCOUNTS),--build-arg GENESIS_ACCOUNTS="$(GENESIS_ACCOUNTS)",) \
+		$(if $(GENESIS_ACCOUNTS_JSON),--build-arg GENESIS_ACCOUNTS_JSON='$(GENESIS_ACCOUNTS_JSON)',) \
 		-t me-hub/private-net:$(TAG) \
 		-f docker/Dockerfile .
 	@rm -rf vendor
@@ -154,6 +160,11 @@ docker-private-net:
 	@echo ""
 	@echo "To run with persistent data:"
 	@echo "  docker run -d -p 36657:36657 -p 1318:1318 -p 9545:9545 -p 8090:8090 -v mechain-data:/root/.mechain --name mechain-private-net me-hub/private-net:$(TAG)"
+	@echo ""
+	@echo "To run with additional genesis accounts at runtime:"
+	@echo "  docker run -d -p 36657:36657 -p 1318:1318 -p 9545:9545 -p 8090:8090 \\"
+	@echo "    -e GENESIS_ACCOUNTS=\"test1:1000000000000000000000umec,test2:500000000000000000000umec\" \\"
+	@echo "    --name mechain-private-net me-hub/private-net:$(TAG)"
 	@echo ""
 	@echo "Or use: make docker-private-net-start"
 
