@@ -1,0 +1,136 @@
+name: Build and Push Private Network Docker Image
+
+on:
+    push:
+        tags:
+            - "v*"
+
+env:
+    IMAGE_NAME: st-chain/me_hub
+    GENESIS_ACCOUNTS: "alice:10000000000000000000000umec,bob:10000000000000000000000umec,charlie:10000000000000000000000umec,david:10000000000000000000000umec"
+
+jobs:
+    build-and-push:
+        runs-on: [self-hosted, linux]
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: "1.23"
+                  cache: false
+
+            - name: Get version information
+              id: version
+              run: |
+                  # Extract tag name (e.g., v1.0.0)
+                  TAG_NAME=${GITHUB_REF#refs/tags/}
+                  echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+                  echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+                  echo "commit=$(git log -1 --format='%H')" >> $GITHUB_OUTPUT
+                  echo "date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+                  echo "Building version: $TAG_NAME"
+
+            - name: Set image tag
+              id: image
+              run: |
+                  IMAGE_TAG="${{ secrets.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}_private_net"
+                  echo "tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+                  echo "Image will be tagged as: $IMAGE_TAG"
+
+            - name: Clean up previous builds
+              run: |
+                  rm -rf vendor build
+                  docker system prune -f
+
+            - name: Build private network Docker image
+              run: |
+                  echo "Building private network with genesis accounts..."
+                  echo "Genesis accounts: ${{ env.GENESIS_ACCOUNTS }}"
+
+                  make docker-private-net \
+                    TAG=build-temp \
+                    GENESIS_ACCOUNTS="${{ env.GENESIS_ACCOUNTS }}"
+
+            # - name: Log in to Harbor Registry
+            #   run: |
+            #       echo "${{ secrets.HARBOR_PASSWORD }}" | docker login ${{ secrets.HARBOR_REGISTRY }} \
+            #         -u "${{ secrets.HARBOR_USERNAME }}" \
+            #         --password-stdin
+
+            - name: Tag and push image
+              run: |
+                  # Tag the image
+                  docker tag me-hub/private-net:build-temp ${{ steps.image.outputs.tag }}
+
+                  # Push to Harbor
+                  echo "Pushing image to Harbor..."
+                  docker push ${{ steps.image.outputs.tag }}
+
+                  # Also tag and push as latest for this version series (optional)
+                  VERSION_LATEST="${{ secrets.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:latest_private_net"
+                  docker tag me-hub/private-net:build-temp $VERSION_LATEST
+                  docker push $VERSION_LATEST
+
+            - name: Verify image
+              run: |
+                  echo "Verifying pushed image..."
+                  docker pull ${{ steps.image.outputs.tag }}
+
+                  echo "Testing image..."
+                  docker run --rm ${{ steps.image.outputs.tag }} med version
+
+            - name: Clean up
+              if: always()
+              run: |
+                  # Clean up local images
+                  docker rmi me-hub/private-net:build-temp || true
+                  docker rmi ${{ steps.image.outputs.tag }} || true
+
+                  # Clean up build artifacts
+                  rm -rf vendor
+
+            - name: Generate build summary
+              if: always()
+              run: |
+                  echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### Image Information" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Image Tag:** \`${{ steps.image.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Git Tag:** \`${{ steps.version.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Git Commit:** \`${{ steps.version.outputs.commit }}\`" >> $GITHUB_STEP_SUMMARY
+                  echo "- **Build Date:** \`${{ steps.version.outputs.date }}\`" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### Genesis Accounts" >> $GITHUB_STEP_SUMMARY
+                  echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+                  echo "${{ env.GENESIS_ACCOUNTS }}" >> $GITHUB_STEP_SUMMARY
+                  echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "**Accounts created:**" >> $GITHUB_STEP_SUMMARY
+                  echo "- alice: 10,000 MEC" >> $GITHUB_STEP_SUMMARY
+                  echo "- bob: 10,000 MEC" >> $GITHUB_STEP_SUMMARY
+                  echo "- charlie: 10,000 MEC" >> $GITHUB_STEP_SUMMARY
+                  echo "- david: 10,000 MEC" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### Pull and Run" >> $GITHUB_STEP_SUMMARY
+                  echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+                  echo "# Pull the image" >> $GITHUB_STEP_SUMMARY
+                  echo "docker pull ${{ steps.image.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "# Run the private network" >> $GITHUB_STEP_SUMMARY
+                  echo "docker run -d \\" >> $GITHUB_STEP_SUMMARY
+                  echo "  -p 36657:36657 -p 1318:1318 -p 9545:9545 -p 8090:8090 \\" >> $GITHUB_STEP_SUMMARY
+                  echo "  --name mechain-private-net \\" >> $GITHUB_STEP_SUMMARY
+                  echo "  ${{ steps.image.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+                  echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+            - name: Send notification (on failure)
+              if: failure()
+              run: |
+                  echo "Build failed for tag ${{ steps.version.outputs.tag }}"
+                  echo "Check the logs at: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
