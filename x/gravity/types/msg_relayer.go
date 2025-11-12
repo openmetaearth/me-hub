@@ -36,12 +36,12 @@ func (m *MsgBondedRelayer) GetSignBytes() []byte {
 
 func (m *MsgBondedRelayer) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
-		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the creator is not a valid bech32 address")
+		return errors.Wrap(sdkerrors.ErrInvalidAddress, "relayer address is not a valid bech32 address")
 	}
 	if err := ValidateExternalAddr(m.ChainName, m.ExternalAddress); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 	}
-	if !m.DelegateAmount.IsValid() || m.DelegateAmount.IsNegative() {
+	if !m.DelegateAmount.IsValid() || !m.DelegateAmount.IsPositive() {
 		return sdkerrors.ErrInvalidRequest.Wrap("invalid delegation amount")
 	}
 	if m.DelegateAmount.Denom != params.BaseDenom {
@@ -69,9 +69,9 @@ func (m *MsgAddDelegate) GetSignBytes() []byte {
 
 func (m *MsgAddDelegate) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
-		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the creator is not a valid bech32 address")
+		return errors.Wrap(sdkerrors.ErrInvalidAddress, "relayer address is not a valid bech32 address")
 	}
-	if !m.Amount.IsValid() || m.Amount.IsNegative() {
+	if !m.Amount.IsValid() || !m.Amount.IsPositive() {
 		return sdkerrors.ErrInvalidRequest.Wrap("invalid delegation amount")
 	}
 	if m.Amount.Denom != params.BaseDenom {
@@ -123,10 +123,15 @@ func (m *MsgProposalRelayers) GetSignBytes() []byte {
 
 func (m *MsgProposalRelayers) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the creator is not a valid bech32 address")
+		return errors.Wrap(sdkerrors.ErrInvalidAddress, "authority is not a valid bech32 address")
 	}
 	if len(m.Relayers) == 0 {
 		return sdkerrors.ErrInvalidRequest.Wrap("relayers list cannot be empty")
+	}
+	for _, relayer := range m.Relayers {
+		if _, err := sdk.AccAddressFromBech32(relayer); err != nil {
+			return errors.Wrap(sdkerrors.ErrInvalidAddress, "relayer address is not a valid bech32 address")
+		}
 	}
 	return nil
 }
@@ -145,7 +150,7 @@ func (m *MsgRelayerSetConfirm) ValidateBasic() (err error) {
 		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if _, err = sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid relayer address: %s", err)
 	}
 	if err = ValidateExternalAddr(m.ChainName, m.ExternalAddress); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid external address: %s", err)

@@ -78,5 +78,8 @@ func (m *Params) ValidateBasic() error {
 	if !m.MaxDelegate.IsPositive() {
 		return fmt.Errorf("invalid delegate threshold")
 	}
+	if m.MaxDelegate.LT(m.MinDelegate) {
+		return fmt.Errorf("max delegate threshold must be >= min delegate threshold")
+	}
 	return nil
 }

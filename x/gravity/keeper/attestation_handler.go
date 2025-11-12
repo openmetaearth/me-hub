@@ -2,7 +2,6 @@ package keeper
 
 import (
 	sdkmath "cosmossdk.io/math"
-	"fmt"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"strings"
 
@@ -94,10 +93,11 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			observedRelayerSet.Height = trustedRelayerSet.Height
 			match, err := trustedRelayerSet.Equal(observedRelayerSet)
 			if err != nil {
-				return fmt.Errorf("potential bridge hijacking: observed relayerSet (%+v) does not match stored relayerSet (%+v)! %s", observedRelayerSet, trustedRelayerSet, err.Error())
+				// this indicates that the members of the two sets are not equal
+				return errorsmod.Wrapf(err, "potential bridge hijacking: observed relayerSet (%d) does not match stored relayerSet (%d)", observedRelayerSet.Nonce, trustedRelayerSet.Nonce)
 			}
 			if !match {
-				return fmt.Errorf("potential bridge hijacking: observed relayerSet (%+v) does not match stored relayerSet (%+v)", observedRelayerSet, trustedRelayerSet)
+				return errorsmod.Wrapf(types.ErrInvalid, "potential bridge hijacking: observed relayerSet (%d) does not match stored relayerSet (%d)", observedRelayerSet.Nonce, trustedRelayerSet.Nonce)
 			}
 		}
 		k.SetLastObservedRelayerSet(ctx, observedRelayerSet)

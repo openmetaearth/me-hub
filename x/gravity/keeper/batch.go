@@ -83,6 +83,9 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) uint64 {
 	currentMeHeight := ctx.BlockHeight()
 	params := k.GetParams(ctx)
+	if params.AverageExternalBlockTime == 0 {
+		return 0
+	}
 	// we store the last observed Cosmos and Ethereum heights, we do not concern ourselves if these values
 	// are zero because no batch can be produced if the last Ethereum block height is not first populated by a deposit event.
 	heights := k.GetLastObservedBlockHeight(ctx)
@@ -187,7 +190,7 @@ func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, contractAddress string, b
 	}
 	for _, tx := range batch.Transactions {
 		if err := k.AddUnbatchedTx(ctx, tx); err != nil {
-			panic(errorsmod.Wrapf(err, "unable to add batched transaction back into pool %v", tx))
+			return errorsmod.Wrapf(err, "unable to add batched transaction back into pool %v", tx)
 		}
 	}
 
