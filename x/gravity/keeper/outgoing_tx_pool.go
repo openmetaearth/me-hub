@@ -15,16 +15,21 @@ import (
 // - persists an OutgoingTx
 // - adds the TX to the `available` TX pool via a second index
 func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
-	bridgeToken, _ := k.GetBridgeTokenByDenom(ctx, amount.Denom)
-	if bridgeToken == nil {
-		return 0, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
+	bridgeToken, err := k.GetBridgeTokenByDenom(ctx, amount.Denom)
+	if err != nil {
+		return 0, errorsmod.Wrapf(types.ErrInvalid, "get bridge token: %v", err)
 	}
 
 	totalInVouchers := amount.Add(fee)
-	// TODO: also check other outgoing txs to make sure we don't exceed supply
 	if totalInVouchers.Amount.GT(bridgeToken.Supply) {
-		return 0, errorsmod.Wrapf(types.ErrInvalid, "transfer to %s chain, amount %s exceeds bridge token supply %s",
-			k.moduleName, totalInVouchers.Amount.String(), bridgeToken.Supply.String())
+		return 0, errorsmod.Wrapf(types.ErrInvalid, "%s exceeds bridge token supply %s in %s chain",
+			totalInVouchers.Amount.String(), bridgeToken.Supply.String(), k.moduleName)
+	}
+
+	totalPending := k.GetOutgoingPendingTxTotal(ctx, bridgeToken.ContractAddress)
+	if totalInVouchers.Amount.Add(totalPending).GT(bridgeToken.Supply) {
+		return 0, errorsmod.Wrapf(types.ErrInvalid, "total pending amount %s plus current amount %s exceeds bridge token supply %s in %s chain",
+			totalPending.String(), totalInVouchers.Amount.String(), bridgeToken.Supply.String(), k.moduleName)
 	}
 
 	sendCoins := sdk.NewCoins(totalInVouchers)
@@ -62,7 +67,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(nextTxID)),
 		sdk.NewAttribute(sdk.AttributeKeySender, sender.String()),
 		sdk.NewAttribute(types.AttributeKeyReceiver, receiver),
-		sdk.NewAttribute(types.AttributeKeyTokenContract, amount.String()),
+		sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
 		sdk.NewAttribute(types.AttributeKeyBridgeFee, fee.String()),
 	))
 	return nextTxID, nil
@@ -225,4 +230,23 @@ func (k Keeper) autoIncrementID(ctx sdk.Context, idKey []byte) uint64 {
 	bz = sdk.Uint64ToBigEndian(id + 1)
 	store.Set(idKey, bz)
 	return id
+}
+
+// GetOutgoingPendingTxTotal returns the total amount of a given token pending in the outgoing pool and all batches
+func (k Keeper) GetOutgoingPendingTxTotal(ctx sdk.Context, tokenContract string) sdk.Int {
+	totalPending := sdk.ZeroInt()
+	// Add all unbatched transactions
+	k.IterateUnbatchedTransactions(ctx, tokenContract, func(tx *types.OutgoingTransferTx) bool {
+		totalPending = totalPending.Add(tx.Token.Amount)
+		totalPending = totalPending.Add(tx.Fee.Amount)
+		return false
+	})
+	// Add all batched transactions
+	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
+		if batch.TokenContract == tokenContract {
+			totalPending = totalPending.Add(batch.TotalAmount())
+		}
+		return false
+	})
+	return totalPending
 }

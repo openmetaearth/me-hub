@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -328,6 +329,7 @@ func (k QueryServer) BridgeToken(c context.Context, req *types.QueryBridgeTokenR
 	ctx := sdk.UnwrapSDKContext(c)
 
 	var bridgeToken *types.BridgeToken
+	var err error
 	if len(req.GetContractAddress()) > 0 {
 		bridgeToken, _ = k.GetBridgeTokenByContract(ctx, req.ContractAddress)
 		if bridgeToken == nil {
@@ -338,9 +340,9 @@ func (k QueryServer) BridgeToken(c context.Context, req *types.QueryBridgeTokenR
 		if bridgeToken != nil && bridgeToken.Denom != req.Denom {
 			return nil, status.Error(codes.NotFound, "denom and contract do not match")
 		}
-		bridgeToken, _ = k.GetBridgeTokenByDenom(ctx, req.Denom)
-		if bridgeToken == nil {
-			return nil, status.Error(codes.NotFound, "bridge token")
+		bridgeToken, err = k.GetBridgeTokenByDenom(ctx, req.Denom)
+		if err != nil {
+			return nil, errorsmod.Wrapf(types.ErrInvalid, "get bridge token: %v", err)
 		}
 	}
 	if bridgeToken == nil {

@@ -4841,7 +4841,6 @@ paths:
         - Query
   /gravity/v1/params:
     get:
-      summary: Deployments queries deployments
       operationId: gravityParams
       responses:
         '200':

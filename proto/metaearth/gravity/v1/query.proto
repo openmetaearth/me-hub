@@ -14,7 +14,6 @@ option go_package = "github.com/st-chain/me-hub/x/gravity/types";
 
 // Query defines the gRPC querier service
 service Query {
-  // Deployments queries deployments
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/gravity/v1/params";
   }

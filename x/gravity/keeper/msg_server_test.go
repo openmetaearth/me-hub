@@ -830,7 +830,8 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	}
 	s.Keeper().EndBlocker(s.Ctx)
 
-	bridgeDenomData, _ := s.Keeper().GetBridgeTokenByDenom(s.Ctx, "usdt")
+	bridgeDenomData, err := s.Keeper().GetBridgeTokenByDenom(s.Ctx, "usdt")
+	s.Require().NoError(err)
 	s.Require().NotNil(bridgeDenomData)
 	s.Require().EqualValues(tokenContract, bridgeDenomData.ContractAddress)
 

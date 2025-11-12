@@ -322,6 +322,14 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	return crypto.Keccak256Hash(abiEncodedBatch[4:]).Bytes(), nil
 }
 
+func (m *OutgoingTxBatch) TotalAmount() sdk.Int {
+	totalAmount := sdk.ZeroInt()
+	for _, tx := range m.Transactions {
+		totalAmount = totalAmount.Add(tx.Token.Amount)
+	}
+	return totalAmount
+}
+
 // --- Relayer(S) --- //
 
 func (m *Relayer) GetRelayer() sdk.AccAddress {

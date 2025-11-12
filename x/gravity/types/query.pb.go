@@ -2748,7 +2748,6 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
-	// Deployments queries deployments
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 	CurrentRelayerSet(ctx context.Context, in *QueryCurrentRelayerSetRequest, opts ...grpc.CallOption) (*QueryCurrentRelayerSetResponse, error)
 	RelayerSetRequest(ctx context.Context, in *QueryRelayerSetRequestRequest, opts ...grpc.CallOption) (*QueryRelayerSetRequestResponse, error)
@@ -3012,7 +3011,6 @@ func (c *queryClient) BridgeChainList(ctx context.Context, in *QueryBridgeChainL
 
 // QueryServer is the server API for Query service.
 type QueryServer interface {
-	// Deployments queries deployments
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	CurrentRelayerSet(context.Context, *QueryCurrentRelayerSetRequest) (*QueryCurrentRelayerSetResponse, error)
 	RelayerSetRequest(context.Context, *QueryRelayerSetRequestRequest) (*QueryRelayerSetRequestResponse, error)

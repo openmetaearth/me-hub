@@ -290,9 +290,9 @@ func (s MsgServer) RequestBatch(c context.Context, msg *types.MsgRequestBatch) (
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	bridgeToken, _ := s.GetBridgeTokenByDenom(ctx, msg.Denom)
-	if bridgeToken == nil {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
+	bridgeToken, err := s.GetBridgeTokenByDenom(ctx, msg.Denom)
+	if err != nil {
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "get bridge token: %v", err)
 	}
 
 	if err := s.checkIsRelayer(ctx, sender); err != nil {
