@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/utils"
 )
 
 const (
@@ -39,7 +38,7 @@ func (m *MsgBondedRelayer) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the creator is not a valid bech32 address")
 	}
-	if err := utils.ValidateEthereumAddress(m.ExternalAddress); err != nil {
+	if err := ValidateExternalAddr(m.ChainName, m.ExternalAddress); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 	}
 	if !m.DelegateAmount.IsValid() || m.DelegateAmount.IsNegative() {
