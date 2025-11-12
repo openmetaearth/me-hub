@@ -9,7 +9,7 @@ import (
 
 const signaturePrefix = "\x19Ethereum Signed Message:\n32"
 
-// NewEthereumSignature creates a new signuature over a given byte array
+// NewEthereumSignature creates a new signature over a given byte array
 func NewEthereumSignature(hash []byte, privateKey *ecdsa.PrivateKey) ([]byte, error) {
 	if privateKey == nil {
 		return nil, errorsmod.Wrap(ErrEmpty, "private key")
@@ -31,7 +31,7 @@ func EthAddressFromSignature(hash []byte, signature []byte) (string, error) {
 	// as 27 or 28, internally though it should be a 0-3 value due to changed formats.
 	// It seems that go-ethereum expects this to be done before sigs actually reach it's
 	// internal validation functions. In order to comply with this requirement we check
-	// the sig an dif it's in standard format we correct it. If it's in go-ethereum's expected
+	// the sig and if it's in standard format we correct it. If it's in go-ethereum's expected
 	// format already we make no changes.
 	//
 	// We could attempt to break or otherwise exit early on obviously invalid values for this
