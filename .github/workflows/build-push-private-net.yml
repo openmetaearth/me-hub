@@ -82,12 +82,39 @@ jobs:
                   echo "Verifying pushed image..."
                   docker pull ${{ steps.image.outputs.tag }}
 
-                  echo "Testing image..."
-                  docker run --rm ${{ steps.image.outputs.tag }} med version
+                  echo "Testing med binary version..."
+                  docker run --rm --entrypoint med ${{ steps.image.outputs.tag }} version
+
+                  echo "Starting test container to verify genesis accounts..."
+                  docker run -d \
+                    --name mechain-verify-${{ steps.version.outputs.short_sha }} \
+                    -p 36657:36657 \
+                    ${{ steps.image.outputs.tag }}
+
+                  echo "Waiting for chain initialization (30s)..."
+                  sleep 30
+
+                  echo "Verifying genesis accounts..."
+                  docker exec mechain-verify-${{ steps.version.outputs.short_sha }} \
+                    med keys list --keyring-backend test
+
+                  echo "Checking alice account..."
+                  docker exec mechain-verify-${{ steps.version.outputs.short_sha }} \
+                    med keys show alice --keyring-backend test -a
+
+                  echo "Stopping and removing test container..."
+                  docker stop mechain-verify-${{ steps.version.outputs.short_sha }}
+                  docker rm mechain-verify-${{ steps.version.outputs.short_sha }}
+
+                  echo "Image verification completed successfully!"
 
             - name: Clean up
               if: always()
               run: |
+                  # Clean up test container (if exists)
+                  docker stop mechain-verify-${{ steps.version.outputs.short_sha }} 2>/dev/null || true
+                  docker rm mechain-verify-${{ steps.version.outputs.short_sha }} 2>/dev/null || true
+
                   # Clean up local images
                   docker rmi me-hub/private-net:build-temp || true
                   docker rmi ${{ steps.image.outputs.tag }} || true
