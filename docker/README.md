@@ -1,6 +1,35 @@
-# ME-Chain Docker Private Network Quick Start Guide
+# ME-Chain Docker Quick Start Guide
 
-This guide helps you quickly start a pre-compiled and pre-initialized ME-Chain single-node private network using Docker.
+This guide covers two types of Docker images for ME-Chain:
+
+1. **Private Network Image** - Pre-initialized single-node test network
+2. **Release Image** - Minimal production-ready binary image
+
+## 📦 Image Types
+
+### Private Network Image
+
+A pre-compiled and pre-initialized single-node private network with test accounts. Perfect for:
+- Local development
+- Testing and CI/CD
+- Quick prototyping
+
+**Build**: `make docker-private-net`  
+**Tag**: `me-hub/private-net:latest`
+
+### Release Image
+
+A minimal runtime image containing only the compiled `med` binary. Perfect for:
+- Production deployments
+- Custom chain configurations
+- Base image for other containers
+
+**Build**: `make docker-release`  
+**Tag**: `me-hub/release:latest`
+
+---
+
+# 🚀 Private Network Image
 
 ## 🚀 Quick Start
 
@@ -301,6 +330,153 @@ docker run -d \
   me-hub/private-net:latest
 ```
 
+---
+
+# 🎯 Release Image
+
+The release image is a minimal runtime image without any chain initialization. It only contains the `med` binary and required libraries.
+
+## Building Release Image
+
+```bash
+# Build with default tag (latest)
+make docker-release
+
+# Build with specific tag
+make docker-release TAG=v1.0.0
+```
+
+## Using Release Image
+
+### Check Version
+
+```bash
+# Run from Docker image
+docker run --rm me-hub/release:latest version
+
+# Check detailed version
+docker run --rm me-hub/release:latest version --long
+```
+
+### View Help
+
+```bash
+# Show all available commands
+docker run --rm me-hub/release:latest --help
+
+# Show help for specific command
+docker run --rm me-hub/release:latest init --help
+```
+
+### Initialize Custom Chain
+
+```bash
+# Create a volume for chain data
+docker volume create mychain-data
+
+# Initialize a new chain
+docker run --rm \
+  -v mychain-data:/root/.mechain \
+  me-hub/release:latest \
+  init mynode --chain-id mychain_100-1
+
+# Add keys
+docker run --rm \
+  -v mychain-data:/root/.mechain \
+  me-hub/release:latest \
+  keys add mykey --keyring-backend test
+
+# Run your custom chain
+docker run -d \
+  -v mychain-data:/root/.mechain \
+  -p 36657:36657 -p 1318:1318 -p 9545:9545 \
+  --name mychain \
+  --entrypoint med \
+  me-hub/release:latest \
+  start
+```
+
+### Use as Base Image
+
+Create your own Dockerfile:
+
+```dockerfile
+FROM me-hub/release:latest
+
+# Copy your custom genesis file
+COPY genesis.json /root/.mechain/config/genesis.json
+
+# Copy your custom configuration
+COPY config.toml /root/.mechain/config/config.toml
+COPY app.toml /root/.mechain/config/app.toml
+
+# Set custom entrypoint
+COPY start-chain.sh /scripts/start-chain.sh
+RUN chmod +x /scripts/start-chain.sh
+
+ENTRYPOINT ["/scripts/start-chain.sh"]
+```
+
+### Interactive Shell
+
+```bash
+# Enter container with shell
+docker run -it --rm \
+  -v mychain-data:/root/.mechain \
+  --entrypoint sh \
+  me-hub/release:latest
+
+# Now you can run any med commands
+# med init mynode --chain-id test
+# med keys add mykey
+# med start
+```
+
+## GitHub Actions Workflow
+
+The release image is automatically built and pushed when a tag is pushed:
+
+```yaml
+# .github/workflows/build-push-release.yml
+name: Build and Push Release Docker Image
+
+on:
+  push:
+    tags:
+      - "v*"
+```
+
+This will:
+1. Build the release Docker image
+2. Tag it with the git tag (e.g., `v1.0.0`)
+3. Push to Harbor registry
+4. Verify by running `med version`
+
+### Pull from Registry
+
+```bash
+# Pull specific version
+docker pull your-registry/st-chain/me_hub:v1.0.0
+
+# Pull latest
+docker pull your-registry/st-chain/me_hub:latest
+
+# Check version
+docker run --rm your-registry/st-chain/me_hub:v1.0.0 version
+```
+
+## Comparison: Release vs Private Network
+
+| Feature | Release Image | Private Network Image |
+|---------|---------------|----------------------|
+| **Size** | ~200MB | ~423MB |
+| **Includes** | Binary only | Binary + initialized chain |
+| **Pre-configured** | No | Yes (test accounts) |
+| **Use Case** | Production/Custom | Development/Testing |
+| **Startup** | Requires init | Ready to run |
+| **Entrypoint** | `med` | Startup script |
+| **Default CMD** | `version` | Starts chain |
+
 ## 🔄 Data Persistence
 
 ### Using Volume for Data Persistence
@@ -436,21 +612,28 @@ docker exec mechain-private-net curl http://localhost:1318/cosmos/base/tendermin
 - [Genesis Accounts Configuration](GENESIS_ACCOUNTS.md) - **Detailed guide for creating custom accounts**
 - [Quick Start Guide](QUICKSTART.md)
 - [ME-Chain Main Documentation](../README.md)
+- [Build Release Workflow](../.github/workflows/build-push-release.yml)
+- [Build Private Network Workflow](../.github/workflows/build-push-private-net.yml)
 
 ## 📁 Related Files
 
 ```
 docker/
-├── Dockerfile                    # Docker image definition
-├── docker-compose.yml            # Docker Compose configuration
-├── README.md                     # This document
-├── QUICKSTART.md                 # Quick start guide
-├── GENESIS_ACCOUNTS.md           # Genesis accounts configuration guide
+├── Dockerfile                        # Private network image definition
+├── Dockerfile.release                # Release image definition (minimal)
+├── docker-compose.yml                # Docker Compose configuration
+├── README.md                         # This document
+├── QUICKSTART.md                     # Quick start guide
+├── GENESIS_ACCOUNTS.md               # Genesis accounts configuration guide
 └── scripts/
     ├── setup_local_docker.sh         # Chain initialization script
     ├── start_private_net.sh          # Container startup script
     ├── test_private_net.sh           # Automated test script
     └── test_genesis_accounts.sh      # Genesis accounts verification script
+
+.github/workflows/
+├── build-push-private-net.yml        # CI/CD for private network image
+└── build-push-release.yml            # CI/CD for release image
 ```
 
 ## 💡 Best Practices
@@ -522,6 +705,8 @@ Having issues?
 - ✅ Built-in complete test suite
 - ✅ Data persistence support
 - ✅ Health check functionality
+- ✅ Release image for production deployments
+- ✅ GitHub Actions CI/CD workflows
 
 ---
 

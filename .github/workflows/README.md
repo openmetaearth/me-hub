@@ -4,17 +4,54 @@ This directory contains GitHub Actions workflow configurations for the ME-Chain 
 
 ## Workflow List
 
-### 1. `build-push-private-net.yml`
-Automatically builds private network Docker images and pushes them to Harbor registry.
+### 1. `build-push-release.yml`
+Automatically builds minimal release Docker images and pushes them to Harbor registry.
+
+**Trigger Conditions:**
+- Push Git tags with `v*` format (e.g., v1.0.0, v2.1.3)
+- Manual trigger via `workflow_dispatch`
+
+**Features:**
+- Build minimal release images (binary only, no initialization)
+- Push images to Harbor registry
+- Automatically tag with version and latest labels
+- Verify image by running `med version`
+- Generate build summary
+
+**Image Tag Format:**
+- Version tag: `{HARBOR_REGISTRY}/st-chain/me_hub:{git_tag}`
+- Latest tag: `{HARBOR_REGISTRY}/st-chain/me_hub:latest`
+
+**Use Case:**
+- Production deployments
+- Custom chain configurations
+- Base image for other containers
+
+**Runner:**
+- Uses self-hosted Linux runner
+
+### 2. `build-push-private-net.yml`
+Automatically builds private network Docker images with pre-initialized chain and pushes them to Harbor registry.
 
 **Trigger Conditions:**
 - Push Git tags with `v*` format (e.g., v1.0.0, v2.1.3)
 
 **Features:**
 - Build private network images with pre-configured genesis accounts
+- Pre-initialized single-node test network
 - Push images to Harbor registry
 - Automatically tag with version and latest labels
+- Comprehensive verification (genesis accounts, chain functionality)
 - Generate build summary
+
+**Image Tag Format:**
+- Version tag: `{HARBOR_REGISTRY}/st-chain/me_hub:{git_tag}_private_net`
+- Latest tag: `{HARBOR_REGISTRY}/st-chain/me_hub:latest_private_net`
+
+**Use Case:**
+- Local development
+- Testing and CI/CD
+- Quick prototyping
 
 **Runner:**
 - Uses self-hosted Linux runner
@@ -109,12 +146,25 @@ git push origin v0.0.1-test
 
 4. **Monitor Build**
    - Navigate to `Actions` tab
-   - View "Build and Push Private Network Docker Image" workflow
+   - View workflow runs:
+     - "Build and Push Release Docker Image" (release version)
+     - "Build and Push Private Network Docker Image" (private network version)
    - Wait for build completion (approximately 2-3 minutes)
 
-5. **Verify Image**
+5. **Verify Images**
+
+   **Release Image:**
    ```bash
-   # Pull image
+   # Pull release image
+   docker pull harbor.example.com/st-chain/me_hub:v1.0.0
+   
+   # Verify version
+   docker run --rm harbor.example.com/st-chain/me_hub:v1.0.0 version
+   ```
+
+   **Private Network Image:**
+   ```bash
+   # Pull private network image
    docker pull harbor.example.com/st-chain/me_hub:v1.0.0_private_net
 
    # Run test
@@ -126,7 +176,21 @@ git push origin v0.0.1-test
 
 ## Image Tag Rules
 
-The workflow creates two tags for each image:
+Each workflow creates two tags per image:
+
+### Release Image Tags
+
+1. **Version Tag**
+   - Format: `{HARBOR_REGISTRY}/st-chain/me_hub:{git_tag}`
+   - Example: `harbor.example.com/st-chain/me_hub:v1.0.0`
+   - Purpose: Specific version of the release image
+
+2. **Latest Tag**
+   - Format: `{HARBOR_REGISTRY}/st-chain/me_hub:latest`
+   - Example: `harbor.example.com/st-chain/me_hub:latest`
+   - Purpose: Always points to the latest release image
+
+### Private Network Image Tags
 
 1. **Version Tag**
    - Format: `{HARBOR_REGISTRY}/st-chain/me_hub:{git_tag}_private_net`
@@ -136,7 +200,21 @@ The workflow creates two tags for each image:
 2. **Latest Tag**
    - Format: `{HARBOR_REGISTRY}/st-chain/me_hub:latest_private_net`
    - Example: `harbor.example.com/st-chain/me_hub:latest_private_net`
-   - Purpose: Always points to the latest built private network image
+   - Purpose: Always points to the latest private network image
+
+## Image Comparison
+
+| Feature | Release Image | Private Network Image |
+|---------|---------------|----------------------|
+| **Tag Suffix** | None | `_private_net` |
+| **Size** | ~200MB | ~423MB |
+| **Contains** | Binary only | Binary + initialized chain |
+| **Pre-configured** | No | Yes (test accounts) |
+| **Dockerfile** | `Dockerfile.release` | `Dockerfile` |
+| **Entrypoint** | `med` | Startup script |
+| **Default CMD** | `version` | Starts chain |
+| **Use Case** | Production/Custom | Development/Testing |
+| **Verification** | `med version` | Genesis accounts + chain tests |
 
 ## Genesis Accounts Configuration
 
@@ -208,6 +286,15 @@ export GOPROXY=https://proxy.golang.org,direct
 
 ## Advanced Configuration
 
+### Manually Trigger Release Build
+
+You can manually trigger a release build without creating a tag:
+
+1. Go to GitHub Actions page
+2. Select "Build and Push Release Docker Image"
+3. Click "Run workflow"
+4. Select branch and run
+
 ### Modify Genesis Accounts
 
 Edit `.github/workflows/build-push-private-net.yml`:
@@ -266,12 +353,19 @@ Install notification step (e.g., send to Slack):
    - Regularly review Actions logs
    - Watch for unusual build activity
 
+## Workflow Files
+
+- `build-push-release.yml` - Release image (minimal, production-ready)
+- `build-push-private-net.yml` - Private network image (pre-initialized, for testing)
+
 ## Related Documentation
 
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Docker Build Documentation](../docker/README.md)
 - [Genesis Accounts Configuration](../docker/GENESIS_ACCOUNTS.md)
 - [Harbor Documentation](https://goharbor.io/docs/)
+- [Dockerfile.release](../docker/Dockerfile.release) - Release image definition
+- [Dockerfile](../docker/Dockerfile) - Private network image definition
 
 ## Support
 
@@ -282,5 +376,5 @@ If you have issues:
 
 ---
 
-**Last Updated:** 2025-11-12
-**Maintainer:** Me-Chain Team
+**Last Updated:** 2024-12-19
+**Maintainer:** ME-Chain Team

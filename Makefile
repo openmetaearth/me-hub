@@ -123,7 +123,7 @@ build-linux-debug: go.sum
 ###############################################################################
 ###                                Docker                                ###
 ###############################################################################
-.PHONY: docker-github docker-local docker-run-debug docker-private-net docker-private-net-start docker-private-net-stop docker-private-net-test
+.PHONY: docker-github docker-local docker-run-debug docker-private-net docker-private-net-start docker-private-net-stop docker-private-net-test docker-release
 
 docker-github:
 	DOCKER_BUILDKIT=1 docker build -t ghcr.io/me-hub/med:latest -f Dockerfile .
@@ -192,6 +192,31 @@ docker-private-net-test:
 	@echo "Running tests on private network..."
 	@chmod +x docker/scripts/test_private_net.sh
 	@./docker/scripts/test_private_net.sh
+
+# Build release Docker image (no chain initialization)
+# Usage:
+#   make docker-release
+#   make docker-release TAG=v1.0.0
+docker-release:
+	@echo "Preparing vendor directory for Docker build..."
+	@go mod vendor
+	@echo "Building ME-Chain release Docker image..."
+	@DOCKER_BUILDKIT=1 docker build \
+		--build-arg GIT_VERSION=$(VERSION) \
+		--build-arg GIT_COMMIT=$(COMMIT) \
+		-t me-hub/release:$(TAG) \
+		-f docker/Dockerfile.release .
+	@rm -rf vendor
+	@echo "Docker image built successfully: me-hub/release:$(TAG)"
+	@echo ""
+	@echo "To verify the image:"
+	@echo "  docker run --rm me-hub/release:$(TAG) version"
+	@echo ""
+	@echo "To run med commands:"
+	@echo "  docker run --rm me-hub/release:$(TAG) --help"
+	@echo ""
+	@echo "To use as a base for custom chain setup:"
+	@echo "  docker run -it --rm me-hub/release:$(TAG) init mynode --chain-id mychain"
 
 ###############################################################################
 ###                                Releasing                                ###
