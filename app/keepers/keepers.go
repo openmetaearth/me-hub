@@ -16,12 +16,14 @@ import (
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+
+	// distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper" // Replaced by wdistrikeeper
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
+
 	// govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper" // Replaced by wgovkeeper
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -68,7 +70,7 @@ import (
 
 	// Use standard Cosmos SDK keepers instead of custom w* modules
 	// mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper" // Replaced by wmintkeeper
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	// stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper" // Replaced by wstakingkeeper
 
 	"github.com/st-chain/me-hub/x/bridgingfee"
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
@@ -97,8 +99,12 @@ import (
 	vfchooks "github.com/st-chain/me-hub/x/vfc/hooks"
 
 	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
-	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
+	wdistrkeeper "github.com/st-chain/me-hub/x/wdistri/keeper"
+	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 	wgovkeeper "github.com/st-chain/me-hub/x/wgov/keeper"
+	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
+	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 )
 
 type AppKeepers struct {
@@ -107,10 +113,10 @@ type AppKeepers struct {
 	AuthzKeeper                   authzkeeper.Keeper
 	BankKeeper                    wbankkeeper.BaseKeeperWrapper // Wrapper for custom bank functionality
 	CapabilityKeeper              *capabilitykeeper.Keeper
-	StakingKeeper                 *stakingkeeper.Keeper // Changed from wstakingkeeper to standard SDK stakingkeeper
+	StakingKeeper                 *wstakingkeeper.Keeper // Changed from wstakingkeeper to standard SDK stakingkeeper
 	SlashingKeeper                slashingkeeper.Keeper
 	MintKeeper                    wmintkeeper.Keeper // Custom WMint keeper with enhanced features
-	DistrKeeper                   distrkeeper.Keeper
+	DistrKeeper                   *wdistrkeeper.Keeper
 	GovKeeper                     *wgovkeeper.Keeper
 	CrisisKeeper                  *crisiskeeper.Keeper
 	UpgradeKeeper                 *upgradekeeper.Keeper
@@ -197,6 +203,12 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 	)
 
+	a.DaoKeeper = daokeeper.NewKeeper(
+		appCodec,
+		a.keys[daotypes.StoreKey],
+		a.AccountKeeper,
+	)
+
 	a.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec,
 		a.keys[authtypes.StoreKey],
@@ -223,12 +235,13 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 	)
 
-	// Use standard Cosmos SDK StakingKeeper
-	a.StakingKeeper = stakingkeeper.NewKeeper(
+	a.StakingKeeper = wstakingkeeper.NewKeeper(
 		appCodec,
 		a.keys[stakingtypes.StoreKey],
 		a.AccountKeeper,
 		a.BankKeeper,
+		&a.DaoKeeper,
+		nil,
 		govModuleAddress,
 	)
 
@@ -236,21 +249,22 @@ func (a *AppKeepers) InitKeepers(
 	a.MintKeeper = wmintkeeper.NewKeeper(
 		appCodec,
 		a.keys[minttypes.StoreKey],
-		&a.StakingKeeper,
+		a.StakingKeeper,
 		a.AccountKeeper,
 		a.BankKeeper,
-		&a.DaoKeeper,
+		"",
 		govModuleAddress,
 	)
 
-	a.DistrKeeper = distrkeeper.NewKeeper(
+	a.DistrKeeper = wdistrkeeper.NewKeeper(
 		appCodec,
-		a.keys[distrtypes.StoreKey],
+		a.keys[wdistrtypes.StoreKey],
+		a.GetSubspace(wdistrtypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.StakingKeeper,
-		authtypes.FeeCollectorName,
-		govModuleAddress,
+		wbanktypes.TreasuryPoolName,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	a.SlashingKeeper = slashingkeeper.NewKeeper(
@@ -404,7 +418,6 @@ func (a *AppKeepers) InitKeepers(
 		&a.DaoKeeper, // Use real DaoKeeper
 	)
 
-
 	a.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec,
 		a.keys[authtypes.StoreKey],
@@ -473,7 +486,6 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.StakingKeeper,
-		govRouter,
 		bApp.MsgServiceRouter(),
 		govConfig,
 		govModuleAddress,

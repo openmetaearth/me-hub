@@ -3,8 +3,10 @@ package keeper
 import (
 	"context"
 	"fmt"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	wnfttypes "github.com/st-chain/me-hub/x/wnft/types"
+
+	// wnfttypes "github.com/st-chain/me-hub/x/wnft/types"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -60,10 +62,12 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	}
 
 	uri := ""
-	classMetadata := &wnfttypes.ClassMetadata{
-		Creator: msg.Creator,
-	}
-	metadata, err := codectypes.NewAnyWithValue(classMetadata)
+	// classMetadata := &wnfttypes.ClassMetadata{
+	// 	Creator: msg.Creator,
+	// }
+
+	// metadata, err := codectypes.NewAnyWithValue(classMetadata)
+	metadata, err := codectypes.NewAnyWithValue(nil)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "%v", err)
 	}
@@ -73,8 +77,8 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 		Symbol:      types.GetClassSymbol(msg.Name),
 		Description: types.GetClassDescription(regionId),
 		Uri:         uri,
-		UriHash:     utils.CalculateUriHash(uri),
-		Data:        metadata,
+		// UriHash:     utils.CalculateUriHash(uri),
+		Data: metadata,
 	}
 
 	_, nftClassFound := k.nftKeeper.GetClass(ctx, nftClass.Id)

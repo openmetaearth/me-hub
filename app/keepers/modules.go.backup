@@ -18,9 +18,8 @@ import (
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
-
-	// "github.com/cosmos/cosmos-sdk/x/distribution" // Replaced by wdistri
-	// distr // "github.com/cosmos/cosmos-sdk/x/distribution" // Replaced by wdistri // Replaced by wdistri
+	"github.com/cosmos/cosmos-sdk/x/distribution"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/evidence"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
@@ -28,11 +27,9 @@ import (
 	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-
 	// "github.com/cosmos/cosmos-sdk/x/gov" // Replaced by wgov
 	"github.com/cosmos/cosmos-sdk/x/gov/client"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
 	// "github.com/cosmos/cosmos-sdk/x/mint" // Replaced by wmint
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -40,7 +37,6 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-
 	// "github.com/cosmos/cosmos-sdk/x/staking" // Replaced by wstaking
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
@@ -86,6 +82,7 @@ import (
 	rollappmodule "github.com/st-chain/me-hub/x/rollapp"
 	sequencermodule "github.com/st-chain/me-hub/x/sequencer"
 	streamermodule "github.com/st-chain/me-hub/x/streamer"
+	"github.com/st-chain/me-hub/x/wbank"
 
 	"github.com/st-chain/me-hub/x/delayedack"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
@@ -96,17 +93,13 @@ import (
 	eibcmoduletypes "github.com/st-chain/me-hub/x/eibc/types"
 	incentivestypes "github.com/st-chain/me-hub/x/incentives/types"
 	"github.com/st-chain/me-hub/x/rollapp"
-	"github.com/st-chain/me-hub/x/wbank"
-	"github.com/st-chain/me-hub/x/wdistri"
-	"github.com/st-chain/me-hub/x/wgov"
-	"github.com/st-chain/me-hub/x/wmint"
-	"github.com/st-chain/me-hub/x/wstaking"
 
 	rollappmoduleclient "github.com/st-chain/me-hub/x/rollapp/client"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
 	"github.com/st-chain/me-hub/x/sequencer"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
 	"github.com/st-chain/me-hub/x/streamer"
+	streamermoduleclient "github.com/st-chain/me-hub/x/streamer/client"
 )
 
 // ModuleBasics defines the module BasicManager is in charge of setting up basic,
@@ -121,13 +114,17 @@ var ModuleBasics = module.NewBasicManager(
 	consensus.AppModuleBasic{},
 	wstaking.AppModuleBasic{},
 	wmint.AppModuleBasic{},
-	wdistri.AppModuleBasic{},
-	wgov.NewAppModuleBasic([]client.ProposalHandler{
+	distribution.AppModuleBasic{},
+	gov.NewAppModuleBasic([]client.ProposalHandler{
 		paramsclient.ProposalHandler,
 		upgradeclient.LegacyProposalHandler,
 		upgradeclient.LegacyCancelProposalHandler,
 		ibcclientclient.UpdateClientProposalHandler,
 		ibcclientclient.UpgradeProposalHandler,
+		streamermoduleclient.CreateStreamHandler,
+		streamermoduleclient.TerminateStreamHandler,
+		streamermoduleclient.ReplaceStreamHandler,
+		streamermoduleclient.UpdateStreamHandler,
 		rollappmoduleclient.SubmitFraudHandler,
 		denommetadatamoduleclient.CreateDenomMetadataHandler,
 		denommetadatamoduleclient.UpdateDenomMetadataHandler,
@@ -186,11 +183,11 @@ func (a *AppKeepers) SetupModules(
 		feegrantmodule.NewAppModule(appCodec, a.AccountKeeper, a.BankKeeper, a.FeeGrantKeeper, encodingConfig.InterfaceRegistry),
 		crisis.NewAppModule(a.CrisisKeeper, skipGenesisInvariants, a.GetSubspace(crisistypes.ModuleName)),
 		consensus.NewAppModule(appCodec, a.ConsensusParamsKeeper),
-		wstaking.NewAppModule(appCodec, a.StakingKeeper, a.TransferKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
-		wmint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil, a.GetSubspace(minttypes.ModuleName)),
+		wstaking.NewAppModule(appCodec, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
+		mint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil, a.GetSubspace(minttypes.ModuleName)),
 		wgov.NewAppModule(appCodec, a.GovKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(govtypes.ModuleName)),
 		slashing.NewAppModule(appCodec, a.SlashingKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(slashingtypes.ModuleName)),
-		wdistri.NewAppModule(appCodec, *a.DistrKeeper, a.AccountKeeper, a.BankKeeper),
+		distr.NewAppModule(appCodec, a.DistrKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(distrtypes.ModuleName)),
 		upgrade.NewAppModule(a.UpgradeKeeper),
 		evidence.NewAppModule(a.EvidenceKeeper),
 		ibc.NewAppModule(a.IBCKeeper),

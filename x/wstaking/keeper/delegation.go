@@ -2,8 +2,10 @@ package keeper
 
 import (
 	"fmt"
+
 	didtypes "github.com/st-chain/me-hub/x/did/types"
-	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
+
+	// kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 	"time"
 
 	"cosmossdk.io/math"
@@ -300,7 +302,8 @@ func (k *Keeper) ChangeDelegationValidator(ctx sdk.Context) {
 	for _, regionId := range regionIds {
 		region, found := k.GetRegion(ctx, regionId)
 		if found {
-			k.didKeeper.IteratorCredentialsByFilter(ctx, kyctypes.ModuleName, []byte(regionId), func(vc didtypes.Credential) (stop bool) {
+			// k.didKeeper.IteratorCredentialsByFilter(ctx, kyctypes.ModuleName, []byte(regionId), func(vc didtypes.Credential) (stop bool) {
+			k.didKeeper.IteratorCredentialsByFilter(ctx, "kyc", []byte(regionId), func(vc didtypes.Credential) (stop bool) {
 				info, found := k.didKeeper.GetDidInfo(ctx, vc.Did)
 				if found {
 					delegation, f := k.GetDelegation(ctx, sdk.MustAccAddressFromBech32(info.Address), sdk.ValAddress{})

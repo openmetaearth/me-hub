@@ -2,9 +2,9 @@ package keeper
 
 import (
 	"fmt"
-	// "github.com/cometbft/cometbft/crypto"
+	"github.com/cometbft/cometbft/crypto"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	// wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
+	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 
 	"github.com/cometbft/cometbft/libs/log"
 
@@ -106,12 +106,12 @@ func (k Keeper) IsMeidDao(ctx sdk.Context, address string) bool {
 	return dao.MeidDao == address
 }
 
-// func (k Keeper) GetGlobalDaoFeePoolAddr(ctx sdk.Context) sdk.AccAddress {
-// 	addr := sdk.AccAddress(crypto.AddressHash([]byte(wstakingtypes.GlobalDaoFeePool)))
-// 	account := k.authKeeper.GetAccount(ctx, addr)
-// 	if account == nil {
-// 		k.authKeeper.SetAccount(ctx, k.authKeeper.NewAccountWithAddress(ctx, addr))
-// 		return addr
-// 	}
-// 	return account.GetAddress()
-// }
+func (k Keeper) GetGlobalDaoFeePoolAddr(ctx sdk.Context) sdk.AccAddress {
+	addr := sdk.AccAddress(crypto.AddressHash([]byte(wstakingtypes.GlobalDaoFeePool)))
+	account := k.authKeeper.GetAccount(ctx, addr)
+	if account == nil {
+		k.authKeeper.SetAccount(ctx, k.authKeeper.NewAccountWithAddress(ctx, addr))
+		return addr
+	}
+	return account.GetAddress()
+}
