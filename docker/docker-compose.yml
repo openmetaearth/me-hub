@@ -1,0 +1,50 @@
+services:
+    mechain-private-net:
+        image: me-hub/private-net:latest
+        container_name: mechain-private-net
+        build:
+            context: ..
+            dockerfile: docker/Dockerfile
+            args:
+                - GIT_VERSION=${GIT_VERSION:-dev}
+                - GIT_COMMIT=${GIT_COMMIT:-unknown}
+        ports:
+            # P2P
+            - "36656:36656"
+            # RPC
+            - "36657:36657"
+            # REST API
+            - "1318:1318"
+            # gRPC
+            - "8090:8090"
+            # gRPC-web
+            - "8091:8091"
+            # JSON-RPC
+            - "9545:9545"
+            # JSON-RPC WebSocket
+            - "9546:9546"
+        environment:
+            - CHAIN_ID=mechain_100-1
+            - MONIKER_NAME=local
+            - KEY_NAME=global_dao
+            - TZ=Asia/Shanghai
+        volumes:
+            # Persistent data volume (optional - comment out for ephemeral chain)
+            - mechain-data:/root/.mechain
+        networks:
+            - mechain-network
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "med", "status"]
+            interval: 30s
+            timeout: 10s
+            retries: 5
+            start_period: 60s
+
+volumes:
+    mechain-data:
+        driver: local
+
+networks:
+    mechain-network:
+        driver: bridge

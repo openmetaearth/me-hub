@@ -98,6 +98,12 @@ install: go.sum
 build: go.sum
 	go build $(BUILD_FLAGS) -o $(BUILDDIR)/med ./cmd/med
 
+build-vendor: go.sum
+	@echo "Building with vendor mode (without ledger support for Docker)..."
+	$(eval temp_build_tags := $(filter-out ledger,$(build_tags)))
+	@go build -mod=vendor -tags "$(temp_build_tags)" -ldflags '$(ldflags)' -trimpath -o $(BUILDDIR)/med ./cmd/med
+	@echo "Build completed successfully"
+
 TRIGGER_BLOCKS ?= 100
 build-test: go.sum
 	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)) -X github.com/st-chain/me-hub/x/wmint/types.OneDayTotalBlocks=$(TRIGGER_BLOCKS))
@@ -117,7 +123,7 @@ build-linux-debug: go.sum
 ###############################################################################
 ###                                Docker                                ###
 ###############################################################################
-.PHONY: docker-github docker-local docker-run-debug
+.PHONY: docker-github docker-local docker-run-debug docker-private-net docker-private-net-start docker-private-net-stop docker-private-net-test
 
 docker-github:
 	DOCKER_BUILDKIT=1 docker build -t ghcr.io/me-hub/med:latest -f Dockerfile .
@@ -129,6 +135,52 @@ docker-local: build-linux
 
 docker-run-debug:
 	@DOCKER_BUILDKIT=1 docker-compose -f docker-compose.debug.yml up
+
+# Build and optionally run a pre-initialized single-node private network
+docker-private-net:
+	@echo "Preparing vendor directory for Docker build..."
+	@go mod vendor
+	@echo "Building ME-Chain private network Docker image..."
+	@DOCKER_BUILDKIT=1 docker build \
+		--build-arg GIT_VERSION=$(VERSION) \
+		--build-arg GIT_COMMIT=$(COMMIT) \
+		-t me-hub/private-net:$(TAG) \
+		-f docker/Dockerfile .
+	@rm -rf vendor
+	@echo "Docker image built successfully: me-hub/private-net:$(TAG)"
+	@echo ""
+	@echo "To run the private network:"
+	@echo "  docker run -d -p 36657:36657 -p 1318:1318 -p 9545:9545 -p 8090:8090 --name mechain-private-net me-hub/private-net:$(TAG)"
+	@echo ""
+	@echo "To run with persistent data:"
+	@echo "  docker run -d -p 36657:36657 -p 1318:1318 -p 9545:9545 -p 8090:8090 -v mechain-data:/root/.mechain --name mechain-private-net me-hub/private-net:$(TAG)"
+	@echo ""
+	@echo "Or use: make docker-private-net-start"
+
+# Start the private network using docker-compose
+docker-private-net-start:
+	@echo "Starting ME-Chain private network..."
+	@docker compose -f docker/docker-compose.yml up -d
+	@echo ""
+	@echo "Private network started successfully!"
+	@echo "RPC: http://localhost:36657"
+	@echo "API: http://localhost:1318"
+	@echo "JSON-RPC: http://localhost:9545"
+	@echo ""
+	@echo "View logs: docker compose -f docker/docker-compose.yml logs -f"
+	@echo "Run tests: make docker-private-net-test"
+
+# Stop the private network
+docker-private-net-stop:
+	@echo "Stopping ME-Chain private network..."
+	@docker compose -f docker/docker-compose.yml down
+	@echo "Private network stopped."
+
+# Test the private network
+docker-private-net-test:
+	@echo "Running tests on private network..."
+	@chmod +x docker/scripts/test_private_net.sh
+	@./docker/scripts/test_private_net.sh
 
 ###############################################################################
 ###                                Releasing                                ###
