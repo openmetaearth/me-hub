@@ -2081,7 +2081,7 @@ var (
 
 	pattern_Query_PendingOutgoingTxByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "pending_outgoing_tx_by_addr"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_UnbatchedTxs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "pending_outgoing_txs"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_UnbatchedTxs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "unbatched_txs"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_ProjectedBatchTimeoutHeight_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "projected_batch_timeout_height"}, "", runtime.AssumeColonVerbOpt(true)))
 
