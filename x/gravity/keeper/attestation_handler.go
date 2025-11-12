@@ -92,8 +92,12 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 
 			// overwrite the height, since it's not part of the claim
 			observedRelayerSet.Height = trustedRelayerSet.Height
-			if _, err := trustedRelayerSet.Equal(observedRelayerSet); err != nil {
-				panic(fmt.Sprintf("Potential bridge highjacking: observed relayerSet (%+v) does not match stored relayerSet (%+v)! %s", observedRelayerSet, trustedRelayerSet, err.Error()))
+			match, err := trustedRelayerSet.Equal(observedRelayerSet)
+			if err != nil {
+				return fmt.Errorf("potential bridge hijacking: observed relayerSet (%+v) does not match stored relayerSet (%+v)! %s", observedRelayerSet, trustedRelayerSet, err.Error())
+			}
+			if !match {
+				return fmt.Errorf("potential bridge hijacking: observed relayerSet (%+v) does not match stored relayerSet (%+v)", observedRelayerSet, trustedRelayerSet)
 			}
 		}
 		k.SetLastObservedRelayerSet(ctx, observedRelayerSet)

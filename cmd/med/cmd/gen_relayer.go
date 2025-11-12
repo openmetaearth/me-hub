@@ -142,7 +142,7 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 				bscGenState := v2_0_13.GenGravityGenesis(0, proposalRelayers, bsctypes.DefaultGenesisState(), delegateAmount, bsctypes.ModuleName)
 				bscGenStateBz, err := cdc.MarshalJSON(bscGenState)
 				if err != nil {
-					return fmt.Errorf("marshal bank genesis: %w", err)
+					return fmt.Errorf("marshal bsc genesis: %w", err)
 				}
 				appState[bsctypes.ModuleName] = bscGenStateBz
 			}
@@ -151,7 +151,7 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 				tronGenState := v2_0_13.GenGravityGenesis(0, proposalRelayers, trontypes.DefaultGenesisState(), delegateAmount, trontypes.ModuleName)
 				tronGenStateBz, err := cdc.MarshalJSON(tronGenState)
 				if err != nil {
-					return fmt.Errorf("marshal bank genesis: %w", err)
+					return fmt.Errorf("marshal tron genesis: %w", err)
 				}
 				appState[trontypes.ModuleName] = tronGenStateBz
 			}

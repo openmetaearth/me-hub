@@ -73,7 +73,10 @@ func ToStringCmd() *cobra.Command {
 					return err
 				}
 			case "base58":
-				decodeString = base58.Decode(args[1])
+				decodeString, _, err = base58.CheckDecode(args[1])
+				if err != nil {
+					return err
+				}
 			default:
 				return fmt.Errorf("invalid encode type: %s", args[0])
 			}
@@ -90,7 +93,7 @@ func ToBytes32Cmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args[0]) > 32 {
-				return fmt.Errorf("input data leng greater than 32")
+				return fmt.Errorf("input data length greater than 32")
 			}
 			var byte32 [32]byte
 			copy(byte32[:], args[0])
@@ -201,7 +204,7 @@ func VerifyTxCmd() *cobra.Command {
 func CovertTxDataToHashCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "tx-hash [base64TxData]",
-		Short:   "Covert base64 tx data to txHash",
+		Short:   "Convert base64 tx data to txHash",
 		Example: fmt.Sprintf("%s debug tx-hash 'CucHC...==='", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -325,7 +328,7 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNm
 					"pub_key_base64": base64.StdEncoding.EncodeToString(pubkey.Bytes()),
 				}, "", "  ")
 			default:
-				return fmt.Errorf("invalied public key type: %s", pubkey.Type())
+				return fmt.Errorf("invalid public key type: %s", pubkey.Type())
 			}
 			if err != nil {
 				return err
