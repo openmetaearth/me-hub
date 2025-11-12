@@ -281,7 +281,7 @@ func CmdRequestBatch(chainName string) *cobra.Command {
 
 			minimumFee, ok := sdkmath.NewIntFromString(args[1])
 			if !ok || minimumFee.IsNegative() {
-				return fmt.Errorf("miniumu fee is valid, %v", args[1])
+				return fmt.Errorf("minimum fee is valid, %v", args[1])
 			}
 			baseFee := sdkmath.ZeroInt()
 			if len(args) == 4 {

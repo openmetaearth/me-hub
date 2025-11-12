@@ -113,8 +113,8 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	}
 
 	// query denom, if not exist, return error
-	bridgeToken, _ := k.GetBridgeTokenByContract(ctx, tx.Token.Contract)
-	if bridgeToken == nil {
+	bridgeToken, err := k.GetBridgeTokenByContract(ctx, tx.Token.Contract)
+	if err != nil {
 		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Invalid token, contract %s", tx.Token.Contract)
 	}
 	// reissue the amount and the fee

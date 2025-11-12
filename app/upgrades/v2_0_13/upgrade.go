@@ -17,8 +17,8 @@ import (
 	trontypes "github.com/st-chain/me-hub/x/tron/types"
 )
 
-// CreateUpgradeHandler creates an SDK upgrade handler for v2.0.12
-// This upgrade focuses on migrating wnft module class data structures
+// CreateUpgradeHandler creates an SDK upgrade handler for v2.0.13
+// This upgrade initializes the Gravity bridge module for BSC and Tron
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,

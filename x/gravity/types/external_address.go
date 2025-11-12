@@ -47,7 +47,7 @@ func GetSupportChains() []string {
 
 func RegisterExternalAddress(chainName string, validate ExternalAddress) {
 	if err := ValidateModuleName(chainName); err != nil {
-		panic(errortypes.ErrInvalidRequest.Wrapf("invalid chain name: %s", chainName))
+		panic(errortypes.Wrapf(errortypes.ErrInvalidRequest, "invalid chain name: %s", chainName))
 	}
 	if _, ok := externalAddressRouter[chainName]; ok {
 		panic(fmt.Sprintf("duplicate registry msg validateBasic! chainName: %s", chainName))

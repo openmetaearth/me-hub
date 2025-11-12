@@ -230,6 +230,12 @@ func CmdGetRelayerSetRequest(chainName string) *cobra.Command {
 				if err != nil {
 					return err
 				}
+				if len(queryAbciResp.Value) == 0 {
+					return fmt.Errorf("latest relayer-set nonce not found; please provide the nonce explicitly")
+				}
+				if len(queryAbciResp.Value) != 8 {
+					return fmt.Errorf("unexpected relayer-set nonce encoding (got %d bytes)", len(queryAbciResp.Value))
+				}
 				nonce = sdk.BigEndianToUint64(queryAbciResp.Value)
 			} else {
 				var err error
@@ -451,13 +457,13 @@ func CmdBatchConfirms(chainName string) *cobra.Command {
 			if err := types.ValidateExternalAddr(chainName, tokenContract); err != nil {
 				return err
 			}
-			nonce, err := strconv.Atoi(args[1])
+			nonce, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
 				return err
 			}
 			res, err := queryClient.BatchConfirms(cmd.Context(), &types.QueryBatchConfirmsRequest{
 				TokenContract: tokenContract,
-				Nonce:         uint64(nonce),
+				Nonce:         nonce,
 				ChainName:     chainName,
 			})
 			if err != nil {
@@ -709,6 +715,12 @@ func CmdGetLastObservedEventNonce(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if len(queryAbciResp.Value) == 0 {
+				return clientCtx.PrintString("0\n")
+			}
+			if len(queryAbciResp.Value) != 8 {
+				return fmt.Errorf("unexpected event nonce encoding (got %d bytes)", len(queryAbciResp.Value))
+			}
 			return clientCtx.PrintString(fmt.Sprintf("%d\n", sdk.BigEndianToUint64(queryAbciResp.Value)))
 		},
 	}
@@ -757,7 +769,10 @@ func CmdGetBridgeCoinByDenom(chainName string) *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			denom := args[0]
-			contract := args[1]
+			var contract string
+			if len(args) > 1 {
+				contract = args[1]
+			}
 			res, err := queryClient.BridgeToken(cmd.Context(), &types.QueryBridgeTokenRequest{
 				ChainName:       chainName,
 				Denom:           denom,

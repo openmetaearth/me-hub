@@ -109,7 +109,7 @@ func (m *MsgSendToMeClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m *MsgSendToMeClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d%s/%s/%s/%s", m.BlockHeight, m.EventNonce, m.TokenContract, m.Sender, m.Amount.String(), m.Receiver)
+	path := fmt.Sprintf("%d/%d/%s/%s/%s/%s", m.BlockHeight, m.EventNonce, m.TokenContract, m.Sender, m.Amount.String(), m.Receiver)
 	return tmhash.Sum([]byte(path))
 }
 
@@ -145,7 +145,7 @@ func (m *MsgSendToExternalClaim) ValidateBasic() (err error) {
 
 // ClaimHash Hash implements SendToFxBatch.Hash
 func (m *MsgSendToExternalClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d/%s/%d/", m.BlockHeight, m.EventNonce, m.TokenContract, m.BatchNonce)
+	path := fmt.Sprintf("%d/%d/%s/%d", m.BlockHeight, m.EventNonce, m.TokenContract, m.BatchNonce)
 	return tmhash.Sum([]byte(path))
 }
 
@@ -217,7 +217,7 @@ func (m *MsgBridgeTokenClaim) GetType() ClaimType {
 }
 
 func (m *MsgBridgeTokenClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d%s/%s/%s/%d/", m.BlockHeight, m.EventNonce, m.TokenContract, m.Name, m.Symbol, m.Decimals)
+	path := fmt.Sprintf("%d/%d/%s/%s/%s/%d", m.BlockHeight, m.EventNonce, m.TokenContract, m.Name, m.Symbol, m.Decimals)
 	return tmhash.Sum([]byte(path))
 }
 
@@ -278,6 +278,10 @@ func (m *MsgRelayerSetUpdateClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m *MsgRelayerSetUpdateClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d/%d/%v/", m.BlockHeight, m.RelayerSetNonce, m.EventNonce, m.Members)
+	var membersStr string
+	for _, member := range m.Members {
+		membersStr += member.String()
+	}
+	path := fmt.Sprintf("%d/%d/%d/%s", m.BlockHeight, m.RelayerSetNonce, m.EventNonce, membersStr)
 	return tmhash.Sum([]byte(path))
 }

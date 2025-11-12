@@ -127,14 +127,16 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, contractAddress string,
 func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetOutgoingTxBatchKey(batch.TokenContract, batch.BatchNonce)
-	store.Set(key, k.cdc.MustMarshal(batch))
 
 	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block)
 	// Note: Only one OutgoingTxBatch can be submitted in a block
 	if store.Has(blockKey) {
 		return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("block:[%v] has batch request", batch.Block))
 	}
-	store.Set(blockKey, k.cdc.MustMarshal(batch))
+
+	value := k.cdc.MustMarshal(batch)
+	store.Set(key, value)
+	store.Set(blockKey, value)
 	return nil
 }
 

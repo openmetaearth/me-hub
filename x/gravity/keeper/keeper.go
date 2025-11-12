@@ -47,6 +47,10 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
+func (k *Keeper) Codec() codec.Codec {
+	return k.cdc
+}
+
 func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", k.moduleName))
 }

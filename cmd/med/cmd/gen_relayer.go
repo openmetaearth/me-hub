@@ -43,6 +43,7 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 			rawAddrList := strings.Split(args[0], ",")
 			var proposalRelayers []string
 			var addrs []sdk.AccAddress
+			seen := make(map[string]struct{})
 			for _, s := range rawAddrList {
 				s = strings.TrimSpace(s)
 				if s == "" {
@@ -52,8 +53,14 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("invalid bech32 address %s: %w", s, err)
 				}
+
+				addrStr := acc.String()
+				if _, ok := seen[addrStr]; ok {
+					return fmt.Errorf("duplicate address provided: %s", addrStr)
+				}
+				seen[addrStr] = struct{}{}
 				addrs = append(addrs, acc)
-				proposalRelayers = append(proposalRelayers, s)
+				proposalRelayers = append(proposalRelayers, addrStr)
 			}
 			if len(addrs) == 0 {
 				return fmt.Errorf("no valid addresses provided")

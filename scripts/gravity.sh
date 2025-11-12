@@ -23,7 +23,7 @@ get_relayers() {
   done
 }
 
-init-account() {
+init_account() {
   echo "$RelayerMnemonic" | med keys add r1 --recover --keyring-backend $KEYRING --key-type eth_secp256k1 --index 1
   echo "$RelayerMnemonic" | med keys add r2 --recover --keyring-backend $KEYRING --key-type eth_secp256k1 --index 2
   echo "$RelayerMnemonic" | med keys add r3 --recover --keyring-backend $KEYRING --key-type eth_secp256k1 --index 3
@@ -37,7 +37,7 @@ init-account() {
   done
 }
 
-proposal-relayers() {
+proposal_relayers() {
   get_relayers
   relayers_csv=$(printf "%s," "$r1_address" "$r2_address" "$r3_address" "$r4_address" "$r5_address")
   relayers_csv=${relayers_csv%,}
@@ -46,7 +46,7 @@ proposal-relayers() {
   med q $"$CHAIN" proposal-relayers
 }
 
-bonded-relayer() {
+bonded_relayer() {
   get_relayers
   for i in 1 2 3 4 5; do
     eval "addr=\$r${i}_address"
@@ -60,7 +60,7 @@ bonded-relayer() {
   done
 }
 
-add-delegate() {
+add_delegate() {
   get_relayers
   med tx "$CHAIN" add-delegate 100000000umec --from r1 --chain-id "$CHAIN_ID" --keyring-backend $KEYRING -y --gas-prices 0.02umec --gas 500000
   sleep 5
@@ -68,5 +68,7 @@ add-delegate() {
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  "$@" || { echo "exec $0 failed: $*"; exit 1; }
+  cmd="${1//-/_}"
+  shift
+  "$cmd" "$@" || { echo "exec $0 failed: $cmd $*"; exit 1; }
 fi

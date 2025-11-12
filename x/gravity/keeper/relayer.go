@@ -46,7 +46,10 @@ func (k Keeper) SetRelayerByExternalAddress(ctx sdk.Context, externalAddress str
 func (k Keeper) GetRelayerByExternalAddress(ctx sdk.Context, externalAddress string) (sdk.AccAddress, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetRelayerAddressByExternalKey(externalAddress))
-	return bz, bz != nil
+	if bz == nil {
+		return nil, false
+	}
+	return sdk.AccAddress(bz), true
 }
 
 // DelRelayerByExternalAddress delete the external address for a give relayer

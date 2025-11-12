@@ -341,10 +341,7 @@ func AddrCmd() *cobra.Command {
 		Short: "Convert an address between hex and bech32",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
+			clientCtx := client.GetClientContextFromCmd(cmd)
 			bech32prefix, err := cmd.Flags().GetString("prefix")
 			if err != nil {
 				return err

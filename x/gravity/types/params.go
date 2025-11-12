@@ -28,11 +28,11 @@ func DefaultParams() Params {
 		ExternalBatchTimeout:               1 * 3600 * 1000, // 1 hours
 		AverageExternalBlockTime:           1_000,           // 1 seconds
 		SignedWindow:                       30_000,
-		SlashFraction:                      sdk.NewDecWithPrec(8, 1), // 80%
-		RelayerSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1), // 20%
+		SlashFraction:                      sdk.NewDecWithPrec(8, 1),
+		RelayerSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1),
 		MaxRelayers:                        10,
-		MinDelegate:                        sdkmath.NewInt(100_000_000),    // 1 MEC
-		MaxDelegate:                        sdkmath.NewInt(10_000_000_000), // 100 MEC
+		MinDelegate:                        sdkmath.NewInt(100_000_000),
+		MaxDelegate:                        sdkmath.NewInt(10_000_000_000),
 	}
 }
 
@@ -67,7 +67,7 @@ func (m *Params) ValidateBasic() error {
 		return fmt.Errorf("invalid max relayers, too short")
 	}
 	if m.RelayerSetUpdatePowerChangePercent.IsNegative() {
-		return fmt.Errorf("attempted to powet change percent with a negative: %v", m.RelayerSetUpdatePowerChangePercent)
+		return fmt.Errorf("attempted to power change percent with a negative: %v", m.RelayerSetUpdatePowerChangePercent)
 	}
 	if m.RelayerSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
 		return fmt.Errorf("power change percent too large: %s", m.RelayerSetUpdatePowerChangePercent)

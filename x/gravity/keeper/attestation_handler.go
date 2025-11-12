@@ -17,8 +17,8 @@ import (
 func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.ExternalClaim) error {
 	switch claim := externalClaim.(type) {
 	case *types.MsgSendToMeClaim:
-		bridgeToken, _ := k.GetBridgeTokenByContract(ctx, claim.TokenContract)
-		if bridgeToken == nil {
+		bridgeToken, err := k.GetBridgeTokenByContract(ctx, claim.TokenContract)
+		if err != nil {
 			return errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
 		}
 

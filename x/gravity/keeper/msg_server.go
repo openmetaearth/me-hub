@@ -83,9 +83,6 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	if msg.Amount.Denom != params.BaseDenom {
 		return nil, errorsmod.Wrapf(types.ErrInvalid, "delegate denom got %s, expected %s", msg.Amount.Denom, params.BaseDenom)
 	}
-	if _, found := s.GetRelayer(ctx, relayerAddress); !found {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "no found bridger address")
-	}
 	relayer, found := s.GetRelayer(ctx, relayerAddress)
 	if !found {
 		return nil, types.ErrNotFoundRelayer

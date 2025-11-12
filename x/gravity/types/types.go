@@ -203,7 +203,7 @@ func (r *RelayerSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
 	if packErr != nil {
-		return nil, errorsmod.Wrap(err, "packing checkpoint")
+		return nil, errorsmod.Wrap(packErr, "packing checkpoint")
 	}
 
 	// we hash the resulting encoded bytes discarding the first 4 bytes these 4 bytes are the constant

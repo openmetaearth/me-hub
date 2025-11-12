@@ -161,7 +161,8 @@ func (k Keeper) IterateAttestationAndClaim(ctx sdk.Context, cb func(*types.Attes
 		k.cdc.MustUnmarshal(iter.Value(), att)
 		claim, err := types.UnpackAttestationClaim(k.cdc, att)
 		if err != nil {
-			panic("couldn't cast to claim")
+			k.Logger(ctx).Error("failed to unpack attestation claim", "error", err)
+			continue
 		}
 		// cb returns true to stop early
 		if cb(att, claim) {

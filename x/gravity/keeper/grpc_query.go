@@ -331,8 +331,8 @@ func (k QueryServer) BridgeToken(c context.Context, req *types.QueryBridgeTokenR
 	var bridgeToken *types.BridgeToken
 	var err error
 	if len(req.GetContractAddress()) > 0 {
-		bridgeToken, _ = k.GetBridgeTokenByContract(ctx, req.ContractAddress)
-		if bridgeToken == nil {
+		bridgeToken, err = k.GetBridgeTokenByContract(ctx, req.ContractAddress)
+		if err != nil {
 			return nil, status.Error(codes.NotFound, "contract")
 		}
 	}

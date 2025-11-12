@@ -497,7 +497,7 @@ func MintBlock(myApp *app.App, ctx sdk.Context, block ...int64) sdk.Context {
 	if len(block) > 0 {
 		nextHeight = ctx.BlockHeight() + block[0]
 	}
-	for i := ctx.BlockHeight(); i <= nextHeight; {
+	for i := ctx.BlockHeight(); i < nextHeight; {
 		myApp.EndBlock(abci.RequestEndBlock{Height: i})
 		myApp.Commit()
 		i++

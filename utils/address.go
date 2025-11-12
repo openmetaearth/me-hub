@@ -13,11 +13,11 @@ import (
 func ParseAddress(addr string) (accAddr sdk.AccAddress, isEvmAddr bool, err error) {
 	_, bytes, decodeErr := bech32.DecodeAndConvert(addr)
 	if decodeErr == nil {
-		return bytes, false, nil
+		return sdk.AccAddress(bytes), false, nil
 	}
 	ethAddrError := ValidateEthereumAddress(addr)
 	if ethAddrError == nil {
-		return common.HexToAddress(addr).Bytes(), true, nil
+		return sdk.AccAddress(common.HexToAddress(addr).Bytes()), true, nil
 	}
 	return nil, false, errors.Join(decodeErr, ethAddrError)
 }
