@@ -18,7 +18,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 	case *types.MsgSendToMeClaim:
 		bridgeToken, err := k.GetBridgeTokenByContract(ctx, claim.TokenContract)
 		if err != nil {
-			return errorsmod.Wrap(types.ErrInvalid, "bridge token is not exist")
+			return errorsmod.Wrapf(types.ErrInvalid, "bridge token does not exist: %s", claim.TokenContract)
 		}
 
 		coin := sdk.NewCoin(bridgeToken.Denom, claim.Amount)
