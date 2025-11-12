@@ -15,7 +15,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		return nil, types.ErrRollappsDisabled
 	}
 
-	err := k.checkIfRollappExists(ctx, msg)
+	err := k.checkIfRollappExists(ctx, msg.RollappId)
 	if err != nil {
 		return nil, err
 	}
@@ -44,8 +44,8 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	return &types.MsgCreateRollappResponse{}, nil
 }
 
-func (k msgServer) checkIfRollappExists(ctx sdk.Context, msg *types.MsgCreateRollapp) error {
-	rollappId, err := types.NewChainID(msg.RollappId)
+func (k msgServer) checkIfRollappExists(ctx sdk.Context, RawRollappId string) error {
+	rollappId, err := types.NewChainID(RawRollappId)
 	if err != nil {
 		return err
 	}

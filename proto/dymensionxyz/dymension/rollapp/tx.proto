@@ -14,6 +14,7 @@ service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
   rpc SkipDelayRollapp(MsgSkipDelayRollapp) returns (MsgSkipDelayRollappResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
+  rpc UpdateRollapp(MsgUpdateRollapp) returns (MsgUpdateRollappResponse);
 }
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.
@@ -70,3 +71,14 @@ message MsgSkipDelayRollapp {
 }
 
 message MsgSkipDelayRollappResponse {}
+
+message MsgUpdateRollapp {
+  option (cosmos.msg.v1.signer) = "creator";
+  string creator = 1;
+  string rollappId = 2;
+  uint64 maxSequencers = 3;
+  repeated string permissionedAddresses = 4;
+  string channel_id = 5;
+}
+
+message MsgUpdateRollappResponse {}
