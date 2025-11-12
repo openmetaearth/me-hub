@@ -168,7 +168,7 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 			name: "error - delegate amount greater than threshold amount",
 			preRun: func(msg *types.MsgAddDelegate) {
 				maxDelegateAmount := s.Keeper().GetGravityMaxDelegate(s.Ctx)
-				msg.Amount.Amount = maxDelegateAmount.Add(sdkmath.NewInt(tmrand.Int63() - 1))
+				msg.Amount.Amount = maxDelegateAmount.Add(sdkmath.NewInt(1))
 			},
 			pass: false,
 			err:  types.ErrDelegateAmountAboveMaximum.Error(),

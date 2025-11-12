@@ -534,7 +534,7 @@ func CmdPendingOutgoingTxByAddr(chainName string) *cobra.Command {
 
 func CmdUnbatchedTxs(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "UnbatchedTxs [token-contract]",
+		Use:   "unbatched-txs [token-contract]",
 		Short: "Query unbatched send to external txs",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -544,14 +544,17 @@ func CmdUnbatchedTxs(chainName string) *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			addr, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return err
+			var tokenContract string
+			if len(args) > 0 {
+				tokenContract = args[0]
+				if err := types.ValidateExternalAddr(chainName, tokenContract); err != nil {
+					return err
+				}
 			}
 			pageReq, _ := client.ReadPageRequest(cmd.Flags())
 			res, err := queryClient.UnbatchedTxs(cmd.Context(), &types.QueryUnbatchedTxsRequest{
 				ChainName:     chainName,
-				TokenContract: addr.String(),
+				TokenContract: tokenContract,
 				Pagination:    pageReq,
 			})
 			if err != nil {

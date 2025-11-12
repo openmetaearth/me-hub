@@ -296,7 +296,7 @@ message QueryBridgeChainListResponse {
 
 message QueryBatchFeeRequest {
   string chain_name = 1;
-  repeated MinBatchFee minBatchFees = 2 [(gogoproto.nullable) = false];
+  repeated MinBatchFee min_batch_fees = 2 [(gogoproto.nullable) = false];
 }
 message QueryBatchFeeResponse {
   repeated BatchFees batch_fees = 1;

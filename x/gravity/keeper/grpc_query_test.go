@@ -41,7 +41,9 @@ func (s *KeeperTestSuite) TestQueryUnbatchedTxs() {
 	}
 
 	// Test without pagination
-	res, err := queryServer.UnbatchedTxs(ctx, &types.QueryUnbatchedTxsRequest{})
+	res, err := queryServer.UnbatchedTxs(ctx, &types.QueryUnbatchedTxsRequest{
+		ChainName: s.chainName,
+	})
 	s.Require().NoError(err)
 	s.Require().Len(res.Txs, numTxs)
 	s.Require().NotNil(res.Pagination)
@@ -49,6 +51,7 @@ func (s *KeeperTestSuite) TestQueryUnbatchedTxs() {
 	// Test with pagination
 	pageLimit := 5
 	res, err = queryServer.UnbatchedTxs(ctx, &types.QueryUnbatchedTxsRequest{
+		ChainName: s.chainName,
 		Pagination: &query.PageRequest{
 			Limit: uint64(pageLimit),
 		},
@@ -60,6 +63,7 @@ func (s *KeeperTestSuite) TestQueryUnbatchedTxs() {
 
 	// Test next page
 	res, err = queryServer.UnbatchedTxs(ctx, &types.QueryUnbatchedTxsRequest{
+		ChainName: s.chainName,
 		Pagination: &query.PageRequest{
 			Key:   res.Pagination.NextKey,
 			Limit: uint64(pageLimit),

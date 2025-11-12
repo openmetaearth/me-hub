@@ -3,10 +3,10 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_12"
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_13"
 	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
 	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_12"
 	"io"
 	"io/fs"
 	"net/http"
@@ -425,5 +425,4 @@ func (app *App) RegisterServices(cfg module.Configurator) {
 	app.mm.RegisterServices(cfg)
 	gravitytypes.RegisterQueryServer(cfg.QueryServer(), app.GravityRouterKeeper)
 	gravitytypes.RegisterMsgServer(cfg.MsgServer(), gravitykeeper.NewMsgServerRouterImpl(app.GravityRouterKeeper))
-
 }

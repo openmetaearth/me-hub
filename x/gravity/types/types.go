@@ -386,7 +386,7 @@ func toHexAddr(gravityId, addr string) gethcommon.Address {
 	if strings.Contains(gravityId, "tron") {
 		tronAddr, err := address.Base58ToAddress(addr)
 		if err != nil {
-			panic(err)
+			return gethcommon.Address{}
 		}
 		return gethcommon.BytesToAddress(tronAddr.Bytes()[1:])
 	}
