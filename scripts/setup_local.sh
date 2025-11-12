@@ -122,6 +122,7 @@ jq '.app_state["dao"]["dao_addresses"]["meid_dao"] = "me1p7s6k4ecrm2kl0rs6399k99
 jq '.app_state["dao"]["dao_addresses"]["dev_operator"] = "me16qle3emp70kr08wt5508t7gk7trst0zwclnscj"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 jq '.app_state["dao"]["dao_addresses"]["airdrop_address"] = "me1uzt6kk6ra9x0ap3au3xuqwp94l2rnw4zqscn2s"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 jq '.app_state["rollapp"]["params"]["dispute_period_in_blocks"] = "1"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq '.app_state["sequencer"]["params"]["unbonding_time"] = "10s"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 set_kyc_issuers
 
 validator_address=$(med keys show "$KEY_NAME" -a --keyring-backend test)
