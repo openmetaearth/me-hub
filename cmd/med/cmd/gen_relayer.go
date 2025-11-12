@@ -125,7 +125,7 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 
 			bal2 := banktypes.Balance{
 				Address: authtypes.NewModuleAddress(trontypes.ModuleName).String(),
-				Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount)).Sort(),
+				Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, bondedAmount)).Sort(),
 			}
 			bankGenState.Balances = append(bankGenState.Balances, bal2)
 			bankGenState.Supply = bankGenState.Supply.Add(bal2.Coins...)

@@ -44,11 +44,15 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		// Check if it already exists
 		isExist := k.HasBridgeToken(ctx, claim.TokenContract)
 		if isExist {
-			return errorsmod.Wrap(types.ErrInvalid, "bridge token is exist")
+			return errorsmod.Wrap(types.ErrInvalid, "bridge token already exists")
+		}
+		denom := strings.ToLower(claim.Symbol)
+		if err := sdk.ValidateDenom(denom); err != nil {
+			return errorsmod.Wrapf(types.ErrInvalid, "invalid denom derived from symbol: %v", err)
 		}
 		bridgeToken := types.BridgeToken{
 			ContractAddress: claim.TokenContract,
-			Denom:           strings.ToLower(claim.Symbol),
+			Denom:           denom,
 			Name:            claim.Name,
 			Symbol:          claim.Symbol,
 			Decimal:         claim.Decimals,
@@ -94,7 +98,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			match, err := trustedRelayerSet.Equal(observedRelayerSet)
 			if err != nil {
 				// this indicates that the members of the two sets are not equal
-				return errorsmod.Wrapf(err, "potential bridge hijacking: observed relayerSet (%d) does not match stored relayerSet (%d)", observedRelayerSet.Nonce, trustedRelayerSet.Nonce)
+				return errorsmod.Wrapf(types.ErrInvalid, "potential bridge hijacking: observed relayerSet (%+v) does not match stored relayerSet (%+v)! %s", observedRelayerSet, trustedRelayerSet, err.Error())
 			}
 			if !match {
 				return errorsmod.Wrapf(types.ErrInvalid, "potential bridge hijacking: observed relayerSet (%d) does not match stored relayerSet (%d)", observedRelayerSet.Nonce, trustedRelayerSet.Nonce)
