@@ -1326,8 +1326,8 @@ github.com/spf13/viper v1.3.2/go.mod h1:ZiWeW+zYFKm7srdB9IoDzzZXaJaI5eL9QjNiN/DM
 github.com/spf13/viper v1.4.0/go.mod h1:PTJ7Z/lr49W6bUbkmS1V3by4uWynFiR9p7+dSq/yZzE=
 github.com/spf13/viper v1.18.2 h1:LUXCnvUvSM6FXAsj6nnfc8Q2tp1dIgUfY9Kc8GsSOiQ=
 github.com/spf13/viper v1.18.2/go.mod h1:EKmWIqdnk5lOcmR72yw6hS+8OPYcwD0jteitLMVB+yk=
-github.com/st-chain/cosmos-sdk v0.47.14-0.20250702035509-9429ad74079c h1:74ebgA1CyLWHI2njce/h39bYm+6Ujjnv1Q0ufmc5IhE=
-github.com/st-chain/cosmos-sdk v0.47.14-0.20250702035509-9429ad74079c/go.mod h1:pYMzhTfKFn9AJB5X64Epwe9NgYk0y3v7XN8Ks5xqWoo=
+github.com/st-chain/cosmos-sdk v0.47.13-me h1:QaSEQk0Vo8JXhE/3ep1dqHG+DSZXC6Bfh9us2yDpLZc=
+github.com/st-chain/cosmos-sdk v0.47.13-me/go.mod h1:pYMzhTfKFn9AJB5X64Epwe9NgYk0y3v7XN8Ks5xqWoo=
 github.com/st-chain/ethermint v0.0.0-20250220093514-1c7546e01918 h1:SC+vRnl5GIcOlZwyAxSueCpfKGQtSJRRSqZZtcOTeP8=
 github.com/st-chain/ethermint v0.0.0-20250220093514-1c7546e01918/go.mod h1:2G1Xmc/tJP6A4jc00TgPl7NlA0ts2u0Qo1zW27vBTx4=
 github.com/st-chain/go-log/v2 v2.7.0 h1:XhW50y4G1TKR9FP000YYuZFCjhpDc0X7hDUQh5cvH/A=
