@@ -55,12 +55,12 @@ func TronAddressFromSignature(hash []byte, signature []byte) (string, error) {
 
 // ValidateTronSignature takes a message, an associated signature and public key and
 // returns an error if the signature isn't valid
-func ValidateTronSignature(hash []byte, signature []byte, ethAddress string) error {
+func ValidateTronSignature(hash []byte, signature []byte, tronAddress string) error {
 	addr, err := TronAddressFromSignature(hash, signature)
 	if err != nil {
 		return err
 	}
-	if addr != ethAddress {
+	if addr != tronAddress {
 		return errorsmod.Wrap(types.ErrInvalid, "signature not matching")
 	}
 	return nil
