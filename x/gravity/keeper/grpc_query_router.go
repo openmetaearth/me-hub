@@ -147,11 +147,19 @@ func (k RouterKeeper) LastEventNonceByAddr(c context.Context, req *types.QueryLa
 	}
 }
 
-func (k RouterKeeper) GetPendingSendToExternal(c context.Context, req *types.QueryPendingSendToExternalRequest) (*types.QueryPendingSendToExternalResponse, error) {
+func (k RouterKeeper) PendingOutgoingTxByAddr(c context.Context, req *types.QueryPendingOutgoingTxByAddrRequest) (*types.QueryPendingOutgoingTxByAddrResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
 	} else {
-		return queryServer.GetPendingSendToExternal(c, req)
+		return queryServer.PendingOutgoingTxByAddr(c, req)
+	}
+}
+
+func (k RouterKeeper) UnbatchedTxs(c context.Context, req *types.QueryUnbatchedTxsRequest) (*types.QueryUnbatchedTxsResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.UnbatchedTxs(c, req)
 	}
 }
 

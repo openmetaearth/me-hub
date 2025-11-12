@@ -60,6 +60,10 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		types.EventTypeSendToExternal,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(nextTxID)),
+		sdk.NewAttribute(sdk.AttributeKeySender, sender.String()),
+		sdk.NewAttribute(types.AttributeKeyReceiver, receiver),
+		sdk.NewAttribute(types.AttributeKeyTokenContract, amount.String()),
+		sdk.NewAttribute(types.AttributeKeyBridgeFee, fee.String()),
 	))
 	return nextTxID, nil
 }
@@ -125,6 +129,7 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 		types.EventTypeSendToExternalCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(txId)),
+		sdk.NewAttribute(sdk.AttributeKeySender, sender.String()),
 		sdk.NewAttribute(types.AttributeKeyRefundAmount, totalToRefundCoins.String()),
 	))
 	return totalToRefund, nil

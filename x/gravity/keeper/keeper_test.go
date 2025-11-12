@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"crypto/ecdsa"
 	"fmt"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -187,4 +188,26 @@ func (s *KeeperTestSuite) PubKeyToExternalAddr(publicKey ecdsa.PublicKey) string
 
 func (suite *KeeperTestSuite) Commit(block ...int64) {
 	suite.Ctx = apptesting.MintBlock(suite.App, suite.Ctx, block...)
+}
+
+func (s *KeeperTestSuite) NewBridgeToken(receiver sdk.AccAddress, initAmount sdk.Coin) (bridgeToken types.BridgeToken) {
+	s.EqualValues(sdk.NewCoin(initAmount.Denom, sdkmath.ZeroInt()), s.App.BankKeeper.GetSupply(s.Ctx, initAmount.Denom))
+
+	err := s.App.BankKeeper.MintCoins(s.Ctx, s.chainName, sdk.NewCoins(initAmount))
+	s.NoError(err)
+
+	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, s.chainName, receiver, sdk.NewCoins(initAmount))
+	s.NoError(err)
+	s.EqualValues(initAmount, s.App.BankKeeper.GetSupply(s.Ctx, initAmount.Denom))
+
+	tokenContract := helpers.GenerateAddress().Hex()
+	bridgeToken = types.BridgeToken{
+		ContractAddress: tokenContract,
+		Denom:           initAmount.Denom,
+		Supply:          initAmount.Amount,
+	}
+	s.Keeper().SetBridgeToken(s.Ctx, &bridgeToken)
+	s.Equal(s.App.BankKeeper.GetAllBalances(s.Ctx, receiver).AmountOf(initAmount.Denom).String(), initAmount.Amount.String())
+
+	return bridgeToken
 }

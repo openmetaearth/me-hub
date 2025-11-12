@@ -55,7 +55,8 @@ func getQuerySubCmds(chainName string) []*cobra.Command {
 
 		// send to external
 		CmdBatchRequestByNonce(chainName),
-		CmdGetPendingSendToExternal(chainName),
+		CmdPendingOutgoingTxByAddr(chainName),
+		CmdUnbatchedTxs(chainName),
 		CmdOutgoingTxBatches(chainName),
 
 		CmdGetLastObservedBlockHeight(chainName),
@@ -502,9 +503,9 @@ func CmdBatchRequestByNonce(chainName string) *cobra.Command {
 	return cmd
 }
 
-func CmdGetPendingSendToExternal(chainName string) *cobra.Command {
+func CmdPendingOutgoingTxByAddr(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pending-send-to-external [address]",
+		Use:   "pending-outgoing-tx-by-addr [address]",
 		Short: "Query pending send to external txs",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -518,9 +519,40 @@ func CmdGetPendingSendToExternal(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			res, err := queryClient.GetPendingSendToExternal(cmd.Context(), &types.QueryPendingSendToExternalRequest{
+			res, err := queryClient.PendingOutgoingTxByAddr(cmd.Context(), &types.QueryPendingOutgoingTxByAddrRequest{
 				ChainName:     chainName,
 				SenderAddress: addr.String(),
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdUnbatchedTxs(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "UnbatchedTxs [token-contract]",
+		Short: "Query unbatched send to external txs",
+		Args:  cobra.RangeArgs(0, 1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			addr, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+			pageReq, _ := client.ReadPageRequest(cmd.Flags())
+			res, err := queryClient.UnbatchedTxs(cmd.Context(), &types.QueryUnbatchedTxsRequest{
+				ChainName:     chainName,
+				TokenContract: addr.String(),
+				Pagination:    pageReq,
 			})
 			if err != nil {
 				return err

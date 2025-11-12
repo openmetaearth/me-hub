@@ -246,7 +246,7 @@ func (k QueryServer) BatchConfirms(c context.Context, req *types.QueryBatchConfi
 	return &types.QueryBatchConfirmsResponse{Confirms: confirms}, nil
 }
 
-func (k QueryServer) GetPendingSendToExternal(c context.Context, req *types.QueryPendingSendToExternalRequest) (*types.QueryPendingSendToExternalResponse, error) {
+func (k QueryServer) PendingOutgoingTxByAddr(c context.Context, req *types.QueryPendingOutgoingTxByAddrRequest) (*types.QueryPendingOutgoingTxByAddrResponse, error) {
 	if _, err := sdk.AccAddressFromBech32(req.GetSenderAddress()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "sender address")
 	}
@@ -257,7 +257,7 @@ func (k QueryServer) GetPendingSendToExternal(c context.Context, req *types.Quer
 		batches = append(batches, batch)
 		return false
 	})
-	res := &types.QueryPendingSendToExternalResponse{
+	res := &types.QueryPendingOutgoingTxByAddrResponse{
 		TransfersInBatches: make([]*types.OutgoingTransferTx, 0),
 		UnbatchedTransfers: make([]*types.OutgoingTransferTx, 0),
 	}
@@ -275,6 +275,26 @@ func (k QueryServer) GetPendingSendToExternal(c context.Context, req *types.Quer
 		return false
 	})
 	return res, nil
+}
+
+func (k QueryServer) UnbatchedTxs(c context.Context, req *types.QueryUnbatchedTxsRequest) (*types.QueryUnbatchedTxsResponse, error) {
+	var unbatchedTxs []*types.OutgoingTransferTx
+	ctx := sdk.UnwrapSDKContext(c)
+	prefixKey := types.GetOutgoingTxPoolContractPrefix(req.GetTokenContract())
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), prefixKey)
+	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
+		var tx types.OutgoingTransferTx
+		k.cdc.MustUnmarshal(value, &tx)
+		unbatchedTxs = append(unbatchedTxs, &tx)
+		return nil
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &types.QueryUnbatchedTxsResponse{
+		Txs:        unbatchedTxs,
+		Pagination: pageRes,
+	}, nil
 }
 
 func (k QueryServer) ProjectedBatchTimeoutHeight(c context.Context, _ *types.QueryProjectedBatchTimeoutHeightRequest) (*types.QueryProjectedBatchTimeoutHeightResponse, error) {

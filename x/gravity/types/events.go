@@ -33,5 +33,6 @@ const (
 	AttributeKeyBlockHeight          = "block_height"
 	AttributeKeyStateSuccess         = "state_success"
 	AttributeKeyIncreaseFee          = "increase_fee"
+	AttributeKeyBridgeFee            = "bridge_fee"
 	AttributeKeyRefundAmount         = "refund_amount"
 )

@@ -73,8 +73,11 @@ service Query {
   rpc ProposalRelayers(QueryProposalRelayersRequest) returns (QueryProposalRelayersResponse) {
     option (google.api.http).get = "/gravity/v1/proposal_relayers";
   }
-  rpc GetPendingSendToExternal(QueryPendingSendToExternalRequest) returns (QueryPendingSendToExternalResponse) {
-    option (google.api.http).get = "/gravity/v1/pending_send_to_external";
+  rpc PendingOutgoingTxByAddr(QueryPendingOutgoingTxByAddrRequest) returns (QueryPendingOutgoingTxByAddrResponse) {
+    option (google.api.http).get = "/gravity/v1/pending_outgoing_tx_by_addr";
+  }
+  rpc UnbatchedTxs(QueryUnbatchedTxsRequest) returns (QueryUnbatchedTxsResponse) {
+    option (google.api.http).get = "/gravity/v1/pending_outgoing_txs";
   }
   rpc ProjectedBatchTimeoutHeight(QueryProjectedBatchTimeoutHeightRequest) returns (QueryProjectedBatchTimeoutHeightResponse) {
     option (google.api.http).get = "/gravity/v1/projected_batch_timeout_height";
@@ -210,13 +213,23 @@ message QueryRelayerResponse {
   Relayer relayer = 1;
 }
 
-message QueryPendingSendToExternalRequest {
+message QueryPendingOutgoingTxByAddrRequest {
   string chain_name = 1;
   string sender_address = 2;
 }
-message QueryPendingSendToExternalResponse {
+message QueryPendingOutgoingTxByAddrResponse {
   repeated OutgoingTransferTx transfers_in_batches = 1;
   repeated OutgoingTransferTx unbatched_transfers = 2;
+}
+
+message QueryUnbatchedTxsRequest {
+  string chain_name = 1;
+  string token_contract = 2; // Optional filter by token contract address
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+message QueryUnbatchedTxsResponse {
+  repeated OutgoingTransferTx txs = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryLastObservedBlockHeightRequest {
