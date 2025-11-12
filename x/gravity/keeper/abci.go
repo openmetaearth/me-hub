@@ -85,7 +85,10 @@ func (k Keeper) relayerSetSlashing(ctx sdk.Context, relayers types.Relayers, sig
 			if _, ok := confirmRelayerMap[relayers[i].ExternalAddress]; !ok {
 				k.Logger(ctx).Info("slash relayer by relayer set", "relayerAddress", relayers[i].RelayerAddress,
 					"relayerSetNonce", relayerSet.Nonce, "relayerSetHeight", relayerSet.Height, "blockHeight", ctx.BlockHeight())
-				k.SlashRelayer(ctx, relayers[i].RelayerAddress)
+				err := k.SlashRelayer(ctx, relayers[i].RelayerAddress)
+				if err != nil {
+					k.Logger(ctx).Error("failed to slash relayer", "relayerAddress", relayers[i].RelayerAddress, "error", err)
+				}
 				hasSlash = true
 			}
 		}
@@ -112,7 +115,10 @@ func (k Keeper) batchSlashing(ctx sdk.Context, relayers types.Relayers, signedWi
 			if _, ok := confirmRelayerMap[relayers[i].ExternalAddress]; !ok {
 				k.Logger(ctx).Info("slash relayer by batch", "relayerAddress", relayers[i].RelayerAddress,
 					"batchNonce", batch.BatchNonce, "batchHeight", batch.Block, "blockHeight", ctx.BlockHeight())
-				k.SlashRelayer(ctx, relayers[i].RelayerAddress)
+				err := k.SlashRelayer(ctx, relayers[i].RelayerAddress)
+				if err != nil {
+					k.Logger(ctx).Error("failed to slash relayer", "relayerAddress", relayers[i].RelayerAddress, "error", err)
+				}
 				hasSlash = true
 			}
 		}

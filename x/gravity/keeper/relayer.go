@@ -151,19 +151,20 @@ func (k Keeper) GetAllRelayers(ctx sdk.Context, isOnline bool) (relayers types.R
 	return relayers
 }
 
-func (k Keeper) SlashRelayer(ctx sdk.Context, relayerAddrStr string) {
+func (k Keeper) SlashRelayer(ctx sdk.Context, relayerAddrStr string) error {
 	relayerAddr := sdk.MustAccAddressFromBech32(relayerAddrStr)
 	relayer, found := k.GetRelayer(ctx, relayerAddr)
 	if !found {
-		panic(types.ErrNotFoundRelayer)
+		return types.ErrNotFoundRelayer
 	}
 	if !relayer.Online {
-		return
+		return nil
 	}
 	relayer.Online = false
 	relayer.SlashTimes += 1
 	k.SetRelayer(ctx, relayerAddr, relayer)
 	k.SetLastRelayerSlashBlockHeight(ctx, uint64(ctx.BlockHeight()))
+	return nil
 }
 
 // SetLastRelayerSlashBlockHeight sets the last proposal block height
