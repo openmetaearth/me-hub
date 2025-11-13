@@ -211,6 +211,14 @@ func (k RouterKeeper) BatchFees(c context.Context, req *types.QueryBatchFeeReque
 	}
 }
 
+func (k RouterKeeper) ClaimsByEventNonce(c context.Context, req *types.QueryClaimsByEventNonceRequest) (*types.QueryClaimsByEventNonceResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.ClaimsByEventNonce(c, req)
+	}
+}
+
 func (k RouterKeeper) BridgeChainList(c context.Context, req *types.QueryBridgeChainListRequest) (*types.QueryBridgeChainListResponse, error) {
 	if queryServer, err := k.getQueryServerByChainName(bsctypes.ModuleName); err != nil {
 		return nil, err

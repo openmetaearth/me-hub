@@ -373,3 +373,12 @@ func (k QueryServer) BatchFees(c context.Context, req *types.QueryBatchFeeReques
 	allBatchFees := k.GetAllBatchFees(sdk.UnwrapSDKContext(c), types.MaxResults, req.MinBatchFees)
 	return &types.QueryBatchFeeResponse{BatchFees: allBatchFees}, nil
 }
+
+func (k QueryServer) ClaimsByEventNonce(c context.Context, req *types.QueryClaimsByEventNonceRequest) (*types.QueryClaimsByEventNonceResponse, error) {
+	attestations := []types.Attestation{}
+	k.IterateAttestationsByNonce(sdk.UnwrapSDKContext(c), req.EventNonce, func(attestation *types.Attestation) bool {
+		attestations = append(attestations, *attestation)
+		return false
+	})
+	return &types.QueryClaimsByEventNonceResponse{Claims: attestations}, nil
+}

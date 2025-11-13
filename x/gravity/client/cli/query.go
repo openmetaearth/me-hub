@@ -70,6 +70,7 @@ func getQuerySubCmds(chainName string) []*cobra.Command {
 		CmdGetRelayerEventNonce(chainName),
 		CmdGetRelayerEventBlockHeight(chainName),
 		CmdGetLastObservedEventNonce(chainName),
+		CmdClaims(chainName),
 	}
 
 	for _, command := range cmds {
@@ -777,6 +778,35 @@ func CmdGetBridgeCoinByDenom(chainName string) *cobra.Command {
 				ChainName:       chainName,
 				Denom:           denom,
 				ContractAddress: contract,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdClaims(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "claims [event-nonce]",
+		Short: "Query bridge coin from contract address",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			eventNonce, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+			res, err := queryClient.ClaimsByEventNonce(cmd.Context(), &types.QueryClaimsByEventNonceRequest{
+				ChainName:  chainName,
+				EventNonce: eventNonce,
 			})
 			if err != nil {
 				return err

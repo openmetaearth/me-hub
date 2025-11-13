@@ -172,6 +172,22 @@ func (k Keeper) IterateAttestationAndClaim(ctx sdk.Context, cb func(*types.Attes
 }
 
 // IterateAttestations iterates through all attestations
+func (k Keeper) IterateAttestationsByNonce(ctx sdk.Context, nonce uint64, cb func(*types.Attestation) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.GetAttestationKeyByNonce(nonce))
+	defer iter.Close()
+
+	for ; iter.Valid(); iter.Next() {
+		att := new(types.Attestation)
+		k.cdc.MustUnmarshal(iter.Value(), att)
+		// cb returns true to stop early
+		if cb(att) {
+			return
+		}
+	}
+}
+
+// IterateAttestations iterates through all attestations
 func (k Keeper) IterateAttestations(ctx sdk.Context, cb func(*types.Attestation) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.RelayerAttestationKey)

@@ -133,6 +133,10 @@ func GetAttestationKey(eventNonce uint64, claimHash []byte) []byte {
 	return append(RelayerAttestationKey, append(sdk.Uint64ToBigEndian(eventNonce), claimHash...)...)
 }
 
+func GetAttestationKeyByNonce(eventNonce uint64) []byte {
+	return append(RelayerAttestationKey, append(sdk.Uint64ToBigEndian(eventNonce))...)
+}
+
 // GetOutgoingTxPoolContractPrefix returns the following key format
 // This prefix is used for iterating over unbatched transactions for a given contract
 func GetOutgoingTxPoolContractPrefix(tokenContract string) []byte {
