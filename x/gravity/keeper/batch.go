@@ -74,6 +74,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprint(nextID)),
 		sdk.NewAttribute(types.AttributeKeyOutgoingTxIds, eventBatchNonceTxIds.String()),
 		sdk.NewAttribute(types.AttributeKeyOutgoingBatchTimeout, fmt.Sprint(batch.BatchTimeout)),
+		sdk.NewAttribute(types.AttributeKeyTokenContract, contractAddress),
 	)
 	ctx.EventManager().EmitEvent(batchEvent)
 	return batch, nil
@@ -199,6 +200,8 @@ func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, contractAddress string, b
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOutgoingBatchCanceled,
+		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		sdk.NewAttribute(types.AttributeKeyTokenContract, contractAddress),
 		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprint(batchNonce)),
 	))
 	return nil
