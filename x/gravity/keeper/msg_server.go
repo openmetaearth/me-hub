@@ -34,11 +34,11 @@ func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer)
 	}
 	// check relayer address is not existed
 	if _, found := s.GetRelayer(ctx, relayerAddress); found {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "relayer existed bridger address")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "relayer already bonded")
 	}
 	// check external address is bound to relayer
 	if _, found := s.GetRelayerByExternalAddress(ctx, msg.ExternalAddress); found {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "external address is bound to relayer")
+		return nil, errorsmod.Wrap(types.ErrInvalid, "external already bonded")
 	}
 	minThreshold := s.GetGravityMinDelegate(ctx)
 	relayer := types.Relayer{
@@ -199,7 +199,7 @@ func (s MsgServer) RelayerSetConfirm(c context.Context, msg *types.MsgRelayerSet
 
 	// check if we already have this confirm
 	if s.GetRelayerSetConfirm(ctx, msg.Nonce, relayerAddress) != nil {
-		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
+		return nil, types.ErrDuplicateRelayerConfirms
 	}
 
 	s.SetRelayerSetConfirm(ctx, relayerAddress, msg)
@@ -223,7 +223,7 @@ func (s MsgServer) RelayerSetUpdateClaim(c context.Context, msg *types.MsgRelaye
 
 	for _, member := range msg.Members {
 		if _, found := s.GetRelayerByExternalAddress(ctx, member.ExternalAddress); !found {
-			return nil, errorsmod.Wrap(types.ErrInvalid, "external address")
+			return nil, errorsmod.Wrapf(types.ErrInvalid, "external address not exist %s", member.ExternalAddress)
 		}
 	}
 
@@ -327,7 +327,7 @@ func (s MsgServer) ConfirmBatch(c context.Context, msg *types.MsgConfirmBatch) (
 
 	// check if we already have this confirm
 	if s.GetBatchConfirm(ctx, msg.TokenContract, msg.Nonce, relayerAddress) != nil {
-		return nil, errorsmod.Wrap(types.ErrDuplicate, "signature")
+		return nil, types.ErrDuplicateRelayerConfirms
 	}
 
 	s.SetBatchConfirm(ctx, relayerAddress, msg)

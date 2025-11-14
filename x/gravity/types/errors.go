@@ -20,4 +20,5 @@ var (
 	ErrDelegateAmountBelowMinimum  = errorsmod.Register(ModuleName, 12, "delegate amount must be greater than relayer stake threshold")
 	ErrDelegateAmountAboveMaximum  = errorsmod.Register(ModuleName, 13, "delegate amount must be less than relayer stake threshold")
 	ErrMaxChangePowerLimitExceeded = errorsmod.Register(ModuleName, 14, "max change power limit exceeded")
+	ErrDuplicateRelayerConfirms    = errorsmod.Register(ModuleName, 15, "relayer already confirmed")
 )
