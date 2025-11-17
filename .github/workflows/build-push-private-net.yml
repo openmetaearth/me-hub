@@ -57,11 +57,9 @@ jobs:
                     TAG=build-temp \
                     GENESIS_ACCOUNTS="${{ env.GENESIS_ACCOUNTS }}"
 
-            # - name: Log in to Harbor Registry
-            #   run: |
-            #       echo "${{ secrets.HARBOR_PASSWORD }}" | docker login ${{ secrets.HARBOR_REGISTRY }} \
-            #         -u "${{ secrets.HARBOR_USERNAME }}" \
-            #         --password-stdin
+            - name: Log in to GitHub Container Registry
+              run: |
+                echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ secrets.GITHUB_REGISTRY }} -u "${{ github.actor }}" --password-stdin
 
             - name: Tag and push image
               run: |
@@ -76,6 +74,17 @@ jobs:
                   VERSION_LATEST="${{ secrets.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:latest_private_net"
                   docker tag me-hub/private-net:build-temp $VERSION_LATEST
                   docker push $VERSION_LATEST
+
+                  # Also push to GitHub Container Registry
+                  GITHUB_IMAGE="${{ secrets.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}_private_net"
+                  docker tag me-hub/private-net:build-temp $GITHUB_IMAGE
+                  echo "Pushing image to GitHub Container Registry..."
+                  docker push $GITHUB_IMAGE
+
+                  # Push GitHub latest tag
+                  GITHUB_LATEST="${{ secrets.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}:latest_private_net"
+                  docker tag me-hub/private-net:build-temp $GITHUB_LATEST
+                  docker push $GITHUB_LATEST
 
             - name: Verify image
               run: |
