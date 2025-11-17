@@ -1,10 +1,11 @@
 #!/bin/bash
 
 RelayerMnemonic="also dune road lumber jeans tiny float pulse escape must wheel gauge"
-CHAIN_ID=${CHAIN_ID:-"mechain_100-1"}
+CHAIN_ID=${CHAIN_ID:-"me-chain"}
 KEY_NAME=${KEY_NAME:-"global_dao"}
 KEYRING="test"
-CHAIN=${CHAIN:-"tron"}
+CHAIN=${CHAIN:-"bsc"}
+NodeUrl=${NodeUrl:-"http://118.175.0.230:26657/"}
 #CHAIN=${CHAIN:-"bsc"}
 
 if [ -z "$CHAIN" ]; then
@@ -62,9 +63,10 @@ bonded_relayer() {
 
 add_delegate() {
   get_relayers
-  med tx "$CHAIN" add-delegate 100000000umec --from r1 --chain-id "$CHAIN_ID" --keyring-backend $KEYRING -y --gas-prices 0.02umec --gas 500000
-  sleep 5
-  med q "$CHAIN" relayer $r1_address
+    for i in 1 2 3 4 5; do
+      eval "hexv=\$r${i}_hex"
+    med tx "$CHAIN" add-delegate 100000000umec --from r${i} --chain-id "$CHAIN_ID" --keyring-backend $KEYRING -y --gas-prices 0.02umec --gas 500000 --node $NodeUrl
+    done
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

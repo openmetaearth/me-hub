@@ -260,7 +260,7 @@ func CmdGetRelayerSetRequest(chainName string) *cobra.Command {
 
 func CmdGetLastRelayerSetRequests(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "last-relayer-set-requests",
+		Use:   "relayer-set-requests",
 		Short: "Query last relayer set requests",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
