@@ -2684,7 +2684,7 @@ paths:
           schema:
             type: object
             properties:
-              claims_by_event_nonce:
+              claims:
                 type: array
                 items:
                   type: object
@@ -69444,7 +69444,7 @@ definitions:
   metaearth.gravity.v1.QueryClaimsByEventNonceResponse:
     type: object
     properties:
-      claims_by_event_nonce:
+      claims:
         type: array
         items:
           type: object

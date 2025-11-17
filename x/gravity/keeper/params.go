@@ -65,3 +65,7 @@ func (k Keeper) GetMaxRelayers(ctx sdk.Context) uint64 {
 func (k Keeper) GetRelayerSetUpdatePowerChangePercent(ctx sdk.Context) sdk.Dec {
 	return k.GetParams(ctx).RelayerSetUpdatePowerChangePercent
 }
+
+func (k Keeper) MaxSlashTimes(ctx sdk.Context) uint64 {
+	return k.GetParams(ctx).MaxSlashTimes
+}

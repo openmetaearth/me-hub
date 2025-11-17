@@ -160,8 +160,10 @@ func (k Keeper) SlashRelayer(ctx sdk.Context, relayerAddrStr string) error {
 	if !relayer.Online {
 		return nil
 	}
-	relayer.Online = false
 	relayer.SlashTimes += 1
+	if uint64(relayer.SlashTimes) >= k.GetParams(ctx).MaxSlashTimes {
+		relayer.Online = false
+	}
 	k.SetRelayer(ctx, relayerAddr, relayer)
 	k.SetLastRelayerSlashBlockHeight(ctx, uint64(ctx.BlockHeight()))
 	return nil
