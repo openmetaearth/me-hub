@@ -27,7 +27,7 @@ const (
 	EventTypeRemoveRegion                     = "remove_region"
 	EventInviteReward                         = "invite_reward"
 	EventTypeUpdateValidator                  = "update_validator"
-	EventTypeUpdateValidatorPubkey			 = "update_validator_pubkey"
+	EventTypeUpdateValidatorPubkey            = "update_validator_pubkey"
 )
 
 const (
@@ -74,4 +74,5 @@ const (
 	AttributeKeyMeidNumAddReward          = "meid_number_add_reward"
 	AttributeKeyNewOwnerAddress           = "new_owner"
 	AttributeKeyNewValidator              = "new_validator"
+	AttributeKeyValidatorPubKey           = "validator_pubkey"
 )
