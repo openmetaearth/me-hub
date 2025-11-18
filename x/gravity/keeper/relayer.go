@@ -79,7 +79,7 @@ func (k Keeper) GetLastTotalPower(ctx sdk.Context) sdkmath.Int {
 	return ip.Int
 }
 
-// SetLastTotalPower Set the last total validator power.
+// SetLastTotalPower Set the last total relayer power.
 func (k Keeper) SetLastTotalPower(ctx sdk.Context) {
 	relayers := k.GetAllRelayers(ctx, true)
 	totalPower := sdkmath.ZeroInt()
@@ -152,7 +152,10 @@ func (k Keeper) GetAllRelayers(ctx sdk.Context, isOnline bool) (relayers types.R
 }
 
 func (k Keeper) SlashRelayer(ctx sdk.Context, relayerAddrStr string) error {
-	relayerAddr := sdk.MustAccAddressFromBech32(relayerAddrStr)
+	relayerAddr, err := sdk.AccAddressFromBech32(relayerAddrStr)
+	if err != nil {
+		return err
+	}
 	relayer, found := k.GetRelayer(ctx, relayerAddr)
 	if !found {
 		return types.ErrNotFoundRelayer

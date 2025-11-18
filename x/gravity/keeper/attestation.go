@@ -42,6 +42,13 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 		}
 	}
 
+	// Check if relayer already voted
+	for _, existingVote := range att.Votes {
+		if existingVote == relayerAddr.String() {
+			return nil, errorsmod.Wrap(types.ErrDuplicate, "relayer already voted on this attestation")
+		}
+	}
+
 	// Add the relayer's vote to this attestation
 	att.Votes = append(att.Votes, relayerAddr.String())
 	k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
@@ -68,7 +75,11 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 	attestationPower := sdkmath.NewInt(0)
 
 	for _, relayerStr := range att.Votes {
-		relayerAddr := sdk.MustAccAddressFromBech32(relayerStr)
+		relayerAddr, err := sdk.AccAddressFromBech32(relayerStr)
+		if err != nil {
+			k.Logger(ctx).Error("TryAttestation", "invalid relayer address", relayerStr, "error", err)
+			continue
+		}
 		relayer, found := k.GetRelayer(ctx, relayerAddr)
 		if !found {
 			k.Logger(ctx).Error("TryAttestation", "not found relayer", relayerAddr.String(), "claimEventNonce",
@@ -88,7 +99,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		att.Observed = true
 		k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
-		err := k.processAttestation(ctx, claim)
+		err = k.processAttestation(ctx, claim)
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeContractEvent,
 			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
@@ -265,7 +276,7 @@ func (k Keeper) GetLastEventNonceByRelayer(ctx sdk.Context, relayerAddr sdk.AccA
 	return sdk.BigEndianToUint64(bytes)
 }
 
-// DelLastEventNonceByGravity delete the latest event nonce for a given relayer
+// DelLastEventNonceByRelayer delete the latest event nonce for a given relayer
 func (k Keeper) DelLastEventNonceByRelayer(ctx sdk.Context, relayerAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetLastEventNonceByRelayerKey(relayerAddr)
@@ -275,7 +286,7 @@ func (k Keeper) DelLastEventNonceByRelayer(ctx sdk.Context, relayerAddr sdk.AccA
 	store.Delete(key)
 }
 
-// SetLastEventNonceByGravity sets the latest event nonce for a give relayer
+// SetLastEventNonceByRelayer sets the latest event nonce for a give relayer
 func (k Keeper) SetLastEventNonceByRelayer(ctx sdk.Context, relay sdk.AccAddress, eventNonce uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetLastEventNonceByRelayerKey(relay), sdk.Uint64ToBigEndian(eventNonce))

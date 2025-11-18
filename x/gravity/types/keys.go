@@ -53,10 +53,10 @@ var (
 	SequenceKeyPrefix = []byte{0x25}
 
 	// KeyLastTxPoolID indexes the lastTxPoolID
-	KeyLastTxPoolID = append(SequenceKeyPrefix, []byte("lastTxPoolId")...)
+	KeyLastTxPoolID = append(append([]byte(nil), SequenceKeyPrefix...), []byte("lastTxPoolId")...)
 
 	// KeyLastOutgoingBatchID indexes the lastBatchID
-	KeyLastOutgoingBatchID = append(SequenceKeyPrefix, []byte("lastBatchId")...)
+	KeyLastOutgoingBatchID = append(append([]byte(nil), SequenceKeyPrefix...), []byte("lastBatchId")...)
 
 	// BridgeTokenByContract prefixes the index of asset denom to external token
 	BridgeTokenByContractKey = []byte{0x26}

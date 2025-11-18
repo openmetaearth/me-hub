@@ -71,6 +71,7 @@ func getQuerySubCmds(chainName string) []*cobra.Command {
 		CmdGetRelayerEventBlockHeight(chainName),
 		CmdGetLastObservedEventNonce(chainName),
 		CmdClaims(chainName),
+		CmdBridgeChainList(),
 	}
 
 	for _, command := range cmds {
@@ -791,7 +792,7 @@ func CmdGetBridgeCoinByDenom(chainName string) *cobra.Command {
 func CmdClaims(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "claims [event-nonce]",
-		Short: "Query bridge coin from contract address",
+		Short: "Query claims by event nonce",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -808,6 +809,27 @@ func CmdClaims(chainName string) *cobra.Command {
 				ChainName:  chainName,
 				EventNonce: eventNonce,
 			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdBridgeChainList() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "chain-list",
+		Short: "Query claims by event nonce",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.BridgeChainList(cmd.Context(), &types.QueryBridgeChainListRequest{})
 			if err != nil {
 				return err
 			}
