@@ -4,6 +4,8 @@ import (
 	gomath "math"
 
 	"cosmossdk.io/math"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -23,8 +25,10 @@ const (
 	TypeMsgWithdrawFromRegion                = "withdraw_from_region"
 	TypeMsgWithdrawFromGlobalDaoFeePool      = "withdraw_from_global_dao_fee_pool"
 	TypeMsgResetValidator                    = "create_validator"
-	TypeMsgNewMeid                           = "new_meid"
-	TypeMsgRemoveMeid                        = "remove_meid"
+
+	TypeMsgUpdateValidatorPubkey = "update_validator_pubkey"
+	TypeMsgNewMeid               = "new_meid"
+	TypeMsgRemoveMeid            = "remove_meid"
 )
 
 var (
@@ -35,7 +39,53 @@ var (
 	_ sdk.Msg = &MsgWithdrawDelegatorReward{}
 	_ sdk.Msg = &MsgWithdrawFromRegion{}
 	_ sdk.Msg = &MsgWithdrawFromGlobalDaoFeePool{}
+	_ sdk.Msg = &MsgUpdateValidatorPubkey{}
 )
+
+func NewMsgUpdateValidatorPubkey(stakerAddr string, operatorAddr string, pkAny *codectypes.Any) *MsgUpdateValidatorPubkey {
+	return &MsgUpdateValidatorPubkey{
+		StakerAddress:   stakerAddr,
+		OperatorAddress: operatorAddr,
+		Pubkey:          pkAny,
+	}
+}
+
+func (msg MsgUpdateValidatorPubkey) Route() string { return RouterKey }
+
+func (msg MsgUpdateValidatorPubkey) Type() string { return TypeMsgUpdateValidatorPubkey }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgUpdateValidatorPubkey) GetSigners() []sdk.AccAddress {
+	staker, _ := sdk.AccAddressFromBech32(msg.StakerAddress)
+	return []sdk.AccAddress{staker}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgUpdateValidatorPubkey) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgUpdateValidatorPubkey) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.StakerAddress); err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid staker address: %s", err)
+	}
+
+	if _, err := sdk.ValAddressFromBech32(msg.OperatorAddress); err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid operator address: %s", err)
+	}
+
+	if msg.Pubkey == nil {
+		return sdkerrors.ErrInvalidRequest.Wrap("pubkey cannot be nil")
+	}
+	return nil
+}
+
+func (msg MsgUpdateValidatorPubkey) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(msg.Pubkey, &pubKey)
+}
 
 // NewMsgStake creates a new MsgStake instance.
 //

@@ -49,6 +49,7 @@ func NewTxCmd() *cobra.Command {
 		NewCreateValidatorCmd(),
 		NewCreateExperienceNodeCmd(),
 		NewUpdateValidatorCmd(),
+		NewUpdateValidatorPubkeyCmd(),
 		NewUnstakeCmd(),
 		NewStakeCmd(),
 		CmdNewRegion(),
@@ -70,6 +71,54 @@ func NewTxCmd() *cobra.Command {
 	)
 
 	return stakingTxCmd
+}
+
+func NewUpdateValidatorPubkeyCmd() *cobra.Command {
+	bech32PrefixValAddr := sdk.GetConfig().GetBech32ValidatorAddrPrefix()
+	cmd := &cobra.Command{
+		Use:   "update-validator-pubkey [validator-operator-addr] ",
+		Args:  cobra.ExactArgs(1),
+		Short: "update an existing validator pubkey",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Update an existing validator pubkey.
+
+Example:
+$ %s tx staking update-validator-pubkey %s1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm  --pubkey '<pubkey_json> --from mykey'
+`, version.AppName, bech32PrefixValAddr)),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			staker := clientCtx.GetFromAddress()
+
+			operatorAddress := args[0]
+			fs := cmd.Flags()
+			pkStr, err := fs.GetString(FlagPubKey)
+			if err != nil {
+				return err
+			}
+			var pk cryptotypes.PubKey
+			if err := clientCtx.Codec.UnmarshalInterfaceJSON([]byte(pkStr), &pk); err != nil {
+				return err
+			}
+			pkAny, err := codectypes.NewAnyWithValue(pk)
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgUpdateValidatorPubkey(staker.String(), operatorAddress, pkAny)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	cmd.Flags().AddFlagSet(FlagSetPublicKey())
+	flags.AddTxFlagsToCmd(cmd)
+	_ = cmd.MarkFlagRequired(FlagPubKey)
+
+	return cmd
 }
 
 // NewCreateValidatorCmd returns a CLI command handler for creating a MsgCreateValidator transaction.

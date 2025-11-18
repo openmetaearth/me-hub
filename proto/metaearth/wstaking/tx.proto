@@ -22,6 +22,7 @@ service Msg {
   rpc Stake(MsgStake) returns (MsgStakeResponse);
   rpc Unstake(MsgUnstake) returns (MsgUnstakeResponse);
 
+  rpc UpdateValidatorPubkey(MsgUpdateValidatorPubkey) returns (MsgUpdateValidatorPubkeyResponse);
   rpc UpdateValidator(MsgUpdateValidator) returns (MsgUpdateValidatorResponse);
 
   //  rpc CurrentDeposit(MsgCurrentDeposit) returns (MsgCurrentDepositResponse);
@@ -53,6 +54,19 @@ service Msg {
   rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
   rpc IbcTransferFromRegionTreasure(MsgIbcTransferFromRegionTreasure) returns (MsgIbcTransferFromRegionTreasureResponse);
 }
+
+message MsgUpdateValidatorPubkey {
+  option (cosmos.msg.v1.signer) = "staker_address";
+  option (amino.name) = "cosmos-sdk/MsgUpdateValidatorPubkey";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  string staker_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string operator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  google.protobuf.Any pubkey = 3 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+}
+
+message MsgUpdateValidatorPubkeyResponse {}
 
 // MsgUpdateValidator defines a SDK message for editing an existing validator.
 message MsgUpdateValidator {

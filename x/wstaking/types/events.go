@@ -27,6 +27,7 @@ const (
 	EventTypeRemoveRegion                     = "remove_region"
 	EventInviteReward                         = "invite_reward"
 	EventTypeUpdateValidator                  = "update_validator"
+	EventTypeUpdateValidatorPubkey			 = "update_validator_pubkey"
 )
 
 const (
