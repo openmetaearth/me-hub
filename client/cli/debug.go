@@ -49,6 +49,7 @@ func Debug() *cobra.Command {
 		PubkeyCmd(),
 		AddrCmd(),
 		debug.RawBytesCmd(),
+		ConvertTronAddrCmd(),
 	)
 	cmd.PersistentFlags().StringP(tmcli.OutputFlag, "o", "json", "Output format (text|json)")
 	return cmd
@@ -376,5 +377,55 @@ func AddrCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringP("prefix", "p", "me", "Bech32 Prefix to encode to")
+	return cmd
+}
+
+func ConvertTronAddrCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "tron-addr-convert [tron-base58-address]",
+		Short: "Convert a Tron Base58 address to its corresponding Ethereum and Cosmos addresses",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			tronAddr := args[0]
+
+			// Tron addresses are Base58Check encoded. The decoded payload is 21 bytes:
+			// 1-byte prefix (0x41) + 20-byte address.
+			// The btcsuite/btcutil/base58 library's CheckDecode function handles this by
+			// returning the 20-byte address as the payload and the 0x41 prefix as the version.
+			addressBytes, version, err := base58.CheckDecode(tronAddr)
+			if err != nil {
+				return fmt.Errorf("failed to decode base58 check address: %w", err)
+			}
+
+			// Validate the Tron address prefix (0x41) and length (20 bytes for the address itself).
+			const tronAddressPrefix = 0x41
+			if version != tronAddressPrefix || len(addressBytes) != 20 {
+				return fmt.Errorf("invalid tron address format: incorrect version or length")
+			}
+
+			// Convert to Ethereum address
+			ethAddress := gethcommon.BytesToAddress(addressBytes)
+
+			// Convert to Cosmos address (using the default 'me' prefix from the context)
+			cosmosAddress, err := bech32.ConvertAndEncode("me", addressBytes)
+			if err != nil {
+				return fmt.Errorf("failed to encode cosmos address: %w", err)
+			}
+
+			output := map[string]string{
+				"tron_address": tronAddr,
+				"eth_address":  ethAddress.Hex(), // Checksummed address
+				"me_address":   cosmosAddress,
+			}
+
+			result, err := json.MarshalIndent(output, "", "  ")
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintString(string(result))
+		},
+	}
 	return cmd
 }

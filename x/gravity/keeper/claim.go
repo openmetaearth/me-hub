@@ -41,11 +41,11 @@ func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, relayerAddr sdk.AccAddr
 
 	if s.moduleName == trontypes.ModuleName {
 		if err = trontypes.ValidateTronSignature(checkpoint, sigBytes, relayer.ExternalAddress); err != nil {
-			return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", relayer.ExternalAddress, hex.EncodeToString(checkpoint), signature))
+			return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s and sig %s", relayer.ExternalAddress, hex.EncodeToString(checkpoint), signature))
 		}
 	} else {
 		if err = types.ValidateEthereumSignature(checkpoint, sigBytes, relayer.ExternalAddress); err != nil {
-			return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s", relayer.ExternalAddress, hex.EncodeToString(checkpoint), signature))
+			return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s and sig %s", relayer.ExternalAddress, hex.EncodeToString(checkpoint), signature))
 		}
 	}
 	return nil
