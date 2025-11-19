@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/st-chain/me-hub/utils"
 	"strings"
 
@@ -50,6 +51,7 @@ func Debug() *cobra.Command {
 		AddrCmd(),
 		debug.RawBytesCmd(),
 		ConvertTronAddrCmd(),
+		ShowAddressCmd(),
 	)
 	cmd.PersistentFlags().StringP(tmcli.OutputFlag, "o", "json", "Output format (text|json)")
 	return cmd
@@ -361,14 +363,20 @@ func AddrCmd() *cobra.Command {
 				}
 			}
 
-			convertedAddress, err := bech32.ConvertAndEncode(bech32prefix, addr)
+			meAddress, err := bech32.ConvertAndEncode(bech32prefix, addr)
 			if err != nil {
 				return err
 			}
+
+			// Tron address prefix is 0x41
+			const tronAddressPrefix = 0x41
+			tronAddress := base58.CheckEncode(addr, tronAddressPrefix)
+
 			raw, err := json.Marshal(map[string]interface{}{
 				"base64": addr,
 				"hex":    utils.ToChecksummed(addr),
-				"bech32": convertedAddress,
+				"bech32": meAddress,
+				"tron":   tronAddress,
 			})
 			if err != nil {
 				return err
@@ -417,6 +425,58 @@ func ConvertTronAddrCmd() *cobra.Command {
 				"tron_address": tronAddr,
 				"eth_address":  ethAddress.Hex(), // Checksummed address
 				"me_address":   cosmosAddress,
+			}
+
+			result, err := json.MarshalIndent(output, "", "  ")
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintString(string(result))
+		},
+	}
+	return cmd
+}
+
+func ShowAddressCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "show-address [private-key-hex]",
+		Short: "Derive public key and addresses (Tron, ME, ETH) from a private key",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+
+			// Decode the private key from hex
+			privKey, err := crypto.HexToECDSA(args[0])
+			if err != nil {
+				return fmt.Errorf("failed to decode private key: %w", err)
+			}
+
+			// Get the public key
+			pubKey := privKey.PublicKey
+			pubKeyBytes := crypto.FromECDSAPub(&pubKey)
+
+			// Get the address from the public key
+			addrBytes := crypto.PubkeyToAddress(pubKey).Bytes()
+
+			// Convert to ME address
+			meAddress, err := bech32.ConvertAndEncode("me", addrBytes)
+			if err != nil {
+				return fmt.Errorf("failed to encode ME address: %w", err)
+			}
+
+			// Convert to Tron address
+			const tronAddressPrefix = 0x41
+			tronAddress := base58.CheckEncode(addrBytes, tronAddressPrefix)
+
+			// Convert to Ethereum address
+			ethAddress := gethcommon.BytesToAddress(addrBytes)
+
+			output := map[string]string{
+				"public_key_hex": hex.EncodeToString(pubKeyBytes),
+				"eth_address":    ethAddress.Hex(),
+				"me_address":     meAddress,
+				"tron_address":   tronAddress,
 			}
 
 			result, err := json.MarshalIndent(output, "", "  ")
