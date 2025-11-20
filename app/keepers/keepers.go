@@ -2,6 +2,7 @@ package keepers
 
 import (
 	"fmt"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"path/filepath"
 	"strings"
 
@@ -103,7 +104,6 @@ import (
 	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	wdistrkeeper "github.com/st-chain/me-hub/x/wdistri/keeper"
-	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 	wgovkeeper "github.com/st-chain/me-hub/x/wgov/keeper"
 	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
 	wnftkeeper "github.com/st-chain/me-hub/x/wnft/keeper"
@@ -275,8 +275,8 @@ func (a *AppKeepers) InitKeepers(
 
 	a.DistrKeeper = wdistrkeeper.NewKeeper(
 		appCodec,
-		a.keys[wdistrtypes.StoreKey],
-		a.GetSubspace(wdistrtypes.ModuleName),
+		a.keys[distrtypes.StoreKey],
+		a.GetSubspace(distrtypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.StakingKeeper,
@@ -645,7 +645,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(banktypes.ModuleName)
 	paramsKeeper.Subspace(stakingtypes.ModuleName)
 	paramsKeeper.Subspace(minttypes.ModuleName)
-	paramsKeeper.Subspace(wdistrtypes.ModuleName)
+	paramsKeeper.Subspace(distrtypes.ModuleName)
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName)

@@ -1,11 +1,11 @@
 package keeper
 
 import (
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	"testing"
 
 	"github.com/st-chain/me-hub/x/wdistri/keeper"
-	"github.com/st-chain/me-hub/x/wdistri/types"
 
 	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
@@ -20,7 +20,7 @@ import (
 )
 
 func WdistriKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
-	storeKey := sdk.NewKVStoreKey(types.StoreKey)
+	storeKey := sdk.NewKVStoreKey(distributiontypes.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey("transient")
 
 	db := tmdb.NewMemDB()
@@ -33,7 +33,7 @@ func WdistriKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	cdc := codec.NewProtoCodec(registry)
 
 	paramsSubspace := typesparams.NewSubspace(cdc,
-		types.Amino,
+		distributiontypes.ModuleCdc.LegacyAmino,
 		storeKey,
 		memStoreKey,
 		"WdistriParams",
@@ -52,7 +52,7 @@ func WdistriKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())
 
 	// Initialize params
-	k.SetParams(ctx, types.DefaultParams())
+	k.SetParams(ctx, distributiontypes.DefaultParams())
 
 	return k, ctx
 }

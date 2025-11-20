@@ -19,6 +19,7 @@ import (
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/evidence"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
@@ -63,7 +64,6 @@ import (
 	"github.com/st-chain/me-hub/x/wbank"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	wdistr "github.com/st-chain/me-hub/x/wdistri"
-	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 	"github.com/st-chain/me-hub/x/wgov"
 	"github.com/st-chain/me-hub/x/wmint"
 	"github.com/st-chain/me-hub/x/wnft"
@@ -109,7 +109,7 @@ func (a *AppKeepers) SetupModules(
 		wgov.NewAppModule(appCodec, a.GovKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(govtypes.ModuleName)),
 		wmint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil, a.GetSubspace(minttypes.ModuleName)),
 		slashing.NewAppModule(appCodec, a.SlashingKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(slashingtypes.ModuleName)),
-		wdistr.NewAppModule(appCodec, *a.DistrKeeper, a.AccountKeeper, a.BankKeeper),
+		wdistr.NewAppModule(appCodec, *a.DistrKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(distrtypes.ModuleName)),
 		wstaking.NewAppModule(appCodec, a.StakingKeeper, a.TransferKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
 		upgrade.NewAppModule(a.UpgradeKeeper),
 		evidence.NewAppModule(a.EvidenceKeeper),
@@ -162,7 +162,7 @@ func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 // module account permissions
 var MaccPerms = map[string][]string{
 	authtypes.FeeCollectorName:                         nil,
-	wdistrtypes.ModuleName:                             nil,
+	distrtypes.ModuleName:                              nil,
 	wbanktypes.TreasuryPoolName:                        nil,
 	minttypes.ModuleName:                               {authtypes.Minter},
 	stakingtypes.BondedPoolName:                        {authtypes.Burner, authtypes.Staking},
@@ -190,7 +190,7 @@ var BeginBlockers = []string{
 	upgradetypes.ModuleName,
 	capabilitytypes.ModuleName,
 	minttypes.ModuleName,
-	wdistrtypes.ModuleName,
+	distrtypes.ModuleName,
 	slashingtypes.ModuleName,
 	evidencetypes.ModuleName,
 	stakingtypes.ModuleName,
@@ -234,7 +234,7 @@ var EndBlockers = []string{
 	authtypes.ModuleName,
 	authz.ModuleName,
 	banktypes.ModuleName,
-	wdistrtypes.ModuleName,
+	distrtypes.ModuleName,
 	feemarkettypes.ModuleName,
 	evmtypes.ModuleName,
 	slashingtypes.ModuleName,
@@ -272,7 +272,7 @@ var InitGenesis = []string{
 	authtypes.ModuleName,
 	authz.ModuleName,
 	banktypes.ModuleName,
-	wdistrtypes.ModuleName,
+	distrtypes.ModuleName,
 	daotypes.ModuleName,
 	stakingtypes.ModuleName,
 	vestingtypes.ModuleName,

@@ -39,14 +39,6 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/metaearth/wdistri/query.swagger.json",
-      "operationIds": {
-        "rename": {
-          "Params": "wDistriParams"
-        }
-      }
-    },
-    {
       "url": "./tmp-swagger-gen/metaearth/wnft/query.swagger.json",
       "operationIds": {
       }
