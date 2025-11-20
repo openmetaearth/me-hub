@@ -10,6 +10,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -37,7 +38,6 @@ import (
 	gourpTypes "github.com/st-chain/me-hub/x/megroup/types"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
-	wdistrtypes "github.com/st-chain/me-hub/x/wdistri/types"
 )
 
 // GenerateKeys generates new keys (KV Store, Transient store, and memory store).
@@ -101,7 +101,7 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	banktypes.StoreKey,
 	stakingtypes.StoreKey,
 	minttypes.StoreKey,
-	wdistrtypes.StoreKey,
+	distrtypes.StoreKey,
 	slashingtypes.StoreKey,
 	govtypes.StoreKey,
 	paramstypes.StoreKey,

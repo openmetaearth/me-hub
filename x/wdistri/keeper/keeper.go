@@ -9,6 +9,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distriKeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wdistri/types"
@@ -43,10 +44,6 @@ func NewKeeper(
 	feeCollectorName string,
 	authority string,
 ) *Keeper {
-	// set KeyTable if it has not already been set
-	if !ps.HasKeyTable() {
-		ps = ps.WithKeyTable(types.ParamKeyTable())
-	}
 	DistrKeeper := distriKeeper.NewKeeper(
 		cdc,
 		storeKey,
@@ -69,21 +66,25 @@ func NewKeeper(
 	}
 }
 
+func (k Keeper) GetTreasuryModuleAccount() string {
+	return k.feeCollectorName
+}
+
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s", distributiontypes.ModuleName))
 }
 
 func (k Keeper) AllocateBlockRewardEveryday(ctx sdk.Context, req abci.RequestEndBlock) error {
-	if ctx.BlockHeight()%oneDayTotalBlocks == 0 {
+	if ctx.BlockHeight()%types.OneDayTotalBlocks == 0 {
 		return k.AllocateBlockReward(ctx)
 	}
 	return nil
 }
 
 func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
-	feeCollectorAddr := k.authKeeper.GetModuleAddress(k.feeCollectorName)
-	totalMintCoin := k.bankKeeper.GetBalance(ctx, feeCollectorAddr, params.BaseDenom)
-	if totalMintCoin.Amount.IsZero() {
+	feeCollectorAddr := k.authKeeper.GetModuleAddress(k.GetTreasuryModuleAccount())
+	totalMintCoin := k.bankKeeper.GetAllBalances(ctx, feeCollectorAddr)
+	if totalMintCoin.AmountOf(params.BaseDenom).IsZero() {
 		ctx.Logger().Info("totalMintCoin is zero, no need to allocate reward")
 		return nil
 	}
@@ -98,10 +99,10 @@ func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 	}
 	for _, region := range regions {
 		// calculate every region coins: RegionShare * totalMintCoins / totalRegionShare
-		amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoin.Amount.ToLegacyDec()).Quo(totalRegionShareDec)
+		amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoin.AmountOf(params.BaseDenom).ToLegacyDec()).Quo(totalRegionShareDec)
 		regionAmount := amount.TruncateInt()
 		regionCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(regionAmount.Int64())))
-		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.feeCollectorName, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), regionCoins)
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.GetTreasuryModuleAccount(), sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), regionCoins)
 		if err != nil {
 			return err
 		}

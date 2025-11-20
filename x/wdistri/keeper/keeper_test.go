@@ -1,137 +1,159 @@
-package keeper
+package keeper_test
 
 import (
 	"fmt"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/golang/mock/gomock"
+	"github.com/st-chain/me-hub/app/apptesting"
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
+	"github.com/st-chain/me-hub/x/wdistri/types"
+	"github.com/st-chain/me-hub/x/wdistri/types/mock"
 	"testing"
 
 	"github.com/st-chain/me-hub/app/params"
-	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/st-chain/me-hub/testutil/mocks"
-	"github.com/st-chain/me-hub/x/wdistri/types"
-	"github.com/st-chain/me-hub/x/wdistri/types/mock_types"
+	"github.com/st-chain/me-hub/x/wdistri/keeper"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	tmtime "github.com/cometbft/cometbft/types/time"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/store"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/stretchr/testify/require"
 )
 
 type KeeperTestSuite struct {
-	suite.Suite
-	ctx            sdk.Context
-	wdistriKeeper  *Keeper
-	authKeeper     *mock_types.MockAccountKeeper
-	bankKeeper     *mock_types.MockBankKeeper
-	stakingKeeper  *mock_types.MockStakingKeeper
-	queryClient    types.QueryClient
-	msgServer      types.MsgServer
-	encCfg         moduletestutil.TestEncodingConfig
-	paramsSubspace typesparams.Subspace
+	apptesting.KeeperTestHelper
+
+	queryClient         distrtypes.QueryClient
+	meEarthValidator    stakingtypes.Validator
+	experienceValidator stakingtypes.Validator
+	usaValidator        stakingtypes.Validator
+	TestAccs            []sdk.AccAddress
+
+	authKeeper    *mock.MockAccountKeeper
+	bankKeeper    *mock.MockBankKeeper
+	stakingKeeper *mock.MockStakingKeeper
 }
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
-	t := suite.T()
-	storeKey := sdk.NewKVStoreKey(types.StoreKey)
-	memStoreKey := storetypes.NewMemoryStoreKey("transient")
-	db := tmdb.NewMemDB()
-	stateStore := store.NewCommitMultiStore(db)
-	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
-	stateStore.MountStoreWithDB(memStoreKey, storetypes.StoreTypeMemory, nil)
-	require.NoError(t, stateStore.LoadLatestVersion())
-	registry := codectypes.NewInterfaceRegistry()
-	cdc := codec.NewProtoCodec(registry)
-	paramsSubspace := typesparams.NewSubspace(cdc,
-		types.Amino,
-		storeKey,
-		memStoreKey,
-		"WdistriParams",
-	)
+func (s *KeeperTestSuite) Keeper() *keeper.Keeper {
+	return s.App.DistrKeeper
+}
 
-	ctx := sdk.NewContext(stateStore, tmproto.Header{Time: tmtime.Now()}, false, log.NewNopLogger())
-	encCfg := moduletestutil.MakeTestEncodingConfig()
+func (s *KeeperTestSuite) SetupTest() {
+	app := apptesting.Setup(s.T(), false)
+	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
-	// gomock initializations
+	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
+	nativeQuerier := distrkeeper.Querier{Keeper: app.DistrKeeper.Keeper}
+	distrtypes.RegisterQueryServer(queryHelper, nativeQuerier)
+	queryClient := distrtypes.NewQueryClient(queryHelper)
+	s.queryClient = queryClient
 
-	authKeeper := mock_types.NewMockAccountKeeper(t)
-	authKeeper.EXPECT().GetModuleAddress(types.ModuleName).Return(authtypes.NewModuleAddress(types.ModuleName))
-	bankKeeper := mock_types.NewMockBankKeeper(t)
-	stakingKeeper := mock_types.NewMockStakingKeeper(t)
+	s.App = app
+	s.Ctx = ctx
 
-	suite.ctx = ctx
-	suite.encCfg = encCfg
-	suite.paramsSubspace = paramsSubspace
-	suite.authKeeper = authKeeper
-	suite.bankKeeper = bankKeeper
-	suite.stakingKeeper = stakingKeeper
-	queryHelper := baseapp.NewQueryServerTestHelper(ctx, encCfg.InterfaceRegistry)
-	suite.queryClient = types.NewQueryClient(queryHelper)
-	suite.wdistriKeeper = NewKeeper(
-		cdc,
-		storeKey,
-		paramsSubspace,
-		suite.authKeeper,
-		suite.bankKeeper,
-		suite.stakingKeeper,
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+	s.authKeeper = mock.NewMockAccountKeeper(ctrl)
+	s.authKeeper.EXPECT().GetModuleAddress(distrtypes.ModuleName).Return(authtypes.NewModuleAddress(distrtypes.ModuleName))
+	s.bankKeeper = mock.NewMockBankKeeper(ctrl)
+	s.stakingKeeper = mock.NewMockStakingKeeper(ctrl)
+
+	s.App.DistrKeeper = keeper.NewKeeper(
+		s.App.AppCodec(),
+		s.App.GetKey(distrtypes.StoreKey),
+		s.App.GetSubspace(distrtypes.ModuleName),
+		s.authKeeper,
+		s.bankKeeper,
+		s.stakingKeeper,
 		wbanktypes.TreasuryPoolName,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
-	suite.msgServer = NewMsgServerImpl(*suite.wdistriKeeper)
+
+	s.InitializeDao()
+
+	//validators := s.Keeper().GetValidators(s.Ctx, 10)
+	//s.Require().True(len(validators) >= 3)
+	//s.meEarthValidator = validators[0]
+	//s.experienceValidator = validators[1]
+	//s.usaValidator = validators[2]
+
+	s.TestAccs = s.NewAccounts(3)
 }
 
-func (suite *KeeperTestSuite) TestGetAuthority() {
-	storeKey := sdk.NewKVStoreKey(types.StoreKey)
-
-	NewKeeperWithAuthority := func(authority string) *Keeper {
-		return NewKeeper(
-			suite.encCfg.Codec,
-			storeKey,
-			suite.paramsSubspace,
-			suite.authKeeper,
-			suite.bankKeeper,
-			suite.stakingKeeper,
-			wbanktypes.TreasuryPoolName,
-			authority,
-		)
+func (s *KeeperTestSuite) TestGetAuthority() {
+	testsCases := []struct {
+		name     string
+		expected string
+		success  bool
+	}{
+		{
+			name:     "invalid account",
+			expected: "cosmos139f7kncmglres2nf3h4hc4tade85ekfr8sulz5",
+			success:  false,
+		},
+		{
+			name:     "valid account",
+			expected: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			success:  true,
+		},
 	}
 
-	tests := map[string]string{
-		"some random account": "cosmos139f7kncmglres2nf3h4hc4tade85ekfr8sulz5",
-		"gov module account":  authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	}
-
-	for name, expected := range tests {
-		suite.T().Run(name, func(t *testing.T) {
-			kpr := NewKeeperWithAuthority(expected)
-			actual := kpr.GetAuthority()
-			suite.Require().Equal(expected, actual)
+	for _, testCase := range testsCases {
+		s.T().Run(testCase.name, func(t *testing.T) {
+			actual := s.App.DistrKeeper.GetAuthority()
+			if testCase.success {
+				s.Require().Equal(testCase.expected, actual)
+			} else {
+				s.Require().NotEqual(testCase.expected, actual)
+			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetTreasuryPool() {
-	err := suite.wdistriKeeper.Hooks().BeforeDelegationSharesModified(suite.ctx, sdk.AccAddress{}, sdk.ValAddress{})
-	assert.NoError(suite.T(), err)
+func (s *KeeperTestSuite) TestGetTreasuryModuleAccount() {
+	testsCases := []struct {
+		name     string
+		expected string
+		success  bool
+	}{
+		{
+			name:     "invalid account",
+			expected: "cosmos139f7kncmglres2nf3h4hc4tade85ekfr8sulz5",
+			success:  false,
+		},
+		{
+			name:     "valida account",
+			expected: wbanktypes.TreasuryPoolName,
+			success:  true,
+		},
+	}
+
+	for _, testCase := range testsCases {
+		s.T().Run(testCase.name, func(t *testing.T) {
+			actual := s.App.DistrKeeper.GetTreasuryModuleAccount()
+			if testCase.success {
+				s.Require().Equal(testCase.expected, actual)
+			} else {
+				s.Require().NotEqual(testCase.expected, actual)
+			}
+		})
+	}
 }
 
 func (suite *KeeperTestSuite) TestEndBlocker() {
@@ -150,37 +172,37 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 	}{
 		{
 			name:                "two region with equal share",
-			height:              oneDayTotalBlocks,
+			height:              types.OneDayTotalBlocks,
 			regionShares:        []int{1, 1},
 			regionWantGetReward: []int{684931507200000, 684931507200000}, // umec
 		},
 		{
 			name:                "one region should get all reward",
-			height:              oneDayTotalBlocks * 2,
+			height:              types.OneDayTotalBlocks * 2,
 			regionShares:        []int{1},
 			regionWantGetReward: []int{1369863014400000}, // umec
 		},
 		{
 			name:                "one region should get all reward",
-			height:              oneDayTotalBlocks * 3,
+			height:              types.OneDayTotalBlocks * 3,
 			regionShares:        []int{1, 2, 2},
 			regionWantGetReward: []int{273972602880000, 547945205760000, 547945205760000}, // umec
 		},
 		{
 			name:                "not trigger distribution",
-			height:              oneDayTotalBlocks / 2,
+			height:              types.OneDayTotalBlocks / 2,
 			regionShares:        []int{},
 			regionWantGetReward: []int{}, // umec
 		},
 		{
 			name:                "second year first day",
-			height:              366 * oneDayTotalBlocks,
+			height:              366 * types.OneDayTotalBlocks,
 			regionShares:        []int{1, 1},
 			regionWantGetReward: []int{342465753600000, 342465753600000}, // umec
 		},
 		{
 			name:                "second year first half of day",
-			height:              366*oneDayTotalBlocks + oneDayTotalBlocks/2,
+			height:              366*types.OneDayTotalBlocks + types.OneDayTotalBlocks/2,
 			regionShares:        []int{},
 			regionWantGetReward: []int{}, // umec
 		},
@@ -202,8 +224,10 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 			suite.SetMockGetBalance(ctx, sdk.NewInt(int64(totalWantReward)))
 		}
 		suite.setMockSendCoinsFromModuleToAccountExpect(ctx, wantReward...)
-		suite.wdistriKeeper.AllocateBlockRewardEveryday(ctx, abci.RequestEndBlock{Height: ctx.BlockHeight()})
+
+		err := suite.App.DistrKeeper.AllocateBlockRewardEveryday(ctx, abci.RequestEndBlock{Height: ctx.BlockHeight()})
 		events := ctx.EventManager().ABCIEvents()
+		suite.Require().NoError(err, "case %d: %s", index, testcase.name)
 		assert.Equal(suite.T(), len(addrs), len(events))
 	}
 	for i := range testsCases {
@@ -231,13 +255,15 @@ func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int
 	suite.stakingKeeper.EXPECT().GetAllRegionI(ctx).Return(regions)
 	return addrs
 }
-func (suite *KeeperTestSuite) SetMockGetBalance(ctx sdk.Context, fee sdkmath.Int) {
-	acc := authtypes.NewModuleAddress(suite.wdistriKeeper.feeCollectorName)
-	suite.authKeeper.EXPECT().GetModuleAddress(suite.wdistriKeeper.feeCollectorName).Return(acc)
-	suite.bankKeeper.EXPECT().GetBalance(ctx, acc, params.BaseDenom).Return(sdk.NewCoin(params.BaseDenom, fee))
+
+func (suite *KeeperTestSuite) SetMockGetBalance(ctx sdk.Context, amount sdkmath.Int) {
+	acc := authtypes.NewModuleAddress(suite.App.DistrKeeper.GetTreasuryModuleAccount())
+	suite.authKeeper.EXPECT().GetModuleAddress(suite.App.DistrKeeper.GetTreasuryModuleAccount()).Return(acc)
+	suite.bankKeeper.EXPECT().GetAllBalances(ctx, acc).Return(sdk.NewCoins(sdk.NewCoin(params.BaseDenom, amount)))
 }
+
 func (suite *KeeperTestSuite) HelperNewContextWith(height int64) sdk.Context {
-	return sdk.NewContext(suite.ctx.MultiStore(), tmproto.Header{Time: tmtime.Now(), Height: height}, false, log.NewNopLogger())
+	return sdk.NewContext(suite.Ctx.MultiStore(), tmproto.Header{Time: tmtime.Now(), Height: height}, false, log.NewNopLogger())
 }
 
 type coinAndAddr struct {
@@ -251,7 +277,7 @@ func (suite *KeeperTestSuite) setMockSendCoinsFromModuleToAccountExpect(ctx sdk.
 		suite.bankKeeper.EXPECT().
 			SendCoinsFromModuleToAccount(
 				ctx,
-				suite.wdistriKeeper.feeCollectorName,
+				suite.App.DistrKeeper.GetTreasuryModuleAccount(),
 				sdk.MustAccAddressFromBech32(w.addr),
 				sdk.NewCoins(sdk.NewCoin(baseDenom, sdk.NewInt(w.num))),
 			).Return(nil)

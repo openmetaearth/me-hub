@@ -25,14 +25,14 @@ func NewKeeper(cdc codec.BinaryCodec,
 	sk minttypes.StakingKeeper,
 	ak minttypes.AccountKeeper,
 	bk minttypes.BankKeeper,
-	feeCollectorName string,
+	treasuryModuleAccount string,
 	authority string,
 ) Keeper {
 	return Keeper{
-		Keeper:                mintkeeper.NewKeeper(cdc, key, sk, ak, bk, feeCollectorName, authority),
+		Keeper:                mintkeeper.NewKeeper(cdc, key, sk, ak, bk, treasuryModuleAccount, authority),
 		storeKey:              key,
 		bankKeeper:            bk,
-		treasuryModuleAccount: feeCollectorName,
+		treasuryModuleAccount: treasuryModuleAccount,
 	}
 }
 
