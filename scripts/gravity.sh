@@ -6,7 +6,6 @@ KEY_NAME=${KEY_NAME:-"global_dao"}
 KEYRING="test"
 CHAIN=${CHAIN:-"bsc"}
 NodeUrl=${NodeUrl:-"http://118.175.0.230:26657/"}
-#CHAIN=${CHAIN:-"bsc"}
 
 if [ -z "$CHAIN" ]; then
   echo "Error: CHAIN environment variable is not set." >&2
@@ -36,6 +35,15 @@ init_account() {
     med tx bank send me139mq752delxv78jvtmwxhasyrycufsvr0mue6u $addr 1000000000mec --from "$KEY_NAME" --keyring-backend=$KEYRING -y --output json --fees=100000umec --gas=300000
     sleep 5
   done
+}
+
+event_nonce() {
+   get_relayers
+   for i in 1 2 3 4 5; do
+     eval "addr=\$r${i}_address"
+     echo "relayer address: $addr"
+     med q "$CHAIN" event-nonce "$addr" --node "$NodeUrl" --output json | jq .event_nonce
+   done
 }
 
 proposal_relayers() {

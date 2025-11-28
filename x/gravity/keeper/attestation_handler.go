@@ -50,6 +50,9 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		if err := sdk.ValidateDenom(denom); err != nil {
 			return errorsmod.Wrapf(types.ErrInvalid, "invalid denom derived from symbol: %v", err)
 		}
+		if _, err := k.GetBridgeTokenByDenom(ctx, denom); err != nil {
+			return errorsmod.Wrapf(types.ErrInvalid, "token %s already registed on %s chain", denom, claim.ChainName)
+		}
 		bridgeToken := types.BridgeToken{
 			ContractAddress: claim.TokenContract,
 			Denom:           denom,
