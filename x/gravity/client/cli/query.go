@@ -49,7 +49,7 @@ func getQuerySubCmds(chainName string) []*cobra.Command {
 		CmdGetRelayerSetConfirm(chainName),
 		CmdGetRelayerSetConfirms(chainName),
 		// request batch confirm
-		CmdGetPendingOutgoingTXBatchRequest(chainName),
+		CmdGetPendingBatchRequest(chainName),
 		CmdBatchConfirm(chainName),
 		CmdBatchConfirms(chainName),
 
@@ -375,7 +375,7 @@ func CmdGetRelayerSetConfirms(chainName string) *cobra.Command {
 	return cmd
 }
 
-func CmdGetPendingOutgoingTXBatchRequest(chainName string) *cobra.Command {
+func CmdGetPendingBatchRequest(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pending-batch-request [relayer-address]",
 		Short: "Query the latest outgoing TX batch request which has not been signed by a particular relayer relayer address",
@@ -397,6 +397,9 @@ func CmdGetPendingOutgoingTXBatchRequest(chainName string) *cobra.Command {
 			})
 			if err != nil {
 				return err
+			}
+			if res.Batch == nil {
+				return fmt.Errorf("no pending batch request found for relayer %s", relayerAddr.String())
 			}
 			return clientCtx.PrintProto(res.Batch)
 		},
