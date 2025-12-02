@@ -13,7 +13,7 @@ var Upgrade = upgrades.Upgrade{
 	Name:          UpgradeName,
 	CreateHandler: CreateUpgradeHandler,
 	StoreUpgrades: storetypes.StoreUpgrades{
-		Added: []string{},
+		Added:   []string{},
 		Deleted: []string{},
 	},
 }
