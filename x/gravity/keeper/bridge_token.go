@@ -39,6 +39,12 @@ func (k Keeper) SetBridgeToken(ctx sdk.Context, token *types.BridgeToken) {
 	store.Set(types.GetBridgeTokenByContractKey(token.ContractAddress), k.cdc.MustMarshal(token))
 }
 
+func (k Keeper) DelBridgeToken(ctx sdk.Context, token *types.BridgeToken) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetBridgeTokenByDenomKey(token.Denom))
+	store.Delete(types.GetBridgeTokenByContractKey(token.ContractAddress))
+}
+
 func (k Keeper) IterateBridgeTokenByDenom(ctx sdk.Context, cb func(*types.BridgeToken) bool) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.BridgeTokenByDenomKey)

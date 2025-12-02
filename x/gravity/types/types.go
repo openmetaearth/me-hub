@@ -17,6 +17,8 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
+const BridgeTokenPrefix = "u"
+
 // --- ERC20Token --- //
 func NewERC20Token(amount sdkmath.Int, contract string) ERC20Token {
 	return ERC20Token{Amount: amount, Contract: contract}

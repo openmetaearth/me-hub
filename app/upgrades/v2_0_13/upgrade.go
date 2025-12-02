@@ -37,6 +37,7 @@ func CreateUpgradeHandler(
 		}
 
 		logger.Info("1. upgrade for x/gravity module, set params")
+		// !important: proposalRelayers should be sorted to ensure consistency with solidity contracts.
 		proposalRelayers := []string{
 			"me1frjhlw9slyy7mrhmk0r4vytkyldxqtkf326amv",
 			"me1c5zp26c0gq2klk87nrpff3y52u34zn4ydug2yd",

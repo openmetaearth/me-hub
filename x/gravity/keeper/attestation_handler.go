@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdkmath "cosmossdk.io/math"
+	"fmt"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"strings"
 
@@ -9,8 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/gravity/types"
 )
-
-const bridgeTokenPrefix = "u"
 
 // AttestationHandler Handle is the entry point for Attestation processing.
 //
@@ -48,10 +47,11 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		if isExist {
 			return errorsmod.Wrap(types.ErrInvalid, "bridge token already exists")
 		}
-		denom := bridgeTokenPrefix + strings.ToLower(claim.Symbol)
+		denom := types.BridgeTokenPrefix + strings.ToLower(claim.Symbol)
 		if err := sdk.ValidateDenom(denom); err != nil {
 			return errorsmod.Wrapf(types.ErrInvalid, "invalid denom derived from symbol: %v", err)
 		}
+		// This requires determining whether the same denom exists on the same chain, because different chains share the same denom.
 		if _, err := k.GetBridgeTokenByDenom(ctx, denom); err != nil {
 			return errorsmod.Wrapf(types.ErrInvalid, "token %s already registed on %s chain", denom, claim.ChainName)
 		}
@@ -64,27 +64,28 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			Supply:          sdkmath.ZeroInt(),
 		}
 		k.SetBridgeToken(ctx, &bridgeToken)
-		k.bankKeeper.SetDenomMetaData(ctx, banktypes.Metadata{
-			Description: "",
-			DenomUnits: []*banktypes.DenomUnit{
-				{
-					Denom:    bridgeToken.Denom,
-					Exponent: uint32(0),
+		if _, found := k.bankKeeper.GetDenomMetaData(ctx, bridgeToken.Denom); !found {
+			k.bankKeeper.SetDenomMetaData(ctx, banktypes.Metadata{
+				Description: fmt.Sprintf("%s/%s", claim.ChainName, claim.TokenContract),
+				DenomUnits: []*banktypes.DenomUnit{
+					{
+						Denom:    bridgeToken.Denom,
+						Exponent: uint32(0),
+					},
+					{
+						Denom:    claim.Symbol,
+						Exponent: uint32(claim.Decimals),
+					},
 				},
-				{
-					Denom:    claim.Symbol,
-					Exponent: uint32(claim.Decimals),
-				},
-			},
-			Base:    bridgeToken.Denom,
-			Display: claim.Symbol,
-			Name:    claim.Name,
-			Symbol:  claim.Symbol,
-			URI:     "",
-			URIHash: "",
-		})
+				Base:    bridgeToken.Denom,
+				Display: claim.Symbol,
+				Name:    claim.Name,
+				Symbol:  claim.Symbol,
+				URI:     "",
+				URIHash: "",
+			})
+		}
 		k.Logger(ctx).Info("add bridge token success", "symbol", claim.Symbol, "token", claim.TokenContract, "denom", bridgeToken.Denom)
-
 	case *types.MsgRelayerSetUpdateClaim:
 		observedRelayerSet := &types.RelayerSet{
 			Nonce:   claim.RelayerSetNonce,
