@@ -44,7 +44,7 @@ func Debug() *cobra.Command {
 		ToBytes32Cmd(),
 		ModuleAddressCmd(),
 		ChecksumEthAddressCmd(),
-		CovertTxDataToHashCmd(),
+		ConvertTxDataToHashCmd(),
 		DecodeSimulateTxCmd(),
 		VerifyTxCmd(),
 		PubkeyCmd(),
@@ -204,7 +204,7 @@ func VerifyTxCmd() *cobra.Command {
 	return cmd
 }
 
-func CovertTxDataToHashCmd() *cobra.Command {
+func ConvertTxDataToHashCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "tx-hash [base64TxData]",
 		Short:   "Convert base64 tx data to txHash",

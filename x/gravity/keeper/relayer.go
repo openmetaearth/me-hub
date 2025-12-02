@@ -172,7 +172,7 @@ func (k Keeper) SlashRelayer(ctx sdk.Context, relayerAddrStr string) error {
 	return nil
 }
 
-// SetLastRelayerSlashBlockHeight sets the last proposal block height
+// SetLastRelayerSlashBlockHeight sets the last relayer slash block height.
 func (k Keeper) SetLastRelayerSlashBlockHeight(ctx sdk.Context, blockHeight uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.LastRelayerSlashBlockHeight, sdk.Uint64ToBigEndian(blockHeight))
