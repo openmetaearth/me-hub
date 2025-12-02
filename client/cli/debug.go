@@ -127,7 +127,10 @@ func VerifyTxCmd() *cobra.Command {
 		Example: fmt.Sprintf("%s debug verify-tx 'CucHC...==='", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
 
 			txBytes, err := base64.StdEncoding.DecodeString(args[0])
 			if err != nil {

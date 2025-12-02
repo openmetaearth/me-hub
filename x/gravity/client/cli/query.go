@@ -154,7 +154,7 @@ func CmdGetProposalRelayers(chainName string) *cobra.Command {
 func CmdRelayer(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "relayer [relayer-address|external-address]",
-		Short: "Query relayer for a given relayer address",
+		Short: "Query relayer for a given relayer or external address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -286,7 +286,7 @@ func CmdGetLastRelayerSetRequests(chainName string) *cobra.Command {
 func CmdGetPendingRelayerSetRequest(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pending-relayer-set-request [relayer]",
-		Short: "Query the latest relayer-set request which has not been signed by a particular relayer relayer",
+		Short: "Query the latest relayer-set request which has not been signed by a particular relayer",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -315,7 +315,7 @@ func CmdGetPendingRelayerSetRequest(chainName string) *cobra.Command {
 func CmdGetRelayerSetConfirm(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "relayer-set-confirm [nonce] [relayer-address]",
-		Short: "Query relayer-set confirmation with a particular nonce from a particular relayer relayer",
+		Short: "Query relayer-set confirmation with a particular nonce from a particular relayer",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -378,7 +378,7 @@ func CmdGetRelayerSetConfirms(chainName string) *cobra.Command {
 func CmdGetPendingBatchRequest(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pending-batch-request [relayer-address]",
-		Short: "Query the latest outgoing TX batch request which has not been signed by a particular relayer relayer address",
+		Short: "Query the latest outgoing TX batch request which has not been signed by a particular relayer address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -410,7 +410,7 @@ func CmdGetPendingBatchRequest(chainName string) *cobra.Command {
 func CmdBatchConfirm(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "batch-confirm [token-contract] [nonce] [relayer-address]",
-		Short: "Query outgoing tx batches confirm by relayer relayer address",
+		Short: "Query outgoing tx batches confirm by relayer address",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
