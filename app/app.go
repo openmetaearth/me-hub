@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_12"
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_13"
-	v2_0_13_patch_1 "github.com/st-chain/me-hub/app/upgrades/v2_0_13"
+	v2_0_13_patch_1 "github.com/st-chain/me-hub/app/upgrades/v2_0_13_patch_1"
 	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
 	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 	"io"
