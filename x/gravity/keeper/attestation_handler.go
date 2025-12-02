@@ -10,6 +10,8 @@ import (
 	"github.com/st-chain/me-hub/x/gravity/types"
 )
 
+const bridgeTokenPrefix = "u"
+
 // AttestationHandler Handle is the entry point for Attestation processing.
 //
 //gocyclo:ignore
@@ -46,7 +48,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		if isExist {
 			return errorsmod.Wrap(types.ErrInvalid, "bridge token already exists")
 		}
-		denom := strings.ToLower(claim.Symbol)
+		denom := bridgeTokenPrefix + strings.ToLower(claim.Symbol)
 		if err := sdk.ValidateDenom(denom); err != nil {
 			return errorsmod.Wrapf(types.ErrInvalid, "invalid denom derived from symbol: %v", err)
 		}
