@@ -43,18 +43,25 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 
 	case *types.MsgBridgeTokenClaim:
 		// Check if it already exists
-		isExist := k.HasBridgeToken(ctx, claim.TokenContract)
-		if isExist {
+		exists := k.HasBridgeToken(ctx, claim.TokenContract)
+		if exists {
 			return errorsmod.Wrap(types.ErrInvalid, "bridge token already exists")
 		}
-		denom := types.BridgeTokenPrefix + strings.ToLower(claim.Symbol)
+		denom := types.BridgeTokenPrefix + strings.ToLower(strings.TrimSpace(claim.Symbol))
 		if err := sdk.ValidateDenom(denom); err != nil {
 			return errorsmod.Wrapf(types.ErrInvalid, "invalid denom derived from symbol: %v", err)
 		}
 		// This requires determining whether the same denom exists on the same chain, because different chains share the same denom.
-		if _, err := k.GetBridgeTokenByDenom(ctx, denom); err != nil {
-			return errorsmod.Wrapf(types.ErrInvalid, "token %s already registed on %s chain", denom, claim.ChainName)
+		if existing, err := k.GetBridgeTokenByDenom(ctx, denom); err == nil {
+			return errorsmod.Wrapf(
+				types.ErrInvalid,
+				"token %s already registered on %s chain (contract %s)",
+				denom, claim.ChainName, existing.ContractAddress,
+			)
+		} else if !errorsmod.IsOf(err, types.ErrNotFound) {
+			return errorsmod.Wrapf(err, "failed to look up bridge token by denom %s", denom)
 		}
+
 		bridgeToken := types.BridgeToken{
 			ContractAddress: claim.TokenContract,
 			Denom:           denom,

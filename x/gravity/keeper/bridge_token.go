@@ -17,7 +17,12 @@ func (k Keeper) GetBridgeTokenByContract(ctx sdk.Context, tokenContract string) 
 	return bridgeToken, nil
 }
 
+// GetBridgeTokenByDenom retrieves a BridgeToken by its denom.
+// Returns ErrNotFound if no token exists for the given denom.
 func (k Keeper) GetBridgeTokenByDenom(ctx sdk.Context, denom string) (*types.BridgeToken, error) {
+	if denom == "" {
+		return nil, types.ErrInvalid
+	}
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetBridgeTokenByDenomKey(denom))
 	if len(bz) == 0 {
@@ -28,7 +33,11 @@ func (k Keeper) GetBridgeTokenByDenom(ctx sdk.Context, denom string) (*types.Bri
 	return bridgeToken, nil
 }
 
+// HasBridgeToken returns true if a BridgeToken exists for the given contract address.
 func (k Keeper) HasBridgeToken(ctx sdk.Context, tokenContract string) bool {
+	if tokenContract == "" {
+		return false
+	}
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.GetBridgeTokenByContractKey(tokenContract))
 }
