@@ -300,7 +300,7 @@ func (k QueryServer) UnbatchedTxs(c context.Context, req *types.QueryUnbatchedTx
 
 func (k QueryServer) ProjectedBatchTimeoutHeight(c context.Context, _ *types.QueryProjectedBatchTimeoutHeightRequest) (*types.QueryProjectedBatchTimeoutHeightResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	batchTimeout := k.GetBatchTimeoutHeight(ctx)
+	_, batchTimeout := k.GetBatchTimeoutHeight(ctx)
 	return &types.QueryProjectedBatchTimeoutHeightResponse{TimeoutHeight: batchTimeout}, nil
 }
 

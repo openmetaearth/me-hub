@@ -22,12 +22,15 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 	if maxElements == 0 {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "max elements value")
 	}
+	projectedCurrentExternalHeight, batchTimeout := k.GetBatchTimeoutHeight(ctx)
+	if batchTimeout <= 0 {
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "batch timeout height %d less than 0", batchTimeout)
+	}
 
 	// if there is a more profitable batch for this token type do not create a new batch
 	if lastBatch := k.GetLastOutgoingBatchByTokenType(ctx, contractAddress); lastBatch != nil {
-		currentFees := k.GetBatchFeesByTokenType(ctx, contractAddress, maxElements, baseFee)
-		if lastBatch.GetFees().GT(currentFees.TotalFees) {
-			return nil, errorsmod.Wrap(types.ErrInvalid, "new batch would not be more profitable")
+		if lastBatch.BatchTimeout < projectedCurrentExternalHeight {
+			return nil, errorsmod.Wrap(types.ErrInvalid, "existing unexecuted batch, and the batch not timeout")
 		}
 	}
 	selectedTx, err := k.pickUnBatchedTx(ctx, contractAddress, maxElements, baseFee)
@@ -40,10 +43,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 	if types.OutgoingTransferTxs(selectedTx).TotalFee().LT(minimumFee) {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "total fee less than minimum fee")
 	}
-	batchTimeout := k.GetBatchTimeoutHeight(ctx)
-	if batchTimeout <= 0 {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "batch timeout height")
-	}
+
 	nextID := k.autoIncrementID(ctx, types.KeyLastOutgoingBatchID)
 	batch := &types.OutgoingTxBatch{
 		BatchNonce:    nextID,
@@ -81,17 +81,17 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 }
 
 // GetBatchTimeoutHeight This gets the batch timeout height in External blocks.
-func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) uint64 {
+func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) (uint64, uint64) {
 	currentMeHeight := ctx.BlockHeight()
 	params := k.GetParams(ctx)
 	if params.AverageExternalBlockTime == 0 {
-		return 0
+		return 0, 0
 	}
 	// we store the last observed Cosmos and Ethereum heights, we do not concern ourselves if these values
 	// are zero because no batch can be produced if the last Ethereum block height is not first populated by a deposit event.
 	heights := k.GetLastObservedBlockHeight(ctx)
 	if heights.ExternalBlockHeight == 0 {
-		return 0
+		return 0, 0
 	}
 	// we project how long it has been in milliseconds since the last Ethereum block height was observed
 	projectedMillis := (uint64(currentMeHeight) - heights.BlockHeight) * params.AverageBlockTime
@@ -100,7 +100,7 @@ func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) uint64 {
 	// we convert our target time for block timeouts (lets say 12 hours) into a number of blocks to
 	// place on top of our projection of the current Ethereum block height.
 	blocksToAdd := params.ExternalBatchTimeout / params.AverageExternalBlockTime
-	return projectedCurrentEthereumHeight + blocksToAdd
+	return projectedCurrentEthereumHeight, projectedCurrentEthereumHeight + blocksToAdd
 }
 
 // OutgoingTxBatchExecuted is run when the Cosmos chain detects that a batch has been executed on Ethereum
