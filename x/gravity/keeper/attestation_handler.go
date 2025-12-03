@@ -71,7 +71,8 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			Supply:          sdkmath.ZeroInt(),
 		}
 		k.SetBridgeToken(ctx, &bridgeToken)
-		if _, found := k.bankKeeper.GetDenomMetaData(ctx, bridgeToken.Denom); !found {
+		denomMeta, found := k.bankKeeper.GetDenomMetaData(ctx, bridgeToken.Denom)
+		if !found {
 			k.bankKeeper.SetDenomMetaData(ctx, banktypes.Metadata{
 				Description: fmt.Sprintf("%s/%s", claim.ChainName, claim.TokenContract),
 				DenomUnits: []*banktypes.DenomUnit{
@@ -91,6 +92,9 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 				URI:     "",
 				URIHash: "",
 			})
+		} else {
+			denomMeta.Description = fmt.Sprintf("%s,%s/%s", denomMeta.Description, claim.ChainName, claim.TokenContract)
+			k.bankKeeper.SetDenomMetaData(ctx, denomMeta)
 		}
 		k.Logger(ctx).Info("add bridge token success", "symbol", claim.Symbol, "token", claim.TokenContract, "denom", bridgeToken.Denom)
 	case *types.MsgRelayerSetUpdateClaim:
