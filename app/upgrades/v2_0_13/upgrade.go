@@ -5,6 +5,7 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	appkeepers "github.com/st-chain/me-hub/app/keepers"
 	"github.com/st-chain/me-hub/app/params"
@@ -65,6 +66,26 @@ func CreateUpgradeHandler(
 		tronGenstate := GenGravityGenesis(ctx.BlockHeight(), proposalRelayers, trontypes.DefaultGenesisState(), delegateAmount, trontypes.ModuleName)
 		gravitykeeper.InitGenesis(ctx, keepers.TronKeeper, tronGenstate)
 
+		logger.Info("2. upgrade for setting umec metadata.")
+		keepers.BankKeeper.SetDenomMetaData(ctx, banktypes.Metadata{
+			Description: "Denom metadata for MEC (umec)",
+			DenomUnits: []*banktypes.DenomUnit{
+				{
+					Denom:    "umec",
+					Exponent: uint32(0),
+				},
+				{
+					Denom:    "MEC",
+					Exponent: uint32(8),
+				},
+			},
+			Base:    "umec",
+			Display: "MEC",
+			Name:    "MEC",
+			Symbol:  "MEC",
+			URI:     "",
+			URIHash: "",
+		})
 		logger.Info("upgrade finished successfully.")
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}
