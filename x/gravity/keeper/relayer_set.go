@@ -49,14 +49,14 @@ func (k Keeper) GetCurrentRelayerSet(ctx sdk.Context) *types.RelayerSet {
 }
 
 // AddRelayerSetChangeRequest returns a new instance of the Relayer BridgeValidatorSet
-func (k Keeper) AddRelayerSetChangeRequest(ctx sdk.Context, CurrentRelayerSet *types.RelayerSet) {
+func (k Keeper) AddRelayerSetChangeRequest(ctx sdk.Context, currentRelayerSet *types.RelayerSet) {
 	// if CurrentRelayerSet member is empty, not store RelayerSet.
-	if len(CurrentRelayerSet.Members) == 0 {
+	if len(currentRelayerSet.Members) == 0 {
 		return
 	}
-	CurrentRelayerSet.Nonce = k.GetLastRelayerSetNonce(ctx) + 1
-	k.StoreRelayerSet(ctx, CurrentRelayerSet)
-	k.SetLastRelayerSetNonce(ctx, CurrentRelayerSet.Nonce)
+	currentRelayerSet.Nonce = k.GetLastRelayerSetNonce(ctx) + 1
+	k.StoreRelayerSet(ctx, currentRelayerSet)
+	k.SetLastRelayerSetNonce(ctx, currentRelayerSet.Nonce)
 	k.SetLastTotalPower(ctx)
 
 	// checkpoint, err := CurrentRelayerSet.GetCheckpoint(k.GetRelayerID(ctx))
@@ -68,8 +68,8 @@ func (k Keeper) AddRelayerSetChangeRequest(ctx sdk.Context, CurrentRelayerSet *t
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeRelayerSetUpdate,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
-		sdk.NewAttribute(types.AttributeKeyRelayerSetNonce, fmt.Sprint(CurrentRelayerSet.Nonce)),
-		sdk.NewAttribute(types.AttributeKeyRelayerSetLen, fmt.Sprint(len(CurrentRelayerSet.Members))),
+		sdk.NewAttribute(types.AttributeKeyRelayerSetNonce, fmt.Sprint(currentRelayerSet.Nonce)),
+		sdk.NewAttribute(types.AttributeKeyRelayerSetLen, fmt.Sprint(len(currentRelayerSet.Members))),
 	))
 }
 
