@@ -56,6 +56,12 @@ func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer)
 		return nil, types.ErrDelegateAmountAboveMaximum
 	}
 
+	maxBondedAmount := s.GetAllBondedAmount(ctx).Mul(types.AttestationProposalRelayerChangePowerThreshold).Quo(sdk.NewInt(100))
+	if msg.DelegateAmount.Amount.GT(maxBondedAmount) {
+		return nil, errorsmod.Wrapf(types.ErrMaxChangePowerLimitExceeded,
+			"max bond amount: %s, bond amont: %s", maxBondedAmount, msg.DelegateAmount.Amount)
+	}
+
 	if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, relayerAddress, s.moduleName, sdk.NewCoins(msg.DelegateAmount)); err != nil {
 		return nil, err
 	}
@@ -106,6 +112,12 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	}
 	if relayer.DelegateAmount.GT(s.GetGravityMaxDelegate(ctx)) {
 		return nil, types.ErrDelegateAmountAboveMaximum
+	}
+
+	maxBondedAmount := s.GetAllBondedAmount(ctx).Mul(types.AttestationProposalRelayerChangePowerThreshold).Quo(sdk.NewInt(100))
+	if relayer.DelegateAmount.GT(maxBondedAmount) {
+		return nil, errorsmod.Wrapf(types.ErrMaxChangePowerLimitExceeded,
+			"max bond amount: %s, bond amont: %s", maxBondedAmount, msg.Amount)
 	}
 
 	if delegateCoin.IsPositive() {

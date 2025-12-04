@@ -151,6 +151,15 @@ func (k Keeper) GetAllRelayers(ctx sdk.Context, isOnline bool) (relayers types.R
 	return relayers
 }
 
+func (k Keeper) GetAllBondedAmount(ctx sdk.Context) sdk.Int {
+	relayers := k.GetAllRelayers(ctx, false)
+	totalBonded := sdk.ZeroInt()
+	for _, relayer := range relayers {
+		totalBonded = totalBonded.Add(relayer.DelegateAmount)
+	}
+	return totalBonded
+}
+
 func (k Keeper) SlashRelayer(ctx sdk.Context, relayerAddrStr string) error {
 	relayerAddr, err := sdk.AccAddressFromBech32(relayerAddrStr)
 	if err != nil {
