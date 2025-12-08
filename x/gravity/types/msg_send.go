@@ -26,7 +26,7 @@ func (m *MsgSendToExternal) Type() string { return TypeMsgSendToExternal }
 // Checks if the Eth address is valid
 func (m *MsgSendToExternal) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return errortypes.ErrInvalidRequest.Wrapf("unrecognized cross chain name: %s", m.ChainName)
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
@@ -67,7 +67,7 @@ func (m *MsgRequestBatch) Type() string { return TypeMsgRequestBatch }
 // ValidateBasic performs stateless checks
 func (m *MsgRequestBatch) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return errortypes.ErrInvalidRequest.Wrapf("unrecognized cross chain name: %s", m.ChainName)
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
@@ -108,7 +108,7 @@ func (m *MsgConfirmBatch) Type() string { return TypeMsgConfirmBatch }
 // ValidateBasic performs stateless checks
 func (m *MsgConfirmBatch) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return errortypes.ErrInvalidRequest.Wrapf("unrecognized cross chain name: %s", m.ChainName)
 	}
 	if _, err = sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
@@ -149,7 +149,7 @@ func (m *MsgCancelSendToExternal) Type() string { return TypeMsgCancelSendToExte
 // ValidateBasic performs stateless checks
 func (m *MsgCancelSendToExternal) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return errortypes.ErrInvalidRequest.Wrapf("unrecognized cross chain name: %s", m.ChainName)
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)
@@ -181,7 +181,7 @@ func (m *MsgIncreaseBridgeFee) Type() string { return TypeMsgIncreaseBridgeFee }
 // ValidateBasic performs stateless checks
 func (m *MsgIncreaseBridgeFee) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return errortypes.ErrInvalidRequest.Wrapf("unrecognized cross chain name: %s", m.ChainName)
 	}
 	if _, err = sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid sender address: %s", err)

@@ -61,7 +61,7 @@ func (m *MsgSendToMeClaim) GetType() ClaimType {
 
 func (m *MsgSendToMeClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return errortypes.ErrInvalidRequest.Wrapf("unrecognized cross chain name: %s", m.ChainName)
 	}
 	if _, err = sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid relayer address: %s", err)
@@ -123,7 +123,7 @@ func (m *MsgSendToExternalClaim) GetType() ClaimType {
 // ValidateBasic performs stateless checks
 func (m *MsgSendToExternalClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return errortypes.ErrInvalidRequest.Wrapf("unrecognized cross chain name: %s", m.ChainName)
 	}
 	if _, err = sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid relayer address: %s", err)
@@ -177,7 +177,7 @@ func (m *MsgBridgeTokenClaim) Type() string { return TypeMsgBridgeTokenClaim }
 
 func (m *MsgBridgeTokenClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return errortypes.ErrInvalidRequest.Wrapf("unrecognized cross chain name: %s", m.ChainName)
 	}
 	if _, err = sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
@@ -231,7 +231,7 @@ func (m *MsgRelayerSetUpdateClaim) GetType() ClaimType {
 // ValidateBasic performs stateless checks
 func (m *MsgRelayerSetUpdateClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
-		return errortypes.ErrInvalidRequest.Wrap("unrecognized cross chain name")
+		return errortypes.ErrInvalidRequest.Wrapf("unrecognized cross chain name: %s", m.ChainName)
 	}
 	if _, err = sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
 		return errortypes.ErrInvalidAddress.Wrapf("invalid bridger address: %s", err)
