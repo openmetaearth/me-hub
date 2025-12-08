@@ -11,5 +11,5 @@ const (
 )
 
 func init() {
-	gravitytypes.RegisterExternalAddress(ModuleName, tronAddress{})
+	gravitytypes.RegisterExternalAddress(ModuleName, TronAddress{})
 }

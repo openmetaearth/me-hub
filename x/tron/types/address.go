@@ -11,15 +11,15 @@ import (
 	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 )
 
-var _ gravitytypes.ExternalAddress = tronAddress{}
+var _ gravitytypes.ExternalAddress = TronAddress{}
 
-type tronAddress struct{}
+type TronAddress struct{}
 
-func (b tronAddress) ValidateExternalAddr(addr string) error {
+func (b TronAddress) ValidateExternalAddr(addr string) error {
 	return ValidateTronAddress(addr)
 }
 
-func (b tronAddress) ExternalAddrToAccAddr(addr string) sdk.AccAddress {
+func (b TronAddress) ExternalAddrToAccAddr(addr string) sdk.AccAddress {
 	tronAddr, err := tronaddress.Base58ToAddress(addr)
 	if err != nil {
 		panic(err)
@@ -27,7 +27,7 @@ func (b tronAddress) ExternalAddrToAccAddr(addr string) sdk.AccAddress {
 	return tronAddr.Bytes()[1:]
 }
 
-func (b tronAddress) ExternalAddrToHexAddr(addr string) gethcommon.Address {
+func (b TronAddress) ExternalAddrToHexAddr(addr string) gethcommon.Address {
 	tronAddr, err := tronaddress.Base58ToAddress(addr)
 	if err != nil {
 		panic(err)
@@ -35,7 +35,7 @@ func (b tronAddress) ExternalAddrToHexAddr(addr string) gethcommon.Address {
 	return gethcommon.BytesToAddress(tronAddr.Bytes()[1:])
 }
 
-func (b tronAddress) ExternalAddrToStr(bz []byte) string {
+func (b TronAddress) ExternalAddrToStr(bz []byte) string {
 	if len(bz) == gethcommon.AddressLength {
 		bz = append([]byte{tronaddress.TronBytePrefix}, bz...)
 	}
