@@ -270,6 +270,11 @@ func (k Keeper) SetLastObservedRelayerSet(ctx sdk.Context, relayerSet *types.Rel
 	store.Set(types.LastObservedRelayerSetKey, k.cdc.MustMarshal(relayerSet))
 }
 
+func (k Keeper) DelLastObservedRelayerSet(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.LastObservedRelayerSetKey)
+}
+
 func (k Keeper) GetLastRelayerSlashBlockHeight(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	data := store.Get(types.LastRelayerSlashBlockHeight)

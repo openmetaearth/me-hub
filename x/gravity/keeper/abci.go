@@ -180,7 +180,7 @@ func (k Keeper) pruneRelayerSet(ctx sdk.Context, signedRelayerSetsWindow uint64)
 // use. This could be combined with create attestation and save some computation
 // but (A) pruning keeps the iteration small in the first place and (B) there is
 // already enough nuance in the other handler that it's best not to complicate it further
-func (k Keeper) pruneAttestations(ctx sdk.Context) {
+func (k Keeper) PruneAttestations(ctx sdk.Context) {
 	lastNonce := k.GetLastObservedEventNonce(ctx)
 	if lastNonce <= types.MaxKeepEventSize {
 		return

@@ -108,7 +108,7 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 		}
 	}
 
-	if err := k.removeUnbatchedTx(ctx, tx.Fee, txId); err != nil {
+	if err := k.DelUnbatchedTx(ctx, tx.Fee, txId); err != nil {
 		return err
 	}
 

@@ -124,7 +124,7 @@ func GenGravityGenesis(height int64, proposalRelayers []string, defaultGenesis *
 		defaultGenesis.Relayers = append(defaultGenesis.Relayers, relayer)
 	}
 
-	// 3. relayer set
+	// 3.relayer set
 	var totalPower uint64
 	relayerSet := types.RelayerSet{
 		Nonce:   0,

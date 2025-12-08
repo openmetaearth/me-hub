@@ -44,7 +44,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 		return nil, errorsmod.Wrap(types.ErrInvalid, "total fee less than minimum fee")
 	}
 
-	nextID := k.autoIncrementID(ctx, types.KeyLastOutgoingBatchID)
+	nextID := k.AutoIncrementID(ctx, types.KeyLastOutgoingBatchID)
 	batch := &types.OutgoingTxBatch{
 		BatchNonce:    nextID,
 		BatchTimeout:  batchTimeout,
@@ -160,7 +160,7 @@ func (k Keeper) pickUnBatchedTx(ctx sdk.Context, contractAddress string, maxElem
 			return true
 		}
 		selectedTx = append(selectedTx, tx)
-		err = k.removeUnbatchedTx(ctx, tx.Fee, tx.Id)
+		err = k.DelUnbatchedTx(ctx, tx.Fee, tx.Id)
 		oldTx, oldTxErr := k.GetUnbatchedTxByFeeAndId(ctx, tx.Fee, tx.Id)
 		if oldTx != nil || oldTxErr == nil {
 			panic("picked a duplicate transaction from the pool, duplicates should never exist!")

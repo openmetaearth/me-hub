@@ -44,7 +44,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 	}
 
 	// get next tx id from keeper
-	nextTxID := k.autoIncrementID(ctx, types.KeyLastTxPoolID)
+	nextTxID := k.AutoIncrementID(ctx, types.KeyLastTxPoolID)
 
 	// construct outgoing tx, as part of this process we represent
 	// the token as an ERC20 token since it is preparing to go to ETH
@@ -103,7 +103,7 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	}
 
 	// delete this tx from the pool
-	if err = k.removeUnbatchedTx(ctx, tx.Fee, txId); err != nil {
+	if err = k.DelUnbatchedTx(ctx, tx.Fee, txId); err != nil {
 		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "txId %d not in unbatched index! Must be in a batch!", txId)
 	}
 	// Make sure the tx was removed
@@ -152,8 +152,8 @@ func (k Keeper) AddUnbatchedTx(ctx sdk.Context, outgoingTransferTx *types.Outgoi
 	return nil
 }
 
-// removeUnbatchedTXIndex removes the tx from the pool
-func (k Keeper) removeUnbatchedTx(ctx sdk.Context, fee types.ERC20Token, txID uint64) error {
+// DelUnbatchedTxIndex removes the tx from the pool
+func (k Keeper) DelUnbatchedTx(ctx sdk.Context, fee types.ERC20Token, txID uint64) error {
 	store := ctx.KVStore(k.storeKey)
 	idxKey := types.GetOutgoingTxPoolKey(fee, txID)
 	if !store.Has(idxKey) {
@@ -220,7 +220,7 @@ func (k Keeper) IterateUnbatchedTransactions(ctx sdk.Context, tokenContract stri
 	}
 }
 
-func (k Keeper) autoIncrementID(ctx sdk.Context, idKey []byte) uint64 {
+func (k Keeper) AutoIncrementID(ctx sdk.Context, idKey []byte) uint64 {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(idKey)
 	var id uint64 = 1
