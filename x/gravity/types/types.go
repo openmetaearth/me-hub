@@ -104,7 +104,7 @@ func (b BridgeValidators) PowerDiff(c BridgeValidators) float64 {
 		delta += math.Abs(float64(v))
 	}
 
-	return math.Abs(delta / float64(utils.PowerBase))
+	return math.Abs(delta / float64(PowerBase))
 }
 
 // TotalPower returns the total power in the bridge validator set

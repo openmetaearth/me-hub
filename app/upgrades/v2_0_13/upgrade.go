@@ -144,7 +144,7 @@ func GenGravityGenesis(height int64, proposalRelayers []string, defaultGenesis *
 		relayerSet.Members = append(relayerSet.Members, bridgeVal)
 	}
 	for i := range relayerSet.Members {
-		relayerSet.Members[i].Power = sdkmath.NewUint(relayerSet.Members[i].Power).MulUint64(utils.PowerBase).QuoUint64(totalPower).Uint64()
+		relayerSet.Members[i].Power = sdkmath.NewUint(relayerSet.Members[i].Power).MulUint64(gravitytypes.PowerBase).QuoUint64(totalPower).Uint64()
 	}
 	defaultGenesis.RelayerSets = []types.RelayerSet{relayerSet}
 	return defaultGenesis

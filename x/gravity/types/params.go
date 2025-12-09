@@ -9,16 +9,17 @@ import (
 )
 
 const (
-	OutgoingTxBatchSize = 100
-	MaxKeepEventSize    = 20
-	MaxGasLimit         = 30_000_000
-	MaxResults          = 100
+	OutgoingTxBatchSize        = 100
+	MaxKeepEventSize           = 20
+	MaxGasLimit                = 30_000_000
+	MaxResults                 = 100
+	PowerBase           uint64 = 10000
 )
 
 var (
 	// AttestationVotesPowerThreshold threshold of votes power to succeed
-	AttestationVotesPowerThreshold                 = sdkmath.NewInt(66)
-	AttestationProposalRelayerChangePowerThreshold = sdkmath.NewInt(34)
+	AttestationVotesPowerThreshold                 = sdkmath.NewInt(6666)
+	AttestationProposalRelayerChangePowerThreshold = sdkmath.NewInt(3334)
 )
 
 func DefaultParams() Params {
