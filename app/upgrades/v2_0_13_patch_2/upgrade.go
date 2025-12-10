@@ -1,6 +1,7 @@
 package v2_0_13_patch_2
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -54,6 +55,22 @@ func CreateUpgradeHandler(
 		logger.Info("2. clear tron gengesis")
 		ClearGenesis(ctx, keepers.TronKeeper)
 
+		params := keepers.TronKeeper.GetParams(ctx)
+		params.AverageBlockTime = 6000
+		params.ExternalBatchTimeout = 7200000
+		err := keepers.TronKeeper.SetParams(ctx, &params)
+		if err != nil {
+			panic(fmt.Sprintf("failed to set bsc params during upgrade: %v", err))
+		}
+
+		params = keepers.BscKeeper.GetParams(ctx)
+		params.AverageBlockTime = 6000
+		params.ExternalBatchTimeout = 7200000
+		err = keepers.BscKeeper.SetParams(ctx, &params)
+		if err != nil {
+			panic(fmt.Sprintf("failed to set bsc params during upgrade: %v", err))
+		}
+
 		logger.Info("upgrade finished successfully.")
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}
@@ -95,6 +112,10 @@ func ClearGenesis(ctx sdk.Context, k gravitykeeper.Keeper) {
 	})
 	if lastObserved := k.GetLastObservedRelayerSet(ctx); lastObserved != nil {
 		k.DelLastObservedRelayerSet(ctx)
+	}
+	relayers := k.GetAllRelayers(ctx, false)
+	for _, relayer := range relayers {
+		k.DelLastEventNonceByRelayer(ctx, sdk.MustAccAddressFromBech32(relayer.RelayerAddress))
 	}
 	return
 }

@@ -17,14 +17,20 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 	if err != nil {
 		return nil, errorsmod.Wrap(types.ErrUnknown, "msg to any")
 	}
+
+	lastObservedNonce := k.GetLastObservedEventNonce(ctx)
 	// Check that the nonce of this event is exactly one higher than the last nonce stored by this relayer.
 	// We check the event nonce in processAttestation as well, but checking it here gives individual eth signers a chance to retry,
 	// and prevents validators from submitting two claims with the same nonce.
 	// This prevents there being two attestations with the same nonce that get 2/3s of the votes
 	// in the endBlocker.
 	lastEventNonce := k.GetLastEventNonceByRelayer(ctx, relayerAddr)
+	// fist check continuity
 	if claim.GetEventNonce() != lastEventNonce+1 {
-		return nil, errorsmod.Wrapf(types.ErrNonContinuousEventNonce, "got %v, expected %v", claim.GetEventNonce(), lastEventNonce+1)
+		// second: if not continuous, event nonce must greater than last observed nonce.
+		if claim.GetEventNonce() > lastObservedNonce {
+			return nil, errorsmod.Wrapf(types.ErrNonContinuousEventNonce, "got %v, expected %v", claim.GetEventNonce(), lastEventNonce+1)
+		}
 	}
 
 	gasMeter := ctx.GasMeter()
@@ -53,7 +59,7 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 	att.Votes = append(att.Votes, relayerAddr.String())
 	k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
-	if !att.Observed && claim.GetEventNonce() == k.GetLastObservedEventNonce(ctx)+1 {
+	if !att.Observed && claim.GetEventNonce() == lastObservedNonce+1 {
 		k.TryAttestation(ctx, att, claim)
 	}
 
@@ -94,6 +100,8 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		}
 
 		k.SetLastObservedEventNonce(ctx, claim.GetEventNonce())
+
+		// in case of web3 event is long time ago, we set the last observed me block height need long enough.
 		k.SetLastObservedBlockHeight(ctx, claim.GetBlockHeight(), uint64(ctx.BlockHeight()))
 
 		att.Observed = true
