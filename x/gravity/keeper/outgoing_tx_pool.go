@@ -235,7 +235,9 @@ func (k Keeper) AutoIncrementID(ctx sdk.Context, idKey []byte) uint64 {
 func (k Keeper) ClearAutoIncrementID(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.KeyLastOutgoingBatchID)
-	store.Delete(types.KeyLastOutgoingBatchID)
+	store.Delete(types.KeyLastTxPoolID)
+	store.Delete(types.LastSlashedBatchBlock)
+	store.Delete(types.LastSlashedRelayerSetNonce)
 	return
 }
 

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
 	abcitype "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -72,6 +73,7 @@ func getQuerySubCmds(chainName string) []*cobra.Command {
 		CmdGetLastObservedEventNonce(chainName),
 		CmdClaims(chainName),
 		CmdBridgeChainList(),
+		CmdMeNonce(chainName),
 	}
 
 	for _, command := range cmds {
@@ -837,6 +839,78 @@ func CmdBridgeChainList() *cobra.Command {
 				return err
 			}
 			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func CmdMeNonce(chainName string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "me-nonce",
+		Short: "Query ME nonce",
+		Args:  cobra.RangeArgs(0, 1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			relayerSetNonce, err := clientCtx.QueryABCI(abcitype.RequestQuery{
+				Path: fmt.Sprintf("store/%s/key", chainName),
+				Data: types.LatestRelayerSetNonce,
+			})
+			if err != nil {
+				return err
+			}
+
+			batchId, err := clientCtx.QueryABCI(abcitype.RequestQuery{
+				Path: fmt.Sprintf("store/%s/key", chainName),
+				Data: types.KeyLastOutgoingBatchID,
+			})
+			if err != nil {
+				return err
+			}
+
+			txId, err := clientCtx.QueryABCI(abcitype.RequestQuery{
+				Path: fmt.Sprintf("store/%s/key", chainName),
+				Data: types.KeyLastTxPoolID,
+			})
+			if err != nil {
+				return err
+			}
+			lastSlashedBatchBlock, err := clientCtx.QueryABCI(abcitype.RequestQuery{
+				Path: fmt.Sprintf("store/%s/key", chainName),
+				Data: types.LastSlashedBatchBlock,
+			})
+			if err != nil {
+				return err
+			}
+			lastSlashedRelayerSetNonce, err := clientCtx.QueryABCI(abcitype.RequestQuery{
+				Path: fmt.Sprintf("store/%s/key", chainName),
+				Data: types.LastSlashedRelayerSetNonce,
+			})
+			if err != nil {
+				return err
+			}
+
+			res, err := json.Marshal(struct {
+				RelayerSetNonce            uint64 `json:"relayer_set_nonce"`
+				BatchId                    uint64 `json:"batch_id"`
+				TxId                       uint64 `json:"tx_id"`
+				LastSlashedBatchBlock      uint64 `json:"last_slashed_batch_block"`
+				LastSlashedRelayerSetNonce uint64 `json:"last_slashed_relayer_set_nonce"`
+			}{
+				RelayerSetNonce:            sdk.BigEndianToUint64(relayerSetNonce.Value),
+				BatchId:                    sdk.BigEndianToUint64(batchId.Value),
+				TxId:                       sdk.BigEndianToUint64(txId.Value),
+				LastSlashedBatchBlock:      sdk.BigEndianToUint64(lastSlashedBatchBlock.Value),
+				LastSlashedRelayerSetNonce: sdk.BigEndianToUint64(lastSlashedRelayerSetNonce.Value),
+			})
+			if err != nil {
+				return err
+			}
+			fmt.Println(string(res))
+			return nil
 		},
 	}
 	return cmd
