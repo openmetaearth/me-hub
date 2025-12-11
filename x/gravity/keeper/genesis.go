@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"sort"
 
 	"github.com/st-chain/me-hub/x/gravity/types"
 )
@@ -161,4 +162,79 @@ func ExportGenesis(ctx sdk.Context, k Keeper) *types.GenesisState {
 	state.LastSlashedBatchBlock = k.GetLastSlashedBatchBlock(ctx)
 	state.LastSlashedRelayerSetNonce = k.GetLastSlashedRelayerSetNonce(ctx)
 	return state
+}
+
+// ClearGenesis clears module state just for test environment
+func (k Keeper) ClearGenesis(ctx sdk.Context) {
+	//genesis := gravitykeeper.ExportGenesis(ctx, k)
+	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
+		k.DeleteBatch(ctx, batch)
+		return false
+	})
+	k.SetLastObservedEventNonce(ctx, 0)
+	k.SetLastObservedBlockHeight(ctx, 0, 0)
+
+	claimMap := make(map[uint64][]types.ExternalClaim)
+	var nonces []uint64
+	k.IterateAttestationAndClaim(ctx, func(att *types.Attestation, claim types.ExternalClaim) bool {
+		if v, ok := claimMap[claim.GetEventNonce()]; !ok {
+			claimMap[claim.GetEventNonce()] = []types.ExternalClaim{claim}
+			nonces = append(nonces, claim.GetEventNonce())
+		} else {
+			claimMap[claim.GetEventNonce()] = append(v, claim)
+		}
+		return false
+	})
+	// Then we sort it
+	sort.Slice(nonces, func(i, j int) bool {
+		return nonces[i] < nonces[j]
+	})
+
+	// This iterates over all keys (event nonces) in the attestation mapping. Each value contains
+	// a slice with one or more attestations at that event nonce. There can be multiple attestations
+	// at one event nonce when Relayers disagree about what event happened at that nonce.
+	for _, nonce := range nonces {
+		// This iterates over all attestations at a particular event nonce.
+		// They are ordered by when the first attestation at the event nonce was received.
+		// This order is not important.
+		for _, claim := range claimMap[nonce] {
+			k.DeleteAttestation(ctx, claim)
+		}
+	}
+
+	k.IterateUnbatchedTransactions(ctx, "", func(tx *types.OutgoingTransferTx) bool {
+		err := k.DelUnbatchedTx(ctx, tx.Fee, tx.Id)
+		if err != nil {
+			panic(err)
+		}
+		return false
+	})
+
+	relayerSets := []types.RelayerSet{}
+	k.IterateRelayerSets(ctx, false, func(relayerSet *types.RelayerSet) bool {
+		relayerSets = append(relayerSets, *relayerSet)
+		return false
+	})
+
+	for _, rs := range relayerSets {
+		k.DeleteRelayerSetConfirm(ctx, rs.Nonce)
+	}
+	nextID := k.AutoIncrementID(ctx, types.KeyLastOutgoingBatchID)
+	k.IterateBridgeTokenByDenom(ctx, func(token *types.BridgeToken) bool {
+		k.DelBridgeToken(ctx, token)
+		for i := uint64(0); i < nextID; i++ {
+			k.DeleteBatchConfirm(ctx, i, token.ContractAddress)
+		}
+		return false
+	})
+	k.ClearAutoIncrementID(ctx)
+
+	if lastObserved := k.GetLastObservedRelayerSet(ctx); lastObserved != nil {
+		k.DelLastObservedRelayerSet(ctx)
+	}
+	relayers := k.GetAllRelayers(ctx, false)
+	for _, relayer := range relayers {
+		k.DelLastEventNonceByRelayer(ctx, sdk.MustAccAddressFromBech32(relayer.RelayerAddress))
+	}
+	return
 }

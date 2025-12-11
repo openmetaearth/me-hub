@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_13_patch_2"
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,7 +18,7 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 	k.pruneRelayerSet(ctx, signedWindow)
 
 	if ctx.BlockHeight() == 0 {
-		v2_0_13_patch_2.ClearGenesis(ctx, k)
+		k.ClearGenesis(ctx)
 	}
 }
 

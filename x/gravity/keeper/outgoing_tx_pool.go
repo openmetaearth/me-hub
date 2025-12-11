@@ -232,6 +232,13 @@ func (k Keeper) AutoIncrementID(ctx sdk.Context, idKey []byte) uint64 {
 	return id
 }
 
+func (k Keeper) ClearAutoIncrementID(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.KeyLastOutgoingBatchID)
+	store.Delete(types.KeyLastOutgoingBatchID)
+	return
+}
+
 // GetOutgoingPendingTxTotal returns the total amount of a given token pending in the outgoing pool and all batches
 func (k Keeper) GetOutgoingPendingTxTotal(ctx sdk.Context, tokenContract string) sdk.Int {
 	totalPending := sdk.ZeroInt()
