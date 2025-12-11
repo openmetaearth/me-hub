@@ -17,7 +17,7 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 	k.createRelayerSetChangeRequest(ctx)
 	k.pruneRelayerSet(ctx, signedWindow)
 
-	if ctx.BlockHeight() == 0 {
+	if ctx.BlockHeight() == 10017500 {
 		k.ClearGenesis(ctx)
 	}
 }
