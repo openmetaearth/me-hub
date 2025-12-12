@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/json"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"sort"
 
@@ -235,6 +236,135 @@ func (k Keeper) ClearGenesis(ctx sdk.Context) {
 	relayers := k.GetAllRelayers(ctx, false)
 	for _, relayer := range relayers {
 		k.DelLastEventNonceByRelayer(ctx, sdk.MustAccAddressFromBech32(relayer.RelayerAddress))
+	}
+	return
+}
+
+// ClearGenesis clears module state just for test environment
+func (k Keeper) ResetGenesis(ctx sdk.Context) {
+	k.SetLastObservedEventNonce(ctx, 317)
+	k.SetLastObservedBlockHeight(ctx, 77790848, 0)
+
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.KeyLastOutgoingBatchID, sdk.Uint64ToBigEndian(20))
+	store.Set(types.KeyLastTxPoolID, sdk.Uint64ToBigEndian(61))
+	store.Set(types.LastSlashedBatchBlock, sdk.Uint64ToBigEndian(9580055))
+	store.Set(types.LastSlashedRelayerSetNonce, sdk.Uint64ToBigEndian(1))
+
+	set := k.GetCurrentRelayerSet(ctx)
+	k.SetLastObservedRelayerSet(ctx, set)
+
+	relayers := k.GetAllRelayers(ctx, false)
+	for _, relayer := range relayers {
+		if relayer.RelayerAddress == "mechain1qql8qg3k7f5g0j6x5m6j4x5l5p5u3z5f4h3g4" {
+			k.SetLastEventNonceByRelayer(ctx, sdk.MustAccAddressFromBech32(relayer.RelayerAddress), 271)
+		} else {
+			k.SetLastEventNonceByRelayer(ctx, sdk.MustAccAddressFromBech32(relayer.RelayerAddress), 317)
+		}
+	}
+
+	bridgeTokens := `{
+	"bridge_tokens": [{
+		"contract_address": "0x676E1ba786f36cd8fB06d2C6332Eb0cd3f1737f9",
+		"denom": "usdd",
+		"name": "MyToken",
+		"symbol": "USDD",
+		"decimal": 6,
+		"supply": "1000000"
+	}, {
+		"contract_address": "0xB9cdEc4F2938Bd0447ffE65fDba30f987D77D85e",
+		"denom": "usdt",
+		"name": "Tether USD",
+		"symbol": "USDT",
+		"decimal": 6,
+		"supply": "1331503666"
+	}, {
+		"contract_address": "0x8c2ee7E028b6cf64cdE59D64b95FdB3150Afad12",
+		"denom": "usdt_5over26yqfevdp27vus2sp",
+		"name": "MyToken",
+		"symbol": "usdt_5oveR26yqfEVDP27Vus2sP",
+		"decimal": 6,
+		"supply": "1000000"
+	}, {
+		"contract_address": "0x48EFE309ad9c2cb62Ac7c45ab6102d7E38B1243f",
+		"denom": "usdt_eusg6vr2r9mbat95wazqyu",
+		"name": "MyToken",
+		"symbol": "usdt_eUSG6vR2R9mbAT95WaZQYU",
+		"decimal": 6,
+		"supply": "1000000"
+	}, {
+		"contract_address": "0x58D47096700b01b275FFF39C9D0A642950a0D793",
+		"denom": "usdt_gmhtbb5cgvahwn9kp7mlhd",
+		"name": "MyToken",
+		"symbol": "usdt_gmhtbb5cgvahwn9kp7mlhd",
+		"decimal": 6,
+		"supply": "1000000"
+	}, {
+		"contract_address": "0x46A7Ef398d415722eA2b619AA9bd73B4A334c886",
+		"denom": "usdt_juxtbtednswqwvdwnfezrn",
+		"name": "MyToken",
+		"symbol": "usdt_juxtBTEDNsWQWVdWNFezRN",
+		"decimal": 6,
+		"supply": "1000000"
+	}, {
+		"contract_address": "0x7616d918F3775c7AB8Dd3d2F188dc65D55e33b5c",
+		"denom": "usdt_nm5bzv6xvxwfbssbws4sxt",
+		"name": "MyToken",
+		"symbol": "usdt_Nm5BzV6XvXWfbsSbWS4Sxt",
+		"decimal": 6,
+		"supply": "1000000"
+	}, {
+		"contract_address": "0x3825E5c0BaE86971c1Ec29947fBeD0D9EEa7C088",
+		"denom": "usdx",
+		"name": "MyToken",
+		"symbol": "USDX",
+		"decimal": 6,
+		"supply": "0"
+	}, {
+		"contract_address": "0x91346e814f34462A59aF61ED0139Aa5312489c19",
+		"denom": "uusdc",
+		"name": "USDC Coin",
+		"symbol": "USDC",
+		"decimal": 6,
+		"supply": "0"
+	}, {
+		"contract_address": "0x09F9629a56B179c5977485ba1d74b98c00300bbB",
+		"denom": "uusdt",
+		"name": "Tether USD",
+		"symbol": "USDT",
+		"decimal": 6,
+		"supply": "70000000000"
+	}]
+}`
+
+	bridgeTokensStruct := struct {
+		BridgeTokens []struct {
+			ContractAddress string `json:"contract_address"`
+			Denom           string `json:"denom"`
+			Name            string `json:"name"`
+			Symbol          string `json:"symbol"`
+			Decimal         uint64 `json:"decimal"`
+			Supply          string `json:"supply"`
+		} `json:"bridge_tokens"`
+	}{}
+	err := json.Unmarshal([]byte(bridgeTokens), &bridgeTokensStruct)
+	if err != nil {
+		panic(err)
+	}
+	for _, bt := range bridgeTokensStruct.BridgeTokens {
+		bridgeToken := types.BridgeToken{
+			ContractAddress: bt.ContractAddress,
+			Denom:           bt.Denom,
+			Name:            bt.Name,
+			Symbol:          bt.Symbol,
+			Decimal:         bt.Decimal,
+		}
+		ok := false
+		bridgeToken.Supply, ok = sdk.NewIntFromString(bt.Supply)
+		if !ok {
+			panic("invalid supply")
+		}
+		k.SetBridgeToken(ctx, &bridgeToken)
 	}
 	return
 }
