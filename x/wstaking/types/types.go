@@ -1,10 +1,12 @@
 package types
 
 import (
+	"math/big"
+
 	"github.com/cometbft/cometbft/crypto"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/app/params"
-	"math/big"
 )
 
 type MEID_REWARD_TYPE int32
@@ -50,4 +52,16 @@ func GetClassDescription(regionId string) string {
 
 func (m MEID_REWARD_TYPE) Int32() int32 {
 	return int32(m)
+}
+
+type UpdatePubKeyInfo struct {
+	OperatorAddress string `json:"operator_address"`
+	PubKey          []byte `json:"pub_key"`
+	UpdateAtHeight  int64  `json:"update_at_height"`
+}
+
+type ReplaceNodePubKey struct {
+	OperatorAddress string
+	OldPubKey       cryptotypes.PubKey
+	NewPubKey       cryptotypes.PubKey
 }

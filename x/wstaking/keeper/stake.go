@@ -506,3 +506,48 @@ func (k Keeper) SetUBSQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys 
 	bz := k.cdc.MustMarshal(&types.SVPairs{Pairs: keys})
 	store.Set(types.GetUnbondingStakeTimeKey(timestamp), bz)
 }
+
+func (k Keeper) ParserStakeKey(key []byte) (stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, err error) {
+	totalKeyLen := len(key)
+	if totalKeyLen < 3 {
+		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key length: %d", totalKeyLen)
+	}
+	if key[0] != types.StakeKey[0] {
+		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key prefix: %X", key[0])
+	}
+
+	stakeAddrLen := int(key[1])
+	if stakeAddrLen+2 >= totalKeyLen {
+		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key. length: %d,stakerAddrlength:%d",
+			totalKeyLen, stakeAddrLen)
+	}
+	stakerAddr = key[2 : 2+stakeAddrLen]
+
+	valAddrLen := int(key[2+stakeAddrLen])
+	if 3+stakeAddrLen+valAddrLen != totalKeyLen {
+		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key. length: %d,stakerAddrLen:%d,valAddrLen:%d",
+			totalKeyLen, stakeAddrLen, valAddrLen)
+	}
+	valAddr = key[2+stakeAddrLen+1:]
+	return stakerAddr, valAddr, nil
+}
+
+func (k Keeper) GetStakesByValidator(ctx sdk.Context, valAddr sdk.ValAddress)([]*types.Stake, error) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.StakeKey)
+	defer iterator.Close()
+    var stakes []*types.Stake
+	for ; iterator.Valid(); iterator.Next() {
+		_, vAddr, err := k.ParserStakeKey(iterator.Key())
+		if err != nil {
+			return nil, err
+		}
+		if vAddr.Equals(valAddr) {
+			var stakeInfo types.Stake
+			k.cdc.MustUnmarshal(iterator.Value(), &stakeInfo)
+			stakes = append(stakes, &stakeInfo)
+		}
+		
+	}
+	return stakes, nil
+}

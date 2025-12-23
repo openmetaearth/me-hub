@@ -52,6 +52,7 @@ service Msg {
   rpc ReviewRecord(MsgReviewRecord) returns (MsgReviewRecordResponse);
   rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
   rpc IbcTransferFromRegionTreasure(MsgIbcTransferFromRegionTreasure) returns (MsgIbcTransferFromRegionTreasureResponse);
+  rpc ReplaceConsensusPubKey(MsgReplaceConsensusPubKeyRequest) returns (MsgReplaceConsensusPubKeyResponse);
 }
 
 // MsgUpdateValidator defines a SDK message for editing an existing validator.
@@ -336,3 +337,16 @@ message Height {
 }
 
 message MsgIbcTransferFromRegionTreasureResponse {}
+
+message MsgReplaceConsensusPubKey {
+  string operator_address = 1;
+  google.protobuf.Any pub_key = 2 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+  int64 block_number = 3;
+}
+
+message MsgReplaceConsensusPubKeyRequest {
+  string creator = 1;
+  MsgReplaceConsensusPubKey replace_pub_key = 2;
+}
+
+message MsgReplaceConsensusPubKeyResponse {}
