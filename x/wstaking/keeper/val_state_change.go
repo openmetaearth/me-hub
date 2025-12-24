@@ -59,7 +59,7 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 			Power:  power,
 		})
 		// Log the removal
-		k.Logger(ctx).Info("Removed old validator key ", "validator", valAddr.String())
+		k.Logger(ctx).Info("completed pubb key replaced in validatorUpdates ", "validator", valAddr.String(),"block height", ctx.BlockHeight())
 	}
 
 	// unbond all mature validators from the unbonding queue

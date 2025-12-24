@@ -50,8 +50,9 @@ const (
 )
 
 const (
-	ReplaceConsensusPubKey = "ReplaceNodePubKey"
-	EventTypeReplacePubKey = "replace_pubkey"
+	TypeMsgReplaceConsensusPubKey = "replace_consensus_pubkey"
+	ReplaceConsensusPubKey        = "ReplaceNodePubKey"
+	EventTypeReplacePubKey        = "replace_pubkey"
 
 	EventTypeStartReplacePubKey = "start_replace_pubkey"
 

@@ -64,7 +64,7 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 		}
 		oldPubKey,ok := validator.ConsensusPubkey.GetCachedValue().(cryptotypes.PubKey)
 		if !ok {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T",  validator.ConsensusPubkey.GetCachedValue())
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "parser validator's old pub key error.expecting cryptotypes.PubKey, got %T",  validator.ConsensusPubkey.GetCachedValue())
 		}
 		k.RemoveValidatorByConsAddr(ctx, oldConAddr)
 		anyPk, err := codectypes.NewAnyWithValue(pk)

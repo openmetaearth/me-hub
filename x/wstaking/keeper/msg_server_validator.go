@@ -140,7 +140,6 @@ func (k MsgServer) EditValidator(context.Context, *stakingtypes.MsgEditValidator
 // todo:
 // 1. 增加区块高度到达时，节点才进行替换
 // 2. 增加power的转移，以及质押信息以及状态信息的转移
-// 3. 增加区id和验证者绑定关系的转移
 // 4. 检查是否有业务质押和验证者关系的绑定，以及是否需要转移
 func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgReplaceConsensusPubKeyRequest) (*types.MsgReplaceConsensusPubKeyResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -169,10 +168,22 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 		return nil, types.ErrValidatorNotBonded
 	}
 
+	tmpPk, ok := req.ReplacePubKey.PubKey.GetCachedValue().(cryptotypes.PubKey)
+    if !ok {
+        return nil, sdkerrors.Wrapf(stakingtypes.ErrValidatorPubKeyTypeNotSupported, "Expecting cryptotypes.PubKey, got %T", req.ReplacePubKey.PubKey.GetCachedValue())
+    }
+
+   	pk, ok := tmpPk.(*ed25519.PubKey)
+	if !ok {
+        return nil, sdkerrors.Wrapf(stakingtypes.ErrValidatorPubKeyTypeNotSupported, "Expecting ed25519.PubKey, got %T", pk)
+    }
+
+	/*
 	pk, ok := req.ReplacePubKey.PubKey.GetCachedValue().(*ed25519.PubKey)
 	if !ok {
 		return nil, sdkerrors.Wrapf(stakingtypes.ErrValidatorPubKeyTypeNotSupported, "Expecting ed25519.PubKey, got %T", pk)
 	}
+		*/
 
 	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
 		return nil, stakingtypes.ErrValidatorPubKeyExists
