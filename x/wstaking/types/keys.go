@@ -50,11 +50,11 @@ const (
 )
 
 const (
-	TypeMsgReplaceConsensusPubKey = "replace_consensus_pubkey"
-	ReplaceConsensusPubKey        = "ReplaceNodePubKey"
-	EventTypeReplacePubKey        = "replace_pubkey"
-
-	EventTypeStartReplacePubKey = "start_replace_pubkey"
+	TypeMsgReplaceConsensusPubKey   = "replace_consensus_pubkey"
+	ReplaceConsensusPubKey          = "ReplaceNodePubKey"
+	EventTypeReplacePubKey          = "replace_pubkey"
+	EventTypeStartReplacePubKey     = "start_replace_pubkey"
+	EventTypeDelayRemoveOldConsAddr = "delay_remove_old_cons_addr"
 
 	AttributeKeyOperatorAddress = "operator_address"
 	AttributeKeyPubKey          = "pub_key"

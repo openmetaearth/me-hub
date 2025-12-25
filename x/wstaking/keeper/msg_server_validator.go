@@ -168,22 +168,10 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 		return nil, types.ErrValidatorNotBonded
 	}
 
-	tmpPk, ok := req.ReplacePubKey.PubKey.GetCachedValue().(cryptotypes.PubKey)
-    if !ok {
-        return nil, sdkerrors.Wrapf(stakingtypes.ErrValidatorPubKeyTypeNotSupported, "Expecting cryptotypes.PubKey, got %T", req.ReplacePubKey.PubKey.GetCachedValue())
-    }
-
-   	pk, ok := tmpPk.(*ed25519.PubKey)
-	if !ok {
-        return nil, sdkerrors.Wrapf(stakingtypes.ErrValidatorPubKeyTypeNotSupported, "Expecting ed25519.PubKey, got %T", pk)
-    }
-
-	/*
 	pk, ok := req.ReplacePubKey.PubKey.GetCachedValue().(*ed25519.PubKey)
 	if !ok {
-		return nil, sdkerrors.Wrapf(stakingtypes.ErrValidatorPubKeyTypeNotSupported, "Expecting ed25519.PubKey, got %T", pk)
+		return nil, sdkerrors.Wrapf(stakingtypes.ErrValidatorPubKeyTypeNotSupported, "Expecting ed25519.PubKey, got %T", req.ReplacePubKey.PubKey.GetCachedValue())
 	}
-		*/
 
 	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
 		return nil, stakingtypes.ErrValidatorPubKeyExists
@@ -213,9 +201,14 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 	if err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrProtoProc, "marshal pubkey error: %v", err)
 	}
+	needReplaceConsAddr, err := validator.GetConsAddr()
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrInterProc, "GetConsAddr from validator error: %v", err)
+	}
 
 	update := &types.UpdatePubKeyInfo{
 		OperatorAddress: req.ReplacePubKey.OperatorAddress,
+		OldConsAddress:  needReplaceConsAddr.Bytes(),
 		PubKey:          pubKeyData,
 		UpdateAtHeight:  ctx.BlockHeight() + req.ReplacePubKey.BlockNumber,
 	}
@@ -228,6 +221,7 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 			types.EventTypeReplacePubKey,
 			sdk.NewAttribute(types.AttributeKeyOperatorAddress, update.OperatorAddress),
 			sdk.NewAttribute(types.AttributeKeyPubKey, hex.EncodeToString(update.PubKey)),
+			sdk.NewAttribute(types.AttributeKeyOldConsAddr, needReplaceConsAddr.String()),
 			sdk.NewAttribute(types.AttributeKeyUpdateAtHeight, fmt.Sprintf("%d", update.UpdateAtHeight)),
 		),
 	})

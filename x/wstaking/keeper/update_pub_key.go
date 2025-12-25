@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	ed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -11,86 +12,113 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
-func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey,error) {
+func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey, error) {
 	updateInfo, err := k.GetRepalceConsensusPubKeyInfo(ctx)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	if updateInfo == nil {
-		return nil,nil
+		return nil, nil
 	}
 	if ctx.BlockHeight() < updateInfo.UpdateAtHeight {
-		return nil,nil
-	} else if ctx.BlockHeight() > updateInfo.UpdateAtHeight {
-		//delete record
-		k.Logger(ctx).Error("delete replace pubkey info delayed.", "need delete at %d", updateInfo.UpdateAtHeight,
-			"now height is %d", ctx.BlockHeight())
-		k.DeleteRepalceConsensusPubKey(ctx)
-		return nil,nil
+		return nil, nil
 	} else {
-		//do update
-		k.Logger(ctx).Info("start to replace validator pubkey", "operator_address", updateInfo.OperatorAddress,
-			"pub_key", hex.EncodeToString(updateInfo.PubKey), "height", ctx.BlockHeight())
-		pk := new(ed25519.PubKey)
-		if err = pk.Unmarshal(updateInfo.PubKey); err != nil {
-			return nil, sdkerrors.Wrapf(types.ErrProtoProc, "unmarshal pubkey error: %v,inputKey = %s",
-				err, hex.EncodeToString(updateInfo.PubKey))
-		}
-		valAddr, err := sdk.ValAddressFromBech32(updateInfo.OperatorAddress)
-		if err != nil {
-			return nil, err
-		}
-		validator, found := k.GetValidator(ctx, valAddr)
-		if !found {
-			return nil, stakingtypes.ErrNoValidatorFound
-		}
-		if validator.IsJailed() {
-			return nil, stakingtypes.ErrValidatorJailed
-		}
+		if ctx.BlockHeight() == updateInfo.UpdateAtHeight {
+			//do update
+			k.Logger(ctx).Info("start to replace validator pubkey", "operator_address", updateInfo.OperatorAddress,
+				"pub_key", hex.EncodeToString(updateInfo.PubKey), "height", ctx.BlockHeight())
+			pk := new(ed25519.PubKey)
+			if err = pk.Unmarshal(updateInfo.PubKey); err != nil {
+				return nil, sdkerrors.Wrapf(types.ErrProtoProc, "unmarshal pubkey error: %v,inputKey = %s",
+					err, hex.EncodeToString(updateInfo.PubKey))
+			}
+			valAddr, err := sdk.ValAddressFromBech32(updateInfo.OperatorAddress)
+			if err != nil {
+				return nil, err
+			}
+			validator, found := k.GetValidator(ctx, valAddr)
+			if !found {
+				return nil, stakingtypes.ErrNoValidatorFound
+			}
+			if validator.IsJailed() {
+				return nil, stakingtypes.ErrValidatorJailed
+			}
 
-		if !validator.IsBonded() {
-			return nil, types.ErrValidatorNotBonded
-		}
-		if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
-			return nil, stakingtypes.ErrValidatorPubKeyExists
-		}
-		oldConAddr, err := validator.GetConsAddr()
-		if err != nil {
-			return nil, err
-		}
-		oldPubKey,ok := validator.ConsensusPubkey.GetCachedValue().(cryptotypes.PubKey)
-		if !ok {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "parser validator's old pub key error.expecting cryptotypes.PubKey, got %T",  validator.ConsensusPubkey.GetCachedValue())
-		}
-		k.RemoveValidatorByConsAddr(ctx, oldConAddr)
-		anyPk, err := codectypes.NewAnyWithValue(pk)
-		if err != nil {
-			return nil, err
-		}
-		validator.ConsensusPubkey = anyPk
-		k.SetValidator(ctx, validator)
-		k.SetValidatorByConsAddr(ctx, validator)
-		k.DeleteRepalceConsensusPubKey(ctx)
-	
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(types.EventTypeStartReplacePubKey,
-				sdk.NewAttribute(types.AttributeKeyOperatorAddress, updateInfo.OperatorAddress),
-				sdk.NewAttribute(types.AttributeKeyOldConsAddr, oldConAddr.String()),
-				sdk.NewAttribute(types.AttributeKeyNowConsAddr, sdk.GetConsAddress(pk).String()),
-				sdk.NewAttribute("height", fmt.Sprintf("%d", ctx.BlockHeight()))),
-		)
-		return &types.ReplaceNodePubKey{
-			OperatorAddress: updateInfo.OperatorAddress,
-			OldPubKey: oldPubKey,
-			NewPubKey: pk,
-		},nil
+			if !validator.IsBonded() {
+				return nil, types.ErrValidatorNotBonded
+			}
+			if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
+				return nil, stakingtypes.ErrValidatorPubKeyExists
+			}
 
+			oldPubKey, ok := validator.ConsensusPubkey.GetCachedValue().(cryptotypes.PubKey)
+			if !ok {
+				return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "parser validator's old pub key error.expecting cryptotypes.PubKey, got %T", validator.ConsensusPubkey.GetCachedValue())
+			}
+
+			anyPk, err := codectypes.NewAnyWithValue(pk)
+			if err != nil {
+				return nil, err
+			}
+			validator.ConsensusPubkey = anyPk
+			k.SetValidator(ctx, validator)
+			k.SetValidatorByConsAddr(ctx, validator)
+			if err = k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
+				k.Logger(ctx).Info("AfterValidatorCreated hook ", "err", err.Error())
+				return nil, sdkerrors.Wrapf(types.ErrInterProc, "AfterValidatorCreated hook error: %v", err)
+			}
+			//directly set new signing info for new cons addr
+			newConsAddr := sdk.GetConsAddress(pk)
+			newSigningInfo := slashingtypes.NewValidatorSigningInfo(
+				newConsAddr,
+				ctx.BlockHeight(),
+				0,
+				time.Unix(0, 0),
+				false,
+				0,
+			)
+			k.slashingKeeper.SetValidatorSigningInfo(ctx, newConsAddr, newSigningInfo)
+
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(types.EventTypeStartReplacePubKey,
+					sdk.NewAttribute(types.AttributeKeyOperatorAddress, updateInfo.OperatorAddress),
+					sdk.NewAttribute(types.AttributeKeyOldConsAddr, sdk.ConsAddress(updateInfo.OldConsAddress).String()),
+					sdk.NewAttribute(types.AttributeKeyNowConsAddr, sdk.GetConsAddress(pk).String()),
+					sdk.NewAttribute("height", fmt.Sprintf("%d", ctx.BlockHeight()))),
+			)
+			return &types.ReplaceNodePubKey{
+				OperatorAddress: updateInfo.OperatorAddress,
+				OldPubKey:       oldPubKey,
+				NewPubKey:       pk,
+			}, nil
+
+		} else if ctx.BlockHeight() == (updateInfo.UpdateAtHeight + 2) { //delay remove old cons addr because of distribution rewards delayed by one block
+			k.RemoveValidatorByConsAddr(ctx, sdk.ConsAddress(updateInfo.OldConsAddress))
+			k.DeleteRepalceConsensusPubKey(ctx)
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(types.EventTypeDelayRemoveOldConsAddr,
+					sdk.NewAttribute(types.AttributeKeyOperatorAddress, updateInfo.OperatorAddress),
+					sdk.NewAttribute(types.AttributeKeyOldConsAddr, sdk.ConsAddress(updateInfo.OldConsAddress).String()),
+					sdk.NewAttribute(types.AttributeKeyUpdateAtHeight, fmt.Sprintf("%d", updateInfo.UpdateAtHeight)),
+					sdk.NewAttribute("height", fmt.Sprintf("%d", ctx.BlockHeight()))),
+			)
+			k.Logger(ctx).Info("completed delayed removed old cons addr from index", "old_cons_addr",
+				sdk.ConsAddress(updateInfo.OldConsAddress).String(), "height", ctx.BlockHeight())
+			return nil, nil
+
+		} else if ctx.BlockHeight() == (updateInfo.UpdateAtHeight + 1) {
+			//do nothing, wait for next block to remove old cons addr
+			return nil, nil
+		} else {
+			return nil, sdkerrors.Wrapf(types.ErrInterProc, "RepalceConsensusPubKeyInfo is still exist when block height greater than update_at_height. now height = %d, update at height = %d",
+				ctx.BlockHeight(), updateInfo.UpdateAtHeight)
+		}
 	}
-
 }
 
 func (k Keeper) SetRepalcePubKeyInfo(ctx sdk.Context, data *types.UpdatePubKeyInfo) error {

@@ -56,6 +56,7 @@ func (m MEID_REWARD_TYPE) Int32() int32 {
 
 type UpdatePubKeyInfo struct {
 	OperatorAddress string `json:"operator_address"`
+	OldConsAddress  []byte `json:"old_cons_address"`
 	PubKey          []byte `json:"pub_key"`
 	UpdateAtHeight  int64  `json:"update_at_height"`
 }
