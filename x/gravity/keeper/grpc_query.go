@@ -300,8 +300,10 @@ func (k QueryServer) UnbatchedTxs(c context.Context, req *types.QueryUnbatchedTx
 
 func (k QueryServer) ProjectedBatchTimeoutHeight(c context.Context, _ *types.QueryProjectedBatchTimeoutHeightRequest) (*types.QueryProjectedBatchTimeoutHeightResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	_, batchTimeout := k.GetBatchTimeoutHeight(ctx)
-	return &types.QueryProjectedBatchTimeoutHeightResponse{TimeoutHeight: batchTimeout}, nil
+	projectedCurrentExternalHeight, batchTimeout := k.GetBatchTimeoutHeight(ctx)
+	return &types.QueryProjectedBatchTimeoutHeightResponse{
+		TimeoutHeight:                  batchTimeout,
+		ProjectedCurrentExternalHeight: projectedCurrentExternalHeight}, nil
 }
 
 func (k QueryServer) BridgeTokens(c context.Context, req *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {

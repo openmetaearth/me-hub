@@ -149,8 +149,10 @@ func (s MsgServer) UnbondedRelayer(c context.Context, msg *types.MsgUnbondedRela
 	relayerAddress := sdk.MustAccAddressFromBech32(msg.RelayerAddress)
 	ctx := sdk.UnwrapSDKContext(c)
 
-	if s.IsProposalRelayer(ctx, msg.RelayerAddress) {
-		return nil, errorsmod.Wrap(types.ErrInvalid, "need to pass a proposal to unbond")
+	if ctx.BlockHeight() > 10167300 {
+		if s.IsProposalRelayer(ctx, msg.RelayerAddress) {
+			return nil, errorsmod.Wrap(types.ErrInvalid, "need to pass a proposal to unbond")
+		}
 	}
 
 	relayer, found := s.GetRelayer(ctx, relayerAddress)

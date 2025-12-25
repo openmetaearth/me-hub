@@ -273,6 +273,7 @@ message QueryProjectedBatchTimeoutHeightRequest {
 }
 message QueryProjectedBatchTimeoutHeightResponse {
   uint64 timeout_height = 1;
+  uint64 projectedCurrentExternalHeight = 2;
 }
 
 message QueryBridgeTokensRequest {
