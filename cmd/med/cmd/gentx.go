@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -122,11 +123,12 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			if err != nil {
 				return errors.Wrap(err, "failed to parse coins")
 			}
-			addr, err := key.GetAddress()
-			if err != nil {
-				return err
-			}
-			err = ValidateAccountInGenesis(genesisState, genBalIterator, addr, coins, cdc)
+			//addr, err := key.GetAddress()
+			//if err != nil {
+			//	return err
+			//}
+			moduleAddress := authtypes.NewModuleAddress(wstakingtypes.StakePoolName)
+			err = ValidateAccountInGenesis(genesisState, genBalIterator, moduleAddress, coins, cdc)
 			if err != nil {
 				return errors.Wrap(err, "failed to validate account in genesis")
 			}
