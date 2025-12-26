@@ -59,6 +59,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 }
 
+// BeginBlock returns the begin blocker for the distribution module.
+func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
+	BeginBlocker(ctx, req, am.keeper)
+}
+
 func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) {
 	EndBlock(ctx, req, am.keeper)
 }
