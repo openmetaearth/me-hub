@@ -99,17 +99,14 @@ fi
 echo "Initialize AMM accounts? (Y/n) "
 read -r answer
 if [ ! "$answer" != "${answer#[Nn]}" ] ;then
-  med keys add pools --keyring-backend test
   med keys add user --keyring-backend test
 
-  # Add genesis accounts and provide coins to the accounts
-  med add-genesis-account $(med keys show pools --keyring-backend test -a) 1000000000000000000000000umec
   # Give some uatom to the local-user as well
   med add-genesis-account $(med keys show user --keyring-backend test -a) 1000000000000000000000umec
 fi
 
 echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test
-med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
+med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "0umec"
 med add-genesis-stake-pool
 med add-genesis-m-accounts
 med gentx_DAO --pubkey "$(med keys show "$KEY_NAME" -p)"

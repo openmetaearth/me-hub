@@ -39,7 +39,6 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.9.0
-	go.uber.org/mock v0.2.0
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	golang.org/x/net v0.33.0
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d
@@ -270,7 +269,7 @@ require (
 )
 
 replace (
-	github.com/cosmos/cosmos-sdk => github.com/st-chain/cosmos-sdk v0.47.13-me
+	github.com/cosmos/cosmos-sdk => github.com/st-chain/cosmos-sdk v0.47.13-me-collect-genesis
 	github.com/evmos/ethermint => github.com/st-chain/ethermint v0.0.0-20250220093514-1c7546e01918
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/ipfs/go-log/v2 => github.com/st-chain/go-log/v2 v2.7.0
