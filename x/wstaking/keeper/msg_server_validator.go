@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"strings"
 
+	ed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -45,7 +47,7 @@ func (k MsgServer) CreateValidator(
 
 	pk, ok := msg.Pubkey.GetCachedValue().(cryptotypes.PubKey)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", msg.Pubkey.GetCachedValue())
 	}
 
 	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
@@ -133,4 +135,95 @@ func (k MsgServer) CreateValidator(
 
 func (k MsgServer) EditValidator(context.Context, *stakingtypes.MsgEditValidator) (*stakingtypes.MsgEditValidatorResponse, error) {
 	return &stakingtypes.MsgEditValidatorResponse{}, fmt.Errorf("not implemented, please use UpdateValidator instead")
+}
+
+// 1. only perform the node replacement when the target block height is reached.
+// 2. handle the transfer of power, staking information, and status information.
+// 3. check if the new pubkey is already bound to an existing validator
+func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgReplaceConsensusPubKeyRequest) (*types.MsgReplaceConsensusPubKeyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if !k.daoKeeper.IsGlobalDao(ctx, req.Creator) {
+		return nil, types.ErrCheckGlobalDao
+	}
+	// Check if any validator replacement is already in progress
+	if k.IsHasRepalceConsensusPubKey(ctx) {
+		return nil, types.ErrExistingReplaceValidator
+	}
+
+	valAddr, err := sdk.ValAddressFromBech32(req.ReplacePubKey.OperatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	validator, found := k.GetValidator(ctx, valAddr)
+	if !found {
+		return nil, stakingtypes.ErrNoValidatorFound
+	}
+	if validator.IsJailed() {
+		return nil, stakingtypes.ErrValidatorJailed
+	}
+
+	if !validator.IsBonded() {
+		return nil, types.ErrValidatorNotBonded
+	}
+
+	pk, ok := req.ReplacePubKey.PubKey.GetCachedValue().(*ed25519.PubKey)
+	if !ok {
+		return nil, sdkerrors.Wrapf(stakingtypes.ErrValidatorPubKeyTypeNotSupported, "Expecting ed25519.PubKey, got %T", req.ReplacePubKey.PubKey.GetCachedValue())
+	}
+
+	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
+		return nil, stakingtypes.ErrValidatorPubKeyExists
+	}
+
+	/*
+		cp := ctx.ConsensusParams()
+		if cp != nil && cp.Validator != nil {
+			pkType := pk.Type()
+			hasKeyType := false
+			for _, keyType := range cp.Validator.PubKeyTypes {
+				if pkType == keyType {
+					hasKeyType = true
+					break
+				}
+			}
+			if !hasKeyType {
+				return nil, sdkerrors.Wrapf(
+					stakingtypes.ErrValidatorPubKeyTypeNotSupported,
+					"got: %s, expected: %s", pk.Type(), cp.Validator.PubKeyTypes,
+				)
+			}
+		}
+
+	*/
+	pubKeyData, err := pk.Marshal()
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrProtoProc, "marshal pubkey error: %v", err)
+	}
+	needReplaceConsAddr, err := validator.GetConsAddr()
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrInterProc, "GetConsAddr from validator error: %v", err)
+	}
+
+	update := &types.UpdatePubKeyInfo{
+		OperatorAddress: req.ReplacePubKey.OperatorAddress,
+		OldConsAddress:  needReplaceConsAddr.Bytes(),
+		PubKey:          pubKeyData,
+		UpdateAtHeight:  ctx.BlockHeight() + req.ReplacePubKey.BlockNumber,
+	}
+
+	if err = k.SetRepalcePubKeyInfo(ctx, update); err != nil {
+		return nil, err
+	}
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeReplacePubKey,
+			sdk.NewAttribute(types.AttributeKeyOperatorAddress, update.OperatorAddress),
+			sdk.NewAttribute(types.AttributeKeyPubKey, hex.EncodeToString(update.PubKey)),
+			sdk.NewAttribute(types.AttributeKeyOldConsAddr, needReplaceConsAddr.String()),
+			sdk.NewAttribute(types.AttributeKeyUpdateAtHeight, fmt.Sprintf("%d", update.UpdateAtHeight)),
+		),
+	})
+
+	return &types.MsgReplaceConsensusPubKeyResponse{}, nil
 }

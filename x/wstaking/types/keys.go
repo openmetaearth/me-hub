@@ -49,6 +49,20 @@ const (
 	FixedDepositCountOfCfgKeyPrefix = "FixedDepositCountOfCfg/value/"
 )
 
+const (
+	TypeMsgReplaceConsensusPubKey   = "replace_consensus_pubkey"
+	ReplaceConsensusPubKey          = "ReplaceNodePubKey"
+	EventTypeReplacePubKey          = "replace_pubkey"
+	EventTypeStartReplacePubKey     = "start_replace_pubkey"
+	EventTypeDelayRemoveOldConsAddr = "delay_remove_old_cons_addr"
+
+	AttributeKeyOperatorAddress = "operator_address"
+	AttributeKeyPubKey          = "pub_key"
+	AttributeKeyOldConsAddr     = "old_cons_addr"
+	AttributeKeyNowConsAddr     = "now_cons_addr"
+	AttributeKeyUpdateAtHeight  = "update_at_height"
+)
+
 var (
 	StakeKey                    = []byte{0x61} // key for a stake
 	UnbondingStakeKey           = []byte{0x72} // key for an unbonding-stake

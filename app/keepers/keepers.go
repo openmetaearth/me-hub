@@ -2,9 +2,10 @@ package keepers
 
 import (
 	"fmt"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"path/filepath"
 	"strings"
+
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
 	"github.com/cosmos/cosmos-sdk/x/nft"
 	groupTypes "github.com/st-chain/me-hub/x/megroup/types"
@@ -291,6 +292,7 @@ func (a *AppKeepers) InitKeepers(
 		a.StakingKeeper,
 		govModuleAddress,
 	)
+	a.StakingKeeper.SetSlashingKeeper(a.SlashingKeeper)
 
 	a.FeeGrantKeeper = feegrantkeeper.NewKeeper(
 		appCodec,

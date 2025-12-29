@@ -1,11 +1,14 @@
 package keeper
 
 import (
+	"fmt"
+	"strings"
+
 	abci "github.com/cometbft/cometbft/abci/types"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"strings"
 )
 
 // BlockValidatorUpdates calculates the ValidatorUpdates for the current block
@@ -23,6 +26,40 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 	validatorUpdates, err := k.ApplyAndReturnValidatorSetUpdates(ctx)
 	if err != nil {
 		panic(err)
+	}
+
+	replacePubKey, err := k.UpdateValidatorPubKey(ctx)
+	if  err != nil {
+		panic(err)
+	}
+	if replacePubKey != nil {
+		newPubkey, errP := cryptocodec.ToTmProtoPublicKey(replacePubKey.NewPubKey)
+		if errP != nil {
+			panic(errP)
+		}
+		oldPubkey, errP := cryptocodec.ToTmProtoPublicKey(replacePubKey.OldPubKey)
+		if errP != nil {
+			panic(errP)
+		}
+		validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
+			PubKey: oldPubkey,
+			Power:  0,
+		})
+		valAddr, errP := sdk.ValAddressFromBech32(replacePubKey.OperatorAddress)
+		if errP != nil {
+			panic(fmt.Sprintf("invalid validator address %s,err = %s", replacePubKey.OperatorAddress, errP.Error()))
+		}
+		validator, found := k.GetValidator(ctx, valAddr)
+		if !found {
+			panic(fmt.Sprintf("validator not found for address %s", replacePubKey.OperatorAddress))
+		}
+		power := validator.ConsensusPower(k.PowerReduction(ctx))
+		validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
+			PubKey: newPubkey,
+			Power:  power,
+		})
+		// Log the removal
+		k.Logger(ctx).Info("completed pubb key replaced in validatorUpdates ", "validator", valAddr.String(),"block height", ctx.BlockHeight())
 	}
 
 	// unbond all mature validators from the unbonding queue

@@ -4,6 +4,8 @@ import (
 	gomath "math"
 
 	"cosmossdk.io/math"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -489,4 +491,65 @@ func (msg *MsgTransferRegion) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
+}
+
+func NewMsgReplaceConsensusPubKeyRequest(creator, operator string, pubkey cryptotypes.PubKey, blockNumber int64) (*MsgReplaceConsensusPubKeyRequest, error) {
+	codecPubKey, err := codectypes.NewAnyWithValue(pubkey)
+	if err != nil {
+		return nil, err
+	}
+
+	return &MsgReplaceConsensusPubKeyRequest{
+		Creator: creator,
+		ReplacePubKey: &MsgReplaceConsensusPubKey{
+			OperatorAddress: operator,
+			PubKey:          codecPubKey,
+			BlockNumber:     blockNumber,
+		},
+	}, nil
+}
+func (msg *MsgReplaceConsensusPubKeyRequest) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgReplaceConsensusPubKeyRequest) Type() string {
+	return TypeMsgReplaceConsensusPubKey
+}
+
+func (msg *MsgReplaceConsensusPubKeyRequest) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *MsgReplaceConsensusPubKeyRequest) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgReplaceConsensusPubKeyRequest) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+	_, err = sdk.ValAddressFromBech32(msg.ReplacePubKey.OperatorAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address (%s)", err)
+	}
+	if msg.ReplacePubKey == nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "replace pubkey cannot be nil")
+	}
+	if msg.ReplacePubKey.BlockNumber < 1 {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid block number (%d)", msg.ReplacePubKey.BlockNumber)
+	}
+
+	return nil
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg MsgReplaceConsensusPubKeyRequest) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(msg.ReplacePubKey.PubKey, &pubKey)
 }

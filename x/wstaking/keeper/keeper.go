@@ -9,23 +9,25 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
 type Keeper struct {
 	*stakingkeeper.Keeper
-	cdc           codec.BinaryCodec
-	storeKey      storetypes.StoreKey
-	authKeeper    banktypes.AccountKeeper
-	bankKeeper    types.BankKeeper
-	daoKeeper     types.DaoKeeper
-	mintKeeper    types.MintKeeper
-	nftKeeper     types.NFTKeeper
-	wstakingHooks types.WstakingHooks
-	kycKeeper     types.KycKeeper
-	didKeeper     types.DidKeeper
-	groupKeeper   types.GroupKeeper
+	cdc            codec.BinaryCodec
+	storeKey       storetypes.StoreKey
+	authKeeper     banktypes.AccountKeeper
+	bankKeeper     types.BankKeeper
+	daoKeeper      types.DaoKeeper
+	mintKeeper     types.MintKeeper
+	nftKeeper      types.NFTKeeper
+	wstakingHooks  types.WstakingHooks
+	kycKeeper      types.KycKeeper
+	didKeeper      types.DidKeeper
+	groupKeeper    types.GroupKeeper
+	slashingKeeper slashingkeeper.Keeper
 }
 
 func NewKeeper(
@@ -62,6 +64,10 @@ func (k *Keeper) SetGroupKeeper(keeper types.GroupKeeper) {
 
 func (k *Keeper) SetDidKeeper(keeper types.DidKeeper) {
 	k.didKeeper = keeper
+}
+
+func (K *Keeper) SetSlashingKeeper(keeper slashingkeeper.Keeper) {
+	K.slashingKeeper = keeper
 }
 
 // Logger returns a module-specific logger.
