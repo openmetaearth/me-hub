@@ -137,10 +137,9 @@ func (k MsgServer) EditValidator(context.Context, *stakingtypes.MsgEditValidator
 	return &stakingtypes.MsgEditValidatorResponse{}, fmt.Errorf("not implemented, please use UpdateValidator instead")
 }
 
-// todo:
-// 1. 增加区块高度到达时，节点才进行替换
-// 2. 增加power的转移，以及质押信息以及状态信息的转移
-// 4. 检查是否有业务质押和验证者关系的绑定，以及是否需要转移
+// 1. only perform the node replacement when the target block height is reached.
+// 2. handle the transfer of power, staking information, and status information.
+// 3. check if the new pubkey is already bound to an existing validator
 func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgReplaceConsensusPubKeyRequest) (*types.MsgReplaceConsensusPubKeyResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if !k.daoKeeper.IsGlobalDao(ctx, req.Creator) {
@@ -225,41 +224,6 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 			sdk.NewAttribute(types.AttributeKeyUpdateAtHeight, fmt.Sprintf("%d", update.UpdateAtHeight)),
 		),
 	})
-
-	/*
-		newValidatorValAddr := sdk.ValAddress(pk.Address())
-		if k.MoveStakesToAnotherVal(ctx, oldValAddr, newValidatorValAddr) != nil {
-			return nil, err
-		}
-		//replace validator pubkey
-		newValidator := oldValidator
-		newValidator.ConsensusPubkey = req.ReplaceValidator.NewValidatorPubKey
-
-		//todo
-		/*
-			1. 查询旧validator所关联的regiond_id
-			2. 解绑旧validator和region_id的绑定关系
-			3. 绑定新validator和region_id的绑定关系
-	*/
-
-	/*
-		// Remove old ConsAddr index
-		oldConsensAddr, err := validator.GetConsAddr()
-		if err != nil {
-			return nil, err
-		}
-		k.RemoveValidatorByConsAddr(ctx, oldConsensAddr)
-
-		// Update Validator with new PubKey
-		validator.ConsensusPubkey = req.UpdatePubKey.PubKey
-		// Update Validator in store
-		k.SetValidator(ctx, validator)
-		// Set new ConsAddr index
-		k.SetValidatorByConsAddr(ctx, validator)
-
-		// Store pending removal for old key
-		k.SetPendingKeyRemoval(ctx, valAddr, oldPk)
-	*/
 
 	return &types.MsgReplaceConsensusPubKeyResponse{}, nil
 }
