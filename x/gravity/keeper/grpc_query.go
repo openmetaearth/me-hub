@@ -384,3 +384,8 @@ func (k QueryServer) ClaimsByEventNonce(c context.Context, req *types.QueryClaim
 	})
 	return &types.QueryClaimsByEventNonceResponse{Claims: attestations}, nil
 }
+
+func (k QueryServer) LastObservedRelayer(c context.Context, req *types.QueryLastObservedRelayer) (*types.QueryLastObservedRelayerResponse, error) {
+	set := k.GetLastObservedRelayerSet(sdk.UnwrapSDKContext(c))
+	return &types.QueryLastObservedRelayerResponse{RelayerSet: set}, nil
+}

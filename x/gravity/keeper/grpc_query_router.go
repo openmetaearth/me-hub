@@ -226,3 +226,11 @@ func (k RouterKeeper) BridgeChainList(c context.Context, req *types.QueryBridgeC
 		return queryServer.BridgeChainList(c, req)
 	}
 }
+
+func (k RouterKeeper) LastObservedRelayer(c context.Context, req *types.QueryLastObservedRelayer) (*types.QueryLastObservedRelayerResponse, error) {
+	if queryServer, err := k.getQueryServerByChainName(bsctypes.ModuleName); err != nil {
+		return nil, err
+	} else {
+		return queryServer.LastObservedRelayer(c, req)
+	}
+}

@@ -95,6 +95,9 @@ service Query {
   rpc ClaimsByEventNonce(QueryClaimsByEventNonceRequest) returns (QueryClaimsByEventNonceResponse) {
     option (google.api.http).get = "/gravity/v1/claims_by_event_nonce";
   }
+  rpc LastObservedRelayer(QueryLastObservedRelayer) returns (QueryLastObservedRelayerResponse) {
+    option (google.api.http).get = "/gravity/v1/last_observed_relayer";
+  }
 }
 
 message QueryParamsRequest {
@@ -314,4 +317,10 @@ message QueryClaimsByEventNonceRequest {
 }
 message QueryClaimsByEventNonceResponse {
   repeated Attestation claims = 1 [(gogoproto.nullable) = false];
+}
+message QueryLastObservedRelayer {
+  string chain_name = 1;
+}
+message QueryLastObservedRelayerResponse {
+  RelayerSet relayer_set = 1;
 }
