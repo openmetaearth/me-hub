@@ -200,7 +200,7 @@ func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, contractAddress string, b
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOutgoingBatchCanceled,
-		sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyTokenContract, contractAddress),
 		sdk.NewAttribute(types.AttributeKeyOutgoingBatchNonce, fmt.Sprint(batchNonce)),
 	))
