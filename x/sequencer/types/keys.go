@@ -41,9 +41,37 @@ var (
 	UnbondingSequencersKeyPrefix = []byte{0xa3}
 
 	UnbondingQueueKey = []byte{0x41} // prefix for the timestamps in unbonding queue
+
+	RepalceProposerKeyPrefix          = []byte{0x71}
+	ReplacedSequencerAddressKeyPrefix = []byte{0x72}
+)
+
+// --------------------------- replace proposer key -----------------------//
+const (
+	KeyRepalceProposer = "ReplaceProposer"
+
+	EventReplaceProposer       = "replace_proposer"
+	EventProcReplaceProposer   = "proc_replace_proposer"
+	EventDirectRemoveSequencer = "direct_remove_sequencer"
+
+	AttributeKeyCreator            = "creator"
+	AttributeKeyOldProposer        = "old_proposer"
+	AttributeKeyNewProposer        = "new_proposer"
+	AttributeKeyBlockHeight        = "block_height"
+	AttributeKeyPendingBlockHeight = "pengding_block_height"
+	AttributeReplaceAtHeight       = "replace_at_height"
 )
 
 /* --------------------- specific sequencer address keys -------------------- */
+
+func RepalceRollappProposerKey(rollappId string) []byte {
+	return append(RepalceProposerKeyPrefix, []byte(rollappId)...)
+}
+
+func ReplacedSequencerAddressKey(rollappId, addr string) []byte {
+	return append(ReplacedSequencerAddressKeyPrefix, []byte(fmt.Sprintf("%s/%s", rollappId, addr))...)
+}
+
 func SequencerKey(sequencerAddress string) []byte {
 	sequencerAddrBytes := []byte(sequencerAddress)
 	return []byte(fmt.Sprintf("%s%s%s", SequencersKeyPrefix, KeySeparator, sequencerAddrBytes))

@@ -400,6 +400,8 @@ func (a *AppKeepers) InitKeepers(
 		a.RollappKeeper,
 	)
 
+	a.RollappKeeper.SetSequencerKeeper(a.SequencerKeeper)
+
 	a.EIBCKeeper = *eibckeeper.NewKeeper(
 		appCodec,
 		a.keys[eibcmoduletypes.StoreKey],
