@@ -6,7 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/st-chain/me-hub/utils/gerrc"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/st-chain/me-hub/app/apptesting"

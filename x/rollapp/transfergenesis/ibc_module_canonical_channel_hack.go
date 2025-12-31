@@ -5,7 +5,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	uibc "github.com/dymensionxyz/sdk-utils/utils/uibc"
+	uibc "github.com/st-chain/me-hub/utils/uibc"
 	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
 )
 
@@ -14,7 +14,6 @@ TODO: this whole file is temporary
 	Prior to this we relied on the whitelist addr to set the canonical channel, but that is no longer possible
 	This currently file is a hack (not secure)
 	The real solution will come in a followup PR
-	See https://github.com/dymensionxyz/research/issues/242
 */
 
 type ChannelKeeper interface {

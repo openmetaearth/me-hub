@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/st-chain/me-hub/utils/gerrc"
 	commontypes "github.com/st-chain/me-hub/x/common/types"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	uibc "github.com/dymensionxyz/sdk-utils/utils/uibc"
+	uibc "github.com/st-chain/me-hub/utils/uibc"
 
 	"github.com/cometbft/cometbft/libs/log"
 
@@ -156,7 +156,7 @@ func (w IBCModule) OnRecvPacket(
 
 func (w IBCModule) handleDRSViolation(ctx sdk.Context, rollappID string) error {
 	// handleFraud : the rollapp has violated the DRS!
-	// TODO: finish implementing this method,  see https://github.com/dymensionxyz/dymension/issues/930
+	// TODO: finish implementing this method
 	return nil
 }
 

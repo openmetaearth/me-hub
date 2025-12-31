@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	uibc "github.com/dymensionxyz/sdk-utils/utils/uibc"
+	uibc "github.com/st-chain/me-hub/utils/uibc"
 	"github.com/pkg/errors"
 	commontypes "github.com/st-chain/me-hub/x/common/types"
 	dacktypes "github.com/st-chain/me-hub/x/delayedack/types"
