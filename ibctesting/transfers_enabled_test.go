@@ -5,10 +5,9 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/app/apptesting"
+	"github.com/st-chain/me-hub/utils"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -78,7 +77,7 @@ func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 
 		if shouldFail {
 			shouldFail = false
-			s.Require().True(errorsmod.IsOf(err, gerrc.ErrFailedPrecondition))
+			s.Require().True(errorsmod.IsOf(err, utils.ErrFailedPrecondition))
 			ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 			ra.ChannelId = s.path.EndpointA.ChannelID
 			s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)

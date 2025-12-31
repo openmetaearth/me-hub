@@ -3,8 +3,8 @@ package transfergenesis
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-	"github.com/dymensionxyz/sdk-utils/utils/uibc"
+	"github.com/st-chain/me-hub/utils/gerrc"
+	"github.com/st-chain/me-hub/utils/uibc"
 
 	transferTypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/st-chain/me-hub/x/rollapp/types"

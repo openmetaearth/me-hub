@@ -19,10 +19,10 @@ require (
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3
 	github.com/cosmos/ibc-go/v7 v7.5.1
+	github.com/danwt/gerr v1.0.0
 	github.com/decred/dcrd/dcrec/edwards v1.0.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/dymensionxyz/gerr-cosmos v1.0.0
-	github.com/dymensionxyz/sdk-utils v0.2.0
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/evmos/ethermint v0.22.0
 	github.com/golang/mock v1.6.0
@@ -103,7 +103,6 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
 	github.com/creachadair/taskgroup v0.4.2 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
-	github.com/danwt/gerr v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect

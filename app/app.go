@@ -3,12 +3,14 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_12"
 	"io"
 	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_12"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_13"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
@@ -89,6 +91,7 @@ var (
 		v2_0_10.Upgrade,
 		v2_0_11.Upgrade,
 		v2_0_12.Upgrade,
+		v2_0_13.Upgrade,
 	}
 )
 
