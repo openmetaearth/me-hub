@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strings"
 
@@ -29,37 +30,52 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 	}
 
 	replacePubKey, err := k.UpdateValidatorPubKey(ctx)
-	if  err != nil {
-		panic(err)
-	}
-	if replacePubKey != nil {
-		newPubkey, errP := cryptocodec.ToTmProtoPublicKey(replacePubKey.NewPubKey)
+	if err != nil {
+		updateInfo, errP := k.GetRepalceConsensusPubKeyInfo(ctx)
 		if errP != nil {
-			panic(errP)
+			panic(fmt.Sprintf("GetRepalceConsensusPubKeyInfo error,err = %s ", errP.Error()))
 		}
-		oldPubkey, errP := cryptocodec.ToTmProtoPublicKey(replacePubKey.OldPubKey)
-		if errP != nil {
-			panic(errP)
+		k.DeleteRepalceConsensusPubKey(ctx)
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(types.EventTypeReplacePubKeyFailed,
+				sdk.NewAttribute(types.AttributeKeyOperatorAddress, updateInfo.OperatorAddress),
+				sdk.NewAttribute(types.AttributeKeyOldConsAddr, sdk.ConsAddress(updateInfo.OldConsAddress).String()),
+				sdk.NewAttribute(types.AttributeKeyPubKey, hex.EncodeToString(updateInfo.PubKey)),
+				sdk.NewAttribute("height", fmt.Sprintf("%d", ctx.BlockHeight())),
+				sdk.NewAttribute(types.AttributeKeyFailedReason, err.Error())))
+
+		k.Logger(ctx).Error("failed to replace validator pubkey", "error", err.Error(),
+			"block height", ctx.BlockHeight())
+	} else {
+		if replacePubKey != nil {
+			newPubkey, errP := cryptocodec.ToTmProtoPublicKey(replacePubKey.NewPubKey)
+			if errP != nil {
+				panic(errP)
+			}
+			oldPubkey, errP := cryptocodec.ToTmProtoPublicKey(replacePubKey.OldPubKey)
+			if errP != nil {
+				panic(errP)
+			}
+			validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
+				PubKey: oldPubkey,
+				Power:  0,
+			})
+			valAddr, errP := sdk.ValAddressFromBech32(replacePubKey.OperatorAddress)
+			if errP != nil {
+				panic(fmt.Sprintf("invalid validator address %s,err = %s", replacePubKey.OperatorAddress, errP.Error()))
+			}
+			validator, found := k.GetValidator(ctx, valAddr)
+			if !found {
+				panic(fmt.Sprintf("validator not found for address %s", replacePubKey.OperatorAddress))
+			}
+			power := validator.ConsensusPower(k.PowerReduction(ctx))
+			validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
+				PubKey: newPubkey,
+				Power:  power,
+			})
+			// Log the removal
+			k.Logger(ctx).Info("completed pubb key replaced in validatorUpdates ", "validator", valAddr.String(), "block height", ctx.BlockHeight())
 		}
-		validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
-			PubKey: oldPubkey,
-			Power:  0,
-		})
-		valAddr, errP := sdk.ValAddressFromBech32(replacePubKey.OperatorAddress)
-		if errP != nil {
-			panic(fmt.Sprintf("invalid validator address %s,err = %s", replacePubKey.OperatorAddress, errP.Error()))
-		}
-		validator, found := k.GetValidator(ctx, valAddr)
-		if !found {
-			panic(fmt.Sprintf("validator not found for address %s", replacePubKey.OperatorAddress))
-		}
-		power := validator.ConsensusPower(k.PowerReduction(ctx))
-		validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
-			PubKey: newPubkey,
-			Power:  power,
-		})
-		// Log the removal
-		k.Logger(ctx).Info("completed pubb key replaced in validatorUpdates ", "validator", valAddr.String(),"block height", ctx.BlockHeight())
 	}
 
 	// unbond all mature validators from the unbonding queue
