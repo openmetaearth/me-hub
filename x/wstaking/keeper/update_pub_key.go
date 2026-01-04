@@ -46,17 +46,14 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 			if !found {
 				return nil, stakingtypes.ErrNoValidatorFound
 			}
-			//if validator is fraudulent jailed, allow to replace pub key directly
-			/*
-				if validator.IsJailed() {
-					return nil, stakingtypes.ErrValidatorJailed
-				}
 
-				if !validator.IsBonded() {
-					return nil, types.ErrValidatorNotBonded
-				}
+			if validator.IsJailed() {
+				return nil, stakingtypes.ErrValidatorJailed
+			}
+			if !validator.IsBonded() {
+				return nil, types.ErrValidatorNotBonded
+			}
 
-			*/
 			if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
 				return nil, stakingtypes.ErrValidatorPubKeyExists
 			}
