@@ -20,7 +20,7 @@ import (
 func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey, error) {
 	updateInfo, err := k.GetRepalceConsensusPubKeyInfo(ctx)
 	if err != nil {
-		return nil, err
+		panic(fmt.Sprintf("GetRepalceConsensusPubKeyInfo error,err = %s ", err.Error()))
 	}
 	if updateInfo == nil {
 		return nil, nil
@@ -34,8 +34,9 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 				"pub_key", hex.EncodeToString(updateInfo.PubKey), "height", ctx.BlockHeight())
 			pk := new(ed25519.PubKey)
 			if err = pk.Unmarshal(updateInfo.PubKey); err != nil {
-				return nil, sdkerrors.Wrapf(types.ErrProtoProc, "unmarshal pubkey error: %v,inputKey = %s",
-					err, hex.EncodeToString(updateInfo.PubKey))
+				//return nil, sdkerrors.Wrapf(types.ErrProtoProc, "unmarshal pubkey error: %v,inputKey = %s",
+				//	err, hex.EncodeToString(updateInfo.PubKey))
+				panic(fmt.Sprintf("unmarshal pubkey error: %s ,inputKey = %s", err.Error(), hex.EncodeToString(updateInfo.PubKey)))
 			}
 			valAddr, err := sdk.ValAddressFromBech32(updateInfo.OperatorAddress)
 			if err != nil {
@@ -45,25 +46,26 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 			if !found {
 				return nil, stakingtypes.ErrNoValidatorFound
 			}
+
 			if validator.IsJailed() {
 				return nil, stakingtypes.ErrValidatorJailed
 			}
-
 			if !validator.IsBonded() {
 				return nil, types.ErrValidatorNotBonded
 			}
+
 			if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
 				return nil, stakingtypes.ErrValidatorPubKeyExists
 			}
 
 			oldPubKey, ok := validator.ConsensusPubkey.GetCachedValue().(cryptotypes.PubKey)
 			if !ok {
-				return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "parser validator's old pub key error.expecting cryptotypes.PubKey, got %T", validator.ConsensusPubkey.GetCachedValue())
+				panic(fmt.Sprintf("parser validator's old pub key error.expecting cryptotypes.PubKey, got %T", validator.ConsensusPubkey.GetCachedValue()))
 			}
 
 			anyPk, err := codectypes.NewAnyWithValue(pk)
 			if err != nil {
-				return nil, err
+				panic(fmt.Sprintf("codectypes.NewAnyWithValue ConsensusPubkey error.err = %s ", err.Error()))
 			}
 			validator.ConsensusPubkey = anyPk
 			k.SetValidator(ctx, validator)

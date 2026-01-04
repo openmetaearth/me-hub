@@ -55,12 +55,14 @@ const (
 	EventTypeReplacePubKey          = "replace_pubkey"
 	EventTypeStartReplacePubKey     = "start_replace_pubkey"
 	EventTypeDelayRemoveOldConsAddr = "delay_remove_old_cons_addr"
+	EventTypeReplacePubKeyFailed    = "replace_pubkey_failed"
 
 	AttributeKeyOperatorAddress = "operator_address"
 	AttributeKeyPubKey          = "pub_key"
 	AttributeKeyOldConsAddr     = "old_cons_addr"
 	AttributeKeyNowConsAddr     = "now_cons_addr"
 	AttributeKeyUpdateAtHeight  = "update_at_height"
+	AttributeKeyFailedReason    = "failed_reason"
 )
 
 var (
