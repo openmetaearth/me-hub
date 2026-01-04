@@ -43,6 +43,9 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		return 0, err
 	}
 
+	bridgeToken.Supply = bridgeToken.Supply.Sub(totalInVouchers.Amount)
+	k.SetBridgeToken(ctx, bridgeToken)
+
 	// get next tx id from keeper
 	nextTxID := k.AutoIncrementID(ctx, types.KeyLastTxPoolID)
 
