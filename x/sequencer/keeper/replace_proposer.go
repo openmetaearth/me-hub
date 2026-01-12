@@ -95,7 +95,7 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId string, 
 	if nil == val {
 		return nil
 	}
-	if (rollappState.StartHeight + rollappState.NumBlocks) >= uint64(val.BlockHeight) {
+	if (rollappState.StartHeight + rollappState.NumBlocks - 1) >= uint64(val.BlockHeight) {
 		//delete the replaced sequencer address record and set the new sequencer as proposer
 		oldSequencer, found := k.GetSequencer(ctx, val.OldProposer)
 		if !found {
