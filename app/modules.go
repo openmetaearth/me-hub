@@ -29,11 +29,7 @@ import (
 	"github.com/evmos/ethermint/x/evm"
 	evmclient "github.com/evmos/ethermint/x/evm/client"
 	"github.com/evmos/ethermint/x/feemarket"
-	"github.com/osmosis-labs/osmosis/v15/x/epochs"
-	"github.com/osmosis-labs/osmosis/v15/x/gamm"
-	"github.com/osmosis-labs/osmosis/v15/x/lockup"
-	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
-	"github.com/osmosis-labs/osmosis/v15/x/txfees"
+	"github.com/st-chain/me-hub/x/bsc"
 	"github.com/st-chain/me-hub/x/dao"
 	"github.com/st-chain/me-hub/x/delayedack"
 	"github.com/st-chain/me-hub/x/denommetadata"
@@ -43,6 +39,7 @@ import (
 	kyc "github.com/st-chain/me-hub/x/kyc"
 	groupmodule "github.com/st-chain/me-hub/x/megroup"
 	"github.com/st-chain/me-hub/x/rollapp"
+	"github.com/st-chain/me-hub/x/tron"
 	"github.com/st-chain/me-hub/x/wbank"
 	"github.com/st-chain/me-hub/x/wdistri"
 	"github.com/st-chain/me-hub/x/wgov"
@@ -103,16 +100,12 @@ var ModuleBasics = module.NewBasicManager(
 	did.AppModuleBasic{},
 	kyc.AppModuleBasic{},
 
-	// Osmosis modules
-	lockup.AppModuleBasic{},
-	epochs.AppModuleBasic{},
-	gamm.AppModuleBasic{},
-	poolmanager.AppModuleBasic{},
-	txfees.AppModuleBasic{},
 	dao.AppModuleBasic{},
 	wnft.AppModuleBasic{},
 	wasm.AppModuleBasic{},
 	groupmodule.AppModuleBasic{},
+	bsc.AppModuleBasic{},
+	tron.AppModuleBasic{},
 )
 
 func GenTxMessageValidator(msgs []sdk.Msg) error {

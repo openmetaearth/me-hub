@@ -23,12 +23,12 @@ MNEMONIC="curtain hat remain song receive tower stereo hope frog cheap brown pla
 
 # Setting non-default ports to avoid port conflicts when running local rollapp
 SETTLEMENT_ADDR=${SETTLEMENT_ADDR:-"0.0.0.0:36657"}
-P2P_ADDRESS=${P2P_ADDRESS:-"0.0.0.0:36656"}
-GRPC_ADDRESS=${GRPC_ADDRESS:-"0.0.0.0:8090"}
-GRPC_WEB_ADDRESS=${GRPC_WEB_ADDRESS:-"0.0.0.0:8091"}
-API_ADDRESS=${API_ADDRESS:-"0.0.0.0:1318"}
-JSONRPC_ADDRESS=${JSONRPC_ADDRESS:-"0.0.0.0:9545"}
-JSONRPC_WS_ADDRESS=${JSONRPC_WS_ADDRESS:-"0.0.0.0:9546"}
+P2P_ADDRESS=${P2P_ADDRESS:-"0.0.0.0:26656"}
+GRPC_ADDRESS=${GRPC_ADDRESS:-"0.0.0.0:9090"}
+GRPC_WEB_ADDRESS=${GRPC_WEB_ADDRESS:-"0.0.0.0:9091"}
+API_ADDRESS=${API_ADDRESS:-"0.0.0.0:1317"}
+JSONRPC_ADDRESS=${JSONRPC_ADDRESS:-"0.0.0.0:8545"}
+JSONRPC_WS_ADDRESS=${JSONRPC_WS_ADDRESS:-"0.0.0.0:8546"}
 
 TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000umec"} #1M MEC (1e6mec = 1e6 * 1e18 = 1e24umec )
 STAKING_AMOUNT=${STAKING_AMOUNT:-"10000000000000000umec"} #67% is staked (inflation goal)
@@ -73,6 +73,7 @@ sed -i'' -e "/\[grpc-web\]/,+7 s/address *= .*/address = \"$GRPC_WEB_ADDRESS\"/"
 sed -i'' -e "/\[json-rpc\]/,+6 s/address *= .*/address = \"$JSONRPC_ADDRESS\"/" "$APP_CONFIG_FILE"
 sed -i'' -e "/\[json-rpc\]/,+9 s/^ws-address *= .*/ws-address = \"$JSONRPC_WS_ADDRESS\"/" "$APP_CONFIG_FILE"
 sed -i'' -e '/\[api\]/,+3 s/enable *= .*/enable = true/' "$APP_CONFIG_FILE"
+sed -i'' -e '/\[api\]/,+9 s/swagger *= .*/swagger = true/' "$APP_CONFIG_FILE"
 sed -i'' -e "/\[api\]/,+9 s/address *= .*/address = \"tcp:\/\/$API_ADDRESS\"/" "$APP_CONFIG_FILE"
 
 sed -i'' -e 's/^minimum-gas-prices *= .*/minimum-gas-prices = "0.02umec"/' "$APP_CONFIG_FILE"
@@ -109,7 +110,8 @@ echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test
 med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "0umec"
 med add-genesis-stake-pool
 med add-genesis-m-accounts
-med gentx_DAO --pubkey "$(med keys show "$KEY_NAME" -p)"
+med gen-relayers "me1frjhlw9slyy7mrhmk0r4vytkyldxqtkf326amv,me1c5zp26c0gq2klk87nrpff3y52u34zn4ydug2yd,me1hrxxjeqae2y5wx3kxcljzns9f2lguygu9qngxh,me14jazxhme3ptv00k52fza5rravx4xn27qs0slz2,me1qdhu5h5g0qwhdpl4q553v7gcmltdr4w3lnqnjg" "10000000000umec" || { echo "Error: gen-relayers failed" >&2; exit 1; }
+med gentx_DAO --pubkey "$(med keys show "$KEY_NAME" -p)" || { echo "Error: gentx_DAO failed" >&2; exit 1; }
 
 med keys add "$KEY_NAME_SEQUENCER" --key-type secp256k1 --keyring-backend test 
 # med add-genesis-account "$KEY_NAME_SEQUENCER" "$SEQUENCER_TOKEN_AMOUNT"   // waring: eth_account

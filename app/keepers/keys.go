@@ -25,11 +25,7 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
-	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
-	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
-	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
-	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
@@ -38,6 +34,7 @@ import (
 	gourpTypes "github.com/st-chain/me-hub/x/megroup/types"
 	rollappmoduletypes "github.com/st-chain/me-hub/x/rollapp/types"
 	sequencermoduletypes "github.com/st-chain/me-hub/x/sequencer/types"
+	trontypes "github.com/st-chain/me-hub/x/tron/types"
 )
 
 // GenerateKeys generates new keys (KV Store, Transient store, and memory store).
@@ -124,16 +121,13 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	// did keys
 	didtypes.StoreKey,
 	kyctypes.StoreKey,
-	// osmosis keys
-	lockuptypes.StoreKey,
-	epochstypes.StoreKey,
-	gammtypes.StoreKey,
-	poolmanagertypes.StoreKey,
-	txfeestypes.StoreKey,
 	// me keys
 	daotypes.StoreKey,
 	nftkeeper.StoreKey,
 	wasmtypes.StoreKey,
 	//megroup
 	gourpTypes.StoreKey,
+	// gravity bridge
+	bsctypes.StoreKey,
+	trontypes.StoreKey,
 )

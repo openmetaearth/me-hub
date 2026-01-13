@@ -29,7 +29,7 @@ import (
 )
 
 var (
-	alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
+	alice = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"
 	bond  = sequencertypes.DefaultParams().MinBond
 )
 

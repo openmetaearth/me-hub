@@ -23,6 +23,14 @@
       }
     },
     {
+      "url": "./tmp-swagger-gen/metaearth/gravity/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "gravityParams"
+        }
+      }
+    },
+    {
       "url": "./tmp-swagger-gen/metaearth/did/query.swagger.json",
       "operationIds": {
         "rename": {

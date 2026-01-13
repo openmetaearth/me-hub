@@ -115,3 +115,11 @@ func (k Keeper) GetGlobalDaoFeePoolAddr(ctx sdk.Context) sdk.AccAddress {
 	}
 	return account.GetAddress()
 }
+
+func (k Keeper) IsDao(ctx sdk.Context, address string) bool {
+	dao, found := k.GetDaoAddresses(ctx)
+	if !found {
+		return false
+	}
+	return dao.MeidDao == address || dao.GlobalDao == address
+}

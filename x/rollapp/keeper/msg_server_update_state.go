@@ -13,7 +13,7 @@ import (
 
 func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState) (*types.MsgUpdateStateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	ctx.Logger().Info("receviced tx UpdateState", "msg", msg.String())
+	ctx.Logger().Info("received tx UpdateState", "rollapp-id", msg.RollappId, "start-height", msg.StartHeight, "num-blocks", msg.NumBlocks, "da-path", msg.DAPath, "creator", msg.Creator)
 
 	if !k.RollappsEnabled(ctx) {
 		return nil, types.ErrRollappsDisabled

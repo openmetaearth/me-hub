@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 
 	"github.com/st-chain/me-hub/app/params"
 
@@ -36,6 +37,9 @@ func MakeEncodingConfig() params.EncodingConfig {
 
 	RegisterLegacyAminoCodec(encodingConfig.Amino)
 	RegisterInterfaces(encodingConfig.InterfaceRegistry)
+
+	gravitytypes.RegisterCodec(encodingConfig.Amino)
+	gravitytypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
 	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
