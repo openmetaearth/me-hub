@@ -50,9 +50,9 @@ func (msg *MsgUpdateDao) ValidateBasic() error {
 			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.MeidDao)
 		}
 	}
-	if len(msg.DaoAddresses.AirdropAddress) > 0 {
-		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.AirdropAddress); err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.AirdropAddress)
+	if len(msg.DaoAddresses.DevOperator) > 0 {
+		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.DevOperator); err != nil {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.DevOperator)
 		}
 	}
 	if len(msg.DaoAddresses.AirdropAddress) > 0 {
