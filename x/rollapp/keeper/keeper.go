@@ -24,6 +24,7 @@ type Keeper struct {
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 	daoKeeper       types.DaoKeeper
+	sequencerKeeper types.SequencerKeeper
 }
 
 func NewKeeper(
@@ -58,6 +59,10 @@ func (k *Keeper) SetFinalizePendingFn(fn func(ctx sdk.Context, stateInfoIndex ty
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+func (k *Keeper) SetSequencerKeeper(keeper types.SequencerKeeper) {
+	k.sequencerKeeper = keeper
 }
 
 /* -------------------------------------------------------------------------- */

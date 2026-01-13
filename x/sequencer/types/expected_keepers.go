@@ -10,6 +10,8 @@ import (
 type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
 	GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp)
+	GetLatestStateInfoIndex(ctx sdk.Context, rollappId string) (rollapptypes.StateInfoIndex, bool)
+	GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (rollapptypes.StateInfo, bool)
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
