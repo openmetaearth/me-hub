@@ -532,11 +532,11 @@ func (k Keeper) ParserStakeKey(key []byte) (stakerAddr sdk.AccAddress, valAddr s
 	return stakerAddr, valAddr, nil
 }
 
-func (k Keeper) GetStakesByValidator(ctx sdk.Context, valAddr sdk.ValAddress)([]*types.Stake, error) {
+func (k Keeper) GetStakesByValidator(ctx sdk.Context, valAddr sdk.ValAddress) ([]*types.Stake, error) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.StakeKey)
 	defer iterator.Close()
-    var stakes []*types.Stake
+	var stakes []*types.Stake
 	for ; iterator.Valid(); iterator.Next() {
 		_, vAddr, err := k.ParserStakeKey(iterator.Key())
 		if err != nil {
@@ -547,7 +547,7 @@ func (k Keeper) GetStakesByValidator(ctx sdk.Context, valAddr sdk.ValAddress)([]
 			k.cdc.MustUnmarshal(iterator.Value(), &stakeInfo)
 			stakes = append(stakes, &stakeInfo)
 		}
-		
+
 	}
 	return stakes, nil
 }

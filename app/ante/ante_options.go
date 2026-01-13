@@ -6,7 +6,6 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
-	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
 	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
 
@@ -22,7 +21,6 @@ type HandlerOptions struct {
 	FeeMarketKeeper        ethante.FeeMarketKeeper
 	EvmKeeper              ethante.EVMKeeper
 	FeegrantKeeper         ante.FeegrantKeeper
-	TxFeesKeeper           *txfeeskeeper.Keeper
 	SignModeHandler        authsigning.SignModeHandler
 	MaxTxGasWanted         uint64
 	ExtensionOptionChecker ante.ExtensionOptionChecker
@@ -51,10 +49,6 @@ func (options HandlerOptions) validate() error {
 	if options.EvmKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "evm keeper is required for AnteHandler")
 	}
-	if options.TxFeesKeeper == nil {
-		return errorsmod.Wrap(errortypes.ErrLogic, "tx fees keeper is required for AnteHandler")
-	}
-
 	if options.DaoKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "dao keeper is required for AnteHandler")
 	}

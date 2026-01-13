@@ -68,10 +68,6 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				return fmt.Errorf("failed to get accounts from any: %w", err)
 			}
 
-			if accs.Contains(moduleAddress) {
-				return fmt.Errorf("cannot add account at existing address %s", moduleAddress)
-			}
-
 			// Add the new account to the set of genesis accounts and sanitize the
 			// accounts afterwards.
 			accs = append(accs, genAccount)

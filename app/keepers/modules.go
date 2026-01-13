@@ -45,22 +45,17 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
-	"github.com/osmosis-labs/osmosis/v15/x/epochs"
-	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
-	"github.com/osmosis-labs/osmosis/v15/x/gamm"
-	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	"github.com/osmosis-labs/osmosis/v15/x/lockup"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
-	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
-	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
-	"github.com/osmosis-labs/osmosis/v15/x/txfees"
-	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+	"github.com/st-chain/me-hub/x/bsc"
+	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
 	"github.com/st-chain/me-hub/x/dao"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
 	"github.com/st-chain/me-hub/x/did"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
+	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 	"github.com/st-chain/me-hub/x/kyc"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
+	"github.com/st-chain/me-hub/x/tron"
+	trontypes "github.com/st-chain/me-hub/x/tron/types"
 	"github.com/st-chain/me-hub/x/wbank"
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	wdistr "github.com/st-chain/me-hub/x/wdistri"
@@ -134,16 +129,12 @@ func (a *AppKeepers) SetupModules(
 		// me-group
 		groupmodule.NewAppModule(appCodec, *a.GroupKeeper),
 
-		// osmosis modules
-		lockup.NewAppModule(*a.LockupKeeper, a.AccountKeeper, a.BankKeeper),
-		epochs.NewAppModule(*a.EpochsKeeper),
-		gamm.NewAppModule(appCodec, *a.GAMMKeeper, a.AccountKeeper, a.BankKeeper),
-		poolmanager.NewAppModule(*a.PoolManagerKeeper, a.GAMMKeeper),
-		txfees.NewAppModule(*a.TxFeesKeeper),
 		dao.NewAppModule(appCodec, a.DaoKeeper),
-
 		wnft.NewAppModule(appCodec, *a.WNFTKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
 		wasm.NewAppModule(appCodec, &a.WasmKeeper, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, bApp.MsgServiceRouter(), a.GetSubspace(wasmtypes.ModuleName)),
+
+		bsc.NewAppModule(a.BscKeeper),
+		tron.NewAppModule(a.TronKeeper),
 	}
 }
 
@@ -153,9 +144,6 @@ func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 	for acc := range MaccPerms {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
-
-	// exclude the streamer as we want him to be able to get external incentives
-	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
 	return modAccAddrs
 }
 
@@ -176,17 +164,17 @@ var MaccPerms = map[string][]string{
 	rollappmoduletypes.ModuleName:                      {},
 	evmtypes.ModuleName:                                {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account.
 	evmtypes.ModuleVirtualFrontierContractDeployerName: nil,                                  // used for deploying virtual frontier bank contract.
-	gammtypes.ModuleName:                               {authtypes.Minter, authtypes.Burner},
-	lockuptypes.ModuleName:                             {authtypes.Minter, authtypes.Burner},
 	wstakingtypes.FixedDepositPrincipalPool:            nil,
+	wstakingtypes.BridgeFeePool:                        nil,
 	wasmtypes.ModuleName:                               {authtypes.Burner},
 	groupTypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
-	txfeestypes.ModuleName:                             {authtypes.Burner},
 	nft.ModuleName:                                     nil,
+	bsctypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
+	trontypes.ModuleName:                               {authtypes.Minter, authtypes.Burner},
+	gravitytypes.SlashingModuleAccount:                 {authtypes.Minter, authtypes.Burner},
 }
 
 var BeginBlockers = []string{
-	epochstypes.ModuleName,
 	upgradetypes.ModuleName,
 	capabilitytypes.ModuleName,
 	minttypes.ModuleName,
@@ -213,10 +201,6 @@ var BeginBlockers = []string{
 	denommetadatamoduletypes.ModuleName,
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
-	lockuptypes.ModuleName,
-	gammtypes.ModuleName,
-	poolmanagertypes.ModuleName,
-	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	daotypes.ModuleName,
 	wasmtypes.ModuleName,
@@ -224,6 +208,8 @@ var BeginBlockers = []string{
 	kyctypes.ModuleName,
 	nft.ModuleName,
 	groupTypes.ModuleName,
+	bsctypes.ModuleName,
+	trontypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -253,11 +239,6 @@ var EndBlockers = []string{
 	denommetadatamoduletypes.ModuleName,
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
-	epochstypes.ModuleName,
-	lockuptypes.ModuleName,
-	gammtypes.ModuleName,
-	poolmanagertypes.ModuleName,
-	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	daotypes.ModuleName,
 	wasmtypes.ModuleName,
@@ -265,6 +246,8 @@ var EndBlockers = []string{
 	kyctypes.ModuleName,
 	nft.ModuleName,
 	groupTypes.ModuleName,
+	bsctypes.ModuleName,
+	trontypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -295,15 +278,12 @@ var InitGenesis = []string{
 	denommetadatamoduletypes.ModuleName, // must after `x/bank` to trigger hooks
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
-	epochstypes.ModuleName,
-	lockuptypes.ModuleName,
-	gammtypes.ModuleName,
-	poolmanagertypes.ModuleName,
-	txfeestypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	wasmtypes.ModuleName,
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
 	nft.ModuleName,
 	groupTypes.ModuleName,
+	bsctypes.ModuleName,
+	trontypes.ModuleName,
 }

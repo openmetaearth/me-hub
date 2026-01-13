@@ -1,0 +1,224 @@
+syntax = "proto3";
+package metaearth.gravity.v1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/gravity/types";
+
+message ProposalRelayer {
+  repeated string relayers = 1;
+}
+
+message Relayer {
+  string relayer_address = 1;
+  string external_address = 2;
+  string delegate_amount = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // start relayer height
+  int64 start_height = 4;
+  bool online = 5;
+  int64 slash_times = 6;
+}
+
+// BridgeValidator represents a validator's external address and its power
+message BridgeValidator {
+  uint64 power = 1;
+  string external_address = 2;
+}
+
+// RelayerSet is the external Chain Bridge Multsig Set, each gravity validator
+// also maintains an external key to sign messages, these are used to check
+// signatures on external because of the significant gas savings
+message RelayerSet {
+  uint64 nonce = 1;
+  repeated BridgeValidator members = 2 [(gogoproto.nullable) = false];
+  uint64 height = 3;
+}
+
+// LastObservedBlockHeight stores the last observed
+// external block height along with the our block height that
+// it was observed at. These two numbers can be used to project
+// outward and always produce batches with timeouts in the future
+// even if no Ethereum block height has been relayed for a long time
+message LastObservedBlockHeight {
+  uint64 external_block_height = 1;
+  uint64 block_height = 2;
+}
+
+// BridgeToken
+message BridgeToken {
+  string contract_address = 1;
+  string denom = 2;
+  string name = 3;
+  string symbol = 4;
+  uint64 decimal = 5;
+  string supply = 6 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// ClaimType is the cosmos type of an event from the counterpart chain that can
+// be handled
+enum ClaimType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  CLAIM_TYPE_UNSPECIFIED = 0;
+  CLAIM_TYPE_SEND_TO_ME = 1;
+  CLAIM_TYPE_SEND_TO_EXTERNAL = 2;
+  CLAIM_TYPE_BRIDGE_TOKEN = 3;
+  CLAIM_TYPE_RELAYER_SET_UPDATED = 4;
+}
+
+// Attestation is an aggregate of `claims` that eventually becomes `observed` by
+// all bridger set
+// EVENT_NONCE:
+// EventNonce a nonce provided by the gravity contract that is unique per event
+// fired These event nonces must be relayed in order. This is a correctness
+// issue, if relaying out of order transaction replay attacks become possible
+// OBSERVED:
+// Observed indicates that >67% of validators have attested to the event,
+// and that the event should be executed by the gravity state machine
+//
+// The actual content of the claims is passed in with the transaction making the
+// claim and then passed through the call stack alongside the attestation while
+// it is processed the key in which the attestation is stored is keyed on the
+// exact details of the claim but there is no reason to store those exact
+// details becuause the next message sender will kindly provide you with them.
+message Attestation {
+  bool observed = 1;
+  repeated string votes = 2;
+  uint64 height = 3;
+  google.protobuf.Any claim = 4;
+}
+
+// OutgoingTxBatch represents a batch of transactions going from gravity to ETH
+message OutgoingTxBatch {
+  uint64 batch_nonce = 1;
+  uint64 batch_timeout = 2;
+  repeated OutgoingTransferTx transactions = 3;
+  string token_contract = 4;
+  uint64 block = 5;
+  string feeReceive = 6;
+}
+
+// OutgoingTransferTx represents an individual send from gravity to ETH
+message OutgoingTransferTx {
+  uint64 id = 1;
+  string sender = 2;
+  string dest_address = 3;
+  ERC20Token token = 4 [(gogoproto.nullable) = false];
+  ERC20Token fee = 5 [(gogoproto.nullable) = false];
+}
+
+// ERC20Token unique identifier for an Ethereum ERC20 token.
+message ERC20Token {
+  string contract = 1;
+  string amount = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// IDSet represents a set of IDs
+message IDSet {
+  repeated uint64 ids = 1;
+}
+
+message BatchFees {
+  string token_contract = 1;
+  string total_fees = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  uint64 total_txs = 3;
+  string total_amount = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message MinBatchFee {
+  string token_contract = 1;
+  string baseFee = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// Params represent the Gravity genesis and store parameters
+// gravity_id:
+// a random 32 byte value to prevent signature reuse, for example if the
+// cosmos validators decided to use the same Ethereum keys for another chain
+// also running Gravity we would not want it to be possible to play a deposit
+// from chain A back on chain B's Gravity. This value IS USED ON ETHEREUM so
+// it must be set in your genesis.json before launch and not changed after
+// deploying Gravity
+//
+// These reference values may be used by future Gravity client implemetnations
+// to allow for saftey features or convenience features like the Gravity address
+// in your relayer. A relayer would require a configured Gravity address if
+// governance had not set the address on the chain it was relaying for.
+//
+// signed_window
+//
+// These values represent the time in blocks that a validator has to submit
+// a signature for a batch or relayer set, or to submit a claim for a particular
+// attestation nonce. In the case of attestations this clock starts when the
+// attestation is created, but only allows for slashing once the event has
+// passed
+//
+// external_batch_timeout:
+//
+// This is the 'bsc' value for when batches time out, this is a bsc becuase
+// Ethereum is a probabalistic chain and you can't say for sure what the block
+// frequency is ahead of time.
+//
+// average_block_time
+// average_external_block_time
+//
+// These values are the average Cosmos block time and Ethereum block time
+// repsectively and they are used to copute what the bsc batch timeout is. It is
+// important that governance updates these in case of any major, prolonged
+// change in the time it takes to produce a block
+//
+// slash_fraction
+//
+// The slashing fractions for the various gravity related slashing conditions.
+// The first three refer to not submitting a particular message, the third for
+// submitting a different claim for the same Ethereum event
+
+// relayer_set_update_power_change_percent
+//
+// If power change between validators of CurrentRelayerSet and latest relayer set
+// request is > 10%
+message Params {
+  option (gogoproto.stringer) = false;
+  string gravity_id = 1;
+  uint64 average_block_time = 2;
+  uint64 external_batch_timeout = 3;
+  uint64 average_external_block_time = 4;
+  uint64 signed_window = 5;
+  string slash_fraction = 6 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string relayer_set_update_power_change_percent = 7 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  uint64 max_relayers = 8;
+  string min_delegate = 9 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  string max_delegate = 10 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  uint64 max_slash_times = 11;
+}
