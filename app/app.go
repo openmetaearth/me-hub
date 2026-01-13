@@ -4,6 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_12"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_13"
+	v2_0_13_patch_2 "github.com/st-chain/me-hub/app/upgrades/v2_0_13_patch_2"
+	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
+	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 	"io"
 	"io/fs"
 	"net/http"
@@ -89,6 +93,8 @@ var (
 		v2_0_10.Upgrade,
 		v2_0_11.Upgrade,
 		v2_0_12.Upgrade,
+		v2_0_13.Upgrade,
+		v2_0_13_patch_2.Upgrade,
 	}
 )
 
@@ -224,7 +230,6 @@ func New(
 		FeeMarketKeeper:        app.FeeMarketKeeper,
 		EvmKeeper:              app.EvmKeeper,
 		FeegrantKeeper:         app.FeeGrantKeeper,
-		TxFeesKeeper:           app.TxFeesKeeper,
 		SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
 		MaxTxGasWanted:         maxGasWanted,
 		ExtensionOptionChecker: nil, // uses default
@@ -414,4 +419,11 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 		// configure store loader with the store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades))
 	}
+}
+
+// RegisterServices registers all module services
+func (app *App) RegisterServices(cfg module.Configurator) {
+	app.mm.RegisterServices(cfg)
+	gravitytypes.RegisterQueryServer(cfg.QueryServer(), app.GravityRouterKeeper)
+	gravitytypes.RegisterMsgServer(cfg.MsgServer(), gravitykeeper.NewMsgServerRouterImpl(app.GravityRouterKeeper))
 }

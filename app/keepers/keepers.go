@@ -2,12 +2,15 @@ package keepers
 
 import (
 	"fmt"
+	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
+	trontypes "github.com/st-chain/me-hub/x/tron/types"
 	"path/filepath"
 	"strings"
 
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
 	"github.com/cosmos/cosmos-sdk/x/nft"
+	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
 	groupTypes "github.com/st-chain/me-hub/x/megroup/types"
 
 	wasmapp "github.com/CosmWasm/wasmd/app"
@@ -68,16 +71,6 @@ import (
 	"github.com/evmos/ethermint/x/evm/vm/geth"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
-	epochskeeper "github.com/osmosis-labs/osmosis/v15/x/epochs/keeper"
-	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
-	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
-	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	lockupkeeper "github.com/osmosis-labs/osmosis/v15/x/lockup/keeper"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
-	poolmanagerkeeper "github.com/osmosis-labs/osmosis/v15/x/poolmanager/keeper"
-	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
-	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
-	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 	"github.com/st-chain/me-hub/x/bridgingfee"
 	daokeeper "github.com/st-chain/me-hub/x/dao/keeper"
 	daotypes "github.com/st-chain/me-hub/x/dao/types"
@@ -112,6 +105,11 @@ import (
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 )
 
+type GravityKeepers struct {
+	BscKeeper  gravitykeeper.Keeper
+	TronKeeper gravitykeeper.Keeper
+}
+
 type AppKeepers struct {
 	// keepers
 	AccountKeeper                 authkeeper.AccountKeeper
@@ -144,13 +142,6 @@ type AppKeepers struct {
 	DidKeeper *didkeeper.Keeper
 	KycKeeper *kyckeeper.Keeper
 
-	// Osmosis keepers
-	GAMMKeeper        *gammkeeper.Keeper
-	PoolManagerKeeper *poolmanagerkeeper.Keeper
-	LockupKeeper      *lockupkeeper.Keeper
-	EpochsKeeper      *epochskeeper.Keeper
-	TxFeesKeeper      *txfeeskeeper.Keeper
-
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
@@ -165,6 +156,9 @@ type AppKeepers struct {
 	WNFTKeeper          *wnftkeeper.Keeper
 	WasmKeeper          wasmkeeper.Keeper
 	GroupKeeper         *groupkeeper.Keeper
+
+	GravityRouterKeeper gravitykeeper.RouterKeeper
+	GravityKeepers
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -327,47 +321,6 @@ func (a *AppKeepers) InitKeepers(
 			a.GetSubspace(evmtypes.ModuleName),
 		))
 
-	// Osmosis keepers
-	a.LockupKeeper = lockupkeeper.NewKeeper(
-		a.keys[lockuptypes.StoreKey],
-		a.GetSubspace(lockuptypes.ModuleName),
-		a.AccountKeeper,
-		a.BankKeeper,
-	)
-
-	a.EpochsKeeper = epochskeeper.NewKeeper(
-		a.keys[epochstypes.StoreKey],
-	)
-
-	gammKeeper := gammkeeper.NewKeeper(
-		appCodec, a.keys[gammtypes.StoreKey],
-		a.GetSubspace(gammtypes.ModuleName),
-		a.AccountKeeper,
-		a.BankKeeper, a.DistrKeeper,
-	)
-	a.GAMMKeeper = &gammKeeper
-
-	a.PoolManagerKeeper = poolmanagerkeeper.NewKeeper(
-		a.keys[poolmanagertypes.StoreKey],
-		a.GAMMKeeper,
-		a.BankKeeper,
-		a.AccountKeeper,
-	)
-
-	txFeesKeeper := txfeeskeeper.NewKeeper(
-		a.keys[txfeestypes.StoreKey],
-		a.GetSubspace(txfeestypes.ModuleName),
-		a.AccountKeeper,
-		a.EpochsKeeper,
-		a.BankKeeper,
-		a.PoolManagerKeeper,
-		a.GAMMKeeper,
-	)
-	a.TxFeesKeeper = &txFeesKeeper
-
-	a.GAMMKeeper.SetPoolManager(a.PoolManagerKeeper)
-	a.GAMMKeeper.SetTxFees(a.TxFeesKeeper)
-
 	// Create IBC Keeper
 	a.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
@@ -500,6 +453,34 @@ func (a *AppKeepers) InitKeepers(
 		a.KycKeeper,
 	)
 	a.StakingKeeper.SetGroupKeeper(a.GroupKeeper)
+
+	a.BscKeeper = gravitykeeper.NewKeeper(
+		bsctypes.ModuleName,
+		appCodec,
+		a.keys[bsctypes.StoreKey],
+		a.BankKeeper,
+		a.AccountKeeper,
+		a.DaoKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
+	a.TronKeeper = gravitykeeper.NewKeeper(
+		trontypes.ModuleName,
+		appCodec,
+		a.keys[trontypes.StoreKey],
+		a.BankKeeper,
+		a.AccountKeeper,
+		a.DaoKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
+	// add gravity router
+	gravityRouter := gravitykeeper.NewRouter()
+	gravityRouter.
+		AddRoute(bsctypes.ModuleName, gravitykeeper.NewModuleHandler(a.BscKeeper)).
+		AddRoute(trontypes.ModuleName, gravitykeeper.NewModuleHandler(a.TronKeeper))
+	a.GravityRouterKeeper = gravitykeeper.NewRouterKeeper(gravityRouter)
+
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
 	// by granting the governance module the right to execute the message.
@@ -543,7 +524,7 @@ func (a *AppKeepers) InitTransferStack() {
 		a.TransferStack.(ibctransfer.IBCModule),
 		a.DelayedAckKeeper,
 		a.TransferKeeper,
-		a.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
+		a.AccountKeeper.GetModuleAddress(wstakingtypes.BridgeFeePool),
 		*a.RollappKeeper,
 	)
 	a.TransferStack = packetforwardmiddleware.NewIBCMiddleware(
@@ -579,22 +560,9 @@ func (a *AppKeepers) SetupHooks() {
 		wstakingtypes.NewMultiWstakingHooks(wstakingtypes.NewMultiWstakingHooks(a.DistrKeeper.Hooks())),
 	)
 	// register the staking hooks
-	a.LockupKeeper.SetHooks(
-		lockuptypes.NewMultiLockupHooks(
-		// insert lockup hooks receivers here
-		),
-	)
-
 	a.DenomMetadataKeeper.SetHooks(
 		denommetadatamoduletypes.NewMultiDenomMetadataHooks(
 			vfchooks.NewVirtualFrontierBankContractRegistrationHook(*a.EvmKeeper.Keeper),
-		),
-	)
-
-	a.GAMMKeeper.SetHooks(
-		gammtypes.NewMultiGammHooks(
-			// insert gamm hooks receivers here
-			a.TxFeesKeeper.Hooks(),
 		),
 	)
 
@@ -602,14 +570,6 @@ func (a *AppKeepers) SetupHooks() {
 		// insert delayedAck hooks receivers here
 		a.EIBCKeeper.GetDelayedAckHooks(),
 	))
-
-	a.EpochsKeeper.SetHooks(
-		epochstypes.NewMultiEpochHooks(
-			// insert epochs hooks receivers here
-			a.TxFeesKeeper.Hooks(),
-			a.DelayedAckKeeper.GetEpochHooks(),
-		),
-	)
 
 	a.EIBCKeeper.SetHooks(eibcmoduletypes.NewMultiEIBCHooks(
 		// insert eibc hooks receivers here
@@ -669,12 +629,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	// did subspace
 	paramsKeeper.Subspace(didtypes.ModuleName)
 	paramsKeeper.Subspace(kyctypes.ModuleName)
-
-	// osmosis subspaces
-	paramsKeeper.Subspace(lockuptypes.ModuleName)
-	paramsKeeper.Subspace(epochstypes.ModuleName)
-	paramsKeeper.Subspace(gammtypes.ModuleName)
-	paramsKeeper.Subspace(txfeestypes.ModuleName)
 
 	paramsKeeper.Subspace(wasmtypes.ModuleName)
 	paramsKeeper.Subspace(nft.ModuleName)

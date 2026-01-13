@@ -1,0 +1,42 @@
+{
+  "messages": [
+    {
+      "@type": "/metaearth.gravity.v1.MsgUpdateParams",
+      "chain_name": "bsc",
+      "authority": "me10d07y265gmmuvt4z0w9aw880jnsr700jf37v5y",
+      "params": {
+        "gravity_id": "me-bsc-bridge",
+        "average_block_time": "5000",
+        "external_batch_timeout": "3600000",
+        "average_external_block_time": "750",
+        "signed_window": "30000",
+        "slash_fraction": "0.800000000000000000",
+        "relayer_set_update_power_change_percent": "0.100000000000000000",
+        "max_relayers": "10",
+        "min_delegate": "100000000",
+        "max_delegate": "10000000000"
+      }
+    },
+    {
+      "@type": "/metaearth.gravity.v1.MsgUpdateParams",
+      "chain_name": "tron",
+      "authority": "me10d07y265gmmuvt4z0w9aw880jnsr700jf37v5y",
+      "params": {
+        "gravity_id": "me-tron-bridge",
+        "average_block_time": "5000",
+        "external_batch_timeout": "3600000",
+        "average_external_block_time": "3000",
+        "signed_window": "30000",
+        "slash_fraction": "0.800000000000000000",
+        "relayer_set_update_power_change_percent": "0.100000000000000000",
+        "max_relayers": "10",
+        "min_delegate": "100000000",
+        "max_delegate": "10000000000"
+      }
+    }
+  ],
+  "metadata": "",
+  "deposit": "100000000umec",
+  "title": "Update Gravity Module Parameters",
+  "summary": "This proposal updates the gravity module parameters to optimize network performance."
+}

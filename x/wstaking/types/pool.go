@@ -8,4 +8,5 @@ const (
 	MeidNFTPoolName           = "meid_nft_pool"
 	FixedDepositPrincipalPool = "fixed_deposit_principal_pool"
 	GlobalDaoFeePool          = "global_admin_fee_pool"
+	BridgeFeePool             = "bridge_fee_pool"
 )

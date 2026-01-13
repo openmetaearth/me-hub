@@ -1,0 +1,26 @@
+syntax = "proto3";
+package metaearth.gravity.v1;
+
+import "gogoproto/gogo.proto";
+import "metaearth/gravity/v1/tx.proto";
+import "metaearth/gravity/v1/types.proto";
+
+option go_package = "github.com/st-chain/me-hub/x/gravity/types";
+
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  uint64 last_observed_event_nonce = 2;
+  LastObservedBlockHeight last_observed_block_height = 3 [(gogoproto.nullable) = false];
+  repeated Relayer relayers = 4 [(gogoproto.nullable) = false];
+  repeated RelayerSet relayer_sets = 5 [(gogoproto.nullable) = false];
+  repeated BridgeToken bridge_tokens = 6 [(gogoproto.nullable) = false];
+  repeated OutgoingTransferTx unbatched_transfers = 7 [(gogoproto.nullable) = false];
+  repeated OutgoingTxBatch batches = 8 [(gogoproto.nullable) = false];
+  repeated MsgRelayerSetConfirm relayer_set_confirms = 9 [(gogoproto.nullable) = false];
+  repeated MsgConfirmBatch batch_confirms = 10 [(gogoproto.nullable) = false];
+  repeated Attestation attestations = 11 [(gogoproto.nullable) = false];
+  ProposalRelayer proposal_relayer = 12 [(gogoproto.nullable) = false];
+  RelayerSet last_observed_relayer_set = 13 [(gogoproto.nullable) = false];
+  uint64 last_slashed_batch_block = 14;
+  uint64 last_slashed_relayer_set_nonce = 15;
+}

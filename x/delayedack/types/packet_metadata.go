@@ -58,7 +58,6 @@ func ParsePacketMetadata(input string) (*PacketMetadata, error) {
 		return nil, ErrMemoUnmarshal
 	}
 	if memo[memoObjectKeyPFM] != nil {
-		// Currently not supporting eibc with PFM: https://github.com/dymensionxyz/dymension/issues/599
 		return nil, ErrMemoHashPFMandEIBC
 	}
 	if memo[memoObjectKeyEIBC] == nil {
