@@ -4,6 +4,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -80,7 +82,16 @@ func GetDecodeRawTxCommand() *cobra.Command {
 				}
 				txBz = txBytes
 			} else {
-				txBz = []byte(args[0])
+				if args[0] == "-" {
+					bytes, err := io.ReadAll(os.Stdin)
+					if err != nil {
+						return fmt.Errorf("failed to read from stdin: %s", err)
+					}
+					txBz = bytes
+					fmt.Println("txBz len", len(txBz))
+				} else {
+					txBz = []byte(args[0])
+				}
 			}
 			var rawTx tx.TxRaw
 			err := json.Unmarshal([]byte(txBz), &rawTx)
