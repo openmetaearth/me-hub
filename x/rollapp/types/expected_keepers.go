@@ -18,7 +18,3 @@ type DaoKeeper interface {
 	IsGlobalDao(ctx sdk.Context, address string) bool
 	GetGlobalDao(ctx sdk.Context) string
 }
-
-type SequencerKeeper interface {
-	ProcSequencerByPendingStates(ctx sdk.Context, rollappId string, rollappState *StateInfo) error
-}

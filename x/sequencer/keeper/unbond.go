@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -122,55 +121,5 @@ func (k Keeper) unbondUnbondingSequencer(ctx sdk.Context, seqAddr string) error 
 		),
 	)
 
-	return nil
-}
-
-func (k Keeper) forceRemoveUnbondingSequencer(ctx sdk.Context, seqAddr string, rollappStartHeight, blockNumber uint64) error {
-	seq, found := k.GetSequencer(ctx, seqAddr)
-	if !found {
-		return types.ErrUnknownSequencer
-	}
-
-	if seq.Status != types.Unbonding {
-		return errorsmod.Wrapf(
-			types.ErrInvalidSequencerStatus,
-			"sequencer status is not unbonding: got %s",
-			seq.Status.String(),
-		)
-	}
-	seqTokens := seq.Tokens
-	if !seqTokens.Empty() {
-		seqAcc, err := sdk.AccAddressFromBech32(seq.SequencerAddress)
-		if err != nil {
-			return err
-		}
-
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, seqAcc, seqTokens)
-		if err != nil {
-			return err
-		}
-	} else {
-		k.Logger(ctx).Error("sequencer has no tokens to unbond", "sequencer", seq.SequencerAddress)
-	}
-
-	// set the status to unbonded and remove from the unbonding queue
-	seq.Status = types.Unbonded
-	seq.Tokens = sdk.Coins{}
-
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.SequencerKey(seq.SequencerAddress))
-
-	seqByRollappKey := types.SequencerByRollappByStatusKey(seq.RollappId, seq.SequencerAddress, types.Unbonding)
-	store.Delete(seqByRollappKey)
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventDirectRemoveSequencer,
-			sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
-			sdk.NewAttribute(types.AttributeKeySequencer, seqAddr),
-			sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprintf("%d", ctx.BlockHeight())),
-			sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprintf("%d-%d",
-				rollappStartHeight, rollappStartHeight+blockNumber-1)),
-		),
-	)
 	return nil
 }

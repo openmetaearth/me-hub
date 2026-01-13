@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 	"github.com/st-chain/me-hub/x/sequencer/types"
@@ -45,26 +44,6 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rolla
 }
 
 func (hook rollappHook) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
-	val, err := hook.k.GetReplaceProposer(ctx, rollappID)
-	if err != nil {
-		return err
-	}
-	if val != nil {
-		if stateInfo.StartHeight+stateInfo.NumBlocks >= uint64(val.BlockHeight) {
-			err = hook.k.forceRemoveUnbondingSequencer(ctx, val.OldProposer, stateInfo.StartHeight, stateInfo.NumBlocks)
-			if err != nil {
-				hook.k.Logger(ctx).Error("forceRemoveUnbondingSequencer error.", "sequencer", val.OldProposer,
-					"rollapp", rollappID, "state_block_info", fmt.Sprintf("%d-%d", stateInfo.StartHeight,
-						stateInfo.StartHeight+stateInfo.NumBlocks-1), "error", err.Error())
-				return fmt.Errorf("forceRemoveUnbondingSequencer error in AfterStateFinalized.sequencer=%s,"+
-					" rollapp = %s, err = %s", val.OldProposer, rollappID, err.Error())
-			}
-			hook.k.DeleteReplaceProposer(ctx, rollappID)
-			hook.k.Logger(ctx).Info("AfterStateFinalized processed ReplaceProposer.", "rollapp", rollappID,
-				"old_sequencer", val.OldProposer, "block_height", val.BlockHeight,
-				"state_block_info", fmt.Sprintf("%d-%d", stateInfo.StartHeight, stateInfo.StartHeight+stateInfo.NumBlocks-1))
-		}
-	}
 	return nil
 }
 
