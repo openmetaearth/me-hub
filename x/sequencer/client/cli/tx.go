@@ -36,7 +36,6 @@ func GetTxCmd() *cobra.Command {
 
 	cmd.AddCommand(CmdCreateSequencer())
 	cmd.AddCommand(CmdUnbond())
-	cmd.AddCommand(CmdReplaceProposer())
 	// this line is used by starport scaffolding # 1
 
 	return cmd
@@ -106,41 +105,6 @@ func CmdUnbond() *cobra.Command {
 			msg := types.NewMsgUnbond(
 				clientCtx.GetFromAddress().String(),
 			)
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func CmdReplaceProposer() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "replace-proposer  [rollapp-id] [old-proposer] [new-proposer] [block-height]",
-		Short: "replace rollapp's proposer",
-		Args:  cobra.ExactArgs(4),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argRollappId := args[0]
-			argOldProposer := args[1]
-			argNewProposer := args[2]
-			blockHeight, err := strconv.ParseInt(args[3], 10, 64)
-			if err != nil {
-				return fmt.Errorf("invalid block height: %s", args[3])
-			}
-
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			msg, _ := types.NewMsgReplaceProposerRequest(
-				clientCtx.GetFromAddress().String(),
-				argRollappId,
-				argOldProposer,
-				argNewProposer,
-				blockHeight)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

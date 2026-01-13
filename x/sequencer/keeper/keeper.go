@@ -20,9 +20,8 @@ type (
 		memKey     storetypes.StoreKey
 		paramstore paramtypes.Subspace
 
-		bankKeeper                  types.BankKeeper
-		rollappKeeper               types.RollappKeeper
-		replaceSequencerCacheHeight int
+		bankKeeper    types.BankKeeper
+		rollappKeeper types.RollappKeeper
 	}
 )
 
@@ -45,7 +44,6 @@ func NewKeeper(
 		memKey:     memKey,
 		paramstore: ps,
 		bankKeeper: bankKeeper, rollappKeeper: rollappKeeper,
-		replaceSequencerCacheHeight: 35,
 	}
 }
 
