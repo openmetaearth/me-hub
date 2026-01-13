@@ -5,12 +5,14 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/decred/dcrd/dcrec/edwards"
 )
 
 const (
-	TypeMsgCreateSequencer = "create_sequencer"
-	TypeMsgUnbond          = "unbond"
+	TypeMsgCreateSequencer        = "create_sequencer"
+	TypeMsgUnbond                 = "unbond"
+	TypeMsgReplaceRollappPorposer = "replace_rollapp_proposer"
 )
 
 var (
@@ -125,4 +127,68 @@ func (msg *MsgUnbond) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{creator}
+}
+
+//
+
+func NewMsgReplaceProposerRequest(creator, rollappId, oldProposer, newProposer string, blockHeight int64) (*MsgRepalceProposerRequest, error) {
+	return &MsgRepalceProposerRequest{
+		Creator: creator,
+		ReplaceProposer: &MsgRepalceProposer{
+			RollappId:   rollappId,
+			OldProposer: oldProposer,
+			NewProposer: newProposer,
+			BlockHeight: blockHeight,
+		},
+	}, nil
+}
+func (msg *MsgRepalceProposerRequest) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgRepalceProposerRequest) Type() string {
+	return TypeMsgReplaceRollappPorposer
+}
+
+func (msg *MsgRepalceProposerRequest) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *MsgRepalceProposerRequest) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgRepalceProposerRequest) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+	if msg.ReplaceProposer == nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "ReplaceProposer can not  be nil")
+	}
+	if msg.ReplaceProposer.RollappId == "" {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "rollapp id cannot be empty")
+	}
+	_, err = sdk.AccAddressFromBech32(msg.ReplaceProposer.OldProposer)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid OldProposer address.addr = %s,err = %s",
+			msg.ReplaceProposer.OldProposer, err.Error())
+	}
+
+	_, err = sdk.AccAddressFromBech32(msg.ReplaceProposer.NewProposer)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid NewProposer address.addr = %s,err = %s",
+			msg.ReplaceProposer.NewProposer, err.Error())
+	}
+
+	if msg.ReplaceProposer.BlockHeight < 1 {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid block number (%d)", msg.ReplaceProposer.BlockHeight)
+	}
+
+	return nil
 }
