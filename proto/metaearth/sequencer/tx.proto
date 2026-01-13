@@ -62,12 +62,12 @@ message MsgUnbondResponse {
   ];
 }
 
-message MsgRepalceProposer{
+message MsgRepalceProposer {
   string rollapp_id = 1;
   string old_proposer = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string new_proposer = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  int64  block_height = 4;
-};
+  int64 block_height = 4;
+}
 
 message MsgRepalceProposerRequest {
   option (cosmos.msg.v1.signer) = "creator";
