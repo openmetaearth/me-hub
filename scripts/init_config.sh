@@ -5,13 +5,13 @@ genesis_config_cmds="/app/scripts/genesis_config_commands.sh"
 . "$genesis_config_cmds"
 
 # Set parameters
-DATA_DIRECTORY="$HOME/.dymension"
+DATA_DIRECTORY="$HOME/.mechain"
 CONFIG_DIRECTORY="$DATA_DIRECTORY/config"
 TENDERMINT_CONFIG_FILE="$CONFIG_DIRECTORY/config.toml"
 CLIENT_CONFIG_FILE="$CONFIG_DIRECTORY/client.toml"
 APP_CONFIG_FILE="$CONFIG_DIRECTORY/app.toml"
 GENESIS_FILE="$CONFIG_DIRECTORY/genesis.json"
-CHAIN_ID=${CHAIN_ID:-"dymension_100-1"}
+CHAIN_ID=${CHAIN_ID:-"mechain_100-1"}
 MONIKER_NAME=${MONIKER_NAME:-"local"}
 KEY_NAME=${KEY_NAME:-"local-user"}
 

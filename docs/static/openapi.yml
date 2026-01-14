@@ -4018,6 +4018,246 @@ paths:
           type: string
       tags:
         - Query
+  /gravity/v1/last_observed_relayer:
+    get:
+      operationId: LastObservedRelayer
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              relayer_set:
+                type: object
+                properties:
+                  nonce:
+                    type: string
+                    format: uint64
+                  members:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        power:
+                          type: string
+                          format: uint64
+                        external_address:
+                          type: string
+                      title: >-
+                        BridgeValidator represents a validator's external
+                        address and its power
+                  height:
+                    type: string
+                    format: uint64
+                title: >-
+                  RelayerSet is the external Chain Bridge Multsig Set, each
+                  gravity validator
+
+                  also maintains an external key to sign messages, these are
+                  used to check
+
+                  signatures on external because of the significant gas savings
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                      description: >-
+                        A URL/resource name that uniquely identifies the type of
+                        the serialized
+
+                        protocol buffer message. This string must contain at
+                        least
+
+                        one "/" character. The last segment of the URL's path
+                        must represent
+
+                        the fully qualified name of the type (as in
+
+                        `path/google.protobuf.Duration`). The name should be in
+                        a canonical form
+
+                        (e.g., leading "." is not accepted).
+
+
+                        In practice, teams usually precompile into the binary
+                        all types that they
+
+                        expect it to use in the context of Any. However, for
+                        URLs which use the
+
+                        scheme `http`, `https`, or no scheme, one can optionally
+                        set up a type
+
+                        server that maps type URLs to message definitions as
+                        follows:
+
+
+                        * If no scheme is provided, `https` is assumed.
+
+                        * An HTTP GET on the URL must yield a
+                        [google.protobuf.Type][]
+                          value in binary format, or produce an error.
+                        * Applications are allowed to cache lookup results based
+                        on the
+                          URL, or have them precompiled into a binary to avoid any
+                          lookup. Therefore, binary compatibility needs to be preserved
+                          on changes to types. (Use versioned type names to manage
+                          breaking changes.)
+
+                        Note: this functionality is not currently available in
+                        the official
+
+                        protobuf release, and it is not used for type URLs
+                        beginning with
+
+                        type.googleapis.com.
+
+
+                        Schemes other than `http`, `https` (or the empty scheme)
+                        might be
+
+                        used with implementation specific semantics.
+                    value:
+                      type: string
+                      format: byte
+                      description: >-
+                        Must be a valid serialized protocol buffer of the above
+                        specified type.
+                  description: >-
+                    `Any` contains an arbitrary serialized protocol buffer
+                    message along with a
+
+                    URL that describes the type of the serialized message.
+
+
+                    Protobuf library provides support to pack/unpack Any values
+                    in the form
+
+                    of utility functions or additional generated methods of the
+                    Any type.
+
+
+                    Example 1: Pack and unpack a message in C++.
+
+                        Foo foo = ...;
+                        Any any;
+                        any.PackFrom(foo);
+                        ...
+                        if (any.UnpackTo(&foo)) {
+                          ...
+                        }
+
+                    Example 2: Pack and unpack a message in Java.
+
+                        Foo foo = ...;
+                        Any any = Any.pack(foo);
+                        ...
+                        if (any.is(Foo.class)) {
+                          foo = any.unpack(Foo.class);
+                        }
+                        // or ...
+                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+                          foo = any.unpack(Foo.getDefaultInstance());
+                        }
+
+                    Example 3: Pack and unpack a message in Python.
+
+                        foo = Foo(...)
+                        any = Any()
+                        any.Pack(foo)
+                        ...
+                        if any.Is(Foo.DESCRIPTOR):
+                          any.Unpack(foo)
+                          ...
+
+                    Example 4: Pack and unpack a message in Go
+
+                         foo := &pb.Foo{...}
+                         any, err := anypb.New(foo)
+                         if err != nil {
+                           ...
+                         }
+                         ...
+                         foo := &pb.Foo{}
+                         if err := any.UnmarshalTo(foo); err != nil {
+                           ...
+                         }
+
+                    The pack methods provided by protobuf library will by
+                    default use
+
+                    'type.googleapis.com/full.type.name' as the type URL and the
+                    unpack
+
+                    methods only use the fully qualified type name after the
+                    last '/'
+
+                    in the type URL, for example "foo.bar.com/x/y.z" will yield
+                    type
+
+                    name "y.z".
+
+
+                    JSON
+
+
+                    The JSON representation of an `Any` value uses the regular
+
+                    representation of the deserialized, embedded message, with
+                    an
+
+                    additional field `@type` which contains the type URL.
+                    Example:
+
+                        package google.profile;
+                        message Person {
+                          string first_name = 1;
+                          string last_name = 2;
+                        }
+
+                        {
+                          "@type": "type.googleapis.com/google.profile.Person",
+                          "firstName": <string>,
+                          "lastName": <string>
+                        }
+
+                    If the embedded message type is well-known and has a custom
+                    JSON
+
+                    representation, that representation will be embedded adding
+                    a field
+
+                    `value` which holds the custom JSON in addition to the
+                    `@type`
+
+                    field. Example (for message [google.protobuf.Duration][]):
+
+                        {
+                          "@type": "type.googleapis.com/google.protobuf.Duration",
+                          "value": "1.212s"
+                        }
+      parameters:
+        - name: chain_name
+          in: query
+          required: false
+          type: string
+      tags:
+        - Query
   /gravity/v1/last_pending_batch_request_by_addr:
     get:
       operationId: LastPendingBatchRequestByAddr
@@ -5331,6 +5571,9 @@ paths:
                     type: string
                   max_delegate:
                     type: string
+                  max_slash_times:
+                    type: string
+                    format: uint64
                 description: >-
                   If power change between validators of CurrentRelayerSet and
                   latest relayer set
@@ -5832,6 +6075,9 @@ paths:
             type: object
             properties:
               timeout_height:
+                type: string
+                format: uint64
+              projectedCurrentExternalHeight:
                 type: string
                 format: uint64
         default:
@@ -17924,7 +18170,7 @@ paths:
           format: uint64
       tags:
         - Query
-  /dymensionxyz/dymension/delayedack/packets/{rollappId}/{status}:
+  /metaearth/delayedack/packets/{rollappId}/{status}:
     get:
       summary: Queries a list of RollappPacket items by rollappID.
       operationId: GetPackets
@@ -18348,7 +18594,7 @@ paths:
           type: boolean
       tags:
         - Query
-  /dymensionxyz/dymension/delayedack/params:
+  /metaearth/delayedack/params:
     get:
       summary: Parameters queries the parameters of the module.
       operationId: DelayedAckParams
@@ -18590,7 +18836,7 @@ paths:
                         }
       tags:
         - Query
-  /dymensionxyz/dymension/eibc/demand_order/{id}:
+  /metaearth/eibc/demand_order/{id}:
     get:
       summary: Queries a Demand Order by id.
       operationId: DemandOrderById
@@ -18898,7 +19144,7 @@ paths:
           type: string
       tags:
         - Query
-  /dymensionxyz/dymension/eibc/demand_orders/{status}:
+  /metaearth/eibc/demand_orders/{status}:
     get:
       summary: Queries a list of demand orders by status.
       operationId: DemandOrdersByStatus
@@ -19260,7 +19506,7 @@ paths:
           type: string
       tags:
         - Query
-  /dymensionxyz/dymension/eibc/params:
+  /metaearth/eibc/params:
     get:
       summary: Parameters queries the parameters of the module.
       operationId: EIbcParams
@@ -19479,7 +19725,7 @@ paths:
                         }
       tags:
         - Query
-  /dymensionxyz/dymension/rollapp/eip155/{eip155}:
+  /metaearth/rollapp/eip155/{eip155}:
     get:
       summary: Queries a Rollapp by index.
       operationId: RollappByEIP155
@@ -19697,7 +19943,7 @@ paths:
           format: uint64
       tags:
         - Query
-  /dymensionxyz/dymension/rollapp/latest_height/{rollappId}:
+  /metaearth/rollapp/latest_height/{rollappId}:
     get:
       summary: Queries a LatestHeight by rollapp-id.
       operationId: LatestHeight
@@ -19743,7 +19989,7 @@ paths:
           type: boolean
       tags:
         - Query
-  /dymensionxyz/dymension/rollapp/latest_state_index/{rollappId}:
+  /metaearth/rollapp/latest_state_index/{rollappId}:
     get:
       summary: Queries a LatestStateIndex by rollapp-id.
       operationId: LatestStateIndex
@@ -19825,7 +20071,7 @@ paths:
           type: boolean
       tags:
         - Query
-  /dymensionxyz/dymension/rollapp/params:
+  /metaearth/rollapp/params:
     get:
       summary: Parameters queries the parameters of the module.
       operationId: RollAppParams
@@ -19893,7 +20139,7 @@ paths:
                       format: byte
       tags:
         - Query
-  /dymensionxyz/dymension/rollapp/rollapp:
+  /metaearth/rollapp/rollapp:
     get:
       summary: Queries a list of Rollapp items.
       operationId: RollappAll
@@ -20115,7 +20361,7 @@ paths:
           type: boolean
       tags:
         - Query
-  /dymensionxyz/dymension/rollapp/rollapp/{rollappId}:
+  /metaearth/rollapp/rollapp/{rollappId}:
     get:
       summary: Queries a Rollapp by index.
       operationId: Rollapp
@@ -20332,7 +20578,7 @@ paths:
           type: string
       tags:
         - Query
-  /dymensionxyz/dymension/rollapp/skip_delay_rollapp:
+  /metaearth/rollapp/skip_delay_rollapp:
     get:
       operationId: SkipDelayRollapp
       responses:
@@ -20369,7 +20615,7 @@ paths:
                       format: byte
       tags:
         - Query
-  /dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}:
+  /metaearth/rollapp/state_info/{rollappId}/{index}:
     get:
       summary: Queries a StateInfo by index.
       operationId: StateInfo
@@ -20537,7 +20783,7 @@ paths:
           type: boolean
       tags:
         - Query
-  /dymensionxyz/dymension/sequencer/params:
+  /metaearth/sequencer/params:
     get:
       summary: Parameters queries the parameters of the module.
       operationId: SequencerParams
@@ -20768,7 +21014,7 @@ paths:
                         }
       tags:
         - Query
-  /dymensionxyz/dymension/sequencer/sequencer:
+  /metaearth/sequencer/sequencer:
     get:
       summary: Queries a list of Sequencer items.
       operationId: Sequencers
@@ -21353,7 +21599,7 @@ paths:
           type: boolean
       tags:
         - Query
-  /dymensionxyz/dymension/sequencer/sequencer/{sequencerAddress}:
+  /metaearth/sequencer/sequencer/{sequencerAddress}:
     get:
       summary: Queries a Sequencer by address.
       operationId: Sequencer
@@ -21853,7 +22099,7 @@ paths:
           type: string
       tags:
         - Query
-  /dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}:
+  /metaearth/sequencer/sequencers_by_rollapp/{rollappId}:
     get:
       summary: Queries a SequencersByRollapp by rollappId.
       operationId: SequencersByRollapp
@@ -22358,7 +22604,7 @@ paths:
           type: string
       tags:
         - Query
-  /dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}/{status}:
+  /metaearth/sequencer/sequencers_by_rollapp/{rollappId}/{status}:
     get:
       summary: Queries a SequencersByRollappByStatus
       operationId: SequencersByRollappByStatus
@@ -69124,6 +69370,9 @@ definitions:
         type: string
       max_delegate:
         type: string
+      max_slash_times:
+        type: string
+        format: uint64
     description: >-
       If power change between validators of CurrentRelayerSet and latest relayer
       set
@@ -69662,6 +69911,39 @@ definitions:
       last_observed_event_nonce:
         type: string
         format: uint64
+  metaearth.gravity.v1.QueryLastObservedRelayerResponse:
+    type: object
+    properties:
+      relayer_set:
+        type: object
+        properties:
+          nonce:
+            type: string
+            format: uint64
+          members:
+            type: array
+            items:
+              type: object
+              properties:
+                power:
+                  type: string
+                  format: uint64
+                external_address:
+                  type: string
+              title: >-
+                BridgeValidator represents a validator's external address and
+                its power
+          height:
+            type: string
+            format: uint64
+        title: >-
+          RelayerSet is the external Chain Bridge Multsig Set, each gravity
+          validator
+
+          also maintains an external key to sign messages, these are used to
+          check
+
+          signatures on external because of the significant gas savings
   metaearth.gravity.v1.QueryLastPendingBatchRequestByAddrResponse:
     type: object
     properties:
@@ -69949,6 +70231,9 @@ definitions:
             type: string
           max_delegate:
             type: string
+          max_slash_times:
+            type: string
+            format: uint64
         description: >-
           If power change between validators of CurrentRelayerSet and latest
           relayer set
@@ -70020,6 +70305,9 @@ definitions:
     type: object
     properties:
       timeout_height:
+        type: string
+        format: uint64
+      projectedCurrentExternalHeight:
         type: string
         format: uint64
   metaearth.gravity.v1.QueryProposalRelayersResponse:
@@ -73590,7 +73878,96 @@ definitions:
               no_with_veto_count is the number of no with veto votes on a
               proposal.
         description: TallyResult defines a standard tally for a governance proposal.
-  dymensionxyz.dymension.common.RollappPacket:
+  ibc.core.channel.v1.Packet:
+    type: object
+    properties:
+      sequence:
+        type: string
+        format: uint64
+        description: >-
+          number corresponds to the order of sends and receives, where a Packet
+
+          with an earlier sequence number must be sent and received before a
+          Packet
+
+          with a later sequence number.
+      source_port:
+        type: string
+        description: identifies the port on the sending chain.
+      source_channel:
+        type: string
+        description: identifies the channel end on the sending chain.
+      destination_port:
+        type: string
+        description: identifies the port on the receiving chain.
+      destination_channel:
+        type: string
+        description: identifies the channel end on the receiving chain.
+      data:
+        type: string
+        format: byte
+        title: actual opaque bytes transferred directly to the application module
+      timeout_height:
+        title: block height after which the packet times out
+        type: object
+        properties:
+          revision_number:
+            type: string
+            format: uint64
+            title: the revision that the client is currently on
+          revision_height:
+            type: string
+            format: uint64
+            title: the height within the given revision
+        description: >-
+          Normally the RevisionHeight is incremented at each height while
+          keeping
+
+          RevisionNumber the same. However some consensus algorithms may choose
+          to
+
+          reset the height in certain conditions e.g. hard forks, state-machine
+
+          breaking changes In these cases, the RevisionNumber is incremented so
+          that
+
+          height continues to be monitonically increasing even as the
+          RevisionHeight
+
+          gets reset
+      timeout_timestamp:
+        type: string
+        format: uint64
+        title: block timestamp (in nanoseconds) after which the packet times out
+    title: >-
+      Packet defines a type that carries data across different chains through
+      IBC
+  ibc.core.client.v1.Height:
+    type: object
+    properties:
+      revision_number:
+        type: string
+        format: uint64
+        title: the revision that the client is currently on
+      revision_height:
+        type: string
+        format: uint64
+        title: the height within the given revision
+    description: |-
+      Normally the RevisionHeight is incremented at each height while keeping
+      RevisionNumber the same. However some consensus algorithms may choose to
+      reset the height in certain conditions e.g. hard forks, state-machine
+      breaking changes In these cases, the RevisionNumber is incremented so that
+      height continues to be monitonically increasing even as the RevisionHeight
+      gets reset
+    title: >-
+      Height is a monotonically increasing data type
+
+      that can be compared against another Height for the purposes of updating
+      and
+
+      freezing clients
+  metaearth.common.RollappPacket:
     type: object
     properties:
       rollapp_id:
@@ -73693,7 +74070,7 @@ definitions:
         title: |-
           who was the original person who gets the money (recipient of ics20
           transfer) of the packet?
-  dymensionxyz.dymension.common.RollappPacket.Type:
+  metaearth.common.RollappPacket.Type:
     type: string
     enum:
       - ON_RECV
@@ -73701,14 +74078,14 @@ definitions:
       - ON_TIMEOUT
       - UNDEFINED
     default: ON_RECV
-  dymensionxyz.dymension.common.Status:
+  metaearth.common.Status:
     type: string
     enum:
       - PENDING
       - FINALIZED
       - REVERTED
     default: PENDING
-  dymensionxyz.dymension.delayedack.Params:
+  metaearth.delayedack.Params:
     type: object
     properties:
       epoch_identifier:
@@ -73738,7 +74115,7 @@ definitions:
 
           subsequent epochs.
     description: Params defines the parameters for the module.
-  dymensionxyz.dymension.delayedack.QueryParamsResponse:
+  metaearth.delayedack.QueryParamsResponse:
     type: object
     properties:
       params:
@@ -73773,7 +74150,7 @@ definitions:
 
               subsequent epochs.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
-  dymensionxyz.dymension.delayedack.QueryRollappPacketListResponse:
+  metaearth.delayedack.QueryRollappPacketListResponse:
     type: object
     properties:
       rollappPackets:
@@ -73913,96 +74290,7 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
-  ibc.core.channel.v1.Packet:
-    type: object
-    properties:
-      sequence:
-        type: string
-        format: uint64
-        description: >-
-          number corresponds to the order of sends and receives, where a Packet
-
-          with an earlier sequence number must be sent and received before a
-          Packet
-
-          with a later sequence number.
-      source_port:
-        type: string
-        description: identifies the port on the sending chain.
-      source_channel:
-        type: string
-        description: identifies the channel end on the sending chain.
-      destination_port:
-        type: string
-        description: identifies the port on the receiving chain.
-      destination_channel:
-        type: string
-        description: identifies the channel end on the receiving chain.
-      data:
-        type: string
-        format: byte
-        title: actual opaque bytes transferred directly to the application module
-      timeout_height:
-        title: block height after which the packet times out
-        type: object
-        properties:
-          revision_number:
-            type: string
-            format: uint64
-            title: the revision that the client is currently on
-          revision_height:
-            type: string
-            format: uint64
-            title: the height within the given revision
-        description: >-
-          Normally the RevisionHeight is incremented at each height while
-          keeping
-
-          RevisionNumber the same. However some consensus algorithms may choose
-          to
-
-          reset the height in certain conditions e.g. hard forks, state-machine
-
-          breaking changes In these cases, the RevisionNumber is incremented so
-          that
-
-          height continues to be monitonically increasing even as the
-          RevisionHeight
-
-          gets reset
-      timeout_timestamp:
-        type: string
-        format: uint64
-        title: block timestamp (in nanoseconds) after which the packet times out
-    title: >-
-      Packet defines a type that carries data across different chains through
-      IBC
-  ibc.core.client.v1.Height:
-    type: object
-    properties:
-      revision_number:
-        type: string
-        format: uint64
-        title: the revision that the client is currently on
-      revision_height:
-        type: string
-        format: uint64
-        title: the height within the given revision
-    description: |-
-      Normally the RevisionHeight is incremented at each height while keeping
-      RevisionNumber the same. However some consensus algorithms may choose to
-      reset the height in certain conditions e.g. hard forks, state-machine
-      breaking changes In these cases, the RevisionNumber is incremented so that
-      height continues to be monitonically increasing even as the RevisionHeight
-      gets reset
-    title: >-
-      Height is a monotonically increasing data type
-
-      that can be compared against another Height for the purposes of updating
-      and
-
-      freezing clients
-  dymensionxyz.dymension.eibc.DemandOrder:
+  metaearth.eibc.DemandOrder:
     type: object
     properties:
       id:
@@ -74080,14 +74368,14 @@ definitions:
         description: |-
           fulfiller_address is the bech32-encoded address of the account which
           fulfilled the order.
-  dymensionxyz.dymension.eibc.FulfillmentState:
+  metaearth.eibc.FulfillmentState:
     type: string
     enum:
       - UNDEFINED
       - FULFILLED
       - UNFULFILLED
     default: UNDEFINED
-  dymensionxyz.dymension.eibc.Params:
+  metaearth.eibc.Params:
     type: object
     properties:
       epoch_identifier:
@@ -74097,7 +74385,7 @@ definitions:
       errack_fee:
         type: string
     description: Params defines the parameters for the module.
-  dymensionxyz.dymension.eibc.QueryDemandOrdersByStatusResponse:
+  metaearth.eibc.QueryDemandOrdersByStatusResponse:
     type: object
     properties:
       demand_orders:
@@ -74196,7 +74484,7 @@ definitions:
     description: |-
       QueryDemandOrdersByStatusResponse is the response type for the
       Query/GetDemandOrdersByStatus RPC method.
-  dymensionxyz.dymension.eibc.QueryGetDemandOrderResponse:
+  metaearth.eibc.QueryGetDemandOrderResponse:
     type: object
     properties:
       demand_order:
@@ -74295,7 +74583,7 @@ definitions:
       Query/GetDemandOrder
 
       RPC method.
-  dymensionxyz.dymension.eibc.QueryParamsResponse:
+  metaearth.eibc.QueryParamsResponse:
     type: object
     properties:
       params:
@@ -74309,7 +74597,7 @@ definitions:
           errack_fee:
             type: string
     description: QueryParamsResponse is response type for the Query/Params RPC method.
-  dymensionxyz.dymension.rollapp.BlockDescriptor:
+  metaearth.rollapp.BlockDescriptor:
     type: object
     properties:
       height:
@@ -74325,7 +74613,7 @@ definitions:
 
           block)
     description: BlockDescriptor defines a single rollapp chain block description.
-  dymensionxyz.dymension.rollapp.BlockDescriptors:
+  metaearth.rollapp.BlockDescriptors:
     type: object
     properties:
       BD:
@@ -74347,7 +74635,7 @@ definitions:
                 block)
           description: BlockDescriptor defines a single rollapp chain block description.
     description: BlockDescriptors defines list of BlockDescriptor.
-  dymensionxyz.dymension.rollapp.DeployerParams:
+  metaearth.rollapp.DeployerParams:
     type: object
     properties:
       address:
@@ -74355,7 +74643,7 @@ definitions:
         description: |-
           address is a bech32-encoded address of the
           accounts that are allowed to create a rollapp.
-  dymensionxyz.dymension.rollapp.Params:
+  metaearth.rollapp.Params:
     type: object
     properties:
       dispute_period_in_blocks:
@@ -74382,7 +74670,7 @@ definitions:
       rollapps_enabled:
         type: boolean
     description: Params defines the parameters for the module.
-  dymensionxyz.dymension.rollapp.QueryAllRollappResponse:
+  metaearth.rollapp.QueryAllRollappResponse:
     type: object
     properties:
       rollapp:
@@ -74504,13 +74792,13 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
-  dymensionxyz.dymension.rollapp.QueryGetLatestHeightResponse:
+  metaearth.rollapp.QueryGetLatestHeightResponse:
     type: object
     properties:
       height:
         type: string
         format: uint64
-  dymensionxyz.dymension.rollapp.QueryGetLatestStateIndexResponse:
+  metaearth.rollapp.QueryGetLatestStateIndexResponse:
     type: object
     properties:
       stateIndex:
@@ -74552,7 +74840,7 @@ definitions:
           (latest)
 
           index of the latest StateInfo that was finalized
-  dymensionxyz.dymension.rollapp.QueryGetRollappResponse:
+  metaearth.rollapp.QueryGetRollappResponse:
     type: object
     properties:
       rollapp:
@@ -74724,7 +75012,7 @@ definitions:
       latestFinalizedHeight:
         type: string
         format: uint64
-  dymensionxyz.dymension.rollapp.QueryGetStateInfoResponse:
+  metaearth.rollapp.QueryGetStateInfoResponse:
     type: object
     properties:
       stateInfo:
@@ -74830,7 +75118,7 @@ definitions:
                     description.
             description: BlockDescriptors defines list of BlockDescriptor.
         description: StateInfo defines a rollapps' state.
-  dymensionxyz.dymension.rollapp.QueryParamsResponse:
+  metaearth.rollapp.QueryParamsResponse:
     type: object
     properties:
       params:
@@ -74864,14 +75152,14 @@ definitions:
           rollapps_enabled:
             type: boolean
     description: QueryParamsResponse is response type for the Query/Params RPC method.
-  dymensionxyz.dymension.rollapp.QuerySkipDelayRollappResponse:
+  metaearth.rollapp.QuerySkipDelayRollappResponse:
     type: object
     properties:
       rollapps:
         type: array
         items:
           type: string
-  dymensionxyz.dymension.rollapp.Rollapp:
+  metaearth.rollapp.Rollapp:
     type: object
     properties:
       rollappId:
@@ -74946,7 +75234,7 @@ definitions:
       Rollapp defines a rollapp object. First the RollApp is created and then
       sequencers can be created and attached. The RollApp is identified by
       rollappId
-  dymensionxyz.dymension.rollapp.RollappGenesisState:
+  metaearth.rollapp.RollappGenesisState:
     type: object
     properties:
       transfers_enabled:
@@ -74971,7 +75259,7 @@ definitions:
     title: |-
       RollappGenesisState is a partial repr of the state the hub can expect the
       rollapp to be in upon genesis
-  dymensionxyz.dymension.rollapp.RollappSummary:
+  metaearth.rollapp.RollappSummary:
     type: object
     properties:
       rollappId:
@@ -75060,7 +75348,7 @@ definitions:
           index of the latest StateInfo that was finalized
         description: Defines the index of the last rollapp UpdateState that was finalized.
     title: Rollapp summary is a compact representation of Rollapp
-  dymensionxyz.dymension.rollapp.StateInfo:
+  metaearth.rollapp.StateInfo:
     type: object
     properties:
       stateInfoIndex:
@@ -75163,7 +75451,7 @@ definitions:
                 description.
         description: BlockDescriptors defines list of BlockDescriptor.
     description: StateInfo defines a rollapps' state.
-  dymensionxyz.dymension.rollapp.StateInfoIndex:
+  metaearth.rollapp.StateInfoIndex:
     type: object
     properties:
       rollappId:
@@ -75200,7 +75488,7 @@ definitions:
       2. LatestFinalizedStateIndex which defines the rollapps' current (latest)
 
       index of the latest StateInfo that was finalized
-  dymensionxyz.dymension.sequencer.Description:
+  metaearth.sequencer.Description:
     type: object
     properties:
       moniker:
@@ -75221,7 +75509,7 @@ definitions:
         type: string
         description: details define other optional details.
     description: Description defines a sequencer description.
-  dymensionxyz.dymension.sequencer.OperatingStatus:
+  metaearth.sequencer.OperatingStatus:
     type: string
     enum:
       - OPERATING_STATUS_UNBONDED
@@ -75237,7 +75525,7 @@ definitions:
        - OPERATING_STATUS_BONDED: OPERATING_STATUS_BONDED defines a sequencer that is bonded and can be
       scheduled
     title: OperatingStatus defines the operating status of a sequencer
-  dymensionxyz.dymension.sequencer.Params:
+  metaearth.sequencer.Params:
     type: object
     properties:
       min_bond:
@@ -75256,7 +75544,7 @@ definitions:
         type: string
         description: unbonding_time is the time duration of unbonding.
     description: Params defines the parameters for the module.
-  dymensionxyz.dymension.sequencer.QueryGetSequencerResponse:
+  metaearth.sequencer.QueryGetSequencerResponse:
     type: object
     properties:
       sequencer:
@@ -75523,7 +75811,7 @@ definitions:
           (sequencerAddress).
 
           The sequencer could be attached to only one rollapp (rollappId).
-  dymensionxyz.dymension.sequencer.QueryGetSequencersByRollappByStatusResponse:
+  metaearth.sequencer.QueryGetSequencersByRollappByStatusResponse:
     type: object
     properties:
       sequencers:
@@ -75796,7 +76084,7 @@ definitions:
             (sequencerAddress).
 
             The sequencer could be attached to only one rollapp (rollappId).
-  dymensionxyz.dymension.sequencer.QueryGetSequencersByRollappResponse:
+  metaearth.sequencer.QueryGetSequencersByRollappResponse:
     type: object
     properties:
       sequencers:
@@ -76069,7 +76357,7 @@ definitions:
             (sequencerAddress).
 
             The sequencer could be attached to only one rollapp (rollappId).
-  dymensionxyz.dymension.sequencer.QueryParamsResponse:
+  metaearth.sequencer.QueryParamsResponse:
     type: object
     properties:
       params:
@@ -76095,7 +76383,7 @@ definitions:
             type: string
             description: unbonding_time is the time duration of unbonding.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
-  dymensionxyz.dymension.sequencer.QuerySequencersResponse:
+  metaearth.sequencer.QuerySequencersResponse:
     type: object
     properties:
       sequencers:
@@ -76394,7 +76682,7 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
-  dymensionxyz.dymension.sequencer.Sequencer:
+  metaearth.sequencer.Sequencer:
     type: object
     properties:
       sequencerAddress:

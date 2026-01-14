@@ -10,7 +10,7 @@ else
   exit 1
 fi
 
-DATA_DIRECTORY="$HOME/.dymension"
+DATA_DIRECTORY="$HOME/.me-chain"
 CONFIG_DIRECTORY="$DATA_DIRECTORY/config"
 GENESIS_FILE="$CONFIG_DIRECTORY/genesis.json"
 

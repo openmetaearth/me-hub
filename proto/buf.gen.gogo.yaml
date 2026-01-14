@@ -1,8 +1,19 @@
-version: v1
+# This file is auto-generated from Ignite. You can edit
+# the file content but do not change the file name or path.
+#
+# buf.gen.gogo.yaml
+#
+version: v2
 plugins:
-  - name: gocosmos
+  - local: protoc-gen-gocosmos
     out: .
-    opt: plugins=grpc,Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types,Mcosmos/orm/v1/orm.proto=cosmossdk.io/orm
-  - name: grpc-gateway
+    opt:
+      - plugins=grpc
+      - Mgoogle/protobuf/any.proto=github.com/cosmos/gogoproto/types/any
+      - Mcosmos/orm/v1/orm.proto=cosmossdk.io/orm
+      - Mcosmos/app/v1alpha1/module.proto=cosmossdk.io/api/cosmos/app/v1alpha1
+  - local: protoc-gen-grpc-gateway
     out: .
-    opt: logtostderr=true
+    opt:
+      - logtostderr=true
+      - allow_colon_final_segments=true

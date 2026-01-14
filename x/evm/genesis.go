@@ -44,7 +44,7 @@ func InitGenesis(
 
 	// Enable evm Create code
 	if utils.IsOneOfDymensionChains(ctx) && data.Params.EnableCreate {
-		panic(fmt.Errorf("enable create is not allowed on Dymension chains"))
+		panic(fmt.Errorf("enable create is not allowed on mechain chains"))
 	}
 
 	k.WithChainID(sdk.Context{}.WithChainID(metypes.ChainIdWithEIP155()))
