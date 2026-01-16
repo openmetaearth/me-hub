@@ -36,6 +36,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	if err != nil {
 		return nil, errors.Wrapf(err, "BeforeUpdateState hook failed for rollappId(%s) from sequencer(%s)", msg.RollappId, msg.Creator)
 	}
+	if err = k.sequencerKeeper.IsExceedAuthoredBlockHeight(ctx, msg.RollappId, msg.Creator, msg.StartHeight, msg.NumBlocks); err != nil {
+		return nil, err
+	}
 
 	// Logic Error check - must be done after BeforeUpdateStateRecoverable
 	// check if there are permissionedAddresses.

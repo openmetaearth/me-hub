@@ -50,18 +50,18 @@ func (hook rollappHook) AfterStateFinalized(ctx sdk.Context, rollappID string, s
 		return err
 	}
 	if val != nil {
-		if stateInfo.StartHeight+stateInfo.NumBlocks >= uint64(val.BlockHeight) {
-			err = hook.k.forceRemoveUnbondingSequencer(ctx, val.OldProposer, stateInfo.StartHeight, stateInfo.NumBlocks)
+		if (stateInfo.StartHeight + stateInfo.NumBlocks - 1) >= uint64(val.ReplaceProposer.BlockHeight) {
+			err = hook.k.forceRemoveUnbondingSequencer(ctx, val.ReplaceProposer.OldProposer, stateInfo.StartHeight, stateInfo.NumBlocks)
 			if err != nil {
-				hook.k.Logger(ctx).Error("forceRemoveUnbondingSequencer error.", "sequencer", val.OldProposer,
+				hook.k.Logger(ctx).Error("forceRemoveUnbondingSequencer error.", "sequencer", val.ReplaceProposer.OldProposer,
 					"rollapp", rollappID, "state_block_info", fmt.Sprintf("%d-%d", stateInfo.StartHeight,
 						stateInfo.StartHeight+stateInfo.NumBlocks-1), "error", err.Error())
 				return fmt.Errorf("forceRemoveUnbondingSequencer error in AfterStateFinalized.sequencer=%s,"+
-					" rollapp = %s, err = %s", val.OldProposer, rollappID, err.Error())
+					" rollapp = %s, err = %s", val.ReplaceProposer.OldProposer, rollappID, err.Error())
 			}
 			hook.k.DeleteReplaceProposer(ctx, rollappID)
 			hook.k.Logger(ctx).Info("AfterStateFinalized processed ReplaceProposer.", "rollapp", rollappID,
-				"old_sequencer", val.OldProposer, "block_height", val.BlockHeight,
+				"old_sequencer", val.ReplaceProposer.OldProposer, "block_height", val.ReplaceProposer.BlockHeight,
 				"state_block_info", fmt.Sprintf("%d-%d", stateInfo.StartHeight, stateInfo.StartHeight+stateInfo.NumBlocks-1))
 		}
 	}

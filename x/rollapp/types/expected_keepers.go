@@ -21,4 +21,5 @@ type DaoKeeper interface {
 
 type SequencerKeeper interface {
 	ProcSequencerByPendingStates(ctx sdk.Context, rollappId string, rollappState *StateInfo) error
+	IsExceedAuthoredBlockHeight(ctx sdk.Context, rollappId string, creator string, startHeight uint64, numBlocks uint64) error
 }

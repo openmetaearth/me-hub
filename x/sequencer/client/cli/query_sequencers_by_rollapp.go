@@ -39,3 +39,36 @@ func CmdShowSequencersByRollapp() *cobra.Command {
 
 	return cmd
 }
+
+func CmdShowReplaceProposer() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "show-replace-proposer [rollapp-id]",
+		Short: "shows -replace-proposer ",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			argRollappId := args[0]
+
+			params := &types.QueryReplaceProposerInfoRequest{
+				RollappId: argRollappId,
+			}
+
+			res, err := queryClient.ReplaceProposerInfo(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}

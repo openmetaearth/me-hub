@@ -9,12 +9,19 @@ import (
 )
 
 func (k Keeper) SetReplaceProposer(ctx sdk.Context, data *types.MsgRepalceProposer) error {
+	if nil == data {
+		return fmt.Errorf("SetReplaceProposer data is nil")
+	}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	val := store.Get(types.RepalceRollappProposerKey(data.RollappId))
 	if val != nil {
 		return types.ErrExistingReplaceProposer
 	}
-	bz, err := k.cdc.Marshal(data)
+	storeReplaceProposerInfo := &types.MsgStoreReplaceProposer{
+		ReplaceProposer: *data,
+		HubBlockHeight:  ctx.BlockHeight(),
+	}
+	bz, err := k.cdc.Marshal(storeReplaceProposerInfo)
 	if err != nil {
 		return err
 	}
@@ -23,13 +30,13 @@ func (k Keeper) SetReplaceProposer(ctx sdk.Context, data *types.MsgRepalcePropos
 	return nil
 }
 
-func (k Keeper) GetReplaceProposer(ctx sdk.Context, rollappId string) (*types.MsgRepalceProposer, error) {
+func (k Keeper) GetReplaceProposer(ctx sdk.Context, rollappId string) (*types.MsgStoreReplaceProposer, error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	bz := store.Get(types.RepalceRollappProposerKey(rollappId))
 	if bz == nil {
 		return nil, nil
 	}
-	var msg types.MsgRepalceProposer
+	var msg types.MsgStoreReplaceProposer
 	err := k.cdc.Unmarshal(bz, &msg)
 	if err != nil {
 		return nil, err
@@ -95,11 +102,11 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId string, 
 	if nil == val {
 		return nil
 	}
-	if (rollappState.StartHeight + rollappState.NumBlocks - 1) >= uint64(val.BlockHeight) {
+	if (rollappState.StartHeight + rollappState.NumBlocks - 1) >= uint64(val.ReplaceProposer.BlockHeight) {
 		//delete the replaced sequencer address record and set the new sequencer as proposer
-		oldSequencer, found := k.GetSequencer(ctx, val.OldProposer)
+		oldSequencer, found := k.GetSequencer(ctx, val.ReplaceProposer.OldProposer)
 		if !found {
-			return fmt.Errorf("can not found old sequencer: %s", val.OldProposer)
+			return fmt.Errorf("can not found old sequencer: %s", val.ReplaceProposer.OldProposer)
 		}
 		if oldSequencer.RollappId != rollappId {
 			return fmt.Errorf("old sequencer's rollapp(%s) dismatch to processing rollapp(%s)",
@@ -110,16 +117,16 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId string, 
 			oldSequencer.Status = types.Unbonding
 			oldSequencer.UnbondingHeight = ctx.BlockHeight()
 			k.UpdateSequencer(ctx, oldSequencer, types.Bonded)
-			newSequencer, found := k.GetSequencer(ctx, val.NewProposer)
+			newSequencer, found := k.GetSequencer(ctx, val.ReplaceProposer.NewProposer)
 			if !found {
-				return fmt.Errorf("can not found new sequencer: %s", val.NewProposer)
+				return fmt.Errorf("can not found new sequencer: %s", val.ReplaceProposer.NewProposer)
 			}
 			if newSequencer.RollappId != rollappId {
 				return fmt.Errorf("new sequencer's rollapp(%s) dismatch to processing rollapp(%s)",
 					newSequencer.RollappId, rollappId)
 			}
 			if newSequencer.Status != types.Bonded {
-				return fmt.Errorf("new sequencer %s status(%d) is not bonded", val.NewProposer, newSequencer.Status)
+				return fmt.Errorf("new sequencer %s status(%d) is not bonded", val.ReplaceProposer.NewProposer, newSequencer.Status)
 			}
 			newSequencer.Proposer = true
 			k.UpdateSequencer(ctx, newSequencer, types.Bonded)
@@ -127,8 +134,8 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId string, 
 				sdk.NewEvent(
 					types.EventProcReplaceProposer,
 					sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-					sdk.NewAttribute(types.AttributeKeyOldProposer, val.OldProposer),
-					sdk.NewAttribute(types.AttributeKeyNewProposer, val.NewProposer),
+					sdk.NewAttribute(types.AttributeKeyOldProposer, val.ReplaceProposer.OldProposer),
+					sdk.NewAttribute(types.AttributeKeyNewProposer, val.ReplaceProposer.NewProposer),
 					sdk.NewAttribute(types.AttributeKeyPendingBlockHeight, fmt.Sprintf("%d-%d", rollappState.StartHeight,
 						rollappState.StartHeight+rollappState.NumBlocks-1)),
 				),
@@ -139,5 +146,37 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId string, 
 		}
 	}
 	return nil
+
+}
+
+func (k Keeper) IsExceedAuthoredBlockHeight(ctx sdk.Context, rollappId, creator string, startHeight uint64, numBlocks uint64) error {
+	val, err := k.GetReplaceProposer(ctx, rollappId)
+	if err != nil {
+		return err
+	}
+	if nil == val {
+		return nil
+	}
+	endHeight := startHeight + numBlocks - 1
+	if val.ReplaceProposer.OldProposer == creator {
+		if endHeight > uint64(val.ReplaceProposer.BlockHeight) {
+			k.Logger(ctx).Error("exceedAuthoredBlockHeight:", "old sequencer", creator,
+				"authored_block_height", val.ReplaceProposer.BlockHeight, "request_block_height", fmt.Sprintf("%d-%d", startHeight, endHeight))
+			return types.ErrorExceedAuthoredBlockHeight
+		}
+		return nil
+	} else if val.ReplaceProposer.NewProposer == creator {
+		if startHeight <= uint64(val.ReplaceProposer.BlockHeight) {
+			k.Logger(ctx).Error("exceedAuthoredBlockHeight:", "new sequencer", creator,
+				"authored_block_height", val.ReplaceProposer.BlockHeight+1, "request_block_height", fmt.Sprintf("%d-%d", startHeight, endHeight))
+			return types.ErrorExceedAuthoredBlockHeight
+		}
+		return nil
+	} else {
+		k.Logger(ctx).Error("exceedAuthoredBlockHeight:", "unknown creator", creator,
+			"old sequencer", val.ReplaceProposer.OldProposer, "new sequencer", val.ReplaceProposer.NewProposer)
+		return types.ErrorExceedAuthoredBlockHeight
+
+	}
 
 }
