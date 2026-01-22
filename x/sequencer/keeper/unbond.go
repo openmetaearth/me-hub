@@ -168,7 +168,7 @@ func (k Keeper) forceRemoveUnbondingSequencer(ctx sdk.Context, seqAddr string, r
 			sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
 			sdk.NewAttribute(types.AttributeKeySequencer, seqAddr),
 			sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprintf("%d", ctx.BlockHeight())),
-			sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprintf("%d-%d",
+			sdk.NewAttribute(types.AttributeReplaceAtHeight, fmt.Sprintf("%d-%d",
 				rollappStartHeight, rollappStartHeight+blockNumber-1)),
 		),
 	)
