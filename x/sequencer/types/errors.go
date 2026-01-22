@@ -30,4 +30,5 @@ var (
 	ErrUnauthorized                   = errorsmod.Register(ModuleName, 1019, "unauthorized")
 	ErrExistingReplaceProposer        = errorsmod.Register(ModuleName, 1020, "there is already a pending replace proposer request")
 	ErrReplacedSequencerCannotPropose = errorsmod.Register(ModuleName, 1021, "replaced sequencer cannot propose new state")
+	ErrorExceedAuthoredBlockHeight    = errorsmod.Register(ModuleName, 1022, "exceed authored block height limit")
 )

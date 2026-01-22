@@ -41,8 +41,12 @@ service Query {
 
   rpc UnConfirmSequencerAddressByRollappByStatus(QueryGetUnConfirmSequencersAddrByRollappRequest) returns (QueryGetUnConfirmSequencersAddrByRollappResponse) {
     option (google.api.http).get =
-      "/dymensionxyz/dymension/sequencer/"
+      "/metaearth/sequencer/"
       "unconfirm_sequencer_address_by_rollapp/{rollappId}/{block_height}";
+  }
+
+  rpc ReplaceProposerInfo(QueryReplaceProposerInfoRequest) returns (QueryReplaceProposerInfoResponse) {
+    option (google.api.http).post = "/metaearth/sequencer/replace_proposer_info/{rollappId}";
   }
 
   // this line is used by starport scaffolding # 2
@@ -91,15 +95,26 @@ message QueryGetSequencersByRollappByStatusResponse {
   repeated Sequencer sequencers = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryGetUnConfirmSequencersAddrByRollappRequest {
+message QueryGetUnConfirmSequencersAddrByRollappRequest{
   string rollappId = 1;
-  int64 block_height = 2;
+  int64  block_height = 2;
 }
 
 message QueryGetUnConfirmSequencersAddrByRollappResponse {
   Sequencer new_sequencer = 1 [(gogoproto.nullable) = false];
-  int64 start_height = 2;
-  int64 unconfirm_cache_height = 3;
+  int64  start_height = 2;
+  int64  unconfirm_cache_height = 3;
 }
+
+message QueryReplaceProposerInfoRequest {
+  string rollappId = 1;
+}
+
+message QueryReplaceProposerInfoResponse {
+  MsgStoreReplaceProposer replace_proposer = 1 [(gogoproto.nullable) = false];
+}
+
+
+
 
 // this line is used by starport scaffolding # 3

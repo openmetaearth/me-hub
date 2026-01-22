@@ -48,6 +48,7 @@ func (k Keeper) SequencersByRollappByStatus(c context.Context, req *types.QueryG
 }
 
 func (k Keeper) UnConfirmSequencerAddressByRollappByStatus(goCtx context.Context, req *types.QueryGetUnConfirmSequencersAddrByRollappRequest) (*types.QueryGetUnConfirmSequencersAddrByRollappResponse, error) {
+	/*
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -84,5 +85,24 @@ func (k Keeper) UnConfirmSequencerAddressByRollappByStatus(goCtx context.Context
 			"rollappId", req.RollappId, " blockHeight", req.BlockHeight, "replaceProposerHeight", replaceProposer.BlockHeight,
 			"cacheHeight", k.replaceSequencerCacheHeight)
 	}
+	*/
+	return nil, fmt.Errorf("unsupprot function")
+}
+func (k Keeper) ReplaceProposerInfo(goCtx context.Context, req *types.QueryReplaceProposerInfoRequest) (*types.QueryReplaceProposerInfoResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	_, found := k.rollappKeeper.GetRollapp(ctx, req.RollappId)
+	if !found {
+		return nil, types.ErrUnknownRollappID
+	}
+	replaceProposer, err := k.GetReplaceProposer(ctx, req.RollappId)
+	if err != nil {
+		return nil, fmt.Errorf("ReplaceProposerInfo: failed to get replace proposer info,rollappID = %s, err = %s",
+			req.RollappId, err.Error())
+	}
+	if nil == replaceProposer {
 	return nil, nil
+	}
+	return &types.QueryReplaceProposerInfoResponse{
+		ReplaceProposer: *replaceProposer,
+	}, nil
 }
