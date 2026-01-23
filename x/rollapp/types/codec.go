@@ -12,10 +12,15 @@ import (
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateRollapp{}, "rollapp/CreateRollapp", nil)
 	cdc.RegisterConcrete(&MsgUpdateState{}, "rollapp/UpdateState", nil)
+	cdc.RegisterConcrete(&MsgUpdateRollapp{}, "rollapp/UpdateRollapp", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
-	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgCreateRollapp{}, &MsgUpdateState{})
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgCreateRollapp{},
+		&MsgUpdateState{},
+		&MsgUpdateRollapp{},
+	)
 	registry.RegisterImplementations((*govtypes.Content)(nil), &SubmitFraudProposal{})
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
