@@ -14,6 +14,7 @@ fi
 
 # cache: r1_address ... r5_address
 get_relayers() {
+  echo "$CHAIN"
   for i in 1 2 3 4 5; do
     # if not set, get from keyring
     eval "v=\${r${i}_address:-}"
@@ -64,7 +65,7 @@ bonded_relayer() {
   done
   for i in 1 2 3 4 5; do
     eval "hexv=\$r${i}_hex"
-    med tx "$CHAIN" bonded-relayer "$hexv" 100000000umec --from r${i} --chain-id "$CHAIN_ID" --keyring-backend $KEYRING -y --gas-prices 0.02umec --gas 500000
+    med tx "$CHAIN" bonded-relayer "$hexv" 100000000umec --from r${i} --chain-id "$CHAIN_ID" --keyring-backend $KEYRING -y --gas-prices 0.02umec --gas 500000 --node "$NodeUrl"
 #    sleep 500000
   done
 }
@@ -73,7 +74,7 @@ add_delegate() {
   get_relayers
     for i in 1 2 3 4 5; do
       eval "hexv=\$r${i}_hex"
-    med tx "$CHAIN" add-delegate 100000000umec --from r${i} --chain-id "$CHAIN_ID" --keyring-backend $KEYRING -y --gas-prices 0.02umec --gas 500000 --node $NodeUrl
+    med tx "$CHAIN" add-delegate 1000000umec --from r${i} --chain-id "$CHAIN_ID" --keyring-backend $KEYRING -y --gas-prices 0.02umec --gas 500000 --node $NodeUrl
     done
 }
 
