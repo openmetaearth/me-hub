@@ -43,10 +43,8 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 		return 0, err
 	}
 
-	if ctx.BlockHeight() > 10459000 {
-		bridgeToken.Supply = bridgeToken.Supply.Sub(totalInVouchers.Amount)
-		k.SetBridgeToken(ctx, bridgeToken)
-	}
+	bridgeToken.Supply = bridgeToken.Supply.Sub(totalInVouchers.Amount)
+	k.SetBridgeToken(ctx, bridgeToken)
 
 	// get next tx id from keeper
 	nextTxID := k.AutoIncrementID(ctx, types.KeyLastTxPoolID)
