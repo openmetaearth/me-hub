@@ -89,7 +89,7 @@ func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	migrator := gravitykeeper.NewMigrator(am.keeper)
-	if err := cfg.RegisterMigration(am.Name(), 4, migrator.Migrate); err != nil {
+	if err := cfg.RegisterMigration(am.Name(), 1, migrator.Migrate); err != nil {
 		panic(fmt.Sprintf("failed to register migration for %s: %v", am.Name(), err))
 	}
 }

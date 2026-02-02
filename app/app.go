@@ -213,7 +213,8 @@ func New(
 	app.mm.RegisterInvariants(app.CrisisKeeper)
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
-	app.mm.RegisterServices(app.configurator)
+	//app.mm.RegisterServices(app.configurator)
+	app.RegisterServices(app.configurator)
 
 	// initialize stores
 	app.MountKVStores(keepers.KVStoreKeys)
