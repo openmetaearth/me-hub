@@ -4,6 +4,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	transferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -12,6 +13,8 @@ import (
 	commontypes "github.com/st-chain/me-hub/x/common/types"
 	delayedackkeeper "github.com/st-chain/me-hub/x/delayedack/keeper"
 	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	"strings"
 )
 
 const (
@@ -28,6 +31,7 @@ type IBCModule struct {
 	delayedAckKeeper delayedackkeeper.Keeper
 	transferKeeper   transferkeeper.Keeper
 	feeModuleAddr    sdk.AccAddress
+	bankKeeper       bankkeeper.Keeper
 }
 
 func NewIBCModule(
@@ -36,6 +40,7 @@ func NewIBCModule(
 	transferKeeper transferkeeper.Keeper,
 	feeModuleAddr sdk.AccAddress,
 	rollappKeeper rollappkeeper.Keeper,
+	bankKeeper bankkeeper.Keeper,
 ) *IBCModule {
 	return &IBCModule{
 		IBCModule:        next,
@@ -43,6 +48,7 @@ func NewIBCModule(
 		transferKeeper:   transferKeeper,
 		feeModuleAddr:    feeModuleAddr,
 		rollappKeeper:    rollappKeeper,
+		bankKeeper:       bankKeeper,
 	}
 }
 
@@ -72,6 +78,17 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 		l.Error("Get valid transfer.", "err", err)
 		err = errorsmod.Wrapf(err, "%s: get valid transfer", ModuleName)
 		return channeltypes.NewErrorAcknowledgement(err)
+	}
+
+	// check if the token is a returned native token
+	isReturnedNative, originalDenom, escrowAddress := w.checkIfReturnedNativeToken(ctx, transfer, packet)
+	if isReturnedNative {
+		err := w.unlockEscrowAndTransfer(ctx, escrowAddress, transfer, originalDenom, packet)
+		if err != nil {
+			l.Error("Unlock escrow failed.", "err", err)
+			return channeltypes.NewErrorAcknowledgement(err)
+		}
+		return channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 	}
 
 	if !transfer.IsRollapp() {
@@ -110,4 +127,113 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 	transfer.Amount = transfer.MustAmountInt().Sub(fee).String()
 	packet.Data = transfer.GetBytes()
 	return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
+}
+
+// checkIfReturnedNativeToken checks whether the received denom is a "returned native token" that was originally from this chain
+func (w *IBCModule) checkIfReturnedNativeToken(
+	ctx sdk.Context,
+	transfer rollapptypes.TransferData,
+	packet channeltypes.Packet,
+) (bool, string, sdk.AccAddress) {
+	denomTrace := transfertypes.ParseDenomTrace(transfer.Denom)
+
+	if denomTrace.Path == "" {
+		return false, "", nil
+	}
+
+	baseDenom := denomTrace.BaseDenom
+	paths := denomTrace.GetPath()
+
+	if len(paths) < 2 {
+		return false, "", nil
+	}
+
+	pathsSplit := strings.Split(paths, "/")
+	originalSourceChannel := ""
+	for i := len(pathsSplit) - 2; i >= 0; i -= 2 {
+		if pathsSplit[i] == "transfer" && i+1 < len(paths) {
+			originalSourceChannel = pathsSplit[i+1]
+			break
+		}
+	}
+
+	if originalSourceChannel == "" {
+		return false, "", nil
+	}
+
+	escrowAddress := transfertypes.GetEscrowAddress(transfertypes.PortID, originalSourceChannel)
+	escrowBalance := w.bankKeeper.GetBalance(ctx, escrowAddress, baseDenom)
+
+	if escrowBalance.IsZero() {
+		return false, "", nil
+	}
+
+	return true, baseDenom, escrowAddress
+}
+
+func (w *IBCModule) unlockEscrowAndTransfer(
+	ctx sdk.Context,
+	escrowAddress sdk.AccAddress,
+	transfer rollapptypes.TransferData,
+	originalDenom string,
+	packet channeltypes.Packet,
+) error {
+	sourceChannel := packet.GetSourceChannel()
+	receiver, err := sdk.AccAddressFromBech32(transfer.Receiver)
+	if err != nil {
+		return errorsmod.Wrap(err, "invalid receiver address")
+	}
+
+	amount, ok := sdk.NewIntFromString(transfer.Amount)
+	if !ok {
+		return errorsmod.Wrap(transfertypes.ErrInvalidAmount, transfer.Amount)
+	}
+
+	fee := w.delayedAckKeeper.BridgingFeeFromAmt(ctx, transfer.MustAmountInt())
+	token := sdk.NewCoin(originalDenom, amount.Sub(fee))
+
+	w.chargeBridgingFee(ctx, transfer, packet, fee)
+
+	err = w.bankKeeper.SendCoins(ctx, escrowAddress, receiver, sdk.NewCoins(token))
+	if err != nil {
+		return errorsmod.Wrap(err, "escrow unlock failed")
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			"unlock_escrow",
+			sdk.NewAttribute("receiver", transfer.Receiver),
+			sdk.NewAttribute("denom", originalDenom),
+			sdk.NewAttribute("amount", amount.String()),
+			sdk.NewAttribute("channel", sourceChannel),
+		),
+	)
+	return nil
+}
+
+func (w *IBCModule) chargeBridgingFee(
+	ctx sdk.Context,
+	transfer rollapptypes.TransferData,
+	packet channeltypes.Packet,
+	fee sdk.Int,
+) {
+	feeData := transfer
+	feeData.Amount = fee.String()
+	feeData.Receiver = w.feeModuleAddr.String()
+
+	err := w.transferKeeper.OnRecvPacket(ctx, packet, feeData.FungibleTokenPacketData)
+	if err != nil {
+		return
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			EventTypeBridgingFee,
+			sdk.NewAttribute(AttributeKeyFee, fee.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, feeData.Sender),
+			sdk.NewAttribute(transfertypes.AttributeKeyReceiver, feeData.Receiver),
+			sdk.NewAttribute(transfertypes.AttributeKeyDenom, feeData.Denom),
+			sdk.NewAttribute(transfertypes.AttributeKeyAmount, feeData.Amount),
+		),
+	)
 }

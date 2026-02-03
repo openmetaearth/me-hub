@@ -1,6 +1,7 @@
 #!/bin/bash
 
-RelayerMnemonic="also dune road lumber jeans tiny float pulse escape must wheel gauge"
+#RelayerMnemonic="also dune road lumber jeans tiny float pulse escape must wheel gauge" # uat
+RelayerMnemonic="hurdle bicycle ribbon congress ability rifle shrimp birth goose bridge regret ostrich" # develop env
 CHAIN_ID=${CHAIN_ID:-"me-chain"}
 KEY_NAME=${KEY_NAME:-"global_dao"}
 KEYRING="test"

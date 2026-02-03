@@ -524,6 +524,7 @@ func (a *AppKeepers) InitTransferStack() {
 		a.TransferKeeper,
 		a.AccountKeeper.GetModuleAddress(wstakingtypes.BridgeFeePool),
 		*a.RollappKeeper,
+		a.BankKeeper,
 	)
 	a.TransferStack = packetforwardmiddleware.NewIBCMiddleware(
 		a.TransferStack,
