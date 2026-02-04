@@ -4,7 +4,6 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	appkeepers "github.com/st-chain/me-hub/app/keepers"
 	"github.com/st-chain/me-hub/app/upgrades"
@@ -29,33 +28,10 @@ func CreateUpgradeHandler(
 			}
 		}
 
-		logger.Info("1. upgrade for setting umec metadata.")
-		keepers.BankKeeper.SetDenomMetaData(ctx, banktypes.Metadata{
-			Description: "Denom metadata for MEC (umec)",
-			DenomUnits: []*banktypes.DenomUnit{
-				{
-					Denom:    "umec",
-					Exponent: uint32(0),
-				},
-				{
-					Denom:    "MEC",
-					Exponent: uint32(8),
-				},
-			},
-			Base:    "umec",
-			Display: "MEC",
-			Name:    "MEC",
-			Symbol:  "MEC",
-			URI:     "",
-			URIHash: "",
-		})
-
-		logger.Info("2. clear tron gengesis")
-		keepers.TronKeeper.ClearGenesis(ctx)
-
+		logger.Info("3. set batch timeout to 24 hours for bsc and tron.")
 		params := keepers.TronKeeper.GetParams(ctx)
 		params.AverageBlockTime = 6000
-		params.ExternalBatchTimeout = 7200000
+		params.ExternalBatchTimeout = 86400000
 		err := keepers.TronKeeper.SetParams(ctx, &params)
 		if err != nil {
 			panic(fmt.Sprintf("failed to set bsc params during upgrade: %v", err))
@@ -63,7 +39,7 @@ func CreateUpgradeHandler(
 
 		params = keepers.BscKeeper.GetParams(ctx)
 		params.AverageBlockTime = 6000
-		params.ExternalBatchTimeout = 7200000
+		params.ExternalBatchTimeout = 86400000
 		err = keepers.BscKeeper.SetParams(ctx, &params)
 		if err != nil {
 			panic(fmt.Sprintf("failed to set bsc params during upgrade: %v", err))
