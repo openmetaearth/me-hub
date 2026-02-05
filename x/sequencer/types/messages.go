@@ -131,8 +131,8 @@ func (msg *MsgUnbond) GetSigners() []sdk.AccAddress {
 
 //
 
-func NewMsgReplaceProposerRequest(creator, rollappId, oldProposer, newProposer string, blockHeight int64) (*MsgRepalceProposerRequest, error) {
-	return &MsgRepalceProposerRequest{
+func NewMsgReplaceProposerRequest(creator, rollappId, oldProposer, newProposer string, blockHeight int64) (*MsgReplaceProposerRequest, error) {
+	return &MsgReplaceProposerRequest{
 		Creator: creator,
 		ReplaceProposer: &MsgRepalceProposer{
 			RollappId:   rollappId,
@@ -142,15 +142,15 @@ func NewMsgReplaceProposerRequest(creator, rollappId, oldProposer, newProposer s
 		},
 	}, nil
 }
-func (msg *MsgRepalceProposerRequest) Route() string {
+func (msg *MsgReplaceProposerRequest) Route() string {
 	return RouterKey
 }
 
-func (msg *MsgRepalceProposerRequest) Type() string {
+func (msg *MsgReplaceProposerRequest) Type() string {
 	return TypeMsgReplaceRollappPorposer
 }
 
-func (msg *MsgRepalceProposerRequest) GetSigners() []sdk.AccAddress {
+func (msg *MsgReplaceProposerRequest) GetSigners() []sdk.AccAddress {
 	creator, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		panic(err)
@@ -158,12 +158,12 @@ func (msg *MsgRepalceProposerRequest) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{creator}
 }
 
-func (msg *MsgRepalceProposerRequest) GetSignBytes() []byte {
+func (msg *MsgReplaceProposerRequest) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgRepalceProposerRequest) ValidateBasic() error {
+func (msg *MsgReplaceProposerRequest) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)

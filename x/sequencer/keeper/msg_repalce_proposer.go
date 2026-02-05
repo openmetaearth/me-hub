@@ -10,7 +10,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 )
 
-func (k msgServer) RepalceProposer(goCtx context.Context, msg *types.MsgRepalceProposerRequest) (*types.MsgRepalceProposerResponse, error) {
+func (k msgServer) ReplaceProposer(goCtx context.Context, msg *types.MsgReplaceProposerRequest) (*types.MsgReplaceProposerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// check to see if the rollapp has been registered before
@@ -71,6 +71,6 @@ func (k msgServer) RepalceProposer(goCtx context.Context, msg *types.MsgRepalceP
 			sdk.NewAttribute(types.AttributeReplaceAtHeight, strconv.FormatInt(msg.ReplaceProposer.BlockHeight, 10)),
 		),
 	)
-	return &types.MsgRepalceProposerResponse{}, nil
+	return &types.MsgReplaceProposerResponse{}, nil
 
 }
