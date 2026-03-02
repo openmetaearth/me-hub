@@ -57,7 +57,7 @@ func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer)
 	}
 
 	maxBondedAmount := s.GetAllBondedAmount(ctx).Mul(types.AttestationProposalRelayerChangePowerThreshold).Quo(sdk.NewInt(100))
-	if msg.DelegateAmount.Amount.GT(maxBondedAmount) {
+	if !maxBondedAmount.IsZero() && msg.DelegateAmount.Amount.GT(maxBondedAmount) {
 		return nil, errorsmod.Wrapf(types.ErrMaxChangePowerLimitExceeded,
 			"max bond amount: %s, bond amont: %s", maxBondedAmount, msg.DelegateAmount.Amount)
 	}
