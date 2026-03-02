@@ -72,6 +72,20 @@ bonded_relayer() {
   done
 }
 
+bonded_relayer_tron() {
+  get_relayers
+  for i in 1 2 3 4 5; do
+    eval "addr=\$r${i}_address"
+    eval "hex_addr=\$(med me-debug addr \$addr | awk -F': *' '/^tron:/ {print \$2}')"
+    eval "r${i}_hex=\$hex_addr"
+  done
+  for i in 1 2 3 4 5; do
+    eval "hexv=\$r${i}_hex"
+    echo "$hexv"
+    med tx "$CHAIN" bonded-relayer "$hexv" 100000000umec --from r${i} --chain-id "$CHAIN_ID" --keyring-backend $KEYRING -y --gas-prices 0.02umec --gas 500000 --node "$NodeUrl"
+  done
+}
+
 add_delegate() {
   get_relayers
     for i in 1 2 3 4 5; do
