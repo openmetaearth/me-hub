@@ -126,7 +126,6 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 	// reissue the amount and the fee
 	totalToRefund := sdk.NewCoin(bridgeToken.Denom, tx.Token.Amount)
 	totalToRefund.Amount = totalToRefund.Amount.Add(tx.Fee.Amount)
-	totalToRefund = types.GetMintCoin(totalToRefund.Amount, k.moduleName, bridgeToken)
 	totalToRefundCoins := sdk.NewCoins(totalToRefund)
 
 	// check bridge denom is origin denom or converted alias
