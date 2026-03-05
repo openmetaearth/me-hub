@@ -16,15 +16,6 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 	//k.slashing(ctx, signedWindow)
 	k.createRelayerSetChangeRequest(ctx)
 	k.pruneRelayerSet(ctx, signedWindow)
-
-	if ctx.BlockHeight() == 10017500 && k.moduleName == "tron" {
-		// be cautious when using this function, it will clear all genesis and even nonce data
-		k.ClearGenesis(ctx)
-	}
-	if ctx.BlockHeight() == 10032200 && k.moduleName == "bsc" {
-		// be cautious when using this function, it will clear all genesis and even nonce data
-		k.ResetGenesis(ctx)
-	}
 }
 
 func (k Keeper) createRelayerSetChangeRequest(ctx sdk.Context) {

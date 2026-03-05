@@ -10,6 +10,7 @@ import (
 	"github.com/st-chain/me-hub/app/apptesting"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/testutil/helpers"
+	"github.com/st-chain/me-hub/utils"
 	"github.com/st-chain/me-hub/x/gravity/keeper"
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
@@ -161,22 +162,24 @@ func (s *KeeperTestSuite) CurrentRelayerSet(externalKey cryptotypes.PrivKey) *gr
 func (s *KeeperTestSuite) NewBridgeToken(bridger sdk.AccAddress) []gravitytypes.BridgeToken {
 	bridgeTokens := make([]gravitytypes.BridgeToken, 0)
 	for i := 0; i < 3; i++ {
-		bridgeTokens = append(bridgeTokens, gravitytypes.BridgeToken{
+		bt := gravitytypes.BridgeToken{
 			ContractAddress: helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
 			Denom:           fmt.Sprintf("test%d", i),
 			Name:            "",
 			Symbol:          fmt.Sprintf("test%d", i),
 			Decimal:         0,
 			Supply:          sdk.NewInt(0),
-		})
+		}
 		err := s.App.TronKeeper.AttestationHandler(s.Ctx, &gravitytypes.MsgBridgeTokenClaim{
-			TokenContract:  bridgeTokens[i].ContractAddress,
-			Symbol:         bridgeTokens[i].Denom,
+			TokenContract:  bt.ContractAddress,
+			Symbol:         bt.Denom,
 			RelayerAddress: bridger.String(),
 		})
 		s.Require().NoError(err)
-		_, err = s.App.TronKeeper.GetBridgeTokenByContract(s.Ctx, bridgeTokens[i].ContractAddress)
+		_, err = s.App.TronKeeper.GetBridgeTokenByContract(s.Ctx, bt.ContractAddress)
 		s.Require().NoError(err)
+		bt.Denom = utils.GetDenom(bt.Denom)
+		bridgeTokens = append(bridgeTokens, bt)
 	}
 	return bridgeTokens
 }

@@ -45,7 +45,7 @@ func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error
 		}
 	}
 
-	maxChangePowerThreshold := types.AttestationProposalRelayerChangePowerThreshold.Mul(totalPower).Quo(sdkmath.NewInt(100))
+	maxChangePowerThreshold := types.AttestationProposalRelayerChangePowerThreshold.Mul(totalPower).Quo(sdkmath.NewInt(int64(types.PowerBase)))
 	if deleteTotalPower.GT(sdk.ZeroInt()) && deleteTotalPower.GTE(maxChangePowerThreshold) {
 		return errorsmod.Wrapf(types.ErrMaxChangePowerLimitExceeded,
 			"maxChangePowerThreshold: %s, deleteTotalPower: %s", maxChangePowerThreshold.String(), deleteTotalPower.String())
