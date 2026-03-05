@@ -1,13 +1,12 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	"fmt"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"strings"
-
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/st-chain/me-hub/utils"
 	"github.com/st-chain/me-hub/x/gravity/types"
 )
 
@@ -22,16 +21,16 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			return errorsmod.Wrapf(types.ErrInvalid, "bridge token does not exist: %s", claim.TokenContract)
 		}
 
-		coin := sdk.NewCoin(bridgeToken.Denom, claim.Amount)
 		receiveAddr, err := sdk.AccAddressFromBech32(claim.Receiver)
 		if err != nil {
 			return errorsmod.Wrap(types.ErrInvalid, "receiver address")
 		}
 
-		if err := k.bankKeeper.MintCoins(ctx, k.moduleName, sdk.NewCoins(coin)); err != nil {
+		mintAmount := types.GetMintCoin(claim.Amount, claim.ChainName, bridgeToken)
+		if err := k.bankKeeper.MintCoins(ctx, k.moduleName, sdk.NewCoins(mintAmount)); err != nil {
 			return errorsmod.Wrapf(err, "mint vouchers coins")
 		}
-		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiveAddr, sdk.NewCoins(coin)); err != nil {
+		if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, receiveAddr, sdk.NewCoins(mintAmount)); err != nil {
 			return errorsmod.Wrap(err, "transfer vouchers")
 		}
 		// record supply so we can withdraw it later
@@ -47,7 +46,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		if exists {
 			return errorsmod.Wrap(types.ErrInvalid, "bridge token already exists")
 		}
-		denom := types.BridgeTokenPrefix + strings.ToLower(strings.TrimSpace(claim.Symbol))
+		denom := utils.GetDenom(claim.Symbol)
 		if err := sdk.ValidateDenom(denom); err != nil {
 			return errorsmod.Wrapf(types.ErrInvalid, "invalid denom derived from symbol: %v", err)
 		}
@@ -82,7 +81,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 					},
 					{
 						Denom:    claim.Symbol,
-						Exponent: uint32(claim.Decimals),
+						Exponent: types.GetDecimals(claim),
 					},
 				},
 				Base:    bridgeToken.Denom,

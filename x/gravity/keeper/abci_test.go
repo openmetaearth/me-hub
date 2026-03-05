@@ -1,15 +1,14 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"encoding/hex"
 	"fmt"
-	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/testutil/helpers"
-	"strings"
-
-	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/st-chain/me-hub/app/params"
+	"github.com/st-chain/me-hub/testutil/helpers"
+	"github.com/st-chain/me-hub/utils"
 	"github.com/st-chain/me-hub/x/gravity/types"
 )
 
@@ -65,7 +64,7 @@ func (s *KeeperTestSuite) TestDepositClaim() {
 	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
 
 	allBalances := s.App.BankKeeper.GetAllBalances(s.Ctx, sdk.MustAccAddressFromBech32(sendToMeClaim.Receiver))
-	s.Require().EqualValues(sdk.Coin{Amount: sendToMeClaim.Amount, Denom: strings.ToLower(addBridgeTokenClaim.GetSymbol())}.String(), allBalances.String())
+	s.Require().EqualValues(sdk.Coin{Amount: sendToMeClaim.Amount, Denom: utils.GetDenom(addBridgeTokenClaim.GetSymbol())}.String(), allBalances.String())
 
 	bridgeToken, err := s.Keeper().GetBridgeTokenByContract(s.Ctx, bridgeTokenContract)
 	s.Require().NoError(err)
@@ -165,9 +164,10 @@ func (s *KeeperTestSuite) TestProposalRelayers() {
 	actualTotalPower := s.Keeper().GetLastTotalPower(s.Ctx)
 	s.Require().True(expectTotalPower.Equal(actualTotalPower))
 
-	expectMaxChangePower := types.AttestationProposalRelayerChangePowerThreshold.Mul(expectTotalPower).Quo(sdkmath.NewInt(100))
+	expectMaxChangePower := types.AttestationProposalRelayerChangePowerThreshold.Mul(expectTotalPower).Quo(sdkmath.NewInt(int64(types.PowerBase)))
 	expectDeletePower := sdkmath.NewInt(10 * 1e8).Mul(sdkmath.NewInt(4)).Quo(sdk.DefaultPowerReduction)
-	s.Require().EqualValues(fmt.Sprintf("maxChangePowerThreshold: %s, deleteTotalPower: %s: %s", expectMaxChangePower.String(), expectDeletePower.String(), types.ErrMaxChangePowerLimitExceeded), err.Error())
+	s.Require().EqualValues(fmt.Sprintf("maxChangePowerThreshold: %s, deleteTotalPower: %s: %s",
+		expectMaxChangePower.String(), expectDeletePower.String(), types.ErrMaxChangePowerLimitExceeded), err.Error())
 
 	var newRelayerList2 []string
 	for i := 0; i < 7; i++ {

@@ -52,12 +52,15 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 	// construct outgoing tx, as part of this process we represent
 	// the token as an ERC20 token since it is preparing to go to ETH
 	// rather than the denom that is the input to this function.
+
+	externalBurnAmount := types.GetExternalUnlockAmount(amount.Amount, k.moduleName, bridgeToken)
+	externalFeeAmount := types.GetExternalUnlockAmount(fee.Amount, k.moduleName, bridgeToken)
 	outgoing := &types.OutgoingTransferTx{
 		Id:          nextTxID,
 		Sender:      sender.String(),
 		DestAddress: receiver,
-		Token:       types.NewERC20Token(amount.Amount, bridgeToken.ContractAddress),
-		Fee:         types.NewERC20Token(fee.Amount, bridgeToken.ContractAddress),
+		Token:       types.NewERC20Token(externalBurnAmount, bridgeToken.ContractAddress),
+		Fee:         types.NewERC20Token(externalFeeAmount, bridgeToken.ContractAddress),
 	}
 
 	if err := k.AddUnbatchedTx(ctx, outgoing); err != nil {
