@@ -124,15 +124,14 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Invalid token, contract %s", tx.Token.Contract)
 	}
 	// reissue the amount and the fee
-	totalToRefundAmount := tx.Token.Amount.Add(tx.Fee.Amount)
-	totalToRefund := types.GetMintCoin(totalToRefundAmount, k.moduleName, bridgeToken)
-	totalToRefundCoins := sdk.NewCoins(totalToRefund)
+	totalRefund := types.GetMintCoin(tx.Token.Amount.Add(tx.Fee.Amount), k.moduleName, bridgeToken)
+	totalRefundCoins := sdk.NewCoins(totalRefund)
 
 	// check bridge denom is origin denom or converted alias
-	if err = k.bankKeeper.MintCoins(ctx, k.moduleName, totalToRefundCoins); err != nil {
-		return sdk.Coin{}, errorsmod.Wrapf(err, "mint vouchers coins: %s", totalToRefundCoins)
+	if err = k.bankKeeper.MintCoins(ctx, k.moduleName, totalRefundCoins); err != nil {
+		return sdk.Coin{}, errorsmod.Wrapf(err, "mint vouchers coins: %s", totalRefundCoins)
 	}
-	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
+	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalRefundCoins); err != nil {
 		return sdk.Coin{}, errorsmod.Wrap(err, "transfer vouchers")
 	}
 
@@ -141,9 +140,9 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(txId)),
 		sdk.NewAttribute(sdk.AttributeKeySender, sender.String()),
-		sdk.NewAttribute(types.AttributeKeyRefundAmount, totalToRefundCoins.String()),
+		sdk.NewAttribute(types.AttributeKeyRefundAmount, totalRefundCoins.String()),
 	))
-	return totalToRefund, nil
+	return totalRefund, nil
 }
 
 // AddUnbatchedTx creates a new transaction in the pool
