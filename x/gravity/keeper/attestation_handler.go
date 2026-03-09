@@ -34,7 +34,7 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			return errorsmod.Wrap(err, "transfer vouchers")
 		}
 		// record supply so we can withdraw it later
-		bridgeToken.Supply = bridgeToken.Supply.Add(claim.Amount)
+		bridgeToken.Supply = bridgeToken.Supply.Add(mintAmount.Amount)
 		k.SetBridgeToken(ctx, bridgeToken)
 
 	case *types.MsgSendToExternalClaim:
