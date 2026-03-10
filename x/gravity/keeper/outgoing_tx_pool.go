@@ -26,7 +26,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 			totalInVouchers.Amount.String(), bridgeToken.Supply.String(), k.moduleName)
 	}
 
-	totalPending := k.GetOutgoingPendingTxTotal(ctx, bridgeToken.ContractAddress)
+	totalPending := k.GetOutgoingPendingTxTotal(ctx, k.moduleName, bridgeToken)
 	if totalInVouchers.Amount.Add(totalPending).GT(bridgeToken.Supply) {
 		return 0, errorsmod.Wrapf(types.ErrInvalid, "total pending amount %s plus current amount %s exceeds bridge token supply %s in %s chain",
 			totalPending.String(), totalInVouchers.Amount.String(), bridgeToken.Supply.String(), k.moduleName)
@@ -247,18 +247,18 @@ func (k Keeper) ClearAutoIncrementID(ctx sdk.Context) {
 }
 
 // GetOutgoingPendingTxTotal returns the total amount of a given token pending in the outgoing pool and all batches
-func (k Keeper) GetOutgoingPendingTxTotal(ctx sdk.Context, tokenContract string) sdk.Int {
+func (k Keeper) GetOutgoingPendingTxTotal(ctx sdk.Context, chainName string, bridgeToken *types.BridgeToken) sdk.Int {
 	totalPending := sdk.ZeroInt()
 	// Add all unbatched transactions
-	k.IterateUnbatchedTransactions(ctx, tokenContract, func(tx *types.OutgoingTransferTx) bool {
-		totalPending = totalPending.Add(tx.Token.Amount)
-		totalPending = totalPending.Add(tx.Fee.Amount)
+	k.IterateUnbatchedTransactions(ctx, bridgeToken.ContractAddress, func(tx *types.OutgoingTransferTx) bool {
+		totalPending = totalPending.Add(types.GetMintAmount(tx.Token.Amount, chainName, bridgeToken))
+		totalPending = totalPending.Add(types.GetMintAmount(tx.Fee.Amount, chainName, bridgeToken))
 		return false
 	})
 	// Add all batched transactions
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
-		if batch.TokenContract == tokenContract {
-			totalPending = totalPending.Add(batch.TotalAmount())
+		if batch.TokenContract == bridgeToken.ContractAddress {
+			totalPending = totalPending.Add(types.GetMintAmount(batch.TotalAmount(), chainName, bridgeToken))
 		}
 		return false
 	})

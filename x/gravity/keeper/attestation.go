@@ -25,12 +25,15 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 	// This prevents there being two attestations with the same nonce that get 2/3s of the votes
 	// in the endBlocker.
 	lastEventNonce := k.GetLastEventNonceByRelayer(ctx, relayerAddr)
+	expectedNonce := lastEventNonce + 1
+
 	// fist check continuity
-	if claim.GetEventNonce() != lastEventNonce+1 {
+	if claim.GetEventNonce() == lastEventNonce {
+		return nil, errorsmod.Wrapf(types.ErrNonContinuousEventNonce, "got %v, expected %v", claim.GetEventNonce(), expectedNonce)
+	}
+	if claim.GetEventNonce() != expectedNonce && claim.GetEventNonce() > lastObservedNonce {
 		// second: if not continuous, event nonce must greater than last observed nonce.
-		if claim.GetEventNonce() > lastObservedNonce {
-			return nil, errorsmod.Wrapf(types.ErrNonContinuousEventNonce, "got %v, expected %v", claim.GetEventNonce(), lastEventNonce+1)
-		}
+		return nil, errorsmod.Wrapf(types.ErrNonContinuousEventNonce, "got %v, expected %v", claim.GetEventNonce(), expectedNonce)
 	}
 
 	gasMeter := ctx.GasMeter()
