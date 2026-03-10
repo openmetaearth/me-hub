@@ -807,8 +807,6 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	s.Keeper().EndBlocker(s.Ctx)
 
 	// 3. add bridge token.
-	sendToMeSendAddr := s.PubKeyToExternalAddr(s.externalPris[0].PublicKey)
-	sendToMeAmount := sdkmath.NewIntWithDecimal(1000, 18)
 	randomPrivateKey, err := crypto.GenerateKey()
 	s.Require().NoError(err)
 	tokenContract := s.PubKeyToExternalAddr(randomPrivateKey.PublicKey)
@@ -835,8 +833,10 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	s.Require().EqualValues(tokenContract, bridgeDenomData.ContractAddress)
 
 	// 4. sendToMe.
+	sendToMeSendAddr := s.PubKeyToExternalAddr(s.externalPris[0].PublicKey)
 	sendToMeReceiveAddr := s.relayerAddrs[0]
 	sendToMeClaim := new(types.MsgSendToMeClaim)
+	sendToMeAmount := sdkmath.NewIntWithDecimal(1000, 18)
 	for i, relayer := range s.relayerAddrs {
 		sendToMeClaim = &types.MsgSendToMeClaim{
 			EventNonce:     s.Keeper().GetLastEventNonceByRelayer(s.Ctx, relayer) + 1,
@@ -887,21 +887,21 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	}{
 		{
 			testName:       "Support - baseFee 1000",
-			baseFee:        sdk.NewInt(1000).Mul(types.BaseConvert),
+			baseFee:        sdk.NewInt(1000).MulRaw(1e12),
 			pass:           false,
 			expectTotalTxs: 3,
 			err:            errorsmod.Wrap(types.ErrEmpty, "no batch tx selected"),
 		},
 		{
 			testName:       "Support - baseFee 2",
-			baseFee:        sdk.NewInt(2).Mul(types.BaseConvert),
+			baseFee:        sdk.NewInt(2).MulRaw(1e12),
 			pass:           true,
 			expectTotalTxs: 1,
 			err:            nil,
 		},
 		{
 			testName:       "Support - baseFee 0",
-			baseFee:        sdk.NewInt(0).Mul(types.BaseConvert),
+			baseFee:        sdk.NewInt(0),
 			pass:           true,
 			expectTotalTxs: 0,
 			err:            nil,
@@ -913,7 +913,7 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 		_, err := s.MsgServer().RequestBatch(sdk.WrapSDKContext(s.Ctx), &types.MsgRequestBatch{
 			Sender:     s.relayerAddrs[0].String(),
 			Denom:      bridgeDenomData.Denom,
-			MinimumFee: sdk.NewInt(1).Mul(types.BaseConvert),
+			MinimumFee: sdk.NewInt(1).MulRaw(1e12),
 			FeeReceive: "0x0000000000000000000000000000000000000000",
 			ChainName:  s.chainName,
 			BaseFee:    testCase.baseFee,
