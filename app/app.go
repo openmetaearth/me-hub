@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_12"
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_13"
-	v2_0_13_patch_2 "github.com/st-chain/me-hub/app/upgrades/v2_0_13_patch_2"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_13_patch_3"
 	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
 	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 	"io"
@@ -95,8 +93,6 @@ var (
 		v2_0_11.Upgrade,
 		v2_0_12.Upgrade,
 		v2_0_13.Upgrade,
-		v2_0_13_patch_2.Upgrade,
-		v2_0_13_patch_3.Upgrade,
 	}
 )
 
