@@ -169,7 +169,7 @@ func (k BankKeeperExtend) SendCoinsFromAccountToModuleWithTag(
 ) error {
 	recipientAcc := k.ak.GetModuleAccount(ctx, recipientModule)
 	if recipientAcc == nil {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", recipientModule))
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", recipientModule)
 	}
 
 	return k.SendCoinsWithTag(ctx, senderAddr, recipientAcc.GetAddress(), amt, tag...)

@@ -43,5 +43,11 @@ func (msg *MsgSendToModule) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid account address (%s)", err)
 	}
+	if msg.Receiver == "" {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
+	}
+	if !msg.Amount.IsAllPositive() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "amount must be positive")
+	}
 	return nil
 }
