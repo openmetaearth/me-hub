@@ -24,6 +24,5 @@ func (k MsgServer) SendToModule(goCtx context.Context, msg *types.MsgSendToModul
 	if err != nil {
 		return nil, err
 	}
-
 	return &types.MsgSendToModuleResponse{}, nil
 }
