@@ -240,7 +240,6 @@ func (k Keeper) ClearGenesis(ctx sdk.Context) {
 	return
 }
 
-// ClearGenesis clears module state just for test environment
 func (k Keeper) ResetGenesis(ctx sdk.Context) {
 	k.SetLastObservedEventNonce(ctx, 317)
 	k.SetLastObservedBlockHeight(ctx, 77790848, 0)
