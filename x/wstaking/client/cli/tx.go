@@ -68,6 +68,7 @@ func NewTxCmd() *cobra.Command {
 		CmdNewFixedDepositCfg(),
 		NewIbcTransferFromRegionTreasureCmd(),
 		CmdReplaceConsensusPubKey(),
+		CmdSendToModule(),
 	)
 
 	return stakingTxCmd
