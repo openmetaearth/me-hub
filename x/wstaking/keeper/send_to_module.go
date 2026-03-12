@@ -4,11 +4,10 @@ import (
 	"context"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/rollapp/types"
-	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
-func (k MsgServer) SendToModule(goCtx context.Context, msg *wstakingtypes.MsgSendToModule) (*wstakingtypes.MsgSendToModuleResponse, error) {
+func (k MsgServer) SendToModule(goCtx context.Context, msg *types.MsgSendToModule) (*types.MsgSendToModuleResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !k.daoKeeper.IsGlobalDao(ctx, msg.Sender) {
@@ -26,5 +25,5 @@ func (k MsgServer) SendToModule(goCtx context.Context, msg *wstakingtypes.MsgSen
 		return nil, err
 	}
 
-	return &wstakingtypes.MsgSendToModuleResponse{}, nil
+	return &types.MsgSendToModuleResponse{}, nil
 }
