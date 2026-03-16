@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_12"
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_13"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_13_patch_4"
 	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
 	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 	"io"
@@ -93,10 +94,9 @@ var (
 		v2_0_11.Upgrade,
 		v2_0_12.Upgrade,
 		v2_0_13.Upgrade,
+		v2_0_13_patch_4.Upgrade,
 	}
 )
-
-const DefaultMaxTxs = 5000
 
 func init() {
 	userHomeDir, err := os.UserHomeDir()

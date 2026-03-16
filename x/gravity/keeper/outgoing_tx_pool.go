@@ -135,6 +135,9 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 		return sdk.Coin{}, errorsmod.Wrap(err, "transfer vouchers")
 	}
 
+	bridgeToken.Supply = bridgeToken.Supply.Add(totalRefund.Amount)
+	k.SetBridgeToken(ctx, bridgeToken)
+
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeSendToExternalCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),

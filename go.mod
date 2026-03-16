@@ -278,7 +278,8 @@ require (
 )
 
 replace (
-	github.com/cosmos/cosmos-sdk => github.com/st-chain/cosmos-sdk v0.47.13-me-collect-genesis
+	//github.com/cosmos/cosmos-sdk => github.com/st-chain/cosmos-sdk v0.47.13-me-collect-genesis
+	github.com/cosmos/cosmos-sdk => ../cosmos-sdk
 	github.com/evmos/ethermint => github.com/st-chain/ethermint v0.0.0-20250220093514-1c7546e01918
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/ipfs/go-log/v2 => github.com/st-chain/go-log/v2 v2.7.0
