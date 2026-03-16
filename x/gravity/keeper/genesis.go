@@ -350,6 +350,7 @@ func (k Keeper) ResetGenesis(ctx sdk.Context) {
 	if err != nil {
 		panic(err)
 	}
+
 	for _, bt := range bridgeTokensStruct.BridgeTokens {
 		bridgeToken := types.BridgeToken{
 			ContractAddress: bt.ContractAddress,
