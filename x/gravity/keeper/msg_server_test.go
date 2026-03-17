@@ -12,7 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/testutil/helpers"
-	"github.com/st-chain/me-hub/utils"
 	"github.com/st-chain/me-hub/x/gravity/types"
 	trontypes "github.com/st-chain/me-hub/x/tron/types"
 	"sort"
@@ -133,7 +132,7 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 		pass                 bool
 		err                  string
 		preRun               func(msg *types.MsgAddDelegate)
-		expectDelegateAmount func(msg *types.MsgAddDelegate) sdkmath.Int
+		expectDelegateAmount func(msg *types.MsgAddDelegate) sdk.Int
 	}{
 		{
 			name: "error - sender not relayer",
@@ -156,10 +155,10 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 			preRun: func(msg *types.MsgAddDelegate) {
 				params := s.Keeper().GetParams(s.Ctx)
 				addDelegateThreshold := tmrand.Int63n(100000) + 1
-				params.MinDelegate = initDelegateAmount.Add(sdkmath.NewInt(addDelegateThreshold))
+				params.MinDelegate = initDelegateAmount.Add(sdk.NewInt(addDelegateThreshold))
 				err := s.Keeper().SetParams(s.Ctx, &params)
 				s.Require().NoError(err)
-				msg.Amount.Amount = sdkmath.NewInt(tmrand.Int63n(addDelegateThreshold))
+				msg.Amount.Amount = sdk.NewInt(tmrand.Int63n(addDelegateThreshold))
 			},
 			pass: false,
 			err:  types.ErrDelegateAmountBelowMinimum.Error(),
@@ -168,7 +167,7 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 			name: "error - delegate amount greater than threshold amount",
 			preRun: func(msg *types.MsgAddDelegate) {
 				maxDelegateAmount := s.Keeper().GetGravityMaxDelegate(s.Ctx)
-				msg.Amount.Amount = maxDelegateAmount.Add(sdkmath.NewInt(1))
+				msg.Amount.Amount = maxDelegateAmount.Add(sdk.NewInt(1))
 			},
 			pass: false,
 			err:  types.ErrDelegateAmountAboveMaximum.Error(),
@@ -178,7 +177,7 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 			preRun: func(msg *types.MsgAddDelegate) {
 			},
 			pass: true,
-			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdkmath.Int {
+			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdk.Int {
 				return initDelegateAmount.Add(msg.Amount.Amount)
 			},
 		},
@@ -211,7 +210,7 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 				msg.Amount.Amount = slashAmount
 			},
 			pass: true,
-			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdkmath.Int {
+			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdk.Int {
 				return initDelegateAmount
 			},
 		},
@@ -226,11 +225,11 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 
 				slashFraction := s.Keeper().GetSlashFraction(s.Ctx)
 				slashAmount := sdk.NewDecFromInt(initDelegateAmount).Mul(slashFraction).MulInt64(relayer.SlashTimes).TruncateInt()
-				msg.Amount.Amount = slashAmount.Add(sdkmath.NewInt(1000))
+				msg.Amount.Amount = slashAmount.Add(sdk.NewInt(1000))
 			},
 			pass: true,
-			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdkmath.Int {
-				return initDelegateAmount.Add(sdkmath.NewInt(1000))
+			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdk.Int {
+				return initDelegateAmount.Add(sdk.NewInt(1000))
 			},
 		},
 	}
@@ -250,7 +249,7 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 			msg := &types.MsgAddDelegate{
 				ChainName:      s.chainName,
 				RelayerAddress: s.relayerAddrs[relayerIndex].String(),
-				Amount:         sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1)),
+				Amount:         sdk.NewCoin(params.BaseDenom, sdk.NewInt(1)),
 			}
 			testCase.preRun(msg)
 
@@ -305,7 +304,7 @@ func (s *KeeperTestSuite) TestMsgSetRelayerSetConfirm() {
 	s.Require().EqualValues(1, nonce1RelayerSet.Height)
 	s.Require().EqualValues(1, len(nonce1RelayerSet.Members))
 	s.Require().EqualValues(normalMsg.ExternalAddress, nonce1RelayerSet.Members[0].ExternalAddress)
-	s.Require().EqualValues(utils.PowerBase, nonce1RelayerSet.Members[0].Power)
+	s.Require().EqualValues(types.PowerBase, nonce1RelayerSet.Members[0].Power)
 
 	gravityId := s.Keeper().GetGravityID(s.Ctx)
 	checkpoint, err := nonce1RelayerSet.GetCheckpoint(gravityId)
@@ -365,7 +364,7 @@ func (s *KeeperTestSuite) TestMsgSetRelayerSetConfirm() {
 				ChainName:       s.chainName,
 			},
 			err:       types.ErrInvalid,
-			errReason: fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s found %s: %s", normalMsg.ExternalAddress, hex.EncodeToString(checkpoint), hex.EncodeToString(external2Signature), types.ErrInvalid),
+			errReason: fmt.Sprintf("signature verification failed expected sig by %s with checkpoint %s and sig %s: %s", normalMsg.ExternalAddress, hex.EncodeToString(checkpoint), hex.EncodeToString(external2Signature), types.ErrInvalid),
 		},
 		{
 			name: "relayer address not match",
@@ -384,7 +383,7 @@ func (s *KeeperTestSuite) TestMsgSetRelayerSetConfirm() {
 	for _, testData := range errMsgData {
 		_, err = s.MsgServer().RelayerSetConfirm(sdk.WrapSDKContext(s.Ctx), testData.msg)
 		s.Require().ErrorIs(err, testData.err, testData.name)
-		s.Require().EqualValues(err.Error(), testData.errReason, testData.name)
+		s.Require().EqualValues(testData.errReason, err.Error(), testData.name)
 	}
 
 	normalRelayerSetConfirmMsg := &types.MsgRelayerSetConfirm{
@@ -507,7 +506,7 @@ func (s *KeeperTestSuite) TestClaimMsgGasConsumed() {
 				return &types.MsgSendToMeClaim{
 					BlockHeight:   tmrand.Uint64(),
 					TokenContract: helpers.GenHexAddress().String(),
-					Amount:        sdkmath.NewInt(tmrand.Int63n(100000) + 1).MulRaw(1e18),
+					Amount:        sdk.NewInt(tmrand.Int63n(100000) + 1).MulRaw(1e18),
 					Sender:        helpers.GenExternalAddr(s.chainName),
 					Receiver:      sdk.AccAddress(tmrand.Bytes(20)).String(),
 					ChainName:     s.chainName,
@@ -739,13 +738,13 @@ func (s *KeeperTestSuite) TestMsgBridgeTokenClaim() {
 
 func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	// 1. First sets up a valid relayer set
-	totalPower := sdkmath.ZeroInt()
-	delegateAmounts := make([]sdkmath.Int, 0, len(s.relayerAddrs))
+	totalPower := sdk.ZeroInt()
+	delegateAmounts := make([]sdk.Int, 0, len(s.relayerAddrs))
 	for i, relayer := range s.relayerAddrs {
 		msg := &types.MsgBondedRelayer{
 			RelayerAddress:  relayer.String(),
 			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt((tmrand.Int63n(5)+1)*1e8)),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt((tmrand.Int63n(5)+1)*1e8)),
 			ChainName:       s.chainName,
 		}
 		delegateAmounts = append(delegateAmounts, msg.DelegateAmount.Amount)
@@ -757,7 +756,7 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 
 	var externalRelayerMembers types.BridgeValidators
 	for i, key := range s.externalPris {
-		power := delegateAmounts[i].Quo(sdk.DefaultPowerReduction).MulRaw(int64(utils.PowerBase)).Quo(totalPower)
+		power := delegateAmounts[i].Quo(sdk.DefaultPowerReduction).MulRaw(int64(types.PowerBase)).Quo(totalPower)
 		bridgeVal := types.BridgeValidator{
 			Power:           power.Uint64(),
 			ExternalAddress: s.PubKeyToExternalAddr(key.PublicKey),
@@ -808,8 +807,6 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	s.Keeper().EndBlocker(s.Ctx)
 
 	// 3. add bridge token.
-	sendToMeSendAddr := s.PubKeyToExternalAddr(s.externalPris[0].PublicKey)
-	sendToMeAmount := sdkmath.NewIntWithDecimal(1000, 18)
 	randomPrivateKey, err := crypto.GenerateKey()
 	s.Require().NoError(err)
 	tokenContract := s.PubKeyToExternalAddr(randomPrivateKey.PublicKey)
@@ -830,14 +827,16 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	}
 	s.Keeper().EndBlocker(s.Ctx)
 
-	bridgeDenomData, err := s.Keeper().GetBridgeTokenByDenom(s.Ctx, "usdt")
+	bridgeDenomData, err := s.Keeper().GetBridgeTokenByDenom(s.Ctx, "uusdt")
 	s.Require().NoError(err)
 	s.Require().NotNil(bridgeDenomData)
 	s.Require().EqualValues(tokenContract, bridgeDenomData.ContractAddress)
 
 	// 4. sendToMe.
+	sendToMeSendAddr := s.PubKeyToExternalAddr(s.externalPris[0].PublicKey)
 	sendToMeReceiveAddr := s.relayerAddrs[0]
 	sendToMeClaim := new(types.MsgSendToMeClaim)
+	sendToMeAmount := sdkmath.NewIntWithDecimal(1000, 18)
 	for i, relayer := range s.relayerAddrs {
 		sendToMeClaim = &types.MsgSendToMeClaim{
 			EventNonce:     s.Keeper().GetLastEventNonceByRelayer(s.Ctx, relayer) + 1,
@@ -856,14 +855,15 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, sendToMeReceiveAddr, bridgeDenomData.Denom)
 	s.Require().NotNil(balance)
 	s.Require().EqualValues(balance.Denom, bridgeDenomData.Denom)
-	s.Require().True(balance.Amount.Equal(sendToMeAmount))
+	receiveAmount := types.GetMintCoin(sendToMeClaim.Amount, sendToMeClaim.ChainName, bridgeDenomData)
+	s.Require().True(balance.Amount.Equal(receiveAmount.Amount))
 
-	sendToExternal := func(bridgeFees []sdkmath.Int) {
+	sendToExternal := func(bridgeFees []sdk.Int) {
 		for _, bridgeFee := range bridgeFees {
 			msg := &types.MsgSendToExternal{
 				Sender:    sendToMeReceiveAddr.String(),
 				Dest:      sendToMeSendAddr,
-				Amount:    sdk.NewCoin(bridgeDenomData.Denom, sdkmath.NewInt(3)),
+				Amount:    sdk.NewCoin(bridgeDenomData.Denom, sdk.NewInt(3)),
 				BridgeFee: sdk.NewCoin(bridgeDenomData.Denom, bridgeFee),
 				ChainName: s.chainName,
 			}
@@ -872,54 +872,55 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 		}
 	}
 
-	sendToExternal([]sdkmath.Int{sdkmath.NewInt(1), sdkmath.NewInt(2), sdkmath.NewInt(3)})
-	usdtBatchFee := s.Keeper().GetBatchFeesByTokenType(s.Ctx, tokenContract, 100, sdkmath.NewInt(0))
+	sendToExternal([]sdk.Int{sdk.NewInt(1), sdk.NewInt(2), sdk.NewInt(3)})
+	usdtBatchFee := s.Keeper().GetBatchFeesByTokenType(s.Ctx, tokenContract, 100, sdk.NewInt(0))
 	s.Require().EqualValues(tokenContract, usdtBatchFee.TokenContract)
 	s.Require().EqualValues(3, usdtBatchFee.TotalTxs)
-	s.Require().EqualValues(sdkmath.NewInt(6), usdtBatchFee.TotalFees)
+	s.Require().EqualValues(sdk.NewInt(6000000000000), usdtBatchFee.TotalFees)
 
 	testCases := []struct {
 		testName       string
-		baseFee        sdkmath.Int
+		baseFee        sdk.Int
 		pass           bool
 		expectTotalTxs uint64
 		err            error
 	}{
 		{
 			testName:       "Support - baseFee 1000",
-			baseFee:        sdkmath.NewInt(1000),
+			baseFee:        sdk.NewInt(1000).MulRaw(1e12),
 			pass:           false,
 			expectTotalTxs: 3,
 			err:            errorsmod.Wrap(types.ErrEmpty, "no batch tx selected"),
 		},
 		{
 			testName:       "Support - baseFee 2",
-			baseFee:        sdkmath.NewInt(2),
+			baseFee:        sdk.NewInt(2).MulRaw(1e12),
 			pass:           true,
 			expectTotalTxs: 1,
 			err:            nil,
 		},
 		{
 			testName:       "Support - baseFee 0",
-			baseFee:        sdkmath.NewInt(0),
-			pass:           false,
+			baseFee:        sdk.NewInt(0),
+			pass:           true,
 			expectTotalTxs: 0,
-			err:            errorsmod.Wrap(types.ErrInvalid, "new batch would not be more profitable"),
+			err:            nil,
 		},
 	}
 
 	for _, testCase := range testCases {
+		s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 		_, err := s.MsgServer().RequestBatch(sdk.WrapSDKContext(s.Ctx), &types.MsgRequestBatch{
 			Sender:     s.relayerAddrs[0].String(),
 			Denom:      bridgeDenomData.Denom,
-			MinimumFee: sdkmath.NewInt(1),
+			MinimumFee: sdk.NewInt(1).MulRaw(1e12),
 			FeeReceive: "0x0000000000000000000000000000000000000000",
 			ChainName:  s.chainName,
 			BaseFee:    testCase.baseFee,
 		})
 		if testCase.pass {
 			s.Require().NoError(err)
-			usdtBatchFee = s.Keeper().GetBatchFeesByTokenType(s.Ctx, tokenContract, 100, sdkmath.NewInt(0))
+			usdtBatchFee = s.Keeper().GetBatchFeesByTokenType(s.Ctx, tokenContract, 100, sdk.NewInt(0))
 			s.Require().EqualValues(testCase.expectTotalTxs, usdtBatchFee.TotalTxs)
 		} else {
 			s.Require().NotNil(err)

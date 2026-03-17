@@ -2,13 +2,11 @@ package v2_0_13
 
 import (
 	sdkmath "cosmossdk.io/math"
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	appkeepers "github.com/st-chain/me-hub/app/keepers"
-	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/app/upgrades"
 	"github.com/st-chain/me-hub/utils"
 	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
@@ -40,25 +38,25 @@ func CreateUpgradeHandler(
 		logger.Info("1. upgrade for x/gravity module, set params")
 		// !important: proposalRelayers should be sorted to ensure consistency with solidity contracts.
 		proposalRelayers := []string{
-			"me1frjhlw9slyy7mrhmk0r4vytkyldxqtkf326amv",
-			"me1c5zp26c0gq2klk87nrpff3y52u34zn4ydug2yd",
-			"me1hrxxjeqae2y5wx3kxcljzns9f2lguygu9qngxh",
-			"me14jazxhme3ptv00k52fza5rravx4xn27qs0slz2",
-			"me1qdhu5h5g0qwhdpl4q553v7gcmltdr4w3lnqnjg",
+			"me18g0j259s5l8sd2kzfy790t83t8gf4xd0wxuzyt",
+			"me1fzztxku3kj5s7r00p0gnrr60qlq6vvq94n0tph",
+			"me17p8sa9lwk8334eul80e2md0t7hxsdkjrk87slk",
+			"me1kw3l6mk8t4z638am7zmqw3atvw764kxa3vxtpy",
+			"me1ezcc7r3wf8x6lyxryslwq3qpjhn6ph2dhxrlz6",
 		}
 
 		// delegate total amount to module account
 		delegateAmount := sdk.NewInt(1 * 1e8)
-		for _, relayerAddr := range proposalRelayers {
-			if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), bsctypes.ModuleName,
-				sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
-				panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
-			}
-			if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), trontypes.ModuleName,
-				sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
-				panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
-			}
-		}
+		//for _, relayerAddr := range proposalRelayers {
+		//if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), bsctypes.ModuleName,
+		//	sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
+		//	panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
+		//}
+		//if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), trontypes.ModuleName,
+		//	sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
+		//	panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
+		//}
+		//}
 
 		bscGenState := GenGravityGenesis(ctx.BlockHeight(), proposalRelayers, bsctypes.DefaultGenesisState(), delegateAmount, bsctypes.ModuleName)
 		gravitykeeper.InitGenesis(ctx, keepers.BscKeeper, bscGenState)

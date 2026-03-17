@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_12"
 	"github.com/st-chain/me-hub/app/upgrades/v2_0_13"
-	v2_0_13_patch_2 "github.com/st-chain/me-hub/app/upgrades/v2_0_13_patch_2"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_13_patch_4"
 	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
 	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 	"io"
@@ -94,11 +94,9 @@ var (
 		v2_0_11.Upgrade,
 		v2_0_12.Upgrade,
 		v2_0_13.Upgrade,
-		v2_0_13_patch_2.Upgrade,
+		v2_0_13_patch_4.Upgrade,
 	}
 )
-
-const DefaultMaxTxs = 5000
 
 func init() {
 	userHomeDir, err := os.UserHomeDir()
@@ -211,7 +209,8 @@ func New(
 	app.mm.RegisterInvariants(app.CrisisKeeper)
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
-	app.mm.RegisterServices(app.configurator)
+	//app.mm.RegisterServices(app.configurator)
+	app.RegisterServices(app.configurator)
 
 	// initialize stores
 	app.MountKVStores(keepers.KVStoreKeys)

@@ -48,7 +48,7 @@ import (
 	servercfg "github.com/evmos/ethermint/server/config"
 )
 
-// NewRootCmd creates a new root command for dymension hub
+// NewRootCmd creates a new root command for me hub
 func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 	encodingConfig := app.MakeEncodingConfig()
 	initClientCtx := client.Context{}.

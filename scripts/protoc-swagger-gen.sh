@@ -12,7 +12,6 @@ printf "version: v1\nname: buf.build/dymensionxyz/dymension\n" > "$SWAGGER_DIR/p
 cp ./proto/buf.gen.swagger.yaml "$SWAGGER_DIR/proto/buf.gen.swagger.yaml"
 
 # copy existing proto files
-cp -r ./proto/dymensionxyz "$SWAGGER_DIR/proto"
 cp -r ./proto/metaearth "$SWAGGER_DIR/proto"
 
 if [ ! -d "./tmp-swagger-gen" ]; then

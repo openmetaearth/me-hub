@@ -14,6 +14,8 @@ import (
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
+const unbondingTime = time.Hour * 24 * 7
+
 // Undelegate unbonds an amount of delegator shares from a given validator. It
 // will verify that the unbonding entries between the delegator and validator
 // are not exceeded and unbond the staked tokens (based on shares) by creating
@@ -33,7 +35,7 @@ func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.
 	// transfer the validator tokens to the not bonded pool
 	if !isMeid {
 		k.bondedTokensToNotBonded(ctx, returnAmount)
-		completionTime = ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
+		completionTime = ctx.BlockHeader().Time.Add(unbondingTime)
 		ubd := k.SetUnbondingDelegationEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, returnAmount)
 		k.InsertUBDQueue(ctx, ubd, completionTime)
 	} else {
@@ -43,7 +45,6 @@ func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.
 			return completionTime, returnAmount, err
 		}
 	}
-
 	return completionTime, returnAmount, nil
 }
 

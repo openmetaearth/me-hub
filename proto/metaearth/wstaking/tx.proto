@@ -53,6 +53,7 @@ service Msg {
   rpc TransferRegion(MsgTransferRegion) returns (MsgTransferRegionResponse);
   rpc IbcTransferFromRegionTreasure(MsgIbcTransferFromRegionTreasure) returns (MsgIbcTransferFromRegionTreasureResponse);
   rpc ReplaceConsensusPubKey(MsgReplaceConsensusPubKeyRequest) returns (MsgReplaceConsensusPubKeyResponse);
+  rpc SendToModule(MsgSendToModule) returns (MsgSendToModuleResponse);
 }
 
 // MsgUpdateValidator defines a SDK message for editing an existing validator.
@@ -350,3 +351,14 @@ message MsgReplaceConsensusPubKeyRequest {
 }
 
 message MsgReplaceConsensusPubKeyResponse {}
+
+message MsgSendToModule {
+  string sender = 1;
+  string receiver = 2;
+  repeated cosmos.base.v1beta1.Coin amount = 3 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+message MsgSendToModuleResponse {}

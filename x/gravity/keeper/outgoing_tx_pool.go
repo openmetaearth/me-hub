@@ -26,7 +26,7 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 			totalInVouchers.Amount.String(), bridgeToken.Supply.String(), k.moduleName)
 	}
 
-	totalPending := k.GetOutgoingPendingTxTotal(ctx, bridgeToken.ContractAddress)
+	totalPending := k.GetOutgoingPendingTxTotal(ctx, k.moduleName, bridgeToken)
 	if totalInVouchers.Amount.Add(totalPending).GT(bridgeToken.Supply) {
 		return 0, errorsmod.Wrapf(types.ErrInvalid, "total pending amount %s plus current amount %s exceeds bridge token supply %s in %s chain",
 			totalPending.String(), totalInVouchers.Amount.String(), bridgeToken.Supply.String(), k.moduleName)
@@ -52,12 +52,15 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 	// construct outgoing tx, as part of this process we represent
 	// the token as an ERC20 token since it is preparing to go to ETH
 	// rather than the denom that is the input to this function.
+
+	externalBurnAmount := types.GetExternalUnlockAmount(amount.Amount, k.moduleName, bridgeToken)
+	externalFeeAmount := types.GetExternalUnlockAmount(fee.Amount, k.moduleName, bridgeToken)
 	outgoing := &types.OutgoingTransferTx{
 		Id:          nextTxID,
 		Sender:      sender.String(),
 		DestAddress: receiver,
-		Token:       types.NewERC20Token(amount.Amount, bridgeToken.ContractAddress),
-		Fee:         types.NewERC20Token(fee.Amount, bridgeToken.ContractAddress),
+		Token:       types.NewERC20Token(externalBurnAmount, bridgeToken.ContractAddress),
+		Fee:         types.NewERC20Token(externalFeeAmount, bridgeToken.ContractAddress),
 	}
 
 	if err := k.AddUnbatchedTx(ctx, outgoing); err != nil {
@@ -121,26 +124,28 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalid, "Invalid token, contract %s", tx.Token.Contract)
 	}
 	// reissue the amount and the fee
-	totalToRefund := sdk.NewCoin(bridgeToken.Denom, tx.Token.Amount)
-	totalToRefund.Amount = totalToRefund.Amount.Add(tx.Fee.Amount)
-	totalToRefundCoins := sdk.NewCoins(totalToRefund)
+	totalRefund := types.GetMintCoin(tx.Token.Amount.Add(tx.Fee.Amount), k.moduleName, bridgeToken)
+	totalRefundCoins := sdk.NewCoins(totalRefund)
 
 	// check bridge denom is origin denom or converted alias
-	if err = k.bankKeeper.MintCoins(ctx, k.moduleName, totalToRefundCoins); err != nil {
-		return sdk.Coin{}, errorsmod.Wrapf(err, "mint vouchers coins: %s", totalToRefundCoins)
+	if err = k.bankKeeper.MintCoins(ctx, k.moduleName, totalRefundCoins); err != nil {
+		return sdk.Coin{}, errorsmod.Wrapf(err, "mint vouchers coins: %s", totalRefundCoins)
 	}
-	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalToRefundCoins); err != nil {
+	if err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, sender, totalRefundCoins); err != nil {
 		return sdk.Coin{}, errorsmod.Wrap(err, "transfer vouchers")
 	}
+
+	bridgeToken.Supply = bridgeToken.Supply.Add(totalRefund.Amount)
+	k.SetBridgeToken(ctx, bridgeToken)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeSendToExternalCanceled,
 		sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 		sdk.NewAttribute(types.AttributeKeyOutgoingTxID, fmt.Sprint(txId)),
 		sdk.NewAttribute(sdk.AttributeKeySender, sender.String()),
-		sdk.NewAttribute(types.AttributeKeyRefundAmount, totalToRefundCoins.String()),
+		sdk.NewAttribute(types.AttributeKeyRefundAmount, totalRefundCoins.String()),
 	))
-	return totalToRefund, nil
+	return totalRefund, nil
 }
 
 // AddUnbatchedTx creates a new transaction in the pool
@@ -245,18 +250,18 @@ func (k Keeper) ClearAutoIncrementID(ctx sdk.Context) {
 }
 
 // GetOutgoingPendingTxTotal returns the total amount of a given token pending in the outgoing pool and all batches
-func (k Keeper) GetOutgoingPendingTxTotal(ctx sdk.Context, tokenContract string) sdk.Int {
+func (k Keeper) GetOutgoingPendingTxTotal(ctx sdk.Context, chainName string, bridgeToken *types.BridgeToken) sdk.Int {
 	totalPending := sdk.ZeroInt()
 	// Add all unbatched transactions
-	k.IterateUnbatchedTransactions(ctx, tokenContract, func(tx *types.OutgoingTransferTx) bool {
-		totalPending = totalPending.Add(tx.Token.Amount)
-		totalPending = totalPending.Add(tx.Fee.Amount)
+	k.IterateUnbatchedTransactions(ctx, bridgeToken.ContractAddress, func(tx *types.OutgoingTransferTx) bool {
+		totalPending = totalPending.Add(types.GetMintAmount(tx.Token.Amount, chainName, bridgeToken))
+		totalPending = totalPending.Add(types.GetMintAmount(tx.Fee.Amount, chainName, bridgeToken))
 		return false
 	})
 	// Add all batched transactions
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
-		if batch.TokenContract == tokenContract {
-			totalPending = totalPending.Add(batch.TotalAmount())
+		if batch.TokenContract == bridgeToken.ContractAddress {
+			totalPending = totalPending.Add(types.GetMintAmount(batch.TotalAmount(), chainName, bridgeToken))
 		}
 		return false
 	})
