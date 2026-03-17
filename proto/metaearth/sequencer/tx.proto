@@ -5,12 +5,12 @@ package metaearth.sequencer;
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
-// this line is used by starport scaffolding # proto/tx/import
-import "metaearth/sequencer/description.proto";
-import "metaearth/sequencer/sequencer.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
+// this line is used by starport scaffolding # proto/tx/import
+import "metaearth/sequencer/description.proto";
+import "metaearth/sequencer/sequencer.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/sequencer/types";
 
@@ -62,7 +62,6 @@ message MsgUnbondResponse {
     (gogoproto.stdtime) = true
   ];
 }
-
 
 message MsgReplaceProposerRequest {
   option (cosmos.msg.v1.signer) = "creator";
