@@ -92,3 +92,7 @@ func (hook rollappHook) FraudSubmitted(ctx sdk.Context, rollappID string, height
 func (hook rollappHook) RollappCreated(ctx sdk.Context, rollappID string) error {
 	return nil
 }
+
+func (hook rollappHook) ProcPendingStates(ctx sdk.Context, rollappID, creator string, stateInfo *rollapptypes.StateInfo) error {
+	return hook.k.ProcSequencerByPendingStates(ctx, rollappID, creator, stateInfo)
+}

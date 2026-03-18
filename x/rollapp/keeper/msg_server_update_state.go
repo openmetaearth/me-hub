@@ -36,9 +36,6 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	if err != nil {
 		return nil, errors.Wrapf(err, "BeforeUpdateState hook failed for rollappId(%s) from sequencer(%s)", msg.RollappId, msg.Creator)
 	}
-	if err = k.sequencerKeeper.IsExceedAuthoredBlockHeight(ctx, msg.RollappId, msg.Creator, msg.StartHeight, msg.NumBlocks); err != nil {
-		return nil, err
-	}
 
 	// Logic Error check - must be done after BeforeUpdateStateRecoverable
 	// check if there are permissionedAddresses.
@@ -89,10 +86,8 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	stateInfo := types.NewStateInfo(msg.RollappId, newIndex, msg.Creator, msg.StartHeight, msg.NumBlocks, msg.DAPath, msg.Version, creationHeight, msg.BDs)
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
 	k.SetStateInfo(ctx, *stateInfo)
-	if err := k.sequencerKeeper.ProcSequencerByPendingStates(ctx, msg.RollappId, stateInfo); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrLogic,
-			"ProcSequencerByPendingStates failed for rollappId(%s) from sequencer(%s).err = %s",
-			msg.RollappId, msg.Creator, err.Error())
+	if err := k.hooks.ProcPendingStates(ctx, msg.RollappId, msg.Creator, stateInfo); err != nil {
+		return nil, err
 	}
 
 	stateInfoIndex := stateInfo.GetIndex()

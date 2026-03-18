@@ -15,6 +15,7 @@ type RollappHooks interface {
 	AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *StateInfo) error // Must be called when a rollapp's state changes
 	FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error
 	RollappCreated(ctx sdk.Context, rollappID string) error
+	ProcPendingStates(ctx sdk.Context, rollappID, creator string, stateInfo *StateInfo) error
 }
 
 var _ RollappHooks = MultiRollappHooks{}
@@ -61,6 +62,15 @@ func (h MultiRollappHooks) FraudSubmitted(ctx sdk.Context, rollappID string, hei
 func (h MultiRollappHooks) RollappCreated(ctx sdk.Context, rollappID string) error {
 	for i := range h {
 		err := h[i].RollappCreated(ctx, rollappID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (h MultiRollappHooks) ProcPendingStates(ctx sdk.Context, rollappID, creator string, stateInfo *StateInfo) error {
+	for i := range h {
+		err := h[i].ProcPendingStates(ctx, rollappID, creator, stateInfo)
 		if err != nil {
 			return err
 		}

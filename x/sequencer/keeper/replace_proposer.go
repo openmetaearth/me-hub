@@ -94,7 +94,7 @@ func (k Keeper) IsReplacedSequencerAddress(ctx sdk.Context, rollappId, addr stri
 
 */
 
-func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId string, rollappState *rollappTypes.StateInfo) error {
+func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId, creator string, rollappState *rollappTypes.StateInfo) error {
 	val, err := k.GetReplaceProposer(ctx, rollappId)
 	if err != nil {
 		return err
@@ -102,6 +102,10 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId string, 
 	if nil == val {
 		return nil
 	}
+	if err = k.IsExceedAuthoredBlockHeight(ctx, rollappId, creator, rollappState.StartHeight, rollappState.NumBlocks); err != nil {
+		return err
+	}
+
 	if (rollappState.StartHeight + rollappState.NumBlocks - 1) >= uint64(val.ReplaceProposer.BlockHeight) {
 		//delete the replaced sequencer address record and set the new sequencer as proposer
 		oldSequencer, found := k.GetSequencer(ctx, val.ReplaceProposer.OldProposer)
