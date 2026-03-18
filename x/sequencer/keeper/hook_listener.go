@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 	"github.com/st-chain/me-hub/x/sequencer/types"
@@ -44,6 +45,26 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rolla
 }
 
 func (hook rollappHook) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
+	val, err := hook.k.GetReplaceProposer(ctx, rollappID)
+	if err != nil {
+		return err
+	}
+	if val != nil {
+		if (stateInfo.StartHeight + stateInfo.NumBlocks - 1) >= uint64(val.ReplaceProposer.BlockHeight) {
+			err = hook.k.forceRemoveUnbondingSequencer(ctx, val.ReplaceProposer.OldProposer, stateInfo.StartHeight, stateInfo.NumBlocks)
+			if err != nil {
+				hook.k.Logger(ctx).Error("forceRemoveUnbondingSequencer error.", "sequencer", val.ReplaceProposer.OldProposer,
+					"rollapp", rollappID, "state_block_info", fmt.Sprintf("%d-%d", stateInfo.StartHeight,
+						stateInfo.StartHeight+stateInfo.NumBlocks-1), "error", err.Error())
+				return fmt.Errorf("forceRemoveUnbondingSequencer error in AfterStateFinalized.sequencer=%s,"+
+					" rollapp = %s, err = %s", val.ReplaceProposer.OldProposer, rollappID, err.Error())
+			}
+			hook.k.DeleteReplaceProposer(ctx, rollappID)
+			hook.k.Logger(ctx).Info("AfterStateFinalized processed ReplaceProposer.", "rollapp", rollappID,
+				"old_sequencer", val.ReplaceProposer.OldProposer, "block_height", val.ReplaceProposer.BlockHeight,
+				"state_block_info", fmt.Sprintf("%d-%d", stateInfo.StartHeight, stateInfo.StartHeight+stateInfo.NumBlocks-1))
+		}
+	}
 	return nil
 }
 
@@ -70,4 +91,8 @@ func (hook rollappHook) FraudSubmitted(ctx sdk.Context, rollappID string, height
 // RollappCreated implements types.RollappHooks.
 func (hook rollappHook) RollappCreated(ctx sdk.Context, rollappID string) error {
 	return nil
+}
+
+func (hook rollappHook) ProcPendingStates(ctx sdk.Context, rollappID, creator string, stateInfo *rollapptypes.StateInfo) error {
+	return hook.k.ProcSequencerByPendingStates(ctx, rollappID, creator, stateInfo)
 }

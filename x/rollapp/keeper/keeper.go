@@ -24,6 +24,7 @@ type Keeper struct {
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 	daoKeeper       types.DaoKeeper
+	//sequencerKeeper types.SequencerKeeper
 }
 
 func NewKeeper(

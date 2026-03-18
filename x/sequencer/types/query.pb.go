@@ -489,6 +489,214 @@ func (m *QueryGetSequencersByRollappByStatusResponse) GetSequencers() []Sequence
 	return nil
 }
 
+type QueryGetUnConfirmSequencersAddrByRollappRequest struct {
+	RollappId   string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+	BlockHeight int64  `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
+}
+
+func (m *QueryGetUnConfirmSequencersAddrByRollappRequest) Reset() {
+	*m = QueryGetUnConfirmSequencersAddrByRollappRequest{}
+}
+func (m *QueryGetUnConfirmSequencersAddrByRollappRequest) String() string {
+	return proto.CompactTextString(m)
+}
+func (*QueryGetUnConfirmSequencersAddrByRollappRequest) ProtoMessage() {}
+func (*QueryGetUnConfirmSequencersAddrByRollappRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_53d44c7ce1ea26c1, []int{10}
+}
+func (m *QueryGetUnConfirmSequencersAddrByRollappRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetUnConfirmSequencersAddrByRollappRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetUnConfirmSequencersAddrByRollappRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetUnConfirmSequencersAddrByRollappRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetUnConfirmSequencersAddrByRollappRequest.Merge(m, src)
+}
+func (m *QueryGetUnConfirmSequencersAddrByRollappRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetUnConfirmSequencersAddrByRollappRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetUnConfirmSequencersAddrByRollappRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetUnConfirmSequencersAddrByRollappRequest proto.InternalMessageInfo
+
+func (m *QueryGetUnConfirmSequencersAddrByRollappRequest) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+func (m *QueryGetUnConfirmSequencersAddrByRollappRequest) GetBlockHeight() int64 {
+	if m != nil {
+		return m.BlockHeight
+	}
+	return 0
+}
+
+type QueryGetUnConfirmSequencersAddrByRollappResponse struct {
+	NewSequencer         Sequencer `protobuf:"bytes,1,opt,name=new_sequencer,json=newSequencer,proto3" json:"new_sequencer"`
+	StartHeight          int64     `protobuf:"varint,2,opt,name=start_height,json=startHeight,proto3" json:"start_height,omitempty"`
+	UnconfirmCacheHeight int64     `protobuf:"varint,3,opt,name=unconfirm_cache_height,json=unconfirmCacheHeight,proto3" json:"unconfirm_cache_height,omitempty"`
+}
+
+func (m *QueryGetUnConfirmSequencersAddrByRollappResponse) Reset() {
+	*m = QueryGetUnConfirmSequencersAddrByRollappResponse{}
+}
+func (m *QueryGetUnConfirmSequencersAddrByRollappResponse) String() string {
+	return proto.CompactTextString(m)
+}
+func (*QueryGetUnConfirmSequencersAddrByRollappResponse) ProtoMessage() {}
+func (*QueryGetUnConfirmSequencersAddrByRollappResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_53d44c7ce1ea26c1, []int{11}
+}
+func (m *QueryGetUnConfirmSequencersAddrByRollappResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetUnConfirmSequencersAddrByRollappResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetUnConfirmSequencersAddrByRollappResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetUnConfirmSequencersAddrByRollappResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetUnConfirmSequencersAddrByRollappResponse.Merge(m, src)
+}
+func (m *QueryGetUnConfirmSequencersAddrByRollappResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetUnConfirmSequencersAddrByRollappResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetUnConfirmSequencersAddrByRollappResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetUnConfirmSequencersAddrByRollappResponse proto.InternalMessageInfo
+
+func (m *QueryGetUnConfirmSequencersAddrByRollappResponse) GetNewSequencer() Sequencer {
+	if m != nil {
+		return m.NewSequencer
+	}
+	return Sequencer{}
+}
+
+func (m *QueryGetUnConfirmSequencersAddrByRollappResponse) GetStartHeight() int64 {
+	if m != nil {
+		return m.StartHeight
+	}
+	return 0
+}
+
+func (m *QueryGetUnConfirmSequencersAddrByRollappResponse) GetUnconfirmCacheHeight() int64 {
+	if m != nil {
+		return m.UnconfirmCacheHeight
+	}
+	return 0
+}
+
+type QueryReplaceProposerInfoRequest struct {
+	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+}
+
+func (m *QueryReplaceProposerInfoRequest) Reset()         { *m = QueryReplaceProposerInfoRequest{} }
+func (m *QueryReplaceProposerInfoRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryReplaceProposerInfoRequest) ProtoMessage()    {}
+func (*QueryReplaceProposerInfoRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_53d44c7ce1ea26c1, []int{12}
+}
+func (m *QueryReplaceProposerInfoRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryReplaceProposerInfoRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryReplaceProposerInfoRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryReplaceProposerInfoRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryReplaceProposerInfoRequest.Merge(m, src)
+}
+func (m *QueryReplaceProposerInfoRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryReplaceProposerInfoRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryReplaceProposerInfoRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryReplaceProposerInfoRequest proto.InternalMessageInfo
+
+func (m *QueryReplaceProposerInfoRequest) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+type QueryReplaceProposerInfoResponse struct {
+	ReplaceProposer MsgStoreReplaceProposer `protobuf:"bytes,1,opt,name=replace_proposer,json=replaceProposer,proto3" json:"replace_proposer"`
+}
+
+func (m *QueryReplaceProposerInfoResponse) Reset()         { *m = QueryReplaceProposerInfoResponse{} }
+func (m *QueryReplaceProposerInfoResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryReplaceProposerInfoResponse) ProtoMessage()    {}
+func (*QueryReplaceProposerInfoResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_53d44c7ce1ea26c1, []int{13}
+}
+func (m *QueryReplaceProposerInfoResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryReplaceProposerInfoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryReplaceProposerInfoResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryReplaceProposerInfoResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryReplaceProposerInfoResponse.Merge(m, src)
+}
+func (m *QueryReplaceProposerInfoResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryReplaceProposerInfoResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryReplaceProposerInfoResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryReplaceProposerInfoResponse proto.InternalMessageInfo
+
+func (m *QueryReplaceProposerInfoResponse) GetReplaceProposer() MsgStoreReplaceProposer {
+	if m != nil {
+		return m.ReplaceProposer
+	}
+	return MsgStoreReplaceProposer{}
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "metaearth.sequencer.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "metaearth.sequencer.QueryParamsResponse")
@@ -500,55 +708,75 @@ func init() {
 	proto.RegisterType((*QueryGetSequencersByRollappResponse)(nil), "metaearth.sequencer.QueryGetSequencersByRollappResponse")
 	proto.RegisterType((*QueryGetSequencersByRollappByStatusRequest)(nil), "metaearth.sequencer.QueryGetSequencersByRollappByStatusRequest")
 	proto.RegisterType((*QueryGetSequencersByRollappByStatusResponse)(nil), "metaearth.sequencer.QueryGetSequencersByRollappByStatusResponse")
+	proto.RegisterType((*QueryGetUnConfirmSequencersAddrByRollappRequest)(nil), "metaearth.sequencer.QueryGetUnConfirmSequencersAddrByRollappRequest")
+	proto.RegisterType((*QueryGetUnConfirmSequencersAddrByRollappResponse)(nil), "metaearth.sequencer.QueryGetUnConfirmSequencersAddrByRollappResponse")
+	proto.RegisterType((*QueryReplaceProposerInfoRequest)(nil), "metaearth.sequencer.QueryReplaceProposerInfoRequest")
+	proto.RegisterType((*QueryReplaceProposerInfoResponse)(nil), "metaearth.sequencer.QueryReplaceProposerInfoResponse")
 }
 
 func init() { proto.RegisterFile("metaearth/sequencer/query.proto", fileDescriptor_53d44c7ce1ea26c1) }
 
 var fileDescriptor_53d44c7ce1ea26c1 = []byte{
-	// 683 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x95, 0xc1, 0x4f, 0x13, 0x4f,
-	0x14, 0xc7, 0x3b, 0xfc, 0x7e, 0x36, 0xe9, 0x33, 0x31, 0x66, 0x20, 0x8a, 0x0b, 0x2e, 0x64, 0x31,
-	0x40, 0x0a, 0xec, 0x04, 0x48, 0x14, 0x12, 0x23, 0xd2, 0x18, 0x88, 0x27, 0xb1, 0xdc, 0xbc, 0xd4,
-	0x69, 0x99, 0x6c, 0x1b, 0xe9, 0xce, 0xb2, 0x33, 0x35, 0x36, 0x84, 0xc4, 0x78, 0xf2, 0xa6, 0x89,
-	0x7f, 0x83, 0x89, 0x7f, 0x0a, 0x47, 0x12, 0x2f, 0x9e, 0x8c, 0x01, 0x2f, 0xfe, 0x0d, 0x5e, 0x4c,
-	0x67, 0x66, 0xb7, 0xc0, 0x6e, 0x97, 0x85, 0x70, 0xdb, 0x4c, 0xbf, 0xdf, 0xf7, 0x3e, 0xef, 0xcd,
-	0x7b, 0x53, 0x98, 0x68, 0x33, 0x49, 0x19, 0x0d, 0x65, 0x93, 0x08, 0xb6, 0xd7, 0x61, 0x7e, 0x83,
-	0x85, 0x64, 0xaf, 0xc3, 0xc2, 0xae, 0x1b, 0x84, 0x5c, 0x72, 0x3c, 0x1c, 0x0b, 0xdc, 0x58, 0x60,
-	0x95, 0x1b, 0x5c, 0xb4, 0xb9, 0x20, 0x75, 0x2a, 0x98, 0x56, 0x93, 0xb7, 0x8b, 0x75, 0x26, 0xe9,
-	0x22, 0x09, 0xa8, 0xd7, 0xf2, 0xa9, 0x6c, 0x71, 0x5f, 0x07, 0xb0, 0x46, 0x3c, 0xee, 0x71, 0xf5,
-	0x49, 0x7a, 0x5f, 0xe6, 0x74, 0xdc, 0xe3, 0xdc, 0xdb, 0x65, 0x84, 0x06, 0x2d, 0x42, 0x7d, 0x9f,
-	0x4b, 0x65, 0x11, 0xe6, 0xd7, 0x72, 0x1a, 0x15, 0x0f, 0x58, 0x48, 0x65, 0xcb, 0xf7, 0x6a, 0x42,
-	0x52, 0xd9, 0x89, 0xb4, 0x93, 0x69, 0xda, 0x80, 0x86, 0xb4, 0x1d, 0x29, 0xa6, 0xd2, 0x14, 0xf1,
-	0x97, 0x16, 0x39, 0x23, 0x80, 0x5f, 0xf6, 0x0a, 0xd9, 0x52, 0xce, 0x6a, 0xef, 0x57, 0x21, 0x9d,
-	0x2d, 0x18, 0x3e, 0x73, 0x2a, 0x02, 0xee, 0x0b, 0x86, 0x57, 0xa1, 0xa8, 0x33, 0x8c, 0xa2, 0x49,
-	0x34, 0x7b, 0x73, 0x69, 0xcc, 0x4d, 0xe9, 0x92, 0xab, 0x4d, 0x95, 0xff, 0x0f, 0x7f, 0x4e, 0x14,
-	0xaa, 0xc6, 0xe0, 0x6c, 0xc0, 0xa8, 0x8a, 0xb8, 0xc9, 0xe4, 0x76, 0xa4, 0x34, 0xd9, 0x70, 0x19,
-	0x6e, 0xc7, 0xee, 0xf5, 0x9d, 0x9d, 0x90, 0x09, 0x9d, 0xa0, 0x54, 0x4d, 0x9c, 0x3b, 0x35, 0xb8,
-	0x97, 0x12, 0xc7, 0xf0, 0x55, 0xa0, 0x14, 0x1b, 0x0c, 0xa2, 0x9d, 0x8a, 0x18, 0x5b, 0x0d, 0x65,
-	0xdf, 0xe6, 0xbc, 0x86, 0x3b, 0x2a, 0x41, 0x2c, 0x89, 0x9a, 0x82, 0x37, 0x00, 0xfa, 0xb7, 0x6c,
-	0xc2, 0x4f, 0xbb, 0x7a, 0x24, 0xdc, 0xde, 0x48, 0xb8, 0x7a, 0x80, 0xcc, 0x48, 0xb8, 0x5b, 0xd4,
-	0x63, 0xc6, 0x5b, 0x3d, 0xe5, 0x74, 0xbe, 0x21, 0xb8, 0x9b, 0x48, 0x61, 0x2a, 0x78, 0x06, 0x10,
-	0xa3, 0xf4, 0x9a, 0xf0, 0x5f, 0xee, 0x12, 0x4e, 0xf9, 0xf0, 0xe6, 0x19, 0xd2, 0x21, 0x45, 0x3a,
-	0x73, 0x21, 0xa9, 0x46, 0x38, 0x83, 0x5a, 0x01, 0x27, 0xd1, 0x6d, 0x51, 0xe9, 0x56, 0xf9, 0xee,
-	0x2e, 0x0d, 0x82, 0xa8, 0x31, 0xe3, 0x50, 0x0a, 0xf5, 0xc9, 0xf3, 0x1d, 0x73, 0x71, 0xfd, 0x03,
-	0xe7, 0x0d, 0x4c, 0x65, 0xc6, 0xb8, 0xce, 0xca, 0x9d, 0x8f, 0x08, 0xca, 0x19, 0xd9, 0x2a, 0xdd,
-	0x6d, 0xb5, 0x43, 0xb9, 0xc8, 0xf1, 0x63, 0x28, 0xea, 0x95, 0x53, 0x2d, 0xbc, 0xb5, 0xf4, 0x20,
-	0x15, 0xe7, 0x45, 0xb4, 0x9f, 0x26, 0xb4, 0xf1, 0x38, 0x02, 0xe6, 0x72, 0x91, 0x5c, 0x67, 0xfd,
-	0x4b, 0x7f, 0x8b, 0x70, 0x43, 0x65, 0xc5, 0xef, 0x11, 0x14, 0xf5, 0x26, 0xe2, 0x99, 0xd4, 0x30,
-	0xc9, 0xb5, 0xb7, 0x66, 0x2f, 0x16, 0x6a, 0x5a, 0x67, 0xea, 0xc3, 0xf7, 0xdf, 0x5f, 0x86, 0xee,
-	0xe3, 0x31, 0x32, 0xf8, 0x19, 0xc2, 0x5f, 0x11, 0x94, 0x62, 0x58, 0xbc, 0x30, 0x38, 0x78, 0xca,
-	0xa3, 0x60, 0xb9, 0x79, 0xe5, 0x86, 0x68, 0x55, 0x11, 0x2d, 0xe3, 0x45, 0x92, 0xf9, 0xec, 0x91,
-	0xfd, 0xf3, 0x4f, 0xca, 0x01, 0xfe, 0x84, 0x00, 0xfa, 0x57, 0x84, 0xe7, 0x06, 0x67, 0x4e, 0x3c,
-	0x0a, 0xd6, 0x7c, 0x3e, 0xb1, 0x81, 0x9c, 0x56, 0x90, 0x93, 0xd8, 0xce, 0x86, 0xc4, 0x87, 0x08,
-	0x86, 0x53, 0x86, 0x06, 0x3f, 0xca, 0xd7, 0x94, 0xc4, 0x8a, 0x5a, 0x2b, 0x97, 0x37, 0x1a, 0xe4,
-	0x27, 0x0a, 0x79, 0x05, 0x3f, 0xcc, 0x46, 0x16, 0xb5, 0x7a, 0xb7, 0x66, 0x56, 0x87, 0xec, 0xc7,
-	0x3b, 0x74, 0x80, 0xff, 0x20, 0x18, 0xcb, 0x98, 0x7f, 0xbc, 0x76, 0x59, 0xb2, 0x73, 0x3b, 0x6c,
-	0x3d, 0xbd, 0x7a, 0x00, 0x53, 0xe2, 0xa6, 0x2a, 0x71, 0x1d, 0xaf, 0x5d, 0xad, 0x44, 0xb2, 0xaf,
-	0x37, 0xfe, 0xa0, 0xb2, 0x71, 0x78, 0x6c, 0xa3, 0xa3, 0x63, 0x1b, 0xfd, 0x3a, 0xb6, 0xd1, 0xe7,
-	0x13, 0xbb, 0x70, 0x74, 0x62, 0x17, 0x7e, 0x9c, 0xd8, 0x85, 0x57, 0xf3, 0x5e, 0x4b, 0x36, 0x3b,
-	0x75, 0xb7, 0xc1, 0xdb, 0x44, 0xc8, 0x85, 0x46, 0x93, 0xb6, 0x7c, 0xd2, 0x66, 0x0b, 0xcd, 0x4e,
-	0x9d, 0xbc, 0x3b, 0x95, 0x4c, 0x76, 0x03, 0x26, 0xea, 0x45, 0xf5, 0xdf, 0xbc, 0xfc, 0x2f, 0x00,
-	0x00, 0xff, 0xff, 0xf4, 0x00, 0xe3, 0xe1, 0xa6, 0x08, 0x00, 0x00,
+	// 931 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0x4f, 0x6f, 0xdc, 0x44,
+	0x14, 0x8f, 0x13, 0x88, 0x94, 0xd7, 0x02, 0xd5, 0x24, 0x2a, 0xc5, 0x29, 0x9b, 0xe0, 0xa0, 0xb6,
+	0xda, 0x26, 0x1e, 0x92, 0x16, 0x68, 0x25, 0x44, 0xe8, 0xb6, 0x24, 0xe4, 0x80, 0x08, 0x1b, 0x81,
+	0x10, 0x12, 0x98, 0x59, 0x67, 0xe2, 0xb5, 0xba, 0xeb, 0x71, 0x67, 0x66, 0x29, 0xab, 0x28, 0x12,
+	0x70, 0xe2, 0x06, 0x12, 0x27, 0x3e, 0x00, 0x12, 0x9f, 0x83, 0x53, 0x8e, 0x95, 0x90, 0x10, 0x07,
+	0x84, 0x50, 0xc2, 0x85, 0x6f, 0x81, 0x3c, 0x33, 0xf6, 0xfe, 0xb1, 0x77, 0xeb, 0x0d, 0xb9, 0x59,
+	0x6f, 0xde, 0x9f, 0xdf, 0xef, 0x37, 0x6f, 0xde, 0x33, 0x2c, 0xb5, 0xa9, 0x24, 0x94, 0x70, 0xd9,
+	0xc4, 0x82, 0x3e, 0xea, 0xd0, 0xc8, 0xa7, 0x1c, 0x3f, 0xea, 0x50, 0xde, 0x75, 0x63, 0xce, 0x24,
+	0x43, 0xf3, 0x99, 0x83, 0x9b, 0x39, 0xd8, 0x55, 0x9f, 0x89, 0x36, 0x13, 0xb8, 0x41, 0x04, 0xd5,
+	0xde, 0xf8, 0xcb, 0xf5, 0x06, 0x95, 0x64, 0x1d, 0xc7, 0x24, 0x08, 0x23, 0x22, 0x43, 0x16, 0xe9,
+	0x04, 0xf6, 0x42, 0xc0, 0x02, 0xa6, 0x3e, 0x71, 0xf2, 0x65, 0xac, 0x57, 0x03, 0xc6, 0x82, 0x16,
+	0xc5, 0x24, 0x0e, 0x31, 0x89, 0x22, 0x26, 0x55, 0x88, 0x30, 0xa7, 0xd5, 0x22, 0x54, 0x2c, 0xa6,
+	0x9c, 0xc8, 0x30, 0x0a, 0x3c, 0x21, 0x89, 0xec, 0xa4, 0xbe, 0xcb, 0x45, 0xbe, 0x31, 0xe1, 0xa4,
+	0x9d, 0x7a, 0xac, 0x14, 0x79, 0x64, 0x5f, 0xda, 0xc9, 0x59, 0x00, 0xf4, 0x61, 0x42, 0x64, 0x57,
+	0x45, 0xd6, 0x93, 0x53, 0x21, 0x9d, 0x5d, 0x98, 0x1f, 0xb0, 0x8a, 0x98, 0x45, 0x82, 0xa2, 0xbb,
+	0x30, 0xab, 0x2b, 0x5c, 0xb1, 0x96, 0xad, 0x1b, 0x17, 0x36, 0x16, 0xdd, 0x02, 0x95, 0x5c, 0x1d,
+	0x54, 0x7b, 0xe6, 0xf8, 0xaf, 0xa5, 0xa9, 0xba, 0x09, 0x70, 0xb6, 0xe0, 0x8a, 0xca, 0xb8, 0x4d,
+	0xe5, 0x5e, 0xea, 0x69, 0xaa, 0xa1, 0x2a, 0x5c, 0xca, 0xa2, 0xef, 0xed, 0xef, 0x73, 0x2a, 0x74,
+	0x81, 0xb9, 0x7a, 0xce, 0xee, 0x78, 0xf0, 0x52, 0x41, 0x1e, 0x83, 0xaf, 0x06, 0x73, 0x59, 0x80,
+	0x81, 0x58, 0x29, 0x84, 0x98, 0x85, 0x1a, 0x94, 0xbd, 0x30, 0xe7, 0x0b, 0xb8, 0xac, 0x0a, 0x64,
+	0x2e, 0xa9, 0x28, 0x68, 0x0b, 0xa0, 0x77, 0xcb, 0x26, 0xfd, 0x35, 0x57, 0xb7, 0x84, 0x9b, 0xb4,
+	0x84, 0xab, 0x1b, 0xc8, 0xb4, 0x84, 0xbb, 0x4b, 0x02, 0x6a, 0x62, 0xeb, 0x7d, 0x91, 0xce, 0x2f,
+	0x16, 0xbc, 0x98, 0x2b, 0x61, 0x18, 0x3c, 0x00, 0xc8, 0xa0, 0x24, 0x22, 0xcc, 0x94, 0xa6, 0xd0,
+	0x17, 0x87, 0xb6, 0x07, 0x90, 0x4e, 0x2b, 0xa4, 0xd7, 0x9f, 0x8a, 0x54, 0x43, 0x18, 0x80, 0x5a,
+	0x03, 0x27, 0xa7, 0xb6, 0xa8, 0x75, 0xeb, 0xac, 0xd5, 0x22, 0x71, 0x9c, 0x0a, 0x73, 0x15, 0xe6,
+	0xb8, 0xb6, 0xec, 0xec, 0x9b, 0x8b, 0xeb, 0x19, 0x9c, 0x87, 0xb0, 0x32, 0x36, 0xc7, 0x79, 0x32,
+	0x77, 0xbe, 0xb3, 0xa0, 0x3a, 0xa6, 0x5a, 0xad, 0xbb, 0xa7, 0xde, 0x50, 0x29, 0xe4, 0xe8, 0x2d,
+	0x98, 0xd5, 0x4f, 0x4e, 0x49, 0xf8, 0xfc, 0xc6, 0xab, 0x85, 0x70, 0x3e, 0x48, 0xdf, 0xa7, 0x49,
+	0x6d, 0x62, 0x1c, 0x01, 0x37, 0x4b, 0x21, 0x39, 0x57, 0xfe, 0x1c, 0x70, 0x5a, 0xf4, 0xa3, 0xe8,
+	0x3e, 0x8b, 0x0e, 0x42, 0xde, 0xee, 0x55, 0x4f, 0x1e, 0xd1, 0x64, 0xb7, 0x87, 0x5e, 0x81, 0x8b,
+	0x8d, 0x16, 0xf3, 0x1f, 0x7a, 0x4d, 0x1a, 0x06, 0x4d, 0xa9, 0x94, 0x98, 0xa9, 0x5f, 0x50, 0xb6,
+	0xf7, 0x94, 0xc9, 0xf9, 0xdd, 0x82, 0xd7, 0xca, 0x17, 0x35, 0x74, 0x77, 0xe0, 0xb9, 0x88, 0x3e,
+	0xf6, 0xce, 0xf6, 0x5c, 0x2f, 0x46, 0xf4, 0x71, 0x66, 0x4b, 0x20, 0x0a, 0x49, 0xb8, 0x1c, 0x82,
+	0xa8, 0x6c, 0x1a, 0x22, 0xba, 0x0d, 0x97, 0x3b, 0x91, 0xaf, 0x91, 0x79, 0x3e, 0xf1, 0x9b, 0x34,
+	0x75, 0x9e, 0x51, 0xce, 0x0b, 0xd9, 0xe9, 0xfd, 0xe4, 0xd0, 0x10, 0xdb, 0x84, 0x25, 0xc5, 0xab,
+	0x4e, 0xe3, 0x16, 0xf1, 0xe9, 0x2e, 0x67, 0x31, 0x13, 0x94, 0xef, 0x44, 0x07, 0xac, 0x5c, 0xeb,
+	0x7f, 0x63, 0xc1, 0xf2, 0xe8, 0x0c, 0x46, 0x89, 0xcf, 0xe0, 0x12, 0xd7, 0xc7, 0x5e, 0x6c, 0xce,
+	0x8d, 0x18, 0xab, 0x85, 0x62, 0xbc, 0x2f, 0x82, 0x3d, 0xc9, 0x38, 0x1d, 0xca, 0x69, 0xa4, 0x79,
+	0x81, 0x0f, 0x9a, 0x37, 0xfe, 0x04, 0x78, 0x56, 0x61, 0x40, 0x5f, 0x5b, 0x30, 0xab, 0x67, 0x33,
+	0xba, 0x5e, 0x98, 0x39, 0xbf, 0x08, 0xec, 0x1b, 0x4f, 0x77, 0xd4, 0x34, 0x9c, 0x95, 0x6f, 0x7f,
+	0xfb, 0xe7, 0xc7, 0xe9, 0x97, 0xd1, 0x22, 0x1e, 0xbd, 0x98, 0xd0, 0xcf, 0x16, 0xcc, 0xf5, 0x2e,
+	0x6e, 0x6d, 0x74, 0xf2, 0x82, 0x35, 0x61, 0xbb, 0x65, 0xdd, 0x0d, 0xa2, 0xbb, 0x0a, 0xd1, 0x2d,
+	0xb4, 0x8e, 0xc7, 0x2e, 0x42, 0x7c, 0x38, 0xbc, 0x64, 0x8e, 0xd0, 0xf7, 0x16, 0x40, 0xaf, 0x83,
+	0xd1, 0xcd, 0xd1, 0x95, 0x73, 0x6b, 0xc2, 0x5e, 0x2d, 0xe7, 0x6c, 0x40, 0x5e, 0x53, 0x20, 0x97,
+	0x51, 0x65, 0x3c, 0x48, 0x74, 0x6c, 0xc1, 0x7c, 0xc1, 0x18, 0x41, 0x6f, 0x96, 0x13, 0x25, 0x37,
+	0xb4, 0xed, 0x3b, 0x93, 0x07, 0x1a, 0xc8, 0x6f, 0x2b, 0xc8, 0x77, 0xd0, 0x1b, 0xe3, 0x21, 0x0b,
+	0xaf, 0xd1, 0xf5, 0xcc, 0x5b, 0xc0, 0x87, 0xd9, 0xa3, 0x38, 0x42, 0xff, 0x5a, 0xb0, 0x38, 0x66,
+	0x22, 0xa2, 0xcd, 0x49, 0x91, 0x0d, 0x4d, 0x75, 0xfb, 0x9d, 0xb3, 0x27, 0x30, 0x14, 0xb7, 0x15,
+	0xc5, 0x7b, 0x68, 0xf3, 0x6c, 0x14, 0xf1, 0xa1, 0xde, 0x01, 0x47, 0xe8, 0xa7, 0x69, 0xa8, 0xe6,
+	0x67, 0xa2, 0xe9, 0xb3, 0x3c, 0xf5, 0x07, 0x63, 0x91, 0x97, 0x9c, 0xe8, 0xf6, 0xbb, 0xff, 0x33,
+	0x8b, 0x11, 0xe1, 0x73, 0x25, 0xc2, 0x27, 0xe8, 0xe3, 0x42, 0x11, 0x7a, 0xf3, 0x34, 0xb3, 0x79,
+	0x44, 0xf3, 0x1a, 0xa9, 0x4a, 0xff, 0x26, 0x39, 0x42, 0xbf, 0x5a, 0x30, 0x5f, 0x30, 0x18, 0xd1,
+	0xed, 0xd1, 0xf0, 0x47, 0x4f, 0x62, 0xfb, 0xf5, 0x09, 0xa3, 0x06, 0x9b, 0xd9, 0x29, 0x6e, 0xe6,
+	0xe1, 0xc1, 0xec, 0x85, 0xd1, 0x01, 0xeb, 0xe7, 0x54, 0xdb, 0x3a, 0x3e, 0xa9, 0x58, 0x4f, 0x4e,
+	0x2a, 0xd6, 0xdf, 0x27, 0x15, 0xeb, 0x87, 0xd3, 0xca, 0xd4, 0x93, 0xd3, 0xca, 0xd4, 0x1f, 0xa7,
+	0x95, 0xa9, 0x4f, 0x57, 0x83, 0x50, 0x36, 0x3b, 0x0d, 0xd7, 0x67, 0x6d, 0x2c, 0xe4, 0x9a, 0xdf,
+	0x24, 0x61, 0x84, 0xdb, 0x74, 0xad, 0xd9, 0x69, 0xe0, 0xaf, 0xfa, 0x6a, 0xc8, 0x6e, 0x4c, 0x45,
+	0x63, 0x56, 0xfd, 0x8e, 0xdf, 0xfa, 0x2f, 0x00, 0x00, 0xff, 0xff, 0xcd, 0x3e, 0x48, 0x8b, 0x99,
+	0x0c, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -573,6 +801,8 @@ type QueryClient interface {
 	SequencersByRollapp(ctx context.Context, in *QueryGetSequencersByRollappRequest, opts ...grpc.CallOption) (*QueryGetSequencersByRollappResponse, error)
 	// Queries a SequencersByRollappByStatus
 	SequencersByRollappByStatus(ctx context.Context, in *QueryGetSequencersByRollappByStatusRequest, opts ...grpc.CallOption) (*QueryGetSequencersByRollappByStatusResponse, error)
+	UnConfirmSequencerAddressByRollappByStatus(ctx context.Context, in *QueryGetUnConfirmSequencersAddrByRollappRequest, opts ...grpc.CallOption) (*QueryGetUnConfirmSequencersAddrByRollappResponse, error)
+	ReplaceProposerInfo(ctx context.Context, in *QueryReplaceProposerInfoRequest, opts ...grpc.CallOption) (*QueryReplaceProposerInfoResponse, error)
 }
 
 type queryClient struct {
@@ -628,6 +858,24 @@ func (c *queryClient) SequencersByRollappByStatus(ctx context.Context, in *Query
 	return out, nil
 }
 
+func (c *queryClient) UnConfirmSequencerAddressByRollappByStatus(ctx context.Context, in *QueryGetUnConfirmSequencersAddrByRollappRequest, opts ...grpc.CallOption) (*QueryGetUnConfirmSequencersAddrByRollappResponse, error) {
+	out := new(QueryGetUnConfirmSequencersAddrByRollappResponse)
+	err := c.cc.Invoke(ctx, "/metaearth.sequencer.Query/UnConfirmSequencerAddressByRollappByStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) ReplaceProposerInfo(ctx context.Context, in *QueryReplaceProposerInfoRequest, opts ...grpc.CallOption) (*QueryReplaceProposerInfoResponse, error) {
+	out := new(QueryReplaceProposerInfoResponse)
+	err := c.cc.Invoke(ctx, "/metaearth.sequencer.Query/ReplaceProposerInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
@@ -640,6 +888,8 @@ type QueryServer interface {
 	SequencersByRollapp(context.Context, *QueryGetSequencersByRollappRequest) (*QueryGetSequencersByRollappResponse, error)
 	// Queries a SequencersByRollappByStatus
 	SequencersByRollappByStatus(context.Context, *QueryGetSequencersByRollappByStatusRequest) (*QueryGetSequencersByRollappByStatusResponse, error)
+	UnConfirmSequencerAddressByRollappByStatus(context.Context, *QueryGetUnConfirmSequencersAddrByRollappRequest) (*QueryGetUnConfirmSequencersAddrByRollappResponse, error)
+	ReplaceProposerInfo(context.Context, *QueryReplaceProposerInfoRequest) (*QueryReplaceProposerInfoResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -660,6 +910,12 @@ func (*UnimplementedQueryServer) SequencersByRollapp(ctx context.Context, req *Q
 }
 func (*UnimplementedQueryServer) SequencersByRollappByStatus(ctx context.Context, req *QueryGetSequencersByRollappByStatusRequest) (*QueryGetSequencersByRollappByStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SequencersByRollappByStatus not implemented")
+}
+func (*UnimplementedQueryServer) UnConfirmSequencerAddressByRollappByStatus(ctx context.Context, req *QueryGetUnConfirmSequencersAddrByRollappRequest) (*QueryGetUnConfirmSequencersAddrByRollappResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnConfirmSequencerAddressByRollappByStatus not implemented")
+}
+func (*UnimplementedQueryServer) ReplaceProposerInfo(ctx context.Context, req *QueryReplaceProposerInfoRequest) (*QueryReplaceProposerInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReplaceProposerInfo not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -756,6 +1012,42 @@ func _Query_SequencersByRollappByStatus_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_UnConfirmSequencerAddressByRollappByStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetUnConfirmSequencersAddrByRollappRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).UnConfirmSequencerAddressByRollappByStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/metaearth.sequencer.Query/UnConfirmSequencerAddressByRollappByStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).UnConfirmSequencerAddressByRollappByStatus(ctx, req.(*QueryGetUnConfirmSequencersAddrByRollappRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_ReplaceProposerInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryReplaceProposerInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).ReplaceProposerInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/metaearth.sequencer.Query/ReplaceProposerInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).ReplaceProposerInfo(ctx, req.(*QueryReplaceProposerInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "metaearth.sequencer.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -779,6 +1071,14 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SequencersByRollappByStatus",
 			Handler:    _Query_SequencersByRollappByStatus_Handler,
+		},
+		{
+			MethodName: "UnConfirmSequencerAddressByRollappByStatus",
+			Handler:    _Query_UnConfirmSequencerAddressByRollappByStatus_Handler,
+		},
+		{
+			MethodName: "ReplaceProposerInfo",
+			Handler:    _Query_ReplaceProposerInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1127,6 +1427,147 @@ func (m *QueryGetSequencersByRollappByStatusResponse) MarshalToSizedBuffer(dAtA 
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryGetUnConfirmSequencersAddrByRollappRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetUnConfirmSequencersAddrByRollappRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetUnConfirmSequencersAddrByRollappRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.BlockHeight != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.BlockHeight))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGetUnConfirmSequencersAddrByRollappResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetUnConfirmSequencersAddrByRollappResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetUnConfirmSequencersAddrByRollappResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.UnconfirmCacheHeight != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.UnconfirmCacheHeight))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.StartHeight != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.StartHeight))
+		i--
+		dAtA[i] = 0x10
+	}
+	{
+		size, err := m.NewSequencer.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryReplaceProposerInfoRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryReplaceProposerInfoRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryReplaceProposerInfoRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryReplaceProposerInfoResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryReplaceProposerInfoResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryReplaceProposerInfoResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.ReplaceProposer.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -1270,6 +1711,63 @@ func (m *QueryGetSequencersByRollappByStatusResponse) Size() (n int) {
 			n += 1 + l + sovQuery(uint64(l))
 		}
 	}
+	return n
+}
+
+func (m *QueryGetUnConfirmSequencersAddrByRollappRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.BlockHeight != 0 {
+		n += 1 + sovQuery(uint64(m.BlockHeight))
+	}
+	return n
+}
+
+func (m *QueryGetUnConfirmSequencersAddrByRollappResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.NewSequencer.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	if m.StartHeight != 0 {
+		n += 1 + sovQuery(uint64(m.StartHeight))
+	}
+	if m.UnconfirmCacheHeight != 0 {
+		n += 1 + sovQuery(uint64(m.UnconfirmCacheHeight))
+	}
+	return n
+}
+
+func (m *QueryReplaceProposerInfoRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryReplaceProposerInfoResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.ReplaceProposer.Size()
+	n += 1 + l + sovQuery(uint64(l))
 	return n
 }
 
@@ -2110,6 +2608,393 @@ func (m *QueryGetSequencersByRollappByStatusResponse) Unmarshal(dAtA []byte) err
 			}
 			m.Sequencers = append(m.Sequencers, Sequencer{})
 			if err := m.Sequencers[len(m.Sequencers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetUnConfirmSequencersAddrByRollappRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetUnConfirmSequencersAddrByRollappRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetUnConfirmSequencersAddrByRollappRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BlockHeight", wireType)
+			}
+			m.BlockHeight = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.BlockHeight |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetUnConfirmSequencersAddrByRollappResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetUnConfirmSequencersAddrByRollappResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetUnConfirmSequencersAddrByRollappResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NewSequencer", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.NewSequencer.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StartHeight", wireType)
+			}
+			m.StartHeight = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.StartHeight |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UnconfirmCacheHeight", wireType)
+			}
+			m.UnconfirmCacheHeight = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.UnconfirmCacheHeight |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryReplaceProposerInfoRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryReplaceProposerInfoRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryReplaceProposerInfoRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryReplaceProposerInfoResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryReplaceProposerInfoResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryReplaceProposerInfoResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReplaceProposer", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ReplaceProposer.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

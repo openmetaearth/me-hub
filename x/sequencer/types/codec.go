@@ -10,6 +10,8 @@ import (
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateSequencer{}, "sequencer/CreateSequencer", nil)
 	cdc.RegisterConcrete(&MsgUnbond{}, "sequencer/Unbond", nil)
+	cdc.RegisterConcrete(&MsgReplaceProposerRequest{}, "sequencer/ReplaceProposer", nil)
+
 	// this line is used by starport scaffolding # 2
 }
 
@@ -17,6 +19,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCreateSequencer{},
 		&MsgUnbond{},
+		&MsgReplaceProposerRequest{},
 	)
 	// this line is used by starport scaffolding # 3
 

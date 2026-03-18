@@ -10,6 +10,7 @@ import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 // this line is used by starport scaffolding # proto/tx/import
 import "metaearth/sequencer/description.proto";
+import "metaearth/sequencer/sequencer.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/sequencer/types";
 
@@ -20,6 +21,9 @@ service Msg {
 
   // Unbond defines a method for removing coins from sequencer's bond
   rpc Unbond(MsgUnbond) returns (MsgUnbondResponse);
+
+  // RepalceProposer defines a method for replacing proposer of a rollapp
+  rpc ReplaceProposer(MsgReplaceProposerRequest) returns (MsgReplaceProposerResponse);
 }
 
 // MsgCreateSequencer defines a SDK message for creating a new sequencer.
@@ -58,3 +62,11 @@ message MsgUnbondResponse {
     (gogoproto.stdtime) = true
   ];
 }
+
+message MsgReplaceProposerRequest {
+  option (cosmos.msg.v1.signer) = "creator";
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  MsgRepalceProposer replace_proposer = 2;
+}
+
+message MsgReplaceProposerResponse {}

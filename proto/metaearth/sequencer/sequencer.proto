@@ -52,3 +52,15 @@ message Sequencer {
     (gogoproto.stdtime) = true
   ];
 }
+
+message MsgRepalceProposer {
+  string rollapp_id = 1;
+  string old_proposer = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string new_proposer = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  int64 block_height = 4;
+}
+
+message MsgStoreReplaceProposer {
+  MsgRepalceProposer replace_proposer = 1 [(gogoproto.nullable) = false];
+  int64 hub_block_height = 2;
+}

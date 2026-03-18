@@ -4,6 +4,7 @@ import (
 	"context"
 	"slices"
 
+	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -33,7 +34,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// call the before-update-state hook
 	err := k.hooks.BeforeUpdateState(ctx, msg.Creator, msg.RollappId)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "BeforeUpdateState hook failed for rollappId(%s) from sequencer(%s)", msg.RollappId, msg.Creator)
 	}
 
 	// Logic Error check - must be done after BeforeUpdateStateRecoverable
@@ -85,6 +86,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	stateInfo := types.NewStateInfo(msg.RollappId, newIndex, msg.Creator, msg.StartHeight, msg.NumBlocks, msg.DAPath, msg.Version, creationHeight, msg.BDs)
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
 	k.SetStateInfo(ctx, *stateInfo)
+	if err := k.hooks.ProcPendingStates(ctx, msg.RollappId, msg.Creator, stateInfo); err != nil {
+		return nil, err
+	}
 
 	stateInfoIndex := stateInfo.GetIndex()
 	newFinalizationQueue := []types.StateInfoIndex{stateInfoIndex}
