@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	"github.com/st-chain/me-hub/utils"
 
 	sdkmath "cosmossdk.io/math"

@@ -1,21 +1,20 @@
 package denommetadata
 
 import (
-	. "slices"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/st-chain/me-hub/utils/gerrc"
-	"github.com/st-chain/me-hub/utils/uibc"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	commontypes "github.com/st-chain/me-hub/x/common/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uevent"
+	"github.com/dymensionxyz/sdk-utils/utils/uibc"
+
 	"github.com/st-chain/me-hub/x/denommetadata/types"
 )
 
@@ -51,13 +50,9 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	if commontypes.SkipRollappMiddleware(ctx) {
-		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
-	}
-
 	transferData, err := im.rollappKeeper.GetValidTransfer(ctx, packet.Data, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
+		return uevent.NewErrorAcknowledgement(ctx, err)
 	}
 
 	rollapp, packetData := transferData.Rollapp, transferData.FungibleTokenPacketData
@@ -76,32 +71,38 @@ func (im IBCModule) OnRecvPacket(
 	}
 
 	if err = dm.Validate(); err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
+		return uevent.NewErrorAcknowledgement(ctx, err)
 	}
 
 	if dm.Base != packetData.Denom {
-		return channeltypes.NewErrorAcknowledgement(gerrc.ErrInvalidArgument)
+		return uevent.NewErrorAcknowledgement(ctx, gerrc.ErrInvalidArgument)
 	}
 
 	// if denom metadata was found in the memo, it means we should have the rollapp record
 	if rollapp == nil {
-		return channeltypes.NewErrorAcknowledgement(gerrc.ErrNotFound)
+		return uevent.NewErrorAcknowledgement(ctx, gerrc.ErrNotFound)
 	}
 
+	if im.keeper.HasDenomMetadata(ctx, ibcDenom) {
+		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	// adjust the denom metadata with the IBC denom
 	dm.Base = ibcDenom
 	dm.DenomUnits[0].Denom = dm.Base
-
 	if err = im.keeper.CreateDenomMetadata(ctx, *dm); err != nil {
+		// TODO: remove? already checked above
 		if errorsmod.IsOf(err, gerrc.ErrAlreadyExists) {
 			return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 		}
-		return channeltypes.NewErrorAcknowledgement(err)
+		return uevent.NewErrorAcknowledgement(ctx, err)
 	}
 
 	return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 }
 
 // OnAcknowledgementPacket adds the token metadata to the rollapp if it doesn't exist
+// It marks the completion of the denom metadata registration process on the rollapp
 func (im IBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -109,8 +110,8 @@ func (im IBCModule) OnAcknowledgementPacket(
 	relayer sdk.AccAddress,
 ) error {
 	var ack channeltypes.Acknowledgement
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return errorsmod.Wrapf(errortypes.ErrJSONUnmarshal, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+		return errorsmod.Wrapf(errortypes.ErrJSONUnmarshal, "unmarshal ICS-20 transfer packet acknowledgement: %v", err.Error())
 	}
 
 	if !ack.Success() {
@@ -142,11 +143,16 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return gerrc.ErrNotFound
 	}
 
-	if !Contains(rollapp.RegisteredDenoms, dm.Base) {
+	// TODO: simplify: can do with just Set*
+	has, err := im.rollappKeeper.HasRegisteredDenom(ctx, rollapp.RollappId, dm.Base)
+	if err != nil {
+		return errorsmod.Wrapf(errortypes.ErrKeyNotFound, "check if rollapp has registered denom: %s", err.Error())
+	}
+	if !has {
 		// add the new token denom base to the list of rollapp's registered denoms
-		rollapp.RegisteredDenoms = append(rollapp.RegisteredDenoms, dm.Base)
-
-		im.rollappKeeper.SetRollapp(ctx, *rollapp)
+		if err = im.rollappKeeper.SetRegisteredDenom(ctx, rollapp.RollappId, dm.Base); err != nil {
+			return errorsmod.Wrapf(errortypes.ErrKeyNotFound, "set registered denom: %s", err.Error())
+		}
 	}
 
 	return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
@@ -187,7 +193,7 @@ func (m *ICS4Wrapper) SendPacket(
 	data []byte,
 ) (sequence uint64, err error) {
 	packet := new(transfertypes.FungibleTokenPacketData)
-	if err = types.ModuleCdc.UnmarshalJSON(data, packet); err != nil {
+	if err = transfertypes.ModuleCdc.UnmarshalJSON(data, packet); err != nil {
 		return 0, errorsmod.Wrapf(errortypes.ErrJSONUnmarshal, "unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
@@ -215,24 +221,36 @@ func (m *ICS4Wrapper) SendPacket(
 	// At the first match, we assume that the rollapp already contains the metadata.
 	// It would be technically possible to have a race condition where the denom metadata is added to the rollapp
 	// from another packet before this packet is acknowledged.
-	if Contains(rollapp.RegisteredDenoms, packet.Denom) {
+	// The value of `packet.Denom` here can be one of two things:
+	// 		1. Base denom (e.g. "adym") for the native token of the hub, and
+	// 		2. IBC trace (e.g. "transfer/channel-1/arax") for a third party token.
+	// We need to handle both cases:
+	// 		1. We use the value of `packet.Denom` as the baseDenom
+	//		2. We parse the IBC denom trace into IBC denom hash and prepend it with "ibc/" to get the baseDenom
+	baseDenom := transfertypes.ParseDenomTrace(packet.Denom).IBCDenom() // TODO: rename base denom to ibc denom https://github.com/dymensionxyz/dymension/issues/1650
+
+	has, err := m.rollappKeeper.HasRegisteredDenom(ctx, rollapp.RollappId, baseDenom)
+	if err != nil {
+		return 0, errorsmod.Wrapf(errortypes.ErrKeyNotFound, "check if rollapp has registered denom: %s", err.Error()) /// TODO: no .Error()
+	}
+	if has {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
 	// get the denom metadata from the bank keeper, if it doesn't exist, move on to the next middleware in the chain
-	denomMetadata, ok := m.bankKeeper.GetDenomMetaData(ctx, packet.Denom)
+	denomMetadata, ok := m.bankKeeper.GetDenomMetaData(ctx, baseDenom)
 	if !ok {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
 	packet.Memo, err = types.AddDenomMetadataToMemo(packet.Memo, denomMetadata)
 	if err != nil {
-		return 0, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "add denom metadata to memo: %s", err.Error())
+		return 0, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "add denom metadata to memo: %s", err.Error()) /// TODO: no .Error()
 	}
 
-	data, err = types.ModuleCdc.MarshalJSON(packet)
+	data, err = transfertypes.ModuleCdc.MarshalJSON(packet)
 	if err != nil {
-		return 0, errorsmod.Wrapf(errortypes.ErrJSONMarshal, "marshal ICS-20 transfer packet data: %s", err.Error())
+		return 0, errorsmod.Wrapf(errortypes.ErrJSONMarshal, "marshal ICS-20 transfer packet data: %s", err.Error()) /// TODO: no .Error()
 	}
 
 	return m.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)

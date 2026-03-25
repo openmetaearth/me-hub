@@ -3,6 +3,9 @@ package keeper_test
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"math/big"
+	"testing"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
@@ -15,8 +18,6 @@ import (
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/suite"
-	"math/big"
-	"testing"
 
 	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"

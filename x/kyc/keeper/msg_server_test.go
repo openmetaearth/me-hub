@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"strings"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,7 +13,6 @@ import (
 	"github.com/st-chain/me-hub/x/wmint"
 	wmintTypes "github.com/st-chain/me-hub/x/wmint/types"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
-	"strings"
 )
 
 func (s *KeeperTestSuite) TestApprove() {

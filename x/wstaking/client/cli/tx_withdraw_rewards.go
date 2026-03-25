@@ -2,6 +2,8 @@ package cli
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -9,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"strings"
 )
 
 var FlagCommission = "commission"
@@ -27,7 +28,7 @@ and optionally withdraw validator commission if the delegation address given is 
 Example:
 $ %s tx distribution withdraw-rewards --from %saddress`, version.AppName, bech32PrefixValAddr),
 		),
-		//Args: cobra.ExactArgs(1),
+		// Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {

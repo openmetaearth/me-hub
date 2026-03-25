@@ -18,6 +18,8 @@ package evm
 import (
 	"bytes"
 	"fmt"
+	"strings"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -26,7 +28,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/utils"
 	metypes "github.com/st-chain/me-hub/types"
-	"strings"
 
 	ethermint "github.com/evmos/ethermint/types"
 	"github.com/evmos/ethermint/x/evm/types"
@@ -41,7 +42,6 @@ func InitGenesis(
 	bankKeeper types.BankKeeper,
 	data types.GenesisState,
 ) []abci.ValidatorUpdate {
-
 	// Enable evm Create code
 	if utils.IsOneOfDymensionChains(ctx) && data.Params.EnableCreate {
 		panic(fmt.Errorf("enable create is not allowed on mechain chains"))

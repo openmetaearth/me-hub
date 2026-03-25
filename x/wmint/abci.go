@@ -1,10 +1,11 @@
 package wmint
 
 import (
-	"github.com/st-chain/me-hub/app/params"
 	"math"
 	"math/big"
 	"time"
+
+	"github.com/st-chain/me-hub/app/params"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -74,7 +75,6 @@ func RoundUpToFourDecimals(x float64) float64 {
 }
 
 func CalculateCoinFromHeightToHeight() {
-
 }
 
 // getMintCoinsByHeight Get coins through the block height range

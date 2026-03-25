@@ -1,9 +1,10 @@
 package utils_test
 
 import (
-	"github.com/st-chain/me-hub/utils"
 	"strings"
 	"testing"
+
+	"github.com/st-chain/me-hub/utils"
 
 	"github.com/st-chain/me-hub/testutil/helpers"
 

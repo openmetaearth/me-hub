@@ -3,25 +3,26 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	"github.com/st-chain/me-hub/utils/gerrc"
-
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/st-chain/me-hub/utils/uevent"
 	"github.com/st-chain/me-hub/x/denommetadata/types"
 )
 
 // Keeper of the denommetadata store
 type Keeper struct {
 	bankKeeper types.BankKeeper
+	rk         types.RollappKeeper
 	hooks      types.MultiDenomMetadataHooks
 }
 
 // NewKeeper returns a new instance of the denommetadata keeper
-func NewKeeper(bankKeeper types.BankKeeper) *Keeper {
+func NewKeeper(bankKeeper types.BankKeeper, rk types.RollappKeeper) *Keeper {
 	return &Keeper{
 		bankKeeper: bankKeeper,
+		rk:         rk,
 		hooks:      nil,
 	}
 }
@@ -42,6 +43,10 @@ func (k *Keeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadat
 	if err != nil {
 		return err
 	}
+
+	if err = uevent.EmitTypedEvent(ctx, types.NewEventDenomMetadataCreated(metadata)); err != nil {
+		return fmt.Errorf("emit event: %w", err)
+	}
 	return nil
 }
 
@@ -55,6 +60,10 @@ func (k *Keeper) UpdateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadat
 	err := k.hooks.AfterDenomMetadataUpdate(ctx, metadata)
 	if err != nil {
 		return err
+	}
+
+	if err = uevent.EmitTypedEvent(ctx, types.NewEventDenomMetadataUpdated(metadata)); err != nil {
+		return fmt.Errorf("emit event: %w", err)
 	}
 	return nil
 }

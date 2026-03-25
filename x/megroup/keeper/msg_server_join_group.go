@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"context"
+	"fmt"
+
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/megroup/types"
@@ -54,25 +55,27 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 		return nil, errors.Wrapf(types.ErrPermissionDenied, errLogBytes)
 	}
 
-	//set member's join group info
+	// set member's join group info
 	k.SetMemberJoined(ctx, types.MemberJoined{
 		Address: msg.ApplicantAddress,
 		GroupId: msg.GroupId,
 	})
-	//add to group_member
+	// add to group_member
 
 	err = k.AddGroupMember(ctx, &types.GroupMember{
 		GroupId: msg.GroupId,
 		Member: &types.Member{
 			Address: msg.ApplicantAddress,
-			AddedAt: ctx.BlockTime()}})
+			AddedAt: ctx.BlockTime(),
+		},
+	})
 	if err != nil {
 		return nil, err
 	}
 	k.SetGroupMemberCount(ctx, msg.GroupId, grpNumber+1)
 
-	if !JoinGroupFound { //send rewards if user has not joined group
-		//get RegionTreasureAddr
+	if !JoinGroupFound { // send rewards if user has not joined group
+		// get RegionTreasureAddr
 		region, found := k.stakingKeeper.GetRegion(ctx, groupInfo.RegionID)
 		if !found {
 			return nil, errors.Wrapf(types.ErrRegionNotExist, fmt.Sprintf("group's region: %s", groupInfo.RegionID))
@@ -103,7 +106,7 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 		sdk.NewAttribute("group_id", fmt.Sprintf("%d", msg.GroupId)),
 		sdk.NewAttribute("creator", msg.Creator),
 		sdk.NewAttribute("applicant", msg.ApplicantAddress),
-		//1sdk.NewAttribute("metadata", msg.),
+		// 1sdk.NewAttribute("metadata", msg.),
 	))
 	return &types.MsgJoinGroupResponse{}, nil
 }
@@ -116,7 +119,7 @@ func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupReq
 		return nil, errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found gourp.groupID = %d", req.GroupId))
 	}
 
-	if req.Creator == groupInfo.Admin { //admin can not leave group
+	if req.Creator == groupInfo.Admin { // admin can not leave group
 		return nil, errors.Wrapf(types.ErrExcute, "admin of group can not leave")
 	}
 

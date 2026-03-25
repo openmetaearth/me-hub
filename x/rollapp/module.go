@@ -15,8 +15,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	simulationtypes "github.com/st-chain/me-hub/simulation/types"
-
 	"github.com/st-chain/me-hub/x/rollapp/client/cli"
 	"github.com/st-chain/me-hub/x/rollapp/keeper"
 	"github.com/st-chain/me-hub/x/rollapp/types"
@@ -100,24 +98,24 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper        *keeper.Keeper
-	accountKeeper simulationtypes.AccountKeeper
-	bankKeeper    simulationtypes.BankKeeper
+	keeper *keeper.Keeper
 }
 
 func NewAppModule(
 	cdc codec.Codec,
 	keeper *keeper.Keeper,
-	accountKeeper simulationtypes.AccountKeeper,
-	bankKeeper simulationtypes.BankKeeper,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
 		keeper:         keeper,
-		accountKeeper:  accountKeeper,
-		bankKeeper:     bankKeeper,
 	}
 }
+
+// IsAppModule implements module.AppModule.
+func (am AppModule) IsAppModule() {}
+
+// IsOnePerModuleType implements module.AppModule.
+func (am AppModule) IsOnePerModuleType() {}
 
 // Name returns the capability module's name.
 func (am AppModule) Name() string {
@@ -138,14 +136,12 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 
 // InitGenesis performs the capability module's genesis initialization It returns
 // no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) {
 	var genState types.GenesisState
 	// Initialize global index to index in genesis state
 	cdc.MustUnmarshalJSON(gs, &genState)
 
 	InitGenesis(ctx, *am.keeper, genState)
-
-	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the capability module's exported genesis state as raw JSON bytes.
@@ -158,7 +154,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 func (AppModule) ConsensusVersion() uint64 { return 2 }
 
 // BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
+func (am AppModule) BeginBlock(_ sdk.Context) {}
 
 func (am AppModule) GetHooks() []types.RollappHooks {
 	return am.keeper.GetHooks()
@@ -166,7 +162,7 @@ func (am AppModule) GetHooks() []types.RollappHooks {
 
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+func (am AppModule) EndBlock(ctx sdk.Context) []abci.ValidatorUpdate {
 	am.keeper.FinalizeRollappStates(ctx)
 	return []abci.ValidatorUpdate{}
 }

@@ -1,6 +1,9 @@
 package keeper_test
 
 import (
+	"math/big"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -8,8 +11,6 @@ import (
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"math/big"
-	"strings"
 )
 
 func (s *KeeperTestSuite) TestStake() {

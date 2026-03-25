@@ -9,7 +9,7 @@ import (
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	// Set all the group
-	//todo:稍后在做，等宁那边确定格式后
+	// todo:稍后在做，等宁那边确定格式后
 	return
 	/*
 		for _, elem := range genState.GroupList {
@@ -52,7 +52,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		genesis.MemberJoinedList = k.GetAllMemberJoined(ctx)
 		genesis.GroupMemberCountList = k.GetAllGroupMemberCount(ctx)
 		// this line is used by starport scaffolding # genesis/module/export
-	
+
 	*/
 
 	return genesis

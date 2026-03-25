@@ -3,7 +3,7 @@ package ante
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
-	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
+	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
 	ethante "github.com/evmos/ethermint/app/ante"
 	"github.com/st-chain/me-hub/x/rollapp/transfergenesis"
 
@@ -35,8 +35,8 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 // newLegacyCosmosAnteHandlerEip712 creates an AnteHandler to process legacy EIP-712
 // transactions, as defined by the presence of an ExtensionOptionsWeb3Tx extension.
 func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
-	//mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper)
-	//deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
+	// mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper)
+	// deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 	deductFeeDecorator := NewDeductFeeDecorator(
 		options.AccountKeeper,
 		options.BankKeeper,
@@ -66,7 +66,7 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		ante.NewTxTimeoutHeightDecorator(),
 
 		// Use Mempool Fee TransferEnabledDecorator from our txfees module instead of default one from auth
-		//mempoolFeeDecorator,
+		// mempoolFeeDecorator,
 		deductFeeDecorator,
 
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
@@ -87,8 +87,8 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 }
 
 func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
-	//mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper)
-	//deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
+	// mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper)
+	// deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 	deductFeeDecorator := NewDeductFeeDecorator(
 		options.AccountKeeper,
 		options.BankKeeper,
@@ -112,7 +112,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		ante.NewSetUpContextDecorator(),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		// Use Mempool Fee TransferEnabledDecorator from our txfees module instead of default one from auth
-		//mempoolFeeDecorator,
+		// mempoolFeeDecorator,
 		deductFeeDecorator,
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),

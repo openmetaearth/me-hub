@@ -1,16 +1,12 @@
 package keeper
 
 import (
+	"cosmossdk.io/core/store"
 	sdkmath "cosmossdk.io/math"
-	"fmt"
-	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distriKeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
-	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wdistri/types"
 )
@@ -18,11 +14,9 @@ import (
 type Keeper struct {
 	distriKeeper.Keeper
 	cdc           codec.BinaryCodec
-	storeKey      storetypes.StoreKey
-	paramstore    paramtypes.Subspace
-	authKeeper    types.AccountKeeper
-	bankKeeper    types.BankKeeper
-	stakingKeeper types.StakingKeeper
+	authKeeper    distritypes.AccountKeeper
+	bankKeeper    distritypes.BankKeeper
+	stakingKeeper distritypes.StakingKeeper
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
@@ -36,17 +30,16 @@ type WrapDistrKeeper struct {
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey storetypes.StoreKey,
-	ps paramtypes.Subspace,
-	accountKeeper types.AccountKeeper,
-	bankKeeper types.BankKeeper,
-	stakingKeeper types.StakingKeeper,
+	storeService store.KVStoreService,
+	accountKeeper distritypes.AccountKeeper,
+	bankKeeper distritypes.BankKeeper,
+	stakingKeeper distritypes.StakingKeeper,
 	feeCollectorName string,
 	authority string,
 ) *Keeper {
-	DistrKeeper := distriKeeper.NewKeeper(
+	distrKeeper := distriKeeper.NewKeeper(
 		cdc,
-		storeKey,
+		storeService,
 		accountKeeper,
 		bankKeeper,
 		stakingKeeper,
@@ -54,10 +47,8 @@ func NewKeeper(
 		authority,
 	)
 	return &Keeper{
-		Keeper:           DistrKeeper,
+		Keeper:           distrKeeper,
 		cdc:              cdc,
-		storeKey:         storeKey,
-		paramstore:       ps,
 		authKeeper:       accountKeeper,
 		bankKeeper:       bankKeeper,
 		stakingKeeper:    stakingKeeper,
@@ -70,11 +61,7 @@ func (k Keeper) GetTreasuryModuleAccount() string {
 	return k.feeCollectorName
 }
 
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s", distributiontypes.ModuleName))
-}
-
-func (k Keeper) AllocateBlockRewardEveryday(ctx sdk.Context, req abci.RequestEndBlock) error {
+func (k Keeper) AllocateBlockRewardEveryday(ctx sdk.Context) error {
 	if ctx.BlockHeight()%types.OneDayTotalBlocks == 0 {
 		return k.AllocateBlockReward(ctx)
 	}

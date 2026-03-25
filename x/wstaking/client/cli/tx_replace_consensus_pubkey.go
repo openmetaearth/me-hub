@@ -48,7 +48,8 @@ func CmdReplaceConsensusPubKey() *cobra.Command {
 					OperatorAddress: operator,
 					PubKey:          codecPubKey,
 					BlockNumber:     blocl_number,
-				}}
+				},
+			}
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err

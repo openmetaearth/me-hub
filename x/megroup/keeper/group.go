@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	"cosmossdk.io/errors"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+
+	"cosmossdk.io/errors"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/megroup/types"
 )
@@ -35,7 +36,6 @@ func (k Keeper) AppendGroup(ctx sdk.Context, group *types.GroupInfo) error {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupKey))
 	if nil != store.Get(types.GetBytesFromUint64(group.Id)) {
 		return errors.Wrapf(types.ErrGroupCreateRepeated, "group id has bee existed.groupID = %d", group.Id)
-
 	}
 	appendedValue := k.cdc.MustMarshal(group)
 

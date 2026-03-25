@@ -2,8 +2,9 @@ package keeper
 
 import (
 	"encoding/json"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"sort"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/st-chain/me-hub/x/gravity/types"
 )
@@ -167,7 +168,7 @@ func ExportGenesis(ctx sdk.Context, k Keeper) *types.GenesisState {
 
 // ClearGenesis clears module state just for test environment
 func (k Keeper) ClearGenesis(ctx sdk.Context) {
-	//genesis := gravitykeeper.ExportGenesis(ctx, k)
+	// genesis := gravitykeeper.ExportGenesis(ctx, k)
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		k.DeleteBatch(ctx, batch)
 		return false
@@ -237,6 +238,7 @@ func (k Keeper) ClearGenesis(ctx sdk.Context) {
 	for _, relayer := range relayers {
 		k.DelLastEventNonceByRelayer(ctx, sdk.MustAccAddressFromBech32(relayer.RelayerAddress))
 	}
+	// should clear relayers
 	return
 }
 

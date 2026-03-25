@@ -3,8 +3,8 @@ package delayedack
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 
 	commontypes "github.com/st-chain/me-hub/x/common/types"
 	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"

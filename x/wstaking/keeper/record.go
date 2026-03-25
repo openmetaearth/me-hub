@@ -28,6 +28,7 @@ func (k Keeper) GetRecordsByAddress(ctx sdk.Context, from sdk.AccAddress) []type
 	}
 	return records
 }
+
 func (k Keeper) GetAllRecords(ctx sdk.Context) []types.Record {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.NewRecordKey)
@@ -47,6 +48,7 @@ func (k Keeper) SetReviewRecord(ctx sdk.Context, rr types.ReviewRecord) {
 	bz := types.MustMarshalReviewRecord(k.cdc, rr)
 	store.Set(types.GetReviewRecordKey(rr.ActionNumber), bz)
 }
+
 func (k Keeper) GetReviewRecordByID(ctx sdk.Context, recordNumber string) types.ReviewRecord {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.GetReviewRecordKey(recordNumber))

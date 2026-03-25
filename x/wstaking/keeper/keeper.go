@@ -1,23 +1,23 @@
 package keeper
 
 import (
-	"math/big"
-
+	addresscodec "cosmossdk.io/core/address"
+	storetypes "cosmossdk.io/core/store"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
+	"math/big"
 )
 
 type Keeper struct {
 	*stakingkeeper.Keeper
 	cdc            codec.BinaryCodec
-	storeKey       storetypes.StoreKey
+	storeService   storetypes.KVStoreService
 	authKeeper     banktypes.AccountKeeper
 	bankKeeper     types.BankKeeper
 	daoKeeper      types.DaoKeeper
@@ -32,21 +32,24 @@ type Keeper struct {
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey storetypes.StoreKey,
+	storeService storetypes.KVStoreService,
 	ak banktypes.AccountKeeper,
 	bk types.BankKeeper,
 	dk types.DaoKeeper,
 	nk types.NFTKeeper,
 	authority string,
+	validatorAddressCodec addresscodec.Codec,
+	consensusAddressCodec addresscodec.Codec,
 ) *Keeper {
+	nativeKeeper := stakingkeeper.NewKeeper(cdc, storeService, ak, bk, authority, validatorAddressCodec, consensusAddressCodec)
 	return &Keeper{
-		Keeper:     stakingkeeper.NewKeeper(cdc, storeKey, ak, bk, authority),
-		cdc:        cdc,
-		storeKey:   storeKey,
-		authKeeper: ak,
-		bankKeeper: bk,
-		daoKeeper:  dk,
-		nftKeeper:  nk,
+		Keeper:       nativeKeeper,
+		cdc:          cdc,
+		storeService: storeService,
+		authKeeper:   ak,
+		bankKeeper:   bk,
+		daoKeeper:    dk,
+		nftKeeper:    nk,
 	}
 }
 

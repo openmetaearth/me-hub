@@ -15,7 +15,7 @@ const (
 )
 
 func CheckMinDelegate(amount math.Int) error {
-	//if amount.Denom == sdk.BaseMEDenom {
+	// if amount.Denom == sdk.BaseMEDenom {
 	delAmount := sdk.NewDecFromInt(amount).Mul(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
 	minAmount, _ := sdk.NewDecFromStr(MinDelegateAmount)
 	if delAmount.LT(minAmount) {

@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"encoding/binary"
 	"fmt"
+
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/st-chain/me-hub/x/gravity/types"

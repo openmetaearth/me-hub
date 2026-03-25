@@ -22,7 +22,7 @@ import (
 	"github.com/st-chain/me-hub/x/wstaking/keeper"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 
-	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 )
 
 // AppModuleBasic defines the basic application module used by the wrapped staking module.

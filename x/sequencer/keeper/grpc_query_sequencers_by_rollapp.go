@@ -88,6 +88,7 @@ func (k Keeper) UnConfirmSequencerAddressByRollappByStatus(goCtx context.Context
 	*/
 	return nil, fmt.Errorf("unsupport function")
 }
+
 func (k Keeper) ReplaceProposerInfo(goCtx context.Context, req *types.QueryReplaceProposerInfoRequest) (*types.QueryReplaceProposerInfoResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	_, found := k.rollappKeeper.GetRollapp(ctx, req.RollappId)

@@ -7,7 +7,7 @@ import (
 	"github.com/st-chain/me-hub/x/megroup/types"
 
 	"cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -33,7 +33,6 @@ func (k Keeper) GroupMemberAll(goCtx context.Context, req *types.QueryGroupAllMe
 		groupMembers = append(groupMembers, groupMember)
 		return nil
 	})
-
 	if err != nil {
 		return nil, errors.Wrapf(sdkerrors.ErrLogic, fmt.Sprintf(" query.Paginate error.err = %s. req.Pagination = %s",
 			err.Error(), req.Pagination.String()))

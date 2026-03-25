@@ -103,6 +103,12 @@ func NewAppModule(
 	}
 }
 
+// IsAppModule implements module.AppModule.
+func (am AppModule) IsAppModule() {}
+
+// IsOnePerModuleType implements module.AppModule.
+func (am AppModule) IsOnePerModuleType() {}
+
 // RegisterServices registers a gRPC query service to respond to the module-specific gRPC queries
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQuerier(am.keeper))

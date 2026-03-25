@@ -45,18 +45,18 @@ func (s *KeeperTestSuite) TestEndBlock() {
 
 		wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 		treasuryBalance := s.App.BankKeeper.GetBalance(s.Ctx, treasuryPoolAcc.GetAddress(), params.BaseDenom)
-		//s.T().Log("after mint: ", treasuryBalance)
+		// s.T().Log("after mint: ", treasuryBalance)
 
 		amount := sdk.NewDecFromInt(sdk.NewInt(1)).Mul(treasuryBalance.Amount.ToLegacyDec()).Quo(sdk.NewDecFromInt(sdk.NewInt(3))).TruncateInt()
 		regionAmount = regionAmount.Add(amount)
 		wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 		treasuryBalance = s.App.BankKeeper.GetBalance(s.Ctx, treasuryPoolAcc.GetAddress(), params.BaseDenom)
-		//s.T().Log("after distri: ", treasuryBalance)
+		// s.T().Log("after distri: ", treasuryBalance)
 
 		regions := s.App.StakingKeeper.GetAllRegionI(s.Ctx)
 		for _, region := range regions {
 			balance := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), params.BaseDenom)
-			//s.T().Log(regionAmount.String(), balance.Amount.String())
+			// s.T().Log(regionAmount.String(), balance.Amount.String())
 			s.Require().EqualValues(regionAmount.String(), balance.Amount.String())
 		}
 	}

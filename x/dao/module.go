@@ -111,6 +111,12 @@ func NewAppModule(
 	}
 }
 
+// IsAppModule implements module.AppModule.
+func (am AppModule) IsAppModule() {}
+
+// IsOnePerModuleType implements module.AppModule.
+func (am AppModule) IsOnePerModuleType() {}
+
 // Name returns the capability module's name.
 func (am AppModule) Name() string {
 	return am.AppModuleBasic.Name()

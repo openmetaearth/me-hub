@@ -3,7 +3,7 @@ package keeper
 import (
 	"context"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/st-chain/me-hub/x/megroup/types"
@@ -31,7 +31,6 @@ func (k Keeper) GroupMemberCountAll(goCtx context.Context, req *types.QueryAllGr
 		groupMemberCounts = append(groupMemberCounts, groupMemberCount)
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

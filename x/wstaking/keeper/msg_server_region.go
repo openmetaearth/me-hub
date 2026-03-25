@@ -3,13 +3,14 @@ package keeper
 import (
 	"context"
 	"fmt"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	wnfttypes "github.com/st-chain/me-hub/x/wnft/types"
 	"strings"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	wnfttypes "github.com/st-chain/me-hub/x/wnft/types"
+
+	"cosmossdk.io/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/nft"
 	"github.com/st-chain/me-hub/utils"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
@@ -101,7 +102,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 
 	event4Nft := utils.GenEventCompactAttrWithBytes(types.EventNewNftClass, k.cdc.MustMarshal(&nftClass))
 	k.SetRegion(ctx, region)
-	//create megroup
+	// create megroup
 	if regionId != strings.ToLower(types.ExperienceRegionName) {
 		if _, err := k.groupKeeper.CreateGroupByRegion(ctx, region); err != nil {
 			return nil, err

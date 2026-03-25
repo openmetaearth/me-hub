@@ -2,6 +2,7 @@ package evm
 
 import (
 	"encoding/json"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"

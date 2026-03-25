@@ -1,6 +1,9 @@
 package keeper_test
 
 import (
+	"testing"
+	"time"
+
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,8 +19,6 @@ import (
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"testing"
-	"time"
 )
 
 type KeeperTestSuite struct {
@@ -142,7 +143,7 @@ func (s *KeeperTestSuite) TestMigrateValidator() {
 	if err != nil {
 		panic(err)
 	}
-	//test panicked: proto: wrong wireType = 2 for field UnbondingOnHoldRefCount
+	// test panicked: proto: wrong wireType = 2 for field UnbondingOnHoldRefCount
 	validator, found := GetValidatorV2(s.Ctx, s.App.StakingKeeper, addr)
 	require.True(s.T(), found)
 

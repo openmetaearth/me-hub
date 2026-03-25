@@ -464,6 +464,7 @@ func (msg MsgWithdrawDelegatorReward) ValidateBasic() error {
 func NewMsgTransferRegion(from, to, creatorAddr string, address []string) *MsgTransferRegion {
 	return &MsgTransferRegion{FromRegion: from, ToRegion: to, Address: address, Creator: creatorAddr}
 }
+
 func (msg *MsgTransferRegion) Route() string {
 	return RouterKey
 }
@@ -508,6 +509,7 @@ func NewMsgReplaceConsensusPubKeyRequest(creator, operator string, pubkey crypto
 		},
 	}, nil
 }
+
 func (msg *MsgReplaceConsensusPubKeyRequest) Route() string {
 	return RouterKey
 }

@@ -5,6 +5,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -25,10 +30,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/st-chain/me-hub/x/wstaking/client/cli"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
-	"io"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 // GenTxCmd builds the application's gentx command.

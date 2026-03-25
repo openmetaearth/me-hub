@@ -1,6 +1,9 @@
 package keeper_test
 
 import (
+	"strings"
+	"time"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,8 +14,6 @@ import (
 	"github.com/st-chain/me-hub/x/wmint"
 	wmintTypes "github.com/st-chain/me-hub/x/wmint/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"strings"
-	"time"
 )
 
 func (s *KeeperTestSuite) TestFixedDeposit() {

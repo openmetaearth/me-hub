@@ -3,7 +3,8 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"

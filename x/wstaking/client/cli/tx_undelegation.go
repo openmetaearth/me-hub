@@ -2,6 +2,8 @@ package cli
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -9,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"strings"
 )
 
 func NewUndelegateCmd() *cobra.Command {
@@ -34,7 +35,7 @@ $ %s tx staking undelegate 1000mec true --from mykey
 			if err != nil {
 				return err
 			}
-			//isMeid := strings.ToLower(args[1]) == "true"
+			// isMeid := strings.ToLower(args[1]) == "true"
 			delAddr := clientCtx.GetFromAddress()
 
 			msg := types.NewMsgUndelegate(delAddr, sdk.ValAddress{}, amount)

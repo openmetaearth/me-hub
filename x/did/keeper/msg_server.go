@@ -22,7 +22,6 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 var _ types.MsgServer = msgServer{}
 
 func (m msgServer) CreateDid(goCtx context.Context, msg *types.MsgCreateDid) (*types.MsgCreateDidResponse, error) {
-
 	// API inactive
 	return &types.MsgCreateDidResponse{}, errors.Wrap(types.ErrApiInactive, "use the Approve method of the KYC module to create a DID")
 }

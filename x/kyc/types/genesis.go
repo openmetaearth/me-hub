@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 )
 

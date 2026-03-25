@@ -3,7 +3,8 @@ package keeper
 import (
 	"context"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -43,7 +44,6 @@ func (k Keeper) AllRegion(goCtx context.Context, req *types.QueryAllRegionReques
 		regions = append(regions, region)
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -77,23 +77,19 @@ func (k Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationR
 	//if valErr != nil {
 	//	return nil, valErr
 	//}
-	del := k.Delegation(ctx, delAdr, sdk.ValAddress{})
-	if del == nil {
+	delegation, found := k.GetDelegation(ctx, delAdr, sdk.ValAddress{})
+	if !found {
 		return nil, status.Error(codes.NotFound, "delegator not found, address="+delAdr.String())
-	}
-	delegation, ok := del.(stakingtypes.Delegation)
-	if !ok {
-		return nil, types.ErrAssertDelegation
 	}
 	interest, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
 	if err != nil {
 		return nil, err
 	}
-	//endingPeriod := k.IncrementValidatorPeriod(ctx, val)
-	//rewards := k.CalculateDelegationRewards(ctx, val, del, endingPeriod)
+	// endingPeriod := k.IncrementValidatorPeriod(ctx, val)
+	// rewards := k.CalculateDelegationRewards(ctx, val, del, endingPeriod)
 	rewards := sdk.NewDecCoins(sdk.NewDecCoinFromDec(params.BaseDenom, interest))
 	return &types.QueryDelegationRewardsResponse{Rewards: rewards}, nil
-	//return &types.QueryDelegationRewardsResponse{Rewards: sdk.NewDecCoinsFromCoins(sdk.NewCoin(sdk.BaseMEDenom, interest.TruncateInt()))}, nil
+	// return &types.QueryDelegationRewardsResponse{Rewards: sdk.NewDecCoinsFromCoins(sdk.NewCoin(sdk.BaseMEDenom, interest.TruncateInt()))}, nil
 
 }
 
@@ -174,7 +170,6 @@ func (k Keeper) QueryAllRecord(goCtx context.Context, req *types.QueryAllRecords
 		records = append(records, record)
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("query all records err=%s", err.Error()))
 	}

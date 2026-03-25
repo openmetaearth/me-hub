@@ -2,6 +2,8 @@ package keeper_test
 
 import (
 	"fmt"
+	"testing"
+
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/golang/mock/gomock"
@@ -9,7 +11,6 @@ import (
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	"github.com/st-chain/me-hub/x/wdistri/types"
 	"github.com/st-chain/me-hub/x/wdistri/types/mock"
-	"testing"
 
 	"github.com/st-chain/me-hub/app/params"
 
@@ -87,11 +88,11 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.InitializeDao()
 
-	//validators := s.Keeper().GetValidators(s.Ctx, 10)
-	//s.Require().True(len(validators) >= 3)
-	//s.meEarthValidator = validators[0]
-	//s.experienceValidator = validators[1]
-	//s.usaValidator = validators[2]
+	// validators := s.Keeper().GetValidators(s.Ctx, 10)
+	// s.Require().True(len(validators) >= 3)
+	// s.meEarthValidator = validators[0]
+	// s.experienceValidator = validators[1]
+	// s.usaValidator = validators[2]
 
 	s.TestAccs = s.NewAccounts(3)
 }

@@ -2,10 +2,12 @@ package keeper_test
 
 import (
 	"context"
-	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
 	"encoding/hex"
 	"fmt"
+	"sort"
+
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -14,7 +16,6 @@ import (
 	"github.com/st-chain/me-hub/testutil/helpers"
 	"github.com/st-chain/me-hub/x/gravity/types"
 	trontypes "github.com/st-chain/me-hub/x/tron/types"
-	"sort"
 )
 
 func (s *KeeperTestSuite) TestMsgBondedRelayer() {

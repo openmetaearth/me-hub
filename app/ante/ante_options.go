@@ -1,10 +1,10 @@
 package ante
 
 import (
+	txsigning "cosmossdk.io/x/tx/signing"
 	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
 	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
 	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
@@ -15,13 +15,14 @@ import (
 )
 
 type HandlerOptions struct {
-	AccountKeeper          *authkeeper.AccountKeeper
-	BankKeeper             wbankkeeper.BaseKeeperWrapper
-	IBCKeeper              *ibckeeper.Keeper
-	FeeMarketKeeper        ethante.FeeMarketKeeper
-	EvmKeeper              ethante.EVMKeeper
-	FeegrantKeeper         ante.FeegrantKeeper
-	SignModeHandler        authsigning.SignModeHandler
+	AccountKeeper   *authkeeper.AccountKeeper
+	BankKeeper      wbankkeeper.BaseKeeperWrapper
+	IBCKeeper       *ibckeeper.Keeper
+	FeeMarketKeeper ethante.FeeMarketKeeper
+	EvmKeeper       ethante.EVMKeeper
+	FeegrantKeeper  ante.FeegrantKeeper
+	SignModeHandler *txsigning.HandlerMap
+
 	MaxTxGasWanted         uint64
 	ExtensionOptionChecker ante.ExtensionOptionChecker
 	RollappKeeper          rollappkeeper.Keeper

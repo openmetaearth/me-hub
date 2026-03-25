@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/st-chain/me-hub/x/kyc/keeper"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -109,6 +110,12 @@ func NewAppModule(
 		keeper:         keeper,
 	}
 }
+
+// IsAppModule implements module.AppModule.
+func (am AppModule) IsAppModule() {}
+
+// IsOnePerModuleType implements module.AppModule.
+func (am AppModule) IsOnePerModuleType() {}
 
 // Name returns the capability module's name.
 func (am AppModule) Name() string {

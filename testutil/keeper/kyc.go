@@ -1,13 +1,14 @@
 package keeper
 
 import (
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"testing"
 
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+
+	"cosmossdk.io/store"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/store"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/kyc/keeper"
 	"github.com/st-chain/me-hub/x/kyc/types"

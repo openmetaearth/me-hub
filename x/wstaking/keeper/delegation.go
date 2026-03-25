@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"fmt"
+	"time"
+
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
-	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -187,7 +188,7 @@ func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.A
 	//	k.Logger(ctx).Error("internalWithdrawDelegationRewards err=", valErr.Error())
 	//	return nil, valErr
 	//}
-	del := k.Delegation(ctx, delAddr, sdk.ValAddress{})
+	del, _ := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
 	if del == nil {
 		return nil, types.ErrEmptyDelegationDistInfo
 	}
@@ -208,7 +209,7 @@ func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.A
 			region.RegionId, rewards.String(), region.DelegateInterest.String()))
 	}
 	// truncate reward dec coins, return remainder to community pool
-	//finalRewards, remainder := rewards.TruncateDecimal()
+	// finalRewards, remainder := rewards.TruncateDecimal()
 	coin := sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())
 	coins := sdk.NewCoins(coin)
 	// add coins to user account

@@ -1,10 +1,11 @@
 package wstaking
 
 import (
+	"time"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/wstaking/keeper"
@@ -18,7 +19,7 @@ func BeginBlock(ctx sdk.Context, k *keeper.Keeper) {
 	regions := k.GetAllRegion(ctx)
 
 	for _, region := range regions {
-		rewards, _ := k.Calculate(ctx, sdk.NewDecFromInt(totalRewardsPerBlock), region.DelegateAmount) //rate.MulInt(totalRewardsPerBlock.Mul(region.DelegateAmount)).Mul(sdk.NewDecWithPrec(1, sdk.MEExponent))
+		rewards, _ := k.Calculate(ctx, sdk.NewDecFromInt(totalRewardsPerBlock), region.DelegateAmount) // rate.MulInt(totalRewardsPerBlock.Mul(region.DelegateAmount)).Mul(sdk.NewDecWithPrec(1, sdk.MEExponent))
 		region.DelegateInterest = region.DelegateInterest.Add(rewards)
 		k.SetRegion(ctx, region)
 	}

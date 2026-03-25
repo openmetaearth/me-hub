@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"encoding/hex"
+
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"

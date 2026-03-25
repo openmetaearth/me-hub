@@ -1,8 +1,8 @@
 package keeper
 
 import (
+	"cosmossdk.io/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/nft"
 	"github.com/st-chain/me-hub/x/kyc/types"
 )
 

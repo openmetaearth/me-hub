@@ -1,10 +1,11 @@
 package keeper_test
 
 import (
+	"testing"
+
 	"github.com/st-chain/me-hub/testutil/keeper"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestKeeper_Service(t *testing.T) {
@@ -25,7 +26,7 @@ func TestKeeper_Service(t *testing.T) {
 	value, found := k.GetService(ctx, sid)
 	assert.True(t, found)
 	assert.Equal(t, svc, value)
-	//gets
+	// gets
 	values := k.GetServices(ctx)
 	assert.Equal(t, 1, len(values))
 	// delete

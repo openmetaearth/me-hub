@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"math/big"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,7 +15,6 @@ import (
 	"github.com/st-chain/me-hub/x/wmint"
 	wmintTypes "github.com/st-chain/me-hub/x/wmint/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"math/big"
 )
 
 func (s *KeeperTestSuite) TestKycReward_WithDelegation() {

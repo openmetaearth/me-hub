@@ -3,7 +3,7 @@ package delayedack_test
 import (
 	"testing"
 
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	keepertest "github.com/st-chain/me-hub/testutil/keeper"
 	commontypes "github.com/st-chain/me-hub/x/common/types"
 	"github.com/st-chain/me-hub/x/delayedack"

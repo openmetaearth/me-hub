@@ -93,8 +93,8 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper keeper.Keeper
-	//accountKeeper types.AccountKeeper
-	//bankKeeper    types.BankKeeper
+	// accountKeeper types.AccountKeeper
+	// bankKeeper    types.BankKeeper
 }
 
 /*
@@ -123,6 +123,12 @@ func NewAppModule(
 		keeper:         keeper,
 	}
 }
+
+// IsAppModule implements module.AppModule.
+func (am AppModule) IsAppModule() {}
+
+// IsOnePerModuleType implements module.AppModule.
+func (am AppModule) IsOnePerModuleType() {}
 
 // RegisterServices registers a gRPC query service to respond to the module-specific gRPC queries
 func (am AppModule) RegisterServices(cfg module.Configurator) {

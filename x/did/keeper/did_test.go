@@ -1,10 +1,11 @@
 package keeper_test
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/testutil/keeper"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestKeeper_DID(t *testing.T) {

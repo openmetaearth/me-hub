@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
@@ -57,7 +57,7 @@ func (k Keeper) finalizeStateForIndex(ctx sdk.Context, stateInfoIndex types.Stat
 	})
 	if err != nil {
 		// TODO: think about (non)recoverable errors and how to handle them accordingly
-		k.Logger(ctx).Error(
+		ctx.Logger().Error(
 			"failed to finalize state",
 			"rollapp", stateInfoIndex.RollappId,
 			"index", stateInfoIndex.Index,

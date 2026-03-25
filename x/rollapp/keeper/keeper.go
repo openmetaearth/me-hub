@@ -1,12 +1,9 @@
 package keeper
 
 import (
-	"fmt"
-
-	"github.com/cometbft/cometbft/libs/log"
-
+	"cosmossdk.io/collections"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -22,9 +19,11 @@ type Keeper struct {
 	ibcClientKeeper types.IBCClientKeeper
 	channelKeeper   types.ChannelKeeper
 
+	registeredRollappDenoms collections.KeySet[collections.Pair[string, string]] // [ rollappID, denom ]
+
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 	daoKeeper       types.DaoKeeper
-	//sequencerKeeper types.SequencerKeeper
+	// sequencerKeeper types.SequencerKeeper
 }
 
 func NewKeeper(
@@ -55,10 +54,6 @@ func NewKeeper(
 
 func (k *Keeper) SetFinalizePendingFn(fn func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error) {
 	k.finalizePending = fn
-}
-
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
 /* -------------------------------------------------------------------------- */

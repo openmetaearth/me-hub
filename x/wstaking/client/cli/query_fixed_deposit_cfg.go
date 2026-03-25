@@ -1,15 +1,16 @@
 package cli
 
 import (
+	"strconv"
+	"strings"
+
 	sdkerrors "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/st-chain/me-hub/utils"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"strings"
 
 	"github.com/spf13/cobra"
-	"strconv"
 )
 
 func CmdListFixedDepositCfg() *cobra.Command {

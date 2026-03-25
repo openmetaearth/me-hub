@@ -1,28 +1,27 @@
-package keepers
+package app
 
 import (
+	storetypes "cosmossdk.io/store/types"
+	evidencetypes "cosmossdk.io/x/evidence/types"
+	"cosmossdk.io/x/feegrant"
+	nftkeeper "cosmossdk.io/x/nft/keeper"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	nftkeeper "github.com/cosmos/cosmos-sdk/x/nft/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
@@ -44,10 +43,10 @@ func (a *AppKeepers) GenerateKeys() {
 	a.keys = KVStoreKeys
 
 	// Define transient store keys
-	a.tkeys = sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
+	a.tkeys = storetypes.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
 
 	// MemKeys are for information that is stored only in RAM.
-	a.memKeys = sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
+	a.memKeys = storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 }
 
 // GetSubspace gets existing substore from keeper.
@@ -92,7 +91,7 @@ func (a *AppKeepers) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 	return a.memKeys[storeKey]
 }
 
-var KVStoreKeys = sdk.NewKVStoreKeys(
+var KVStoreKeys = storetypes.NewKVStoreKeys(
 	authtypes.StoreKey,
 	authzkeeper.StoreKey,
 	banktypes.StoreKey,
@@ -125,7 +124,7 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	daotypes.StoreKey,
 	nftkeeper.StoreKey,
 	wasmtypes.StoreKey,
-	//megroup
+	// megroup
 	gourpTypes.StoreKey,
 	// gravity bridge
 	bsctypes.StoreKey,

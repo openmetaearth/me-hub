@@ -3,13 +3,14 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+
 	abcitype "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 	"github.com/st-chain/me-hub/x/gravity/types"
-	"strconv"
 )
 
 func GetQueryCmd(moduleName string, subNames ...string) *cobra.Command {

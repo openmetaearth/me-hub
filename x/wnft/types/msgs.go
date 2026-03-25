@@ -2,10 +2,10 @@ package types
 
 import (
 	"cosmossdk.io/errors"
+	"cosmossdk.io/x/nft"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/nft"
 )
 
 const (

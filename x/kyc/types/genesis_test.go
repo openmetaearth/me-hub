@@ -24,7 +24,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
 				Issuers: []didtypes.DidInfo{
-					didtypes.DidInfo{
+					{
 						Did:    "1000000000000001",
 						Pubkey: "{\"@type\":\"/ethermint.crypto.v1.ethsecp256k1.PubKey\",\"key\":\"AyfZ/7fojbKMioe5Oaw378EH4F8w2CGvZ7SwOCRvlCH8\"}",
 						Status: didtypes.DID_STATUS_ACTIVE,
@@ -37,7 +37,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "did is invalid",
 			genState: &types.GenesisState{
 				Issuers: []didtypes.DidInfo{
-					didtypes.DidInfo{
+					{
 						Did:    "0x1000000000000001",
 						Pubkey: "{\"@type\":\"/ethermint.crypto.v1.ethsecp256k1.PubKey\",\"key\":\"AyfZ/7fojbKMioe5Oaw378EH4F8w2CGvZ7SwOCRvlCH8\"}",
 						Status: didtypes.DID_STATUS_ACTIVE,
@@ -50,7 +50,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "pubkey is invalid",
 			genState: &types.GenesisState{
 				Issuers: []didtypes.DidInfo{
-					didtypes.DidInfo{
+					{
 						Did:    "0x1000000000000001",
 						Pubkey: "{\"@type\":\"/ethermint.crypto.v1.ethsecp256k1.PubKey\",\"key\":\"AyfZ/7fojbKMioe5Oaw378EH4F8w2CGvZ7SwOCRvlCH8\"}",
 						Status: didtypes.DID_STATUS_ACTIVE,
@@ -63,7 +63,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "status is invalid",
 			genState: &types.GenesisState{
 				Issuers: []didtypes.DidInfo{
-					didtypes.DidInfo{
+					{
 						Did:    "0x1000000000000001",
 						Pubkey: "",
 						Status: didtypes.DID_STATUS_INACTIVE,

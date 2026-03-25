@@ -7,9 +7,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/st-chain/me-hub/utils"
-	"strings"
 
 	"github.com/btcsuite/btcutil/base58"
 	tmcli "github.com/cometbft/cometbft/libs/cli"

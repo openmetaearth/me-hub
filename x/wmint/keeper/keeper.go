@@ -1,8 +1,8 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/core/store"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -13,15 +13,15 @@ import (
 // Wrapper wraps the original mint keeper and intercepts its original methods if needed.
 type Keeper struct {
 	mintkeeper.Keeper
-	cdc                   codec.BinaryCodec
-	storeKey              storetypes.StoreKey
+	storeService          storetypes.KVStoreService
 	bankKeeper            minttypes.BankKeeper
 	treasuryModuleAccount string
 }
 
 // NewWrappedMint returns a new instance of the WrappedNFTKeeper.
-func NewKeeper(cdc codec.BinaryCodec,
-	key storetypes.StoreKey,
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	storeService storetypes.KVStoreService,
 	sk minttypes.StakingKeeper,
 	ak minttypes.AccountKeeper,
 	bk minttypes.BankKeeper,
@@ -29,8 +29,7 @@ func NewKeeper(cdc codec.BinaryCodec,
 	authority string,
 ) Keeper {
 	return Keeper{
-		Keeper:                mintkeeper.NewKeeper(cdc, key, sk, ak, bk, treasuryModuleAccount, authority),
-		storeKey:              key,
+		Keeper:                mintkeeper.NewKeeper(cdc, storeService, sk, ak, bk, treasuryModuleAccount, authority),
 		bankKeeper:            bk,
 		treasuryModuleAccount: treasuryModuleAccount,
 	}

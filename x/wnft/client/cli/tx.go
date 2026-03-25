@@ -2,13 +2,12 @@ package cli
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/nft"
-	wnfttypes "github.com/st-chain/me-hub/x/wnft/types"
-	"github.com/st-chain/me-hub/x/wstaking/types"
 	"strconv"
 	"strings"
 
+	"cosmossdk.io/x/nft"
 	"github.com/spf13/cobra"
+	wnfttypes "github.com/st-chain/me-hub/x/wnft/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -92,16 +91,10 @@ func NewCmdMintNFT() *cobra.Command {
 			}
 
 			classId := args[0]
-
 			tokenId := args[1]
-
 			url := args[2]
 			urlHash := args[3]
 			receiver := args[4]
-
-			if err != nil {
-				return types.ErrParameter.Wrap("term error")
-			}
 
 			msg := wnfttypes.NewMsgMintNFT(classId, tokenId, url, urlHash, clientCtx.GetFromAddress().String(), receiver)
 

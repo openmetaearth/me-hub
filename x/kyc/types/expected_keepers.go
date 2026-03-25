@@ -1,9 +1,10 @@
 package types
 
 import (
+	"context"
+	"cosmossdk.io/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/cosmos/cosmos-sdk/x/nft"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	stktypes "github.com/st-chain/me-hub/x/wstaking/types"
 )
@@ -42,11 +43,11 @@ type DIDKeeper interface {
 }
 
 type NFTKeeper interface {
-	GetNFT(ctx sdk.Context, classID, nftID string) (nft.NFT, bool)
-	HasNFT(ctx sdk.Context, classID, id string) bool
-	GetOwner(ctx sdk.Context, classID string, nftID string) sdk.AccAddress
-	Mint(ctx sdk.Context, token nft.NFT, receiver sdk.AccAddress) error
-	Update(ctx sdk.Context, token nft.NFT) error
-	Burn(ctx sdk.Context, classID string, nftID string) error
-	SaveClass(ctx sdk.Context, class nft.Class) error
+	GetNFT(ctx context.Context, classID, nftID string) (nft.NFT, bool)
+	HasNFT(ctx context.Context, classID, id string) bool
+	GetOwner(ctx context.Context, classID string, nftID string) sdk.AccAddress
+	Mint(ctx context.Context, token nft.NFT, receiver sdk.AccAddress) error
+	Update(ctx context.Context, token nft.NFT) error
+	Burn(ctx context.Context, classID string, nftID string) error
+	SaveClass(ctx context.Context, class nft.Class) error
 }

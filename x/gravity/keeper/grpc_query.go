@@ -2,8 +2,9 @@ package keeper
 
 import (
 	"context"
+
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/st-chain/me-hub/x/gravity/types"
@@ -303,7 +304,8 @@ func (k QueryServer) ProjectedBatchTimeoutHeight(c context.Context, _ *types.Que
 	projectedCurrentExternalHeight, batchTimeout := k.GetBatchTimeoutHeight(ctx)
 	return &types.QueryProjectedBatchTimeoutHeightResponse{
 		TimeoutHeight:                  batchTimeout,
-		ProjectedCurrentExternalHeight: projectedCurrentExternalHeight}, nil
+		ProjectedCurrentExternalHeight: projectedCurrentExternalHeight,
+	}, nil
 }
 
 func (k QueryServer) BridgeTokens(c context.Context, req *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {

@@ -3,12 +3,12 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 
 	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
 	commontypes "github.com/st-chain/me-hub/x/common/types"

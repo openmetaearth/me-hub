@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"testing"
+
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -14,7 +16,6 @@ import (
 	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type KeeperTestSuite struct {

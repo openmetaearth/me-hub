@@ -2,12 +2,13 @@ package wnft
 
 import (
 	"context"
+
+	"cosmossdk.io/x/nft"
+	nftmodule "cosmossdk.io/x/nft/module"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/nft"
-	nftmodule "github.com/cosmos/cosmos-sdk/x/nft/module"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"

@@ -23,7 +23,6 @@ func (k msgServer) ReplaceProposer(goCtx context.Context, msg *types.MsgReplaceP
 	}
 	if msg.Creator != rollapp.Creator {
 		return nil, errorsmod.Wrapf(types.ErrUnauthorized, "only rollapp creator %s can replace proposer, but got %s", rollapp.Creator, msg.Creator)
-
 	}
 
 	if found := k.IsHasReplaceProposer(ctx, msg.ReplaceProposer.RollappId); found {
@@ -72,5 +71,4 @@ func (k msgServer) ReplaceProposer(goCtx context.Context, msg *types.MsgReplaceP
 		),
 	)
 	return &types.MsgReplaceProposerResponse{}, nil
-
 }

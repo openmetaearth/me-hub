@@ -1,12 +1,14 @@
 package keeper
 
 import (
+	"cosmossdk.io/core/store"
+	"cosmossdk.io/log"
 	"errors"
 	"fmt"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -24,17 +26,24 @@ type BaseKeeperWrapper struct {
 
 // NewKeeper returns a new BaseKeeperWrapper instance.
 func NewKeeper(
-	cdc codec.BinaryCodec,
-	storeKey storetypes.StoreKey,
+	appCodec codec.BinaryCodec,
+	storeService store.KVStoreService,
 	ak banktypes.AccountKeeper,
 	dk types.DaoKeeper,
-	blockedAddrs map[string]bool,
-	authority string,
+	moduleAccountAddrs map[string]bool,
+	logger log.Logger,
 ) BaseKeeperWrapper {
 	return BaseKeeperWrapper{
-		BaseKeeper: bankkeeper.NewBaseKeeper(cdc, storeKey, ak, blockedAddrs, authority),
-		ak:         ak,
-		dk:         dk,
+		BaseKeeper: bankkeeper.NewBaseKeeper(
+			appCodec,
+			storeService,
+			ak,
+			moduleAccountAddrs,
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			logger,
+		),
+		ak: ak,
+		dk: dk,
 	}
 }
 
@@ -42,8 +51,7 @@ func NewKeeper(
 // module account to a module account. It will panic if the module account
 // does not exist or is unauthorized.
 func (k BaseKeeperWrapper) StakeCoinsFromModuleToModule(
-	ctx sdk.Context, senderModule string, recipientModule string, amt sdk.Coins,
-) error {
+	ctx sdk.Context, senderModule string, recipientModule string, amt sdk.Coins) error {
 	senderAcc := k.ak.GetModuleAccount(ctx, senderModule)
 	if senderAcc == nil {
 		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", senderModule))

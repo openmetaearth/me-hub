@@ -1,9 +1,8 @@
-package keepers
+package app
 
 import (
-	"encoding/json"
-
 	errorsmod "cosmossdk.io/errors"
+	"encoding/json"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/CosmWasm/wasmd/x/wasm/types"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"

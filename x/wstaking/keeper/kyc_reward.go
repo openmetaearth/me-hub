@@ -44,7 +44,7 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, cre
 		return sdkerrors.Wrapf(types.ErrSendKycReward, err.Error())
 	}
 
-	//validator rewards
+	// validator rewards
 	ownerAddress := validator.OwnerAddress
 	if len(validator.OwnerAddress) <= 0 {
 		ownerAddress = k.daoKeeper.GetDevOperator(ctx)
@@ -157,7 +157,8 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 }
 
 func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
-	validator stakingtypes.Validator, region types.Region) (err error) {
+	validator stakingtypes.Validator, region types.Region,
+) (err error) {
 	experienceRegion, hasRegion := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegionName))
 	if !hasRegion {
 		return types.ErrExpRegionNotExist
@@ -219,7 +220,7 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 	}
 
 	// Update delegation
-	delegation.Unmovable = types.Bonus //delegation.Unmovable.Add(bondAmt)
+	delegation.Unmovable = types.Bonus // delegation.Unmovable.Add(bondAmt)
 	delegation.StartHeight = ctx.BlockHeight()
 	delegation.ValidatorAddress = validator.OperatorAddress
 	treasureAddr := k.GetRegionAccount(ctx, types.RegionAccountTypeBase, region.RegionId)
@@ -239,7 +240,7 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 		return fmt.Errorf("send kyc reward to validator, %v", err)
 	}
 
-	//committee rewards
+	// committee rewards
 	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
 		treasureAddr.GetAddress(),
 		sdk.MustAccAddressFromBech32(k.daoKeeper.GetDevOperator(ctx)),
@@ -266,7 +267,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 	// GetFixedDepositByAcct returns the list of fixedDeposits of an account
 	fixedDeposits := k.GetFixedDepositByAcct(ctx, userAddr)
 	if len(fixedDeposits) == 0 {
-		//if no have deposit，no need to execute the following logic
+		// if no have deposit，no need to execute the following logic
 		return nil
 	}
 
@@ -286,7 +287,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 	if accErr != nil {
 		return accErr
 	}
-	//It is a regional rule used to define parameters such as fixed deposit term and interest rate for a certain region.
+	// It is a regional rule used to define parameters such as fixed deposit term and interest rate for a certain region.
 	depositConfig := k.GetAllFixedDepositCfg(ctx, toRegion.RegionId)
 	depositConfigMap := make(map[int64]sdk.Dec)
 	for _, cfg := range depositConfig {
@@ -300,7 +301,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 	for _, fixed := range fixedDeposits {
 		totalFixedDepositByAcc = totalFixedDepositByAcc.Add(fixed.Principal.Amount)
 		totalFixedInterestCoin = totalFixedInterestCoin.Add(fixed.Interest.Amount)
-		//check toRegion deposit config is exist and deposit rate is equal
+		// check toRegion deposit config is exist and deposit rate is equal
 		rate, exists := depositConfigMap[fixed.Term]
 		if !exists || !rate.Equal(fixed.Rate) {
 			return errors.New(fmt.Sprintf("deposit cfg not same.rate=%s,fixed.Rate=%s,exists=%v,fixed.Term=%v", rate.String(), fixed.Rate.String(), exists, fixed.Term))
@@ -324,7 +325,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 			treasuryBalances.Amount.String(), toRegion.DelegateInterest.String(),
 			totalFixedInterestCoin.String()))
 	}
-	//pay deposit interest of toRegion
+	// pay deposit interest of toRegion
 	err := k.bankKeeper.Extend().SendCoinsWithTag(ctx,
 		toTreasureAddr,
 		toDepositInterestAddr,
@@ -335,7 +336,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 		return errors.New(fmt.Sprintf("pay deposit interest of toRegion:%s", err.Error()))
 	}
 
-	//recovering deposit interest
+	// recovering deposit interest
 	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
 		fromDepositInterestAddr,
 		fromTreasureAddr,
@@ -404,7 +405,6 @@ func (k Keeper) transferRemoveMeid(ctx sdk.Context, address string, region *type
 }
 
 func (k Keeper) transferUnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, region *types.Region, delegation stakingtypes.Delegation) (amount math.Int, err error) {
-
 	bonus := sdk.NewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
 	region.DelegateAmount = region.DelegateAmount.Sub(bonus.RoundInt()).Sub(delegation.Amount)
 	if region.DelegateAmount.LT(sdk.ZeroInt()) {

@@ -1,11 +1,12 @@
 package cli
 
 import (
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"strings"
 )
 
 func GetCmdQueryRegion() *cobra.Command {

@@ -1,11 +1,9 @@
 package keeper
 
 import (
-	"fmt"
-
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/st-chain/me-hub/x/gravity/types"
@@ -52,7 +50,7 @@ func (k *Keeper) Codec() codec.Codec {
 }
 
 func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s", k.moduleName))
+	return ctx.Logger().With("module", k.moduleName)
 }
 
 func (k Keeper) ModuleName() string {

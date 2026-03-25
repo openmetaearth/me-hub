@@ -1,8 +1,9 @@
 package keeper_test
 
 import (
-	"github.com/st-chain/me-hub/testutil/helpers"
 	"math/big"
+
+	"github.com/st-chain/me-hub/testutil/helpers"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"

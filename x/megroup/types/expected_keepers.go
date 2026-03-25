@@ -3,6 +3,7 @@ package types
 import (
 	//"me-hub/mocks/mock"
 
+	"context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
@@ -14,7 +15,7 @@ import (
 type StakingKeeper interface {
 	// Methods imported from staking should be defined here
 
-	//FIXME: wait wstaking keep and types.Meid ;Temporarily use MockMeid instead of MEID and MockRegion instead types.Region
+	// FIXME: wait wstaking keep and types.Meid ;Temporarily use MockMeid instead of MEID and MockRegion instead types.Region
 	// GetMeid(ctx sdk.Context, account string) (val types.Meid, found bool)
 	GetMeid(ctx sdk.Context, account string) (val stakingTypes.Meid, found bool)
 	// SetMeid(ctx sdk.Context, meid types.Meid)
@@ -28,7 +29,7 @@ type StakingKeeper interface {
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
 type AccountKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
+	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 	// Methods imported from account should be defined here
 
 	// GetAccountAddressByID(ctx sdk.Context, int2 uint64) string
@@ -37,7 +38,7 @@ type AccountKeeper interface {
 
 // BankKeeper defines the expected interface needed to retrieve account balances.
 type BankKeeper interface {
-	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
+	SpendableCoins(ctx context.Context, addr sdk.AccAddress) sdk.Coins
 	// Methods imported from bank should be defined here
 
 	// SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error

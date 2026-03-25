@@ -2,6 +2,7 @@ package apptesting
 
 import (
 	"fmt"
+
 	"github.com/cometbft/cometbft/libs/rand"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -125,7 +126,7 @@ func (suite *KeeperTestHelper) StateNotAltered() {
 func (s *KeeperTestHelper) InitializeDao() {
 	globalDaoPrivKey, _ := ethsecp256k1.GenerateKey()
 	globalDaoAcc := authtypes.NewBaseAccount(globalDaoPrivKey.PubKey().Address().Bytes(), globalDaoPrivKey.PubKey(), 1, 0)
-	//globalOutput, _ := keyring.NewKeyOutput("global_dao", keyring.TypeLocal, globalDaoAddress, globalDaoPrivKey.PubKey())
+	// globalOutput, _ := keyring.NewKeyOutput("global_dao", keyring.TypeLocal, globalDaoAddress, globalDaoPrivKey.PubKey())
 
 	meidDao, _ := ethsecp256k1.GenerateKey()
 	meidDaoAcc := authtypes.NewBaseAccount(meidDao.PubKey().Address().Bytes(), meidDao.PubKey(), 1, 0)
@@ -156,7 +157,7 @@ func (s *KeeperTestHelper) InitializeDao() {
 }
 
 func (s *KeeperTestHelper) InitKyc(address sdk.AccAddress, did string, regionId string) {
-	//address, _ := s.App.KycKeeper.MustAccAddressFromPubkeyString(pubkey)
+	// address, _ := s.App.KycKeeper.MustAccAddressFromPubkeyString(pubkey)
 	if _, found := s.App.KycKeeper.GetDID(s.Ctx, address); found {
 		panic(fmt.Errorf("issuer %s already exists", address))
 	}
@@ -195,7 +196,7 @@ func (s *KeeperTestHelper) NewAccounts(count int) []sdk.AccAddress {
 	for i := 0; i < count; i++ {
 		key, _ := ethsecp256k1.GenerateKey()
 		address := sdk.AccAddress(key.PubKey().Address().Bytes())
-		//account := authtypes.NewBaseAccount(airdrop.PubKey().Address().Bytes(), airdrop.PubKey(), 3, 0)
+		// account := authtypes.NewBaseAccount(airdrop.PubKey().Address().Bytes(), airdrop.PubKey(), 3, 0)
 		accounts[i] = address
 	}
 	return accounts

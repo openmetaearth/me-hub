@@ -1,10 +1,11 @@
 package keeper_test
 
 import (
+	"testing"
+
 	"github.com/st-chain/me-hub/testutil/keeper"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestKeeper_DidInfo(t *testing.T) {
@@ -25,7 +26,7 @@ func TestKeeper_DidInfo(t *testing.T) {
 	value, found := k.GetDidInfo(ctx, did)
 	assert.True(t, found)
 	assert.Equal(t, info, value)
-	//gets
+	// gets
 	values := k.GetDidInfos(ctx)
 	assert.Equal(t, 1, len(values))
 	// delete
@@ -36,5 +37,4 @@ func TestKeeper_DidInfo(t *testing.T) {
 	assert.Equal(t, didtypes.DidInfo{}, value)
 	values = k.GetDidInfos(ctx)
 	assert.Equal(t, 0, len(values))
-
 }

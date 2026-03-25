@@ -1,11 +1,12 @@
 package keeper_test
 
 import (
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/st-chain/me-hub/testutil/keeper"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestKeeper_Filter(t *testing.T) {

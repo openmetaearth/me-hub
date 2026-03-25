@@ -1,14 +1,13 @@
 package upgrades
 
 import (
+	storetypes "cosmossdk.io/store/types"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/spf13/cobra"
-
-	"github.com/st-chain/me-hub/app/keepers"
+	"github.com/st-chain/me-hub/app"
 )
 
 // BaseAppParamManager defines an interface that BaseApp is expected to fulfill
@@ -27,7 +26,7 @@ type Upgrade struct {
 	Name string
 
 	// CreateHandler defines the function that creates an upgrade handler
-	CreateHandler func(*module.Manager, module.Configurator, BaseAppParamManager, *keepers.AppKeepers) upgradetypes.UpgradeHandler
+	CreateHandler func(*module.Manager, module.Configurator, *app.AppKeepers) upgradetypes.UpgradeHandler
 
 	// Store upgrades, should be used for any new modules introduced, new modules deleted, or store names renamed.
 	StoreUpgrades storetypes.StoreUpgrades

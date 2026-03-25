@@ -56,7 +56,7 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 	if found {
 		region.RegionShare = region.RegionShare.Add(msg.Amount.Amount)
 		k.Keeper.SetRegion(ctx, region)
-		//return nil, types.ErrValidatorRegion.Wrapf("%s not found", validator.Description.RegionID)
+		// return nil, types.ErrValidatorRegion.Wrapf("%s not found", validator.Description.RegionID)
 	}
 
 	// NOTE: source funds are always unbonded

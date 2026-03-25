@@ -258,7 +258,8 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 
 			outputs = append(outputs, banktypes.Output{
 				Address: dfd.daoKeeper.GetGlobalDaoFeePoolAddr(ctx).String(),
-				Coins:   globalFee})
+				Coins:   globalFee,
+			})
 			feeReceiverTypes = append(feeReceiverTypes, wbanktypes.FeeReceiverGlobalDaoFeePool)
 
 			err = dfd.BankKeeper.FeeToReceivers(ctx, inputs, outputs, feeReceiverTypes)

@@ -6,7 +6,7 @@ import (
 	"github.com/st-chain/me-hub/utils/gerrc"
 	"github.com/st-chain/me-hub/utils/uibc"
 
-	transferTypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	transferTypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/st-chain/me-hub/x/rollapp/types"
 )
 

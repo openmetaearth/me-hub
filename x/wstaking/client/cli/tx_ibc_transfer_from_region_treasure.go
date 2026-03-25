@@ -13,11 +13,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
-	ibcTransferTypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clientutils "github.com/cosmos/ibc-go/v7/modules/core/02-client/client/utils"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channelutils "github.com/cosmos/ibc-go/v7/modules/core/04-channel/client/utils"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibcTransferTypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clientutils "github.com/cosmos/ibc-go/v8/modules/core/02-client/client/utils"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channelutils "github.com/cosmos/ibc-go/v8/modules/core/04-channel/client/utils"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )

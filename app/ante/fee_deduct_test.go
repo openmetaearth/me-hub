@@ -1,6 +1,10 @@
 package ante_test
 
 import (
+	"regexp"
+	"strconv"
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authantetestutil "github.com/cosmos/cosmos-sdk/x/auth/ante/testutil"
@@ -11,9 +15,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/st-chain/me-hub/app/ante"
 	"github.com/st-chain/me-hub/app/params"
-	"regexp"
-	"strconv"
-	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/app/ante/mock"

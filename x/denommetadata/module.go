@@ -3,7 +3,7 @@ package denommetadata
 import (
 	"encoding/json"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	"cosmossdk.io/core/appmodule"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -14,9 +14,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
+	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	evmkeeper "github.com/st-chain/me-hub/x/evm/keeper"
+	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 
 	"github.com/st-chain/me-hub/x/denommetadata/client/cli"
 	"github.com/st-chain/me-hub/x/denommetadata/keeper"
@@ -26,6 +27,11 @@ import (
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.HasGenesis     = AppModule{}
+	_ module.HasServices    = AppModule{}
+	_ module.HasInvariants  = AppModule{}
+
+	_ appmodule.AppModule = AppModule{}
 )
 
 // ----------------------------------------------------------------------------
@@ -73,6 +79,21 @@ func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Rout
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 }
 
+func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
+	return &autocliv1.ModuleOptions{
+		Tx: &autocliv1.ServiceCommandDescriptor{
+			Service:              "dymensionxyz.dymension.denommetadata.Msg",
+			EnhanceCustomCommand: true,
+			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
+				{
+					RpcMethod: "RegisterHLTokenDenomMetadata",
+					Skip:      true,
+				},
+			},
+		},
+	}
+}
+
 // GetTxCmd returns the module's root tx command.
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.GetTxCmd()
@@ -109,6 +130,12 @@ func NewAppModule(
 	}
 }
 
+// IsAppModule implements module.AppModule.
+func (am AppModule) IsAppModule() {}
+
+// IsOnePerModuleType implements module.AppModule.
+func (am AppModule) IsOnePerModuleType() {}
+
 // Name returns the module's name.
 func (am AppModule) Name() string {
 	return am.AppModuleBasic.Name()
@@ -116,6 +143,7 @@ func (am AppModule) Name() string {
 
 // RegisterServices registers the module's services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 }
 
 // RegisterInvariants registers the module's invariants.
@@ -124,10 +152,9 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 
 // InitGenesis performs the module's genesis initialization.
 // Returns an empty ValidatorUpdate array.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) {
 	am.bankKeeper.IterateAllDenomMetaData(ctx, func(metadata banktypes.Metadata) bool {
 		// run hooks for each denom metadata, thus `x/denommetadata` genesis init order must be after `x/bank` genesis init
-
 		err := am.keeper.GetHooks().AfterDenomMetadataCreation(ctx, metadata)
 		if err != nil {
 			panic(err) // error at genesis level should be reported by panic
@@ -135,21 +162,11 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.Ra
 
 		return false
 	})
-	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the module's exported genesis state as raw JSON bytes.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	return nil
-}
-
-// BeginBlock executes all ABCI BeginBlock logic respective to the module.
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
-
-// EndBlock executes all ABCI EndBlock logic respective to the module.
-// Returns a nil validatorUpdate struct array.
-func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.

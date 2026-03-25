@@ -4,7 +4,7 @@ import (
 	"github.com/st-chain/me-hub/x/delayedack/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 
 	commontypes "github.com/st-chain/me-hub/x/common/types"
 )

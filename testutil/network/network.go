@@ -5,11 +5,10 @@ import (
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"cosmossdk.io/simapp"
+	pruningtypes "cosmossdk.io/store/pruning/types"
 	cometbftdb "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/stretchr/testify/require"
@@ -44,7 +43,7 @@ func New(t *testing.T, configs ...network.Config) *network.Network {
 // DefaultConfig will initialize config for the network with custom application,
 // genesis and single validator. All other parameters are inherited from cosmos-sdk/testutil/network.DefaultConfig
 func DefaultConfig() network.Config {
-	cfg := network.DefaultConfig(simapp.NewTestNetworkFixture)
+	cfg := network.DefaultConfig(app.NewTestNetworkFixture)
 	encoding := app.MakeEncodingConfig()
 
 	// FIXME: add rand tmrand.Uint64() to chainID

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/types"

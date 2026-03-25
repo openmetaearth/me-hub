@@ -1,13 +1,14 @@
 package cli
 
 import (
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/st-chain/me-hub/x/rollapp/types"
-	"strings"
 )
 
 func CmdUpdateRollapp() *cobra.Command {

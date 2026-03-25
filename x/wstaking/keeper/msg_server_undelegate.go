@@ -55,7 +55,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	}
 
 	// current interest balance * personal withdrawal pledge limit / district total pledge limit
-	//person_dele_inte := region.DelegateInterest.Mul(sdk.NewDecFromInt(msg.Amount.Amount).Quo(sdk.NewDecFromInt(validator.DelegationAmount)))
+	// person_dele_inte := region.DelegateInterest.Mul(sdk.NewDecFromInt(msg.Amount.Amount).Quo(sdk.NewDecFromInt(validator.DelegationAmount)))
 	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, val.GetOperator())
 	if !isOK {
 		return nil, types.ErrEmptyDelegationDistInfo
@@ -86,7 +86,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	k.SetRegion(ctx, region)
 	val.DelegationAmount = val.DelegationAmount.Sub(returnAmount)
 	k.SetValidator(ctx, val)
-	//send delegation rewards
+	// send delegation rewards
 	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())),
 		fmt.Sprintf("Undelegate_SendRewardsFromRegionTreasureAccountToUserAccount_%s", region.RegionId),
 	)

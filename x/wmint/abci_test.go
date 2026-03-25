@@ -2,10 +2,11 @@ package wmint
 
 import (
 	"fmt"
-	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 	"math"
 	"math/big"
 	"testing"
+
+	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -19,13 +20,13 @@ import (
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
+	"cosmossdk.io/store"
+	storetypes "cosmossdk.io/store/types"
 	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/store"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/require"
@@ -170,11 +171,12 @@ func (suite *KeeperTestSuite) TestBeginBlocker() {
 		})
 	}
 }
+
 func (suite *KeeperTestSuite) newContextWith(height int64) sdk.Context {
 	return sdk.NewContext(suite.ctx.MultiStore(), tmproto.Header{Time: tmtime.Now(), Height: height}, false, log.NewNopLogger())
 }
-func (suite *KeeperTestSuite) setMockBankKeeper(ctx sdk.Context, mintAmount int64) {
 
+func (suite *KeeperTestSuite) setMockBankKeeper(ctx sdk.Context, mintAmount int64) {
 	suite.bankKeeper.EXPECT().
 		MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("umec", sdk.NewInt(mintAmount)))).
 		Return(nil)

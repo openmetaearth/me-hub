@@ -2,8 +2,9 @@ package keeper
 
 import (
 	"context"
-	sdkerrors "cosmossdk.io/errors"
 	"encoding/json"
+
+	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/dao/types"
 )

@@ -3,16 +3,17 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
-	wnfttypes "github.com/st-chain/me-hub/x/wnft/types"
 	"slices"
 	"strings"
 
+	wnfttypes "github.com/st-chain/me-hub/x/wnft/types"
+
 	"cosmossdk.io/errors"
+	"cosmossdk.io/x/nft"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/nft"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/types"
 	stktypes "github.com/st-chain/me-hub/x/wstaking/types"
@@ -110,7 +111,6 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 
 func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.MsgUpdateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call Update", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx)
@@ -200,7 +200,6 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 
 func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.MsgRemoveResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call Remove", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx)
@@ -250,7 +249,6 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 
 func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*types.MsgCreateSBTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call CreateSBT", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx)
@@ -300,7 +298,6 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 
 func (m msgServer) UpdateSBT(goCtx context.Context, msg *types.MsgUpdateSBT) (*types.MsgUpdateSBTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call UpdateSBT", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx)

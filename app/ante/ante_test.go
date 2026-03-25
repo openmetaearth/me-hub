@@ -2,9 +2,10 @@ package ante_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"github.com/st-chain/me-hub/app/ante/mock"
-	"testing"
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"

@@ -2,7 +2,8 @@ package keeper
 
 import (
 	"context"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+
+	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
@@ -116,7 +117,6 @@ func (k Keeper) queryFixedDepositByRegionRecursively(ctx sdk.Context, req *types
 		}
 		return nil
 	})
-
 	if err != nil {
 		return nil, nil, err
 	}

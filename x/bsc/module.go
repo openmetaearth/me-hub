@@ -100,6 +100,12 @@ func NewAppModule(keeper gravitykeeper.Keeper) AppModule {
 	}
 }
 
+// IsAppModule implements module.AppModule.
+func (am AppModule) IsAppModule() {}
+
+// IsOnePerModuleType implements module.AppModule.
+func (am AppModule) IsOnePerModuleType() {}
+
 // RegisterInvariants implements app module
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 

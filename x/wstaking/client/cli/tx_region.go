@@ -2,10 +2,11 @@ package cli
 
 import (
 	"fmt"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/st-chain/me-hub/utils"
-	"strings"
 
 	"github.com/st-chain/me-hub/x/wstaking/types"
 

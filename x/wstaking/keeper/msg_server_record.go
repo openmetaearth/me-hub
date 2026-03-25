@@ -38,6 +38,7 @@ func (k MsgServer) NewRecord(goCtx context.Context, msg *types.MsgNewRecord) (*t
 	k.SetRecord(ctx, r, from)
 	return &types.MsgNewRecordResponse{}, nil
 }
+
 func (k MsgServer) ReviewRecord(goCtx context.Context, msg *types.MsgReviewRecord) (*types.MsgReviewRecordResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	globalAdmin := k.daoKeeper.GetGlobalDao(ctx)
