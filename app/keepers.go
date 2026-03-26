@@ -208,7 +208,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		runtime.NewKVStoreService(a.keys[authtypes.StoreKey]),
 		authtypes.ProtoBaseAccount,
-		maccPerms,
+		MaccPerms,
 		authcodec.NewBech32Codec(appparams.AccountAddressPrefix),
 		appparams.AccountAddressPrefix,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String())

@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"cosmossdk.io/errors"
-	cmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -62,33 +60,29 @@ $ %s gentx \'%s dymint show-sequencer\' --home=/path/to/home/dir --keyring-backe
 			}
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
-			genDoc, err := cmtypes.GenesisDocFromFile(config.GenesisFile())
+
+			genFilePath := config.GenesisFile()
+			appState, appGenesis, err := genutiltypes.GenesisStateFromGenFile(genFilePath)
 			if err != nil {
-				return errors.Wrap(err, "failed to read genesis doc from file")
+				return fmt.Errorf("failed to unmarshal genesis state: %w", err)
 			}
 
-			// create the app state
-			appGenesisState, err := genutiltypes.GenesisStateFromGenDoc(*genDoc)
+			appState, err = AddDAOToGenesis(clientCtx.Codec, appState, daoAddr)
 			if err != nil {
 				return err
 			}
 
-			appGenesisState, err = AddDAOToGenesis(clientCtx.Codec, appGenesisState, daoAddr)
+			appState, err = SetGenesisIssuerToGenesis(clientCtx.Codec, appState, daoAddr, pkStr)
+			if err != nil {
+				return err
+			}
+			appStateJSON, err := json.MarshalIndent(appState, "", "  ")
 			if err != nil {
 				return err
 			}
 
-			appGenesisState, err = SetGenesisIssuerToGenesis(clientCtx.Codec, appGenesisState, daoAddr, pkStr)
-			if err != nil {
-				return err
-			}
-			appState, err := json.MarshalIndent(appGenesisState, "", "  ")
-			if err != nil {
-				return err
-			}
-
-			genDoc.AppState = appState
-			err = genutil.ExportGenesisFile(genDoc, config.GenesisFile())
+			appGenesis.AppState = appStateJSON
+			err = genutil.ExportGenesisFile(appGenesis, genFilePath)
 
 			return err
 		},

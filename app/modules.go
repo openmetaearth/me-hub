@@ -143,14 +143,14 @@ func (app *App) SetupModules(
 // ModuleAccountAddrs returns all the app's module account addresses.
 func ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
-	for acc := range maccPerms {
+	for acc := range MaccPerms {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 	return modAccAddrs
 }
 
 // module account permissions
-var maccPerms = map[string][]string{
+var MaccPerms = map[string][]string{
 	authtypes.FeeCollectorName:                         nil,
 	distrtypes.ModuleName:                              nil,
 	wbanktypes.TreasuryPoolName:                        nil,

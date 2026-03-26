@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/st-chain/me-hub/app"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -149,7 +150,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				return fmt.Errorf("failed to get accounts from any: %w", err)
 			}
 
-			for macc, perm := range keepers.MaccPerms {
+			for macc, perm := range app.MaccPerms {
 				moduleAddress := authtypes.NewModuleAddress(macc)
 				moduleBaseAccount := authtypes.NewBaseAccount(moduleAddress, nil, 0, 0)
 

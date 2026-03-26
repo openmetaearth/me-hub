@@ -3,11 +3,12 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 	"io"
 	"os"
 	"path/filepath"
 
-	dbm "github.com/cometbft/cometbft-db"
+	dbm "github.com/cosmos/cosmos-db"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -19,12 +20,12 @@ import (
 	"gonum.org/v1/gonum/stat"
 
 	"github.com/st-chain/me-hub/app"
-	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 )
 
 const (
 	FlagHeight     = "height"
 	FlagTraceStore = "trace-store"
+	FlagCometBFT   = "cometbft"
 )
 
 // InspectCmd dumps app state to JSON.
@@ -32,7 +33,7 @@ const (
 func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "inspect",
-		Short: "Inspect db state [tendermint]",
+		Short: "Inspect db state",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.OutOrStderr())
@@ -48,8 +49,9 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 				return err
 			}
 
-			// TODO: fix to flag
-			if len(args) > 0 && args[0] == "tendermint" {
+			// Check if CometBFT state inspection is requested
+			cometbftFlag, _ := cmd.Flags().GetBool(FlagCometBFT)
+			if cometbftFlag {
 				return getCometbftState(serverCtx.Config)
 			}
 
@@ -67,7 +69,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 			}
 
 			height, _ := cmd.Flags().GetInt64(FlagHeight)
-			exported, err := appExporter(serverCtx.Logger, db, traceWriter, height, false, []string{}, nil, []string{})
+			exported, err := appExporter(serverCtx.Logger, db, traceWriter, height, false, []string{}, serverCtx.Viper, []string{})
 			if err != nil {
 				return fmt.Errorf("exporting state: %w", err)
 			}
@@ -95,7 +97,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 
 			fmt.Println("Num of rollapps: ", len(rollappState.RollappList))
 			fmt.Println("Num of state info: ", len(rollappState.StateInfoList))
-			fmt.Println("Total size of states: ", humanize.Bytes(uint64(rollappState.Size())))
+			fmt.Println("Total size of states: ", humanize.Bytes(uint64(rollappState.Size()))) //nolint:gosec
 
 			sizes := make([]float64, len(rollappState.StateInfoList))
 			for i, data := range rollappState.StateInfoList {
@@ -126,7 +128,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 						fmt.Printf("Error getting size for directory %s: %v", dir.Name(), err)
 						continue
 					}
-					fmt.Printf("Size of %s: %s\n", dir.Name(), humanize.Bytes(uint64(size)))
+					fmt.Printf("Size of %s: %s\n", dir.Name(), humanize.Bytes(uint64(size))) //nolint:gosec
 				}
 			}
 
@@ -137,6 +139,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 	cmd.Flags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
 	cmd.Flags().Int64(FlagHeight, -1, "Export state from a particular height (-1 means latest height)")
 	cmd.Flags().String(FlagTraceStore, "", "Enable KVStore tracing to an output file")
+	cmd.Flags().Bool(FlagCometBFT, false, "Export CometBFT state")
 
 	return cmd
 }

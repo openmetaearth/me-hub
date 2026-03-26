@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	sdkerrors "cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/dao/types"
 )
