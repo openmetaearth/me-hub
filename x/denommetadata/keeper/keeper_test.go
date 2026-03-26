@@ -7,7 +7,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/st-chain/me-hub/utils/gerrc"
 	"github.com/stretchr/testify/suite"
 
 	_ "embed"

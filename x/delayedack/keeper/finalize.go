@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	"github.com/st-chain/me-hub/utils/osmoutils"
 
 	commontypes "github.com/st-chain/me-hub/x/common/types"
 	"github.com/st-chain/me-hub/x/delayedack/types"

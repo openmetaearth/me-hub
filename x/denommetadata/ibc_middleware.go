@@ -10,10 +10,10 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/st-chain/me-hub/utils/gerrc"
 
-	"github.com/dymensionxyz/sdk-utils/utils/uevent"
-	"github.com/dymensionxyz/sdk-utils/utils/uibc"
+	"github.com/st-chain/me-hub/utils/uevent"
+	"github.com/st-chain/me-hub/utils/uibc"
 
 	"github.com/st-chain/me-hub/x/denommetadata/types"
 )
@@ -227,7 +227,7 @@ func (m *ICS4Wrapper) SendPacket(
 	// We need to handle both cases:
 	// 		1. We use the value of `packet.Denom` as the baseDenom
 	//		2. We parse the IBC denom trace into IBC denom hash and prepend it with "ibc/" to get the baseDenom
-	baseDenom := transfertypes.ParseDenomTrace(packet.Denom).IBCDenom() // TODO: rename base denom to ibc denom https://github.com/dymensionxyz/dymension/issues/1650
+	baseDenom := transfertypes.ParseDenomTrace(packet.Denom).IBCDenom() // TODO: rename base denom to ibc denom
 
 	has, err := m.rollappKeeper.HasRegisteredDenom(ctx, rollapp.RollappId, baseDenom)
 	if err != nil {

@@ -13,7 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
-	"github.com/st-chain/me-hub/app/keepers"
 	"github.com/st-chain/me-hub/app/params"
 	wminttypes "github.com/st-chain/me-hub/x/wmint/types"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"

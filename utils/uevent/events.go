@@ -15,7 +15,6 @@ import (
 // The original EmitTypedEvent from cosmos-sdk adds double quotes around the string attributes,
 // which makes it difficult, if not impossible to query/subscribe to those events.
 // See https://github.com/cosmos/cosmos-sdk/issues/12592 and
-// https://github.com/dymensionxyz/sdk-utils/pull/5#discussion_r1724688379
 func EmitTypedEvent(ctx sdk.Context, tev proto.Message) error {
 	event, err := TypedEventToEvent(tev)
 	if err != nil {

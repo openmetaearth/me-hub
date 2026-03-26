@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-
+	
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	"github.com/spf13/cobra"
+	"github.com/st-chain/me-hub/utils/osmoutils"
 )
 
 func ParseProposal(cmd *cobra.Command) (osmoutils.Proposal, sdk.Coins, error) {
@@ -15,7 +15,7 @@ func ParseProposal(cmd *cobra.Command) (osmoutils.Proposal, sdk.Coins, error) {
 	if err != nil {
 		return osmoutils.Proposal{}, nil, fmt.Errorf("failed to parse proposal: %w", err)
 	}
-
+	
 	deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
 	if err != nil {
 		return osmoutils.Proposal{}, nil, err
@@ -30,7 +30,7 @@ func ParseJsonFromFile[T any](path string, result *T) error {
 	if err != nil {
 		return err
 	}
-
+	
 	err = json.Unmarshal(contents, result)
 	return err
 }

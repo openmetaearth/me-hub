@@ -6,7 +6,7 @@ import (
 
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	"github.com/st-chain/me-hub/utils/osmoutils"
 
 	common "github.com/st-chain/me-hub/x/common/types"
 	"github.com/st-chain/me-hub/x/rollapp/types"

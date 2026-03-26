@@ -9,10 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 )
 
-/*
-// TODO: rename denom to 'ibcDenom' https://github.com/dymensionxyz/dymension/issues/1650
-*/
-
 func (k Keeper) SetRegisteredDenom(ctx sdk.Context, rollappID, denom string) error {
 	return k.registeredRollappDenoms.Set(ctx, collections.Join(rollappID, denom))
 }

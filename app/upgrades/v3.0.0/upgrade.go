@@ -2,11 +2,10 @@ package v3_0_0
 
 import (
 	"context"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	appkeepers "github.com/st-chain/me-hub/app"
-
-	upgradetypes "cosmossdk.io/x/upgrade/types"
+	"github.com/st-chain/me-hub/app/upgrades"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v2.0.12
@@ -14,7 +13,7 @@ import (
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
-	keepers *appkeepers.AppKeepers,
+	keepers *upgrades.UpgradeKeepers,
 ) upgradetypes.UpgradeHandler {
 	return func(goCtx context.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		ctx := sdk.UnwrapSDKContext(goCtx)

@@ -6,7 +6,7 @@ import (
 	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/st-chain/me-hub/utils/gerrc"
 	"github.com/st-chain/me-hub/utils/uevent"
 	"github.com/st-chain/me-hub/x/denommetadata/types"
 )

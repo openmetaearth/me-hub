@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_13"
 	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
 	trontypes "github.com/st-chain/me-hub/x/tron/types"
 

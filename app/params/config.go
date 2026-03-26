@@ -50,11 +50,6 @@ const (
 	Bech32PrefixConsPub = Bech32MainPrefix + PrefixValidator + PrefixConsensus + PrefixPublic
 )
 
-func init() {
-	SetAddressPrefixes()
-	RegisterDenoms()
-}
-
 // RegisterDenoms registers the base and display denominations to the SDK.
 func RegisterDenoms() {
 	if err := sdk.RegisterDenom(DisplayDenom, sdk.OneDec()); err != nil {
