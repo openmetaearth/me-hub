@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/rollapp/types"
 )
@@ -49,7 +50,7 @@ func (k Keeper) RemoveLatestStateInfoIndex(
 // GetAllLatestStateInfoIndex returns all latestStateInfoIndex
 func (k Keeper) GetAllLatestStateInfoIndex(ctx sdk.Context) (list []types.StateInfoIndex) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LatestStateInfoIndexKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close() // nolint: errcheck
 

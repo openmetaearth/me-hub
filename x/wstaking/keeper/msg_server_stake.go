@@ -5,6 +5,7 @@ import (
 	gomath "math"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -35,21 +36,21 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 
 	bondDenom := k.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
 		)
 	}
 
 	minSelfStake := math.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
 	if msg.Amount.Amount.Mod(minSelfStake).Int64() != 0 {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest, "invalid coin amount: got %s, expected %s integer multiple", msg.Amount.Amount.Int64(), int64(gomath.Pow10(params.BaseDenomUnit)),
 		)
 	}
 	// should before modified region shared
 	err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, valAddr)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrHooks, "before stake:%+v", err)
+		return nil, errorsmod.Wrapf(types.ErrHooks, "before stake:%+v", err)
 	}
 
 	region, found := k.Keeper.GetRegion(ctx, validator.Description.RegionID)
@@ -114,13 +115,13 @@ func (k MsgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 
 	bondDenom := k.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
 		)
 	}
 	err = k.WstakingHooks().BeforeValidatorStakingModified(ctx, addr)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrHooks, "before unStake :error :%+v", err)
+		return nil, errorsmod.Wrapf(types.ErrHooks, "before unStake :error :%+v", err)
 	}
 	completionTime, err := k.Keeper.Unstake(ctx, stakerAddress, addr, shares)
 	if err != nil {

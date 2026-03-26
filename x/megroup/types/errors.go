@@ -5,27 +5,27 @@ package types
 import (
 	"encoding/json"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
 )
 
 // x/megroup module sentinel errors
 var (
-	//ErrSample           = sdkerrors.Register(ModuleName, 1100, "sample error")
-	ErrCheckGlobalAdmin      = sdkerrors.Register(ModuleName, 1100, "check global admin error")
-	ErrCreate                = sdkerrors.Register(ModuleName, 1101, "create group err.")
-	ErrMeidNotExists         = sdkerrors.Register(ModuleName, 1102, "meid not exists")
-	ErrDeleteGroup           = sdkerrors.Register(ModuleName, 1103, "delete group error")
-	ErrPermissionDenied      = sdkerrors.Register(ModuleName, 1104, "permission denied")
-	ErrGroupNotExist         = sdkerrors.Register(ModuleName, 1105, "group not exist")
-	ErrProcData              = sdkerrors.Register(ModuleName, 1106, "process data error")
-	ErrGroupNumberExist      = sdkerrors.Register(ModuleName, 1107, "group's member has benn exist")
-	ErrGroupCreateRepeated   = sdkerrors.Register(ModuleName, 1108, "create group repeat")
-	ErrGroupMemberRepeated   = sdkerrors.Register(ModuleName, 1109, "join group repeat")
-	ErrRegionNotExist        = sdkerrors.Register(ModuleName, 1110, "region not exist")
-	ErrNotSupport            = sdkerrors.Register(ModuleName, 1111, "function not support")
-	ErrExcute                = sdkerrors.Register(ModuleName, 1112, "excute error.")
-	ErrGroupMemberNotExist   = sdkerrors.Register(ModuleName, 1113, "group member not exist")
-	ErrGroupExceededInRegion = sdkerrors.Register(ModuleName, 1115, "group has been exceeded in region")
+	//ErrSample           = errorsmod.Register(ModuleName, 1100, "sample error")
+	ErrCheckGlobalAdmin      = errorsmod.Register(ModuleName, 1100, "check global admin error")
+	ErrCreate                = errorsmod.Register(ModuleName, 1101, "create group err.")
+	ErrMeidNotExists         = errorsmod.Register(ModuleName, 1102, "meid not exists")
+	ErrDeleteGroup           = errorsmod.Register(ModuleName, 1103, "delete group error")
+	ErrPermissionDenied      = errorsmod.Register(ModuleName, 1104, "permission denied")
+	ErrGroupNotExist         = errorsmod.Register(ModuleName, 1105, "group not exist")
+	ErrProcData              = errorsmod.Register(ModuleName, 1106, "process data error")
+	ErrGroupNumberExist      = errorsmod.Register(ModuleName, 1107, "group's member has benn exist")
+	ErrGroupCreateRepeated   = errorsmod.Register(ModuleName, 1108, "create group repeat")
+	ErrGroupMemberRepeated   = errorsmod.Register(ModuleName, 1109, "join group repeat")
+	ErrRegionNotExist        = errorsmod.Register(ModuleName, 1110, "region not exist")
+	ErrNotSupport            = errorsmod.Register(ModuleName, 1111, "function not support")
+	ErrExcute                = errorsmod.Register(ModuleName, 1112, "excute error.")
+	ErrGroupMemberNotExist   = errorsmod.Register(ModuleName, 1113, "group member not exist")
+	ErrGroupExceededInRegion = errorsmod.Register(ModuleName, 1115, "group has been exceeded in region")
 )
 
 func EmitNewGroupError(err string, msg *MsgCreateGroup) []byte {

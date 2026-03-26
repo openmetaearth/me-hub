@@ -8,6 +8,7 @@ import (
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -282,7 +283,7 @@ func (k *Keeper) DeleteChangeDelegationValidator(ctx sdk.Context, regionId strin
 func (k *Keeper) GetAllChangeDelegationValidator(ctx sdk.Context) []string {
 	store := ctx.KVStore(k.storeKey)
 
-	iterator := sdk.KVStorePrefixIterator(store, types.ChangeDelegationValidatorKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.ChangeDelegationValidatorKey)
 	defer iterator.Close()
 
 	regionIds := []string{}

@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/utils"
@@ -60,7 +60,7 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 
 	//region, f := k.GetRegion(ctx, validator.Description.RegionID)
 	//if !f {
-	//	return nil, sdkerrors.Wrapf(types.ErrRegionNotExist, "please set region first")
+	//	return nil, errorsmod.Wrapf(types.ErrRegionNotExist, "please set region first")
 	//}
 	//if region.OperatorAddress != validator.OperatorAddress {
 	//	return nil, fmt.Errorf("region id already bound to another validator(%s), please set region first", region.OperatorAddress)
@@ -86,7 +86,7 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 			sdk.MustAccAddressFromBech32(msg.OwnerAddress),
 			validator)
 		if err != nil {
-			return nil, sdkerrors.Wrapf(types.ErrResetValidator, err.Error())
+			return nil, errorsmod.Wrapf(types.ErrResetValidator, err.Error())
 		}
 	} else {
 		k.SetValidator(ctx, validator)
@@ -124,7 +124,7 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 
 	stake, found := k.GetStake(ctx, staker, validator.GetOperator())
 	if !found {
-		return sdkerrors.Wrapf(types.ErrNoStake, "stake(%s) for operator(%s) not found", staker, validator.GetOperator())
+		return errorsmod.Wrapf(types.ErrNoStake, "stake(%s) for operator(%s) not found", staker, validator.GetOperator())
 	}
 	k.RemoveStake(ctx, stake)
 

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
@@ -17,7 +18,7 @@ func (k Keeper) GetRecordsByAddress(ctx sdk.Context, from sdk.AccAddress) []type
 	store := ctx.KVStore(k.storeKey)
 
 	prefix := types.GetRecordKey(from)
-	iterator := sdk.KVStorePrefixIterator(store, prefix)
+	iterator := storetypes.KVStorePrefixIterator(store, prefix)
 	defer iterator.Close()
 
 	var records []types.Record
@@ -31,7 +32,7 @@ func (k Keeper) GetRecordsByAddress(ctx sdk.Context, from sdk.AccAddress) []type
 
 func (k Keeper) GetAllRecords(ctx sdk.Context) []types.Record {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.NewRecordKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.NewRecordKey)
 	defer iterator.Close()
 
 	var records []types.Record

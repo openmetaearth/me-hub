@@ -3,8 +3,8 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
@@ -17,7 +17,7 @@ func (k MsgServer) WithdrawFromGlobalDaoFeePool(goCtx context.Context, msg *type
 
 	toAddr, err := sdk.AccAddressFromBech32(msg.Withdrawer)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrUnknownAccount, "receiver account %s format error %s", msg.Withdrawer, err)
+		return nil, errorsmod.Wrapf(types.ErrUnknownAccount, "receiver account %s format error %s", msg.Withdrawer, err)
 	}
 
 	fromAddr := k.daoKeeper.GetGlobalDaoFeePoolAddr(ctx)
@@ -29,7 +29,7 @@ func (k MsgServer) WithdrawFromGlobalDaoFeePool(goCtx context.Context, msg *type
 		"WithdrawFromGlobalDaoFeePool_SendCoinsFromGlobalDaoFeePoolToUserAccount",
 	)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "retrieve fee from global fee pool error: from(%s), to (%s)", fromAddr, toAddr.String())
+		return nil, errorsmod.Wrapf(err, "retrieve fee from global fee pool error: from(%s), to (%s)", fromAddr, toAddr.String())
 	}
 
 	ctx.EventManager().EmitEvent(

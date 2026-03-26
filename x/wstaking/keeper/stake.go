@@ -6,7 +6,9 @@ import (
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 
+	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -103,7 +105,7 @@ func (k Keeper) SetStake(ctx sdk.Context, stake types.Stake) {
 // IterateAllDelegations iterates through all of the delegations.
 func (k Keeper) IterateAllStakes(ctx sdk.Context, cb func(stake types.Stake) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.StakeKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.StakeKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -129,7 +131,7 @@ func (k Keeper) IterateStakes(ctx sdk.Context, delAddr sdk.AccAddress,
 	store := ctx.KVStore(k.storeKey)
 	stakerPrefixKey := types.GetStakesKey(delAddr)
 
-	iterator := sdk.KVStorePrefixIterator(store, stakerPrefixKey) // smallest to largest
+	iterator := storetypes.KVStorePrefixIterator(store, stakerPrefixKey) // smallest to largest
 	defer iterator.Close()
 
 	for i := int64(0); iterator.Valid(); iterator.Next() {
@@ -198,7 +200,7 @@ func (k Keeper) UnStakeBond(
 
 	// ensure that we have enough shares to remove
 	if stake.Shares.LT(shares) {
-		return amount, sdkerrors.Wrap(types.ErrNotEnoughStakeShares, stake.Shares.String())
+		return amount, errorsmod.Wrap(types.ErrNotEnoughStakeShares, stake.Shares.String())
 	}
 
 	// get validator
@@ -331,7 +333,7 @@ func (k Keeper) ValidateUnbondAmount(
 
 	staShares := sta.GetShares()
 	if sharesTruncated.GT(staShares) {
-		return shares, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid shares amount")
+		return shares, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "invalid shares amount")
 	}
 
 	// Cap the shares at the stake's shares. Shares being greater could occur
@@ -390,7 +392,7 @@ func (k Keeper) RemoveUnbondingStake(ctx sdk.Context, ubd types.UnbondingStake) 
 // IterateUnbondingStakes iterates through all of the unbonding stakes.
 func (k Keeper) IterateUnbondingStakes(ctx sdk.Context, cb func(ubs types.UnbondingStake) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.UnbondingStakeKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.UnbondingStakeKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -511,22 +513,22 @@ func (k Keeper) SetUBSQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys 
 func (k Keeper) ParserStakeKey(key []byte) (stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, err error) {
 	totalKeyLen := len(key)
 	if totalKeyLen < 3 {
-		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key length: %d", totalKeyLen)
+		return nil, nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key length: %d", totalKeyLen)
 	}
 	if key[0] != types.StakeKey[0] {
-		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key prefix: %X", key[0])
+		return nil, nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key prefix: %X", key[0])
 	}
 
 	stakeAddrLen := int(key[1])
 	if stakeAddrLen+2 >= totalKeyLen {
-		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key. length: %d,stakerAddrlength:%d",
+		return nil, nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key. length: %d,stakerAddrlength:%d",
 			totalKeyLen, stakeAddrLen)
 	}
 	stakerAddr = key[2 : 2+stakeAddrLen]
 
 	valAddrLen := int(key[2+stakeAddrLen])
 	if 3+stakeAddrLen+valAddrLen != totalKeyLen {
-		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key. length: %d,stakerAddrLen:%d,valAddrLen:%d",
+		return nil, nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key. length: %d,stakerAddrLen:%d,valAddrLen:%d",
 			totalKeyLen, stakeAddrLen, valAddrLen)
 	}
 	valAddr = key[2+stakeAddrLen+1:]
@@ -535,7 +537,7 @@ func (k Keeper) ParserStakeKey(key []byte) (stakerAddr sdk.AccAddress, valAddr s
 
 func (k Keeper) GetStakesByValidator(ctx sdk.Context, valAddr sdk.ValAddress) ([]*types.Stake, error) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.StakeKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.StakeKey)
 	defer iterator.Close()
 	var stakes []*types.Stake
 	for ; iterator.Valid(); iterator.Next() {

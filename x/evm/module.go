@@ -82,10 +82,6 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	am.AppModule.RegisterServices(cfg)
 }
 
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	// not reset chain-id on the begin-block
-}
-
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState evmtypes.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)

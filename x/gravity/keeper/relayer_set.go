@@ -5,6 +5,7 @@ import (
 	"math"
 
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/st-chain/me-hub/x/gravity/types"
@@ -124,7 +125,7 @@ func (k Keeper) IterateRelayerSets(ctx sdk.Context, reverse bool, cb func(*types
 	if reverse {
 		iter = sdk.KVStoreReversePrefixIterator(store, types.RelayerSetRequestKey)
 	} else {
-		iter = sdk.KVStorePrefixIterator(store, types.RelayerSetRequestKey)
+		iter = storetypes.KVStorePrefixIterator(store, types.RelayerSetRequestKey)
 	}
 	defer iter.Close()
 
@@ -224,7 +225,7 @@ func (k Keeper) SetRelayerSetConfirm(ctx sdk.Context, relayerAddr sdk.AccAddress
 // IterateRelayerSetConfirmByNonce iterates through all relayerSet confirms by nonce
 func (k Keeper) IterateRelayerSetConfirmByNonce(ctx sdk.Context, nonce uint64, cb func(*types.MsgRelayerSetConfirm) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetRelayerSetConfirmKey(nonce, sdk.AccAddress{}))
+	iter := storetypes.KVStorePrefixIterator(store, types.GetRelayerSetConfirmKey(nonce, sdk.AccAddress{}))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
@@ -239,7 +240,7 @@ func (k Keeper) IterateRelayerSetConfirmByNonce(ctx sdk.Context, nonce uint64, c
 
 func (k Keeper) DeleteRelayerSetConfirm(ctx sdk.Context, nonce uint64) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetRelayerSetConfirmKey(nonce, sdk.AccAddress{}))
+	iter := storetypes.KVStorePrefixIterator(store, types.GetRelayerSetConfirmKey(nonce, sdk.AccAddress{}))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {

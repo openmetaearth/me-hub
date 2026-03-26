@@ -36,7 +36,7 @@ func (k Keeper) RemoveGroupMemberCount(
 /*
 func (k Keeper) GetAllGroupMemberCount(ctx sdk.Context) (list []types.GroupMemberCount) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupMemberCountKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
 

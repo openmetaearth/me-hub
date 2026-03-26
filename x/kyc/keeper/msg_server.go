@@ -9,11 +9,11 @@ import (
 	wnfttypes "github.com/st-chain/me-hub/x/wnft/types"
 
 	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/x/nft"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/types"
 	stktypes "github.com/st-chain/me-hub/x/wstaking/types"
@@ -43,7 +43,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
 	if !found || !slices.Contains(svc.Issuers, issuer) {
-		return &types.MsgApproveResponse{}, sdkerrors.Wrap(didtypes.ErrInvalidIssuer, msg.Issuer)
+		return &types.MsgApproveResponse{}, errorsmod.Wrap(didtypes.ErrInvalidIssuer, msg.Issuer)
 	}
 
 	issuerInfo, found := m.GetDidInfo(ctx, issuer)
@@ -95,7 +95,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 
 	if msg.Level >= didtypes.KYC_LEVEL_TWO {
 		if err := m.stkKeeper.SendInviteReward(ctx, msg.Inviter, msg.Address, msg.RegionId); err != nil {
-			return &types.MsgApproveResponse{}, sdkerrors.Wrap(types.ErrInviteReward, err.Error())
+			return &types.MsgApproveResponse{}, errorsmod.Wrap(types.ErrInviteReward, err.Error())
 		}
 	}
 
@@ -125,7 +125,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	}
 	issuerInfo, found := m.GetDidInfo(ctx, issuer)
 	if !found || issuerInfo.Status != didtypes.DID_STATUS_ACTIVE {
-		return &types.MsgUpdateResponse{}, sdkerrors.Wrap(didtypes.ErrInvalidIssuer, msg.Issuer)
+		return &types.MsgUpdateResponse{}, errorsmod.Wrap(didtypes.ErrInvalidIssuer, msg.Issuer)
 	}
 
 	// check holder did
@@ -168,12 +168,12 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 
 	// change reward
 	if err := m.TransferKycRegion(ctx, address.String(), msg.Issuer, perRegionId, msg.RegionId); err != nil {
-		return &types.MsgUpdateResponse{}, sdkerrors.Wrap(types.ErrTransferRegion, err.Error())
+		return &types.MsgUpdateResponse{}, errorsmod.Wrap(types.ErrTransferRegion, err.Error())
 	}
 
 	if perLevel == didtypes.KYC_LEVEL_ONE && msg.Level >= didtypes.KYC_LEVEL_TWO {
 		if err := m.stkKeeper.SendInviteReward(ctx, msg.Inviter, address.String(), msg.RegionId); err != nil {
-			return &types.MsgUpdateResponse{}, sdkerrors.Wrap(types.ErrInviteReward, err.Error())
+			return &types.MsgUpdateResponse{}, errorsmod.Wrap(types.ErrInviteReward, err.Error())
 		}
 	}
 

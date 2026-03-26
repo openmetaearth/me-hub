@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -42,22 +43,22 @@ func (msg *MsgUpdateDao) GetSignBytes() []byte {
 func (msg *MsgUpdateDao) ValidateBasic() error {
 	if len(msg.DaoAddresses.GlobalDao) > 0 {
 		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.GlobalDao); err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.GlobalDao)
+			return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.GlobalDao)
 		}
 	}
 	if len(msg.DaoAddresses.MeidDao) > 0 {
 		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.MeidDao); err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.MeidDao)
+			return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.MeidDao)
 		}
 	}
 	if len(msg.DaoAddresses.DevOperator) > 0 {
 		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.DevOperator); err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.DevOperator)
+			return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.DevOperator)
 		}
 	}
 	if len(msg.DaoAddresses.AirdropAddress) > 0 {
 		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.AirdropAddress); err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.AirdropAddress)
+			return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.AirdropAddress)
 		}
 	}
 	return nil
@@ -93,17 +94,17 @@ func (msg *MsgFreeGasAccount) GetSignBytes() []byte {
 
 func (msg *MsgFreeGasAccount) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Creator); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Creator)
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, msg.Creator)
 	}
 	if len(msg.Accounts) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "addresses is empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "addresses is empty")
 	}
 	if len(msg.Accounts) > 100 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "addresses is too long, max 100")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "addresses is too long, max 100")
 	}
 	for _, account := range msg.Accounts {
 		if _, err := sdk.AccAddressFromBech32(account.Address); err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("address %s", account.Address))
+			return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("address %s", account.Address))
 		}
 	}
 	return nil

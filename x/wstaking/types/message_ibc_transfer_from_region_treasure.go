@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/st-chain/me-hub/utils"
@@ -51,23 +52,23 @@ func (msg *MsgIbcTransferFromRegionTreasure) GetSignBytes() []byte {
 
 func (msg *MsgIbcTransferFromRegionTreasure) ValidateBasic() error {
 	if err := host.PortIdentifierValidator(msg.SourcePort); err != nil {
-		return sdkerrors.Wrap(err, "invalid source port ID")
+		return errorsmod.Wrap(err, "invalid source port ID")
 	}
 	if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
-		return sdkerrors.Wrap(err, "invalid source channel ID")
+		return errorsmod.Wrap(err, "invalid source channel ID")
 	}
 	if _, err := utils.CheckRegionName(strings.ToUpper(msg.RegionId)); err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidType, err.Error())
 	}
 	if !msg.Token.IsValid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Token.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Token.String())
 	}
 	if !msg.Token.IsPositive() {
-		return sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, msg.Token.String())
+		return errorsmod.Wrap(sdkerrors.ErrInsufficientFunds, msg.Token.String())
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
 }

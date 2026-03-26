@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/st-chain/me-hub/x/gravity/types"
@@ -93,7 +94,7 @@ func (k Keeper) SetLastTotalPower(ctx sdk.Context) {
 // --- RELAYERS --- //
 func (k Keeper) IterateRelayer(ctx sdk.Context, cb func(relayer types.Relayer) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.RelayerKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.RelayerKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -138,7 +139,7 @@ func (k Keeper) DelRelayer(ctx sdk.Context, relayer sdk.AccAddress) {
 
 func (k Keeper) GetAllRelayers(ctx sdk.Context, isOnline bool) (relayers types.Relayers) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.RelayerKey)
+	iterator := storetypes.KVStorePrefixIterator(store, types.RelayerKey)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var relayer types.Relayer

@@ -6,6 +6,7 @@ import (
 	"github.com/st-chain/me-hub/x/wstaking/types"
 
 	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 )
@@ -83,7 +84,7 @@ func (k Keeper) GetFixedDeposit(ctx sdk.Context, id uint64) (val types.FixedDepo
 func (k Keeper) GetFixedDepositByAcct(ctx sdk.Context, acct string) []types.FixedDeposit {
 	var list []types.FixedDeposit
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKeyAcct+acct))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
 
@@ -134,7 +135,7 @@ func (k Keeper) GetAllFixedDepositWithPage(ctx sdk.Context, req *types.QueryAllF
 // GetAllFixedDeposit returns all fixedDeposit
 func (k Keeper) GetAllFixedDeposit(ctx sdk.Context) (list []types.FixedDeposit) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKey))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

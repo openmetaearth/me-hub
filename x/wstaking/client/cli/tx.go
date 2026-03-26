@@ -14,6 +14,7 @@ import (
 	flag "github.com/spf13/pflag"
 	"github.com/st-chain/me-hub/app/params"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -571,7 +572,7 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 	minSelfDelegation, ok := sdkmath.NewIntFromString(msbStr)
 
 	if !ok {
-		return txBldr, nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
+		return txBldr, nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
 	}
 
 	var pkAny *codectypes.Any

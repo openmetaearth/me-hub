@@ -3,10 +3,10 @@ package keeper
 import (
 	addresscodec "cosmossdk.io/core/address"
 	storetypes "cosmossdk.io/core/store"
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
@@ -84,7 +84,7 @@ func (k Keeper) GetProposerOwnerAddress(ctx sdk.Context) (string, error) {
 
 	validator, ok := k.GetValidatorByConsAddr(ctx, addr)
 	if !ok {
-		return "", sdkerrors.Wrapf(types.ErrParameter, "proposer not found")
+		return "", errorsmod.Wrapf(types.ErrParameter, "proposer not found")
 	}
 	return validator.OwnerAddress, nil
 }

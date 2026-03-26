@@ -5,6 +5,7 @@ import (
 
 	"cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/megroup/types"
 )
@@ -73,7 +74,7 @@ func (k Keeper) RemoveGroup(ctx sdk.Context, id uint64) {
 // GetAllGroup returns all group
 func (k Keeper) GetAllGroup(ctx sdk.Context) (list []types.GroupInfo) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupKey))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
 

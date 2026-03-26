@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -44,14 +45,14 @@ func (msg *MsgCreateGroup) GetSignBytes() []byte {
 func (msg *MsgCreateGroup) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	_, err = sdk.AccAddressFromBech32(msg.GroupInfo.Admin)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid Group Admin address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid Group Admin address (%s)", err)
 	}
 	if "" == msg.GroupInfo.RegionID {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "RegionID can not be empty")
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "RegionID can not be empty")
 	}
 	return nil
 }
@@ -90,7 +91,7 @@ func (msg *MsgUpdateGroup) GetSignBytes() []byte {
 func (msg *MsgUpdateGroup) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
 }
@@ -127,7 +128,7 @@ func (msg *MsgDeleteGroup) GetSignBytes() []byte {
 func (msg *MsgDeleteGroup) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
 }

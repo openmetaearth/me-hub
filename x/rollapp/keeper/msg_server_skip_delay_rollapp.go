@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/store/prefix"
 
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/rollapp/types"
 )
@@ -46,7 +47,7 @@ func (k Keeper) IsSkipDelayRollapp(ctx sdk.Context, rollappId string) bool {
 
 func (k Keeper) GetSkipDelayRollapps(ctx sdk.Context) (rollapps []string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SkipDelayRollappKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		skip, err := strconv.ParseBool(string(iterator.Value()))

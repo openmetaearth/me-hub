@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/gravity/types"
 )
@@ -29,7 +30,7 @@ func (k Keeper) SetBatchConfirm(ctx sdk.Context, relayerAddr sdk.AccAddress, bat
 // IterateBatchConfirmByNonceAndTokenContract iterates through all batch confirmations
 func (k Keeper) IterateBatchConfirmByNonceAndTokenContract(ctx sdk.Context, batchNonce uint64, tokenContract string, cb func(*types.MsgConfirmBatch) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetBatchConfirmKey(tokenContract, batchNonce, []byte{}))
+	iter := storetypes.KVStorePrefixIterator(store, types.GetBatchConfirmKey(tokenContract, batchNonce, []byte{}))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
@@ -44,7 +45,7 @@ func (k Keeper) IterateBatchConfirmByNonceAndTokenContract(ctx sdk.Context, batc
 
 func (k Keeper) DeleteBatchConfirm(ctx sdk.Context, batchNonce uint64, tokenContract string) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetBatchConfirmKey(tokenContract, batchNonce, []byte{}))
+	iter := storetypes.KVStorePrefixIterator(store, types.GetBatchConfirmKey(tokenContract, batchNonce, []byte{}))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {

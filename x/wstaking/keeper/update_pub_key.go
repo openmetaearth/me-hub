@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	ed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -34,7 +35,7 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 				"pub_key", hex.EncodeToString(updateInfo.PubKey), "height", ctx.BlockHeight())
 			pk := new(ed25519.PubKey)
 			if err = pk.Unmarshal(updateInfo.PubKey); err != nil {
-				// return nil, sdkerrors.Wrapf(types.ErrProtoProc, "unmarshal pubkey error: %v,inputKey = %s",
+				// return nil, errorsmod.Wrapf(types.ErrProtoProc, "unmarshal pubkey error: %v,inputKey = %s",
 				//	err, hex.EncodeToString(updateInfo.PubKey))
 				panic(fmt.Sprintf("unmarshal pubkey error: %s ,inputKey = %s", err.Error(), hex.EncodeToString(updateInfo.PubKey)))
 			}
@@ -72,7 +73,7 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 			k.SetValidatorByConsAddr(ctx, validator)
 			if err = k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
 				k.Logger(ctx).Info("AfterValidatorCreated hook ", "err", err.Error())
-				return nil, sdkerrors.Wrapf(types.ErrInterProc, "AfterValidatorCreated hook error: %v", err)
+				return nil, errorsmod.Wrapf(types.ErrInterProc, "AfterValidatorCreated hook error: %v", err)
 			}
 			// directly set new signing info for new cons addr
 			newConsAddr := sdk.GetConsAddress(pk)
@@ -117,7 +118,7 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 			// do nothing, wait for next block to remove old cons addr
 			return nil, nil
 		} else {
-			return nil, sdkerrors.Wrapf(types.ErrInterProc, "RepalceConsensusPubKeyInfo is still exist when block height greater than update_at_height. now height = %d, update at height = %d",
+			return nil, errorsmod.Wrapf(types.ErrInterProc, "RepalceConsensusPubKeyInfo is still exist when block height greater than update_at_height. now height = %d, update at height = %d",
 				ctx.BlockHeight(), updateInfo.UpdateAtHeight)
 		}
 	}
@@ -126,7 +127,7 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 func (k Keeper) SetRepalcePubKeyInfo(ctx sdk.Context, data *types.UpdatePubKeyInfo) error {
 	bz, err := json.Marshal(data)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrJSONMarshal, "marshal repalce pubkey info error: %v", err)
+		return errorsmod.Wrapf(sdkerrors.ErrJSONMarshal, "marshal repalce pubkey info error: %v", err)
 	}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	store.Set(types.KeyPrefix(types.ReplaceConsensusPubKey), bz)
@@ -143,7 +144,7 @@ func (k Keeper) GetRepalceConsensusPubKeyInfo(ctx sdk.Context) (*types.UpdatePub
 	val := types.UpdatePubKeyInfo{}
 	err := json.Unmarshal(data, &val)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "unmarshal repalce pubkey info error: %v", err)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrJSONUnmarshal, "unmarshal repalce pubkey info error: %v", err)
 	}
 	return &val, nil
 }
@@ -173,7 +174,7 @@ func (k Keeper) MoveStakesToAnotherVal(ctx sdk.Context, fromValAddr, toValAddr s
 		return err
 	}
 	if 0 == len(stakes) {
-		return sdkerrors.Wrapf(types.ErrStakeOnValidatorIsEmpty, "old validatorAddr =%s", fromValAddr.String())
+		return errorsmod.Wrapf(types.ErrStakeOnValidatorIsEmpty, "old validatorAddr =%s", fromValAddr.String())
 	}
 	for _, stake := range stakes {
 		// remove old stake record

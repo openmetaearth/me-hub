@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/sequencer/types"
 )
@@ -91,7 +92,7 @@ func (k Keeper) GetSequencer(ctx sdk.Context, sequencerAddress string) (val type
 // GetAllSequencers returns all sequencer
 func (k Keeper) GetAllSequencers(ctx sdk.Context) (list []types.Sequencer) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SequencersKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close() // nolint: errcheck
 
@@ -107,7 +108,7 @@ func (k Keeper) GetAllSequencers(ctx sdk.Context) (list []types.Sequencer) {
 // GetSequencersByRollapp returns a sequencersByRollapp from its index
 func (k Keeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list []types.Sequencer) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SequencersByRollappKey(rollappId))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close() // nolint: errcheck
 
@@ -124,7 +125,7 @@ func (k Keeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list 
 func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string, status types.OperatingStatus) (list []types.Sequencer) {
 	prefixKey := types.SequencersByRollappByStatusKey(rollappId, status)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), prefixKey)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close() // nolint: errcheck
 
@@ -144,7 +145,7 @@ func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string
 // GetMatureUnbondingSequencers returns all unbonding sequencers
 func (k Keeper) GetMatureUnbondingSequencers(ctx sdk.Context, endTime time.Time) (list []types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := store.Iterator(types.UnbondingQueueKey, sdk.PrefixEndBytes(types.UnbondingQueueByTimeKey(endTime)))
+	iterator := store.Iterator(types.UnbondingQueueKey, storetypes.PrefixEndBytes(types.UnbondingQueueByTimeKey(endTime)))
 
 	defer iterator.Close() // nolint: errcheck
 

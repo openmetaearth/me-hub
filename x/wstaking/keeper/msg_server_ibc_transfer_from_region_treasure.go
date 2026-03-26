@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/st-chain/me-hub/x/wstaking/types"
@@ -16,11 +17,11 @@ func (k MsgServer) IbcTransferFromRegionTreasure(goCtx context.Context, msg *typ
 
 	dao := k.daoKeeper.GetGlobalDao(ctx)
 	if msg.Creator != dao {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "sender is not the dao")
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "sender is not the dao")
 	}
 	region, found := k.GetRegion(ctx, msg.RegionId)
 	if !found {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrKeyNotFound, "region not found")
+		return nil, errorsmod.Wrap(sdkerrors.ErrKeyNotFound, "region not found")
 	}
 
 	treasureAddress := region.RegionTreasureAddr

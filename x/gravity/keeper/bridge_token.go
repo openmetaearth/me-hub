@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/st-chain/me-hub/x/gravity/types"
@@ -56,7 +57,7 @@ func (k Keeper) DelBridgeToken(ctx sdk.Context, token *types.BridgeToken) {
 
 func (k Keeper) IterateBridgeTokenByDenom(ctx sdk.Context, cb func(*types.BridgeToken) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.BridgeTokenByDenomKey)
+	iter := storetypes.KVStorePrefixIterator(store, types.BridgeTokenByDenomKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {

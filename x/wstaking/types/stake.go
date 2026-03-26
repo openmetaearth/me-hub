@@ -37,7 +37,7 @@ func NewStake(stakerAddr sdk.AccAddress, validatorAddr sdk.ValAddress, shares sd
 }
 
 // AddEntry - append entry to the unbonding stake
-func (ubs *UnbondingStake) AddEntry(creationHeight int64, minTime time.Time, balance math.Int) {
+func (ubs *UnbondingStake) AddEntry(creationHeight int64, minTime time.Time, balance sdkmath.Int) {
 	entry := NewUnbondingStakeEntry(creationHeight, minTime, balance)
 	ubs.Entries = append(ubs.Entries, entry)
 }
@@ -52,7 +52,7 @@ func (e UnbondingStakeEntry) IsMature(currentTime time.Time) bool {
 	return !e.CompletionTime.After(currentTime)
 }
 
-func NewUnbondingStakeEntry(creationHeight int64, completionTime time.Time, balance math.Int) UnbondingStakeEntry {
+func NewUnbondingStakeEntry(creationHeight int64, completionTime time.Time, balance sdkmath.Int) UnbondingStakeEntry {
 	return UnbondingStakeEntry{
 		CreationHeight: creationHeight,
 		CompletionTime: completionTime,
@@ -66,7 +66,7 @@ func NewUnbondingStakeEntry(creationHeight int64, completionTime time.Time, bala
 //nolint:interfacer
 func NewUnbondingStake(
 	stakerAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
-	creationHeight int64, minTime time.Time, balance math.Int,
+	creationHeight int64, minTime time.Time, balance sdkmath.Int,
 ) UnbondingStake {
 	return UnbondingStake{
 		StakerAddress:    stakerAddr.String(),

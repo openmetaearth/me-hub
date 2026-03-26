@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 
 	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/st-chain/me-hub/app/params"
@@ -197,13 +198,13 @@ func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 
 func (m *MsgUpdateParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return sdkerrors.Wrap(err, "authority")
+		return errorsmod.Wrap(err, "authority")
 	}
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if err := m.Params.ValidateBasic(); err != nil {
-		return sdkerrors.Wrap(err, "params")
+		return errorsmod.Wrap(err, "params")
 	}
 	return nil
 }

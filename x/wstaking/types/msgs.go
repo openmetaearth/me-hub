@@ -3,6 +3,7 @@ package types
 import (
 	gomath "math"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -79,7 +80,7 @@ func (msg MsgStake) ValidateBasic() error {
 	}
 
 	if !msg.Amount.IsValid() || !msg.Amount.Amount.IsPositive() {
-		return sdkerrors.Wrap(
+		return errorsmod.Wrap(
 			sdkerrors.ErrInvalidRequest,
 			"invalid stake amount",
 		)
@@ -87,7 +88,7 @@ func (msg MsgStake) ValidateBasic() error {
 
 	minSelfStake := math.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
 	if !msg.Amount.Amount.Mod(minSelfStake).Equal(math.NewInt(0)) {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
 			"invalid stake amount: got %s, expected %s integer multiple", msg.Amount.Amount, minSelfStake)
 	}
@@ -133,7 +134,7 @@ func (msg MsgUnstake) ValidateBasic() error {
 	}
 
 	if !msg.Amount.IsValid() || !msg.Amount.Amount.IsPositive() {
-		return sdkerrors.Wrap(
+		return errorsmod.Wrap(
 			sdkerrors.ErrInvalidRequest,
 			"invalid shares amount",
 		)
@@ -141,7 +142,7 @@ func (msg MsgUnstake) ValidateBasic() error {
 
 	minSelfStake := math.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
 	if !msg.Amount.Amount.Mod(minSelfStake).Equal(math.NewInt(0)) {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
 			"invalid unstake amount: got %s, expected %s integer multiple", msg.Amount.Amount, minSelfStake)
 	}
@@ -181,12 +182,12 @@ func (msg *MsgNewRegion) GetSignBytes() []byte {
 func (msg *MsgNewRegion) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	_, err = sdk.ValAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address (%s)", err)
 	}
 
 	return nil
@@ -223,7 +224,7 @@ func (msg *MsgRemoveRegion) GetSignBytes() []byte {
 func (msg *MsgRemoveRegion) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
 }
@@ -261,20 +262,20 @@ func (msg *MsgWithdrawFromRegion) GetSignBytes() []byte {
 func (msg *MsgWithdrawFromRegion) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Withdrawer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	_, err = sdk.AccAddressFromBech32(msg.Receiver)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address (%s)", err)
 	}
 
 	if !msg.Amount.IsValid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
 	}
 
 	if !msg.Amount.IsAllPositive() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
 	}
 
 	return nil
@@ -392,7 +393,7 @@ func (msg *MsgWithdrawFromGlobalDaoFeePool) GetSignBytes() []byte {
 func (msg *MsgWithdrawFromGlobalDaoFeePool) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Withdrawer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
 }
@@ -489,7 +490,7 @@ func (msg *MsgTransferRegion) GetSignBytes() []byte {
 func (msg *MsgTransferRegion) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
 }
@@ -534,17 +535,17 @@ func (msg *MsgReplaceConsensusPubKeyRequest) GetSignBytes() []byte {
 func (msg *MsgReplaceConsensusPubKeyRequest) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	_, err = sdk.ValAddressFromBech32(msg.ReplacePubKey.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address (%s)", err)
 	}
 	if msg.ReplacePubKey == nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "replace pubkey cannot be nil")
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "replace pubkey cannot be nil")
 	}
 	if msg.ReplacePubKey.BlockNumber < 1 {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid block number (%d)", msg.ReplacePubKey.BlockNumber)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid block number (%d)", msg.ReplacePubKey.BlockNumber)
 	}
 
 	return nil

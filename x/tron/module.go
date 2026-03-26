@@ -1,6 +1,8 @@
 package tron
 
 import (
+	"context"
+
 	"encoding/json"
 	"fmt"
 
@@ -121,7 +123,7 @@ func (am AppModule) ConsensusVersion() uint64 {
 }
 
 // EndBlock implements app module
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	am.keeper.EndBlocker(ctx)
-	return []abci.ValidatorUpdate{}
+func (am AppModule) EndBlock(ctx context.Context) error {
+	am.keeper.EndBlocker(sdk.UnwrapSDKContext(ctx))
+	return nil
 }

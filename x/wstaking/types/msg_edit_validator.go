@@ -1,7 +1,8 @@
 package types
 
 import (
-	"cosmossdk.io/math"
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -14,7 +15,7 @@ var _ sdk.Msg = &MsgUpdateValidator{}
 // NewMsgUpdateValidator creates a new MsgUpdateValidator instance
 //
 //nolint:interfacer
-func NewMsgUpdateValidator(valAddr sdk.ValAddress, description stakingtypes.Description, newRate *sdkmath.LegacyDec, newMinSelfDelegation *math.Int) *MsgUpdateValidator {
+func NewMsgUpdateValidator(valAddr sdk.ValAddress, description stakingtypes.Description, newRate *sdkmath.LegacyDec, newMinSelfDelegation *sdkmath.Int) *MsgUpdateValidator {
 	return &MsgUpdateValidator{
 		Description:       description,
 		CommissionRate:    newRate,
@@ -48,19 +49,19 @@ func (msg MsgUpdateValidator) ValidateBasic() error {
 	}
 
 	if msg.Description == (stakingtypes.Description{}) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
 	}
 
 	if msg.MinSelfDelegation != nil && !msg.MinSelfDelegation.IsPositive() {
-		return sdkerrors.Wrap(
+		return errorsmod.Wrap(
 			sdkerrors.ErrInvalidRequest,
 			"minimum self delegation must be a positive integer",
 		)
 	}
 
 	if msg.CommissionRate != nil {
-		if msg.CommissionRate.GT(math.LegacyOneDec()) || msg.CommissionRate.IsNegative() {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "commission rate must be between 0 and 1 (inclusive)")
+		if msg.CommissionRate.GT(sdkmath.LegacyOneDec()) || msg.CommissionRate.IsNegative() {
+			return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "commission rate must be between 0 and 1 (inclusive)")
 		}
 	}
 

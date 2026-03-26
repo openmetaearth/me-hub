@@ -137,11 +137,8 @@ func (am AppModule) ConsensusVersion() uint64 {
 	return 1
 }
 
-// BeginBlock contains the logic that is automatically triggered at the beginning of each block
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
-
 // EndBlock implements app module
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	am.keeper.EndBlocker(ctx)
-	return []abci.ValidatorUpdate{}
+func (am AppModule) EndBlock(ctx context.Context) error {
+	am.keeper.EndBlocker(sdk.UnwrapSDKContext(ctx))
+	return nil
 }

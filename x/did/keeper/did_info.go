@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/did/types"
 )
@@ -25,7 +26,7 @@ func (k Keeper) GetDidInfo(ctx sdk.Context, did string) (info types.DidInfo, fou
 
 func (k Keeper) GetDidInfos(ctx sdk.Context) (infos []types.DidInfo) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.DidInfoPrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, types.DidInfoPrefix)
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {

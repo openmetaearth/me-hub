@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
@@ -38,7 +39,7 @@ func (k Keeper) RemoveMeidNFT(ctx sdk.Context, account, regionId string) {
 
 func (k Keeper) GetMeidNFTByAccount(ctx sdk.Context, account string) (val types.MeidNFT, found bool) {
 	storeReg := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidNFTAccountKeyPrefix+account))
-	iterator := sdk.KVStorePrefixIterator(storeReg, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(storeReg, []byte{})
 	defer iterator.Close()
 	return k.GetMeidNFT(ctx, account)
 }

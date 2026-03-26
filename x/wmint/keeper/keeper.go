@@ -1,13 +1,15 @@
 package keeper
 
 import (
+	"math/big"
+
 	storetypes "cosmossdk.io/core/store"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/st-chain/me-hub/x/wmint/types"
-	"math/big"
 )
 
 // Wrapper wraps the original mint keeper and intercepts its original methods if needed.
@@ -37,13 +39,13 @@ func NewKeeper(
 
 // SetMintedCoinAmount sets the current total minted coins.
 func (k Keeper) SetMintedCoinAmount(ctx sdk.Context, amount big.Int) {
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store.Set(types.CoinAmountKey, amount.Bytes())
 }
 
 // GetMintedCoinAmount returns the current total minted coins.
 func (k Keeper) GetMintedCoinAmount(ctx sdk.Context) (amount big.Int) {
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	b := store.Get(types.CoinAmountKey)
 	if b == nil {
 		b = []byte{0x00}
@@ -54,13 +56,13 @@ func (k Keeper) GetMintedCoinAmount(ctx sdk.Context) (amount big.Int) {
 
 // SetPerBlockMintCoinAmount sets the every block mint coins amount.
 func (k Keeper) SetPerBlockMintCoinAmount(ctx sdk.Context, amount big.Int) {
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store.Set(types.PerBlockCoinAmountKey, amount.Bytes())
 }
 
 // GetPerBlockMintCoinAmount returns the current block mint coins amount.
 func (k Keeper) GetPerBlockMintCoinAmount(ctx sdk.Context) (amount big.Int) {
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	b := store.Get(types.PerBlockCoinAmountKey)
 	if b == nil {
 		b = []byte{0x00}

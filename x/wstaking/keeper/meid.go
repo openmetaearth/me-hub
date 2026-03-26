@@ -1,7 +1,9 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -39,7 +41,7 @@ func (k Keeper) RemoveMeid(ctx sdk.Context, account, regionid string) {
 // GetAllMeid returns all meid
 func (k Keeper) GetAllMeid(ctx sdk.Context) (list []types.Meid) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -52,7 +54,7 @@ func (k Keeper) GetAllMeid(ctx sdk.Context) (list []types.Meid) {
 
 func (k Keeper) GetMeidByRegion(ctx sdk.Context, regionId string) (list []types.Meid) {
 	storeReg := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidRegionKeyPrefix+regionId))
-	iterator := sdk.KVStorePrefixIterator(storeReg, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(storeReg, []byte{})
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -69,17 +71,17 @@ func (k Keeper) GetMeidByRegion(ctx sdk.Context, regionId string) (list []types.
 func (k Keeper) GetValOwnerAddress(ctx sdk.Context, regionId string) (string, error) {
 	region, ok := k.GetRegion(ctx, regionId)
 	if !ok {
-		return "", sdkerrors.Wrapf(types.ErrRegionNotExist, "region(%s) not found", regionId)
+		return "", errorsmod.Wrapf(types.ErrRegionNotExist, "region(%s) not found", regionId)
 	}
 
 	valAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
 	if err != nil {
-		return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "region bonded validator address(%s) invalid", region.OperatorAddress)
+		return "", errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "region bonded validator address(%s) invalid", region.OperatorAddress)
 	}
 
 	validator, ok := k.GetValidator(ctx, valAddr)
 	if !ok {
-		return "", sdkerrors.Wrapf(stakingtypes.ErrNoValidatorFound, "region bonded validator(%s) no found", valAddr.String())
+		return "", errorsmod.Wrapf(stakingtypes.ErrNoValidatorFound, "region bonded validator(%s) no found", valAddr.String())
 	}
 	return validator.OwnerAddress, nil
 }

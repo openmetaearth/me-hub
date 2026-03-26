@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/did/types"
 )
@@ -77,7 +78,7 @@ func (k Keeper) GetFilterLogger(ctx sdk.Context, did, sid string) (flog types.Fi
 
 func (k Keeper) GetFilterLoggers(ctx sdk.Context) (flogs []types.FilterLogger) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.FilterLoggerPrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, types.FilterLoggerPrefix)
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {

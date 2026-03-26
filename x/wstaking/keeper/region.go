@@ -3,6 +3,7 @@ package keeper
 import (
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -36,7 +37,7 @@ func (k Keeper) RemoveRegion(ctx sdk.Context, regionId string) {
 // GetAllRegion returns all region
 func (k Keeper) GetAllRegion(ctx sdk.Context) (list []types.Region) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RegionKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Region
@@ -64,7 +65,7 @@ func (k Keeper) GetRegionAccount(ctx sdk.Context, accountType types.REGION_ACCOU
 // GetAllRegion returns all region
 func (k Keeper) GetAllRegionI(ctx sdk.Context) (list []types.RegionI) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RegionKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Region

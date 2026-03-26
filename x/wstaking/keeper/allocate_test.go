@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -36,7 +37,7 @@ func (s *KeeperTestSuite) TestEndBlock() {
 
 	treasuryPoolAcc := s.App.AccountKeeper.GetModuleAccount(s.Ctx, wbanktypes.TreasuryPoolName)
 	if treasuryPoolAcc == nil {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", wbanktypes.TreasuryPoolName))
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", wbanktypes.TreasuryPoolName))
 	}
 
 	regionAmount := sdkmath.ZeroInt()

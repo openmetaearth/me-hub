@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"unicode"
 
-	sdkerrors "cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 	"golang.org/x/net/context"
@@ -45,7 +45,7 @@ func (k MsgServer) ReviewRecord(goCtx context.Context, msg *types.MsgReviewRecor
 	meidAdmin := k.daoKeeper.GetMeidDao(ctx)
 	if globalAdmin != msg.From && meidAdmin != msg.From {
 		errLogBytes := fmt.Sprintf("review record account (%s) should  be global admin", msg.From)
-		return nil, sdkerrors.Wrapf(types.ErrParameter, errLogBytes)
+		return nil, errorsmod.Wrapf(types.ErrParameter, errLogBytes)
 	}
 	_, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
