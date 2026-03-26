@@ -17,7 +17,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 
 	"cosmossdk.io/log"
 	dbm "github.com/cometbft/cometbft-db"
@@ -122,13 +122,13 @@ func Setup(t *testing.T, isCheckTx bool) *app.App {
 	senderPrivKey := secp256k1.GenPrivKey()
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 
-	coins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(wminttypes.TotalBaseCoinsAmount)))
+	coins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(wminttypes.TotalBaseCoinsAmount)))
 	moduleAddress := authtypes.NewModuleAddress(wstakingtypes.StakePoolName)
 	stakePoolBalances := banktypes.Balance{Address: moduleAddress.String(), Coins: coins.Sort()}
 
 	//balance := banktypes.Balance{
 	//	Address: acc.GetAddress().String(),
-	//	Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000000000000000))),
+	//	Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000000000000000000))),
 	//}
 	valSet := NewValidatorSet(t, 3)
 	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, stakePoolBalances)
@@ -147,7 +147,7 @@ func genesisStateWithValSet(t *testing.T,
 	validators := make([]stakingtypes.Validator, 0, len(valSet.Validators))
 	stakes := make([]wstakingtypes.Stake, 0, len(valSet.Validators))
 
-	bondAmt := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil))
+	bondAmt := sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil))
 
 	for i, val := range valSet.Validators {
 		pk, err := cryptocodec.FromTmPubKeyInterface(val.PubKey)
@@ -160,12 +160,12 @@ func genesisStateWithValSet(t *testing.T,
 			Jailed:            false,
 			Status:            stakingtypes.Bonded,
 			Tokens:            bondAmt,
-			DelegatorShares:   sdk.OneDec(),
+			DelegatorShares:   sdkmath.LegacyOneDec(),
 			Description:       stakingtypes.Description{},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
-			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-			MinSelfDelegation: sdk.OneInt(),
+			Commission:        stakingtypes.NewCommission(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
+			MinSelfDelegation: sdkmath.OneInt(),
 			OwnerAddress:      sdk.AccAddress(val.Address).String(),
 		}
 		if i == 0 {
@@ -178,7 +178,7 @@ func genesisStateWithValSet(t *testing.T,
 			validator.Description.RegionID = "usa"
 		}
 		validators = append(validators, validator)
-		stakes = append(stakes, wstakingtypes.NewStake(genAccs[0].GetAddress(), sdk.ValAddress(val.Address), sdk.OneDec()))
+		stakes = append(stakes, wstakingtypes.NewStake(genAccs[0].GetAddress(), sdk.ValAddress(val.Address), sdkmath.LegacyOneDec()))
 	}
 	// set validators and delegations
 	stakingGenesis := wstakingtypes.NewGenesisState(stakingtypes.DefaultParams(), validators, stakes)
@@ -199,7 +199,7 @@ func genesisStateWithValSet(t *testing.T,
 	// add bonded amount to bonded pool module account
 	balances = append(balances, banktypes.Balance{
 		Address: authtypes.NewModuleAddress(stakingtypes.BondedStakePoolName).String(),
-		Coins:   sdk.Coins{sdk.NewCoin(params.BaseDenom, bondAmt.Mul(sdk.NewInt(3)))},
+		Coins:   sdk.Coins{sdk.NewCoin(params.BaseDenom, bondAmt.Mul(sdkmath.NewInt(3)))},
 	})
 
 	// update total supply

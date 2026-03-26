@@ -6,7 +6,6 @@ import (
 	"github.com/st-chain/me-hub/utils"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -30,8 +29,8 @@ func DefaultParams() Params {
 		ExternalBatchTimeout:               7 * 24 * 3600 * 1000, // 1 hours
 		AverageExternalBlockTime:           1_000,                // 1 seconds
 		SignedWindow:                       30_000,
-		SlashFraction:                      sdk.NewDecWithPrec(8, 1),
-		RelayerSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1),
+		SlashFraction:                      sdkmath.LegacyNewDecWithPrec(8, 1),
+		RelayerSetUpdatePowerChangePercent: sdkmath.LegacyNewDecWithPrec(1, 1),
 		MaxRelayers:                        10,
 		MinDelegate:                        sdkmath.NewInt(100_000_000),
 		MaxDelegate:                        sdkmath.NewInt(10_000_000_000),
@@ -62,7 +61,7 @@ func (m *Params) ValidateBasic() error {
 	if m.SlashFraction.IsNegative() {
 		return fmt.Errorf("attempted to slash with a negative slash factor: %v", m.SlashFraction)
 	}
-	if m.SlashFraction.GT(sdk.OneDec()) {
+	if m.SlashFraction.GT(sdkmath.LegacyOneDec()) {
 		return fmt.Errorf("slash factor too large: %s", m.SlashFraction)
 	}
 	if m.MaxRelayers < 1 {
@@ -71,7 +70,7 @@ func (m *Params) ValidateBasic() error {
 	if m.RelayerSetUpdatePowerChangePercent.IsNegative() {
 		return fmt.Errorf("attempted to power change percent with a negative: %v", m.RelayerSetUpdatePowerChangePercent)
 	}
-	if m.RelayerSetUpdatePowerChangePercent.GT(sdk.OneDec()) {
+	if m.RelayerSetUpdatePowerChangePercent.GT(sdkmath.LegacyOneDec()) {
 		return fmt.Errorf("power change percent too large: %s", m.RelayerSetUpdatePowerChangePercent)
 	}
 	if !m.MinDelegate.IsPositive() {

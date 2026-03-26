@@ -8,6 +8,7 @@ import (
 	"github.com/st-chain/me-hub/app/params"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 
+	sdkmath "cosmossdk.io/math"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -24,7 +25,7 @@ const (
 	msgLimits                       = 1000
 )
 
-var minimumFee = sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(10000)))
+var minimumFee = sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10000)))
 
 // DeductFeeDecorator deducts fees from the first signer of the tx
 // If the first signer does not have the funds to pay for the fees, return with InsufficientFunds error
@@ -189,12 +190,12 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			fee30 := make(sdk.Coins, len(fee))
 			fee40 := make(sdk.Coins, len(fee))
 
-			rate10 := sdk.MustNewDecFromStr("0.1")
-			rate20 := sdk.MustNewDecFromStr("0.2")
-			rate30 := sdk.MustNewDecFromStr("0.3")
+			rate10 := sdkmath.LegacyMustNewDecFromStr("0.1")
+			rate20 := sdkmath.LegacyMustNewDecFromStr("0.2")
+			rate30 := sdkmath.LegacyMustNewDecFromStr("0.3")
 
 			for i, f := range fee {
-				if f.Amount.LT(sdk.NewInt(10)) {
+				if f.Amount.LT(sdkmath.NewInt(10)) {
 					return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "fee must greater than 10: %s", fee)
 				}
 				fee10[i] = sdk.NewCoin(f.Denom, rate10.MulInt(f.Amount).TruncateInt())
@@ -356,7 +357,7 @@ func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 
 			// Determine the required fees by multiplying each required minimum gas
 			// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
-			glDec := sdk.NewDec(int64(gas))
+			glDec := sdkmath.LegacyNewDec(int64(gas))
 			for i, gp := range minGasPrices {
 				fee := gp.Amount.Mul(glDec)
 				requiredFees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())

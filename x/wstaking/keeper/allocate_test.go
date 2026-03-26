@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,7 +39,7 @@ func (s *KeeperTestSuite) TestEndBlock() {
 		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", wbanktypes.TreasuryPoolName))
 	}
 
-	regionAmount := sdk.ZeroInt()
+	regionAmount := sdkmath.ZeroInt()
 	for i := 0; i < 10; i++ {
 		blockNumber := (i + 1) * wminttypes.OneDayTotalBlocks
 		s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(int64(blockNumber)).WithChainID(apptesting.TestChainID)
@@ -47,7 +48,7 @@ func (s *KeeperTestSuite) TestEndBlock() {
 		treasuryBalance := s.App.BankKeeper.GetBalance(s.Ctx, treasuryPoolAcc.GetAddress(), params.BaseDenom)
 		// s.T().Log("after mint: ", treasuryBalance)
 
-		amount := sdk.NewDecFromInt(sdk.NewInt(1)).Mul(treasuryBalance.Amount.ToLegacyDec()).Quo(sdk.NewDecFromInt(sdk.NewInt(3))).TruncateInt()
+		amount := sdkmath.LegacyNewDecFromInt(sdkmath.NewInt(1)).Mul(treasuryBalance.Amount.ToLegacyDec()).Quo(sdkmath.LegacyNewDecFromInt(sdkmath.NewInt(3))).TruncateInt()
 		regionAmount = regionAmount.Add(amount)
 		wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 		treasuryBalance = s.App.BankKeeper.GetBalance(s.Ctx, treasuryPoolAcc.GetAddress(), params.BaseDenom)

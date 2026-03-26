@@ -3,6 +3,7 @@ package bridgingfee
 import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
@@ -92,7 +93,7 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 	if err != nil {
 		l.Error("Charge bridging fee.", "err", err)
 		// we continue as we don't want the fee charge to fail the transfer in any case
-		fee = sdk.ZeroInt()
+		fee = sdkmath.ZeroInt()
 	} else {
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(

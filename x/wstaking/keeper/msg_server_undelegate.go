@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -48,14 +49,14 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 
 	val, isFound := k.GetValidator(ctx, valAddr)
 	if isFound {
-		if val.DelegationAmount.LT(sdk.ZeroInt()) {
+		if val.DelegationAmount.LT(sdkmath.ZeroInt()) {
 			return nil, types.ErrValidatorDelegationAmount.Wrapf("validator amount: %s, requested value: %s",
 				val.DelegationAmount.String(), msg.Amount.Amount.String())
 		}
 	}
 
 	// current interest balance * personal withdrawal pledge limit / district total pledge limit
-	// person_dele_inte := region.DelegateInterest.Mul(sdk.NewDecFromInt(msg.Amount.Amount).Quo(sdk.NewDecFromInt(validator.DelegationAmount)))
+	// person_dele_inte := region.DelegateInterest.Mul(sdkmath.LegacyNewDecFromInt(msg.Amount.Amount).Quo(sdkmath.LegacyNewDecFromInt(validator.DelegationAmount)))
 	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, val.GetOperator())
 	if !isOK {
 		return nil, types.ErrEmptyDelegationDistInfo

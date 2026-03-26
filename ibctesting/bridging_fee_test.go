@@ -3,6 +3,7 @@ package ibctesting_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
@@ -25,7 +26,7 @@ func (s *bridgingFeeSuite) TestNotRollappNoBridgingFee() {
 	cosmosEndpoint := path.EndpointB
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
-	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
+	amount, ok := sdkmath.NewIntFromString("10000000000000000000") // 10DYM
 	s.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
@@ -57,7 +58,7 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	s.updateRollappState(currentRollappBlockHeight)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
-	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
+	amount, ok := sdkmath.NewIntFromString("10000000000000000000") // 10DYM
 	s.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
@@ -86,7 +87,7 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	transferredCoins := sdk.NewCoin(denom, coinToSendToB.Amount)
 	recipient := s.hubChain().SenderAccount.GetAddress()
 	initialBalance := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), recipient)
-	s.Require().Equal(initialBalance.AmountOf(denom), sdk.ZeroInt())
+	s.Require().Equal(initialBalance.AmountOf(denom), sdkmath.ZeroInt())
 
 	// Finalize the rollapp state
 	currentRollappBlockHeight = uint64(s.rollappCtx().BlockHeight())

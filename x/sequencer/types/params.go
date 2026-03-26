@@ -4,6 +4,7 @@ import (
 	fmt "fmt"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
@@ -45,7 +46,7 @@ func DefaultParams() Params {
 	if err != nil {
 		panic(err)
 	}
-	minBond := sdk.NewCoin(denom, sdk.NewIntFromUint64(DefaultMinBond))
+	minBond := sdk.NewCoin(denom, sdkmath.NewIntFromUint64(DefaultMinBond))
 	return NewParams(
 		minBond, DefaultUnbondingTime,
 	)

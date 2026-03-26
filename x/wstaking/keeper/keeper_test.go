@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -116,8 +117,8 @@ func (s *KeeperTestSuite) TestMigrateValidator() {
 		ConsensusPubkey: nil,
 		Jailed:          false,
 		Status:          stakingtypes.Bonded,
-		Tokens:          sdk.NewInt(100),
-		StakerShares:    sdk.NewDec(100),
+		Tokens:          sdkmath.NewInt(100),
+		StakerShares:    sdkmath.LegacyNewDec(100),
 		Description: stakingtypes.Description{
 			Moniker:         "node1",
 			Identity:        "",
@@ -129,9 +130,9 @@ func (s *KeeperTestSuite) TestMigrateValidator() {
 		UnbondingHeight:         0,
 		UnbondingTime:           time.Time{},
 		Commission:              stakingtypes.Commission{},
-		MinSelfStake:            sdk.Int{},
-		DelegationAmount:        sdk.Int{},
-		MeidAmount:              sdk.Int{},
+		MinSelfStake:            sdkmath.Int{},
+		DelegationAmount:        sdkmath.Int{},
+		MeidAmount:              sdkmath.Int{},
 		OwnerAddress:            "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u",
 		UnbondingIds:            nil,
 		UnbondingOnHoldRefCount: 0,

@@ -7,6 +7,7 @@ import (
 
 	"github.com/st-chain/me-hub/app/params"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -39,7 +40,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic mintypes.InflationCalcula
 
 	k.SetPerBlockMintCoinAmount(ctx, *big.NewInt(int64(mintingUMEAmount)))
 
-	mintedCoin := sdk.NewCoin(params.BaseDenom, sdk.NewInt(int64(mintingUMEAmount)))
+	mintedCoin := sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(int64(mintingUMEAmount)))
 	mintedCoins := sdk.NewCoins(mintedCoin)
 	err := k.MintCoins(ctx, mintedCoins)
 	if err != nil {
@@ -78,7 +79,7 @@ func CalculateCoinFromHeightToHeight() {
 }
 
 // getMintCoinsByHeight Get coins through the block height range
-func getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
+func getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdkmath.LegacyDec) {
 	denomeUnit := 8
 	baseDenom := "umec"
 	var totalCoins int64
@@ -114,8 +115,8 @@ func getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
 		totalCoins = totalCoins + int64(types.OneYearTotalBlocks)*int64(mintUMEAmount)
 	}
 
-	mintedUMECoin := sdk.NewCoin(baseDenom, sdk.NewInt(totalCoins))
-	coin = sdk.NewDecFromInt(mintedUMECoin.Amount)
+	mintedUMECoin := sdk.NewCoin(baseDenom, sdkmath.NewInt(totalCoins))
+	coin = sdkmath.LegacyNewDecFromInt(mintedUMECoin.Amount)
 
 	return
 }

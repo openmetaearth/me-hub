@@ -3,7 +3,7 @@ package keeper
 import (
 	"math"
 
-	cmath "cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
@@ -11,16 +11,16 @@ import (
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
-func (k Keeper) CalculateInterest(ctx sdk.Context, totalStaking cmath.Int, height int64) (rewards sdk.Dec, err error) {
+func (k Keeper) CalculateInterest(ctx sdk.Context, totalStaking sdkmath.Int, height int64) (rewards sdkmath.LegacyDec, err error) {
 	if height >= ctx.BlockHeight() {
-		return sdk.ZeroDec(), nil
+		return sdkmath.LegacyZeroDec(), nil
 	}
 	blockRewards := k.getRewardsByHeight(height, ctx.BlockHeight())
 	return k.Calculate(ctx, blockRewards, totalStaking)
 }
 
 // getRewardsByHeight Get coins through the block height range
-func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
+func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdkmath.LegacyDec) {
 	var totalCoins int64
 
 	lowMul := (fromHeight - 1) / mintTypes.OneYearTotalBlocks
@@ -55,17 +55,17 @@ func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdk.D
 		totalCoins = totalCoins + mintTypes.OneYearTotalBlocks*int64(mintUMEAmount)
 	}
 
-	mintedUMECoin := sdk.NewCoin(params.BaseDenom, sdk.NewInt(totalCoins))
-	coin = sdk.NewDecFromInt(mintedUMECoin.Amount)
+	mintedUMECoin := sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(totalCoins))
+	coin = sdkmath.LegacyNewDecFromInt(mintedUMECoin.Amount)
 
 	return
 }
 
-func (k Keeper) Calculate(ctx sdk.Context, blockRewards sdk.Dec, totalStaking cmath.Int) (rewards sdk.Dec, err error) {
-	totalSupply := sdk.NewDec(types.CaclTotalSupply)
-	rate := sdk.OneDec().Quo(totalSupply)
-	rewards = blockRewards.Mul(sdk.NewDecFromInt(totalStaking).Mul(rate)).Mul(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
-	if rewards.LT(sdk.ZeroDec()) {
+func (k Keeper) Calculate(ctx sdk.Context, blockRewards sdkmath.LegacyDec, totalStaking sdkmath.Int) (rewards sdkmath.LegacyDec, err error) {
+	totalSupply := sdkmath.LegacyNewDec(types.CaclTotalSupply)
+	rate := sdkmath.LegacyOneDec().Quo(totalSupply)
+	rewards = blockRewards.Mul(sdkmath.LegacyNewDecFromInt(totalStaking).Mul(rate)).Mul(sdkmath.LegacyNewDecWithPrec(1, params.BaseDenomUnit))
+	if rewards.LT(sdkmath.LegacyZeroDec()) {
 		k.Logger(ctx).Error("Calculate_Interest", "Failed to calculate user revenue！")
 		return rewards, types.ErrCalculateInterest.Wrap("withdraw coins amount too small")
 	}

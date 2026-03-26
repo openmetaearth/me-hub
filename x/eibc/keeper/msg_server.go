@@ -4,6 +4,7 @@ import (
 	"context"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -39,7 +40,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	}
 
 	// Check that the fulfiller expected fee is equal to the demand order fee
-	expectedFee, _ := sdk.NewIntFromString(msg.ExpectedFee)
+	expectedFee, _ := sdkmath.NewIntFromString(msg.ExpectedFee)
 	orderFee := demandOrder.GetFeeAmount()
 	if !orderFee.Equal(expectedFee) {
 		return nil, types.ErrExpectedFeeNotMet
@@ -103,12 +104,12 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	bridgingFeeMultiplier := m.dack.BridgingFee(ctx)
 	raPacketType := raPacket.GetType()
 	if raPacketType != commontypes.RollappPacket_ON_RECV {
-		bridgingFeeMultiplier = sdk.ZeroDec()
+		bridgingFeeMultiplier = sdkmath.LegacyZeroDec()
 	}
 
 	// calculate the new price: transferTotal - newFee - bridgingFee
-	newFeeInt, _ := sdk.NewIntFromString(msg.NewFee)
-	transferTotal, _ := sdk.NewIntFromString(data.Amount)
+	newFeeInt, _ := sdkmath.NewIntFromString(msg.NewFee)
+	transferTotal, _ := sdkmath.NewIntFromString(data.Amount)
 	newPrice, err := types.CalcPriceWithBridgingFee(transferTotal, newFeeInt, bridgingFeeMultiplier)
 	if err != nil {
 		return nil, err

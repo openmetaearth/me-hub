@@ -3,7 +3,7 @@ package keeper
 import (
 	"fmt"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -81,7 +81,7 @@ func DelegatorSharesInvariant(k *Keeper) sdk.Invariant {
 		)
 
 		validators := k.GetAllValidators(ctx)
-		validatorsDelegationShares := map[string]sdk.Dec{}
+		validatorsDelegationShares := map[string]sdkmath.LegacyDec{}
 
 		// initialize a map: validator -> its delegation shares
 		for _, validator := range validators {

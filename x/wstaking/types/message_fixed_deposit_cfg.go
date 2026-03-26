@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -9,7 +10,7 @@ const TypeMsgNewFixedDepositCfg = "add_fixed_deposit_cfg"
 
 var _ sdk.Msg = &MsgNewFixedDepositCfg{}
 
-func NewMsgNewFixedDepositCfg(dao string, regionId string, term int64, rate sdk.Dec) *MsgNewFixedDepositCfg {
+func NewMsgNewFixedDepositCfg(dao string, regionId string, term int64, rate sdkmath.LegacyDec) *MsgNewFixedDepositCfg {
 	return &MsgNewFixedDepositCfg{
 		Dao:      dao,
 		RegionId: regionId,
@@ -92,7 +93,7 @@ const TypeMsgSetFixedDepositCfgRate = "set_fixed_deposit_cfg_rate"
 
 var _ sdk.Msg = &MsgSetFixedDepositCfgRate{}
 
-func NewMsgSetFixedDepositCfgRate(admin string, regionId string, term int64, rate sdk.Dec) *MsgSetFixedDepositCfgRate {
+func NewMsgSetFixedDepositCfgRate(admin string, regionId string, term int64, rate sdkmath.LegacyDec) *MsgSetFixedDepositCfgRate {
 	return &MsgSetFixedDepositCfgRate{
 		Admin:    admin,
 		RegionId: regionId,

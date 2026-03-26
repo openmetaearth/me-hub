@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -31,7 +32,7 @@ func (s *KeeperTestSuite) TestFixedDeposit() {
 		Dao:      s.Dao.GlobalDao,
 		RegionId: strings.ToLower(types.MeEarthRegionName),
 		Term:     1,
-		Rate:     sdk.MustNewDecFromStr("0.1"),
+		Rate:     sdkmath.LegacyMustNewDecFromStr("0.1"),
 	}
 	_, err = s.msgServer.NewFixedDepositCfg(s.Ctx, &msg)
 	s.Require().NoError(err)
@@ -39,7 +40,7 @@ func (s *KeeperTestSuite) TestFixedDeposit() {
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
-	amount := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(10000000)))
+	amount := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10000000)))
 	_, err = s.msgServer.WithdrawFromRegion(s.Ctx, &types.MsgWithdrawFromRegion{
 		Withdrawer: s.Dao.GlobalDao,
 		RegionId:   strings.ToLower(types.MeEarthRegionName),
@@ -59,25 +60,25 @@ func (s *KeeperTestSuite) TestFixedDeposit() {
 			name:      "invalid term",
 			account:   s.Dao.GlobalDao,
 			term:      0,
-			principal: sdk.NewCoin(params.BaseDenom, sdk.NewInt(1)),
+			principal: sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1)),
 			expErr:    types.ErrDoFixedDeposit,
 		}, {
 			name:      "invalid principal",
 			account:   s.Dao.GlobalDao,
 			term:      1,
-			principal: sdk.NewCoin(params.BaseDenom, sdk.NewInt(0)),
+			principal: sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(0)),
 			expErr:    types.ErrDoFixedDeposit,
 		}, {
 			name:      "invalid kyc and regionId",
 			account:   s.Dao.MeidDao,
 			term:      1,
-			principal: sdk.NewCoin(params.BaseDenom, sdk.NewInt(1)),
+			principal: sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1)),
 			expErr:    types.ErrDidNotExists,
 		}, {
 			name:      "insufficient principal",
 			account:   s.Dao.GlobalDao,
 			term:      1,
-			principal: sdk.NewCoin(params.BaseDenom, sdk.NewInt(1)),
+			principal: sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1)),
 			expErr:    types.ErrDoFixedDeposit,
 		}, {
 			name:      "No error",
@@ -127,7 +128,7 @@ func (s *KeeperTestSuite) TestNewFixedDepositCfgs() {
 		Dao:      s.Dao.GlobalDao,
 		RegionId: strings.ToLower(types.MeEarthRegionName),
 		Term:     30,
-		Rate:     sdk.NewDec(1),
+		Rate:     sdkmath.LegacyNewDec(1),
 	}
 	_, err = s.msgServer.NewFixedDepositCfg(s.Ctx, newFixdDepositCfg)
 	s.Require().NoError(err)
@@ -147,7 +148,7 @@ func (s *KeeperTestSuite) TestRemoveFixedDepositCfg() {
 		Dao:      s.Dao.GlobalDao,
 		RegionId: types.MeEarthRegionId,
 		Term:     30,
-		Rate:     sdk.NewDec(1),
+		Rate:     sdkmath.LegacyNewDec(1),
 	}
 	_, err = s.msgServer.NewFixedDepositCfg(s.Ctx, newFixdDepositCfg)
 	s.Require().NoError(err)
@@ -183,7 +184,7 @@ func (s *KeeperTestSuite) TestWithdrawFixedDeposit() {
 		Dao:      s.Dao.GlobalDao,
 		RegionId: types.MeEarthRegionId,
 		Term:     30,
-		Rate:     sdk.NewDec(10),
+		Rate:     sdkmath.LegacyNewDec(10),
 	}
 	_, err = s.msgServer.NewFixedDepositCfg(s.Ctx, newFixdDepositCfg)
 	s.Require().NoError(err)
@@ -192,7 +193,7 @@ func (s *KeeperTestSuite) TestWithdrawFixedDeposit() {
 		Account: s.Dao.GlobalDao,
 		Principal: sdk.Coin{
 			Denom:  params.BaseDenom,
-			Amount: sdk.NewInt(100000000),
+			Amount: sdkmath.NewInt(100000000),
 		},
 		Term: 30,
 	})

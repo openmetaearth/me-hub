@@ -8,6 +8,7 @@ import (
 
 	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -178,10 +179,10 @@ func (suite *KeeperTestSuite) newContextWith(height int64) sdk.Context {
 
 func (suite *KeeperTestSuite) setMockBankKeeper(ctx sdk.Context, mintAmount int64) {
 	suite.bankKeeper.EXPECT().
-		MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("umec", sdk.NewInt(mintAmount)))).
+		MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("umec", sdkmath.NewInt(mintAmount)))).
 		Return(nil)
 
 	suite.bankKeeper.EXPECT().
-		SendCoinsFromModuleToModule(ctx, minttypes.ModuleName, "treasury_pool", sdk.NewCoins(sdk.NewCoin("umec", sdk.NewInt(mintAmount)))).
+		SendCoinsFromModuleToModule(ctx, minttypes.ModuleName, "treasury_pool", sdk.NewCoins(sdk.NewCoin("umec", sdkmath.NewInt(mintAmount)))).
 		Return(nil)
 }

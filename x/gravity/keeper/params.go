@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/st-chain/me-hub/x/gravity/types"
@@ -42,15 +43,15 @@ func (k Keeper) GetGravityID(ctx sdk.Context) string {
 	return k.GetParams(ctx).GravityId
 }
 
-func (k Keeper) GetGravityMinDelegate(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetGravityMinDelegate(ctx sdk.Context) sdkmath.Int {
 	return k.GetParams(ctx).MinDelegate
 }
 
-func (k Keeper) GetGravityMaxDelegate(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetGravityMaxDelegate(ctx sdk.Context) sdkmath.Int {
 	return k.GetParams(ctx).MaxDelegate
 }
 
-func (k Keeper) GetSlashFraction(ctx sdk.Context) sdk.Dec {
+func (k Keeper) GetSlashFraction(ctx sdk.Context) sdkmath.LegacyDec {
 	return k.GetParams(ctx).SlashFraction
 }
 
@@ -62,7 +63,7 @@ func (k Keeper) GetMaxRelayers(ctx sdk.Context) uint64 {
 	return k.GetParams(ctx).MaxRelayers
 }
 
-func (k Keeper) GetRelayerSetUpdatePowerChangePercent(ctx sdk.Context) sdk.Dec {
+func (k Keeper) GetRelayerSetUpdatePowerChangePercent(ctx sdk.Context) sdkmath.LegacyDec {
 	return k.GetParams(ctx).RelayerSetUpdatePowerChangePercent
 }
 

@@ -1,7 +1,7 @@
 package types
 
 import (
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"time"
 )
@@ -14,7 +14,7 @@ func (s Stake) GetValidatorAddr() sdk.ValAddress {
 	return addr
 }
 
-func (s Stake) GetShares() sdk.Dec { return s.Shares }
+func (s Stake) GetShares() sdkmath.LegacyDec { return s.Shares }
 
 func (s Stake) GetStakerAddr() sdk.AccAddress {
 	stakerAddress := sdk.MustAccAddressFromBech32(s.StakerAddress)
@@ -24,15 +24,15 @@ func (s Stake) GetStakerAddr() sdk.AccAddress {
 // NewStake creates a new stake object
 //
 //nolint:interfacer
-func NewStake(stakerAddr sdk.AccAddress, validatorAddr sdk.ValAddress, shares sdk.Dec) Stake {
+func NewStake(stakerAddr sdk.AccAddress, validatorAddr sdk.ValAddress, shares sdkmath.LegacyDec) Stake {
 	return Stake{
 		StakerAddress:    stakerAddr.String(),
 		ValidatorAddress: validatorAddr.String(),
 		Shares:           shares,
 		StartHeight:      0,
-		Rewards:          sdk.ZeroDec(),
-		Amount:           sdk.ZeroInt(),
-		Unmovable:        sdk.ZeroInt(),
+		Rewards:          sdkmath.LegacyZeroDec(),
+		Amount:           sdkmath.ZeroInt(),
+		Unmovable:        sdkmath.ZeroInt(),
 	}
 }
 

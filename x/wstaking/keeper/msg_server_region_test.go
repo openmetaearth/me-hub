@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -202,7 +203,7 @@ func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 			withdrawer: s.Dao.GlobalDao,
 			amount: balance.Add(sdk.Coin{
 				Denom:  params.BaseDenom,
-				Amount: sdk.NewInt(1),
+				Amount: sdkmath.NewInt(1),
 			}),
 			expErr: sdkerrors.ErrInsufficientFunds,
 		}, {

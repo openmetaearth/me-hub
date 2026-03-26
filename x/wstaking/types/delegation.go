@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -25,14 +26,14 @@ func UnmarshalDelegation(cdc codec.BinaryCodec, value []byte) (delegation stakin
 // NewDelegation creates a new delegation object
 //
 //nolint:interfacer
-func NewDelegation(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, shares sdk.Dec) stakingtypes.Delegation {
+func NewDelegation(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress, shares sdkmath.LegacyDec) stakingtypes.Delegation {
 	return stakingtypes.Delegation{
 		DelegatorAddress: delegatorAddr.String(),
 		ValidatorAddress: validatorAddr.String(),
-		Shares:           sdk.ZeroDec(),
+		Shares:           sdkmath.LegacyZeroDec(),
 		StartHeight:      0,
-		Amount:           sdk.ZeroInt(),
-		Unmovable:        sdk.ZeroInt(),
-		UnMeidAmount:     sdk.ZeroInt(),
+		Amount:           sdkmath.ZeroInt(),
+		Unmovable:        sdkmath.ZeroInt(),
+		UnMeidAmount:     sdkmath.ZeroInt(),
 	}
 }

@@ -11,6 +11,7 @@ import (
 
 	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
@@ -45,7 +46,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		{
 			name:          "No bond required",
 			requiredBond:  sdk.Coin{},
-			bond:          sdk.NewCoin("adym", sdk.NewInt(10000000)),
+			bond:          sdk.NewCoin("adym", sdkmath.NewInt(10000000)),
 			expectedError: nil,
 		},
 		{
@@ -57,13 +58,13 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		{
 			name:          "Bad denom",
 			requiredBond:  bond,
-			bond:          sdk.NewCoin("invalid", sdk.NewInt(100)),
+			bond:          sdk.NewCoin("invalid", sdkmath.NewInt(100)),
 			expectedError: types.ErrInvalidCoinDenom,
 		},
 		{
 			name:          "Insufficient bond",
 			requiredBond:  bond,
-			bond:          sdk.NewCoin(bond.Denom, bond.Amount.Quo(sdk.NewInt(2))),
+			bond:          sdk.NewCoin(bond.Denom, bond.Amount.Quo(sdkmath.NewInt(2))),
 			expectedError: types.ErrInsufficientBond,
 		},
 	}

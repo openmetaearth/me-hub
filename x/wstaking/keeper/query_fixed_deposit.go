@@ -8,6 +8,7 @@ import (
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"google.golang.org/grpc/codes"
@@ -147,7 +148,7 @@ func (k Keeper) FixedDepositAmountByMeid(goCtx context.Context, req *types.Query
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	tmpList := k.GetFixedDepositByAcct(ctx, req.Account)
 
-	totalAmount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(0))
+	totalAmount := sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(0))
 	for _, v := range tmpList {
 		totalAmount = totalAmount.Add(v.Principal)
 	}

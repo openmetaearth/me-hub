@@ -7,24 +7,24 @@ import (
 	"math/rand"
 	"time"
 
-	sdk_math "cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// RandPositiveInt get a rand positive sdk.Int
-func RandPositiveInt(r *rand.Rand, max sdk_math.Int) (sdk_math.Int, error) {
-	if !max.GTE(sdk_math.OneInt()) {
-		return sdk_math.Int{}, errors.New("max too small")
+// RandPositiveInt get a rand positive sdkmath.Int
+func RandPositiveInt(r *rand.Rand, max sdkmath.Int) (sdkmath.Int, error) {
+	if !max.GTE(sdkmath.OneInt()) {
+		return sdkmath.Int{}, errors.New("max too small")
 	}
 
-	max = max.Sub(sdk_math.OneInt())
+	max = max.Sub(sdkmath.OneInt())
 
-	return sdk_math.NewIntFromBigInt(new(big.Int).Rand(r, max.BigInt())).Add(sdk_math.OneInt()), nil
+	return sdkmath.NewIntFromBigInt(new(big.Int).Rand(r, max.BigInt())).Add(sdkmath.OneInt()), nil
 }
 
 // RandomAmount generates a random amount
 // Note: The range of RandomAmount includes max, and is, in fact, biased to return max as well as 0.
-func RandomAmount(r *rand.Rand, max sdk_math.Int) sdk_math.Int {
+func RandomAmount(r *rand.Rand, max sdkmath.Int) sdkmath.Int {
 	randInt := big.NewInt(0)
 
 	switch r.Intn(10) {
@@ -36,12 +36,12 @@ func RandomAmount(r *rand.Rand, max sdk_math.Int) sdk_math.Int {
 		randInt = big.NewInt(0).Rand(r, max.BigInt()) // up to max - 1
 	}
 
-	return sdk_math.NewIntFromBigInt(randInt)
+	return sdkmath.NewIntFromBigInt(randInt)
 }
 
 // RandomDecAmount generates a random decimal amount
 // Note: The range of RandomDecAmount includes max, and is, in fact, biased to return max as well as 0.
-func RandomDecAmount(r *rand.Rand, max sdk_math.LegacyDec) sdk_math.LegacyDec {
+func RandomDecAmount(r *rand.Rand, max sdkmath.LegacyDec) sdkmath.LegacyDec {
 	randInt := big.NewInt(0)
 
 	switch r.Intn(10) {
@@ -53,7 +53,7 @@ func RandomDecAmount(r *rand.Rand, max sdk_math.LegacyDec) sdk_math.LegacyDec {
 		randInt = big.NewInt(0).Rand(r, max.BigInt())
 	}
 
-	return sdk_math.LegacyNewDecFromBigIntWithPrec(randInt, sdk_math.LegacyPrecision)
+	return sdkmath.LegacyNewDecFromBigIntWithPrec(randInt, sdkmath.LegacyPrecision)
 }
 
 // RandTimestamp generates a random timestamp

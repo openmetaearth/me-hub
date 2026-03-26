@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
@@ -28,8 +29,8 @@ func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFi
 		return nil, types.ErrAddFixedDepositConfig.Wrapf("add fixed deposit config error, rate is not positive 0 (%s)", msg.Rate.String())
 	}
 
-	minRate := sdk.MustNewDecFromStr("0.0001")
-	maxRate := sdk.MustNewDecFromStr("10000")
+	minRate := sdkmath.LegacyMustNewDecFromStr("0.0001")
+	maxRate := sdkmath.LegacyMustNewDecFromStr("10000")
 	if msg.Rate.LT(minRate) || msg.Rate.GT(maxRate) {
 		return nil, types.ErrAddFixedDepositConfig.Wrapf("add fixed deposit config rate(%s) error (%s)",
 			msg.Rate.String(), types.ErrFixedDepositConfigRateInvalid)

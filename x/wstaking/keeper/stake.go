@@ -6,7 +6,7 @@ import (
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -16,18 +16,18 @@ import (
 // tokenSrc indicates the bond status of the incoming funds.
 func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt math.Int,
 	tokenSrc stakingtypes.BondStatus, validator stakingtypes.Validator, subtractAccount bool, tag string,
-) (newShares sdk.Dec, err error) {
+) (newShares sdkmath.LegacyDec, err error) {
 	// In some situations, the exchange rate becomes invalid, e.g. if
 	// Validator loses all tokens due to slashing. In this case,
 	// make all future stakes invalid.
 	if validator.InvalidExRate() {
-		return sdk.ZeroDec(), types.ErrStakerShareExRateInvalid
+		return sdkmath.LegacyZeroDec(), types.ErrStakerShareExRateInvalid
 	}
 
 	// Get or create the stake object
 	stake, found := k.GetStake(ctx, staker, validator.GetOperator())
 	if !found {
-		stake = types.NewStake(staker, validator.GetOperator(), sdk.ZeroDec())
+		stake = types.NewStake(staker, validator.GetOperator(), sdkmath.LegacyZeroDec())
 	}
 
 	// if subtractAccount is true then we are
@@ -51,7 +51,7 @@ func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt math.Int,
 
 		coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), bondAmt))
 		if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, types.StakePoolName, recipientModule, coins, tag); err != nil {
-			return sdk.Dec{}, err
+			return sdkmath.LegacyDec{}, err
 		}
 	} else {
 		// potentially transfer tokens between pools, if
@@ -159,7 +159,7 @@ func (k Keeper) HasMaxUnbondingStakeEntries(ctx sdk.Context, stakerAddr sdk.AccA
 // an unbonding object and inserting it into the unbonding queue which will be
 // processed during the staking EndBlocker.
 func (k Keeper) Unstake(
-	ctx sdk.Context, stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, sharesAmount sdk.Dec,
+	ctx sdk.Context, stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, sharesAmount sdkmath.LegacyDec,
 ) (time.Time, error) {
 	validator, found := k.GetValidator(ctx, valAddr)
 	if !found {
@@ -188,7 +188,7 @@ func (k Keeper) Unstake(
 
 // UnStakeBond unbonds a particular stake and perform associated store operations.
 func (k Keeper) UnStakeBond(
-	ctx sdk.Context, stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdk.Dec,
+	ctx sdk.Context, stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdkmath.LegacyDec,
 ) (amount math.Int, err error) {
 	// check if a stake object exists in the store
 	stake, found := k.GetStake(ctx, stakerAddr, valAddr)
@@ -293,7 +293,7 @@ func (k Keeper) SetUnbondingStakeEntry(
 // amount of respective shares is returned, otherwise an error is returned.
 func (k Keeper) ValidateUnbondAmount(
 	ctx sdk.Context, stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, amt math.Int,
-) (shares sdk.Dec, err error) {
+) (shares sdkmath.LegacyDec, err error) {
 	validator, found := k.GetValidator(ctx, valAddr)
 	if !found {
 		return shares, stakingtypes.ErrNoValidatorFound

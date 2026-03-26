@@ -151,9 +151,9 @@ func (k Keeper) GetAllRelayers(ctx sdk.Context, isOnline bool) (relayers types.R
 	return relayers
 }
 
-func (k Keeper) GetAllBondedAmount(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetAllBondedAmount(ctx sdk.Context) sdkmath.Int {
 	relayers := k.GetAllRelayers(ctx, false)
-	totalBonded := sdk.ZeroInt()
+	totalBonded := sdkmath.ZeroInt()
 	for _, relayer := range relayers {
 		totalBonded = totalBonded.Add(relayer.DelegateAmount)
 	}

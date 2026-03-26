@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testkeeper "github.com/st-chain/me-hub/testutil/keeper"
 	"github.com/st-chain/me-hub/x/sequencer/types"
@@ -12,7 +13,7 @@ import (
 func TestGetParams(t *testing.T) {
 	k, ctx := testkeeper.SequencerKeeper(t)
 	params := types.DefaultParams()
-	params.MinBond = sdk.NewCoin("testdenom", sdk.NewInt(100))
+	params.MinBond = sdk.NewCoin("testdenom", sdkmath.NewInt(100))
 
 	k.SetParams(ctx, params)
 

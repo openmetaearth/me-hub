@@ -9,6 +9,7 @@ import (
 	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
 	trontypes "github.com/st-chain/me-hub/x/tron/types"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -113,8 +114,8 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 				bankGenState.Balances = append(bankGenState.Balances, bal)
 				bankGenState.Supply = bankGenState.Supply.Add(bal.Coins...)
 			}
-			delegateAmount := sdk.NewInt(1 * 1e8)
-			bondedAmount := delegateAmount.Mul(sdk.NewInt(int64(len(addrs))))
+			delegateAmount := sdkmath.NewInt(1 * 1e8)
+			bondedAmount := delegateAmount.Mul(sdkmath.NewInt(int64(len(addrs))))
 
 			bal1 := banktypes.Balance{
 				Address: authtypes.NewModuleAddress(bsctypes.ModuleName).String(),

@@ -62,15 +62,15 @@ func TestExportGenesis(t *testing.T) {
 		{
 			Id:                   "1",
 			TrackingPacketKey:    "key",
-			Price:                sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(100))),
-			Fee:                  sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(10))),
+			Price:                sdk.NewCoins(sdk.NewCoin("dym", sdkmath.NewInt(100))),
+			Fee:                  sdk.NewCoins(sdk.NewCoin("dym", sdkmath.NewInt(10))),
 			TrackingPacketStatus: commontypes.Status_PENDING,
 		},
 		{
 			Id:                   "2",
 			TrackingPacketKey:    "key2",
-			Price:                sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(100))),
-			Fee:                  sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(10))),
+			Price:                sdk.NewCoins(sdk.NewCoin("dym", sdkmath.NewInt(100))),
+			Fee:                  sdk.NewCoins(sdk.NewCoin("dym", sdkmath.NewInt(10))),
 			TrackingPacketStatus: commontypes.Status_PENDING,
 		},
 	}

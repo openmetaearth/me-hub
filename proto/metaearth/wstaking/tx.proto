@@ -129,7 +129,7 @@ message MsgFixedDepositCfg {
   string regionId = 2;
   int64 term = 3;
   string rate = 4 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 }
@@ -161,7 +161,7 @@ message MsgSetFixedDepositCfgRate {
   string regionId = 2;
   int64 term = 3;
   string rate = 4 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 }
@@ -241,7 +241,7 @@ message MsgNewFixedDepositCfg {
   string regionId = 2;
   int64 term = 3;
   string rate = 4 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 }
@@ -270,7 +270,7 @@ message MsgWithdrawFixedDepositResponse {
   cosmos.base.v1beta1.Coin interest = 2 [(gogoproto.nullable) = false];
   int64 term = 3;
   string rate = 4 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 }

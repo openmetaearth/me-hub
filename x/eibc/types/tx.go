@@ -7,6 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -104,7 +105,7 @@ func validateCommon(orderId, address, fee string) error {
 		return err
 	}
 
-	feeInt, ok := sdk.NewIntFromString(fee)
+	feeInt, ok := sdkmath.NewIntFromString(fee)
 	if !ok {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("parse fee: %s", fee))
 	}

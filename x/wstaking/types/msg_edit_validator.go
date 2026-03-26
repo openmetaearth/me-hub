@@ -14,7 +14,7 @@ var _ sdk.Msg = &MsgUpdateValidator{}
 // NewMsgUpdateValidator creates a new MsgUpdateValidator instance
 //
 //nolint:interfacer
-func NewMsgUpdateValidator(valAddr sdk.ValAddress, description stakingtypes.Description, newRate *sdk.Dec, newMinSelfDelegation *math.Int) *MsgUpdateValidator {
+func NewMsgUpdateValidator(valAddr sdk.ValAddress, description stakingtypes.Description, newRate *sdkmath.LegacyDec, newMinSelfDelegation *math.Int) *MsgUpdateValidator {
 	return &MsgUpdateValidator{
 		Description:       description,
 		CommissionRate:    newRate,

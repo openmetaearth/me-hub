@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -84,7 +84,7 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 		return types.ErrNoDelegatorForAddress
 	}
 
-	if delegation.Amount.Add(delegation.UnMeidAmount).GT(sdk.ZeroInt()) {
+	if delegation.Amount.Add(delegation.UnMeidAmount).GT(sdkmath.ZeroInt()) {
 		return types.ErrRemoveKyc.Wrap(fmt.Sprintf("The current user(%s) have delegate, need to withdraw.", account))
 	}
 
@@ -94,7 +94,7 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 	}
 
 	region.DelegateAmount = region.DelegateAmount.Sub(types.Bonus).Sub(delegation.Amount)
-	if region.DelegateAmount.LT(sdk.ZeroInt()) {
+	if region.DelegateAmount.LT(sdkmath.ZeroInt()) {
 		return errors.New("remove kyc error: region delegation amount less than 0")
 	}
 
@@ -118,11 +118,11 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
 	}
 
-	if delegation.Unmovable.LTE(sdk.ZeroInt()) {
+	if delegation.Unmovable.LTE(sdkmath.ZeroInt()) {
 		return types.ErrDidExists
 	}
 
-	delegation.Unmovable = sdk.ZeroInt()
+	delegation.Unmovable = sdkmath.ZeroInt()
 	delegation.StartHeight = ctx.BlockHeight()
 
 	experienceRegion, found := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegionName))
@@ -171,7 +171,7 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 
 	delegation, found := k.GetDelegation(ctx, delAddr, experienceValAddress)
 	if found {
-		if delegation.Unmovable.GT(sdk.ZeroInt()) {
+		if delegation.Unmovable.GT(sdkmath.ZeroInt()) {
 			return types.ErrDidExists
 		}
 		interest, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
@@ -179,7 +179,7 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 			return types.ErrCalculateInterest.Wrap(err.Error())
 		}
 		// add coins to user account
-		if interest.GT(sdk.ZeroDec()) {
+		if interest.GT(sdkmath.LegacyZeroDec()) {
 			err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
 				sdk.MustAccAddressFromBech32(experienceRegion.RegionTreasureAddr),
 				sdk.MustAccAddressFromBech32(delegation.DelegatorAddress),
@@ -216,7 +216,7 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 			),
 		})
 	} else {
-		delegation = stakingtypes.NewDelegation(delAddr, validatorAddr, sdk.ZeroDec())
+		delegation = stakingtypes.NewDelegation(delAddr, validatorAddr, sdkmath.LegacyZeroDec())
 	}
 
 	// Update delegation
@@ -252,7 +252,7 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 	}
 
 	delegation.Amount = delegation.Amount.Add(delegation.UnMeidAmount)
-	delegation.UnMeidAmount = sdk.ZeroInt()
+	delegation.UnMeidAmount = sdkmath.ZeroInt()
 	k.SetDelegation(ctx, delegation)
 
 	region.DelegateAmount = region.DelegateAmount.Add(delegation.Amount).Add(types.Bonus)
@@ -289,15 +289,15 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 	}
 	// It is a regional rule used to define parameters such as fixed deposit term and interest rate for a certain region.
 	depositConfig := k.GetAllFixedDepositCfg(ctx, toRegion.RegionId)
-	depositConfigMap := make(map[int64]sdk.Dec)
+	depositConfigMap := make(map[int64]sdkmath.LegacyDec)
 	for _, cfg := range depositConfig {
 		if cfg.Status == types.RegionFixedDepositCfgStatusInactive {
 			return errors.New("fixed deposit cfg status is inactive")
 		}
 		depositConfigMap[cfg.Term] = cfg.Rate
 	}
-	totalFixedDepositByAcc := sdk.ZeroInt()
-	totalFixedInterestCoin := sdk.ZeroInt()
+	totalFixedDepositByAcc := sdkmath.ZeroInt()
+	totalFixedInterestCoin := sdkmath.ZeroInt()
 	for _, fixed := range fixedDeposits {
 		totalFixedDepositByAcc = totalFixedDepositByAcc.Add(fixed.Principal.Amount)
 		totalFixedInterestCoin = totalFixedInterestCoin.Add(fixed.Interest.Amount)
@@ -368,7 +368,7 @@ func (k Keeper) transferNewMeid(ctx sdk.Context, region *types.Region, address s
 		newAccount := k.authKeeper.NewAccountWithAddress(ctx, accAddr)
 		k.authKeeper.SetAccount(ctx, newAccount)
 	}
-	bonus := sdk.NewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
+	bonus := sdkmath.LegacyNewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
 	region.DelegateAmount = region.DelegateAmount.Add(delegation.Amount).Add(bonus.RoundInt())
 	delegation.StartHeight = ctx.BlockHeight()
 	delegation.ValidatorAddress = valAddr.String()
@@ -397,7 +397,7 @@ func (k Keeper) transferRemoveMeid(ctx sdk.Context, address string, region *type
 		return err
 	}
 
-	bonus := sdk.NewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
+	bonus := sdkmath.LegacyNewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
 	validator.MeidAmount = validator.MeidAmount.Sub(bonus.RoundInt())
 	validator.DelegationAmount = validator.DelegationAmount.Sub(delegation.Amount)
 	k.SetValidator(ctx, validator)
@@ -405,9 +405,9 @@ func (k Keeper) transferRemoveMeid(ctx sdk.Context, address string, region *type
 }
 
 func (k Keeper) transferUnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, region *types.Region, delegation stakingtypes.Delegation) (amount math.Int, err error) {
-	bonus := sdk.NewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
+	bonus := sdkmath.LegacyNewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
 	region.DelegateAmount = region.DelegateAmount.Sub(bonus.RoundInt()).Sub(delegation.Amount)
-	if region.DelegateAmount.LT(sdk.ZeroInt()) {
+	if region.DelegateAmount.LT(sdkmath.ZeroInt()) {
 		return amount, errors.New("UnRegisterMeid err: region DelegationAmount < 0")
 	}
 	rewards, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
@@ -423,7 +423,7 @@ func (k Keeper) transferUnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, 
 		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
 	}
 
-	if delegation.Unmovable.LTE(sdk.ZeroInt()) {
+	if delegation.Unmovable.LTE(sdkmath.ZeroInt()) {
 		return amount, errors.New("UnRegisterMeid err: delegation UnMovable < 0")
 	}
 

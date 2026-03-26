@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 
 	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 )
@@ -23,11 +23,11 @@ func TestDefaultGenesisState(t *testing.T) {
 					ExternalBatchTimeout:               12 * 3600 * 1000,
 					AverageExternalBlockTime:           3_000,
 					SignedWindow:                       30_000,
-					SlashFraction:                      sdk.NewDec(8).Quo(sdk.NewDec(10)),
-					RelayerSetUpdatePowerChangePercent: sdk.MustNewDecFromStr("0.1"),
+					SlashFraction:                      sdkmath.LegacyNewDec(8).Quo(sdkmath.LegacyNewDec(10)),
+					RelayerSetUpdatePowerChangePercent: sdkmath.LegacyMustNewDecFromStr("0.1"),
 					MaxRelayers:                        10,
-					MinDelegate:                        sdk.NewInt(100_000_000),
-					MaxDelegate:                        sdk.NewInt(10_000_000_000),
+					MinDelegate:                        sdkmath.NewInt(100_000_000),
+					MaxDelegate:                        sdkmath.NewInt(10_000_000_000),
 				},
 			},
 		},

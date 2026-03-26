@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -57,7 +58,7 @@ func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer)
 		return nil, types.ErrDelegateAmountAboveMaximum
 	}
 
-	maxBondedAmount := s.GetAllBondedAmount(ctx).Mul(types.AttestationProposalRelayerChangePowerThreshold).Quo(sdk.NewInt(100))
+	maxBondedAmount := s.GetAllBondedAmount(ctx).Mul(types.AttestationProposalRelayerChangePowerThreshold).Quo(sdkmath.NewInt(100))
 	if !maxBondedAmount.IsZero() && msg.DelegateAmount.Amount.GT(maxBondedAmount) {
 		return nil, errorsmod.Wrapf(types.ErrMaxChangePowerLimitExceeded,
 			"max bond amount: %s, bond amont: %s", maxBondedAmount, msg.DelegateAmount.Amount)
@@ -115,7 +116,7 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 		return nil, types.ErrDelegateAmountAboveMaximum
 	}
 
-	maxBondedAmount := s.GetAllBondedAmount(ctx).Mul(types.AttestationProposalRelayerChangePowerThreshold).Quo(sdk.NewInt(100))
+	maxBondedAmount := s.GetAllBondedAmount(ctx).Mul(types.AttestationProposalRelayerChangePowerThreshold).Quo(sdkmath.NewInt(100))
 	if relayer.DelegateAmount.GT(maxBondedAmount) {
 		return nil, errorsmod.Wrapf(types.ErrMaxChangePowerLimitExceeded,
 			"max bond amount: %s, bond amont: %s", maxBondedAmount, msg.Amount)

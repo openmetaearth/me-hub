@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
@@ -23,7 +24,7 @@ func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
 		creator  string
 		regionId string
 		term     int64
-		rate     sdk.Dec
+		rate     sdkmath.LegacyDec
 		expErr   error
 	}{
 		{
@@ -31,35 +32,35 @@ func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
 			creator:  s.Dao.MeidDao,
 			regionId: strings.ToLower(types.MeEarthRegionName),
 			term:     1,
-			rate:     sdk.MustNewDecFromStr("0.1"),
+			rate:     sdkmath.LegacyMustNewDecFromStr("0.1"),
 			expErr:   types.ErrCheckGlobalDao,
 		}, {
 			name:     "have permission, but wrong region id",
 			creator:  s.Dao.GlobalDao,
 			regionId: types.MeEarthRegionName,
 			term:     1,
-			rate:     sdk.MustNewDecFromStr("0.1"),
+			rate:     sdkmath.LegacyMustNewDecFromStr("0.1"),
 			expErr:   types.ErrRegionName,
 		}, {
 			name:     "invalid term",
 			creator:  s.Dao.GlobalDao,
 			regionId: strings.ToLower(types.MeEarthRegionName),
 			term:     0,
-			rate:     sdk.MustNewDecFromStr("0.1"),
+			rate:     sdkmath.LegacyMustNewDecFromStr("0.1"),
 			expErr:   types.ErrAddFixedDepositConfig,
 		}, {
 			name:     "invalid rate",
 			creator:  s.Dao.GlobalDao,
 			regionId: strings.ToLower(types.MeEarthRegionName),
 			term:     1,
-			rate:     sdk.MustNewDecFromStr("0"),
+			rate:     sdkmath.LegacyMustNewDecFromStr("0"),
 			expErr:   types.ErrAddFixedDepositConfig,
 		}, {
 			name:     "No error",
 			creator:  s.Dao.GlobalDao,
 			regionId: strings.ToLower(types.MeEarthRegionName),
 			term:     1,
-			rate:     sdk.MustNewDecFromStr("0.1"),
+			rate:     sdkmath.LegacyMustNewDecFromStr("0.1"),
 			expErr:   nil,
 		},
 	}
@@ -80,7 +81,7 @@ func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
 				s.Require().Equal(1, len(cfg.RegionFixedDepositCfgs))
 				s.Require().Equal(strings.ToLower(types.MeEarthRegionName), cfg.RegionFixedDepositCfgs[0].RegionId)
 				s.Require().Equal(int64(1), cfg.RegionFixedDepositCfgs[0].RegionFixedDepositCfg[0].Term)
-				s.Require().True(cfg.RegionFixedDepositCfgs[0].RegionFixedDepositCfg[0].Rate.Equal(sdk.MustNewDecFromStr("0.1")))
+				s.Require().True(cfg.RegionFixedDepositCfgs[0].RegionFixedDepositCfg[0].Rate.Equal(sdkmath.LegacyMustNewDecFromStr("0.1")))
 			}
 		})
 	}

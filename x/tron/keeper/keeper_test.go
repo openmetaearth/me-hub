@@ -91,11 +91,11 @@ func (s *KeeperTestSuite) SetupTest() {
 		ExternalBatchTimeout:               24 * 3600 * 1000, // 24 hours
 		AverageExternalBlockTime:           3000,
 		SignedWindow:                       30_000,
-		SlashFraction:                      sdk.NewDec(1).Quo(sdk.NewDec(1000)),
-		RelayerSetUpdatePowerChangePercent: sdk.MustNewDecFromStr("0.2"),
+		SlashFraction:                      sdkmath.LegacyNewDec(1).Quo(sdkmath.LegacyNewDec(1000)),
+		RelayerSetUpdatePowerChangePercent: sdkmath.LegacyMustNewDecFromStr("0.2"),
 		MaxRelayers:                        10,
-		MinDelegate:                        sdk.NewInt(1000000000),
-		MaxDelegate:                        sdk.NewInt(100000000000),
+		MinDelegate:                        sdkmath.NewInt(1000000000),
+		MaxDelegate:                        sdkmath.NewInt(100000000000),
 	})
 	s.Require().NoError(err)
 
@@ -169,7 +169,7 @@ func (s *KeeperTestSuite) NewBridgeToken(bridger sdk.AccAddress) []gravitytypes.
 			Name:            "",
 			Symbol:          fmt.Sprintf("test%d", i),
 			Decimal:         0,
-			Supply:          sdk.NewInt(0),
+			Supply:          sdkmath.NewInt(0),
 		}
 		err := s.App.TronKeeper.AttestationHandler(s.Ctx, &gravitytypes.MsgBridgeTokenClaim{
 			TokenContract:  bt.ContractAddress,

@@ -222,7 +222,7 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 			totalWantReward += testcase.regionWantGetReward[i]
 		}
 		if totalWantReward != 0 {
-			suite.SetMockGetBalance(ctx, sdk.NewInt(int64(totalWantReward)))
+			suite.SetMockGetBalance(ctx, sdkmath.NewInt(int64(totalWantReward)))
 		}
 		suite.setMockSendCoinsFromModuleToAccountExpect(ctx, wantReward...)
 
@@ -246,7 +246,7 @@ func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int
 	var regions []wstakingtypes.RegionI
 	for i, share := range regionShare {
 		region := mocks.NewMockRegionI(suite.T())
-		region.EXPECT().GetRegionShare().Return(sdk.NewInt(int64(share)))
+		region.EXPECT().GetRegionShare().Return(sdkmath.NewInt(int64(share)))
 		addr := authtypes.NewModuleAddress(fmt.Sprintf("region_%d", i)).String()
 		addrs = append(addrs, addr)
 		region.EXPECT().GetRegionTreasureAddr().Return(addr)
@@ -280,7 +280,7 @@ func (suite *KeeperTestSuite) setMockSendCoinsFromModuleToAccountExpect(ctx sdk.
 				ctx,
 				suite.App.DistrKeeper.GetTreasuryModuleAccount(),
 				sdk.MustAccAddressFromBech32(w.addr),
-				sdk.NewCoins(sdk.NewCoin(baseDenom, sdk.NewInt(w.num))),
+				sdk.NewCoins(sdk.NewCoin(baseDenom, sdkmath.NewInt(w.num))),
 			).Return(nil)
 	}
 }

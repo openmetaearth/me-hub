@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -40,7 +41,7 @@ func (s *KeeperTestSuite) TestDelegate() {
 		{
 			name:             "did delegate",
 			account:          s.Dao.GlobalDao,
-			amount:           sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000)),
+			amount:           sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000000)),
 			height:           5,
 			reward:           0.1981862,
 			validatorAddress: s.meEarthValidator.OperatorAddress,
@@ -49,7 +50,7 @@ func (s *KeeperTestSuite) TestDelegate() {
 		{
 			name:             "un did delegate",
 			account:          s.Dao.AirdropAddress,
-			amount:           sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000)),
+			amount:           sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000000)),
 			height:           5,
 			reward:           0.1981862,
 			validatorAddress: s.experienceValidator.OperatorAddress,
@@ -119,7 +120,7 @@ func (s *KeeperTestSuite) TestUnDelegate() {
 		{
 			name:    "un did undelegate",
 			account: s.Dao.AirdropAddress,
-			amount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000)),
+			amount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000000)),
 			height:  5,
 			reward:  0.1981862,
 			expErr:  nil,

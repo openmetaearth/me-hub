@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -99,7 +100,7 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	suite.mockDaoKeeper.EXPECT().GetGlobalDaoFeePoolAddr(gomock.Any()).Return(devOperator.GetAddress())
 	suite.mockDaoKeeper.EXPECT().CheckFreeGasAccount(gomock.Any(), addr.Address).Return(false)
 
-	amt := sdk.NewInt(100)
+	amt := sdkmath.NewInt(100)
 	err := testutil.FundAccount(
 		suite.app.BankKeeper,
 		suite.ctx,
@@ -113,7 +114,7 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 	recipient := NewAccount()
-	msgSend := banktypes.NewMsgSend(acc.GetAddress(), recipient.GetAddress(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1))))
+	msgSend := banktypes.NewMsgSend(acc.GetAddress(), recipient.GetAddress(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1))))
 
 	txBuilder := suite.CreateTestEIP712CosmosTxBuilder(privKey, []sdk.Msg{msgSend})
 	_, err = suite.anteHandler(suite.ctx, txBuilder.GetTx(), false)
@@ -125,7 +126,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	priv cryptotypes.PrivKey, msgs []sdk.Msg,
 ) client.TxBuilder {
 	txConfig := suite.clientCtx.TxConfig
-	coinAmount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(20))
+	coinAmount := sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(20))
 	fees := sdk.NewCoins(coinAmount)
 
 	pc, err := ethermint.ParseChainID(suite.ctx.ChainID())

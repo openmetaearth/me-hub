@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -105,7 +106,7 @@ func (s *KeeperTestSuite) TestRemove() {
 	// check region DelegateAmount
 	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, strings.ToLower(wstakingtypes.MeEarthRegionName))
 	s.Require().True(found)
-	s.Require().Equal(region.DelegateAmount.String(), sdk.NewInt(0).String())
+	s.Require().Equal(region.DelegateAmount.String(), sdkmath.NewInt(0).String())
 
 	_, f = s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
 	s.Require().False(f)

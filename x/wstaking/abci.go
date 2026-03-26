@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/wstaking/keeper"
 )
@@ -15,11 +16,11 @@ import (
 // and prune the oldest entry based on the HistoricalEntries parameter
 func BeginBlock(ctx sdk.Context, k *keeper.Keeper) {
 	totalRewardsPerBlockTemp := k.GetPerBlockMintCoinAmount(ctx)
-	totalRewardsPerBlock := sdk.NewIntFromBigInt(&totalRewardsPerBlockTemp)
+	totalRewardsPerBlock := sdkmath.NewIntFromBigInt(&totalRewardsPerBlockTemp)
 	regions := k.GetAllRegion(ctx)
 
 	for _, region := range regions {
-		rewards, _ := k.Calculate(ctx, sdk.NewDecFromInt(totalRewardsPerBlock), region.DelegateAmount) // rate.MulInt(totalRewardsPerBlock.Mul(region.DelegateAmount)).Mul(sdk.NewDecWithPrec(1, sdk.MEExponent))
+		rewards, _ := k.Calculate(ctx, sdkmath.LegacyNewDecFromInt(totalRewardsPerBlock), region.DelegateAmount) // rate.MulInt(totalRewardsPerBlock.Mul(region.DelegateAmount)).Mul(sdk.NewDecWithPrec(1, sdk.MEExponent))
 		region.DelegateInterest = region.DelegateInterest.Add(rewards)
 		k.SetRegion(ctx, region)
 	}

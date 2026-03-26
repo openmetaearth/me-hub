@@ -3,6 +3,7 @@ package sequencer_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/st-chain/me-hub/testutil/keeper"
 	"github.com/st-chain/me-hub/testutil/nullify"
@@ -43,7 +44,7 @@ func TestInitGenesis(t *testing.T) {
 
 func TestExportGenesis(t *testing.T) {
 	params := types.Params{
-		MinBond:       sdk.NewCoin("dym", sdk.NewInt(100)),
+		MinBond:       sdk.NewCoin("dym", sdkmath.NewInt(100)),
 		UnbondingTime: 100,
 	}
 	sequencerList := []types.Sequencer{

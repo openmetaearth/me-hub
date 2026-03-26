@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -38,7 +39,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 
 			config.SetRoot(clientCtx.HomeDir)
 
-			coins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(wminttypes.TotalBaseCoinsAmount)))
+			coins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(wminttypes.TotalBaseCoinsAmount)))
 
 			moduleAddress := authtypes.NewModuleAddress(wstakingtypes.StakePoolName)
 			moduleBaseAccount := authtypes.NewBaseAccount(moduleAddress, nil, 0, 0)
