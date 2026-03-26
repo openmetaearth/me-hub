@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 
-	cmlog "cosmossdk.io/log"
 	ipfslog "github.com/ipfs/go-log/v2"
 )
 
@@ -26,8 +25,7 @@ func (l MeLogger) Error(msg string, keyvals ...interface{}) {
 	l.Logger.Errorw(msg, append(l.context, keyvals...)...)
 }
 
-func (l MeLogger) With(keyvals ...interface{}) cmlog.Logger {
-
+func (l MeLogger) With(keyvals ...interface{}) MeLogger {
 	if len(keyvals)%2 != 0 {
 		keyvals = append(keyvals, ErrMissingValue)
 	}

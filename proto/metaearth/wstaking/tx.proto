@@ -74,11 +74,11 @@ message MsgUpdateValidator {
   // REF: #2373
   string commission_rate = 3 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec"
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec"
   ];
   string min_self_delegation = 4 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+    (gogoproto.customtype) = "cosmossdk.io/math.Int"
   ];
   string owner_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string operator_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];

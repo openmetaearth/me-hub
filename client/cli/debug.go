@@ -1,12 +1,16 @@
 package cli
 
 import (
+	txsigning "cosmossdk.io/x/tx/signing"
 	"crypto/sha256"
 	"encoding/base64"
+	"google.golang.org/protobuf/types/known/anypb"
+
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -25,7 +29,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32" // nolint:staticcheck
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/gogoproto/proto"
@@ -132,6 +135,8 @@ func VerifyTxCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			addrCdc := clientCtx.TxConfig.SigningContext().AddressCodec()
+			signModeHandler := clientCtx.TxConfig.SignModeHandler()
 
 			txBytes, err := base64.StdEncoding.DecodeString(args[0])
 			if err != nil {
@@ -141,12 +146,6 @@ func VerifyTxCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			builder, err := clientCtx.TxConfig.WrapTxBuilder(sdkTx)
-			if err != nil {
-				return err
-			}
-			stdTx := builder.GetTx()
 
 			sigTx, ok := sdkTx.(authsigning.SigVerifiableTx)
 			if !ok {
@@ -158,7 +157,10 @@ func VerifyTxCmd() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("get signature error %s", err.Error())
 			}
-			signerAddrs := sigTx.GetSigners()
+			signerAddrs, err := sigTx.GetSigners()
+			if err != nil {
+				panic(err)
+			}
 
 			// check that signer length and signature length are the same
 			if len(sigs) != len(signerAddrs) {
@@ -171,7 +173,11 @@ func VerifyTxCmd() *cobra.Command {
 			chainId := status.NodeInfo.Network
 			queryClient := authtypes.NewQueryClient(clientCtx)
 			for i, sig := range sigs {
-				accountResponse, err := queryClient.Account(cmd.Context(), &authtypes.QueryAccountRequest{Address: signerAddrs[i].String()})
+				signerStr, err := addrCdc.BytesToString(signerAddrs[i])
+				if err != nil {
+					panic(err)
+				}
+				accountResponse, err := queryClient.Account(cmd.Context(), &authtypes.QueryAccountRequest{Address: signerStr})
 				if err != nil {
 					return err
 				}
@@ -182,23 +188,40 @@ func VerifyTxCmd() *cobra.Command {
 				}
 				// retrieve pubkey
 				pubKey := acc.GetPubKey()
-				sequence := sig.Sequence
-				signerData := authsigning.SignerData{
+
+				signingData := authsigning.SignerData{
+					Address:       signerStr,
 					ChainID:       chainId,
 					AccountNumber: acc.GetAccountNumber(),
-					Sequence:      sequence,
+					Sequence:      acc.GetSequence(),
+					PubKey:        pubKey,
 				}
-
-				bz := legacytx.StdSignBytes(
-					chainId, acc.GetAccountNumber(), sequence, stdTx.GetTimeoutHeight(),
-					legacytx.StdFee{Amount: stdTx.GetFee(), Gas: stdTx.GetGas()},
-					sdkTx.GetMsgs(), stdTx.GetMemo(), nil,
-				)
-				if err = clientCtx.PrintString(string(bz) + "\n"); err != nil {
+				anyPk, err := codectypes.NewAnyWithValue(pubKey)
+				if err != nil {
+					cmd.PrintErrf("failed to pack public key: %v", err)
 					return err
 				}
+				txSignerData := txsigning.SignerData{
+					ChainID:       signingData.ChainID,
+					AccountNumber: signingData.AccountNumber,
+					Sequence:      signingData.Sequence,
+					Address:       signingData.Address,
+					PubKey: &anypb.Any{
+						TypeUrl: anyPk.TypeUrl,
+						Value:   anyPk.Value,
+					},
+				}
 
-				if err = authsigning.VerifySignature(pubKey, signerData, sig.Data, clientCtx.TxConfig.SignModeHandler(), sdkTx); err != nil {
+				adaptableTx, ok := sdkTx.(authsigning.V2AdaptableTx)
+				if !ok {
+					cmd.PrintErrf("expected V2AdaptableTx, got %T", sdkTx)
+					return nil
+				}
+				txData := adaptableTx.GetSigningTxData()
+
+				err = authsigning.VerifySignature(cmd.Context(), pubKey, txSignerData, sig.Data, signModeHandler, txData)
+				if err != nil {
+					cmd.PrintErrf("failed to verify signature: %v", err)
 					return err
 				}
 			}

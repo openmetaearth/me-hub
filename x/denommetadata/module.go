@@ -19,7 +19,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 
-	"github.com/st-chain/me-hub/x/denommetadata/client/cli"
 	"github.com/st-chain/me-hub/x/denommetadata/keeper"
 	"github.com/st-chain/me-hub/x/denommetadata/types"
 )
@@ -53,12 +52,10 @@ func (AppModuleBasic) Name() string {
 
 // RegisterLegacyAminoCodec registers the module's types on the LegacyAmino codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterCodec(cdc)
 }
 
 // RegisterInterfaces registers the module's interface types.
 func (a AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {
-	types.RegisterInterfaces(reg)
 }
 
 // DefaultGenesis returns the module's default genesis state.
@@ -96,7 +93,7 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 
 // GetTxCmd returns the module's root tx command.
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.GetTxCmd()
+	return nil
 }
 
 // GetQueryCmd returns the module's root query command.
@@ -143,7 +140,6 @@ func (am AppModule) Name() string {
 
 // RegisterServices registers the module's services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 }
 
 // RegisterInvariants registers the module's invariants.
