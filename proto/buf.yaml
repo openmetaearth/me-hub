@@ -1,11 +1,12 @@
 version: v1
 name: buf.build/st-chain/me-hub
 deps:
-  - buf.build/cosmos/cosmos-sdk:v0.47.0
-  - buf.build/cosmos/cosmos-proto:1935555c206d4afb9e94615dfd0fad31
+  - buf.build/cosmos/cosmos-sdk:v0.50.0
+  - buf.build/cosmos/cosmos-proto
   - buf.build/cosmos/gogo-proto
-  - buf.build/cosmos/ibc:fbb44f5ad3194450af479a615fa715d9
-  - buf.build/googleapis/googleapis:8d7204855ec14631a499bd7393ce1970
+  - buf.build/googleapis/googleapis
+  - buf.build/grpc-ecosystem/grpc-gateway
+  - buf.build/cosmos/ibc:442292b00c1649c1b2e0881f942d3b53
 breaking:
   use:
     - FILE

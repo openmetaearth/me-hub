@@ -267,6 +267,7 @@ proto-all: proto-format proto-gen
 proto-gen:
 	@echo "Generating Protobuf files"
 	@$(protoCosmosImage) sh ./scripts/protocgen.sh
+	@go mod tidy
 
 proto-swagger-gen:
 	@echo "Downloading Protobuf dependencies"

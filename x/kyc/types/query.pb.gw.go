@@ -540,17 +540,17 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Protocol_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "kyc", "protocol"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Protocol_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "kyc", "protocol"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_DID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "kyc", "DID"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_DID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "kyc", "DID"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_DIDs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "kyc", "DIDs"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_DIDs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "kyc", "DIDs"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_KYC_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "kyc", "KYC"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_KYC_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "kyc", "KYC"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_KYCs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "kyc", "KYCs"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_KYCs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "kyc", "KYCs"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_SBT_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "kyc", "SBT"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_SBT_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "kyc", "SBT"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

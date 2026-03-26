@@ -759,19 +759,19 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "sequencer", "params"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "sequencer", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Sequencer_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"metaearth", "sequencer", "sequencerAddress"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Sequencer_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"metaearth", "sequencer", "sequencerAddress"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Sequencers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 1}, []string{"metaearth", "sequencer"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Sequencers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 1}, []string{"metaearth", "sequencer"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_SequencersByRollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "sequencer", "sequencers_by_rollapp", "rollappId"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_SequencersByRollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "sequencer", "sequencers_by_rollapp", "rollappId"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_SequencersByRollappByStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"metaearth", "sequencer", "sequencers_by_rollapp", "rollappId", "status"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_SequencersByRollappByStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"metaearth", "sequencer", "sequencers_by_rollapp", "rollappId", "status"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_UnConfirmSequencerAddressByRollappByStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"metaearth", "sequencer", "unconfirm_sequencer_address_by_rollapp", "rollappId", "block_height"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_UnConfirmSequencerAddressByRollappByStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"metaearth", "sequencer", "unconfirm_sequencer_address_by_rollapp", "rollappId", "block_height"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_ReplaceProposerInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "sequencer", "replace_proposer_info", "rollappId"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ReplaceProposerInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "sequencer", "replace_proposer_info", "rollappId"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

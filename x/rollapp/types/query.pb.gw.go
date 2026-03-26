@@ -846,21 +846,21 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "rollapp", "params"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "rollapp", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Rollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"metaearth", "rollapp", "rollappId"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Rollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"metaearth", "rollapp", "rollappId"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_RollappByEIP155_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2}, []string{"metaearth", "rollapp", "eip155"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_RollappByEIP155_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2}, []string{"metaearth", "rollapp", "eip155"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_RollappAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 1}, []string{"metaearth", "rollapp"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_RollappAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 1}, []string{"metaearth", "rollapp"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_LatestHeight_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "rollapp", "latest_height", "rollappId"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_LatestHeight_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "rollapp", "latest_height", "rollappId"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_LatestStateIndex_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "rollapp", "latest_state_index", "rollappId"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_LatestStateIndex_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "rollapp", "latest_state_index", "rollappId"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_StateInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"metaearth", "rollapp", "state_info", "rollappId", "index"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_StateInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"metaearth", "rollapp", "state_info", "rollappId", "index"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_SkipDelayRollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "rollapp", "skip_delay_rollapp"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_SkipDelayRollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "rollapp", "skip_delay_rollapp"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
