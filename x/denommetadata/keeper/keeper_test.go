@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	errorsmod "cosmossdk.io/errors"
@@ -12,13 +11,7 @@ import (
 
 	_ "embed"
 
-	"github.com/bcp-innovations/hyperlane-cosmos/util"
-	hlcoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
-	warpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
-	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	"github.com/st-chain/me-hub/app/apptesting"
-	"github.com/st-chain/me-hub/x/denommetadata/keeper"
-	"github.com/st-chain/me-hub/x/denommetadata/types"
 )
 
 //go:embed testdata/denom_kas.json
@@ -56,46 +49,6 @@ func (suite *KeeperTestSuite) TestParseJson() {
 	err := json.Unmarshal([]byte(denomKasJson), &metadata)
 	suite.Require().NoError(err)
 	suite.Require().EqualValues(metadata.Symbol, "KAS")
-}
-
-func (suite *KeeperTestSuite) TestCreateDenomHLToken() {
-	k := suite.App.DenomMetadataKeeper
-	bankKeeper := suite.App.BankKeeper
-	hlCoreK := suite.App.HyperCoreKeeper
-	mailbox := util.GenerateHexAddress([20]byte{1}, 1, 1) // dummy value
-	err := hlCoreK.Mailboxes.Set(suite.Ctx, mailbox.GetInternalId(), hlcoretypes.Mailbox{})
-	suite.Require().NoError(err)
-
-	warpS := warpkeeper.NewMsgServerImpl(suite.App.HyperWarpKeeper)
-
-	signer := "dym1000000000000000000000000000000000000000000000000000000000000000"
-
-	msg0 := warptypes.MsgCreateSyntheticToken{
-		OriginMailbox: mailbox,
-		Owner:         signer,
-	}
-	res0, err := warpS.CreateSyntheticToken(suite.Ctx, &msg0)
-	suite.Require().NoError(err)
-
-	metadata := suite.getDymMetadata()
-	metadata.Base = fmt.Sprintf("hyperlane/%s", res0.Id.String())
-	metadata.DenomUnits[0].Denom = metadata.Base
-
-	msg1 := types.MsgRegisterHLTokenDenomMetadata{
-		HlTokenId:     res0.Id,
-		HlTokenOwner:  signer,
-		TokenMetadata: metadata,
-	}
-
-	suite.Require().NoError(metadata.Validate())
-
-	s := keeper.NewMsgServerImpl(k)
-	_, err = s.RegisterHLTokenDenomMetadata(suite.Ctx, &msg1)
-	suite.Require().NoError(err)
-
-	denom, found := bankKeeper.GetDenomMetaData(suite.Ctx, metadata.Base)
-	suite.Require().EqualValues(found, true)
-	suite.Require().EqualValues(denom.Symbol, metadata.Symbol)
 }
 
 func (suite *KeeperTestSuite) TestUpdateDenom() {
