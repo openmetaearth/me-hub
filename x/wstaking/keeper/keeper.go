@@ -3,7 +3,7 @@ package keeper
 import (
 	addresscodec "cosmossdk.io/core/address"
 	storetypes "cosmossdk.io/core/store"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"

@@ -456,7 +456,18 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 		upgrade.CreateHandler(
 			app.mm,
 			app.configurator,
-			&app.AppKeepers,
+			&upgrades.UpgradeKeepers{
+				AccountKeeper:    &app.AccountKeeper,
+				GovKeeper:        app.GovKeeper,
+				RollappKeeper:    app.RollappKeeper,
+				ParamsKeeper:     &app.ParamsKeeper,
+				DelayedAckKeeper: &app.DelayedAckKeeper,
+				EIBCKeeper:       &app.EIBCKeeper,
+				SequencerKeeper:  app.SequencerKeeper,
+				MintKeeper:       &app.MintKeeper,
+				SlashingKeeper:   &app.SlashingKeeper,
+				ConsensusKeeper:  &app.ConsensusParamsKeeper,
+			},
 		),
 	)
 

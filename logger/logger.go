@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	cmlog "github.com/cometbft/cometbft/libs/log"
+	cmlog "cosmossdk.io/log"
 	ipfslog "github.com/ipfs/go-log/v2"
 )
 

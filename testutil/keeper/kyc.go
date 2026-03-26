@@ -13,8 +13,8 @@ import (
 	"github.com/st-chain/me-hub/x/kyc/keeper"
 	"github.com/st-chain/me-hub/x/kyc/types"
 
+	"cosmossdk.io/log"
 	cometbftdb "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/stretchr/testify/require"
 )

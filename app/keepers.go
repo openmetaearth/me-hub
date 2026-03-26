@@ -147,7 +147,7 @@ type AppKeepers struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	RollappKeeper   *rollappmodulekeeper.Keeper
-	SequencerKeeper sequencermodulekeeper.Keeper
+	SequencerKeeper *sequencermodulekeeper.Keeper
 	EIBCKeeper      eibckeeper.Keeper
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
@@ -336,7 +336,7 @@ func (a *AppKeepers) InitKeepers(
 		a.DaoKeeper,
 	)
 
-	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
+	a.SequencerKeeper = sequencermodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[sequencermoduletypes.StoreKey],
 		a.keys[sequencermoduletypes.MemStoreKey],

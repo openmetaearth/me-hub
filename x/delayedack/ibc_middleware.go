@@ -10,7 +10,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 
 	commontypes "github.com/st-chain/me-hub/x/common/types"
 	"github.com/st-chain/me-hub/x/delayedack/keeper"

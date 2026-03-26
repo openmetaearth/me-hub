@@ -12,7 +12,7 @@ import (
 
 	uibc "github.com/st-chain/me-hub/utils/uibc"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
