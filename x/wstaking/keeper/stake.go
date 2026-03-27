@@ -16,7 +16,7 @@ import (
 
 // Stake performs a stake, set/update everything necessary within the store.
 // tokenSrc indicates the bond status of the incoming funds.
-func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt math.Int,
+func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt sdkmath.Int,
 	tokenSrc stakingtypes.BondStatus, validator stakingtypes.Validator, subtractAccount bool, tag string,
 ) (newShares sdkmath.LegacyDec, err error) {
 	// In some situations, the exchange rate becomes invalid, e.g. if
@@ -191,7 +191,7 @@ func (k Keeper) Unstake(
 // UnStakeBond unbonds a particular stake and perform associated store operations.
 func (k Keeper) UnStakeBond(
 	ctx sdk.Context, stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdkmath.LegacyDec,
-) (amount math.Int, err error) {
+) (amount sdkmath.Int, err error) {
 	// check if a stake object exists in the store
 	stake, found := k.GetStake(ctx, stakerAddr, valAddr)
 	if !found {
@@ -278,7 +278,7 @@ func (k Keeper) RemoveStake(ctx sdk.Context, stake types.Stake) error {
 // the given addresses. It creates the unbonding stake if it does not exist.
 func (k Keeper) SetUnbondingStakeEntry(
 	ctx sdk.Context, stakerAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
-	creationHeight int64, minTime time.Time, balance math.Int,
+	creationHeight int64, minTime time.Time, balance sdkmath.Int,
 ) types.UnbondingStake {
 	ubs, found := k.GetUnbondingStake(ctx, stakerAddr, validatorAddr)
 	if found {
@@ -294,14 +294,14 @@ func (k Keeper) SetUnbondingStakeEntry(
 // based on upon the converted shares. If the amount is valid, the total
 // amount of respective shares is returned, otherwise an error is returned.
 func (k Keeper) ValidateUnbondAmount(
-	ctx sdk.Context, stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, amt math.Int,
+	ctx sdk.Context, stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, amt sdkmath.Int,
 ) (shares sdkmath.LegacyDec, err error) {
 	validator, found := k.GetValidator(ctx, valAddr)
 	if !found {
 		return shares, stakingtypes.ErrNoValidatorFound
 	}
 
-	valTokens := math.ZeroInt()
+	valTokens := sdkmath.ZeroInt()
 
 	// ensure validator's tokens can not less than meid amount or delegate amount
 	if validator.MeidAmount.GTE(validator.DelegationAmount) {

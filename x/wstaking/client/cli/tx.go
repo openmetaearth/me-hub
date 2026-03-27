@@ -280,7 +280,7 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		return txf, nil, err
 	}
 
-	minSelfDelegation := math.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
+	minSelfDelegation := sdkmath.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
 
 	var pkAny *codectypes.Any
 	if pk != nil {

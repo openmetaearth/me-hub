@@ -405,8 +405,8 @@ func (k Keeper) transferRemoveMeid(ctx sdk.Context, address string, region *type
 	return nil
 }
 
-func (k Keeper) transferUnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, region *types.Region, delegation stakingtypes.Delegation) (amount math.Int, err error) {
-	bonus := sdkmath.LegacyNewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
+func (k Keeper) transferUnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, region *types.Region, delegation stakingtypes.Delegation) (amount sdkmath.Int, err error) {
+	bonus := sdkmath.LegacyNewDec(1).Quo(sdkmath.LegacyNewDecWithPrec(1, params.BaseDenomUnit))
 	region.DelegateAmount = region.DelegateAmount.Sub(bonus.RoundInt()).Sub(delegation.Amount)
 	if region.DelegateAmount.LT(sdkmath.ZeroInt()) {
 		return amount, errors.New("UnRegisterMeid err: region DelegationAmount < 0")

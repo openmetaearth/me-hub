@@ -1,6 +1,7 @@
 package ante
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 
@@ -137,8 +138,8 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 
 	admin := dfd.daoKeeper.GetGlobalDao(ctx)
 	meidAdmin := dfd.daoKeeper.GetMeidDao(ctx)
-	isFreeGasAccount := dfd.daoKeeper.CheckFreeGasAccount(ctx, feePayer.String())
-	isAdmin := feePayer.String() == admin || feePayer.String() == meidAdmin
+	isFreeGasAccount := dfd.daoKeeper.CheckFreeGasAccount(ctx, sdk.AccAddress(feePayer).String())
+	isAdmin := sdk.AccAddress(feePayer).String() == admin || sdk.AccAddress(feePayer).String() == meidAdmin
 	freeGas := isFreeGasAccount || isAdmin
 
 	for _, msg := range feeTx.GetMsgs() {
@@ -166,7 +167,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		if feeGranter != nil {
 			if dfd.daoKeeper == nil {
 				return ctx, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "fee grants are not enabled")
-			} else if !feeGranter.Equals(feePayer) {
+			} else if !bytes.Equal(feeGranter, feePayer) {
 				err := dfd.feegrantKeeper.UseGrantedFees(ctx, feeGranter, feePayer, fee, tx.GetMsgs())
 				if err != nil {
 					return ctx, errorsmod.Wrapf(err, "%s not allowed to pay fees from %s", feeGranter, feePayer)
@@ -175,7 +176,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			deductFeesFrom = feeGranter
 		}
 
-		err = dfd.CheckFunds(ctx, tx, deductFeesFrom.String(), fee)
+		err = dfd.CheckFunds(ctx, tx, sdk.AccAddress(deductFeesFrom).String(), fee)
 		if err != nil {
 			return ctx, err
 		}
@@ -206,7 +207,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			}
 			inputs := []banktypes.Input{
 				{
-					Address: deductFeesFrom.String(),
+					Address: sdk.AccAddress(deductFeesFrom).String(),
 					Coins:   fee,
 				},
 			}
@@ -230,7 +231,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			if isKyc {
 				fee20Address, err = dfd.stakingKeeper.GetValOwnerAddress(ctx, string(kyc.Data))
 				if err != nil {
-					return ctx, fmt.Errorf("couldn't get validator from kyc address: %s", deductFeesFrom.String())
+					return ctx, fmt.Errorf("couldn't get validator from kyc address: %s", sdk.AccAddress(deductFeesFrom).String())
 				}
 			} else {
 				fee20Address, err = dfd.stakingKeeper.GetProposerOwnerAddress(ctx)
