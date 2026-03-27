@@ -9,7 +9,8 @@ import (
 
 type Keeper struct {
 	nftkeeper.Keeper
-	cdc codec.BinaryCodec
+	cdc          codec.BinaryCodec
+	storeService store.KVStoreService
 }
 
 func NewKeeper(
@@ -19,7 +20,8 @@ func NewKeeper(
 	bk nft.BankKeeper,
 ) *Keeper {
 	return &Keeper{
-		Keeper: nftkeeper.NewKeeper(storeService, cdc, ak, bk),
-		cdc:    cdc,
+		Keeper:       nftkeeper.NewKeeper(storeService, cdc, ak, bk),
+		cdc:          cdc,
+		storeService: storeService,
 	}
 }

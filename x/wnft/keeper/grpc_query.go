@@ -22,7 +22,7 @@ func (k Keeper) ClassAddress(goCtx context.Context, r *types.QueryClassAddressRe
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	class, ok := k.GetClass(ctx, r.ClassId)
+	_, ok := k.GetClass(ctx, r.ClassId)
 	if !ok {
 		return &types.QueryClassAddressResponse{Exists: false}, nil
 	}
@@ -41,7 +41,7 @@ func (k Keeper) ClassAddress(goCtx context.Context, r *types.QueryClassAddressRe
 
 	return &types.QueryClassAddressResponse{
 		Exists:      true,
-		TotalSupply: class.TotalSupply,
+		TotalSupply: k.GetClassTotalSupplyCap(ctx, r.ClassId),
 		Nfts:        tokenIds,
 	}, nil
 }

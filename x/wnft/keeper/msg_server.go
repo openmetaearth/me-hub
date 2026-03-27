@@ -63,12 +63,15 @@ func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.
 		Description: msg.Description,
 		Uri:         msg.Uri,
 		UriHash:     msg.UriHash,
-		TotalSupply: msg.TotalSupply,
 		Data:        metadata,
 	}
 
 	err = k.SaveClass(ctx, class)
 	if err != nil {
+		return &types.MsgNewClassResponse{}, err
+	}
+
+	if err = k.SetClassTotalSupplyCap(ctx, msg.ClassId, msg.TotalSupply); err != nil {
 		return &types.MsgNewClassResponse{}, err
 	}
 	ctx.EventManager().EmitTypedEvent(&class)
@@ -102,7 +105,7 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id")
 	}
 
-	if tokenId < 1 || tokenId > class.TotalSupply {
+	if tokenId < 1 || tokenId > k.GetClassTotalSupplyCap(ctx, msg.ClassId) {
 		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id")
 	}
 	receiver, err := sdk.AccAddressFromBech32(msg.Receiver)
