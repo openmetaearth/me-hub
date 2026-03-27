@@ -4,6 +4,7 @@ go 1.24.11
 
 require (
 	cosmossdk.io/api v0.7.6
+	cosmossdk.io/client/v2 v2.0.0-beta.8
 	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v0.11.1
 	cosmossdk.io/errors v1.0.1
@@ -51,7 +52,6 @@ require (
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
-	github.com/tendermint/tendermint v0.34.29
 	golang.org/x/exp v0.0.0-20260112195511-716be5621a96
 	golang.org/x/net v0.50.0
 	golang.org/x/tools v0.41.0
@@ -73,7 +73,6 @@ require (
 	cloud.google.com/go/iam v1.4.2 // indirect
 	cloud.google.com/go/monitoring v1.24.0 // indirect
 	cloud.google.com/go/storage v1.50.0 // indirect
-	cosmossdk.io/client/v2 v2.0.0-beta.8 // indirect
 	cosmossdk.io/depinject v1.2.1 // indirect
 	cosmossdk.io/simapp v0.0.0-20230925170603-467d2f71845d // indirect
 	cosmossdk.io/x/circuit v0.1.1 // indirect
@@ -114,7 +113,6 @@ require (
 	github.com/cockroachdb/pebble v1.1.5 // indirect
 	github.com/cockroachdb/redact v1.1.6 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20250429170803-42689b6311bb // indirect
-	github.com/coinbase/rosetta-sdk-go v0.7.9 // indirect
 	github.com/containerd/containerd v1.6.8 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/typeurl v1.0.2 // indirect
@@ -123,7 +121,6 @@ require (
 	github.com/cosmos/ibc-go/modules/apps/callbacks v0.2.1-0.20231113120333-342c00b0f8bd // indirect
 	github.com/cosmos/ics23/go v0.11.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.14.0 // indirect
-	github.com/cosmos/rosetta-sdk-go v0.10.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
 	github.com/danieljoos/wincred v1.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
@@ -219,7 +216,6 @@ require (
 	github.com/minio/highwayhash v1.0.3 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/moby/buildkit v0.10.4 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/term v0.5.0 // indirect
@@ -317,7 +313,6 @@ replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/ipfs/go-log/v2 => github.com/st-chain/go-log/v2 v2.7.0
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
-	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.29
 	github.com/tyler-smith/go-bip39 => github.com/tyler-smith/go-bip39 v1.1.0
 	golang.org/x/exp => golang.org/x/exp v0.0.0-20230711153332-06a737ee72cb
 )

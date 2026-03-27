@@ -2,8 +2,8 @@ package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/st-chain/me-hub/testutil/helpers"
 	"github.com/st-chain/me-hub/x/gravity/types"

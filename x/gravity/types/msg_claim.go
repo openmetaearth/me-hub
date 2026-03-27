@@ -2,11 +2,11 @@ package types
 
 import (
 	"fmt"
+	"github.com/cometbft/cometbft/crypto/tmhash"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/gogo/protobuf/proto"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 
 const (
