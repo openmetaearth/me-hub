@@ -10,7 +10,6 @@ require (
 	cosmossdk.io/log v1.4.1
 	cosmossdk.io/math v1.4.0
 	cosmossdk.io/store v1.1.1
-	cosmossdk.io/tools/rosetta v0.2.1
 	cosmossdk.io/x/evidence v0.1.1
 	cosmossdk.io/x/feegrant v0.1.1
 	cosmossdk.io/x/nft v0.1.1
@@ -317,9 +316,7 @@ replace (
 	github.com/evmos/ethermint => github.com/st-chain/ethermint v0.22.0-me-v2.0.0-rc2
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/ipfs/go-log/v2 => github.com/st-chain/go-log/v2 v2.7.0
-	//  broken goleveldb
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
-	// use cometbft
 	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.29
 	github.com/tyler-smith/go-bip39 => github.com/tyler-smith/go-bip39 v1.1.0
 	golang.org/x/exp => golang.org/x/exp v0.0.0-20230711153332-06a737ee72cb

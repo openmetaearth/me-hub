@@ -12,6 +12,7 @@ import (
 type Keeper struct {
 	govkeeper.Keeper
 	stakingKeeper types.StakingKeeper
+	accountKeeper govtypes.AccountKeeper
 }
 
 func NewKeeper(
@@ -28,5 +29,6 @@ func NewKeeper(
 	return &Keeper{
 		Keeper:        *govkeeper.NewKeeper(cdc, storeService, accountKeeper, bankKeeper, stakingKeeper, distributionKeeper, router, config, authority),
 		stakingKeeper: stakingKeeper,
+		accountKeeper: accountKeeper,
 	}
 }
