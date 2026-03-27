@@ -14,6 +14,8 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+const maxInnerDepth = 6
+
 type HandlerOptions struct {
 	AccountKeeper   *authkeeper.AccountKeeper
 	BankKeeper      wbankkeeper.BaseKeeperWrapper

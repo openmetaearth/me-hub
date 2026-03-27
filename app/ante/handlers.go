@@ -3,14 +3,13 @@ package ante
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
 	ethante "github.com/evmos/ethermint/app/ante"
 	"github.com/st-chain/me-hub/x/rollapp/transfergenesis"
 
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-
-	"github.com/st-chain/me-hub/x/delayedack"
+	proofheightante "github.com/st-chain/me-hub/x/delayedack/ante"
 )
 
 func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
@@ -32,63 +31,7 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	)
 }
 
-// newLegacyCosmosAnteHandlerEip712 creates an AnteHandler to process legacy EIP-712
-// transactions, as defined by the presence of an ExtensionOptionsWeb3Tx extension.
-func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
-	// mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper)
-	// deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
-	deductFeeDecorator := NewDeductFeeDecorator(
-		options.AccountKeeper,
-		options.BankKeeper,
-		options.FeegrantKeeper,
-		options.DaoKeeper,
-		options.StakingKeeper,
-		options.KycKeeper,
-		options.TxFeeChecker,
-		options.WasmViewKeeper,
-	)
-	return sdk.ChainAnteDecorators(
-		/*
-			See https://jumpcrypto.com/writing/bypassing-ethermint-ante-handlers/
-			for an explanation of these message blocking decorators
-		*/
-		NewRejectMessagesDecorator(), // reject MsgEthereumTxs
-		ethante.NewAuthzLimiterDecorator([]string{ // disable the Msg types that cannot be included on an authz.MsgExec msgs field
-			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
-			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
-			sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
-			sdk.MsgTypeURL(&vestingtypes.MsgCreatePermanentLockedAccount{}),
-		},
-		),
-
-		ante.NewSetUpContextDecorator(),
-		ante.NewValidateBasicDecorator(),
-		ante.NewTxTimeoutHeightDecorator(),
-
-		// Use Mempool Fee TransferEnabledDecorator from our txfees module instead of default one from auth
-		// mempoolFeeDecorator,
-		deductFeeDecorator,
-
-		ante.NewValidateMemoDecorator(options.AccountKeeper),
-		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		// SetPubKeyDecorator must be called before all signature verification decorators
-		ante.NewSetPubKeyDecorator(options.AccountKeeper),
-		ante.NewValidateSigCountDecorator(options.AccountKeeper),
-		ante.NewSigGasConsumeDecorator(options.AccountKeeper, ethante.DefaultSigVerificationGasConsumer),
-		// Note: signature verification uses EIP instead of the cosmos signature validator
-		NewLegacyEip712SigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
-		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
-		delayedack.NewIBCProofHeightDecorator(),
-		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
-		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
-
-		transfergenesis.NewTransferEnabledDecorator(options.RollappKeeper.GetRollapp, options.IBCKeeper.ChannelKeeper),
-	)
-}
-
 func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
-	// mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper)
-	// deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 	deductFeeDecorator := NewDeductFeeDecorator(
 		options.AccountKeeper,
 		options.BankKeeper,
@@ -100,19 +43,15 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		options.WasmViewKeeper,
 	)
 	return sdk.ChainAnteDecorators(
-
-		NewRejectMessagesDecorator(), // reject MsgEthereumTxs and vesting msgs
-		ethante.NewAuthzLimiterDecorator([]string{ // disable the Msg types that cannot be included on an authz.MsgExec msgs field
-			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
-			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
-			sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
-			sdk.MsgTypeURL(&vestingtypes.MsgCreatePermanentLockedAccount{}),
-		},
-		),
 		ante.NewSetUpContextDecorator(),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
-		// Use Mempool Fee TransferEnabledDecorator from our txfees module instead of default one from auth
-		// mempoolFeeDecorator,
+		// reject MsgEthereumTxs and disable the Msg types that cannot be included on an authz.MsgExec msgs field
+		NewRejectMessagesDecorator().
+			WithPredicate(BlockTypeUrls(
+				0,
+				sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
+				sdk.MsgTypeURL(&ibcclienttypes.MsgSubmitMisbehaviour{}))), // blocked to avoid skipping our validation logic in lightclient ante handler
+
 		deductFeeDecorator,
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
@@ -123,7 +62,12 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, ethante.DefaultSigVerificationGasConsumer),
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
-		delayedack.NewIBCProofHeightDecorator(),
+
+		// decorator that runs our custom logic for all IBC messages, even wrapped msgs
+		NewInnerDecorator(
+			proofheightante.NewIBCProofHeightDecorator().InnerCallback,
+		),
+
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -102,7 +103,7 @@ func (k BaseKeeperWrapper) UnstakeCoinsFromModuleToModule(
 	return k.SendCoins(ctx, senderAcc.GetAddress(), recipientAcc.GetAddress(), amt)
 }
 
-func (k BaseKeeperWrapper) FeeToReceivers(ctx sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output, receiverTypes []types.FeeReceiverType) error {
+func (k BaseKeeperWrapper) FeeToReceivers(ctx context.Context, inputs []banktypes.Input, outputs []banktypes.Output, receiverTypes []types.FeeReceiverType) error {
 	if len(inputs) == 0 {
 		return errors.New("inputs error")
 	}
@@ -121,8 +122,9 @@ func (k BaseKeeperWrapper) FeeToReceivers(ctx sdk.Context, inputs []banktypes.In
 		attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s", receiverTypes[index]), output.Address))
 		attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s_amount", receiverTypes[index]), output.Coins.String()))
 	}
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	event := sdk.NewEvent(types.EventTypeFeeToReceivers, attributes...)
-	ctx.EventManager().EmitEvent(event)
+	sdkCtx.EventManager().EmitEvent(event)
 	return nil
 }
 
