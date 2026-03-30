@@ -43,7 +43,7 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 			if err != nil {
 				return nil, err
 			}
-			validator, found := k.GetValidator(ctx, valAddr)
+			validator, err := k.GetValidator(ctx, valAddr)
 			if !found {
 				return nil, stakingtypes.ErrNoValidatorFound
 			}

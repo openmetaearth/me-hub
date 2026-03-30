@@ -1,6 +1,7 @@
 package apptesting
 
 import (
+	"github.com/st-chain/me-hub/utils/urand"
 	"strings"
 	"time"
 
@@ -13,17 +14,16 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/dymensionxyz/sdk-utils/utils/urand"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/v3/app"
-	"github.com/dymensionxyz/dymension/v3/app/params"
-	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
-	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
-	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/st-chain/me-hub/app"
+	"github.com/st-chain/me-hub/app/params"
+	delayedackkeeper "github.com/st-chain/me-hub/x/delayedack/keeper"
+	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
+	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
+	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	sequencerkeeper "github.com/st-chain/me-hub/x/sequencer/keeper"
+	sequencertypes "github.com/st-chain/me-hub/x/sequencer/types"
 )
 
 var Alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"

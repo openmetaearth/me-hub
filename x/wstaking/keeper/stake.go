@@ -27,9 +27,14 @@ func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt sdkmath.In
 	}
 
 	// Get or create the stake object
-	stake, found := k.GetStake(ctx, staker, validator.GetOperator())
+	valAddress, err := sdk.ValAddressFromBech32(validator.OperatorAddress)
+	if err != nil {
+		return sdkmath.LegacyDec{}, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator operator address: %s", validator.OperatorAddress)
+	}
+
+	stake, found := k.GetStake(ctx, staker, valAddress)
 	if !found {
-		stake = types.NewStake(staker, validator.GetOperator(), sdkmath.LegacyZeroDec())
+		stake = types.NewStake(staker, valAddress, sdkmath.LegacyZeroDec())
 	}
 
 	// if subtractAccount is true then we are
@@ -51,7 +56,8 @@ func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt sdkmath.In
 			panic("invalid validator status")
 		}
 
-		coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), bondAmt))
+		denom, _ := k.BondDenom(ctx)
+		coins := sdk.NewCoins(sdk.NewCoin(denom, bondAmt))
 		if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, types.StakePoolName, recipientModule, coins, tag); err != nil {
 			return sdkmath.LegacyDec{}, err
 		}
@@ -73,7 +79,10 @@ func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt sdkmath.In
 		}
 	}
 
-	_, newShares = k.AddValidatorTokensAndShares(ctx, validator, bondAmt)
+	_, newShares, err = k.AddValidatorTokensAndShares(ctx, validator, bondAmt)
+	if err != nil {
+		return sdkmath.LegacyDec{}, err
+	}
 
 	// Update stake
 	stake.Shares = stake.Shares.Add(newShares)
@@ -152,7 +161,8 @@ func (k Keeper) HasMaxUnbondingStakeEntries(ctx sdk.Context, stakerAddr sdk.AccA
 		return false
 	}
 
-	return len(ubd.Entries) >= int(k.MaxEntries(ctx))
+	maxEntries, _ := k.MaxEntries(ctx)
+	return len(ubd.Entries) >= int(maxEntries)
 }
 
 // Unstake unbonds an amount of staker shares from a given validator. It
@@ -163,8 +173,8 @@ func (k Keeper) HasMaxUnbondingStakeEntries(ctx sdk.Context, stakerAddr sdk.AccA
 func (k Keeper) Unstake(
 	ctx sdk.Context, stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, sharesAmount sdkmath.LegacyDec,
 ) (time.Time, error) {
-	validator, found := k.GetValidator(ctx, valAddr)
-	if !found {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return time.Time{}, types.ErrNoStakerForAddress
 	}
 
@@ -204,8 +214,8 @@ func (k Keeper) UnStakeBond(
 	}
 
 	// get validator
-	validator, found := k.GetValidator(ctx, valAddr)
-	if !found {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return amount, stakingtypes.ErrNoValidatorFound
 	}
 
@@ -217,14 +227,14 @@ func (k Keeper) UnStakeBond(
 		return amount, err
 	}
 
-	isValidatorOperator := stakerAddress.Equals(validator.GetOperator())
+	isValidatorOperator := stakerAddress.Equals(valAddr)
 
 	// If the stake is the operator of the validator and unstaking will decrease the validator's
 	// self-stake below their minimum, we jail the validator.
 	if isValidatorOperator && !validator.Jailed &&
 		validator.TokensFromShares(stake.Shares).TruncateInt().LT(validator.MinSelfDelegation) {
 		k.JailValidator(ctx, validator)
-		validator = k.MustGetValidator(ctx, validator.GetOperator())
+		validator = k.MustGetValidator(ctx, valAddr)
 	}
 
 	if stake.Shares.IsZero() {
@@ -242,11 +252,11 @@ func (k Keeper) UnStakeBond(
 
 	// remove the shares and coins from the validator
 	// NOTE that the amount is later (in keeper.Stake) moved between staking module pools
-	validator, amount = k.RemoveValidatorTokensAndShares(ctx, validator, shares)
+	validator, amount, _ = k.RemoveValidatorTokensAndShares(ctx, validator, shares)
 
 	if validator.DelegatorShares.IsZero() && validator.IsUnbonded() {
 		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
-		k.RemoveValidator(ctx, validator.GetOperator())
+		k.RemoveValidator(ctx, valAddr)
 		k.RemoveRegion(ctx, validator.Description.RegionID)
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -296,8 +306,8 @@ func (k Keeper) SetUnbondingStakeEntry(
 func (k Keeper) ValidateUnbondAmount(
 	ctx sdk.Context, stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, amt sdkmath.Int,
 ) (shares sdkmath.LegacyDec, err error) {
-	validator, found := k.GetValidator(ctx, valAddr)
-	if !found {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return shares, stakingtypes.ErrNoValidatorFound
 	}
 
@@ -405,10 +415,10 @@ func (k Keeper) IterateUnbondingStakes(ctx sdk.Context, cb func(ubs types.Unbond
 }
 
 // UBSQueueIterator returns all the unbonding queue timeslices from time 0 until endTime.
-func (k Keeper) UBSQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator {
+func (k Keeper) UBSQueueIterator(ctx sdk.Context, endTime time.Time) storetypes.Iterator {
 	store := ctx.KVStore(k.storeKey)
 	return store.Iterator(types.UnbondingStakeQueueKey,
-		sdk.InclusiveEndBytes(types.GetUnbondingStakeTimeKey(endTime)))
+		storetypes.InclusiveEndBytes(types.GetUnbondingStakeTimeKey(endTime)))
 }
 
 // SequeueAllMatureUBSQueue returns a concatenated list of all the timeslices inclusively previous to
@@ -437,7 +447,7 @@ func (k Keeper) CompleteStakeUnBonding(ctx sdk.Context, stakerAddr sdk.AccAddres
 		return nil, types.ErrNoUnbondingStake
 	}
 
-	bondDenom := k.GetParams(ctx).BondDenom
+	bondDenom, _ := k.BondDenom(ctx)
 	balances := sdk.NewCoins()
 	ctxTime := ctx.BlockHeader().Time
 

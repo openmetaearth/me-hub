@@ -37,12 +37,16 @@ func (k MsgServer) CreateValidator(
 		return nil, err
 	}
 
-	if msg.Commission.Rate.LT(k.MinCommissionRate(ctx)) {
-		return nil, errorsmod.Wrapf(stakingtypes.ErrCommissionLTMinRate, "cannot set validator commission to less than minimum rate of %s", k.MinCommissionRate(ctx))
+	minCommissionRate, err := k.MinCommissionRate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if msg.Commission.Rate.LT(minCommissionRate) {
+		return nil, errorsmod.Wrapf(stakingtypes.ErrCommissionLTMinRate, "cannot set validator commission to less than minimum rate of %s", minCommissionRate)
 	}
 
 	// check to see if the pubkey or sender has been registered before
-	if _, found := k.GetValidator(ctx, valAddr); found {
+	if _, err := k.GetValidator(ctx, valAddr); err == nil {
 		return nil, stakingtypes.ErrValidatorOwnerExists
 	}
 
@@ -51,11 +55,11 @@ func (k MsgServer) CreateValidator(
 		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", msg.Pubkey.GetCachedValue())
 	}
 
-	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
+	if _, err := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); err == nil {
 		return nil, stakingtypes.ErrValidatorPubKeyExists
 	}
 
-	bondDenom := k.BondDenom(ctx)
+	bondDenom, _ := k.BondDenom(ctx)
 	if msg.Value.Denom != bondDenom {
 		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Value.Denom, bondDenom,
@@ -67,7 +71,7 @@ func (k MsgServer) CreateValidator(
 	}
 
 	cp := ctx.ConsensusParams()
-	if cp != nil && cp.Validator != nil {
+	if cp.Validator != nil {
 		pkType := pk.Type()
 		hasKeyType := false
 		for _, keyType := range cp.Validator.PubKeyTypes {
@@ -84,7 +88,7 @@ func (k MsgServer) CreateValidator(
 		}
 	}
 
-	validator, err := stakingtypes.NewValidator(valAddr, pk, msg.Description)
+	validator, err := stakingtypes.NewValidator(valAddr.String(), pk, msg.Description)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +115,7 @@ func (k MsgServer) CreateValidator(
 	k.SetValidatorByConsAddr(ctx, validator)
 	k.SetNewValidatorByPowerIndex(ctx, validator)
 	// call the after-creation hook
-	if err := k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
+	if err := k.Hooks().AfterValidatorCreated(ctx, valAddr); err != nil {
 		return nil, err
 	}
 
@@ -156,8 +160,8 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 		return nil, err
 	}
 
-	validator, found := k.GetValidator(ctx, valAddr)
-	if !found {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return nil, stakingtypes.ErrNoValidatorFound
 	}
 	if validator.IsJailed() {
@@ -173,7 +177,7 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 		return nil, errorsmod.Wrapf(stakingtypes.ErrValidatorPubKeyTypeNotSupported, "Expecting ed25519.PubKey, got %T", req.ReplacePubKey.PubKey.GetCachedValue())
 	}
 
-	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
+	if _, err := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); err == nil {
 		return nil, stakingtypes.ErrValidatorPubKeyExists
 	}
 
@@ -208,7 +212,7 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 
 	update := &types.UpdatePubKeyInfo{
 		OperatorAddress: req.ReplacePubKey.OperatorAddress,
-		OldConsAddress:  needReplaceConsAddr.Bytes(),
+		OldConsAddress:  needReplaceConsAddr,
 		PubKey:          pubKeyData,
 		UpdateAtHeight:  ctx.BlockHeight() + req.ReplacePubKey.BlockNumber,
 	}
@@ -221,7 +225,7 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 			types.EventTypeReplacePubKey,
 			sdk.NewAttribute(types.AttributeKeyOperatorAddress, update.OperatorAddress),
 			sdk.NewAttribute(types.AttributeKeyPubKey, hex.EncodeToString(update.PubKey)),
-			sdk.NewAttribute(types.AttributeKeyOldConsAddr, needReplaceConsAddr.String()),
+			sdk.NewAttribute(types.AttributeKeyOldConsAddr, sdk.ConsAddress(update.OldConsAddress).String()),
 			sdk.NewAttribute(types.AttributeKeyUpdateAtHeight, fmt.Sprintf("%d", update.UpdateAtHeight)),
 		),
 	})

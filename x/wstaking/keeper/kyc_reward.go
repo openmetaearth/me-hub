@@ -29,8 +29,8 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, cre
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
-	validator, ok := k.GetValidator(ctx, valAddr)
-	if !ok {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return types.ErrRegionValidatorNotExist
 	}
 
@@ -75,8 +75,8 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 		return fmt.Errorf("invalid region operator address")
 	}
 
-	validator, ok := k.GetValidator(ctx, valAddr)
-	if !ok {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return fmt.Errorf("region bonded validator not found")
 	}
 
@@ -197,8 +197,8 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 		experienceRegion.DelegateAmount = experienceRegion.DelegateAmount.Sub(delegation.UnMeidAmount)
 		k.SetRegion(ctx, experienceRegion)
 
-		experienceVal, ok := k.GetValidator(ctx, experienceValAddress)
-		if !ok {
+		experienceVal, err := k.GetValidator(ctx, experienceValAddress)
+		if err != nil {
 			return fmt.Errorf("experience region validator no found")
 		}
 		if experienceVal.DelegationAmount.GTE(delegation.UnMeidAmount) {
@@ -217,7 +217,7 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 			),
 		})
 	} else {
-		delegation = stakingtypes.NewDelegation(delAddr, validatorAddr, sdkmath.LegacyZeroDec())
+		delegation = stakingtypes.NewDelegation(delAddr.String(), validatorAddr.String(), sdkmath.LegacyZeroDec())
 	}
 
 	// Update delegation
@@ -369,7 +369,7 @@ func (k Keeper) transferNewMeid(ctx sdk.Context, region *types.Region, address s
 		newAccount := k.authKeeper.NewAccountWithAddress(ctx, accAddr)
 		k.authKeeper.SetAccount(ctx, newAccount)
 	}
-	bonus := sdkmath.LegacyNewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
+	bonus := sdkmath.LegacyNewDec(1).Quo(sdkmath.LegacyNewDecWithPrec(1, params.BaseDenomUnit))
 	region.DelegateAmount = region.DelegateAmount.Add(delegation.Amount).Add(bonus.RoundInt())
 	delegation.StartHeight = ctx.BlockHeight()
 	delegation.ValidatorAddress = valAddr.String()
@@ -388,8 +388,8 @@ func (k Keeper) transferRemoveMeid(ctx sdk.Context, address string, region *type
 		return err
 	}
 
-	validator, ok := k.GetValidator(ctx, valAddr)
-	if !ok {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return errors.New("validator no found")
 	}
 
@@ -398,7 +398,7 @@ func (k Keeper) transferRemoveMeid(ctx sdk.Context, address string, region *type
 		return err
 	}
 
-	bonus := sdkmath.LegacyNewDec(1).Quo(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
+	bonus := sdkmath.LegacyNewDec(1).Quo(sdkmath.LegacyNewDecWithPrec(1, params.BaseDenomUnit))
 	validator.MeidAmount = validator.MeidAmount.Sub(bonus.RoundInt())
 	validator.DelegationAmount = validator.DelegationAmount.Sub(delegation.Amount)
 	k.SetValidator(ctx, validator)

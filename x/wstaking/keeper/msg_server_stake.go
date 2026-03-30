@@ -7,11 +7,11 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/hashicorp/go-metrics"
 	"github.com/st-chain/me-hub/app/params"
 	"github.com/st-chain/me-hub/x/wstaking/types"
 )
@@ -29,12 +29,12 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 		return nil, valErr
 	}
 
-	validator, found := k.GetValidator(ctx, valAddr)
-	if !found {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return nil, stakingtypes.ErrNoValidatorFound
 	}
 
-	bondDenom := k.BondDenom(ctx)
+	bondDenom, _ := k.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
 		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
@@ -113,7 +113,7 @@ func (k MsgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 		return nil, err
 	}
 
-	bondDenom := k.BondDenom(ctx)
+	bondDenom, _ := k.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
 		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,

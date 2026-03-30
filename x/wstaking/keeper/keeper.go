@@ -2,9 +2,10 @@ package keeper
 
 import (
 	addresscodec "cosmossdk.io/core/address"
-	storetypes "cosmossdk.io/core/store"
+	corestore "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -17,7 +18,7 @@ import (
 type Keeper struct {
 	*stakingkeeper.Keeper
 	cdc            codec.BinaryCodec
-	storeService   storetypes.KVStoreService
+	storeKey       storetypes.StoreKey
 	authKeeper     banktypes.AccountKeeper
 	bankKeeper     types.BankKeeper
 	daoKeeper      types.DaoKeeper
@@ -32,7 +33,8 @@ type Keeper struct {
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeService storetypes.KVStoreService,
+	storeKey storetypes.StoreKey,
+	storeService corestore.KVStoreService,
 	ak banktypes.AccountKeeper,
 	bk types.BankKeeper,
 	dk types.DaoKeeper,
@@ -43,13 +45,13 @@ func NewKeeper(
 ) *Keeper {
 	nativeKeeper := stakingkeeper.NewKeeper(cdc, storeService, ak, bk, authority, validatorAddressCodec, consensusAddressCodec)
 	return &Keeper{
-		Keeper:       nativeKeeper,
-		cdc:          cdc,
-		storeService: storeService,
-		authKeeper:   ak,
-		bankKeeper:   bk,
-		daoKeeper:    dk,
-		nftKeeper:    nk,
+		Keeper:     nativeKeeper,
+		cdc:        cdc,
+		storeKey:   storeKey,
+		authKeeper: ak,
+		bankKeeper: bk,
+		daoKeeper:  dk,
+		nftKeeper:  nk,
 	}
 }
 
@@ -81,9 +83,8 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 func (k Keeper) GetProposerOwnerAddress(ctx sdk.Context) (string, error) {
 	header := ctx.BlockHeader()
 	addr := header.GetProposerAddress()
-
-	validator, ok := k.GetValidatorByConsAddr(ctx, addr)
-	if !ok {
+	validator, err := k.GetValidatorByConsAddr(ctx, addr)
+	if err != nil {
 		return "", errorsmod.Wrapf(types.ErrParameter, "proposer not found")
 	}
 	return validator.OwnerAddress, nil

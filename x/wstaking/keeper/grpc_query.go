@@ -135,18 +135,22 @@ func (k Querier) Delegation(c context.Context, req *stakingtypes.QueryDelegation
 
 func DelegationToDelegationResponse(ctx sdk.Context, k *Keeper, del stakingtypes.Delegation) (stakingtypes.DelegationResponse, error) {
 	if del.Unmovable.GT(sdkmath.ZeroInt()) {
-		_, found := k.GetValidator(ctx, del.GetValidatorAddr())
-		if !found {
+		valAddr, err := sdk.ValAddressFromBech32(del.GetValidatorAddr())
+		if err != nil {
+			return stakingtypes.DelegationResponse{}, err
+		}
+		_, err = k.GetValidator(ctx, valAddr)
+		if err != nil {
 			return stakingtypes.DelegationResponse{}, stakingtypes.ErrNoValidatorFound
 		}
 	}
-
 	_, err := sdk.AccAddressFromBech32(del.DelegatorAddress)
 	if err != nil {
 		return stakingtypes.DelegationResponse{}, err
 	}
 	amount := del.Amount.Add(del.UnMeidAmount).Add(del.Unmovable)
-	return NewDelegationResp(del, sdk.NewCoin(k.BondDenom(ctx), amount)), nil
+	bondDenom, err := k.BondDenom(ctx)
+	return NewDelegationResp(del, sdk.NewCoin(bondDenom, amount)), nil
 }
 
 func (k Keeper) Stakes(goCtx context.Context, req *types.QueryStakesRequest) (*types.QueryStakesResponse, error) {

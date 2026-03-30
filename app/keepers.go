@@ -242,6 +242,7 @@ func (a *AppKeepers) InitKeepers(
 
 	a.StakingKeeper = wstakingkeeper.NewKeeper(
 		appCodec,
+		a.keys[stakingtypes.StoreKey],
 		runtime.NewKVStoreService(a.keys[stakingtypes.StoreKey]),
 		a.AccountKeeper,
 		a.BankKeeper,

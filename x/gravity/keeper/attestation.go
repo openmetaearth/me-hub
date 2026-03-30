@@ -38,7 +38,7 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 	}
 
 	gasMeter := ctx.GasMeter()
-	ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 
 	// Tries to get an attestation with the same eventNonce and claim as the claim that was submitted.
 	att := k.GetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash())

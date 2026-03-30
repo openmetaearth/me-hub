@@ -79,7 +79,7 @@ func (k Keeper) GetValOwnerAddress(ctx sdk.Context, regionId string) (string, er
 		return "", errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "region bonded validator address(%s) invalid", region.OperatorAddress)
 	}
 
-	validator, ok := k.GetValidator(ctx, valAddr)
+	validator, err := k.GetValidator(ctx, valAddr)
 	if !ok {
 		return "", errorsmod.Wrapf(stakingtypes.ErrNoValidatorFound, "region bonded validator(%s) no found", valAddr.String())
 	}

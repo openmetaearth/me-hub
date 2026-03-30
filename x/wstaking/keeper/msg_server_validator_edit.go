@@ -25,7 +25,7 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 		return nil, err
 	}
 
-	validator, found := k.GetValidator(ctx, valAddr)
+	validator, err := k.GetValidator(ctx, valAddr)
 	if !found {
 		return nil, stakingtypes.ErrNoValidatorFound
 	}

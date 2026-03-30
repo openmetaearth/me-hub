@@ -57,8 +57,8 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 		return valErr
 	}
 
-	validator, found := k.GetValidator(ctx, valAddr)
-	if !found {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return stakingtypes.ErrNoValidatorFound
 	}
 
@@ -70,7 +70,7 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 	k.SetDelegation(ctx, delegation)
 
 	// Handling fixed deposits
-	err := k.transferDeposit(ctx, &fromRegion, &toRegion, address.String())
+	err = k.transferDeposit(ctx, &fromRegion, &toRegion, address.String())
 	if err != nil {
 		return types.ErrTransferRegion.Wrap(err.Error())
 	}

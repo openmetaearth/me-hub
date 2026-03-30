@@ -39,8 +39,8 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "region bonded validator no found")
 	}
 
-	validator, ok := k.GetValidator(ctx, valAddr)
-	if !ok {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return nil, types.ErrRegionValidatorNotExist
 	}
 	if strings.ToLower(validator.Description.RegionID) != strings.ToLower(regionId) {

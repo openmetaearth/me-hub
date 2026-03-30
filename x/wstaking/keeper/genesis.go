@@ -40,7 +40,11 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 
 		// Call the creation hook if not exported
 		if !data.Exported {
-			if err := k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
+			valAddr, err := sdk.ValAddressFromBech32(validator.GetOperator())
+			if err != nil {
+				panic(fmt.Sprintf("invalid validator operator address: %s", validator.GetOperator()))
+			}
+			if err := k.Hooks().AfterValidatorCreated(ctx, valAddr); err != nil {
 				panic(err)
 			}
 		}
@@ -104,7 +108,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 	}
 
 	// if balance is different from bonded coins panic because genesis is most likely malformed
-	if !bondedBalance.IsEqual(bondedCoins) {
+	if !bondedBalance.Equal(bondedCoins) {
 		panic(fmt.Sprintf("bonded pool balance is different from bonded coins: %s <-> %s", bondedBalance, bondedCoins))
 	}
 
@@ -120,7 +124,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 
 	// If balance is different from non bonded coins panic because genesis is most
 	// likely malformed.
-	if !notBondedBalance.IsEqual(notBondedCoins) {
+	if !notBondedBalance.Equal(notBondedCoins) {
 		panic(fmt.Sprintf("not bonded pool balance is different from not bonded coins: %s <-> %s", notBondedBalance, notBondedCoins))
 	}
 
@@ -133,9 +137,9 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 			}
 
 			k.SetLastValidatorPower(ctx, valAddr, lv.Power)
-			validator, found := k.GetValidator(ctx, valAddr)
 
-			if !found {
+			validator, err := k.GetValidator(ctx, valAddr)
+			if err != nil {
 				panic(fmt.Sprintf("validator %s not found", lv.Address))
 			}
 
@@ -183,12 +187,32 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *wstakingtypes.GenesisState {
 		return false
 	})
 
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	totalPower, err := k.GetLastTotalPower(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	allDelegations, err := k.GetAllDelegations(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	allValidators, err := k.GetAllValidators(ctx)
+	if err != nil {
+		panic(err)
+	}
+
 	return &wstakingtypes.GenesisState{
-		Params:               k.GetParams(ctx),
-		LastTotalPower:       k.GetLastTotalPower(ctx),
+		Params:               params,
+		LastTotalPower:       totalPower,
 		LastValidatorPowers:  lastValidatorPowers,
-		Validators:           k.GetAllValidators(ctx),
-		Delegations:          k.GetAllDelegations(ctx),
+		Validators:           allValidators,
+		Delegations:          allDelegations,
 		UnbondingDelegations: unbondingDelegations,
 		Redelegations:        redelegations,
 		Stakes:               k.GetAllStakes(ctx),

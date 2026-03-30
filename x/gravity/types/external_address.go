@@ -6,7 +6,6 @@ import (
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -47,7 +46,7 @@ func GetSupportChains() []string {
 
 func RegisterExternalAddress(chainName string, validate ExternalAddress) {
 	if err := ValidateModuleName(chainName); err != nil {
-		panic(errortypes.Wrapf(errortypes.ErrInvalidRequest, "invalid chain name: %s", chainName))
+		panic(fmt.Sprintf("invalid chain name: %s", chainName))
 	}
 	if _, ok := externalAddressRouter[chainName]; ok {
 		panic(fmt.Sprintf("duplicate registry msg validateBasic! chainName: %s", chainName))

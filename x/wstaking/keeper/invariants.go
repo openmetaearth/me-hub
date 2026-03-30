@@ -26,11 +26,11 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k *Keeper) {
 // reflects the tokens actively bonded and not bonded
 func ModuleAccountInvariants(k *Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-		bonded := math.ZeroInt()
-		notBonded := math.ZeroInt()
+		bonded := sdkmath.ZeroInt()
+		notBonded := sdkmath.ZeroInt()
 		bondedPool := k.GetBondedStakePool(ctx)
 		notBondedPool := k.GetNotBondedStakePool(ctx)
-		bondDenom := k.BondDenom(ctx)
+		bondDenom, _ := k.BondDenom(ctx)
 
 		k.IterateValidators(ctx, func(_ int64, validator stakingtypes.ValidatorI) bool {
 			switch validator.GetStatus() {
@@ -80,12 +80,15 @@ func DelegatorSharesInvariant(k *Keeper) sdk.Invariant {
 			broken bool
 		)
 
-		validators := k.GetAllValidators(ctx)
+		validators, err := k.GetAllValidators(ctx)
+		if err != nil {
+			panic(fmt.Sprintf("failed to get all validators: %v", err))
+		}
 		validatorsDelegationShares := map[string]sdkmath.LegacyDec{}
 
 		// initialize a map: validator -> its delegation shares
 		for _, validator := range validators {
-			validatorsDelegationShares[validator.GetOperator().String()] = math.LegacyZeroDec()
+			validatorsDelegationShares[validator.GetOperator()] = sdkmath.LegacyZeroDec()
 		}
 
 		// iterate through all the delegations to calculate the total delegation shares for each validator
@@ -99,7 +102,7 @@ func DelegatorSharesInvariant(k *Keeper) sdk.Invariant {
 		// for each validator, check if its total delegation shares calculated from the step above equals to its expected delegation shares
 		for _, validator := range validators {
 			expValTotalDelShares := validator.GetDelegatorShares()
-			calculatedValTotalDelShares := validatorsDelegationShares[validator.GetOperator().String()]
+			calculatedValTotalDelShares := validatorsDelegationShares[validator.GetOperator()]
 			if !calculatedValTotalDelShares.Equal(expValTotalDelShares) {
 				broken = true
 				msg += fmt.Sprintf("broken delegator shares invariance:\n"+

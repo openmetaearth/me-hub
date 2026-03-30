@@ -7,7 +7,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	commontypes "github.com/st-chain/me-hub/x/common/types"
 )
 
 const (

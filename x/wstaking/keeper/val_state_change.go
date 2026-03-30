@@ -64,7 +64,7 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 			if errP != nil {
 				panic(fmt.Sprintf("invalid validator address %s,err = %s", replacePubKey.OperatorAddress, errP.Error()))
 			}
-			validator, found := k.GetValidator(ctx, valAddr)
+			validator, err := k.GetValidator(ctx, valAddr)
 			if !found {
 				panic(fmt.Sprintf("validator not found for address %s", replacePubKey.OperatorAddress))
 			}

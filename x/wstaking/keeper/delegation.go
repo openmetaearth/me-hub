@@ -23,12 +23,11 @@ const unbondingTime = time.Hour * 24 * 7
 // are not exceeded and unbond the staked tokens (based on shares) by creating
 // an unbonding object and inserting it into the unbonding queue which will be
 // processed during the staking EndBlocker.
-func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, isMeid bool, anmout sdkmath.Int, delegation stakingtypes.Delegation) (time.Time, math.Int, error) {
-	if !isMeid {
-		if k.HasMaxUnbondingDelegationEntries(ctx, delAddr, valAddr) {
-			return time.Time{}, anmout, stakingtypes.ErrMaxUnbondingDelegationEntries
-		}
+func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, isMeid bool, anmout sdkmath.Int, delegation stakingtypes.Delegation) (time.Time, sdkmath.Int, error) {
+	if has, _ := k.HasMaxUnbondingDelegationEntries(ctx, delAddr, valAddr); has {
+		return time.Time{}, anmout, stakingtypes.ErrMaxUnbondingDelegationEntries
 	}
+
 	returnAmount, err := k.Unbond(ctx, anmout, isMeid, delegation)
 	if err != nil {
 		return time.Time{}, anmout, err
@@ -38,8 +37,14 @@ func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.
 	if !isMeid {
 		k.bondedTokensToNotBonded(ctx, returnAmount)
 		completionTime = ctx.BlockHeader().Time.Add(unbondingTime)
-		ubd := k.SetUnbondingDelegationEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, returnAmount)
-		k.InsertUBDQueue(ctx, ubd, completionTime)
+		ubd, err := k.SetUnbondingDelegationEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, returnAmount)
+		if err != nil {
+			return time.Time{}, anmout, err
+		}
+		err = k.InsertUBDQueue(ctx, ubd, completionTime)
+		if err != nil {
+			return time.Time{}, anmout, err
+		}
 	} else {
 		amt := sdk.NewCoin(params.BaseDenom, returnAmount)
 		err = k.bankKeeper.UndelegateCoinsFromModuleToAccount(ctx, stakingtypes.BondedPoolName, delAddr, sdk.NewCoins(amt))
@@ -102,7 +107,11 @@ func (k Keeper) Unbond(ctx sdk.Context, delAmount sdkmath.Int, isMeid bool, dele
 
 // bondedTokensToNotBonded transfers coins from the bonded to the not bonded pool within staking
 func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, tokens sdkmath.Int) {
-	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokens))
+	bondDenom, err := k.BondDenom(ctx)
+	if err != nil {
+		panic(fmt.Sprintf("unable to get bond denom: %s", err.Error()))
+	}
+	coins := sdk.NewCoins(sdk.NewCoin(bondDenom, tokens))
 	if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, stakingtypes.BondedPoolName, stakingtypes.NotBondedPoolName, coins, "BondedTokensToNotBonded"); err != nil {
 		panic(err)
 	}
@@ -121,7 +130,7 @@ func (k Keeper) Delegate(
 		return sdkmath.LegacyZeroDec(), stakingtypes.ErrDelegatorShareExRateInvalid
 	}
 	if delegation.DelegatorAddress == "" {
-		delegation = stakingtypes.NewDelegation(delAddr, valAddr, sdkmath.LegacyZeroDec())
+		delegation = stakingtypes.NewDelegation(delAddr.String(), valAddr.String(), sdkmath.LegacyZeroDec())
 	}
 	delegatorAddress := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
 	if tokenSrc == stakingtypes.Bonded {
@@ -138,8 +147,8 @@ func (k Keeper) Delegate(
 	default:
 		panic("invalid validator status")
 	}
-
-	gage := sdk.NewCoin(k.BondDenom(ctx), bondAmt)
+	denom, _ := k.BondDenom(ctx)
+	gage := sdk.NewCoin(denom, bondAmt)
 	coins := sdk.NewCoins(gage)
 	if err = k.bankKeeper.DelegateCoinsFromAccountToModule(ctx, delegatorAddress, pool, coins); err != nil {
 		return sdkmath.LegacyDec{}, err
@@ -189,11 +198,10 @@ func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.A
 	//	k.Logger(ctx).Error("internalWithdrawDelegationRewards err=", valErr.Error())
 	//	return nil, valErr
 	//}
-	delegation, _ := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
-	if del == nil {
-		return nil, types.ErrEmptyDelegationDistInfo
+	delegation, f := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
+	if !f {
+		return nil, fmt.Errorf("delegation not exist")
 	}
-
 	rewards, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
 	if err != nil {
 		return nil, types.ErrCalculateInterest.Wrap(err.Error())
@@ -210,7 +218,11 @@ func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.A
 	coins := sdk.NewCoins(coin)
 	// add coins to user account
 	if !coin.Amount.IsZero() {
-		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), del.GetDelegatorAddr(), coins, fmt.Sprintf("WithdrawDelegationRewards_%s", region.RegionId))
+		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
+			sdk.MustAccAddressFromBech32(region.RegionTreasureAddr),
+			sdk.MustAccAddressFromBech32(delegation.DelegatorAddress),
+			coins,
+			fmt.Sprintf("WithdrawDelegationRewards_%s", region.RegionId))
 		if err != nil {
 			return nil, err
 		}

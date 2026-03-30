@@ -14,7 +14,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	cometbfttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/dymensionxyz/dymension/v3/app/params"
+	"github.com/st-chain/me-hub/app/params"
 	"github.com/stretchr/testify/require"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
@@ -29,11 +29,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	app "github.com/dymensionxyz/dymension/v3/app"
-	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+	app "github.com/st-chain/me-hub/app"
 )
 
 var TestChainID = "dymension_100-1"
