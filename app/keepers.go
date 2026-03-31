@@ -2,11 +2,13 @@ package app
 
 import (
 	"context"
+
 	"cosmossdk.io/log"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -14,9 +16,10 @@ import (
 	"github.com/spf13/cast"
 	appparams "github.com/st-chain/me-hub/app/params"
 
+	"path/filepath"
+
 	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
 	trontypes "github.com/st-chain/me-hub/x/tron/types"
-	"path/filepath"
 
 	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
 	groupTypes "github.com/st-chain/me-hub/x/megroup/types"
@@ -269,6 +272,7 @@ func (a *AppKeepers) InitKeepers(
 		runtime.NewKVStoreService(a.keys[minttypes.StoreKey]),
 		a.AccountKeeper,
 		a.BankKeeper,
+		a.StakingKeeper,
 		a.StakingKeeper,
 		wbanktypes.TreasuryPoolName,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),

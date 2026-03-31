@@ -35,7 +35,7 @@ func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 		return nil, err
 	}
 	validator, err := k.GetValidator(ctx, valAddr)
-	if !found {
+	if err != nil {
 		return nil, stakingtypes.ErrNoValidatorFound
 	}
 
@@ -57,7 +57,8 @@ func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 		)
 	}
 
-	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, validator.GetOperator())
+	valOpAddr, _ := sdk.ValAddressFromBech32(validator.GetOperator())
+	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, valOpAddr)
 	rewards := sdkmath.LegacyZeroDec()
 	var regionTreasureAddr sdk.AccAddress
 	if isOK {
@@ -95,7 +96,7 @@ func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 		defer func() {
 			telemetry.IncrCounter(1, types.ModuleName, "delegate")
 			telemetry.SetGaugeWithLabels(
-				[]string{"tx", "msg", msg.Type()},
+				[]string{"tx", "msg", sdk.MsgTypeURL(msg)},
 				float32(msg.Amount.Amount.Int64()),
 				[]metrics.Label{telemetry.NewLabel("denom", msg.Amount.Denom)},
 			)

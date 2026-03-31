@@ -17,6 +17,7 @@ type Keeper struct {
 	authKeeper    distritypes.AccountKeeper
 	bankKeeper    distritypes.BankKeeper
 	stakingKeeper distritypes.StakingKeeper
+	regionStaking types.StakingKeeper
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
@@ -34,6 +35,7 @@ func NewKeeper(
 	accountKeeper distritypes.AccountKeeper,
 	bankKeeper distritypes.BankKeeper,
 	stakingKeeper distritypes.StakingKeeper,
+	regionStaking types.StakingKeeper,
 	feeCollectorName string,
 	authority string,
 ) *Keeper {
@@ -52,6 +54,7 @@ func NewKeeper(
 		authKeeper:       accountKeeper,
 		bankKeeper:       bankKeeper,
 		stakingKeeper:    stakingKeeper,
+		regionStaking:    regionStaking,
 		authority:        authority,
 		feeCollectorName: feeCollectorName,
 	}
@@ -75,7 +78,7 @@ func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 		ctx.Logger().Info("totalMintCoin is zero, no need to allocate reward")
 		return nil
 	}
-	regions := k.stakingKeeper.GetAllRegionI(ctx)
+	regions := k.regionStaking.GetAllRegionI(ctx)
 	totalRegionShare := sdkmath.NewInt(0)
 	for _, region := range regions {
 		totalRegionShare = region.GetRegionShare().Add(totalRegionShare)

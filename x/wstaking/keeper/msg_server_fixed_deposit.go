@@ -32,7 +32,7 @@ func (k MsgServer) GetFixedDepositInterest(cfg *types.FixedDepositCfg, principal
 		return sdk.Coin{}, types.ErrPayInterest.Wrapf(err.Error())
 	}
 	principalAmount := principalNormed.AmountOf(params.BaseDenom)
-	interest := cfg.Rate.MulInt(principalAmount).MulInt(math.NewInt(term)).QuoInt(sdkmath.NewIntFromUint64(DayPerYear))
+	interest := cfg.Rate.MulInt(principalAmount).MulInt(sdkmath.NewInt(term)).QuoInt(sdkmath.NewIntFromUint64(DayPerYear))
 
 	return sdk.NewCoin(params.BaseDenom, interest.TruncateInt()), nil
 }

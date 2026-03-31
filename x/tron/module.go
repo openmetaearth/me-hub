@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	appmodule "cosmossdk.io/core/appmodule"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -23,9 +24,9 @@ import (
 
 // type check to ensure the interface is properly implemented
 var (
-	_ module.AppModule         = AppModule{}
-	_ module.AppModuleBasic    = AppModuleBasic{}
-	_ module.EndBlockAppModule = AppModule{}
+	_ module.AppModule        = AppModule{}
+	_ module.AppModuleBasic   = AppModuleBasic{}
+	_ appmodule.HasEndBlocker = AppModule{}
 )
 
 // AppModuleBasic object for module implementation

@@ -6,6 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/st-chain/me-hub/x/gravity/types"
@@ -210,7 +211,7 @@ func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, contractAddress string, b
 // IterateOutgoingTxBatches iterates through all outgoing batches
 func (k Keeper) IterateOutgoingTxBatches(ctx sdk.Context, cb func(batch *types.OutgoingTxBatch) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStoreReversePrefixIterator(store, types.OutgoingTxBatchKey)
+	iter := storetypes.KVStoreReversePrefixIterator(store, types.OutgoingTxBatchKey)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		batch := new(types.OutgoingTxBatch)

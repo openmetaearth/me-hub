@@ -3,30 +3,15 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 )
 
 type StakingKeeper interface {
 	GetAllRegionI(ctx sdk.Context) (list []wstakingtypes.RegionI)
-	// iterate through validators by operator address, execute func for each validator
-	IterateValidators(sdk.Context,
-		func(index int64, validator stakingtypes.ValidatorI) (stop bool))
-
-	Validator(sdk.Context, sdk.ValAddress) stakingtypes.ValidatorI            // get a particular validator by operator address
-	ValidatorByConsAddr(sdk.Context, sdk.ConsAddress) stakingtypes.ValidatorI // get a particular validator by consensus address
-
-	// Delegation allows for getting a particular delegation for a given validator
-	// and delegator outside the scope of the staking module.
-	Delegation(sdk.Context, sdk.AccAddress, sdk.ValAddress) stakingtypes.DelegationI
-
-	IterateDelegations(ctx sdk.Context, delegator sdk.AccAddress,
-		fn func(index int64, delegation stakingtypes.DelegationI) (stop bool))
-
-	GetAllSDKDelegations(ctx sdk.Context) []stakingtypes.Delegation
-	GetAllValidators(ctx sdk.Context) (validators []stakingtypes.Validator)
-	GetAllDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddress) []stakingtypes.Delegation
 }
+
+// RegionStakingKeeper is an alias for StakingKeeper, kept for use in mock and tests.
+type RegionStakingKeeper = StakingKeeper
 
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI

@@ -48,7 +48,7 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 		)
 	}
 	// should before modified region shared
-	err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, valAddr)
+	err = k.WstakingHooks().BeforeValidatorStakingModified(ctx, valAddr)
 	if err != nil {
 		return nil, errorsmod.Wrapf(types.ErrHooks, "before stake:%+v", err)
 	}

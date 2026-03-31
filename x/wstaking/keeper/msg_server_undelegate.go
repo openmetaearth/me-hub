@@ -58,7 +58,8 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 
 	// current interest balance * personal withdrawal pledge limit / district total pledge limit
 	// person_dele_inte := region.DelegateInterest.Mul(sdkmath.LegacyNewDecFromInt(msg.Amount.Amount).Quo(sdkmath.LegacyNewDecFromInt(validator.DelegationAmount)))
-	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, val.GetOperator())
+	valOpAddr, _ := sdk.ValAddressFromBech32(val.GetOperator())
+	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, valOpAddr)
 	if !isOK {
 		return nil, types.ErrEmptyDelegationDistInfo
 	}
@@ -99,7 +100,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 		defer func() {
 			telemetry.IncrCounter(1, stakingtypes.ModuleName, "undelegate")
 			telemetry.SetGaugeWithLabels(
-				[]string{"tx", "msg", msg.Type()},
+				[]string{"tx", "msg", sdk.MsgTypeURL(msg)},
 				float32(returnAmount.Int64()),
 				[]metrics.Label{telemetry.NewLabel("denom", msg.Amount.Denom)},
 			)

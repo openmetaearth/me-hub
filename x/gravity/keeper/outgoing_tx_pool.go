@@ -6,6 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/st-chain/me-hub/x/gravity/types"
@@ -218,7 +219,7 @@ func (k Keeper) GetUnbatchedTransactions(ctx sdk.Context) []*types.OutgoingTrans
 func (k Keeper) IterateUnbatchedTransactions(ctx sdk.Context, tokenContract string, cb func(tx *types.OutgoingTransferTx) bool) {
 	store := ctx.KVStore(k.storeKey)
 	prefixKey := types.GetOutgoingTxPoolContractPrefix(tokenContract)
-	iter := sdk.KVStoreReversePrefixIterator(store, prefixKey)
+	iter := storetypes.KVStoreReversePrefixIterator(store, prefixKey)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var transact types.OutgoingTransferTx

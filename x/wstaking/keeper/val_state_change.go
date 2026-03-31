@@ -65,7 +65,7 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 				panic(fmt.Sprintf("invalid validator address %s,err = %s", replacePubKey.OperatorAddress, errP.Error()))
 			}
 			validator, err := k.GetValidator(ctx, valAddr)
-			if !found {
+			if err != nil {
 				panic(fmt.Sprintf("validator not found for address %s", replacePubKey.OperatorAddress))
 			}
 			power := validator.ConsensusPower(k.PowerReduction(ctx))
@@ -107,7 +107,7 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 	}
 
 	// Remove all mature unbonding delegations from the ubd queue.
-	matureDelUnbonds := k.DequeueAllMatureUBDQueue(ctx, ctx.BlockHeader().Time)
+	matureDelUnbonds, _ := k.DequeueAllMatureUBDQueue(ctx, ctx.BlockHeader().Time)
 	for _, dvPair := range matureDelUnbonds {
 		addr, err := sdk.ValAddressFromBech32(dvPair.ValidatorAddress)
 		if err != nil {
@@ -130,7 +130,7 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 	}
 
 	// Remove all mature redelegations from the red queue.
-	matureRedelegations := k.DequeueAllMatureRedelegationQueue(ctx, ctx.BlockHeader().Time)
+	matureRedelegations, _ := k.DequeueAllMatureRedelegationQueue(ctx, ctx.BlockHeader().Time)
 	for _, dvvTriplet := range matureRedelegations {
 		valSrcAddr, err := sdk.ValAddressFromBech32(dvvTriplet.ValidatorSrcAddress)
 		if err != nil {

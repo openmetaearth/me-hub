@@ -121,9 +121,9 @@ func (k Keeper) GetRelayerSet(ctx sdk.Context, nonce uint64) *types.RelayerSet {
 // IterateRelayerSets returns all relayerSet
 func (k Keeper) IterateRelayerSets(ctx sdk.Context, reverse bool, cb func(*types.RelayerSet) bool) {
 	store := ctx.KVStore(k.storeKey)
-	var iter sdk.Iterator
+	var iter storetypes.Iterator
 	if reverse {
-		iter = sdk.KVStoreReversePrefixIterator(store, types.RelayerSetRequestKey)
+		iter = storetypes.KVStoreReversePrefixIterator(store, types.RelayerSetRequestKey)
 	} else {
 		iter = storetypes.KVStorePrefixIterator(store, types.RelayerSetRequestKey)
 	}

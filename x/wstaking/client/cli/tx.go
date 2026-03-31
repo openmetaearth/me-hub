@@ -305,9 +305,6 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		Commission:        commissionRates,
 		MinSelfDelegation: minSelfDelegation,
 	}
-	if err := msg.ValidateBasic(); err != nil {
-		return txf, nil, err
-	}
 
 	genOnly, _ := fs.GetBool(flags.FlagGenerateOnly)
 	if genOnly {
@@ -591,9 +588,6 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 		Value:             amount,
 		Commission:        commissionRates,
 		MinSelfDelegation: minSelfDelegation,
-	}
-	if err := msg.ValidateBasic(); err != nil {
-		return txBldr, nil, err
 	}
 
 	if generateOnly {

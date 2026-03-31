@@ -21,12 +21,14 @@ func (k Keeper) GetNotBondedStakePool(ctx sdk.Context) (bondedStakePool authtype
 
 func (k Keeper) TotalBondedStakePool(ctx sdk.Context) math.Int {
 	bondedStakePool := k.GetBondedStakePool(ctx)
-	return k.bankKeeper.GetBalance(ctx, bondedStakePool.GetAddress(), k.BondDenom(ctx)).Amount
+	bondDenom, _ := k.BondDenom(ctx)
+	return k.bankKeeper.GetBalance(ctx, bondedStakePool.GetAddress(), bondDenom).Amount
 }
 
 // bondedStakeTokensToNotBonded transfers coins from the bonded to the not bonded pool within staking
 func (k Keeper) BondedStakeTokensToNotBonded(ctx sdk.Context, tokens math.Int, regionID string) {
-	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokens))
+	bondDenom, _ := k.BondDenom(ctx)
+	coins := sdk.NewCoins(sdk.NewCoin(bondDenom, tokens))
 	if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, types.BondedStakePoolName, types.NotBondedStakePoolName, coins,
 		fmt.Sprintf("BondedStakeTokensToNotBonded_SendCoinsFromBondedStakePoolToNotBondedStakePool_%s", regionID),
 	); err != nil {
@@ -36,7 +38,8 @@ func (k Keeper) BondedStakeTokensToNotBonded(ctx sdk.Context, tokens math.Int, r
 
 // notBondedStakeTokensToBonded transfers coins from the not bonded to the bonded pool within staking
 func (k Keeper) NotBondedStakeTokensToBonded(ctx sdk.Context, tokens math.Int) {
-	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokens))
+	bondDenom, _ := k.BondDenom(ctx)
+	coins := sdk.NewCoins(sdk.NewCoin(bondDenom, tokens))
 	if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, types.NotBondedStakePoolName, types.BondedStakePoolName, coins,
 		fmt.Sprintf("NotBondedStakeTokensToBonded_SendCoinsFromNotBondedStakePoolToBondedStakePool"),
 	); err != nil {

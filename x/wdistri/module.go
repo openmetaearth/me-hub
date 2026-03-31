@@ -1,9 +1,9 @@
 package wdistri
 
 import (
+	"context"
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -12,7 +12,6 @@ import (
 	distributionkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/st-chain/me-hub/x/wdistri/keeper"
-	"github.com/st-chain/me-hub/x/wdistri/types"
 )
 
 // AppModuleBasic implements the basic application module for the wrapped nft module.
@@ -31,9 +30,9 @@ type AppModule struct {
 func NewAppModule(
 	cdc codec.Codec,
 	keeper keeper.Keeper,
-	ak types.AccountKeeper,
-	bk types.BankKeeper,
-	sk types.StakingKeeper,
+	ak distributiontypes.AccountKeeper,
+	bk distributiontypes.BankKeeper,
+	sk distributiontypes.StakingKeeper,
 	ss exported.Subspace,
 ) AppModule {
 	distributionModule := distribution.NewAppModule(cdc, keeper.Keeper, ak, bk, sk, ss)
@@ -61,11 +60,13 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 }
 
 // BeginBlock returns the begin blocker for the distribution module.
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	BeginBlocker(ctx, req, am.keeper)
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	BeginBlocker(sdk.UnwrapSDKContext(ctx), am.keeper)
+	return nil
 }
 
-func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
-	EndBlock(ctx, req, am.keeper)
-	return []abci.ValidatorUpdate{}
+// EndBlock executes the end block logic for the distribution module.
+func (am AppModule) EndBlock(ctx context.Context) error {
+	EndBlock(sdk.UnwrapSDKContext(ctx), am.keeper)
+	return nil
 }
