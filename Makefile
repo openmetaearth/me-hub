@@ -101,7 +101,6 @@ build: go.sum
 build-vendor: go.sum
 	@echo "Building with vendor mode (without ledger support for Docker)..."
 	$(eval temp_build_tags := $(filter-out ledger,$(build_tags)))
-	@go mod vendor
 	@go build -mod=vendor -tags "$(temp_build_tags)" -ldflags '$(ldflags)' -trimpath -o $(BUILDDIR)/med ./cmd/med
 	@echo "Build completed successfully"
 

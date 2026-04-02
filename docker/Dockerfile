@@ -4,7 +4,7 @@
 # This creates a single-node private network that's pre-compiled and pre-initialized
 # Simply run the container to start a fully configured private network
 
-FROM golang:1.23-bullseye as go-builder
+FROM golang:1.24-bullseye as go-builder
 
 ARG arch=x86_64
 ARG GIT_VERSION
@@ -17,6 +17,7 @@ WORKDIR /me-hub
 # Copy source code
 COPY . .
 
+RUN ls /me-hub/vendor/
 # Build using vendor mode (make will run go mod vendor)
 RUN make build-vendor
 
