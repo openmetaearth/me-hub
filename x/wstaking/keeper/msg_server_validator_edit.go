@@ -144,7 +144,7 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 	validator.OperatorAddress = newValOperAddr.String()
 	validator.OwnerAddress = newValAddr.String()
 
-	err := k.SetValidatorByConsAddr(ctx, validator)
+	err = k.SetValidatorByConsAddr(ctx, validator)
 	if err != nil {
 		return err
 	}

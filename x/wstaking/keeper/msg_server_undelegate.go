@@ -59,8 +59,8 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	// current interest balance * personal withdrawal pledge limit / district total pledge limit
 	// person_dele_inte := region.DelegateInterest.Mul(sdkmath.LegacyNewDecFromInt(msg.Amount.Amount).Quo(sdkmath.LegacyNewDecFromInt(validator.DelegationAmount)))
 	valOpAddr, _ := sdk.ValAddressFromBech32(val.GetOperator())
-	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, valOpAddr)
-	if !isOK {
+	delegation, err := k.GetDelegation(ctx, delegatorAddress, valOpAddr)
+	if err != nil {
 		return nil, types.ErrEmptyDelegationDistInfo
 	}
 

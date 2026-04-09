@@ -55,7 +55,7 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 				return nil, types.ErrValidatorNotBonded
 			}
 
-			if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
+			if _, err := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); err == nil {
 				return nil, stakingtypes.ErrValidatorPubKeyExists
 			}
 

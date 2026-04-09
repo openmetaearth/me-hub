@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"math"
 
 	sdkmath "cosmossdk.io/math"
@@ -76,10 +77,10 @@ func RoundUpToFourDecimals(x float64) float64 {
 	return math.Ceil(x*10000) / 10000
 }
 
-func (k Keeper) Delegation(ctx sdk.Context, addrDel sdk.AccAddress, addrVal sdk.ValAddress) stakingtypes.DelegationI {
-	bond, ok := k.GetDelegation(ctx, addrDel, addrVal)
-	if !ok {
-		return nil
+func (k Keeper) Delegation(ctx context.Context, addrDel sdk.AccAddress, addrVal sdk.ValAddress) (stakingtypes.DelegationI, error) {
+	bond, err := k.GetDelegation(ctx, addrDel, addrVal)
+	if err != nil {
+		return nil, err
 	}
-	return bond
+	return bond, nil
 }

@@ -62,8 +62,8 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 		return stakingtypes.ErrNoValidatorFound
 	}
 
-	delegation, found := k.GetDelegation(ctx, address, fromValAddr)
-	if !found {
+	delegation, err := k.GetDelegation(ctx, address, fromValAddr)
+	if err != nil {
 		return types.ErrNoDelegatorForAddress
 	}
 	delegation.ValidatorAddress = toRegion.OperatorAddress

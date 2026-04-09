@@ -16,6 +16,7 @@ option go_package = "github.com/st-chain/me-hub/x/sequencer/types";
 
 // Msg defines the Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   // CreateSequencer defines a method for creating a new sequencer.
   rpc CreateSequencer(MsgCreateSequencer) returns (MsgCreateSequencerResponse);
 

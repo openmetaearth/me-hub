@@ -77,18 +77,9 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 }
 
 func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
-	return &autocliv1.ModuleOptions{
-		Tx: &autocliv1.ServiceCommandDescriptor{
-			Service:              "dymensionxyz.dymension.denommetadata.Msg",
-			EnhanceCustomCommand: true,
-			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
-				{
-					RpcMethod: "RegisterHLTokenDenomMetadata",
-					Skip:      true,
-				},
-			},
-		},
-	}
+	// ME Hub: This module has no Msg service (only governance proposals)
+	// Dymension v3 has a Msg service for Hyperlane token registration, which ME Hub does not support
+	return nil
 }
 
 // GetTxCmd returns the module's root tx command.

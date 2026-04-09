@@ -2,6 +2,10 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
+	"io"
+	"os"
+
 	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -9,11 +13,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	"github.com/cosmos/cosmos-sdk/x/gov"
-	"io"
-	"os"
+
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/server"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
@@ -146,19 +149,16 @@ func NewRootCmd() *cobra.Command {
 
 	// a workaround to wire the legacy proposals to the cli
 	// autoCli uses AppModule, while the legacy proposals are registered on the AppModuleBasic
-	govModule, ok := autoCliOpts.Modules["gov"].(gov.AppModule)
-	if !ok {
-		panic("gov module not found")
+	if govModule, ok := autoCliOpts.Modules["gov"].(gov.AppModule); ok {
+		if govBasicModule, ok := tempApp.BasicModuleManager["gov"].(gov.AppModuleBasic); ok {
+			govModule.AppModuleBasic = govBasicModule
+			autoCliOpts.Modules["gov"] = govModule
+		}
 	}
-	govBasicModule, ok := tempApp.BasicModuleManager["gov"].(gov.AppModuleBasic)
-	if !ok {
-		panic("gov module basic not found")
-	}
-	govModule.AppModuleBasic = govBasicModule
-	autoCliOpts.Modules["gov"] = govModule
 
 	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
-		panic(err)
+		// TODO: fix proto service registration issues for custom modules
+		fmt.Fprintf(os.Stderr, "Warning: EnhanceRootCommand error (non-fatal): %v\n", err)
 	}
 
 	rootCmd.AddCommand(cometbftcmd.RootCmd)

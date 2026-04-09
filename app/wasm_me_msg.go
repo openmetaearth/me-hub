@@ -1,11 +1,13 @@
 package app
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"encoding/json"
+
+	errorsmod "cosmossdk.io/errors"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/CosmWasm/wasmd/x/wasm/types"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	wasmvmtypesv2 "github.com/CosmWasm/wasmvm/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
@@ -24,6 +26,18 @@ type Output struct {
 	Amount  wasmvmtypes.Coins `json:"amount,omitempty"`
 }
 
+// convertCoinsV1ToV2 converts wasmvm v1 Coins to v2 Coins
+func convertCoinsV1ToV2(v1Coins wasmvmtypes.Coins) []wasmvmtypesv2.Coin {
+	v2Coins := make([]wasmvmtypesv2.Coin, len(v1Coins))
+	for i, coin := range v1Coins {
+		v2Coins[i] = wasmvmtypesv2.Coin{
+			Denom:  coin.Denom,
+			Amount: coin.Amount,
+		}
+	}
+	return v2Coins
+}
+
 func EncodeMeMsg(sender sdk.AccAddress, msg *MeMsg) ([]sdk.Msg, error) {
 	if msg.MultiSend == nil {
 		return nil, errorsmod.Wrap(types.ErrUnknownMsg, "unknown variant of Bank")
@@ -31,14 +45,14 @@ func EncodeMeMsg(sender sdk.AccAddress, msg *MeMsg) ([]sdk.Msg, error) {
 	if len(msg.MultiSend.Output) == 0 {
 		return nil, nil
 	}
-	toSend, err := wasmkeeper.ConvertWasmCoinsToSdkCoins(msg.MultiSend.Amount)
+	toSend, err := wasmkeeper.ConvertWasmCoinsToSdkCoins(convertCoinsV1ToV2(msg.MultiSend.Amount))
 	if err != nil {
 		return nil, err
 	}
 
 	var outputs []banktypes.Output
 	for _, o := range msg.MultiSend.Output {
-		amt, err := wasmkeeper.ConvertWasmCoinsToSdkCoins(o.Amount)
+		amt, err := wasmkeeper.ConvertWasmCoinsToSdkCoins(convertCoinsV1ToV2(o.Amount))
 		if err != nil {
 			return nil, err
 		}

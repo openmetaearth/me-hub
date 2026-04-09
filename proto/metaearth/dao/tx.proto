@@ -11,6 +11,7 @@ option go_package = "github.com/st-chain/me-hub/x/dao/types";
 
 // Msg defines the Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   rpc UpdateDao(MsgUpdateDao) returns (MsgUpdateDaoResponse);
   rpc FreeGasAccount(MsgFreeGasAccount) returns (MsgFreeGasAccountResponse);
 }

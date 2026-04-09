@@ -1,6 +1,9 @@
 package app
 
 import (
+	"fmt"
+	"slices"
+
 	"cosmossdk.io/x/evidence"
 	evidencetypes "cosmossdk.io/x/evidence/types"
 	"cosmossdk.io/x/feegrant"
@@ -8,7 +11,6 @@ import (
 	"cosmossdk.io/x/nft"
 	"cosmossdk.io/x/upgrade"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	"fmt"
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -66,7 +68,6 @@ import (
 	"github.com/st-chain/me-hub/x/wnft"
 	"github.com/st-chain/me-hub/x/wstaking"
 	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
-	"slices"
 
 	appparams "github.com/st-chain/me-hub/app/params"
 	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
@@ -115,14 +116,14 @@ func (app *App) SetupModules(
 		packetforwardmiddleware.NewAppModule(app.PacketForwardMiddlewareKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(app.TransferKeeper),
 		rollappmodule.NewAppModule(appCodec, app.RollappKeeper),
-		sequencermodule.NewAppModule(appCodec, app.SequencerKeeper),
+		sequencermodule.NewAppModule(appCodec, *app.SequencerKeeper),
 		delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper),
 		denommetadatamodule.NewAppModule(app.DenomMetadataKeeper, *app.EvmKeeper.Keeper, app.BankKeeper),
 		eibcmodule.NewAppModule(appCodec, app.EIBCKeeper),
 
 		// Ethermint app modules
 		meevm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(evmtypes.ModuleName)),
-		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())),
+		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName)),
 
 		// did app modules
 		did.NewAppModule(appCodec, app.DidKeeper),

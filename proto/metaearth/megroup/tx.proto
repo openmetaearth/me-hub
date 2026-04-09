@@ -2,12 +2,14 @@ syntax = "proto3";
 
 package metaearth.megroup;
 
+import "cosmos/msg/v1/msg.proto";
 import "metaearth/megroup/group_info.proto";
 
 option go_package = "github.com/st-chain/me-hub/x/megroup/types";
 
 // Msg defines the Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   rpc CreateGroup(MsgCreateGroup) returns (MsgCreateGroupResponse);
   rpc UpdateGroup(MsgUpdateGroup) returns (MsgUpdateGroupResponse);
   rpc DeleteGroup(MsgDeleteGroup) returns (MsgDeleteGroupResponse);

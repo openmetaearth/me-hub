@@ -78,8 +78,8 @@ func (k Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationR
 	//if valErr != nil {
 	//	return nil, valErr
 	//}
-	delegation, found := k.GetDelegation(ctx, delAdr, sdk.ValAddress{})
-	if !found {
+	delegation, err := k.GetDelegation(ctx, delAdr, sdk.ValAddress{})
+	if err != nil {
 		return nil, status.Error(codes.NotFound, "delegator not found, address="+delAdr.String())
 	}
 	interest, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
@@ -118,8 +118,8 @@ func (k Querier) Delegation(c context.Context, req *stakingtypes.QueryDelegation
 	if valErr != nil {
 		return nil, valErr
 	}
-	delegation, found := k.GetDelegation(ctx, delAddr, valAddr)
-	if !found {
+	delegation, err := k.GetDelegation(ctx, delAddr, valAddr)
+	if err != nil {
 		return nil, status.Errorf(
 			codes.NotFound,
 			"delegation with delegator %s not found for validator",

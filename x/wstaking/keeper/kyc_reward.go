@@ -80,8 +80,8 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 		return fmt.Errorf("region bonded validator not found")
 	}
 
-	delegation, found := k.GetDelegation(ctx, account, valAddr)
-	if !found {
+	delegation, err := k.GetDelegation(ctx, account, valAddr)
+	if err != nil {
 		return types.ErrNoDelegatorForAddress
 	}
 
@@ -170,8 +170,8 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 		return err
 	}
 
-	delegation, found := k.GetDelegation(ctx, delAddr, experienceValAddress)
-	if found {
+	delegation, err := k.GetDelegation(ctx, delAddr, experienceValAddress)
+	if err == nil {
 		if delegation.Unmovable.GT(sdkmath.ZeroInt()) {
 			return types.ErrDidExists
 		}

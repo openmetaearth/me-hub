@@ -1,15 +1,18 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 
+	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
@@ -198,8 +201,8 @@ func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.A
 	//	k.Logger(ctx).Error("internalWithdrawDelegationRewards err=", valErr.Error())
 	//	return nil, valErr
 	//}
-	delegation, f := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
-	if !f {
+	delegation, err := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
+	if err != nil {
 		return nil, fmt.Errorf("delegation not exist")
 	}
 	rewards, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
@@ -252,18 +255,19 @@ func NewDelegationResp(del stakingtypes.Delegation, balance sdk.Coin) stakingtyp
 	}
 }
 
-func (k Keeper) GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, found bool) {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) GetDelegation(ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (stakingtypes.Delegation, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	store := sdkCtx.KVStore(k.storeKey)
 	key := stakingtypes.GetDelegationKey(delAddr, sdk.ValAddress{})
 
 	value := store.Get(key)
 	if value == nil {
-		return delegation, false
+		return stakingtypes.Delegation{}, errorsmod.Wrap(sdkerrors.ErrNotFound, "delegation not found")
 	}
 
-	delegation = stakingtypes.MustUnmarshalDelegation(k.cdc, value)
+	delegation := stakingtypes.MustUnmarshalDelegation(k.cdc, value)
 
-	return delegation, true
+	return delegation, nil
 }
 
 func (k Keeper) SetDelegation(ctx sdk.Context, delegation stakingtypes.Delegation) {
@@ -313,8 +317,8 @@ func (k *Keeper) ChangeDelegationValidator(ctx sdk.Context) {
 			k.didKeeper.IteratorCredentialsByFilter(ctx, kyctypes.ModuleName, []byte(regionId), func(vc didtypes.Credential) (stop bool) {
 				info, found := k.didKeeper.GetDidInfo(ctx, vc.Did)
 				if found {
-					delegation, f := k.GetDelegation(ctx, sdk.MustAccAddressFromBech32(info.Address), sdk.ValAddress{})
-					if f {
+					delegation, err := k.GetDelegation(ctx, sdk.MustAccAddressFromBech32(info.Address), sdk.ValAddress{})
+					if err == nil {
 						delegation.ValidatorAddress = region.OperatorAddress
 						k.SetDelegation(ctx, delegation)
 					}

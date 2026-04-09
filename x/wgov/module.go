@@ -39,6 +39,12 @@ func NewAppModule(cdc codec.Codec, keeper *wgovkeeper.Keeper, ak govtypes.Accoun
 	}
 }
 
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (am AppModule) IsOnePerModuleType() {}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (am AppModule) IsAppModule() {}
+
 // EndBlock returns the end blocker for the gov module. It returns no validator
 // updates.
 func (am AppModule) EndBlock(ctx context.Context) error {

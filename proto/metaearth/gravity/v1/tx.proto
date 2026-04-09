@@ -11,6 +11,7 @@ option go_package = "github.com/st-chain/me-hub/x/gravity/types";
 
 // Msg defines the state transitions possible within gravity
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   rpc BondedRelayer(MsgBondedRelayer) returns (MsgBondedRelayerResponse);
   rpc AddDelegate(MsgAddDelegate) returns (MsgAddDelegateResponse);
   rpc UnbondedRelayer(MsgUnbondedRelayer) returns (MsgUnbondedRelayerResponse);

@@ -58,10 +58,10 @@ func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 	}
 
 	valOpAddr, _ := sdk.ValAddressFromBech32(validator.GetOperator())
-	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, valOpAddr)
+	delegation, err := k.GetDelegation(ctx, delegatorAddress, valOpAddr)
 	rewards := sdkmath.LegacyZeroDec()
 	var regionTreasureAddr sdk.AccAddress
-	if isOK {
+	if err == nil {
 		rewards, err = k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
 		if err != nil {
 			return nil, types.ErrCalculateInterest.Wrap(err.Error())

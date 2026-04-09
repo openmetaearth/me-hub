@@ -493,8 +493,8 @@ func (a *AppKeepers) InitKeepers(
 		runtime.NewKVStoreService(a.keys[govtypes.StoreKey]),
 		a.AccountKeeper,
 		a.BankKeeper,
-		a.DistrKeeper,
 		a.StakingKeeper,
+		a.DistrKeeper,
 		bApp.MsgServiceRouter(),
 		govConfig,
 		govModuleAddress,
@@ -583,6 +583,15 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	// ethermint subspaces (keeper doesn't load key table so we do it manually)
 	paramsKeeper.Subspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())
 	paramsKeeper.Subspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())
+
+	// Register subspaces for custom modules
+	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
+	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
+	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
+	paramsKeeper.Subspace(delayedacktypes.ModuleName)
+	paramsKeeper.Subspace(groupTypes.ModuleName)
+	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
+
 	return paramsKeeper
 }
 

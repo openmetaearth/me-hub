@@ -2,6 +2,7 @@ package cmd
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/evmos/ethermint/types"
 	appparams "github.com/st-chain/me-hub/app/params"
 )
 
@@ -19,6 +20,6 @@ func initSDKConfig() {
 
 // SetBip44CoinType sets the global coin type to be used in hierarchical deterministic wallets.
 func SetBip44CoinType(config *sdk.Config) {
-	config.SetCoinType(ethermint.Bip44CoinType)
+	config.SetCoinType(types.Bip44CoinType)
 	config.SetPurpose(sdk.Purpose) // Shared
 }

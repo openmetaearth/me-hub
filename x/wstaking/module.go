@@ -120,12 +120,13 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // BeginBlock returns the begin blocker for the staking module.
-func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
-	BeginBlock(ctx, am.keeper)
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	BeginBlock(sdk.UnwrapSDKContext(ctx), am.keeper)
+	return nil
 }
 
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return EndBlock(ctx, am.keeper)
+func (am AppModule) EndBlock(ctx context.Context) ([]abci.ValidatorUpdate, error) {
+	return EndBlock(sdk.UnwrapSDKContext(ctx), am.keeper), nil
 }
 
 // RegisterServices registers module services.

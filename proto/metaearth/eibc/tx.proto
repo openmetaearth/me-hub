@@ -7,6 +7,7 @@ option go_package = "github.com/st-chain/me-hub/x/eibc/types";
 
 // Msg defines the Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
   rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
   rpc UpdateDemandOrder(MsgUpdateDemandOrder) returns (MsgUpdateDemandOrderResponse) {}
 }

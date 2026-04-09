@@ -1,10 +1,11 @@
 package app
 
 import (
-	"cosmossdk.io/client/v2/autocli"
-	"cosmossdk.io/core/appmodule"
 	"encoding/json"
 	"fmt"
+
+	"cosmossdk.io/client/v2/autocli"
+	"cosmossdk.io/core/appmodule"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
@@ -27,9 +28,11 @@ import (
 	"os"
 	"path/filepath"
 
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	denommetadatamoduleclient "github.com/st-chain/me-hub/x/denommetadata/client"
 	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
 	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
+	"github.com/st-chain/me-hub/x/wstaking"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
@@ -146,7 +149,13 @@ func New(
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
-	encoding := appparams.MakeEncodingConfig()
+	encodingConfig := appparams.MakeEncodingConfig()
+	encoding := appparams.EncodingConfig{
+		InterfaceRegistry: encodingConfig.InterfaceRegistry,
+		Codec:             encodingConfig.Codec,
+		TxConfig:          encodingConfig.TxConfig,
+		Amino:             encodingConfig.Amino,
+	}
 	appCodec := encoding.Codec
 	legacyAmino := encoding.Amino
 	txConfig := encoding.TxConfig
@@ -190,7 +199,7 @@ func New(
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
-	app.mm = module.NewManager(app.SetupModules(appCodec, bApp, encodingConfig, skipGenesisInvariants)...)
+	app.mm = module.NewManager(app.SetupModules(appCodec, bApp, encoding, skipGenesisInvariants)...)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration and genesis verification.
@@ -208,6 +217,7 @@ func New(
 					evmclient.UpdateVirtualFrontierBankContractProposalHandler,
 				},
 			),
+			stakingtypes.ModuleName: wstaking.AppModuleBasic{},
 		})
 
 	app.BasicModuleManager.RegisterLegacyAminoCodec(legacyAmino)

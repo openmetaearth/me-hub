@@ -8,4 +8,5 @@ option go_package = "github.com/st-chain/me-hub/x/common/types";
 enum Status {
   PENDING = 0;
   FINALIZED = 1;
+  REVERTED = 2;
 }
