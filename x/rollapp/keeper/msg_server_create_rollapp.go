@@ -27,10 +27,6 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	//	}
 	//}
 
-	if !k.daoKeeper.IsDao(ctx, msg.Creator) {
-		return nil, types.ErrUnauthorizedRollappCreator
-	}
-
 	rollapp := msg.GetRollapp()
 	err = rollapp.ValidateBasic()
 	if err != nil {
