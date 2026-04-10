@@ -58,7 +58,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			}
 
 			genFile := config.GenesisFile()
-			appState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFile)
+			appState, appGenesis, err := genutiltypes.GenesisStateFromGenFile(genFile)
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal genesis state: %w", err)
 			}
@@ -106,8 +106,8 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			if err != nil {
 				return fmt.Errorf("failed to marshal application genesis state: %w", err)
 			}
-			genDoc.AppState = appStateJSON
-			x := genutil.ExportGenesisFile(genDoc, genFile)
+			appGenesis.AppState = appStateJSON
+			x := genutil.ExportGenesisFile(appGenesis, genFile)
 			return x
 		},
 	}
@@ -138,7 +138,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			config.SetRoot(clientCtx.HomeDir)
 
 			genFile := config.GenesisFile()
-			appState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFile)
+			appState, appGenesis, err := genutiltypes.GenesisStateFromGenFile(genFile)
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal genesis state: %w", err)
 			}
@@ -194,8 +194,8 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			if err != nil {
 				return fmt.Errorf("failed to marshal application genesis state: %w", err)
 			}
-			genDoc.AppState = appStateJSON
-			x := genutil.ExportGenesisFile(genDoc, genFile)
+			appGenesis.AppState = appStateJSON
+			x := genutil.ExportGenesisFile(appGenesis, genFile)
 			return x
 		},
 	}

@@ -168,6 +168,7 @@ message MsgSetFixedDepositCfgRateResp {
 }
 
 message MsgNewRegion {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   string name = 2;
   string operator_address = 3;

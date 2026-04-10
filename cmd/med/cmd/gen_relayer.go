@@ -68,7 +68,7 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 			}
 
 			genFile := config.GenesisFile()
-			appState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFile)
+			appState, appGenesis, err := genutiltypes.GenesisStateFromGenFile(genFile)
 			if err != nil {
 				return fmt.Errorf("unmarshal genesis state: %w", err)
 			}
@@ -162,8 +162,8 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("marshal app state: %w", err)
 			}
-			genDoc.AppState = appStateJSON
-			return genutil.ExportGenesisFile(genDoc, genFile)
+			appGenesis.AppState = appStateJSON
+			return genutil.ExportGenesisFile(appGenesis, genFile)
 		},
 	}
 
