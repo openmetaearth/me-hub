@@ -56,20 +56,8 @@ func (k Keeper) finalizeRollappPacket(
 	var packetErr error
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
-		// TODO: makes more sense to modify the packet when calling the handler, instead storing in db "wrong" packet
 		ack := ibc.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
-		/*
-				We only write the ack if writing it succeeds:
-				1. Transfer fails and writing ack fails - In this case, the funds will never be refunded on the RA.
-						non-eibc: sender will never get the funds back
-						eibc: the fulfiller will never get the funds back, the original target has already been paid
-				2. Transfer succeeds and writing ack fails - In this case, the packet is never cleared on the RA.
-				3. Transfer succeeds and writing succeeds - happy path
-				4. Transfer fails and ack succeeds - we write the err ack and the funds will be refunded on the RA
-					 non-eibc: sender will get the funds back
-			            eibc: effective transfer from fulfiller to original target
-		*/
-		if ack != nil {
+		if ack != nil { // NOTE: in practice ack should not be nil, since ibc transfer core module always returns something
 			packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
 		}
 	case commontypes.RollappPacket_ON_ACK:
@@ -110,12 +98,8 @@ func (k Keeper) writeRecvAck(rollappPacket commontypes.RollappPacket, ack export
 			Here, we do the inverse of what we did when we updated the packet transfer address, when we fulfilled the order
 			to ensure the ack matches what the rollapp expects.
 		*/
-		rollappPacket, err = rollappPacket.RestoreOriginalTransferTarget()
-		if err != nil {
-			return fmt.Errorf("restore original transfer target: %w", err)
-		}
-		err = k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
-		return
+		rollappPacket = rollappPacket.RestoreOriginalTransferTarget()
+		return k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
 	}
 }
 
