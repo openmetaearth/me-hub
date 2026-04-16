@@ -21,8 +21,8 @@ func (k *Keeper) AddGroupMember(ctx sdk.Context, grpMember *types.GroupMember) e
 	grpMemberPrefix := fmt.Sprintf("%s%d/", types.GroupMemberKey, grpMember.GroupId)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(grpMemberPrefix))
 	if nil != store.Get([]byte(grpMember.Member.Address)) {
-		return errors.Wrapf(types.ErrGroupMemberRepeated, fmt.Sprintf("member has been joined this group store.groupID = %d",
-			grpMember.GroupId))
+		return errors.Wrapf(types.ErrGroupMemberRepeated, "member has been joined this group store.groupID = %d",
+			grpMember.GroupId)
 	}
 	val := k.cdc.MustMarshal(grpMember)
 	store.Set([]byte(grpMember.Member.Address), val)
@@ -81,8 +81,7 @@ func (k *Keeper) deleteMemberFormGroup(ctx sdk.Context, groupID uint64, address 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(grpMemberPrefix))
 	addrBytes := []byte(address)
 	if nil == store.Get(addrBytes) {
-		return errors.Wrapf(types.ErrGroupMemberNotExist, fmt.Sprintf("can not found member in group.addr = %s,groupID = %d",
-			address, groupID))
+		return errors.Wrapf(types.ErrGroupMemberNotExist, "can not found member in group.addr: %s,groupID: %d", address, groupID)
 	}
 	store.Delete(addrBytes)
 	return nil

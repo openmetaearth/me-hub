@@ -128,16 +128,16 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 		preJoinedGroupID = joined.GroupId
 		preGrpIdByRegion, found := k.GetGroupIdByRegion(sdkCtx, preRegionID)
 		if !found {
-			return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found groupId in previous region.preRegionID = %s."+
-				"but user has been joined group.joinGroupID = %d", preRegionID, joined.GroupId))
+			return errors.Wrapf(types.ErrGroupNotExist, "can not found groupId in previous region.preRegionID = %s."+
+				"but user has been joined group.joinGroupID = %d", preRegionID, joined.GroupId)
 		}
 		if preGrpIdByRegion != joined.GroupId {
-			return errors.Wrapf(types.ErrProcData, fmt.Sprintf("preGrpIdByRegion != joined.GroupId.preGrpIdByRegion = %d."+
-				"but user has been joined group.joinGroupID = %d", preGrpIdByRegion, joined.GroupId))
+			return errors.Wrapf(types.ErrProcData, "preGrpIdByRegion != joined.GroupId.preGrpIdByRegion = %d."+
+				"but user has been joined group.joinGroupID = %d", preGrpIdByRegion, joined.GroupId)
 		}
 		preGroupInfo, found := k.GetGroupInfo(sdkCtx, joined.GroupId)
 		if !found {
-			return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found joined previous gourp.groupID = %d", joined.GroupId))
+			return errors.Wrapf(types.ErrGroupNotExist, "can not found joined previous gourp.groupID = %d", joined.GroupId)
 		}
 		//admin can not migrate
 		if address == preGroupInfo.Admin { //admin can not leave group
@@ -181,7 +181,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 
 	newGrpInfo, found := k.GetGroupInfo(sdkCtx, newGrpId)
 	if !found { //if new group has not been created,emit event and return
-		return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found group by groupID.groupID = %d", newGrpId))
+		return errors.Wrapf(types.ErrGroupNotExist, "can not found group by groupID.groupID = %d", newGrpId)
 	}
 	newGrpNumberCnt, found := k.GetGroupMemberCount(sdkCtx, newGrpId)
 	if !found {
@@ -210,20 +210,20 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 		//get RegionTreasureAddr
 		region, found := k.stakingKeeper.GetRegion(sdkCtx, nowRegionID)
 		if !found {
-			return errors.Wrapf(types.ErrRegionNotExist, fmt.Sprintf("group's region = %s", nowRegionID))
+			return errors.Wrapf(types.ErrRegionNotExist, "group's region = %s", nowRegionID)
 		}
 		rewardsCoin := sdk.NewCoin(params.BaseDenom, math.NewInt(1000000))
 		err = k.bankKeeper.Extend().SendCoinsWithTag(sdkCtx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
 			sdk.MustAccAddressFromBech32(address), sdk.NewCoins(rewardsCoin), fmt.Sprintf("ProcKycRegionChange_JoinGroupReward_SendRewardsFromRegionTreasureToAddress_%s", region.RegionId))
 		if err != nil {
-			return errors.Wrapf(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
+			return errors.Wrap(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
 				err.Error(), region.GetRegionTreasureAddr(), address))
 		}
 		err = k.bankKeeper.Extend().SendCoinsWithTag(sdkCtx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
 			sdk.MustAccAddressFromBech32(newGrpInfo.Admin), sdk.NewCoins(rewardsCoin), fmt.Sprintf("ProcKycRegionChange_JoinGroupReward_SendRewardsFromRegionTreasureToAdmin_%s", region.RegionId))
 		if err != nil {
-			return errors.Wrapf(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
-				err.Error(), region.GetRegionTreasureAddr(), newGrpInfo.Admin))
+			return errors.Wrapf(types.ErrProcData, "transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
+				err.Error(), region.GetRegionTreasureAddr(), newGrpInfo.Admin)
 		}
 		sdkCtx.EventManager().EmitEvent(sdk.NewEvent(types.EvtJoinGroupReward,
 			sdk.NewAttribute("applicant", address),
@@ -272,7 +272,7 @@ func (k Keeper) CreateGroupByRegion(sdkCtx sdk.Context, regionInfo stakingTypes.
 	//check group has been created
 	preGroupID, found := k.GetGroupIdByRegion(sdkCtx, regionInfo.RegionId)
 	if found {
-		return 0, errors.Wrapf(types.ErrGroupExceededInRegion, fmt.Sprintf("group of region has been created.groupId = %d", preGroupID))
+		return 0, errors.Wrap(types.ErrGroupExceededInRegion, fmt.Sprintf("group of region has been created.groupId = %d", preGroupID))
 	}
 
 	operValAddr, err := sdk.ValAddressFromBech32(regionInfo.OperatorAddress)

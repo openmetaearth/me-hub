@@ -29,7 +29,7 @@ func CmdListFixedDepositCfg() *cobra.Command {
 				for _, regionId := range regionIds {
 					_, err := utils.CheckRegionName(strings.ToUpper(regionId))
 					if err != nil {
-						return sdkerrors.Wrapf(types.ErrRegionName, err.Error())
+						return sdkerrors.Wrap(types.ErrRegionName, err.Error())
 					}
 				}
 			}

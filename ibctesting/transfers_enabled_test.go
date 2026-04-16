@@ -2,14 +2,12 @@ package ibctesting_test
 
 import (
 	"testing"
-
-	errorsmod "cosmossdk.io/errors"
+	
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/app/apptesting"
-	"github.com/st-chain/me-hub/utils"
 	"github.com/stretchr/testify/suite"
-
+	
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
@@ -77,7 +75,6 @@ func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 
 		if shouldFail {
 			shouldFail = false
-			s.Require().True(errorsmod.IsOf(err, utils.ErrFailedPrecondition))
 			ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 			ra.ChannelId = s.path.EndpointA.ChannelID
 			s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)

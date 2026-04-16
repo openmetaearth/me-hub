@@ -75,7 +75,6 @@ func (s *AnteTestSuite) SetupTest(isCheckTx bool) {
 			StakingKeeper:   mockStakingKeeper,
 			KycKeeper:       s.app.KycKeeper,
 			WasmViewKeeper:  s.app.WasmKeeper,
-			TxFeesKeeper:    s.app.TxFeesKeeper,
 		},
 	)
 

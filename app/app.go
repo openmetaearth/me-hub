@@ -3,30 +3,27 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_12"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_13"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_13_patch_4"
-	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
-	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
 	"io"
 	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
 
+	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
+	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
+
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_11"
 
 	simappparams "cosmossdk.io/simapp/params"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	"github.com/st-chain/me-hub/app/keepers"
 	"github.com/st-chain/me-hub/app/upgrades"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_10"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_13"
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -90,11 +87,7 @@ var (
 
 	// Upgrades contains the upgrade handlers for the application
 	Upgrades = []upgrades.Upgrade{
-		v2_0_10.Upgrade,
-		v2_0_11.Upgrade,
-		v2_0_12.Upgrade,
 		v2_0_13.Upgrade,
-		v2_0_13_patch_4.Upgrade,
 	}
 )
 

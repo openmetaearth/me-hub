@@ -43,7 +43,7 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	regionId, err := k.MustGetKycRegionIdByAccount(ctx, msg.Account)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrDidNotExists, err.Error())
+		return nil, sdkerrors.Wrap(types.ErrDidNotExists, err.Error())
 	}
 
 	if !msg.Principal.Amount.IsPositive() {

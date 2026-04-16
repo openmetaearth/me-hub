@@ -57,7 +57,7 @@ func (msg *MsgIbcTransferFromRegionTreasure) ValidateBasic() error {
 		return sdkerrors.Wrap(err, "invalid source channel ID")
 	}
 	if _, err := utils.CheckRegionName(strings.ToUpper(msg.RegionId)); err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidType, err.Error())
+		return errors.Wrap(sdkerrors.ErrInvalidType, err.Error())
 	}
 	if !msg.Token.IsValid() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Token.String())

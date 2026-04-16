@@ -28,30 +28,30 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 
 	userAccAddr, err := sdk.AccAddressFromBech32(msg.ApplicantAddress)
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("sdk.AccAddressFromBech32 error.err = %s,addr = %s",
-			err.Error(), msg.ApplicantAddress))
+		return nil, errors.Wrapf(types.ErrProcData, "sdk.AccAddressFromBech32 error.err = %s,addr = %s",
+			err.Error(), msg.ApplicantAddress)
 	}
 
 	groupInfo, found := k.GetGroupInfo(ctx, msg.GroupId)
 	if !found {
-		return nil, errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("msg's groupID = %d", msg.GroupId))
+		return nil, errors.Wrapf(types.ErrGroupNotExist, "msg's groupID = %d", msg.GroupId)
 	}
 
 	_, isKycActive := k.GetDidAndKycActive(ctx, userAccAddr, groupInfo.RegionID)
 	if !isKycActive {
-		return nil, errors.Wrapf(types.ErrPermissionDenied, fmt.Sprintf("can not found hight kyc level user's did active status in group's region"+
-			"address = %s, group's regionID = %s", msg.ApplicantAddress, groupInfo.RegionID))
+		return nil, errors.Wrapf(types.ErrPermissionDenied, "can not found hight kyc level user's did active status in group's region"+
+			"address = %s, group's regionID = %s", msg.ApplicantAddress, groupInfo.RegionID)
 	}
 
 	grpNumber, found := k.GetGroupMemberCount(ctx, msg.GroupId)
 	if !found {
-		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("can not found group number count in JoinGroup"))
+		return nil, errors.Wrap(types.ErrProcData, fmt.Sprintf("can not found group number count in JoinGroup"))
 	}
 
 	joined, JoinGroupFound := k.GetMemberJoined(ctx, msg.ApplicantAddress)
 	if JoinGroupFound && joined.GroupId > 0 {
 		errLogBytes := fmt.Sprintf("user has joined a group (groupID:%d)", joined.GroupId)
-		return nil, errors.Wrapf(types.ErrPermissionDenied, errLogBytes)
+		return nil, errors.Wrap(types.ErrPermissionDenied, errLogBytes)
 	}
 
 	//set member's join group info
@@ -75,19 +75,19 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 		//get RegionTreasureAddr
 		region, found := k.stakingKeeper.GetRegion(ctx, groupInfo.RegionID)
 		if !found {
-			return nil, errors.Wrapf(types.ErrRegionNotExist, fmt.Sprintf("group's region: %s", groupInfo.RegionID))
+			return nil, errors.Wrap(types.ErrRegionNotExist, fmt.Sprintf("group's region: %s", groupInfo.RegionID))
 		}
 		rewardsCoin := sdk.NewCoin(params.BaseDenom, math.NewInt(1000000))
 		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
 			sdk.MustAccAddressFromBech32(msg.ApplicantAddress), sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_UserJoinGroupNotFound_SendRewardsFromRegionTreasureToAddress_%s", region.RegionId))
 		if err != nil {
-			return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
+			return nil, errors.Wrap(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
 				err.Error(), region.GetRegionTreasureAddr(), msg.ApplicantAddress))
 		}
 		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
 			sdk.MustAccAddressFromBech32(groupInfo.Admin), sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_UserJoinGroupNotFound_SendRewardsFromRegionTreasureToAdmin_%s", region.RegionId))
 		if err != nil {
-			return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
+			return nil, errors.Wrap(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
 				err.Error(), region.GetRegionTreasureAddr(), groupInfo.Admin))
 		}
 		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtJoinGroupReward,
@@ -113,7 +113,7 @@ func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupReq
 
 	groupInfo, found := k.GetGroupInfo(ctx, req.GroupId)
 	if !found {
-		return nil, errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found gourp.groupID = %d", req.GroupId))
+		return nil, errors.Wrap(types.ErrGroupNotExist, fmt.Sprintf("can not found gourp.groupID = %d", req.GroupId))
 	}
 
 	if req.Creator == groupInfo.Admin { //admin can not leave group
@@ -125,16 +125,15 @@ func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupReq
 		return nil, errors.Wrapf(types.ErrExecute, "can not found join group")
 	}
 	if joined.GroupId != req.GroupId {
-		return nil, errors.Wrapf(types.ErrExecute, fmt.Sprintf("group info dismatch.input group's id = %d,join gropp's id = %d",
-			req.GroupId, joined.GroupId))
+		return nil, errors.Wrap(types.ErrExecute, fmt.Sprintf("group info dismatch.input group's id = %d,join gropp's id = %d", req.GroupId, joined.GroupId))
 	}
 
 	grpNumber, found := k.GetGroupMemberCount(ctx, req.GroupId)
 	if !found {
-		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("can not found group number count in LeaveGroup"))
+		return nil, errors.Wrapf(types.ErrProcData, "can not found group number count in LeaveGroup")
 	}
 	if grpNumber == 0 {
-		return nil, errors.Wrapf(types.ErrProcData, fmt.Sprintf("group number is 0 in LeaveGroup"))
+		return nil, errors.Wrapf(types.ErrProcData, "group number is 0 in LeaveGroup")
 	}
 
 	if err := k.deleteMemberFormGroup(ctx, req.GroupId, req.Creator); err != nil {

@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"unicode"
-
+	
 	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
@@ -40,8 +40,11 @@ func (k MsgServer) NewRecord(goCtx context.Context, msg *types.MsgNewRecord) (*t
 
 func (k MsgServer) ReviewRecord(goCtx context.Context, msg *types.MsgReviewRecord) (*types.MsgReviewRecordResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	if !k.daoKeeper.IsDao(ctx, msg.From) {
-		return nil, sdkerrors.Wrapf(types.ErrParameter, "review record account (%s) should be global dao or meid dao", msg.From)
+	globalAdmin := k.daoKeeper.GetGlobalDao(ctx)
+	meidAdmin := k.daoKeeper.GetMeidDao(ctx)
+	if globalAdmin != msg.From && meidAdmin != msg.From {
+		// use a constant format string in Wrapf to avoid non-constant format string vet issue
+		return nil, sdkerrors.Wrapf(types.ErrParameter, "review record account (%s) should  be global admin", msg.From)
 	}
 	_, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
