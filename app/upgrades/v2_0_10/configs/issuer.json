@@ -1,6 +1,0 @@
-{
-  "did": "0000000000000001",
-  "address": "me1hd5y9hepjkc22ewaquldcjqellpn28k4dxz5al",
-  "pubkey": "{\"@type\":\"/cosmos.crypto.secp256k1.PubKey\",\"key\":\"AgpLQceqR+BMnuWY1yiC2UNMKiGZ8Cu1vjqhpqcenlh4\"}",
-  "status": 1
-}

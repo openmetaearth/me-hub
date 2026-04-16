@@ -28,7 +28,7 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 	expectedNonce := lastEventNonce + 1
 
 	// fist check continuity
-	if claim.GetEventNonce() == lastEventNonce {
+	if claim.GetEventNonce() <= lastEventNonce {
 		return nil, errorsmod.Wrapf(types.ErrNonContinuousEventNonce, "got %v, expected %v", claim.GetEventNonce(), expectedNonce)
 	}
 	if claim.GetEventNonce() != expectedNonce && claim.GetEventNonce() > lastObservedNonce {
