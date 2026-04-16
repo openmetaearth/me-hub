@@ -62,11 +62,10 @@ func (r RollappPacket) GetTransferPacketData() (transfertypes.FungibleTokenPacke
 	return data, nil
 }
 
-func (r RollappPacket) RestoreOriginalTransferTarget() (RollappPacket, error) {
-	transferPacketData, err := r.GetTransferPacketData()
-	if err != nil {
-		return r, fmt.Errorf("get transfer packet data: %w", err)
-	}
+// restores the packet back to how it looked when hub first received it, to make sure the right ack
+// is written back
+func (r RollappPacket) RestoreOriginalTransferTarget() RollappPacket {
+	transferPacketData := r.MustGetTransferPacketData()
 	if r.OriginalTransferTarget != "" { // It can be empty if the eibc order was never fulfilled
 		switch r.Type {
 		case RollappPacket_ON_RECV:
@@ -76,5 +75,14 @@ func (r RollappPacket) RestoreOriginalTransferTarget() (RollappPacket, error) {
 		}
 		r.Packet.Data = transferPacketData.GetBytes()
 	}
-	return r, nil
+	return r
+}
+
+func (r RollappPacket) MustGetTransferPacketData() transfertypes.FungibleTokenPacketData {
+	data, err := r.GetTransferPacketData()
+	if err != nil {
+		// impossible for this to fail since the packet data was already unmarshaled once and we never change the format of the data, so we panic if it does fail
+		panic(fmt.Errorf("failed to unmarshal transfer packet data: %v", err))
+	}
+	return data
 }
