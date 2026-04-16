@@ -1,13 +1,15 @@
 package keeper
 
 import (
+	"github.com/st-chain/me-hub/x/wmint"
+	"math/big"
+
 	cmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/st-chain/me-hub/app/params"
 	mintTypes "github.com/st-chain/me-hub/x/wmint/types"
 	"github.com/st-chain/me-hub/x/wstaking/types"
-	"math"
 )
 
 func (k Keeper) CalculateInterest(ctx sdk.Context, totalStaking cmath.Int, height int64) (rewards sdk.Dec, err error) {
@@ -20,43 +22,37 @@ func (k Keeper) CalculateInterest(ctx sdk.Context, totalStaking cmath.Int, heigh
 
 // getRewardsByHeight Get coins through the block height range
 func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
-	var totalCoins int64
+	totalCoins := sdk.ZeroInt()
 
 	lowMul := (fromHeight - 1) / mintTypes.OneYearTotalBlocks
-	lowAmount := mintTypes.InitOneYearMintAmount / mintTypes.OneYearTotalBlocks / math.Exp2(float64(lowMul))
-	lowMintMEAmount := RoundUpToFourDecimals(lowAmount)
-	lowMintUMEAmount := lowMintMEAmount * math.Pow(10, params.BaseDenomUnit)
-
 	highMul := (toHeight - 1) / mintTypes.OneYearTotalBlocks
-	highAmount := mintTypes.InitOneYearMintAmount / mintTypes.OneYearTotalBlocks / math.Exp2(float64(highMul))
-	highMintMEAmount := RoundUpToFourDecimals(highAmount)
-	highMintUMEAmount := highMintMEAmount * math.Pow(10, params.BaseDenomUnit)
 
 	for i := lowMul; i <= highMul; i++ {
-		// If the range of from and to are in the same reduction height
+		halvingDivisor := sdk.NewDecFromBigInt(new(big.Int).Lsh(big.NewInt(1), uint(i)))
+		amountDec := sdk.NewDec(int64(mintTypes.InitOneYearMintAmount)).
+			Quo(sdk.NewDec(int64(mintTypes.OneYearTotalBlocks))).
+			Quo(halvingDivisor)
+		mintUMECAmount := wmint.RoundUpToFourDecimalsDec(amountDec).MulInt64(100_000_000).TruncateInt()
+
+		var blockCount int64
+		// If the range of from and to are in the same reduction period
 		if i == lowMul && lowMul == highMul {
-			totalCoins = totalCoins + (toHeight-fromHeight)*int64(lowMintUMEAmount)
-			continue
-			// Calculate the number of tokens between from and its first cut height
+			blockCount = toHeight - fromHeight
+			// Calculate the number of tokens between fromHeight and its first halving boundary
 		} else if i == lowMul {
-			totalCoins = totalCoins + (mintTypes.OneYearTotalBlocks*(lowMul+1)-fromHeight+1)*int64(lowMintUMEAmount)
-			continue
-			// Calculate the number of tokens between the last production reduction height and to
+			blockCount = int64(mintTypes.OneYearTotalBlocks)*(lowMul+1) - fromHeight + 1
+			// Calculate the number of tokens between the last halving boundary and toHeight
 		} else if i == highMul {
-			totalCoins = totalCoins + (toHeight-mintTypes.OneYearTotalBlocks*(i)-1)*int64(highMintUMEAmount)
-			continue
+			blockCount = toHeight - int64(mintTypes.OneYearTotalBlocks)*i - 1
+		} else {
+			// Calculate the number of tokens for each full halving interval
+			blockCount = int64(mintTypes.OneYearTotalBlocks)
 		}
 
-		// Calculate the number of tokens for each full cut interval
-		mintAmount := mintTypes.InitOneYearMintAmount / mintTypes.OneYearTotalBlocks / math.Exp2(float64(i))
-		mintMEAmount := RoundUpToFourDecimals(mintAmount)
-		mintUMEAmount := mintMEAmount * math.Pow(10, params.BaseDenomUnit)
-		totalCoins = totalCoins + mintTypes.OneYearTotalBlocks*int64(mintUMEAmount)
+		totalCoins = totalCoins.Add(mintUMECAmount.MulRaw(blockCount))
 	}
 
-	mintedUMECoin := sdk.NewCoin(params.BaseDenom, sdk.NewInt(totalCoins))
-	coin = sdk.NewDecFromInt(mintedUMECoin.Amount)
-
+	coin = sdk.NewDecFromInt(totalCoins)
 	return
 }
 
@@ -69,10 +65,6 @@ func (k Keeper) Calculate(ctx sdk.Context, blockRewards sdk.Dec, totalStaking cm
 		return rewards, types.ErrCalculateInterest.Wrap("withdraw coins amount too small")
 	}
 	return
-}
-
-func RoundUpToFourDecimals(x float64) float64 {
-	return math.Ceil(x*10000) / 10000
 }
 
 // Delegation get the delegation interface for a particular set of delegator and validator addresses

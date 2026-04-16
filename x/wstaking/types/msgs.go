@@ -13,20 +13,20 @@ import (
 )
 
 const (
-	TypeMsgNewRegion                         = "new-region"
-	TypeMsgRetrieveCoinFromRegion            = "retrieve-coin-from-region"
-	TypeMsgWithdrawDelegatorReward           = "withdraw_delegator_reward"
-	TypeMsgRemoveRegion                      = "remove-region"
-	TypeMsgRetrieveFeeFromGlobalAdminFeePool = "retrieve-fee-from-global-admin-fee-pool"
-	TypeMsgRecord                            = "new_record"
-	TypeReviewRecord                         = "review_record"
-	TypeMsgStake                             = "stake"
-	TypeMsgUnstake                           = "unstake"
-	TypeMsgWithdrawFromRegion                = "withdraw_from_region"
-	TypeMsgWithdrawFromGlobalDaoFeePool      = "withdraw_from_global_dao_fee_pool"
-	TypeMsgResetValidator                    = "create_validator"
-	TypeMsgNewMeid                           = "new_meid"
-	TypeMsgRemoveMeid                        = "remove_meid"
+	TypeMsgNewRegion                       = "new-region"
+	TypeMsgRetrieveCoinFromRegion          = "retrieve-coin-from-region"
+	TypeMsgWithdrawDelegatorReward         = "withdraw_delegator_reward"
+	TypeMsgRemoveRegion                    = "remove-region"
+	TypeMsgRetrieveFeeFromGlobalDaoFeePool = "retrieve-fee-from-global-dao-fee-pool"
+	TypeMsgRecord                          = "new_record"
+	TypeReviewRecord                       = "review_record"
+	TypeMsgStake                           = "stake"
+	TypeMsgUnstake                         = "unstake"
+	TypeMsgWithdrawFromRegion              = "withdraw_from_region"
+	TypeMsgWithdrawFromGlobalDaoFeePool    = "withdraw_from_global_dao_fee_pool"
+	TypeMsgResetValidator                  = "create_validator"
+	TypeMsgNewMeid                         = "new_meid"
+	TypeMsgRemoveMeid                      = "remove_meid"
 )
 
 var (
@@ -149,7 +149,7 @@ func (msg MsgUnstake) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgNewRegion(creator string, regionId string, name string, validator string) *MsgNewRegion {
+func NewMsgNewRegion(creator string, name string, validator string) *MsgNewRegion {
 	return &MsgNewRegion{
 		Creator:         creator,
 		Name:            name,
@@ -534,12 +534,12 @@ func (msg *MsgReplaceConsensusPubKeyRequest) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
+	if msg.ReplacePubKey == nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "replace pubkey cannot be nil")
+	}
 	_, err = sdk.ValAddressFromBech32(msg.ReplacePubKey.OperatorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address (%s)", err)
-	}
-	if msg.ReplacePubKey == nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "replace pubkey cannot be nil")
 	}
 	if msg.ReplacePubKey.BlockNumber < 1 {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid block number (%d)", msg.ReplacePubKey.BlockNumber)
@@ -550,6 +550,10 @@ func (msg *MsgReplaceConsensusPubKeyRequest) ValidateBasic() error {
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (msg MsgReplaceConsensusPubKeyRequest) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	if msg.ReplacePubKey == nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "replace pubkey cannot be nil")
+	}
+
 	var pubKey cryptotypes.PubKey
 	return unpacker.UnpackAny(msg.ReplacePubKey.PubKey, &pubKey)
 }

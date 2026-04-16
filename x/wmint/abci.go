@@ -2,7 +2,6 @@ package wmint
 
 import (
 	"github.com/st-chain/me-hub/app/params"
-	"math"
 	"math/big"
 	"time"
 
@@ -21,24 +20,40 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic mintypes.InflationCalcula
 	mintedAmount := k.GetMintedCoinAmount(ctx)
 	blockHeight := ctx.BlockHeight()
 	mul := (blockHeight - 1) / types.OneYearTotalBlocks
-	amount := types.InitOneYearMintAmount / types.OneYearTotalBlocks / math.Exp2(float64(mul))
-	mintingMEAmount := RoundUpToFourDecimals(amount)
-	mintingUMEAmount := mintingMEAmount * math.Pow(10, params.BaseDenomUnit)
+
+	// amount (MEC) = InitOneYearMintAmount / OneYearTotalBlocks / 2^mul
+	halvingDivisor := sdk.NewDecFromBigInt(new(big.Int).Lsh(big.NewInt(1), uint(mul)))
+	amount := sdk.NewDec(int64(types.InitOneYearMintAmount)).
+		Quo(sdk.NewDec(int64(types.OneYearTotalBlocks))).
+		Quo(halvingDivisor)
+
+	// RoundUpToFourDecimals: Ceil(amount * 10000) / 10000
+	// Then convert MEC to umec: multiply by 10^BaseDenomUnit (=100_000_000), truncate to integer
+	mintingUMECAmount := RoundUpToFourDecimalsDec(amount).MulInt64(100_000_000).TruncateInt()
 
 	// Compare the currently mined coins with the total amount of coins
-	// -1 means that the current accumulated amount of mined is smaller than the total amount
-	result := mintedAmount.Cmp(big.NewInt(types.TotalMintCoinsAmount))
-	if result == -1 {
-		// Accumulate the mined coins
-		mintedAmount.Add(&mintedAmount, big.NewInt(int64(mintingUMEAmount)))
+	// Cmp returns -1 (below cap), 0 (exactly at cap), or 1 (above cap)
+	totalCap := big.NewInt(types.TotalMintCoinsAmount)
+	switch mintedAmount.Cmp(totalCap) {
+	case -1:
+		newMinted := new(big.Int).Add(&mintedAmount, mintingUMECAmount.BigInt())
+		// Clamp to total cap: if adding this block's amount would exceed the cap,
+		// only mint the remaining amount to avoid over-issuance.
+		if newMinted.Cmp(totalCap) > 0 {
+			remaining := new(big.Int).Sub(totalCap, &mintedAmount)
+			mintingUMECAmount = sdk.NewIntFromBigInt(remaining)
+			mintedAmount.Set(totalCap)
+		} else {
+			mintedAmount.Set(newMinted)
+		}
 		k.SetMintedCoinAmount(ctx, mintedAmount)
-	} else {
-		mintingUMEAmount = 0
+	default:
+		mintingUMECAmount = sdk.ZeroInt()
 	}
 
-	k.SetPerBlockMintCoinAmount(ctx, *big.NewInt(int64(mintingUMEAmount)))
+	k.SetPerBlockMintCoinAmount(ctx, *mintingUMECAmount.BigInt())
 
-	mintedCoin := sdk.NewCoin(params.BaseDenom, sdk.NewInt(int64(mintingUMEAmount)))
+	mintedCoin := sdk.NewCoin(params.BaseDenom, mintingUMECAmount)
 	mintedCoins := sdk.NewCoins(mintedCoin)
 	err := k.MintCoins(ctx, mintedCoins)
 	if err != nil {
@@ -69,53 +84,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic mintypes.InflationCalcula
 	)
 }
 
-func RoundUpToFourDecimals(x float64) float64 {
-	return math.Ceil(x*10000) / 10000
-}
-
-func CalculateCoinFromHeightToHeight() {
-
-}
-
-// getMintCoinsByHeight Get coins through the block height range
-func getMintCoinsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
-	denomeUnit := 8
-	baseDenom := "umec"
-	var totalCoins int64
-	lowMul := (fromHeight - 1) / types.OneYearTotalBlocks
-	lowAmount := types.InitOneYearMintAmount / types.OneYearTotalBlocks / math.Exp2(float64(lowMul))
-	lowMintMEAmount := RoundUpToFourDecimals(lowAmount)
-	lowMintUMEAmount := lowMintMEAmount * math.Pow(10, float64(denomeUnit))
-
-	highMul := (toHeight - 1) / types.OneYearTotalBlocks
-	highAmount := types.InitOneYearMintAmount / types.OneYearTotalBlocks / math.Exp2(float64(highMul))
-	highMintMEAmount := RoundUpToFourDecimals(highAmount)
-	highMintUMEAmount := highMintMEAmount * math.Pow(10, float64(denomeUnit))
-
-	for i := lowMul; i <= highMul; i++ {
-		// If the range of from and to are in the same reduction height
-		if i == lowMul && lowMul == highMul {
-			totalCoins = totalCoins + (toHeight-fromHeight)*int64(lowMintUMEAmount)
-			continue
-			// Calculate the number of tokens between from and its first cut height
-		} else if i == lowMul {
-			totalCoins = totalCoins + int64(types.OneYearTotalBlocks*(lowMul+1)-(fromHeight)+1)*int64(lowMintUMEAmount)
-			continue
-			// Calculate the number of tokens between the last production reduction height and to
-		} else if i == highMul {
-			totalCoins = totalCoins + int64(toHeight-types.OneYearTotalBlocks*(i)-1)*int64(highMintUMEAmount)
-			continue
-		}
-
-		// Calculate the number of tokens for each full cut interval
-		mintAmount := types.InitOneYearMintAmount / types.OneYearTotalBlocks / math.Exp2(float64(i))
-		mintMEAmount := RoundUpToFourDecimals(mintAmount)
-		mintUMEAmount := mintMEAmount * math.Pow(10, float64(denomeUnit))
-		totalCoins = totalCoins + int64(types.OneYearTotalBlocks)*int64(mintUMEAmount)
-	}
-
-	mintedUMECoin := sdk.NewCoin(baseDenom, sdk.NewInt(totalCoins))
-	coin = sdk.NewDecFromInt(mintedUMECoin.Amount)
-
-	return
+// RoundUpToFourDecimalsDec rounds x up to 4 decimal places using sdk.Dec arithmetic.
+func RoundUpToFourDecimalsDec(x sdk.Dec) sdk.Dec {
+	return x.MulInt64(10000).Ceil().QuoInt64(10000)
 }

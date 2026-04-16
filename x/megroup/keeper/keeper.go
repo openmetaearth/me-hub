@@ -141,7 +141,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 		}
 		//admin can not migrate
 		if address == preGroupInfo.Admin { //admin can not leave group
-			return errors.Wrapf(types.ErrExcute, "admin of group can not leave")
+			return errors.Wrapf(types.ErrExecute, "admin of group can not leave")
 		}
 
 		preGroupNumber, found := k.GetGroupMemberCount(sdkCtx, joined.GroupId)

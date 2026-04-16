@@ -17,6 +17,8 @@ import (
 
 const DayPerYear uint64 = 365
 
+var minDepositAmount = sdk.NewInt(1_000_000) // 0.01mec == 1000000umec
+
 func (k MsgServer) TermToDuration(term int64) (time.Duration, error) {
 	// for formal environment
 	minutesPerDay := (24 * 60 * time.Minute)
@@ -29,7 +31,7 @@ func (k MsgServer) TermToDuration(term int64) (time.Duration, error) {
 func (k MsgServer) GetFixedDepositInterest(cfg *types.FixedDepositCfg, principal sdk.Coin, term int64) (sdk.Coin, error) {
 	principalNormed, err := sdk.ParseCoinsNormalized(principal.String())
 	if err != nil {
-		return sdk.Coin{}, types.ErrPayInterest.Wrapf(err.Error())
+		return sdk.Coin{}, types.ErrPayInterest.Wrap(err.Error())
 	}
 	principalAmount := principalNormed.AmountOf(params.BaseDenom)
 	interest := cfg.Rate.MulInt(principalAmount).MulInt(math.NewInt(term)).QuoInt(sdk.NewIntFromUint64(DayPerYear))
@@ -47,12 +49,16 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 	if !msg.Principal.Amount.IsPositive() {
 		return nil, types.ErrDoFixedDeposit.Wrapf("fixed deposit amount error (%s)", types.ErrAmountNotPositive)
 	}
-	amountNormed, err := sdk.ParseCoinsNormalized(msg.Principal.String())
-	if err != nil {
-		return nil, types.ErrDoFixedDeposit.Wrapf("fixed deposit amount error (%s)", err)
+
+	bondDenom := k.BondDenom(ctx)
+	if msg.Principal.Denom != bondDenom {
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Principal.Denom, bondDenom,
+		)
 	}
+
 	// minimum amount 0.01mec == 1000000umec
-	if amountNormed.AmountOf(params.BaseDenom).LT(sdk.NewInt(1000000)) {
+	if msg.Principal.Amount.LT(minDepositAmount) {
 		return nil, types.ErrDoFixedDeposit.Wrapf("fixed deposit amount error (%s)", types.ErrAmountLessThanMin)
 	}
 
@@ -312,7 +318,7 @@ func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWit
 
 	region.FixedDepositAmount = region.FixedDepositAmount.Sub(fixedDeposit.Principal.Amount)
 	if region.FixedDepositAmount.IsNegative() {
-		return &types.MsgWithdrawFixedDepositResponse{}, sdkerrors.Wrapf(types.ErrDoFixedWithDraw, "region fixed deposit amount(%s) less than zero", region.FixedDepositAmount.String())
+		return nil, sdkerrors.Wrapf(types.ErrDoFixedWithDraw, "region fixed deposit amount(%s) less than zero", region.FixedDepositAmount.String())
 	}
 	k.SetRegion(ctx, region)
 

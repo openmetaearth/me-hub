@@ -168,7 +168,6 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			if msgCreateValidator.Description.RegionID != "" {
 				msgCreateRegion := wstakingtypes.NewMsgNewRegion(
 					clientCtx.GetFromAddress().String(),
-					msgCreateValidator.Description.RegionID,
 					strings.ToUpper(msgCreateValidator.Description.RegionID),
 					msgCreateValidator.ValidatorAddress)
 				msgs = append(msgs, msgCreateRegion)

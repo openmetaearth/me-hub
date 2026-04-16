@@ -10,7 +10,7 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 
 	return nil, errors.Wrapf(types.ErrNotSupport, "")
 	/* temp hidden because of new scheme
-	
+
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), "created_group")
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -22,7 +22,7 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 	}
 	if !(k.daoKeeper.IsGlobalDao(ctx, msg.Creator) || k.daoKeeper.GetMeidDao(ctx) == msg.Creator) {
 		errLogBytes := types.EmitNewGroupError("only global admin can  create group", msg)
-		return nil, errors.Wrapf(types.ErrCheckGlobalAdmin, string(errLogBytes))
+		return nil, errors.Wrapf(types.ErrCheckGlobalDao, string(errLogBytes))
 	}
 
 	if msg.GroupInfo == nil {

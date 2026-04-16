@@ -9,10 +9,9 @@ import (
 )
 
 type DaoKeeper interface {
+	IsDao(ctx sdk.Context, addr string) bool
 	GetAirdropAddress(ctx sdk.Context) string
 	GetDevOperator(ctx sdk.Context) string
-	GetGlobalDao(ctx sdk.Context) string
-	GetMeidDao(ctx sdk.Context) string
 	GetGlobalDaoFeePoolAddr(ctx sdk.Context) sdk.AccAddress
 	CheckFreeGasAccount(ctx sdk.Context, address string) bool
 }

@@ -88,8 +88,11 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 		return types.ErrRemoveKyc.Wrap(fmt.Sprintf("The current user(%s) have delegate, need to withdraw.", account))
 	}
 
-	fixedCount := len(k.GetFixedDepositByAcct(ctx, account.String()))
-	if fixedCount > 0 {
+	fixedDeposits, err := k.GetFixedDepositByAcct(ctx, account.String())
+	if err != nil {
+		return err
+	}
+	if len(fixedDeposits) > 0 {
 		return types.ErrRemoveKyc.Wrap(fmt.Sprintf("The current user(%s) have fixed deposit, need to withdraw.", account))
 	}
 
@@ -264,7 +267,10 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 
 func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Region, userAddr string) error {
 	// GetFixedDepositByAcct returns the list of fixedDeposits of an account
-	fixedDeposits := k.GetFixedDepositByAcct(ctx, userAddr)
+	fixedDeposits, err := k.GetFixedDepositByAcct(ctx, userAddr)
+	if err != nil {
+		return err
+	}
 	if len(fixedDeposits) == 0 {
 		//if no have deposit，no need to execute the following logic
 		return nil
@@ -325,7 +331,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 			totalFixedInterestCoin.String()))
 	}
 	//pay deposit interest of toRegion
-	err := k.bankKeeper.Extend().SendCoinsWithTag(ctx,
+	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
 		toTreasureAddr,
 		toDepositInterestAddr,
 		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, totalFixedInterestCoin)),
@@ -424,7 +430,7 @@ func (k Keeper) transferUnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, 
 	}
 
 	if delegation.Unmovable.LTE(sdk.ZeroInt()) {
-		return amount, errors.New("UnRegisterMeid err: delegation UnMovable < 0")
+		return amount, errors.New("UnRegisterMeid err: delegation UnMovable <= 0")
 	}
 
 	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAddr, delAddr, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())),

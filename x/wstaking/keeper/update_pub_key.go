@@ -18,9 +18,9 @@ import (
 )
 
 func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey, error) {
-	updateInfo, err := k.GetRepalceConsensusPubKeyInfo(ctx)
+	updateInfo, err := k.GetReplaceConsensusPubKeyInfo(ctx)
 	if err != nil {
-		panic(fmt.Sprintf("GetRepalceConsensusPubKeyInfo error,err = %s ", err.Error()))
+		panic(fmt.Sprintf("GetReplaceConsensusPubKeyInfo error,err = %s ", err.Error()))
 	}
 	if updateInfo == nil {
 		return nil, nil
@@ -101,7 +101,7 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 
 		} else if ctx.BlockHeight() == (updateInfo.UpdateAtHeight + 2) { //delay remove old cons addr because of distribution rewards delayed by one block
 			k.RemoveValidatorByConsAddr(ctx, sdk.ConsAddress(updateInfo.OldConsAddress))
-			k.DeleteRepalceConsensusPubKey(ctx)
+			k.DeleteReplaceConsensusPubKey(ctx)
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(types.EventTypeDelayRemoveOldConsAddr,
 					sdk.NewAttribute(types.AttributeKeyOperatorAddress, updateInfo.OperatorAddress),
@@ -117,16 +117,16 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 			//do nothing, wait for next block to remove old cons addr
 			return nil, nil
 		} else {
-			return nil, sdkerrors.Wrapf(types.ErrInterProc, "RepalceConsensusPubKeyInfo is still exist when block height greater than update_at_height. now height = %d, update at height = %d",
+			return nil, sdkerrors.Wrapf(types.ErrInterProc, "ReplaceConsensusPubKeyInfo is still exist when block height greater than update_at_height. now height = %d, update at height = %d",
 				ctx.BlockHeight(), updateInfo.UpdateAtHeight)
 		}
 	}
 }
 
-func (k Keeper) SetRepalcePubKeyInfo(ctx sdk.Context, data *types.UpdatePubKeyInfo) error {
+func (k Keeper) SetReplacePubKeyInfo(ctx sdk.Context, data *types.UpdatePubKeyInfo) error {
 	bz, err := json.Marshal(data)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrJSONMarshal, "marshal repalce pubkey info error: %v", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrJSONMarshal, "marshal replace pubkey info error: %v", err)
 	}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	store.Set(types.KeyPrefix(types.ReplaceConsensusPubKey), bz)
@@ -134,7 +134,7 @@ func (k Keeper) SetRepalcePubKeyInfo(ctx sdk.Context, data *types.UpdatePubKeyIn
 }
 
 // GetGroup returns a group from its id
-func (k Keeper) GetRepalceConsensusPubKeyInfo(ctx sdk.Context) (*types.UpdatePubKeyInfo, error) {
+func (k Keeper) GetReplaceConsensusPubKeyInfo(ctx sdk.Context) (*types.UpdatePubKeyInfo, error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	data := store.Get(types.KeyPrefix(types.ReplaceConsensusPubKey))
 	if data == nil {
@@ -143,17 +143,17 @@ func (k Keeper) GetRepalceConsensusPubKeyInfo(ctx sdk.Context) (*types.UpdatePub
 	val := types.UpdatePubKeyInfo{}
 	err := json.Unmarshal(data, &val)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "unmarshal repalce pubkey info error: %v", err)
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "unmarshal replace pubkey info error: %v", err)
 	}
 	return &val, nil
 }
 
-func (k Keeper) DeleteRepalceConsensusPubKey(ctx sdk.Context) {
+func (k Keeper) DeleteReplaceConsensusPubKey(ctx sdk.Context) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	store.Delete(types.KeyPrefix(types.ReplaceConsensusPubKey))
 }
 
-func (k Keeper) IsHasRepalceConsensusPubKey(ctx sdk.Context) bool {
+func (k Keeper) IsHasReplaceConsensusPubKey(ctx sdk.Context) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	data := store.Get(types.KeyPrefix(types.ReplaceConsensusPubKey))
 	if data == nil {

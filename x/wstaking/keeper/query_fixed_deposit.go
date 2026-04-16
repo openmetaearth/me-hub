@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/st-chain/me-hub/app/params"
@@ -49,7 +50,10 @@ func (k Keeper) FixedDepositByAcct(goCtx context.Context, req *types.QueryFixedD
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	var fixedDeposits []types.FixedDeposit
-	tmpList := k.GetFixedDepositByAcct(ctx, req.Account)
+	tmpList, err := k.GetFixedDepositByAcct(ctx, req.Account)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 	if req.QueryType == types.FixedDepositState_AllState {
 		return &types.QueryFixedDepositByAcctResponse{FixedDeposit: tmpList}, nil
 	}
@@ -145,7 +149,10 @@ func (k Keeper) FixedDepositAmountByMeid(goCtx context.Context, req *types.Query
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	tmpList := k.GetFixedDepositByAcct(ctx, req.Account)
+	tmpList, err := k.GetFixedDepositByAcct(ctx, req.Account)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 
 	totalAmount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(0))
 	for _, v := range tmpList {

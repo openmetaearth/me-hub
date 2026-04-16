@@ -9,7 +9,6 @@ import (
 
 	"cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	types2 "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
@@ -141,7 +140,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	perLevel := holderInfo.KycLevel
 
 	if strings.EqualFold(perRegionId, stktypes.ExperienceRegionName) || strings.EqualFold(msg.RegionId, stktypes.ExperienceRegionName) {
-		return nil, stktypes.ErrTransferRegion.Wrap("from region or to region is experience region")
+		return nil, types.ErrTransferRegion.Wrap("from region or to region is experience region")
 	}
 
 	// check region
@@ -327,16 +326,20 @@ func (m msgServer) UpdateSBT(goCtx context.Context, msg *types.MsgUpdateSBT) (*t
 		return &types.MsgUpdateSBTResponse{}, didtypes.ErrCredentialNotFound
 	}
 
-	// checkk SBT is existed
+	// check SBT is existed
 	sbt, found := m.GetSBT(ctx, msg.Did)
 	if !found {
 		return &types.MsgUpdateSBTResponse{}, types.ErrSbtNotFound
 	}
 
-	// mint SBT to KYC module address
+	// update SBT
+	nftData, err := codectypes.NewAnyWithValue(&wnfttypes.Extension{Data: hex.EncodeToString(msg.Data)})
+	if err != nil {
+		return nil, err
+	}
 	sbt.Uri = msg.Uri
 	sbt.UriHash = msg.UriHash
-	sbt.Data = types2.UnsafePackAny(msg.Data)
+	sbt.Data = nftData
 
 	if err := m.nftKeeper.Update(ctx, sbt); err != nil {
 		return &types.MsgUpdateSBTResponse{}, errors.Wrap(err, "update SBT failed")
