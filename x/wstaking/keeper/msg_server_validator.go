@@ -146,7 +146,7 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 		return nil, types.ErrCheckGlobalDao
 	}
 	// Check if any validator replacement is already in progress
-	if k.IsHasRepalceConsensusPubKey(ctx) {
+	if k.IsHasReplaceConsensusPubKey(ctx) {
 		return nil, types.ErrExistingReplaceValidator
 	}
 
@@ -176,26 +176,6 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 		return nil, stakingtypes.ErrValidatorPubKeyExists
 	}
 
-	/*
-		cp := ctx.ConsensusParams()
-		if cp != nil && cp.Validator != nil {
-			pkType := pk.Type()
-			hasKeyType := false
-			for _, keyType := range cp.Validator.PubKeyTypes {
-				if pkType == keyType {
-					hasKeyType = true
-					break
-				}
-			}
-			if !hasKeyType {
-				return nil, sdkerrors.Wrapf(
-					stakingtypes.ErrValidatorPubKeyTypeNotSupported,
-					"got: %s, expected: %s", pk.Type(), cp.Validator.PubKeyTypes,
-				)
-			}
-		}
-
-	*/
 	pubKeyData, err := pk.Marshal()
 	if err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrProtoProc, "marshal pubkey error: %v", err)
@@ -212,7 +192,7 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 		UpdateAtHeight:  ctx.BlockHeight() + req.ReplacePubKey.BlockNumber,
 	}
 
-	if err = k.SetRepalcePubKeyInfo(ctx, update); err != nil {
+	if err = k.SetReplacePubKeyInfo(ctx, update); err != nil {
 		return nil, err
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{

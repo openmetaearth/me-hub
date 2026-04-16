@@ -107,7 +107,7 @@ if [ ! "$answer" != "${answer#[Nn]}" ] ;then
 fi
 
 echo "$MNEMONIC" | med keys add "$KEY_NAME" --recover --keyring-backend test  --home  "$DATA_DIRECTORY"
-med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"  --home  "$DATA_DIRECTORY"
+med add-genesis-account "$(med keys show "$KEY_NAME" -a --keyring-backend test --home  "$DATA_DIRECTORY")" "$TOKEN_AMOUNT"  --home  "$DATA_DIRECTORY"
 med add-genesis-stake-pool  --home  "$DATA_DIRECTORY"
 med add-genesis-m-accounts  --home  "$DATA_DIRECTORY"
 
@@ -115,10 +115,12 @@ jq '.app_state["dao"]["dao_addresses"]["global_dao"] = "me139mq752delxv78jvtmwxh
 jq '.app_state["dao"]["dao_addresses"]["meid_dao"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 jq '.app_state["dao"]["dao_addresses"]["dev_operator"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 jq '.app_state["dao"]["dao_addresses"]["airdrop_address"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-jq '.app_state["kyc"]["issuer"]["did"] = "1000000000001"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-jq '.app_state["kyc"]["issuer"]["address"] = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-jq '.app_state["kyc"]["issuer"]["pubkey"] = "{\"@type\":\"/ethermint.crypto.v1.ethsecp256k1.PubKey\",\"key\":\"Aggm+J77xeXPyJMOnpdtEu+nmCG/ia9zudrm3kGs722z\"}"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-jq '.app_state["kyc"]["issuer"]["status"] = "DID_STATUS_ACTIVE"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+jq --arg did "1000000000001" \
+   --arg address "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u" \
+   --arg pubkey '{"@type":"/ethermint.crypto.v1.ethsecp256k1.PubKey","key":"Aggm+J77xeXPyJMOnpdtEu+nmCG/ia9zudrm3kGs722z"}' \
+   --arg status "DID_STATUS_ACTIVE" \
+   '.app_state["kyc"]["issuers"] += [{"did": $did, "address": $address, "pubkey": $pubkey, "status": $status}]' \
+   "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 
 validator_address=$(med keys show "$KEY_NAME" -a --keyring-backend test --home "$DATA_DIRECTORY")
 

@@ -21,7 +21,6 @@ func CmdNewRegion() *cobra.Command {
 		Short: "Broadcast message new-region",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argRegionId := strings.ToLower(args[0])
 			argName := args[0]
 			argVal := args[1]
 
@@ -41,7 +40,6 @@ func CmdNewRegion() *cobra.Command {
 
 			msg := types.NewMsgNewRegion(
 				clientCtx.GetFromAddress().String(),
-				argRegionId,
 				name,
 				argVal,
 			)

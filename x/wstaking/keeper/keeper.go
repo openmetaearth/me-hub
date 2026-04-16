@@ -66,8 +66,8 @@ func (k *Keeper) SetDidKeeper(keeper types.DidKeeper) {
 	k.didKeeper = keeper
 }
 
-func (K *Keeper) SetSlashingKeeper(keeper slashingkeeper.Keeper) {
-	K.slashingKeeper = keeper
+func (k *Keeper) SetSlashingKeeper(keeper slashingkeeper.Keeper) {
+	k.slashingKeeper = keeper
 }
 
 // Logger returns a module-specific logger.

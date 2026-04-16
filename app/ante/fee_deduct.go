@@ -133,18 +133,22 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	feePayer := feeTx.FeePayer()
 	feeGranter := feeTx.FeeGranter()
 
-	admin := dfd.daoKeeper.GetGlobalDao(ctx)
-	meidAdmin := dfd.daoKeeper.GetMeidDao(ctx)
+	isDao := dfd.daoKeeper.IsDao(ctx, feePayer.String())
 	isFreeGasAccount := dfd.daoKeeper.CheckFreeGasAccount(ctx, feePayer.String())
-	isAdmin := feePayer.String() == admin || feePayer.String() == meidAdmin
-	freeGas := isFreeGasAccount || isAdmin
+	freeGas := isFreeGasAccount || isDao
 
-	for _, msg := range feeTx.GetMsgs() {
-		switch msg.(type) {
-		case *megrouptypes.MsgJoinGroup:
-			freeGas = true
+	// freeGas for MsgJoinGroup only when ALL messages in the tx are MsgJoinGroup.
+	// Mixing MsgJoinGroup with other message types is not allowed to get free gas,
+	// preventing attackers from bundling arbitrary messages with MsgJoinGroup to bypass fees.
+	if !freeGas && len(feeTx.GetMsgs()) > 0 {
+		allJoinGroup := true
+		for _, msg := range feeTx.GetMsgs() {
+			if _, ok := msg.(*megrouptypes.MsgJoinGroup); !ok {
+				allJoinGroup = false
+				break
+			}
 		}
-		break
+		freeGas = allJoinGroup
 	}
 
 	if !freeGas && !simulate {
@@ -323,7 +327,7 @@ func (dfd DeductFeeDecorator) CheckFunds(ctx sdk.Context, tx sdk.Tx, feePayer st
 
 	for address, sendAmount := range userSendAmount {
 		balance := dfd.BankKeeper.GetAllBalances(ctx, sdk.MustAccAddressFromBech32(address))
-		if !balance.IsAnyGTE(sendAmount) {
+		if !balance.IsAllGTE(sendAmount) {
 			return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "check funds for %s; got: %s required: %s",
 				address, balance, sendAmount)
 		}
@@ -361,7 +365,7 @@ func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 				requiredFees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())
 			}
 
-			if !feeCoins.IsAnyGTE(requiredFees) {
+			if !feeCoins.IsAllGTE(requiredFees) {
 				return nil, 0, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeCoins, requiredFees)
 			}
 		}

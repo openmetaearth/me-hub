@@ -19,7 +19,10 @@ func (k Keeper) Did(goCtx context.Context, req *types.QueryDid) (*types.QueryDid
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	addr := sdk.MustAccAddressFromBech32(req.Address)
+	addr, err := sdk.AccAddressFromBech32(req.Address)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid address: "+err.Error())
+	}
 
 	did, found := k.GetDID(ctx, addr)
 	if !found {

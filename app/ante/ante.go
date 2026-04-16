@@ -2,7 +2,6 @@ package ante
 
 import (
 	"fmt"
-	"log"
 	"runtime/debug"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -35,7 +34,6 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 			opts := txWithExtensions.GetExtensionOptions()
 
 			if len(opts) > 0 {
-				log.Print("opts[0].GetTypeUrl():!!!", opts[0].GetTypeUrl())
 				switch typeURL := opts[0].GetTypeUrl(); typeURL {
 				case "/ethermint.evm.v1.ExtensionOptionsEthereumTx":
 					// handle as *evmtypes.MsgEthereumTx

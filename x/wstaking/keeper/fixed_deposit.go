@@ -80,7 +80,7 @@ func (k Keeper) GetFixedDeposit(ctx sdk.Context, id uint64) (val types.FixedDepo
 }
 
 // GetFixedDepositByAcct returns the list of fixedDeposits of an account
-func (k Keeper) GetFixedDepositByAcct(ctx sdk.Context, acct string) []types.FixedDeposit {
+func (k Keeper) GetFixedDepositByAcct(ctx sdk.Context, acct string) ([]types.FixedDeposit, error) {
 	var list []types.FixedDeposit
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKeyAcct+acct))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
@@ -89,14 +89,14 @@ func (k Keeper) GetFixedDepositByAcct(ctx sdk.Context, acct string) []types.Fixe
 
 	for ; iterator.Valid(); iterator.Next() {
 		id := iterator.Value()
-		meid, found := k.GetFixedDeposit(ctx, GetFixedDepositIDFromBytes(id))
+		fixedDeposit, found := k.GetFixedDeposit(ctx, GetFixedDepositIDFromBytes(id))
 		if !found {
-			panic("get fixed deposit by acct fatal error")
+			return nil, types.ErrNoFixedDepositFound.Wrapf("index inconsistency: fixed deposit id %d not found in store", GetFixedDepositIDFromBytes(id))
 		}
-		list = append(list, meid)
+		list = append(list, fixedDeposit)
 	}
 
-	return list
+	return list, nil
 }
 
 // RemoveFixedDeposit removes a fixedDeposit from the store

@@ -10,9 +10,8 @@ import (
 
 // x/megroup module sentinel errors
 var (
-	//ErrSample           = sdkerrors.Register(ModuleName, 1100, "sample error")
-	ErrCheckGlobalAdmin      = sdkerrors.Register(ModuleName, 1100, "check global admin error")
-	ErrCreate                = sdkerrors.Register(ModuleName, 1101, "create group err.")
+	ErrCheckGlobalDao        = sdkerrors.Register(ModuleName, 1100, "check global dao error")
+	ErrCreate                = sdkerrors.Register(ModuleName, 1101, "create group err")
 	ErrMeidNotExists         = sdkerrors.Register(ModuleName, 1102, "meid not exists")
 	ErrDeleteGroup           = sdkerrors.Register(ModuleName, 1103, "delete group error")
 	ErrPermissionDenied      = sdkerrors.Register(ModuleName, 1104, "permission denied")
@@ -23,7 +22,7 @@ var (
 	ErrGroupMemberRepeated   = sdkerrors.Register(ModuleName, 1109, "join group repeat")
 	ErrRegionNotExist        = sdkerrors.Register(ModuleName, 1110, "region not exist")
 	ErrNotSupport            = sdkerrors.Register(ModuleName, 1111, "function not support")
-	ErrExcute                = sdkerrors.Register(ModuleName, 1112, "excute error.")
+	ErrExecute               = sdkerrors.Register(ModuleName, 1112, "execute error")
 	ErrGroupMemberNotExist   = sdkerrors.Register(ModuleName, 1113, "group member not exist")
 	ErrGroupExceededInRegion = sdkerrors.Register(ModuleName, 1115, "group has been exceeded in region")
 )

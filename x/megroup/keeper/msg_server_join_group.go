@@ -117,15 +117,15 @@ func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupReq
 	}
 
 	if req.Creator == groupInfo.Admin { //admin can not leave group
-		return nil, errors.Wrapf(types.ErrExcute, "admin of group can not leave")
+		return nil, errors.Wrapf(types.ErrExecute, "admin of group can not leave")
 	}
 
 	joined, found := k.GetMemberJoined(ctx, req.Creator)
 	if !found {
-		return nil, errors.Wrapf(types.ErrExcute, "can not found join group")
+		return nil, errors.Wrapf(types.ErrExecute, "can not found join group")
 	}
 	if joined.GroupId != req.GroupId {
-		return nil, errors.Wrapf(types.ErrExcute, fmt.Sprintf("group info dismatch.input group's id = %d,join gropp's id = %d",
+		return nil, errors.Wrapf(types.ErrExecute, fmt.Sprintf("group info dismatch.input group's id = %d,join gropp's id = %d",
 			req.GroupId, joined.GroupId))
 	}
 

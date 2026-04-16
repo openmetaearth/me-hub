@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"unicode"
 
 	sdkerrors "cosmossdk.io/errors"
@@ -38,13 +37,11 @@ func (k MsgServer) NewRecord(goCtx context.Context, msg *types.MsgNewRecord) (*t
 	k.SetRecord(ctx, r, from)
 	return &types.MsgNewRecordResponse{}, nil
 }
+
 func (k MsgServer) ReviewRecord(goCtx context.Context, msg *types.MsgReviewRecord) (*types.MsgReviewRecordResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	globalAdmin := k.daoKeeper.GetGlobalDao(ctx)
-	meidAdmin := k.daoKeeper.GetMeidDao(ctx)
-	if globalAdmin != msg.From && meidAdmin != msg.From {
-		errLogBytes := fmt.Sprintf("review record account (%s) should  be global admin", msg.From)
-		return nil, sdkerrors.Wrapf(types.ErrParameter, errLogBytes)
+	if !k.daoKeeper.IsDao(ctx, msg.From) {
+		return nil, sdkerrors.Wrapf(types.ErrParameter, "review record account (%s) should be global dao or meid dao", msg.From)
 	}
 	_, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
