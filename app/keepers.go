@@ -49,6 +49,7 @@ import (
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -57,6 +58,7 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
@@ -269,7 +271,7 @@ func (a *AppKeepers) InitKeepers(
 
 	a.DistrKeeper = wdistrkeeper.NewKeeper(
 		appCodec,
-		runtime.NewKVStoreService(a.keys[minttypes.StoreKey]),
+		runtime.NewKVStoreService(a.keys[distrtypes.StoreKey]),
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.StakingKeeper,
@@ -281,7 +283,7 @@ func (a *AppKeepers) InitKeepers(
 	a.SlashingKeeper = slashingkeeper.NewKeeper(
 		appCodec,
 		legacyAmino,
-		runtime.NewKVStoreService(a.keys[minttypes.StoreKey]),
+		runtime.NewKVStoreService(a.keys[slashingtypes.StoreKey]),
 		a.StakingKeeper,
 		govModuleAddress,
 	)

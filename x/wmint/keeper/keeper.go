@@ -32,6 +32,7 @@ func NewKeeper(
 ) Keeper {
 	return Keeper{
 		Keeper:                mintkeeper.NewKeeper(cdc, storeService, sk, ak, bk, treasuryModuleAccount, authority),
+		storeService:          storeService,
 		bankKeeper:            bk,
 		treasuryModuleAccount: treasuryModuleAccount,
 	}
