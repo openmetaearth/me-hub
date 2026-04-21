@@ -17,7 +17,6 @@ require (
 	cosmossdk.io/x/tx v0.13.8
 	cosmossdk.io/x/upgrade v0.1.4
 	github.com/CosmWasm/wasmd v0.53.3
-	github.com/CosmWasm/wasmvm v1.5.9
 	github.com/CosmWasm/wasmvm/v2 v2.1.4
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/bufbuild/buf v1.9.0
