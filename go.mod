@@ -301,7 +301,7 @@ require (
 )
 
 replace (
-	github.com/cosmos/cosmos-sdk => github.com/st-chain/cosmos-sdk v0.0.0-20260325102530-8237e1256d10
+	github.com/cosmos/cosmos-sdk => github.com/st-chain/cosmos-sdk v0.0.0-20260421101057-fb65a2a1da60
 
 	github.com/evmos/ethermint => github.com/st-chain/ethermint v0.22.0-me-v2.0.0-rc2
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
