@@ -56,10 +56,15 @@ import (
 )
 
 // EmptyAppOptions is a stub implementing AppOptions
+// It skips WasmKeeper initialization to avoid file lock issues during CLI usage
 type EmptyAppOptions struct{}
 
 // Get implements AppOptions
 func (ao EmptyAppOptions) Get(o string) any {
+	// Skip WasmKeeper initialization for CLI commands (not med start)
+	if o == "skip-wasm-init" {
+		return true
+	}
 	return nil
 }
 

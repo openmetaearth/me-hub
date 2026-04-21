@@ -43,6 +43,7 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
@@ -119,7 +120,8 @@ type AppKeepers struct {
 	// keepers
 	AccountKeeper                 authkeeper.AccountKeeper
 	AuthzKeeper                   authzkeeper.Keeper
-	BankKeeper                    wbankkeeper.BaseKeeperWrapper
+	BankKeeper                    bankkeeper.BaseKeeper         // Standard keeper for module registration
+	WBankKeeper                   wbankkeeper.BaseKeeperWrapper // Wrapper with extended functionality for wstaking
 	CapabilityKeeper              *capabilitykeeper.Keeper
 	StakingKeeper                 *wstakingkeeper.Keeper
 	SlashingKeeper                slashingkeeper.Keeper
@@ -226,13 +228,24 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 	)
 
-	a.BankKeeper = wbankkeeper.NewKeeper(
+	// Create standard bank keeper for module registration (SDK v0.50 type assertion requirement)
+	baseBankKeeper := wbankkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(a.keys[banktypes.StoreKey]),
 		a.AccountKeeper,
 		a.DaoKeeper,
 		moduleAccountAddrs,
 		logger,
+	)
+
+	// Assign to BankKeeper for app module registration
+	a.BankKeeper = baseBankKeeper
+
+	// Create wrapper with extended functionality for wstaking module
+	a.WBankKeeper = wbankkeeper.NewBankKeeperWrapper(
+		baseBankKeeper,
+		a.AccountKeeper,
+		a.DaoKeeper,
 	)
 
 	a.CrisisKeeper = crisiskeeper.NewKeeper(appCodec, runtime.NewKVStoreService(a.keys[crisistypes.StoreKey]), invCheckPeriod,
@@ -250,7 +263,7 @@ func (a *AppKeepers) InitKeepers(
 		a.keys[stakingtypes.StoreKey],
 		runtime.NewKVStoreService(a.keys[stakingtypes.StoreKey]),
 		a.AccountKeeper,
-		a.BankKeeper,
+		a.WBankKeeper,
 		a.DaoKeeper,
 		a.WNFTKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
@@ -385,38 +398,47 @@ func (a *AppKeepers) InitKeepers(
 		&a.EIBCKeeper,
 	)
 
-	wasmDir := filepath.Join(homePath, "wasm")
-	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
-	if err != nil {
-		panic(fmt.Sprintf("error while reading wasm config: %s", err))
+	// Conditionally initialize WasmKeeper to avoid file lock issues in CLI commands
+	// Only 'med start' needs WasmKeeper, other CLI commands can skip it
+	skipWasmInit := cast.ToBool(appOpts.Get("skip-wasm-init"))
+
+	if !skipWasmInit {
+		wasmDir := filepath.Join(homePath, "wasm")
+		wasmConfig, err := wasm.ReadWasmConfig(appOpts)
+		if err != nil {
+			panic(fmt.Sprintf("error while reading wasm config: %s", err))
+		}
+
+		// Add custom query plugins for KYC module
+		allWasmOpts := append(wasmOpts, a.SetupCustomMsgs())
+
+		// The last arguments can contain custom message handlers, and custom query handlers,
+		// if we want to allow any custom callbacks
+		a.WasmKeeper = wasmkeeper.NewKeeper(
+			appCodec,
+			runtime.NewKVStoreService(a.keys[wasmtypes.StoreKey]),
+			a.AccountKeeper,
+			a.BankKeeper,
+			a.StakingKeeper,
+			distrkeeper.NewQuerier(a.DistrKeeper.Keeper),
+			a.ICS4Wrapper, // ISC4 Wrapper: fee IBC middleware
+			a.IBCKeeper.ChannelKeeper,
+			a.IBCKeeper.PortKeeper,
+			scopedWasmKeeper,
+			a.TransferKeeper,
+			bApp.MsgServiceRouter(),
+			bApp.GRPCQueryRouter(),
+			wasmDir,
+			wasmConfig,
+			wasmapp.AllCapabilities(),
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			allWasmOpts...,
+		)
+		logger.Info("WasmKeeper initialized")
+	} else {
+		logger.Info("WasmKeeper initialization skipped (CLI mode)")
+		// WasmKeeper remains nil, wasm module will not be functional but won't block CLI
 	}
-
-	// Add custom query plugins for KYC module
-
-	allWasmOpts := append(wasmOpts, a.SetupCustomMsgs())
-
-	// The last arguments can contain custom message handlers, and custom query handlers,
-	// if we want to allow any custom callbacks
-	a.WasmKeeper = wasmkeeper.NewKeeper(
-		appCodec,
-		runtime.NewKVStoreService(a.keys[wasmtypes.StoreKey]),
-		a.AccountKeeper,
-		a.BankKeeper,
-		a.StakingKeeper,
-		distrkeeper.NewQuerier(a.DistrKeeper.Keeper),
-		a.ICS4Wrapper, // ISC4 Wrapper: fee IBC middleware
-		a.IBCKeeper.ChannelKeeper,
-		a.IBCKeeper.PortKeeper,
-		scopedWasmKeeper,
-		a.TransferKeeper,
-		bApp.MsgServiceRouter(),
-		bApp.GRPCQueryRouter(),
-		wasmDir,
-		wasmConfig,
-		wasmapp.AllCapabilities(),
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		allWasmOpts...,
-	)
 
 	// Create did Keepers
 	a.DidKeeper = didkeeper.NewKeeper(
@@ -443,7 +465,7 @@ func (a *AppKeepers) InitKeepers(
 		a.keys[groupTypes.StoreKey],
 		a.GetSubspace(groupTypes.ModuleName),
 		a.AccountKeeper,
-		a.BankKeeper,
+		a.WBankKeeper,
 		a.StakingKeeper,
 		a.DaoKeeper,
 		a.KycKeeper,

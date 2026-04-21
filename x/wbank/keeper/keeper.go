@@ -20,14 +20,16 @@ import (
 	"github.com/st-chain/me-hub/x/wbank/types"
 )
 
-// BaseKeeperWrapper is a wrapper of the cosmos-sdk bank module.
+// BaseKeeperWrapper wraps bankkeeper.BaseKeeper with additional functionality.
+// It holds a reference to BaseKeeper instead of embedding it to support SDK v0.50 type assertions.
+// BaseKeeper field is exported for wbank module registration.
 type BaseKeeperWrapper struct {
-	bankkeeper.BaseKeeper
-	ak banktypes.AccountKeeper
-	dk types.DaoKeeper
+	BaseKeeper bankkeeper.BaseKeeper
+	ak         banktypes.AccountKeeper
+	dk         types.DaoKeeper
 }
 
-// NewKeeper returns a new BaseKeeperWrapper instance.
+// NewKeeper returns a new standard bank BaseKeeper (for app module registration).
 func NewKeeper(
 	appCodec codec.BinaryCodec,
 	storeService store.KVStoreService,
@@ -35,19 +37,82 @@ func NewKeeper(
 	dk types.DaoKeeper,
 	moduleAccountAddrs map[string]bool,
 	logger log.Logger,
+) bankkeeper.BaseKeeper {
+	return bankkeeper.NewBaseKeeper(
+		appCodec,
+		storeService,
+		ak,
+		moduleAccountAddrs,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		logger,
+	)
+}
+
+// NewBankKeeperWrapper creates a wrapper around BaseKeeper with extended functionality.
+// Use this for modules that need StakeCoinsFromModuleToModule and other custom methods.
+func NewBankKeeperWrapper(
+	bk bankkeeper.BaseKeeper,
+	ak banktypes.AccountKeeper,
+	dk types.DaoKeeper,
 ) BaseKeeperWrapper {
 	return BaseKeeperWrapper{
-		BaseKeeper: bankkeeper.NewBaseKeeper(
-			appCodec,
-			storeService,
-			ak,
-			moduleAccountAddrs,
-			authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-			logger,
-		),
-		ak: ak,
-		dk: dk,
+		BaseKeeper: bk,
+		ak:         ak,
+		dk:         dk,
 	}
+}
+
+// Delegate all standard bank keeper methods to the underlying BaseKeeper
+func (k BaseKeeperWrapper) GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins {
+	return k.BaseKeeper.GetAllBalances(ctx, addr)
+}
+
+func (k BaseKeeperWrapper) GetBalance(ctx context.Context, addr sdk.AccAddress, denom string) sdk.Coin {
+	return k.BaseKeeper.GetBalance(ctx, addr, denom)
+}
+
+func (k BaseKeeperWrapper) LockedCoins(ctx context.Context, addr sdk.AccAddress) sdk.Coins {
+	return k.BaseKeeper.LockedCoins(ctx, addr)
+}
+
+func (k BaseKeeperWrapper) SpendableCoins(ctx context.Context, addr sdk.AccAddress) sdk.Coins {
+	return k.BaseKeeper.SpendableCoins(ctx, addr)
+}
+
+func (k BaseKeeperWrapper) GetSupply(ctx context.Context, denom string) sdk.Coin {
+	return k.BaseKeeper.GetSupply(ctx, denom)
+}
+
+func (k BaseKeeperWrapper) SendCoinsFromModuleToModule(ctx context.Context, senderPool, recipientPool string, amt sdk.Coins) error {
+	return k.BaseKeeper.SendCoinsFromModuleToModule(ctx, senderPool, recipientPool, amt)
+}
+
+func (k BaseKeeperWrapper) SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error {
+	return k.BaseKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
+}
+
+func (k BaseKeeperWrapper) SendCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error {
+	return k.BaseKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, recipientModule, amt)
+}
+
+func (k BaseKeeperWrapper) SendCoins(ctx context.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error {
+	return k.BaseKeeper.SendCoins(ctx, fromAddr, toAddr, amt)
+}
+
+func (k BaseKeeperWrapper) UndelegateCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error {
+	return k.BaseKeeper.UndelegateCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
+}
+
+func (k BaseKeeperWrapper) DelegateCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error {
+	return k.BaseKeeper.DelegateCoinsFromAccountToModule(ctx, senderAddr, recipientModule, amt)
+}
+
+func (k BaseKeeperWrapper) BurnCoins(ctx context.Context, name string, amt sdk.Coins) error {
+	return k.BaseKeeper.BurnCoins(ctx, name, amt)
+}
+
+func (k BaseKeeperWrapper) BlockedAddr(addr sdk.AccAddress) bool {
+	return k.BaseKeeper.BlockedAddr(addr)
 }
 
 // StakeCoinsFromModuleToModule stakes coins and transfers them from stake pool
@@ -73,7 +138,7 @@ func (k BaseKeeperWrapper) StakeCoinsFromModuleToModule(
 		panic(errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "module account %s does not have permissions to receive stake coins", recipientModule))
 	}
 
-	return k.SendCoins(ctx, senderAcc.GetAddress(), recipientAcc.GetAddress(), amt)
+	return k.BaseKeeper.SendCoins(ctx, senderAcc.GetAddress(), recipientAcc.GetAddress(), amt)
 }
 
 // UnstakeCoinsFromModuleToModule unstakes the unbonding coins and transfers
@@ -100,14 +165,14 @@ func (k BaseKeeperWrapper) UnstakeCoinsFromModuleToModule(
 		panic(errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "module account %s does not have permissions to receive unstake coins", recipientModule))
 	}
 
-	return k.SendCoins(ctx, senderAcc.GetAddress(), recipientAcc.GetAddress(), amt)
+	return k.BaseKeeper.SendCoins(ctx, senderAcc.GetAddress(), recipientAcc.GetAddress(), amt)
 }
 
 func (k BaseKeeperWrapper) FeeToReceivers(ctx context.Context, inputs []banktypes.Input, outputs []banktypes.Output, receiverTypes []types.FeeReceiverType) error {
 	if len(inputs) == 0 {
 		return errors.New("inputs error")
 	}
-	err := k.InputOutputCoins(ctx, inputs[0], outputs)
+	err := k.BaseKeeper.InputOutputCoins(ctx, inputs[0], outputs)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to process input-output coins")
 	}
