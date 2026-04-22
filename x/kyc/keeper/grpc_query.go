@@ -2,7 +2,11 @@ package keeper
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	wnfttypes "github.com/st-chain/me-hub/x/wnft/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	didtypes "github.com/st-chain/me-hub/x/did/types"
 	"github.com/st-chain/me-hub/x/kyc/types"
@@ -117,6 +121,16 @@ func (k Keeper) SBT(goCtx context.Context, req *types.QuerySBT) (*types.QuerySBT
 	sbt, found := k.GetSBT(ctx, req.Did)
 	if !found {
 		return nil, status.Error(codes.Internal, "SBT not found")
+	}
+
+	// compatibility: fix SBTs whose Data.TypeUrl was left empty by a previous bug (UnsafePackAny).
+	// The raw bytes are re-wrapped into wnfttypes.Extension so REST/gRPC-gateway can resolve the type.
+	if sbt.Data != nil && sbt.Data.TypeUrl == "" {
+		newData, err := codectypes.NewAnyWithValue(&wnfttypes.Extension{Data: hex.EncodeToString(sbt.Data.Value)})
+		if err != nil {
+			return nil, status.Error(codes.Internal, "failed to fix SBT data encoding: "+err.Error())
+		}
+		sbt.Data = newData
 	}
 
 	return &types.QuerySBTResponse{Sbt: sbt}, nil
