@@ -318,8 +318,8 @@ func (m msgServer) UpdateSBT(goCtx context.Context, msg *types.MsgUpdateSBT) (*t
 	}
 
 	// check holder did
-	holderInfo, fount := m.GetDidInfo(ctx, msg.Did)
-	if !fount {
+	holderInfo, found := m.GetDidInfo(ctx, msg.Did)
+	if !found {
 		return &types.MsgUpdateSBTResponse{}, didtypes.ErrHolderNotFound
 	}
 	if !m.HasKYC(ctx, msg.Did) {
