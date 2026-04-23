@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"errors"
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"io"
 	"os"
+
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/types/mempool"
 
 	"github.com/evmos/ethermint/crypto/hd"
 	ethermintserver "github.com/evmos/ethermint/server"
@@ -18,6 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
+	"github.com/cosmos/cosmos-sdk/client/snapshot"
 
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 
@@ -187,6 +189,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		ethermintclient.KeyCommands(app.DefaultNodeHome),
 	)
 	rootCmd.AddCommand(mecli.Debug())
+	rootCmd.AddCommand(snapshot.Cmd(a.newApp))
 }
 
 // queryCommand returns the sub-command to send queries to the app
