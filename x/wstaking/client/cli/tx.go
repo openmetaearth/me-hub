@@ -81,7 +81,7 @@ func NewCreateValidatorCmd() *cobra.Command {
 		Use:   "create-validator",
 		Short: "create a new validator initialized with a self-delegation to it",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+ 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}

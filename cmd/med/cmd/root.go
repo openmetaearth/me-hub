@@ -50,6 +50,7 @@ import (
 
 	"github.com/st-chain/me-hub/app"
 	appparams "github.com/st-chain/me-hub/app/params"
+	wstakingcli "github.com/st-chain/me-hub/x/wstaking/client/cli"
 
 	ethermintclient "github.com/evmos/ethermint/client"
 	ethservercfg "github.com/evmos/ethermint/server/config"
@@ -250,6 +251,12 @@ func queryCommand() *cobra.Command {
 		rpc.ValidatorCommand(),
 	)
 
+	// Add wstaking custom query commands
+	stakingQueryCmd := wstakingcli.GetQueryCmd()
+	if stakingQueryCmd != nil {
+		cmd.AddCommand(stakingQueryCmd)
+	}
+
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -279,6 +286,12 @@ func txCommand() *cobra.Command {
 		authcmd.GetDecodeCommand(),
 		authcmd.GetSimulateCmd(),
 	)
+
+	// Add wstaking custom tx commands
+	stakingTxCmd := wstakingcli.NewTxCmd()
+	if stakingTxCmd != nil {
+		cmd.AddCommand(stakingTxCmd)
+	}
 
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 	return cmd
