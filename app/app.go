@@ -23,7 +23,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	"github.com/st-chain/me-hub/app/keepers"
 	"github.com/st-chain/me-hub/app/upgrades"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_13"
+	"github.com/st-chain/me-hub/app/upgrades/v2_0_14"
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -87,7 +87,7 @@ var (
 
 	// Upgrades contains the upgrade handlers for the application
 	Upgrades = []upgrades.Upgrade{
-		v2_0_13.Upgrade,
+		v2_0_14.Upgrade,
 	}
 )
 
