@@ -18,6 +18,7 @@ import (
 	eip712 "github.com/evmos/ethermint/ethereum/eip712"
 	ethermint "github.com/evmos/ethermint/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	protov2 "google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	"cosmossdk.io/x/tx/signing"
@@ -57,6 +58,19 @@ func MakeEncodingConfig() sdktestutil.TestEncodingConfig {
 		},
 		CustomGetSigners: map[protoreflect.FullName]signing.GetSignersFunc{
 			evmtypes.MsgEthereumTxCustomGetSigner.MsgType: evmtypes.MsgEthereumTxCustomGetSigner.Fn,
+			// MsgCreateValidator: use delegator_address (global_dao) as the signer.
+			// In v0.50 the proto annotation points to validator_address (valoper prefix),
+			// but global_dao holds the delegator key. This custom function restores the
+			// v0.47 behavior where GetSigners() returned DelegatorAddress.
+			"cosmos.staking.v1beta1.MsgCreateValidator": func(msg protov2.Message) ([][]byte, error) {
+				rm := msg.ProtoReflect()
+				delegatorAddrStr := rm.Get(rm.Descriptor().Fields().ByName("delegator_address")).String()
+				addrBz, err := sdk.AccAddressFromBech32(delegatorAddrStr)
+				if err != nil {
+					return nil, err
+				}
+				return [][]byte{addrBz}, nil
+			},
 		},
 	}
 
