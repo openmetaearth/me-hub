@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/st-chain/me-hub/x/gravity/types"
+	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 func (k Keeper) GetBridgeTokenByContract(ctx sdk.Context, tokenContract string) (*types.BridgeToken, error) {

@@ -4,7 +4,7 @@ package metaearth.denommetadata;
 import "cosmos/bank/v1beta1/bank.proto";
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/denommetadata/types";
+option go_package = "github.com/openmetaearth/me-hub/x/denommetadata/types";
 
 message CreateDenomMetadataProposal {
   option (gogoproto.goproto_getters) = false;

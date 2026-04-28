@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/st-chain/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 // GetTxCmd returns the transaction commands for this module

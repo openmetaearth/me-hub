@@ -456,13 +456,13 @@ This will:
 
 ```bash
 # Pull specific version
-docker pull your-registry/st-chain/me_hub:v1.0.0
+docker pull your-registry/openmetaearth/me_hub:v1.0.0
 
 # Pull latest
-docker pull your-registry/st-chain/me_hub:latest
+docker pull your-registry/openmetaearth/me_hub:latest
 
 # Check version
-docker run --rm your-registry/st-chain/me_hub:v1.0.0 version
+docker run --rm your-registry/openmetaearth/me_hub:v1.0.0 version
 ```
 
 ## Comparison: Release vs Private Network

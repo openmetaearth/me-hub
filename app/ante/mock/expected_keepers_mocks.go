@@ -11,8 +11,8 @@ import (
 	types0 "github.com/cosmos/cosmos-sdk/types"
 	types1 "github.com/cosmos/cosmos-sdk/x/bank/types"
 	gomock "github.com/golang/mock/gomock"
-	types2 "github.com/st-chain/me-hub/x/did/types"
-	types3 "github.com/st-chain/me-hub/x/wbank/types"
+	types2 "github.com/openmetaearth/me-hub/x/did/types"
+	types3 "github.com/openmetaearth/me-hub/x/wbank/types"
 )
 
 // MockDaoKeeper is a mock of DaoKeeper interface.

@@ -17,9 +17,9 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/st-chain/me-hub/x/megroup/client/cli"
-	"github.com/st-chain/me-hub/x/megroup/keeper"
-	"github.com/st-chain/me-hub/x/megroup/types"
+	"github.com/openmetaearth/me-hub/x/megroup/client/cli"
+	"github.com/openmetaearth/me-hub/x/megroup/keeper"
+	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
 var (

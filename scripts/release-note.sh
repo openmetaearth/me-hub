@@ -32,5 +32,5 @@ cat <<EOF >./release-note.md
 
 $changelog
 
-**Full Changelog**: https://github.com/st-chain/me-hub/compare/$last_version...$version.
+**Full Changelog**: https://github.com/openmetaearth/me-hub/compare/$last_version...$version.
 EOF

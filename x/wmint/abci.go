@@ -1,15 +1,15 @@
 package wmint
 
 import (
-	"github.com/st-chain/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/app/params"
 	"math/big"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	"github.com/st-chain/me-hub/x/wmint/keeper"
-	"github.com/st-chain/me-hub/x/wmint/types"
+	"github.com/openmetaearth/me-hub/x/wmint/keeper"
+	"github.com/openmetaearth/me-hub/x/wmint/types"
 )
 
 // BeginBlocker mints new tokens for the previous block.

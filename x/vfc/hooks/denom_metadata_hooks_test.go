@@ -4,7 +4,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	vfchooks "github.com/st-chain/me-hub/x/vfc/hooks"
+	vfchooks "github.com/openmetaearth/me-hub/x/vfc/hooks"
 )
 
 func (suite *HooksTestSuite) TestHookOperation_AfterDenomMetadataCreation() {

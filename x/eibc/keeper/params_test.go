@@ -3,8 +3,8 @@ package keeper_test
 import (
 	"testing"
 
-	testkeeper "github.com/st-chain/me-hub/testutil/keeper"
-	"github.com/st-chain/me-hub/x/eibc/types"
+	testkeeper "github.com/openmetaearth/me-hub/testutil/keeper"
+	"github.com/openmetaearth/me-hub/x/eibc/types"
 	"github.com/stretchr/testify/require"
 )
 

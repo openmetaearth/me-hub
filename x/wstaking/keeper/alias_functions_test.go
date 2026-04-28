@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	mintTypes "github.com/st-chain/me-hub/x/wmint/types"
+	mintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/stretchr/testify/require"
 )
 

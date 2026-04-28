@@ -4,7 +4,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/st-chain/me-hub/x/sequencer/types"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func (suite *SequencerTestSuite) TestUnbondingStatusChange() {

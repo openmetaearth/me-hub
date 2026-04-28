@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/cosmos-sdk/x/nft"
-	didtypes "github.com/st-chain/me-hub/x/did/types"
-	stktypes "github.com/st-chain/me-hub/x/wstaking/types"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	stktypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 type StakingKeeper interface {

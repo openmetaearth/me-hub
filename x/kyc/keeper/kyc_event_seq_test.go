@@ -6,10 +6,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	keepertest "github.com/st-chain/me-hub/testutil/keeper"
-	"github.com/st-chain/me-hub/testutil/nullify"
-	"github.com/st-chain/me-hub/x/kyc/keeper"
-	"github.com/st-chain/me-hub/x/kyc/types"
+	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
+	"github.com/openmetaearth/me-hub/testutil/nullify"
+	"github.com/openmetaearth/me-hub/x/kyc/keeper"
+	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
 
 func createTestKycEventSeq(keeper *keeper.Keeper, ctx sdk.Context) types.KycEventSeq {

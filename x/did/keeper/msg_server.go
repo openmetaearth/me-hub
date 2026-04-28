@@ -6,7 +6,7 @@ import (
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/did/types"
+	"github.com/openmetaearth/me-hub/x/did/types"
 )
 
 type msgServer struct {

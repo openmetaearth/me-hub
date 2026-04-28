@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/st-chain/me-hub/utils"
+	"github.com/openmetaearth/me-hub/utils"
 	"strings"
 
 	"github.com/btcsuite/btcutil/base58"

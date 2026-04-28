@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	common "github.com/st-chain/me-hub/x/common/types"
-	"github.com/st-chain/me-hub/x/sequencer/types"
+	common "github.com/openmetaearth/me-hub/x/common/types"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 // Happy Flow

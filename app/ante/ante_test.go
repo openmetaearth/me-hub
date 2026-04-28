@@ -3,7 +3,7 @@ package ante_test
 import (
 	"fmt"
 	"github.com/golang/mock/gomock"
-	"github.com/st-chain/me-hub/app/ante/mock"
+	"github.com/openmetaearth/me-hub/app/ante/mock"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -25,10 +25,10 @@ import (
 	"github.com/evmos/ethermint/testutil"
 	ethermint "github.com/evmos/ethermint/types"
 
-	"github.com/st-chain/me-hub/app"
-	"github.com/st-chain/me-hub/app/ante"
-	"github.com/st-chain/me-hub/app/apptesting"
-	"github.com/st-chain/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/app"
+	"github.com/openmetaearth/me-hub/app/ante"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/params"
 )
 
 type AnteTestSuite struct {

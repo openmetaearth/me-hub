@@ -10,9 +10,9 @@ import (
 	"cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
-	"github.com/st-chain/me-hub/app/params"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -21,7 +21,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // default values

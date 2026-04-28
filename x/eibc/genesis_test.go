@@ -7,11 +7,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	keepertest "github.com/st-chain/me-hub/testutil/keeper"
-	"github.com/st-chain/me-hub/testutil/nullify"
-	commontypes "github.com/st-chain/me-hub/x/common/types"
-	"github.com/st-chain/me-hub/x/eibc"
-	"github.com/st-chain/me-hub/x/eibc/types"
+	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
+	"github.com/openmetaearth/me-hub/testutil/nullify"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	"github.com/openmetaearth/me-hub/x/eibc"
+	"github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 func TestInitGenesis(t *testing.T) {

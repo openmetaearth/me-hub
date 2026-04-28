@@ -1,7 +1,7 @@
 syntax = "proto3";
 package metaearth.wstaking;
 
-option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
+option go_package = "github.com/openmetaearth/me-hub/x/wstaking/types";
 
 message Meid {
   string account = 1;

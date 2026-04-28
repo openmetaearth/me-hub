@@ -7,7 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/fbsobreira/gotron-sdk/pkg/address"
 
-	"github.com/st-chain/me-hub/x/gravity/types"
+	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 const tronSignaturePrefix = "\x19TRON Signed Message:\n32"

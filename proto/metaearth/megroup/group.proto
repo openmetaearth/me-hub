@@ -3,7 +3,7 @@ package metaearth.megroup;
 
 import "metaearth/megroup/group_info.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/megroup/types";
+option go_package = "github.com/openmetaearth/me-hub/x/megroup/types";
 
 // no need to record group's creator,so Group can be remove
 message Group {

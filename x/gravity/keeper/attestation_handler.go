@@ -6,8 +6,8 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/st-chain/me-hub/utils"
-	"github.com/st-chain/me-hub/x/gravity/types"
+	"github.com/openmetaearth/me-hub/utils"
+	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 // AttestationHandler Handle is the entry point for Attestation processing.

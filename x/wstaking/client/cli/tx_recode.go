@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	_ "github.com/evmos/ethermint/crypto/ethsecp256k1"
-	"github.com/st-chain/me-hub/x/did/types"
+	"github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/stretchr/testify/require"
 )
 

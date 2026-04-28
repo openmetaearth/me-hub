@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	appkeepers "github.com/st-chain/me-hub/app/keepers"
-	"github.com/st-chain/me-hub/app/upgrades"
+	appkeepers "github.com/openmetaearth/me-hub/app/keepers"
+	"github.com/openmetaearth/me-hub/app/upgrades"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v2.0.13

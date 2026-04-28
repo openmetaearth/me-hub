@@ -7,7 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/st-chain/me-hub/x/gravity/types"
+	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 type msgServer struct {

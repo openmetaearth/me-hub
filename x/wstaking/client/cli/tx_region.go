@@ -4,10 +4,10 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/st-chain/me-hub/utils"
+	"github.com/openmetaearth/me-hub/utils"
 	"strings"
 
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"

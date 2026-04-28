@@ -6,8 +6,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	"github.com/st-chain/me-hub/x/denommetadata/keeper"
-	"github.com/st-chain/me-hub/x/denommetadata/types"
+	"github.com/openmetaearth/me-hub/x/denommetadata/keeper"
+	"github.com/openmetaearth/me-hub/x/denommetadata/types"
 )
 
 func NewDenomMetadataProposalHandler(k *keeper.Keeper) govtypes.Handler {

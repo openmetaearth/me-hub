@@ -5,7 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"sort"
 
-	"github.com/st-chain/me-hub/x/gravity/types"
+	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 // InitGenesis import module genesis

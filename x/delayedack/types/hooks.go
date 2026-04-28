@@ -2,7 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/st-chain/me-hub/x/common/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 )
 
 type DelayedAckHooks interface {

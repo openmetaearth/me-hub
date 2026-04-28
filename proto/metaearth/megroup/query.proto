@@ -11,7 +11,7 @@ import "metaearth/megroup/group_member_count.proto";
 import "metaearth/megroup/member_joined.proto";
 import "metaearth/megroup/params.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/megroup/types";
+option go_package = "github.com/openmetaearth/me-hub/x/megroup/types";
 
 // Query defines the gRPC querier service.
 service Query {

@@ -3,10 +3,10 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_13"
-	bsctypes "github.com/st-chain/me-hub/x/bsc/types"
-	trontypes "github.com/st-chain/me-hub/x/tron/types"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_13"
+	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
+	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"

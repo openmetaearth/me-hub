@@ -10,7 +10,7 @@ import "google/protobuf/timestamp.proto";
 import "metaearth/sequencer/description.proto";
 import "metaearth/sequencer/operating_status.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/sequencer/types";
+option go_package = "github.com/openmetaearth/me-hub/x/sequencer/types";
 
 // Sequencer defines a sequencer identified by its' address (sequencerAddress).
 // The sequencer could be attached to only one rollapp (rollappId).

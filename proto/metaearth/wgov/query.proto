@@ -10,7 +10,7 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/wgov/types";
+option go_package = "github.com/openmetaearth/me-hub/x/wgov/types";
 
 service Query {
   rpc MeTallyResult(QueryMeTallyResultRequest) returns (QueryMeTallyResultResponse) {

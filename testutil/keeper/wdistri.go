@@ -2,10 +2,10 @@ package keeper
 
 import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
+	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
 	"testing"
 
-	"github.com/st-chain/me-hub/x/wdistri/keeper"
+	"github.com/openmetaearth/me-hub/x/wdistri/keeper"
 
 	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"

@@ -50,8 +50,8 @@ This triggers the GitHub Actions workflow `.github/workflows/build-push-release.
 1. Build the release Docker image
 2. Tag it with the git tag (e.g., `v1.0.0`)
 3. Push to Harbor registry as:
-   - `{HARBOR_REGISTRY}/st-chain/me_hub:v1.0.0`
-   - `{HARBOR_REGISTRY}/st-chain/me_hub:latest`
+   - `{HARBOR_REGISTRY}/openmetaearth/me_hub:v1.0.0`
+   - `{HARBOR_REGISTRY}/openmetaearth/me_hub:latest`
 4. Verify the image by running `med version`
 
 ## Using Release Image
@@ -208,7 +208,7 @@ spec:
     spec:
       containers:
       - name: mechain
-        image: harbor.example.com/st-chain/me_hub:v1.0.0
+        image: harbor.example.com/openmetaearth/me_hub:v1.0.0
         command: ["med"]
         args: ["start"]
         ports:
@@ -241,7 +241,7 @@ version: '3.8'
 
 services:
   mechain:
-    image: harbor.example.com/st-chain/me_hub:v1.0.0
+    image: harbor.example.com/openmetaearth/me_hub:v1.0.0
     container_name: mechain-prod
     entrypoint: ["med"]
     command: ["start"]
@@ -315,22 +315,22 @@ After deploying, verify your installation:
 
 ```bash
 # 1. Check version
-docker run --rm your-registry/st-chain/me_hub:v1.0.0 version
+docker run --rm your-registry/openmetaearth/me_hub:v1.0.0 version
 
 # 2. Check that help works
-docker run --rm your-registry/st-chain/me_hub:v1.0.0 --help
+docker run --rm your-registry/openmetaearth/me_hub:v1.0.0 --help
 
 # 3. Test initialization
 docker run --rm \
   -v test-data:/root/.mechain \
-  your-registry/st-chain/me_hub:v1.0.0 \
+  your-registry/openmetaearth/me_hub:v1.0.0 \
   init testnode --chain-id test_100-1
 
 # 4. Verify files were created
 docker run --rm \
   -v test-data:/root/.mechain \
   --entrypoint ls \
-  your-registry/st-chain/me_hub:v1.0.0 \
+  your-registry/openmetaearth/me_hub:v1.0.0 \
   -la /root/.mechain/config/
 
 # 5. Cleanup
@@ -355,17 +355,17 @@ jobs:
     steps:
       - name: Pull release image
         run: |
-          docker pull ${{ secrets.HARBOR_REGISTRY }}/st-chain/me_hub:${{ github.ref_name }}
+          docker pull ${{ secrets.HARBOR_REGISTRY }}/openmetaearth/me_hub:${{ github.ref_name }}
 
       - name: Verify image
         run: |
-          docker run --rm ${{ secrets.HARBOR_REGISTRY }}/st-chain/me_hub:${{ github.ref_name }} version
+          docker run --rm ${{ secrets.HARBOR_REGISTRY }}/openmetaearth/me_hub:${{ github.ref_name }} version
 
       - name: Deploy to production
         run: |
           # Your deployment logic here
           kubectl set image deployment/mechain \
-            mechain=${{ secrets.HARBOR_REGISTRY }}/st-chain/me_hub:${{ github.ref_name }}
+            mechain=${{ secrets.HARBOR_REGISTRY }}/openmetaearth/me_hub:${{ github.ref_name }}
 ```
 
 ## Dockerfile Reference

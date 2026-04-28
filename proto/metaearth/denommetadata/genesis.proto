@@ -3,7 +3,7 @@ package metaearth.denommetadata;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/denommetadata/types";
+option go_package = "github.com/openmetaearth/me-hub/x/denommetadata/types";
 
 // GenesisState defines the denommetadata module's various parameters when first
 // initialized

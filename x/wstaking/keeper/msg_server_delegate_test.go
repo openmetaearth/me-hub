@@ -5,11 +5,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/st-chain/me-hub/app/apptesting"
-	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/x/wmint"
-	"github.com/st-chain/me-hub/x/wstaking"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/wmint"
+	"github.com/openmetaearth/me-hub/x/wstaking"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func (s *KeeperTestSuite) TestDelegate() {

@@ -2,8 +2,8 @@ package dao
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/dao/keeper"
-	"github.com/st-chain/me-hub/x/dao/types"
+	"github.com/openmetaearth/me-hub/x/dao/keeper"
+	"github.com/openmetaearth/me-hub/x/dao/types"
 )
 
 // InitGenesis initializes the capability module's state from a provided genesis

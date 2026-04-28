@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/st-chain/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/stretchr/testify/suite"
 )
 

@@ -6,8 +6,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-	"github.com/st-chain/me-hub/x/sequencer/types"
 )
 
 // UnbondAllMatureSequencers unbonds all the mature unbonding sequencers that

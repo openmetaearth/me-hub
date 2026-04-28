@@ -6,7 +6,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/st-chain/me-hub/x/wgov/types"
+	"github.com/openmetaearth/me-hub/x/wgov/types"
 )
 
 type Keeper struct {

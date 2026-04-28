@@ -9,10 +9,10 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/testutil/sample"
-	rollappsimulation "github.com/st-chain/me-hub/x/rollapp/simulation"
-	"github.com/st-chain/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/testutil/sample"
+	rollappsimulation "github.com/openmetaearth/me-hub/x/rollapp/simulation"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 // avoid unused import issue

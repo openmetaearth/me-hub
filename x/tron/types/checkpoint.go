@@ -1,8 +1,8 @@
 package types
 
 import (
-	"github.com/st-chain/me-hub/utils"
-	"github.com/st-chain/me-hub/x/gravity/types"
+	"github.com/openmetaearth/me-hub/utils"
+	"github.com/openmetaearth/me-hub/x/gravity/types"
 	"math/big"
 
 	errorsmod "cosmossdk.io/errors"

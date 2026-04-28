@@ -3,10 +3,10 @@ package keeper_test
 import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/app/apptesting"
-	commontypes "github.com/st-chain/me-hub/x/common/types"
-	delayedacktypes "github.com/st-chain/me-hub/x/delayedack/types"
-	"github.com/st-chain/me-hub/x/eibc/types"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	delayedacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
+	"github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 func (suite *KeeperTestSuite) TestAfterRollappPacketUpdated() {

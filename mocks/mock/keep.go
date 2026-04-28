@@ -3,7 +3,7 @@ package mock
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	wstaking "github.com/st-chain/me-hub/x/wstaking/keeper"
+	wstaking "github.com/openmetaearth/me-hub/x/wstaking/keeper"
 
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 )

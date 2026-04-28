@@ -6,7 +6,7 @@ on:
             - "v*"
 
 env:
-    IMAGE_NAME: st-chain/me_hub
+    IMAGE_NAME: openmetaearth/me_hub
     GENESIS_ACCOUNTS: "alice:10000000000000000000000umec,bob:10000000000000000000000umec,charlie:10000000000000000000000umec,david:10000000000000000000000umec"
 
 jobs:

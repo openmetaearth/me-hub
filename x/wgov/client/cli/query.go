@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/st-chain/me-hub/x/wgov/types"
+	"github.com/openmetaearth/me-hub/x/wgov/types"
 )
 
 func GetQueryCmd() *cobra.Command {

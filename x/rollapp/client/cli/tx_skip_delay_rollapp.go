@@ -4,9 +4,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
-	"github.com/st-chain/me-hub/x/rollapp/types"
 )
 
 func CmdSkipDelayRollapp() *cobra.Command {

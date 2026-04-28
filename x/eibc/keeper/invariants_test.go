@@ -4,10 +4,10 @@ import (
 	"strconv"
 
 	"cosmossdk.io/math"
-	"github.com/st-chain/me-hub/app/apptesting"
-	commontypes "github.com/st-chain/me-hub/x/common/types"
-	eibckeeper "github.com/st-chain/me-hub/x/eibc/keeper"
-	"github.com/st-chain/me-hub/x/eibc/types"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	eibckeeper "github.com/openmetaearth/me-hub/x/eibc/keeper"
+	"github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 func (suite *KeeperTestSuite) TestInvariants() {

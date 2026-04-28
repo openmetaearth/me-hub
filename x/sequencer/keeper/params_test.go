@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	testkeeper "github.com/st-chain/me-hub/testutil/keeper"
-	"github.com/st-chain/me-hub/x/sequencer/types"
+	testkeeper "github.com/openmetaearth/me-hub/testutil/keeper"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 )
 

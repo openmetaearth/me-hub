@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
-	commontypes "github.com/st-chain/me-hub/x/common/types"
-	"github.com/st-chain/me-hub/x/delayedack/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	"github.com/openmetaearth/me-hub/x/delayedack/types"
 )
 
 // SetRollappPacket stores a rollapp packet in the KVStore.

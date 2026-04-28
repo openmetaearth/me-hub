@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	stakingcli "github.com/cosmos/cosmos-sdk/x/staking/client/cli"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module

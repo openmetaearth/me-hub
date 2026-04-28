@@ -5,15 +5,15 @@ import (
 	"math/big"
 	"testing"
 
-	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
+	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/st-chain/me-hub/x/wmint/keeper"
-	"github.com/st-chain/me-hub/x/wmint/types"
-	"github.com/st-chain/me-hub/x/wmint/types/mock_types"
+	"github.com/openmetaearth/me-hub/x/wmint/keeper"
+	"github.com/openmetaearth/me-hub/x/wmint/types"
+	"github.com/openmetaearth/me-hub/x/wmint/types/mock_types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 

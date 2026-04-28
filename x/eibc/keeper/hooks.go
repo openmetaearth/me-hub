@@ -4,9 +4,9 @@ import (
 	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/st-chain/me-hub/x/common/types"
-	delayeacktypes "github.com/st-chain/me-hub/x/delayedack/types"
-	types "github.com/st-chain/me-hub/x/eibc/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	delayeacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
+	types "github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 /* -------------------------------------------------------------------------- */

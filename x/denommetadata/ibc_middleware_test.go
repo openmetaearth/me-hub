@@ -15,12 +15,12 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/st-chain/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/stretchr/testify/require"
 
-	"github.com/st-chain/me-hub/x/denommetadata"
-	"github.com/st-chain/me-hub/x/denommetadata/types"
-	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/x/denommetadata"
+	"github.com/openmetaearth/me-hub/x/denommetadata/types"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func TestIBCModule_OnRecvPacket(t *testing.T) {

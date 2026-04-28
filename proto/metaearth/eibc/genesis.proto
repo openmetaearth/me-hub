@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "metaearth/eibc/demand_order.proto";
 import "metaearth/eibc/params.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/eibc/types";
+option go_package = "github.com/openmetaearth/me-hub/x/eibc/types";
 
 // GenesisState defines the eibc module's genesis state.
 message GenesisState {

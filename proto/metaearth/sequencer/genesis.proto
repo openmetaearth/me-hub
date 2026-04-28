@@ -6,7 +6,7 @@ import "metaearth/sequencer/params.proto";
 import "metaearth/sequencer/sequencer.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
-option go_package = "github.com/st-chain/me-hub/x/sequencer/types";
+option go_package = "github.com/openmetaearth/me-hub/x/sequencer/types";
 
 // GenesisState defines the sequencer module's genesis state.
 message GenesisState {

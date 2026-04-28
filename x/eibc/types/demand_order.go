@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
-	commontypes "github.com/st-chain/me-hub/x/common/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 )
 
 // NewDemandOrder creates a new demand order.

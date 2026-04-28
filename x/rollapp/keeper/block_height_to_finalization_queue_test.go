@@ -10,10 +10,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	keepertest "github.com/st-chain/me-hub/testutil/keeper"
-	"github.com/st-chain/me-hub/testutil/nullify"
-	"github.com/st-chain/me-hub/x/rollapp/keeper"
-	"github.com/st-chain/me-hub/x/rollapp/types"
+	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
+	"github.com/openmetaearth/me-hub/testutil/nullify"
+	"github.com/openmetaearth/me-hub/x/rollapp/keeper"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 // Prevent strconv unused error

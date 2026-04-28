@@ -1,7 +1,7 @@
 syntax = "proto3";
 package metaearth.megroup;
 
-option go_package = "github.com/st-chain/me-hub/x/megroup/types";
+option go_package = "github.com/openmetaearth/me-hub/x/megroup/types";
 
 message GroupMemberCount {
   uint64 groupId = 1;

@@ -16,9 +16,9 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/st-chain/me-hub/x/sequencer/client/cli"
-	"github.com/st-chain/me-hub/x/sequencer/keeper"
-	"github.com/st-chain/me-hub/x/sequencer/types"
+	"github.com/openmetaearth/me-hub/x/sequencer/client/cli"
+	"github.com/openmetaearth/me-hub/x/sequencer/keeper"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 var (

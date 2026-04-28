@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
-	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
-	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
+	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
+	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
@@ -21,9 +21,9 @@ import (
 	simappparams "cosmossdk.io/simapp/params"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
-	"github.com/st-chain/me-hub/app/keepers"
-	"github.com/st-chain/me-hub/app/upgrades"
-	"github.com/st-chain/me-hub/app/upgrades/v2_0_14"
+	"github.com/openmetaearth/me-hub/app/keepers"
+	"github.com/openmetaearth/me-hub/app/upgrades"
+	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_14"
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -55,12 +55,12 @@ import (
 
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/st-chain/me-hub/docs"
+	"github.com/openmetaearth/me-hub/docs"
 
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 
-	"github.com/st-chain/me-hub/app/ante"
-	appparams "github.com/st-chain/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/app/ante"
+	appparams "github.com/openmetaearth/me-hub/app/params"
 
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/keeper"

@@ -1,15 +1,15 @@
 package keeper_test
 
 import (
-	"github.com/st-chain/me-hub/testutil/helpers"
+	"github.com/openmetaearth/me-hub/testutil/helpers"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/st-chain/me-hub/x/gravity/types"
-	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
-	trontypes "github.com/st-chain/me-hub/x/tron/types"
+	"github.com/openmetaearth/me-hub/x/gravity/types"
+	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
+	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 )
 
 func (s *KeeperTestSuite) TestQuery_BatchFees() {

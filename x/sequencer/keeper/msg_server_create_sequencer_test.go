@@ -6,10 +6,10 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
-	"github.com/st-chain/me-hub/testutil/sample"
-	"github.com/st-chain/me-hub/x/sequencer/types"
+	"github.com/openmetaearth/me-hub/testutil/sample"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 
-	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"

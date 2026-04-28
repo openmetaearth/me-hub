@@ -9,7 +9,7 @@ import (
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/st-chain/me-hub/simulation/types"
+	"github.com/openmetaearth/me-hub/simulation/types"
 )
 
 // GlobalRollappIdList is a list of created rollapps

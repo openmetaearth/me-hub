@@ -7,8 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

@@ -15,9 +15,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/st-chain/me-hub/x/dao/client/cli"
-	"github.com/st-chain/me-hub/x/dao/keeper"
-	"github.com/st-chain/me-hub/x/dao/types"
+	"github.com/openmetaearth/me-hub/x/dao/client/cli"
+	"github.com/openmetaearth/me-hub/x/dao/keeper"
+	"github.com/openmetaearth/me-hub/x/dao/types"
 )
 
 var (

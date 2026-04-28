@@ -3,13 +3,13 @@ package keeper_test
 import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/st-chain/me-hub/app/apptesting"
-	didtypes "github.com/st-chain/me-hub/x/did/types"
-	"github.com/st-chain/me-hub/x/kyc/types"
-	"github.com/st-chain/me-hub/x/wdistri"
-	"github.com/st-chain/me-hub/x/wmint"
-	wmintTypes "github.com/st-chain/me-hub/x/wmint/types"
-	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	"github.com/openmetaearth/me-hub/x/kyc/types"
+	"github.com/openmetaearth/me-hub/x/wdistri"
+	"github.com/openmetaearth/me-hub/x/wmint"
+	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 	"strings"
 )
 

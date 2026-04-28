@@ -12,7 +12,7 @@ import "google/protobuf/timestamp.proto";
 import "metaearth/sequencer/description.proto";
 import "metaearth/sequencer/sequencer.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/sequencer/types";
+option go_package = "github.com/openmetaearth/me-hub/x/sequencer/types";
 
 // Msg defines the Msg service.
 service Msg {

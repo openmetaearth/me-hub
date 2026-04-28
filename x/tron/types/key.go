@@ -1,6 +1,6 @@
 package types
 
-import gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
+import gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 
 const (
 	// ModuleName is the name of the module

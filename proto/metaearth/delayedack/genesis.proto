@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "metaearth/common/rollapp_packet.proto";
 import "metaearth/delayedack/params.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/delayedack/types";
+option go_package = "github.com/openmetaearth/me-hub/x/delayedack/types";
 
 // GenesisState defines the delayedack module's genesis state.
 message GenesisState {

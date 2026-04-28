@@ -11,8 +11,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/st-chain/me-hub/utils"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/utils"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // CreateValidator defines wrapped method for creating a new validator.

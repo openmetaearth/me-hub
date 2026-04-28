@@ -8,7 +8,7 @@ import (
 	simulationtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	simcli "github.com/cosmos/cosmos-sdk/x/simulation/client/cli"
-	"github.com/st-chain/me-hub/app"
+	"github.com/openmetaearth/me-hub/app"
 	"github.com/stretchr/testify/require"
 )
 

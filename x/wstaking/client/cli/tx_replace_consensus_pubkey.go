@@ -9,8 +9,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"github.com/spf13/cobra"
-	"github.com/st-chain/me-hub/x/wstaking/types"
 )
 
 func CmdReplaceConsensusPubKey() *cobra.Command {

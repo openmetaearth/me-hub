@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	"github.com/st-chain/me-hub/testutil/helpers"
-	"github.com/st-chain/me-hub/x/gravity/types"
+	"github.com/openmetaearth/me-hub/testutil/helpers"
+	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_BridgeToken() {

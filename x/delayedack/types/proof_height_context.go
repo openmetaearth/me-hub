@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	commontypes "github.com/st-chain/me-hub/x/common/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 )
 
 const (

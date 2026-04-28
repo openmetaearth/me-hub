@@ -1,7 +1,7 @@
 package types
 
 import (
-	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 type TransferDataWithFinalization struct {

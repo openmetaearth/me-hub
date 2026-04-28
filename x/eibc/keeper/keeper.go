@@ -9,9 +9,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	commontypes "github.com/st-chain/me-hub/x/common/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 
-	"github.com/st-chain/me-hub/x/eibc/types"
+	"github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 type (

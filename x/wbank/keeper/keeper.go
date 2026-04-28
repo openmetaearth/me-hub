@@ -12,7 +12,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/st-chain/me-hub/x/wbank/types"
+	"github.com/openmetaearth/me-hub/x/wbank/types"
 )
 
 // BaseKeeperWrapper is a wrapper of the cosmos-sdk bank module.

@@ -10,22 +10,22 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-	"github.com/st-chain/me-hub/app"
-	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/x/dao/types"
-	didtypes "github.com/st-chain/me-hub/x/did/types"
-	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
-	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/app"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/dao/types"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/suite"
 
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
-	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
-	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
-	sequencerkeeper "github.com/st-chain/me-hub/x/sequencer/keeper"
+	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
+	sequencerkeeper "github.com/openmetaearth/me-hub/x/sequencer/keeper"
 
-	daotypes "github.com/st-chain/me-hub/x/dao/types"
-	sequencertypes "github.com/st-chain/me-hub/x/sequencer/types"
+	daotypes "github.com/openmetaearth/me-hub/x/dao/types"
+	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 var (

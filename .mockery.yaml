@@ -14,10 +14,10 @@ packages:
             StakingKeeper:
             BankKeeper:
             # select the interfaces you want mocked
-    github.com/st-chain/me-hub/x/wdistri/types:
+    github.com/openmetaearth/me-hub/x/wdistri/types:
         config:
             all: True
-    github.com/st-chain/me-hub/x/wstaking/types:
+    github.com/openmetaearth/me-hub/x/wstaking/types:
         interfaces:
             RegionI:
                 #common interface

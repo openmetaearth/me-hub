@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/st-chain/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/app/params"
 )
 
 const (

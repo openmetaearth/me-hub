@@ -3,7 +3,7 @@ package wdistri
 import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/wdistri/keeper"
+	"github.com/openmetaearth/me-hub/x/wdistri/keeper"
 )
 
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) {

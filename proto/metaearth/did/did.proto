@@ -6,7 +6,7 @@ import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 import "metaearth/did/credential.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/did/types";
+option go_package = "github.com/openmetaearth/me-hub/x/did/types";
 
 // kyc level enum
 enum KycLevel {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	rollappTypes "github.com/st-chain/me-hub/x/rollapp/types"
-	"github.com/st-chain/me-hub/x/sequencer/types"
+	rollappTypes "github.com/openmetaearth/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func (k Keeper) SetReplaceProposer(ctx sdk.Context, data *types.MsgRepalceProposer) error {

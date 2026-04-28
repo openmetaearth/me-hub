@@ -8,14 +8,14 @@ If Licensee makes available a copy of the Software to any third party, the Softw
 
 Licensee must ensure that any third party who gets a copy of any part of the Software from Licensee also gets a copy of the terms of this license or the respective license URL, as well as copies of any plain-text lines beginning with Required Notice that the licensor provided with the software.
 
-For example: “Required Notice: Copyright Yolo Labs Ltd. (https://github.com/st-chain)“. These terms do not allow Licensee to sublicense or transfer any of Licensee’s rights to anyone else. These terms do not imply any other licenses not expressly granted in this license.
+For example: “Required Notice: Copyright Yolo Labs Ltd. (https://github.com/openmetaearth)“. These terms do not allow Licensee to sublicense or transfer any of Licensee’s rights to anyone else. These terms do not imply any other licenses not expressly granted in this license.
 
 If Licensee violates any of these terms or uses the Software in a way not authorized under this license, the license granted to Licensee ends immediately. If Licensee makes, or authorizes any other person to make, any written claim that the Software, or any other ME Product (see below), infringes or contributes to the infringement of any patent, all rights granted to Licensee under this license end immediately.
 
 As far as the law allows, the Software is provided AS IS, without any warranty or condition, and Company will not be liable to Licensee for any damages arising out of these terms or the use or nature of the Software, under any kind of legal claim.
 
 ## Terms in this license are used as follows:
-- “Software” means the blockchain software developed by the Company, which is the implementation of the ME blockchains available at “https://github.com/st-chain”.
+- “Software” means the blockchain software developed by the Company, which is the implementation of the ME blockchains available at “https://github.com/openmetaearth”.
 - “Designated Blockchains” refer to blockchains that:
   - Solely utilize the ME blockchain identified by the unique chain identifier “ME_1100-1" for Inter-Blockchain Communication (IBC). This means the blockchain cannot have any other IBC connections to any other blockchains.
   - A blockchain can become a Designated Blockchain by meeting this criterion.

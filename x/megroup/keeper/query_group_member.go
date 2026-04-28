@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/st-chain/me-hub/x/megroup/types"
+	"github.com/openmetaearth/me-hub/x/megroup/types"
 
 	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"

@@ -16,7 +16,7 @@ import "metaearth/wstaking/record.proto";
 import "metaearth/wstaking/region.proto";
 import "metaearth/wstaking/stake.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
+option go_package = "github.com/openmetaearth/me-hub/x/wstaking/types";
 
 service Query {
   // Queries a list of Region items.

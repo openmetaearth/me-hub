@@ -196,7 +196,7 @@ release:
     ## 🔨 Build from source
     
     ```bash
-    git clone https://github.com/st-chain/me-hub.git
+    git clone https://github.com/openmetaearth/me-hub.git
     cd me-hub && git checkout {{ .Tag }}
     make install
     ```
@@ -206,13 +206,13 @@ release:
     As an alternative to installing and running med on your system, you may run med in a Docker container.
 
     ```bash
-    docker pull ghcr.io/st-chain/me-hub:{{ .Version }}
+    docker pull ghcr.io/openmetaearth/me-hub:{{ .Version }}
     ```
  
     Example run:
 
     ```bash
-    docker run ghcr.io/st-chain/me-hub:{{ .Version }} version
+    docker run ghcr.io/openmetaearth/me-hub:{{ .Version }} version
     # v{{ .Version }}
     ````
     

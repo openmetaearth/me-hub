@@ -3,10 +3,10 @@ package rollapp_test
 import (
 	"testing"
 
-	keepertest "github.com/st-chain/me-hub/testutil/keeper"
-	"github.com/st-chain/me-hub/testutil/nullify"
-	"github.com/st-chain/me-hub/x/rollapp"
-	"github.com/st-chain/me-hub/x/rollapp/types"
+	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
+	"github.com/openmetaearth/me-hub/testutil/nullify"
+	"github.com/openmetaearth/me-hub/x/rollapp"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 )
 

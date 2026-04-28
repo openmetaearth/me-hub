@@ -8,9 +8,9 @@ body:
   - type: checkboxes
     attributes:
       label: Search before asking
-      description: Please search [issues](https://github.com/st-chain/me-hub/issues) to check if your issue has already been reported.
+      description: Please search [issues](https://github.com/openmetaearth/me-hub/issues) to check if your issue has already been reported.
       options:
-        - label: I searched in the [issues](https://github.com/st-chain/me-hub/issues) and found nothing similar.
+        - label: I searched in the [issues](https://github.com/openmetaearth/me-hub/issues) and found nothing similar.
           required: true
   - type: textarea
     attributes:

@@ -10,7 +10,7 @@ import (
 	mintexported "github.com/cosmos/cosmos-sdk/x/mint/exported"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	"github.com/st-chain/me-hub/x/wmint/keeper"
+	"github.com/openmetaearth/me-hub/x/wmint/keeper"
 )
 
 // AppModuleBasic implements the basic application module for the wrapped nft module.

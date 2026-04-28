@@ -25,12 +25,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/utils"
-	metypes "github.com/st-chain/me-hub/types"
+	metypes "github.com/openmetaearth/me-hub/types"
 	"strings"
 
 	ethermint "github.com/evmos/ethermint/types"
 	"github.com/evmos/ethermint/x/evm/types"
-	"github.com/st-chain/me-hub/x/evm/keeper"
+	"github.com/openmetaearth/me-hub/x/evm/keeper"
 )
 
 // InitGenesis initializes genesis state based on exported genesis

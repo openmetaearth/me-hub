@@ -1,7 +1,7 @@
 package delayedack
 
 import (
-	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
+	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -12,9 +12,9 @@ import (
 
 	"github.com/cometbft/cometbft/libs/log"
 
-	commontypes "github.com/st-chain/me-hub/x/common/types"
-	"github.com/st-chain/me-hub/x/delayedack/keeper"
-	"github.com/st-chain/me-hub/x/delayedack/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	"github.com/openmetaearth/me-hub/x/delayedack/keeper"
+	"github.com/openmetaearth/me-hub/x/delayedack/types"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}

@@ -2,7 +2,7 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/testutil/keeper"
+	"github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

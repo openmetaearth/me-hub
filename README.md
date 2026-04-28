@@ -1,7 +1,7 @@
 # ME Hub 
-![license](https://img.shields.io/github/license/st-chain/me-hub)
+![license](https://img.shields.io/github/license/openmetaearth/me-hub)
 ![Go](https://img.shields.io/badge/go-1.23-blue.svg)
-![issues](https://img.shields.io/github/issues/st-chain/me-hub)
+![issues](https://img.shields.io/github/issues/openmetaearth/me-hub)
 
 ## Overview
 
@@ -34,7 +34,7 @@ This guide will walk you through the steps required to set up and run a ME Hub f
 Clone `me-hub`:
 
 ```sh
-git clone https://github.com/st-chain/me-hub.git
+git clone https://github.com/openmetaearth/me-hub.git
 cd me-hub
 make install
 ```
@@ -56,7 +56,7 @@ export PATH=$PATH:$(go env GOPATH)/bin
 
 - Using the setup script:
 
-  This method is preferred as it preconfigured to support [running rollapps locally](https://github.com/st-chain/rollapp)
+  This method is preferred as it preconfigured to support [running rollapps locally](https://github.com/openmetaearth/rollapp)
 
   ```sh
   bash scripts/setup_local.sh
@@ -204,7 +204,7 @@ func (q Querier) Params(goCtx context.Context, req *types.QueryParamsRequest) (*
 }
 ```
 
-Open your browser and go to `http://localhost:1318/st-chain/me-hub/eibc/params` and you will see debugger stop and print the value at the breakpoint.
+Open your browser and go to `http://localhost:1318/openmetaearth/me-hub/eibc/params` and you will see debugger stop and print the value at the breakpoint.
 
 ## Developer
 

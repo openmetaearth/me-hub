@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"testing"
 
-	keepertest "github.com/st-chain/me-hub/testutil/keeper"
-	"github.com/st-chain/me-hub/testutil/nullify"
+	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
+	"github.com/openmetaearth/me-hub/testutil/nullify"
 	"github.com/stretchr/testify/require"
 )
 

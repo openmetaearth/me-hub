@@ -10,8 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/distribution/exported"
 	distributionkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	"github.com/st-chain/me-hub/x/wdistri/keeper"
-	"github.com/st-chain/me-hub/x/wdistri/types"
+	"github.com/openmetaearth/me-hub/x/wdistri/keeper"
+	"github.com/openmetaearth/me-hub/x/wdistri/types"
 )
 
 // AppModuleBasic implements the basic application module for the wrapped nft module.

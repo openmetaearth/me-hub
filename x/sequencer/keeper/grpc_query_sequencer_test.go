@@ -10,9 +10,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	keepertest "github.com/st-chain/me-hub/testutil/keeper"
-	"github.com/st-chain/me-hub/testutil/nullify"
-	"github.com/st-chain/me-hub/x/sequencer/types"
+	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
+	"github.com/openmetaearth/me-hub/testutil/nullify"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func TestSequencerQuerySingle(t *testing.T) {

@@ -4,7 +4,7 @@ package metaearth.wnft;
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/wnft/types";
+option go_package = "github.com/openmetaearth/me-hub/x/wnft/types";
 
 // Msg defines the nft Msg service.
 service Msg {

@@ -3,7 +3,7 @@ package metaearth.rollapp;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/rollapp/types";
+option go_package = "github.com/openmetaearth/me-hub/x/rollapp/types";
 
 message DeployerParams {
   // address is a bech32-encoded address of the

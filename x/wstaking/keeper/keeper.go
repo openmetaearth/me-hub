@@ -11,7 +11,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 type Keeper struct {
