@@ -13,11 +13,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/st-chain/me-hub/app/params"
-	didTypes "github.com/st-chain/me-hub/x/did/types"
-	kycTypes "github.com/st-chain/me-hub/x/kyc/types"
-	"github.com/st-chain/me-hub/x/megroup/types"
-	stakingTypes "github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/app/params"
+	didTypes "github.com/openmetaearth/me-hub/x/did/types"
+	kycTypes "github.com/openmetaearth/me-hub/x/kyc/types"
+	"github.com/openmetaearth/me-hub/x/megroup/types"
+	stakingTypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 type kycHookFunc func(ctx sdk.Context, eventType string, beforeData interface{}, afterData interface{}) error

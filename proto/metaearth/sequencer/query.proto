@@ -9,7 +9,7 @@ import "metaearth/sequencer/operating_status.proto";
 import "metaearth/sequencer/params.proto";
 import "metaearth/sequencer/sequencer.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/sequencer/types";
+option go_package = "github.com/openmetaearth/me-hub/x/sequencer/types";
 
 // Query defines the gRPC querier service.
 service Query {

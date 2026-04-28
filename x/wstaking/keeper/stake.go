@@ -3,8 +3,8 @@ package keeper
 import (
 	"time"
 
-	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"

@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/st-chain/me-hub/app/params"
-	minttypes "github.com/st-chain/me-hub/x/wmint/types"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/app/params"
+	minttypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"

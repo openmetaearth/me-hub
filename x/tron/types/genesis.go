@@ -1,7 +1,7 @@
 package types
 
 import (
-	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
+	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 func DefaultGenesisState() *gravitytypes.GenesisState {

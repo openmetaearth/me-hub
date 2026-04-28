@@ -5,7 +5,7 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "metaearth/did/issuer.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/kyc/types";
+option go_package = "github.com/openmetaearth/me-hub/x/kyc/types";
 
 message Region {
   string id = 1;

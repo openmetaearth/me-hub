@@ -5,8 +5,8 @@ import (
 
 	"github.com/cometbft/cometbft/libs/rand"
 
-	"github.com/st-chain/me-hub/testutil/sample"
-	"github.com/st-chain/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/testutil/sample"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

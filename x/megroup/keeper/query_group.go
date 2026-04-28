@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/st-chain/me-hub/x/megroup/types"
+	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
 func (k Keeper) GroupAll(goCtx context.Context, req *types.QueryAllGroupRequest) (*types.QueryAllGroupResponse, error) {

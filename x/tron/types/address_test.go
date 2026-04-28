@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	"github.com/st-chain/me-hub/x/tron/types"
+	"github.com/openmetaearth/me-hub/x/tron/types"
 	"github.com/stretchr/testify/require"
 )
 

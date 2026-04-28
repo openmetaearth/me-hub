@@ -3,10 +3,10 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/st-chain/me-hub/app/apptesting"
-	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
-	"github.com/st-chain/me-hub/x/sequencer/keeper"
-	"github.com/st-chain/me-hub/x/sequencer/types"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/x/sequencer/keeper"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 

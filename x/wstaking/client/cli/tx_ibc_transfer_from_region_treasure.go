@@ -19,7 +19,7 @@ import (
 	channelutils "github.com/cosmos/ibc-go/v7/modules/core/04-channel/client/utils"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 const (

@@ -4,7 +4,7 @@ package metaearth.dao;
 import "gogoproto/gogo.proto";
 import "metaearth/dao/dao.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/dao/types";
+option go_package = "github.com/openmetaearth/me-hub/x/dao/types";
 
 // GenesisState defines the sudo module's genesis state.
 message GenesisState {

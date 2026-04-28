@@ -72,7 +72,7 @@ linters-settings:
     sections:
       - standard # Standard section: captures all standard packages.
       - default # Default section: contains all imports that could not be matched to another section type.
-      - prefix(github.com/st-chain/me-hub)
+      - prefix(github.com/openmetaearth/me-hub)
   errcheck:
     check-type-assertions: false
     check-blank: false

@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
-	common "github.com/st-chain/me-hub/x/common/types"
-	"github.com/st-chain/me-hub/x/rollapp/types"
+	common "github.com/openmetaearth/me-hub/x/common/types"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 // FinalizeRollappStates is called every block to finalize states when their dispute period over.

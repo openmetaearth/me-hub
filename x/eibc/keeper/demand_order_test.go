@@ -5,9 +5,9 @@ import (
 
 	"cosmossdk.io/math"
 
-	"github.com/st-chain/me-hub/app/apptesting"
-	commontypes "github.com/st-chain/me-hub/x/common/types"
-	"github.com/st-chain/me-hub/x/eibc/types"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	"github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 func (suite *KeeperTestSuite) TestListDemandOrdersByStatus() {

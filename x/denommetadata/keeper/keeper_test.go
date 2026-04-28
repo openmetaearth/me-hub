@@ -6,10 +6,10 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/st-chain/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/st-chain/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/apptesting"
 )
 
 type KeeperTestSuite struct {

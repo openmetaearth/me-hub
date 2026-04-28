@@ -6,8 +6,8 @@ import (
 	"cosmossdk.io/math"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/x/megroup/types"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
 func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*types.MsgJoinGroupResponse, error) {

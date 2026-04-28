@@ -3,9 +3,9 @@ package types_test
 import (
 	"testing"
 
-	didtypes "github.com/st-chain/me-hub/x/did/types"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 
-	"github.com/st-chain/me-hub/x/kyc/types"
+	"github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/stretchr/testify/require"
 )
 

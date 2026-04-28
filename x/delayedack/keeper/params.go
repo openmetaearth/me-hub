@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/st-chain/me-hub/x/delayedack/types"
+	"github.com/openmetaearth/me-hub/x/delayedack/types"
 )
 
 // GetParams get all parameters as types.Params

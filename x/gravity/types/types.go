@@ -3,8 +3,8 @@ package types
 import (
 	"bytes"
 	"github.com/fbsobreira/gotron-sdk/pkg/address"
-	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/utils"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/utils"
 	"math"
 	"math/big"
 	"sort"

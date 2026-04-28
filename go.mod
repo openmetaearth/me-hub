@@ -1,4 +1,4 @@
-module github.com/st-chain/me-hub
+module github.com/openmetaearth/me-hub
 
 go 1.24.0
 
@@ -278,12 +278,12 @@ require (
 )
 
 replace (
-	github.com/cosmos/cosmos-sdk => github.com/st-chain/cosmos-sdk v0.47.13-me-collect-genesis
-	github.com/evmos/ethermint => github.com/st-chain/ethermint v0.0.0-20250220093514-1c7546e01918
+	github.com/cosmos/cosmos-sdk => github.com/openmetaearth/cosmos-sdk v0.47.13-me-collect-genesis
+	github.com/evmos/ethermint => github.com/openmetaearth/ethermint v0.0.0-20250220093514-1c7546e01918
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/ipfs/go-log/v2 => github.com/st-chain/go-log/v2 v2.7.0
+	github.com/ipfs/go-log/v2 => github.com/openmetaearth/go-log/v2 v2.7.0
 	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1
-	github.com/osmosis-labs/osmosis/v15 => github.com/st-chain/osmosis/v15 v15.2.1-0.20250310064437-06f94a73ca2a
+	github.com/osmosis-labs/osmosis/v15 => github.com/openmetaearth/osmosis/v15 v15.2.1-0.20250310064437-06f94a73ca2a
 	//  broken goleveldb
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	// use cometbft

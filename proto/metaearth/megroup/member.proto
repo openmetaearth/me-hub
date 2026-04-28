@@ -6,7 +6,7 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/megroup/types";
+option go_package = "github.com/openmetaearth/me-hub/x/megroup/types";
 
 message Member {
   // address is the member's account address.

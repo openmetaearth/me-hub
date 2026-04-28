@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 
-	"github.com/st-chain/me-hub/x/did/types"
+	"github.com/openmetaearth/me-hub/x/did/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module

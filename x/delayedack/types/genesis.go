@@ -1,6 +1,6 @@
 package types
 
-import "github.com/st-chain/me-hub/x/common/types"
+import "github.com/openmetaearth/me-hub/x/common/types"
 
 // DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {

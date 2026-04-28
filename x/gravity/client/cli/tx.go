@@ -17,8 +17,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
+	"github.com/openmetaearth/me-hub/x/gravity/types"
 	"github.com/spf13/cobra"
-	"github.com/st-chain/me-hub/x/gravity/types"
 )
 
 func GetTxCmd(moduleName string, subNames ...string) *cobra.Command {

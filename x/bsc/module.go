@@ -15,10 +15,10 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/st-chain/me-hub/x/bsc/types"
-	gravitycli "github.com/st-chain/me-hub/x/gravity/client/cli"
-	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
-	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
+	"github.com/openmetaearth/me-hub/x/bsc/types"
+	gravitycli "github.com/openmetaearth/me-hub/x/gravity/client/cli"
+	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
+	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 // type check to ensure the interface is properly implemented

@@ -15,10 +15,10 @@ import (
 	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/openmetaearth/me-hub/x/wgov/client/cli"
+	wgovkeeper "github.com/openmetaearth/me-hub/x/wgov/keeper"
+	"github.com/openmetaearth/me-hub/x/wgov/types"
 	"github.com/spf13/cobra"
-	"github.com/st-chain/me-hub/x/wgov/client/cli"
-	wgovkeeper "github.com/st-chain/me-hub/x/wgov/keeper"
-	"github.com/st-chain/me-hub/x/wgov/types"
 )
 
 // AppModuleBasic implements the basic application module for the wrapped nft module.

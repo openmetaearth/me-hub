@@ -1,11 +1,11 @@
 package keeper
 
 import (
-	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
+	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/x/mint/types"
-	"github.com/st-chain/me-hub/x/wmint/keeper"
+	"github.com/openmetaearth/me-hub/x/wmint/keeper"
 
 	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"

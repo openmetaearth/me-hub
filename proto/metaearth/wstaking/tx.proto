@@ -14,7 +14,7 @@ import "ibc/core/client/v1/client.proto";
 import "metaearth/wstaking/fixed_deposit.proto";
 import "metaearth/wstaking/region.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
+option go_package = "github.com/openmetaearth/me-hub/x/wstaking/types";
 
 // Msg defines the staking Msg service.
 service Msg {

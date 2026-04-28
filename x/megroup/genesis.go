@@ -2,8 +2,8 @@ package megroup
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/megroup/keeper"
-	"github.com/st-chain/me-hub/x/megroup/types"
+	"github.com/openmetaearth/me-hub/x/megroup/keeper"
+	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
 // InitGenesis initializes the module's state from a provided genesis state.
@@ -52,7 +52,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		genesis.MemberJoinedList = k.GetAllMemberJoined(ctx)
 		genesis.GroupMemberCountList = k.GetAllGroupMemberCount(ctx)
 		// this line is used by starport scaffolding # genesis/module/export
-	
+
 	*/
 
 	return genesis

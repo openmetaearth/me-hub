@@ -46,7 +46,7 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v4
         with:
-          repository: st-chain/me-hub
+          repository: openmetaearth/me-hub
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Gosec Security Scanner

@@ -3,8 +3,8 @@ package cli
 import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/nft"
-	wnfttypes "github.com/st-chain/me-hub/x/wnft/types"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"strconv"
 	"strings"
 

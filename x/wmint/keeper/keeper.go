@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	"github.com/st-chain/me-hub/x/wmint/types"
+	"github.com/openmetaearth/me-hub/x/wmint/types"
 	"math/big"
 )
 
