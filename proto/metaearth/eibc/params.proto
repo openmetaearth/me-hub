@@ -3,7 +3,7 @@ package metaearth.eibc;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/eibc/types";
+option go_package = "github.com/openmetaearth/me-hub/x/eibc/types";
 
 // Params defines the parameters for the module.
 message Params {

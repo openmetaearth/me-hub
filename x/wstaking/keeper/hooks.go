@@ -1,6 +1,6 @@
 package keeper
 
-import "github.com/st-chain/me-hub/x/wstaking/types"
+import "github.com/openmetaearth/me-hub/x/wstaking/types"
 
 func (k *Keeper) SetWstakingHooks(hk types.WstakingHooks) {
 	if k.wstakingHooks != nil {

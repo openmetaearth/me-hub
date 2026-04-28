@@ -3,7 +3,7 @@ package metaearth.did;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/did/types";
+option go_package = "github.com/openmetaearth/me-hub/x/did/types";
 
 // credential service status enum
 enum ServiceStatus {

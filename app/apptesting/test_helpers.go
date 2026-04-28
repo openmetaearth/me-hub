@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	wminttypes "github.com/st-chain/me-hub/x/wmint/types"
-	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
+	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 	"math/big"
 	"math/rand"
 	"strconv"
@@ -23,7 +23,7 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cometbfttypes "github.com/cometbft/cometbft/types"
-	"github.com/st-chain/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/stretchr/testify/require"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
@@ -43,7 +43,7 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	app "github.com/st-chain/me-hub/app"
+	app "github.com/openmetaearth/me-hub/app"
 )
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in

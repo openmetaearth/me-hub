@@ -3,7 +3,7 @@ package metaearth.rollapp;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/rollapp/types";
+option go_package = "github.com/openmetaearth/me-hub/x/rollapp/types";
 
 // BlockDescriptor defines a single rollapp chain block description.
 message BlockDescriptor {

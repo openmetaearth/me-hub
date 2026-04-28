@@ -18,8 +18,8 @@ import (
 	"gonum.org/v1/gonum/floats"
 	"gonum.org/v1/gonum/stat"
 
-	"github.com/st-chain/me-hub/app"
-	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/app"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 const (

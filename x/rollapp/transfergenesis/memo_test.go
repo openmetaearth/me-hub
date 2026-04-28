@@ -3,8 +3,8 @@ package transfergenesis
 import (
 	"testing"
 
-	"github.com/st-chain/me-hub/utils/gerrc"
-	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 
 	errorsmod "cosmossdk.io/errors"
 

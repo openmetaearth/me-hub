@@ -9,7 +9,7 @@ import (
 	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
-	types1 "github.com/st-chain/me-hub/x/common/types"
+	types1 "github.com/openmetaearth/me-hub/x/common/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"

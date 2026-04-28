@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	stktypes "github.com/st-chain/me-hub/x/wstaking/types"
+	stktypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 type StakingKeeper interface {

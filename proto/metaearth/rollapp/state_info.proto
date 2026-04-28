@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "metaearth/common/status.proto";
 import "metaearth/rollapp/block_descriptor.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/rollapp/types";
+option go_package = "github.com/openmetaearth/me-hub/x/rollapp/types";
 
 // StateInfoIndex is the data used for indexing and retrieving a StateInfo
 // it updated and saved with every UpdateState in StateInfo.

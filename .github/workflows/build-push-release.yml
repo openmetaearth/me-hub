@@ -7,7 +7,7 @@ on:
     workflow_dispatch:
 
 env:
-    IMAGE_NAME: st-chain/me_hub
+    IMAGE_NAME: openmetaearth/me_hub
 
 jobs:
     build-and-push:

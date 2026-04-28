@@ -7,10 +7,10 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/testutil/sample"
-	eibcsimulation "github.com/st-chain/me-hub/x/eibc/simulation"
-	"github.com/st-chain/me-hub/x/eibc/types"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/testutil/sample"
+	eibcsimulation "github.com/openmetaearth/me-hub/x/eibc/simulation"
+	"github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 // avoid unused import issue

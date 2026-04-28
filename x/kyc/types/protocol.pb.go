@@ -8,7 +8,7 @@ import (
 	_ "github.com/cosmos/cosmos-proto"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
-	types "github.com/st-chain/me-hub/x/did/types"
+	types "github.com/openmetaearth/me-hub/x/did/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"

@@ -8,9 +8,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
-	"github.com/st-chain/me-hub/utils"
-	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
-	"github.com/st-chain/me-hub/x/wnft/types"
+	"github.com/openmetaearth/me-hub/utils"
+	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
+	"github.com/openmetaearth/me-hub/x/wnft/types"
 )
 
 // MsgServer is wrapper staking customParamsKeeper message server.

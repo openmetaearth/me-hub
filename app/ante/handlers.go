@@ -5,12 +5,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
 	ethante "github.com/evmos/ethermint/app/ante"
-	"github.com/st-chain/me-hub/x/rollapp/transfergenesis"
+	"github.com/openmetaearth/me-hub/x/rollapp/transfergenesis"
 
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/st-chain/me-hub/x/delayedack"
+	"github.com/openmetaearth/me-hub/x/delayedack"
 )
 
 func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {

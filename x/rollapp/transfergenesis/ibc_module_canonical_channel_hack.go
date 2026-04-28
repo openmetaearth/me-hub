@@ -5,8 +5,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	uibc "github.com/st-chain/me-hub/utils/uibc"
-	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
+	uibc "github.com/openmetaearth/me-hub/utils/uibc"
+	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 )
 
 /*

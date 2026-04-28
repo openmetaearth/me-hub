@@ -7,8 +7,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"github.com/spf13/cobra"
-	"github.com/st-chain/me-hub/x/wstaking/types"
 	"strconv"
 	"strings"
 )

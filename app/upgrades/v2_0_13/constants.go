@@ -2,7 +2,7 @@ package v2_0_13
 
 import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	"github.com/st-chain/me-hub/app/upgrades"
+	"github.com/openmetaearth/me-hub/app/upgrades"
 )
 
 const (

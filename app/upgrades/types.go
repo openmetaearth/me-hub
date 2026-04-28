@@ -8,7 +8,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/spf13/cobra"
 
-	"github.com/st-chain/me-hub/app/keepers"
+	"github.com/openmetaearth/me-hub/app/keepers"
 )
 
 // BaseAppParamManager defines an interface that BaseApp is expected to fulfill

@@ -8,7 +8,7 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-	app "github.com/st-chain/me-hub/app"
+	app "github.com/openmetaearth/me-hub/app"
 
 	"github.com/stretchr/testify/require"
 )

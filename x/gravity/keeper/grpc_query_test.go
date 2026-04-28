@@ -4,9 +4,9 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/st-chain/me-hub/testutil/helpers"
-	"github.com/st-chain/me-hub/x/gravity/keeper"
-	"github.com/st-chain/me-hub/x/gravity/types"
+	"github.com/openmetaearth/me-hub/testutil/helpers"
+	"github.com/openmetaearth/me-hub/x/gravity/keeper"
+	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 func (s *KeeperTestSuite) TestQueryUnbatchedTxs() {

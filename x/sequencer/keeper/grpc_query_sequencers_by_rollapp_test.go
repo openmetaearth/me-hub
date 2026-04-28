@@ -8,9 +8,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/st-chain/me-hub/testutil/nullify"
-	"github.com/st-chain/me-hub/x/sequencer/keeper"
-	"github.com/st-chain/me-hub/x/sequencer/types"
+	"github.com/openmetaearth/me-hub/testutil/nullify"
+	"github.com/openmetaearth/me-hub/x/sequencer/keeper"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {

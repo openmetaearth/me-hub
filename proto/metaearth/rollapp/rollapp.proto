@@ -5,7 +5,7 @@ import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "metaearth/rollapp/state_info.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/rollapp/types";
+option go_package = "github.com/openmetaearth/me-hub/x/rollapp/types";
 
 // RollappGenesisState is a partial repr of the state the hub can expect the
 // rollapp to be in upon genesis

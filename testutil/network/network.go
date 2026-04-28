@@ -14,7 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/stretchr/testify/require"
 
-	"github.com/st-chain/me-hub/app"
+	"github.com/openmetaearth/me-hub/app"
 )
 
 type (

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
-	didTypes "github.com/st-chain/me-hub/x/did/types"
+	didTypes "github.com/openmetaearth/me-hub/x/did/types"
 )
 
 const (

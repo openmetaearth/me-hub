@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/st-chain/me-hub/x/sequencer/types"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 var _ types.QueryServer = Keeper{}

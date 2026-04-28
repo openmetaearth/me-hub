@@ -1,11 +1,11 @@
 package utils_test
 
 import (
-	"github.com/st-chain/me-hub/utils"
+	"github.com/openmetaearth/me-hub/utils"
 	"strings"
 	"testing"
 
-	"github.com/st-chain/me-hub/testutil/helpers"
+	"github.com/openmetaearth/me-hub/testutil/helpers"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"

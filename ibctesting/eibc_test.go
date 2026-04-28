@@ -17,10 +17,10 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 
-	"github.com/st-chain/me-hub/app/apptesting"
-	commontypes "github.com/st-chain/me-hub/x/common/types"
-	eibckeeper "github.com/st-chain/me-hub/x/eibc/keeper"
-	eibctypes "github.com/st-chain/me-hub/x/eibc/types"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	eibckeeper "github.com/openmetaearth/me-hub/x/eibc/keeper"
+	eibctypes "github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 type eibcSuite struct {

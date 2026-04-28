@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func (k msgServer) SkipDelayRollapp(goCtx context.Context, msg *types.MsgSkipDelayRollapp) (*types.MsgSkipDelayRollappResponse, error) {

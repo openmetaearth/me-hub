@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-	didtypes "github.com/st-chain/me-hub/x/did/types"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 )
 
 // DefaultGenesis returns the default genesis state

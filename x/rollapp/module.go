@@ -15,11 +15,11 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	simulationtypes "github.com/st-chain/me-hub/simulation/types"
+	simulationtypes "github.com/openmetaearth/me-hub/simulation/types"
 
-	"github.com/st-chain/me-hub/x/rollapp/client/cli"
-	"github.com/st-chain/me-hub/x/rollapp/keeper"
-	"github.com/st-chain/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/x/rollapp/client/cli"
+	"github.com/openmetaearth/me-hub/x/rollapp/keeper"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 var (
