@@ -158,7 +158,6 @@ func CmdQuerySBT() *cobra.Command {
 				return err
 			}
 
-			res.Sbt.Data = nil
 			return clientCtx.PrintProto(res)
 		},
 	}
