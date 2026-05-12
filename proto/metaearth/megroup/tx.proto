@@ -17,6 +17,7 @@ service Msg {
   rpc LeaveGroup(MsgLeaveGroupRequest) returns (MsgLeaveGroupResponse);
 }
 message MsgCreateGroup {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   GroupInfo groupInfo = 2;
 }
@@ -26,6 +27,7 @@ message MsgCreateGroupResponse {
 }
 
 message MsgUpdateGroup {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   uint64 id = 2;
   GroupInfo groupInfo = 3;
@@ -34,6 +36,7 @@ message MsgUpdateGroup {
 message MsgUpdateGroupResponse {}
 
 message MsgDeleteGroup {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   uint64 id = 2;
 }
@@ -41,6 +44,7 @@ message MsgDeleteGroup {
 message MsgDeleteGroupResponse {}
 
 message MsgJoinGroup {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   uint64 groupId = 2;
   string applicantAddress = 3;
@@ -49,6 +53,7 @@ message MsgJoinGroup {
 message MsgJoinGroupResponse {}
 
 message MsgLeaveGroupRequest {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   uint64 groupId = 2;
 }

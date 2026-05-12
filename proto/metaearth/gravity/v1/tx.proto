@@ -37,6 +37,7 @@ service Msg {
 }
 
 message MsgBondedRelayer {
+  option (cosmos.msg.v1.signer) = "relayer_address";
   string chain_name = 1;
   string relayer_address = 2;
   string external_address = 3;
@@ -46,6 +47,7 @@ message MsgBondedRelayer {
 message MsgBondedRelayerResponse {}
 
 message MsgAddDelegate {
+  option (cosmos.msg.v1.signer) = "relayer_address";
   string chain_name = 1;
   string relayer_address = 2;
   cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
@@ -54,6 +56,7 @@ message MsgAddDelegate {
 message MsgAddDelegateResponse {}
 
 message MsgUnbondedRelayer {
+  option (cosmos.msg.v1.signer) = "relayer_address";
   string chain_name = 1;
   string relayer_address = 2;
 }
@@ -76,6 +79,7 @@ message MsgUnbondedRelayerResponse {}
 // chain store and submit them to Ethereum to update the validator set
 // -------------
 message MsgRelayerSetConfirm {
+  option (cosmos.msg.v1.signer) = "relayer_address";
   uint64 nonce = 1;
   string relayer_address = 2;
   string external_address = 3;
@@ -87,6 +91,7 @@ message MsgRelayerSetConfirmResponse {}
 
 // This informs the Cosmos module that a relayer set has been updated.
 message MsgRelayerSetUpdateClaim {
+  option (cosmos.msg.v1.signer) = "relayer_address";
   uint64 event_nonce = 1;
   uint64 block_height = 2;
   uint64 relayer_set_nonce = 3;
@@ -103,6 +108,7 @@ message MsgRelayerSetUpdateClaimResponse {}
 // issued to the Payment address in question
 // -------------
 message MsgSendToMeClaim {
+  option (cosmos.msg.v1.signer) = "relayer_address";
   uint64 event_nonce = 1;
   uint64 block_height = 2;
   string token_contract = 3;
@@ -131,6 +137,7 @@ message MsgSendToMeClaimResponse {}
 // actually send this message in the first place. So a successful send has
 // two layers of fees for the user
 message MsgSendToExternal {
+  option (cosmos.msg.v1.signer) = "sender";
   string sender = 1;
   string dest = 2;
   cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
@@ -146,6 +153,7 @@ message MsgSendToExternalResponse {
 // to cancel a given MsgSendToExternal and recieve a refund
 // of the tokens
 message MsgCancelSendToExternal {
+  option (cosmos.msg.v1.signer) = "sender";
   uint64 transaction_id = 1;
   string sender = 2;
   string chain_name = 3;
@@ -164,6 +172,7 @@ message MsgCancelSendToExternalResponse {}
 // -------------
 // feeReceive:
 message MsgRequestBatch {
+  option (cosmos.msg.v1.signer) = "sender";
   string sender = 1;
   string denom = 2;
   string minimum_fee = 3 [
@@ -191,6 +200,7 @@ message MsgRequestBatchResponse {
 // as well as an Bsc signature over this batch by the validator
 // -------------
 message MsgConfirmBatch {
+  option (cosmos.msg.v1.signer) = "relayer_address";
   uint64 nonce = 1;
   string token_contract = 2;
   string relayer_address = 3;
@@ -204,6 +214,7 @@ message MsgConfirmBatchResponse {}
 // SendToExternalClaim claims that a batch of withdrawal
 // operations on the bridge contract was executed.
 message MsgSendToExternalClaim {
+  option (cosmos.msg.v1.signer) = "relayer_address";
   uint64 event_nonce = 1;
   uint64 block_height = 2;
   uint64 batch_nonce = 3;
@@ -215,6 +226,7 @@ message MsgSendToExternalClaim {
 message MsgSendToExternalClaimResponse {}
 
 message MsgBridgeTokenClaim {
+  option (cosmos.msg.v1.signer) = "relayer_address";
   uint64 event_nonce = 1;
   uint64 block_height = 2;
   string token_contract = 3;
@@ -246,6 +258,7 @@ message MsgUpdateParams {
 message MsgUpdateParamsResponse {}
 
 message MsgIncreaseBridgeFee {
+  option (cosmos.msg.v1.signer) = "sender";
   string chain_name = 1;
   uint64 transaction_id = 2;
   string sender = 3;
@@ -255,6 +268,7 @@ message MsgIncreaseBridgeFee {
 message MsgIncreaseBridgeFeeResponse {}
 
 message MsgProposalRelayers {
+  option (cosmos.msg.v1.signer) = "authority";
   string chain_name = 1;
   option (cosmos.msg.v1.signer) = "authority";
 
