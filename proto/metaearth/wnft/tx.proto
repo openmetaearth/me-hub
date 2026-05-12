@@ -51,7 +51,7 @@ message MsgNewClass {
 message MsgNewClassResponse {}
 
 message MsgMintNFT {
-  option (cosmos.msg.v1.signer) = "sender";
+  option (cosmos.msg.v1.signer) = "creator";
 
   // class_id defines the unique identifier of the nft classification, similar
   // to the contract address of ERC721
