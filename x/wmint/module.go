@@ -1,6 +1,7 @@
 package wmint
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -57,6 +58,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 }
 
-func (am AppModule) BeginBlock(ctx sdk.Context) {
-	BeginBlocker(ctx, am.keeper, nil)
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	BeginBlocker(sdk.UnwrapSDKContext(ctx), am.keeper, nil)
+	return nil
 }
