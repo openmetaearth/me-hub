@@ -8,12 +8,12 @@ import (
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
-	delayedackkeeper "github.com/st-chain/me-hub/x/delayedack/keeper"
-	eibckeeper "github.com/st-chain/me-hub/x/eibc/keeper"
-	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
-	sequencerkeeper "github.com/st-chain/me-hub/x/sequencer/keeper"
-	wgovkeeper "github.com/st-chain/me-hub/x/wgov/keeper"
-	wmintkeeper "github.com/st-chain/me-hub/x/wmint/keeper"
+	delayedackkeeper "github.com/openmetaearth/me-hub/x/delayedack/keeper"
+	eibckeeper "github.com/openmetaearth/me-hub/x/eibc/keeper"
+	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
+	sequencerkeeper "github.com/openmetaearth/me-hub/x/sequencer/keeper"
+	wgovkeeper "github.com/openmetaearth/me-hub/x/wgov/keeper"
+	wmintkeeper "github.com/openmetaearth/me-hub/x/wmint/keeper"
 )
 
 // Upgrade defines a struct containing necessary fields that a SoftwareUpgradeProposal

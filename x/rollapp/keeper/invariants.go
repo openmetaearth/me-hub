@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/st-chain/me-hub/x/common/types"
-	"github.com/st-chain/me-hub/x/rollapp/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 // RegisterInvariants registers the bank module invariants

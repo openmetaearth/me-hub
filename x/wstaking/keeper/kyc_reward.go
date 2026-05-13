@@ -10,8 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, creator string) error {
@@ -89,7 +89,8 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 		return types.ErrRemoveKyc.Wrap(fmt.Sprintf("The current user(%s) have delegate, need to withdraw.", account))
 	}
 
-	fixedCount := len(k.GetFixedDepositByAcct(ctx, account.String()))
+	fixedDeposits92, _ := k.GetFixedDepositByAcct(ctx, account.String())
+	fixedCount := len(fixedDeposits92)
 	if fixedCount > 0 {
 		return types.ErrRemoveKyc.Wrap(fmt.Sprintf("The current user(%s) have fixed deposit, need to withdraw.", account))
 	}
@@ -266,7 +267,7 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 
 func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Region, userAddr string) error {
 	// GetFixedDepositByAcct returns the list of fixedDeposits of an account
-	fixedDeposits := k.GetFixedDepositByAcct(ctx, userAddr)
+	fixedDeposits, _ := k.GetFixedDepositByAcct(ctx, userAddr)
 	if len(fixedDeposits) == 0 {
 		// if no have deposit，no need to execute the following logic
 		return nil

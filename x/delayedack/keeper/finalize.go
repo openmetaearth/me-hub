@@ -9,10 +9,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	"github.com/st-chain/me-hub/utils/osmoutils"
+	"github.com/openmetaearth/me-hub/utils/osmoutils"
 
-	commontypes "github.com/st-chain/me-hub/x/common/types"
-	"github.com/st-chain/me-hub/x/delayedack/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	"github.com/openmetaearth/me-hub/x/delayedack/types"
 )
 
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is
@@ -56,20 +56,8 @@ func (k Keeper) finalizeRollappPacket(
 	var packetErr error
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
-		// TODO: makes more sense to modify the packet when calling the handler, instead storing in db "wrong" packet
 		ack := ibc.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
-		/*
-				We only write the ack if writing it succeeds:
-				1. Transfer fails and writing ack fails - In this case, the funds will never be refunded on the RA.
-						non-eibc: sender will never get the funds back
-						eibc: the fulfiller will never get the funds back, the original target has already been paid
-				2. Transfer succeeds and writing ack fails - In this case, the packet is never cleared on the RA.
-				3. Transfer succeeds and writing succeeds - happy path
-				4. Transfer fails and ack succeeds - we write the err ack and the funds will be refunded on the RA
-					 non-eibc: sender will get the funds back
-			            eibc: effective transfer from fulfiller to original target
-		*/
-		if ack != nil {
+		if ack != nil { // NOTE: in practice ack should not be nil, since ibc transfer core module always returns something
 			packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
 		}
 	case commontypes.RollappPacket_ON_ACK:

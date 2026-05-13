@@ -7,13 +7,13 @@ import (
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/st-chain/me-hub/app/apptesting"
-	"github.com/st-chain/me-hub/app/params"
-	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
-	"github.com/st-chain/me-hub/x/wdistri"
-	"github.com/st-chain/me-hub/x/wmint"
-	wminttypes "github.com/st-chain/me-hub/x/wmint/types"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/params"
+	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
+	"github.com/openmetaearth/me-hub/x/wdistri"
+	"github.com/openmetaearth/me-hub/x/wmint"
+	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func (s *KeeperTestSuite) TestEndBlock() {

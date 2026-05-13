@@ -5,7 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRollapp) (*types.MsgCreateRollappResponse, error) {
@@ -26,10 +26,6 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	//		return nil, types.ErrUnauthorizedRollappCreator
 	//	}
 	//}
-
-	if !k.daoKeeper.IsDao(ctx, msg.Creator) {
-		return nil, types.ErrUnauthorizedRollappCreator
-	}
 
 	rollapp := msg.GetRollapp()
 	err = rollapp.ValidateBasic()

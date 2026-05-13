@@ -6,7 +6,7 @@ import (
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 // SetStateInfo set a specific stateInfo in the store from its index

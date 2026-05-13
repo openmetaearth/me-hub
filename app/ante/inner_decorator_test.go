@@ -9,7 +9,7 @@ import (
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/st-chain/me-hub/app/ante"
+	"github.com/openmetaearth/me-hub/app/ante"
 )
 
 const (

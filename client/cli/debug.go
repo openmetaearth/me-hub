@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/st-chain/me-hub/utils"
+	"github.com/openmetaearth/me-hub/utils"
 
 	"github.com/btcsuite/btcutil/base58"
 	tmcli "github.com/cometbft/cometbft/libs/cli"

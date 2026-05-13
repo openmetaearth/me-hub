@@ -9,7 +9,7 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // BlockValidatorUpdates calculates the ValidatorUpdates for the current block
@@ -31,11 +31,11 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 
 	replacePubKey, err := k.UpdateValidatorPubKey(ctx)
 	if err != nil {
-		updateInfo, errP := k.GetRepalceConsensusPubKeyInfo(ctx)
+		updateInfo, errP := k.GetReplaceConsensusPubKeyInfo(ctx)
 		if errP != nil {
-			panic(fmt.Sprintf("GetRepalceConsensusPubKeyInfo error,err = %s ", errP.Error()))
+			panic(fmt.Sprintf("GetReplaceConsensusPubKeyInfo error,err = %s ", errP.Error()))
 		}
-		k.DeleteRepalceConsensusPubKey(ctx)
+		k.DeleteReplaceConsensusPubKey(ctx)
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(types.EventTypeReplacePubKeyFailed,
 				sdk.NewAttribute(types.AttributeKeyOperatorAddress, updateInfo.OperatorAddress),

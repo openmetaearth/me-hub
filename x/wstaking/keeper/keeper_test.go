@@ -13,11 +13,11 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/st-chain/me-hub/app/apptesting"
-	"github.com/st-chain/me-hub/app/params"
-	testutilstypes "github.com/st-chain/me-hub/testutil/types"
-	wstakingkeeper "github.com/st-chain/me-hub/x/wstaking/keeper"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/params"
+	testutilstypes "github.com/openmetaearth/me-hub/testutil/types"
+	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )

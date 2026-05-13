@@ -7,7 +7,7 @@ import (
 	"github.com/cometbft/cometbft/crypto"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/app/params"
 )
 
 type MEID_REWARD_TYPE int32

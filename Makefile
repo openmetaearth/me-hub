@@ -12,9 +12,9 @@ DOCKER := $(shell which docker)
 BUILDDIR ?= $(CURDIR)/build
 
 # Dependencies version
-DEPS_COSMOS_SDK_VERSION := $(shell cat go.sum | grep 'github.com/st-chain/cosmos-sdk' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
-DEPS_ETHERMINT_VERSION := $(shell cat go.sum | grep 'github.com/st-chain/ethermint' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
-DEPS_OSMOSIS_VERSION := $(shell cat go.sum | grep 'github.com/st-chain/osmosis' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_COSMOS_SDK_VERSION := $(shell cat go.sum | grep 'github.com/openmetaearth/cosmos-sdk' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_ETHERMINT_VERSION := $(shell cat go.sum | grep 'github.com/openmetaearth/ethermint' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_OSMOSIS_VERSION := $(shell cat go.sum | grep 'github.com/openmetaearth/osmosis' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_IBC_GO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/ibc-go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_COSMOS_PROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos-proto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_COSMOS_GOGOPROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/gogoproto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
@@ -106,7 +106,7 @@ build-vendor: go.sum
 
 TRIGGER_BLOCKS ?= 100
 build-test: go.sum
-	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)) -X github.com/st-chain/me-hub/x/wmint/types.OneDayTotalBlocks=$(TRIGGER_BLOCKS))
+	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)) -X github.com/openmetaearth/me-hub/x/wmint/types.OneDayTotalBlocks=$(TRIGGER_BLOCKS))
 	go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -o $(BUILDDIR)/med ./cmd/med
 
 build-debug: go.sum
@@ -287,14 +287,14 @@ THIRD_PARTY_DIR=$(SWAGGER_DIR)/third_party
 proto-download-deps:
 	mkdir -p "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
-	git clone -b me-hub/v0.47.13 --single-branch --depth 1 https://github.com/st-chain/cosmos-sdk.git && \
+	git clone -b me-hub/v0.47.13 --single-branch --depth 1 https://github.com/openmetaearth/cosmos-sdk.git && \
 	rm -f ./cosmos-sdk/proto/buf.* && \
 	mv ./cosmos-sdk/proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/cosmos_tmp"
 
 	mkdir -p "$(THIRD_PARTY_DIR)/ethermint_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/ethermint_tmp" && \
-	git clone -b dev --single-branch --depth 1 https://github.com/st-chain/ethermint.git && \
+	git clone -b dev --single-branch --depth 1 https://github.com/openmetaearth/ethermint.git && \
 	rm -f ./ethermint/proto/buf.* && \
 	mv ./ethermint/proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/ethermint_tmp"

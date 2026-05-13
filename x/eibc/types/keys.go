@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	commontypes "github.com/st-chain/me-hub/x/common/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 )
 
 var _ binary.ByteOrder

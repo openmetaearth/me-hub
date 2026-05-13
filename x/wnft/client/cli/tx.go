@@ -7,7 +7,7 @@ import (
 
 	"cosmossdk.io/x/nft"
 	"github.com/spf13/cobra"
-	wnfttypes "github.com/st-chain/me-hub/x/wnft/types"
+	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"

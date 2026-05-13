@@ -23,7 +23,7 @@ import (
 
 	"github.com/evmos/ethermint/crypto/hd"
 	ethermintserver "github.com/evmos/ethermint/server"
-	mecli "github.com/st-chain/me-hub/client/cli"
+	mecli "github.com/openmetaearth/me-hub/client/cli"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -48,9 +48,9 @@ import (
 
 	// this line is used by starport scaffolding # root/moduleImport
 
-	"github.com/st-chain/me-hub/app"
-	appparams "github.com/st-chain/me-hub/app/params"
-	wstakingcli "github.com/st-chain/me-hub/x/wstaking/client/cli"
+	"github.com/openmetaearth/me-hub/app"
+	appparams "github.com/openmetaearth/me-hub/app/params"
+	wstakingcli "github.com/openmetaearth/me-hub/x/wstaking/client/cli"
 
 	ethermintclient "github.com/evmos/ethermint/client"
 	ethservercfg "github.com/evmos/ethermint/server/config"

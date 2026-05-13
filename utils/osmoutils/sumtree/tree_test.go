@@ -17,7 +17,7 @@ import (
 	"cosmossdk.io/math"
 	iavlstore "cosmossdk.io/store/iavl"
 
-	"github.com/st-chain/me-hub/utils/osmoutils/sumtree"
+	"github.com/openmetaearth/me-hub/utils/osmoutils/sumtree"
 )
 
 type TreeTestSuite struct {

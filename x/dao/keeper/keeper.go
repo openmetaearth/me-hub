@@ -5,14 +5,14 @@ import (
 
 	"github.com/cometbft/cometbft/crypto"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 
 	"cosmossdk.io/log"
 
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/dao/types"
+	"github.com/openmetaearth/me-hub/x/dao/types"
 )
 
 type Keeper struct {

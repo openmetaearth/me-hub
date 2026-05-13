@@ -8,7 +8,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	"github.com/st-chain/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 )
 
 func IsIBCDenom(denom string) bool {

@@ -6,8 +6,8 @@ import (
 	"math"
 
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/st-chain/me-hub/app/params"
-	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/app/params"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -16,9 +16,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	didtypes "github.com/st-chain/me-hub/x/did/types"
-	megrouptypes "github.com/st-chain/me-hub/x/megroup/types"
-	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
+	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
 )
 
 const (
@@ -136,18 +136,22 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	feePayer := feeTx.FeePayer()
 	feeGranter := feeTx.FeeGranter()
 
-	admin := dfd.daoKeeper.GetGlobalDao(ctx)
-	meidAdmin := dfd.daoKeeper.GetMeidDao(ctx)
+	isDao := dfd.daoKeeper.IsDao(ctx, sdk.AccAddress(feePayer).String())
 	isFreeGasAccount := dfd.daoKeeper.CheckFreeGasAccount(ctx, sdk.AccAddress(feePayer).String())
-	isAdmin := sdk.AccAddress(feePayer).String() == admin || sdk.AccAddress(feePayer).String() == meidAdmin
-	freeGas := isFreeGasAccount || isAdmin
+	freeGas := isFreeGasAccount || isDao
 
-	for _, msg := range feeTx.GetMsgs() {
-		switch msg.(type) {
-		case *megrouptypes.MsgJoinGroup:
-			freeGas = true
+	// freeGas for MsgJoinGroup only when ALL messages in the tx are MsgJoinGroup.
+	// Mixing MsgJoinGroup with other message types is not allowed to get free gas,
+	// preventing attackers from bundling arbitrary messages with MsgJoinGroup to bypass fees.
+	if !freeGas && len(feeTx.GetMsgs()) > 0 {
+		allJoinGroup := true
+		for _, msg := range feeTx.GetMsgs() {
+			if _, ok := msg.(*megrouptypes.MsgJoinGroup); !ok {
+				allJoinGroup = false
+				break
+			}
 		}
-		break
+		freeGas = allJoinGroup
 	}
 
 	if !freeGas && !simulate {

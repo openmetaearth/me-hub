@@ -3,7 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	"io"
 	"os"
 	"path/filepath"
@@ -19,7 +19,7 @@ import (
 	"gonum.org/v1/gonum/floats"
 	"gonum.org/v1/gonum/stat"
 
-	"github.com/st-chain/me-hub/app"
+	"github.com/openmetaearth/me-hub/app"
 )
 
 const (

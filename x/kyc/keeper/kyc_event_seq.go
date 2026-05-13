@@ -3,7 +3,7 @@ package keeper
 import (
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/kyc/types"
+	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
 
 // SetKycEventSeq set kycEventSeq in the store

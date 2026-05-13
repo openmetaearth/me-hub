@@ -7,8 +7,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/st-chain/me-hub/utils"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/utils"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 
 	"github.com/spf13/cobra"
 )

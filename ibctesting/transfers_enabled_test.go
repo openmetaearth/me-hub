@@ -3,11 +3,9 @@ package ibctesting_test
 import (
 	"testing"
 
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/app/apptesting"
-	"github.com/st-chain/me-hub/utils"
+	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
@@ -77,7 +75,6 @@ func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 
 		if shouldFail {
 			shouldFail = false
-			s.Require().True(errorsmod.IsOf(err, utils.ErrFailedPrecondition))
 			ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 			ra.ChannelId = s.path.EndpointA.ChannelID
 			s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)

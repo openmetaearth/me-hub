@@ -16,7 +16,7 @@ func (m MockStakingKeeper) GetAllRegion(ctx sdk.Context) (list []MockRegion) {
 // 	return region, true
 // }
 
-func (m MockStakingKeeper) CalculateInterest(ctx sdk.Context, totalStaking math.Int, height int64) (rewards sdkmath.LegacyDec, err error) {
+func (m MockStakingKeeper) CalculateInterest(ctx sdk.Context, totalStaking sdkmath.Int, height int64) (rewards sdkmath.LegacyDec, err error) {
 	return sdkmath.LegacyNewDec(1), nil
 }
 

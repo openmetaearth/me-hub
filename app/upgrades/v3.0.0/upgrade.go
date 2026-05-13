@@ -5,7 +5,7 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/st-chain/me-hub/app/upgrades"
+	"github.com/openmetaearth/me-hub/app/upgrades"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v2.0.12

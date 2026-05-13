@@ -7,7 +7,7 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	"github.com/cosmos/cosmos-sdk/testutil/sims"
-	appparams "github.com/st-chain/me-hub/app/params"
+	appparams "github.com/openmetaearth/me-hub/app/params"
 )
 
 // NewTestNetworkFixture returns a new network.TestFixture for integration tests.

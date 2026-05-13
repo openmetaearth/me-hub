@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/st-chain/me-hub/x/megroup/types"
+	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
 func (k Keeper) GroupAll(goCtx context.Context, req *types.QueryAllGroupRequest) (*types.QueryAllGroupResponse, error) {
@@ -33,7 +33,7 @@ func (k Keeper) GroupAll(goCtx context.Context, req *types.QueryAllGroupRequest)
 		return nil
 	})
 	if err != nil {
-		return nil, errors.Wrapf(sdkerrors.ErrLogic, fmt.Sprintf(" query.Paginate error.err = %s,req.Pagination = %s",
+		return nil, errors.Wrap(sdkerrors.ErrLogic, fmt.Sprintf(" query.Paginate error.err = %s,req.Pagination = %s",
 			err.Error(), req.Pagination.String()))
 	}
 
@@ -48,7 +48,7 @@ func (k Keeper) Group(goCtx context.Context, req *types.QueryGetGroupRequest) (*
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	group, found := k.GetGroupInfo(ctx, req.Id)
 	if !found {
-		return nil, errors.Wrapf(sdkerrors.ErrKeyNotFound, fmt.Sprintf("can not found group by groupID.groupID = %d", req.Id))
+		return nil, errors.Wrap(sdkerrors.ErrKeyNotFound, fmt.Sprintf("can not found group by groupID.groupID = %d", req.Id))
 	}
 
 	return &types.QueryGetGroupResponse{Group: group}, nil
@@ -66,7 +66,7 @@ func (k Keeper) GroupByMember(goCtx context.Context, req *types.QueryGroupByMemb
 
 	group, found := k.GetGroupInfo(ctx, joined.GroupId)
 	if !found {
-		return nil, errors.Wrapf(sdkerrors.ErrKeyNotFound, fmt.Sprintf("can not found group by memberJoin's groupID.groupID = %d", joined.GroupId))
+		return nil, errors.Wrap(sdkerrors.ErrKeyNotFound, fmt.Sprintf("can not found group by memberJoin's groupID.groupID = %d", joined.GroupId))
 	}
 	return &types.QueryGetGroupResponse{Group: group}, nil
 }

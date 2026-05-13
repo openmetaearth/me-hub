@@ -14,7 +14,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	cometbfttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/st-chain/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/stretchr/testify/require"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
@@ -30,7 +30,7 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	app "github.com/st-chain/me-hub/app"
+	app "github.com/openmetaearth/me-hub/app"
 )
 
 var TestChainID = "dymension_100-1"
@@ -58,13 +58,7 @@ var InvariantCheckInterval = uint(0) // disabled
 func SetupTestingApp() (*app.App, app.GenesisState) {
 	newApp := app.New(log.NewNopLogger(), dbm.NewMemDB(), nil, true, usim.EmptyAppOptions{}, bam.SetChainID(TestChainID))
 	encCdc := newApp.AppCodec()
-	defaultGenesisState := newApp.DefaultGenesis()
-
-	incentivesGenesisStateJson := defaultGenesisState[incentivestypes.ModuleName]
-	var incentivesGenesisState incentivestypes.GenesisState
-	encCdc.MustUnmarshalJSON(incentivesGenesisStateJson, &incentivesGenesisState)
-	incentivesGenesisState.LockableDurations = append(incentivesGenesisState.LockableDurations, time.Second*60)
-	defaultGenesisState[incentivestypes.ModuleName] = encCdc.MustMarshalJSON(&incentivesGenesisState)
+	defaultGenesisState := app.NewDefaultGenesisState(encCdc)
 
 	// force disable EnableCreate of x/evm
 	evmGenesisStateJson := defaultGenesisState[evmtypes.ModuleName]
@@ -72,13 +66,6 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 	encCdc.MustUnmarshalJSON(evmGenesisStateJson, &evmGenesisState)
 	evmGenesisState.Params.EnableCreate = false
 	defaultGenesisState[evmtypes.ModuleName] = encCdc.MustMarshalJSON(&evmGenesisState)
-
-	// set txfees base denom to adym
-	txfeesGenesisStateJson := defaultGenesisState[txfeestypes.ModuleName]
-	var txfeesGenesisState txfeestypes.GenesisState
-	encCdc.MustUnmarshalJSON(txfeesGenesisStateJson, &txfeesGenesisState)
-	txfeesGenesisState.Basedenom = params.BaseDenom
-	defaultGenesisState[txfeestypes.ModuleName] = encCdc.MustMarshalJSON(&txfeesGenesisState)
 
 	return newApp, defaultGenesisState
 }
@@ -259,17 +246,5 @@ func FundAccount(app *app.App, ctx sdk.Context, addr sdk.AccAddress, coins sdk.C
 }
 
 func FundForAliasRegistration(app *app.App, ctx sdk.Context, alias, creator string) {
-	if alias == "" {
-		return
-	}
-
-	feeDenom := app.TxFeesKeeper.MustGetBaseDenom(ctx)
-
-	dymNsParams := dymnstypes.DefaultPriceParams()
-	aliasRegistrationCost := sdk.NewCoins(sdk.NewCoin(
-		feeDenom, dymNsParams.GetAliasPrice(alias),
-	))
-	FundAccount(
-		app, ctx, sdk.MustAccAddressFromBech32(creator), aliasRegistrationCost,
-	)
+	// no-op: alias registration not supported in me-hub
 }

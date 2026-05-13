@@ -5,7 +5,7 @@ package metaearth.megroup;
 import "cosmos/msg/v1/msg.proto";
 import "metaearth/megroup/group_info.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/megroup/types";
+option go_package = "github.com/openmetaearth/me-hub/x/megroup/types";
 
 // Msg defines the Msg service.
 service Msg {

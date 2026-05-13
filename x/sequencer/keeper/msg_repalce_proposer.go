@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/sequencer/types"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 
 	errorsmod "cosmossdk.io/errors"
 )

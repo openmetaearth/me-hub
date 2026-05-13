@@ -14,9 +14,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/st-chain/me-hub/x/eibc/client/cli"
-	"github.com/st-chain/me-hub/x/eibc/keeper"
-	"github.com/st-chain/me-hub/x/eibc/types"
+	"github.com/openmetaearth/me-hub/x/eibc/client/cli"
+	"github.com/openmetaearth/me-hub/x/eibc/keeper"
+	"github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 var (

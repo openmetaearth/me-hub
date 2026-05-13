@@ -5,10 +5,10 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	keepertest "github.com/st-chain/me-hub/testutil/keeper"
-	"github.com/st-chain/me-hub/testutil/nullify"
-	"github.com/st-chain/me-hub/x/sequencer"
-	"github.com/st-chain/me-hub/x/sequencer/types"
+	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
+	"github.com/openmetaearth/me-hub/testutil/nullify"
+	"github.com/openmetaearth/me-hub/x/sequencer"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 )
 

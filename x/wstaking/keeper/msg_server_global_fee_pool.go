@@ -5,7 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func (k MsgServer) WithdrawFromGlobalDaoFeePool(goCtx context.Context, msg *types.MsgWithdrawFromGlobalDaoFeePool) (*types.MsgWithdrawFromGlobalDaoFeePoolResp, error) {

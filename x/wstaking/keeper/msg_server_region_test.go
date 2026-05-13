@@ -8,12 +8,12 @@ import (
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/st-chain/me-hub/app/apptesting"
-	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/x/wdistri"
-	"github.com/st-chain/me-hub/x/wmint"
-	wmintTypes "github.com/st-chain/me-hub/x/wmint/types"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/wdistri"
+	"github.com/openmetaearth/me-hub/x/wmint"
+	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func (s *KeeperTestSuite) TestNewRegion() {

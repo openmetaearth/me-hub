@@ -12,7 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/pflag"
 
-	"github.com/st-chain/me-hub/utils/osmoutils"
+	"github.com/openmetaearth/me-hub/utils/osmoutils"
 )
 
 // Parses arguments 1-1 from args

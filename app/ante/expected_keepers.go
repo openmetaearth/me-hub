@@ -5,15 +5,14 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	didtypes "github.com/st-chain/me-hub/x/did/types"
-	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
 )
 
 type DaoKeeper interface {
+	IsDao(ctx sdk.Context, addr string) bool
 	GetAirdropAddress(ctx sdk.Context) string
 	GetDevOperator(ctx sdk.Context) string
-	GetGlobalDao(ctx sdk.Context) string
-	GetMeidDao(ctx sdk.Context) string
 	GetGlobalDaoFeePoolAddr(ctx sdk.Context) sdk.AccAddress
 	CheckFreeGasAccount(ctx sdk.Context, address string) bool
 }

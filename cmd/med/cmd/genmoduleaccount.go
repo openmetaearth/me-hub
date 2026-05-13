@@ -3,7 +3,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/st-chain/me-hub/app"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -14,10 +13,11 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/openmetaearth/me-hub/app"
+	"github.com/openmetaearth/me-hub/app/params"
+	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 	"github.com/spf13/cobra"
-	"github.com/st-chain/me-hub/app/params"
-	wminttypes "github.com/st-chain/me-hub/x/wmint/types"
-	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
 )
 
 // AddGenesisModuleAccountCmd returns add-genesis-module-account cobra Command.

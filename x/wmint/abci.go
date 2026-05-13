@@ -5,14 +5,14 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/st-chain/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/app/params"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	"github.com/st-chain/me-hub/x/wmint/keeper"
-	"github.com/st-chain/me-hub/x/wmint/types"
+	"github.com/openmetaearth/me-hub/x/wmint/keeper"
+	"github.com/openmetaearth/me-hub/x/wmint/types"
 )
 
 // BeginBlocker mints new tokens for the previous block.
@@ -23,24 +23,40 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic mintypes.InflationCalcula
 	mintedAmount := k.GetMintedCoinAmount(ctx)
 	blockHeight := ctx.BlockHeight()
 	mul := (blockHeight - 1) / types.OneYearTotalBlocks
-	amount := types.InitOneYearMintAmount / types.OneYearTotalBlocks / math.Exp2(float64(mul))
-	mintingMEAmount := RoundUpToFourDecimals(amount)
-	mintingUMEAmount := mintingMEAmount * math.Pow(10, params.BaseDenomUnit)
+
+	// amount (MEC) = InitOneYearMintAmount / OneYearTotalBlocks / 2^mul
+	halvingDivisor := sdkmath.LegacyNewDecFromBigInt(new(big.Int).Lsh(big.NewInt(1), uint(mul)))
+	amount := sdkmath.LegacyNewDec(int64(types.InitOneYearMintAmount)).
+		Quo(sdkmath.LegacyNewDec(int64(types.OneYearTotalBlocks))).
+		Quo(halvingDivisor)
+
+	// RoundUpToFourDecimals: Ceil(amount * 10000) / 10000
+	// Then convert MEC to umec: multiply by 10^BaseDenomUnit (=100_000_000), truncate to integer
+	mintingUMECAmount := RoundUpToFourDecimalsDec(amount).MulInt64(100_000_000).TruncateInt()
 
 	// Compare the currently mined coins with the total amount of coins
-	// -1 means that the current accumulated amount of mined is smaller than the total amount
-	result := mintedAmount.Cmp(big.NewInt(types.TotalMintCoinsAmount))
-	if result == -1 {
-		// Accumulate the mined coins
-		mintedAmount.Add(&mintedAmount, big.NewInt(int64(mintingUMEAmount)))
+	// Cmp returns -1 (below cap), 0 (exactly at cap), or 1 (above cap)
+	totalCap := big.NewInt(types.TotalMintCoinsAmount)
+	switch mintedAmount.Cmp(totalCap) {
+	case -1:
+		newMinted := new(big.Int).Add(&mintedAmount, mintingUMECAmount.BigInt())
+		// Clamp to total cap: if adding this block's amount would exceed the cap,
+		// only mint the remaining amount to avoid over-issuance.
+		if newMinted.Cmp(totalCap) > 0 {
+			remaining := new(big.Int).Sub(totalCap, &mintedAmount)
+			mintingUMECAmount = sdkmath.NewIntFromBigInt(remaining)
+			mintedAmount.Set(totalCap)
+		} else {
+			mintedAmount.Set(newMinted)
+		}
 		k.SetMintedCoinAmount(ctx, mintedAmount)
-	} else {
-		mintingUMEAmount = 0
+	default:
+		mintingUMECAmount = sdkmath.ZeroInt()
 	}
 
-	k.SetPerBlockMintCoinAmount(ctx, *big.NewInt(int64(mintingUMEAmount)))
+	k.SetPerBlockMintCoinAmount(ctx, *mintingUMECAmount.BigInt())
 
-	mintedCoin := sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(int64(mintingUMEAmount)))
+	mintedCoin := sdk.NewCoin(params.BaseDenom, mintingUMECAmount)
 	mintedCoins := sdk.NewCoins(mintedCoin)
 	err := k.MintCoins(ctx, mintedCoins)
 	if err != nil {
@@ -75,7 +91,9 @@ func RoundUpToFourDecimals(x float64) float64 {
 	return math.Ceil(x*10000) / 10000
 }
 
-func CalculateCoinFromHeightToHeight() {
+// RoundUpToFourDecimalsDec rounds x up to 4 decimal places using sdkmath.LegacyDec arithmetic.
+func RoundUpToFourDecimalsDec(x sdkmath.LegacyDec) sdkmath.LegacyDec {
+	return x.MulInt64(10000).Ceil().QuoInt64(10000)
 }
 
 // getMintCoinsByHeight Get coins through the block height range

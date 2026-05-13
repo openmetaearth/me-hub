@@ -6,9 +6,9 @@ import (
 	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 
-	commontypes "github.com/st-chain/me-hub/x/common/types"
-	damodule "github.com/st-chain/me-hub/x/delayedack"
-	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	damodule "github.com/openmetaearth/me-hub/x/delayedack"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func (suite *DelayedAckTestSuite) TestInvariants() {

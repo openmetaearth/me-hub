@@ -6,7 +6,7 @@ import (
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/st-chain/me-hub/x/did/types"
+	"github.com/openmetaearth/me-hub/x/did/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -19,7 +19,10 @@ func (k Keeper) Did(goCtx context.Context, req *types.QueryDid) (*types.QueryDid
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	addr := sdk.MustAccAddressFromBech32(req.Address)
+	addr, err := sdk.AccAddressFromBech32(req.Address)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid address: "+err.Error())
+	}
 
 	did, found := k.GetDID(ctx, addr)
 	if !found {

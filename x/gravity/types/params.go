@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/st-chain/me-hub/utils"
+	"github.com/openmetaearth/me-hub/utils"
 
 	sdkmath "cosmossdk.io/math"
 )

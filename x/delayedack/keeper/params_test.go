@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	testkeeper "github.com/st-chain/me-hub/testutil/keeper"
-	"github.com/st-chain/me-hub/x/delayedack/types"
+	testkeeper "github.com/openmetaearth/me-hub/testutil/keeper"
+	"github.com/openmetaearth/me-hub/x/delayedack/types"
 )
 
 func TestGetParams(t *testing.T) {

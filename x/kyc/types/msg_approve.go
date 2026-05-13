@@ -1,14 +1,13 @@
 package types
 
 import (
-	"fmt"
 	"strings"
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/st-chain/me-hub/utils"
-	didtypes "github.com/st-chain/me-hub/x/did/types"
+	"github.com/openmetaearth/me-hub/utils"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 )
 
 const (
@@ -59,10 +58,10 @@ func (m *MsgApprove) ValidateBasic() error {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the issuer is not a valid bech32 address")
 	}
 	if len(m.Did) != didtypes.DidLength {
-		return errors.Wrapf(sdkerrors.ErrInvalidType, fmt.Sprintf("DID length must be equal to %d", didtypes.DidLength))
+		return errors.Wrapf(sdkerrors.ErrInvalidType, "DID length must be equal to %d", didtypes.DidLength)
 	}
 	if _, err := utils.CheckRegionName(strings.ToUpper(m.RegionId)); err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidType, err.Error())
+		return errors.Wrap(sdkerrors.ErrInvalidType, err.Error())
 	}
 	if _, err := sdk.AccAddressFromBech32(m.Address); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the address is not a valid bech32 address")

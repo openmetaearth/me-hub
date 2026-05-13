@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/st-chain/me-hub/utils/osmoutils"
+	"github.com/openmetaearth/me-hub/utils/osmoutils"
 )
 
 func TestReverseSlice(t *testing.T) {

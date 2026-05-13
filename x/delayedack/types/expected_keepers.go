@@ -5,8 +5,8 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
-	commontypes "github.com/st-chain/me-hub/x/common/types"
-	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 // ChannelKeeper defines the expected IBC channel keeper

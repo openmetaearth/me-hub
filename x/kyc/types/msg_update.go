@@ -1,14 +1,13 @@
 package types
 
 import (
-	"fmt"
 	"strings"
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/st-chain/me-hub/utils"
-	didtypes "github.com/st-chain/me-hub/x/did/types"
+	"github.com/openmetaearth/me-hub/utils"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 )
 
 const (
@@ -57,10 +56,10 @@ func (m *MsgUpdate) ValidateBasic() error {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the issuer is not a valid bech32 address")
 	}
 	if len(m.Did) != didtypes.DidLength {
-		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, fmt.Sprintf("DID length must be equal to %d", didtypes.DidLength))
+		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "DID length must be equal to %d", didtypes.DidLength)
 	}
 	if _, err := utils.CheckRegionName(strings.ToUpper(m.RegionId)); err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidType, err.Error())
+		return errors.Wrap(sdkerrors.ErrInvalidType, err.Error())
 	}
 	if _, ok := didtypes.KycLevel_name[int32(m.Level)]; !ok {
 		return errors.Wrap(sdkerrors.ErrInvalidType, "the level is not valid")
@@ -68,6 +67,11 @@ func (m *MsgUpdate) ValidateBasic() error {
 	//if len(m.Hash) == 0 || len(m.Hash) > 128 {
 	//	return errors.Wrap(sdkerrors.ErrInvalidType, "hash length must be between 0 and 128")
 	//}
+	if m.Inviter != "" {
+		if _, err := sdk.AccAddressFromBech32(m.Inviter); err != nil {
+			return errors.Wrap(sdkerrors.ErrInvalidAddress, "the inviter is not a valid bech32 address")
+		}
+	}
 
 	return nil
 }

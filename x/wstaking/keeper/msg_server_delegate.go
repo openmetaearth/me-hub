@@ -13,8 +13,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/hashicorp/go-metrics"
-	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // Delegate defines a method for performing a delegation of coins from a delegator to a validator

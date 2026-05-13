@@ -15,13 +15,13 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey, error) {
-	updateInfo, err := k.GetRepalceConsensusPubKeyInfo(ctx)
+	updateInfo, err := k.GetReplaceConsensusPubKeyInfo(ctx)
 	if err != nil {
-		panic(fmt.Sprintf("GetRepalceConsensusPubKeyInfo error,err = %s ", err.Error()))
+		panic(fmt.Sprintf("GetReplaceConsensusPubKeyInfo error,err = %s ", err.Error()))
 	}
 	if updateInfo == nil {
 		return nil, nil
@@ -102,7 +102,7 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 
 		} else if ctx.BlockHeight() == (updateInfo.UpdateAtHeight + 2) { // delay remove old cons addr because of distribution rewards delayed by one block
 			k.RemoveValidatorByConsAddr(ctx, sdk.ConsAddress(updateInfo.OldConsAddress))
-			k.DeleteRepalceConsensusPubKey(ctx)
+			k.DeleteReplaceConsensusPubKey(ctx)
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(types.EventTypeDelayRemoveOldConsAddr,
 					sdk.NewAttribute(types.AttributeKeyOperatorAddress, updateInfo.OperatorAddress),
@@ -124,7 +124,7 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 	}
 }
 
-func (k Keeper) SetRepalcePubKeyInfo(ctx sdk.Context, data *types.UpdatePubKeyInfo) error {
+func (k Keeper) SetReplacePubKeyInfo(ctx sdk.Context, data *types.UpdatePubKeyInfo) error {
 	bz, err := json.Marshal(data)
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrJSONMarshal, "marshal repalce pubkey info error: %v", err)
@@ -135,7 +135,7 @@ func (k Keeper) SetRepalcePubKeyInfo(ctx sdk.Context, data *types.UpdatePubKeyIn
 }
 
 // GetGroup returns a group from its id
-func (k Keeper) GetRepalceConsensusPubKeyInfo(ctx sdk.Context) (*types.UpdatePubKeyInfo, error) {
+func (k Keeper) GetReplaceConsensusPubKeyInfo(ctx sdk.Context) (*types.UpdatePubKeyInfo, error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	data := store.Get(types.KeyPrefix(types.ReplaceConsensusPubKey))
 	if data == nil {
@@ -149,12 +149,12 @@ func (k Keeper) GetRepalceConsensusPubKeyInfo(ctx sdk.Context) (*types.UpdatePub
 	return &val, nil
 }
 
-func (k Keeper) DeleteRepalceConsensusPubKey(ctx sdk.Context) {
+func (k Keeper) DeleteReplaceConsensusPubKey(ctx sdk.Context) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	store.Delete(types.KeyPrefix(types.ReplaceConsensusPubKey))
 }
 
-func (k Keeper) IsHasRepalceConsensusPubKey(ctx sdk.Context) bool {
+func (k Keeper) IsHasReplaceConsensusPubKey(ctx sdk.Context) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	data := store.Get(types.KeyPrefix(types.ReplaceConsensusPubKey))
 	if data == nil {

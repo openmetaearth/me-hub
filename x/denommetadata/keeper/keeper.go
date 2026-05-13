@@ -6,9 +6,9 @@ import (
 	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/st-chain/me-hub/utils/gerrc"
-	"github.com/st-chain/me-hub/utils/uevent"
-	"github.com/st-chain/me-hub/x/denommetadata/types"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/uevent"
+	"github.com/openmetaearth/me-hub/x/denommetadata/types"
 )
 
 // Keeper of the denommetadata store

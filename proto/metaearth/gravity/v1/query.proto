@@ -10,7 +10,7 @@ import "google/protobuf/any.proto";
 import "metaearth/gravity/v1/tx.proto";
 import "metaearth/gravity/v1/types.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/gravity/types";
+option go_package = "github.com/openmetaearth/me-hub/x/gravity/types";
 
 // Query defines the gRPC querier service
 service Query {

@@ -12,7 +12,7 @@ import "google/protobuf/timestamp.proto";
 import "tendermint/abci/types.proto";
 import "tendermint/types/types.proto";
 
-option go_package = "github.com/st-chain/me-hub/testutil/types";
+option go_package = "github.com/openmetaearth/me-hub/testutil/types";
 
 // test panicked: proto: wrong wireType = 2 for field UnbondingOnHoldRefCount
 message ValidatorV1 {

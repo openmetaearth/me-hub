@@ -3,8 +3,8 @@ package types
 import (
 	"math/big"
 
-	"github.com/st-chain/me-hub/utils"
-	"github.com/st-chain/me-hub/x/gravity/types"
+	"github.com/openmetaearth/me-hub/utils"
+	"github.com/openmetaearth/me-hub/x/gravity/types"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/ethereum/go-ethereum/crypto"

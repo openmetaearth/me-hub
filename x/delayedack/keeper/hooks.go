@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	eibctypes "github.com/st-chain/me-hub/x/eibc/types"
+	eibctypes "github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 /* -------------------------------------------------------------------------- */

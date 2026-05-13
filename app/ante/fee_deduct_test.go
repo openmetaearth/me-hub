@@ -13,12 +13,12 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/golang/mock/gomock"
-	"github.com/st-chain/me-hub/app/ante"
-	"github.com/st-chain/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/app/ante"
+	"github.com/openmetaearth/me-hub/app/params"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/app/ante/mock"
+	"github.com/openmetaearth/me-hub/app/ante/mock"
 	"github.com/stretchr/testify/require"
 )
 

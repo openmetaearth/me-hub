@@ -2,9 +2,9 @@ package types
 
 import (
 	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 // RollappKeeper defines the expected rollapp keeper used for retrieve rollapp.
@@ -17,7 +17,7 @@ type RollappKeeper interface {
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
 type AccountKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
+	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 	// Methods imported from account should be defined here
 }
 

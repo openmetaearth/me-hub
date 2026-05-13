@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/st-chain/me-hub/testutil/keeper"
-	didtypes "github.com/st-chain/me-hub/x/did/types"
+	"github.com/openmetaearth/me-hub/testutil/keeper"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/stretchr/testify/assert"
 )
 

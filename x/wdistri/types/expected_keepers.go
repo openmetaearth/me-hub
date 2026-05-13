@@ -3,7 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 type StakingKeeper interface {

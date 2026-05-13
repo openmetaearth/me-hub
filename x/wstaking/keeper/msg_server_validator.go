@@ -12,8 +12,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/st-chain/me-hub/utils"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/utils"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // CreateValidator defines wrapped method for creating a new validator.
@@ -151,7 +151,7 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 		return nil, types.ErrCheckGlobalDao
 	}
 	// Check if any validator replacement is already in progress
-	if k.IsHasRepalceConsensusPubKey(ctx) {
+	if k.IsHasReplaceConsensusPubKey(ctx) {
 		return nil, types.ErrExistingReplaceValidator
 	}
 
@@ -217,7 +217,7 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 		UpdateAtHeight:  ctx.BlockHeight() + req.ReplacePubKey.BlockNumber,
 	}
 
-	if err = k.SetRepalcePubKeyInfo(ctx, update); err != nil {
+	if err = k.SetReplacePubKeyInfo(ctx, update); err != nil {
 		return nil, err
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/st-chain/me-hub/x/kyc/keeper"
+	"github.com/openmetaearth/me-hub/x/kyc/keeper"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -17,8 +17,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"github.com/st-chain/me-hub/x/kyc/client/cli"
-	"github.com/st-chain/me-hub/x/kyc/types"
+	"github.com/openmetaearth/me-hub/x/kyc/client/cli"
+	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
 
 var (

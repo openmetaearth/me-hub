@@ -6,8 +6,8 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
-	"github.com/st-chain/me-hub/app"
-	"github.com/st-chain/me-hub/cmd/med/cmd"
+	"github.com/openmetaearth/me-hub/app"
+	"github.com/openmetaearth/me-hub/cmd/med/cmd"
 )
 
 func main() {

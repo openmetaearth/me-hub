@@ -6,10 +6,10 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
 	ethante "github.com/evmos/ethermint/app/ante"
-	"github.com/st-chain/me-hub/x/rollapp/transfergenesis"
+	"github.com/openmetaearth/me-hub/x/rollapp/transfergenesis"
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	proofheightante "github.com/st-chain/me-hub/x/delayedack/ante"
+	proofheightante "github.com/openmetaearth/me-hub/x/delayedack/ante"
 )
 
 func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {

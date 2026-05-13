@@ -3,7 +3,7 @@ package metaearth.sequencer;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/sequencer/types";
+option go_package = "github.com/openmetaearth/me-hub/x/sequencer/types";
 
 // OperatingStatus defines the operating status of a sequencer
 enum OperatingStatus {

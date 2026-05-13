@@ -17,9 +17,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/spf13/cobra"
-	"github.com/st-chain/me-hub/x/wnft/client/cli"
-	"github.com/st-chain/me-hub/x/wnft/keeper"
-	"github.com/st-chain/me-hub/x/wnft/types"
+
+	cli "github.com/openmetaearth/me-hub/x/wnft/client/cli"
+	keeper "github.com/openmetaearth/me-hub/x/wnft/keeper"
+	types "github.com/openmetaearth/me-hub/x/wnft/types"
 )
 
 var (

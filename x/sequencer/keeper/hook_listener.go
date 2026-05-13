@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
-	"github.com/st-chain/me-hub/x/sequencer/types"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 var _ rollapptypes.RollappHooks = rollappHook{}

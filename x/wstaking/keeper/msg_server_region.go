@@ -6,14 +6,14 @@ import (
 	"strings"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	wnfttypes "github.com/st-chain/me-hub/x/wnft/types"
+	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/st-chain/me-hub/utils"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/utils"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*types.MsgNewRegionResponse, error) {

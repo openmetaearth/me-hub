@@ -3,8 +3,8 @@ package types_test
 import (
 	"testing"
 
-	_ "github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/x/sequencer/types"
+	_ "github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 )
 

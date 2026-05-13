@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/st-chain/me-hub
+name: buf.build/openmetaearth/me-hub
 deps:
   - buf.build/cosmos/cosmos-sdk:v0.50.0
   - buf.build/cosmos/cosmos-proto

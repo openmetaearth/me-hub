@@ -3,7 +3,7 @@ package keeper
 import (
 	"cosmossdk.io/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/kyc/types"
+	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
 
 /*

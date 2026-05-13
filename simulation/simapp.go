@@ -9,7 +9,7 @@ import (
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/st-chain/me-hub/simulation/types"
+	"github.com/openmetaearth/me-hub/simulation/types"
 )
 
 // GlobalRollappIdList is a list of created rollapps
@@ -42,7 +42,7 @@ func RandomSequencer(r *rand.Rand, sequencerList []types.SimSequencer) (types.Si
 }
 
 // GenAndDeliverMsgWithRandFees generates a transaction with a random fee and expected Error flag (bExpectedError).
-// GenAndDeliverMsgWithRandFees wraps GenAndDeliverTxWithRand Fees and checks whether or not the operation
+// GenAndDeliverMsgWithRandFees wraps GenAndDeliverTxWithRandFees and checks whether or not the operation
 // failed as expected by bExpectedError flag
 func GenAndDeliverMsgWithRandFees(
 	msg sdk.Msg,
@@ -57,7 +57,7 @@ func GenAndDeliverMsgWithRandFees(
 	futureOperation []simtypes.FutureOperation,
 	bExpectedError bool,
 ) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-	spendableCoins := bk.SpendableCoins(*ctx, simAccount.Address)
+	spendableCoins := bk.SpendableCoins(ctx.Context(), simAccount.Address)
 
 	if spendableCoins.Empty() {
 		return simtypes.NoOpMsg(moduleName, msgType, "unable to grant empty coins as SpendLimit"), nil, nil
@@ -69,7 +69,6 @@ func GenAndDeliverMsgWithRandFees(
 		TxGen:           moduletestutil.MakeTestEncodingConfig().TxConfig,
 		Cdc:             nil,
 		Msg:             msg,
-		MsgType:         msgType,
 		CoinsSpentInMsg: spendableCoins,
 		Context:         *ctx,
 		SimAccount:      *simAccount,
@@ -94,22 +93,22 @@ func GenAndDeliverMsgWithRandFees(
 
 // GenAndDeliverTxWithRandFees generates a transaction with a random fee and delivers it.
 // Copied from github.com/cosmos/cosmos-sdk/x/simulation/util because of the need to increase the gas
-// as haedcoded passed in helpers.GenTx
+// as hardcoded passed in helpers.GenTx
 func GenAndDeliverTxWithRandFees(txCtx simulation.OperationInput) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-	account := txCtx.AccountKeeper.GetAccount(txCtx.Context, txCtx.SimAccount.Address)
-	spendable := txCtx.Bankkeeper.SpendableCoins(txCtx.Context, account.GetAddress())
+	account := txCtx.AccountKeeper.GetAccount(txCtx.Context.Context(), txCtx.SimAccount.Address)
+	spendable := txCtx.Bankkeeper.SpendableCoins(txCtx.Context.Context(), account.GetAddress())
 
 	var fees sdk.Coins
 	var err error
 
 	coins, hasNeg := spendable.SafeSub(txCtx.CoinsSpentInMsg...)
 	if hasNeg {
-		return simtypes.NoOpMsg(txCtx.ModuleName, txCtx.MsgType, "message doesn't leave room for fees"), nil, err
+		return simtypes.NoOpMsg(txCtx.ModuleName, sdk.MsgTypeURL(txCtx.Msg), "message doesn't leave room for fees"), nil, err
 	}
 
 	fees, err = simtypes.RandomFees(txCtx.R, txCtx.Context, coins)
 	if err != nil {
-		return simtypes.NoOpMsg(txCtx.ModuleName, txCtx.MsgType, "unable to generate fees"), nil, err
+		return simtypes.NoOpMsg(txCtx.ModuleName, sdk.MsgTypeURL(txCtx.Msg), "unable to generate fees"), nil, err
 	}
 	return GenAndDeliverTx(txCtx, fees)
 }
@@ -117,7 +116,7 @@ func GenAndDeliverTxWithRandFees(txCtx simulation.OperationInput) (simtypes.Oper
 // GenAndDeliverTx generates a transactions and delivers it.
 // Copied from github.com/cosmos/cosmos-sdk/x/simulation/util
 func GenAndDeliverTx(txCtx simulation.OperationInput, fees sdk.Coins) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-	account := txCtx.AccountKeeper.GetAccount(txCtx.Context, txCtx.SimAccount.Address)
+	account := txCtx.AccountKeeper.GetAccount(txCtx.Context.Context(), txCtx.SimAccount.Address)
 
 	txGas := uint64(10 * simapp.DefaultGenTxGas)
 	tx, err := simapp.GenSignedMockTx(
@@ -132,13 +131,13 @@ func GenAndDeliverTx(txCtx simulation.OperationInput, fees sdk.Coins) (simtypes.
 		txCtx.SimAccount.PrivKey,
 	)
 	if err != nil {
-		return simtypes.NoOpMsg(txCtx.ModuleName, txCtx.MsgType, "unable to generate mock tx"), nil, err
+		return simtypes.NoOpMsg(txCtx.ModuleName, sdk.MsgTypeURL(txCtx.Msg), "unable to generate mock tx"), nil, err
 	}
 
 	_, _, err = txCtx.App.SimDeliver(txCtx.TxGen.TxEncoder(), tx)
 	if err != nil {
-		return simtypes.NoOpMsg(txCtx.ModuleName, txCtx.MsgType, "unable to deliver tx"), nil, err
+		return simtypes.NoOpMsg(txCtx.ModuleName, sdk.MsgTypeURL(txCtx.Msg), "unable to deliver tx"), nil, err
 	}
 
-	return simtypes.NewOperationMsg(txCtx.Msg, true, "", txCtx.Cdc), nil, nil
+	return simtypes.NewOperationMsg(txCtx.Msg, true, ""), nil, nil
 }

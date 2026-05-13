@@ -3,7 +3,7 @@ package ante
 import (
 	"errors"
 	"fmt"
-	"github.com/st-chain/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"

@@ -10,7 +10,7 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/st-chain/me-hub/x/wbank/keeper"
+	"github.com/openmetaearth/me-hub/x/wbank/keeper"
 )
 
 // AppModuleBasic defines the basic application module used by the wrapped bank module.

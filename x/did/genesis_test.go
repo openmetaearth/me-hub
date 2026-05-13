@@ -3,12 +3,12 @@ package did_test
 import (
 	"testing"
 
-	"github.com/st-chain/me-hub/testutil/nullify"
-	"github.com/st-chain/me-hub/x/did"
+	"github.com/openmetaearth/me-hub/testutil/nullify"
+	"github.com/openmetaearth/me-hub/x/did"
 
 	_ "github.com/evmos/ethermint/crypto/ethsecp256k1"
-	keepertest "github.com/st-chain/me-hub/testutil/keeper"
-	"github.com/st-chain/me-hub/x/did/types"
+	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
+	"github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/stretchr/testify/require"
 )
 

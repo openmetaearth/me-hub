@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/st-chain/me-hub/x/megroup/types"
+	"github.com/openmetaearth/me-hub/x/megroup/types"
 
 	"cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
@@ -34,8 +34,7 @@ func (k Keeper) GroupMemberAll(goCtx context.Context, req *types.QueryGroupAllMe
 		return nil
 	})
 	if err != nil {
-		return nil, errors.Wrapf(sdkerrors.ErrLogic, fmt.Sprintf(" query.Paginate error.err = %s. req.Pagination = %s",
-			err.Error(), req.Pagination.String()))
+		return nil, errors.Wrapf(sdkerrors.ErrLogic, "query.Paginate error.err = %s. req.Pagination = %s", err.Error(), req.Pagination.String())
 	}
 
 	return &types.QueryGroupAllMemberResponse{GroupID: req.GroupID, GroupMember: groupMembers, Pagination: pageRes}, nil
@@ -55,12 +54,11 @@ func (k Keeper) GroupMember(goCtx context.Context, req *types.QueryGetGroupMembe
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(grpMemberPrefix))
 	data := store.Get([]byte(req.Address))
 	if nil == data {
-		return nil, errors.Wrapf(sdkerrors.ErrKeyNotFound, fmt.Sprintf("can not found groupMember by memberJoined info."+
-			"join groupID = %d,memberAddress = %s", joined.GroupId, req.Address))
+		return nil, errors.Wrapf(sdkerrors.ErrKeyNotFound, "can not found groupMember by memberJoined info. join groupID = %d,memberAddress = %s", joined.GroupId, req.Address)
 	}
 	var groupMember types.GroupMember
 	if err := k.cdc.Unmarshal(data, &groupMember); err != nil {
-		return nil, errors.Wrapf(sdkerrors.ErrLogic, fmt.Sprintf("cdc.Unmarshal groupMember data error.err = %s.", err.Error()))
+		return nil, errors.Wrapf(sdkerrors.ErrLogic, "cdc.Unmarshal groupMember data error.err = %s.", err.Error())
 	}
 
 	return &types.QueryGetGroupMemberResponse{GroupMember: groupMember}, nil

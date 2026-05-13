@@ -6,7 +6,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "metaearth/dao/dao.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/dao/types";
+option go_package = "github.com/openmetaearth/me-hub/x/dao/types";
 
 // Query defines the gRPC querier service.
 service Query {

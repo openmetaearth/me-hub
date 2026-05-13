@@ -9,8 +9,8 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 
-	"github.com/st-chain/me-hub/testutil/helpers"
-	"github.com/st-chain/me-hub/x/gravity/types"
+	"github.com/openmetaearth/me-hub/testutil/helpers"
+	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 func (s *KeeperTestSuite) TestLastPendingRelayerSetRequestByAddr() {

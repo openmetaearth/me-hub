@@ -13,7 +13,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/gogoproto/proto"
-	v3_0_0 "github.com/st-chain/me-hub/app/upgrades/v3.0.0"
+	v3_0_0 "github.com/openmetaearth/me-hub/app/upgrades/v3.0.0"
 
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -29,10 +29,10 @@ import (
 	"path/filepath"
 
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	denommetadatamoduleclient "github.com/st-chain/me-hub/x/denommetadata/client"
-	gravitykeeper "github.com/st-chain/me-hub/x/gravity/keeper"
-	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
-	"github.com/st-chain/me-hub/x/wstaking"
+	denommetadatamoduleclient "github.com/openmetaearth/me-hub/x/denommetadata/client"
+	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
+	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
+	"github.com/openmetaearth/me-hub/x/wstaking"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
@@ -41,7 +41,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
-	"github.com/st-chain/me-hub/app/upgrades"
+	"github.com/openmetaearth/me-hub/app/upgrades"
 
 	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -72,12 +72,12 @@ import (
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
-	"github.com/st-chain/me-hub/docs"
+	"github.com/openmetaearth/me-hub/docs"
 
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 
-	"github.com/st-chain/me-hub/app/ante"
-	appparams "github.com/st-chain/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/app/ante"
+	appparams "github.com/openmetaearth/me-hub/app/params"
 
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/keeper"
@@ -229,7 +229,7 @@ func New(
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
 	// NOTE: staking module is required if HistoricalEntries param > 0
-	// TODO: use "github.com/st-chain/me-hub/utils/osmoutils/partialord" to order modules
+	// TODO: use "github.com/openmetaearth/me-hub/utils/osmoutils/partialord" to order modules
 	app.mm.SetOrderBeginBlockers(BeginBlockers...)
 	app.mm.SetOrderEndBlockers(EndBlockers...)
 

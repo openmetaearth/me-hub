@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	wgovkeeper "github.com/st-chain/me-hub/x/wgov/keeper"
+	wgovkeeper "github.com/openmetaearth/me-hub/x/wgov/keeper"
 )
 
 // AppModuleBasic implements the basic application module for the wrapped nft module.

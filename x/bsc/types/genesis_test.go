@@ -6,7 +6,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
+	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 func TestDefaultGenesisState(t *testing.T) {

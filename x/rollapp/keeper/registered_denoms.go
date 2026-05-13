@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/st-chain/me-hub/internal/collcompat"
+	"github.com/openmetaearth/me-hub/internal/collcompat"
 
 	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"

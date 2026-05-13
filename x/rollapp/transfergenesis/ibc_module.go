@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/st-chain/me-hub/utils/gerrc"
-	commontypes "github.com/st-chain/me-hub/x/common/types"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	uibc "github.com/st-chain/me-hub/utils/uibc"
+	uibc "github.com/openmetaearth/me-hub/utils/uibc"
 
 	"cosmossdk.io/log"
 
@@ -24,9 +24,9 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 
-	delayedackkeeper "github.com/st-chain/me-hub/x/delayedack/keeper"
-	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
-	rollapptypes "github.com/st-chain/me-hub/x/rollapp/types"
+	delayedackkeeper "github.com/openmetaearth/me-hub/x/delayedack/keeper"
+	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 var ErrDisabled = errorsmod.Wrap(gerrc.ErrFault, "genesis transfers are disabled")

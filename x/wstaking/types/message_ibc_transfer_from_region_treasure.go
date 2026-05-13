@@ -7,7 +7,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/st-chain/me-hub/utils"
+	"github.com/openmetaearth/me-hub/utils"
 
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
@@ -58,7 +58,7 @@ func (msg *MsgIbcTransferFromRegionTreasure) ValidateBasic() error {
 		return errorsmod.Wrap(err, "invalid source channel ID")
 	}
 	if _, err := utils.CheckRegionName(strings.ToUpper(msg.RegionId)); err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidType, err.Error())
+		return errors.Wrap(sdkerrors.ErrInvalidType, err.Error())
 	}
 	if !msg.Token.IsValid() {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Token.String())

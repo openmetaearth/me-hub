@@ -6,8 +6,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/gravity/types"
-	trontypes "github.com/st-chain/me-hub/x/tron/types"
+	"github.com/openmetaearth/me-hub/x/gravity/types"
+	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 )
 
 // claimHandlerCommon is an internal function that provides common code for processing claims once they are

@@ -6,10 +6,10 @@ import (
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-	"github.com/st-chain/me-hub/testutil/helpers"
+	"github.com/openmetaearth/me-hub/testutil/helpers"
 
-	gravitytypes "github.com/st-chain/me-hub/x/gravity/types"
-	trontypes "github.com/st-chain/me-hub/x/tron/types"
+	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
+	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 )
 
 func (s *KeeperTestSuite) Test_msgServer_ConfirmBatch() {

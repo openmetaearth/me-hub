@@ -8,8 +8,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/spf13/cobra"
 
-	"github.com/st-chain/me-hub/utils"
-	"github.com/st-chain/me-hub/x/denommetadata/types"
+	"github.com/openmetaearth/me-hub/utils"
+	"github.com/openmetaearth/me-hub/x/denommetadata/types"
 )
 
 // NewCmdSubmitUpdateDenomMetadataProposal broadcasts a CreateMetadataProposal message.

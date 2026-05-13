@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/require"
 
-	denomtypes "github.com/st-chain/me-hub/x/denommetadata/types"
+	denomtypes "github.com/openmetaearth/me-hub/x/denommetadata/types"
 )
 
 func Test_fromBankDenomMetadata(t *testing.T) {

@@ -27,8 +27,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/st-chain/me-hub/x/wstaking/client/cli"
-	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/client/cli"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // GenTxCmd builds the application's gentx command.
@@ -169,8 +169,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			if msgCreateValidator.Description.RegionID != "" {
 				msgCreateRegion := wstakingtypes.NewMsgNewRegion(
 					clientCtx.GetFromAddress().String(),
-					msgCreateValidator.Description.RegionID,
-					strings.ToUpper(msgCreateValidator.Description.RegionID),
+						strings.ToUpper(msgCreateValidator.Description.RegionID),
 					msgCreateValidator.ValidatorAddress)
 				msgs = append(msgs, msgCreateRegion)
 			}

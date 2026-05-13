@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/st-chain/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/app/params"
 )
 
 const (

@@ -7,8 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distriKeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/x/wdistri/types"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/wdistri/types"
 )
 
 type Keeper struct {

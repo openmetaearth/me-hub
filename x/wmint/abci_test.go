@@ -6,16 +6,16 @@ import (
 	"math/big"
 	"testing"
 
-	wbanktypes "github.com/st-chain/me-hub/x/wbank/types"
+	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/st-chain/me-hub/x/wmint/keeper"
-	"github.com/st-chain/me-hub/x/wmint/types"
-	"github.com/st-chain/me-hub/x/wmint/types/mock_types"
+	"github.com/openmetaearth/me-hub/x/wmint/keeper"
+	"github.com/openmetaearth/me-hub/x/wmint/types"
+	"github.com/openmetaearth/me-hub/x/wmint/types/mock_types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
@@ -34,21 +34,27 @@ import (
 )
 
 func TestPrintRewardInfo(t *testing.T) {
-	firstYearPerBlockReward := types.InitOneYearMintAmount / types.OneYearTotalBlocks
-	mintMec := RoundUpToFourDecimals(firstYearPerBlockReward)
-	mintUmec := int(mintMec * math.Pow(10, 8))
-	fmt.Printf("first year per block reward is :%.4f mec %d umec\n", firstYearPerBlockReward, mintUmec)
-	firstYearDailyReward := mintUmec * types.OneDayTotalBlocks
-	firstYearDailyRewardMec := mintMec * types.OneDayTotalBlocks
-	fmt.Printf("first year daily reward is :%.4f mec %d umec\n", firstYearDailyRewardMec, firstYearDailyReward)
+	calcPerBlockUMEC := func(mul int64) sdk.Int {
+		halvingDivisor := sdk.NewDecFromBigInt(new(big.Int).Lsh(big.NewInt(1), uint(mul)))
+		amount := sdk.NewDec(int64(types.InitOneYearMintAmount)).
+			Quo(sdk.NewDec(int64(types.OneYearTotalBlocks))).
+			Quo(halvingDivisor)
+		return RoundUpToFourDecimalsDec(amount).MulInt64(100_000_000).TruncateInt()
+	}
 
-	secondYearPerBlockReward := types.InitOneYearMintAmount / types.OneYearTotalBlocks / 2
-	secondMintMec := RoundUpToFourDecimals(secondYearPerBlockReward)
-	secondMintUmec := int(secondMintMec * math.Pow(10, 8))
-	secondYearDailyReward := secondMintUmec * types.OneDayTotalBlocks
-	secondYearDailyRewardMec := secondMintMec * types.OneDayTotalBlocks
-	fmt.Printf("second year per block reward is :%.4f mec %d umec\n", secondYearPerBlockReward, secondMintUmec)
-	fmt.Printf("second year daily reward is :%.4f mec %d umec\n", secondYearDailyRewardMec, secondYearDailyReward)
+	firstUmec := calcPerBlockUMEC(0)
+	firstMec := sdk.NewDecFromInt(firstUmec).QuoInt64(100_000_000)
+	firstDailyUmec := firstUmec.MulRaw(int64(types.OneDayTotalBlocks))
+	firstDailyMec := sdk.NewDecFromInt(firstDailyUmec).QuoInt64(100_000_000)
+	fmt.Printf("first year per block reward is :%.4f mec %s umec\n", firstMec.MustFloat64(), firstUmec)
+	fmt.Printf("first year daily reward is :%.4f mec %s umec\n", firstDailyMec.MustFloat64(), firstDailyUmec)
+
+	secondUmec := calcPerBlockUMEC(1)
+	secondMec := sdk.NewDecFromInt(secondUmec).QuoInt64(100_000_000)
+	secondDailyUmec := secondUmec.MulRaw(int64(types.OneDayTotalBlocks))
+	secondDailyMec := sdk.NewDecFromInt(secondDailyUmec).QuoInt64(100_000_000)
+	fmt.Printf("second year per block reward is :%.4f mec %s umec\n", secondMec.MustFloat64(), secondUmec)
+	fmt.Printf("second year daily reward is :%.4f mec %s umec\n", secondDailyMec.MustFloat64(), secondDailyUmec)
 }
 
 type KeeperTestSuite struct {

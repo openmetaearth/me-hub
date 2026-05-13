@@ -22,9 +22,9 @@ import (
 
 	ethermint "github.com/evmos/ethermint/types"
 
-	"github.com/st-chain/me-hub/app"
-	"github.com/st-chain/me-hub/app/apptesting"
-	"github.com/st-chain/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/app"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/params"
 )
 
 type AnteTestSuite struct {

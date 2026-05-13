@@ -6,12 +6,12 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/st-chain/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/stretchr/testify/suite"
 
 	_ "embed"
 
-	"github.com/st-chain/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/apptesting"
 )
 
 //go:embed testdata/denom_kas.json

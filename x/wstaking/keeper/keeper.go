@@ -11,7 +11,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"math/big"
 )
 
@@ -71,8 +71,8 @@ func (k *Keeper) SetDidKeeper(keeper types.DidKeeper) {
 	k.didKeeper = keeper
 }
 
-func (K *Keeper) SetSlashingKeeper(keeper slashingkeeper.Keeper) {
-	K.slashingKeeper = keeper
+func (k *Keeper) SetSlashingKeeper(keeper slashingkeeper.Keeper) {
+	k.slashingKeeper = keeper
 }
 
 // Logger returns a module-specific logger.

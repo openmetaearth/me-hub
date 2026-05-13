@@ -7,7 +7,7 @@ import (
 	
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
-	"github.com/st-chain/me-hub/utils/osmoutils"
+	"github.com/openmetaearth/me-hub/utils/osmoutils"
 )
 
 func ParseProposal(cmd *cobra.Command) (osmoutils.Proposal, sdk.Coins, error) {

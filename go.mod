@@ -1,4 +1,4 @@
-module github.com/st-chain/me-hub
+module github.com/openmetaearth/me-hub
 
 go 1.24.11
 

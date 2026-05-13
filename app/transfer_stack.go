@@ -6,11 +6,11 @@ import (
 	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcporttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	"github.com/st-chain/me-hub/x/bridgingfee"
-	delayedackmodule "github.com/st-chain/me-hub/x/delayedack"
-	denommetadatamodule "github.com/st-chain/me-hub/x/denommetadata"
-	"github.com/st-chain/me-hub/x/rollapp/transfergenesis"
-	wstakingtypes "github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/x/bridgingfee"
+	delayedackmodule "github.com/openmetaearth/me-hub/x/delayedack"
+	denommetadatamodule "github.com/openmetaearth/me-hub/x/denommetadata"
+	"github.com/openmetaearth/me-hub/x/rollapp/transfergenesis"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func (a *AppKeepers) InitTransferStack() {

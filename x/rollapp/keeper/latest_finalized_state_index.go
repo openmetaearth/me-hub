@@ -4,7 +4,7 @@ import (
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 // LatestFinalizedStateIndex defines the rollapps' current (latest) index of the latest StateInfo that was finalized

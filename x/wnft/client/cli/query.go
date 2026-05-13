@@ -2,17 +2,17 @@ package cli
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/types/errors"
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/st-chain/me-hub/x/wnft/types"
 
 	"cosmossdk.io/x/nft"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	errors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/version"
+	types "github.com/openmetaearth/me-hub/x/wnft/types"
 )
 
 // Flag names and values

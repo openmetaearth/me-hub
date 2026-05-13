@@ -2,8 +2,8 @@ package delayedack
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/delayedack/keeper"
-	"github.com/st-chain/me-hub/x/delayedack/types"
+	"github.com/openmetaearth/me-hub/x/delayedack/keeper"
+	"github.com/openmetaearth/me-hub/x/delayedack/types"
 )
 
 // InitGenesis initializes the module's state from a provided genesis state.

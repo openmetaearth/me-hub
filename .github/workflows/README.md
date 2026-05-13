@@ -19,8 +19,8 @@ Automatically builds minimal release Docker images and pushes them to Harbor reg
 - Generate build summary
 
 **Image Tag Format:**
-- Version tag: `{HARBOR_REGISTRY}/st-chain/me_hub:{git_tag}`
-- Latest tag: `{HARBOR_REGISTRY}/st-chain/me_hub:latest`
+- Version tag: `{HARBOR_REGISTRY}/openmetaearth/me_hub:{git_tag}`
+- Latest tag: `{HARBOR_REGISTRY}/openmetaearth/me_hub:latest`
 
 **Use Case:**
 - Production deployments
@@ -45,8 +45,8 @@ Automatically builds private network Docker images with pre-initialized chain an
 - Generate build summary
 
 **Image Tag Format:**
-- Version tag: `{HARBOR_REGISTRY}/st-chain/me_hub:{git_tag}_private_net`
-- Latest tag: `{HARBOR_REGISTRY}/st-chain/me_hub:latest_private_net`
+- Version tag: `{HARBOR_REGISTRY}/openmetaearth/me_hub:{git_tag}_private_net`
+- Latest tag: `{HARBOR_REGISTRY}/openmetaearth/me_hub:latest_private_net`
 
 **Use Case:**
 - Local development
@@ -87,7 +87,7 @@ Navigate to repository settings: `Settings` > `Secrets and variables` > `Actions
 Create a Robot Account in Harbor:
 
 1. Login to Harbor Web UI
-2. Navigate to project `st-chain`
+2. Navigate to project `openmetaearth`
 3. Click `Robot Accounts` tab
 4. Click `+ NEW ROBOT ACCOUNT`
 5. Configure:
@@ -101,7 +101,7 @@ Create a Robot Account in Harbor:
 ```bash
 # Example values (replace with actual values)
 HARBOR_REGISTRY: harbor.example.com
-HARBOR_USERNAME: robot$st-chain+github-actions-deployer
+HARBOR_USERNAME: robot$openmetaearth+github-actions-deployer
 HARBOR_PASSWORD: eyJhbGc... (Robot Token)
 ```
 
@@ -156,22 +156,22 @@ git push origin v0.0.1-test
    **Release Image:**
    ```bash
    # Pull release image
-   docker pull harbor.example.com/st-chain/me_hub:v1.0.0
+   docker pull harbor.example.com/openmetaearth/me_hub:v1.0.0
    
    # Verify version
-   docker run --rm harbor.example.com/st-chain/me_hub:v1.0.0 version
+   docker run --rm harbor.example.com/openmetaearth/me_hub:v1.0.0 version
    ```
 
    **Private Network Image:**
    ```bash
    # Pull private network image
-   docker pull harbor.example.com/st-chain/me_hub:v1.0.0_private_net
+   docker pull harbor.example.com/openmetaearth/me_hub:v1.0.0_private_net
 
    # Run test
    docker run -d \
      -p 36657:36657 -p 1318:1318 -p 9545:9545 -p 8090:8090 \
      --name mechain-test \
-     harbor.example.com/st-chain/me_hub:v1.0.0_private_net
+     harbor.example.com/openmetaearth/me_hub:v1.0.0_private_net
    ```
 
 ## Image Tag Rules
@@ -181,25 +181,25 @@ Each workflow creates two tags per image:
 ### Release Image Tags
 
 1. **Version Tag**
-   - Format: `{HARBOR_REGISTRY}/st-chain/me_hub:{git_tag}`
-   - Example: `harbor.example.com/st-chain/me_hub:v1.0.0`
+   - Format: `{HARBOR_REGISTRY}/openmetaearth/me_hub:{git_tag}`
+   - Example: `harbor.example.com/openmetaearth/me_hub:v1.0.0`
    - Purpose: Specific version of the release image
 
 2. **Latest Tag**
-   - Format: `{HARBOR_REGISTRY}/st-chain/me_hub:latest`
-   - Example: `harbor.example.com/st-chain/me_hub:latest`
+   - Format: `{HARBOR_REGISTRY}/openmetaearth/me_hub:latest`
+   - Example: `harbor.example.com/openmetaearth/me_hub:latest`
    - Purpose: Always points to the latest release image
 
 ### Private Network Image Tags
 
 1. **Version Tag**
-   - Format: `{HARBOR_REGISTRY}/st-chain/me_hub:{git_tag}_private_net`
-   - Example: `harbor.example.com/st-chain/me_hub:v1.0.0_private_net`
+   - Format: `{HARBOR_REGISTRY}/openmetaearth/me_hub:{git_tag}_private_net`
+   - Example: `harbor.example.com/openmetaearth/me_hub:v1.0.0_private_net`
    - Purpose: Specific version of the private network image
 
 2. **Latest Tag**
-   - Format: `{HARBOR_REGISTRY}/st-chain/me_hub:latest_private_net`
-   - Example: `harbor.example.com/st-chain/me_hub:latest_private_net`
+   - Format: `{HARBOR_REGISTRY}/openmetaearth/me_hub:latest_private_net`
+   - Example: `harbor.example.com/openmetaearth/me_hub:latest_private_net`
    - Purpose: Always points to the latest private network image
 
 ## Image Comparison
@@ -315,8 +315,8 @@ Add to the "Tag and push image" step in the workflow:
     docker push ${{ steps.image.outputs.tag }}
 
     # Add custom tag
-    docker tag me-hub/private-net:build-temp ${{ secrets.HARBOR_REGISTRY }}/st-chain/me_hub:stable_private_net
-    docker push ${{ secrets.HARBOR_REGISTRY }}/st-chain/me_hub:stable_private_net
+    docker tag me-hub/private-net:build-temp ${{ secrets.HARBOR_REGISTRY }}/openmetaearth/me_hub:stable_private_net
+    docker push ${{ secrets.HARBOR_REGISTRY }}/openmetaearth/me_hub:stable_private_net
 ```
 
 ### Add Notifications

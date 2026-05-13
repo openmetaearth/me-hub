@@ -7,7 +7,7 @@ import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/wstaking/types";
+option go_package = "github.com/openmetaearth/me-hub/x/wstaking/types";
 
 enum FixedDepositState {
   ALL_STATE = 0 [(gogoproto.enumvalue_customname) = "AllState"];

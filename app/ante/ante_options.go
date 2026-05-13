@@ -6,8 +6,8 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
-	rollappkeeper "github.com/st-chain/me-hub/x/rollapp/keeper"
-	wbankkeeper "github.com/st-chain/me-hub/x/wbank/keeper"
+	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
+	wbankkeeper "github.com/openmetaearth/me-hub/x/wbank/keeper"
 
 	errorsmod "cosmossdk.io/errors"
 	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"

@@ -5,8 +5,8 @@ import (
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/st-chain/me-hub/testutil/helpers"
-	"github.com/st-chain/me-hub/x/gravity/types"
+	"github.com/openmetaearth/me-hub/testutil/helpers"
+	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 func (s *KeeperTestSuite) TestKeeper_OutgoingAncCancel() {

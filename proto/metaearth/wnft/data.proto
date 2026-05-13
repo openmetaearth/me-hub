@@ -3,7 +3,7 @@ package metaearth.wnft;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/st-chain/me-hub/x/wnft/types";
+option go_package = "github.com/openmetaearth/me-hub/x/wnft/types";
 
 message Extension {
   option (gogoproto.equal) = true;

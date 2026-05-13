@@ -10,10 +10,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/openmetaearth/me-hub/x/dao/types"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/spf13/cobra"
-	"github.com/st-chain/me-hub/x/dao/types"
-	didtypes "github.com/st-chain/me-hub/x/did/types"
-	kyctypes "github.com/st-chain/me-hub/x/kyc/types"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"

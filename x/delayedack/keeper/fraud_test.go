@@ -4,9 +4,9 @@ import (
 	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 
-	commontypes "github.com/st-chain/me-hub/x/common/types"
-	damodule "github.com/st-chain/me-hub/x/delayedack"
-	"github.com/st-chain/me-hub/x/delayedack/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	damodule "github.com/openmetaearth/me-hub/x/delayedack"
+	"github.com/openmetaearth/me-hub/x/delayedack/types"
 )
 
 func (suite *DelayedAckTestSuite) TestHandleFraud() {

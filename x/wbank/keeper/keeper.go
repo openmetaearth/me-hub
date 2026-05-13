@@ -17,7 +17,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/st-chain/me-hub/x/wbank/types"
+	"github.com/openmetaearth/me-hub/x/wbank/types"
 )
 
 // BaseKeeperWrapper wraps bankkeeper.BaseKeeper with additional functionality.
@@ -252,15 +252,32 @@ func (k BankKeeperExtend) SendCoinsFromAccountToModuleWithTag(
 	return k.SendCoinsWithTag(ctx, senderAddr, recipientAcc.GetAddress(), amt, tag...)
 }
 
-func (k BankKeeperExtend) SendCoinsWithTag(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins, tag ...string) error {
+func (k BankKeeperExtend) SendCoinsWithTag(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins, tags ...string) error {
+	if len(tags) == 0 {
+		return k.SendCoins(ctx, fromAddr, toAddr, amt)
+	}
+
+	beforeCount := len(ctx.EventManager().Events())
 	err := k.SendCoins(ctx, fromAddr, toAddr, amt)
 	if err != nil {
 		return err
 	}
-	l := len(ctx.EventManager().Events()) - 2
 
-	for _, t := range tag {
-		ctx.EventManager().Events()[l].Attributes = append(ctx.EventManager().Events()[l].Attributes, abci.EventAttribute{
+	// Find the transfer event emitted by SendCoins (search from the new events only)
+	events := ctx.EventManager().Events()
+	transferIdx := -1
+	for i := len(events) - 1; i >= beforeCount; i-- {
+		if events[i].Type == banktypes.EventTypeTransfer {
+			transferIdx = i
+			break
+		}
+	}
+	if transferIdx == -1 {
+		return nil
+	}
+
+	for _, t := range tags {
+		events[transferIdx].Attributes = append(events[transferIdx].Attributes, abci.EventAttribute{
 			Key:   "tag",
 			Value: t,
 		})

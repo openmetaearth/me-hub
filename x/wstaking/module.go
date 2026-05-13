@@ -14,13 +14,13 @@ import (
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/client/cli"
 	"github.com/spf13/cobra"
-	"github.com/st-chain/me-hub/x/wstaking/client/cli"
 
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/st-chain/me-hub/x/wstaking/keeper"
-	"github.com/st-chain/me-hub/x/wstaking/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/keeper"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 )

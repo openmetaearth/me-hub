@@ -8,13 +8,13 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func (k msgServer) SkipDelayRollapp(goCtx context.Context, msg *types.MsgSkipDelayRollapp) (*types.MsgSkipDelayRollappResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
+	if !k.daoKeeper.IsDao(ctx, msg.Creator) {
 		return nil, types.ErrCheckGlobalDao
 	}
 

@@ -7,10 +7,10 @@ import (
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/st-chain/me-hub/app/params"
-	"github.com/st-chain/me-hub/testutil/helpers"
-	"github.com/st-chain/me-hub/utils"
-	"github.com/st-chain/me-hub/x/gravity/types"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/testutil/helpers"
+	"github.com/openmetaearth/me-hub/utils"
+	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 func (s *KeeperTestSuite) TestDepositClaim() {

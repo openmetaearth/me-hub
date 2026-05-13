@@ -2,14 +2,14 @@ package ante
 
 import (
 	"fmt"
-	"github.com/st-chain/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 
-	common "github.com/st-chain/me-hub/x/common/types"
+	common "github.com/openmetaearth/me-hub/x/common/types"
 )
 
 type IBCProofHeightDecorator struct{}
