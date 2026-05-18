@@ -1,0 +1,40 @@
+name: Enhancement
+description: Propose a new feature or product improvement.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for taking the time to suggest an improvement for ME Hub.
+  - type: checkboxes
+    attributes:
+      label: Search before asking
+      description: Please search [issues](https://github.com/openmetaearth/me-hub/issues) to check if your request has already been reported.
+      options:
+        - label: I searched the [issues](https://github.com/openmetaearth/me-hub/issues) and found nothing similar.
+          required: true
+  - type: textarea
+    attributes:
+      label: Motivation
+      description: Describe why this enhancement would be useful.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution and include related material if helpful.
+  - type: textarea
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternatives you considered.
+  - type: textarea
+    attributes:
+      label: Additional Context
+  - type: checkboxes
+    attributes:
+      label: Are you willing to submit a PR?
+      description: If you are willing to contribute an implementation, please check the box.
+      options:
+        - label: I'm willing to submit a PR.
+  - type: markdown
+    attributes:
+      value: Thanks for completing this form.
