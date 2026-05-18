@@ -1,0 +1,114 @@
+name: Bug Report
+description: Report a public, non-security bug. For security vulnerabilities, use Private Vulnerability Reporting.
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > If this issue is security-sensitive or could be exploited, do not report it publicly.
+        > Use [Private Vulnerability Reporting](https://github.com/openmetaearth/me-hub/security/advisories/new) instead.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: A short summary of the bug.
+      placeholder: "e.g. med start exits immediately after loading genesis"
+    validations:
+      required: true
+
+  - type: input
+    id: med-version
+    attributes:
+      label: Med Version
+      description: Output of `med version --long | head`
+      placeholder: "e.g. v1.0.0"
+    validations:
+      required: false
+
+  - type: input
+    id: chain-id
+    attributes:
+      label: Chain ID
+      description: Which chain are you running into issues with?
+      placeholder: "e.g. mechain_100-1"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Affected Module
+      multiple: true
+      options:
+        - ME-Hub
+        - Sequencer
+        - SDK/API
+        - Documentation
+        - Explorer/UI
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug and its impact.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction Steps
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: reproducible
+    attributes:
+      label: Is it consistently reproducible?
+      options:
+        - "Yes"
+        - "No"
+        - "Sometimes"
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Paste any relevant logs or command output.
+      render: shell
+    validations:
+      required: false
+
+  - type: upload
+    id: screenshots
+    attributes:
+      label: Screenshots or attachments
+      description: If applicable, add screenshots or related files.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here.
+    validations:
+      required: false
