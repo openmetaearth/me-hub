@@ -112,11 +112,3 @@ body:
       description: Add any other context about the problem here.
     validations:
       required: false
-
-  - type: input
-    id: email
-    attributes:
-      label: Contact Email
-      description: Optional. Leave an email if maintainers need follow-up details.
-    validations:
-      required: false
