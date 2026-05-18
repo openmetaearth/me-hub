@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Report a Critical/High Security Vulnerability (Private)
+    url: ../../security/advisories/new
+    about: For Critical or High severity vulnerabilities, please use GitHub's Private Vulnerability Reporting to avoid public disclosure.
