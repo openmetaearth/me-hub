@@ -38,7 +38,7 @@ func (k Keeper) BondedStakeTokensToNotBonded(ctx sdk.Context, tokens math.Int, r
 func (k Keeper) NotBondedStakeTokensToBonded(ctx sdk.Context, tokens math.Int) {
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokens))
 	if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, types.NotBondedStakePoolName, types.BondedStakePoolName, coins,
-		fmt.Sprintf("NotBondedStakeTokensToBonded"),
+		"NotBondedStakeTokensToBonded",
 	); err != nil {
 		panic(err)
 	}
