@@ -214,13 +214,13 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 		}
 		rewardsCoin := sdk.NewCoin(params.BaseDenom, math.NewInt(1000000))
 		err = k.bankKeeper.Extend().SendCoinsWithTag(sdkCtx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
-			sdk.MustAccAddressFromBech32(address), sdk.NewCoins(rewardsCoin), fmt.Sprintf("ProcKycRegionChange_SendUserReward_%s", region.RegionId))
+			sdk.MustAccAddressFromBech32(address), sdk.NewCoins(rewardsCoin), fmt.Sprintf("RegionChange_SendUserReward_%s", region.RegionId))
 		if err != nil {
 			return errors.Wrap(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
 				err.Error(), region.GetRegionTreasureAddr(), address))
 		}
 		err = k.bankKeeper.Extend().SendCoinsWithTag(sdkCtx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
-			sdk.MustAccAddressFromBech32(newGrpInfo.Admin), sdk.NewCoins(rewardsCoin), fmt.Sprintf("ProcKycRegionChange_SendAdminReward_%s", region.RegionId))
+			sdk.MustAccAddressFromBech32(newGrpInfo.Admin), sdk.NewCoins(rewardsCoin), fmt.Sprintf("RegionChange_SendAdminReward_%s", region.RegionId))
 		if err != nil {
 			return errors.Wrapf(types.ErrProcData, "transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
 				err.Error(), region.GetRegionTreasureAddr(), newGrpInfo.Admin)
