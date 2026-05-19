@@ -88,7 +88,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	k.SetValidator(ctx, val)
 	//send delegation rewards
 	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())),
-		fmt.Sprintf("Undelegate_SendRewardsFromRegionTreasureAccountToUserAccount_%s", region.RegionId),
+		fmt.Sprintf("Undelegate_SendRewards_%s", region.RegionId),
 	)
 	if err != nil {
 		return nil, err

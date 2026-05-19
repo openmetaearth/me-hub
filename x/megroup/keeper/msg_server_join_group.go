@@ -79,13 +79,13 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 		}
 		rewardsCoin := sdk.NewCoin(params.BaseDenom, math.NewInt(1000000))
 		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
-			sdk.MustAccAddressFromBech32(msg.ApplicantAddress), sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_UserJoinGroupNotFound_SendRewardsFromRegionTreasureToAddress_%s", region.RegionId))
+			sdk.MustAccAddressFromBech32(msg.ApplicantAddress), sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_SendApplicantRewards_%s", region.RegionId))
 		if err != nil {
 			return nil, errors.Wrap(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
 				err.Error(), region.GetRegionTreasureAddr(), msg.ApplicantAddress))
 		}
 		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
-			sdk.MustAccAddressFromBech32(groupInfo.Admin), sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_UserJoinGroupNotFound_SendRewardsFromRegionTreasureToAdmin_%s", region.RegionId))
+			sdk.MustAccAddressFromBech32(groupInfo.Admin), sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_SendAdminRewards_%s", region.RegionId))
 		if err != nil {
 			return nil, errors.Wrap(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
 				err.Error(), region.GetRegionTreasureAddr(), groupInfo.Admin))
