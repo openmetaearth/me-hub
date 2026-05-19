@@ -167,7 +167,7 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 		fromAddr,
 		toAddr,
 		msg.Amount,
-		fmt.Sprintf("WithdrawFromRegion_SendCoinsFromRegionTreasureAccountToUserAccount_%s", region.RegionId),
+		fmt.Sprintf("WithdrawFromRegionTreasure_%s", region.RegionId),
 	)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "region treasure %s does not have enough balance", region.RegionTreasureAddr)
