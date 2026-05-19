@@ -335,7 +335,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 		toTreasureAddr,
 		toDepositInterestAddr,
 		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, totalFixedInterestCoin)),
-		fmt.Sprintf("TransferDeposit_TransferInterest_%s", toRegion.RegionId),
+		fmt.Sprintf("TransferFixedInterest_%s", toRegion.RegionId),
 	)
 	if err != nil {
 		return errors.New(fmt.Sprintf("pay deposit interest of toRegion:%s", err.Error()))
@@ -346,7 +346,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 		fromDepositInterestAddr,
 		fromTreasureAddr,
 		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, totalFixedInterestCoin)),
-		fmt.Sprintf("TransferDeposit_RecoveringInterest_%s", fromRegion.RegionId),
+		fmt.Sprintf("RecoverFixedInterest_%s", fromRegion.RegionId),
 	)
 	if err != nil {
 		return errors.New(fmt.Sprintf("recovering deposit interest of fromRegion:%s", err.Error()))
