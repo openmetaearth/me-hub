@@ -17,6 +17,7 @@ import (
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/stretchr/testify/require"
 
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -31,9 +32,10 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	app "github.com/openmetaearth/me-hub/app"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-var TestChainID = "dymension_100-1"
+var TestChainID = "mechain_100-1"
 
 var DefaultConsensusParams = func() *cometbftproto.ConsensusParams {
 	ret := usim.DefaultConsensusParams
@@ -56,14 +58,27 @@ type SetupOptions struct {
 var InvariantCheckInterval = uint(0) // disabled
 
 func SetupTestingApp() (*app.App, app.GenesisState) {
-	newApp := app.New(log.NewNopLogger(), dbm.NewMemDB(), nil, true, usim.EmptyAppOptions{}, bam.SetChainID(TestChainID))
+	// Register base denom before creating app to ensure DefaultGenesis() has proper params
+	params.RegisterDenomsIfNeeded()
+
+	newApp := app.New(log.NewNopLogger(), dbm.NewMemDB(), nil, true, usim.AppOptionsMap{"skip-wasm-init": true}, bam.SetChainID(TestChainID))
 	encCdc := newApp.AppCodec()
-	defaultGenesisState := app.NewDefaultGenesisState(encCdc)
+	// Use BasicModuleManager to get default genesis for all modules so that
+	// module params (e.g. EVM EvmDenom, gravity MinDelegate, etc.) are initialized.
+	defaultGenesisState := newApp.BasicModuleManager.DefaultGenesis(encCdc)
+	// Skip wasm genesis since WasmKeeper is not initialized in test mode (skip-wasm-init)
+	delete(defaultGenesisState, wasmtypes.ModuleName)
+	// Skip crisis module genesis to avoid invariant checks during InitChain
+	delete(defaultGenesisState, "crisis")
 
 	// force disable EnableCreate of x/evm
-	evmGenesisStateJson := defaultGenesisState[evmtypes.ModuleName]
 	var evmGenesisState evmtypes.GenesisState
-	encCdc.MustUnmarshalJSON(evmGenesisStateJson, &evmGenesisState)
+	evmGenesisStateJson := defaultGenesisState[evmtypes.ModuleName]
+	if len(evmGenesisStateJson) > 0 {
+		encCdc.MustUnmarshalJSON(evmGenesisStateJson, &evmGenesisState)
+	} else {
+		evmGenesisState = *evmtypes.DefaultGenesisState()
+	}
 	evmGenesisState.Params.EnableCreate = false
 	defaultGenesisState[evmtypes.ModuleName] = encCdc.MustMarshalJSON(&evmGenesisState)
 
@@ -79,13 +94,21 @@ func Setup(t *testing.T) *app.App {
 
 	app, genesisState := SetupTestingApp()
 
-	privVal := mock.NewPV()
-	pubKey, err := privVal.GetPubKey()
+	// create validator set with 3 validators for wstaking tests (meEarth, experience, usa)
+	privVal1 := mock.NewPV()
+	pubKey1, err := privVal1.GetPubKey()
+	require.NoError(t, err)
+	privVal2 := mock.NewPV()
+	pubKey2, err := privVal2.GetPubKey()
+	require.NoError(t, err)
+	privVal3 := mock.NewPV()
+	pubKey3, err := privVal3.GetPubKey()
 	require.NoError(t, err)
 
-	// create validator set with single validator
-	validator := cometbfttypes.NewValidator(pubKey, 1)
-	valSet := cometbfttypes.NewValidatorSet([]*cometbfttypes.Validator{validator})
+	validator1 := cometbfttypes.NewValidator(pubKey1, 1)
+	validator2 := cometbfttypes.NewValidator(pubKey2, 1)
+	validator3 := cometbfttypes.NewValidator(pubKey3, 1)
+	valSet := cometbfttypes.NewValidatorSet([]*cometbfttypes.Validator{validator1, validator2, validator3})
 
 	// generate genesis account
 	senderPrivKey := secp256k1.GenPrivKey()
@@ -93,7 +116,7 @@ func Setup(t *testing.T) *app.App {
 	balances := []banktypes.Balance{
 		{
 			Address: acc.GetAddress().String(),
-			Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1000000000000000000))),
+			Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, math.NewInt(1000000000000000000))),
 		},
 	}
 
@@ -149,13 +172,25 @@ func genesisStateWithValSet(t *testing.T,
 	validators := make([]stakingtypes.Validator, 0, len(valSet.Validators))
 	delegations := make([]stakingtypes.Delegation, 0, len(valSet.Validators))
 
-	bondAmt := sdk.DefaultPowerReduction
+	// Use larger bond amount to support wstaking tests (min delegation = 10^BaseDenomUnit)
+	bondAmt := math.NewInt(1_000_000_000_000_000_000) // 10^18, same as stake pool initial balance
 
-	for _, val := range valSet.Validators {
+	// Pre-define region IDs for validators (used by wstaking tests)
+	regionIDs := []string{
+		wstakingtypes.MeEarthRegionId,
+		wstakingtypes.ExperienceRegionId,
+		"usa",
+	}
+
+	for i, val := range valSet.Validators {
 		pk, err := cryptocodec.FromTmPubKeyInterface(val.PubKey)
 		require.NoError(t, err)
 		pkAny, err := codectypes.NewAnyWithValue(pk)
 		require.NoError(t, err)
+		regionID := ""
+		if i < len(regionIDs) {
+			regionID = regionIDs[i]
+		}
 		validator := stakingtypes.Validator{
 			OperatorAddress:   sdk.ValAddress(val.Address).String(),
 			ConsensusPubkey:   pkAny,
@@ -163,7 +198,7 @@ func genesisStateWithValSet(t *testing.T,
 			Status:            stakingtypes.Bonded,
 			Tokens:            bondAmt,
 			DelegatorShares:   math.LegacyOneDec(),
-			Description:       stakingtypes.Description{},
+			Description:       stakingtypes.Description{RegionID: regionID},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
 			Commission:        stakingtypes.NewCommission(math.LegacyZeroDec(), math.LegacyZeroDec(), math.LegacyZeroDec()),
@@ -174,7 +209,9 @@ func genesisStateWithValSet(t *testing.T,
 
 	}
 	// set validators and delegations
-	stakingGenesis := stakingtypes.NewGenesisState(stakingtypes.DefaultParams(), validators, delegations)
+	stakingParams := stakingtypes.DefaultParams()
+	stakingParams.BondDenom = params.BaseDenom
+	stakingGenesis := stakingtypes.NewGenesisState(stakingParams, validators, delegations)
 	genesisState[stakingtypes.ModuleName] = app.AppCodec().MustMarshalJSON(stakingGenesis)
 
 	totalSupply := sdk.NewCoins()
@@ -185,14 +222,30 @@ func genesisStateWithValSet(t *testing.T,
 
 	for range delegations {
 		// add delegated tokens to total supply
-		totalSupply = totalSupply.Add(sdk.NewCoin(sdk.DefaultBondDenom, bondAmt))
+		totalSupply = totalSupply.Add(sdk.NewCoin(params.BaseDenom, bondAmt))
 	}
 
-	// add bonded amount to bonded pool module account
+	// add bonded amount to bonded pool module account (one per validator)
+	totalBondAmt := bondAmt.MulRaw(int64(len(delegations)))
 	balances = append(balances, banktypes.Balance{
 		Address: authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String(),
-		Coins:   sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, bondAmt)},
+		Coins:   sdk.Coins{sdk.NewCoin(params.BaseDenom, totalBondAmt)},
 	})
+	// add bonded amount to wstaking bonded stake pool module account
+	balances = append(balances, banktypes.Balance{
+		Address: authtypes.NewModuleAddress(wstakingtypes.BondedStakePoolName).String(),
+		Coins:   sdk.Coins{sdk.NewCoin(params.BaseDenom, totalBondAmt)},
+	})
+	// update total supply (add wstaking pool amount)
+	totalSupply = totalSupply.Add(sdk.NewCoin(params.BaseDenom, totalBondAmt))
+
+	// add initial balance to wstaking stake pool (stake_tokens_pool) for tests (1e18 umec)
+	stakePoolAmt := math.NewInt(1_000_000_000_000_000_000) // 10^18 umec (BaseDenomUnit=18)
+	balances = append(balances, banktypes.Balance{
+		Address: authtypes.NewModuleAddress(wstakingtypes.StakePoolName).String(),
+		Coins:   sdk.Coins{sdk.NewCoin(params.BaseDenom, stakePoolAmt)},
+	})
+	totalSupply = totalSupply.Add(sdk.NewCoin(params.BaseDenom, stakePoolAmt))
 
 	// update total supply
 	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{}, []banktypes.SendEnabled{})
@@ -247,4 +300,31 @@ func FundAccount(app *app.App, ctx sdk.Context, addr sdk.AccAddress, coins sdk.C
 
 func FundForAliasRegistration(app *app.App, ctx sdk.Context, alias, creator string) {
 	// no-op: alias registration not supported in me-hub
+}
+
+// MintBlock advances the chain by one or more blocks and returns the updated context.
+func MintBlock(a *app.App, ctx sdk.Context, block ...int64) sdk.Context {
+	numBlocks := int64(1)
+	if len(block) > 0 && block[0] > 0 {
+		numBlocks = block[0]
+	}
+	for i := int64(0); i < numBlocks; i++ {
+		_, err := a.FinalizeBlock(&abci.RequestFinalizeBlock{Height: ctx.BlockHeight(), Time: ctx.BlockTime()})
+		if err != nil {
+			panic(err)
+		}
+		_, err = a.Commit()
+		if err != nil {
+			panic(err)
+		}
+		newBlockTime := ctx.BlockTime().Add(time.Second)
+		header := ctx.BlockHeader()
+		header.Time = newBlockTime
+		header.Height++
+		ctx = a.BaseApp.NewUncachedContext(false, header).WithHeaderInfo(coreheader.Info{
+			Height: header.Height,
+			Time:   header.Time,
+		})
+	}
+	return ctx
 }

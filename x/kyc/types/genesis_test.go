@@ -16,16 +16,16 @@ func TestGenesisState_Validate(t *testing.T) {
 		valid    bool
 	}{
 		{
-			desc:     "default is invalid",
+			desc:     "default is valid",
 			genState: types.DefaultGenesis(),
-			valid:    false,
+			valid:    true,
 		},
 		{
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
 				Issuers: []didtypes.DidInfo{
 					{
-						Did:    "1000000000000001",
+						Did:    "1000000000001",
 						Pubkey: "{\"@type\":\"/ethermint.crypto.v1.ethsecp256k1.PubKey\",\"key\":\"AyfZ/7fojbKMioe5Oaw378EH4F8w2CGvZ7SwOCRvlCH8\"}",
 						Status: didtypes.DID_STATUS_ACTIVE,
 					},

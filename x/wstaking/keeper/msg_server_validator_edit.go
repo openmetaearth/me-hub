@@ -86,7 +86,7 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 			sdk.MustAccAddressFromBech32(msg.OwnerAddress),
 			validator)
 		if err != nil {
-			return nil, errorsmod.Wrapf(types.ErrResetValidator, err.Error())
+			return nil, errorsmod.Wrap(types.ErrResetValidator, err.Error())
 		}
 	} else {
 		k.SetValidator(ctx, validator)

@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
@@ -63,19 +64,32 @@ func (suite *SequencerTestSuite) TestUnbondingMultiple() {
 
 func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	suite.SetupTest()
-	denom := bond.Denom
+
+	// Get the base denom
+	baseDenom, err := sdk.GetBaseDenom()
+	suite.Require().NoError(err)
+
+	// Set MinBond params so that sequencers will have tokens
+	// Use non-zero bond for testing
+	nonZeroBond := sdk.NewCoin(baseDenom, sdkmath.NewInt(1000000))
+	seqParams := types.Params{
+		MinBond:       nonZeroBond,
+		UnbondingTime: 100,
+	}
+	suite.App.SequencerKeeper.SetParams(suite.Ctx, seqParams)
+
+	denom := nonZeroBond.Denom
 	blockheight := 20
-	var err error
 
 	rollappId := suite.CreateDefaultRollapp()
-	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	addr1 := suite.CreateSequencerWithBond(suite.Ctx, rollappId, nonZeroBond)
 	sequencer1, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Require().True(sequencer1.Status == types.Bonded)
 	suite.Require().True(sequencer1.Proposer)
 
 	suite.Require().False(sequencer1.Tokens.IsZero())
 
-	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	addr2 := suite.CreateSequencerWithBond(suite.Ctx, rollappId, nonZeroBond)
 	sequencer2, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
 	suite.Require().True(sequencer2.Status == types.Bonded)
 	suite.Require().False(sequencer2.Proposer)
@@ -87,8 +101,9 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 
 	// start the 1st unbond
 	unbondMsg := types.MsgUnbond{Creator: addr1}
-	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
+	resp1, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
+	suite.Require().NotNil(resp1)
 	sequencer1, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Require().True(sequencer1.Status == types.Unbonding)
 	suite.Require().Equal(sequencer1.UnbondingHeight, int64(blockheight))
@@ -113,7 +128,7 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	sequencer1, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Equal(types.Unbonded, sequencer1.Status)
 	suite.True(sequencer1.Tokens.IsZero())
-	suite.True(balanceBefore.Add(bond).IsEqual(balanceAfter), "expected %s, got %s", balanceBefore.Add(bond), balanceAfter)
+	suite.True(balanceBefore.Add(nonZeroBond).IsEqual(balanceAfter), "expected %s, got %s", balanceBefore.Add(nonZeroBond), balanceAfter)
 
 	// check the 2nd unbond still not happened
 	sequencer2, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)

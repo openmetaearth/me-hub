@@ -3,6 +3,8 @@
 package mock_types
 
 import (
+	"context"
+
 	types "github.com/cosmos/cosmos-sdk/types"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -21,7 +23,7 @@ func (_m *MockBankKeeper) EXPECT() *MockBankKeeper_Expecter {
 }
 
 // MintCoins provides a mock function with given fields: ctx, name, amt
-func (_m *MockBankKeeper) MintCoins(ctx types.Context, name string, amt types.Coins) error {
+func (_m *MockBankKeeper) MintCoins(ctx context.Context, name string, amt types.Coins) error {
 	ret := _m.Called(ctx, name, amt)
 
 	if len(ret) == 0 {
@@ -29,7 +31,7 @@ func (_m *MockBankKeeper) MintCoins(ctx types.Context, name string, amt types.Co
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(types.Context, string, types.Coins) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, types.Coins) error); ok {
 		r0 = rf(ctx, name, amt)
 	} else {
 		r0 = ret.Error(0)
@@ -51,9 +53,9 @@ func (_e *MockBankKeeper_Expecter) MintCoins(ctx interface{}, name interface{}, 
 	return &MockBankKeeper_MintCoins_Call{Call: _e.mock.On("MintCoins", ctx, name, amt)}
 }
 
-func (_c *MockBankKeeper_MintCoins_Call) Run(run func(ctx types.Context, name string, amt types.Coins)) *MockBankKeeper_MintCoins_Call {
+func (_c *MockBankKeeper_MintCoins_Call) Run(run func(ctx context.Context, name string, amt types.Coins)) *MockBankKeeper_MintCoins_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(types.Context), args[1].(string), args[2].(types.Coins))
+		run(args[0].(context.Context), args[1].(string), args[2].(types.Coins))
 	})
 	return _c
 }
@@ -63,13 +65,13 @@ func (_c *MockBankKeeper_MintCoins_Call) Return(_a0 error) *MockBankKeeper_MintC
 	return _c
 }
 
-func (_c *MockBankKeeper_MintCoins_Call) RunAndReturn(run func(types.Context, string, types.Coins) error) *MockBankKeeper_MintCoins_Call {
+func (_c *MockBankKeeper_MintCoins_Call) RunAndReturn(run func(context.Context, string, types.Coins) error) *MockBankKeeper_MintCoins_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // SendCoinsFromModuleToAccount provides a mock function with given fields: ctx, senderModule, recipientAddr, amt
-func (_m *MockBankKeeper) SendCoinsFromModuleToAccount(ctx types.Context, senderModule string, recipientAddr types.AccAddress, amt types.Coins) error {
+func (_m *MockBankKeeper) SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr types.AccAddress, amt types.Coins) error {
 	ret := _m.Called(ctx, senderModule, recipientAddr, amt)
 
 	if len(ret) == 0 {
@@ -77,7 +79,7 @@ func (_m *MockBankKeeper) SendCoinsFromModuleToAccount(ctx types.Context, sender
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(types.Context, string, types.AccAddress, types.Coins) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, types.AccAddress, types.Coins) error); ok {
 		r0 = rf(ctx, senderModule, recipientAddr, amt)
 	} else {
 		r0 = ret.Error(0)
@@ -100,9 +102,9 @@ func (_e *MockBankKeeper_Expecter) SendCoinsFromModuleToAccount(ctx interface{},
 	return &MockBankKeeper_SendCoinsFromModuleToAccount_Call{Call: _e.mock.On("SendCoinsFromModuleToAccount", ctx, senderModule, recipientAddr, amt)}
 }
 
-func (_c *MockBankKeeper_SendCoinsFromModuleToAccount_Call) Run(run func(ctx types.Context, senderModule string, recipientAddr types.AccAddress, amt types.Coins)) *MockBankKeeper_SendCoinsFromModuleToAccount_Call {
+func (_c *MockBankKeeper_SendCoinsFromModuleToAccount_Call) Run(run func(ctx context.Context, senderModule string, recipientAddr types.AccAddress, amt types.Coins)) *MockBankKeeper_SendCoinsFromModuleToAccount_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(types.Context), args[1].(string), args[2].(types.AccAddress), args[3].(types.Coins))
+		run(args[0].(context.Context), args[1].(string), args[2].(types.AccAddress), args[3].(types.Coins))
 	})
 	return _c
 }
@@ -112,13 +114,13 @@ func (_c *MockBankKeeper_SendCoinsFromModuleToAccount_Call) Return(_a0 error) *M
 	return _c
 }
 
-func (_c *MockBankKeeper_SendCoinsFromModuleToAccount_Call) RunAndReturn(run func(types.Context, string, types.AccAddress, types.Coins) error) *MockBankKeeper_SendCoinsFromModuleToAccount_Call {
+func (_c *MockBankKeeper_SendCoinsFromModuleToAccount_Call) RunAndReturn(run func(context.Context, string, types.AccAddress, types.Coins) error) *MockBankKeeper_SendCoinsFromModuleToAccount_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // SendCoinsFromModuleToModule provides a mock function with given fields: ctx, senderModule, recipientModule, amt
-func (_m *MockBankKeeper) SendCoinsFromModuleToModule(ctx types.Context, senderModule string, recipientModule string, amt types.Coins) error {
+func (_m *MockBankKeeper) SendCoinsFromModuleToModule(ctx context.Context, senderModule string, recipientModule string, amt types.Coins) error {
 	ret := _m.Called(ctx, senderModule, recipientModule, amt)
 
 	if len(ret) == 0 {
@@ -126,7 +128,7 @@ func (_m *MockBankKeeper) SendCoinsFromModuleToModule(ctx types.Context, senderM
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(types.Context, string, string, types.Coins) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, types.Coins) error); ok {
 		r0 = rf(ctx, senderModule, recipientModule, amt)
 	} else {
 		r0 = ret.Error(0)
@@ -149,9 +151,9 @@ func (_e *MockBankKeeper_Expecter) SendCoinsFromModuleToModule(ctx interface{}, 
 	return &MockBankKeeper_SendCoinsFromModuleToModule_Call{Call: _e.mock.On("SendCoinsFromModuleToModule", ctx, senderModule, recipientModule, amt)}
 }
 
-func (_c *MockBankKeeper_SendCoinsFromModuleToModule_Call) Run(run func(ctx types.Context, senderModule string, recipientModule string, amt types.Coins)) *MockBankKeeper_SendCoinsFromModuleToModule_Call {
+func (_c *MockBankKeeper_SendCoinsFromModuleToModule_Call) Run(run func(ctx context.Context, senderModule string, recipientModule string, amt types.Coins)) *MockBankKeeper_SendCoinsFromModuleToModule_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(types.Context), args[1].(string), args[2].(string), args[3].(types.Coins))
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(types.Coins))
 	})
 	return _c
 }
@@ -161,7 +163,7 @@ func (_c *MockBankKeeper_SendCoinsFromModuleToModule_Call) Return(_a0 error) *Mo
 	return _c
 }
 
-func (_c *MockBankKeeper_SendCoinsFromModuleToModule_Call) RunAndReturn(run func(types.Context, string, string, types.Coins) error) *MockBankKeeper_SendCoinsFromModuleToModule_Call {
+func (_c *MockBankKeeper_SendCoinsFromModuleToModule_Call) RunAndReturn(run func(context.Context, string, string, types.Coins) error) *MockBankKeeper_SendCoinsFromModuleToModule_Call {
 	_c.Call.Return(run)
 	return _c
 }

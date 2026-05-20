@@ -16,7 +16,7 @@ import (
 
 func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, creator string) error {
 	if regionId == strings.ToLower(types.ExperienceRegionName) {
-		return errorsmod.Wrapf(types.ErrSendKycReward, fmt.Sprintf("cannot set kyc to %s region", regionId))
+		return errorsmod.Wrapf(types.ErrSendKycReward, "cannot set kyc to %s region", regionId)
 	}
 
 	region, found := k.GetRegion(ctx, regionId)
@@ -26,7 +26,7 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, cre
 
 	valAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
 	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	validator, err := k.GetValidator(ctx, valAddr)
@@ -35,14 +35,14 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, cre
 	}
 
 	if validator.MeidAmount.Add(types.Bonus).GT(validator.Tokens) {
-		return errorsmod.Wrapf(types.ErrSendKycReward, fmt.Sprintf("validator reach meid limit"))
+		return errorsmod.Wrapf(types.ErrSendKycReward, "validator reach meid limit")
 	}
 
 	validator.MeidAmount = validator.MeidAmount.Add(types.Bonus)
 
 	err = k.sendKycRewards(ctx, account, valAddr, validator, region)
 	if err != nil {
-		return errorsmod.Wrapf(types.ErrSendKycReward, err.Error())
+		return errorsmod.Wrap(types.ErrSendKycReward, err.Error())
 	}
 
 	// validator rewards
@@ -67,7 +67,7 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, cre
 func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionId string) error {
 	region, found := k.GetRegion(ctx, regionId)
 	if !found {
-		return errorsmod.Wrapf(types.ErrRegionNotExist, fmt.Sprintf("%s not exists", regionId))
+		return errorsmod.Wrapf(types.ErrRegionNotExist, "%s not exists", regionId)
 	}
 
 	valAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)

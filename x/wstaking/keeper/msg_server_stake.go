@@ -44,7 +44,7 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 	minSelfStake := math.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
 	if msg.Amount.Amount.Mod(minSelfStake).Int64() != 0 {
 		return nil, errorsmod.Wrapf(
-			sdkerrors.ErrInvalidRequest, "invalid coin amount: got %s, expected %s integer multiple", msg.Amount.Amount.Int64(), int64(gomath.Pow10(params.BaseDenomUnit)),
+			sdkerrors.ErrInvalidRequest, "invalid coin amount: got %d, expected %d integer multiple", msg.Amount.Amount.Int64(), int64(gomath.Pow10(params.BaseDenomUnit)),
 		)
 	}
 	// should before modified region shared
@@ -53,17 +53,17 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 		return nil, errorsmod.Wrapf(types.ErrHooks, "before stake:%+v", err)
 	}
 
-	region, found := k.Keeper.GetRegion(ctx, validator.Description.RegionID)
-	if found {
-		region.RegionShare = region.RegionShare.Add(msg.Amount.Amount)
-		k.Keeper.SetRegion(ctx, region)
-		// return nil, types.ErrValidatorRegion.Wrapf("%s not found", validator.Description.RegionID)
-	}
-
 	// NOTE: source funds are always unbonded
 	newShares, err := k.Keeper.Stake(ctx, sdk.MustAccAddressFromBech32(msg.StakerAddress), msg.Amount.Amount, stakingtypes.Unbonded, validator, true, "stake_"+validator.Description.RegionID)
 	if err != nil {
 		return nil, err
+	}
+
+	// Update RegionShare after successful stake (must be after Stake to avoid BondRegion overwrite)
+	region, found := k.Keeper.GetRegion(ctx, validator.Description.RegionID)
+	if found {
+		region.RegionShare = region.RegionShare.Add(msg.Amount.Amount)
+		k.Keeper.SetRegion(ctx, region)
 	}
 
 	if msg.Amount.Amount.IsInt64() {
@@ -123,6 +123,20 @@ func (k MsgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 	if err != nil {
 		return nil, errorsmod.Wrapf(types.ErrHooks, "before unStake :error :%+v", err)
 	}
+
+	// Update RegionShare before unstake completes
+	unstakeValidator, valErr := k.GetValidator(ctx, addr)
+	if valErr == nil {
+		if unstakeRegion, foundRegion := k.Keeper.GetRegion(ctx, unstakeValidator.Description.RegionID); foundRegion {
+			if unstakeRegion.RegionShare.GTE(msg.Amount.Amount) {
+				unstakeRegion.RegionShare = unstakeRegion.RegionShare.Sub(msg.Amount.Amount)
+			} else {
+				unstakeRegion.RegionShare = math.ZeroInt()
+			}
+			k.Keeper.SetRegion(ctx, unstakeRegion)
+		}
+	}
+
 	completionTime, err := k.Keeper.Unstake(ctx, stakerAddress, addr, shares)
 	if err != nil {
 		return nil, err

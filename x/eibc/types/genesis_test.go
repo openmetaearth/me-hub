@@ -69,6 +69,6 @@ var validDemandOrder = types.DemandOrder{
 
 var validParams = types.Params{
 	EpochIdentifier: "hour",
-	TimeoutFee:      sdk.NewDecWithPrec(1, 1),
-	ErrackFee:       sdk.NewDecWithPrec(1, 1),
+	TimeoutFee:      sdkmath.LegacyNewDecWithPrec(1, 1),
+	ErrackFee:       sdkmath.LegacyNewDecWithPrec(1, 1),
 }

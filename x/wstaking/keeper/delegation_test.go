@@ -80,15 +80,15 @@ func (s *KeeperTestSuite) TestIterateRegionKycDelegatins() {
 	s.App.StakingKeeper.ChangeDelegationValidator(s.Ctx)
 
 	// Verify delegations' validator addresses have been updated
-	delegation1, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator1, sdk.ValAddress{})
-	s.Require().True(found)
+	delegation1, err := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator1, sdk.ValAddress{})
+	s.Require().NoError(err)
 	s.Require().Equal(s.usaValidator.OperatorAddress, delegation1.ValidatorAddress)
 
-	delegation2, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator2, sdk.ValAddress{})
-	s.Require().True(found)
+	delegation2, err := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator2, sdk.ValAddress{})
+	s.Require().NoError(err)
 	s.Require().Equal(s.usaValidator.OperatorAddress, delegation2.ValidatorAddress)
 
-	delegation3, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator3, sdk.ValAddress{})
-	s.Require().True(found)
+	delegation3, err := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator3, sdk.ValAddress{})
+	s.Require().NoError(err)
 	s.Require().Equal(s.usaValidator.OperatorAddress, delegation3.ValidatorAddress)
 }

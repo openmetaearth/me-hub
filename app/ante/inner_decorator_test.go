@@ -6,6 +6,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	protov2 "google.golang.org/protobuf/proto"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -281,4 +282,51 @@ func (suite *AnteTestSuite) TestInnerDecoratorCountCallbackCalls() {
 			suite.Require().Equal(tc.expectedCalls, callCount, "unexpected number of callback calls for test case: %s", tc.name)
 		})
 	}
+}
+
+// Helper functions for testing
+
+// packMsg wraps a sdk.Msg into a codectypes.Any for use in nested messages
+func packMsg(t interface{ Fatal(args ...interface{}) }, msg sdk.Msg) *codectypes.Any {
+	any, err := codectypes.NewAnyWithValue(msg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return any
+}
+
+// generateDeeplyNestedMsgExec generates a MsgExec nested to the specified depth
+func generateDeeplyNestedMsgExec(t interface{ Fatal(args ...interface{}) }, depth int) *authz.MsgExec {
+	if depth == 0 {
+		return &authz.MsgExec{
+			Grantee: "cosmos1...",
+			Msgs: []*codectypes.Any{
+				packMsg(t, &banktypes.MsgMultiSend{}),
+			},
+		}
+	}
+	return &authz.MsgExec{
+		Grantee: "cosmos1...",
+		Msgs: []*codectypes.Any{
+			packMsg(t, generateDeeplyNestedMsgExec(t, depth-1)),
+		},
+	}
+}
+
+// mockTx is a simple mock transaction for testing
+type mockTx struct {
+	msgs []sdk.Msg
+}
+
+func (m *mockTx) GetMsgs() []sdk.Msg {
+	return m.msgs
+}
+
+func (m *mockTx) ValidateBasic() error {
+	return nil
+}
+
+func (m *mockTx) GetMsgsV2() ([]protov2.Message, error) {
+	// For test purposes, return nil since AnteHandler typically doesn't use GetMsgsV2
+	return nil, nil
 }

@@ -3,7 +3,7 @@ package eibc_test
 import (
 	"testing"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -21,16 +21,16 @@ func TestInitGenesis(t *testing.T) {
 			{
 				Id:                   "1",
 				TrackingPacketKey:    "11/22/33",
-				Price:                sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(150)}},
-				Fee:                  sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(50)}},
+				Price:                sdk.Coins{sdk.Coin{Denom: "adym", Amount: sdkmath.NewInt(150)}},
+				Fee:                  sdk.Coins{sdk.Coin{Denom: "adym", Amount: sdkmath.NewInt(50)}},
 				Recipient:            "dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58",
 				TrackingPacketStatus: commontypes.Status_PENDING,
 			},
 			{
 				Id:                   "2",
 				TrackingPacketKey:    "22/33/44",
-				Price:                sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(250)}},
-				Fee:                  sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(150)}},
+				Price:                sdk.Coins{sdk.Coin{Denom: "adym", Amount: sdkmath.NewInt(250)}},
+				Fee:                  sdk.Coins{sdk.Coin{Denom: "adym", Amount: sdkmath.NewInt(150)}},
 				Recipient:            "dym15saxgqw6kvhv6k5sg6r45kmdf4sf88kfw2adcw",
 				FulfillerAddress:     "dym19pas0pqwje540u5ptwnffjxeamdxc9tajmdrfa",
 				TrackingPacketStatus: commontypes.Status_REVERTED,
@@ -54,8 +54,8 @@ func TestExportGenesis(t *testing.T) {
 	k, ctx := keepertest.EibcKeeper(t)
 	params := types.Params{
 		EpochIdentifier: "week",
-		TimeoutFee:      sdk.NewDecWithPrec(4, 1),
-		ErrackFee:       sdk.NewDecWithPrec(4, 1),
+		TimeoutFee:      sdkmath.LegacyNewDecWithPrec(4, 1),
+		ErrackFee:       sdkmath.LegacyNewDecWithPrec(4, 1),
 	}
 	// Set some demand orders
 	demandOrders := []types.DemandOrder{

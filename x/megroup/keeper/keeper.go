@@ -181,7 +181,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 
 	newGrpInfo, found := k.GetGroupInfo(sdkCtx, newGrpId)
 	if !found { // if new group has not been created,emit event and return
-		return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found group by groupID.groupID = %d", newGrpId))
+		return errors.Wrapf(types.ErrGroupNotExist, "can not found group by groupID.groupID = %d", newGrpId)
 	}
 	newGrpNumberCnt, found := k.GetGroupMemberCount(sdkCtx, newGrpId)
 	if !found {
@@ -277,8 +277,7 @@ func (k Keeper) CreateGroupByRegion(sdkCtx sdk.Context, regionInfo stakingTypes.
 
 	operValAddr, err := sdk.ValAddressFromBech32(regionInfo.OperatorAddress)
 	if err != nil {
-		return 0, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, fmt.Sprintf("OperatorAddress can not convert to ValAddress."+
-			"err = %s, OperatorAddress = %s", err.Error(), regionInfo.OperatorAddress))
+		return 0, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "OperatorAddress can not convert to ValAddress.err = %s, OperatorAddress = %s", err.Error(), regionInfo.OperatorAddress)
 	}
 	accAddr := sdk.AccAddress(operValAddr.Bytes())
 

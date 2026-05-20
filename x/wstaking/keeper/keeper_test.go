@@ -5,17 +5,15 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	testutilstypes "github.com/openmetaearth/me-hub/testutil/types"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/require"
@@ -42,18 +40,12 @@ func (s *KeeperTestSuite) Keeper() *wstakingkeeper.Keeper {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
-
-	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	s.Require().NoError(err)
-
-	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
-	s.Require().NoError(err)
+	app := apptesting.Setup(s.T())
+	ctx := app.GetBaseApp().NewContext(false)
 
 	stakingParams := stakingtypes.DefaultParams()
 	stakingParams.BondDenom = params.BaseDenom
-	err = app.StakingKeeper.SetParams(ctx, stakingParams)
+	err := app.StakingKeeper.SetParams(ctx, stakingParams)
 	s.Require().NoError(err)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
@@ -70,7 +62,8 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.InitializeDao()
 
-	validators := s.Keeper().GetValidators(s.Ctx, 10)
+	validators, err := s.Keeper().GetValidators(s.Ctx, 10)
+	s.Require().NoError(err)
 	s.Require().True(len(validators) >= 3)
 	s.meEarthValidator = validators[0]
 	s.experienceValidator = validators[1]
@@ -88,6 +81,16 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.TestAccs = s.NewAccounts(3)
 }
 
+// InitKyc sets up KYC for the given account with a DID and region ID.
+func (s *KeeperTestSuite) InitKyc(account sdk.AccAddress, did string, regionId string) {
+	s.App.KycKeeper.SetDID(s.Ctx, account, did)
+	s.App.KycKeeper.SetKYC(s.Ctx, did, didtypes.Credential{
+		Did:  did,
+		Sid:  "kyc",
+		Data: []byte(regionId),
+	})
+}
+
 func SetValidatorV1(ctx sdk.Context, k *wstakingkeeper.Keeper, validator testutilstypes.ValidatorV1) {
 	store := ctx.KVStore(k.GetStoreKey())
 	bz := k.GetCdc().MustMarshal(&validator)
@@ -98,7 +101,7 @@ func SetValidatorV1(ctx sdk.Context, k *wstakingkeeper.Keeper, validator testuti
 	store.Set(stakingtypes.GetValidatorKey(addr), bz)
 }
 
-func GetValidatorV2(ctx sdk.Context, k *wstakingkeeper.Keeper, addr sdk.ValAddress) (validator testutilstypes.ValidatorV2, found bool) {
+func GetValidatorV2(ctx sdk.Context, k *wstakingkeeper.Keeper, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool) {
 	store := ctx.KVStore(k.GetStoreKey())
 	value := store.Get(stakingtypes.GetValidatorKey(addr))
 	if value == nil {
@@ -106,7 +109,7 @@ func GetValidatorV2(ctx sdk.Context, k *wstakingkeeper.Keeper, addr sdk.ValAddre
 	}
 	err := k.GetCdc().Unmarshal(value, &validator)
 	if err != nil {
-		panic(err)
+		return validator, false
 	}
 	return validator, true
 }
@@ -144,11 +147,15 @@ func (s *KeeperTestSuite) TestMigrateValidator() {
 	if err != nil {
 		panic(err)
 	}
-	// test panicked: proto: wrong wireType = 2 for field UnbondingOnHoldRefCount
+	// run migration to convert V1 validator format to current V2 format
+	err = s.App.StakingKeeper.MigrateValidatorsFromV1(s.Ctx)
+	require.NoError(s.T(), err)
+
 	validator, found := GetValidatorV2(s.Ctx, s.App.StakingKeeper, addr)
 	require.True(s.T(), found)
 
-	validators := s.App.StakingKeeper.GetAllValidators(s.Ctx)
+	validators, err := s.App.StakingKeeper.GetAllValidators(s.Ctx)
+	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(validators), 4)
 	for _, v := range validators {
 		if v.OperatorAddress == validator.OperatorAddress {

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/openmetaearth/me-hub/testutil/nullify"
+	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/openmetaearth/me-hub/x/did"
 
 	_ "github.com/evmos/ethermint/crypto/ethsecp256k1"
@@ -16,9 +17,10 @@ func TestInitExportGenesis(t *testing.T) {
 	genesisState := types.GenesisState{
 		Infos: []types.DidInfo{
 			{
-				Did:    "1000000000000001",
-				Pubkey: "{\"@type\":\"/ethermint.crypto.v1.ethsecp256k1.PubKey\",\"key\":\"AjkBriaNQIyoihm/Op5a53ovjdThnbs8G3GhSdErW7Mt\"}",
-				Status: types.DID_STATUS_ACTIVE,
+				Did:     "1000000000000001",
+				Address: sample.AccAddress(), // 使用 sample 生成有效地址
+				Pubkey:  "{\"@type\":\"/ethermint.crypto.v1.ethsecp256k1.PubKey\",\"key\":\"AjkBriaNQIyoihm/Op5a53ovjdThnbs8G3GhSdErW7Mt\"}",
+				Status:  types.DID_STATUS_ACTIVE,
 			},
 		},
 		Svcs: []types.Service{
@@ -41,7 +43,7 @@ func TestInitExportGenesis(t *testing.T) {
 		},
 		Flogs: []types.FilterLogger{
 			{
-				Did: "000000000000001",
+				Did: "1000000000000001",
 				Sid: "kyc",
 				Filters: [][]byte{
 					[]byte("A0"),

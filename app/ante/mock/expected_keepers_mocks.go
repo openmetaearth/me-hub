@@ -5,6 +5,7 @@
 package mock
 
 import (
+	context "context"
 	reflect "reflect"
 
 	types "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -80,20 +81,6 @@ func (mr *MockDaoKeeperMockRecorder) GetDevOperator(ctx interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDevOperator", reflect.TypeOf((*MockDaoKeeper)(nil).GetDevOperator), ctx)
 }
 
-// GetGlobalDao mocks base method.
-func (m *MockDaoKeeper) GetGlobalDao(ctx types0.Context) string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGlobalDao", ctx)
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// GetGlobalDao indicates an expected call of GetGlobalDao.
-func (mr *MockDaoKeeperMockRecorder) GetGlobalDao(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGlobalDao", reflect.TypeOf((*MockDaoKeeper)(nil).GetGlobalDao), ctx)
-}
-
 // GetGlobalDaoFeePoolAddr mocks base method.
 func (m *MockDaoKeeper) GetGlobalDaoFeePoolAddr(ctx types0.Context) types0.AccAddress {
 	m.ctrl.T.Helper()
@@ -108,18 +95,18 @@ func (mr *MockDaoKeeperMockRecorder) GetGlobalDaoFeePoolAddr(ctx interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGlobalDaoFeePoolAddr", reflect.TypeOf((*MockDaoKeeper)(nil).GetGlobalDaoFeePoolAddr), ctx)
 }
 
-// GetMeidDao mocks base method.
-func (m *MockDaoKeeper) GetMeidDao(ctx types0.Context) string {
+// IsDao mocks base method.
+func (m *MockDaoKeeper) IsDao(ctx types0.Context, addr string) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMeidDao", ctx)
-	ret0, _ := ret[0].(string)
+	ret := m.ctrl.Call(m, "IsDao", ctx, addr)
+	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
-// GetMeidDao indicates an expected call of GetMeidDao.
-func (mr *MockDaoKeeperMockRecorder) GetMeidDao(ctx interface{}) *gomock.Call {
+// IsDao indicates an expected call of IsDao.
+func (mr *MockDaoKeeperMockRecorder) IsDao(ctx, addr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMeidDao", reflect.TypeOf((*MockDaoKeeper)(nil).GetMeidDao), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsDao", reflect.TypeOf((*MockDaoKeeper)(nil).IsDao), ctx, addr)
 }
 
 // MockBankKeeper is a mock of BankKeeper interface.
@@ -146,7 +133,7 @@ func (m *MockBankKeeper) EXPECT() *MockBankKeeperMockRecorder {
 }
 
 // FeeToReceivers mocks base method.
-func (m *MockBankKeeper) FeeToReceivers(ctx types0.Context, inputs []types1.Input, outputs []types1.Output, receiverTypes []types3.FeeReceiverType) error {
+func (m *MockBankKeeper) FeeToReceivers(ctx context.Context, inputs []types1.Input, outputs []types1.Output, receiverTypes []types3.FeeReceiverType) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FeeToReceivers", ctx, inputs, outputs, receiverTypes)
 	ret0, _ := ret[0].(error)
@@ -160,7 +147,7 @@ func (mr *MockBankKeeperMockRecorder) FeeToReceivers(ctx, inputs, outputs, recei
 }
 
 // GetAllBalances mocks base method.
-func (m *MockBankKeeper) GetAllBalances(ctx types0.Context, addr types0.AccAddress) types0.Coins {
+func (m *MockBankKeeper) GetAllBalances(ctx context.Context, addr types0.AccAddress) types0.Coins {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllBalances", ctx, addr)
 	ret0, _ := ret[0].(types0.Coins)
@@ -303,7 +290,7 @@ func (m *MockWasmKeeper) EXPECT() *MockWasmKeeperMockRecorder {
 }
 
 // GetContractInfo mocks base method.
-func (m *MockWasmKeeper) GetContractInfo(ctx types0.Context, contractAddress types0.AccAddress) *types.ContractInfo {
+func (m *MockWasmKeeper) GetContractInfo(ctx context.Context, contractAddress types0.AccAddress) *types.ContractInfo {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContractInfo", ctx, contractAddress)
 	ret0, _ := ret[0].(*types.ContractInfo)
@@ -317,7 +304,7 @@ func (mr *MockWasmKeeperMockRecorder) GetContractInfo(ctx, contractAddress inter
 }
 
 // HasContractInfo mocks base method.
-func (m *MockWasmKeeper) HasContractInfo(ctx types0.Context, contractAddress types0.AccAddress) bool {
+func (m *MockWasmKeeper) HasContractInfo(ctx context.Context, contractAddress types0.AccAddress) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HasContractInfo", ctx, contractAddress)
 	ret0, _ := ret[0].(bool)

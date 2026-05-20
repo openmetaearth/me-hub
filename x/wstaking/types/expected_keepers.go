@@ -64,4 +64,5 @@ type DidKeeper interface {
 type GroupKeeper interface {
 	CreateGroupByRegion(sdkCtx sdk.Context, regionInfo Region) (uint64, error)
 	UpdateGroupAdmin(ctx sdk.Context, regionID string, admin string)
+	DeleteGroupAssociateWithRegion(ctx sdk.Context, regionID string)
 }

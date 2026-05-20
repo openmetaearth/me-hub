@@ -4,9 +4,15 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/stretchr/testify/assert"
 )
+
+func init() {
+	config := sdk.GetConfig()
+	params.SetAddressPrefixes(config)
+}
 
 func TestKeeper_DID(t *testing.T) {
 	k, ctx := keeper.DidKeeper(t)

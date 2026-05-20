@@ -32,6 +32,7 @@ func (k Keeper) GetRegion(ctx sdk.Context, regionId string) (region types.Region
 func (k Keeper) RemoveRegion(ctx sdk.Context, regionId string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RegionKeyPrefix))
 	store.Delete(types.RegionKey(regionId))
+	k.groupKeeper.DeleteGroupAssociateWithRegion(ctx, regionId)
 }
 
 // GetAllRegion returns all region
@@ -86,6 +87,17 @@ func (k Keeper) BondRegion(ctx sdk.Context, validator stakingtypes.Validator, to
 		k.groupKeeper.UpdateGroupAdmin(ctx, validator.Description.RegionID, validator.OwnerAddress)
 	}
 	region.RegionShare = tokens
+	k.SetRegion(ctx, region)
+}
+
+// UpdateRegionOperator updates only the OperatorAddress of the region, without changing RegionShare.
+func (k Keeper) UpdateRegionOperator(ctx sdk.Context, validator stakingtypes.Validator) {
+	region, found := k.GetRegion(ctx, validator.Description.RegionID)
+	if !found {
+		return
+	}
+	region.OperatorAddress = validator.OperatorAddress
+	k.groupKeeper.UpdateGroupAdmin(ctx, validator.Description.RegionID, validator.OwnerAddress)
 	k.SetRegion(ctx, region)
 }
 

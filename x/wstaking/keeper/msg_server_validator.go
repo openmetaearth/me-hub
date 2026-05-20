@@ -28,7 +28,7 @@ func (k MsgServer) CreateValidator(
 
 	_, err := utils.CheckRegionName(strings.ToUpper(msg.Description.RegionID))
 	if err != nil {
-		return nil, errorsmod.Wrapf(types.ErrRegionName, msg.Description.RegionID)
+		return nil, errorsmod.Wrapf(types.ErrRegionName, "invalid region name: %s", msg.Description.RegionID)
 	}
 	msg.Description.RegionID = strings.ToLower(msg.Description.RegionID)
 

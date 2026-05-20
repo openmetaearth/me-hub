@@ -5,20 +5,24 @@ import (
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
-	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/store/metrics"
-	dbm "github.com/cosmos/cosmos-db"
+	storetypes "cosmossdk.io/store/types"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/sequencer/keeper"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 )
 
 func SequencerKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
+	// Register base denom before creating keeper
+	params.RegisterDenomsIfNeeded()
+
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
 

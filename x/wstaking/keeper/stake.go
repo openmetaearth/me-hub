@@ -242,12 +242,8 @@ func (k Keeper) UnStakeBond(
 		if err != nil {
 			return amount, err
 		}
-		k.UnBondRegion(ctx, validator.Description.RegionID)
 	} else {
-		k.BondRegion(ctx, validator, stake.Shares.TruncateInt(), false)
 		k.SetStake(ctx, stake)
-		// call the after stake modification hook
-		// err = k.AfterDelegationModified(ctx, stakerAddress, stake.GetValidatorAddr())
 	}
 
 	// remove the shares and coins from the validator

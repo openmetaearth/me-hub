@@ -19,9 +19,9 @@ func TestDefaultGenesisState(t *testing.T) {
 			want: &gravitytypes.GenesisState{
 				Params: gravitytypes.Params{
 					GravityId:                          "me-bsc-bridge",
-					AverageBlockTime:                   7_000,
-					ExternalBatchTimeout:               12 * 3600 * 1000,
-					AverageExternalBlockTime:           3_000,
+					AverageBlockTime:                   5_000,
+					ExternalBatchTimeout:               7 * 24 * 3600 * 1000,
+					AverageExternalBlockTime:           750,
 					SignedWindow:                       30_000,
 					SlashFraction:                      sdkmath.LegacyNewDec(8).Quo(sdkmath.LegacyNewDec(10)),
 					RelayerSetUpdatePowerChangePercent: sdkmath.LegacyMustNewDecFromStr("0.1"),

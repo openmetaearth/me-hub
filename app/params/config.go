@@ -62,6 +62,20 @@ func RegisterDenoms() {
 	}
 }
 
+// RegisterDenomsIfNeeded registers denoms only if they haven't been registered yet.
+// This is safe to call multiple times (e.g., in test setup).
+func RegisterDenomsIfNeeded() {
+	// Try to get the base denom to check if it's already registered
+	_, err := sdk.GetBaseDenom()
+	if err == nil {
+		// Denom already registered, skip
+		return
+	}
+
+	// Not registered yet, register now
+	RegisterDenoms()
+}
+
 func SetAddressPrefixes(config *sdk.Config) {
 	// Set prefixes
 	accountPubKeyPrefix := AccountAddressPrefix + "pub"

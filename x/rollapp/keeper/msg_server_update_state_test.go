@@ -4,7 +4,6 @@ import (
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	common "github.com/openmetaearth/me-hub/x/common/types"
@@ -145,7 +144,8 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		suite.Require().Nil(err)
 
 		// end block
-		suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+		_, err = suite.App.EndBlocker(suite.Ctx)
+		suite.Require().NoError(err)
 
 		if uint64(suite.Ctx.BlockHeight()) > disputePeriodInBlocks {
 			for i := uint64(1); i <= latestStateInfoIndex.Index; i++ {

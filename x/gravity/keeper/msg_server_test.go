@@ -8,6 +8,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -40,7 +41,7 @@ func (s *KeeperTestSuite) TestMsgBondedRelayer() {
 				s.Keeper().SetRelayer(s.Ctx, sdk.MustAccAddressFromBech32(msg.RelayerAddress), types.Relayer{RelayerAddress: msg.RelayerAddress})
 			},
 			pass: false,
-			err:  "relayer existed bridger address: invalid",
+			err:  "relayer already bonded: invalid",
 		},
 		{
 			name: "error - external address is bound",
@@ -48,7 +49,7 @@ func (s *KeeperTestSuite) TestMsgBondedRelayer() {
 				s.Keeper().SetRelayerByExternalAddress(s.Ctx, msg.ExternalAddress, sdk.MustAccAddressFromBech32(msg.RelayerAddress))
 			},
 			pass: false,
-			err:  "external address is bound to relayer: invalid",
+			err:  "external already bonded: invalid",
 		},
 		{
 			name: "error - stake denom not match chain params stake denom",
@@ -493,7 +494,7 @@ func (s *KeeperTestSuite) TestClaimMsgGasConsumed() {
 					eventNonce := s.Keeper().GetLastEventNonceByRelayer(s.Ctx, relayer)
 					msg.EventNonce = eventNonce + 1
 					msg.RelayerAddress = s.relayerAddrs[i].String()
-					ctxWithGasMeter := s.Ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+					ctxWithGasMeter := s.Ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 					_, err := s.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
 					s.Require().NoError(err)
 					maxGas, minGas, avgGas = gasStatics(ctxWithGasMeter.GasMeter().GasConsumed(), maxGas, minGas, avgGas)
@@ -528,7 +529,7 @@ func (s *KeeperTestSuite) TestClaimMsgGasConsumed() {
 					eventNonce := s.Keeper().GetLastEventNonceByRelayer(s.Ctx, relayer)
 					msg.EventNonce = eventNonce + 1
 					msg.RelayerAddress = s.relayerAddrs[i].String()
-					ctxWithGasMeter := s.Ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+					ctxWithGasMeter := s.Ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 					_, err := s.MsgServer().SendToMeClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
 					s.Require().NoError(err)
 					maxGas, minGas, avgGas = gasStatics(ctxWithGasMeter.GasMeter().GasConsumed(), maxGas, minGas, avgGas)
@@ -566,7 +567,7 @@ func (s *KeeperTestSuite) TestClaimMsgGasConsumed() {
 					eventNonce := s.Keeper().GetLastEventNonceByRelayer(s.Ctx, relayer)
 					msg.EventNonce = eventNonce + 1
 					msg.RelayerAddress = s.relayerAddrs[i].String()
-					ctxWithGasMeter := s.Ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+					ctxWithGasMeter := s.Ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 					_, err := s.MsgServer().RelayerSetUpdateClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
 					s.Require().NoError(err)
 					maxGas, minGas, avgGas = gasStatics(ctxWithGasMeter.GasMeter().GasConsumed(), maxGas, minGas, avgGas)
@@ -596,7 +597,7 @@ func (s *KeeperTestSuite) TestClaimMsgGasConsumed() {
 					eventNonce := s.Keeper().GetLastEventNonceByRelayer(s.Ctx, relayer)
 					msg.EventNonce = eventNonce + 1
 					msg.RelayerAddress = s.relayerAddrs[i].String()
-					ctxWithGasMeter := s.Ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+					ctxWithGasMeter := s.Ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 					_, err := s.MsgServer().SendToExternalClaim(sdk.WrapSDKContext(ctxWithGasMeter), msg)
 					s.Require().NoError(err)
 					maxGas, minGas, avgGas = gasStatics(ctxWithGasMeter.GasMeter().GasConsumed(), maxGas, minGas, avgGas)

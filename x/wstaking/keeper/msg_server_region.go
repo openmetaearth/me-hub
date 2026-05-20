@@ -21,7 +21,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 
 	_, err := utils.CheckRegionName(msg.Name)
 	if err != nil {
-		return nil, errorsmod.Wrapf(types.ErrRegionName, err.Error())
+		return nil, errorsmod.Wrap(types.ErrRegionName, err.Error())
 	}
 
 	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
@@ -117,28 +117,28 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 }
 
 func (k MsgServer) RemoveRegion(goCtx context.Context, msg *types.MsgRemoveRegion) (*types.MsgRemoveRegionResponse, error) {
-	// ctx := sdk.UnwrapSDKContext(goCtx)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
-	// 	return nil, types.ErrCheckGlobalDao
-	// }
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
+		return nil, types.ErrCheckGlobalDao
+	}
 
-	// _, found := k.GetRegion(ctx, msg.RegionId)
-	// if !found {
-	// 	return nil, types.ErrRegionNotExist
-	// }
+	_, found := k.GetRegion(ctx, msg.RegionId)
+	if !found {
+		return nil, types.ErrRegionNotExist
+	}
 
-	// err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, sdk.ValAddress{})
-	// if err != nil {
-	// 	return nil, errorsmod.Wrapf(types.ErrHooks, "before remove region :error :%+v", err)
-	// }
-	// k.Keeper.RemoveRegion(ctx, msg.RegionId)
-	// ctx.EventManager().EmitEvent(
-	// 	sdk.NewEvent(
-	// 		types.EventTypeRemoveRegion,
-	// 		sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
-	// 	),
-	// )
+	err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, sdk.ValAddress{})
+	if err != nil {
+		return nil, errorsmod.Wrapf(types.ErrHooks, "before remove region :error :%+v", err)
+	}
+	k.Keeper.RemoveRegion(ctx, msg.RegionId)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeRemoveRegion,
+			sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
+		),
+	)
 	return &types.MsgRemoveRegionResponse{}, nil
 }
 

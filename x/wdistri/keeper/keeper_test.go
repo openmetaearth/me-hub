@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/golang/mock/gomock"
 	"github.com/openmetaearth/me-hub/app/apptesting"
@@ -15,7 +14,6 @@ import (
 	"github.com/openmetaearth/me-hub/app/params"
 
 	sdkmath "cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
@@ -28,6 +26,7 @@ import (
 
 	"cosmossdk.io/log"
 	tmtime "github.com/cometbft/cometbft/types/time"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -56,8 +55,8 @@ func (s *KeeperTestSuite) Keeper() *keeper.Keeper {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	app := apptesting.Setup(s.T())
+	ctx := app.GetBaseApp().NewContext(false)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	nativeQuerier := distrkeeper.Querier{Keeper: app.DistrKeeper.Keeper}
@@ -77,10 +76,10 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.App.DistrKeeper = keeper.NewKeeper(
 		s.App.AppCodec(),
-		s.App.GetKey(distrtypes.StoreKey),
-		s.App.GetSubspace(distrtypes.ModuleName),
+		runtime.NewKVStoreService(s.App.GetKey(distrtypes.StoreKey)),
 		s.authKeeper,
 		s.bankKeeper,
+		s.App.StakingKeeper,
 		s.stakingKeeper,
 		wbanktypes.TreasuryPoolName,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
@@ -226,7 +225,7 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 		}
 		suite.setMockSendCoinsFromModuleToAccountExpect(ctx, wantReward...)
 
-		err := suite.App.DistrKeeper.AllocateBlockRewardEveryday(ctx, abci.RequestEndBlock{Height: ctx.BlockHeight()})
+		err := suite.App.DistrKeeper.AllocateBlockRewardEveryday(ctx)
 		events := ctx.EventManager().ABCIEvents()
 		suite.Require().NoError(err, "case %d: %s", index, testcase.name)
 		assert.Equal(suite.T(), len(addrs), len(events))

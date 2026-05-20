@@ -4,17 +4,19 @@ import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/stretchr/testify/require"
 )
 
-// TestAppModuleOriginalStakingModule_GetConsensusVersion checks that the wrapped module still uses the save
+// TestAppModuleOriginalStakingModule_GetConsensusVersion checks that the wrapped module still uses the same
 // consensus version.
 func TestAppModuleOriginalStakingModule_GetConsensusVersion(t *testing.T) {
+	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 	stakingModule := staking.NewAppModule(
-		&codec.AminoCodec{}, nil, authkeeper.AccountKeeper{}, bankkeeper.BaseKeeper{}, nil,
+		cdc, nil, authkeeper.AccountKeeper{}, bankkeeper.BaseKeeper{}, nil,
 	)
-	require.Equal(t, uint64(4), stakingModule.ConsensusVersion())
+	require.Equal(t, uint64(5), stakingModule.ConsensusVersion())
 }

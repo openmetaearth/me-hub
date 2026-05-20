@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
-
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -22,9 +20,13 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (s *DelayedAckTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	app := apptesting.Setup(s.T())
+	ctx := app.GetBaseApp().NewContext(false)
 
 	s.App = app
 	s.Ctx = ctx
+}
+
+func (s *DelayedAckTestSuite) CreateRollappWithName(name string) {
+	s.CreateRollappByName(name)
 }

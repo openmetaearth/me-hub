@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -46,7 +45,7 @@ func (m *MsgDeleteSBT) ValidateBasic() error {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the holder is not a valid bech32 address")
 	}
 	if len(m.Did) != didtypes.DidLength {
-		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, fmt.Sprintf("DID length must be equal to %d", didtypes.DidLength))
+		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "DID length must be equal to %d", didtypes.DidLength)
 	}
 
 	return nil

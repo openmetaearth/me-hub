@@ -4,11 +4,8 @@ import (
 	"strings"
 
 	sdkmath "cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wdistri"
@@ -73,18 +70,14 @@ func (s *KeeperTestSuite) TestFixedDepositByRegionPagination() {
 	s.SetupTest()
 	s.createGlobalRegion()
 	s.createUsaRegion()
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	accounts := s.NewAccounts(3)
 	for _, account := range accounts {
 		wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-		err := s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx,
-			mintypes.ModuleName,
-			account,
-			sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 10000000000)})
-		s.Require().NoError(err)
+		apptesting.FundAccount(s.App, s.Ctx, account, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 10000000000)})
 	}
 	s.InitKyc(accounts[0], "0000000000001", types.MeEarthRegionId)
 	s.createFixedDeposits(10, accounts[0].String())

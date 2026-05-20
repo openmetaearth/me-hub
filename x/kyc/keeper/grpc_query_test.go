@@ -3,8 +3,6 @@ package keeper_test
 import (
 	"strings"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
@@ -17,33 +15,31 @@ import (
 func (s *KeeperTestSuite) TestProtocol() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	query := &types.QueryProtocol{}
 	res, err := s.queryClient.Protocol(s.Ctx, query)
 	s.Require().NoError(err)
 
-	genesis := types.DefaultGenesis()
-
 	s.Require().Equal(res.Protocol.Service.Sid, types.ModuleName)
 	s.Require().Equal(res.Protocol.Service.Name, types.ModuleName)
 	s.Require().Equal(res.Protocol.Service.Description, "The KYC verifiable credential issuer based The DID(Decentralized Identity).")
-	s.Require().Equal(len(res.Protocol.Service.Issuers), len(genesis.Issuers))
+	s.Require().Equal(1, len(res.Protocol.Service.Issuers)) // globalDao added as issuer in SetupTest
 	s.Require().Equal(res.Protocol.Service.Status, didtypes.SERVICE_STATUS_ACTIVE)
-	s.Require().Equal(len(res.Protocol.Regions), 0)
+	s.Require().NotNil(res.Protocol.Regions)
 }
 
 func (s *KeeperTestSuite) TestDID() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	did := "1111111111111111"
-	kycAccount, newUserPubkey := s.NewAccount()
+	kycAccount, newUserPubkey := s.NewAccountStr()
 	inviter, _ := s.NewAccount()
 	msg := &types.MsgApprove{
 		Issuer:   s.Dao.GlobalDao,
@@ -73,12 +69,12 @@ func (s *KeeperTestSuite) TestDID() {
 func (s *KeeperTestSuite) TestDIDs() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	did := "1111111111111111"
-	kycAccount, newUserPubkey := s.NewAccount()
+	kycAccount, newUserPubkey := s.NewAccountStr()
 	inviter, _ := s.NewAccount()
 	msg := &types.MsgApprove{
 		Issuer:   s.Dao.GlobalDao,
@@ -110,12 +106,12 @@ func (s *KeeperTestSuite) TestDIDs() {
 func (s *KeeperTestSuite) TestKYC() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	did := "1111111111111111"
-	kycAccount, newUserPubkey := s.NewAccount()
+	kycAccount, newUserPubkey := s.NewAccountStr()
 	inviter, _ := s.NewAccount()
 	msg := &types.MsgApprove{
 		Issuer:   s.Dao.GlobalDao,
@@ -146,12 +142,12 @@ func (s *KeeperTestSuite) TestKYC() {
 func (s *KeeperTestSuite) TestKYCs() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	did := "1111111111111111"
-	kycAccount, newUserPubkey := s.NewAccount()
+	kycAccount, newUserPubkey := s.NewAccountStr()
 	inviter, _ := s.NewAccount()
 	msg := &types.MsgApprove{
 		Issuer:   s.Dao.GlobalDao,

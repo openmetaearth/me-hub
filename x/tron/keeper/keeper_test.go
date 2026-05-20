@@ -6,8 +6,6 @@ import (
 	"math/big"
 	"testing"
 
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/openmetaearth/me-hub/app/apptesting"
@@ -21,7 +19,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -48,19 +45,13 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
-	s.Ctx = app.NewContext(false, cometbftproto.Header{Height: 0, ChainID: apptesting.TestChainID})
+	app := apptesting.Setup(s.T())
+	s.Ctx = app.NewContext(false).WithBlockHeight(0).WithChainID(apptesting.TestChainID)
 	s.App = app
-
-	err := app.AccountKeeper.SetParams(s.Ctx, authtypes.DefaultParams())
-	s.Require().NoError(err)
-
-	err = app.BankKeeper.SetParams(s.Ctx, banktypes.DefaultParams())
-	s.Require().NoError(err)
 
 	stakingParams := stakingtypes.DefaultParams()
 	stakingParams.BondDenom = params.BaseDenom
-	err = app.StakingKeeper.SetParams(s.Ctx, stakingParams)
+	err := app.StakingKeeper.SetParams(s.Ctx, stakingParams)
 	s.Require().NoError(err)
 
 	stakingKeeperMsgSrv := stakingkeeper.NewMsgServerImpl(app.StakingKeeper.Keeper)
@@ -68,7 +59,8 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.InitializeDao()
 
-	validators := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
+	validators, err := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
+	s.Require().NoError(err)
 	s.Require().True(len(validators) >= 3)
 	s.meEarthValidator = validators[0]
 
@@ -105,7 +97,7 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.msgServer = keeper.NewMsgServerImpl(s.App.TronKeeper)
 	s.signer = helpers.NewSigner(helpers.NewEthPrivKey())
-	apptesting.AddTestAddr(s.App, s.Ctx, s.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e8)))))
+	apptesting.FundAccount(s.App, s.Ctx, s.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e8)))))
 }
 
 func (s *KeeperTestSuite) NewOutgoingTxBatch() *gravitytypes.OutgoingTxBatch {

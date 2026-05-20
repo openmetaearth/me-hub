@@ -31,11 +31,16 @@ const (
 	balTokenCarol = 1
 )
 
-var bond = types.DefaultParams().MinBond
-
 func (suite *SequencerTestSuite) TestMinBond() {
 	suite.SetupTest()
 	rollappId := suite.CreateDefaultRollapp()
+
+	// Get the base denom
+	baseDenom, err := sdk.GetBaseDenom()
+	suite.Require().NoError(err)
+
+	// Create a non-zero bond for testing
+	nonZeroBond := sdk.NewCoin(baseDenom, sdkmath.NewInt(1000000))
 
 	testCases := []struct {
 		name          string
@@ -46,25 +51,25 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		{
 			name:          "No bond required",
 			requiredBond:  sdk.Coin{},
-			bond:          sdk.NewCoin("adym", sdkmath.NewInt(10000000)),
+			bond:          sdk.NewCoin(baseDenom, sdkmath.NewInt(10000000)),
 			expectedError: nil,
 		},
 		{
 			name:          "Valid bond",
-			requiredBond:  bond,
-			bond:          bond,
+			requiredBond:  nonZeroBond,
+			bond:          nonZeroBond,
 			expectedError: nil,
 		},
 		{
 			name:          "Bad denom",
-			requiredBond:  bond,
+			requiredBond:  nonZeroBond,
 			bond:          sdk.NewCoin("invalid", sdkmath.NewInt(100)),
 			expectedError: types.ErrInvalidCoinDenom,
 		},
 		{
 			name:          "Insufficient bond",
-			requiredBond:  bond,
-			bond:          sdk.NewCoin(bond.Denom, bond.Amount.Quo(sdkmath.NewInt(2))),
+			requiredBond:  nonZeroBond,
+			bond:          sdk.NewCoin(nonZeroBond.Denom, nonZeroBond.Amount.Quo(sdkmath.NewInt(2))),
 			expectedError: types.ErrInsufficientBond,
 		},
 	}
@@ -83,13 +88,13 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		suite.Require().Nil(err)
 
 		// fund account
-		err = bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr1, sdk.NewCoins(tc.bond))
+		err = bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr1, sdk.NewCoins(tc.bond))
 		suite.Require().Nil(err)
 
 		sequencerMsg1 := types.MsgCreateSequencer{
 			Creator:      addr1.String(),
 			DymintPubKey: pkAny1,
-			Bond:         bond,
+			Bond:         tc.bond, // Use tc.bond instead of bond
 			RollappId:    rollappId,
 			Description:  types.Description{},
 		}
@@ -101,10 +106,19 @@ func (suite *SequencerTestSuite) TestMinBond() {
 			suite.Require().NoError(err)
 			sequencer, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1.String())
 			suite.Require().True(found, tc.name)
-			if tc.requiredBond.IsNil() {
+			if tc.requiredBond.IsNil() || tc.requiredBond.IsZero() {
 				suite.Require().True(sequencer.Tokens.IsZero(), tc.name)
 			} else {
-				suite.Require().Equal(sdk.NewCoins(tc.requiredBond), sequencer.Tokens, tc.name)
+				// Compare nil-safe: both sides should be non-nil coins
+				expectedTokens := sdk.NewCoins(tc.requiredBond)
+				if expectedTokens == nil {
+					expectedTokens = sdk.Coins{}
+				}
+				actualTokens := sequencer.Tokens
+				if actualTokens == nil {
+					actualTokens = sdk.Coins{}
+				}
+				suite.Require().Equal(expectedTokens, actualTokens, "Valid bond")
 			}
 		}
 	}
@@ -113,6 +127,16 @@ func (suite *SequencerTestSuite) TestMinBond() {
 func (suite *SequencerTestSuite) TestCreateSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	// Get the base denom and create bond
+	baseDenom, err := sdk.GetBaseDenom()
+	suite.Require().NoError(err)
+	bond := sdk.NewCoin(baseDenom, sdkmath.NewInt(1000000))
+
+	// Set module params with non-zero MinBond to enable bond requirement
+	params := types.DefaultParams()
+	params.MinBond = bond
+	suite.App.SequencerKeeper.SetParams(suite.Ctx, params)
 
 	// max sequencers per rollapp
 	maxSequencers := 10
@@ -142,7 +166,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		for i := 0; i < 10; i++ {
 			pubkey := secp256k1.GenPrivKey().PubKey()
 			addr := sdk.AccAddress(pubkey.Address())
-			err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+			err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 			suite.Require().NoError(err)
 			pkAny, err := codectypes.NewAnyWithValue(pubkey)
 			suite.Require().Nil(err)
@@ -215,11 +239,16 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
+	// Get the base denom and create bond
+	baseDenom, err := sdk.GetBaseDenom()
+	suite.Require().NoError(err)
+	bond := sdk.NewCoin(baseDenom, sdkmath.NewInt(1000000))
+
 	rollappId := suite.CreateDefaultRollapp()
 
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err = bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 	suite.Require().NoError(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
@@ -242,9 +271,14 @@ func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
+	// Get the base denom and create bond
+	baseDenom, err := sdk.GetBaseDenom()
+	suite.Require().NoError(err)
+	bond := sdk.NewCoin(baseDenom, sdkmath.NewInt(1000000))
+
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err = bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 	suite.Require().NoError(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
@@ -265,10 +299,20 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
+	// Get the base denom and create bond
+	baseDenom, err := sdk.GetBaseDenom()
+	suite.Require().NoError(err)
+	bond := sdk.NewCoin(baseDenom, sdkmath.NewInt(1000000))
+
+	// Set module params with non-zero MinBond to enable bond requirement
+	params := types.DefaultParams()
+	params.MinBond = bond
+	suite.App.SequencerKeeper.SetParams(suite.Ctx, params)
+
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 	sequencerAddress := addr.String()
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err = bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 	suite.Require().NoError(err)
 
 	rollapp := rollapptypes.Rollapp{
@@ -317,6 +361,11 @@ func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
+	// Get the base denom and create bond
+	baseDenom, err := sdk.GetBaseDenom()
+	suite.Require().NoError(err)
+	bond := sdk.NewCoin(baseDenom, sdkmath.NewInt(1000000))
+
 	rollapp := rollapptypes.Rollapp{
 		RollappId:             "rollapp1",
 		Creator:               alice,
@@ -331,7 +380,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 	// TODO: cahnge with common func
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err = bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 	suite.Require().NoError(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
@@ -351,6 +400,12 @@ func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 func (suite *SequencerTestSuite) TestMaxSequencersZero() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	// Get the base denom and create bond
+	baseDenom, err := sdk.GetBaseDenom()
+	suite.Require().NoError(err)
+	bond := sdk.NewCoin(baseDenom, sdkmath.NewInt(1000000))
+
 	maxSequencers := 0
 
 	rollapp := rollapptypes.Rollapp{
@@ -365,7 +420,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersZero() {
 
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err = bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 	suite.Require().Nil(err)
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)
@@ -383,6 +438,12 @@ func (suite *SequencerTestSuite) TestMaxSequencersZero() {
 func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	// Get the base denom and create bond
+	baseDenom, err := sdk.GetBaseDenom()
+	suite.Require().NoError(err)
+	bond := sdk.NewCoin(baseDenom, sdkmath.NewInt(1000000))
+
 	maxSequencers := 3
 
 	rollapp := rollapptypes.Rollapp{
@@ -400,7 +461,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 	for i := 0; i < maxSequencers; i++ {
 		pubkey := secp256k1.GenPrivKey().PubKey()
 		addr := sdk.AccAddress(pubkey.Address())
-		err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+		err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 		suite.Require().Nil(err)
 
 		pkAny, err := codectypes.NewAnyWithValue(pubkey)
@@ -420,7 +481,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 	for i := 0; i < 2; i++ {
 		pubkey := secp256k1.GenPrivKey().PubKey()
 		addr := sdk.AccAddress(pubkey.Address())
-		err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+		err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 		suite.Require().Nil(err)
 		pkAny, err := codectypes.NewAnyWithValue(pubkey)
 		suite.Require().Nil(err)
@@ -440,6 +501,11 @@ func (suite *SequencerTestSuite) TestMaxSequencersNotSet() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
+	// Get the base denom and create bond
+	baseDenom, err := sdk.GetBaseDenom()
+	suite.Require().NoError(err)
+	bond := sdk.NewCoin(baseDenom, sdkmath.NewInt(1000000))
+
 	rollapp := rollapptypes.Rollapp{
 		RollappId: "rollapp1",
 		Creator:   alice,
@@ -453,7 +519,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersNotSet() {
 	for i := 0; i < 10; i++ {
 		pubkey := secp256k1.GenPrivKey().PubKey()
 		addr := sdk.AccAddress(pubkey.Address())
-		err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+		err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 		suite.Require().Nil(err)
 
 		pkAny, err := codectypes.NewAnyWithValue(pubkey)
@@ -573,7 +639,7 @@ func CompareSequencers(s1, s2 *types.Sequencer) bool {
 		return false
 	}
 
-	if !s1.Tokens.IsEqual(s2.Tokens) {
+	if !s1.Tokens.Equal(s2.Tokens) {
 		return false
 	}
 

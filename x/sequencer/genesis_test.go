@@ -5,6 +5,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/openmetaearth/me-hub/app/params"
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/testutil/nullify"
 	"github.com/openmetaearth/me-hub/x/sequencer"
@@ -13,6 +14,9 @@ import (
 )
 
 func TestInitGenesis(t *testing.T) {
+	// Register denom before calling DefaultParams
+	params.RegisterDenomsIfNeeded()
+
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
 

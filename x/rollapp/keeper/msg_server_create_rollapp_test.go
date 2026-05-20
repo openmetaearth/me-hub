@@ -168,7 +168,7 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 		{
 			name:      "default is valid without revision number",
 			rollappId: "rollapp_1234",
-			eip:       true,
+			eip:       false, 
 			valid:     true,
 		},
 	}

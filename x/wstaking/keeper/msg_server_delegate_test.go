@@ -2,9 +2,7 @@ package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
@@ -26,8 +24,10 @@ func (s *KeeperTestSuite) TestDelegate() {
 
 	region, _ := s.App.StakingKeeper.GetRegion(s.Ctx, types.MeEarthRegionId)
 
-	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 2000000000000)})
-	s.Require().NoError(err)
+	apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 2000000000000)})
+	// Fund delegator accounts used in tests
+	apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 100000000)})
+	apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(s.Dao.AirdropAddress), sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 100000000)})
 
 	tests := []struct {
 		name             string
@@ -74,18 +74,18 @@ func (s *KeeperTestSuite) TestDelegate() {
 					ValidatorAddress: test.validatorAddress,
 				}
 
-				s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(test.height).WithChainID(apptesting.TestChainID)
+				rewardCtx := s.App.BaseApp.NewContext(false).WithBlockHeight(test.height).WithChainID(apptesting.TestChainID)
 				for i := 0; i < int(test.height); i++ {
-					wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-					wstaking.BeginBlock(s.Ctx, s.App.StakingKeeper)
+					wmint.BeginBlocker(rewardCtx, s.App.MintKeeper, nil)
+					wstaking.BeginBlock(rewardCtx, s.App.StakingKeeper)
 				}
 
-				rewards, err := s.msgServer.DelegationRewards(s.Ctx, &types.QueryDelegationRewardsRequest{
+				rewards, err := s.msgServer.DelegationRewards(rewardCtx, &types.QueryDelegationRewardsRequest{
 					DelegatorAddress: test.account,
 					ValidatorAddress: test.validatorAddress,
 				})
 				s.Require().NoError(err)
-				_, err = s.msgServer.WithdrawDelegatorReward(s.Ctx, &withdrawRewardMsg)
+				_, err = s.msgServer.WithdrawDelegatorReward(rewardCtx, &withdrawRewardMsg)
 				s.Require().NoError(err)
 				s.Require().Equal(rewards.Rewards[0].Amount.MustFloat64(), test.reward)
 			}
@@ -106,8 +106,9 @@ func (s *KeeperTestSuite) TestUnDelegate() {
 
 	region, _ := s.App.StakingKeeper.GetRegion(s.Ctx, types.MeEarthRegionId)
 
-	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
-	s.Require().NoError(err)
+	apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
+	// Fund delegator accounts used in tests
+	apptesting.FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(s.Dao.AirdropAddress), sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 100000000)})
 
 	tests := []struct {
 		name    string
@@ -144,18 +145,18 @@ func (s *KeeperTestSuite) TestUnDelegate() {
 					Amount:           test.amount,
 				}
 
-				s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(test.height).WithChainID(apptesting.TestChainID)
+				rewardCtx := s.App.BaseApp.NewContext(false).WithBlockHeight(test.height).WithChainID(apptesting.TestChainID)
 				for i := 0; i < int(test.height); i++ {
-					wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-					wstaking.BeginBlock(s.Ctx, s.App.StakingKeeper)
+					wmint.BeginBlocker(rewardCtx, s.App.MintKeeper, nil)
+					wstaking.BeginBlock(rewardCtx, s.App.StakingKeeper)
 				}
 
-				rewards, err := s.msgServer.DelegationRewards(s.Ctx, &types.QueryDelegationRewardsRequest{
+				rewards, err := s.msgServer.DelegationRewards(rewardCtx, &types.QueryDelegationRewardsRequest{
 					DelegatorAddress: test.account,
 					ValidatorAddress: "",
 				})
 				s.Require().NoError(err)
-				_, err = s.msgServer.Undelegate(s.Ctx, &undelegateRewardMsg)
+				_, err = s.msgServer.Undelegate(rewardCtx, &undelegateRewardMsg)
 				s.Require().NoError(err)
 				s.Require().Equal(rewards.Rewards[0].Amount.MustFloat64(), test.reward)
 			}

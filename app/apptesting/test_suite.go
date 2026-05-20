@@ -1,7 +1,10 @@
 package apptesting
 
 import (
+	"fmt"
+
 	"cosmossdk.io/math"
+	"github.com/cometbft/cometbft/libs/rand"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
@@ -11,13 +14,14 @@ import (
 
 	"github.com/openmetaearth/me-hub/app"
 	"github.com/openmetaearth/me-hub/app/params"
+	daotypes "github.com/openmetaearth/me-hub/x/dao/types"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencerkeeper "github.com/openmetaearth/me-hub/x/sequencer/keeper"
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
-var Alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
+var Alice = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"
 
 var defaultMinSequencerBond = sdk.NewCoin(params.BaseDenom, math.NewInt(1000000))
 
@@ -29,8 +33,45 @@ func init() {
 
 type KeeperTestHelper struct {
 	suite.Suite
-	App *app.App
-	Ctx sdk.Context
+	App      *app.App
+	Ctx      sdk.Context
+	Dao      daotypes.DaoAddresses
+	TestAccs []sdk.AccAddress
+}
+
+// InitializeDao creates random addresses for all DAO roles and stores them in the DAO keeper.
+// This must be called in SetupTest after s.App and s.Ctx are initialized.
+func (s *KeeperTestHelper) InitializeDao() {
+	globalDao := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
+	meidDao := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
+	devOperator := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
+	airdropAddr := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
+
+	s.Dao = daotypes.DaoAddresses{
+		GlobalDao:      globalDao.String(),
+		MeidDao:        meidDao.String(),
+		DevOperator:    devOperator.String(),
+		AirdropAddress: airdropAddr.String(),
+	}
+	s.App.DaoKeeper.SetDaoAddresses(s.Ctx, s.Dao)
+}
+
+// NewAccounts creates n funded test accounts and returns their addresses.
+func (s *KeeperTestHelper) NewAccounts(n int) []sdk.AccAddress {
+	addrs := make([]sdk.AccAddress, n)
+	for i := 0; i < n; i++ {
+		addrs[i] = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
+		FundAccount(s.App, s.Ctx, addrs[i], sdk.NewCoins(sdk.NewCoin(params.BaseDenom, math.NewInt(1_000_000_000))))
+	}
+	return addrs
+}
+
+// NewAccount creates a single funded test account and returns its address and private key.
+func (s *KeeperTestHelper) NewAccount() (sdk.AccAddress, *ed25519.PrivKey) {
+	privKey := ed25519.GenPrivKey()
+	addr := sdk.AccAddress(privKey.PubKey().Address())
+	FundAccount(s.App, s.Ctx, addr, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, math.NewInt(1_000_000_000))))
+	return addr, privKey
 }
 
 func (s *KeeperTestHelper) CreateDefaultRollappAndProposer() (string, string) {
@@ -40,7 +81,7 @@ func (s *KeeperTestHelper) CreateDefaultRollappAndProposer() (string, string) {
 }
 
 func (s *KeeperTestHelper) CreateDefaultRollapp() string {
-	rollappId := "testrollapp_1-1"
+	rollappId := fmt.Sprintf("testrollapp%d_1-1", rand.Int63()) //nolint:gosec // this is for a test
 	s.CreateRollappByName(rollappId)
 	return rollappId
 }

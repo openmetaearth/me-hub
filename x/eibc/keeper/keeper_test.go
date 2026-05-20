@@ -7,9 +7,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/eibc/keeper"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -35,7 +33,7 @@ var (
 	timeoutHeight      = clienttypes.NewHeight(0, 100)
 	timeoutTimestamp   = uint64(100)
 	transferPacketData = transfertypes.NewFungibleTokenPacketData(
-		sdk.DefaultBondDenom,
+		"umec",
 		"1000",
 		eibcSenderAddr.String(),
 		eibcReceiverAddr.String(),
@@ -63,8 +61,8 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(suite.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	app := apptesting.Setup(suite.T())
+	ctx := app.GetBaseApp().NewContext(false)
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, keeper.NewQuerier(app.EIBCKeeper))
 	queryClient := types.NewQueryClient(queryHelper)
