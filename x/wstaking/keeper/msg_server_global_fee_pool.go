@@ -35,8 +35,6 @@ func (k MsgServer) WithdrawFromGlobalDaoFeePool(goCtx context.Context, msg *type
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeWithdrawFromGlobalDaoFeePool,
 			sdk.NewAttribute(sdk.AttributeKeySender, fromAddr.String()),
-			sdk.NewAttribute(types.AttributeKeyReceiver, toAddr.String()),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 		),
 	)
 
