@@ -166,6 +166,7 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 			sdk.NewAttribute(types.AttributeKeyValidator, oldValOperator.String()),
 			sdk.NewAttribute(types.AttributeKeyNewValidator, newValOperAddr.String()),
 			sdk.NewAttribute(types.AttributeKeyNewOwnerAddress, validator.OwnerAddress),
+			sdk.NewAttribute(types.AttributeKeyRegionId, validator.Description.RegionID),
 		),
 	})
 	return nil

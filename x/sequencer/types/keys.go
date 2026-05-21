@@ -48,13 +48,10 @@ var (
 
 // --------------------------- replace proposer key -----------------------//
 const (
-	KeyRepalceProposer = "ReplaceProposer"
-
 	EventReplaceProposer       = "replace_proposer"
 	EventProcReplaceProposer   = "proc_replace_proposer"
 	EventDirectRemoveSequencer = "direct_remove_sequencer"
 
-	AttributeKeyCreator            = "creator"
 	AttributeKeyOldProposer        = "old_proposer"
 	AttributeKeyNewProposer        = "new_proposer"
 	AttributeKeyBlockHeight        = "block_height"

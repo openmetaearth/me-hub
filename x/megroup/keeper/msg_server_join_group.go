@@ -96,14 +96,12 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 			sdk.NewAttribute("regionTreasureAddress", region.GetRegionTreasureAddr()),
 			sdk.NewAttribute("rewards", rewardsCoin.String()),
 		))
-
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtJoinGroup,
 		sdk.NewAttribute("group_id", fmt.Sprintf("%d", msg.GroupId)),
 		sdk.NewAttribute("creator", msg.Creator),
 		sdk.NewAttribute("applicant", msg.ApplicantAddress),
-		//1sdk.NewAttribute("metadata", msg.),
 	))
 	return &types.MsgJoinGroupResponse{}, nil
 }
@@ -143,9 +141,6 @@ func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupReq
 	joined.GroupId = 0
 	k.SetMemberJoined(ctx, joined)
 	k.SetGroupMemberCount(ctx, req.GroupId, grpNumber-1)
-	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtLeaveGroup,
-		sdk.NewAttribute("applicant", req.Creator),
-		sdk.NewAttribute("group_id", fmt.Sprintf("%d", req.GroupId)),
-	))
+
 	return &types.MsgLeaveGroupResponse{}, nil
 }
