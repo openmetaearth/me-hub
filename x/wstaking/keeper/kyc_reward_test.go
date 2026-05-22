@@ -24,6 +24,8 @@ func (s *KeeperTestSuite) TestKycReward_WithDelegation() {
 	}
 	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
+	// simulate EndBlock cache refresh so GetRegionCache works in subsequent calls
+	s.Keeper().SetRegionsCache(s.Ctx, s.Keeper().GetAllRegion(s.Ctx))
 
 	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
@@ -172,6 +174,8 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithDelegation() {
 	}
 	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
+	// simulate EndBlock cache refresh so GetRegionCache works in subsequent calls
+	s.Keeper().SetRegionsCache(s.Ctx, s.Keeper().GetAllRegion(s.Ctx))
 
 	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)

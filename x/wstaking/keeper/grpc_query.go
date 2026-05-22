@@ -65,33 +65,19 @@ func (k Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationR
 	if err != nil {
 		return nil, err
 	}
-	//regionID := strings.ToLower(types.ExperienceRegionName)
-	//meid, found := k.GetMeid(ctx, req.DelegatorAddress)
-	//if found {
-	//	regionID = meid.RegionId
-	//}
-	//region, isFound := k.GetRegion(ctx, regionID)
-	//if !isFound {
-	//	return nil, types.ErrRegionNotExist.Wrapf("region not found=%s", regionID)
-	//}
-	//valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
-	//if valErr != nil {
-	//	return nil, valErr
-	//}
+
 	delegation, err := k.GetDelegation(ctx, delAdr, sdk.ValAddress{})
 	if err != nil {
 		return nil, status.Error(codes.NotFound, "delegator not found, address="+delAdr.String())
 	}
+
 	interest, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
 	if err != nil {
 		return nil, err
 	}
-	// endingPeriod := k.IncrementValidatorPeriod(ctx, val)
-	// rewards := k.CalculateDelegationRewards(ctx, val, del, endingPeriod)
+
 	rewards := sdk.NewDecCoins(sdk.NewDecCoinFromDec(params.BaseDenom, interest))
 	return &types.QueryDelegationRewardsResponse{Rewards: rewards}, nil
-	// return &types.QueryDelegationRewardsResponse{Rewards: sdk.NewDecCoinsFromCoins(sdk.NewCoin(sdk.BaseMEDenom, interest.TruncateInt()))}, nil
-
 }
 
 // Delegation queries delegate info for given validator delegator pair
@@ -110,7 +96,7 @@ func (k Querier) Delegation(c context.Context, req *stakingtypes.QueryDelegation
 	}
 
 	regionId := k.GetRegionIdByAccount(ctx, delAddr)
-	region, isFound := k.GetRegion(ctx, regionId)
+	region, isFound := k.GetRegionCache(regionId)
 	if !isFound {
 		return nil, types.ErrRegionNotExist.Wrapf("region not found=%s", regionId)
 	}

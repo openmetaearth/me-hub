@@ -19,7 +19,7 @@ func (k MsgServer) IbcTransferFromRegionTreasure(goCtx context.Context, msg *typ
 	if msg.Creator != dao {
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "sender is not the dao")
 	}
-	region, found := k.GetRegion(ctx, msg.RegionId)
+	region, found := k.GetRegionCache(msg.RegionId)
 	if !found {
 		return nil, errorsmod.Wrap(sdkerrors.ErrKeyNotFound, "region not found")
 	}

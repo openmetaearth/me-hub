@@ -28,9 +28,14 @@ func BeginBlock(ctx sdk.Context, k *keeper.Keeper) {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
 
 	k.TrackHistoricalInfo(ctx)
+	// Initialize region cache once on first block; subsequent calls are no-ops due to sync.Once.
+	k.InitRegionCache(ctx)
 }
 
 func EndBlock(ctx sdk.Context, k *keeper.Keeper) []abci.ValidatorUpdate {
 	k.ChangeDelegationValidator(ctx)
-	return k.BlockValidatorUpdates(ctx)
+	updates := k.BlockValidatorUpdates(ctx)
+	// Refresh region cache at end of block so the next block's TXs see up-to-date data.
+	k.SetRegionsCache(ctx, k.GetAllRegion(ctx))
+	return updates
 }

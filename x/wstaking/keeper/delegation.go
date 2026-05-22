@@ -312,7 +312,7 @@ func (k *Keeper) GetAllChangeDelegationValidator(ctx sdk.Context) []string {
 func (k *Keeper) ChangeDelegationValidator(ctx sdk.Context) {
 	regionIds := k.GetAllChangeDelegationValidator(ctx)
 	for _, regionId := range regionIds {
-		region, found := k.GetRegion(ctx, regionId)
+		region, found := k.GetRegionCache(regionId)
 		if found {
 			k.didKeeper.IteratorCredentialsByFilter(ctx, kyctypes.ModuleName, []byte(regionId), func(vc didtypes.Credential) (stop bool) {
 				info, found := k.didKeeper.GetDidInfo(ctx, vc.Did)

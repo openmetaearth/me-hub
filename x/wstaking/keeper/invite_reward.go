@@ -15,7 +15,7 @@ func (k Keeper) SendInviteReward(ctx sdk.Context, inviter, invitee, regionId str
 		return nil
 	}
 
-	region, found := k.GetRegion(ctx, regionId)
+	region, found := k.GetRegionCache(regionId)
 	if !found {
 		return types.ErrRegionNotExist
 	}

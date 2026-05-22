@@ -25,6 +25,7 @@ type StakingKeeper interface {
 	//	GetRegion(ctx sdk.Context, regionId string) (val mock.MockRegion, found bool)
 
 	GetRegion(ctx sdk.Context, regionId string) (region stakingTypes.Region, found bool)
+	GetRegionCache(regionId string) (region stakingTypes.Region, found bool)
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

@@ -16,7 +16,7 @@ func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFi
 		return nil, types.ErrCheckGlobalDao
 	}
 
-	_, found := k.GetRegion(ctx, msg.RegionId)
+	_, found := k.GetRegionCache(msg.RegionId)
 	if !found {
 		return nil, types.ErrRegionName.Wrapf("add fixed deposit config error, region not exist (%s)", msg.RegionId)
 	}

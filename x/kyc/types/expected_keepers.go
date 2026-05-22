@@ -11,6 +11,7 @@ import (
 
 type StakingKeeper interface {
 	GetRegion(ctx sdk.Context, regionId string) (val stktypes.Region, found bool)
+	GetRegionCache(regionId string) (val stktypes.Region, found bool)
 	GetAllRegion(ctx sdk.Context) (regions []stktypes.Region)
 	KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, creator string) error
 	RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionId string) error

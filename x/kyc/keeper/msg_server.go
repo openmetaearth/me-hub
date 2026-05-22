@@ -57,7 +57,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	}
 
 	// check region
-	if _, found := m.stkKeeper.GetRegion(ctx, msg.RegionId); !found {
+	if _, found := m.stkKeeper.GetRegionCache(msg.RegionId); !found {
 		return &types.MsgApproveResponse{}, stktypes.ErrRegionNotExist
 	}
 
@@ -144,7 +144,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	}
 
 	// check region
-	if _, found := m.stkKeeper.GetRegion(ctx, msg.RegionId); !found {
+	if _, found := m.stkKeeper.GetRegionCache(msg.RegionId); !found {
 		return &types.MsgUpdateResponse{}, stktypes.ErrRegionNotExist
 	}
 

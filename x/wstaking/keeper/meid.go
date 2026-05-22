@@ -69,7 +69,7 @@ func (k Keeper) GetMeidByRegion(ctx sdk.Context, regionId string) (list []types.
 }
 
 func (k Keeper) GetValOwnerAddress(ctx sdk.Context, regionId string) (string, error) {
-	region, ok := k.GetRegion(ctx, regionId)
+	region, ok := k.GetRegionCache(regionId)
 	if !ok {
 		return "", errorsmod.Wrapf(types.ErrRegionNotExist, "region(%s) not found", regionId)
 	}

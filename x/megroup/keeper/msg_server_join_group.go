@@ -75,7 +75,7 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 
 	if !JoinGroupFound { // send rewards if user has not joined group
 		// get RegionTreasureAddr
-		region, found := k.stakingKeeper.GetRegion(ctx, groupInfo.RegionID)
+		region, found := k.stakingKeeper.GetRegionCache(groupInfo.RegionID)
 		if !found {
 			return nil, errors.Wrapf(types.ErrRegionNotExist, "group's region: %s", groupInfo.RegionID)
 		}

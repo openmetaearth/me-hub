@@ -115,6 +115,9 @@ func (s *KeeperTestSuite) SetupTest() {
 	_, err = stakingMsgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
 
+	// simulate EndBlock cache refresh so GetRegionCache works in handlers (cache is populated in EndBlock in production)
+	app.StakingKeeper.SetRegionsCache(s.Ctx, app.StakingKeeper.GetAllRegion(s.Ctx))
+
 	// Update queryHelper context to include all setup state (service, DID, etc.)
 	s.queryHelper.Ctx = s.Ctx
 }

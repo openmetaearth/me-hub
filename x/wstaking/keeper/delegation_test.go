@@ -75,6 +75,8 @@ func (s *KeeperTestSuite) TestIterateRegionKycDelegatins() {
 	s.Require().True(f)
 	region.OperatorAddress = s.usaValidator.OperatorAddress
 	s.App.StakingKeeper.SetRegion(s.Ctx, region)
+	// simulate EndBlock cache refresh so ChangeDelegationValidator can read updated region via GetRegionCache
+	s.App.StakingKeeper.SetRegionsCache(s.Ctx, s.App.StakingKeeper.GetAllRegion(s.Ctx))
 	s.App.StakingKeeper.SetChangeDelegationValidator(s.Ctx, types.MeEarthRegionId)
 	// Call ChangeDelegationValidator
 	s.App.StakingKeeper.ChangeDelegationValidator(s.Ctx)

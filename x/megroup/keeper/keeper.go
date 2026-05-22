@@ -210,7 +210,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 	if !JoinGroupFound { // send rewards if user has not joined group
 
 		// get RegionTreasureAddr
-		region, found := k.stakingKeeper.GetRegion(sdkCtx, nowRegionID)
+		region, found := k.stakingKeeper.GetRegionCache(nowRegionID)
 		if !found {
 			return errors.Wrapf(types.ErrRegionNotExist, "group's region = %s", nowRegionID)
 		}
