@@ -14,6 +14,7 @@ import (
 	sequencerkeeper "github.com/openmetaearth/me-hub/x/sequencer/keeper"
 	wgovkeeper "github.com/openmetaearth/me-hub/x/wgov/keeper"
 	wmintkeeper "github.com/openmetaearth/me-hub/x/wmint/keeper"
+	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
 )
 
 // Upgrade defines a struct containing necessary fields that a SoftwareUpgradeProposal
@@ -46,4 +47,5 @@ type UpgradeKeepers struct {
 	MintKeeper       *wmintkeeper.Keeper
 	SlashingKeeper   *slashingkeeper.Keeper
 	ConsensusKeeper  *consensusparamkeeper.Keeper
+	StakingKeeper    *wstakingkeeper.Keeper
 }

@@ -505,6 +505,7 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 				MintKeeper:       &app.MintKeeper,
 				SlashingKeeper:   &app.SlashingKeeper,
 				ConsensusKeeper:  &app.ConsensusParamsKeeper,
+				StakingKeeper:    app.StakingKeeper,
 			},
 		),
 	)
