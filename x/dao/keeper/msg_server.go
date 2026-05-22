@@ -61,7 +61,6 @@ func (k msgServer) FreeGasAccount(goCtx context.Context, msg *types.MsgFreeGasAc
 		return nil, types.ErrCreatorNotDao
 	}
 
-	attributes := []sdk.Attribute{}
 	for _, account := range msg.Accounts {
 		isExist := k.CheckFreeGasAccount(ctx, account.Address)
 		if isExist {
@@ -69,22 +68,17 @@ func (k msgServer) FreeGasAccount(goCtx context.Context, msg *types.MsgFreeGasAc
 				return nil, errorsmod.Wrap(types.ErrFreeGasAccountAlreadyExist, account.Address)
 			} else {
 				k.RemoveFreeGasAccount(ctx, account.Address)
-				attributes = append(attributes, sdk.NewAttribute(types.AttributeKeyRemoveFreeGasAddress, account.Address))
 			}
 		}
 
 		if !isExist {
 			if account.IsFree {
 				k.SetFreeGasAccount(ctx, account.Address)
-				attributes = append(attributes, sdk.NewAttribute(types.AttributeKeySetFreeGasAddress, account.Address))
 			} else {
 				return nil, errorsmod.Wrap(types.ErrAccountIsNotFree, account.Address)
 			}
 		}
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(types.EventTypeSetFreeGas, attributes...),
-	)
 	return &types.MsgFreeGasAccountResponse{}, nil
 }

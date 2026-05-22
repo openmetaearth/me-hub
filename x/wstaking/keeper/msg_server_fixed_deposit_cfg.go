@@ -50,14 +50,6 @@ func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFi
 	k.Keeper.SetFixedDepositCfg(ctx, cfg)
 	k.InitFixedDepositCountOfCfg(ctx, msg.RegionId, msg.Term)
 
-	event := sdk.NewEvent(types.EventTypeAddFixedDepositCfg,
-		sdk.NewAttribute(types.AttributeKeyAccount, msg.Dao),
-		sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
-		sdk.NewAttribute(types.AttributeKeyTerm, strconv.FormatInt(msg.Term, 10)),
-		sdk.NewAttribute(types.AttributeKeyRate, msg.Rate.String()),
-	)
-	ctx.EventManager().EmitEvent(event)
-
 	return &types.MsgNewFixedDepositCfgResp{}, nil
 }
 
@@ -80,13 +72,6 @@ func (k MsgServer) RemoveFixedDepositCfg(goCtx context.Context, msg *types.MsgRe
 
 	k.Keeper.RemoveFixedDepositCfg(ctx, msg.RegionId, msg.Term)
 
-	event := sdk.NewEvent(types.EventTypeRemoveFixedDepositCfg,
-		sdk.NewAttribute(types.AttributeKeyAccount, msg.Admin),
-		sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
-		sdk.NewAttribute(types.AttributeKeyTerm, strconv.FormatInt(msg.Term, 10)),
-	)
-	ctx.EventManager().EmitEvent(event)
-
 	return &types.MsgRemoveFixedDepositCfgResp{}, nil
 }
 
@@ -103,14 +88,6 @@ func (k MsgServer) SetFixedDepositCfgStatus(goCtx context.Context, msg *types.Ms
 	}
 	config.Status = msg.Status
 	k.Keeper.SetFixedDepositCfg(ctx, config)
-
-	event := sdk.NewEvent(types.EventTypeSetFixedDepositCfgStatus,
-		sdk.NewAttribute(types.AttributeKeyAccount, msg.Admin),
-		sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
-		sdk.NewAttribute(types.AttributeKeyTerm, strconv.FormatInt(msg.Term, 10)),
-		sdk.NewAttribute(types.AttributeKeyStatus, msg.Status.String()),
-	)
-	ctx.EventManager().EmitEvent(event)
 
 	return &types.MsgSetFixedDepositCfgStatusResp{}, nil
 }
@@ -129,13 +106,6 @@ func (k MsgServer) SetFixedDepositCfgRate(goCtx context.Context, msg *types.MsgS
 
 	config.Rate = msg.Rate
 	k.Keeper.SetFixedDepositCfg(ctx, config)
-	event := sdk.NewEvent(types.EventTypeSetFixedDepositCfgRate,
-		sdk.NewAttribute(types.AttributeKeyAccount, msg.Admin),
-		sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
-		sdk.NewAttribute(types.AttributeKeyTerm, strconv.FormatInt(msg.Term, 10)),
-		sdk.NewAttribute(types.AttributeKeyRate, msg.Rate.String()),
-	)
-	ctx.EventManager().EmitEvent(event)
 
 	return &types.MsgSetFixedDepositCfgRateResp{}, nil
 }

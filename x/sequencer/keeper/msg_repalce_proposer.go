@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"context"
-	"strconv"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 
@@ -62,12 +60,9 @@ func (k msgServer) ReplaceProposer(goCtx context.Context, msg *types.MsgReplaceP
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventReplaceProposer,
-			sdk.NewAttribute(types.AttributeKeyCreator, msg.Creator),
 			sdk.NewAttribute(types.AttributeKeyRollappId, msg.ReplaceProposer.RollappId),
 			sdk.NewAttribute(types.AttributeKeyOldProposer, msg.ReplaceProposer.OldProposer),
 			sdk.NewAttribute(types.AttributeKeyNewProposer, msg.ReplaceProposer.NewProposer),
-			sdk.NewAttribute(types.AttributeKeyBlockHeight, strconv.FormatInt(ctx.BlockHeight(), 10)),
-			sdk.NewAttribute(types.AttributeReplaceAtHeight, strconv.FormatInt(msg.ReplaceProposer.BlockHeight, 10)),
 		),
 	)
 	return &types.MsgReplaceProposerResponse{}, nil

@@ -130,7 +130,7 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 		accAddr,
 		types.FixedDepositPrincipalPool,
 		sdk.NewCoins(msg.Principal),
-		fmt.Sprintf("DoFixedDeposit_SendPrincipal_%d", msg.Term),
+		fmt.Sprintf("SendFixedPrincipal_%d", msg.Term),
 	)
 	if err != nil {
 		return nil, types.ErrDoFixedDeposit.Wrapf("send coin from region base account(%s) to principal module account(%s) error (%s)",
@@ -143,7 +143,7 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 		regionBaseAddr,
 		regionInterestAddr,
 		sdk.NewCoins(interest),
-		fmt.Sprintf("DoFixedDeposit_SendInterestFromRegionBaseAccountToRegionInterestAccount_%d", msg.Term),
+		fmt.Sprintf("SendFixedInterest_%d", msg.Term),
 	)
 	if err != nil {
 		return nil, types.ErrDoFixedDeposit.Wrapf("send coin from account(%s) to interest account(%s) error (%s)",
@@ -257,7 +257,7 @@ func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWit
 			types.FixedDepositPrincipalPool,
 			accAddr,
 			sdk.NewCoins(fixedDeposit.Principal),
-			fmt.Sprintf("WithdrawFixedDeposit_SendPrincipalFromPrincipalModuleAccountToUserAccount_%d", fixedDeposit.Term),
+			fmt.Sprintf("WithdrawFixedPrincipal_%d", fixedDeposit.Term),
 		)
 		if err != nil {
 			return nil, types.ErrDoFixedWithDraw.Wrapf("send coin from principal vault to account error (%s)", err)
@@ -268,7 +268,7 @@ func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWit
 			regionInterestAddr,
 			accAddr,
 			sdk.NewCoins(fixedDeposit.Interest),
-			fmt.Sprintf("WithdrawFixedDeposit_SendInterestFromInterestAccountToUserAccount_%d", fixedDeposit.Term),
+			fmt.Sprintf("WithdrawFixedInterest_%d", fixedDeposit.Term),
 		)
 		if err != nil {
 			return nil, types.ErrDoFixedWithDraw.Wrapf("send coin from interest vault to account error (%s)", err)

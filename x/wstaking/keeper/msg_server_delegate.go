@@ -77,7 +77,7 @@ func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 				region.RegionId, rewards.String(), region.DelegateInterest.String()))
 		}
 		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())),
-			fmt.Sprintf("Delegate_SendRewardsFromRegionTreasureAccountToUserAccount_%s", region.RegionId),
+			fmt.Sprintf("Delegate_SendRewards_%s", region.RegionId),
 		)
 		if err != nil {
 			return nil, err

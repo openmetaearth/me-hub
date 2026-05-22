@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Report a Security Vulnerability (Private)
+    url: https://github.com/openmetaearth/me-hub/security/advisories/new
+    about: Please use GitHub's Private Vulnerability Reporting for any security vulnerability to avoid public disclosure.

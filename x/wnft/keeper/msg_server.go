@@ -129,10 +129,8 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeMintNFT,
-			sdk.NewAttribute(types.AttributeKeyClassID, msg.ClassId),
 			sdk.NewAttribute(types.AttributeKeyTokenID, msg.TokenId),
 			sdk.NewAttribute(types.AttributeKeyOwner, msg.Receiver),
-			sdk.NewAttribute(types.AttributeKeyUri, msg.Uri),
 			sdk.NewAttribute(types.AttributeKeyClassName, class.Name),
 		),
 	})
@@ -179,7 +177,6 @@ func (k MsgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSendNFT,
-			sdk.NewAttribute(types.AttributeKeyClassID, msg.ClassId),
 			sdk.NewAttribute(types.AttributeKeyTokenID, msg.Id),
 			sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),

@@ -110,7 +110,7 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 		sdk.MustAccAddressFromBech32(region.RegionTreasureAddr),
 		account,
 		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())),
-		fmt.Sprintf("RemoveKycReward_UserCurrentInterestSettlement_%s", region.RegionId),
+		fmt.Sprintf("RemoveKyc_SettlementInterest_%s", region.RegionId),
 	)
 	if err != nil {
 		return fmt.Errorf("settle interest error: %v", err)
@@ -186,7 +186,7 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 				sdk.MustAccAddressFromBech32(experienceRegion.RegionTreasureAddr),
 				sdk.MustAccAddressFromBech32(delegation.DelegatorAddress),
 				sdk.NewCoins(sdk.NewCoin(params.BaseDenom, interest.TruncateInt())),
-				fmt.Sprintf("WithdrawKycReward_UserCurrentInterestSettlement_%s", region.RegionId),
+				fmt.Sprintf("ApproveKyc_SettlementInterest_%s", region.RegionId),
 			)
 			if err != nil {
 				return err
@@ -236,7 +236,7 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 		treasureAddr.GetAddress(),
 		sdk.MustAccAddressFromBech32(ownerAddress),
 		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.ValidatorReward)),
-		fmt.Sprintf("WithdrawKycReward_ValidatorReward_%s", region.RegionId),
+		fmt.Sprintf("ValidatorKycReward_%s", region.RegionId),
 	)
 	if err != nil {
 		return fmt.Errorf("send kyc reward to validator, %v", err)
@@ -247,7 +247,7 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 		treasureAddr.GetAddress(),
 		sdk.MustAccAddressFromBech32(k.daoKeeper.GetDevOperator(ctx)),
 		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.CommitteeReward)),
-		fmt.Sprintf("WithdrawKycReward_CommitteeReward_%s", region.RegionId),
+		fmt.Sprintf("CommitteeKycReward_%s", region.RegionId),
 	)
 	if err != nil {
 		return fmt.Errorf("send kyc reward to committee, %v", err)
@@ -332,7 +332,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 		toTreasureAddr,
 		toDepositInterestAddr,
 		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, totalFixedInterestCoin)),
-		fmt.Sprintf("TransferDepositInterest_PayDepositInterestOfToRegion_%s", toRegion.RegionId),
+		fmt.Sprintf("TransferFixedInterest_%s", toRegion.RegionId),
 	)
 	if err != nil {
 		return errors.New(fmt.Sprintf("pay deposit interest of toRegion:%s", err.Error()))
@@ -343,7 +343,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 		fromDepositInterestAddr,
 		fromTreasureAddr,
 		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, totalFixedInterestCoin)),
-		fmt.Sprintf("TransferDepositInterest_RecoveringDepositInterestOfFromRegion_%s", fromRegion.RegionId),
+		fmt.Sprintf("RecoverFixedInterest_%s", fromRegion.RegionId),
 	)
 	if err != nil {
 		return errors.New(fmt.Sprintf("recovering deposit interest of fromRegion:%s", err.Error()))
@@ -430,7 +430,7 @@ func (k Keeper) transferUnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, 
 	}
 
 	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAddr, delAddr, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())),
-		fmt.Sprintf("TransferUnRegisterMeid_UserCurrentInterestSettlement_%s", region.RegionId),
+		fmt.Sprintf("UpdateKyc_SettlementInterest_%s", region.RegionId),
 	)
 	if err != nil {
 		return amount, err
