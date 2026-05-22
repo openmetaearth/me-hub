@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -218,4 +219,23 @@ func (k Querier) AllDelegations(c context.Context, req *types.QueryAllDelegation
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &types.QueryAllDelegationsResponse{Delegations: delegations, Pagination: pageRes}, nil
+}
+
+// RegionWithdrawPermission returns the address that is granted withdraw
+// permission for the given region, or an empty address if none is set.
+func (k Keeper) RegionWithdrawPermission(goCtx context.Context, req *types.QueryRegionWithdrawPermissionRequest) (*types.QueryRegionWithdrawPermissionResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	if req.RegionId == "" {
+		return nil, status.Error(codes.InvalidArgument, "region_id cannot be empty")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	address, _ := k.GetRegionWithdrawPermission(ctx, req.RegionId)
+	return &types.QueryRegionWithdrawPermissionResponse{
+		RegionId: req.RegionId,
+		Address:  address,
+	}, nil
 }

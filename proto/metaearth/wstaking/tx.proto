@@ -54,6 +54,8 @@ service Msg {
   rpc IbcTransferFromRegionTreasure(MsgIbcTransferFromRegionTreasure) returns (MsgIbcTransferFromRegionTreasureResponse);
   rpc ReplaceConsensusPubKey(MsgReplaceConsensusPubKeyRequest) returns (MsgReplaceConsensusPubKeyResponse);
   rpc SendToModule(MsgSendToModule) returns (MsgSendToModuleResponse);
+  rpc GrantRegionWithdrawPermission(MsgGrantRegionWithdrawPermission) returns (MsgGrantRegionWithdrawPermissionResponse);
+  rpc RevokeRegionWithdrawPermission(MsgRevokeRegionWithdrawPermission) returns (MsgRevokeRegionWithdrawPermissionResponse);
 }
 
 // MsgUpdateValidator defines a SDK message for editing an existing validator.
@@ -362,3 +364,28 @@ message MsgSendToModule {
   ];
 }
 message MsgSendToModuleResponse {}
+
+// MsgGrantRegionWithdrawPermission grants (or updates) permission for an address
+// to withdraw from a specific region's treasury. Only GlobalDao can call this.
+// Calling again with a different address overwrites the previous grant.
+message MsgGrantRegionWithdrawPermission {
+  option (cosmos.msg.v1.signer) = "creator";
+
+  // creator must be the GlobalDao address
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string region_id = 2;
+  // address that is granted withdraw permission
+  string address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+message MsgGrantRegionWithdrawPermissionResponse {}
+
+// MsgRevokeRegionWithdrawPermission revokes the withdraw permission for a region.
+// Only GlobalDao can call this.
+message MsgRevokeRegionWithdrawPermission {
+  option (cosmos.msg.v1.signer) = "creator";
+
+  // creator must be the GlobalDao address
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string region_id = 2;
+}
+message MsgRevokeRegionWithdrawPermissionResponse {}

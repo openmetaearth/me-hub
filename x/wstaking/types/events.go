@@ -23,6 +23,8 @@ const (
 	EventTypeRemoveRegion                     = "remove_region"
 	EventInviteReward                         = "invite_reward"
 	EventTypeUpdateValidator                  = "update_validator"
+	EventTypeGrantRegionWithdrawPermission    = "grant_region_withdraw_permission"
+	EventTypeRevokeRegionWithdrawPermission   = "revoke_region_withdraw_permission"
 )
 
 const (
@@ -69,4 +71,5 @@ const (
 	AttributeKeyMeidNumAddReward          = "meid_number_add_reward"
 	AttributeKeyNewOwnerAddress           = "new_owner"
 	AttributeKeyNewValidator              = "new_validator"
+	AttributeKeyGrantedAddress            = "granted_address"
 )
