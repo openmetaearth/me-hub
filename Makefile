@@ -128,10 +128,9 @@ build-linux-debug: go.sum
 docker-github:
 	DOCKER_BUILDKIT=1 docker build -t ghcr.io/me-hub/med:latest -f Dockerfile .
 
-# docker pull --platform=linux/amd64 ubuntu:24.04
 docker-local: build-linux
-	@DOCKER_BUILDKIT=1 docker build -t 192.168.0.79/me-hub/med:$(TAG) -f Dockerfile_local .
-	@docker push 192.168.0.79/me-hub/med:$(TAG)
+	@DOCKER_BUILDKIT=1 docker build -t harbor.starex.xyz/me-hub/med:$(TAG) -f Dockerfile_local .
+	@docker push harbor.starex.xyz/me-hub/med:$(TAG)
 
 docker-run-debug:
 	@DOCKER_BUILDKIT=1 docker-compose -f docker-compose.debug.yml up
