@@ -232,3 +232,173 @@ func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 		})
 	}
 }
+
+func (s *KeeperTestSuite) TestGrantRegionWithdraw() {
+	s.SetupTest()
+
+	regionId := types.ExperienceRegionId
+	addr0 := s.TestAccs[0].String()
+	addr1 := s.TestAccs[1].String()
+	nonDao := s.TestAccs[2].String()
+
+	tests := []struct {
+		name     string
+		creator  string
+		regionId string
+		address  string
+		expErr   error
+		malleate func()
+		// afterCheck is called only when expErr == nil
+		afterCheck func(res *types.QueryRegionWithdrawerResponse)
+	}{
+		{
+			name:     "non-DAO cannot grant",
+			creator:  nonDao,
+			regionId: regionId,
+			address:  addr0,
+			expErr:   types.ErrCheckGlobalDao,
+		},
+		{
+			name:     "region does not exist",
+			creator:  s.Dao.GlobalDao,
+			regionId: "nonexistent_region",
+			address:  addr0,
+			expErr:   types.ErrRegionNotExist,
+		},
+		{
+			name:     "invalid grantee address",
+			creator:  s.Dao.GlobalDao,
+			regionId: regionId,
+			address:  "not-a-valid-address",
+			expErr:   sdkerrors.ErrInvalidAddress,
+		},
+		{
+			name:     "grant success",
+			creator:  s.Dao.GlobalDao,
+			regionId: regionId,
+			address:  addr0,
+			expErr:   nil,
+			afterCheck: func(res *types.QueryRegionWithdrawerResponse) {
+				s.Require().Equal(addr0, res.Address)
+				s.Require().True(s.Keeper().CanRegionWithdraw(s.Ctx, addr0, regionId))
+			},
+		},
+		{
+			name:     "overwrite with a different address",
+			creator:  s.Dao.GlobalDao,
+			regionId: regionId,
+			address:  addr1,
+			// addr0 already granted by the previous "grant success" case
+			expErr: nil,
+			afterCheck: func(res *types.QueryRegionWithdrawerResponse) {
+				s.Require().Equal(addr1, res.Address)
+				s.Require().False(s.Keeper().CanRegionWithdraw(s.Ctx, addr0, regionId))
+				s.Require().True(s.Keeper().CanRegionWithdraw(s.Ctx, addr1, regionId))
+			},
+		},
+	}
+	for _, test := range tests {
+		s.Run(test.name, func() {
+			if test.malleate != nil {
+				test.malleate()
+			}
+			_, err := s.msgServer.GrantRegionWithdraw(s.Ctx, &types.MsgGrantRegionWithdraw{
+				Creator:  test.creator,
+				RegionId: test.regionId,
+				Address:  test.address,
+			})
+			s.Require().ErrorIs(err, test.expErr)
+			if test.expErr == nil && test.afterCheck != nil {
+				res, err := s.queryClient.RegionWithdrawer(s.Ctx, &types.QueryRegionWithdrawerRequest{
+					RegionId: test.regionId,
+				})
+				s.Require().NoError(err)
+				test.afterCheck(res)
+			}
+		})
+	}
+}
+
+func (s *KeeperTestSuite) TestRevokeRegionWithdraw() {
+	s.SetupTest()
+
+	regionId := types.ExperienceRegionId
+	addr0 := s.TestAccs[0].String()
+	nonDao := s.TestAccs[2].String()
+
+	grantAddr0 := func() {
+		_, err := s.msgServer.GrantRegionWithdraw(s.Ctx, &types.MsgGrantRegionWithdraw{
+			Creator:  s.Dao.GlobalDao,
+			RegionId: regionId,
+			Address:  addr0,
+		})
+		s.Require().NoError(err)
+	}
+
+	tests := []struct {
+		name     string
+		creator  string
+		regionId string
+		expErr   error
+		malleate func()
+	}{
+		{
+			name:     "non-DAO cannot revoke",
+			creator:  nonDao,
+			regionId: regionId,
+			expErr:   types.ErrCheckGlobalDao,
+		},
+		{
+			name:     "region does not exist",
+			creator:  s.Dao.GlobalDao,
+			regionId: "nonexistent_region",
+			expErr:   types.ErrRegionNotExist,
+		},
+		{
+			name:     "no permission record to revoke",
+			creator:  s.Dao.GlobalDao,
+			regionId: regionId,
+			expErr:   sdkerrors.ErrKeyNotFound,
+		},
+		{
+			name:     "revoke success",
+			creator:  s.Dao.GlobalDao,
+			regionId: regionId,
+			malleate: grantAddr0,
+			expErr:   nil,
+		},
+		{
+			name:     "revoke twice returns error",
+			creator:  s.Dao.GlobalDao,
+			regionId: regionId,
+			malleate: func() {
+				grantAddr0()
+				_, err := s.msgServer.RevokeRegionWithdraw(s.Ctx, &types.MsgRevokeRegionWithdraw{
+					Creator:  s.Dao.GlobalDao,
+					RegionId: regionId,
+				})
+				s.Require().NoError(err)
+			},
+			expErr: sdkerrors.ErrKeyNotFound,
+		},
+	}
+	for _, test := range tests {
+		s.Run(test.name, func() {
+			if test.malleate != nil {
+				test.malleate()
+			}
+			_, err := s.msgServer.RevokeRegionWithdraw(s.Ctx, &types.MsgRevokeRegionWithdraw{
+				Creator:  test.creator,
+				RegionId: test.regionId,
+			})
+			s.Require().ErrorIs(err, test.expErr)
+			if test.expErr == nil {
+				res, err := s.queryClient.RegionWithdrawer(s.Ctx, &types.QueryRegionWithdrawerRequest{
+					RegionId: test.regionId,
+				})
+				s.Require().NoError(err)
+				s.Require().Empty(res.Address)
+			}
+		})
+	}
+}

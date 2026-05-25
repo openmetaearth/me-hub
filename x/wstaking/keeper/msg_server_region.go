@@ -3,9 +3,10 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -143,8 +144,11 @@ func (k MsgServer) RemoveRegion(goCtx context.Context, msg *types.MsgRemoveRegio
 func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithdrawFromRegion) (*types.MsgWithdrawFromRegionResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.daoKeeper.IsGlobalDao(ctx, msg.Withdrawer) {
-		return nil, types.ErrCheckGlobalDao
+	isDao := k.daoKeeper.IsGlobalDao(ctx, msg.Withdrawer)
+	isGranted := k.CanRegionWithdraw(ctx, msg.Withdrawer, msg.RegionId)
+	if !isDao && !isGranted {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized,
+			"address %s can not withdraw for region %s", msg.Withdrawer, msg.RegionId)
 	}
 
 	region, found := k.GetRegion(ctx, msg.RegionId)
@@ -186,4 +190,61 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 
 func (k MsgServer) TransferRegion(goCtx context.Context, msg *types.MsgTransferRegion) (*types.MsgTransferRegionResponse, error) {
 	return &types.MsgTransferRegionResponse{}, nil
+}
+
+// GrantRegionWithdraw grants (or overwrites) a address for who can withdraw from the region treasury.
+// Only GlobalDao can call this. One region maps to exactly one address.
+func (k MsgServer) GrantRegionWithdraw(goCtx context.Context, msg *types.MsgGrantRegionWithdraw) (*types.MsgGrantRegionWithdrawResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
+		return nil, types.ErrCheckGlobalDao
+	}
+
+	if _, found := k.GetRegion(ctx, msg.RegionId); !found {
+		return nil, sdkerrors.Wrapf(types.ErrRegionNotExist, "region %s not found", msg.RegionId)
+	}
+
+	if _, err := sdk.AccAddressFromBech32(msg.Address); err != nil {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address: %s", err)
+	}
+
+	k.SetRegionWithdraw(ctx, msg.RegionId, msg.Address)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeGrantRegionWithdraw,
+		sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
+		sdk.NewAttribute(types.AttributeKeyGrantedAddress, msg.Address),
+	))
+
+	return &types.MsgGrantRegionWithdrawResponse{}, nil
+}
+
+// RevokeRegionWithdraw removes the withdraw address for a region.
+// Only GlobalDao can call this.
+func (k MsgServer) RevokeRegionWithdraw(goCtx context.Context, msg *types.MsgRevokeRegionWithdraw) (*types.MsgRevokeRegionWithdrawResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
+		return nil, types.ErrCheckGlobalDao
+	}
+
+	if _, found := k.GetRegion(ctx, msg.RegionId); !found {
+		return nil, sdkerrors.Wrapf(types.ErrRegionNotExist, "region %s not found", msg.RegionId)
+	}
+
+	if _, found := k.GetRegionWithdraw(ctx, msg.RegionId); !found {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrKeyNotFound,
+			"no withdraw address found for region %s", msg.RegionId)
+	}
+
+	k.DeleteRegionWithdraw(ctx, msg.RegionId)
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeRevokeRegionWithdraw,
+		sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
+		sdk.NewAttribute(sdk.AttributeKeySender, msg.Creator),
+	))
+
+	return &types.MsgRevokeRegionWithdrawResponse{}, nil
 }

@@ -37,7 +37,8 @@ const (
 )
 
 const (
-	RegionKeyPrefix = "Region/value/"
+	RegionKeyPrefix         = "Region/value/"
+	RegionWithdrawKeyPrefix = "RegionWithdraw/value/"
 )
 
 const (

@@ -2,10 +2,11 @@ package cli
 
 import (
 	"fmt"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/openmetaearth/me-hub/utils"
-	"strings"
 
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 
@@ -156,5 +157,88 @@ func CmdTransferRegion() *cobra.Command {
 	}
 	flags.AddTxFlagsToCmd(cmd)
 
+	return cmd
+}
+
+// CmdGrantRegionWithdraw returns the CLI command for granting (or
+// updating) withdraw for a region treasury.
+func CmdGrantRegionWithdraw() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "grant-region-withdraw [region-id] [address]",
+		Short: "Grant (or update) an address to withdraw from a region treasury",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Grant an address to withdraw from a specific region treasury.
+If the region already has a granted address, it will be overwritten.
+Only GlobalDao can call this.
+
+Example:
+$ %s tx staking grant-region-withdraw usa me1abc...xyz --from global_dao
+`,
+				version.AppName,
+			),
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			regionId := args[0]
+			address := args[1]
+
+			msg := types.NewMsgGrantRegionWithdraw(
+				clientCtx.GetFromAddress().String(),
+				regionId,
+				address,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+// CmdRevokeRegionWithdraw returns the CLI command for revoking
+// withdraw for a region treasury.
+func CmdRevokeRegionWithdraw() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "revoke-region-withdraw [region-id]",
+		Short: "Revoke the withdrawer for a region treasury",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Revoke the withdrawer previously granted for a region treasury.
+Only GlobalDao can call this.
+
+Example:
+$ %s tx staking revoke-region-withdraw usa --from global_dao
+`,
+				version.AppName,
+			),
+		),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			regionId := args[0]
+
+			msg := types.NewMsgRevokeRegionWithdraw(
+				clientCtx.GetFromAddress().String(),
+				regionId,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
