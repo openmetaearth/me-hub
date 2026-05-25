@@ -79,8 +79,6 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeStake,
-			sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyNewShares, newShares.String()),
 			sdk.NewAttribute(types.AttributeKeyRegionId, validator.Description.RegionID),
 		),

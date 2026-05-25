@@ -26,7 +26,7 @@ func (k MsgServer) WithdrawFromGlobalDaoFeePool(goCtx context.Context, msg *type
 		fromAddr,
 		toAddr,
 		msg.Amount,
-		"WithdrawFromGlobalDaoFeePool_SendCoinsFromGlobalDaoFeePoolToUserAccount",
+		"WithdrawFromGlobalDaoFeePool",
 	)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(err, "retrieve fee from global fee pool error: from(%s), to (%s)", fromAddr, toAddr.String())
@@ -35,8 +35,6 @@ func (k MsgServer) WithdrawFromGlobalDaoFeePool(goCtx context.Context, msg *type
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeWithdrawFromGlobalDaoFeePool,
 			sdk.NewAttribute(sdk.AttributeKeySender, fromAddr.String()),
-			sdk.NewAttribute(types.AttributeKeyReceiver, toAddr.String()),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 		),
 	)
 

@@ -96,6 +96,7 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 			types.EventTypeUpdateValidator,
 			sdk.NewAttribute(stakingtypes.AttributeKeyCommissionRate, validator.Commission.String()),
 			sdk.NewAttribute(stakingtypes.AttributeKeyMinSelfDelegation, validator.MinSelfDelegation.String()),
+			sdk.NewAttribute(types.AttributeKeyRegionId, validator.Description.RegionID),
 		),
 	})
 	return &types.MsgUpdateValidatorResponse{}, nil

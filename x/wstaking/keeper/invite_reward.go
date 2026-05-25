@@ -26,7 +26,7 @@ func (k Keeper) SendInviteReward(ctx sdk.Context, inviter, invitee, regionId str
 		sdk.MustAccAddressFromBech32(region.RegionTreasureAddr),
 		sdk.MustAccAddressFromBech32(inviter),
 		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.InviteReward)),
-		fmt.Sprintf("SendInviteReward_InviteReward_%s", region.RegionId),
+		fmt.Sprintf("SendInviteReward_%s", region.RegionId),
 	); err != nil {
 		return fmt.Errorf("send kyc reward to inviter, %v", err)
 	}

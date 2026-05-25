@@ -79,13 +79,13 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 		}
 		rewardsCoin := sdk.NewCoin(params.BaseDenom, math.NewInt(1000000))
 		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
-			sdk.MustAccAddressFromBech32(msg.ApplicantAddress), sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_UserJoinGroupNotFound_SendRewardsFromRegionTreasureToAddress_%s", region.RegionId))
+			sdk.MustAccAddressFromBech32(msg.ApplicantAddress), sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_SendApplicantRewards_%s", region.RegionId))
 		if err != nil {
 			return nil, errors.Wrap(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
 				err.Error(), region.GetRegionTreasureAddr(), msg.ApplicantAddress))
 		}
 		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
-			sdk.MustAccAddressFromBech32(groupInfo.Admin), sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_UserJoinGroupNotFound_SendRewardsFromRegionTreasureToAdmin_%s", region.RegionId))
+			sdk.MustAccAddressFromBech32(groupInfo.Admin), sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_SendAdminRewards_%s", region.RegionId))
 		if err != nil {
 			return nil, errors.Wrap(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
 				err.Error(), region.GetRegionTreasureAddr(), groupInfo.Admin))
@@ -96,14 +96,12 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 			sdk.NewAttribute("regionTreasureAddress", region.GetRegionTreasureAddr()),
 			sdk.NewAttribute("rewards", rewardsCoin.String()),
 		))
-
 	}
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtJoinGroup,
 		sdk.NewAttribute("group_id", fmt.Sprintf("%d", msg.GroupId)),
 		sdk.NewAttribute("creator", msg.Creator),
 		sdk.NewAttribute("applicant", msg.ApplicantAddress),
-		//1sdk.NewAttribute("metadata", msg.),
 	))
 	return &types.MsgJoinGroupResponse{}, nil
 }
@@ -143,9 +141,6 @@ func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupReq
 	joined.GroupId = 0
 	k.SetMemberJoined(ctx, joined)
 	k.SetGroupMemberCount(ctx, req.GroupId, grpNumber-1)
-	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtLeaveGroup,
-		sdk.NewAttribute("applicant", req.Creator),
-		sdk.NewAttribute("group_id", fmt.Sprintf("%d", req.GroupId)),
-	))
+
 	return &types.MsgLeaveGroupResponse{}, nil
 }

@@ -28,7 +28,7 @@ func (k Keeper) TotalBondedStakePool(ctx sdk.Context) math.Int {
 func (k Keeper) BondedStakeTokensToNotBonded(ctx sdk.Context, tokens math.Int, regionID string) {
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokens))
 	if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, types.BondedStakePoolName, types.NotBondedStakePoolName, coins,
-		fmt.Sprintf("BondedStakeTokensToNotBonded_SendCoinsFromBondedStakePoolToNotBondedStakePool_%s", regionID),
+		fmt.Sprintf("BondedStakeTokensToNotBonded_%s", regionID),
 	); err != nil {
 		panic(err)
 	}
@@ -38,7 +38,7 @@ func (k Keeper) BondedStakeTokensToNotBonded(ctx sdk.Context, tokens math.Int, r
 func (k Keeper) NotBondedStakeTokensToBonded(ctx sdk.Context, tokens math.Int) {
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokens))
 	if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, types.NotBondedStakePoolName, types.BondedStakePoolName, coins,
-		fmt.Sprintf("NotBondedStakeTokensToBonded_SendCoinsFromNotBondedStakePoolToBondedStakePool"),
+		"NotBondedStakeTokensToBonded",
 	); err != nil {
 		panic(err)
 	}

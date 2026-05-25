@@ -5,10 +5,6 @@ const (
 	EventTypeStake                            = "stake"
 	EventTypeCompleteUnStakeBonding           = "complete_stake_unbonding"
 	EventTypeCompleteUnDelBonding             = "complete_del_unbonding"
-	EventTypeAddFixedDepositCfg               = "add_fixed_deposit_cfg"
-	EventTypeRemoveFixedDepositCfg            = "remove_fixed_deposit_cfg"
-	EventTypeSetFixedDepositCfgStatus         = "set_fixed_deposit_cfg_status"
-	EventTypeSetFixedDepositCfgRate           = "set_fixed_deposit_cfg_rate"
 	EventTypeWithdrawDelegatorReward          = "withdraw_delegator_reward"
 	EventTypeUnDelegate                       = "undelegate"
 	EventTypeDoFixedDeposit                   = "fixed_deposit"
@@ -27,6 +23,8 @@ const (
 	EventTypeRemoveRegion                     = "remove_region"
 	EventInviteReward                         = "invite_reward"
 	EventTypeUpdateValidator                  = "update_validator"
+	EventTypeGrantRegionWithdraw              = "grant_region_withdraw"
+	EventTypeRevokeRegionWithdraw             = "revoke_region_withdraw"
 )
 
 const (
@@ -73,4 +71,5 @@ const (
 	AttributeKeyMeidNumAddReward          = "meid_number_add_reward"
 	AttributeKeyNewOwnerAddress           = "new_owner"
 	AttributeKeyNewValidator              = "new_validator"
+	AttributeKeyGrantedAddress            = "granted_address"
 )
