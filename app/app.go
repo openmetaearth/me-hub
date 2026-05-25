@@ -71,7 +71,8 @@ import (
 	"github.com/evmos/ethermint/ethereum/eip712"
 
 	"github.com/evmos/ethermint/server/flags"
-	/* ----------------------------- osmosis imports ---------------------------- */ /* ---------------------------- upgrade handlers ---------------------------- */)
+	/* ----------------------------- osmosis imports ---------------------------- */ /* ---------------------------- upgrade handlers ---------------------------- */ "github.com/openmetaearth/me-hub/app/upgrades/v2_0_14.patch.1"
+)
 
 var (
 	_ = packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp
@@ -88,6 +89,7 @@ var (
 	// Upgrades contains the upgrade handlers for the application
 	Upgrades = []upgrades.Upgrade{
 		v2_0_14.Upgrade,
+		v2_0_14_patch_1.Upgrade,
 	}
 )
 
