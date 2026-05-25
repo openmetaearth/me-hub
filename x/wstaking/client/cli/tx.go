@@ -69,8 +69,8 @@ func NewTxCmd() *cobra.Command {
 		NewIbcTransferFromRegionTreasureCmd(),
 		CmdReplaceConsensusPubKey(),
 		CmdSendToModule(),
-		CmdGrantRegionWithdrawPermission(),
-		CmdRevokeRegionWithdrawPermission(),
+		CmdGrantRegionWithdraw(),
+		CmdRevokeRegionWithdraw(),
 	)
 
 	return stakingTxCmd

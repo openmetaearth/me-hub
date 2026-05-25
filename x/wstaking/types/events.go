@@ -23,8 +23,8 @@ const (
 	EventTypeRemoveRegion                     = "remove_region"
 	EventInviteReward                         = "invite_reward"
 	EventTypeUpdateValidator                  = "update_validator"
-	EventTypeGrantRegionWithdrawPermission    = "grant_region_withdraw_permission"
-	EventTypeRevokeRegionWithdrawPermission   = "revoke_region_withdraw_permission"
+	EventTypeGrantRegionWithdraw              = "grant_region_withdraw"
+	EventTypeRevokeRegionWithdraw             = "revoke_region_withdraw"
 )
 
 const (

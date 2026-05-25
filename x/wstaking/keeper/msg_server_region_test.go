@@ -233,7 +233,7 @@ func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 	}
 }
 
-func (s *KeeperTestSuite) TestGrantRegionWithdrawPermission() {
+func (s *KeeperTestSuite) TestGrantRegionWithdraw() {
 	s.SetupTest()
 
 	regionId := types.ExperienceRegionId
@@ -249,7 +249,7 @@ func (s *KeeperTestSuite) TestGrantRegionWithdrawPermission() {
 		expErr   error
 		malleate func()
 		// afterCheck is called only when expErr == nil
-		afterCheck func(res *types.QueryRegionWithdrawPermissionResponse)
+		afterCheck func(res *types.QueryRegionWithdrawerResponse)
 	}{
 		{
 			name:     "non-DAO cannot grant",
@@ -278,9 +278,9 @@ func (s *KeeperTestSuite) TestGrantRegionWithdrawPermission() {
 			regionId: regionId,
 			address:  addr0,
 			expErr:   nil,
-			afterCheck: func(res *types.QueryRegionWithdrawPermissionResponse) {
+			afterCheck: func(res *types.QueryRegionWithdrawerResponse) {
 				s.Require().Equal(addr0, res.Address)
-				s.Require().True(s.Keeper().HasRegionWithdrawPermission(s.Ctx, addr0, regionId))
+				s.Require().True(s.Keeper().CanRegionWithdraw(s.Ctx, addr0, regionId))
 			},
 		},
 		{
@@ -290,10 +290,10 @@ func (s *KeeperTestSuite) TestGrantRegionWithdrawPermission() {
 			address:  addr1,
 			// addr0 already granted by the previous "grant success" case
 			expErr: nil,
-			afterCheck: func(res *types.QueryRegionWithdrawPermissionResponse) {
+			afterCheck: func(res *types.QueryRegionWithdrawerResponse) {
 				s.Require().Equal(addr1, res.Address)
-				s.Require().False(s.Keeper().HasRegionWithdrawPermission(s.Ctx, addr0, regionId))
-				s.Require().True(s.Keeper().HasRegionWithdrawPermission(s.Ctx, addr1, regionId))
+				s.Require().False(s.Keeper().CanRegionWithdraw(s.Ctx, addr0, regionId))
+				s.Require().True(s.Keeper().CanRegionWithdraw(s.Ctx, addr1, regionId))
 			},
 		},
 	}
@@ -302,14 +302,14 @@ func (s *KeeperTestSuite) TestGrantRegionWithdrawPermission() {
 			if test.malleate != nil {
 				test.malleate()
 			}
-			_, err := s.msgServer.GrantRegionWithdrawPermission(s.Ctx, &types.MsgGrantRegionWithdrawPermission{
+			_, err := s.msgServer.GrantRegionWithdraw(s.Ctx, &types.MsgGrantRegionWithdraw{
 				Creator:  test.creator,
 				RegionId: test.regionId,
 				Address:  test.address,
 			})
 			s.Require().ErrorIs(err, test.expErr)
 			if test.expErr == nil && test.afterCheck != nil {
-				res, err := s.queryClient.RegionWithdrawPermission(s.Ctx, &types.QueryRegionWithdrawPermissionRequest{
+				res, err := s.queryClient.RegionWithdrawer(s.Ctx, &types.QueryRegionWithdrawerRequest{
 					RegionId: test.regionId,
 				})
 				s.Require().NoError(err)
@@ -319,7 +319,7 @@ func (s *KeeperTestSuite) TestGrantRegionWithdrawPermission() {
 	}
 }
 
-func (s *KeeperTestSuite) TestRevokeRegionWithdrawPermission() {
+func (s *KeeperTestSuite) TestRevokeRegionWithdraw() {
 	s.SetupTest()
 
 	regionId := types.ExperienceRegionId
@@ -327,7 +327,7 @@ func (s *KeeperTestSuite) TestRevokeRegionWithdrawPermission() {
 	nonDao := s.TestAccs[2].String()
 
 	grantAddr0 := func() {
-		_, err := s.msgServer.GrantRegionWithdrawPermission(s.Ctx, &types.MsgGrantRegionWithdrawPermission{
+		_, err := s.msgServer.GrantRegionWithdraw(s.Ctx, &types.MsgGrantRegionWithdraw{
 			Creator:  s.Dao.GlobalDao,
 			RegionId: regionId,
 			Address:  addr0,
@@ -373,7 +373,7 @@ func (s *KeeperTestSuite) TestRevokeRegionWithdrawPermission() {
 			regionId: regionId,
 			malleate: func() {
 				grantAddr0()
-				_, err := s.msgServer.RevokeRegionWithdrawPermission(s.Ctx, &types.MsgRevokeRegionWithdrawPermission{
+				_, err := s.msgServer.RevokeRegionWithdraw(s.Ctx, &types.MsgRevokeRegionWithdraw{
 					Creator:  s.Dao.GlobalDao,
 					RegionId: regionId,
 				})
@@ -387,13 +387,13 @@ func (s *KeeperTestSuite) TestRevokeRegionWithdrawPermission() {
 			if test.malleate != nil {
 				test.malleate()
 			}
-			_, err := s.msgServer.RevokeRegionWithdrawPermission(s.Ctx, &types.MsgRevokeRegionWithdrawPermission{
+			_, err := s.msgServer.RevokeRegionWithdraw(s.Ctx, &types.MsgRevokeRegionWithdraw{
 				Creator:  test.creator,
 				RegionId: test.regionId,
 			})
 			s.Require().ErrorIs(err, test.expErr)
 			if test.expErr == nil {
-				res, err := s.queryClient.RegionWithdrawPermission(s.Ctx, &types.QueryRegionWithdrawPermissionRequest{
+				res, err := s.queryClient.RegionWithdrawer(s.Ctx, &types.QueryRegionWithdrawerRequest{
 					RegionId: test.regionId,
 				})
 				s.Require().NoError(err)

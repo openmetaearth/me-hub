@@ -160,19 +160,19 @@ func CmdTransferRegion() *cobra.Command {
 	return cmd
 }
 
-// CmdGrantRegionWithdrawPermission returns the CLI command for granting (or
-// updating) withdraw permission for a region treasury.
-func CmdGrantRegionWithdrawPermission() *cobra.Command {
+// CmdGrantRegionWithdraw returns the CLI command for granting (or
+// updating) withdraw for a region treasury.
+func CmdGrantRegionWithdraw() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "grant-region-withdraw-permission [region-id] [address]",
-		Short: "Grant (or update) an address permission to withdraw from a region treasury",
+		Use:   "grant-region-withdraw [region-id] [address]",
+		Short: "Grant (or update) an address to withdraw from a region treasury",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Grant an address the permission to withdraw from a specific region treasury.
+			fmt.Sprintf(`Grant an address to withdraw from a specific region treasury.
 If the region already has a granted address, it will be overwritten.
 Only GlobalDao can call this.
 
 Example:
-$ %s tx staking grant-region-withdraw-permission usa me1abc...xyz --from global_dao
+$ %s tx staking grant-region-withdraw usa me1abc...xyz --from global_dao
 `,
 				version.AppName,
 			),
@@ -187,7 +187,7 @@ $ %s tx staking grant-region-withdraw-permission usa me1abc...xyz --from global_
 			regionId := args[0]
 			address := args[1]
 
-			msg := types.NewMsgGrantRegionWithdrawPermission(
+			msg := types.NewMsgGrantRegionWithdraw(
 				clientCtx.GetFromAddress().String(),
 				regionId,
 				address,
@@ -203,18 +203,18 @@ $ %s tx staking grant-region-withdraw-permission usa me1abc...xyz --from global_
 	return cmd
 }
 
-// CmdRevokeRegionWithdrawPermission returns the CLI command for revoking
-// withdraw permission for a region treasury.
-func CmdRevokeRegionWithdrawPermission() *cobra.Command {
+// CmdRevokeRegionWithdraw returns the CLI command for revoking
+// withdraw for a region treasury.
+func CmdRevokeRegionWithdraw() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "revoke-region-withdraw-permission [region-id]",
-		Short: "Revoke the withdraw permission for a region treasury",
+		Use:   "revoke-region-withdraw [region-id]",
+		Short: "Revoke the withdrawer for a region treasury",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Revoke the withdraw permission previously granted for a region treasury.
+			fmt.Sprintf(`Revoke the withdrawer previously granted for a region treasury.
 Only GlobalDao can call this.
 
 Example:
-$ %s tx staking revoke-region-withdraw-permission usa --from global_dao
+$ %s tx staking revoke-region-withdraw usa --from global_dao
 `,
 				version.AppName,
 			),
@@ -228,7 +228,7 @@ $ %s tx staking revoke-region-withdraw-permission usa --from global_dao
 
 			regionId := args[0]
 
-			msg := types.NewMsgRevokeRegionWithdrawPermission(
+			msg := types.NewMsgRevokeRegionWithdraw(
 				clientCtx.GetFromAddress().String(),
 				regionId,
 			)

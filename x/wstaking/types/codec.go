@@ -17,8 +17,8 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgRemoveRegion{}, "cosmos-sdk/MsgRemoveRegion", nil)
 	cdc.RegisterConcrete(&MsgReplaceConsensusPubKeyRequest{}, "cosmos-sdk/MsgReplaceConsensusPubKeyRequest", nil)
 	cdc.RegisterConcrete(&MsgSendToModule{}, "cosmos-sdk/MsgSendToModule", nil)
-	cdc.RegisterConcrete(&MsgGrantRegionWithdrawPermission{}, "cosmos-sdk/MsgGrantRegionWithdrawPermission", nil)
-	cdc.RegisterConcrete(&MsgRevokeRegionWithdrawPermission{}, "cosmos-sdk/MsgRevokeRegionWithdrawPermission", nil)
+	cdc.RegisterConcrete(&MsgGrantRegionWithdraw{}, "cosmos-sdk/MsgGrantRegionWithdraw", nil)
+	cdc.RegisterConcrete(&MsgRevokeRegionWithdraw{}, "cosmos-sdk/MsgRevokeRegionWithdraw", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -36,8 +36,8 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgWithdrawFixedDeposit{},
 		&MsgReplaceConsensusPubKeyRequest{},
 		&MsgSendToModule{},
-		&MsgGrantRegionWithdrawPermission{},
-		&MsgRevokeRegionWithdrawPermission{},
+		&MsgGrantRegionWithdraw{},
+		&MsgRevokeRegionWithdraw{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

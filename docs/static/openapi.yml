@@ -17391,12 +17391,12 @@ paths:
           type: string
       tags:
         - Query
-  /metaearth/wstaking/region_withdraw_permission/{region_id}:
+  /metaearth/wstaking/region_withdrawer/{region_id}:
     get:
-      summary: |-
-        QueryRegionWithdrawPermission queries which address is granted withdraw
-        permission for the given region.
-      operationId: RegionWithdrawPermission
+      summary: >-
+        QueryRegionWithdraw queries which address is granted withdraw for the
+        given region.
+      operationId: RegionWithdrawer
       responses:
         '200':
           description: A successful response.
@@ -17409,8 +17409,8 @@ paths:
               address:
                 type: string
                 description: >-
-                  address is the granted address; empty string means no
-                  permission is set.
+                  the withdrawer of this region; empty string means this region
+                  is not set.
         default:
           description: An unexpected error response.
           schema:
@@ -74622,7 +74622,7 @@ definitions:
             type: string
           fixed_deposit_amount:
             type: string
-  metaearth.wstaking.QueryRegionWithdrawPermissionResponse:
+  metaearth.wstaking.QueryRegionWithdrawerResponse:
     type: object
     properties:
       region_id:
@@ -74631,7 +74631,7 @@ definitions:
       address:
         type: string
         description: >-
-          address is the granted address; empty string means no permission is
+          the withdrawer of this region; empty string means this region is not
           set.
   metaearth.wstaking.QueryReviewRecordByNumberResponse:
     type: object

@@ -6,30 +6,30 @@ import (
 )
 
 const (
-	TypeMsgGrantRegionWithdrawPermission  = "grant_region_withdraw_permission"
-	TypeMsgRevokeRegionWithdrawPermission = "revoke_region_withdraw_permission"
+	TypeMsgGrantRegionWithdraw  = "grant_region_withdraw"
+	TypeMsgRevokeRegionWithdraw = "revoke_region_withdraw"
 )
 
 var (
-	_ sdk.Msg = &MsgGrantRegionWithdrawPermission{}
-	_ sdk.Msg = &MsgRevokeRegionWithdrawPermission{}
+	_ sdk.Msg = &MsgGrantRegionWithdraw{}
+	_ sdk.Msg = &MsgRevokeRegionWithdraw{}
 )
 
-func NewMsgGrantRegionWithdrawPermission(creator, regionId, address string) *MsgGrantRegionWithdrawPermission {
-	return &MsgGrantRegionWithdrawPermission{
+func NewMsgGrantRegionWithdraw(creator, regionId, address string) *MsgGrantRegionWithdraw {
+	return &MsgGrantRegionWithdraw{
 		Creator:  creator,
 		RegionId: regionId,
 		Address:  address,
 	}
 }
 
-func (msg *MsgGrantRegionWithdrawPermission) Route() string { return RouterKey }
+func (msg *MsgGrantRegionWithdraw) Route() string { return RouterKey }
 
-func (msg *MsgGrantRegionWithdrawPermission) Type() string {
-	return TypeMsgGrantRegionWithdrawPermission
+func (msg *MsgGrantRegionWithdraw) Type() string {
+	return TypeMsgGrantRegionWithdraw
 }
 
-func (msg *MsgGrantRegionWithdrawPermission) GetSigners() []sdk.AccAddress {
+func (msg *MsgGrantRegionWithdraw) GetSigners() []sdk.AccAddress {
 	creator, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		panic(err)
@@ -37,12 +37,12 @@ func (msg *MsgGrantRegionWithdrawPermission) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{creator}
 }
 
-func (msg *MsgGrantRegionWithdrawPermission) GetSignBytes() []byte {
+func (msg *MsgGrantRegionWithdraw) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgGrantRegionWithdrawPermission) ValidateBasic() error {
+func (msg *MsgGrantRegionWithdraw) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Creator); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address: %s", err)
 	}
@@ -55,20 +55,20 @@ func (msg *MsgGrantRegionWithdrawPermission) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgRevokeRegionWithdrawPermission(creator, regionId string) *MsgRevokeRegionWithdrawPermission {
-	return &MsgRevokeRegionWithdrawPermission{
+func NewMsgRevokeRegionWithdraw(creator, regionId string) *MsgRevokeRegionWithdraw {
+	return &MsgRevokeRegionWithdraw{
 		Creator:  creator,
 		RegionId: regionId,
 	}
 }
 
-func (msg *MsgRevokeRegionWithdrawPermission) Route() string { return RouterKey }
+func (msg *MsgRevokeRegionWithdraw) Route() string { return RouterKey }
 
-func (msg *MsgRevokeRegionWithdrawPermission) Type() string {
-	return TypeMsgRevokeRegionWithdrawPermission
+func (msg *MsgRevokeRegionWithdraw) Type() string {
+	return TypeMsgRevokeRegionWithdraw
 }
 
-func (msg *MsgRevokeRegionWithdrawPermission) GetSigners() []sdk.AccAddress {
+func (msg *MsgRevokeRegionWithdraw) GetSigners() []sdk.AccAddress {
 	creator, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		panic(err)
@@ -76,12 +76,12 @@ func (msg *MsgRevokeRegionWithdrawPermission) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{creator}
 }
 
-func (msg *MsgRevokeRegionWithdrawPermission) GetSignBytes() []byte {
+func (msg *MsgRevokeRegionWithdraw) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgRevokeRegionWithdrawPermission) ValidateBasic() error {
+func (msg *MsgRevokeRegionWithdraw) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Creator); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address: %s", err)
 	}

@@ -221,9 +221,9 @@ func (k Querier) AllDelegations(c context.Context, req *types.QueryAllDelegation
 	return &types.QueryAllDelegationsResponse{Delegations: delegations, Pagination: pageRes}, nil
 }
 
-// RegionWithdrawPermission returns the address that is granted withdraw
-// permission for the given region, or an empty address if none is set.
-func (k Keeper) RegionWithdrawPermission(goCtx context.Context, req *types.QueryRegionWithdrawPermissionRequest) (*types.QueryRegionWithdrawPermissionResponse, error) {
+// RegionWithdrawer returns the address that is granted withdraw
+// for the given region, or an empty address if not set.
+func (k Querier) RegionWithdrawer(goCtx context.Context, req *types.QueryRegionWithdrawerRequest) (*types.QueryRegionWithdrawerResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -233,8 +233,8 @@ func (k Keeper) RegionWithdrawPermission(goCtx context.Context, req *types.Query
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	address, _ := k.GetRegionWithdrawPermission(ctx, req.RegionId)
-	return &types.QueryRegionWithdrawPermissionResponse{
+	address, _ := k.GetRegionWithdraw(ctx, req.RegionId)
+	return &types.QueryRegionWithdrawerResponse{
 		RegionId: req.RegionId,
 		Address:  address,
 	}, nil

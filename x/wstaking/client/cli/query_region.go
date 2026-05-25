@@ -66,10 +66,10 @@ func GetCmdQueryAllRegion() *cobra.Command {
 	return cmd
 }
 
-func GetCmdQueryRegionWithdrawPermission() *cobra.Command {
+func GetCmdQueryRegionWithdrawer() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "region-withdraw-permission [region-id]",
-		Short: "Query which address is granted withdraw permission for a region",
+		Use:   "region-withdrawer [region-id]",
+		Short: "Query which address is granted withdraw for a region",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -79,10 +79,10 @@ func GetCmdQueryRegionWithdrawPermission() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryRegionWithdrawPermissionRequest{
+			params := &types.QueryRegionWithdrawerRequest{
 				RegionId: args[0],
 			}
-			res, err := queryClient.RegionWithdrawPermission(cmd.Context(), params)
+			res, err := queryClient.RegionWithdrawer(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
