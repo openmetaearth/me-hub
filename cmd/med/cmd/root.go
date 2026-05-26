@@ -251,12 +251,6 @@ func queryCommand() *cobra.Command {
 		rpc.ValidatorCommand(),
 	)
 
-	// Add wstaking custom query commands
-	stakingQueryCmd := wstakingcli.GetQueryCmd()
-	if stakingQueryCmd != nil {
-		cmd.AddCommand(stakingQueryCmd)
-	}
-
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd

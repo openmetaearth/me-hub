@@ -18,6 +18,11 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	stakingQueryCmd.AddCommand(
+		GetCmdQueryValidators(),
+		GetCmdQueryValidator(),
+		GetCmdQueryValidatorDelegations(),
+		GetCmdQueryPool(),
+		GetCmdQueryStakingParams(),
 		GetCmdQueryRegion(),
 		GetCmdQueryAllRegion(),
 		GetCmdQueryDelegatorRewards(),

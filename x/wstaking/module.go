@@ -108,6 +108,20 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
 
+// GetQueryCmd returns the root query command for the wstaking AppModule.
+// This overrides the embedded staking.AppModule which does not expose GetQueryCmd,
+// ensuring AutoCLI discovers the legacy CLI commands via HasCustomQueryCommand.
+func (am AppModule) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
+}
+
+// GetTxCmd returns the root tx command for the wstaking AppModule.
+// This overrides the embedded staking.AppModule.AppModuleBasic.GetTxCmd,
+// ensuring AutoCLI uses wstaking's custom tx commands via HasCustomTxCommand.
+func (am AppModule) GetTxCmd() *cobra.Command {
+	return cli.NewTxCmd()
+}
+
 // InitGenesis performs genesis initialization for the staking module.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
@@ -141,6 +155,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	wstakingQuerier := keeper.Querier{Keeper: am.keeper}
 	types.RegisterQueryServer(cfg.QueryServer(), wstakingQuerier)
 
+	// Use standard Cosmos SDK migrator for v1-v4 migrations
 	m := stakingkeeper.NewMigrator(am.keeper.Keeper, am.legacySubspace)
 	if err := cfg.RegisterMigration(stakingtypes.ModuleName, 1, m.Migrate1to2); err != nil {
 		panic(fmt.Sprintf("failed to migrate x/%s from version 1 to 2: %v", stakingtypes.ModuleName, err))
@@ -150,6 +165,12 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 	if err := cfg.RegisterMigration(stakingtypes.ModuleName, 3, m.Migrate3to4); err != nil {
 		panic(fmt.Sprintf("failed to migrate x/%s from version 3 to 4: %v", stakingtypes.ModuleName, err))
+	}
+
+	// Use custom wstaking migrator for v4-v5 (only migrates HistoricalInfo, skips delegation index)
+	wstakingMigrator := keeper.NewMigrator(am.keeper)
+	if err := cfg.RegisterMigration(stakingtypes.ModuleName, 4, wstakingMigrator.Migrate4to5); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/%s from version 4 to 5: %v", stakingtypes.ModuleName, err))
 	}
 }
 
