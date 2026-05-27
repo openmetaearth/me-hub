@@ -189,10 +189,19 @@ func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, contractAddress string, b
 	if batch == nil {
 		return types.ErrUnknown
 	}
+
+	// Collect transactions that were successfully added to the pool
+	// so we can roll them back if any later tx fails
+	var addedTxs []*types.OutgoingTransferTx
 	for _, tx := range batch.Transactions {
 		if err := k.AddUnbatchedTx(ctx, tx); err != nil {
+			// Roll back the transactions already added to the pool
+			for _, added := range addedTxs {
+				_ = k.DelUnbatchedTx(ctx, added.Fee, added.Id)
+			}
 			return errorsmod.Wrapf(err, "unable to add batched transaction back into pool %v", tx)
 		}
+		addedTxs = append(addedTxs, tx)
 	}
 
 	// Delete batch since it is finished
