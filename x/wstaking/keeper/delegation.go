@@ -22,29 +22,18 @@ const unbondingTime = time.Hour * 24 * 7
 // an unbonding object and inserting it into the unbonding queue which will be
 // processed during the staking EndBlocker.
 func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, isMeid bool, amount math.Int, delegation stakingtypes.Delegation) (time.Time, math.Int, error) {
-	if !isMeid {
-		if k.HasMaxUnbondingDelegationEntries(ctx, delAddr, valAddr) {
-			return time.Time{}, amount, stakingtypes.ErrMaxUnbondingDelegationEntries
-		}
+	if k.HasMaxUnbondingDelegationEntries(ctx, delAddr, valAddr) {
+		return time.Time{}, amount, stakingtypes.ErrMaxUnbondingDelegationEntries
 	}
 	returnAmount, err := k.Unbond(ctx, amount, isMeid, delegation)
 	if err != nil {
 		return time.Time{}, amount, err
 	}
-	completionTime := ctx.BlockHeader().Time
 	// transfer the validator tokens to the not bonded pool
-	if !isMeid {
-		k.bondedTokensToNotBonded(ctx, returnAmount)
-		completionTime = ctx.BlockHeader().Time.Add(unbondingTime)
-		ubd := k.SetUnbondingDelegationEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, returnAmount)
-		k.InsertUBDQueue(ctx, ubd, completionTime)
-	} else {
-		amt := sdk.NewCoin(params.BaseDenom, returnAmount)
-		err = k.bankKeeper.UndelegateCoinsFromModuleToAccount(ctx, stakingtypes.BondedPoolName, delAddr, sdk.NewCoins(amt))
-		if err != nil {
-			return completionTime, returnAmount, err
-		}
-	}
+	k.bondedTokensToNotBonded(ctx, returnAmount)
+	completionTime := ctx.BlockHeader().Time.Add(unbondingTime)
+	ubd := k.SetUnbondingDelegationEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, returnAmount)
+	k.InsertUBDQueue(ctx, ubd, completionTime)
 	return completionTime, returnAmount, nil
 }
 
