@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // Tally iterates over the votes and updates the tally of a proposal based on the voting power of the
@@ -43,30 +44,28 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes bool, 
 		}
 
 		// iterate over all delegations from voter, deduct from any delegated-to validators
-		//keeper.stakingKeeper.IterateStakes(ctx, voter, func(index int64, stake wstakingtypes.Stake) (stop bool) {
-		//	valAddrStr := stake.GetValidatorAddr().String()
-		//
-		//	if val, ok := currValidators[valAddrStr]; ok {
-		//		// There is no need to handle the special case that validator address equal to voter address.
-		//		// Because voter's voting power will tally again even if there will be deduction of voter's voting power from validator.
-		//		val.DelegatorDeductions = val.DelegatorDeductions.Add(stake.GetShares())
-		//		currValidators[valAddrStr] = val
-		//
-		//		// delegation shares * bonded / total shares
-		//		votingPower := stake.GetShares().MulInt(val.BondedTokens).Quo(val.DelegatorShares)
-		//
-		//		for _, option := range vote.Options {
-		//			weight, _ := sdk.NewDecFromStr(option.Weight)
-		//			subPower := votingPower.Mul(weight)
-		//			results[option.Option] = results[option.Option].Add(subPower)
-		//		}
-		//		totalVotingPower = totalVotingPower.Add(votingPower)
-		//	}
-		//
-		//	return false
-		//})
+		keeper.stakingKeeper.IterateStakes(ctx, voter, func(index int64, stake wstakingtypes.Stake) (stop bool) {
+			valAddrStr := stake.GetValidatorAddr().String()
 
-		keeper.DeleteVote(ctx, vote.ProposalId, voter)
+			if val, ok := currValidators[valAddrStr]; ok {
+				// There is no need to handle the special case that validator address equal to voter address.
+				// Because voter's voting power will tally again even if there will be deduction of voter's voting power from validator.
+				val.DelegatorDeductions = val.DelegatorDeductions.Add(stake.GetShares())
+				currValidators[valAddrStr] = val
+
+				// delegation shares * bonded / total shares
+				votingPower := stake.GetShares().MulInt(val.BondedTokens).Quo(val.DelegatorShares)
+
+				for _, option := range vote.Options {
+					weight, _ := sdk.NewDecFromStr(option.Weight)
+					subPower := votingPower.Mul(weight)
+					results[option.Option] = results[option.Option].Add(subPower)
+				}
+				totalVotingPower = totalVotingPower.Add(votingPower)
+			}
+
+			return false
+		})
 		return false
 	})
 
@@ -76,9 +75,8 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes bool, 
 			continue
 		}
 
-		//sharesAfterDeductions := val.DelegatorShares.Sub(val.DelegatorDeductions)
-		//votingPower := sharesAfterDeductions.MulInt(val.BondedTokens).Quo(val.DelegatorShares)
-		votingPower := sdk.NewDec(1)
+		sharesAfterDeductions := val.DelegatorShares.Sub(val.DelegatorDeductions)
+		votingPower := sharesAfterDeductions.MulInt(val.BondedTokens).Quo(val.DelegatorShares)
 
 		for _, option := range val.Vote {
 			weight, _ := sdk.NewDecFromStr(option.Weight)
