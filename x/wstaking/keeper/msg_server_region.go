@@ -203,11 +203,11 @@ func (k MsgServer) GrantRegionWithdraw(goCtx context.Context, msg *types.MsgGran
 	}
 
 	if _, found := k.GetRegion(ctx, msg.RegionId); !found {
-		return nil, sdkerrors.Wrapf(types.ErrRegionNotExist, "region %s not found", msg.RegionId)
+		return nil, errorsmod.Wrapf(types.ErrRegionNotExist, "region %s not found", msg.RegionId)
 	}
 
 	if _, err := sdk.AccAddressFromBech32(msg.Address); err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address: %s", err)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address: %s", err)
 	}
 
 	k.SetRegionWithdraw(ctx, msg.RegionId, msg.Address)
@@ -231,11 +231,11 @@ func (k MsgServer) RevokeRegionWithdraw(goCtx context.Context, msg *types.MsgRev
 	}
 
 	if _, found := k.GetRegion(ctx, msg.RegionId); !found {
-		return nil, sdkerrors.Wrapf(types.ErrRegionNotExist, "region %s not found", msg.RegionId)
+		return nil, errorsmod.Wrapf(types.ErrRegionNotExist, "region %s not found", msg.RegionId)
 	}
 
 	if _, found := k.GetRegionWithdraw(ctx, msg.RegionId); !found {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrKeyNotFound,
+		return nil, errorsmod.Wrapf(sdkerrors.ErrKeyNotFound,
 			"no withdraw address found for region %s", msg.RegionId)
 	}
 
