@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"math"
 	"strconv"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -53,6 +54,10 @@ func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.
 	metadata, err := codectypes.NewAnyWithValue(classMetadata)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "%v", err)
+	}
+
+	if msg.TotalSupply > math.MaxUint32 {
+		return nil, sdkerrors.Wrapf(types.ErrTotalSupplyExceedsMax, "total supply %d exceeds maximum %d", msg.TotalSupply, uint64(math.MaxUint32))
 	}
 
 	class := nft.Class{

@@ -3,6 +3,7 @@ package types
 import (
 	"cosmossdk.io/errors"
 	"fmt"
+	"math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
@@ -43,6 +44,10 @@ func (msg MsgNewClass) ValidateBasic() error {
 
 	if msg.TotalSupply == 0 && msg.ClassId != "kyc" {
 		return ErrEmptyTotalSupply
+	}
+
+	if msg.TotalSupply > math.MaxUint32 {
+		return ErrTotalSupplyExceedsMax
 	}
 
 	if len(msg.Name) == 0 {
