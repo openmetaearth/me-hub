@@ -21,11 +21,11 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	}
 
 	// check to see if there is an active whitelist
-	//if whitelist := k.DeployerWhitelist(ctx); len(whitelist) > 0 {
-	//	if !k.IsAddressInDeployerWhiteList(ctx, msg.Creator) {
-	//		return nil, types.ErrUnauthorizedRollappCreator
-	//	}
-	//}
+	if whitelist := k.DeployerWhitelist(ctx); len(whitelist) > 0 {
+		if !k.IsAddressInDeployerWhiteList(ctx, msg.Creator) {
+			return nil, types.ErrUnauthorizedRollappCreator
+		}
+	}
 
 	rollapp := msg.GetRollapp()
 	err = rollapp.ValidateBasic()
