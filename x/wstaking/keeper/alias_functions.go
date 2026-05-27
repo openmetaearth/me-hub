@@ -20,9 +20,11 @@ func (k Keeper) CalculateInterest(ctx sdk.Context, totalStaking cmath.Int, heigh
 	return k.Calculate(ctx, blockRewards, totalStaking)
 }
 
-// getRewardsByHeight Get coins through the block height range
+// getRewardsByHeight Get coins through the block height range.
+// Accumulates rewards in sdk.Dec to avoid precision loss from intermediate TruncateInt;
+// the caller is responsible for any final truncation.
 func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
-	totalCoins := sdk.ZeroInt()
+	totalCoins := sdk.ZeroDec()
 
 	lowMul := (fromHeight - 1) / mintTypes.OneYearTotalBlocks
 	highMul := (toHeight - 1) / mintTypes.OneYearTotalBlocks
@@ -32,7 +34,7 @@ func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdk.D
 		amountDec := sdk.NewDec(int64(mintTypes.InitOneYearMintAmount)).
 			Quo(sdk.NewDec(int64(mintTypes.OneYearTotalBlocks))).
 			Quo(halvingDivisor)
-		mintUMECAmount := wmint.RoundUpToFourDecimalsDec(amountDec).MulInt64(100_000_000).TruncateInt()
+		mintUMECAmount := wmint.RoundUpToFourDecimalsDec(amountDec).MulInt64(100_000_000)
 
 		var blockCount int64
 		// If the range of from and to are in the same reduction period
@@ -49,10 +51,10 @@ func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdk.D
 			blockCount = int64(mintTypes.OneYearTotalBlocks)
 		}
 
-		totalCoins = totalCoins.Add(mintUMECAmount.MulRaw(blockCount))
+		totalCoins = totalCoins.Add(mintUMECAmount.MulInt64(blockCount))
 	}
 
-	coin = sdk.NewDecFromInt(totalCoins)
+	coin = totalCoins
 	return
 }
 
