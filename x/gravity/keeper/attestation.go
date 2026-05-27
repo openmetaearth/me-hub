@@ -101,7 +101,18 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		if attestationPower.LT(requiredPower) {
 			continue
 		}
+		// Execute the handler first — only advance bookkeeping on handler success.
+		// This prevents a failed handler from permanently consuming the event nonce,
+		// which would lock the bridge retry path for that nonce.
+		err = k.processAttestation(ctx, claim)
+		if err != nil {
+			k.Logger(ctx).Error("TryAttestation", "processAttestation failed", "error", err, "nonce", claim.GetEventNonce())
+			// Do not mark observed or advance nonce — the claim can be retried
+			k.PruneAttestations(ctx)
+			break
+		}
 
+		// Handler succeeded — now update observed bookkeeping
 		k.SetLastObservedEventNonce(ctx, claim.GetEventNonce())
 
 		// in case of web3 event is long time ago, we set the last observed me block height need long enough.
@@ -110,15 +121,14 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		att.Observed = true
 		k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
-		err = k.processAttestation(ctx, claim)
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeContractEvent,
 			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
 			sdk.NewAttribute(types.AttributeKeyClaimType, claim.GetType().String()),
 			sdk.NewAttribute(types.AttributeKeyEventNonce, fmt.Sprint(claim.GetEventNonce())),
-			sdk.NewAttribute(types.AttributeKeyClaimHash, fmt.Sprint(hex.EncodeToString(claim.ClaimHash()))),
+			sdk.NewAttribute(types.AttributeKeyClaimHash, fmt.Sprint(hex.EncodeToString(types.GetAttestationKey(claim.GetEventNonce(), claim.ClaimHash())))),
 			sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprint(claim.GetBlockHeight())),
-			sdk.NewAttribute(types.AttributeKeyStateSuccess, fmt.Sprint(err == nil)),
+			sdk.NewAttribute(types.AttributeKeyStateSuccess, "true"),
 		))
 		// execute the timeout logic
 		//k.cleanupTimedOutBatches(ctx)
