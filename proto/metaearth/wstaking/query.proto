@@ -93,6 +93,11 @@ service Query {
   rpc QueryReviewRecordByID(QueryReviewRecordByNumber) returns (QueryReviewRecordByNumberResponse) {
     option (google.api.http).get = "/metaearth/wstaking/review_record/{action_number}";
   }
+
+  // QueryRegionWithdraw queries which address is granted withdraw for the given region.
+  rpc RegionWithdrawer(QueryRegionWithdrawerRequest) returns (QueryRegionWithdrawerResponse) {
+    option (google.api.http).get = "/metaearth/wstaking/region_withdrawer/{region_id}";
+  }
 }
 
 message QueryRegionRequest {
@@ -251,4 +256,15 @@ message QueryReviewRecordByNumber {
 message QueryReviewRecordByNumberResponse {
   ReviewRecord reviewRecord = 1 [(gogoproto.nullable) = false];
   //  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryRegionWithdrawerRequest {
+  string region_id = 1;
+}
+
+message QueryRegionWithdrawerResponse {
+  // region_id is the queried region.
+  string region_id = 1;
+  // the withdrawer of this region; empty string means this region is not set.
+  string address = 2;
 }

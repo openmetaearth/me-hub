@@ -25,6 +25,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryStakingParams(),
 		GetCmdQueryRegion(),
 		GetCmdQueryAllRegion(),
+		GetCmdQueryRegionWithdrawer(),
 		GetCmdQueryDelegatorRewards(),
 		GetCmdQueryDelegation(),
 		CmdQueryAllDelegations(),

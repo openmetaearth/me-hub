@@ -205,3 +205,22 @@ func (k Querier) AllDelegations(c context.Context, req *types.QueryAllDelegation
 	}
 	return &types.QueryAllDelegationsResponse{Delegations: delegations, Pagination: pageRes}, nil
 }
+
+// RegionWithdrawer returns the address that is granted withdraw
+// for the given region, or an empty address if not set.
+func (k Querier) RegionWithdrawer(goCtx context.Context, req *types.QueryRegionWithdrawerRequest) (*types.QueryRegionWithdrawerResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	if req.RegionId == "" {
+		return nil, status.Error(codes.InvalidArgument, "region_id cannot be empty")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	address, _ := k.GetRegionWithdraw(ctx, req.RegionId)
+	return &types.QueryRegionWithdrawerResponse{
+		RegionId: req.RegionId,
+		Address:  address,
+	}, nil
+}
