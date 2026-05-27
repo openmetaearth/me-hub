@@ -197,6 +197,9 @@ func (m *MsgBridgeTokenClaim) ValidateBasic() (err error) {
 	if m.BlockHeight == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("zero block height")
 	}
+	if m.Decimals > 18 {
+		return errortypes.ErrInvalidRequest.Wrapf("token decimals too large: %d, max 18", m.Decimals)
+	}
 	return nil
 }
 
