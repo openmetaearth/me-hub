@@ -22,6 +22,10 @@ func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 	if !isFound {
 		return nil, types.ErrRegionNotExist
 	}
+	if msg.ValidatorAddress != "" && msg.ValidatorAddress != region.OperatorAddress {
+		return nil, sdkerrors.Wrapf(types.ErrInvalidValidator,
+			"validator address %s does not match region operator %s", msg.ValidatorAddress, region.OperatorAddress)
+	}
 	msg.ValidatorAddress = region.OperatorAddress
 	valAddr, valErr := sdk.ValAddressFromBech32(msg.ValidatorAddress)
 	if valErr != nil {
