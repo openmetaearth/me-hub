@@ -179,7 +179,7 @@ func (k Keeper) Unstake(
 		k.BondedStakeTokensToNotBonded(ctx, returnAmount, validator.Description.RegionID)
 	}
 
-	completionTime := ctx.BlockHeader().Time.Add(time.Second)
+	completionTime := ctx.BlockHeader().Time.Add(unbondingTime)
 	ubs := k.SetUnbondingStakeEntry(ctx, stakerAddr, valAddr, ctx.BlockHeight(), completionTime, returnAmount)
 	k.InsertUBSQueue(ctx, ubs, completionTime)
 	return completionTime, nil
@@ -229,7 +229,9 @@ func (k Keeper) UnStakeBond(
 		if err != nil {
 			return amount, err
 		}
-		k.UnBondRegion(ctx, validator.Description.RegionID)
+		if validator.DelegatorShares.Sub(shares).IsZero() {
+				k.UnBondRegion(ctx, validator.Description.RegionID)
+			}
 	} else {
 		k.BondRegion(ctx, validator, stake.Shares.TruncateInt(), false)
 		k.SetStake(ctx, stake)
