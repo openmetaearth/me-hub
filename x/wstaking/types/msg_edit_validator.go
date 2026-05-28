@@ -8,13 +8,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
-const TypeMsgUpdateValidator = "update_validator"
-
-var _ sdk.Msg = &MsgUpdateValidator{}
-
-// NewMsgUpdateValidator creates a new MsgUpdateValidator instance
-//
-//nolint:interfacer
 func NewMsgUpdateValidator(valAddr sdk.ValAddress, description stakingtypes.Description, newRate *sdkmath.LegacyDec, newMinSelfDelegation *sdkmath.Int) *MsgUpdateValidator {
 	return &MsgUpdateValidator{
 		Description:       description,
@@ -22,24 +15,6 @@ func NewMsgUpdateValidator(valAddr sdk.ValAddress, description stakingtypes.Desc
 		StakerAddress:     valAddr.String(),
 		MinSelfDelegation: newMinSelfDelegation,
 	}
-}
-
-// Route implements the sdk.Msg interface.
-func (msg MsgUpdateValidator) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgUpdateValidator) Type() string { return TypeMsgUpdateValidator }
-
-// GetSigners implements the sdk.Msg interface.
-func (msg MsgUpdateValidator) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(msg.StakerAddress)
-	return []sdk.AccAddress{sdk.AccAddress(addr)}
-}
-
-// GetSignBytes implements the sdk.Msg interface.
-func (msg MsgUpdateValidator) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.

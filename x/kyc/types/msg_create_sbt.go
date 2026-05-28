@@ -9,10 +9,6 @@ import (
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 )
 
-const (
-	TypeMsgCreateSBT = "create_sbt"
-)
-
 func NewMsgCreateSBT(issuer, did, uri, uriHash string, data []byte) *MsgCreateSBT {
 	return &MsgCreateSBT{
 		Issuer:  issuer,
@@ -21,27 +17,6 @@ func NewMsgCreateSBT(issuer, did, uri, uriHash string, data []byte) *MsgCreateSB
 		UriHash: uriHash,
 		Data:    data,
 	}
-}
-
-// Route implements the sdk.Msg interface.
-func (m *MsgCreateSBT) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (m *MsgCreateSBT) Type() string { return TypeMsgCreateSBT }
-
-func (m *MsgCreateSBT) GetSigners() []sdk.AccAddress {
-	issuer, err := sdk.AccAddressFromBech32(m.Issuer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{issuer}
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (m *MsgCreateSBT) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }
 
 func (m *MsgCreateSBT) ValidateBasic() error {

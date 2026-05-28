@@ -6,21 +6,7 @@ import (
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const (
-	TypeMsgSendToExternal       = "send_to_external"
-	TypeMsgRequestBatch         = "request_batch"
-	TypeMsgConfirmBatch         = "confirm_batch"
-	TypeMsgCancelSendToExternal = "cancel_send_to_external"
-	TypeMsgIncreaseBridgeFee    = "increase_bridge_fee"
-)
-
 // MsgSendToExternal //
-
-// Route should return the name of the module
-func (m *MsgSendToExternal) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgSendToExternal) Type() string { return TypeMsgSendToExternal }
 
 // ValidateBasic runs stateless checks on the message
 // Checks if the Eth address is valid
@@ -46,23 +32,7 @@ func (m *MsgSendToExternal) ValidateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgSendToExternal) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgSendToExternal) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
-}
-
 // MsgRequestBatch //
-
-// Route should return the name of the module
-func (m *MsgRequestBatch) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgRequestBatch) Type() string { return TypeMsgRequestBatch }
 
 // ValidateBasic performs stateless checks
 func (m *MsgRequestBatch) ValidateBasic() (err error) {
@@ -87,23 +57,7 @@ func (m *MsgRequestBatch) ValidateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgRequestBatch) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgRequestBatch) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
-}
-
 // MsgConfirmBatch //
-
-// Route should return the name of the module
-func (m *MsgConfirmBatch) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgConfirmBatch) Type() string { return TypeMsgConfirmBatch }
 
 // ValidateBasic performs stateless checks
 func (m *MsgConfirmBatch) ValidateBasic() (err error) {
@@ -128,23 +82,7 @@ func (m *MsgConfirmBatch) ValidateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgConfirmBatch) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgConfirmBatch) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.RelayerAddress)}
-}
-
 // MsgCancelSendToExternal //
-
-// Route should return the name of the module
-func (m *MsgCancelSendToExternal) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgCancelSendToExternal) Type() string { return TypeMsgCancelSendToExternal }
 
 // ValidateBasic performs stateless checks
 func (m *MsgCancelSendToExternal) ValidateBasic() (err error) {
@@ -160,23 +98,7 @@ func (m *MsgCancelSendToExternal) ValidateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgCancelSendToExternal) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgCancelSendToExternal) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
-}
-
 // MsgIncreaseBridgeFee
-
-// Route should return the name of the module
-func (m *MsgIncreaseBridgeFee) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgIncreaseBridgeFee) Type() string { return TypeMsgIncreaseBridgeFee }
 
 // ValidateBasic performs stateless checks
 func (m *MsgIncreaseBridgeFee) ValidateBasic() (err error) {
@@ -195,12 +117,3 @@ func (m *MsgIncreaseBridgeFee) ValidateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgIncreaseBridgeFee) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgIncreaseBridgeFee) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
-}

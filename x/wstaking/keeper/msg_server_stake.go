@@ -70,7 +70,7 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 		defer func() {
 			telemetry.IncrCounter(1, types.ModuleName, "stake")
 			telemetry.SetGaugeWithLabels(
-				[]string{"tx", "msg", msg.Type()},
+				[]string{"tx", "msg", sdk.MsgTypeURL(msg)},
 				float32(msg.Amount.Amount.Int64()),
 				[]metrics.Label{telemetry.NewLabel("denom", msg.Amount.Denom)},
 			)
@@ -144,7 +144,7 @@ func (k MsgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 		defer func() {
 			telemetry.IncrCounter(1, types.ModuleName, "unstake")
 			telemetry.SetGaugeWithLabels(
-				[]string{"tx", "msg", msg.Type()},
+				[]string{"tx", "msg", sdk.MsgTypeURL(msg)},
 				float32(msg.Amount.Amount.Int64()),
 				[]metrics.Label{telemetry.NewLabel("denom", msg.Amount.Denom)},
 			)

@@ -10,31 +10,7 @@ import (
 	"github.com/openmetaearth/me-hub/app/params"
 )
 
-const (
-	TypeMsgBondedRelayer     = "bonded_relayer"
-	TypeMsgAddDelegate       = "add_delegate"
-	TypeMsgUnbondedRelayer   = "unbonded_relayer"
-	TypeMsgRelayerSetConfirm = "relayer_set_confirm"
-	TypeMsgProposalRelayers  = "update_relayers"
-	TypeMsgUpdateParams      = "update_params"
-)
-
 // MsgBondedRelayer //
-
-// Route implements the sdk.Msg interface.
-func (m *MsgBondedRelayer) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (m *MsgBondedRelayer) Type() string { return TypeMsgBondedRelayer }
-
-func (m *MsgBondedRelayer) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.RelayerAddress)}
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (m *MsgBondedRelayer) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
 
 func (m *MsgBondedRelayer) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
@@ -54,21 +30,6 @@ func (m *MsgBondedRelayer) ValidateBasic() error {
 
 // MsgAddDelegate //
 
-// Route implements the sdk.Msg interface.
-func (m *MsgAddDelegate) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (m *MsgAddDelegate) Type() string { return TypeMsgAddDelegate }
-
-func (m *MsgAddDelegate) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.RelayerAddress)}
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (m *MsgAddDelegate) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
 func (m *MsgAddDelegate) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "relayer address is not a valid bech32 address")
@@ -84,10 +45,6 @@ func (m *MsgAddDelegate) ValidateBasic() error {
 
 // MsgUnbondedRelayer //
 
-func (m *MsgUnbondedRelayer) Route() string { return RouterKey }
-
-func (m *MsgUnbondedRelayer) Type() string { return TypeMsgUnbondedRelayer }
-
 func (m *MsgUnbondedRelayer) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
@@ -98,30 +55,7 @@ func (m *MsgUnbondedRelayer) ValidateBasic() (err error) {
 	return nil
 }
 
-func (m *MsgUnbondedRelayer) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-func (m *MsgUnbondedRelayer) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.RelayerAddress)}
-}
-
 // MsgProposalRelayers //
-
-// Route implements the sdk.Msg interface.
-func (m *MsgProposalRelayers) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (m *MsgProposalRelayers) Type() string { return TypeMsgProposalRelayers }
-
-func (m *MsgProposalRelayers) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Authority)}
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (m *MsgProposalRelayers) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
 
 func (m *MsgProposalRelayers) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
@@ -139,12 +73,6 @@ func (m *MsgProposalRelayers) ValidateBasic() error {
 }
 
 // MsgRelayerSetConfirm //
-
-// Route should return the name of the module
-func (m *MsgRelayerSetConfirm) Route() string { return RouterKey }
-
-// Type should return the action
-func (m *MsgRelayerSetConfirm) Type() string { return TypeMsgRelayerSetConfirm }
 
 // ValidateBasic performs stateless checks
 func (m *MsgRelayerSetConfirm) ValidateBasic() (err error) {
@@ -166,35 +94,7 @@ func (m *MsgRelayerSetConfirm) ValidateBasic() (err error) {
 	return nil
 }
 
-// GetSignBytes encodes the message for signing
-func (m *MsgRelayerSetConfirm) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
-}
-
-// GetSigners defines whose signature is required
-func (m *MsgRelayerSetConfirm) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.RelayerAddress)}
-}
-
 // MsgUpdateParams //
-
-// Route returns the MsgUpdateParams message route.
-func (m *MsgUpdateParams) Route() string { return ModuleName }
-
-// Type returns the MsgUpdateParams message type.
-func (m *MsgUpdateParams) Type() string { return TypeMsgUpdateParams }
-
-// GetSignBytes returns the raw bytes for a MsgUpdateParams message that
-// the expected signer needs to sign.
-func (m *MsgUpdateParams) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
-}
-
-// GetSigners returns the expected signers for a MsgUpdateParams message.
-func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Authority)}
-}
 
 func (m *MsgUpdateParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {

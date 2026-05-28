@@ -19,27 +19,6 @@ func NewMsgUpdateDao(creator sdk.AccAddress, addresses DaoAddresses) *MsgUpdateD
 	}
 }
 
-func (msg *MsgUpdateDao) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgUpdateDao) Type() string {
-	return "UpdateDao"
-}
-
-func (msg *MsgUpdateDao) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic("invalid creator address")
-	}
-	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgUpdateDao) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
 func (msg *MsgUpdateDao) ValidateBasic() error {
 	if len(msg.DaoAddresses.GlobalDao) > 0 {
 		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.GlobalDao); err != nil {
@@ -69,27 +48,6 @@ func NewMsgFreeGasAccount(creator sdk.AccAddress, accounts []FreeGasAccount) *Ms
 		Creator:  creator.String(),
 		Accounts: accounts,
 	}
-}
-
-func (msg *MsgFreeGasAccount) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgFreeGasAccount) Type() string {
-	return "UpdateDao"
-}
-
-func (msg *MsgFreeGasAccount) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic("invalid creator address")
-	}
-	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgFreeGasAccount) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgFreeGasAccount) ValidateBasic() error {

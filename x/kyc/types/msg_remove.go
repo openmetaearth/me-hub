@@ -8,36 +8,11 @@ import (
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 )
 
-const (
-	TypeMsgRemove = "remove"
-)
-
 func NewMsgRemove(issuer, did string) *MsgRemove {
 	return &MsgRemove{
 		Issuer: issuer,
 		Did:    did,
 	}
-}
-
-// Route implements the sdk.Msg interface.
-func (m *MsgRemove) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (m *MsgRemove) Type() string { return TypeMsgRemove }
-
-func (m *MsgRemove) GetSigners() []sdk.AccAddress {
-	issuer, err := sdk.AccAddressFromBech32(m.Issuer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{issuer}
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (m *MsgRemove) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }
 
 func (m *MsgRemove) ValidateBasic() error {

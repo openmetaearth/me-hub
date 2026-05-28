@@ -8,34 +8,13 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const (
-	TypeMsgNewClass = "new_class"
-	TypeMsgMintNFT  = "mint_nft"
-	// TypeMsgSend nft message types
-	TypeMsgSend = "send"
-)
-
 var (
 	_ sdk.Msg = &MsgNewClass{}
 	_ sdk.Msg = &MsgMintNFT{}
 	_ sdk.Msg = &MsgSend{}
 )
 
-// Route implements the sdk.Msg interface.
-func (msg MsgNewClass) Route() string { return nft.RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgNewClass) Type() string { return TypeMsgNewClass }
-
-// GetSignBytes implements the sdk.Msg interface.
-func (msg MsgNewClass) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-func (msg MsgNewClass) GetSigners() []sdk.AccAddress {
-	signer, _ := sdk.AccAddressFromBech32(msg.Sender)
-	return []sdk.AccAddress{signer}
-}
+// ValidateBasic implements the sdk.Msg interface.
 func (msg MsgNewClass) ValidateBasic() error {
 	if len(msg.ClassId) == 0 {
 		return nft.ErrEmptyClassID
@@ -100,24 +79,6 @@ func (m MsgMintNFT) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners returns the expected signers for MsgMintNFT.
-func (m MsgMintNFT) GetSigners() []sdk.AccAddress {
-	signer, _ := sdk.AccAddressFromBech32(m.Creator)
-	return []sdk.AccAddress{signer}
-}
-
-// Route implements the sdk.Msg interface.
-func (msg MsgMintNFT) Route() string { return nft.RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgMintNFT) Type() string { return TypeMsgMintNFT }
-
-// GetSignBytes implements the sdk.Msg interface.
-func (msg MsgMintNFT) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
 func NewMsgMintNFT(class_id, token_id, uri, uriHash, sender, receiver string) *MsgMintNFT {
 	return &MsgMintNFT{
 		ClassId:  class_id,
@@ -150,21 +111,3 @@ func (m MsgSend) ValidateBasic() error {
 	}
 	return nil
 }
-
-// GetSigners returns the expected signers for MsgSend.
-func (m MsgSend) GetSigners() []sdk.AccAddress {
-	signer, _ := sdk.AccAddressFromBech32(m.Sender)
-	return []sdk.AccAddress{signer}
-}
-
-// GetSignBytes get the bytes for the message signer to sign on
-func (msg MsgSend) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// Route implements the LegacyMsg interface.
-func (msg MsgSend) Route() string { return nft.RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgSend) Type() string { return TypeMsgSend }

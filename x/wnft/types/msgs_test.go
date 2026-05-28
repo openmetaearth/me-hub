@@ -3,7 +3,6 @@ package types
 import (
 	"testing"
 
-	"cosmossdk.io/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
@@ -116,46 +115,6 @@ func TestMsgNewClassValidateBasic(t *testing.T) {
 			}
 		})
 	}
-}
-
-// TestMsgNewClassGetSigners tests the GetSigners method
-func TestMsgNewClassGetSigners(t *testing.T) {
-	addr := sdk.AccAddress("test_address_______")
-	msg := &MsgNewClass{
-		Sender: addr.String(),
-	}
-
-	signers := msg.GetSigners()
-	require.Len(t, signers, 1)
-	require.Equal(t, addr, signers[0])
-}
-
-// TestMsgNewClassRoute tests the Route method
-func TestMsgNewClassRoute(t *testing.T) {
-	msg := &MsgNewClass{}
-	require.Equal(t, nft.RouterKey, msg.Route())
-}
-
-// TestMsgNewClassType tests the Type method
-func TestMsgNewClassType(t *testing.T) {
-	msg := &MsgNewClass{}
-	require.Equal(t, TypeMsgNewClass, msg.Type())
-}
-
-// TestMsgNewClassGetSignBytes tests the GetSignBytes method
-func TestMsgNewClassGetSignBytes(t *testing.T) {
-	validAddr := sdk.AccAddress("valid_address______").String()
-	msg := &MsgNewClass{
-		ClassId:     "test",
-		Sender:      validAddr,
-		Name:        "Test",
-		Symbol:      "TST",
-		TotalSupply: 100,
-	}
-
-	bz := msg.GetSignBytes()
-	require.NotNil(t, bz)
-	require.NotEmpty(t, bz)
 }
 
 // TestNewMsgNewClass tests the constructor
@@ -278,46 +237,6 @@ func TestMsgMintNFTValidateBasic(t *testing.T) {
 	}
 }
 
-// TestMsgMintNFTGetSigners tests the GetSigners method
-func TestMsgMintNFTGetSigners(t *testing.T) {
-	addr := sdk.AccAddress("test_address_______")
-	msg := &MsgMintNFT{
-		Creator: addr.String(),
-	}
-
-	signers := msg.GetSigners()
-	require.Len(t, signers, 1)
-	require.Equal(t, addr, signers[0])
-}
-
-// TestMsgMintNFTRoute tests the Route method
-func TestMsgMintNFTRoute(t *testing.T) {
-	msg := &MsgMintNFT{}
-	require.Equal(t, nft.RouterKey, msg.Route())
-}
-
-// TestMsgMintNFTType tests the Type method
-func TestMsgMintNFTType(t *testing.T) {
-	msg := &MsgMintNFT{}
-	require.Equal(t, TypeMsgMintNFT, msg.Type())
-}
-
-// TestMsgMintNFTGetSignBytes tests the GetSignBytes method
-func TestMsgMintNFTGetSignBytes(t *testing.T) {
-	validAddr := sdk.AccAddress("valid_address______").String()
-	msg := &MsgMintNFT{
-		ClassId:  "test",
-		TokenId:  "1",
-		Uri:      "uri",
-		Creator:  validAddr,
-		Receiver: validAddr,
-	}
-
-	bz := msg.GetSignBytes()
-	require.NotNil(t, bz)
-	require.NotEmpty(t, bz)
-}
-
 // TestNewMsgMintNFT tests the constructor
 func TestNewMsgMintNFT(t *testing.T) {
 	classId := "test-class"
@@ -414,43 +333,4 @@ func TestMsgSendValidateBasic(t *testing.T) {
 			}
 		})
 	}
-}
-
-// TestMsgSendGetSigners tests the GetSigners method
-func TestMsgSendGetSigners(t *testing.T) {
-	addr := sdk.AccAddress("test_address_______")
-	msg := &MsgSend{
-		Sender: addr.String(),
-	}
-
-	signers := msg.GetSigners()
-	require.Len(t, signers, 1)
-	require.Equal(t, addr, signers[0])
-}
-
-// TestMsgSendRoute tests the Route method
-func TestMsgSendRoute(t *testing.T) {
-	msg := &MsgSend{}
-	require.Equal(t, nft.RouterKey, msg.Route())
-}
-
-// TestMsgSendType tests the Type method
-func TestMsgSendType(t *testing.T) {
-	msg := &MsgSend{}
-	require.Equal(t, TypeMsgSend, msg.Type())
-}
-
-// TestMsgSendGetSignBytes tests the GetSignBytes method
-func TestMsgSendGetSignBytes(t *testing.T) {
-	validAddr := sdk.AccAddress("valid_address______").String()
-	msg := &MsgSend{
-		ClassId:  "test",
-		Id:       "1",
-		Sender:   validAddr,
-		Receiver: validAddr,
-	}
-
-	bz := msg.GetSignBytes()
-	require.NotNil(t, bz)
-	require.NotEmpty(t, bz)
 }

@@ -12,8 +12,6 @@ import (
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 )
 
-const TypeMsgIbcTransferFromRegionTreasure = "ibc_transfer_from_region_treasure"
-
 var _ sdk.Msg = &MsgIbcTransferFromRegionTreasure{}
 
 func NewMsgIbcTransferFromRegionTreasure(sourcePort, sourceChannel, regionId string, amount sdk.Coin, timeoutHeight Height, timeoutTimestamp uint64, momo, creator string) *MsgIbcTransferFromRegionTreasure {
@@ -27,27 +25,6 @@ func NewMsgIbcTransferFromRegionTreasure(sourcePort, sourceChannel, regionId str
 		Memo:             momo,
 		Creator:          creator,
 	}
-}
-
-func (msg *MsgIbcTransferFromRegionTreasure) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgIbcTransferFromRegionTreasure) Type() string {
-	return TypeMsgIbcTransferFromRegionTreasure
-}
-
-func (msg *MsgIbcTransferFromRegionTreasure) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgIbcTransferFromRegionTreasure) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgIbcTransferFromRegionTreasure) ValidateBasic() error {

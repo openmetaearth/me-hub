@@ -6,8 +6,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const TypeMsgSendToModule = "send_to_module"
-
 var _ sdk.Msg = &MsgSendToModule{}
 
 func NewMsgSendToModule(account, receiver string, amount sdk.Coins) *MsgSendToModule {
@@ -16,27 +14,6 @@ func NewMsgSendToModule(account, receiver string, amount sdk.Coins) *MsgSendToMo
 		Receiver: receiver,
 		Amount:   amount,
 	}
-}
-
-func (msg *MsgSendToModule) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgSendToModule) Type() string {
-	return TypeMsgSendToModule
-}
-
-func (msg *MsgSendToModule) GetSigners() []sdk.AccAddress {
-	account, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{account}
-}
-
-func (msg *MsgSendToModule) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgSendToModule) ValidateBasic() error {
