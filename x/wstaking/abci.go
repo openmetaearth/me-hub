@@ -18,7 +18,11 @@ func BeginBlock(ctx sdk.Context, k *keeper.Keeper) {
 	regions := k.GetAllRegion(ctx)
 
 	for _, region := range regions {
-		rewards, _ := k.Calculate(ctx, sdk.NewDecFromInt(totalRewardsPerBlock), region.DelegateAmount) //rate.MulInt(totalRewardsPerBlock.Mul(region.DelegateAmount)).Mul(sdk.NewDecWithPrec(1, sdk.MEExponent))
+		rewards, err := k.Calculate(ctx, sdk.NewDecFromInt(totalRewardsPerBlock), region.DelegateAmount)
+		if err != nil {
+			k.Logger(ctx).Error("failed to calculate rewards for region", "region", region.RegionId, "error", err)
+			continue
+		}
 		region.DelegateInterest = region.DelegateInterest.Add(rewards)
 		k.SetRegion(ctx, region)
 	}
