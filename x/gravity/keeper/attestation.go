@@ -79,7 +79,21 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 	// If the attestation has not yet been Observed, sum up the votes and see if it is ready to apply to the state.
 	// This conditional stops the attestation from accidentally being applied twice.
 	// Sum the current powers of all validators who have voted and see if it passes the current threshold
-	totalPower := k.GetLastTotalPower(ctx)
+	var totalPower sdkmath.Int
+	var observedMembers map[string]uint64
+	lastObserved := k.GetLastObservedRelayerSet(ctx)
+	if lastObserved != nil && len(lastObserved.Members) > 0 {
+		observedMembers = make(map[string]uint64)
+		var observedTotalPower uint64
+		for _, member := range lastObserved.Members {
+			observedMembers[member.ExternalAddress] = member.Power
+			observedTotalPower += member.Power
+		}
+		totalPower = sdkmath.NewIntFromUint64(observedTotalPower)
+	} else {
+		totalPower = k.GetLastTotalPower(ctx)
+	}
+
 	requiredPower := types.AttestationVotesPowerThreshold.Mul(totalPower).Quo(sdk.NewIntFromUint64(types.PowerBase))
 	attestationPower := sdkmath.NewInt(0)
 
@@ -95,7 +109,19 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 				claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
 			continue
 		}
-		relayerPower := relayer.GetPower()
+		
+		var relayerPower sdkmath.Int
+		if observedMembers != nil {
+			powerVal, isMember := observedMembers[relayer.ExternalAddress]
+			if !isMember {
+				// newly bonded relayer not yet trusted by the external bridge, skip vote
+				continue
+			}
+			relayerPower = sdkmath.NewIntFromUint64(powerVal)
+		} else {
+			relayerPower = relayer.GetPower()
+		}
+
 		// Add it to the attestation power's sum
 		attestationPower = attestationPower.Add(relayerPower)
 		if attestationPower.LT(requiredPower) {
