@@ -97,6 +97,7 @@ var (
 	ErrHooks                    = sdkerrors.Register(ModuleName, 1301, "hooks error")
 	ErrExistingReplaceValidator = sdkerrors.Register(ModuleName, 1302, "another validator replacement is already in progress")
 	ErrValidatorNotBonded       = sdkerrors.Register(ModuleName, 1303, "only bonded validator can be replaced")
+	ErrInvalidValidator         = sdkerrors.Register(ModuleName, 1230, "validator address does not match region operator address")
 
 	ErrStakeOnValidatorIsEmpty = sdkerrors.Register(ModuleName, 1304, "stake on validator is empty")
 	ErrProtoProc               = sdkerrors.Register(ModuleName, 1305, "proc proto error.")
