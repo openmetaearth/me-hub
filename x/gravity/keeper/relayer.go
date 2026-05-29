@@ -177,6 +177,9 @@ func (k Keeper) SlashRelayer(ctx sdk.Context, relayerAddrStr string) error {
 		relayer.Online = false
 	}
 	k.SetRelayer(ctx, relayerAddr, relayer)
+	if !relayer.Online {
+		k.SetLastTotalPower(ctx)
+	}
 	k.SetLastRelayerSlashBlockHeight(ctx, uint64(ctx.BlockHeight()))
 	return nil
 }
