@@ -13,6 +13,10 @@ import (
 )
 
 func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.ExternalClaim) (*types.Attestation, error) {
+	if err := k.checkIsRelayer(ctx, relayerAddr); err != nil {
+		return nil, err
+	}
+
 	anyClaim, err := codectypes.NewAnyWithValue(claim)
 	if err != nil {
 		return nil, errorsmod.Wrap(types.ErrUnknown, "msg to any")
