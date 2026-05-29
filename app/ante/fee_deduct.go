@@ -371,6 +371,25 @@ func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 		}
 	}
 
+	// During DeliverTx, enforce that fees are paid in the base denomination (umec).
+	// Without this check, a proposer can include transactions that pay fees in a
+	// foreign denom (e.g. "100foo") which CheckTx would reject but DeliverTx would
+	// silently accept, creating a consensus-splitting fee policy violation.
+	if !ctx.IsCheckTx() {
+		baseDenomFee := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.ZeroInt()))
+		for _, fc := range feeCoins {
+			if fc.Denom == params.BaseDenom {
+				baseDenomFee = sdk.NewCoins(fc)
+				break
+			}
+		}
+		if !baseDenomFee.IsAllGTE(minimumFee) {
+			return sdk.Coins{}, 0, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee,
+				"fees must include at least %s in base denom %s; got %s",
+				minimumFee.String(), params.BaseDenom, feeCoins.String())
+		}
+	}
+
 	priority := getTxPriorityByFee(feeCoins)
 	return feeCoins, priority, nil
 }
