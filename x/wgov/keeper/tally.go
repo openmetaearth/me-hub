@@ -32,6 +32,10 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes bool, 
 		return false
 	})
 
+	// Collect vote keys during iteration, delete after iteration completes
+	// to avoid modifying the store while iterating over it.
+	var votesToDelete []sdk.AccAddress
+
 	keeper.IterateVotes(ctx, proposal.Id, func(vote v1.Vote) bool {
 		// if validator, just record it in the map
 		voter := sdk.MustAccAddressFromBech32(vote.Voter)
@@ -66,9 +70,14 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes bool, 
 		//	return false
 		//})
 
-		keeper.DeleteVote(ctx, vote.ProposalId, voter)
+		votesToDelete = append(votesToDelete, voter)
 		return false
 	})
+
+	// Delete votes after iteration completes
+	for _, voter := range votesToDelete {
+		keeper.DeleteVote(ctx, proposal.Id, voter)
+	}
 
 	// iterate over the validators again to tally their voting power
 	for _, val := range currValidators {
@@ -91,16 +100,17 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes bool, 
 	params := keeper.GetParams(ctx)
 	tallyResults = v1.NewTallyResultFromMap(results)
 
-	// TODO: Upgrade the spec to cover all of these cases & remove pseudocode.
+	// Use TotalBondedStakePool as the quorum denominator so that voting
+	// power is measured against the actual stake, not the validator count.
+	totalBondedPool := keeper.stakingKeeper.TotalBondedStakePool(ctx)
+
 	// If there is no staked coins, the proposal fails
-	//if keeper.stakingKeeper.TotalBondedStakePool(ctx).IsZero() {
-	//	return false, false, tallyResults
-	//}
-	totalValidatorNumber := len(currValidators)
+	if totalBondedPool.IsZero() {
+		return false, false, tallyResults
+	}
 
 	// If there is not enough quorum of votes, the proposal fails
-	//percentVoting := totalVotingPower.Quo(sdk.NewDecFromInt(keeper.stakingKeeper.TotalBondedStakePool(ctx)))
-	percentVoting := totalVotingPower.Quo(sdk.NewDecFromInt(sdk.NewInt(int64(totalValidatorNumber))))
+	percentVoting := totalVotingPower.Quo(sdk.NewDecFromInt(totalBondedPool))
 	quorum, _ := sdk.NewDecFromStr(params.Quorum)
 	if percentVoting.LT(quorum) {
 		return false, params.BurnVoteQuorum, tallyResults
