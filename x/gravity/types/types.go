@@ -33,6 +33,26 @@ func (m *ERC20Token) ValidateBasic() error {
 	return nil
 }
 
+// ValidateBasic performs stateless validation
+func (m *BridgeToken) ValidateBasic() error {
+	if len(m.Name) == 0 {
+		return errorsmod.Wrap(ErrEmpty, "name")
+	}
+	if len(m.Symbol) == 0 {
+		return errorsmod.Wrap(ErrEmpty, "symbol")
+	}
+	if len(m.Denom) == 0 {
+		return errorsmod.Wrap(ErrEmpty, "denom")
+	}
+	if err := utils.ValidateEthereumAddress(m.ContractAddress); err != nil {
+		return errorsmod.Wrap(err, "invalid contract address")
+	}
+	if m.Supply.IsNil() || m.Supply.IsNegative() {
+		return errorsmod.Wrap(ErrInvalid, "supply")
+	}
+	return nil
+}
+
 // --- BRIDGE VALIDATOR(S) --- //
 
 // ValidateBasic performs stateless checks on validity

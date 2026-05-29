@@ -39,7 +39,22 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	}
 	k.SetLastRelayerSetNonce(ctx, latestRelayerSetNonce)
 
+	denoms := make(map[string]bool)
+	contracts := make(map[string]bool)
 	for _, bridgeToken := range state.BridgeTokens {
+		if err := bridgeToken.ValidateBasic(); err != nil {
+			panic(err)
+		}
+		if denoms[bridgeToken.Denom] {
+			panic("duplicate bridge token denom: " + bridgeToken.Denom)
+		}
+		denoms[bridgeToken.Denom] = true
+
+		if contracts[bridgeToken.ContractAddress] {
+			panic("duplicate bridge token contract: " + bridgeToken.ContractAddress)
+		}
+		contracts[bridgeToken.ContractAddress] = true
+
 		k.SetBridgeToken(ctx, &bridgeToken)
 	}
 
