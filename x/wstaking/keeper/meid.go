@@ -66,10 +66,20 @@ func (k Keeper) GetMeidByRegion(ctx sdk.Context, regionId string) (list []types.
 	return
 }
 
+// GetValOwnerAddress returns the owner address of the validator bonded to the given region.
+// If the region's OperatorAddress is empty (e.g. after UnBondRegion), it falls back to
+// the block proposer's owner address to prevent the ante handler from blocking all
+// transactions from users in that region.
 func (k Keeper) GetValOwnerAddress(ctx sdk.Context, regionId string) (string, error) {
 	region, ok := k.GetRegion(ctx, regionId)
 	if !ok {
 		return "", sdkerrors.Wrapf(types.ErrRegionNotExist, "region(%s) not found", regionId)
+	}
+
+	// If the region has no operator (e.g. after full unbond), fall back to proposer
+	// to prevent blocking all transactions from users in this region.
+	if region.OperatorAddress == "" {
+		return k.GetProposerOwnerAddress(ctx)
 	}
 
 	valAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
