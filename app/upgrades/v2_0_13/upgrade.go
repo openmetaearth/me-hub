@@ -30,13 +30,6 @@ func CreateUpgradeHandler(
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 		logger.Info("upgrade starting...")
 
-		// Initialize consensus versions for all modules
-		for n, m := range mm.Modules {
-			if mod, ok := m.(module.HasConsensusVersion); ok {
-				fromVM[n] = mod.ConsensusVersion()
-			}
-		}
-
 		params := keepers.GovKeeper.GetParams(ctx)
 		maxDepositPeriod := 30 * time.Minute
 		params.MaxDepositPeriod = &maxDepositPeriod
@@ -71,9 +64,11 @@ func CreateUpgradeHandler(
 
 		bscGenState := GenGravityGenesis(ctx.BlockHeight(), proposalRelayers, bsctypes.DefaultGenesisState(), delegateAmount, bsctypes.ModuleName)
 		gravitykeeper.InitGenesis(ctx, keepers.BscKeeper, bscGenState)
+		markInitializedModuleVersion(fromVM, mm, bsctypes.ModuleName)
 
 		tronGenstate := GenGravityGenesis(ctx.BlockHeight(), proposalRelayers, trontypes.DefaultGenesisState(), delegateAmount, trontypes.ModuleName)
 		gravitykeeper.InitGenesis(ctx, keepers.TronKeeper, tronGenstate)
+		markInitializedModuleVersion(fromVM, mm, trontypes.ModuleName)
 
 		logger.Info("2. upgrade for setting umec metadata.")
 		keepers.BankKeeper.SetDenomMetaData(ctx, banktypes.Metadata{
@@ -97,6 +92,18 @@ func CreateUpgradeHandler(
 		})
 		logger.Info("upgrade finished successfully.")
 		return mm.RunMigrations(ctx, configurator, fromVM)
+	}
+}
+
+func markInitializedModuleVersion(fromVM module.VersionMap, mm *module.Manager, moduleName string) {
+	// BSC and Tron are initialized above with custom genesis state; only absent
+	// entries should be marked so existing module versions still migrate.
+	if _, exists := fromVM[moduleName]; exists {
+		return
+	}
+
+	if mod, ok := mm.Modules[moduleName].(module.HasConsensusVersion); ok {
+		fromVM[moduleName] = mod.ConsensusVersion()
 	}
 }
 
