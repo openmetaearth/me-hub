@@ -359,6 +359,9 @@ func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 
 			// Determine the required fees by multiplying each required minimum gas
 			// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
+			if gas > math.MaxInt64 {
+				return nil, 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidGasLimit, "gas limit %d exceeds maximum allowed value", gas)
+			}
 			glDec := sdk.NewDec(int64(gas))
 			for i, gp := range minGasPrices {
 				fee := gp.Amount.Mul(glDec)
