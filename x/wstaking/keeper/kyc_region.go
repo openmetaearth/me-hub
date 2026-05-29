@@ -76,10 +76,10 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 	}
 
 	// fix validator meid amount
-	validator.DelegationAmount = validator.DelegationAmount.Add(delegation.Amount)
-	if validator.Tokens.LT(validator.DelegationAmount) {
-		return types.ErrNodeLimitExceeded
-	}
+	// Note: Do NOT add delegation.Amount to target validator's DelegationAmount here.
+	// transferNewMeid already handles region.DelegateAmount accounting, and
+	// transferRemoveMeid handles source validator cleanup. Adding here causes
+	// double-counting during the transition window (fixes #103).
 	if validator.MeidAmount.Add(types.Bonus).GT(validator.Tokens) {
 		return types.ErrTransferRegion.Wrap(fmt.Sprintf("meid bonded validator can not hold this meid user, reach meid limit"))
 	}
