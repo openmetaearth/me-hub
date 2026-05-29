@@ -39,6 +39,9 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	}
 	k.SetLastRelayerSetNonce(ctx, latestRelayerSetNonce)
 
+	if err := types.ValidateGenesisBridgeTokens(state.BridgeTokens); err != nil {
+		panic(err)
+	}
 	for _, bridgeToken := range state.BridgeTokens {
 		k.SetBridgeToken(ctx, &bridgeToken)
 	}
