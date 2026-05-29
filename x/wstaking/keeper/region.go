@@ -93,7 +93,5 @@ func (k Keeper) UnBondRegion(ctx sdk.Context, regionId string) {
 		return
 	}
 	region.RegionShare = sdk.ZeroInt()
-	region.OperatorAddress = ""
 	k.SetRegion(ctx, region)
-	k.groupKeeper.UpdateGroupAdmin(ctx, regionId, "")
 }
