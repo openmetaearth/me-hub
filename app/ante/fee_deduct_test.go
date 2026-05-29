@@ -11,6 +11,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/openmetaearth/me-hub/app/ante"
 	"github.com/openmetaearth/me-hub/app/params"
+	"math"
 	"regexp"
 	"strconv"
 	"testing"
@@ -391,3 +392,60 @@ func TestCheckFunds(t *testing.T) {
 		})
 	}
 }
+
+type MockFeeTx struct {
+	msgs       []sdk.Msg
+	gas        uint64
+	fee        sdk.Coins
+	feePayer   sdk.AccAddress
+	feeGranter sdk.AccAddress
+}
+
+func (m MockFeeTx) GetMsgs() []sdk.Msg { return m.msgs }
+func (m MockFeeTx) ValidateBasic() error { return nil }
+func (m MockFeeTx) GetGas() uint64 { return m.gas }
+func (m MockFeeTx) GetFee() sdk.Coins { return m.fee }
+func (m MockFeeTx) FeePayer() sdk.AccAddress { return m.feePayer }
+func (m MockFeeTx) FeeGranter() sdk.AccAddress { return m.feeGranter }
+
+func TestCheckTxFeeWithValidatorMinGasPrices_GasLimitOverflow(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	ctx := sdk.Context{}.WithIsCheckTx(true).WithMinGasPrices(sdk.DecCoins{sdk.NewDecCoin("umec", sdk.NewInt(1))})
+	mockBankKeeper := mock.NewMockBankKeeper(ctrl)
+	mockAccountKeeper := authantetestutil.NewMockAccountKeeper(ctrl)
+	mockFeegrantKeeper := authantetestutil.NewMockFeegrantKeeper(ctrl)
+	mockStakingKeeper := mock.NewMockStakingKeeper(ctrl)
+	mockKycKeeper := mock.NewMockKycKeeper(ctrl)
+	mockDaoKeeper := mock.NewMockDaoKeeper(ctrl)
+	mockWasmKeeper := mock.NewMockWasmKeeper(ctrl)
+
+	decorator := ante.NewDeductFeeDecorator(
+		mockAccountKeeper,
+		mockBankKeeper,
+		mockFeegrantKeeper,
+		mockDaoKeeper,
+		mockStakingKeeper,
+		mockKycKeeper,
+		nil,
+		mockWasmKeeper,
+	)
+
+	feePayer := NewAccount()
+	mockTx := &MockFeeTx{
+		gas:      math.MaxInt64 + 1,
+		fee:      sdk.NewCoins(sdk.NewCoin("umec", sdk.NewInt(1000000))),
+		feePayer: feePayer.GetAddress(),
+	}
+
+	require.NotPanics(t, func() {
+		_, err := decorator.AnteHandle(ctx, mockTx, false, func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
+			return ctx, nil
+		})
+		require.Error(t, err)
+		require.True(t, sdkerrors.ErrInvalidRequest.Is(err))
+		require.Contains(t, err.Error(), "gas limit 9223372036854775808 exceeds max int64")
+	})
+}
+
