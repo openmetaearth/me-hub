@@ -83,7 +83,7 @@ func (k Keeper) BondRegion(ctx sdk.Context, validator stakingtypes.Validator, to
 		region.OperatorAddress = validator.OperatorAddress
 		k.groupKeeper.UpdateGroupAdmin(ctx, validator.Description.RegionID, validator.OwnerAddress)
 	}
-	region.RegionShare = tokens
+	region.RegionShare = region.RegionShare.Add(tokens)
 	k.SetRegion(ctx, region)
 }
 
