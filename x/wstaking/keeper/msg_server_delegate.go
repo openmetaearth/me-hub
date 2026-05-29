@@ -66,11 +66,12 @@ func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 		if err != nil {
 			return nil, err
 		}
-		if region.DelegateInterest.GTE(rewards) {
-			region.DelegateInterest = region.DelegateInterest.Sub(rewards)
+		truncatedRewards := sdk.NewDecFromInt(rewards.TruncateInt())
+		if region.DelegateInterest.GTE(truncatedRewards) {
+			region.DelegateInterest = region.DelegateInterest.Sub(truncatedRewards)
 		} else {
 			return nil, errors.New(fmt.Sprintf("region(%s) total interest not enough.need pay %s,only have %s",
-				region.RegionId, rewards.String(), region.DelegateInterest.String()))
+				region.RegionId, truncatedRewards.String(), region.DelegateInterest.String()))
 		}
 		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())),
 			fmt.Sprintf("Delegate_SendRewards_%s", region.RegionId),

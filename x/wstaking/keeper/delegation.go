@@ -201,11 +201,12 @@ func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.A
 	if err != nil {
 		return nil, types.ErrCalculateInterest.Wrap(err.Error())
 	}
-	if region.DelegateInterest.GTE(rewards) {
-		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
+	truncatedRewards := sdk.NewDecFromInt(rewards.TruncateInt())
+	if region.DelegateInterest.GTE(truncatedRewards) {
+		region.DelegateInterest = region.DelegateInterest.Sub(truncatedRewards)
 	} else {
 		return nil, types.ErrCalculateInterest.Wrap(fmt.Sprintf("distribution reward.region(%s) total interest not enough.need pay %s,only have %s",
-			region.RegionId, rewards.String(), region.DelegateInterest.String()))
+			region.RegionId, truncatedRewards.String(), region.DelegateInterest.String()))
 	}
 	// truncate reward dec coins, return remainder to community pool
 	//finalRewards, remainder := rewards.TruncateDecimal()
