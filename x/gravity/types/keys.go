@@ -102,6 +102,14 @@ var (
 
 	// OutgoingTxRelationKey outgoing tx with evm
 	OutgoingTxRelationKey = []byte{0x41}
+
+	// LastRelayerSetChangeBlockHeight tracks the block height of the last
+	// relayer set change to enforce a minimum interval between updates.
+	LastRelayerSetChangeBlockHeight = []byte{0x42}
+
+	// MinRelayerSetUpdateInterval is the minimum number of blocks that must
+	// elapse between two consecutive relayer set update requests.
+	MinRelayerSetUpdateIntervalStore = []byte{0x43}
 )
 
 // GetRelayerKey returns the following key format

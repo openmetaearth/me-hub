@@ -129,9 +129,14 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	if !relayer.Online {
 		relayer.Online = true
 		relayer.StartHeight = ctx.BlockHeight()
+		// Reset slash counter only when the relayer was offline (fully slashed)
+		// and is now coming back with fresh delegation.
+		relayer.SlashTimes = 0
 	}
+	// When the relayer is still online, do NOT reset SlashTimes — doing so
+	// would allow an online relayer to evade the max-slash threshold by
+	// repeatedly adding small top-ups.
 
-	relayer.SlashTimes = 0
 	s.SetRelayer(ctx, relayerAddress, relayer)
 	s.SetLastTotalPower(ctx)
 

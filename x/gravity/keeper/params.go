@@ -69,3 +69,38 @@ func (k Keeper) GetRelayerSetUpdatePowerChangePercent(ctx sdk.Context) sdk.Dec {
 func (k Keeper) MaxSlashTimes(ctx sdk.Context) uint64 {
 	return k.GetParams(ctx).MaxSlashTimes
 }
+
+// GetMinRelayerSetUpdateInterval returns the minimum number of blocks that must
+// elapse between two consecutive relayer set updates. Defaults to SignedWindow
+// if no custom value has been stored.
+func (k Keeper) GetMinRelayerSetUpdateInterval(ctx sdk.Context) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.MinRelayerSetUpdateIntervalStore)
+	if bz == nil {
+		// Default: one change per SignedWindow
+		return k.GetSignedWindow(ctx)
+	}
+	return sdk.BigEndianToUint64(bz)
+}
+
+// SetMinRelayerSetUpdateInterval stores the minimum interval between relayer set updates.
+func (k Keeper) SetMinRelayerSetUpdateInterval(ctx sdk.Context, interval uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.MinRelayerSetUpdateIntervalStore, sdk.Uint64ToBigEndian(interval))
+}
+
+// GetLastRelayerSetChangeBlockHeight returns the block height of the last relayer set change.
+func (k Keeper) GetLastRelayerSetChangeBlockHeight(ctx sdk.Context) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.LastRelayerSetChangeBlockHeight)
+	if bz == nil {
+		return 0
+	}
+	return sdk.BigEndianToUint64(bz)
+}
+
+// SetLastRelayerSetChangeBlockHeight stores the block height of the last relayer set change.
+func (k Keeper) SetLastRelayerSetChangeBlockHeight(ctx sdk.Context, blockHeight uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.LastRelayerSetChangeBlockHeight, sdk.Uint64ToBigEndian(blockHeight))
+}

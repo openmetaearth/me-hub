@@ -178,6 +178,12 @@ func (k Keeper) SlashRelayer(ctx sdk.Context, relayerAddrStr string) error {
 	}
 	k.SetRelayer(ctx, relayerAddr, relayer)
 	k.SetLastRelayerSlashBlockHeight(ctx, uint64(ctx.BlockHeight()))
+
+	// Update total power immediately when a relayer goes offline so that
+	// subsequent power-based calculations reflect the current state.
+	if !relayer.Online {
+		k.SetLastTotalPower(ctx)
+	}
 	return nil
 }
 

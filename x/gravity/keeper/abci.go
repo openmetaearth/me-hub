@@ -21,11 +21,20 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 func (k Keeper) createRelayerSetChangeRequest(ctx sdk.Context) {
 	if CurrentRelayerSet, isNeed := k.isNeedRelayerSetChange(ctx); isNeed {
 		k.AddRelayerSetChangeRequest(ctx, CurrentRelayerSet)
+		k.SetLastRelayerSetChangeBlockHeight(ctx, uint64(ctx.BlockHeight()))
 	}
 }
 
 func (k Keeper) isNeedRelayerSetChange(ctx sdk.Context) (*types.RelayerSet, bool) {
 	currentRelayerSet := k.GetCurrentRelayerSet(ctx)
+	// 0. Enforce minimum interval between relayer set changes to prevent
+	//    rapid successive updates that could destabilize the bridge.
+	minInterval := k.GetMinRelayerSetUpdateInterval(ctx)
+	lastChange := k.GetLastRelayerSetChangeBlockHeight(ctx)
+	if lastChange > 0 && uint64(ctx.BlockHeight())-lastChange < minInterval {
+		return currentRelayerSet, false
+	}
+
 	// 1. get last RelayerSet
 	latestRelayerSet := k.GetLastRelayerSet(ctx)
 	if latestRelayerSet == nil {
