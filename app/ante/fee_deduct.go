@@ -346,22 +346,30 @@ func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 	feeCoins := feeTx.GetFee()
 	gas := feeTx.GetGas()
 
-	// Ensure that the provided fees meet a minimum threshold for the validator,
-	// if this is a CheckTx. This is only for local mempool purposes, and thus
-	// is only ran on check tx.
-	if ctx.IsCheckTx() {
-		if !feeCoins.IsAllGTE(minimumFee) {
-			return sdk.Coins{}, 0, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "fee must greater than or equal %s: got %s", minimumFee.String(), feeCoins.String())
+	// Enforce minimumFee as an app-level invariant in both CheckTx and DeliverTx.
+	// This prevents accepting transactions with non-umec or below-threshold fees
+	// during block execution, even if they were included by a proposer.
+	if !feeCoins.IsAllGTE(minimumFee) {
+		return sdk.Coins{}, 0, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "fee must greater than or equal %s: got %s", minimumFee.String(), feeCoins.String())
+	}
+
+	// Ensure all fee coins use the base denomination (umec). Reject fees paid
+	// in arbitrary denominations to prevent non-native fee bypass.
+	for _, fc := range feeCoins {
+		if fc.Denom != params.BaseDenom {
+			return sdk.Coins{}, 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins,
+				"fee denom must be %s, got %s", params.BaseDenom, fc.Denom)
 		}
+	}
+
+	// Validator min gas prices are local mempool policy and only enforced during CheckTx.
+	if ctx.IsCheckTx() {
 		minGasPrices := ctx.MinGasPrices()
 		if !minGasPrices.IsZero() {
 			requiredFees := make(sdk.Coins, len(minGasPrices))
 
 			// Determine the required fees by multiplying each required minimum gas
 			// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
-			if gas > math.MaxInt64 {
-				return nil, 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidGasLimit, "gas limit %d exceeds maximum allowed value", gas)
-			}
 			glDec := sdk.NewDec(int64(gas))
 			for i, gp := range minGasPrices {
 				fee := gp.Amount.Mul(glDec)
