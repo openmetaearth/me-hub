@@ -34,6 +34,10 @@ type ChainID struct {
 func NewChainID(id string) (ChainID, error) {
 	chainID := strings.TrimSpace(id)
 
+	if id != chainID {
+		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "leading or trailing whitespace")
+	}
+
 	if chainID == "" {
 		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "empty")
 	}
