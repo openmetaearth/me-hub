@@ -45,6 +45,9 @@ func ValidateEthereumAddress(address string) error {
 	if !common.IsHexAddress(address) {
 		return errors.New("doesn't pass format validation")
 	}
+	if IsZeroEthereumAddress(address) {
+		return errors.New("zero address")
+	}
 	expectAddress := common.HexToAddress(address).Hex()
 	if expectAddress != address {
 		return fmt.Errorf("mismatch expected: %s, got: %s", expectAddress, address)

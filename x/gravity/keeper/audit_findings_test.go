@@ -10,6 +10,7 @@ package keeper_test
 // Coverage:
 //   GRAV-001  Attest must reject historical-nonce claims (no backward rewind)
 //   GRAV-004  Failed AttestationHandler must not advance lastObservedEventNonce
+//   GRAV-005  BondedRelayer must reject zero external signer addresses
 
 import (
 	"encoding/hex"
@@ -17,6 +18,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
@@ -193,6 +195,36 @@ func (s *KeeperTestSuite) TestGrav004_FailedAttestationMustNotLockNonce() {
 				"handler failed; retries are now impossible",
 			probeClaim.GetEventNonce())
 	}
+}
+
+// ---------------------------------------------------------------------------
+// GRAV-005: Zero external signer address in bonded relayer set
+// ---------------------------------------------------------------------------
+//
+// MsgBondedRelayer previously accepted the Ethereum zero address as an
+// ExternalAddress. That address can pass syntax and checksum checks, but it is
+// not a usable signer for relayer-set confirmations.
+
+func (s *KeeperTestSuite) TestGrav005_BondedRelayerRejectsZeroExternalAddress() {
+	zeroExternalAddress := common.Address{}.Hex()
+	relayerAddress := s.relayerAddrs[0]
+
+	msg := &types.MsgBondedRelayer{
+		RelayerAddress:  relayerAddress.String(),
+		ExternalAddress: zeroExternalAddress,
+		DelegateAmount:  sdk.NewCoin(params.BaseDenom, s.Keeper().GetGravityMinDelegate(s.Ctx)),
+		ChainName:       s.chainName,
+	}
+
+	_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msg)
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "zero address")
+
+	_, found := s.Keeper().GetRelayer(s.Ctx, relayerAddress)
+	s.Require().False(found, "zero-address relayer must not be persisted")
+
+	_, found = s.Keeper().GetRelayerByExternalAddress(s.Ctx, zeroExternalAddress)
+	s.Require().False(found, "zero address must not be indexed as an external relayer address")
 }
 
 // ---------------------------------------------------------------------------

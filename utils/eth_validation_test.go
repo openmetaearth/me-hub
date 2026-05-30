@@ -70,7 +70,7 @@ func TestValidateEthereumAddress(t *testing.T) {
 			"invalid address", "0x", true,
 		},
 		{
-			"zero address", common.Address{}.String(), false,
+			"zero address", common.Address{}.String(), true,
 		},
 		{
 			"valid address", helpers.GenerateAddress().Hex(), false,

@@ -25,6 +25,9 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer) (*types.MsgBondedRelayerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
+	if err := types.ValidateExternalAddr(msg.ChainName, msg.ExternalAddress); err != nil {
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "invalid external address: %s", err)
+	}
 	relayerAddress := sdk.MustAccAddressFromBech32(msg.RelayerAddress)
 	if !s.IsProposalRelayer(ctx, msg.RelayerAddress) {
 		return nil, types.ErrNotProposedRelayer
@@ -195,6 +198,9 @@ func (s MsgServer) UnbondedRelayer(c context.Context, msg *types.MsgUnbondedRela
 
 func (s MsgServer) RelayerSetConfirm(c context.Context, msg *types.MsgRelayerSetConfirm) (*types.MsgRelayerSetConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
+	if err := types.ValidateExternalAddr(msg.ChainName, msg.ExternalAddress); err != nil {
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "invalid external address: %s", err)
+	}
 
 	relayerSet := s.GetRelayerSet(ctx, msg.Nonce)
 	if relayerSet == nil {
