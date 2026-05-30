@@ -27,7 +27,7 @@ func GetMintCoin(amount sdk.Int, chainName string, bridgeToken *BridgeToken) sdk
 func GetMintAmount(amount sdk.Int, chainName string, bridgeToken *BridgeToken) sdk.Int {
 	if CheckBscUsdtUsdc(bridgeToken.Symbol, chainName) && bridgeToken.Decimal > 6 {
 		convert := sdk.NewDec(10).Power(bridgeToken.Decimal - 6).TruncateInt()
-		amount = amount.Quo(convert)
+		amount = amount.Mul(convert)
 	}
 	return amount
 }
@@ -35,7 +35,7 @@ func GetMintAmount(amount sdk.Int, chainName string, bridgeToken *BridgeToken) s
 func GetExternalUnlockAmount(amount sdk.Int, chainName string, bridgeToken *BridgeToken) sdk.Int {
 	if CheckBscUsdtUsdc(bridgeToken.Symbol, chainName) && bridgeToken.Decimal > 6 {
 		convert := sdk.NewDec(10).Power(bridgeToken.Decimal - 6).TruncateInt()
-		amount = amount.Mul(convert)
+		amount = amount.Quo(convert)
 	}
 	return amount
 }
