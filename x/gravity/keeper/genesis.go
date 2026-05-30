@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/json"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"sort"
 
@@ -56,6 +57,39 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 		for _, relayer := range state.Relayers {
 			if confirm.RelayerAddress == relayer.GetRelayerAddress() {
 				k.SetRelayerSetConfirm(ctx, relayer.GetRelayer(), &confirm)
+			}
+		}
+	}
+
+	// ── Defensive genesis invariant check ─────────────────────────────────
+	// Ensure no OutgoingTransferTx.Id appears in both UnbatchedTransfers and
+	// Batches. In normal runtime BuildOutgoingTxBatch removes selected txs
+	// from the unbatched pool, but a hand-crafted genesis can bypass that.
+	// Violating this invariant enables double-spend: the unbatched copy can
+	// be cancelled for a voucher refund while the batched copy is externally
+	// executed without clawback.
+	{
+		unbatchedTxIds := make(map[uint64]bool, len(state.UnbatchedTransfers))
+		for i := range state.UnbatchedTransfers {
+			txId := state.UnbatchedTransfers[i].Id
+			if unbatchedTxIds[txId] {
+				panic(fmt.Sprintf("duplicate outgoing tx id %d in UnbatchedTransfers", txId))
+			}
+			unbatchedTxIds[txId] = true
+		}
+		for i := range state.Batches {
+			batch := &state.Batches[i]
+			for j := range batch.Transactions {
+				tx := batch.Transactions[j]
+				if tx == nil {
+					continue
+				}
+				if unbatchedTxIds[tx.Id] {
+					panic(fmt.Sprintf(
+						"outgoing tx id %d exists in both UnbatchedTransfers and Batches (batch nonce %d) — genesis invariant violated",
+						tx.Id, batch.BatchNonce,
+					))
+				}
 			}
 		}
 	}
