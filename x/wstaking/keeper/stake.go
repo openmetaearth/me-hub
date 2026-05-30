@@ -229,7 +229,12 @@ func (k Keeper) UnStakeBond(
 		if err != nil {
 			return amount, err
 		}
-		k.UnBondRegion(ctx, validator.Description.RegionID)
+		stakes, err := k.GetStakesByValidator(ctx, valAddr)
+		if err == nil && len(stakes) == 0 {
+			k.UnBondRegion(ctx, validator.Description.RegionID)
+		} else {
+			k.BondRegion(ctx, validator, sdk.ZeroInt(), false)
+		}
 	} else {
 		k.BondRegion(ctx, validator, stake.Shares.TruncateInt(), false)
 		k.SetStake(ctx, stake)
