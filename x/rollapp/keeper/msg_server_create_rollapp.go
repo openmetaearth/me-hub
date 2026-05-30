@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,6 +15,12 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	if !k.RollappsEnabled(ctx) {
 		return nil, types.ErrRollappsDisabled
 	}
+
+	// Normalize the RollappId by trimming whitespace before any processing.
+	// Without this, validation uses the trimmed canonical ID (via NewChainID)
+	// but the raw ID with whitespace is stored as the primary key, creating
+	// namespace duplicates and EIP155 index squatting opportunities.
+	msg.RollappId = strings.TrimSpace(msg.RollappId)
 
 	err := k.checkIfRollappExists(ctx, msg.RollappId)
 	if err != nil {
