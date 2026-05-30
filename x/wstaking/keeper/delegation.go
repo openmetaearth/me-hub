@@ -22,7 +22,7 @@ const unbondingTime = time.Hour * 24 * 7
 // an unbonding object and inserting it into the unbonding queue which will be
 // processed during the staking EndBlocker.
 func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, isMeid bool, amount math.Int, delegation stakingtypes.Delegation) (time.Time, math.Int, error) {
-	if !isMeid {
+	if isMeid {
 		if k.HasMaxUnbondingDelegationEntries(ctx, delAddr, valAddr) {
 			return time.Time{}, amount, stakingtypes.ErrMaxUnbondingDelegationEntries
 		}
@@ -33,7 +33,7 @@ func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.
 	}
 	completionTime := ctx.BlockHeader().Time
 	// transfer the validator tokens to the not bonded pool
-	if !isMeid {
+	if isMeid {
 		k.bondedTokensToNotBonded(ctx, returnAmount)
 		completionTime = ctx.BlockHeader().Time.Add(unbondingTime)
 		ubd := k.SetUnbondingDelegationEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, returnAmount)
