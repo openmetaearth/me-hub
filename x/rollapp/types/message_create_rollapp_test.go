@@ -42,6 +42,24 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			err: ErrInvalidRollappID,
 		},
 		{
+			name: "invalid rollappID with leading whitespace",
+			msg: MsgCreateRollapp{
+				Creator:       sample.AccAddress(),
+				MaxSequencers: 1,
+				RollappId:     " dym_100-1",
+			},
+			err: ErrInvalidRollappID,
+		},
+		{
+			name: "invalid rollappID with trailing whitespace",
+			msg: MsgCreateRollapp{
+				Creator:       sample.AccAddress(),
+				MaxSequencers: 1,
+				RollappId:     "dym_100-1 ",
+			},
+			err: ErrInvalidRollappID,
+		},
+		{
 			name: "invalid address",
 			msg: MsgCreateRollapp{
 				Creator:       "invalid_address",

@@ -329,16 +329,19 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 		name         string
 		rollappId    string
 		badRollappId string
+		expectedErr  error
 	}{
 		{
 			name:         "extra whitespace id",
 			rollappId:    "rollapp_1234-1",
 			badRollappId: "rollapp_1234-1  ",
+			expectedErr:  types.ErrInvalidRollappID,
 		},
 		{
 			name:         "same EIP ID",
 			rollappId:    "rollapp_1234-1",
 			badRollappId: "dummy_1234-1",
+			expectedErr:  types.ErrRollappExists,
 		},
 	}
 	for _, test := range tests {
@@ -373,7 +376,50 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 			}
 			_, err = suite.msgServer.CreateRollapp(goCtx, &badrollapp)
 			// it should not be possible to register rollapp name with extra space
-			suite.Require().ErrorIs(err, types.ErrRollappExists)
+			suite.Require().ErrorIs(err, test.expectedErr)
 		})
 	}
+}
+
+func (suite *RollappTestSuite) TestWhitespaceRollappIDRejectedBeforeStorage() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	_, err := suite.msgServer.CreateRollapp(goCtx, &types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             " dup ",
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	})
+	suite.Require().ErrorIs(err, types.ErrInvalidRollappID)
+
+	_, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, " dup ")
+	suite.Require().False(found, "raw whitespace rollapp id must not be stored")
+
+	_, found = suite.App.RollappKeeper.GetRollapp(suite.Ctx, "dup")
+	suite.Require().False(found, "canonical rollapp id must not be implicitly created")
+}
+
+func (suite *RollappTestSuite) TestWhitespaceRollappIDCannotSquatEIP155Index() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	_, err := suite.msgServer.CreateRollapp(goCtx, &types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             " evil_1-1 ",
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	})
+	suite.Require().ErrorIs(err, types.ErrInvalidRollappID)
+
+	_, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, 1)
+	suite.Require().False(found, "rejected whitespace rollapp id must not reserve the EIP155 index")
+
+	_, err = suite.msgServer.CreateRollapp(goCtx, &types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             "good_1-1",
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	})
+	suite.Require().NoError(err)
 }
