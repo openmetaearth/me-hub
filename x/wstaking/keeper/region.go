@@ -84,6 +84,19 @@ func (k Keeper) BondRegion(ctx sdk.Context, validator stakingtypes.Validator, to
 		k.groupKeeper.UpdateGroupAdmin(ctx, validator.Description.RegionID, validator.OwnerAddress)
 	}
 	region.RegionShare = tokens
+	valAddr, err := sdk.ValAddressFromBech32(validator.OperatorAddress)
+	if err == nil {
+		stakes, err := k.GetStakesByValidator(ctx, valAddr)
+		if err == nil {
+			totalShares := sdk.ZeroInt()
+			for _, stake := range stakes {
+				totalShares = totalShares.Add(stake.Shares.TruncateInt())
+			}
+			if len(stakes) > 0 {
+				region.RegionShare = totalShares
+			}
+		}
+	}
 	k.SetRegion(ctx, region)
 }
 
