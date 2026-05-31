@@ -7,6 +7,8 @@ import (
 	"github.com/openmetaearth/me-hub/testutil/helpers"
 	"github.com/openmetaearth/me-hub/x/gravity/keeper"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (s *KeeperTestSuite) TestQueryUnbatchedTxs() {
@@ -73,4 +75,15 @@ func (s *KeeperTestSuite) TestQueryUnbatchedTxs() {
 	s.Require().Len(res.Txs, numTxs-pageLimit)
 	s.Require().NotNil(res.Pagination)
 	s.Require().Nil(res.Pagination.NextKey)
+}
+
+func (s *KeeperTestSuite) TestQueriesRejectInvalidRelayerAddressWithoutPanic() {
+	queryServer := keeper.NewQueryServerImpl(s.Keeper())
+
+	s.Require().NotPanics(func() {
+		_, err := queryServer.LastEventNonceByAddr(s.Ctx, &types.QueryLastEventNonceByAddrRequest{
+			RelayerAddress: "not-a-bech32-address",
+		})
+		s.Require().Equal(codes.InvalidArgument, status.Code(err))
+	})
 }
