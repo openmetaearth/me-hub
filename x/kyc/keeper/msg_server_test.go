@@ -4,8 +4,10 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/openmetaearth/me-hub/x/wdistri"
 	"github.com/openmetaearth/me-hub/x/wmint"
@@ -58,6 +60,14 @@ func (s *KeeperTestSuite) TestApprove() {
 	s.Require().True(f)
 	s.Require().Equal(msg.Uri, kyc.Uri)
 	s.Require().Equal(msg.Hash, kyc.Hash)
+}
+
+func (s *KeeperTestSuite) TestApproveRejectsKycLevelNone() {
+	_, err := s.msgServer.Approve(s.Ctx, &types.MsgApprove{
+		Level: didtypes.KYC_LEVEL_NONE,
+	})
+
+	s.Require().ErrorIs(err, sdkerrors.ErrInvalidType)
 }
 
 func (s *KeeperTestSuite) TestRemove() {

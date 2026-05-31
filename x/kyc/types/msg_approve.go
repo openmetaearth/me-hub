@@ -53,6 +53,16 @@ func (m *MsgApprove) GetKYC() didtypes.Credential {
 	return didtypes.NewCredential(m.Did, ModuleName, m.Hash, m.Uri, []byte(m.RegionId))
 }
 
+func ValidateApproveLevel(level didtypes.KycLevel) error {
+	if level == didtypes.KYC_LEVEL_NONE {
+		return errors.Wrap(sdkerrors.ErrInvalidType, "the level must represent an approved KYC credential")
+	}
+	if _, ok := didtypes.KycLevel_name[int32(level)]; !ok {
+		return errors.Wrap(sdkerrors.ErrInvalidType, "the level is not valid")
+	}
+	return nil
+}
+
 func (m *MsgApprove) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Issuer); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "the issuer is not a valid bech32 address")
@@ -69,8 +79,8 @@ func (m *MsgApprove) ValidateBasic() error {
 	if m.Pubkey == "" {
 		return errors.Wrap(sdkerrors.ErrInvalidPubKey, "the pubkey is empty")
 	}
-	if _, ok := didtypes.KycLevel_name[int32(m.Level)]; !ok {
-		return errors.Wrap(sdkerrors.ErrInvalidType, "the level is not valid")
+	if err := ValidateApproveLevel(m.Level); err != nil {
+		return err
 	}
 	//if len(m.Hash) == 0 || len(m.Hash) > 128 {
 	//	return errors.Wrap(sdkerrors.ErrInvalidType, "hash length must be between 0 and 128")
