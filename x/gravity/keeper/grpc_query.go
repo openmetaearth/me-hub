@@ -74,6 +74,9 @@ func (k QueryServer) CurrentRelayerSet(c context.Context, _ *types.QueryCurrentR
 }
 
 func (k QueryServer) RelayerSetRequest(c context.Context, req *types.QueryRelayerSetRequestRequest) (*types.QueryRelayerSetRequestResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
 	return &types.QueryRelayerSetRequestResponse{RelayerSet: k.GetRelayerSet(sdk.UnwrapSDKContext(c), req.Nonce)}, nil
 }
 
