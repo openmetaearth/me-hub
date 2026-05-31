@@ -21,6 +21,10 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 var _ types.MsgServer = msgServer{}
 
 func (k msgServer) UpdateDao(goCtx context.Context, msg *types.MsgUpdateDao) (*types.MsgUpdateDaoResponse, error) {
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	isGlobalDao := k.IsGlobalDao(ctx, msg.Creator)

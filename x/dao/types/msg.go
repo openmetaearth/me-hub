@@ -40,25 +40,31 @@ func (msg *MsgUpdateDao) GetSignBytes() []byte {
 }
 
 func (msg *MsgUpdateDao) ValidateBasic() error {
-	if len(msg.DaoAddresses.GlobalDao) > 0 {
-		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.GlobalDao); err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.GlobalDao)
-		}
+	if _, err := sdk.AccAddressFromBech32(msg.Creator); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Creator)
 	}
-	if len(msg.DaoAddresses.MeidDao) > 0 {
-		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.MeidDao); err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.MeidDao)
-		}
+
+	if err := validateDaoAddress("global dao", msg.DaoAddresses.GlobalDao); err != nil {
+		return err
 	}
-	if len(msg.DaoAddresses.DevOperator) > 0 {
-		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.DevOperator); err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.DevOperator)
-		}
+	if err := validateDaoAddress("meid dao", msg.DaoAddresses.MeidDao); err != nil {
+		return err
 	}
-	if len(msg.DaoAddresses.AirdropAddress) > 0 {
-		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.AirdropAddress); err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.AirdropAddress)
-		}
+	if err := validateDaoAddress("dev operator", msg.DaoAddresses.DevOperator); err != nil {
+		return err
+	}
+	if err := validateDaoAddress("airdrop", msg.DaoAddresses.AirdropAddress); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateDaoAddress(field, address string) error {
+	if address == "" {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("%s address is empty", field))
+	}
+	if _, err := sdk.AccAddressFromBech32(address); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("%s address %s", field, address))
 	}
 	return nil
 }
