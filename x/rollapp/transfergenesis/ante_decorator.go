@@ -3,6 +3,7 @@ package transfergenesis
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/utils/uibc"
 
@@ -38,22 +39,49 @@ func (h TransferEnabledDecorator) transfersEnabled(ctx sdk.Context, transfer *tr
 	return ra.GenesisState.TransfersEnabled, nil
 }
 
+func (h TransferEnabledDecorator) validateMsgTransfersEnabled(ctx sdk.Context, msg sdk.Msg) error {
+	switch msg := msg.(type) {
+	case *transferTypes.MsgTransfer:
+		return h.validateTransferEnabled(ctx, msg)
+	case *authztypes.MsgExec:
+		return h.validateAuthzExecTransfersEnabled(ctx, *msg)
+	default:
+		return nil
+	}
+}
+
+func (h TransferEnabledDecorator) validateAuthzExecTransfersEnabled(ctx sdk.Context, msg authztypes.MsgExec) error {
+	msgs, err := msg.GetMessages()
+	if err != nil {
+		return errorsmod.Wrap(err, "authz exec messages")
+	}
+	for i, innerMsg := range msgs {
+		if err := h.validateMsgTransfersEnabled(ctx, innerMsg); err != nil {
+			return errorsmod.Wrapf(err, "authz exec message %d", i)
+		}
+	}
+	return nil
+}
+
+func (h TransferEnabledDecorator) validateTransferEnabled(ctx sdk.Context, msg *transferTypes.MsgTransfer) error {
+	if msg == nil {
+		return errorsmod.Wrap(gerrc.ErrUnknown, "nil transfer message")
+	}
+	enabled, err := h.transfersEnabled(ctx, msg)
+	if err != nil {
+		return errorsmod.Wrap(err, "transfer genesis: transfers enabled")
+	}
+	if !enabled {
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "transfers to/from rollapp are disabled")
+	}
+	return nil
+}
+
 // AnteHandle will return an error if the tx contains an ibc transfer message to a rollapp that has not finished the transfer genesis protocol.
 func (h TransferEnabledDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	for _, msg := range tx.GetMsgs() {
-		typeURL := sdk.MsgTypeURL(msg)
-		if typeURL == sdk.MsgTypeURL(&transferTypes.MsgTransfer{}) {
-			m, ok := msg.(*transferTypes.MsgTransfer)
-			if !ok {
-				return ctx, errorsmod.Wrap(gerrc.ErrUnknown, "type url matched transfer type url but could not type cast")
-			}
-			ok, err := h.transfersEnabled(ctx, m)
-			if err != nil {
-				return ctx, errorsmod.Wrap(err, "transfer genesis: transfers enabled")
-			}
-			if !ok {
-				return ctx, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "transfers to/from rollapp are disabled")
-			}
+		if err := h.validateMsgTransfersEnabled(ctx, msg); err != nil {
+			return ctx, err
 		}
 	}
 
