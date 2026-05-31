@@ -21,9 +21,19 @@ func TestMsgCreateGroup_ValidateBasic(t *testing.T) {
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
+			name: "nil group info",
+			msg: MsgCreateGroup{
+				Creator: sample.AccAddress(),
+			},
+			err: sdkerrors.ErrInvalidRequest,
+		}, {
 			name: "valid address",
 			msg: MsgCreateGroup{
 				Creator: sample.AccAddress(),
+				GroupInfo: &GroupInfo{
+					Admin:    sample.AccAddress(),
+					RegionID: "USA",
+				},
 			},
 		},
 	}

@@ -46,6 +46,9 @@ func (msg *MsgCreateGroup) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
+	if msg.GroupInfo == nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "group info cannot be nil")
+	}
 	_, err = sdk.AccAddressFromBech32(msg.GroupInfo.Admin)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid Group Admin address (%s)", err)
