@@ -81,8 +81,12 @@ func (k QueryServer) RelayerSetConfirm(c context.Context, req *types.QueryRelaye
 	if req.GetNonce() <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
+	relayerAddress, err := parseQueryRelayerAddress(req.GetRelayerAddress())
+	if err != nil {
+		return nil, err
+	}
 	ctx := sdk.UnwrapSDKContext(c)
-	return &types.QueryRelayerSetConfirmResponse{Confirm: k.GetRelayerSetConfirm(ctx, req.Nonce, sdk.MustAccAddressFromBech32(req.RelayerAddress))}, nil
+	return &types.QueryRelayerSetConfirmResponse{Confirm: k.GetRelayerSetConfirm(ctx, req.Nonce, relayerAddress)}, nil
 }
 
 func (k QueryServer) RelayerSetConfirmsByNonce(c context.Context, req *types.QueryRelayerSetConfirmsByNonceRequest) (*types.QueryRelayerSetConfirmsByNonceResponse, error) {
@@ -116,8 +120,12 @@ func (k QueryServer) LastRelayerSetRequests(c context.Context, req *types.QueryL
 }
 
 func (k QueryServer) LastPendingRelayerSetRequestByAddr(c context.Context, req *types.QueryLastPendingRelayerSetRequestByAddrRequest) (*types.QueryLastPendingRelayerSetRequestByAddrResponse, error) {
+	relayerAddress, err := parseQueryRelayerAddress(req.GetRelayerAddress())
+	if err != nil {
+		return nil, err
+	}
 	ctx := sdk.UnwrapSDKContext(c)
-	relayer, ok := k.GetRelayer(ctx, sdk.MustAccAddressFromBech32(req.RelayerAddress))
+	relayer, ok := k.GetRelayer(ctx, relayerAddress)
 	if !ok {
 		return nil, types.ErrNotFoundRelayer
 	}
@@ -139,9 +147,12 @@ func (k QueryServer) LastPendingRelayerSetRequestByAddr(c context.Context, req *
 }
 
 func (k QueryServer) LastPendingBatchRequestByAddr(c context.Context, req *types.QueryLastPendingBatchRequestByAddrRequest) (*types.QueryLastPendingBatchRequestByAddrResponse, error) {
+	relayerAddress, err := parseQueryRelayerAddress(req.GetRelayerAddress())
+	if err != nil {
+		return nil, err
+	}
 	ctx := sdk.UnwrapSDKContext(c)
-	RelayerAddress := sdk.MustAccAddressFromBech32(req.RelayerAddress)
-	relayer, ok := k.GetRelayer(ctx, RelayerAddress)
+	relayer, ok := k.GetRelayer(ctx, relayerAddress)
 	if !ok {
 		return nil, types.ErrNotFoundRelayer
 	}
@@ -151,7 +162,7 @@ func (k QueryServer) LastPendingBatchRequestByAddr(c context.Context, req *types
 		if relayer.StartHeight > int64(batch.Block) {
 			return false
 		}
-		foundConfirm := k.GetBatchConfirm(ctx, batch.TokenContract, batch.BatchNonce, RelayerAddress) != nil
+		foundConfirm := k.GetBatchConfirm(ctx, batch.TokenContract, batch.BatchNonce, relayerAddress) != nil
 		if !foundConfirm {
 			pendingBatchReq = batch
 			return true
@@ -162,14 +173,22 @@ func (k QueryServer) LastPendingBatchRequestByAddr(c context.Context, req *types
 }
 
 func (k QueryServer) LastEventNonceByAddr(c context.Context, req *types.QueryLastEventNonceByAddrRequest) (*types.QueryLastEventNonceByAddrResponse, error) {
+	relayerAddress, err := parseQueryRelayerAddress(req.GetRelayerAddress())
+	if err != nil {
+		return nil, err
+	}
 	ctx := sdk.UnwrapSDKContext(c)
-	lastEventNonce := k.GetLastEventNonceByRelayer(ctx, sdk.MustAccAddressFromBech32(req.RelayerAddress))
+	lastEventNonce := k.GetLastEventNonceByRelayer(ctx, relayerAddress)
 	return &types.QueryLastEventNonceByAddrResponse{EventNonce: lastEventNonce}, nil
 }
 
 func (k QueryServer) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLastEventBlockHeightByAddrRequest) (*types.QueryLastEventBlockHeightByAddrResponse, error) {
+	relayerAddress, err := parseQueryRelayerAddress(req.GetRelayerAddress())
+	if err != nil {
+		return nil, err
+	}
 	ctx := sdk.UnwrapSDKContext(c)
-	lastEventBlockHeight := k.GetLastEventBlockHeightByRelayer(ctx, sdk.MustAccAddressFromBech32(req.RelayerAddress))
+	lastEventBlockHeight := k.GetLastEventBlockHeightByRelayer(ctx, relayerAddress)
 	return &types.QueryLastEventBlockHeightByAddrResponse{BlockHeight: lastEventBlockHeight}, nil
 }
 
@@ -222,13 +241,16 @@ func (k QueryServer) BatchConfirm(c context.Context, req *types.QueryBatchConfir
 	if req.GetNonce() <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
+	relayerAddress, err := parseQueryRelayerAddress(req.GetRelayerAddress())
+	if err != nil {
+		return nil, err
+	}
 	ctx := sdk.UnwrapSDKContext(c)
-	RelayerAddress := sdk.MustAccAddressFromBech32(req.RelayerAddress)
-	_, ok := k.GetRelayer(ctx, RelayerAddress)
+	_, ok := k.GetRelayer(ctx, relayerAddress)
 	if !ok {
 		return nil, types.ErrNotFoundRelayer
 	}
-	confirm := k.GetBatchConfirm(ctx, req.TokenContract, req.Nonce, RelayerAddress)
+	confirm := k.GetBatchConfirm(ctx, req.TokenContract, req.Nonce, relayerAddress)
 	return &types.QueryBatchConfirmResponse{Confirm: confirm}, nil
 }
 
