@@ -174,16 +174,19 @@ func (msg *MsgReplaceProposerRequest) ValidateBasic() error {
 	if msg.ReplaceProposer.RollappId == "" {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "rollapp id cannot be empty")
 	}
-	_, err = sdk.AccAddressFromBech32(msg.ReplaceProposer.OldProposer)
+	oldProposer, err := sdk.AccAddressFromBech32(msg.ReplaceProposer.OldProposer)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid OldProposer address.addr = %s,err = %s",
 			msg.ReplaceProposer.OldProposer, err.Error())
 	}
 
-	_, err = sdk.AccAddressFromBech32(msg.ReplaceProposer.NewProposer)
+	newProposer, err := sdk.AccAddressFromBech32(msg.ReplaceProposer.NewProposer)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid NewProposer address.addr = %s,err = %s",
 			msg.ReplaceProposer.NewProposer, err.Error())
+	}
+	if oldProposer.Equals(newProposer) {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "old proposer and new proposer cannot be the same address (%s)", msg.ReplaceProposer.OldProposer)
 	}
 
 	if msg.ReplaceProposer.BlockHeight < 1 {
