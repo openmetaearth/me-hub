@@ -30,6 +30,9 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 var _ types.MsgServer = msgServer{}
 
 func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types.MsgApproveResponse, error) {
+	if err := types.ValidateApproveLevel(msg.GetLevel()); err != nil {
+		return &types.MsgApproveResponse{}, err
+	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// check credential service
