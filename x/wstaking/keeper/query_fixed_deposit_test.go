@@ -158,3 +158,16 @@ func (s *KeeperTestSuite) TestFixedDepositByRegionPagination() {
 	// Check the total number of FixedDeposits
 	require.Equal(s.T(), 30, len(allFixedDeposits))
 }
+
+func (s *KeeperTestSuite) TestFixedDepositByRegionNilPaginationDoesNotPanic() {
+	s.SetupTest()
+
+	req := &types.QueryFixedDepositByRegionRequest{
+		RegionId:  types.MeEarthRegionId,
+		QueryType: types.FixedDepositState_AllState,
+	}
+
+	s.Require().NotPanics(func() {
+		_, _ = s.queryClient.FixedDepositByRegion(s.Ctx, req)
+	})
+}

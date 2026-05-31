@@ -79,6 +79,7 @@ func (k Keeper) FixedDepositByRegion(goCtx context.Context, req *types.QueryFixe
 	if req.QueryType != types.FixedDepositState_AllState && req.QueryType != types.FixedDepositState_NotExpired && req.QueryType != types.FixedDepositState_Expired {
 		return nil, status.Error(codes.InvalidArgument, "invalid query type")
 	}
+	normalizeFixedDepositByRegionPagination(req)
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	fixedDeposits, pageRes, err := k.queryFixedDepositByRegionRecursively(ctx, req, nil)
