@@ -6,6 +6,19 @@ import (
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
+func validateFixedDepositCfgRate(rate sdk.Dec) error {
+	if !rate.IsPositive() {
+		return types.ErrFixedDepositConfigRateInvalid.Wrapf("rate is not positive 0 (%s)", rate.String())
+	}
+
+	minRate := sdk.MustNewDecFromStr("0.0001")
+	maxRate := sdk.MustNewDecFromStr("10000")
+	if rate.LT(minRate) || rate.GT(maxRate) {
+		return types.ErrFixedDepositConfigRateInvalid.Wrapf("rate(%s) out of range [%s, %s]", rate.String(), minRate.String(), maxRate.String())
+	}
+	return nil
+}
+
 func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFixedDepositCfg) (*types.MsgNewFixedDepositCfgResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -22,15 +35,8 @@ func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFi
 		return nil, types.ErrAddFixedDepositConfig.Wrapf("add fixed deposit config error, term is not positive 0 (%d)", msg.Term)
 	}
 
-	if !msg.Rate.IsPositive() {
-		return nil, types.ErrAddFixedDepositConfig.Wrapf("add fixed deposit config error, rate is not positive 0 (%s)", msg.Rate.String())
-	}
-
-	minRate := sdk.MustNewDecFromStr("0.0001")
-	maxRate := sdk.MustNewDecFromStr("10000")
-	if msg.Rate.LT(minRate) || msg.Rate.GT(maxRate) {
-		return nil, types.ErrAddFixedDepositConfig.Wrapf("add fixed deposit config rate(%s) error (%s)",
-			msg.Rate.String(), types.ErrFixedDepositConfigRateInvalid)
+	if err := validateFixedDepositCfgRate(msg.Rate); err != nil {
+		return nil, types.ErrAddFixedDepositConfig.Wrapf("add fixed deposit config error (%s)", err)
 	}
 
 	_, ok := k.GetFixedDepositCfg(ctx, msg.RegionId, msg.Term)
@@ -99,6 +105,10 @@ func (k MsgServer) SetFixedDepositCfgRate(goCtx context.Context, msg *types.MsgS
 	config, ok := k.GetFixedDepositCfg(ctx, msg.RegionId, msg.Term)
 	if !ok {
 		return nil, types.ErrSetFixedDepositConfigRate.Wrapf("set fixed deposit config rate error (%s)", types.ErrNoFixedDepositCountOfCfgFound)
+	}
+
+	if err := validateFixedDepositCfgRate(msg.Rate); err != nil {
+		return nil, types.ErrSetFixedDepositConfigRate.Wrapf("set fixed deposit config error (%s)", err)
 	}
 
 	config.Rate = msg.Rate

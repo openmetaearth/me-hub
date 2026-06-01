@@ -84,3 +84,72 @@ func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
 		})
 	}
 }
+
+func (s *KeeperTestSuite) TestSetFixedDepositCfgRateRejectsInvalidRates() {
+	s.SetupTest()
+
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            types.MeEarthRegionName,
+		OperatorAddress: s.meEarthValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
+	newCfg := types.MsgNewFixedDepositCfg{
+		Dao:      s.Dao.GlobalDao,
+		RegionId: strings.ToLower(types.MeEarthRegionName),
+		Term:     1,
+		Rate:     sdk.MustNewDecFromStr("0.1"),
+	}
+	_, err = s.msgServer.NewFixedDepositCfg(s.Ctx, &newCfg)
+	s.Require().NoError(err)
+
+	testCases := []struct {
+		name    string
+		rate    sdk.Dec
+		errText string
+	}{
+		{
+			name:    "negative rate",
+			rate:    sdk.MustNewDecFromStr("-0.1"),
+			errText: "rate is not positive",
+		},
+		{
+			name:    "zero rate",
+			rate:    sdk.ZeroDec(),
+			errText: "rate is not positive",
+		},
+		{
+			name:    "too small rate",
+			rate:    sdk.MustNewDecFromStr("0.00009"),
+			errText: "out of range",
+		},
+		{
+			name:    "too large rate",
+			rate:    sdk.MustNewDecFromStr("10000.0001"),
+			errText: "out of range",
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			_, err := s.msgServer.SetFixedDepositCfgRate(s.Ctx, &types.MsgSetFixedDepositCfgRate{
+				Admin:    s.Dao.GlobalDao,
+				RegionId: strings.ToLower(types.MeEarthRegionName),
+				Term:     1,
+				Rate:     tc.rate,
+			})
+			s.Require().Error(err)
+			s.Require().ErrorIs(err, types.ErrSetFixedDepositConfigRate)
+			s.Require().Contains(err.Error(), tc.errText)
+
+			cfg, err := s.queryClient.FixedDepositCfgByTerm(s.Ctx, &types.QueryFixedDepositCfgByTermRequest{
+				RegionId: strings.ToLower(types.MeEarthRegionName),
+				Term:     1,
+			})
+			s.Require().NoError(err)
+			s.Require().True(cfg.FixedDepositCfg.Rate.Equal(sdk.MustNewDecFromStr("0.1")))
+		})
+	}
+}
