@@ -277,6 +277,55 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 	}
 }
 
+func (s *KeeperTestSuite) TestBondedRelayerRejectsPowerIncreaseAboveThreshold() {
+	minDelegate := s.Keeper().GetGravityMinDelegate(s.Ctx)
+	s.seedRelayersForPowerLimitTest(3, minDelegate)
+
+	oversizedBond := s.Keeper().GetGravityMaxDelegate(s.Ctx)
+	_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), &types.MsgBondedRelayer{
+		RelayerAddress:  s.relayerAddrs[3].String(),
+		ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[3].PublicKey),
+		DelegateAmount:  sdk.NewCoin(params.BaseDenom, oversizedBond),
+		ChainName:       s.chainName,
+	})
+	s.Require().ErrorIs(err, types.ErrMaxChangePowerLimitExceeded)
+}
+
+func (s *KeeperTestSuite) TestAddDelegateRejectsPowerIncreaseAboveThreshold() {
+	minDelegate := s.Keeper().GetGravityMinDelegate(s.Ctx)
+	s.seedRelayersForPowerLimitTest(3, minDelegate)
+
+	maxAllowedDelegate := s.Keeper().GetAllBondedAmount(s.Ctx).
+		Mul(types.AttestationProposalRelayerChangePowerThreshold).
+		Quo(sdk.NewInt(int64(types.PowerBase)))
+	delegateIncrease := maxAllowedDelegate.Add(sdk.NewInt(1))
+	s.Require().True(delegateIncrease.IsPositive())
+
+	_, err := s.MsgServer().AddDelegate(sdk.WrapSDKContext(s.Ctx), &types.MsgAddDelegate{
+		ChainName:      s.chainName,
+		RelayerAddress: s.relayerAddrs[0].String(),
+		Amount:         sdk.NewCoin(params.BaseDenom, delegateIncrease),
+	})
+	s.Require().ErrorIs(err, types.ErrMaxChangePowerLimitExceeded)
+}
+
+func (s *KeeperTestSuite) seedRelayersForPowerLimitTest(count int, amount sdk.Int) {
+	for i := 0; i < count; i++ {
+		relayerAddress := s.relayerAddrs[i]
+		externalAddress := s.PubKeyToExternalAddr(s.externalPris[i].PublicKey)
+		s.Keeper().SetRelayer(s.Ctx, relayerAddress, types.Relayer{
+			RelayerAddress:  relayerAddress.String(),
+			ExternalAddress: externalAddress,
+			DelegateAmount:  amount,
+			StartHeight:     s.Ctx.BlockHeight(),
+			Online:          true,
+		})
+		s.Keeper().SetRelayerByExternalAddress(s.Ctx, externalAddress, relayerAddress)
+		err := s.App.BankKeeper.SendCoinsFromAccountToModule(s.Ctx, relayerAddress, s.Keeper().ModuleName(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, amount)))
+		s.Require().NoError(err)
+	}
+}
+
 func (s *KeeperTestSuite) TestMsgSetRelayerSetConfirm() {
 	normalMsg := &types.MsgBondedRelayer{
 		RelayerAddress:  s.relayerAddrs[0].String(),
