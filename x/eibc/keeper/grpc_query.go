@@ -55,6 +55,11 @@ func (q Querier) DemandOrdersByStatus(goCtx context.Context, req *types.QueryDem
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+	if req.Denom != "" {
+		if err := sdk.ValidateDenom(req.Denom); err != nil {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
+	}
 	// Get the demand orders by status, with optional filters
 	demandOrders, err := q.ListDemandOrdersByStatus(sdk.UnwrapSDKContext(goCtx), req.Status, int(req.Limit), filterOpts(req)...)
 	if err != nil {
@@ -120,7 +125,7 @@ func isFulfillmentState(fulfillmentState types.FulfillmentState) filterOption {
 
 func isDenom(denom string) filterOption {
 	return func(order types.DemandOrder) bool {
-		return order.Price.AmountOf(denom).IsPositive()
+		return order.Price.AmountOfNoDenomValidation(denom).IsPositive()
 	}
 }
 

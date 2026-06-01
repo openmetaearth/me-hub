@@ -6,6 +6,8 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
@@ -102,4 +104,31 @@ func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res.DemandOrders)
 	suite.Require().Equal(false, res.DemandOrders[0].IsFulfilled(), "Expected 0 demand orders with fulfillment state unfulfilled")
+}
+
+func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatusInvalidDenomDoesNotPanic() {
+	suite.SetupTest()
+	keeper := suite.App.EIBCKeeper
+
+	recipientAddress := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1000))[0]
+	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", recipientAddress.String())
+	err := keeper.SetDemandOrder(suite.Ctx, demandOrder)
+	suite.Require().NoError(err)
+
+	res, err := suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{
+		Status: commontypes.Status_PENDING,
+		Denom:  "stake",
+	})
+	suite.Require().NoError(err)
+	suite.Require().Len(res.DemandOrders, 1)
+
+	suite.Require().NotPanics(func() {
+		res, err = suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{
+			Status: commontypes.Status_PENDING,
+			Denom:  "bad denom",
+		})
+	})
+	suite.Require().Error(err)
+	suite.Require().Nil(res)
+	suite.Require().Equal(codes.InvalidArgument, status.Code(err))
 }
