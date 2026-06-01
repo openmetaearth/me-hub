@@ -52,7 +52,7 @@ func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
 			regionId: strings.ToLower(types.MeEarthRegionName),
 			term:     1,
 			rate:     sdk.MustNewDecFromStr("0"),
-			expErr:   types.ErrAddFixedDepositConfig,
+			expErr:   types.ErrFixedDepositConfigRateInvalid,
 		}, {
 			name:     "No error",
 			creator:  s.Dao.GlobalDao,
@@ -113,12 +113,12 @@ func (s *KeeperTestSuite) TestSetFixedDepositCfgRateRejectsInvalidRates() {
 		{
 			name:    "negative rate",
 			rate:    sdk.MustNewDecFromStr("-0.1"),
-			errText: "rate is not positive",
+			errText: "rate must be > 0",
 		},
 		{
 			name:    "zero rate",
 			rate:    sdk.ZeroDec(),
-			errText: "rate is not positive",
+			errText: "rate must be > 0",
 		},
 		{
 			name:    "too small rate",
@@ -141,7 +141,8 @@ func (s *KeeperTestSuite) TestSetFixedDepositCfgRateRejectsInvalidRates() {
 				Rate:     tc.rate,
 			})
 			s.Require().Error(err)
-			s.Require().ErrorIs(err, types.ErrSetFixedDepositConfigRate)
+			s.Require().ErrorIs(err, types.ErrFixedDepositConfigRateInvalid)
+			s.Require().Contains(err.Error(), "set fixed deposit config rate error")
 			s.Require().Contains(err.Error(), tc.errText)
 
 			cfg, err := s.queryClient.FixedDepositCfgByTerm(s.Ctx, &types.QueryFixedDepositCfgByTermRequest{

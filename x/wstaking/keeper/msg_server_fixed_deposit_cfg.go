@@ -3,18 +3,22 @@ package keeper
 import (
 	"context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
+)
+
+var (
+	fixedDepositMinRate = sdk.MustNewDecFromStr("0.0001")
+	fixedDepositMaxRate = sdk.MustNewDecFromStr("10000")
 )
 
 func validateFixedDepositCfgRate(rate sdk.Dec) error {
 	if !rate.IsPositive() {
-		return types.ErrFixedDepositConfigRateInvalid.Wrapf("rate is not positive 0 (%s)", rate.String())
+		return types.ErrFixedDepositConfigRateInvalid.Wrapf("rate must be > 0 (%s)", rate.String())
 	}
 
-	minRate := sdk.MustNewDecFromStr("0.0001")
-	maxRate := sdk.MustNewDecFromStr("10000")
-	if rate.LT(minRate) || rate.GT(maxRate) {
-		return types.ErrFixedDepositConfigRateInvalid.Wrapf("rate(%s) out of range [%s, %s]", rate.String(), minRate.String(), maxRate.String())
+	if rate.LT(fixedDepositMinRate) || rate.GT(fixedDepositMaxRate) {
+		return types.ErrFixedDepositConfigRateInvalid.Wrapf("rate(%s) out of range [%s, %s]", rate.String(), fixedDepositMinRate.String(), fixedDepositMaxRate.String())
 	}
 	return nil
 }
@@ -36,7 +40,7 @@ func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFi
 	}
 
 	if err := validateFixedDepositCfgRate(msg.Rate); err != nil {
-		return nil, types.ErrAddFixedDepositConfig.Wrapf("add fixed deposit config error (%s)", err)
+		return nil, sdkerrors.Wrap(err, "add fixed deposit config error")
 	}
 
 	_, ok := k.GetFixedDepositCfg(ctx, msg.RegionId, msg.Term)
@@ -108,7 +112,7 @@ func (k MsgServer) SetFixedDepositCfgRate(goCtx context.Context, msg *types.MsgS
 	}
 
 	if err := validateFixedDepositCfgRate(msg.Rate); err != nil {
-		return nil, types.ErrSetFixedDepositConfigRate.Wrapf("set fixed deposit config error (%s)", err)
+		return nil, sdkerrors.Wrap(err, "set fixed deposit config rate error")
 	}
 
 	config.Rate = msg.Rate
