@@ -120,6 +120,17 @@ func (k MsgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 	if err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrHooks, "before unStake :error :%+v", err)
 	}
+
+	validatorForRegion, found := k.GetValidator(ctx, addr)
+	if found {
+		region, found := k.Keeper.GetRegion(ctx, validatorForRegion.Description.RegionID)
+		if found {
+			// Subtract unstaked amount from region share
+			region.RegionShare = region.RegionShare.Sub(msg.Amount.Amount)
+			k.Keeper.SetRegion(ctx, region)
+		}
+	}
+
 	completionTime, err := k.Keeper.Unstake(ctx, stakerAddress, addr, shares)
 	if err != nil {
 		return nil, err
