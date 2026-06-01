@@ -277,11 +277,11 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 	}
 }
 
-func (s *KeeperTestSuite) TestBondedRelayerRejectsPowerIncreaseAboveThreshold() {
+func (s *KeeperTestSuite) TestBondedRelayerRejectsBondAmountAboveThreshold() {
 	minDelegate := s.Keeper().GetGravityMinDelegate(s.Ctx)
 	s.seedRelayersForPowerLimitTest(3, minDelegate)
 
-	oversizedBond := s.Keeper().GetGravityMaxDelegate(s.Ctx)
+	oversizedBond := s.maxChangePowerLimitForTest().Add(sdk.OneInt())
 	_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), &types.MsgBondedRelayer{
 		RelayerAddress:  s.relayerAddrs[3].String(),
 		ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[3].PublicKey),
@@ -295,9 +295,7 @@ func (s *KeeperTestSuite) TestAddDelegateRejectsPowerIncreaseAboveThreshold() {
 	minDelegate := s.Keeper().GetGravityMinDelegate(s.Ctx)
 	s.seedRelayersForPowerLimitTest(3, minDelegate)
 
-	maxAllowedDelegate := s.Keeper().GetAllBondedAmount(s.Ctx).
-		Mul(types.AttestationProposalRelayerChangePowerThreshold).
-		Quo(sdk.NewInt(int64(types.PowerBase)))
+	maxAllowedDelegate := s.maxChangePowerLimitForTest()
 	delegateIncrease := maxAllowedDelegate.Add(sdk.NewInt(1))
 	s.Require().True(delegateIncrease.IsPositive())
 
@@ -307,6 +305,22 @@ func (s *KeeperTestSuite) TestAddDelegateRejectsPowerIncreaseAboveThreshold() {
 		Amount:         sdk.NewCoin(params.BaseDenom, delegateIncrease),
 	})
 	s.Require().ErrorIs(err, types.ErrMaxChangePowerLimitExceeded)
+}
+
+func (s *KeeperTestSuite) maxChangePowerLimitForTest() sdk.Int {
+	allBondedAmount := s.Keeper().GetAllBondedAmount(s.Ctx)
+	if allBondedAmount.IsZero() {
+		return sdk.ZeroInt()
+	}
+
+	maxBondedAmount := allBondedAmount.
+		Mul(types.AttestationProposalRelayerChangePowerThreshold).
+		Quo(sdk.NewInt(int64(types.PowerBase)))
+	minDelegate := s.Keeper().GetGravityMinDelegate(s.Ctx)
+	if maxBondedAmount.LT(minDelegate) {
+		return minDelegate
+	}
+	return maxBondedAmount
 }
 
 func (s *KeeperTestSuite) seedRelayersForPowerLimitTest(count int, amount sdk.Int) {
