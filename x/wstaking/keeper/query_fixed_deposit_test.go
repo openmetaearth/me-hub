@@ -158,3 +158,35 @@ func (s *KeeperTestSuite) TestFixedDepositByRegionPagination() {
 	// Check the total number of FixedDeposits
 	require.Equal(s.T(), 30, len(allFixedDeposits))
 }
+
+func (s *KeeperTestSuite) TestFixedDepositByRegionPaginationWithoutPageRequest() {
+	s.SetupTest()
+	s.createGlobalRegion()
+	s.createUsaRegion()
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	accounts := s.NewAccounts(2)
+	for _, account := range accounts {
+		wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+		err := s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx,
+			mintypes.ModuleName,
+			account,
+			sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 10000000000)})
+		s.Require().NoError(err)
+	}
+	s.InitKyc(accounts[0], "0000000000001", types.MeEarthRegionId)
+	s.createFixedDeposits(3, accounts[0].String())
+	s.InitKyc(accounts[1], "0000000000002", "usa")
+	s.createFixedDeposits(4, accounts[1].String())
+
+	res, err := s.queryClient.FixedDepositByRegion(s.Ctx, &types.QueryFixedDepositByRegionRequest{
+		RegionId:   types.MeEarthRegionId,
+		QueryType:  types.FixedDepositState_AllState,
+		Pagination: nil,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(res)
+	s.Require().Len(res.FixedDeposit, 3)
+}

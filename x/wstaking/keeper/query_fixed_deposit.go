@@ -92,8 +92,16 @@ func (k Keeper) FixedDepositByRegion(goCtx context.Context, req *types.QueryFixe
 func (k Keeper) queryFixedDepositByRegionRecursively(ctx sdk.Context, req *types.QueryFixedDepositByRegionRequest, accumulated []types.FixedDeposit) ([]types.FixedDeposit, *query.PageResponse, error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKey))
 	fixedDeposits := make([]types.FixedDeposit, 0)
+	pageReq := req.Pagination
+	if pageReq == nil {
+		pageReq = &query.PageRequest{}
+	}
+	limit := int(pageReq.Limit)
+	if limit == 0 {
+		limit = query.DefaultLimit
+	}
 
-	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(store, pageReq, func(key []byte, value []byte) error {
 		var fd types.FixedDeposit
 		if err := k.cdc.Unmarshal(value, &fd); err != nil {
 			return err
@@ -127,9 +135,11 @@ func (k Keeper) queryFixedDepositByRegionRecursively(ctx sdk.Context, req *types
 
 	accumulated = append(accumulated, fixedDeposits...)
 
-	if len(accumulated) < int(req.Pagination.Limit) && pageRes.NextKey != nil {
-		req.Pagination.Key = pageRes.NextKey
-		return k.queryFixedDepositByRegionRecursively(ctx, req, accumulated)
+	if len(accumulated) < limit && pageRes.NextKey != nil {
+		nextReq := *req
+		nextReq.Pagination = pageReq
+		nextReq.Pagination.Key = pageRes.NextKey
+		return k.queryFixedDepositByRegionRecursively(ctx, &nextReq, accumulated)
 	}
 
 	return accumulated, pageRes, nil
