@@ -13,6 +13,7 @@ func (suite *SequencerTestSuite) TestReplaceProposerStaleRequestClearedAfterOldP
 	newProposer := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	fallbackProposer := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 
+	// MsgRepalceProposer is the existing generated type name in this module.
 	err := suite.App.SequencerKeeper.SetReplaceProposer(suite.Ctx, &types.MsgRepalceProposer{
 		RollappId:   rollappId,
 		OldProposer: oldProposer,
@@ -62,4 +63,39 @@ func (suite *SequencerTestSuite) TestReplaceProposerStaleRequestClearedAfterOldP
 		BlockHeight: 20,
 	})
 	suite.Require().NoError(err)
+}
+
+func (suite *SequencerTestSuite) TestReplaceProposerStaleRequestClearedAfterOldProposerRecordMissing() {
+	suite.SetupTest()
+
+	rollappId := suite.CreateDefaultRollapp()
+	oldProposer := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	newProposer := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+
+	// MsgRepalceProposer is the existing generated type name in this module.
+	err := suite.App.SequencerKeeper.SetReplaceProposer(suite.Ctx, &types.MsgRepalceProposer{
+		RollappId:   rollappId,
+		OldProposer: oldProposer,
+		NewProposer: newProposer,
+		BlockHeight: 10,
+	})
+	suite.Require().NoError(err)
+
+	store := suite.Ctx.KVStore(suite.App.GetKey(types.StoreKey))
+	store.Delete(types.SequencerKey(oldProposer))
+
+	_, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, oldProposer)
+	suite.Require().False(found)
+
+	err = suite.App.SequencerKeeper.ProcSequencerByPendingStates(
+		suite.Ctx,
+		rollappId,
+		oldProposer,
+		&rollapptypes.StateInfo{
+			StartHeight: 10,
+			NumBlocks:   1,
+		},
+	)
+	suite.Require().NoError(err)
+	suite.Require().False(suite.App.SequencerKeeper.IsHasReplaceProposer(suite.Ctx, rollappId))
 }
