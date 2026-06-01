@@ -38,6 +38,7 @@ func (k Keeper) SendInviteReward(ctx sdk.Context, inviter, invitee, regionId str
 			sdk.NewAttribute(types.AttributeKeyKycInviterReward, types.InviteReward.String()),
 		),
 	)
+	k.SetInviterReward(ctx, invitee)
 	return nil
 }
 
