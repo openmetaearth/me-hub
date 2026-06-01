@@ -1,9 +1,12 @@
 package keeper_test
 
 import (
+	stdmath "math"
+	"strings"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
-	"strings"
 )
 
 func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
@@ -16,6 +19,8 @@ func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
 	}
 	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
+
+	overflowingTerm := int64(stdmath.MaxInt64/int64(24*time.Hour)) + 1
 
 	tests := []struct {
 		name     string
@@ -44,6 +49,13 @@ func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
 			creator:  s.Dao.GlobalDao,
 			regionId: strings.ToLower(types.MeEarthRegionName),
 			term:     0,
+			rate:     sdk.MustNewDecFromStr("0.1"),
+			expErr:   types.ErrAddFixedDepositConfig,
+		}, {
+			name:     "overflowing term",
+			creator:  s.Dao.GlobalDao,
+			regionId: strings.ToLower(types.MeEarthRegionName),
+			term:     overflowingTerm,
 			rate:     sdk.MustNewDecFromStr("0.1"),
 			expErr:   types.ErrAddFixedDepositConfig,
 		}, {

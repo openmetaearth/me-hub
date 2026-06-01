@@ -11,6 +11,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/wmint"
 	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
+	stdmath "math"
 	"strings"
 	"time"
 )
@@ -47,6 +48,8 @@ func (s *KeeperTestSuite) TestFixedDeposit() {
 	})
 	s.Require().NoError(err)
 
+	overflowingTerm := int64(stdmath.MaxInt64/int64(24*time.Hour)) + 1
+
 	tests := []struct {
 		name      string
 		account   string
@@ -58,7 +61,7 @@ func (s *KeeperTestSuite) TestFixedDeposit() {
 			name:      "invalid term",
 			account:   s.Dao.GlobalDao,
 			term:      0,
-			principal: sdk.NewCoin(params.BaseDenom, sdk.NewInt(1)),
+			principal: amount[0],
 			expErr:    types.ErrDoFixedDeposit,
 		}, {
 			name:      "invalid principal",
@@ -84,6 +87,12 @@ func (s *KeeperTestSuite) TestFixedDeposit() {
 			term:      1,
 			principal: amount[0],
 			expErr:    nil,
+		}, {
+			name:      "overflowing term",
+			account:   s.Dao.GlobalDao,
+			term:      overflowingTerm,
+			principal: amount[0],
+			expErr:    types.ErrDoFixedDeposit,
 		},
 	}
 	for _, test := range tests {

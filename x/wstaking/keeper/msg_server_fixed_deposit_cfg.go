@@ -18,8 +18,8 @@ func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFi
 		return nil, types.ErrRegionName.Wrapf("add fixed deposit config error, region not exist (%s)", msg.RegionId)
 	}
 
-	if msg.Term <= 0 {
-		return nil, types.ErrAddFixedDepositConfig.Wrapf("add fixed deposit config error, term is not positive 0 (%d)", msg.Term)
+	if err := validateFixedDepositTerm(msg.Term); err != nil {
+		return nil, types.ErrAddFixedDepositConfig.Wrapf("add fixed deposit config error, %s", err)
 	}
 
 	if !msg.Rate.IsPositive() {

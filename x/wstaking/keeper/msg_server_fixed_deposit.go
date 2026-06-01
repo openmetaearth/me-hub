@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	stdmath "math"
 	"strconv"
 	"time"
 
@@ -15,17 +16,31 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const DayPerYear uint64 = 365
+const (
+	DayPerYear uint64 = 365
+
+	fixedDepositTermDuration = 24 * time.Hour
+	maxFixedDepositTerm      = int64(stdmath.MaxInt64 / int64(fixedDepositTermDuration))
+)
 
 var minDepositAmount = sdk.NewInt(1_000_000) // 0.01mec == 1000000umec
 
-func (k MsgServer) TermToDuration(term int64) (time.Duration, error) {
-	// for formal environment
-	minutesPerDay := (24 * 60 * time.Minute)
-	// for test environment
-	//minutesPerDay := time.Minute
+func validateFixedDepositTerm(term int64) error {
+	if term <= 0 {
+		return fmt.Errorf("term is not positive 0 (%d)", term)
+	}
+	if term > maxFixedDepositTerm {
+		return fmt.Errorf("term(%d) exceeds maximum safe duration(%d)", term, maxFixedDepositTerm)
+	}
+	return nil
+}
 
-	return time.Duration(int64(minutesPerDay) * term), nil
+func (k MsgServer) TermToDuration(term int64) (time.Duration, error) {
+	if err := validateFixedDepositTerm(term); err != nil {
+		return 0, err
+	}
+
+	return fixedDepositTermDuration * time.Duration(term), nil
 }
 
 func (k MsgServer) GetFixedDepositInterest(cfg *types.FixedDepositCfg, principal sdk.Coin, term int64) (sdk.Coin, error) {
