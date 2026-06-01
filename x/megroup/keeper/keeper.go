@@ -88,17 +88,22 @@ func (k Keeper) KycStatusChanged(goCtx context.Context, msgType string, data int
 		if !found {
 			return fmt.Errorf("can not found AttributeKeyRegionIdChanged.but EventType is update")
 		}
-		if attrPreRegion.Value == attrNewRegion.Value { //if region not changed,return
-			k.Logger(ctx).Info("regionID was not changed in KycStatusChanged!!!")
-			return nil
-		}
-		k.Logger(ctx).Info("start to proc KycStatusChanged!!!")
 		attrAddress, found := val.GetAttribute(kycTypes.AttributeKeyAddress)
 		if !found {
 			return fmt.Errorf("can not found AttributeKeyAddress.but EventType is update")
 		}
+		address, err := sdk.AccAddressFromBech32(attrAddress.Value)
+		if err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid KYC update address (%s)", err)
+		}
+		_, canJoinNewGroup := k.GetDidAndKycActive(ctx, address, attrNewRegion.Value)
+		if !shouldProcessKycMembershipChange(attrPreRegion.Value, attrNewRegion.Value, canJoinNewGroup) {
+			k.Logger(ctx).Info("regionID and KYC eligibility were not changed in KycStatusChanged!!!")
+			return nil
+		}
+		k.Logger(ctx).Info("start to proc KycStatusChanged!!!")
 
-		if err := k.procKycRegionChange(ctx, attrAddress.Value, attrPreRegion.Value, attrNewRegion.Value); err != nil {
+		if err := k.procKycRegionChange(ctx, attrAddress.Value, attrPreRegion.Value, attrNewRegion.Value, canJoinNewGroup); err != nil {
 			return err
 		}
 
@@ -108,11 +113,19 @@ func (k Keeper) KycStatusChanged(goCtx context.Context, msgType string, data int
 
 }
 
-func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, nowRegionID string) error {
-	newGrpId, found := k.GetGroupIdByRegion(sdkCtx, nowRegionID)
-	if !found {
-		newGrpId = 0
-		//	return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found groupId in region.regionID = %s", nowRegionID))
+func shouldProcessKycMembershipChange(preRegionID, nowRegionID string, canJoinNewGroup bool) bool {
+	return preRegionID != nowRegionID || !canJoinNewGroup
+}
+
+func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, nowRegionID string, canJoinNewGroup bool) error {
+	newGrpId := uint64(0)
+	if canJoinNewGroup {
+		var found bool
+		newGrpId, found = k.GetGroupIdByRegion(sdkCtx, nowRegionID)
+		if !found {
+			newGrpId = 0
+			//	return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found groupId in region.regionID = %s", nowRegionID))
+		}
 	}
 	//if 0 == newGrpId {
 	//	return errors.Wrapf(types.ErrProcData, fmt.Sprintf("groupId is 0 in new region.regionID = %s", nowRegionID))
