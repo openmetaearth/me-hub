@@ -125,6 +125,70 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 	}
 }
 
+func TestIBCModule_OnRecvPacket_DoesNotCreateMetadataWhenDownstreamFails(t *testing.T) {
+	errorAck := channeltypes.NewErrorAcknowledgement(fmt.Errorf("transfer failed"))
+	app := &mockIBCModule{
+		recvAck: errorAck,
+	}
+	keeper := &mockDenomMetadataKeeper{}
+	rollappKeeper := &mockRollappKeeper{
+		returnRollapp: &rollapptypes.Rollapp{},
+	}
+
+	im := denommetadata.NewIBCModule(app, keeper, rollappKeeper)
+
+	memo := mustMarshalJSON(validMemoData)
+	packetData := packetDataWithMemo(memo)
+	rollappKeeper.packetData = packetData
+
+	packetDataBytes := types.ModuleCdc.MustMarshalJSON(&packetData)
+	packet := channeltypes.Packet{
+		Data:               packetDataBytes,
+		SourcePort:         "transfer",
+		SourceChannel:      "channel-0",
+		DestinationPort:    "transfer",
+		DestinationChannel: "channel-1",
+	}
+
+	got := im.OnRecvPacket(sdk.NewContext(nil, cometbft.Header{}, false, nil), packet, sdk.AccAddress{})
+
+	require.Equal(t, errorAck, got)
+	require.Equal(t, string(packetDataBytes), string(app.sentData))
+	require.False(t, keeper.created)
+}
+
+func TestIBCModule_OnRecvPacket_CreatesMetadataAfterDownstreamSucceeds(t *testing.T) {
+	successAck := channeltypes.NewResultAcknowledgement([]byte{})
+	app := &mockIBCModule{
+		recvAck: successAck,
+	}
+	keeper := &mockDenomMetadataKeeper{}
+	rollappKeeper := &mockRollappKeeper{
+		returnRollapp: &rollapptypes.Rollapp{},
+	}
+
+	im := denommetadata.NewIBCModule(app, keeper, rollappKeeper)
+
+	memo := mustMarshalJSON(validMemoData)
+	packetData := packetDataWithMemo(memo)
+	rollappKeeper.packetData = packetData
+
+	packetDataBytes := types.ModuleCdc.MustMarshalJSON(&packetData)
+	packet := channeltypes.Packet{
+		Data:               packetDataBytes,
+		SourcePort:         "transfer",
+		SourceChannel:      "channel-0",
+		DestinationPort:    "transfer",
+		DestinationChannel: "channel-1",
+	}
+
+	got := im.OnRecvPacket(sdk.NewContext(nil, cometbft.Header{}, false, nil), packet, sdk.AccAddress{})
+
+	require.Equal(t, successAck, got)
+	require.Equal(t, string(packetDataBytes), string(app.sentData))
+	require.True(t, keeper.created)
+}
+
 func TestICS4Wrapper_SendPacket(t *testing.T) {
 	type fields struct {
 		ICS4Wrapper   porttypes.ICS4Wrapper
@@ -579,6 +643,7 @@ func mustMarshalJSON(v any) string {
 type mockIBCModule struct {
 	porttypes.IBCModule
 	sentData []byte
+	recvAck  exported.Acknowledgement
 }
 
 func okAck() []byte {
@@ -593,6 +658,9 @@ func badAck() []byte {
 
 func (m *mockIBCModule) OnRecvPacket(_ sdk.Context, p channeltypes.Packet, _ sdk.AccAddress) exported.Acknowledgement {
 	m.sentData = p.Data
+	if m.recvAck != nil {
+		return m.recvAck
+	}
 	return emptyResult
 }
 
@@ -605,6 +673,9 @@ type mockDenomMetadataKeeper struct {
 }
 
 func (m *mockDenomMetadataKeeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
+	if m.hasDenomMetaData {
+		return gerrc.ErrAlreadyExists
+	}
 	m.created = true
 	return nil
 }

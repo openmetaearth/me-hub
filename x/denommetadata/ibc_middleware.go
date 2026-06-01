@@ -91,14 +91,19 @@ func (im IBCModule) OnRecvPacket(
 	dm.Base = ibcDenom
 	dm.DenomUnits[0].Denom = dm.Base
 
-	if err = im.keeper.CreateDenomMetadata(ctx, *dm); err != nil {
-		if errorsmod.IsOf(err, gerrc.ErrAlreadyExists) {
-			return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
-		}
-		return channeltypes.NewErrorAcknowledgement(err)
+	// Only persist metadata after the packet is successfully received downstream.
+	ack := im.IBCModule.OnRecvPacket(ctx, packet, relayer)
+	if !ack.Success() {
+		return ack
 	}
 
-	return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
+	if err = im.keeper.CreateDenomMetadata(ctx, *dm); err != nil {
+		if !errorsmod.IsOf(err, gerrc.ErrAlreadyExists) {
+			ctx.Logger().Error("failed to create denom metadata after successful receive", "error", err, "denom", dm.Base)
+		}
+	}
+
+	return ack
 }
 
 // OnAcknowledgementPacket adds the token metadata to the rollapp if it doesn't exist
