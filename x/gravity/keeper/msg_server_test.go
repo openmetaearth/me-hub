@@ -910,7 +910,7 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 
 	for _, testCase := range testCases {
 		s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
-		_, err := s.MsgServer().RequestBatch(sdk.WrapSDKContext(s.Ctx), &types.MsgRequestBatch{
+		res, err := s.MsgServer().RequestBatch(sdk.WrapSDKContext(s.Ctx), &types.MsgRequestBatch{
 			Sender:     s.relayerAddrs[0].String(),
 			Denom:      bridgeDenomData.Denom,
 			MinimumFee: sdk.NewInt(1).MulRaw(1e12),
@@ -920,8 +920,10 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 		})
 		if testCase.pass {
 			s.Require().NoError(err)
+			s.Require().NotNil(res)
 			usdtBatchFee = s.Keeper().GetBatchFeesByTokenType(s.Ctx, tokenContract, 100, sdk.NewInt(0))
 			s.Require().EqualValues(testCase.expectTotalTxs, usdtBatchFee.TotalTxs)
+			s.Keeper().OutgoingTxBatchExecuted(s.Ctx, tokenContract, res.BatchNonce)
 		} else {
 			s.Require().NotNil(err)
 			s.Require().Equal(err.Error(), testCase.err.Error())
