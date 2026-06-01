@@ -2,8 +2,8 @@ package ante_test
 
 import (
 	"fmt"
+
 	"github.com/golang/mock/gomock"
-	"github.com/openmetaearth/me-hub/app/ante/mock"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -16,9 +16,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/ethereum/eip712"
@@ -27,6 +29,7 @@ import (
 
 	"github.com/openmetaearth/me-hub/app"
 	"github.com/openmetaearth/me-hub/app/ante"
+	"github.com/openmetaearth/me-hub/app/ante/mock"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 )
@@ -91,6 +94,7 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	proposerOwner := NewAccount()
 	suite.mockStakingKeeper.EXPECT().GetProposerOwnerAddress(gomock.Any()).Return(proposerOwner.Address, nil)
 	devOperator := NewAccount()
+	suite.mockDaoKeeper.EXPECT().IsDao(gomock.Any(), addr.Address).Return(false)
 	suite.mockDaoKeeper.EXPECT().GetDevOperator(gomock.Any()).Return(devOperator.Address)
 	suite.mockDaoKeeper.EXPECT().GetGlobalDao(gomock.Any()).Return(devOperator.Address)
 	suite.mockDaoKeeper.EXPECT().GetMeidDao(gomock.Any()).Return(devOperator.Address)
@@ -117,6 +121,64 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	_, err = suite.anteHandler(suite.ctx, txBuilder.GetTx(), false)
 
 	suite.Require().NoError(err)
+}
+
+func (suite *AnteTestSuite) TestDeductFeeRejectsBlockedDaoFeeReceiver() {
+	suite.SetupTest(false)
+	addr, privKey := NewAccountWithEthPrivKey()
+
+	proposerOwner := NewAccount()
+	globalFeePool := NewAccount()
+	blockedReceiver := authtypes.NewModuleAddress(authtypes.FeeCollectorName)
+
+	suite.mockDaoKeeper.EXPECT().IsDao(gomock.Any(), addr.Address).Return(false)
+	suite.mockDaoKeeper.EXPECT().CheckFreeGasAccount(gomock.Any(), addr.Address).Return(false)
+	suite.mockDaoKeeper.EXPECT().GetDevOperator(gomock.Any()).Return(blockedReceiver.String())
+	suite.mockStakingKeeper.EXPECT().GetProposerOwnerAddress(gomock.Any()).Return(proposerOwner.Address, nil)
+	suite.mockDaoKeeper.EXPECT().GetGlobalDaoFeePoolAddr(gomock.Any()).Return(globalFeePool.GetAddress())
+
+	amt := sdk.NewInt(100)
+	err := testutil.FundAccount(
+		suite.app.BankKeeper,
+		suite.ctx,
+		addr.GetAddress(),
+		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, amt)),
+	)
+	suite.Require().NoError(err)
+
+	acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.GetAddress())
+	suite.Require().NoError(acc.SetSequence(1))
+	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
+
+	recipient := NewAccount()
+	msgSend := banktypes.NewMsgSend(acc.GetAddress(), recipient.GetAddress(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1))))
+	txBuilder := suite.CreateTestEIP712CosmosTxBuilder(privKey, []sdk.Msg{msgSend})
+
+	feePayerBalanceBefore := suite.app.BankKeeper.GetAllBalances(suite.ctx, addr.GetAddress())
+	blockedReceiverBalanceBefore := suite.app.BankKeeper.GetAllBalances(suite.ctx, blockedReceiver)
+	nextCalled := false
+
+	decorator := ante.NewDeductFeeDecorator(
+		&suite.app.AccountKeeper,
+		suite.app.BankKeeper,
+		suite.app.FeeGrantKeeper,
+		suite.mockDaoKeeper,
+		suite.mockStakingKeeper,
+		suite.app.KycKeeper,
+		nil,
+		suite.app.WasmKeeper,
+	)
+
+	_, err = decorator.AnteHandle(suite.ctx, txBuilder.GetTx(), false, func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
+		nextCalled = true
+		return ctx, nil
+	})
+
+	suite.Require().Error(err)
+	suite.Require().True(sdkerrors.ErrUnauthorized.Is(err))
+	suite.Require().False(nextCalled)
+	suite.Require().Equal(feePayerBalanceBefore, suite.app.BankKeeper.GetAllBalances(suite.ctx, addr.GetAddress()))
+	suite.Require().Equal(blockedReceiverBalanceBefore, suite.app.BankKeeper.GetAllBalances(suite.ctx, blockedReceiver))
 }
 
 func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
