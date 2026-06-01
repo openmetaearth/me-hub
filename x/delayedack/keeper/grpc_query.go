@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
 
 	"google.golang.org/grpc/codes"
@@ -40,6 +41,10 @@ func (q Querier) GetPackets(goCtx context.Context, req *types.QueryRollappPacket
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	res := &types.QueryRollappPacketListResponse{}
 
+	if !isValidPacketStatus(req.Status) {
+		return nil, status.Error(codes.InvalidArgument, "invalid packet status")
+	}
+
 	if req.RollappId == "" {
 		// query by status (PENDING by default) and type (if not UNDEFINED)
 		res.RollappPackets = q.ListRollappPackets(ctx, types.ByTypeByStatus(req.Type, req.Status))
@@ -51,4 +56,9 @@ func (q Querier) GetPackets(goCtx context.Context, req *types.QueryRollappPacket
 	// TODO: handle pagination
 
 	return res, nil
+}
+
+func isValidPacketStatus(packetStatus commontypes.Status) bool {
+	_, ok := commontypes.Status_name[int32(packetStatus)]
+	return ok
 }
