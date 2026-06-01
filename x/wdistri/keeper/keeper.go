@@ -101,7 +101,7 @@ func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 		// calculate every region coins: RegionShare * totalMintCoins / totalRegionShare
 		amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoin.AmountOf(params.BaseDenom).ToLegacyDec()).Quo(totalRegionShareDec)
 		regionAmount := amount.TruncateInt()
-		regionCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(regionAmount.Int64())))
+		regionCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, regionAmount))
 		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.GetTreasuryModuleAccount(), sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), regionCoins)
 		if err != nil {
 			return err
