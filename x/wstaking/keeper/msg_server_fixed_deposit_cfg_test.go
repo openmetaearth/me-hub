@@ -1,9 +1,7 @@
 package keeper_test
 
 import (
-	stdmath "math"
 	"strings"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
@@ -20,7 +18,7 @@ func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
 	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
 
-	overflowingTerm := int64(stdmath.MaxInt64/int64(24*time.Hour)) + 1
+	overflowingTerm := overflowingFixedDepositTerm()
 
 	tests := []struct {
 		name     string

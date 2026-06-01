@@ -27,10 +27,10 @@ var minDepositAmount = sdk.NewInt(1_000_000) // 0.01mec == 1000000umec
 
 func validateFixedDepositTerm(term int64) error {
 	if term <= 0 {
-		return fmt.Errorf("term is not positive 0 (%d)", term)
+		return fmt.Errorf("term must be > 0 (got %d)", term)
 	}
 	if term > maxFixedDepositTerm {
-		return fmt.Errorf("term(%d) exceeds maximum safe duration(%d)", term, maxFixedDepositTerm)
+		return fmt.Errorf("term exceeds maximum allowed days (got %d, max %d)", term, maxFixedDepositTerm)
 	}
 	return nil
 }

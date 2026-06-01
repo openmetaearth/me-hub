@@ -1,6 +1,10 @@
 package keeper_test
 
 import (
+	stdmath "math"
+	"strings"
+	"time"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,10 +15,11 @@ import (
 	"github.com/openmetaearth/me-hub/x/wmint"
 	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
-	stdmath "math"
-	"strings"
-	"time"
 )
+
+func overflowingFixedDepositTerm() int64 {
+	return int64(stdmath.MaxInt64/int64(24*time.Hour)) + 1
+}
 
 func (s *KeeperTestSuite) TestFixedDeposit() {
 	s.SetupTest()
@@ -48,7 +53,7 @@ func (s *KeeperTestSuite) TestFixedDeposit() {
 	})
 	s.Require().NoError(err)
 
-	overflowingTerm := int64(stdmath.MaxInt64/int64(24*time.Hour)) + 1
+	overflowingTerm := overflowingFixedDepositTerm()
 
 	tests := []struct {
 		name      string

@@ -19,7 +19,7 @@ func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFi
 	}
 
 	if err := validateFixedDepositTerm(msg.Term); err != nil {
-		return nil, types.ErrAddFixedDepositConfig.Wrapf("add fixed deposit config error, %s", err)
+		return nil, types.ErrAddFixedDepositConfig.Wrapf("add fixed deposit config error, %v", err)
 	}
 
 	if !msg.Rate.IsPositive() {
