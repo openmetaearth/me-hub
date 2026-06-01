@@ -54,6 +54,12 @@ func ValidateTronAddress(address string) error {
 	if err != nil {
 		return errors.New("doesn't pass format validation")
 	}
+	if len(tronAddr) != tronaddress.AddressLength {
+		return errors.New("wrong length")
+	}
+	if tronAddr[0] != tronaddress.TronBytePrefix {
+		return errors.New("invalid tron prefix")
+	}
 	expectAddress := common.EncodeCheck(tronAddr)
 	if expectAddress != address {
 		return fmt.Errorf("mismatch expected: %s, got: %s", expectAddress, address)

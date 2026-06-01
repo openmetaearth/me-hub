@@ -1,8 +1,10 @@
 package types_test
 
 import (
+	"bytes"
 	"testing"
 
+	troncommon "github.com/fbsobreira/gotron-sdk/pkg/common"
 	"github.com/openmetaearth/me-hub/x/tron/types"
 	"github.com/stretchr/testify/require"
 )
@@ -43,6 +45,12 @@ func TestValidateTronAddress(t *testing.T) {
 			value:      "TR7NHQJEKQXGTCI8Q8ZY4PL8OTSZGJLJ6T",
 			expectPass: false,
 			errStr:     "doesn't pass format validation",
+		},
+		{
+			testName:   "base58check address with non-tron prefix",
+			value:      troncommon.EncodeCheck(append([]byte{0x00}, bytes.Repeat([]byte{0x11}, 20)...)),
+			expectPass: false,
+			errStr:     "invalid tron prefix",
 		},
 		{
 			testName:   "normal address",
