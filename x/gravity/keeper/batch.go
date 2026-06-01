@@ -189,13 +189,19 @@ func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, contractAddress string, b
 	if batch == nil {
 		return types.ErrUnknown
 	}
+
+	// Use cache context for atomicity: all txs must be added back before
+	// any state change is committed. Prevents partial state corruption where
+	// some txs end up in unbatched pool while batch still exists.
+	cacheCtx, writeCache := ctx.CacheContext()
 	for _, tx := range batch.Transactions {
-		if err := k.AddUnbatchedTx(ctx, tx); err != nil {
+		if err := k.AddUnbatchedTx(cacheCtx, tx); err != nil {
 			return errorsmod.Wrapf(err, "unable to add batched transaction back into pool %v", tx)
 		}
 	}
 
-	// Delete batch since it is finished
+	// All txs added successfully - commit the atomic state changes
+	writeCache()
 	k.DeleteBatch(ctx, batch)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
