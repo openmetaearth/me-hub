@@ -155,3 +155,48 @@ func (suite *KeeperTestSuite) TestKeeper_IterateBatch() {
 	)
 	suite.Equal(len(batchs), index)
 }
+
+func (suite *KeeperTestSuite) TestBuildOutgoingTxBatchIgnoresExpiredStaleBatch() {
+	tokenContract := helpers.GenerateAddress().Hex()
+	feeReceive := helpers.GenerateAddress().Hex()
+	projectedCurrentExternalHeight := suite.prepareOutgoingBatchTimeoutTest(tokenContract)
+
+	expiredBatch := &types.OutgoingTxBatch{
+		BatchNonce:    99,
+		BatchTimeout:  projectedCurrentExternalHeight - 1,
+		TokenContract: tokenContract,
+		FeeReceive:    feeReceive,
+		Block:         10,
+	}
+	suite.NoError(suite.Keeper().StoreBatch(suite.Ctx, expiredBatch))
+
+	batch, err := suite.Keeper().BuildOutgoingTxBatch(
+		suite.Ctx,
+		tokenContract,
+		feeReceive,
+		100,
+		sdkmath.NewInt(1),
+		sdkmath.ZeroInt(),
+	)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(batch)
+	suite.Require().Equal(tokenContract, batch.TokenContract)
+}
+
+func (suite *KeeperTestSuite) prepareOutgoingBatchTimeoutTest(tokenContract string) uint64 {
+	suite.Ctx = suite.Ctx.WithBlockHeight(100)
+	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, 100, 0)
+	projectedCurrentExternalHeight, batchTimeout := suite.Keeper().GetBatchTimeoutHeight(suite.Ctx)
+	suite.Require().Greater(projectedCurrentExternalHeight, uint64(0))
+	suite.Require().Greater(batchTimeout, projectedCurrentExternalHeight)
+
+	tx := &types.OutgoingTransferTx{
+		Id:          1,
+		Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+		DestAddress: helpers.GenerateAddress().Hex(),
+		Token:       types.NewERC20Token(sdkmath.NewInt(1), tokenContract),
+		Fee:         types.NewERC20Token(sdkmath.NewInt(1), tokenContract),
+	}
+	suite.NoError(suite.Keeper().AddUnbatchedTx(suite.Ctx, tx))
+	return projectedCurrentExternalHeight
+}
