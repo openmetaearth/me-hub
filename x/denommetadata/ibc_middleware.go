@@ -93,6 +93,9 @@ func (im IBCModule) OnRecvPacket(
 
 	// Only persist metadata after the packet is successfully received downstream.
 	ack := im.IBCModule.OnRecvPacket(ctx, packet, relayer)
+	if ack == nil {
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(gerrc.ErrInternal, "downstream acknowledgement is nil"))
+	}
 	if !ack.Success() {
 		return ack
 	}
@@ -100,6 +103,13 @@ func (im IBCModule) OnRecvPacket(
 	if err = im.keeper.CreateDenomMetadata(ctx, *dm); err != nil {
 		if !errorsmod.IsOf(err, gerrc.ErrAlreadyExists) {
 			ctx.Logger().Error("failed to create denom metadata after successful receive", "error", err, "denom", dm.Base)
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeCreateDenomMetadataFailed,
+					sdk.NewAttribute(types.AttributeKeyDenom, dm.Base),
+					sdk.NewAttribute(types.AttributeKeyError, err.Error()),
+				),
+			)
 		}
 	}
 

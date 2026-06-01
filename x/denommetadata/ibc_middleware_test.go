@@ -153,7 +153,39 @@ func TestIBCModule_OnRecvPacket_DoesNotCreateMetadataWhenDownstreamFails(t *test
 	got := im.OnRecvPacket(sdk.NewContext(nil, cometbft.Header{}, false, nil), packet, sdk.AccAddress{})
 
 	require.Equal(t, errorAck, got)
-	require.Equal(t, string(packetDataBytes), string(app.sentData))
+	require.Equal(t, packetDataBytes, app.sentData)
+	require.False(t, keeper.created)
+}
+
+func TestIBCModule_OnRecvPacket_ReturnsErrorWhenDownstreamAckIsNil(t *testing.T) {
+	app := &mockIBCModule{
+		nilAck: true,
+	}
+	keeper := &mockDenomMetadataKeeper{}
+	rollappKeeper := &mockRollappKeeper{
+		returnRollapp: &rollapptypes.Rollapp{},
+	}
+
+	im := denommetadata.NewIBCModule(app, keeper, rollappKeeper)
+
+	memo := mustMarshalJSON(validMemoData)
+	packetData := packetDataWithMemo(memo)
+	rollappKeeper.packetData = packetData
+
+	packetDataBytes := types.ModuleCdc.MustMarshalJSON(&packetData)
+	packet := channeltypes.Packet{
+		Data:               packetDataBytes,
+		SourcePort:         "transfer",
+		SourceChannel:      "channel-0",
+		DestinationPort:    "transfer",
+		DestinationChannel: "channel-1",
+	}
+
+	got := im.OnRecvPacket(sdk.NewContext(nil, cometbft.Header{}, false, nil), packet, sdk.AccAddress{})
+
+	require.NotNil(t, got)
+	require.False(t, got.Success())
+	require.Equal(t, packetDataBytes, app.sentData)
 	require.False(t, keeper.created)
 }
 
@@ -185,7 +217,7 @@ func TestIBCModule_OnRecvPacket_CreatesMetadataAfterDownstreamSucceeds(t *testin
 	got := im.OnRecvPacket(sdk.NewContext(nil, cometbft.Header{}, false, nil), packet, sdk.AccAddress{})
 
 	require.Equal(t, successAck, got)
-	require.Equal(t, string(packetDataBytes), string(app.sentData))
+	require.Equal(t, packetDataBytes, app.sentData)
 	require.True(t, keeper.created)
 }
 
@@ -644,6 +676,7 @@ type mockIBCModule struct {
 	porttypes.IBCModule
 	sentData []byte
 	recvAck  exported.Acknowledgement
+	nilAck   bool
 }
 
 func okAck() []byte {
@@ -658,6 +691,9 @@ func badAck() []byte {
 
 func (m *mockIBCModule) OnRecvPacket(_ sdk.Context, p channeltypes.Packet, _ sdk.AccAddress) exported.Acknowledgement {
 	m.sentData = p.Data
+	if m.nilAck {
+		return nil
+	}
 	if m.recvAck != nil {
 		return m.recvAck
 	}
@@ -677,6 +713,7 @@ func (m *mockDenomMetadataKeeper) CreateDenomMetadata(ctx sdk.Context, metadata 
 		return gerrc.ErrAlreadyExists
 	}
 	m.created = true
+	m.hasDenomMetaData = true
 	return nil
 }
 
