@@ -192,9 +192,10 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 				return err
 			}
 		}
-		if experienceRegion.DelegateInterest.GTE(interest) {
-			experienceRegion.DelegateInterest = experienceRegion.DelegateInterest.Sub(interest)
+		if experienceRegion.DelegateInterest.LT(interest) {
+			return fmt.Errorf("experience region DelegateInterest insufficient: %s < %s", experienceRegion.DelegateInterest.String(), interest.String())
 		}
+		experienceRegion.DelegateInterest = experienceRegion.DelegateInterest.Sub(interest)
 		experienceRegion.DelegateAmount = experienceRegion.DelegateAmount.Sub(delegation.UnMeidAmount)
 		k.SetRegion(ctx, experienceRegion)
 
