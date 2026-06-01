@@ -110,7 +110,8 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId, creator
 		//delete the replaced sequencer address record and set the new sequencer as proposer
 		oldSequencer, found := k.GetSequencer(ctx, val.ReplaceProposer.OldProposer)
 		if !found {
-			return fmt.Errorf("can not found old sequencer: %s", val.ReplaceProposer.OldProposer)
+			k.DeleteReplaceProposer(ctx, rollappId)
+			return nil
 		}
 		if oldSequencer.RollappId != rollappId {
 			return fmt.Errorf("old sequencer's rollapp(%s) dismatch to processing rollapp(%s)",
@@ -146,6 +147,7 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId, creator
 			)
 			return nil
 		} else {
+			k.DeleteReplaceProposer(ctx, rollappId)
 			return nil
 		}
 	}
