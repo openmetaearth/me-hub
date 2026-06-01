@@ -118,6 +118,59 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfirm() {
 	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, batch.TokenContract, batch.BatchNonce))
 }
 
+func (suite *KeeperTestSuite) TestKeeper_CancelOutgoingTxBatchRollbackOnPoolFailure() {
+	tokenContract := helpers.GenerateAddress().Hex()
+	sender := sdk.AccAddress(helpers.GenerateAddress().Bytes()).String()
+	fee := types.ERC20Token{
+		Contract: tokenContract,
+		Amount:   sdkmath.NewInt(1),
+	}
+	firstTx := &types.OutgoingTransferTx{
+		Id:          1,
+		Sender:      sender,
+		DestAddress: helpers.GenerateAddress().Hex(),
+		Token: types.ERC20Token{
+			Contract: tokenContract,
+			Amount:   sdkmath.NewInt(10),
+		},
+		Fee: fee,
+	}
+	duplicateTx := &types.OutgoingTransferTx{
+		Id:          2,
+		Sender:      sender,
+		DestAddress: helpers.GenerateAddress().Hex(),
+		Token: types.ERC20Token{
+			Contract: tokenContract,
+			Amount:   sdkmath.NewInt(20),
+		},
+		Fee: fee,
+	}
+	batch := &types.OutgoingTxBatch{
+		BatchNonce:    1,
+		BatchTimeout:  100,
+		Transactions:  types.OutgoingTransferTxs{firstTx, duplicateTx},
+		TokenContract: tokenContract,
+		Block:         100,
+		FeeReceive:    helpers.GenerateAddress().Hex(),
+	}
+
+	suite.Require().NoError(suite.Keeper().StoreBatch(suite.Ctx, batch))
+	suite.Require().NoError(suite.Keeper().AddUnbatchedTx(suite.Ctx, duplicateTx))
+
+	err := suite.Keeper().CancelOutgoingTxBatch(suite.Ctx, tokenContract, batch.BatchNonce)
+	suite.Require().Error(err)
+	suite.Require().ErrorContains(err, "transaction already in pool")
+
+	suite.Require().NotNil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, tokenContract, batch.BatchNonce))
+	firstStoredTx, firstErr := suite.Keeper().GetUnbatchedTxByFeeAndId(suite.Ctx, firstTx.Fee, firstTx.Id)
+	suite.Require().Error(firstErr)
+	suite.Require().Nil(firstStoredTx)
+
+	duplicateStoredTx, duplicateErr := suite.Keeper().GetUnbatchedTxByFeeAndId(suite.Ctx, duplicateTx.Fee, duplicateTx.Id)
+	suite.Require().NoError(duplicateErr)
+	suite.Require().Equal(duplicateTx.Id, duplicateStoredTx.Id)
+}
+
 func (suite *KeeperTestSuite) TestKeeper_IterateBatch() {
 	index := tmrand.Intn(100)
 	for i := 1; i <= index; i++ {
