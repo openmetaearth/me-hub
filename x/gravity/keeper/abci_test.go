@@ -507,6 +507,65 @@ func (s *KeeperTestSuite) TestRelayerSetSlash() {
 	s.Require().Equal(int64(1), relayer.SlashTimes)
 }
 
+func (s *KeeperTestSuite) TestBatchConfirmSlash() {
+	for i := 0; i < len(s.relayerAddrs); i++ {
+		msgBondedRelayer := &types.MsgBondedRelayer{
+			RelayerAddress:  s.relayerAddrs[i].String(),
+			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+			ChainName:       s.chainName,
+		}
+		s.Require().NoError(msgBondedRelayer.ValidateBasic())
+		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msgBondedRelayer)
+		s.Require().NoError(err)
+	}
+
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
+	batchBlock := uint64(s.Ctx.BlockHeight())
+	tokenContract := helpers.GenExternalAddr(s.chainName)
+	batch := &types.OutgoingTxBatch{
+		BatchNonce:    1,
+		BatchTimeout:  1000,
+		TokenContract: tokenContract,
+		Block:         batchBlock,
+		FeeReceive:    helpers.GenExternalAddr(s.chainName),
+		Transactions: types.OutgoingTransferTxs{{
+			Id:          1,
+			Sender:      s.relayerAddrs[0].String(),
+			DestAddress: helpers.GenExternalAddr(s.chainName),
+			Token:       types.NewERC20Token(sdkmath.NewInt(100), tokenContract),
+			Fee:         types.NewERC20Token(sdkmath.NewInt(1), tokenContract),
+		}},
+	}
+	s.Require().NoError(s.Keeper().StoreBatch(s.Ctx, batch))
+
+	for i := 0; i < len(s.relayerAddrs)-1; i++ {
+		s.Keeper().SetBatchConfirm(s.Ctx, s.relayerAddrs[i], &types.MsgConfirmBatch{
+			Nonce:           batch.BatchNonce,
+			TokenContract:   tokenContract,
+			RelayerAddress:  s.relayerAddrs[i].String(),
+			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
+			Signature:       "00",
+			ChainName:       s.chainName,
+		})
+	}
+
+	missingRelayer := s.relayerAddrs[len(s.relayerAddrs)-1]
+	relayer, found := s.Keeper().GetRelayer(s.Ctx, missingRelayer)
+	s.Require().True(found)
+	s.Require().True(relayer.Online)
+	s.Require().Equal(int64(0), relayer.SlashTimes)
+
+	s.Ctx = s.Ctx.WithBlockHeight(int64(batchBlock + s.Keeper().GetParams(s.Ctx).SignedWindow + 1))
+	s.Keeper().EndBlocker(s.Ctx)
+
+	relayer, found = s.Keeper().GetRelayer(s.Ctx, missingRelayer)
+	s.Require().True(found)
+	s.Require().False(relayer.Online)
+	s.Require().Equal(int64(1), relayer.SlashTimes)
+	s.Require().Equal(batchBlock, s.Keeper().GetLastSlashedBatchBlock(s.Ctx))
+}
+
 func (s *KeeperTestSuite) TestSlashRelayer() {
 	for i := 0; i < len(s.relayerAddrs); i++ {
 		msgBondedRelayer := &types.MsgBondedRelayer{
