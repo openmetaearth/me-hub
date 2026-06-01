@@ -245,6 +245,8 @@ func NewDelegationResp(del stakingtypes.Delegation, balance sdk.Coin) stakingtyp
 
 func (k Keeper) GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, found bool) {
 	store := ctx.KVStore(k.storeKey)
+	// This module stores one delegation record per delegator, so the validator
+	// address argument is intentionally ignored when deriving the key.
 	key := stakingtypes.GetDelegationKey(delAddr, sdk.ValAddress{})
 
 	value := store.Get(key)
@@ -261,6 +263,7 @@ func (k Keeper) SetDelegation(ctx sdk.Context, delegation stakingtypes.Delegatio
 	delegatorAddress := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
 	store := ctx.KVStore(k.storeKey)
 	b := stakingtypes.MustMarshalDelegation(k.cdc, delegation)
+	// Delegations are keyed only by delegator in this module.
 	store.Set(stakingtypes.GetDelegationKey(delegatorAddress, sdk.ValAddress{}), b)
 }
 
