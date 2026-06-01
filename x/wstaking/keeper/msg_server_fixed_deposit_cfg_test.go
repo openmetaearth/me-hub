@@ -47,11 +47,32 @@ func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
 			rate:     sdk.MustNewDecFromStr("0.1"),
 			expErr:   types.ErrAddFixedDepositConfig,
 		}, {
-			name:     "invalid rate",
+			name:     "zero rate",
 			creator:  s.Dao.GlobalDao,
 			regionId: strings.ToLower(types.MeEarthRegionName),
 			term:     1,
 			rate:     sdk.MustNewDecFromStr("0"),
+			expErr:   types.ErrFixedDepositConfigRateInvalid,
+		}, {
+			name:     "negative rate",
+			creator:  s.Dao.GlobalDao,
+			regionId: strings.ToLower(types.MeEarthRegionName),
+			term:     1,
+			rate:     sdk.MustNewDecFromStr("-0.1"),
+			expErr:   types.ErrFixedDepositConfigRateInvalid,
+		}, {
+			name:     "too small rate",
+			creator:  s.Dao.GlobalDao,
+			regionId: strings.ToLower(types.MeEarthRegionName),
+			term:     1,
+			rate:     sdk.MustNewDecFromStr("0.00009"),
+			expErr:   types.ErrFixedDepositConfigRateInvalid,
+		}, {
+			name:     "too large rate",
+			creator:  s.Dao.GlobalDao,
+			regionId: strings.ToLower(types.MeEarthRegionName),
+			term:     1,
+			rate:     sdk.MustNewDecFromStr("10000.0001"),
 			expErr:   types.ErrFixedDepositConfigRateInvalid,
 		}, {
 			name:     "No error",
