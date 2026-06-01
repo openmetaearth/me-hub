@@ -22,9 +22,13 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 	if maxElements == 0 {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "max elements value")
 	}
-	_, batchTimeout := k.GetBatchTimeoutHeight(ctx)
+	projectedCurrentExternalHeight, batchTimeout := k.GetBatchTimeoutHeight(ctx)
 	if batchTimeout <= 0 {
 		return nil, errorsmod.Wrapf(types.ErrInvalid, "batch timeout height %d less than 0", batchTimeout)
+	}
+
+	if lastBatch := k.GetLastOutgoingBatchByTokenType(ctx, contractAddress); lastBatch != nil && lastBatch.BatchTimeout >= projectedCurrentExternalHeight {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "existing unexecuted batch has not timed out")
 	}
 	selectedTx, err := k.pickUnBatchedTx(ctx, contractAddress, maxElements, baseFee)
 	if err != nil {

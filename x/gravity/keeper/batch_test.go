@@ -181,6 +181,37 @@ func (suite *KeeperTestSuite) TestBuildOutgoingTxBatchIgnoresExpiredStaleBatch()
 	suite.Require().NoError(err)
 	suite.Require().NotNil(batch)
 	suite.Require().Equal(tokenContract, batch.TokenContract)
+	suite.Require().NotEqual(uint64(99), batch.BatchNonce)
+	suite.Require().GreaterOrEqual(batch.BatchTimeout, projectedCurrentExternalHeight)
+	suite.Require().Len(batch.Transactions, 1)
+	suite.Require().Equal(uint64(1), batch.Transactions[0].Id)
+}
+
+func (suite *KeeperTestSuite) TestBuildOutgoingTxBatchRejectsActiveBatch() {
+	tokenContract := helpers.GenerateAddress().Hex()
+	feeReceive := helpers.GenerateAddress().Hex()
+	projectedCurrentExternalHeight := suite.prepareOutgoingBatchTimeoutTest(tokenContract)
+
+	activeBatch := &types.OutgoingTxBatch{
+		BatchNonce:    99,
+		BatchTimeout:  projectedCurrentExternalHeight + 1,
+		TokenContract: tokenContract,
+		FeeReceive:    feeReceive,
+		Block:         10,
+	}
+	suite.NoError(suite.Keeper().StoreBatch(suite.Ctx, activeBatch))
+
+	batch, err := suite.Keeper().BuildOutgoingTxBatch(
+		suite.Ctx,
+		tokenContract,
+		feeReceive,
+		100,
+		sdkmath.NewInt(1),
+		sdkmath.ZeroInt(),
+	)
+	suite.Require().Error(err)
+	suite.Require().Nil(batch)
+	suite.ErrorContains(err, "existing unexecuted batch")
 }
 
 func (suite *KeeperTestSuite) prepareOutgoingBatchTimeoutTest(tokenContract string) uint64 {
