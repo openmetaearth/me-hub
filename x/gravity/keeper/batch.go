@@ -183,17 +183,23 @@ func (k Keeper) GetOutgoingTxBatch(ctx sdk.Context, contractAddress string, batc
 	return batch
 }
 
-// CancelOutgoingTxBatch releases all TX in the batch and deletes the batch
+// CancelOutgoingTxBatch releases all TX in the batch and deletes the batch.
+// Uses a cache context to guarantee atomicity: if any AddUnbatchedTx fails
+// mid-iteration, previously-added transactions are not left in the pool and
+// the batch is not deleted.
 func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, contractAddress string, batchNonce uint64) error {
 	batch := k.GetOutgoingTxBatch(ctx, contractAddress, batchNonce)
 	if batch == nil {
 		return types.ErrUnknown
 	}
+
+	cacheCtx, writeFn := ctx.CacheContext()
 	for _, tx := range batch.Transactions {
-		if err := k.AddUnbatchedTx(ctx, tx); err != nil {
+		if err := k.AddUnbatchedTx(cacheCtx, tx); err != nil {
 			return errorsmod.Wrapf(err, "unable to add batched transaction back into pool %v", tx)
 		}
 	}
+	writeFn()
 
 	// Delete batch since it is finished
 	k.DeleteBatch(ctx, batch)
