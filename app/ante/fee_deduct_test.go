@@ -423,7 +423,7 @@ func TestCheckFundsRejectsInvalidMessageAddressWithoutPanic(t *testing.T) {
 	mockBankKeeper.EXPECT().
 		GetAllBalances(gomock.Any(), sdk.MustAccAddressFromBech32(feePayer.Address)).
 		Return(sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(200)))).
-		AnyTimes()
+		MaxTimes(1)
 
 	tx := &mock.MockTx{Msgs: []sdk.Msg{
 		&banktypes.MsgSend{
@@ -437,5 +437,6 @@ func TestCheckFundsRejectsInvalidMessageAddressWithoutPanic(t *testing.T) {
 		err := decorator.CheckFunds(ctx, tx, feePayer.Address, fees)
 		require.Error(t, err)
 		require.ErrorIs(t, err, sdkerrors.ErrInvalidAddress)
+		require.Contains(t, err.Error(), `invalid message address "not-a-bech32-address":`)
 	})
 }
