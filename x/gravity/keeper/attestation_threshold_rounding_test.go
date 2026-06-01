@@ -60,3 +60,58 @@ func (s *KeeperTestSuite) TestAttestationThresholdDoesNotFloorBelowConfiguredRat
 	s.Require().NoError(err)
 	s.Require().EqualValues(bridgeToken.Supply, storedBridgeToken.Supply)
 }
+
+func (s *KeeperTestSuite) TestAttestationThresholdObservesAtRoundedUpQuorum() {
+	k := s.Keeper()
+
+	relayerPower := []struct {
+		addr  string
+		power int64
+	}{
+		{addr: s.relayerAddrs[0].String(), power: 200},
+		{addr: s.relayerAddrs[1].String(), power: 99},
+	}
+
+	for _, rp := range relayerPower {
+		k.SetRelayer(s.Ctx, sdk.MustAccAddressFromBech32(rp.addr), gravitytypes.Relayer{
+			RelayerAddress: rp.addr,
+			DelegateAmount: sdkmath.NewInt(rp.power).Mul(sdk.DefaultPowerReduction),
+			Online:         true,
+		})
+	}
+	k.SetLastTotalPower(s.Ctx)
+	s.Require().EqualValues(299, k.GetLastTotalPower(s.Ctx).Int64())
+
+	bridgeHolder, _ := s.NewAccount()
+	receiver, _ := s.NewAccount()
+
+	bridgeToken := s.NewBridgeToken(bridgeHolder, sdk.NewCoin("roundingmet", sdkmath.NewInt(1000)))
+	s.Require().EqualValues(sdkmath.NewInt(1000), bridgeToken.Supply)
+
+	claimAmount := sdkmath.NewInt(1234)
+	claim := &gravitytypes.MsgSendToMeClaim{
+		EventNonce:     1,
+		BlockHeight:    1,
+		TokenContract:  bridgeToken.ContractAddress,
+		Amount:         claimAmount,
+		Sender:         helpers.GenExternalAddr(s.chainName),
+		Receiver:       receiver.String(),
+		RelayerAddress: s.relayerAddrs[0].String(),
+		ChainName:      s.chainName,
+	}
+
+	_, err := s.MsgServer().SendToMeClaim(sdk.WrapSDKContext(s.Ctx), claim)
+	s.Require().NoError(err)
+
+	att := k.GetAttestation(s.Ctx, claim.GetEventNonce(), claim.ClaimHash())
+	s.Require().NotNil(att)
+	s.Require().True(att.Observed)
+	s.Require().EqualValues(uint64(1), k.GetLastObservedEventNonce(s.Ctx))
+
+	receiverBalance := s.App.BankKeeper.GetBalance(s.Ctx, receiver, bridgeToken.Denom)
+	s.Require().Equal(claimAmount.String(), receiverBalance.Amount.String())
+
+	storedBridgeToken, err := k.GetBridgeTokenByContract(s.Ctx, bridgeToken.ContractAddress)
+	s.Require().NoError(err)
+	s.Require().EqualValues(bridgeToken.Supply.Add(claimAmount), storedBridgeToken.Supply)
+}

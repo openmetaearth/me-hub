@@ -82,10 +82,13 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 	totalPower := k.GetLastTotalPower(ctx)
 	powerBase := sdk.NewIntFromUint64(types.PowerBase)
 	// Use ceiling division so fractional thresholds cannot round down below the configured quorum.
-	requiredPower := types.AttestationVotesPowerThreshold.
-		Mul(totalPower).
-		Add(sdk.NewIntFromUint64(types.PowerBase - 1)).
-		Quo(powerBase)
+	requiredPower := sdkmath.ZeroInt()
+	if !totalPower.IsZero() {
+		requiredPower = types.AttestationVotesPowerThreshold.
+			Mul(totalPower).
+			Add(powerBase.SubRaw(1)).
+			Quo(powerBase)
+	}
 	attestationPower := sdkmath.NewInt(0)
 
 	for _, relayerStr := range att.Votes {
