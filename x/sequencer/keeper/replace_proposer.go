@@ -107,7 +107,9 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId, creator
 	}
 
 	if (rollappState.StartHeight + rollappState.NumBlocks - 1) >= uint64(val.ReplaceProposer.BlockHeight) {
-		//delete the replaced sequencer address record and set the new sequencer as proposer
+		// Pre-validate both sequencers BEFORE any state mutation to prevent
+		// partial state corruption. Old sequencer must not be unbonded unless
+		// the new sequencer is fully validated.
 		oldSequencer, found := k.GetSequencer(ctx, val.ReplaceProposer.OldProposer)
 		if !found {
 			return fmt.Errorf("can not found old sequencer: %s", val.ReplaceProposer.OldProposer)
@@ -116,24 +118,30 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId, creator
 			return fmt.Errorf("old sequencer's rollapp(%s) dismatch to processing rollapp(%s)",
 				oldSequencer.RollappId, rollappId)
 		}
+
+		newSequencer, found := k.GetSequencer(ctx, val.ReplaceProposer.NewProposer)
+		if !found {
+			return fmt.Errorf("can not found new sequencer: %s", val.ReplaceProposer.NewProposer)
+		}
+		if newSequencer.RollappId != rollappId {
+			return fmt.Errorf("new sequencer's rollapp(%s) dismatch to processing rollapp(%s)",
+				newSequencer.RollappId, rollappId)
+		}
+		if newSequencer.Status != types.Bonded {
+			return fmt.Errorf("new sequencer %s status(%d) is not bonded", val.ReplaceProposer.NewProposer, newSequencer.Status)
+		}
+
 		if oldSequencer.IsProposer() || oldSequencer.Status == types.Bonded {
+			// Use cache context for atomicity: both unbond old + bond new
+			// succeed together or rollback together.
+			cacheCtx, writeCache := ctx.CacheContext()
 			oldSequencer.Proposer = false
 			oldSequencer.Status = types.Unbonding
 			oldSequencer.UnbondingHeight = ctx.BlockHeight()
-			k.UpdateSequencer(ctx, oldSequencer, types.Bonded)
-			newSequencer, found := k.GetSequencer(ctx, val.ReplaceProposer.NewProposer)
-			if !found {
-				return fmt.Errorf("can not found new sequencer: %s", val.ReplaceProposer.NewProposer)
-			}
-			if newSequencer.RollappId != rollappId {
-				return fmt.Errorf("new sequencer's rollapp(%s) dismatch to processing rollapp(%s)",
-					newSequencer.RollappId, rollappId)
-			}
-			if newSequencer.Status != types.Bonded {
-				return fmt.Errorf("new sequencer %s status(%d) is not bonded", val.ReplaceProposer.NewProposer, newSequencer.Status)
-			}
+			k.UpdateSequencer(cacheCtx, oldSequencer, types.Bonded)
 			newSequencer.Proposer = true
-			k.UpdateSequencer(ctx, newSequencer, types.Bonded)
+			k.UpdateSequencer(cacheCtx, newSequencer, types.Bonded)
+			writeCache()
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
 					types.EventProcReplaceProposer,
