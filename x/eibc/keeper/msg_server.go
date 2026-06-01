@@ -39,7 +39,10 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	}
 
 	// Check that the fulfiller expected fee is equal to the demand order fee
-	expectedFee, _ := sdk.NewIntFromString(msg.ExpectedFee)
+	expectedFee, ok := sdk.NewIntFromString(msg.ExpectedFee)
+	if !ok {
+		return nil, types.ErrExpectedFeeNotMet
+	}
 	orderFee := demandOrder.GetFeeAmount()
 	if !orderFee.Equal(expectedFee) {
 		return nil, types.ErrExpectedFeeNotMet
