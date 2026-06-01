@@ -171,6 +171,84 @@ func (s *KeeperTestSuite) TestRemoveKycReward() {
 	s.Require().False(f)
 }
 
+func (s *KeeperTestSuite) TestRemoveKycReward_RejectsInsufficientDelegateInterest() {
+	s.SetupTest()
+
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            "USA",
+		OperatorAddress: s.usaValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	kycAccount, _ := s.NewAccount()
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+	s.Require().NoError(err)
+
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + wmintTypes.OneDayTotalBlocks)
+	region, found := s.Keeper().GetRegion(s.Ctx, s.usaValidator.Description.RegionID)
+	s.Require().True(found)
+	region.DelegateInterest = sdk.ZeroDec()
+	s.Keeper().SetRegion(s.Ctx, region)
+
+	balanceBefore := s.App.BankKeeper.GetBalance(s.Ctx, kycAccount, params.BaseDenom)
+	err = s.Keeper().RemoveKycReward(s.Ctx, kycAccount, s.usaValidator.Description.RegionID)
+
+	s.Require().ErrorContains(err, "total interest not enough")
+	balanceAfter := s.App.BankKeeper.GetBalance(s.Ctx, kycAccount, params.BaseDenom)
+	s.Require().Equal(balanceBefore, balanceAfter)
+	region, found = s.Keeper().GetRegion(s.Ctx, s.usaValidator.Description.RegionID)
+	s.Require().True(found)
+	s.Require().True(region.DelegateInterest.IsZero())
+	_, found = s.Keeper().GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
+	s.Require().True(found)
+}
+
+func (s *KeeperTestSuite) TestKycReward_RejectsInsufficientExperienceDelegateInterest() {
+	s.SetupTest()
+
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            "USA",
+		OperatorAddress: s.usaValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
+	userAccount, _ := s.NewAccount()
+	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, userAccount, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
+	s.Require().NoError(err)
+
+	delegateAmount := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil))
+	_, err = s.msgServer.Delegate(s.Ctx, &stakingtypes.MsgDelegate{
+		DelegatorAddress: userAccount.String(),
+		ValidatorAddress: s.experienceValidator.OperatorAddress,
+		Amount:           sdk.NewCoin(params.BaseDenom, delegateAmount),
+	})
+	s.Require().NoError(err)
+
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + wmintTypes.OneDayTotalBlocks)
+	expRegion, found := s.Keeper().GetRegion(s.Ctx, s.experienceValidator.Description.RegionID)
+	s.Require().True(found)
+	expRegion.DelegateInterest = sdk.ZeroDec()
+	s.Keeper().SetRegion(s.Ctx, expRegion)
+
+	balanceBefore := s.App.BankKeeper.GetBalance(s.Ctx, userAccount, params.BaseDenom)
+	err = s.Keeper().KycReward(s.Ctx, userAccount, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+
+	s.Require().ErrorContains(err, "total interest not enough")
+	balanceAfter := s.App.BankKeeper.GetBalance(s.Ctx, userAccount, params.BaseDenom)
+	s.Require().Equal(balanceBefore, balanceAfter)
+	expRegion, found = s.Keeper().GetRegion(s.Ctx, s.experienceValidator.Description.RegionID)
+	s.Require().True(found)
+	s.Require().True(expRegion.DelegateInterest.IsZero())
+}
+
 func (s *KeeperTestSuite) TestRemoveKycReward_WithDelegation() {
 	s.SetupTest()
 

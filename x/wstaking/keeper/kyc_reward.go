@@ -13,6 +13,15 @@ import (
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
+func subtractDelegateInterest(region *types.Region, rewards sdk.Dec) error {
+	if !region.DelegateInterest.GTE(rewards) {
+		return fmt.Errorf("region(%s) total interest not enough.need pay %s,only have %s",
+			region.RegionId, rewards.String(), region.DelegateInterest.String())
+	}
+	region.DelegateInterest = region.DelegateInterest.Sub(rewards)
+	return nil
+}
+
 func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, creator string) error {
 	if regionId == strings.ToLower(types.ExperienceRegionName) {
 		return sdkerrors.Wrapf(types.ErrSendKycReward, fmt.Sprintf("cannot set kyc to %s region", regionId))
@@ -106,6 +115,10 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 		return types.ErrCalculateInterest.Wrap(err.Error())
 	}
 
+	if err = subtractDelegateInterest(&region, rewards); err != nil {
+		return err
+	}
+
 	// settle interest
 	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
 		sdk.MustAccAddressFromBech32(region.RegionTreasureAddr),
@@ -115,10 +128,6 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 	)
 	if err != nil {
 		return fmt.Errorf("settle interest error: %v", err)
-	}
-
-	if region.DelegateInterest.GTE(rewards) {
-		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
 	}
 
 	if delegation.Unmovable.LTE(sdk.ZeroInt()) {
@@ -182,6 +191,10 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 		}
 		// add coins to user account
 		if interest.GT(sdk.ZeroDec()) {
+			err = subtractDelegateInterest(&experienceRegion, interest)
+			if err != nil {
+				return err
+			}
 			err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
 				sdk.MustAccAddressFromBech32(experienceRegion.RegionTreasureAddr),
 				sdk.MustAccAddressFromBech32(delegation.DelegatorAddress),
@@ -191,9 +204,6 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 			if err != nil {
 				return err
 			}
-		}
-		if experienceRegion.DelegateInterest.GTE(interest) {
-			experienceRegion.DelegateInterest = experienceRegion.DelegateInterest.Sub(interest)
 		}
 		experienceRegion.DelegateAmount = experienceRegion.DelegateAmount.Sub(delegation.UnMeidAmount)
 		k.SetRegion(ctx, experienceRegion)
@@ -425,8 +435,8 @@ func (k Keeper) transferUnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, 
 		return amount, err
 	}
 
-	if region.DelegateInterest.GTE(rewards) {
-		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
+	if err = subtractDelegateInterest(region, rewards); err != nil {
+		return amount, err
 	}
 
 	if delegation.Unmovable.LTE(sdk.ZeroInt()) {
