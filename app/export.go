@@ -156,34 +156,7 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []str
 
 	// Iterate through validators by power descending, reset bond heights, and
 	// update bond intra-tx counters.
-	store := ctx.KVStore(app.GetKey(stakingtypes.StoreKey))
-	iter := sdk.KVStoreReversePrefixIterator(store, stakingtypes.ValidatorsKey)
-	counter := int16(0)
-
-	for ; iter.Valid(); iter.Next() {
-		addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
-		validator, found := app.StakingKeeper.GetValidator(ctx, addr)
-		if !found {
-			panic("expected validator, not found")
-		}
-
-		validator.UnbondingHeight = 0
-		if applyAllowedAddrs && !allowedAddrsMap[addr.String()] {
-			validator.Jailed = true
-		}
-
-		app.StakingKeeper.SetValidator(ctx, validator)
-		counter++
-	}
-
-	if err := iter.Close(); err != nil {
-		app.Logger().Error("error while closing the key-value store reverse prefix iterator: ", err)
-		return
-	}
-
-	if _, err := app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx); err != nil {
-		panic(err)
-	}
+	app.ApplyZeroHeightValidatorState(ctx, applyAllowedAddrs, allowedAddrsMap)
 
 	/* Handle slashing state. */
 
@@ -196,4 +169,39 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []str
 			return false
 		},
 	)
+}
+
+// ApplyZeroHeightValidatorState updates validator jail state during zero-height export.
+func (app *App) ApplyZeroHeightValidatorState(ctx sdk.Context, applyAllowedAddrs bool, allowedAddrsMap map[string]bool) {
+	store := ctx.KVStore(app.GetKey(stakingtypes.StoreKey))
+	iter := sdk.KVStoreReversePrefixIterator(store, stakingtypes.ValidatorsKey)
+	defer func() {
+		if err := iter.Close(); err != nil {
+			app.Logger().Error("error while closing the key-value store reverse prefix iterator: ", err)
+		}
+	}()
+
+	for ; iter.Valid(); iter.Next() {
+		addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
+		validator, found := app.StakingKeeper.GetValidator(ctx, addr)
+		if !found {
+			panic("expected validator, not found")
+		}
+
+		validator.UnbondingHeight = 0
+		if applyAllowedAddrs && !allowedAddrsMap[addr.String()] {
+			// Keep the validator power index in sync with the jailed flag so
+			// zero-height export does not leave a stale bonded entry behind.
+			validator.Jailed = true
+			app.StakingKeeper.SetValidator(ctx, validator)
+			app.StakingKeeper.DeleteValidatorByPowerIndex(ctx, validator)
+			continue
+		}
+
+		app.StakingKeeper.SetValidator(ctx, validator)
+	}
+
+	if _, err := app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx); err != nil {
+		panic(err)
+	}
 }
