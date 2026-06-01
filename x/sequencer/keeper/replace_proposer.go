@@ -115,6 +115,7 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId, creator
 			return fmt.Errorf("can not found old sequencer: %s", val.ReplaceProposer.OldProposer)
 		}
 		if oldSequencer.RollappId != rollappId {
+			k.DeleteReplaceProposer(ctx, rollappId)
 			return fmt.Errorf("old sequencer's rollapp(%s) dismatch to processing rollapp(%s)",
 				oldSequencer.RollappId, rollappId)
 		}
@@ -124,10 +125,12 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId, creator
 			return fmt.Errorf("can not found new sequencer: %s", val.ReplaceProposer.NewProposer)
 		}
 		if newSequencer.RollappId != rollappId {
+			k.DeleteReplaceProposer(ctx, rollappId)
 			return fmt.Errorf("new sequencer's rollapp(%s) dismatch to processing rollapp(%s)",
 				newSequencer.RollappId, rollappId)
 		}
 		if newSequencer.Status != types.Bonded {
+			k.DeleteReplaceProposer(ctx, rollappId)
 			return fmt.Errorf("new sequencer %s status(%d) is not bonded", val.ReplaceProposer.NewProposer, newSequencer.Status)
 		}
 
