@@ -326,7 +326,12 @@ func (dfd DeductFeeDecorator) CheckFunds(ctx sdk.Context, tx sdk.Tx, feePayer st
 	}
 
 	for address, sendAmount := range userSendAmount {
-		balance := dfd.BankKeeper.GetAllBalances(ctx, sdk.MustAccAddressFromBech32(address))
+		accAddress, err := sdk.AccAddressFromBech32(address)
+		if err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid message address %s", address)
+		}
+
+		balance := dfd.BankKeeper.GetAllBalances(ctx, accAddress)
 		if !balance.IsAllGTE(sendAmount) {
 			return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "check funds for %s; got: %s required: %s",
 				address, balance, sendAmount)

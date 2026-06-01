@@ -391,3 +391,51 @@ func TestCheckFunds(t *testing.T) {
 		})
 	}
 }
+
+func TestCheckFundsRejectsInvalidMessageAddressWithoutPanic(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	ctx := sdk.Context{}
+	mockBankKeeper := mock.NewMockBankKeeper(ctrl)
+	mockAccountKeeper := authantetestutil.NewMockAccountKeeper(ctrl)
+	mockFeegrantKeeper := authantetestutil.NewMockFeegrantKeeper(ctrl)
+	mockStakingKeeper := mock.NewMockStakingKeeper(ctrl)
+	mockKycKeeper := mock.NewMockKycKeeper(ctrl)
+	mockDaoKeeper := mock.NewMockDaoKeeper(ctrl)
+	mockWasmKeeper := mock.NewMockWasmKeeper(ctrl)
+
+	decorator := ante.NewDeductFeeDecorator(
+		mockAccountKeeper,
+		mockBankKeeper,
+		mockFeegrantKeeper,
+		mockDaoKeeper,
+		mockStakingKeeper,
+		mockKycKeeper,
+		nil,
+		mockWasmKeeper,
+	)
+
+	feePayer := NewAccount()
+	receiver := NewAccount()
+	fees := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(100)))
+
+	mockBankKeeper.EXPECT().
+		GetAllBalances(gomock.Any(), sdk.MustAccAddressFromBech32(feePayer.Address)).
+		Return(sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(200)))).
+		AnyTimes()
+
+	tx := &mock.MockTx{Msgs: []sdk.Msg{
+		&banktypes.MsgSend{
+			FromAddress: "not-a-bech32-address",
+			ToAddress:   receiver.Address,
+			Amount:      sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(50))),
+		},
+	}}
+
+	require.NotPanics(t, func() {
+		err := decorator.CheckFunds(ctx, tx, feePayer.Address, fees)
+		require.Error(t, err)
+		require.ErrorIs(t, err, sdkerrors.ErrInvalidAddress)
+	})
+}

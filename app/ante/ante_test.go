@@ -91,6 +91,7 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	proposerOwner := NewAccount()
 	suite.mockStakingKeeper.EXPECT().GetProposerOwnerAddress(gomock.Any()).Return(proposerOwner.Address, nil)
 	devOperator := NewAccount()
+	suite.mockDaoKeeper.EXPECT().IsDao(gomock.Any(), addr.Address).Return(false)
 	suite.mockDaoKeeper.EXPECT().GetDevOperator(gomock.Any()).Return(devOperator.Address)
 	suite.mockDaoKeeper.EXPECT().GetGlobalDao(gomock.Any()).Return(devOperator.Address)
 	suite.mockDaoKeeper.EXPECT().GetMeidDao(gomock.Any()).Return(devOperator.Address)

@@ -111,11 +111,11 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		),
 		ante.NewSetUpContextDecorator(),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
+		ante.NewValidateBasicDecorator(),
 		// Use Mempool Fee TransferEnabledDecorator from our txfees module instead of default one from auth
 		//mempoolFeeDecorator,
-		deductFeeDecorator,
-		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
+		deductFeeDecorator,
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
 		ante.NewSetPubKeyDecorator(options.AccountKeeper), // SetPubKeyDecorator must be called before all signature verification decorators
