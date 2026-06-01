@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"fmt"
+
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	rollappTypes "github.com/openmetaearth/me-hub/x/rollapp/types"
@@ -110,10 +112,10 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId, creator
 		//delete the replaced sequencer address record and set the new sequencer as proposer
 		oldSequencer, found := k.GetSequencer(ctx, val.ReplaceProposer.OldProposer)
 		if !found {
-			return fmt.Errorf("can not found old sequencer: %s", val.ReplaceProposer.OldProposer)
+			return errorsmod.Wrapf(types.ErrUnknownSequencer, "old sequencer %s not found", val.ReplaceProposer.OldProposer)
 		}
 		if oldSequencer.RollappId != rollappId {
-			return fmt.Errorf("old sequencer's rollapp(%s) dismatch to processing rollapp(%s)",
+			return errorsmod.Wrapf(types.ErrSequencerRollappMismatch, "old sequencer's rollapp(%s) dismatch to processing rollapp(%s)",
 				oldSequencer.RollappId, rollappId)
 		}
 		if oldSequencer.IsProposer() || oldSequencer.Status == types.Bonded {
@@ -123,14 +125,14 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId, creator
 			k.UpdateSequencer(ctx, oldSequencer, types.Bonded)
 			newSequencer, found := k.GetSequencer(ctx, val.ReplaceProposer.NewProposer)
 			if !found {
-				return fmt.Errorf("can not found new sequencer: %s", val.ReplaceProposer.NewProposer)
+				return errorsmod.Wrapf(types.ErrUnknownSequencer, "new sequencer %s not found", val.ReplaceProposer.NewProposer)
 			}
 			if newSequencer.RollappId != rollappId {
-				return fmt.Errorf("new sequencer's rollapp(%s) dismatch to processing rollapp(%s)",
+				return errorsmod.Wrapf(types.ErrSequencerRollappMismatch, "new sequencer's rollapp(%s) dismatch to processing rollapp(%s)",
 					newSequencer.RollappId, rollappId)
 			}
 			if newSequencer.Status != types.Bonded {
-				return fmt.Errorf("new sequencer %s status(%d) is not bonded", val.ReplaceProposer.NewProposer, newSequencer.Status)
+				return errorsmod.Wrapf(types.ErrInvalidSequencerStatus, "new sequencer %s status(%d) is not bonded", val.ReplaceProposer.NewProposer, newSequencer.Status)
 			}
 			newSequencer.Proposer = true
 			k.UpdateSequencer(ctx, newSequencer, types.Bonded)
