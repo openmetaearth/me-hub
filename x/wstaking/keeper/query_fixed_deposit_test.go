@@ -190,3 +190,40 @@ func (s *KeeperTestSuite) TestFixedDepositByRegionPaginationWithoutPageRequest()
 	s.Require().NotNil(res)
 	s.Require().Len(res.FixedDeposit, 3)
 }
+
+func (s *KeeperTestSuite) TestFixedDepositByRegionPaginationHonorsLimitAcrossPages() {
+	s.SetupTest()
+	s.createGlobalRegion()
+	s.createUsaRegion()
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	accounts := s.NewAccounts(3)
+	for _, account := range accounts {
+		wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+		err := s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx,
+			mintypes.ModuleName,
+			account,
+			sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 10000000000)})
+		s.Require().NoError(err)
+	}
+
+	s.InitKyc(accounts[0], "0000000000001", types.MeEarthRegionId)
+	s.createFixedDeposits(4, accounts[0].String())
+	s.InitKyc(accounts[1], "0000000000002", "usa")
+	s.createFixedDeposits(1, accounts[1].String())
+	s.InitKyc(accounts[2], "0000000000003", types.MeEarthRegionId)
+	s.createFixedDeposits(5, accounts[2].String())
+
+	res, err := s.queryClient.FixedDepositByRegion(s.Ctx, &types.QueryFixedDepositByRegionRequest{
+		RegionId: types.MeEarthRegionId,
+		Pagination: &query.PageRequest{
+			Limit: 5,
+		},
+		QueryType: types.FixedDepositState_AllState,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(res)
+	s.Require().Len(res.FixedDeposit, 5)
+}
