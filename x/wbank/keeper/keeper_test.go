@@ -97,3 +97,46 @@ func TestFeeToReceiversRejectsReceiverTypeMismatchBeforeTransfer(t *testing.T) {
 	require.Equal(t, feePayerBalanceBefore, app.BankKeeper.GetAllBalances(ctx, feePayer))
 	require.Equal(t, receiverBalanceBefore, app.BankKeeper.GetAllBalances(ctx, receiver))
 }
+
+func TestFeeToReceiversRejectsInvalidReceiverBeforeTransfer(t *testing.T) {
+	app := apptesting.Setup(t, false)
+	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+
+	feePayer := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	allowedReceiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	invalidReceiver := "not-a-bech32-address"
+
+	fee := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(100)))
+	err := banktestutil.FundAccount(app.BankKeeper, ctx, feePayer, fee)
+	require.NoError(t, err)
+
+	feePayerBalanceBefore := app.BankKeeper.GetAllBalances(ctx, feePayer)
+	allowedReceiverBalanceBefore := app.BankKeeper.GetAllBalances(ctx, allowedReceiver)
+
+	err = app.BankKeeper.FeeToReceivers(
+		ctx,
+		[]banktypes.Input{{
+			Address: feePayer.String(),
+			Coins:   fee,
+		}},
+		[]banktypes.Output{
+			{
+				Address: allowedReceiver.String(),
+				Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(40))),
+			},
+			{
+				Address: invalidReceiver,
+				Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(60))),
+			},
+		},
+		[]wbanktypes.FeeReceiverType{
+			wbanktypes.FeeReceiverDevOperator,
+			wbanktypes.FeeReceiverGlobalDaoFeePool,
+		},
+	)
+
+	require.Error(t, err)
+	require.True(t, sdkerrors.ErrInvalidAddress.Is(err))
+	require.Equal(t, feePayerBalanceBefore, app.BankKeeper.GetAllBalances(ctx, feePayer))
+	require.Equal(t, allowedReceiverBalanceBefore, app.BankKeeper.GetAllBalances(ctx, allowedReceiver))
+}

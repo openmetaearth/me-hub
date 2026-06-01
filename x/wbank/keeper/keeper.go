@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -92,7 +90,7 @@ func (k BaseKeeperWrapper) UnstakeCoinsFromModuleToModule(
 
 func (k BaseKeeperWrapper) FeeToReceivers(ctx sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output, receiverTypes []types.FeeReceiverType) error {
 	if len(inputs) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "inputs error")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "at least one input is required")
 	}
 
 	if len(receiverTypes) != len(outputs) {
@@ -119,8 +117,9 @@ func (k BaseKeeperWrapper) FeeToReceivers(ctx sdk.Context, inputs []banktypes.In
 		sdk.NewAttribute(sdk.AttributeKeySender, inputs[0].Address),
 	}
 	for index, output := range outputs {
-		attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s", receiverTypes[index]), output.Address))
-		attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s_amount", receiverTypes[index]), output.Coins.String()))
+		receiverType := string(receiverTypes[index])
+		attributes = append(attributes, sdk.NewAttribute(receiverType, output.Address))
+		attributes = append(attributes, sdk.NewAttribute(receiverType+"_amount", output.Coins.String()))
 	}
 	event := sdk.NewEvent(types.EventTypeFeeToReceivers, attributes...)
 	ctx.EventManager().EmitEvent(event)
