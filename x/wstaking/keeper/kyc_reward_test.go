@@ -205,8 +205,11 @@ func (s *KeeperTestSuite) TestRemoveKycReward_RejectsInsufficientDelegateInteres
 	region, found = s.Keeper().GetRegion(s.Ctx, s.usaValidator.Description.RegionID)
 	s.Require().True(found)
 	s.Require().True(region.DelegateInterest.IsZero())
-	_, found = s.Keeper().GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
+	usaValAddress, err := sdk.ValAddressFromBech32(s.usaValidator.OperatorAddress)
+	s.Require().NoError(err)
+	delegation, found := s.Keeper().GetDelegation(s.Ctx, kycAccount, usaValAddress)
 	s.Require().True(found)
+	s.Require().Equal(s.usaValidator.OperatorAddress, delegation.ValidatorAddress)
 }
 
 func (s *KeeperTestSuite) TestKycReward_RejectsInsufficientExperienceDelegateInterest() {

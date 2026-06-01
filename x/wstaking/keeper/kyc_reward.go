@@ -15,7 +15,7 @@ import (
 
 func subtractDelegateInterest(region *types.Region, rewards sdk.Dec) error {
 	if !region.DelegateInterest.GTE(rewards) {
-		return fmt.Errorf("region(%s) total interest not enough.need pay %s,only have %s",
+		return fmt.Errorf("region(%s) total interest not enough: need to pay %s, only have %s",
 			region.RegionId, rewards.String(), region.DelegateInterest.String())
 	}
 	region.DelegateInterest = region.DelegateInterest.Sub(rewards)
