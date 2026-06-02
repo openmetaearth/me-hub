@@ -22,12 +22,12 @@ type AppModuleBasic struct {
 	mint.AppModuleBasic
 }
 
-func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
-	return types.MustMarshalGenesis(types.DefaultGenesisState())
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+	return types.MustMarshalGenesis(cdc, types.DefaultGenesisState())
 }
 
-func (AppModuleBasic) ValidateGenesis(_ codec.JSONCodec, _ client.TxEncodingConfig, bz json.RawMessage) error {
-	data, err := types.UnmarshalGenesis(bz)
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingConfig, bz json.RawMessage) error {
+	data, err := types.UnmarshalGenesis(cdc, bz)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
 	}
@@ -79,31 +79,31 @@ func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 }
 
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	genesisState, err := types.UnmarshalGenesis(data)
+	genesisState, err := types.UnmarshalGenesis(cdc, data)
 	if err != nil {
 		panic(fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err))
 	}
 
 	mintGenesis := genesisState.MintGenesisState()
 	mintGenesisBz := cdc.MustMarshalJSON(&mintGenesis)
-	am.AppModule.InitGenesis(ctx, cdc, mintGenesisBz)
+	validatorUpdates := am.AppModule.InitGenesis(ctx, cdc, mintGenesisBz)
 
 	mintedAmount, err := types.ParseGenesisAmount(types.GenesisMintedCoinAmountField, genesisState.MintedCoinAmount)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to parse %s %s: %w", types.ModuleName, types.GenesisMintedCoinAmountField, err))
 	}
 	perBlockAmount, err := types.ParseGenesisAmount(types.GenesisPerBlockMintCoinAmountField, genesisState.PerBlockMintCoinAmount)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to parse %s %s: %w", types.ModuleName, types.GenesisPerBlockMintCoinAmountField, err))
 	}
 
 	am.keeper.SetMintedCoinAmount(ctx, mintedAmount)
 	am.keeper.SetPerBlockMintCoinAmount(ctx, perBlockAmount)
 
-	return []abci.ValidatorUpdate{}
+	return validatorUpdates
 }
 
-func (am AppModule) ExportGenesis(ctx sdk.Context, _ codec.JSONCodec) json.RawMessage {
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	mintGenesis := am.keeper.ExportGenesis(ctx)
 	genesisState := types.NewGenesisState(
 		mintGenesis,
@@ -111,5 +111,5 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, _ codec.JSONCodec) json.RawMe
 		am.keeper.GetPerBlockMintCoinAmount(ctx),
 	)
 
-	return types.MustMarshalGenesis(genesisState)
+	return types.MustMarshalGenesis(cdc, genesisState)
 }

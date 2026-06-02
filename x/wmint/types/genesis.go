@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
@@ -22,7 +23,8 @@ type GenesisState struct {
 
 func DefaultGenesisState() GenesisState {
 	mintGenesis := minttypes.DefaultGenesisState()
-	return NewGenesisState(mintGenesis, *big.NewInt(0), *big.NewInt(0))
+	var zero big.Int
+	return NewGenesisState(mintGenesis, zero, zero)
 }
 
 func NewGenesisState(mintGenesis *minttypes.GenesisState, mintedAmount, perBlockAmount big.Int) GenesisState {
@@ -72,22 +74,73 @@ func ValidateGenesis(data GenesisState) error {
 	return nil
 }
 
-func MarshalGenesis(data GenesisState) (json.RawMessage, error) {
-	return json.Marshal(data)
+func MarshalGenesis(cdc codec.JSONCodec, data GenesisState) (json.RawMessage, error) {
+	mintGenesis := data.MintGenesisState()
+	mintGenesisBz, err := cdc.MarshalJSON(&mintGenesis)
+	if err != nil {
+		return nil, err
+	}
+
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(mintGenesisBz, &raw); err != nil {
+		return nil, err
+	}
+	if raw == nil {
+		raw = make(map[string]json.RawMessage)
+	}
+
+	raw[GenesisMintedCoinAmountField], err = json.Marshal(data.MintedCoinAmount)
+	if err != nil {
+		return nil, err
+	}
+	raw[GenesisPerBlockMintCoinAmountField], err = json.Marshal(data.PerBlockMintCoinAmount)
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(raw)
 }
 
-func MustMarshalGenesis(data GenesisState) json.RawMessage {
-	bz, err := MarshalGenesis(data)
+func MustMarshalGenesis(cdc codec.JSONCodec, data GenesisState) json.RawMessage {
+	bz, err := MarshalGenesis(cdc, data)
 	if err != nil {
 		panic(err)
 	}
 	return bz
 }
 
-func UnmarshalGenesis(bz json.RawMessage) (GenesisState, error) {
-	var data GenesisState
-	if err := json.Unmarshal(bz, &data); err != nil {
+func UnmarshalGenesis(cdc codec.JSONCodec, bz json.RawMessage) (GenesisState, error) {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(bz, &raw); err != nil {
 		return GenesisState{}, err
 	}
+
+	mintGenesisBz, err := json.Marshal(map[string]json.RawMessage{
+		"minter": raw["minter"],
+		"params": raw["params"],
+	})
+	if err != nil {
+		return GenesisState{}, err
+	}
+
+	var mintGenesis minttypes.GenesisState
+	if err := cdc.UnmarshalJSON(mintGenesisBz, &mintGenesis); err != nil {
+		return GenesisState{}, err
+	}
+
+	var data GenesisState
+	data.Minter = mintGenesis.Minter
+	data.Params = mintGenesis.Params
+	if bz, ok := raw[GenesisMintedCoinAmountField]; ok {
+		if err := json.Unmarshal(bz, &data.MintedCoinAmount); err != nil {
+			return GenesisState{}, err
+		}
+	}
+	if bz, ok := raw[GenesisPerBlockMintCoinAmountField]; ok {
+		if err := json.Unmarshal(bz, &data.PerBlockMintCoinAmount); err != nil {
+			return GenesisState{}, err
+		}
+	}
+
 	return data, nil
 }
