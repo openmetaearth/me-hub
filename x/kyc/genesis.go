@@ -16,12 +16,24 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, issuer := range genState.Issuers {
 		addr := sdk.MustAccAddressFromBech32(issuer.Address)
 
-		if _, found := k.GetDID(ctx, addr); found {
-			panic(fmt.Errorf("issuer %s already exists", addr.String()))
+		if existingDid, found := k.GetDID(ctx, addr); found {
+			if existingDid != issuer.Did {
+				panic(fmt.Errorf("issuer %s already exists with DID %s, expected %s", addr.String(), existingDid, issuer.Did))
+			}
+			existingInfo, found := k.GetDidInfo(ctx, issuer.Did)
+			if !found {
+				panic(fmt.Errorf("issuer %s DID info not found", addr.String()))
+			}
+			if existingInfo != issuer {
+				panic(fmt.Errorf("issuer %s already exists with conflicting DID info", addr.String()))
+			}
+		} else {
+			if existingInfo, found := k.GetDidInfo(ctx, issuer.Did); found && existingInfo != issuer {
+				panic(fmt.Errorf("issuer DID %s already exists with conflicting DID info", issuer.Did))
+			}
+			k.SetDID(ctx, addr, issuer.Did)
+			k.SetDidInfo(ctx, issuer.Did, issuer)
 		}
-
-		k.SetDID(ctx, addr, issuer.Did)
-		k.SetDidInfo(ctx, issuer.Did, issuer)
 
 		issuers = append(issuers, issuer.Did)
 	}
