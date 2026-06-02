@@ -132,6 +132,33 @@ func TestDeductFeeDecoratorRejectsUnpackedAuthzMessages(t *testing.T) {
 	require.True(t, sdkerrors.ErrUnpackAny.Is(err))
 }
 
+func TestDeductFeeDecoratorRejectsDeeplyNestedAuthzMessages(t *testing.T) {
+	grantee := NewAccount()
+	sender := NewAccount()
+	recipient := NewAccount()
+	decorator := newDeductFeeDecoratorForMsgLimitTest(t)
+
+	var msg sdk.Msg = banktypes.NewMsgSend(
+		sender.GetAddress(),
+		recipient.GetAddress(),
+		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1))),
+	)
+	for i := 0; i < 7; i++ {
+		msg = newMsgExec(grantee.GetAddress(), []sdk.Msg{msg})
+	}
+
+	tx := feeTxWithMsgs{
+		msgs:     []sdk.Msg{msg},
+		feePayer: grantee.GetAddress(),
+	}
+
+	_, err := decorator.AnteHandle(sdk.Context{}, tx, false, failAnteHandler(t))
+
+	require.Error(t, err)
+	require.True(t, sdkerrors.ErrInvalidRequest.Is(err))
+	require.Contains(t, err.Error(), "authz MsgExec nesting exceeds")
+}
+
 func TestDeductFeeDecoratorAllowsAuthzMessagesAtLimit(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	t.Cleanup(ctrl.Finish)
@@ -151,6 +178,8 @@ func TestDeductFeeDecoratorAllowsAuthzMessagesAtLimit(t *testing.T) {
 	grantee := NewAccount()
 	sender := NewAccount()
 	recipient := NewAccount()
+
+	// Force the free-gas path after message counting so reaching next does not depend on fee-transfer keepers.
 	mockDaoKeeper.EXPECT().IsDao(gomock.Any(), grantee.Address).Return(true)
 	mockDaoKeeper.EXPECT().CheckFreeGasAccount(gomock.Any(), grantee.Address).Return(false)
 

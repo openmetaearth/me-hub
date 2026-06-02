@@ -22,6 +22,7 @@ const (
 	gasEstimationDeductFeeDecorator = 100_000
 	priorityScalingFactor           = 100_000_000
 	msgLimits                       = 1000
+	authzMsgExecMaxDepth            = 6
 )
 
 var minimumFee = sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(10000)))
@@ -285,43 +286,42 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 }
 
 func countMessagesWithAuthz(msgs []sdk.Msg, limit int) (int, error) {
+	return countMessagesWithAuthzDepth(msgs, limit, 0)
+}
+
+func countMessagesWithAuthzDepth(msgs []sdk.Msg, remaining int, depth int) (int, error) {
 	total := 0
 	for _, msg := range msgs {
-		count, err := countMessageWithAuthz(msg, limit-total)
+		total++
+		if total > remaining {
+			return total, nil
+		}
+
+		execMsg, ok := msg.(*authz.MsgExec)
+		if !ok {
+			continue
+		}
+
+		if depth >= authzMsgExecMaxDepth {
+			return 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "authz MsgExec nesting exceeds %d", authzMsgExecMaxDepth)
+		}
+
+		innerMsgs, err := execMsg.GetMessages()
+		if err != nil {
+			return 0, sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "failed to unpack authz MsgExec messages: %v", err)
+		}
+
+		innerCount, err := countMessagesWithAuthzDepth(innerMsgs, remaining-total, depth+1)
 		if err != nil {
 			return 0, err
 		}
-		total += count
-		if total > limit {
+		total += innerCount
+		if total > remaining {
 			return total, nil
 		}
 	}
 
 	return total, nil
-}
-
-func countMessageWithAuthz(msg sdk.Msg, remaining int) (int, error) {
-	total := 1
-	if total > remaining {
-		return total, nil
-	}
-
-	execMsg, ok := msg.(*authz.MsgExec)
-	if !ok {
-		return total, nil
-	}
-
-	innerMsgs, err := execMsg.GetMessages()
-	if err != nil {
-		return 0, sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "failed to unpack authz MsgExec messages: %v", err)
-	}
-
-	innerCount, err := countMessagesWithAuthz(innerMsgs, remaining-total)
-	if err != nil {
-		return 0, err
-	}
-
-	return total + innerCount, nil
 }
 
 func (dfd DeductFeeDecorator) CheckFunds(ctx sdk.Context, tx sdk.Tx, feePayer string, fees sdk.Coins) error {
