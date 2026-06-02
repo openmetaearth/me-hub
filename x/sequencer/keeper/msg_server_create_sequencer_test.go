@@ -237,6 +237,47 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	suite.EqualError(err, types.ErrSequencerExists.Error())
 }
 
+func (suite *SequencerTestSuite) TestCreateSequencerRejectsDuplicateDymintPubKey() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	rollappId := suite.CreateDefaultRollapp()
+
+	sharedPubKey := secp256k1.GenPrivKey().PubKey()
+	sharedPubKeyAny, err := codectypes.NewAnyWithValue(sharedPubKey)
+	suite.Require().NoError(err)
+
+	firstAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	secondAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	suite.Require().NoError(bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, firstAddr, sdk.NewCoins(bond)))
+	suite.Require().NoError(bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, secondAddr, sdk.NewCoins(bond)))
+
+	_, err = suite.msgServer.CreateSequencer(goCtx, &types.MsgCreateSequencer{
+		Creator:      firstAddr.String(),
+		DymintPubKey: sharedPubKeyAny,
+		Bond:         bond,
+		RollappId:    rollappId,
+		Description:  types.Description{},
+	})
+	suite.Require().NoError(err)
+
+	secondBalanceBefore := suite.App.BankKeeper.GetBalance(suite.Ctx, secondAddr, bond.Denom)
+	_, err = suite.msgServer.CreateSequencer(goCtx, &types.MsgCreateSequencer{
+		Creator:      secondAddr.String(),
+		DymintPubKey: sharedPubKeyAny,
+		Bond:         bond,
+		RollappId:    rollappId,
+		Description:  types.Description{},
+	})
+	suite.Require().ErrorIs(err, types.ErrInvalidPubKey)
+	suite.Require().Contains(err.Error(), "dymint pubkey already registered")
+
+	_, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, secondAddr.String())
+	suite.Require().False(found)
+	secondBalanceAfter := suite.App.BankKeeper.GetBalance(suite.Ctx, secondAddr, bond.Denom)
+	suite.Require().True(secondBalanceBefore.IsEqual(secondBalanceAfter))
+}
+
 func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)

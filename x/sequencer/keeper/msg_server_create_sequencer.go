@@ -5,6 +5,8 @@ import (
 	"slices"
 	"strconv"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 
@@ -46,6 +48,12 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, err
 	}
 
+	bondedSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Bonded)
+	unbondingSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Unbonding)
+	if err := k.validateUniqueDymintPubKey(msg.DymintPubKey, bondedSequencers, unbondingSequencers); err != nil {
+		return nil, err
+	}
+
 	bond := sdk.Coins{}
 	minBond := k.GetParams(ctx).MinBond
 	if !minBond.IsNil() && !minBond.IsZero() {
@@ -78,8 +86,6 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		Tokens:           bond,
 	}
 
-	bondedSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Bonded)
-	unbondingSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Unbonding)
 	// check to see if we reached the maximum number of sequencers for this rollapp
 	currentNumOfSequencers := len(bondedSequencers) + len(unbondingSequencers)
 	if rollapp.MaxSequencers > 0 && uint64(currentNumOfSequencers) >= rollapp.MaxSequencers {
@@ -101,4 +107,42 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	)
 
 	return &types.MsgCreateSequencerResponse{}, nil
+}
+
+func (k msgServer) validateUniqueDymintPubKey(dymintPubKey *codectypes.Any, sequencerGroups ...[]types.Sequencer) error {
+	var pubKey cryptotypes.PubKey
+	if err := k.cdc.UnpackAny(dymintPubKey, &pubKey); err != nil {
+		return errorsmod.Wrapf(types.ErrInvalidPubKey, "invalid sequencer pubkey(%s)", err)
+	}
+	if pubKey == nil {
+		return errorsmod.Wrapf(types.ErrInvalidPubKey, "sequencer pubkey can not be empty")
+	}
+
+	for _, sequencers := range sequencerGroups {
+		for _, sequencer := range sequencers {
+			if sequencer.DymintPubKey == nil {
+				continue
+			}
+
+			var existingPubKey cryptotypes.PubKey
+			if err := k.cdc.UnpackAny(sequencer.DymintPubKey, &existingPubKey); err != nil {
+				return errorsmod.Wrapf(
+					types.ErrInvalidPubKey,
+					"registered sequencer %s has invalid pubkey(%s)",
+					sequencer.SequencerAddress,
+					err,
+				)
+			}
+
+			if pubKey.Equals(existingPubKey) {
+				return errorsmod.Wrapf(
+					types.ErrInvalidPubKey,
+					"dymint pubkey already registered by sequencer %s",
+					sequencer.SequencerAddress,
+				)
+			}
+		}
+	}
+
+	return nil
 }
