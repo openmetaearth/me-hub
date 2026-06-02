@@ -52,6 +52,7 @@ func TestInitExportGenesis(t *testing.T) {
 				CreationHeight: 1,
 			},
 		},
+		SkipDelayRollappList: []string{"1"},
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -67,5 +68,30 @@ func TestInitExportGenesis(t *testing.T) {
 	require.ElementsMatch(t, genesisState.StateInfoList, got.StateInfoList)
 	require.ElementsMatch(t, genesisState.LatestStateInfoIndexList, got.LatestStateInfoIndexList)
 	require.ElementsMatch(t, genesisState.BlockHeightToFinalizationQueueList, got.BlockHeightToFinalizationQueueList)
+	require.ElementsMatch(t, genesisState.SkipDelayRollappList, got.SkipDelayRollappList)
+	require.True(t, k.IsSkipDelayRollapp(ctx, "1"))
+	require.False(t, k.IsSkipDelayRollapp(ctx, "0"))
 	// this line is used by starport scaffolding # genesis/test/assert
+}
+
+func TestGenesisExportImportPreservesSkipDelayRollapps(t *testing.T) {
+	rollappID := "rollapp_1234-1"
+	genesisState := types.GenesisState{
+		Params:               types.DefaultParams(),
+		RollappList:          []types.Rollapp{{RollappId: rollappID}},
+		SkipDelayRollappList: []string{rollappID},
+	}
+
+	k, ctx := keepertest.RollappKeeper(t)
+	rollapp.InitGenesis(ctx, *k, genesisState)
+	require.True(t, k.IsSkipDelayRollapp(ctx, rollappID))
+	require.ElementsMatch(t, []string{rollappID}, k.GetSkipDelayRollapps(ctx))
+
+	exported := rollapp.ExportGenesis(ctx, *k)
+
+	importedKeeper, importedCtx := keepertest.RollappKeeper(t)
+	rollapp.InitGenesis(importedCtx, *importedKeeper, *exported)
+
+	require.True(t, importedKeeper.IsSkipDelayRollapp(importedCtx, rollappID), "skip-delay rollapp was dropped by genesis export/import")
+	require.ElementsMatch(t, []string{rollappID}, importedKeeper.GetSkipDelayRollapps(importedCtx))
 }
