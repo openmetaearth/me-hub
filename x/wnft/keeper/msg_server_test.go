@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	nftkeeper "github.com/openmetaearth/me-hub/x/wnft/keeper"
 	"github.com/openmetaearth/me-hub/x/wnft/types"
@@ -17,10 +18,11 @@ const wnftCreator = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"
 func TestMintNFTRejectsLeadingZeroDuplicateTokenID(t *testing.T) {
 	app := apptesting.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	goCtx := sdk.WrapSDKContext(ctx)
 	msgServer := nftkeeper.NewMsgServerImpl(app.WNFTKeeper, app.WNFTKeeper.Keeper)
 
 	classID := "limited-class"
-	_, err := msgServer.NewClass(ctx, types.NewMsgNewClass(
+	_, err := msgServer.NewClass(goCtx, types.NewMsgNewClass(
 		classID,
 		wnftCreator,
 		"Limited Class",
@@ -32,7 +34,7 @@ func TestMintNFTRejectsLeadingZeroDuplicateTokenID(t *testing.T) {
 	))
 	require.NoError(t, err)
 
-	_, err = msgServer.MintNFT(ctx, types.NewMsgMintNFT(
+	_, err = msgServer.MintNFT(goCtx, types.NewMsgMintNFT(
 		classID,
 		"1",
 		"ipfs://token-1",
@@ -42,7 +44,7 @@ func TestMintNFTRejectsLeadingZeroDuplicateTokenID(t *testing.T) {
 	))
 	require.NoError(t, err)
 
-	_, err = msgServer.MintNFT(ctx, types.NewMsgMintNFT(
+	_, err = msgServer.MintNFT(goCtx, types.NewMsgMintNFT(
 		classID,
 		"01",
 		"ipfs://token-01",
@@ -59,10 +61,11 @@ func TestMintNFTRejectsLeadingZeroDuplicateTokenID(t *testing.T) {
 func TestMintNFTRejectsNonCanonicalDecimalTokenID(t *testing.T) {
 	app := apptesting.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	goCtx := sdk.WrapSDKContext(ctx)
 	msgServer := nftkeeper.NewMsgServerImpl(app.WNFTKeeper, app.WNFTKeeper.Keeper)
 
 	classID := "canonical-class"
-	_, err := msgServer.NewClass(ctx, types.NewMsgNewClass(
+	_, err := msgServer.NewClass(goCtx, types.NewMsgNewClass(
 		classID,
 		wnftCreator,
 		"Canonical Class",
@@ -75,7 +78,7 @@ func TestMintNFTRejectsNonCanonicalDecimalTokenID(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, tokenID := range []string{"01", "010"} {
-		_, err = msgServer.MintNFT(ctx, types.NewMsgMintNFT(
+		_, err = msgServer.MintNFT(goCtx, types.NewMsgMintNFT(
 			classID,
 			tokenID,
 			"ipfs://token",
@@ -84,5 +87,8 @@ func TestMintNFTRejectsNonCanonicalDecimalTokenID(t *testing.T) {
 			wnftCreator,
 		))
 		require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
+
+		_, found := app.WNFTKeeper.GetNFT(ctx, classID, tokenID)
+		require.False(t, found)
 	}
 }

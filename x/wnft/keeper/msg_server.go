@@ -100,8 +100,8 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id")
 	}
-	canonicalTokenId := strconv.FormatUint(tokenId, 10)
-	if msg.TokenId != canonicalTokenId {
+	canonicalTokenID := strconv.FormatUint(tokenId, 10)
+	if msg.TokenId != canonicalTokenID {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id")
 	}
 
@@ -116,7 +116,7 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 	if err = k.Mint(ctx,
 		nft.NFT{
 			ClassId: msg.ClassId,
-			Id:      canonicalTokenId,
+			Id:      canonicalTokenID,
 			Uri:     msg.Uri,
 			UriHash: msg.UriHash,
 			Data:    nil,
@@ -129,7 +129,7 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeMintNFT,
-			sdk.NewAttribute(types.AttributeKeyTokenID, canonicalTokenId),
+			sdk.NewAttribute(types.AttributeKeyTokenID, canonicalTokenID),
 			sdk.NewAttribute(types.AttributeKeyOwner, msg.Receiver),
 			sdk.NewAttribute(types.AttributeKeyClassName, class.Name),
 		),
