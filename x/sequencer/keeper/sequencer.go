@@ -114,6 +114,8 @@ func (k Keeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Sequencer
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		// Keep an exact match guard so future key-layout changes cannot leak
+		// entries across rollapps even if the iterator prefix changes.
 		if val.RollappId != rollappId {
 			continue
 		}
@@ -125,7 +127,7 @@ func (k Keeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list 
 
 // GetSequencersByRollappByStatus returns a sequencersByRollapp from its index
 func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string, status types.OperatingStatus) (list []types.Sequencer) {
-	prefixKey := types.SequencersByRollappByStatusKey(rollappId, status)
+	prefixKey := types.SequencersByRollappByStatusPrefix(rollappId, status)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), prefixKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
@@ -134,6 +136,8 @@ func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Sequencer
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		// Keep an exact match guard so future key-layout changes cannot leak
+		// entries across rollapps even if the iterator prefix changes.
 		if val.RollappId != rollappId {
 			continue
 		}
