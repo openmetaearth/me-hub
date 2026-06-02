@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"math"
 
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/openmetaearth/me-hub/app/params"
-	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/openmetaearth/me-hub/app/params"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 const (
@@ -116,7 +116,11 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
 	}
 
-	if len(feeTx.GetMsgs()) > msgLimits {
+	msgCount, countErr := countMessagesWithAuthz(feeTx.GetMsgs(), msgLimits)
+	if countErr != nil {
+		return ctx, countErr
+	}
+	if msgCount > msgLimits {
 		return ctx, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "messages should not exceed %d", msgLimits)
 	}
 
@@ -278,6 +282,46 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	}
 	newCtx := ctx.WithPriority(priority)
 	return next(newCtx, tx, simulate)
+}
+
+func countMessagesWithAuthz(msgs []sdk.Msg, limit int) (int, error) {
+	total := 0
+	for _, msg := range msgs {
+		count, err := countMessageWithAuthz(msg, limit-total)
+		if err != nil {
+			return 0, err
+		}
+		total += count
+		if total > limit {
+			return total, nil
+		}
+	}
+
+	return total, nil
+}
+
+func countMessageWithAuthz(msg sdk.Msg, remaining int) (int, error) {
+	total := 1
+	if total > remaining {
+		return total, nil
+	}
+
+	execMsg, ok := msg.(*authz.MsgExec)
+	if !ok {
+		return total, nil
+	}
+
+	innerMsgs, err := execMsg.GetMessages()
+	if err != nil {
+		return 0, sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "failed to unpack authz MsgExec messages: %v", err)
+	}
+
+	innerCount, err := countMessagesWithAuthz(innerMsgs, remaining-total)
+	if err != nil {
+		return 0, err
+	}
+
+	return total + innerCount, nil
 }
 
 func (dfd DeductFeeDecorator) CheckFunds(ctx sdk.Context, tx sdk.Tx, feePayer string, fees sdk.Coins) error {
