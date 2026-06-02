@@ -54,7 +54,12 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes bool, 
 				currValidators[valAddrStr] = val
 
 				// delegation shares * bonded / total shares
-				votingPower := stake.GetShares().MulInt(val.BondedTokens).Quo(val.DelegatorShares)
+				var votingPower sdk.Dec
+				if val.DelegatorShares.IsZero() {
+					votingPower = sdk.ZeroDec()
+				} else {
+					votingPower = stake.GetShares().MulInt(val.BondedTokens).Quo(val.DelegatorShares)
+				}
 
 				for _, option := range vote.Options {
 					weight, _ := sdk.NewDecFromStr(option.Weight)
@@ -76,7 +81,12 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes bool, 
 		}
 
 		sharesAfterDeductions := val.DelegatorShares.Sub(val.DelegatorDeductions)
-		votingPower := sharesAfterDeductions.MulInt(val.BondedTokens).Quo(val.DelegatorShares)
+		var votingPower sdk.Dec
+		if val.DelegatorShares.IsZero() {
+			votingPower = sdk.ZeroDec()
+		} else {
+			votingPower = sharesAfterDeductions.MulInt(val.BondedTokens).Quo(val.DelegatorShares)
+		}
 
 		for _, option := range val.Vote {
 			weight, _ := sdk.NewDecFromStr(option.Weight)
