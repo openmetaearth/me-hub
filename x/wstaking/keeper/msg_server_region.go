@@ -129,13 +129,9 @@ func (k MsgServer) RemoveRegion(goCtx context.Context, msg *types.MsgRemoveRegio
 
 	err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, sdk.ValAddress{})
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrHooks, "before remove region :error :%+v", err)
+		return nil, sdkerrors.Wrapf(types.ErrHooks, "before removing region: %v", err)
 	}
-	if groupID, found := k.groupKeeper.GetGroupIdByRegion(ctx, regionId); found {
-		k.groupKeeper.DeleteGroupAssociateWithRegion(ctx, regionId)
-		k.groupKeeper.RemoveGroup(ctx, groupID)
-		k.groupKeeper.RemoveGroupMemberCount(ctx, groupID)
-	}
+	k.groupKeeper.RemoveRegionGroup(ctx, regionId)
 	k.Keeper.RemoveRegion(ctx, regionId)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

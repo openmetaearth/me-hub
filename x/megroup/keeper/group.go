@@ -91,6 +91,16 @@ func (k Keeper) DeleteGroupAssociateWithRegion(ctx sdk.Context, regionID string)
 	store.Delete([]byte(regionID))
 }
 
+func (k Keeper) RemoveRegionGroup(ctx sdk.Context, regionID string) {
+	groupID, found := k.GetGroupIdByRegion(ctx, regionID)
+	if !found {
+		return
+	}
+	k.RemoveGroupMemberCount(ctx, groupID)
+	k.DeleteGroupAssociateWithRegion(ctx, regionID)
+	k.RemoveGroup(ctx, groupID)
+}
+
 func (k Keeper) SetGroupToRegion(ctx sdk.Context, regionID string, groupID uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupRegionKey))
 	store.Set([]byte(regionID), types.GetBytesFromUint64(groupID))
