@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"math"
 	"math/big"
 	"regexp"
 	"strconv"
@@ -76,6 +77,9 @@ func getEIP155ID(chainID string) (*big.Int, error) {
 	chainIDInt, ok := new(big.Int).SetString(matches[2], 10)
 	if !ok {
 		return nil, errorsmod.Wrapf(ErrInvalidRollappID, "epoch %s must be base-10 integer format", matches[2])
+	}
+	if chainIDInt.BitLen() > 64 {
+		return nil, errorsmod.Wrapf(ErrInvalidRollappID, "EIP155 id %s exceeds uint64 max %d", matches[2], uint64(math.MaxUint64))
 	}
 
 	return chainIDInt, nil
