@@ -10,3 +10,12 @@ const (
 	GlobalDaoFeePool          = "global_admin_fee_pool"
 	BridgeFeePool             = "bridge_fee_pool"
 )
+
+func IsAllowedSendToModuleTarget(moduleName string) bool {
+	switch moduleName {
+	case StakePoolName, FixedDepositPrincipalPool, BridgeFeePool:
+		return true
+	default:
+		return false
+	}
+}
