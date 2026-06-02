@@ -108,6 +108,9 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 		}
 	}
 
+	bridgeToken.Supply = bridgeToken.Supply.Sub(addBridgeFee.Amount)
+	k.SetBridgeToken(ctx, bridgeToken)
+
 	if err := k.DelUnbatchedTx(ctx, tx.Fee, txId); err != nil {
 		return err
 	}
