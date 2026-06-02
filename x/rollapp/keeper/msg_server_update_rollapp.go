@@ -14,6 +14,9 @@ func (k msgServer) UpdateRollapp(goCtx context.Context, msg *types.MsgUpdateRoll
 	if !found {
 		return nil, types.ErrUnknownRollappID
 	}
+	// Update authorization is tied to the stored rollapp owner. The deployer
+	// whitelist can govern creation, but it must not let a whitelisted account
+	// mutate another creator's rollapp after ownership has been assigned.
 	if msg.Creator != rollapp.Creator && !k.daoKeeper.IsDao(ctx, msg.Creator) {
 		return nil, types.ErrUnauthorizedRollappCreator.Wrapf("only rollapp creator or DAO can update rollapp %s", msg.RollappId)
 	}

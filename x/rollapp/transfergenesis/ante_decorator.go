@@ -7,10 +7,15 @@ import (
 	"github.com/openmetaearth/me-hub/utils/uibc"
 
 	transferTypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 type GetRollapp func(ctx sdk.Context, rollappId string) (val types.Rollapp, found bool)
+
+type ChannelKeeper interface {
+	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
+}
 
 // TransferEnabledDecorator only allows ibc transfers to a rollapp if that rollapp has finished
 // the transfer genesis protocol.
