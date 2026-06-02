@@ -83,9 +83,25 @@ func (k Keeper) SetCredential(ctx sdk.Context, did, sid string, credential types
 	store.Set(types.GetCredentialKey(did, sid), k.cdc.MustMarshal(&credential))
 }
 
+func (k Keeper) GetCredentialIssuer(ctx sdk.Context, did, sid string) (issuer string, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetCredentialIssuerKey(did, sid))
+	if bz == nil {
+		return "", false
+	}
+
+	return string(bz), true
+}
+
+func (k Keeper) SetCredentialIssuer(ctx sdk.Context, did, sid, issuer string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetCredentialIssuerKey(did, sid), []byte(issuer))
+}
+
 func (k Keeper) DeleteCredential(ctx sdk.Context, did, sid string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetCredentialKey(did, sid))
+	store.Delete(types.GetCredentialIssuerKey(did, sid))
 }
 
 func (k Keeper) IteratorCredentialsByFilter(ctx sdk.Context, sid string, filter []byte, cb func(delegation types.Credential) (stop bool)) {

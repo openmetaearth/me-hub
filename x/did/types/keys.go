@@ -27,9 +27,10 @@ var (
 	IssuerPrefix  = []byte{0x20}
 	ServicePrefix = []byte{0x30}
 	//ServiceIssuerPrefix   = []byte{0x31}
-	CredentialPrefix   = []byte{0x40}
-	FilterLoggerPrefix = []byte{0x50}
-	FilterPrefix       = []byte{0x51}
+	CredentialPrefix       = []byte{0x40}
+	CredentialIssuerPrefix = []byte{0x41}
+	FilterLoggerPrefix     = []byte{0x50}
+	FilterPrefix           = []byte{0x51}
 )
 
 func GetDIDKey(addr sdk.AccAddress) []byte {
@@ -58,6 +59,10 @@ func GetCredentialPrefixByDid(did string) []byte {
 
 func GetCredentialKey(did, sid string) []byte {
 	return append(GetCredentialPrefixByDid(did), sid...)
+}
+
+func GetCredentialIssuerKey(did, sid string) []byte {
+	return append(append(CredentialIssuerPrefix, did...), sid...)
 }
 
 func GetFilterLoggerKey(did, sid string) []byte {

@@ -163,6 +163,7 @@ func (m msgServer) CreateVC(goCtx context.Context, msg *types.MsgCreateVC) (*typ
 	// create VC
 	vc := msg.GetCredential()
 	m.SetCredential(ctx, msg.Did, msg.Sid, vc)
+	m.SetCredentialIssuer(ctx, msg.Did, msg.Sid, issuer)
 
 	// add filters to VC
 	m.AddFilters(ctx, msg.Did, msg.Sid, msg.Filters, vc)
@@ -193,6 +194,9 @@ func (m msgServer) UpdateVC(goCtx context.Context, msg *types.MsgUpdateVC) (*typ
 	issuerInfo, found := m.GetDidInfo(ctx, issuer)
 	if !found || issuerInfo.Status != types.DID_STATUS_ACTIVE {
 		return &types.MsgUpdateVCResponse{}, types.ErrIssuerNotActive
+	}
+	if credentialIssuer, found := m.GetCredentialIssuer(ctx, msg.Did, msg.Sid); found && credentialIssuer != issuer {
+		return &types.MsgUpdateVCResponse{}, types.ErrInvalidIssuer
 	}
 
 	// check holder
