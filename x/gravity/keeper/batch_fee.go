@@ -88,9 +88,12 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 		return errorsmod.Wrapf(types.ErrInvalid, "txId %d not in unbatched index! Must be in a batch!", txId)
 	}
 
-	txSender := sdk.MustAccAddressFromBech32(tx.Sender)
+	txSender, err := sdk.AccAddressFromBech32(tx.Sender)
+	if err != nil {
+		return errorsmod.Wrapf(types.ErrInvalid, "invalid tx sender %q for txId %d: %v", tx.Sender, txId, err)
+	}
 	if !txSender.Equals(sender) {
-		return errorsmod.Wrapf(types.ErrInvalid, "Sender %s did not send Id %d", sender, txId)
+		return errorsmod.Wrapf(types.ErrInvalid, "sender %s is not tx sender %s for txId %d", sender.String(), tx.Sender, txId)
 	}
 
 	bridgeToken, err := k.GetBridgeTokenByDenom(ctx, addBridgeFee.Denom)

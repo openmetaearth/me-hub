@@ -79,7 +79,9 @@ func (s *KeeperTestSuite) TestKeeper_IncreaseBridgeFeeRejectsNonSender() {
 	})
 	s.Require().Error(err)
 	s.Require().ErrorIs(err, types.ErrInvalid)
-	s.Require().Contains(err.Error(), "did not send")
+	s.Require().Contains(err.Error(), "is not tx sender")
+	s.Require().Contains(err.Error(), sender.String())
+	s.Require().Contains(err.Error(), attacker.String())
 
 	s.Require().Equal(attackerBalanceBefore, s.App.BankKeeper.GetBalance(s.Ctx, attacker, denom))
 	s.Require().Equal(senderBalanceBefore, s.App.BankKeeper.GetBalance(s.Ctx, sender, denom))
@@ -97,4 +99,47 @@ func (s *KeeperTestSuite) TestKeeper_IncreaseBridgeFeeRejectsNonSender() {
 	s.Require().EqualValues(sdkmath.NewInt(15), tx.Fee.Amount)
 	s.Require().EqualValues(sdkmath.NewInt(45), s.App.BankKeeper.GetBalance(s.Ctx, sender, denom).Amount)
 	s.Require().EqualValues(attackerBalanceBefore, s.App.BankKeeper.GetBalance(s.Ctx, attacker, denom))
+}
+
+func (s *KeeperTestSuite) TestKeeper_IncreaseBridgeFeeRejectsInvalidStoredSender() {
+	sender := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	bridgeToken := helpers.GenerateAddress().Hex()
+
+	denom := "testbadfee"
+	initialSupply := sdk.NewCoin(denom, sdkmath.NewInt(100))
+	s.Equal(sdk.NewCoin(denom, sdkmath.ZeroInt()), s.App.BankKeeper.GetSupply(s.Ctx, denom))
+
+	err := s.App.BankKeeper.MintCoins(s.Ctx, s.chainName, sdk.NewCoins(initialSupply))
+	s.NoError(err)
+	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, s.chainName, sender, sdk.NewCoins(initialSupply))
+	s.NoError(err)
+
+	s.Keeper().SetBridgeToken(s.Ctx, &types.BridgeToken{ContractAddress: bridgeToken, Denom: denom, Supply: initialSupply.Amount})
+
+	tx := &types.OutgoingTransferTx{
+		Id:          1,
+		Sender:      "not-a-bech32-address",
+		DestAddress: helpers.GenerateAddress().Hex(),
+		Token:       types.NewERC20Token(sdkmath.NewInt(40), bridgeToken),
+		Fee:         types.NewERC20Token(sdkmath.NewInt(10), bridgeToken),
+	}
+	err = s.Keeper().AddUnbatchedTx(s.Ctx, tx)
+	s.Require().NoError(err)
+
+	balanceBefore := s.App.BankKeeper.GetBalance(s.Ctx, sender, denom)
+
+	_, err = s.MsgServer().IncreaseBridgeFee(sdk.WrapSDKContext(s.Ctx), &types.MsgIncreaseBridgeFee{
+		ChainName:     s.chainName,
+		Sender:        sender.String(),
+		TransactionId: tx.Id,
+		AddBridgeFee:  sdk.NewCoin(denom, sdkmath.NewInt(5)),
+	})
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, types.ErrInvalid)
+	s.Require().Contains(err.Error(), "invalid tx sender")
+
+	s.Require().Equal(balanceBefore, s.App.BankKeeper.GetBalance(s.Ctx, sender, denom))
+	storedTx, err := s.Keeper().GetUnbatchedTxById(s.Ctx, tx.Id)
+	s.Require().NoError(err)
+	s.Require().EqualValues(tx.Fee.Amount, storedTx.Fee.Amount)
 }
