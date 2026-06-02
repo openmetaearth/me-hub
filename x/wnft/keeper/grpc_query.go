@@ -55,6 +55,15 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 
 	var list []*types.NftList
 
+	var owner sdk.AccAddress
+	if r.Owner != "" {
+		var err error
+		owner, err = sdk.AccAddressFromBech32(r.Owner)
+		if err != nil {
+			return nil, sdkerrors.ErrInvalidAddress.Wrapf("invalid owner address %q: %v", r.Owner, err)
+		}
+	}
+
 	// determine query type based on request parameters
 	if r.TokenId != "" && r.ClassId != "" && r.Owner == "" {
 		// query individual nft information
@@ -87,12 +96,8 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 		if !has {
 			return nil, nil
 		}
-		address, err := sdk.AccAddressFromBech32(r.Owner)
-		if err != nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address %q: %v", r.Owner, err)
-		}
 
-		nftInfos := k.GetNFTsOfClassByOwner(ctx, r.ClassId, address)
+		nftInfos := k.GetNFTsOfClassByOwner(ctx, r.ClassId, owner)
 		for _, nftInfo := range nftInfos {
 			list = append(list, &types.NftList{
 				ClassId: nftInfo.ClassId,
@@ -109,18 +114,14 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 	} else if r.Owner != "" && r.TokenId == "" && r.ClassId == "" {
 		// query the nft information held by the address
 		classes := k.GetClasses(ctx)
-		address, err := sdk.AccAddressFromBech32(r.Owner)
-		if err != nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address %q: %v", r.Owner, err)
-		}
 		for _, class := range classes {
-			nftInfos := k.GetNFTsOfClassByOwner(ctx, class.Id, address)
+			nftInfos := k.GetNFTsOfClassByOwner(ctx, class.Id, owner)
 			for _, nftInfo := range nftInfos {
-				owner := k.GetOwner(ctx, nftInfo.ClassId, nftInfo.Id)
+				nftOwner := k.GetOwner(ctx, nftInfo.ClassId, nftInfo.Id)
 				list = append(list, &types.NftList{
 					ClassId: nftInfo.ClassId,
 					TokenId: nftInfo.Id,
-					Owner:   owner.String(),
+					Owner:   nftOwner.String(),
 					Uri:     nftInfo.Uri,
 				})
 			}
@@ -131,5 +132,5 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 		}, nil
 
 	}
-	return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid query parameters")
+	return nil, sdkerrors.ErrInvalidRequest.Wrap("invalid query parameters")
 }

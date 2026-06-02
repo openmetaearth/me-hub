@@ -32,6 +32,20 @@ func TestNftFilterRejectsInvalidOwnerForClassOwnerQuery(t *testing.T) {
 	require.True(t, sdkerrors.ErrInvalidAddress.Is(err))
 }
 
+func TestNftFilterRejectsInvalidOwnerBeforeClassLookup(t *testing.T) {
+	app := apptesting.Setup(t, false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	goCtx := sdk.WrapSDKContext(ctx)
+
+	_, err := app.WNFTKeeper.NftFilter(goCtx, &types.QueryNftFilterRequest{
+		ClassId: "missing-owner-filter-class",
+		Owner:   "not-a-bech32-address",
+	})
+
+	require.Error(t, err)
+	require.True(t, sdkerrors.ErrInvalidAddress.Is(err))
+}
+
 func TestNftFilterRejectsInvalidOwnerForAllClassesOwnerQuery(t *testing.T) {
 	app := apptesting.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
@@ -53,13 +67,50 @@ func TestNftFilterRejectsInvalidRequests(t *testing.T) {
 	_, err := app.WNFTKeeper.NftFilter(goCtx, nil)
 	require.Error(t, err)
 	require.True(t, sdkerrors.ErrInvalidRequest.Is(err))
+}
 
-	_, err = app.WNFTKeeper.NftFilter(goCtx, &types.QueryNftFilterRequest{
+func TestNftFilterRejectsUnsupportedFilterCombination(t *testing.T) {
+	app := apptesting.Setup(t, false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	goCtx := sdk.WrapSDKContext(ctx)
+
+	_, err := app.WNFTKeeper.NftFilter(goCtx, &types.QueryNftFilterRequest{
 		Owner:   wnftQueryCreator,
 		TokenId: "1",
 	})
 	require.Error(t, err)
 	require.True(t, sdkerrors.ErrInvalidRequest.Is(err))
+}
+
+func TestNftFilterReturnsClassOwnerResults(t *testing.T) {
+	app := apptesting.Setup(t, false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	goCtx := sdk.WrapSDKContext(ctx)
+	msgServer := wnftkeeper.NewMsgServerImpl(app.WNFTKeeper, app.WNFTKeeper.Keeper)
+	classID := "owner-filter-valid-class"
+
+	createWNFTClass(t, msgServer, goCtx, classID)
+	_, err := msgServer.MintNFT(goCtx, types.NewMsgMintNFT(
+		classID,
+		"1",
+		"ipfs://owner-filter-token-1",
+		"",
+		wnftQueryCreator,
+		wnftQueryCreator,
+	))
+	require.NoError(t, err)
+
+	res, err := app.WNFTKeeper.NftFilter(goCtx, &types.QueryNftFilterRequest{
+		ClassId: classID,
+		Owner:   wnftQueryCreator,
+	})
+
+	require.NoError(t, err)
+	require.Len(t, res.Nfts, 1)
+	require.Equal(t, classID, res.Nfts[0].ClassId)
+	require.Equal(t, "1", res.Nfts[0].TokenId)
+	require.Equal(t, wnftQueryCreator, res.Nfts[0].Owner)
+	require.Equal(t, "ipfs://owner-filter-token-1", res.Nfts[0].Uri)
 }
 
 func createWNFTClass(t *testing.T, msgServer types.MsgServer, goCtx context.Context, classID string) {
