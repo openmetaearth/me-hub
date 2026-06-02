@@ -110,6 +110,13 @@ func (s *KeeperTestSuite) TestRemoveRegion() {
 	})
 	s.Require().ErrorIs(err, types.ErrCheckGlobalDao)
 
+	// unknown region must fail instead of returning a successful no-op
+	_, err = s.msgServer.RemoveRegion(s.Ctx, &types.MsgRemoveRegion{
+		Creator:  s.Dao.GlobalDao,
+		RegionId: "missing-region",
+	})
+	s.Require().ErrorIs(err, types.ErrRegionNotExist)
+
 	// must no error
 	_, err = s.msgServer.RemoveRegion(s.Ctx, &types.MsgRemoveRegion{
 		Creator:  s.Dao.GlobalDao,
