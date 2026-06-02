@@ -55,7 +55,7 @@ func (k msgServer) ReplaceProposer(goCtx context.Context, msg *types.MsgReplaceP
 		lastStateInfoEndHeight = stateInfo.StartHeight + stateInfo.NumBlocks - 1
 	}
 	if msg.ReplaceProposer.BlockHeight < 1 {
-		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "invalid block number (%d)", msg.ReplaceProposer.BlockHeight)
+		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "invalid block height (%d)", msg.ReplaceProposer.BlockHeight)
 	}
 	if uint64(msg.ReplaceProposer.BlockHeight) < lastStateInfoEndHeight {
 		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "replace proposer block height %d must be at least last state info end height %d", msg.ReplaceProposer.BlockHeight, lastStateInfoEndHeight)

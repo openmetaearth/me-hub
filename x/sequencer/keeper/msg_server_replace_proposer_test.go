@@ -7,7 +7,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
-func (suite *SequencerTestSuite) TestReplaceProposerAllowsHandoffAtLatestSubmittedHeight() {
+func (suite *SequencerTestSuite) TestReplaceProposerAllowsHandoffAtLastStateInfoEndHeight() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 	rollappId, oldProposer, newProposer := suite.setupReplaceProposerHandoffState(1, 10)
@@ -25,7 +25,7 @@ func (suite *SequencerTestSuite) TestReplaceProposerAllowsHandoffAtLatestSubmitt
 	suite.Require().NoError(suite.App.SequencerKeeper.IsExceedAuthoredBlockHeight(suite.Ctx, rollappId, newProposer, 11, 1))
 }
 
-func (suite *SequencerTestSuite) TestReplaceProposerRejectsHandoffBeforeLatestSubmittedHeight() {
+func (suite *SequencerTestSuite) TestReplaceProposerRejectsHandoffBeforeLastStateInfoEndHeight() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 	rollappId, oldProposer, newProposer := suite.setupReplaceProposerHandoffState(1, 10)
