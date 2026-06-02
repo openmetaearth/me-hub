@@ -9,4 +9,5 @@ option go_package = "github.com/openmetaearth/me-hub/x/dao/types";
 // GenesisState defines the sudo module's genesis state.
 message GenesisState {
   DaoAddresses dao_addresses = 1 [(gogoproto.nullable) = false];
+  repeated string free_gas_accounts = 2;
 }

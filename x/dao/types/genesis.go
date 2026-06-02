@@ -19,6 +19,7 @@ func DefaultGenesis() *GenesisState {
 			DevOperator:    "",
 			AirdropAddress: "",
 		},
+		FreeGasAccounts: []string{},
 	}
 }
 
@@ -43,6 +44,17 @@ func (gs GenesisState) Validate() error {
 	_, err = sdk.AccAddressFromBech32(gs.DaoAddresses.AirdropAddress)
 	if err != nil {
 		return fmt.Errorf("invalid airdrop address %s", gs.DaoAddresses.AirdropAddress)
+	}
+
+	freeGasAccounts := make(map[string]struct{}, len(gs.FreeGasAccounts))
+	for _, address := range gs.FreeGasAccounts {
+		if _, err = sdk.AccAddressFromBech32(address); err != nil {
+			return fmt.Errorf("invalid free gas account address %s", address)
+		}
+		if _, found := freeGasAccounts[address]; found {
+			return fmt.Errorf("duplicate free gas account address %s", address)
+		}
+		freeGasAccounts[address] = struct{}{}
 	}
 
 	return nil

@@ -32,3 +32,15 @@ func (k Keeper) CheckFreeGasAccount(ctx sdk.Context, address string) bool {
 	}
 	return true
 }
+
+func (k Keeper) IterateFreeGasAccounts(ctx sdk.Context, cb func(address string) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.FreeGasAddressePrefix)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		if cb(string(iterator.Value())) {
+			break
+		}
+	}
+}
