@@ -176,6 +176,37 @@ func (suite *KeeperTestSuite) TestBeginBlocker() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestExportImportPreservesMintedCounters() {
+	mintedBeforeExport := big.NewInt(types.TotalMintCoinsAmount - 1)
+	perBlockBeforeExport := big.NewInt(79274480000)
+
+	suite.wmintKeeper.SetMinter(suite.ctx, minttypes.DefaultInitialMinter())
+	suite.Require().NoError(suite.wmintKeeper.SetParams(suite.ctx, minttypes.DefaultParams()))
+	suite.wmintKeeper.SetMintedCoinAmount(suite.ctx, *mintedBeforeExport)
+	suite.wmintKeeper.SetPerBlockMintCoinAmount(suite.ctx, *perBlockBeforeExport)
+
+	appModule := NewAppModule(suite.encCfg.Codec, suite.wmintKeeper, suite.accKeeper, nil, suite.paramsSubspace)
+	exportedGenesis := appModule.ExportGenesis(suite.ctx, suite.encCfg.Codec)
+	suite.Require().Contains(string(exportedGenesis), types.GenesisMintedCoinAmountField)
+	suite.Require().Contains(string(exportedGenesis), types.GenesisPerBlockMintCoinAmountField)
+
+	appModuleBasic := AppModuleBasic{}
+	suite.Require().NoError(appModuleBasic.ValidateGenesis(suite.encCfg.Codec, suite.encCfg.TxConfig, appModuleBasic.DefaultGenesis(suite.encCfg.Codec)))
+	suite.Require().NoError(appModuleBasic.ValidateGenesis(suite.encCfg.Codec, suite.encCfg.TxConfig, exportedGenesis))
+
+	suite.wmintKeeper.SetMintedCoinAmount(suite.ctx, *big.NewInt(0))
+	suite.wmintKeeper.SetPerBlockMintCoinAmount(suite.ctx, *big.NewInt(0))
+
+	suite.accKeeper.EXPECT().GetModuleAccount(suite.ctx, minttypes.ModuleName).Return(authtypes.NewEmptyModuleAccount(minttypes.ModuleName))
+	appModule.InitGenesis(suite.ctx, suite.encCfg.Codec, exportedGenesis)
+
+	mintedAfterImport := suite.wmintKeeper.GetMintedCoinAmount(suite.ctx)
+	perBlockAfterImport := suite.wmintKeeper.GetPerBlockMintCoinAmount(suite.ctx)
+	suite.Require().Equal(0, mintedAfterImport.Cmp(mintedBeforeExport))
+	suite.Require().Equal(0, perBlockAfterImport.Cmp(perBlockBeforeExport))
+}
+
 func (suite *KeeperTestSuite) newContextWith(height int64) sdk.Context {
 	return sdk.NewContext(suite.ctx.MultiStore(), tmproto.Header{Time: tmtime.Now(), Height: height}, false, log.NewNopLogger())
 }
