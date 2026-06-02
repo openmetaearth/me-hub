@@ -45,6 +45,20 @@ func (k Keeper) GetAllFixedDepositCfg(ctx sdk.Context, regionId string) (list []
 	return
 }
 
+func (k Keeper) GetAllFixedDepositCfgs(ctx sdk.Context) (list []types.FixedDepositCfg) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositCfgKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.FixedDepositCfg
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		list = append(list, val)
+	}
+
+	return list
+}
+
 func (k Keeper) InitFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term int64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositCountOfCfgKeyPrefix+regionId))
 	byteKey := types.KeyPrefix(strconv.FormatInt(term, 10))
@@ -66,6 +80,26 @@ func (k Keeper) GetFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term
 		return 0
 	}
 	return binary.BigEndian.Uint64(bz)
+}
+
+func (k Keeper) SetFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term int64, count uint64) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositCountOfCfgKeyPrefix+regionId))
+	byteKey := types.KeyPrefix(strconv.FormatInt(term, 10))
+	buf := make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, count)
+	store.Set(byteKey, buf)
+}
+
+func (k Keeper) GetAllFixedDepositCountOfCfg(ctx sdk.Context) (list []types.FixedDepositCountOfCfg) {
+	for _, cfg := range k.GetAllFixedDepositCfgs(ctx) {
+		list = append(list, types.FixedDepositCountOfCfg{
+			RegionId: cfg.RegionId,
+			Term:     cfg.Term,
+			Count:    k.GetFixedDepositCountOfCfg(ctx, cfg.RegionId, cfg.Term),
+		})
+	}
+
+	return list
 }
 
 func (k Keeper) IncreaseFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term int64) error {

@@ -70,6 +70,9 @@ message GenesisState {
   repeated FixedDeposit fixedDepositList = 11 [(gogoproto.nullable) = false];
   uint64 fixedDepositCount = 12;
   bool exported = 13;
+  repeated FixedDepositCfg fixedDepositCfgList = 14 [(gogoproto.nullable) = false];
+  repeated FixedDepositCountOfCfg fixedDepositCountOfCfgList = 15 [(gogoproto.nullable) = false];
+  FixedDepositTotal fixedDepositTotalAmount = 16;
 }
 
 // LastValidatorPower required for validator set update logic.
@@ -82,4 +85,10 @@ message LastValidatorPower {
 
   // power defines the power of the validator.
   int64 power = 2;
+}
+
+message FixedDepositCountOfCfg {
+  string regionId = 1;
+  int64 term = 2;
+  uint64 count = 3;
 }

@@ -65,6 +65,19 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 		k.SetStake(ctx, stake)
 	}
 
+	for _, cfg := range data.FixedDepositCfgList {
+		k.SetFixedDepositCfg(ctx, cfg)
+		k.InitFixedDepositCountOfCfg(ctx, cfg.RegionId, cfg.Term)
+	}
+
+	for _, count := range data.FixedDepositCountOfCfgList {
+		k.SetFixedDepositCountOfCfg(ctx, count.RegionId, count.Term, count.Count)
+	}
+
+	if data.FixedDepositTotalAmount != nil {
+		k.SetFixedDepositTotalAmount(ctx, *data.FixedDepositTotalAmount)
+	}
+
 	for _, delegation := range data.Delegations {
 		k.SetDelegation(ctx, delegation)
 	}
@@ -182,19 +195,26 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *wstakingtypes.GenesisState {
 		return false
 	})
 
-	return &wstakingtypes.GenesisState{
-		Params:               k.GetParams(ctx),
-		LastTotalPower:       k.GetLastTotalPower(ctx),
-		LastValidatorPowers:  lastValidatorPowers,
-		Validators:           k.GetAllValidators(ctx),
-		Delegations:          k.GetAllDelegations(ctx),
-		UnbondingDelegations: unbondingDelegations,
-		Redelegations:        redelegations,
-		Stakes:               k.GetAllStakes(ctx),
-		UnbondingStakes:      unbondingStakes,
-		Regions:              k.GetAllRegion(ctx),
-		FixedDepositList:     k.GetAllFixedDeposit(ctx),
-		FixedDepositCount:    k.GetFixedDepositCount(ctx),
-		Exported:             true,
+	genesis := &wstakingtypes.GenesisState{
+		Params:                     k.GetParams(ctx),
+		LastTotalPower:             k.GetLastTotalPower(ctx),
+		LastValidatorPowers:        lastValidatorPowers,
+		Validators:                 k.GetAllValidators(ctx),
+		Delegations:                k.GetAllDelegations(ctx),
+		UnbondingDelegations:       unbondingDelegations,
+		Redelegations:              redelegations,
+		Stakes:                     k.GetAllStakes(ctx),
+		UnbondingStakes:            unbondingStakes,
+		Regions:                    k.GetAllRegion(ctx),
+		FixedDepositList:           k.GetAllFixedDeposit(ctx),
+		FixedDepositCount:          k.GetFixedDepositCount(ctx),
+		FixedDepositCfgList:        k.GetAllFixedDepositCfgs(ctx),
+		FixedDepositCountOfCfgList: k.GetAllFixedDepositCountOfCfg(ctx),
+		Exported:                   true,
 	}
+	if totalAmount, found := k.GetFixedDepositTotalAmount(ctx); found {
+		genesis.FixedDepositTotalAmount = &totalAmount
+	}
+
+	return genesis
 }
