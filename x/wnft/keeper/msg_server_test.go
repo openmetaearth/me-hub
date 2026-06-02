@@ -33,7 +33,7 @@ func TestNewClassRejectsReservedKycClassID(t *testing.T) {
 	))
 
 	require.Error(t, err)
-	require.True(t, types.ErrReservedClassId.Is(err))
+	require.True(t, types.ErrReservedClassID.Is(err))
 
 	afterClass, afterFound := app.WNFTKeeper.GetClass(ctx, types.ReservedKycClassID)
 	require.Equal(t, beforeFound, afterFound)

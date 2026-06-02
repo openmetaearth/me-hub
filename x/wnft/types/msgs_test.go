@@ -25,7 +25,7 @@ func TestMsgNewClassValidateBasicRejectsReservedClassID(t *testing.T) {
 	err := msg.ValidateBasic()
 
 	require.Error(t, err)
-	require.True(t, types.ErrReservedClassId.Is(err))
+	require.True(t, types.ErrReservedClassID.Is(err))
 }
 
 func TestMsgNewClassValidateBasicAllowsRegularClass(t *testing.T) {

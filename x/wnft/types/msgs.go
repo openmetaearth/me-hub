@@ -44,7 +44,7 @@ func (msg MsgNewClass) ValidateBasic() error {
 	}
 
 	if IsReservedClassID(msg.ClassId) {
-		return errors.Wrapf(ErrReservedClassId, "class id %s is reserved for system use", msg.ClassId)
+		return errors.Wrapf(ErrReservedClassID, "class id %s is reserved for system use", msg.ClassId)
 	}
 
 	if msg.TotalSupply == 0 {
