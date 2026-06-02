@@ -312,3 +312,35 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithFixedDeposit() {
 	err = s.Keeper().RemoveKycReward(s.Ctx, userAccount, s.usaValidator.Description.RegionID)
 	s.Require().ErrorContains(err, types.ErrRemoveKyc.Error())
 }
+
+func (s *KeeperTestSuite) TestRemoveKycReward_InsufficientDelegateInterest() {
+	s.SetupTest()
+
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            "USA",
+		OperatorAddress: s.usaValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
+	inviter, _ := s.NewAccount()
+	err = s.Keeper().KycReward(s.Ctx, inviter, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+	s.Require().NoError(err)
+
+	// Artificially set USA region's DelegateInterest to 0
+	region, found := s.Keeper().GetRegion(s.Ctx, "usa")
+	s.Require().True(found)
+	region.DelegateInterest = sdk.ZeroDec()
+	s.Keeper().SetRegion(s.Ctx, region)
+
+	// Remove KYC should error due to insufficient delegate interest
+	err = s.Keeper().RemoveKycReward(s.Ctx, kycAccount, s.usaValidator.Description.RegionID)
+	s.Require().Error(err)
+	s.Require().Contains(err.Error(), "insufficient delegate interest")
+}
