@@ -9,16 +9,16 @@ import (
 func (s *KeeperTestSuite) TestExportImportGenesisFixedDepositRuntimeState() {
 	s.SetupTest()
 
-	regionId := types.MeEarthRegionId
+	regionID := types.MeEarthRegionId
 	term := int64(30)
 	cfg := types.FixedDepositCfg{
-		RegionId: regionId,
+		RegionId: regionID,
 		Term:     term,
 		Rate:     sdk.MustNewDecFromStr("0.1234"),
 		Status:   types.RegionFixedDepositCfgStatusActive,
 	}
 	count := types.FixedDepositCountOfCfg{
-		RegionId: regionId,
+		RegionId: regionID,
 		Term:     term,
 		Count:    2,
 	}
@@ -27,7 +27,7 @@ func (s *KeeperTestSuite) TestExportImportGenesisFixedDepositRuntimeState() {
 	}
 
 	s.Keeper().SetFixedDepositCfg(s.Ctx, cfg)
-	s.Keeper().SetFixedDepositCountOfCfg(s.Ctx, regionId, term, count.Count)
+	s.Keeper().SetFixedDepositCountOfCfg(s.Ctx, regionID, term, count.Count)
 	s.Keeper().SetFixedDepositTotalAmount(s.Ctx, total)
 
 	genesis := s.Keeper().ExportGenesis(s.Ctx)
@@ -36,20 +36,32 @@ func (s *KeeperTestSuite) TestExportImportGenesisFixedDepositRuntimeState() {
 	s.Require().NotNil(genesis.FixedDepositTotalAmount)
 	s.Require().Equal(total, *genesis.FixedDepositTotalAmount)
 
-	s.Keeper().RemoveFixedDepositCfg(s.Ctx, regionId, term)
-	s.Keeper().SetFixedDepositCountOfCfg(s.Ctx, regionId, term, 0)
+	s.Keeper().RemoveFixedDepositCfg(s.Ctx, regionID, term)
+	s.Keeper().SetFixedDepositCountOfCfg(s.Ctx, regionID, term, 0)
 	s.Keeper().SetFixedDepositTotalAmount(s.Ctx, types.FixedDepositTotal{
 		Amount: sdk.NewCoin(params.BaseDenom, sdk.ZeroInt()),
 	})
 
 	s.Keeper().InitGenesis(s.Ctx, genesis)
 
-	importedCfg, found := s.Keeper().GetFixedDepositCfg(s.Ctx, regionId, term)
+	importedCfg, found := s.Keeper().GetFixedDepositCfg(s.Ctx, regionID, term)
 	s.Require().True(found)
 	s.Require().Equal(cfg, importedCfg)
-	s.Require().Equal(count.Count, s.Keeper().GetFixedDepositCountOfCfg(s.Ctx, regionId, term))
+	s.Require().Equal(count.Count, s.Keeper().GetFixedDepositCountOfCfg(s.Ctx, regionID, term))
 
 	importedTotal, found := s.Keeper().GetFixedDepositTotalAmount(s.Ctx)
 	s.Require().True(found)
 	s.Require().Equal(total, importedTotal)
+}
+
+func (s *KeeperTestSuite) TestExportImportGenesisLeavesMissingFixedDepositTotalUnset() {
+	s.SetupTest()
+
+	genesis := s.Keeper().ExportGenesis(s.Ctx)
+	s.Require().Nil(genesis.FixedDepositTotalAmount)
+
+	s.Keeper().InitGenesis(s.Ctx, genesis)
+
+	_, found := s.Keeper().GetFixedDepositTotalAmount(s.Ctx)
+	s.Require().False(found)
 }

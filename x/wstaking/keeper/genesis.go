@@ -65,12 +65,21 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 		k.SetStake(ctx, stake)
 	}
 
-	for _, cfg := range data.FixedDepositCfgList {
-		k.SetFixedDepositCfg(ctx, cfg)
-		k.InitFixedDepositCountOfCfg(ctx, cfg.RegionId, cfg.Term)
+	fixedDepositCountsByCfg := make(map[string]wstakingtypes.FixedDepositCountOfCfg, len(data.FixedDepositCountOfCfgList))
+	for _, count := range data.FixedDepositCountOfCfgList {
+		fixedDepositCountsByCfg[fixedDepositCountOfCfgIndexKey(count.RegionId, count.Term)] = count
 	}
 
-	for _, count := range data.FixedDepositCountOfCfgList {
+	for _, cfg := range data.FixedDepositCfgList {
+		k.SetFixedDepositCfg(ctx, cfg)
+		count, found := fixedDepositCountsByCfg[fixedDepositCountOfCfgIndexKey(cfg.RegionId, cfg.Term)]
+		if found {
+			delete(fixedDepositCountsByCfg, fixedDepositCountOfCfgIndexKey(cfg.RegionId, cfg.Term))
+		}
+		k.SetFixedDepositCountOfCfg(ctx, cfg.RegionId, cfg.Term, count.Count)
+	}
+
+	for _, count := range fixedDepositCountsByCfg {
 		k.SetFixedDepositCountOfCfg(ctx, count.RegionId, count.Term, count.Count)
 	}
 
@@ -217,4 +226,8 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *wstakingtypes.GenesisState {
 	}
 
 	return genesis
+}
+
+func fixedDepositCountOfCfgIndexKey(regionId string, term int64) string {
+	return fmt.Sprintf("%s/%d", regionId, term)
 }

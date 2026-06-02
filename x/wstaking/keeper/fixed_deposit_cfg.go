@@ -28,6 +28,7 @@ func (k Keeper) GetFixedDepositCfg(ctx sdk.Context, regionId string, term int64)
 func (k Keeper) RemoveFixedDepositCfg(ctx sdk.Context, regionId string, term int64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositCfgKeyPrefix+regionId))
 	store.Delete(types.FixedDepositCfgKey(term))
+	k.RemoveFixedDepositCountOfCfg(ctx, regionId, term)
 }
 
 func (k Keeper) GetAllFixedDepositCfg(ctx sdk.Context, regionId string) (list []types.FixedDepositCfg) {
@@ -79,7 +80,11 @@ func (k Keeper) GetFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term
 	if bz == nil {
 		return 0
 	}
-	return binary.BigEndian.Uint64(bz)
+	count, ok := fixedDepositCountOfCfgFromBytes(bz)
+	if !ok {
+		return 0
+	}
+	return count
 }
 
 func (k Keeper) SetFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term int64, count uint64) {
@@ -88,6 +93,12 @@ func (k Keeper) SetFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term
 	buf := make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, count)
 	store.Set(byteKey, buf)
+}
+
+func (k Keeper) RemoveFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term int64) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositCountOfCfgKeyPrefix+regionId))
+	byteKey := types.KeyPrefix(strconv.FormatInt(term, 10))
+	store.Delete(byteKey)
 }
 
 func (k Keeper) GetAllFixedDepositCountOfCfg(ctx sdk.Context) (list []types.FixedDepositCountOfCfg) {
@@ -109,7 +120,10 @@ func (k Keeper) IncreaseFixedDepositCountOfCfg(ctx sdk.Context, regionId string,
 	if bz == nil {
 		return types.ErrNoFixedDepositCountOfCfgFound
 	}
-	count := binary.BigEndian.Uint64(bz)
+	count, ok := fixedDepositCountOfCfgFromBytes(bz)
+	if !ok {
+		return types.ErrNoFixedDepositCountOfCfgFound.Wrapf("invalid fixed deposit count value length %d", len(bz))
+	}
 	count += 1
 
 	buf := make([]byte, 8)
@@ -125,7 +139,10 @@ func (k Keeper) DecreaseFixedDepositCountOfCfg(ctx sdk.Context, regionId string,
 	if bz == nil {
 		return types.ErrNoFixedDepositCountOfCfgFound
 	}
-	count := binary.BigEndian.Uint64(bz)
+	count, ok := fixedDepositCountOfCfgFromBytes(bz)
+	if !ok {
+		return types.ErrNoFixedDepositCountOfCfgFound.Wrapf("invalid fixed deposit count value length %d", len(bz))
+	}
 	if count == 0 {
 		return types.ErrFixedDepositCountOfCfgIsZero
 	}
@@ -135,4 +152,11 @@ func (k Keeper) DecreaseFixedDepositCountOfCfg(ctx sdk.Context, regionId string,
 	binary.BigEndian.PutUint64(buf, count)
 	store.Set(byteKey, buf)
 	return nil
+}
+
+func fixedDepositCountOfCfgFromBytes(bz []byte) (uint64, bool) {
+	if len(bz) != 8 {
+		return 0, false
+	}
+	return binary.BigEndian.Uint64(bz), true
 }
