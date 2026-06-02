@@ -396,11 +396,11 @@ func (msg *MsgWithdrawFromGlobalDaoFeePool) ValidateBasic() error {
 	}
 
 	if !msg.Amount.IsValid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid amount: %s", msg.Amount)
 	}
 
 	if !msg.Amount.IsAllPositive() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "amount must be positive: %s", msg.Amount)
 	}
 	return nil
 }

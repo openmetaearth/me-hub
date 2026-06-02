@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -11,12 +10,11 @@ import (
 )
 
 func TestPowerReduction(t *testing.T) {
-	t.Log(sdk.DefaultPowerReduction.String())
-
+	require.Equal(t, sdkmath.NewInt(1_000_000), sdk.DefaultPowerReduction)
 }
 
 func TestMsgWithdrawFromGlobalDaoFeePoolValidateBasic(t *testing.T) {
-	withdrawer := sdk.AccAddress(bytes.Repeat([]byte{0x01}, 20)).String()
+	const withdrawer = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"
 
 	tests := []struct {
 		name string
