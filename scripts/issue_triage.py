@@ -110,7 +110,7 @@ BLOCKCHAIN_KW = [
     "bridge token", "attestation", "msgtransferregion", "msgremoveregion",
     "msgstake", "msgmint", "did query", "grpc query", "genesis state",
     "region treasury", "region share", "fixed deposit", "bridge fee",
-    "double-sign", "slash", "rollapp", " ibc ", "kvstore",
+    "double-sign", "slash", "rollapp", "ibc ", " ibc", "kvstore",
     "proposer", "relayer set", "bridge claim", "sequencer proposer",
 ]
 
@@ -137,13 +137,16 @@ def is_mepass(issue):
     return any(kw in t for kw in MEPASS_KW)
 
 def is_spam(issue):
+    # Minimum title length below which empty issues are considered non-actionable
+    MIN_TITLE_LENGTH = 20
     title = (issue.get("title") or "").strip().lower()
     body = (issue.get("body") or "").strip()
     empty_body = not body
     return (
         title in INVALID_TITLES
         or len(title) <= 2
-        or (empty_body and len(title) < 20 and not title.startswith("[bug bounty]"))
+        or (empty_body and len(title) < MIN_TITLE_LENGTH
+            and not title.startswith("[bug bounty]"))
     )
 
 # ---- Main ----
@@ -216,7 +219,7 @@ for issue in issues:
         # --- Rule 4: Add mepass label ---
         if app and not chain and "mepass" not in labels:
             new_labels.add("mepass")
-            if "bug" not in new_labels and "enhancement" not in labels:
+            if "bug" not in new_labels and "enhancement" not in new_labels:
                 new_labels.add("bug")
             label_str = " and ".join(
                 f"**`{l}`**"

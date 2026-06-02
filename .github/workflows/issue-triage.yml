@@ -1,12 +1,16 @@
 name: Issue Triage
 
 on:
+  # Auto-triggers on Copilot-generated triage branches so the initial triage
+  # runs as soon as this workflow is pushed (pending maintainer approval).
+  # Remove this trigger after the initial triage is complete.
   push:
     branches:
       - 'copilot/**'
     paths:
       - 'scripts/issue_triage.py'
       - '.github/workflows/issue-triage.yml'
+  # Manual trigger for on-demand re-runs (works from the default branch).
   workflow_dispatch:
     inputs:
       dry_run:
