@@ -106,7 +106,7 @@ func (k Keeper) GetAllSequencers(ctx sdk.Context) (list []types.Sequencer) {
 
 // GetSequencersByRollapp returns a sequencersByRollapp from its index
 func (k Keeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list []types.Sequencer) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SequencersByRollappKey(rollappId))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SequencersByRollappPrefix(rollappId))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close() // nolint: errcheck
@@ -114,6 +114,9 @@ func (k Keeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Sequencer
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.RollappId != rollappId {
+			continue
+		}
 		list = append(list, val)
 	}
 
@@ -131,6 +134,9 @@ func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Sequencer
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.RollappId != rollappId {
+			continue
+		}
 		list = append(list, val)
 	}
 

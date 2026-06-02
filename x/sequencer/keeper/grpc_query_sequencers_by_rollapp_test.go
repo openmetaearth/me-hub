@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/openmetaearth/me-hub/testutil/nullify"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/keeper"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
@@ -85,6 +86,52 @@ func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
 			}
 		})
 	}
+}
+
+func (suite *SequencerTestSuite) TestSequencersByRollappQueryDoesNotLeakPrefixRollappId() {
+	suite.SetupTest()
+
+	rollappId := "ra-1"
+	prefixRollappId := "ra-10"
+	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapptypes.Rollapp{
+		RollappId:     rollappId,
+		Creator:       alice,
+		MaxSequencers: 5,
+	})
+	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapptypes.Rollapp{
+		RollappId:     prefixRollappId,
+		Creator:       alice,
+		MaxSequencers: 5,
+	})
+
+	rollappSeqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	prefixRollappSeqAddr := suite.CreateDefaultSequencer(suite.Ctx, prefixRollappId)
+	rollappSeq, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, rollappSeqAddr)
+	require.True(suite.T(), found)
+	prefixRollappSeq, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, prefixRollappSeqAddr)
+	require.True(suite.T(), found)
+
+	keeperSequencers := suite.App.SequencerKeeper.GetSequencersByRollapp(suite.Ctx, rollappId)
+	require.Len(suite.T(), keeperSequencers, 1)
+	require.Contains(suite.T(), keeperSequencers, rollappSeq)
+	require.NotContains(suite.T(), keeperSequencers, prefixRollappSeq)
+
+	response, err := suite.App.SequencerKeeper.SequencersByRollapp(suite.Ctx, &types.QueryGetSequencersByRollappRequest{
+		RollappId: rollappId,
+	})
+	require.NoError(suite.T(), err)
+	require.Len(suite.T(), response.Sequencers, 1)
+	require.Contains(suite.T(), response.Sequencers, rollappSeq)
+	require.NotContains(suite.T(), response.Sequencers, prefixRollappSeq)
+
+	statusResponse, err := suite.App.SequencerKeeper.SequencersByRollappByStatus(suite.Ctx, &types.QueryGetSequencersByRollappByStatusRequest{
+		RollappId: rollappId,
+		Status:    types.Bonded,
+	})
+	require.NoError(suite.T(), err)
+	require.Len(suite.T(), statusResponse.Sequencers, 1)
+	require.Contains(suite.T(), statusResponse.Sequencers, rollappSeq)
+	require.NotContains(suite.T(), statusResponse.Sequencers, prefixRollappSeq)
 }
 
 func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {

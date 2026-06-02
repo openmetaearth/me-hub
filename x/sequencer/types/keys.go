@@ -90,6 +90,12 @@ func SequencersByRollappKey(rollappId string) []byte {
 	return []byte(fmt.Sprintf("%s%s%s", SequencersByRollappKeyPrefix, KeySeparator, rollappIdBytes))
 }
 
+// SequencersByRollappPrefix returns the bounded prefix for iterating one
+// rollapp's sequencer index entries.
+func SequencersByRollappPrefix(rollappId string) []byte {
+	return []byte(fmt.Sprintf("%s%s", SequencersByRollappKey(rollappId), KeySeparator))
+}
+
 // SequencersByRollappByStatusKey returns the store key to retrieve a SequencersByRollappByStatus from the index fields
 func SequencersByRollappByStatusKey(rollappId string, status OperatingStatus) []byte {
 	// Get the relevant key prefix based on the packet status
