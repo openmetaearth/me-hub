@@ -5,7 +5,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	uibc "github.com/openmetaearth/me-hub/utils/uibc"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 )
 
@@ -22,16 +21,14 @@ type ChannelKeeper interface {
 
 type IBCModuleCanonicalChannelHack struct {
 	porttypes.IBCModule // next one
-	rollappKeeper       rollappkeeper.Keeper
-	channelKeeper       ChannelKeeper
 }
 
 func NewIBCModuleCanonicalChannelHack(
 	next porttypes.IBCModule,
-	rollappKeeper rollappkeeper.Keeper,
-	channelKeeper ChannelKeeper,
+	_ rollappkeeper.Keeper,
+	_ ChannelKeeper,
 ) *IBCModuleCanonicalChannelHack {
-	return &IBCModuleCanonicalChannelHack{IBCModule: next, rollappKeeper: rollappKeeper, channelKeeper: channelKeeper}
+	return &IBCModuleCanonicalChannelHack{IBCModule: next}
 }
 
 func (w IBCModuleCanonicalChannelHack) OnRecvPacket(
@@ -39,17 +36,7 @@ func (w IBCModuleCanonicalChannelHack) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	l := ctx.Logger().With("module", "hack set canonical channel")
-
-	chainID, err := uibc.ChainIDFromPortChannel(ctx, w.channelKeeper, packet.GetDestPort(), packet.GetDestChannel())
-	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
-	}
-	ra, ok := w.rollappKeeper.GetRollapp(ctx, chainID)
-	if ok && ra.ChannelId == "" {
-		ra.ChannelId = packet.GetDestChannel()
-		w.rollappKeeper.SetRollapp(ctx, ra)
-		l.Info("Set the canonical channel.", "channel id", packet.GetDestChannel())
-	}
+	// Canonical channels must be set by an authorized UpdateRollapp call, not by
+	// the first inbound packet observed on an arbitrary channel.
 	return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 }
