@@ -2,11 +2,14 @@ package keeper_test
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/openmetaearth/me-hub/testutil/helpers"
 	"github.com/openmetaearth/me-hub/x/gravity/keeper"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (s *KeeperTestSuite) TestQueryUnbatchedTxs() {
@@ -73,4 +76,28 @@ func (s *KeeperTestSuite) TestQueryUnbatchedTxs() {
 	s.Require().Len(res.Txs, numTxs-pageLimit)
 	s.Require().NotNil(res.Pagination)
 	s.Require().Nil(res.Pagination.NextKey)
+}
+
+func (s *KeeperTestSuite) TestClaimsByEventNonceRejectsInvalidRequests() {
+	queryServer := keeper.NewQueryServerImpl(s.Keeper())
+
+	_, err := queryServer.ClaimsByEventNonce(s.Ctx, nil)
+	s.Require().Error(err)
+	s.Require().Equal(codes.InvalidArgument, status.Code(err))
+
+	_, err = queryServer.ClaimsByEventNonce(s.Ctx, &types.QueryClaimsByEventNonceRequest{})
+	s.Require().Error(err)
+	s.Require().Equal(codes.InvalidArgument, status.Code(err))
+	s.Require().ErrorContains(err, "event nonce must be positive")
+}
+
+func (s *KeeperTestSuite) TestClaimsByEventNonceAllowsPositiveNonce() {
+	queryServer := keeper.NewQueryServerImpl(s.Keeper())
+
+	res, err := queryServer.ClaimsByEventNonce(s.Ctx, &types.QueryClaimsByEventNonceRequest{
+		EventNonce: 1,
+	})
+
+	s.Require().NoError(err)
+	s.Require().Empty(res.Claims)
 }

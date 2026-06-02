@@ -377,6 +377,13 @@ func (k QueryServer) BatchFees(c context.Context, req *types.QueryBatchFeeReques
 }
 
 func (k QueryServer) ClaimsByEventNonce(c context.Context, req *types.QueryClaimsByEventNonceRequest) (*types.QueryClaimsByEventNonceResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	if req.EventNonce == 0 {
+		return nil, status.Error(codes.InvalidArgument, "event nonce must be positive")
+	}
+
 	attestations := []types.Attestation{}
 	k.IterateAttestationsByNonce(sdk.UnwrapSDKContext(c), req.EventNonce, func(attestation *types.Attestation) bool {
 		attestations = append(attestations, *attestation)
