@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/openmetaearth/me-hub/x/wnft/types"
@@ -46,6 +47,10 @@ func (k Keeper) ClassAddress(goCtx context.Context, r *types.QueryClassAddressRe
 }
 
 func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest) (*types.QueryNftFilterResponse, error) {
+	if r == nil {
+		return nil, sdkerrors.ErrInvalidRequest.Wrap("empty request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var list []*types.NftList
@@ -82,7 +87,10 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 		if !has {
 			return nil, nil
 		}
-		address, _ := sdk.AccAddressFromBech32(r.Owner)
+		address, err := sdk.AccAddressFromBech32(r.Owner)
+		if err != nil {
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address %q: %v", r.Owner, err)
+		}
 
 		nftInfos := k.GetNFTsOfClassByOwner(ctx, r.ClassId, address)
 		for _, nftInfo := range nftInfos {
@@ -101,7 +109,10 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 	} else if r.Owner != "" && r.TokenId == "" && r.ClassId == "" {
 		// query the nft information held by the address
 		classes := k.GetClasses(ctx)
-		address, _ := sdk.AccAddressFromBech32(r.Owner)
+		address, err := sdk.AccAddressFromBech32(r.Owner)
+		if err != nil {
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address %q: %v", r.Owner, err)
+		}
 		for _, class := range classes {
 			nftInfos := k.GetNFTsOfClassByOwner(ctx, class.Id, address)
 			for _, nftInfo := range nftInfos {
@@ -120,5 +131,5 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 		}, nil
 
 	}
-	return nil, nil
+	return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid query parameters")
 }
