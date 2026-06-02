@@ -12,6 +12,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.SequencerList {
 		k.SetSequencer(ctx, elem)
 	}
+	for _, elem := range genState.ReplaceProposerList {
+		k.SetReplaceProposerInfo(ctx, elem)
+	}
 	k.SetParams(ctx, genState.Params)
 }
 
@@ -20,5 +23,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis := types.GenesisState{}
 	genesis.Params = k.GetParams(ctx)
 	genesis.SequencerList = k.GetAllSequencers(ctx)
+	genesis.ReplaceProposerList = k.GetAllReplaceProposers(ctx)
 	return &genesis
 }

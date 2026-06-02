@@ -30,6 +30,12 @@ func (k Keeper) SetReplaceProposer(ctx sdk.Context, data *types.MsgRepalcePropos
 	return nil
 }
 
+func (k Keeper) SetReplaceProposerInfo(ctx sdk.Context, data types.MsgStoreReplaceProposer) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
+	bz := k.cdc.MustMarshal(&data)
+	store.Set(types.RepalceRollappProposerKey(data.ReplaceProposer.RollappId), bz)
+}
+
 func (k Keeper) GetReplaceProposer(ctx sdk.Context, rollappId string) (*types.MsgStoreReplaceProposer, error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	bz := store.Get(types.RepalceRollappProposerKey(rollappId))
@@ -42,6 +48,21 @@ func (k Keeper) GetReplaceProposer(ctx sdk.Context, rollappId string) (*types.Ms
 		return nil, err
 	}
 	return &msg, nil
+}
+
+func (k Keeper) GetAllReplaceProposers(ctx sdk.Context) (list []types.MsgStoreReplaceProposer) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.RepalceProposerKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.MsgStoreReplaceProposer
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		list = append(list, val)
+	}
+
+	return
 }
 
 func (k Keeper) DeleteReplaceProposer(ctx sdk.Context, rollappId string) {
