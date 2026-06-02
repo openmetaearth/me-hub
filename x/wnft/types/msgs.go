@@ -13,6 +13,8 @@ const (
 	TypeMsgMintNFT  = "mint_nft"
 	// TypeMsgSend nft message types
 	TypeMsgSend = "send"
+
+	ReservedKycClassID = "kyc"
 )
 
 var (
@@ -41,7 +43,11 @@ func (msg MsgNewClass) ValidateBasic() error {
 		return nft.ErrEmptyClassID
 	}
 
-	if msg.TotalSupply == 0 && msg.ClassId != "kyc" {
+	if IsReservedClassID(msg.ClassId) {
+		return errors.Wrapf(ErrReservedClassId, "class id %s is reserved for system use", msg.ClassId)
+	}
+
+	if msg.TotalSupply == 0 {
 		return ErrEmptyTotalSupply
 	}
 
@@ -59,6 +65,10 @@ func (msg MsgNewClass) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+func IsReservedClassID(classID string) bool {
+	return classID == ReservedKycClassID
 }
 
 func NewMsgNewClass(classId, sender, name, symbol, description, uri, uriHash string, totalSupply uint64) *MsgNewClass {

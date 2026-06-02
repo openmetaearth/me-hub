@@ -36,6 +36,10 @@ func NewMsgServerImpl(
 func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.MsgNewClassResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if types.IsReservedClassID(msg.ClassId) {
+		return nil, sdkerrors.Wrapf(types.ErrReservedClassId, "class id %s is reserved for system use", msg.ClassId)
+	}
+
 	_, ok := k.GetClass(ctx, msg.ClassId)
 	if ok {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "class %s already exists", msg.ClassId)
