@@ -38,6 +38,12 @@ func TestKycGenesisDefaultsServiceActiveWhenMissing(t *testing.T) {
 	app := apptesting.Setup(t, false)
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
+	app.DidKeeper.DeleteService(ctx, kyctypes.ModuleName)
+	_, found := app.KycKeeper.GetService(ctx)
+	require.False(t, found)
+
+	kyc.InitGenesis(ctx, *app.KycKeeper, kyctypes.GenesisState{})
+
 	service, found := app.KycKeeper.GetService(ctx)
 	require.True(t, found)
 	require.Equal(t, didtypes.SERVICE_STATUS_ACTIVE, service.Status)
