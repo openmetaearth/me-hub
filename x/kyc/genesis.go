@@ -31,12 +31,17 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		k.SetKycEventSeq(ctx, *genState.KycEventSeq)
 	}
 
+	status := didtypes.SERVICE_STATUS_ACTIVE
+	if existingService, found := k.GetService(ctx); found {
+		status = existingService.Status
+	}
+
 	service := didtypes.Service{
 		Sid:         types.ModuleName,
 		Name:        types.ModuleName,
 		Description: "The KYC verifiable credential issuer based The DID(Decentralized Identity).",
 		Issuers:     issuers,
-		Status:      didtypes.SERVICE_STATUS_ACTIVE,
+		Status:      status,
 	}
 	k.SetService(ctx, service)
 

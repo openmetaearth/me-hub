@@ -32,6 +32,10 @@ func (k *Keeper) RemoveSBT(ctx sdk.Context, did string) error {
 }
 
 func (k *Keeper) SetSbtClass(ctx sdk.Context) error {
+	if k.nftKeeper.HasClass(ctx, types.ModuleName) {
+		return nil
+	}
+
 	class := nft.Class{
 		Id:   types.ModuleName,
 		Name: types.ModuleName,
