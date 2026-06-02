@@ -240,6 +240,12 @@ func (k Keeper) AutoIncrementID(ctx sdk.Context, idKey []byte) uint64 {
 	return id
 }
 
+// SetNextAutoIncrementID stores the next value that AutoIncrementID will return.
+func (k Keeper) SetNextAutoIncrementID(ctx sdk.Context, idKey []byte, nextID uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(idKey, sdk.Uint64ToBigEndian(nextID))
+}
+
 func (k Keeper) ClearAutoIncrementID(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.KeyLastOutgoingBatchID)

@@ -2,8 +2,10 @@ package keeper
 
 import (
 	"encoding/json"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"math"
 	"sort"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
@@ -69,6 +71,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 
 	for i := 0; i < len(state.Batches); i++ {
 		batch := state.Batches[i]
+		batch.Transactions = nonNilOutgoingTransfers(batch.Transactions)
 		if err := k.StoreBatch(ctx, &batch); err != nil {
 			panic(err)
 		}
@@ -114,6 +117,21 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	}
 }
 
+func nonNilOutgoingTransfers(transfers []*types.OutgoingTransferTx) []*types.OutgoingTransferTx {
+	for _, transfer := range transfers {
+		if transfer == nil {
+			filtered := make([]*types.OutgoingTransferTx, 0, len(transfers))
+			for _, candidate := range transfers {
+				if candidate != nil {
+					filtered = append(filtered, candidate)
+				}
+			}
+			return filtered
+		}
+	}
+	return transfers
+}
+
 func (k Keeper) restoreOutgoingAutoIncrementCounters(ctx sdk.Context, state *types.GenesisState) {
 	maxTxID := uint64(0)
 	for _, transfer := range state.UnbatchedTransfers {
@@ -134,18 +152,17 @@ func (k Keeper) restoreOutgoingAutoIncrementCounters(ctx sdk.Context, state *typ
 		}
 	}
 
-	store := ctx.KVStore(k.storeKey)
 	if maxTxID > 0 {
-		if maxTxID == ^uint64(0) {
+		if maxTxID == math.MaxUint64 {
 			panic("outgoing transfer tx id counter overflow")
 		}
-		store.Set(types.KeyLastTxPoolID, sdk.Uint64ToBigEndian(maxTxID+1))
+		k.SetNextAutoIncrementID(ctx, types.KeyLastTxPoolID, maxTxID+1)
 	}
 	if maxBatchNonce > 0 {
-		if maxBatchNonce == ^uint64(0) {
+		if maxBatchNonce == math.MaxUint64 {
 			panic("outgoing batch nonce counter overflow")
 		}
-		store.Set(types.KeyLastOutgoingBatchID, sdk.Uint64ToBigEndian(maxBatchNonce+1))
+		k.SetNextAutoIncrementID(ctx, types.KeyLastOutgoingBatchID, maxBatchNonce+1)
 	}
 }
 
