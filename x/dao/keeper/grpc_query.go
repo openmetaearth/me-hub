@@ -31,7 +31,7 @@ func (k Keeper) GlobalDaoFeePool(goCtx context.Context, req *types.QueryGlobalDa
 func (k Keeper) FreeGasAccounts(goCtx context.Context, req *types.QueryFreeGasAccountsReq) (*types.QueryFreeGasAccountsResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	store := ctx.KVStore(k.storeKey)
-	pstore := prefix.NewStore(store, types.FreeGasAddressePrefix)
+	pstore := prefix.NewStore(store, types.FreeGasAddressPrefix)
 
 	var accounts []string
 	pageRes, err := query.Paginate(pstore, req.Pagination, func(key []byte, value []byte) error {
