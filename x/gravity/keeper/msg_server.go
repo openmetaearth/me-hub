@@ -235,13 +235,10 @@ func (s MsgServer) RelayerSetUpdateClaim(c context.Context, msg *types.MsgRelaye
 		return nil, err
 	}
 
-	for _, member := range msg.Members {
-		if _, found := s.GetRelayerByExternalAddress(ctx, member.ExternalAddress); !found {
-			return nil, errorsmod.Wrapf(types.ErrInvalid, "external address not exist %s", member.ExternalAddress)
-		}
-	}
-
 	// Add the claim to the store
+	// Historical relayer-set claims are validated against the stored relayer set
+	// for RelayerSetNonce in AttestationHandler. Do not require every claimed
+	// member to still exist in the current mutable external-address index.
 	if _, err := s.Attest(ctx, relayerAddress, msg); err != nil {
 		return nil, err
 	}

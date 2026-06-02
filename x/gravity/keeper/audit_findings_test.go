@@ -202,7 +202,7 @@ func (s *KeeperTestSuite) TestGrav004_FailedAttestationMustNotLockNonce() {
 // no tokens registered" baseline for audit tests.
 // ---------------------------------------------------------------------------
 
-func (s *KeeperTestSuite) setupBondedRelayerSetForAuditTest() {
+func (s *KeeperTestSuite) setupConfirmedRelayerSetForAuditTest() types.BridgeValidators {
 	totalPower := sdkmath.ZeroInt()
 	delegateAmounts := make([]sdkmath.Int, 0, len(s.relayerAddrs))
 	for i, relayer := range s.relayerAddrs {
@@ -259,6 +259,12 @@ func (s *KeeperTestSuite) setupBondedRelayerSetForAuditTest() {
 		s.Require().NoError(err)
 	}
 
+	return externalRelayerMembers
+}
+
+func (s *KeeperTestSuite) setupBondedRelayerSetForAuditTest() {
+	externalRelayerMembers := s.setupConfirmedRelayerSetForAuditTest()
+
 	for i := range s.relayerAddrs {
 		msg := &types.MsgRelayerSetUpdateClaim{
 			EventNonce:      1,
@@ -272,4 +278,51 @@ func (s *KeeperTestSuite) setupBondedRelayerSetForAuditTest() {
 		s.Require().NoError(err)
 	}
 	s.Keeper().EndBlocker(s.Ctx)
+}
+
+func (s *KeeperTestSuite) TestRelayerSetUpdateClaimAcceptsHistoricalSetAfterMemberUnbonded() {
+	externalRelayerMembers := s.setupConfirmedRelayerSetForAuditTest()
+	nonce1RelayerSet := s.Keeper().GetRelayerSet(s.Ctx, 1)
+	s.Require().NotNil(nonce1RelayerSet)
+
+	remainingRelayers := make([]string, 0, len(s.relayerAddrs)-1)
+	for _, relayer := range s.relayerAddrs[1:] {
+		remainingRelayers = append(remainingRelayers, relayer.String())
+	}
+	_, err := s.MsgServer().ProposalRelayers(s.Ctx, &types.MsgProposalRelayers{
+		Relayers:  remainingRelayers,
+		Authority: s.Dao.GlobalDao,
+		ChainName: s.chainName,
+	})
+	s.Require().NoError(err)
+
+	removedExternalAddress := s.PubKeyToExternalAddr(s.externalPris[0].PublicKey)
+	removedRelayer, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[0])
+	s.Require().True(found)
+	s.Require().False(removedRelayer.Online)
+	_, found = s.Keeper().GetRelayerByExternalAddress(s.Ctx, removedExternalAddress)
+	s.Require().True(found)
+
+	_, err = s.MsgServer().UnbondedRelayer(s.Ctx, &types.MsgUnbondedRelayer{
+		ChainName:      s.chainName,
+		RelayerAddress: s.relayerAddrs[0].String(),
+	})
+	s.Require().NoError(err)
+	_, found = s.Keeper().GetRelayerByExternalAddress(s.Ctx, removedExternalAddress)
+	s.Require().False(found)
+
+	msg := &types.MsgRelayerSetUpdateClaim{
+		EventNonce:      1,
+		BlockHeight:     1,
+		RelayerSetNonce: nonce1RelayerSet.Nonce,
+		Members:         externalRelayerMembers,
+		RelayerAddress:  s.relayerAddrs[1].String(),
+		ChainName:       s.chainName,
+	}
+	_, err = s.MsgServer().RelayerSetUpdateClaim(sdk.WrapSDKContext(s.Ctx), msg)
+	s.Require().NoError(err)
+
+	attestation := s.Keeper().GetAttestation(s.Ctx, msg.EventNonce, msg.ClaimHash())
+	s.Require().NotNil(attestation)
+	s.Require().False(attestation.Observed)
 }
