@@ -11,6 +11,10 @@ const (
 	BridgeFeePool             = "bridge_fee_pool"
 )
 
+// IsAllowedSendToModuleTarget returns true for module accounts the GlobalDao may
+// fund through MsgSendToModule. Accounting and reward pools such as
+// GlobalDaoFeePool, bonded staking pools, and distribution modules are excluded
+// because direct deposits bypass their module-specific accounting flows.
 func IsAllowedSendToModuleTarget(moduleName string) bool {
 	switch moduleName {
 	case StakePoolName, FixedDepositPrincipalPool, BridgeFeePool:

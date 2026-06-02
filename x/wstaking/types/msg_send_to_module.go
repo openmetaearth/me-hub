@@ -46,9 +46,6 @@ func (msg *MsgSendToModule) ValidateBasic() error {
 	if msg.Receiver == "" {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
 	}
-	if !IsAllowedSendToModuleTarget(msg.Receiver) {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "module %q is not an allowed SendToModule target", msg.Receiver)
-	}
 	if !msg.Amount.IsAllPositive() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "amount must be positive")
 	}
