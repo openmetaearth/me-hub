@@ -1,6 +1,12 @@
 name: Issue Triage
 
 on:
+  push:
+    branches:
+      - 'copilot/**'
+    paths:
+      - 'scripts/issue_triage.py'
+      - '.github/workflows/issue-triage.yml'
   workflow_dispatch:
     inputs:
       dry_run:
