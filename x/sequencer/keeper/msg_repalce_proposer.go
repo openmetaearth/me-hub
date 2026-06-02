@@ -50,8 +50,15 @@ func (k msgServer) ReplaceProposer(goCtx context.Context, msg *types.MsgReplaceP
 	if !found {
 		return nil, errorsmod.Wrapf(types.ErrUnknownRequest, "no state info found for rollapp %s at index %d", msg.ReplaceProposer.RollappId, stateInfoIndex.Index)
 	}
-	if msg.ReplaceProposer.BlockHeight <= int64(stateInfo.StartHeight+stateInfo.NumBlocks) {
-		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "replace proposer block height %d must be greater than last state info end height %d", msg.ReplaceProposer.BlockHeight, stateInfo.StartHeight+stateInfo.NumBlocks)
+	lastStateInfoEndHeight := stateInfo.StartHeight
+	if stateInfo.NumBlocks > 0 {
+		lastStateInfoEndHeight = stateInfo.StartHeight + stateInfo.NumBlocks - 1
+	}
+	if msg.ReplaceProposer.BlockHeight < 1 {
+		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "invalid block number (%d)", msg.ReplaceProposer.BlockHeight)
+	}
+	if uint64(msg.ReplaceProposer.BlockHeight) < lastStateInfoEndHeight {
+		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "replace proposer block height %d must be at least last state info end height %d", msg.ReplaceProposer.BlockHeight, lastStateInfoEndHeight)
 	}
 
 	if err := k.SetReplaceProposer(ctx, msg.ReplaceProposer); err != nil {
