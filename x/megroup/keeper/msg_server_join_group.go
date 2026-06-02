@@ -84,12 +84,9 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 			return nil, errors.Wrap(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
 				err.Error(), region.GetRegionTreasureAddr(), msg.ApplicantAddress))
 		}
-		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
-			sdk.MustAccAddressFromBech32(groupInfo.Admin), sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_SendAdminRewards_%s", region.RegionId))
-		if err != nil {
-			return nil, errors.Wrap(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
-				err.Error(), region.GetRegionTreasureAddr(), groupInfo.Admin))
-		}
+			// Admin reward removed: unlimited per-join reward with no cap allows
+		// a malicious admin to drain the region treasury via repeated join/leave.
+		// The applicant reward alone is sufficient incentive.
 		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtJoinGroupReward,
 			sdk.NewAttribute("applicant", msg.ApplicantAddress),
 			sdk.NewAttribute("admin", groupInfo.Admin),
