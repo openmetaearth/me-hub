@@ -73,6 +73,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 			panic(err)
 		}
 	}
+	k.restoreOutgoingAutoIncrementCounters(ctx, state)
 
 	// reset attestations in state
 	for i := 0; i < len(state.Attestations); i++ {
@@ -110,6 +111,41 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 				k.SetLastEventBlockHeightByRelayer(ctx, relayer, claim.GetBlockHeight())
 			}
 		}
+	}
+}
+
+func (k Keeper) restoreOutgoingAutoIncrementCounters(ctx sdk.Context, state *types.GenesisState) {
+	maxTxID := uint64(0)
+	for _, transfer := range state.UnbatchedTransfers {
+		if transfer.Id > maxTxID {
+			maxTxID = transfer.Id
+		}
+	}
+
+	maxBatchNonce := uint64(0)
+	for _, batch := range state.Batches {
+		if batch.BatchNonce > maxBatchNonce {
+			maxBatchNonce = batch.BatchNonce
+		}
+		for _, transfer := range batch.Transactions {
+			if transfer != nil && transfer.Id > maxTxID {
+				maxTxID = transfer.Id
+			}
+		}
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	if maxTxID > 0 {
+		if maxTxID == ^uint64(0) {
+			panic("outgoing transfer tx id counter overflow")
+		}
+		store.Set(types.KeyLastTxPoolID, sdk.Uint64ToBigEndian(maxTxID+1))
+	}
+	if maxBatchNonce > 0 {
+		if maxBatchNonce == ^uint64(0) {
+			panic("outgoing batch nonce counter overflow")
+		}
+		store.Set(types.KeyLastOutgoingBatchID, sdk.Uint64ToBigEndian(maxBatchNonce+1))
 	}
 }
 
