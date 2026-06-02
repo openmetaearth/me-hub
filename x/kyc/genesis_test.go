@@ -74,15 +74,28 @@ func newDidKycKeepers(t *testing.T) (*didkeeper.Keeper, *kyckeeper.Keeper, sdk.C
 	return didKeeper, kycKeeper, ctx
 }
 
-func TestDidKycExportedGenesisImportsWithoutDuplicateIssuerPanic(t *testing.T) {
-	sourceDidKeeper, sourceKycKeeper, sourceCtx := newDidKycKeepers(t)
-	issuerAddr := sdk.AccAddress(bytes.Repeat([]byte{0x01}, 20))
-	issuerInfo := didtypes.DidInfo{
+func testIssuerAddr() sdk.AccAddress {
+	return sdk.AccAddress(bytes.Repeat([]byte{0x01}, 20))
+}
+
+func testIssuerInfo() didtypes.DidInfo {
+	addr := testIssuerAddr()
+	return didtypes.DidInfo{
 		Did:     "1000000000001",
-		Address: issuerAddr.String(),
+		Address: addr.String(),
 		Pubkey:  "{\"@type\":\"/ethermint.crypto.v1.ethsecp256k1.PubKey\",\"key\":\"AyfZ/7fojbKMioe5Oaw378EH4F8w2CGvZ7SwOCRvlCH8\"}",
 		Status:  didtypes.DID_STATUS_ACTIVE,
 	}
+}
+
+func testKycGenesis(issuerInfo didtypes.DidInfo) kyctypes.GenesisState {
+	return kyctypes.GenesisState{Issuers: []didtypes.DidInfo{issuerInfo}}
+}
+
+func TestDidKycExportedGenesisImportsWithoutDuplicateIssuerPanic(t *testing.T) {
+	sourceDidKeeper, sourceKycKeeper, sourceCtx := newDidKycKeepers(t)
+	issuerAddr := testIssuerAddr()
+	issuerInfo := testIssuerInfo()
 	service := didtypes.Service{
 		Sid:         kyctypes.ModuleName,
 		Name:        kyctypes.ModuleName,
@@ -114,4 +127,53 @@ func TestDidKycExportedGenesisImportsWithoutDuplicateIssuerPanic(t *testing.T) {
 	importedService, found := targetKycKeeper.GetService(targetCtx)
 	require.True(t, found)
 	require.Equal(t, []string{issuerInfo.Did}, importedService.Issuers)
+}
+
+func TestKycGenesisPanicsWhenIssuerAddressMapsToDifferentDid(t *testing.T) {
+	didKeeper, kycKeeper, ctx := newDidKycKeepers(t)
+	issuerInfo := testIssuerInfo()
+
+	didKeeper.SetDID(ctx, testIssuerAddr(), "2000000000002")
+
+	require.Panics(t, func() {
+		kyc.InitGenesis(ctx, *kycKeeper, testKycGenesis(issuerInfo))
+	})
+}
+
+func TestKycGenesisPanicsWhenRestoredIssuerDidInfoIsMissing(t *testing.T) {
+	didKeeper, kycKeeper, ctx := newDidKycKeepers(t)
+	issuerInfo := testIssuerInfo()
+
+	didKeeper.SetDID(ctx, testIssuerAddr(), issuerInfo.Did)
+
+	require.Panics(t, func() {
+		kyc.InitGenesis(ctx, *kycKeeper, testKycGenesis(issuerInfo))
+	})
+}
+
+func TestKycGenesisPanicsWhenRestoredIssuerDidInfoDiffers(t *testing.T) {
+	didKeeper, kycKeeper, ctx := newDidKycKeepers(t)
+	issuerInfo := testIssuerInfo()
+	conflictingInfo := issuerInfo
+	conflictingInfo.Pubkey = "{\"@type\":\"/ethermint.crypto.v1.ethsecp256k1.PubKey\",\"key\":\"A83z2Fnur8jc+tGvkCJjkZTBeJDLSObk8nVKOpY9P679\"}"
+
+	didKeeper.SetDID(ctx, testIssuerAddr(), issuerInfo.Did)
+	didKeeper.SetDidInfo(ctx, issuerInfo.Did, conflictingInfo)
+
+	require.Panics(t, func() {
+		kyc.InitGenesis(ctx, *kycKeeper, testKycGenesis(issuerInfo))
+	})
+}
+
+func TestKycGenesisPanicsWhenUnmappedIssuerDidInfoDiffers(t *testing.T) {
+	didKeeper, kycKeeper, ctx := newDidKycKeepers(t)
+	issuerInfo := testIssuerInfo()
+	conflictingInfo := issuerInfo
+	conflictingInfo.Address = sdk.AccAddress(bytes.Repeat([]byte{0x02}, 20)).String()
+
+	didKeeper.SetDidInfo(ctx, issuerInfo.Did, conflictingInfo)
+
+	require.Panics(t, func() {
+		kyc.InitGenesis(ctx, *kycKeeper, testKycGenesis(issuerInfo))
+	})
 }

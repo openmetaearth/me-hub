@@ -4,10 +4,15 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/keeper"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
+
+func didInfoEqual(a, b didtypes.DidInfo) bool {
+	return proto.Equal(&a, &b)
+}
 
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
@@ -22,14 +27,14 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 			}
 			existingInfo, found := k.GetDidInfo(ctx, issuer.Did)
 			if !found {
-				panic(fmt.Errorf("issuer %s DID info not found", addr.String()))
+				panic(fmt.Errorf("issuer %s DID %s info not found", addr.String(), issuer.Did))
 			}
-			if existingInfo != issuer {
-				panic(fmt.Errorf("issuer %s already exists with conflicting DID info", addr.String()))
+			if !didInfoEqual(existingInfo, issuer) {
+				panic(fmt.Errorf("issuer %s DID %s already exists with conflicting DID info: existing=%+v incoming=%+v", addr.String(), issuer.Did, existingInfo, issuer))
 			}
 		} else {
-			if existingInfo, found := k.GetDidInfo(ctx, issuer.Did); found && existingInfo != issuer {
-				panic(fmt.Errorf("issuer DID %s already exists with conflicting DID info", issuer.Did))
+			if existingInfo, found := k.GetDidInfo(ctx, issuer.Did); found && !didInfoEqual(existingInfo, issuer) {
+				panic(fmt.Errorf("issuer DID %s already exists with conflicting DID info: existing=%+v incoming=%+v", issuer.Did, existingInfo, issuer))
 			}
 			k.SetDID(ctx, addr, issuer.Did)
 			k.SetDidInfo(ctx, issuer.Did, issuer)
