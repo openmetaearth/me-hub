@@ -118,6 +118,10 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	demandOrder.Fee = sdk.NewCoins(sdk.NewCoin(denom, newFeeInt))
 	demandOrder.Price = sdk.NewCoins(sdk.NewCoin(denom, newPrice))
 
+	if err := demandOrder.Validate(); err != nil {
+		return nil, err
+	}
+
 	err = m.SetDemandOrder(ctx, demandOrder)
 	if err != nil {
 		return nil, err

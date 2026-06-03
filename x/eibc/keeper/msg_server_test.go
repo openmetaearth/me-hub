@@ -276,6 +276,31 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestUpdateDemandOrderValidatesBeforePersisting() {
+	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, sdk.NewInt(100_000))
+	eibcSupplyAddr := testAddresses[0]
+
+	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2), 0) // 1%
+	suite.App.DelayedAckKeeper.SetParams(suite.Ctx, dackParams)
+	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
+
+	invalidIBCDenom := "transfer/"
+	initialFee := sdk.NewInt(100)
+	initialPrice := sdk.NewInt(890)
+	demandOrder := types.NewDemandOrder(*rollappPacket, initialPrice, initialFee, invalidIBCDenom, eibcSupplyAddr.String())
+	err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
+	suite.Require().NoError(err)
+
+	msg := types.NewMsgUpdateDemandOrder(eibcSupplyAddr.String(), demandOrder.Id, "400")
+	_, err = suite.msgServer.UpdateDemandOrder(suite.Ctx, msg)
+	suite.Require().Error(err)
+
+	storedDemandOrder, err := suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, rollappPacket.Status, demandOrder.Id)
+	suite.Require().NoError(err)
+	suite.Require().Equal(initialFee, storedDemandOrder.Fee.AmountOf(invalidIBCDenom))
+	suite.Require().Equal(initialPrice, storedDemandOrder.Price.AmountOf(invalidIBCDenom))
+}
+
 func (suite *KeeperTestSuite) TestUpdateDemandOrderOnAckOrTimeout() {
 	// Create and fund the account
 	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(100_000))
