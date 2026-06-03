@@ -41,19 +41,25 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 		if _, err := utils.CheckRegionName(strings.ToUpper(msg.Description.RegionID)); err != nil {
 			return nil, types.ErrRegionName
 		}
+		newRegionId := strings.ToLower(msg.Description.RegionID)
 		// remove duplication
 		validators := k.GetAllValidators(ctx)
 		for _, v := range validators {
-			if v.Description.RegionID == msg.Description.RegionID {
+			if v.OperatorAddress != validator.OperatorAddress && strings.ToLower(v.Description.RegionID) == newRegionId {
 				return nil, types.ErrValidatorRegionDuplication
 			}
 		}
-		k.UnBondRegion(ctx, oldRegionId)
-		description.RegionID = msg.Description.RegionID
+		description.RegionID = newRegionId
 		validator.Description = description
-		region, f := k.GetRegion(ctx, msg.Description.RegionID)
-		if f && region.OperatorAddress == "" {
-			k.BondRegion(ctx, validator, validator.Tokens, true)
+		if newRegionId != oldRegionId {
+			region, f := k.GetRegion(ctx, newRegionId)
+			if !f {
+				return nil, types.ErrRegionNotExist
+			}
+			k.UnBondRegion(ctx, oldRegionId)
+			if region.OperatorAddress == "" {
+				k.BondRegion(ctx, validator, validator.Tokens, true)
+			}
 		}
 	}
 
