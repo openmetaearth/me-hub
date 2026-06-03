@@ -29,7 +29,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 
 	// if there is a more profitable batch for this token type do not create a new batch
 	if lastBatch := k.GetLastOutgoingBatchByTokenType(ctx, contractAddress); lastBatch != nil {
-		if lastBatch.BatchTimeout < projectedCurrentExternalHeight {
+		if lastBatch.BatchTimeout >= projectedCurrentExternalHeight {
 			return nil, errorsmod.Wrap(types.ErrInvalid, "existing unexecuted batch, and the batch not timeout")
 		}
 	}

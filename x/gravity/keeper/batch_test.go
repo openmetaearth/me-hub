@@ -155,3 +155,52 @@ func (suite *KeeperTestSuite) TestKeeper_IterateBatch() {
 	)
 	suite.Equal(len(batchs), index)
 }
+
+func (suite *KeeperTestSuite) TestBuildOutgoingTxBatch_Timeout() {
+	receiver := helpers.GenerateAddress().Hex()
+	tokenContract := helpers.GenerateAddress().Hex()
+	denom := "testtoken"
+
+	// Register bridge token
+	suite.Keeper().SetBridgeToken(suite.Ctx, &types.BridgeToken{
+		ContractAddress: tokenContract,
+		Denom:           denom,
+		Supply:          sdkmath.NewInt(1000000),
+	})
+
+	// Mint and fund sender
+	sender := suite.relayerAddrs[0]
+	err := suite.App.BankKeeper.MintCoins(suite.Ctx, suite.chainName, sdk.NewCoins(sdk.NewCoin(denom, sdkmath.NewInt(1000000))))
+	suite.NoError(err)
+	err = suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, suite.chainName, sender, sdk.NewCoins(sdk.NewCoin(denom, sdkmath.NewInt(1000000))))
+	suite.NoError(err)
+
+	// Set last observed block height
+	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, 1000, 0)
+
+	// Add transaction to outgoing pool
+	amount := sdk.NewCoin(denom, sdkmath.NewInt(100))
+	fee := sdk.NewCoin(denom, sdkmath.NewInt(10))
+	_, err = suite.Keeper().AddToOutgoingPool(suite.Ctx, sender, receiver, amount, fee)
+	suite.NoError(err)
+
+	// Build outgoing tx batch first time
+	batch, err := suite.Keeper().BuildOutgoingTxBatch(suite.Ctx, tokenContract, suite.relayerAddrs[1].String(), 10, sdkmath.NewInt(0), sdkmath.NewInt(0))
+	suite.NoError(err)
+	suite.NotNil(batch)
+
+	// Trying to build outgoing batch again should fail because the first batch has not timed out yet
+	_, err = suite.Keeper().AddToOutgoingPool(suite.Ctx, sender, receiver, amount, fee)
+	suite.NoError(err)
+	_, err = suite.Keeper().BuildOutgoingTxBatch(suite.Ctx, tokenContract, suite.relayerAddrs[1].String(), 10, sdkmath.NewInt(0), sdkmath.NewInt(0))
+	suite.Error(err)
+	suite.Contains(err.Error(), "existing unexecuted batch, and the batch not timeout")
+
+	// Set last observed external block height way in the future to trigger timeout
+	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, batch.BatchTimeout+1, uint64(suite.Ctx.BlockHeight()))
+
+	// Build outgoing tx batch after timeout should succeed (or fail with other reasons, but not due to non-timeout unexecuted batch)
+	_, err = suite.Keeper().BuildOutgoingTxBatch(suite.Ctx, tokenContract, suite.relayerAddrs[1].String(), 10, sdkmath.NewInt(0), sdkmath.NewInt(0))
+	suite.NoError(err)
+}
+
