@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,6 +11,8 @@ import (
 
 func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRollapp) (*types.MsgCreateRollappResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	msg.RollappId = strings.TrimSpace(msg.RollappId)
 
 	if !k.RollappsEnabled(ctx) {
 		return nil, types.ErrRollappsDisabled

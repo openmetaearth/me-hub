@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	fmt "fmt"
+	"strings"
 
 	"github.com/cometbft/cometbft/libs/rand"
 
@@ -377,3 +378,52 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 		})
 	}
 }
+
+func (suite *RollappTestSuite) TestWhitespaceRollappID() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	whitespaceID := " evil_1-1 "
+	_, err := suite.msgServer.CreateRollapp(goCtx, &types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             whitespaceID,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	})
+	suite.Require().NoError(err)
+
+	// Verify that the rollapp is stored with the trimmed ID
+	_, foundRaw := suite.App.RollappKeeper.GetRollapp(suite.Ctx, whitespaceID)
+	suite.Require().False(foundRaw, "should not store raw untrimmed rollapp id")
+
+	stored, foundTrimmed := suite.App.RollappKeeper.GetRollapp(suite.Ctx, "evil_1-1")
+	suite.Require().True(foundTrimmed, "should store trimmed rollapp id")
+	suite.Require().Equal("evil_1-1", stored.RollappId)
+
+	// Try to register the same ID with whitespace again
+	_, err = suite.msgServer.CreateRollapp(goCtx, &types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             "evil_1-1",
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	})
+	suite.Require().ErrorIs(err, types.ErrRollappExists, "should not allow duplicate registration")
+
+	// Try to register " dup " and then "dup"
+	_, err = suite.msgServer.CreateRollapp(goCtx, &types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             " dup ",
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	})
+	suite.Require().NoError(err)
+
+	_, err = suite.msgServer.CreateRollapp(goCtx, &types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             "dup",
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	})
+	suite.Require().ErrorIs(err, types.ErrRollappExists, "should reject duplicate trimmed namespaced rollapp")
+}
+
