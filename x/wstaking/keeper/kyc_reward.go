@@ -117,9 +117,7 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 		return fmt.Errorf("settle interest error: %v", err)
 	}
 
-	if region.DelegateInterest.GTE(rewards) {
-		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
-	}
+	region.DelegateInterest = sdk.MaxDec(sdk.ZeroDec(), region.DelegateInterest.Sub(rewards))
 
 	if delegation.Unmovable.LTE(sdk.ZeroInt()) {
 		return types.ErrDidExists
@@ -192,9 +190,7 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 				return err
 			}
 		}
-		if experienceRegion.DelegateInterest.GTE(interest) {
-			experienceRegion.DelegateInterest = experienceRegion.DelegateInterest.Sub(interest)
-		}
+		experienceRegion.DelegateInterest = sdk.MaxDec(sdk.ZeroDec(), experienceRegion.DelegateInterest.Sub(interest))
 		experienceRegion.DelegateAmount = experienceRegion.DelegateAmount.Sub(delegation.UnMeidAmount)
 		k.SetRegion(ctx, experienceRegion)
 
@@ -425,9 +421,7 @@ func (k Keeper) transferUnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, 
 		return amount, err
 	}
 
-	if region.DelegateInterest.GTE(rewards) {
-		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
-	}
+	region.DelegateInterest = sdk.MaxDec(sdk.ZeroDec(), region.DelegateInterest.Sub(rewards))
 
 	if delegation.Unmovable.LTE(sdk.ZeroInt()) {
 		return amount, errors.New("UnRegisterMeid err: delegation UnMovable <= 0")
