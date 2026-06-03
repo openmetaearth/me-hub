@@ -20,13 +20,6 @@ func CreateUpgradeHandler(
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 		logger.Info("upgrade starting...")
 
-		// Initialize consensus versions for all modules
-		for n, m := range mm.Modules {
-			if mod, ok := m.(module.HasConsensusVersion); ok {
-				fromVM[n] = mod.ConsensusVersion()
-			}
-		}
-
 		logger.Info("upgrade finished successfully.")
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}

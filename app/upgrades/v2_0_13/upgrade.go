@@ -30,13 +30,6 @@ func CreateUpgradeHandler(
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 		logger.Info("upgrade starting...")
 
-		// Initialize consensus versions for all modules
-		for n, m := range mm.Modules {
-			if mod, ok := m.(module.HasConsensusVersion); ok {
-				fromVM[n] = mod.ConsensusVersion()
-			}
-		}
-
 		params := keepers.GovKeeper.GetParams(ctx)
 		maxDepositPeriod := 30 * time.Minute
 		params.MaxDepositPeriod = &maxDepositPeriod
