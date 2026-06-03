@@ -107,3 +107,15 @@ func (s *KeeperTestSuite) TestPubKeyFromString() {
 	secpAccAddr, _ := s.Keeper().MustAccAddressFromPubkeyString(secp256k1Pubkey)
 	s.Require().Equal("me1kj3emedrrq66vdqf3pzpfjmytympl4j2a4xd0c", secpAccAddr.String())
 }
+
+func (s *KeeperTestSuite) TestGetAllRegions() {
+	s.SetupTest()
+	regions := s.Keeper().GetAllRegions(s.Ctx)
+	// We expect exactly 3 regions that were set up in SetupTest
+	s.Require().Equal(3, len(regions))
+	for _, reg := range regions {
+		s.Require().NotEmpty(reg.Id)
+		s.Require().NotEmpty(reg.Name)
+	}
+}
+
