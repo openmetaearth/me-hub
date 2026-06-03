@@ -18,6 +18,11 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes bool, 
 
 	totalVotingPower := math.LegacyZeroDec()
 	currValidators := make(map[string]v1.ValidatorGovInfo)
+	type voteDeletion struct {
+		proposalID uint64
+		voter      sdk.AccAddress
+	}
+	votesToDelete := make([]voteDeletion, 0)
 
 	// fetch all the bonded validators, insert them into currValidators
 	keeper.stakingKeeper.IterateBondedValidatorsByPower(ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
@@ -66,9 +71,16 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes bool, 
 		//	return false
 		//})
 
-		keeper.DeleteVote(ctx, vote.ProposalId, voter)
+		votesToDelete = append(votesToDelete, voteDeletion{
+			proposalID: vote.ProposalId,
+			voter:      voter,
+		})
 		return false
 	})
+
+	for _, vote := range votesToDelete {
+		keeper.DeleteVote(ctx, vote.proposalID, vote.voter)
+	}
 
 	// iterate over the validators again to tally their voting power
 	for _, val := range currValidators {
