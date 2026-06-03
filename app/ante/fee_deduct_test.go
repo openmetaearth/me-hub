@@ -391,3 +391,62 @@ func TestCheckFunds(t *testing.T) {
 		})
 	}
 }
+
+func TestCheckFundsAlwaysAddsFeeToFeePayerSendAmount(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	ctx := sdk.Context{}
+	mockBankKeeper := mock.NewMockBankKeeper(ctrl)
+	mockAccountKeeper := authantetestutil.NewMockAccountKeeper(ctrl)
+	mockFeegrantKeeper := authantetestutil.NewMockFeegrantKeeper(ctrl)
+	mockStakingKeeper := mock.NewMockStakingKeeper(ctrl)
+	mockKycKeeper := mock.NewMockKycKeeper(ctrl)
+	mockDaoKeeper := mock.NewMockDaoKeeper(ctrl)
+	mockWasmKeeper := mock.NewMockWasmKeeper(ctrl)
+
+	decorator := ante.NewDeductFeeDecorator(
+		mockAccountKeeper,
+		mockBankKeeper,
+		mockFeegrantKeeper,
+		mockDaoKeeper,
+		mockStakingKeeper,
+		mockKycKeeper,
+		nil,
+		mockWasmKeeper,
+	)
+
+	feePayer := NewAccount()
+	receiver := NewAccount()
+	laterSender := NewAccount()
+	fees := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(10)))
+
+	mockBankKeeper.EXPECT().
+		GetAllBalances(gomock.Any(), feePayer.GetAddress()).
+		Return(sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(100)))).
+		AnyTimes()
+	mockBankKeeper.EXPECT().
+		GetAllBalances(gomock.Any(), laterSender.GetAddress()).
+		Return(sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1)))).
+		AnyTimes()
+
+	tx := &mock.MockTx{
+		Msgs: []sdk.Msg{
+			&banktypes.MsgSend{
+				FromAddress: feePayer.Address,
+				ToAddress:   receiver.Address,
+				Amount:      sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(100))),
+			},
+			&stakingtypes.MsgDelegate{
+				DelegatorAddress: laterSender.Address,
+				ValidatorAddress: sdk.ValAddress(receiver.GetAddress()).String(),
+				Amount:           sdk.NewCoin(params.BaseDenom, sdk.NewInt(1)),
+			},
+		},
+	}
+
+	err := decorator.CheckFunds(ctx, tx, feePayer.Address, fees)
+	require.Error(t, err)
+	require.True(t, sdkerrors.ErrInsufficientFunds.Is(err))
+	require.Contains(t, err.Error(), "required: 110umec")
+}

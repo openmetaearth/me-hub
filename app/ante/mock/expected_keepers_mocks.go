@@ -52,6 +52,20 @@ func (mr *MockDaoKeeperMockRecorder) CheckFreeGasAccount(ctx, address interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckFreeGasAccount", reflect.TypeOf((*MockDaoKeeper)(nil).CheckFreeGasAccount), ctx, address)
 }
 
+// IsDao mocks base method.
+func (m *MockDaoKeeper) IsDao(ctx types0.Context, addr string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsDao", ctx, addr)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsDao indicates an expected call of IsDao.
+func (mr *MockDaoKeeperMockRecorder) IsDao(ctx, addr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsDao", reflect.TypeOf((*MockDaoKeeper)(nil).IsDao), ctx, addr)
+}
+
 // GetAirdropAddress mocks base method.
 func (m *MockDaoKeeper) GetAirdropAddress(ctx types0.Context) string {
 	m.ctrl.T.Helper()
