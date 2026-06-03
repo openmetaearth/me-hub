@@ -2,11 +2,14 @@ package keeper_test
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/openmetaearth/me-hub/testutil/helpers"
 	"github.com/openmetaearth/me-hub/x/gravity/keeper"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (s *KeeperTestSuite) TestQueryUnbatchedTxs() {
@@ -73,4 +76,85 @@ func (s *KeeperTestSuite) TestQueryUnbatchedTxs() {
 	s.Require().Len(res.Txs, numTxs-pageLimit)
 	s.Require().NotNil(res.Pagination)
 	s.Require().Nil(res.Pagination.NextKey)
+}
+
+func (s *KeeperTestSuite) TestQueriesRejectInvalidRelayerAddressWithoutPanic() {
+	queryServer := keeper.NewQueryServerImpl(s.Keeper())
+	invalidRelayer := "not-a-bech32-address"
+	tokenContract := helpers.GenHexAddress().String()
+
+	tests := []struct {
+		name string
+		call func() error
+	}{
+		{
+			name: "RelayerSetConfirm",
+			call: func() error {
+				_, err := queryServer.RelayerSetConfirm(s.Ctx, &types.QueryRelayerSetConfirmRequest{
+					Nonce:          1,
+					RelayerAddress: invalidRelayer,
+				})
+				return err
+			},
+		},
+		{
+			name: "LastPendingRelayerSetRequestByAddr",
+			call: func() error {
+				_, err := queryServer.LastPendingRelayerSetRequestByAddr(s.Ctx, &types.QueryLastPendingRelayerSetRequestByAddrRequest{
+					RelayerAddress: invalidRelayer,
+				})
+				return err
+			},
+		},
+		{
+			name: "LastPendingBatchRequestByAddr",
+			call: func() error {
+				_, err := queryServer.LastPendingBatchRequestByAddr(s.Ctx, &types.QueryLastPendingBatchRequestByAddrRequest{
+					RelayerAddress: invalidRelayer,
+				})
+				return err
+			},
+		},
+		{
+			name: "LastEventNonceByAddr",
+			call: func() error {
+				_, err := queryServer.LastEventNonceByAddr(s.Ctx, &types.QueryLastEventNonceByAddrRequest{
+					RelayerAddress: invalidRelayer,
+				})
+				return err
+			},
+		},
+		{
+			name: "LastEventBlockHeightByAddr",
+			call: func() error {
+				_, err := queryServer.LastEventBlockHeightByAddr(s.Ctx, &types.QueryLastEventBlockHeightByAddrRequest{
+					RelayerAddress: invalidRelayer,
+				})
+				return err
+			},
+		},
+		{
+			name: "BatchConfirm",
+			call: func() error {
+				_, err := queryServer.BatchConfirm(s.Ctx, &types.QueryBatchConfirmRequest{
+					ChainName:      s.chainName,
+					TokenContract:  tokenContract,
+					Nonce:          1,
+					RelayerAddress: invalidRelayer,
+				})
+				return err
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		s.Run(tc.name, func() {
+			var err error
+			s.Require().NotPanics(func() {
+				err = tc.call()
+			})
+			s.Require().Error(err)
+			s.Require().Equal(codes.InvalidArgument, status.Code(err))
+		})
+	}
 }
