@@ -201,6 +201,9 @@ func (m msgServer) UpdateVC(goCtx context.Context, msg *types.MsgUpdateVC) (*typ
 	}
 
 	// update VC
+	oldFilters, _ := m.GetFilters(ctx, msg.Did, msg.Sid)
+	m.DeleteFilters(ctx, msg.Did, msg.Sid, oldFilters)
+
 	vc := msg.GetCredential()
 	m.SetCredential(ctx, msg.Did, msg.Sid, vc)
 
