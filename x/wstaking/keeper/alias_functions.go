@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	"github.com/openmetaearth/me-hub/x/wmint"
 	"math/big"
+
+	"github.com/openmetaearth/me-hub/x/wmint"
 
 	cmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,7 +18,7 @@ func (k Keeper) CalculateInterest(ctx sdk.Context, totalStaking cmath.Int, heigh
 		return sdk.ZeroDec(), nil
 	}
 	blockRewards := k.getRewardsByHeight(height, ctx.BlockHeight())
-	return k.Calculate(ctx, blockRewards, totalStaking)
+	return k.Calculate(blockRewards, totalStaking), nil
 }
 
 // getRewardsByHeight Get coins through the block height range
@@ -56,15 +57,20 @@ func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdk.D
 	return
 }
 
-func (k Keeper) Calculate(ctx sdk.Context, blockRewards sdk.Dec, totalStaking cmath.Int) (rewards sdk.Dec, err error) {
+// Calculate computes the per-block staking reward for a given amount of staked tokens.
+// It is a pure arithmetic function and does not read from chain state.
+// Returns ZeroDec when totalStaking is zero or the result would be non-positive.
+func (k Keeper) Calculate(blockRewards sdk.Dec, totalStaking cmath.Int) sdk.Dec {
+	if totalStaking.IsZero() {
+		return sdk.ZeroDec()
+	}
 	totalSupply := sdk.NewDec(types.CaclTotalSupply)
 	rate := sdk.OneDec().Quo(totalSupply)
-	rewards = blockRewards.Mul(sdk.NewDecFromInt(totalStaking).Mul(rate)).Mul(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
-	if rewards.LT(sdk.ZeroDec()) {
-		k.Logger(ctx).Error("Calculate_Interest", "Failed to calculate user revenue！")
-		return rewards, types.ErrCalculateInterest.Wrap("withdraw coins amount too small")
+	rewards := blockRewards.Mul(sdk.NewDecFromInt(totalStaking).Mul(rate)).Mul(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
+	if rewards.IsNegative() {
+		return sdk.ZeroDec()
 	}
-	return
+	return rewards
 }
 
 // Delegation get the delegation interface for a particular set of delegator and validator addresses
