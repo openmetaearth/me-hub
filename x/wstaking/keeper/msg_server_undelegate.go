@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -66,12 +65,12 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	if err != nil {
 		return nil, types.ErrCalculateInterest.Wrap(err.Error())
 	}
-	if region.DelegateInterest.GTE(rewards) {
-		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
-	} else {
-		return nil, errors.New(fmt.Sprintf("undelegate err,region(%s) total interest not enough.need pay %s,only have %s",
-			region.RegionId, rewards.String(), region.DelegateInterest.String()))
+	rewardCoin := sdk.Coin{}
+	regionTreasureAddr, rewardCoin, err = k.validateDelegateInterestPayout(ctx, region, rewards)
+	if err != nil {
+		return nil, err
 	}
+	region.DelegateInterest = region.DelegateInterest.Sub(rewards)
 
 	isMeid := true
 	if strings.ToLower(val.Description.RegionID) == strings.ToLower(types.ExperienceRegionName) {
@@ -87,7 +86,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	val.DelegationAmount = val.DelegationAmount.Sub(returnAmount)
 	k.SetValidator(ctx, val)
 	//send delegation rewards
-	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())),
+	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(rewardCoin),
 		fmt.Sprintf("Undelegate_SendRewards_%s", region.RegionId),
 	)
 	if err != nil {

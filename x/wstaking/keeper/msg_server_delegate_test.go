@@ -161,3 +161,146 @@ func (s *KeeperTestSuite) TestUnDelegate() {
 		})
 	}
 }
+
+func (s *KeeperTestSuite) TestDelegateRejectsInterestPayoutWhenRegionTreasuryUnderfunded() {
+	s.SetupTest()
+
+	delegator := s.Dao.AirdropAddress
+	amount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000))
+	_, err := s.msgServer.Delegate(s.Ctx, &stakingtypes.MsgDelegate{
+		DelegatorAddress: delegator,
+		ValidatorAddress: "",
+		Amount:           amount,
+	})
+	s.Require().NoError(err)
+
+	region, delegation := s.prepareUnderfundedDelegateInterest(delegator, 100)
+
+	_, err = s.msgServer.Delegate(s.Ctx, &stakingtypes.MsgDelegate{
+		DelegatorAddress: delegator,
+		ValidatorAddress: "",
+		Amount:           amount,
+	})
+	s.Require().ErrorIs(err, types.ErrPayInterest)
+
+	regionAfter, found := s.Keeper().GetRegion(s.Ctx, region.RegionId)
+	s.Require().True(found)
+	s.Require().True(regionAfter.DelegateInterest.Equal(region.DelegateInterest))
+	s.Require().Equal(region.DelegateAmount.String(), regionAfter.DelegateAmount.String())
+
+	delegationAfter, found := s.Keeper().GetDelegation(s.Ctx, sdk.MustAccAddressFromBech32(delegator), sdk.ValAddress{})
+	s.Require().True(found)
+	s.Require().Equal(delegation.Amount.String(), delegationAfter.Amount.String())
+}
+
+func (s *KeeperTestSuite) TestUndelegateRejectsInterestPayoutWhenRegionTreasuryUnderfunded() {
+	s.SetupTest()
+
+	delegator := s.Dao.AirdropAddress
+	amount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000))
+	_, err := s.msgServer.Delegate(s.Ctx, &stakingtypes.MsgDelegate{
+		DelegatorAddress: delegator,
+		ValidatorAddress: "",
+		Amount:           amount,
+	})
+	s.Require().NoError(err)
+
+	region, delegation := s.prepareUnderfundedDelegateInterest(delegator, 100)
+
+	_, err = s.msgServer.Undelegate(s.Ctx, &stakingtypes.MsgUndelegate{
+		DelegatorAddress: delegator,
+		ValidatorAddress: "",
+		Amount:           amount,
+	})
+	s.Require().ErrorIs(err, types.ErrPayInterest)
+
+	regionAfter, found := s.Keeper().GetRegion(s.Ctx, region.RegionId)
+	s.Require().True(found)
+	s.Require().True(regionAfter.DelegateInterest.Equal(region.DelegateInterest))
+	s.Require().Equal(region.DelegateAmount.String(), regionAfter.DelegateAmount.String())
+
+	delegationAfter, found := s.Keeper().GetDelegation(s.Ctx, sdk.MustAccAddressFromBech32(delegator), sdk.ValAddress{})
+	s.Require().True(found)
+	s.Require().Equal(delegation.Amount.String(), delegationAfter.Amount.String())
+}
+
+func (s *KeeperTestSuite) TestUndelegateRejectsInterestPayoutWhenRegionReserveUnderfunded() {
+	s.SetupTest()
+
+	delegator := s.Dao.AirdropAddress
+	amount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000))
+	_, err := s.msgServer.Delegate(s.Ctx, &stakingtypes.MsgDelegate{
+		DelegatorAddress: delegator,
+		ValidatorAddress: "",
+		Amount:           amount,
+	})
+	s.Require().NoError(err)
+
+	region, delegation := s.prepareUnderfundedDelegateInterest(delegator, 100)
+
+	rewards, err := s.Keeper().CalculateInterest(
+		s.Ctx,
+		delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable),
+		delegation.StartHeight,
+	)
+	s.Require().NoError(err)
+	rewardCoin := sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())
+	s.Require().True(rewardCoin.Amount.IsPositive())
+
+	region.DelegateInterest = rewards.Add(sdk.NewDec(100))
+	s.Keeper().SetRegion(s.Ctx, region)
+
+	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(
+		s.Ctx,
+		mintypes.ModuleName,
+		sdk.MustAccAddressFromBech32(region.RegionTreasureAddr),
+		sdk.NewCoins(rewardCoin),
+	)
+	s.Require().NoError(err)
+
+	_, err = s.msgServer.Undelegate(s.Ctx, &stakingtypes.MsgUndelegate{
+		DelegatorAddress: delegator,
+		ValidatorAddress: "",
+		Amount:           amount,
+	})
+	s.Require().ErrorIs(err, types.ErrPayInterest)
+
+	regionAfter, found := s.Keeper().GetRegion(s.Ctx, region.RegionId)
+	s.Require().True(found)
+	s.Require().True(regionAfter.DelegateInterest.Equal(region.DelegateInterest))
+	s.Require().Equal(region.DelegateAmount.String(), regionAfter.DelegateAmount.String())
+}
+
+func (s *KeeperTestSuite) prepareUnderfundedDelegateInterest(delegator string, blockHeight int64) (types.Region, stakingtypes.Delegation) {
+	delegatorAddr := sdk.MustAccAddressFromBech32(delegator)
+	delegation, found := s.Keeper().GetDelegation(s.Ctx, delegatorAddr, sdk.ValAddress{})
+	s.Require().True(found)
+
+	s.Ctx = s.Ctx.WithBlockHeight(blockHeight)
+	rewards, err := s.Keeper().CalculateInterest(
+		s.Ctx,
+		delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable),
+		delegation.StartHeight,
+	)
+	s.Require().NoError(err)
+	s.Require().True(rewards.TruncateInt().IsPositive())
+
+	region, found := s.Keeper().GetRegion(s.Ctx, s.experienceValidator.Description.RegionID)
+	s.Require().True(found)
+	region.DelegateInterest = rewards
+	s.Keeper().SetRegion(s.Ctx, region)
+
+	treasuryAddr := sdk.MustAccAddressFromBech32(region.RegionTreasureAddr)
+	treasuryBalance := s.App.BankKeeper.GetBalance(s.Ctx, treasuryAddr, params.BaseDenom)
+	if treasuryBalance.Amount.IsPositive() {
+		err = s.App.BankKeeper.SendCoins(
+			s.Ctx,
+			treasuryAddr,
+			sdk.MustAccAddressFromBech32(s.Dao.GlobalDao),
+			sdk.NewCoins(treasuryBalance),
+		)
+		s.Require().NoError(err)
+	}
+
+	return region, delegation
+}

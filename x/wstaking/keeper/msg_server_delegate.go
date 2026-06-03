@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -57,22 +56,18 @@ func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, validator.GetOperator())
 	rewards := sdk.ZeroDec()
 	var regionTreasureAddr sdk.AccAddress
+	var rewardCoin sdk.Coin
 	if isOK {
 		rewards, err = k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
 		if err != nil {
 			return nil, types.ErrCalculateInterest.Wrap(err.Error())
 		}
-		regionTreasureAddr, err = sdk.AccAddressFromBech32(region.RegionTreasureAddr)
+		regionTreasureAddr, rewardCoin, err = k.validateDelegateInterestPayout(ctx, region, rewards)
 		if err != nil {
 			return nil, err
 		}
-		if region.DelegateInterest.GTE(rewards) {
-			region.DelegateInterest = region.DelegateInterest.Sub(rewards)
-		} else {
-			return nil, errors.New(fmt.Sprintf("region(%s) total interest not enough.need pay %s,only have %s",
-				region.RegionId, rewards.String(), region.DelegateInterest.String()))
-		}
-		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())),
+		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
+		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(rewardCoin),
 			fmt.Sprintf("Delegate_SendRewards_%s", region.RegionId),
 		)
 		if err != nil {

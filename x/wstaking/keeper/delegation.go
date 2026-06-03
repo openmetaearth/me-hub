@@ -201,19 +201,17 @@ func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.A
 	if err != nil {
 		return nil, types.ErrCalculateInterest.Wrap(err.Error())
 	}
-	if region.DelegateInterest.GTE(rewards) {
-		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
-	} else {
-		return nil, types.ErrCalculateInterest.Wrap(fmt.Sprintf("distribution reward.region(%s) total interest not enough.need pay %s,only have %s",
-			region.RegionId, rewards.String(), region.DelegateInterest.String()))
+	regionTreasureAddr, coin, err := k.validateDelegateInterestPayout(ctx, region, rewards)
+	if err != nil {
+		return nil, err
 	}
+	region.DelegateInterest = region.DelegateInterest.Sub(rewards)
 	// truncate reward dec coins, return remainder to community pool
 	//finalRewards, remainder := rewards.TruncateDecimal()
-	coin := sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())
 	coins := sdk.NewCoins(coin)
 	// add coins to user account
 	if !coin.Amount.IsZero() {
-		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), del.GetDelegatorAddr(), coins, fmt.Sprintf("WithdrawDelegationRewards_%s", region.RegionId))
+		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAddr, del.GetDelegatorAddr(), coins, fmt.Sprintf("WithdrawDelegationRewards_%s", region.RegionId))
 		if err != nil {
 			return nil, err
 		}
