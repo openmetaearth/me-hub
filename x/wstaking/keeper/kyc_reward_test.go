@@ -312,3 +312,41 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithFixedDeposit() {
 	err = s.Keeper().RemoveKycReward(s.Ctx, userAccount, s.usaValidator.Description.RegionID)
 	s.Require().ErrorContains(err, types.ErrRemoveKyc.Error())
 }
+
+func (s *KeeperTestSuite) TestSendInviteReward_NoDuplicate() {
+	s.SetupTest()
+
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            "USA",
+		OperatorAddress: s.usaValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	inviter, _ := s.NewAccount()
+	invitee, _ := s.NewAccount()
+
+	// First invite reward should succeed
+	err = s.Keeper().SendInviteReward(s.Ctx, inviter.String(), invitee.String(), s.usaValidator.Description.RegionID)
+	s.Require().NoError(err)
+
+	// Inviter should have received the reward
+	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
+	s.Require().Equal(types.InviteReward.String(), balance.Amount.String())
+
+	// Invitee should now be marked as rewarded
+	s.Require().True(s.Keeper().HasInviterReward(s.Ctx, invitee.String()))
+
+	// Second invite reward for the same invitee should be a no-op
+	err = s.Keeper().SendInviteReward(s.Ctx, inviter.String(), invitee.String(), s.usaValidator.Description.RegionID)
+	s.Require().NoError(err)
+
+	// Inviter balance should NOT have changed (no duplicate payment)
+	balanceAfter := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
+	s.Require().Equal(balance.Amount.String(), balanceAfter.Amount.String())
+}
