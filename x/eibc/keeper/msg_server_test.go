@@ -21,6 +21,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 		demandOrderUnderlyingPacketStatus    commontypes.Status
 		demandOrderDenom                     string
 		fulfillmentExpectedFee               string
+		fulfillAsRecipient                   bool
 		expectedFulfillmentError             error
 		eIBCdemandAddrBalance                math.Int
 		expectedDemandOrdefFulfillmentStatus bool
@@ -39,6 +40,15 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			fulfillmentExpectedFee:               "0",
 			eIBCdemandAddrBalance:                math.NewInt(1000),
 			expectedDemandOrdefFulfillmentStatus: true,
+		},
+		{
+			name:                                 "Test demand order fulfillment - reject self fulfillment",
+			demandOrderPrice:                     150,
+			demandOrderFee:                       50,
+			fulfillAsRecipient:                   true,
+			expectedFulfillmentError:             types.ErrSelfFulfillment,
+			eIBCdemandAddrBalance:                math.NewInt(1000),
+			expectedDemandOrdefFulfillmentStatus: false,
 		},
 		{
 			name:                                 "Test demand order fulfillment - wrong expected fee",
@@ -93,14 +103,15 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, tc.eIBCdemandAddrBalance)
 			eibcSupplyAddr := testAddresses[0]
 			eibcDemandAddr := testAddresses[1]
+			balanceDenom := suite.App.StakingKeeper.BondDenom(suite.Ctx)
 			// Get balances
-			eibcSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, sdk.DefaultBondDenom)
-			eibcDemandAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, sdk.DefaultBondDenom)
+			eibcSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, balanceDenom)
+			eibcDemandAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, balanceDenom)
 			// Set the rollapp packet
 			suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 			// Create new demand order
 			if tc.demandOrderDenom == "" {
-				tc.demandOrderDenom = sdk.DefaultBondDenom
+				tc.demandOrderDenom = balanceDenom
 			}
 			demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(tc.demandOrderPrice), math.NewIntFromUint64(tc.demandOrderFee), tc.demandOrderDenom, eibcSupplyAddr.String())
 			if tc.demandOrderFulfillmentStatus {
@@ -121,7 +132,11 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			if tc.fulfillmentExpectedFee == "" && len(demandOrder.Fee) > 0 {
 				tc.fulfillmentExpectedFee = demandOrder.Fee[0].Amount.String()
 			}
-			msg := types.NewMsgFulfillOrder(eibcDemandAddr.String(), demandOrder.Id, tc.fulfillmentExpectedFee)
+			fulfillerAddr := eibcDemandAddr
+			if tc.fulfillAsRecipient {
+				fulfillerAddr = eibcSupplyAddr
+			}
+			msg := types.NewMsgFulfillOrder(fulfillerAddr.String(), demandOrder.Id, tc.fulfillmentExpectedFee)
 			_, err = suite.msgServer.FulfillOrder(suite.Ctx, msg)
 			if tc.expectedFulfillmentError != nil {
 				suite.Require().ErrorIs(err, tc.expectedFulfillmentError, tc.name)
@@ -134,10 +149,10 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			suite.Assert().Equal(tc.expectedDemandOrdefFulfillmentStatus, demandOrder.IsFulfilled(), tc.name)
 			// Check balances updates in case of success
 			if tc.expectedFulfillmentError == nil {
-				afterFulfillmentSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, sdk.DefaultBondDenom)
-				afterFulfillmentDemandAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, sdk.DefaultBondDenom)
-				suite.Require().Equal(eibcSupplyAddrBalance.Add(sdk.NewCoin(sdk.DefaultBondDenom, math.NewIntFromUint64(tc.demandOrderPrice))), afterFulfillmentSupplyAddrBalance)
-				suite.Require().Equal(eibcDemandAddrBalance.Sub(sdk.NewCoin(sdk.DefaultBondDenom, math.NewIntFromUint64(tc.demandOrderPrice))), afterFulfillmentDemandAddrBalance)
+				afterFulfillmentSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, balanceDenom)
+				afterFulfillmentDemandAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, balanceDenom)
+				suite.Require().Equal(eibcSupplyAddrBalance.Add(sdk.NewCoin(balanceDenom, math.NewIntFromUint64(tc.demandOrderPrice))), afterFulfillmentSupplyAddrBalance)
+				suite.Require().Equal(eibcDemandAddrBalance.Sub(sdk.NewCoin(balanceDenom, math.NewIntFromUint64(tc.demandOrderPrice))), afterFulfillmentDemandAddrBalance)
 			}
 		})
 	}
@@ -149,10 +164,11 @@ func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
 	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(1000))
 	eibcSupplyAddr := testAddresses[0]
 	eibcDemandAddr := testAddresses[1]
+	denom := suite.App.StakingKeeper.BondDenom(suite.Ctx)
 	// Set the rollapp packet
 	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 	// Create new demand order
-	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(200), math.NewIntFromUint64(50), sdk.DefaultBondDenom, eibcSupplyAddr.String())
+	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(200), math.NewIntFromUint64(50), denom, eibcSupplyAddr.String())
 	err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
 	suite.Require().NoError(err)
 
@@ -169,8 +185,8 @@ func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
 			expectedPostFulfillmentEventsCount: 1,
 			expectedPostFulfillmentEventsAttributes: []sdk.Attribute{
 				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
-				sdk.NewAttribute(types.AttributeKeyPrice, "200"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyFee, "50"+sdk.DefaultBondDenom),
+				sdk.NewAttribute(types.AttributeKeyPrice, "200"+denom),
+				sdk.NewAttribute(types.AttributeKeyFee, "50"+denom),
 				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "true"),
 				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
 			},

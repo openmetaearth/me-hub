@@ -38,6 +38,14 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, err
 	}
 
+	fulfillerAddr, err := sdk.AccAddressFromBech32(msg.FulfillerAddress)
+	if err != nil {
+		return nil, err
+	}
+	if fulfillerAddr.Equals(demandOrder.GetRecipientBech32Address()) {
+		return nil, types.ErrSelfFulfillment
+	}
+
 	// Check that the fulfiller expected fee is equal to the demand order fee
 	expectedFee, _ := sdk.NewIntFromString(msg.ExpectedFee)
 	orderFee := demandOrder.GetFeeAmount()
@@ -46,7 +54,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	}
 
 	// Check that the fulfiller has enough balance to fulfill the order
-	fulfillerAccount := m.ak.GetAccount(ctx, msg.GetFulfillerBech32Address())
+	fulfillerAccount := m.ak.GetAccount(ctx, fulfillerAddr)
 	if fulfillerAccount == nil {
 		return nil, types.ErrFulfillerAddressDoesNotExist
 	}
