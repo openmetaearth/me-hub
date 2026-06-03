@@ -7,6 +7,7 @@ import (
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
+	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	"github.com/openmetaearth/me-hub/x/wdistri"
 	"github.com/openmetaearth/me-hub/x/wmint"
 	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
@@ -94,6 +95,42 @@ func (s *KeeperTestSuite) TestRemove() {
 	s.Require().Equal(msg.Uri, kyc.Uri)
 	s.Require().Equal(msg.Hash, kyc.Hash)
 
+	// 1. Create a group for the region
+	groupInfo := &megrouptypes.GroupInfo{
+		Id:          1,
+		Admin:       s.Dao.GlobalDao,
+		Metadata:    "",
+		Version:     1,
+		TotalWeight: "0",
+		CreatedAt:   s.Ctx.BlockTime(),
+		RegionID:    strings.ToLower(wstakingtypes.MeEarthRegionName),
+	}
+	err = s.App.GroupKeeper.AppendGroup(s.Ctx, groupInfo)
+	s.Require().NoError(err)
+	s.App.GroupKeeper.SetGroupToRegion(s.Ctx, strings.ToLower(wstakingtypes.MeEarthRegionName), 1)
+	s.App.GroupKeeper.SetGroupMemberCount(s.Ctx, 1, 0)
+
+	// 2. Join user to the group
+	newJoin := megrouptypes.MemberJoined{
+		Address: kycAccount.String(),
+		GroupId: 1,
+	}
+	s.App.GroupKeeper.SetMemberJoined(s.Ctx, newJoin)
+	err = s.App.GroupKeeper.AddGroupMember(s.Ctx, &megrouptypes.GroupMember{
+		GroupId: 1,
+		Member: &megrouptypes.Member{
+			Address: kycAccount.String(),
+			AddedAt: s.Ctx.BlockTime(),
+		},
+	})
+	s.Require().NoError(err)
+	s.App.GroupKeeper.SetGroupMemberCount(s.Ctx, 1, 1)
+
+	// 3. Verify user is joined
+	joined, found := s.App.GroupKeeper.GetMemberJoined(s.Ctx, kycAccount.String())
+	s.Require().True(found)
+	s.Require().Equal(uint64(1), joined.GroupId)
+
 	// remove kyc
 	_, err = s.msgServer.Remove(s.Ctx, &types.MsgRemove{
 		Issuer: s.Dao.GlobalDao,
@@ -112,6 +149,18 @@ func (s *KeeperTestSuite) TestRemove() {
 	// check kyc
 	_, f = s.Keeper().GetKYC(s.Ctx, did)
 	s.Require().False(f)
+
+	// 5. Verify user is removed from group!
+	joined, found = s.App.GroupKeeper.GetMemberJoined(s.Ctx, kycAccount.String())
+	s.Require().True(found)
+	s.Require().Equal(uint64(0), joined.GroupId)
+
+	hasMember := s.App.GroupKeeper.HasGroupMember(s.Ctx, 1, kycAccount.String())
+	s.Require().False(hasMember)
+
+	count, found := s.App.GroupKeeper.GetGroupMemberCount(s.Ctx, 1)
+	s.Require().True(found)
+	s.Require().Equal(uint64(0), count)
 }
 
 func (s *KeeperTestSuite) TestUpdate() {

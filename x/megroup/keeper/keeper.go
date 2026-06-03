@@ -64,6 +64,7 @@ func NewKeeper(
 		kycKeeper:     kycKeeper,
 	}
 	keeperVal.kycKeeper.RegisterEventHandler(kycTypes.EventTypeUpdate, 0, types.ModuleName, keeperVal.KycStatusChanged)
+	keeperVal.kycKeeper.RegisterEventHandler(kycTypes.EventTypeRemove, 0, types.ModuleName, keeperVal.KycStatusChanged)
 	return keeperVal
 }
 
@@ -72,8 +73,26 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) KycStatusChanged(goCtx context.Context, msgType string, data interface{}) error {
-	//if eventType
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	if msgType == kycTypes.EventTypeRemove {
+		if val, ok := data.(sdk.Event); !ok {
+			return fmt.Errorf("data's type is not sdk.Event.but msgType is remove")
+		} else {
+			attrAddress, found := val.GetAttribute(kycTypes.AttributeKeyAddress)
+			if !found {
+				return fmt.Errorf("can not found AttributeKeyAddress.but EventType is remove")
+			}
+			attrRegion, found := val.GetAttribute(kycTypes.AttributeKeyRegionId)
+			if !found {
+				return fmt.Errorf("can not found AttributeKeyRegionId.but EventType is remove")
+			}
+			if err := k.procKycRegionChange(ctx, attrAddress.Value, attrRegion.Value, ""); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
 	if kycTypes.EventTypeUpdate != msgType {
 		return nil
 	}
@@ -105,7 +124,6 @@ func (k Keeper) KycStatusChanged(goCtx context.Context, msgType string, data int
 	}
 
 	return nil
-
 }
 
 func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, nowRegionID string) error {

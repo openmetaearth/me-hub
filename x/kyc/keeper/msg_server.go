@@ -241,6 +241,19 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 		return &types.MsgRemoveResponse{}, errors.Wrap(err, "delete reward failed")
 	}
 
+	// emit event and invoke handler
+	event := sdk.NewEvent(types.EventTypeRemove,
+		sdk.NewAttribute(types.AttributeKeyAddress, address.String()),
+		sdk.NewAttribute(types.AttributeKeyRegionId, string(kyc.Data)),
+		sdk.NewAttribute(types.AttributeKeyLevel, didInfo.KycLevel.String()),
+	)
+	ctx.EventManager().EmitEvent(event)
+
+	err := m.handlerReg.HandleEvent(ctx, types.EventTypeRemove, event)
+	if err != nil {
+		return &types.MsgRemoveResponse{}, err
+	}
+
 	return &types.MsgRemoveResponse{}, nil
 }
 
