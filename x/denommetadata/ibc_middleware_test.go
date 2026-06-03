@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"testing"
 
+	tmdb "github.com/cometbft/cometbft-db"
+	cometlog "github.com/cometbft/cometbft/libs/log"
 	cometbft "github.com/cometbft/cometbft/proto/tendermint/types"
+	store "github.com/cosmos/cosmos-sdk/store"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -108,7 +112,7 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			tt.rollappKeeper.packetData = packetData
 			packetDataBytes := types.ModuleCdc.MustMarshalJSON(&packetData)
 			packet := channeltypes.Packet{Data: packetDataBytes, SourcePort: "transfer", SourceChannel: "channel-0"}
-			got := im.OnRecvPacket(sdk.NewContext(nil, cometbft.Header{}, false, nil), packet, sdk.AccAddress{})
+			got := im.OnRecvPacket(newDenomMetadataTestContext(t), packet, sdk.AccAddress{})
 			require.Equal(t, tt.wantAck, got)
 			if !tt.wantAck.Success() {
 				return
@@ -150,10 +154,48 @@ func TestIBCModule_OnRecvPacket_DoesNotCreateMetadataWhenDownstreamFails(t *test
 		DestinationChannel: "channel-1",
 	}
 
-	got := im.OnRecvPacket(sdk.NewContext(nil, cometbft.Header{}, false, nil), packet, sdk.AccAddress{})
+	got := im.OnRecvPacket(newDenomMetadataTestContext(t), packet, sdk.AccAddress{})
 
 	require.Equal(t, errorAck, got)
 	require.Equal(t, packetDataBytes, app.sentData)
+	require.False(t, keeper.created)
+}
+
+func TestIBCModule_OnRecvPacket_RollsBackDownstreamWritesOnFailure(t *testing.T) {
+	errorAck := channeltypes.NewErrorAcknowledgement(fmt.Errorf("transfer failed"))
+	storeKey := sdk.NewKVStoreKey("recv-failure")
+	downstreamKey := []byte("downstream")
+	app := &mockIBCModule{
+		recvAck:         errorAck,
+		storeKey:        storeKey,
+		storeWriteKey:   downstreamKey,
+		storeWriteValue: []byte("written"),
+	}
+	keeper := &mockDenomMetadataKeeper{}
+	rollappKeeper := &mockRollappKeeper{
+		returnRollapp: &rollapptypes.Rollapp{},
+	}
+
+	im := denommetadata.NewIBCModule(app, keeper, rollappKeeper)
+
+	memo := mustMarshalJSON(validMemoData)
+	packetData := packetDataWithMemo(memo)
+	rollappKeeper.packetData = packetData
+
+	packetDataBytes := types.ModuleCdc.MustMarshalJSON(&packetData)
+	packet := channeltypes.Packet{
+		Data:               packetDataBytes,
+		SourcePort:         "transfer",
+		SourceChannel:      "channel-0",
+		DestinationPort:    "transfer",
+		DestinationChannel: "channel-1",
+	}
+	ctx := newDenomMetadataTestContext(t, storeKey)
+
+	got := im.OnRecvPacket(ctx, packet, sdk.AccAddress{})
+
+	require.Equal(t, errorAck, got)
+	require.False(t, ctx.KVStore(storeKey).Has(downstreamKey))
 	require.False(t, keeper.created)
 }
 
@@ -181,7 +223,7 @@ func TestIBCModule_OnRecvPacket_ReturnsErrorWhenDownstreamAckIsNil(t *testing.T)
 		DestinationChannel: "channel-1",
 	}
 
-	got := im.OnRecvPacket(sdk.NewContext(nil, cometbft.Header{}, false, nil), packet, sdk.AccAddress{})
+	got := im.OnRecvPacket(newDenomMetadataTestContext(t), packet, sdk.AccAddress{})
 
 	require.NotNil(t, got)
 	require.False(t, got.Success())
@@ -214,11 +256,57 @@ func TestIBCModule_OnRecvPacket_CreatesMetadataAfterDownstreamSucceeds(t *testin
 		DestinationChannel: "channel-1",
 	}
 
-	got := im.OnRecvPacket(sdk.NewContext(nil, cometbft.Header{}, false, nil), packet, sdk.AccAddress{})
+	got := im.OnRecvPacket(newDenomMetadataTestContext(t), packet, sdk.AccAddress{})
 
 	require.Equal(t, successAck, got)
 	require.Equal(t, packetDataBytes, app.sentData)
 	require.True(t, keeper.created)
+}
+
+func TestIBCModule_OnRecvPacket_RollsBackDownstreamWritesWhenMetadataCreationFails(t *testing.T) {
+	successAck := channeltypes.NewResultAcknowledgement([]byte{})
+	storeKey := sdk.NewKVStoreKey("metadata-failure")
+	downstreamKey := []byte("downstream")
+	metadataKey := []byte("metadata")
+	app := &mockIBCModule{
+		recvAck:         successAck,
+		storeKey:        storeKey,
+		storeWriteKey:   downstreamKey,
+		storeWriteValue: []byte("written"),
+	}
+	keeper := &mockDenomMetadataKeeper{
+		err:             fmt.Errorf("metadata write failed"),
+		storeKey:        storeKey,
+		storeWriteKey:   metadataKey,
+		storeWriteValue: []byte("written"),
+	}
+	rollappKeeper := &mockRollappKeeper{
+		returnRollapp: &rollapptypes.Rollapp{},
+	}
+
+	im := denommetadata.NewIBCModule(app, keeper, rollappKeeper)
+
+	memo := mustMarshalJSON(validMemoData)
+	packetData := packetDataWithMemo(memo)
+	rollappKeeper.packetData = packetData
+
+	packetDataBytes := types.ModuleCdc.MustMarshalJSON(&packetData)
+	packet := channeltypes.Packet{
+		Data:               packetDataBytes,
+		SourcePort:         "transfer",
+		SourceChannel:      "channel-0",
+		DestinationPort:    "transfer",
+		DestinationChannel: "channel-1",
+	}
+	ctx := newDenomMetadataTestContext(t, storeKey)
+
+	got := im.OnRecvPacket(ctx, packet, sdk.AccAddress{})
+
+	require.NotNil(t, got)
+	require.False(t, got.Success())
+	require.False(t, ctx.KVStore(storeKey).Has(downstreamKey))
+	require.False(t, ctx.KVStore(storeKey).Has(metadataKey))
+	require.False(t, keeper.created)
 }
 
 func TestICS4Wrapper_SendPacket(t *testing.T) {
@@ -672,11 +760,27 @@ func mustMarshalJSON(v any) string {
 	return string(bz)
 }
 
+func newDenomMetadataTestContext(t *testing.T, keys ...*storetypes.KVStoreKey) sdk.Context {
+	t.Helper()
+
+	db := tmdb.NewMemDB()
+	stateStore := store.NewCommitMultiStore(db)
+	for _, key := range keys {
+		stateStore.MountStoreWithDB(key, storetypes.StoreTypeIAVL, db)
+	}
+	require.NoError(t, stateStore.LoadLatestVersion())
+
+	return sdk.NewContext(stateStore, cometbft.Header{}, false, cometlog.NewNopLogger())
+}
+
 type mockIBCModule struct {
 	porttypes.IBCModule
-	sentData []byte
-	recvAck  exported.Acknowledgement
-	nilAck   bool
+	sentData        []byte
+	recvAck         exported.Acknowledgement
+	nilAck          bool
+	storeKey        *storetypes.KVStoreKey
+	storeWriteKey   []byte
+	storeWriteValue []byte
 }
 
 func okAck() []byte {
@@ -689,8 +793,11 @@ func badAck() []byte {
 	return types.ModuleCdc.MustMarshalJSON(&ack)
 }
 
-func (m *mockIBCModule) OnRecvPacket(_ sdk.Context, p channeltypes.Packet, _ sdk.AccAddress) exported.Acknowledgement {
+func (m *mockIBCModule) OnRecvPacket(ctx sdk.Context, p channeltypes.Packet, _ sdk.AccAddress) exported.Acknowledgement {
 	m.sentData = p.Data
+	if m.storeKey != nil {
+		ctx.KVStore(m.storeKey).Set(m.storeWriteKey, m.storeWriteValue)
+	}
 	if m.nilAck {
 		return nil
 	}
@@ -706,11 +813,21 @@ func (m *mockIBCModule) OnAcknowledgementPacket(_ sdk.Context, _ channeltypes.Pa
 
 type mockDenomMetadataKeeper struct {
 	hasDenomMetaData, created bool
+	err                       error
+	storeKey                  *storetypes.KVStoreKey
+	storeWriteKey             []byte
+	storeWriteValue           []byte
 }
 
 func (m *mockDenomMetadataKeeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
 	if m.hasDenomMetaData {
 		return gerrc.ErrAlreadyExists
+	}
+	if m.storeKey != nil {
+		ctx.KVStore(m.storeKey).Set(m.storeWriteKey, m.storeWriteValue)
+	}
+	if m.err != nil {
+		return m.err
 	}
 	m.created = true
 	m.hasDenomMetaData = true

@@ -91,8 +91,10 @@ func (im IBCModule) OnRecvPacket(
 	dm.Base = ibcDenom
 	dm.DenomUnits[0].Denom = dm.Base
 
-	// Only persist metadata after the packet is successfully received downstream.
-	ack := im.IBCModule.OnRecvPacket(ctx, packet, relayer)
+	// Keep the downstream receive and metadata persistence atomic: either both
+	// writes are committed, or neither write reaches the parent context.
+	cacheCtx, writeCache := ctx.CacheContext()
+	ack := im.IBCModule.OnRecvPacket(cacheCtx, packet, relayer)
 	if ack == nil {
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(gerrc.ErrInternal, "downstream acknowledgement is nil"))
 	}
@@ -100,19 +102,15 @@ func (im IBCModule) OnRecvPacket(
 		return ack
 	}
 
-	if err = im.keeper.CreateDenomMetadata(ctx, *dm); err != nil {
-		if !errorsmod.IsOf(err, gerrc.ErrAlreadyExists) {
-			ctx.Logger().Error("failed to create denom metadata after successful receive", "error", err, "denom", dm.Base)
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypeCreateDenomMetadataFailed,
-					sdk.NewAttribute(types.AttributeKeyDenom, dm.Base),
-					sdk.NewAttribute(types.AttributeKeyError, err.Error()),
-				),
-			)
+	if err = im.keeper.CreateDenomMetadata(cacheCtx, *dm); err != nil {
+		if errorsmod.IsOf(err, gerrc.ErrAlreadyExists) {
+			writeCache()
+			return ack
 		}
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(err, "create denom metadata for denom %s", dm.Base))
 	}
 
+	writeCache()
 	return ack
 }
 
