@@ -34,6 +34,17 @@ func (s *KeeperTestSuite) TestProtocol() {
 	s.Require().Equal(len(res.Protocol.Regions), 0)
 }
 
+func (s *KeeperTestSuite) TestGetAllRegionsDoesNotIncludePhantomRegions() {
+	s.SetupTest()
+
+	regions := s.Keeper().GetAllRegions(s.Ctx)
+	s.Require().Len(regions, 3)
+	for _, region := range regions {
+		s.Require().NotEmpty(region.Id)
+		s.Require().NotEmpty(region.Name)
+	}
+}
+
 func (s *KeeperTestSuite) TestDID() {
 	s.SetupTest()
 
