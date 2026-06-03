@@ -49,6 +49,9 @@ func ValidateEthereumAddress(address string) error {
 	if expectAddress != address {
 		return fmt.Errorf("mismatch expected: %s, got: %s", expectAddress, address)
 	}
+	if IsZeroEthereumAddress(address) {
+		return errors.New("zero address")
+	}
 	return nil
 }
 
