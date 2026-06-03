@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ME Network Explorer</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>ME Network Explorer</h1>
+            <div class="network-info">
+                <span class="chain-id" id="chainId">mechain_100-1</span>
+                <span class="separator">|</span>
+                <span class="block-height">
+                    Block Height: <span id="blockHeight">--</span>
+                </span>
+                <span class="separator">|</span>
+                <span class="sync-status" id="syncStatus">Checking...</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <section class="dashboard">
+                <div class="card">
+                    <h2>Latest Block</h2>
+                    <div class="card-content">
+                        <div class="stat">
+                            <span class="label">Height</span>
+                            <span class="value" id="latestHeight">--</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Time</span>
+                            <span class="value" id="latestTime">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Network Status</h2>
+                    <div class="card-content">
+                        <div class="stat">
+                            <span class="label">Status</span>
+                            <span class="value" id="networkStatus">--</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Catching Up</span>
+                            <span class="value" id="catchingUp">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Block Production</h2>
+                    <div class="card-content">
+                        <div class="stat">
+                            <span class="label">Blocks/min</span>
+                            <span class="value" id="blocksPerMin">--</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Last Update</span>
+                            <span class="value" id="lastUpdate">--</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="block-history">
+                <h2>Recent Block Heights</h2>
+                <div class="chart-container">
+                    <canvas id="blockChart"></canvas>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>ME Network Explorer v1.0.0 | Data updates every 5 seconds</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
