@@ -3,6 +3,7 @@ package ibctesting_test
 import (
 	"encoding/json"
 	"errors"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -367,10 +368,27 @@ func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
 }
 
 func (s *eibcSuite) rollappHasPacketCommitment(packet channeltypes.Packet) bool {
-	// TODO: this should be used to check that a commitment does (or doesn't) exist, when it should
-	// TODO: this is important to check that things actually work as expected and dont just look ok on the outside
-	// TODO: finish implementing, true is a temporary placeholder
-	return true
+	rollappIBCKeeper := s.rollappChain().App.GetIBCKeeper()
+	return rollappIBCKeeper.ChannelKeeper.HasPacketCommitment(
+		s.rollappCtx(),
+		packet.GetSourcePort(),
+		packet.GetSourceChannel(),
+		packet.GetSequence(),
+	)
+}
+
+func TestRollappHasPacketCommitmentQueriesIBCStore(t *testing.T) {
+	source, err := os.ReadFile("eibc_test.go")
+	if err != nil {
+		t.Fatalf("read eibc test source: %v", err)
+	}
+	body := string(source)
+	if !strings.Contains(body, "ChannelKeeper.HasPacketCommitment") {
+		t.Fatal("rollappHasPacketCommitment must query the IBC channel keeper")
+	}
+	if strings.Contains(body, "return true\n}") {
+		t.Fatal("rollappHasPacketCommitment must not return a hardcoded true value")
+	}
 }
 
 // TestTimeoutEIBCDemandOrderFulfillment: when a packet hub->rollapp times out, or gets an error ack, than eIBC can be used to recover quickly.
