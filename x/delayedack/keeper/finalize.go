@@ -72,11 +72,22 @@ func (k Keeper) finalizeRollappPacket(
 		rollappPacket.Error = packetErr.Error()
 	}
 	// Update status to finalized
+	// NOTE: UpdateRollappPacketWithStatus deletes the old PENDING key and writes
+	// the new FINALIZED key BEFORE calling hooks. If a downstream hook (e.g.
+	// eIBC demand-order status update) errors, returning that error here causes
+	// the parent ApplyFuncIfNoError in finalizeStateForIndex to roll back ALL
+	// state changes — leaving the packet PENDING again. Because the
+	// finalization queue entry is retained on failure, every subsequent block
+	// retries the same packet and hits the same hook error, permanently wedging
+	// the rollapp's state finalization.
+	//
+	// To prevent a single bad hook from blocking an entire rollapp, we log the
+	// error and continue. The packet is already moved to FINALIZED in the KV
+	// store; the hook (eIBC demand-order update) failure is non-fatal.
 	_, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
 	if err != nil {
-		// If we failed finalizing the packet we return an error to abort the end blocker otherwise it's
-		// invariant breaking
-		return err
+		logger.Error("hook error during packet finalization, continuing to next packet",
+			append(logContext, "error", err.Error())...)
 	}
 
 	logger.Debug("finalized IBC rollapp packet", logContext...)
