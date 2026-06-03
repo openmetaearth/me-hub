@@ -162,6 +162,7 @@ func (k Keeper) forceRemoveUnbondingSequencer(ctx sdk.Context, seqAddr string, r
 
 	seqByRollappKey := types.SequencerByRollappByStatusKey(seq.RollappId, seq.SequencerAddress, types.Unbonding)
 	store.Delete(seqByRollappKey)
+	k.removeUnbondingSequencer(ctx, seq)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventDirectRemoveSequencer,
