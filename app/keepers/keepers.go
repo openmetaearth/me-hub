@@ -507,7 +507,11 @@ func (a *AppKeepers) InitKeepers(
 
 	a.PacketForwardMiddlewareKeeper = packetforwardkeeper.NewKeeper(
 		appCodec, a.keys[packetforwardtypes.StoreKey],
-		a.TransferKeeper,
+		transfergenesis.NewTransferEnabledTransferKeeper(
+			a.TransferKeeper,
+			a.RollappKeeper.GetRollapp,
+			a.IBCKeeper.ChannelKeeper,
+		),
 		a.IBCKeeper.ChannelKeeper,
 		a.DistrKeeper,
 		a.BankKeeper,
