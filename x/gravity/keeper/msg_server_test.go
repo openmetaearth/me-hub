@@ -133,6 +133,7 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 		err                  string
 		preRun               func(msg *types.MsgAddDelegate)
 		expectDelegateAmount func(msg *types.MsgAddDelegate) sdk.Int
+		expectSlashTimes     int64
 	}{
 		{
 			name: "error - sender not relayer",
@@ -213,6 +214,7 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdk.Int {
 				return initDelegateAmount
 			},
+			expectSlashTimes: 1,
 		},
 		{
 			name: "pass - add more slash amount",
@@ -231,6 +233,25 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdk.Int {
 				return initDelegateAmount.Add(sdk.NewInt(1000))
 			},
+			expectSlashTimes: 1,
+		},
+		{
+			name: "pass - online relayer preserves slash times",
+			preRun: func(msg *types.MsgAddDelegate) {
+				relayerAddress := sdk.MustAccAddressFromBech32(msg.RelayerAddress)
+				relayer, _ := s.Keeper().GetRelayer(s.Ctx, relayerAddress)
+				relayer.SlashTimes = 1
+				s.Keeper().SetRelayer(s.Ctx, relayerAddress, relayer)
+
+				slashFraction := s.Keeper().GetSlashFraction(s.Ctx)
+				slashAmount := sdk.NewDecFromInt(initDelegateAmount).Mul(slashFraction).MulInt64(relayer.SlashTimes).TruncateInt()
+				msg.Amount.Amount = slashAmount.Add(sdk.NewInt(1000))
+			},
+			pass: true,
+			expectDelegateAmount: func(msg *types.MsgAddDelegate) sdk.Int {
+				return initDelegateAmount.Add(sdk.NewInt(1000))
+			},
+			expectSlashTimes: 1,
 		},
 	}
 	for _, testCase := range testCases {
@@ -267,7 +288,7 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 			s.Require().NotNil(relayer)
 			s.Require().EqualValues(msg.RelayerAddress, relayer.RelayerAddress)
 			s.Require().True(relayer.Online)
-			s.Require().EqualValues(0, relayer.SlashTimes)
+			s.Require().EqualValues(testCase.expectSlashTimes, relayer.SlashTimes)
 
 			// check power
 			totalPower := s.Keeper().GetLastTotalPower(s.Ctx)

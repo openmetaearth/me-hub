@@ -131,7 +131,6 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 		relayer.StartHeight = ctx.BlockHeight()
 	}
 
-	relayer.SlashTimes = 0
 	s.SetRelayer(ctx, relayerAddress, relayer)
 	s.SetLastTotalPower(ctx)
 
