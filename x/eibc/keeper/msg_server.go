@@ -39,7 +39,10 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	}
 
 	// Check that the fulfiller expected fee is equal to the demand order fee
-	expectedFee, _ := sdk.NewIntFromString(msg.ExpectedFee)
+	expectedFee, ok := sdk.NewIntFromString(msg.ExpectedFee)
+	if !ok {
+		return nil, errorsmod.Wrapf(types.ErrInvalidExpectedFee, "invalid expected fee: %s", msg.ExpectedFee)
+	}
 	orderFee := demandOrder.GetFeeAmount()
 	if !orderFee.Equal(expectedFee) {
 		return nil, types.ErrExpectedFeeNotMet
@@ -107,8 +110,14 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	}
 
 	// calculate the new price: transferTotal - newFee - bridgingFee
-	newFeeInt, _ := sdk.NewIntFromString(msg.NewFee)
-	transferTotal, _ := sdk.NewIntFromString(data.Amount)
+	newFeeInt, ok := sdk.NewIntFromString(msg.NewFee)
+	if !ok {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid new fee: %s", msg.NewFee)
+	}
+	transferTotal, ok := sdk.NewIntFromString(data.Amount)
+	if !ok {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid transfer amount: %s", data.Amount)
+	}
 	newPrice, err := types.CalcPriceWithBridgingFee(transferTotal, newFeeInt, bridgingFeeMultiplier)
 	if err != nil {
 		return nil, err
