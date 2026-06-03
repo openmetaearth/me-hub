@@ -34,6 +34,19 @@ func (s *KeeperTestSuite) TestProtocol() {
 	s.Require().Equal(len(res.Protocol.Regions), 0)
 }
 
+func (s *KeeperTestSuite) TestGetAllRegionsDoesNotReturnEmptyPlaceholders() {
+	s.SetupTest()
+
+	rawRegions := s.App.StakingKeeper.GetAllRegion(s.Ctx)
+	regions := s.Keeper().GetAllRegions(s.Ctx)
+
+	s.Require().Len(regions, len(rawRegions))
+	for _, region := range regions {
+		s.Require().NotEmpty(region.Id)
+		s.Require().NotEmpty(region.Name)
+	}
+}
+
 func (s *KeeperTestSuite) TestDID() {
 	s.SetupTest()
 
