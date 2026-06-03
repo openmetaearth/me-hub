@@ -57,6 +57,8 @@ func (k Keeper) DeleteFilters(ctx sdk.Context, did, sid string, filters [][]byte
 	// delete empty FilterLogger
 	if len(flog.Filters) == 0 {
 		k.DeleteFilterLogger(ctx, did, sid)
+	} else {
+		k.SetFilterLogger(ctx, did, sid, flog)
 	}
 }
 

@@ -46,4 +46,16 @@ func TestKeeper_Filter(t *testing.T) {
 	assert.Equal(t, 0, len(vcs))
 	vcs, _, _ = k.GetCredentialsByFilter(ctx, sid, f2, &pr)
 	assert.Equal(t, 0, len(vcs))
+
+	// partial delete
+	k.AddFilters(ctx, did, sid, filters, vc)
+	k.DeleteFilters(ctx, did, sid, [][]byte{f1})
+	fs, found = k.GetFilters(ctx, did, sid)
+	assert.True(t, found)
+	assert.Equal(t, 1, len(fs))
+	assert.Equal(t, f2, fs[0])
+
+	k.DeleteFilters(ctx, did, sid, [][]byte{f2})
+	fs, found = k.GetFilters(ctx, did, sid)
+	assert.False(t, found)
 }
