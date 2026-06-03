@@ -298,7 +298,8 @@ func (m *QuerySequencersResponse) GetPagination() *query.PageResponse {
 }
 
 type QueryGetSequencersByRollappRequest struct {
-	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+	RollappId  string             `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryGetSequencersByRollappRequest) Reset()         { *m = QueryGetSequencersByRollappRequest{} }
@@ -341,8 +342,16 @@ func (m *QueryGetSequencersByRollappRequest) GetRollappId() string {
 	return ""
 }
 
+func (m *QueryGetSequencersByRollappRequest) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
 type QueryGetSequencersByRollappResponse struct {
-	Sequencers []Sequencer `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
+	Sequencers []Sequencer         `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryGetSequencersByRollappResponse) Reset()         { *m = QueryGetSequencersByRollappResponse{} }
@@ -385,9 +394,17 @@ func (m *QueryGetSequencersByRollappResponse) GetSequencers() []Sequencer {
 	return nil
 }
 
+func (m *QueryGetSequencersByRollappResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
 type QueryGetSequencersByRollappByStatusRequest struct {
-	RollappId string          `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
-	Status    OperatingStatus `protobuf:"varint,2,opt,name=status,proto3,enum=metaearth.sequencer.OperatingStatus" json:"status,omitempty"`
+	RollappId  string             `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+	Status     OperatingStatus    `protobuf:"varint,2,opt,name=status,proto3,enum=metaearth.sequencer.OperatingStatus" json:"status,omitempty"`
+	Pagination *query.PageRequest `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryGetSequencersByRollappByStatusRequest) Reset() {
@@ -441,8 +458,16 @@ func (m *QueryGetSequencersByRollappByStatusRequest) GetStatus() OperatingStatus
 	return Unbonded
 }
 
+func (m *QueryGetSequencersByRollappByStatusRequest) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
 type QueryGetSequencersByRollappByStatusResponse struct {
-	Sequencers []Sequencer `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
+	Sequencers []Sequencer         `protobuf:"bytes,1,rep,name=sequencers,proto3" json:"sequencers"`
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryGetSequencersByRollappByStatusResponse) Reset() {
@@ -485,6 +510,13 @@ var xxx_messageInfo_QueryGetSequencersByRollappByStatusResponse proto.InternalMe
 func (m *QueryGetSequencersByRollappByStatusResponse) GetSequencers() []Sequencer {
 	if m != nil {
 		return m.Sequencers
+	}
+	return nil
+}
+
+func (m *QueryGetSequencersByRollappByStatusResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
 	}
 	return nil
 }
@@ -1308,6 +1340,18 @@ func (m *QueryGetSequencersByRollappRequest) MarshalToSizedBuffer(dAtA []byte) (
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.RollappId) > 0 {
 		i -= len(m.RollappId)
 		copy(dAtA[i:], m.RollappId)
@@ -1338,6 +1382,18 @@ func (m *QueryGetSequencersByRollappResponse) MarshalToSizedBuffer(dAtA []byte) 
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.Sequencers) > 0 {
 		for iNdEx := len(m.Sequencers) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -1375,6 +1431,18 @@ func (m *QueryGetSequencersByRollappByStatusRequest) MarshalToSizedBuffer(dAtA [
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
 	if m.Status != 0 {
 		i = encodeVarintQuery(dAtA, i, uint64(m.Status))
 		i--
@@ -1410,6 +1478,18 @@ func (m *QueryGetSequencersByRollappByStatusResponse) MarshalToSizedBuffer(dAtA 
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.Sequencers) > 0 {
 		for iNdEx := len(m.Sequencers) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -1665,6 +1745,10 @@ func (m *QueryGetSequencersByRollappRequest) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
@@ -1679,6 +1763,10 @@ func (m *QueryGetSequencersByRollappResponse) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
 }
@@ -1696,6 +1784,10 @@ func (m *QueryGetSequencersByRollappByStatusRequest) Size() (n int) {
 	if m.Status != 0 {
 		n += 1 + sovQuery(uint64(m.Status))
 	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
@@ -1710,6 +1802,10 @@ func (m *QueryGetSequencersByRollappByStatusResponse) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
 }
@@ -2342,6 +2438,42 @@ func (m *QueryGetSequencersByRollappRequest) Unmarshal(dAtA []byte) error {
 			}
 			m.RollappId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -2423,6 +2555,42 @@ func (m *QueryGetSequencersByRollappResponse) Unmarshal(dAtA []byte) error {
 			}
 			m.Sequencers = append(m.Sequencers, Sequencer{})
 			if err := m.Sequencers[len(m.Sequencers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2527,6 +2695,42 @@ func (m *QueryGetSequencersByRollappByStatusRequest) Unmarshal(dAtA []byte) erro
 					break
 				}
 			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -2608,6 +2812,42 @@ func (m *QueryGetSequencersByRollappByStatusResponse) Unmarshal(dAtA []byte) err
 			}
 			m.Sequencers = append(m.Sequencers, Sequencer{})
 			if err := m.Sequencers[len(m.Sequencers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

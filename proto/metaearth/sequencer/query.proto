@@ -80,19 +80,23 @@ message QuerySequencersResponse {
 
 message QueryGetSequencersByRollappRequest {
   string rollappId = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 message QueryGetSequencersByRollappResponse {
   repeated Sequencer sequencers = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryGetSequencersByRollappByStatusRequest {
   string rollappId = 1;
   OperatingStatus status = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
 message QueryGetSequencersByRollappByStatusResponse {
   repeated Sequencer sequencers = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryGetUnConfirmSequencersAddrByRollappRequest {

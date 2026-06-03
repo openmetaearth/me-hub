@@ -18,12 +18,18 @@ func CmdShowSequencersByRollapp() *cobra.Command {
 				return err
 			}
 
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
 			queryClient := types.NewQueryClient(clientCtx)
 
 			argRollappId := args[0]
 
 			params := &types.QueryGetSequencersByRollappRequest{
-				RollappId: argRollappId,
+				RollappId:  argRollappId,
+				Pagination: pageReq,
 			}
 
 			res, err := queryClient.SequencersByRollapp(cmd.Context(), params)
@@ -35,6 +41,7 @@ func CmdShowSequencersByRollapp() *cobra.Command {
 		},
 	}
 
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd

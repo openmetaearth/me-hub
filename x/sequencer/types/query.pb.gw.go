@@ -106,7 +106,9 @@ func local_request_Query_Sequencer_0(ctx context.Context, marshaler runtime.Mars
 }
 
 var (
-	filter_Query_Sequencers_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Query_Sequencers_0                  = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Query_SequencersByRollapp_0         = &utilities.DoubleArray{Encoding: map[string]int{"rollappId": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_Query_SequencersByRollappByStatus_0 = &utilities.DoubleArray{Encoding: map[string]int{"rollappId": 0, "status": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
 )
 
 func request_Query_Sequencers_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -163,6 +165,13 @@ func request_Query_SequencersByRollapp_0(ctx context.Context, marshaler runtime.
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rollappId", err)
 	}
 
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_SequencersByRollapp_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
 	msg, err := client.SequencersByRollapp(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
@@ -188,6 +197,13 @@ func local_request_Query_SequencersByRollapp_0(ctx context.Context, marshaler ru
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rollappId", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_SequencersByRollapp_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.SequencersByRollapp(ctx, &protoReq)
@@ -231,6 +247,13 @@ func request_Query_SequencersByRollappByStatus_0(ctx context.Context, marshaler 
 
 	protoReq.Status = OperatingStatus(e)
 
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_SequencersByRollappByStatus_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
 	msg, err := client.SequencersByRollappByStatus(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
@@ -271,6 +294,13 @@ func local_request_Query_SequencersByRollappByStatus_0(ctx context.Context, mars
 	}
 
 	protoReq.Status = OperatingStatus(e)
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_SequencersByRollappByStatus_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	msg, err := server.SequencersByRollappByStatus(ctx, &protoReq)
 	return msg, metadata, err

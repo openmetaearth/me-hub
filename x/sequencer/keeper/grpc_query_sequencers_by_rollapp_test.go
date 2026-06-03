@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -20,24 +21,16 @@ func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
 	rollappId2 := suite.CreateDefaultRollapp()
 
 	// create 2 sequencer
-	addr1_1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	addr2_1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	seq1, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1_1)
-	require.True(suite.T(), found)
-	seq2, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2_1)
-	require.True(suite.T(), found)
+	suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	seq1Response := types.QueryGetSequencersByRollappResponse{
-		Sequencers: []types.Sequencer{seq1, seq2},
+		Sequencers: suite.App.SequencerKeeper.GetSequencersByRollapp(suite.Ctx, rollappId),
 	}
 
-	addr1_2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId2)
-	addr2_2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId2)
-	seq3, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1_2)
-	require.True(suite.T(), found)
-	seq4, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2_2)
-	require.True(suite.T(), found)
+	suite.CreateDefaultSequencer(suite.Ctx, rollappId2)
+	suite.CreateDefaultSequencer(suite.Ctx, rollappId2)
 	seq2Response := types.QueryGetSequencersByRollappResponse{
-		Sequencers: []types.Sequencer{seq3, seq4},
+		Sequencers: suite.App.SequencerKeeper.GetSequencersByRollapp(suite.Ctx, rollappId2),
 	}
 
 	for _, tc := range []struct {
@@ -79,12 +72,36 @@ func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
 			} else {
 				require.NoError(t, err)
 				require.Equal(t,
-					nullify.Fill(tc.response),
-					nullify.Fill(response),
+					nullify.Fill(tc.response.Sequencers),
+					nullify.Fill(response.Sequencers),
 				)
+				require.NotNil(t, response.Pagination)
+				require.Equal(t, uint64(len(tc.response.Sequencers)), response.Pagination.Total)
 			}
 		})
 	}
+}
+
+func (suite *SequencerTestSuite) TestSequencersByRollappQueryPagination() {
+	suite.SetupTest()
+
+	rollappId := suite.CreateDefaultRollapp()
+	suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+
+	response, err := suite.App.SequencerKeeper.SequencersByRollapp(suite.Ctx, &types.QueryGetSequencersByRollappRequest{
+		RollappId: rollappId,
+		Pagination: &query.PageRequest{
+			Limit:      1,
+			CountTotal: true,
+		},
+	})
+	require.NoError(suite.T(), err)
+	require.Len(suite.T(), response.Sequencers, 1)
+	require.NotNil(suite.T(), response.Pagination)
+	require.Equal(suite.T(), uint64(3), response.Pagination.Total)
+	require.NotEmpty(suite.T(), response.Pagination.NextKey)
 }
 
 func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
@@ -172,4 +189,27 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 			}
 		})
 	}
+}
+
+func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQueryPagination() {
+	suite.SetupTest()
+
+	rollappId := suite.CreateDefaultRollapp()
+	suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+
+	response, err := suite.App.SequencerKeeper.SequencersByRollappByStatus(suite.Ctx, &types.QueryGetSequencersByRollappByStatusRequest{
+		RollappId: rollappId,
+		Status:    types.Bonded,
+		Pagination: &query.PageRequest{
+			Limit:      2,
+			CountTotal: true,
+		},
+	})
+	require.NoError(suite.T(), err)
+	require.Len(suite.T(), response.Sequencers, 2)
+	require.NotNil(suite.T(), response.Pagination)
+	require.Equal(suite.T(), uint64(3), response.Pagination.Total)
+	require.NotEmpty(suite.T(), response.Pagination.NextKey)
 }

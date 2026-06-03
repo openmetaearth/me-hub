@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -20,9 +22,23 @@ func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequen
 		return nil, types.ErrUnknownRollappID
 	}
 
-	sequencers := k.GetSequencersByRollapp(ctx, req.RollappId)
+	var sequencers []types.Sequencer
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SequencersByRollappKey(req.RollappId))
+	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
+		var sequencer types.Sequencer
+		if err := k.cdc.Unmarshal(value, &sequencer); err != nil {
+			return err
+		}
+		sequencers = append(sequencers, sequencer)
+		return nil
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
 	return &types.QueryGetSequencersByRollappResponse{
 		Sequencers: sequencers,
+		Pagination: pageRes,
 	}, nil
 }
 
@@ -36,14 +52,23 @@ func (k Keeper) SequencersByRollappByStatus(c context.Context, req *types.QueryG
 		return nil, types.ErrUnknownRollappID
 	}
 
-	sequencers := k.GetSequencersByRollappByStatus(
-		ctx,
-		req.RollappId,
-		req.Status,
-	)
+	var sequencers []types.Sequencer
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SequencersByRollappByStatusKey(req.RollappId, req.Status))
+	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
+		var sequencer types.Sequencer
+		if err := k.cdc.Unmarshal(value, &sequencer); err != nil {
+			return err
+		}
+		sequencers = append(sequencers, sequencer)
+		return nil
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 
 	return &types.QueryGetSequencersByRollappByStatusResponse{
 		Sequencers: sequencers,
+		Pagination: pageRes,
 	}, nil
 }
 
