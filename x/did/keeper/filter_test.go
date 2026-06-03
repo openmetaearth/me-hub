@@ -5,13 +5,14 @@ import (
 	"github.com/openmetaearth/me-hub/testutil/keeper"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func TestKeeper_Filter(t *testing.T) {
 	k, ctx := keeper.DidKeeper(t)
 
-	did := "1000000000000001"
+	did := "1000000000001"
 	sid := "test"
 	vc := didtypes.Credential{
 		Did:  did,
@@ -46,4 +47,31 @@ func TestKeeper_Filter(t *testing.T) {
 	assert.Equal(t, 0, len(vcs))
 	vcs, _, _ = k.GetCredentialsByFilter(ctx, sid, f2, &pr)
 	assert.Equal(t, 0, len(vcs))
+}
+
+func TestKeeper_GetCredentialsByFilterDoesNotMatchLongerRegionPrefix(t *testing.T) {
+	k, ctx := keeper.DidKeeper(t)
+
+	sid := "kyc"
+	did := "1000000000002"
+	parentRegion := []byte("me_earth")
+	childRegion := []byte("me_earth-usa")
+	vc := didtypes.Credential{
+		Did:  did,
+		Sid:  sid,
+		Hash: "hash-earth-usa",
+		Uri:  "https://www.example.com/earth-usa",
+	}
+
+	k.AddFilters(ctx, did, sid, [][]byte{childRegion}, vc)
+
+	pr := query.PageRequest{}
+	vcs, _, err := k.GetCredentialsByFilter(ctx, sid, parentRegion, &pr)
+	require.NoError(t, err)
+	require.Empty(t, vcs)
+
+	vcs, _, err = k.GetCredentialsByFilter(ctx, sid, childRegion, &pr)
+	require.NoError(t, err)
+	require.Len(t, vcs, 1)
+	assert.Equal(t, did, vcs[0].Did)
 }

@@ -71,3 +71,7 @@ func GetFilterPrefixBySidAndFilter(sid string, filter []byte) []byte {
 func GetFilterKey(sid, did string, filter []byte) []byte {
 	return append(GetFilterPrefixBySidAndFilter(sid, filter), did...)
 }
+
+func IsExactFilterIndexSuffix(key []byte) bool {
+	return len(key) == DidLength
+}

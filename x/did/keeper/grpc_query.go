@@ -162,6 +162,10 @@ func (k Keeper) Credentials(goCtx context.Context, req *types.QueryCredentials) 
 	filterStore := prefix.NewStore(store, types.GetFilterPrefixBySidAndFilter(req.Sid, req.Filter))
 
 	pageRes, err := query.Paginate(filterStore, req.Pagination, func(key []byte, value []byte) error {
+		if !types.IsExactFilterIndexSuffix(key) {
+			return nil
+		}
+
 		var vc types.Credential
 		if err := k.cdc.Unmarshal(value, &vc); err != nil {
 			return err

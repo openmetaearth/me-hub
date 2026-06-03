@@ -64,6 +64,10 @@ func (k Keeper) GetCredentialsByFilter(
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetFilterPrefixBySidAndFilter(sid, filter))
 
 	pageRes, err = query.Paginate(store, pageReq, func(key []byte, value []byte) error {
+		if !types.IsExactFilterIndexSuffix(key) {
+			return nil
+		}
+
 		var vc types.Credential
 		if err := k.cdc.Unmarshal(value, &vc); err != nil {
 			return err // todo: warp error
@@ -94,6 +98,10 @@ func (k Keeper) IteratorCredentialsByFilter(ctx sdk.Context, sid string, filter 
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
+		if !types.IsExactFilterIndexSuffix(iterator.Key()) {
+			continue
+		}
+
 		var vc types.Credential
 		k.cdc.MustUnmarshal(iterator.Value(), &vc)
 		if cb(vc) {
