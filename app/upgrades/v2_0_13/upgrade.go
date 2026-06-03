@@ -8,6 +8,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	appkeepers "github.com/openmetaearth/me-hub/app/keepers"
+	appparams "github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/app/upgrades"
 	"github.com/openmetaearth/me-hub/utils"
 	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
@@ -58,16 +59,15 @@ func CreateUpgradeHandler(
 
 		// delegate total amount to module account
 		delegateAmount := sdk.NewInt(1 * 1e8)
-		//for _, relayerAddr := range proposalRelayers {
-		//if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), bsctypes.ModuleName,
-		//	sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
-		//	panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
-		//}
-		//if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), trontypes.ModuleName,
-		//	sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
-		//	panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
-		//}
-		//}
+		// Mint delegate total amount directly to module accounts to back the phantom delegations
+		totalDelegateAmount := delegateAmount.MulRaw(int64(len(proposalRelayers)))
+		totalCoins := sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, totalDelegateAmount))
+		if err := keepers.BankKeeper.MintCoins(ctx, bsctypes.ModuleName, totalCoins); err != nil {
+			panic(fmt.Sprintf("failed to mint coins for bsc module account: %s", err.Error()))
+		}
+		if err := keepers.BankKeeper.MintCoins(ctx, trontypes.ModuleName, totalCoins); err != nil {
+			panic(fmt.Sprintf("failed to mint coins for tron module account: %s", err.Error()))
+		}
 
 		bscGenState := GenGravityGenesis(ctx.BlockHeight(), proposalRelayers, bsctypes.DefaultGenesisState(), delegateAmount, bsctypes.ModuleName)
 		gravitykeeper.InitGenesis(ctx, keepers.BscKeeper, bscGenState)

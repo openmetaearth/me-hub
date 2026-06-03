@@ -553,3 +553,45 @@ func (s *KeeperTestSuite) TestSlashRelayer() {
 		s.Require().Equal(int64(1), relayer.SlashTimes)
 	}
 }
+
+func (s *KeeperTestSuite) TestUnbondedRelayer_PhantomStake() {
+	// Initialize a relayer directly in the store, mirroring the genesis/upgrade behavior
+	// (i.e. delegateAmount is set in store, but the module account is not funded via BondedRelayer)
+	relayerAddr := s.relayerAddrs[0]
+	externalAddress := s.PubKeyToExternalAddr(s.externalPris[0].PublicKey)
+	delegateAmount := sdk.NewInt(1 * 1e8)
+
+	relayer := types.Relayer{
+		RelayerAddress:  relayerAddr.String(),
+		ExternalAddress: externalAddress,
+		DelegateAmount:  delegateAmount,
+		StartHeight:     s.Ctx.BlockHeight(),
+		Online:          false, // offline so we can unbond
+		SlashTimes:      0,
+	}
+	s.Keeper().SetRelayer(s.Ctx, relayerAddr, relayer)
+	s.Keeper().SetRelayerByExternalAddress(s.Ctx, externalAddress, relayerAddr)
+
+	// Attempting to unbond now should fail because module account has 0 funds
+	_, err := s.MsgServer().UnbondedRelayer(s.Ctx, &types.MsgUnbondedRelayer{
+		ChainName:      s.chainName,
+		RelayerAddress: relayerAddr.String(),
+	})
+	s.Require().Error(err)
+
+	// Now fund the module account directly (simulating the fix in upgrade handler)
+	err = s.App.BankKeeper.MintCoins(s.Ctx, s.chainName, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount)))
+	s.Require().NoError(err)
+
+	// Unbond should now succeed
+	_, err = s.MsgServer().UnbondedRelayer(s.Ctx, &types.MsgUnbondedRelayer{
+		ChainName:      s.chainName,
+		RelayerAddress: relayerAddr.String(),
+	})
+	s.Require().NoError(err)
+
+	// Verify relayer was deleted
+	_, found := s.Keeper().GetRelayer(s.Ctx, relayerAddr)
+	s.Require().False(found)
+}
+
