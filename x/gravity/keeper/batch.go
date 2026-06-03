@@ -189,14 +189,18 @@ func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, contractAddress string, b
 	if batch == nil {
 		return types.ErrUnknown
 	}
+
+	cacheCtx, writeCache := ctx.CacheContext()
 	for _, tx := range batch.Transactions {
-		if err := k.AddUnbatchedTx(ctx, tx); err != nil {
+		if err := k.AddUnbatchedTx(cacheCtx, tx); err != nil {
 			return errorsmod.Wrapf(err, "unable to add batched transaction back into pool %v", tx)
 		}
 	}
 
 	// Delete batch since it is finished
-	k.DeleteBatch(ctx, batch)
+	k.DeleteBatch(cacheCtx, batch)
+
+	writeCache()
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeOutgoingBatchCanceled,

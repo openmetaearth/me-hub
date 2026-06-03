@@ -155,3 +155,62 @@ func (suite *KeeperTestSuite) TestKeeper_IterateBatch() {
 	)
 	suite.Equal(len(batchs), index)
 }
+
+func (suite *KeeperTestSuite) TestCancelOutgoingTxBatchAtomicity() {
+	tokenContract := helpers.GenerateAddress().Hex()
+
+	tx1 := &types.OutgoingTransferTx{
+		Id:          1,
+		Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+		DestAddress: helpers.GenerateAddress().Hex(),
+		Token: types.ERC20Token{
+			Contract: tokenContract,
+			Amount:   sdkmath.NewInt(100),
+		},
+		Fee: types.ERC20Token{
+			Contract: tokenContract,
+			Amount:   sdkmath.NewInt(10),
+		},
+	}
+	tx2 := &types.OutgoingTransferTx{
+		Id:          2,
+		Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+		DestAddress: helpers.GenerateAddress().Hex(),
+		Token: types.ERC20Token{
+			Contract: tokenContract,
+			Amount:   sdkmath.NewInt(200),
+		},
+		Fee: types.ERC20Token{
+			Contract: tokenContract,
+			Amount:   sdkmath.NewInt(20),
+		},
+	}
+
+	batch := &types.OutgoingTxBatch{
+		BatchNonce:    1,
+		BatchTimeout:  0,
+		Transactions:  []*types.OutgoingTransferTx{tx1, tx2},
+		TokenContract: tokenContract,
+		Block:         100,
+		FeeReceive:    helpers.GenerateAddress().Hex(),
+	}
+
+	suite.NoError(suite.Keeper().StoreBatch(suite.Ctx, batch))
+
+	// Pre-seed the second transaction (tx2) in the pool.
+	// This will cause AddUnbatchedTx for tx2 to fail with duplicate transaction error.
+	suite.NoError(suite.Keeper().AddUnbatchedTx(suite.Ctx, tx2))
+
+	// Call CancelOutgoingTxBatch, which should fail due to the duplicate tx2.
+	err := suite.Keeper().CancelOutgoingTxBatch(suite.Ctx, tokenContract, batch.BatchNonce)
+	suite.Error(err)
+
+	// Since it failed, check that the state is clean (rolled back) and NOT partially applied:
+	// 1. tx1 should NOT be in the pool.
+	_, err1 := suite.Keeper().GetUnbatchedTxByFeeAndId(suite.Ctx, tx1.Fee, tx1.Id)
+	suite.Error(err1)
+
+	// 2. The batch should still exist in store.
+	batchInStore := suite.Keeper().GetOutgoingTxBatch(suite.Ctx, tokenContract, batch.BatchNonce)
+	suite.NotNil(batchInStore)
+}
