@@ -68,3 +68,59 @@ func (s *KeeperTestSuite) TestTransferKycRegion() {
 	s.Require().Equal(delegation.ValidatorAddress, s.usaValidator.OperatorAddress)
 	s.Require().EqualValues(delegation.StartHeight, wmintTypes.OneDayTotalBlocks+1)
 }
+
+func (s *KeeperTestSuite) TestMsgTransferRegion() {
+	s.SetupTest()
+	accounts := s.NewAccounts(1)
+
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            types.MeEarthRegionName,
+		OperatorAddress: s.meEarthValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
+	newRegion = types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            "USA",
+		OperatorAddress: s.usaValidator.OperatorAddress,
+	}
+	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	kycAccount := accounts[0]
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, types.MeEarthRegionId, s.Dao.GlobalDao)
+	s.Require().NoError(err)
+
+	_, err = s.msgServer.TransferRegion(s.Ctx, &types.MsgTransferRegion{
+		Creator:    s.Dao.MeidDao,
+		FromRegion: types.MeEarthRegionId,
+		ToRegion:   "usa",
+		Address:    []string{kycAccount.String()},
+	})
+	s.Require().ErrorIs(err, types.ErrCheckGlobalDao)
+
+	delegation, found := s.Keeper().GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
+	s.Require().True(found)
+	s.Require().Equal(s.meEarthValidator.OperatorAddress, delegation.ValidatorAddress)
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks + 1).WithChainID(apptesting.TestChainID)
+
+	_, err = s.msgServer.TransferRegion(s.Ctx, &types.MsgTransferRegion{
+		Creator:    s.Dao.GlobalDao,
+		FromRegion: types.MeEarthRegionId,
+		ToRegion:   "usa",
+		Address:    []string{kycAccount.String()},
+	})
+	s.Require().NoError(err)
+
+	delegation, found = s.Keeper().GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
+	s.Require().True(found)
+	s.Require().Equal(s.usaValidator.OperatorAddress, delegation.ValidatorAddress)
+	s.Require().EqualValues(wmintTypes.OneDayTotalBlocks+1, delegation.StartHeight)
+}

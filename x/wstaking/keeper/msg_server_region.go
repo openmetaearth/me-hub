@@ -189,6 +189,36 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 }
 
 func (k MsgServer) TransferRegion(goCtx context.Context, msg *types.MsgTransferRegion) (*types.MsgTransferRegionResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
+		return nil, types.ErrCheckGlobalDao
+	}
+
+	fromRegionId := strings.ToLower(msg.FromRegion)
+	toRegionId := strings.ToLower(msg.ToRegion)
+	if fromRegionId == "" || toRegionId == "" {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "from_region and to_region must not be empty")
+	}
+	if len(msg.Address) == 0 {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "address list must not be empty")
+	}
+
+	transferAddresses := make([]sdk.AccAddress, 0, len(msg.Address))
+	for _, address := range msg.Address {
+		accAddr, err := sdk.AccAddressFromBech32(address)
+		if err != nil {
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid transfer address %s", address)
+		}
+		transferAddresses = append(transferAddresses, accAddr)
+	}
+
+	for _, accAddr := range transferAddresses {
+		if err := k.Keeper.TransferKycRegion(ctx, accAddr, msg.Creator, fromRegionId, toRegionId); err != nil {
+			return nil, err
+		}
+	}
+
 	return &types.MsgTransferRegionResponse{}, nil
 }
 

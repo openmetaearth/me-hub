@@ -34,6 +34,7 @@ var (
 	_ sdk.Msg = &MsgUnstake{}
 	_ sdk.Msg = &MsgNewRegion{}
 	_ sdk.Msg = &MsgRemoveRegion{}
+	_ sdk.Msg = &MsgTransferRegion{}
 	_ sdk.Msg = &MsgWithdrawDelegatorReward{}
 	_ sdk.Msg = &MsgWithdrawFromRegion{}
 	_ sdk.Msg = &MsgWithdrawFromGlobalDaoFeePool{}
@@ -489,6 +490,20 @@ func (msg *MsgTransferRegion) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+	if msg.FromRegion == "" {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "from_region must not be empty")
+	}
+	if msg.ToRegion == "" {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "to_region must not be empty")
+	}
+	if len(msg.Address) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "address list must not be empty")
+	}
+	for _, address := range msg.Address {
+		if _, err := sdk.AccAddressFromBech32(address); err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid transfer address (%s)", err)
+		}
 	}
 	return nil
 }
