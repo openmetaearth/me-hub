@@ -32,6 +32,47 @@ func NewAccountWithEthPrivKey() (*authtypes.BaseAccount, *ethsecp256k1.PrivKey) 
 	return acc, senderPrivKey
 }
 
+type panicFeeTx struct {
+	msgs          []sdk.Msg
+	fee           sdk.Coins
+	gas           uint64
+	feePayer      sdk.AccAddress
+	feeGranter    sdk.AccAddress
+	panicPayer    bool
+	panicGranter  bool
+	validateBasic error
+}
+
+func (tx panicFeeTx) GetMsgs() []sdk.Msg {
+	return tx.msgs
+}
+
+func (tx panicFeeTx) ValidateBasic() error {
+	return tx.validateBasic
+}
+
+func (tx panicFeeTx) GetFee() sdk.Coins {
+	return tx.fee
+}
+
+func (tx panicFeeTx) GetGas() uint64 {
+	return tx.gas
+}
+
+func (tx panicFeeTx) FeePayer() sdk.AccAddress {
+	if tx.panicPayer {
+		panic("malformed auth_info fee payer")
+	}
+	return tx.feePayer
+}
+
+func (tx panicFeeTx) FeeGranter() sdk.AccAddress {
+	if tx.panicGranter {
+		panic("malformed auth_info fee granter")
+	}
+	return tx.feeGranter
+}
+
 func TestMockBankKeeper(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -46,6 +87,67 @@ func TestMockBankKeeper(t *testing.T) {
 
 	balances := mockBankKeeper.GetAllBalances(ctx, addr)
 	require.Equal(t, expectedBalances, balances)
+}
+
+func TestDeductFeeRejectsMalformedAuthInfoFeeAddressesWithoutPanic(t *testing.T) {
+	tests := []struct {
+		name         string
+		panicPayer   bool
+		panicGranter bool
+	}{
+		{
+			name:       "fee payer",
+			panicPayer: true,
+		},
+		{
+			name:         "fee granter",
+			panicGranter: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			ctx := sdk.Context{}
+			mockBankKeeper := mock.NewMockBankKeeper(ctrl)
+			mockAccountKeeper := authantetestutil.NewMockAccountKeeper(ctrl)
+			mockFeegrantKeeper := authantetestutil.NewMockFeegrantKeeper(ctrl)
+			mockStakingKeeper := mock.NewMockStakingKeeper(ctrl)
+			mockKycKeeper := mock.NewMockKycKeeper(ctrl)
+			mockDaoKeeper := mock.NewMockDaoKeeper(ctrl)
+			mockWasmKeeper := mock.NewMockWasmKeeper(ctrl)
+
+			decorator := ante.NewDeductFeeDecorator(
+				mockAccountKeeper,
+				mockBankKeeper,
+				mockFeegrantKeeper,
+				mockDaoKeeper,
+				mockStakingKeeper,
+				mockKycKeeper,
+				nil,
+				mockWasmKeeper,
+			)
+
+			feePayer := NewAccount()
+			tx := panicFeeTx{
+				fee:          sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(10000))),
+				gas:          200000,
+				feePayer:     feePayer.GetAddress(),
+				panicPayer:   tc.panicPayer,
+				panicGranter: tc.panicGranter,
+			}
+
+			require.NotPanics(t, func() {
+				_, err := decorator.AnteHandle(ctx, tx, false, func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
+					return ctx, nil
+				})
+				require.Error(t, err)
+				require.True(t, sdkerrors.ErrInvalidAddress.Is(err))
+			})
+		})
+	}
 }
 
 func TestCheckFunds(t *testing.T) {

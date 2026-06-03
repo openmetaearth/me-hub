@@ -130,8 +130,14 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	)
 
 	feePending := feeTx.GetFee()
-	feePayer := feeTx.FeePayer()
-	feeGranter := feeTx.FeeGranter()
+	feePayer, err := safeFeePayer(feeTx)
+	if err != nil {
+		return ctx, err
+	}
+	feeGranter, err := safeFeeGranter(feeTx)
+	if err != nil {
+		return ctx, err
+	}
 
 	isDao := dfd.daoKeeper.IsDao(ctx, feePayer.String())
 	isFreeGasAccount := dfd.daoKeeper.CheckFreeGasAccount(ctx, feePayer.String())
@@ -278,6 +284,24 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	}
 	newCtx := ctx.WithPriority(priority)
 	return next(newCtx, tx, simulate)
+}
+
+func safeFeePayer(feeTx sdk.FeeTx) (feePayer sdk.AccAddress, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid fee payer: %v", r)
+		}
+	}()
+	return feeTx.FeePayer(), nil
+}
+
+func safeFeeGranter(feeTx sdk.FeeTx) (feeGranter sdk.AccAddress, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid fee granter: %v", r)
+		}
+	}()
+	return feeTx.FeeGranter(), nil
 }
 
 func (dfd DeductFeeDecorator) CheckFunds(ctx sdk.Context, tx sdk.Tx, feePayer string, fees sdk.Coins) error {
