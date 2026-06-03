@@ -200,6 +200,11 @@ func (m msgServer) UpdateVC(goCtx context.Context, msg *types.MsgUpdateVC) (*typ
 		return &types.MsgUpdateVCResponse{}, types.ErrHolderNotActive
 	}
 
+	// delete old filters
+	if oldFilters, found := m.GetFilters(ctx, msg.Did, msg.Sid); found {
+		m.DeleteFilters(ctx, msg.Did, msg.Sid, oldFilters)
+	}
+
 	// update VC
 	vc := msg.GetCredential()
 	m.SetCredential(ctx, msg.Did, msg.Sid, vc)
