@@ -155,3 +155,39 @@ func (suite *KeeperTestSuite) TestKeeper_IterateBatch() {
 	)
 	suite.Equal(len(batchs), index)
 }
+
+func (suite *KeeperTestSuite) TestOutgoingBatchFeesReserveSupplyForFutureTransfers() {
+	sender := helpers.GenerateAddress().Bytes()
+	denom := "batchreserve"
+	bridgeToken := suite.NewBridgeToken(sender, sdk.NewCoin(denom, sdkmath.NewInt(1000)))
+
+	_, err := suite.Keeper().AddToOutgoingPool(
+		suite.Ctx,
+		sender,
+		helpers.GenerateAddress().Hex(),
+		sdk.NewCoin(denom, sdkmath.NewInt(1)),
+		sdk.NewCoin(denom, sdkmath.NewInt(499)),
+	)
+	suite.Require().NoError(err)
+
+	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, 1, 1)
+	_, err = suite.Keeper().BuildOutgoingTxBatch(
+		suite.Ctx,
+		bridgeToken.ContractAddress,
+		helpers.GenerateAddress().Hex(),
+		types.OutgoingTxBatchSize,
+		sdkmath.ZeroInt(),
+		sdkmath.ZeroInt(),
+	)
+	suite.Require().NoError(err)
+
+	_, err = suite.Keeper().AddToOutgoingPool(
+		suite.Ctx,
+		sender,
+		helpers.GenerateAddress().Hex(),
+		sdk.NewCoin(denom, sdkmath.NewInt(498)),
+		sdk.NewCoin(denom, sdkmath.NewInt(1)),
+	)
+	suite.Require().Error(err)
+	suite.Require().Equal(sdkmath.NewInt(500), suite.App.BankKeeper.GetAllBalances(suite.Ctx, sender).AmountOf(denom))
+}

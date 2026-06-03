@@ -261,7 +261,8 @@ func (k Keeper) GetOutgoingPendingTxTotal(ctx sdk.Context, chainName string, bri
 	// Add all batched transactions
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		if batch.TokenContract == bridgeToken.ContractAddress {
-			totalPending = totalPending.Add(types.GetMintAmount(batch.TotalAmount(), chainName, bridgeToken))
+			batchPending := batch.TotalAmount().Add(types.OutgoingTransferTxs(batch.Transactions).TotalFee())
+			totalPending = totalPending.Add(types.GetMintAmount(batchPending, chainName, bridgeToken))
 		}
 		return false
 	})
