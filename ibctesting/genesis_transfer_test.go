@@ -85,6 +85,28 @@ func (s *transferGenesisSuite) TestHappyPath() {
 	}
 }
 
+func (s *transferGenesisSuite) TestSkipDelayRollappHappyPath() {
+	// Configure the rollapp to skip delay
+	s.hubApp().RollappKeeper.SetSkipDelayRollapp(s.hubCtx(), rollappChainID(), true)
+
+	amt := math.NewIntFromUint64(10000000000000000000)
+	denom := "skipfoo"
+
+	msg := s.transferMsg(amt, denom, true)
+	apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.Coins{msg.Token})
+	res, err := s.rollappChain().SendMsgs(msg)
+	s.Require().NoError(err)
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	s.Require().NoError(err)
+
+	err = s.path.RelayPacket(packet)
+	s.Require().NoError(err)
+
+	// Since it's a SkipDelay rollapp and it received a valid genesis transfer, transfers should be automatically enabled!
+	transfersEnabled := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
+	s.Require().True(transfersEnabled, "transfers should be enabled automatically for SkipDelay rollapp")
+}
+
 // In the fault path, a chain tries to do another genesis transfer (to skip eibc) after the genesis phase
 // is already complete. It triggers a fraud.
 func (s *transferGenesisSuite) TestCannotDoGenesisTransferAfterBridgeEnabled() {

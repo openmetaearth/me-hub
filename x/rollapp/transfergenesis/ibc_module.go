@@ -119,11 +119,11 @@ func (w IBCModule) OnRecvPacket(
 	memo, err := getMemo(transfer.GetMemo())
 	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
 		// The first regular transfer marks the full opening of the bridge, more genesis transfers will not be allowed.
-		err := w.IBCModule.OnRecvPacket(ctx, packet, relayer)
-		if err == nil && !ra.GenesisState.TransfersEnabled {
+		ack := w.IBCModule.OnRecvPacket(ctx, packet, relayer)
+		if ack.Success() && !ra.GenesisState.TransfersEnabled {
 			w.rollappKeeper.EnableTransfers(ctx, ra.RollappId)
 		}
-		return err
+		return ack
 	}
 	if err != nil {
 		l.Error("Get memo.", "err", err)
@@ -151,7 +151,11 @@ func (w IBCModule) OnRecvPacket(
 	l.Debug("Received valid genesis transfer. Registered denom data.")
 
 	// we want to skip delayedack etc because we want the transfer to happen immediately
-	return w.IBCModule.OnRecvPacket(commontypes.SkipRollappMiddlewareContext(ctx), packet, relayer)
+	ack := w.IBCModule.OnRecvPacket(commontypes.SkipRollappMiddlewareContext(ctx), packet, relayer)
+	if ack.Success() && w.rollappKeeper.IsSkipDelayRollapp(ctx, ra.RollappId) && !ra.GenesisState.TransfersEnabled {
+		w.rollappKeeper.EnableTransfers(ctx, ra.RollappId)
+	}
+	return ack
 }
 
 func (w IBCModule) handleDRSViolation(ctx sdk.Context, rollappID string) error {
