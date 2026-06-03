@@ -87,15 +87,15 @@ docker rm mechain-private-net
 
 After successful startup, you can access the network through the following endpoints:
 
-| Service | Port | URL |
-|---------|------|-----|
-| **RPC** | 36657 | http://localhost:36657 |
-| **REST API** | 1318 | http://localhost:1318 |
-| **JSON-RPC** | 9545 | http://localhost:9545 |
-| **JSON-RPC WebSocket** | 9546 | ws://localhost:9546 |
-| **gRPC** | 8090 | localhost:8090 |
-| **gRPC-web** | 8091 | localhost:8091 |
-| **P2P** | 36656 | - |
+| Service                | Port  | URL                    |
+| ---------------------- | ----- | ---------------------- |
+| **RPC**                | 36657 | http://localhost:36657 |
+| **REST API**           | 1318  | http://localhost:1318  |
+| **JSON-RPC**           | 9545  | http://localhost:9545  |
+| **JSON-RPC WebSocket** | 9546  | ws://localhost:9546    |
+| **gRPC**               | 8090  | localhost:8090         |
+| **gRPC-web**           | 8091  | localhost:8091         |
+| **P2P**                | 36656 | -                      |
 
 ## 🔑 Pre-configured Accounts
 
@@ -123,12 +123,12 @@ docker exec mechain-private-net med query bank balances \
 
 ### Other Pre-configured Accounts
 
-| Account Name | Purpose | Initial Balance |
-|--------------|---------|-----------------|
-| **global_dao** | Main account/DAO | 1,000,000 MEC |
-| **pools** | AMM pool account | 1,000,000 MEC |
-| **user** | Test user account | 1,000,000 MEC |
-| **sequencer** | Sequencer account | 0.0001 MEC |
+| Account Name   | Purpose           | Initial Balance |
+| -------------- | ----------------- | --------------- |
+| **global_dao** | Main account/DAO  | 1,000,000 MEC   |
+| **pools**      | AMM pool account  | 1,000,000 MEC   |
+| **user**       | Test user account | 1,000,000 MEC   |
+| **sequencer**  | Sequencer account | 0.0001 MEC      |
 
 ## 🎯 Creating Custom Genesis Accounts
 
@@ -251,7 +251,7 @@ docker exec mechain-private-net med tx bank send \
   me139mq752delxv78jvtmwxhasyrycufsvr0mue6u \
   <target_address> \
   1000000umec \
-  --chain-id mechain_100-1 \
+  --chain-id mechain_202404-1 \
   --keyring-backend test \
   --yes
 
@@ -306,19 +306,19 @@ docker stats mechain-private-net --no-stream
 
 Customize chain configuration through environment variables:
 
-| Variable | Default Value | Description |
-|----------|---------------|-------------|
-| `CHAIN_ID` | mechain_100-1 | Chain ID |
-| `MONIKER_NAME` | local | Node name |
-| `KEY_NAME` | global_dao | Main account name |
-| `TZ` | Asia/Shanghai | Timezone setting |
-| `GENESIS_ACCOUNTS` | "" | Custom genesis accounts (simple format) |
-| `GENESIS_ACCOUNTS_JSON` | "" | Custom genesis accounts (JSON format) |
+| Variable                | Default Value    | Description                             |
+| ----------------------- | ---------------- | --------------------------------------- |
+| `CHAIN_ID`              | mechain_202404-1 | Chain ID                                |
+| `MONIKER_NAME`          | local            | Node name                               |
+| `KEY_NAME`              | global_dao       | Main account name                       |
+| `TZ`                    | Asia/Shanghai    | Timezone setting                        |
+| `GENESIS_ACCOUNTS`      | ""               | Custom genesis accounts (simple format) |
+| `GENESIS_ACCOUNTS_JSON` | ""               | Custom genesis accounts (JSON format)   |
 
 **Example**:
 ```bash
 docker run -d \
-  -e CHAIN_ID="mechain_100-1" \
+  -e CHAIN_ID="mechain_202404-1" \
   -e MONIKER_NAME="my-node" \
   -e KEY_NAME="global_dao" \
   -e TZ="UTC" \
@@ -467,15 +467,15 @@ docker run --rm your-registry/openmetaearth/me_hub:v1.0.0 version
 
 ## Comparison: Release vs Private Network
 
-| Feature | Release Image | Private Network Image |
-|---------|---------------|----------------------|
-| **Size** | ~200MB | ~423MB |
-| **Includes** | Binary only | Binary + initialized chain |
-| **Pre-configured** | No | Yes (test accounts) |
-| **Use Case** | Production/Custom | Development/Testing |
-| **Startup** | Requires init | Ready to run |
-| **Entrypoint** | `med` | Startup script |
-| **Default CMD** | `version` | Starts chain |
+| Feature            | Release Image     | Private Network Image      |
+| ------------------ | ----------------- | -------------------------- |
+| **Size**           | ~200MB            | ~423MB                     |
+| **Includes**       | Binary only       | Binary + initialized chain |
+| **Pre-configured** | No                | Yes (test accounts)        |
+| **Use Case**       | Production/Custom | Development/Testing        |
+| **Startup**        | Requires init     | Ready to run               |
+| **Entrypoint**     | `med`             | Startup script             |
+| **Default CMD**    | `version`         | Starts chain               |
 
 ## 🔄 Data Persistence
 

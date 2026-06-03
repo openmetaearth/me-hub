@@ -8,12 +8,12 @@ import (
 
 const (
 	MainnetV1ChainId  = "mechain"
-	MainnetV2ChainId  = "mechain_100-1"
-	MainnetEvmChainID = 100
+	MainnetV2ChainId  = "mechain_202404-1"
+	MainnetEvmChainID = 202404
 
 	TestnetV1ChainId  = "mechain_testnet"
-	TestnetV2ChainId  = "mechain_testnet_101-1"
-	TestnetEvmChainID = 101
+	TestnetV2ChainId  = "mechain_testnet_202405-1"
+	TestnetEvmChainID = 202405
 )
 
 var (

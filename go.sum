@@ -1150,8 +1150,8 @@ github.com/opencontainers/runc v1.1.5 h1:L44KXEpKmfWDcS02aeGm8QNTFXTo2D+8MYGDIJ/
 github.com/opencontainers/runc v1.1.5/go.mod h1:1J5XiS+vdZ3wCyZybsuxXZWGrgSr8fFJHLXuG2PsnNg=
 github.com/openmetaearth/cosmos-sdk v0.47.13-me-collect-genesis h1:Xl2iRxyNy6PPdehUsYGuOrQBzgDNggJEMwLX93Ak3oY=
 github.com/openmetaearth/cosmos-sdk v0.47.13-me-collect-genesis/go.mod h1:pYMzhTfKFn9AJB5X64Epwe9NgYk0y3v7XN8Ks5xqWoo=
-github.com/openmetaearth/ethermint v0.0.0-20250220093514-1c7546e01918 h1:MUm3R1jajDEm2SI7YLlXso3PL8U0qDJTvY1Ku6dp2FY=
-github.com/openmetaearth/ethermint v0.0.0-20250220093514-1c7546e01918/go.mod h1:2G1Xmc/tJP6A4jc00TgPl7NlA0ts2u0Qo1zW27vBTx4=
+github.com/openmetaearth/ethermint v0.0.0-20260603095359-eada2440b0a6 h1:WoV58Bb6EuhUspTwoBpDDUiKLaPP7J2NNl+nyuyKzIQ=
+github.com/openmetaearth/ethermint v0.0.0-20260603095359-eada2440b0a6/go.mod h1:2G1Xmc/tJP6A4jc00TgPl7NlA0ts2u0Qo1zW27vBTx4=
 github.com/openmetaearth/go-log/v2 v2.7.0 h1:Y9jkjT2AENRNCTtki/Q88eoQQzTMJwXoDr9UjrB2Ou8=
 github.com/openmetaearth/go-log/v2 v2.7.0/go.mod h1:k+omfANrss98aNVhjsO/wkFgP+3e0zmC7AM1xSDYIB8=
 github.com/openmetaearth/osmosis/v15 v15.2.1-0.20250310064437-06f94a73ca2a h1:0RkzNxYLDiYHFHVcA/BBQLnuI+TK4JwOnrBVogy62pQ=

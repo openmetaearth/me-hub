@@ -279,7 +279,7 @@ require (
 
 replace (
 	github.com/cosmos/cosmos-sdk => github.com/openmetaearth/cosmos-sdk v0.47.13-me-collect-genesis
-	github.com/evmos/ethermint => github.com/openmetaearth/ethermint v0.0.0-20250220093514-1c7546e01918
+	github.com/evmos/ethermint => github.com/openmetaearth/ethermint v0.0.0-20260603095359-eada2440b0a6
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/ipfs/go-log/v2 => github.com/openmetaearth/go-log/v2 v2.7.0
 	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1

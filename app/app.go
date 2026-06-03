@@ -23,6 +23,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	"github.com/openmetaearth/me-hub/app/keepers"
 	"github.com/openmetaearth/me-hub/app/upgrades"
+	v2_0_14_patch_2 "github.com/openmetaearth/me-hub/app/upgrades/v2.0.14.patch.2"
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_14"
 
 	dbm "github.com/cometbft/cometbft-db"
@@ -88,6 +89,7 @@ var (
 	// Upgrades contains the upgrade handlers for the application
 	Upgrades = []upgrades.Upgrade{
 		v2_0_14.Upgrade,
+		v2_0_14_patch_2.Upgrade,
 	}
 )
 

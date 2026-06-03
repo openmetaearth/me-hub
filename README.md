@@ -67,7 +67,7 @@ export PATH=$PATH:$(go env GOPATH)/bin
   First, set the following environment variables:
 
   ```sh
-  export CHAIN_ID="mechain_100-1"
+  export CHAIN_ID="mechain_202404-1"
   export KEY_NAME="hub-user"
   export MONIKER_NAME="local"
   ```

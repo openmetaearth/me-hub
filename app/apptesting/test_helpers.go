@@ -5,14 +5,15 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
-	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 	"math/big"
 	"math/rand"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -65,7 +66,7 @@ var DefaultConsensusParams = &cometbftproto.ConsensusParams{
 	},
 }
 
-var TestChainID = "mechain_100-1"
+var TestChainID = "mechain_202404-1"
 
 // SetupOptions defines arguments that are passed into `Simapp` constructor.
 type SetupOptions struct {

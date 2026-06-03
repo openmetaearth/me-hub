@@ -167,7 +167,7 @@ test_genesis() {
 
     # Check chain-id
     local chain_id=$(docker exec "${CONTAINER_NAME}" med status 2>/dev/null | jq -r '.NodeInfo.network')
-    if [ "$chain_id" == "mechain_100-1" ] || [ ! -z "$chain_id" ]; then
+    if [ "$chain_id" == "mechain_202404-1" ] || [ ! -z "$chain_id" ]; then
         print_success "Chain ID is configured"
         print_info "Chain ID: ${chain_id}"
     else

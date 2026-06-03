@@ -216,7 +216,7 @@ test_transactions() {
     tx_result=$(docker exec "$CONTAINER_NAME" med tx bank send "$sender_addr" "$receiver_addr" 1000umec \
         --from "$sender" \
         --keyring-backend test \
-        --chain-id mechain_100-1 \
+        --chain-id mechain_202404-1 \
         --gas auto \
         --gas-adjustment 1.5 \
         --fees 1000000umec \
@@ -261,7 +261,7 @@ export_account_info() {
 
     echo "{" > "$output_file"
     echo "  \"exported_at\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"," >> "$output_file"
-    echo "  \"chain_id\": \"mechain_100-1\"," >> "$output_file"
+    echo "  \"chain_id\": \"mechain_202404-1\"," >> "$output_file"
     echo "  \"accounts\": [" >> "$output_file"
 
     account_names=$(echo "$accounts" | jq -r '.[].name')
