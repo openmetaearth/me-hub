@@ -91,8 +91,8 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 	err = w.transferKeeper.OnRecvPacket(ctx, packet, feeData.FungibleTokenPacketData)
 	if err != nil {
 		l.Error("Charge bridging fee.", "err", err)
-		// we continue as we don't want the fee charge to fail the transfer in any case
-		fee = sdk.ZeroInt()
+		err = errorsmod.Wrapf(err, "%s: charge bridging fee", ModuleName)
+		return channeltypes.NewErrorAcknowledgement(err)
 	} else {
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
