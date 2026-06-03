@@ -15,6 +15,14 @@ import (
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
 )
 
+const (
+	// finalizePacketsBatchSize caps the number of rollapp packets finalized
+	// per AfterStateFinalized call to prevent unbounded EndBlock gas usage
+	// when many packets accumulate during a long state-update window.
+	// Matches the epoch deletion batch size for consistency.
+	finalizePacketsBatchSize = 1000
+)
+
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is
 // the end height of the latest finalized state
 func (k Keeper) FinalizeRollappPackets(ctx sdk.Context, ibc porttypes.IBCModule, rollappID string, stateEndHeight uint64) error {
@@ -23,6 +31,16 @@ func (k Keeper) FinalizeRollappPackets(ctx sdk.Context, ibc porttypes.IBCModule,
 		return nil
 	}
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
+	// Cap the number of packets processed in a single EndBlock to prevent
+	// unbounded gas consumption when many packets accumulate.
+	if len(rollappPendingPackets) > finalizePacketsBatchSize {
+		logger.Warn("capping rollapp packet finalization batch",
+			"rollappID", rollappID,
+			"total", len(rollappPendingPackets),
+			"processing", finalizePacketsBatchSize,
+			"deferred", len(rollappPendingPackets)-finalizePacketsBatchSize)
+		rollappPendingPackets = rollappPendingPackets[:finalizePacketsBatchSize]
+	}
 	// Get the packets for the rollapp until height
 	logger.Debug("finalizing IBC rollapp packets",
 		"rollappID", rollappID,
