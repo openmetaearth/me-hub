@@ -96,6 +96,9 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 	if tx.Fee.Contract != bridgeToken.ContractAddress {
 		return errorsmod.Wrap(types.ErrInvalid, "token not equal tx fee token")
 	}
+	if addBridgeFee.Amount.GT(bridgeToken.Supply) {
+		return errorsmod.Wrapf(types.ErrInvalid, "bridge fee %s exceeds bridge token supply %s", addBridgeFee.Amount, bridgeToken.Supply)
+	}
 
 	// If it is an external blockchain asset we burn it send coins to module in prep for burn
 	{
@@ -117,6 +120,8 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 	if err := k.AddUnbatchedTx(ctx, tx); err != nil {
 		return err
 	}
+	bridgeToken.Supply = bridgeToken.Supply.Sub(addBridgeFee.Amount)
+	k.SetBridgeToken(ctx, bridgeToken)
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeIncreaseBridgeFee,
