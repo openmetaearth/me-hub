@@ -237,6 +237,25 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestAllocateBlockRewardDoesNotOverflowLargeRegionAmount() {
+	ctx := suite.HelperNewContextWith(types.OneDayTotalBlocks)
+	addrs := suite.mockGetRegionI(ctx, 1)
+	largeAmount, ok := sdk.NewIntFromString("10000000000000000000")
+	suite.Require().True(ok)
+	suite.SetMockGetBalance(ctx, largeAmount)
+
+	suite.bankKeeper.EXPECT().
+		SendCoinsFromModuleToAccount(
+			ctx,
+			suite.App.DistrKeeper.GetTreasuryModuleAccount(),
+			sdk.MustAccAddressFromBech32(addrs[0]),
+			sdk.NewCoins(sdk.NewCoin(params.BaseDenom, largeAmount)),
+		).Return(nil)
+
+	err := suite.App.DistrKeeper.AllocateBlockReward(ctx)
+	suite.Require().NoError(err)
+}
+
 func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int) []string {
 	var addrs []string
 	if len(regionShare) == 0 {
