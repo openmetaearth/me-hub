@@ -9,6 +9,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/keeper"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
@@ -33,6 +34,69 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (s *KeeperTestSuite) Keeper() *keeper.Keeper {
 	return s.App.KycKeeper
+}
+
+func (s *KeeperTestSuite) TestGetAllRegions() {
+	s.SetupTest()
+	regions := s.Keeper().GetAllRegions(s.Ctx)
+	// We expect exactly 3 regions that were set up in SetupTest
+	s.Require().Equal(3, len(regions))
+	for _, reg := range regions {
+		s.Require().NotEmpty(reg.Id)
+		s.Require().NotEmpty(reg.Name)
+	}
+}
+
+func (s *KeeperTestSuite) TestKeeper_SetKycIssers() {
+	s.SetupTest()
+	k := s.Keeper()
+
+	// Initial addresses and DIDs
+	oldGlobalDao := "me1frjhlw9slyy7mrhmk0r4vytkyldxqtkf326amv"
+	oldMeidDao := "me1c5zp26c0gq2klk87nrpff3y52u34zn4ydug2yd"
+	newGlobalDao := "me1hrxxjeqae2y5wx3kxcljzns9f2lguygu9qngxh"
+	newMeidDao := "me14jazxhme3ptv00k52fza5rravx4xn27qs0slz2"
+
+	globalDid := "did:me:global"
+	meidDid := "did:me:meid"
+	thirdPartyDid := "did:me:thirdparty"
+
+	// Setup DIDs and DID Info
+	k.SetDID(s.Ctx, sdk.MustAccAddressFromBech32(oldGlobalDao), globalDid)
+	k.SetDID(s.Ctx, sdk.MustAccAddressFromBech32(oldMeidDao), meidDid)
+
+	k.SetDidInfo(s.Ctx, globalDid, didtypes.DidInfo{Did: globalDid, Address: oldGlobalDao, Status: didtypes.DID_STATUS_ACTIVE})
+	k.SetDidInfo(s.Ctx, meidDid, didtypes.DidInfo{Did: meidDid, Address: oldMeidDao, Status: didtypes.DID_STATUS_ACTIVE})
+
+	// Setup KYC service with Global DAO, MEID DAO, and a third-party issuer
+	k.SetService(s.Ctx, didtypes.Service{
+		Sid:     "kyc",
+		Status:  didtypes.SERVICE_STATUS_ACTIVE,
+		Issuers: []string{globalDid, meidDid, thirdPartyDid},
+	})
+
+	// Execute SetKycIssers
+	err := k.SetKycIssers(
+		s.Ctx,
+		[]string{oldGlobalDao, oldMeidDao},
+		[]string{newGlobalDao, newMeidDao},
+	)
+	s.Require().NoError(err)
+
+	// Verify that the KYC service issuers preserved the third-party issuer
+	svc, found := k.GetService(s.Ctx)
+	s.Require().True(found)
+	s.Require().Equal(3, len(svc.Issuers))
+	s.Require().Contains(svc.Issuers, thirdPartyDid)
+	s.Require().Contains(svc.Issuers, globalDid)
+	s.Require().Contains(svc.Issuers, meidDid)
+
+	// Verify old DID maps are deleted and new maps are created
+	_, found = k.GetDID(s.Ctx, sdk.MustAccAddressFromBech32(oldGlobalDao))
+	s.Require().False(found)
+	resolvedGlobal, found := k.GetDID(s.Ctx, sdk.MustAccAddressFromBech32(newGlobalDao))
+	s.Require().True(found)
+	s.Require().Equal(globalDid, resolvedGlobal)
 }
 
 func (s *KeeperTestSuite) SetupTest() {
