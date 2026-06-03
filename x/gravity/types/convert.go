@@ -3,6 +3,7 @@ package types
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -25,17 +26,55 @@ func GetMintCoin(amount sdk.Int, chainName string, bridgeToken *BridgeToken) sdk
 }
 
 func GetMintAmount(amount sdk.Int, chainName string, bridgeToken *BridgeToken) sdk.Int {
-	if CheckBscUsdtUsdc(bridgeToken.Symbol, chainName) && bridgeToken.Decimal > 6 {
-		convert := sdk.NewDec(10).Power(bridgeToken.Decimal - 6).TruncateInt()
-		amount = amount.Quo(convert)
+	if requiresBscUsdtUsdcDownConversion(chainName, bridgeToken) {
+		amount = amount.Quo(bscUsdtUsdcConversionFactor(chainName, bridgeToken))
 	}
 	return amount
 }
 
 func GetExternalUnlockAmount(amount sdk.Int, chainName string, bridgeToken *BridgeToken) sdk.Int {
-	if CheckBscUsdtUsdc(bridgeToken.Symbol, chainName) && bridgeToken.Decimal > 6 {
-		convert := sdk.NewDec(10).Power(bridgeToken.Decimal - 6).TruncateInt()
-		amount = amount.Mul(convert)
+	if requiresBscUsdtUsdcDownConversion(chainName, bridgeToken) {
+		amount = amount.Mul(bscUsdtUsdcConversionFactor(chainName, bridgeToken))
 	}
 	return amount
+}
+
+func requiresBscUsdtUsdcDownConversion(chainName string, bridgeToken *BridgeToken) bool {
+	return bridgeToken != nil && CheckBscUsdtUsdc(bridgeToken.Symbol, chainName) && bridgeToken.Decimal > 6
+}
+
+func bscUsdtUsdcConversionFactor(chainName string, bridgeToken *BridgeToken) sdk.Int {
+	if !requiresBscUsdtUsdcDownConversion(chainName, bridgeToken) {
+		return sdk.OneInt()
+	}
+	return sdk.NewDec(10).Power(bridgeToken.Decimal - 6).TruncateInt()
+}
+
+// ValidateMintAmount rejects BSC USDT/USDC deposits that would lose precision during 6-decimal minting.
+func ValidateMintAmount(amount sdk.Int, chainName string, bridgeToken *BridgeToken) error {
+	if !requiresBscUsdtUsdcDownConversion(chainName, bridgeToken) {
+		return nil
+	}
+
+	convert := bscUsdtUsdcConversionFactor(chainName, bridgeToken)
+	if amount.IsNil() || !amount.IsPositive() {
+		return errorsmod.Wrap(ErrInvalid, "converted BSC USDT/USDC deposit amount must be positive")
+	}
+	if amount.LT(convert) {
+		return errorsmod.Wrapf(
+			ErrInvalid,
+			"converted BSC USDT/USDC deposit amount %s rounds down to zero with factor %s",
+			amount.String(),
+			convert.String(),
+		)
+	}
+	if !amount.Mod(convert).IsZero() {
+		return errorsmod.Wrapf(
+			ErrInvalid,
+			"converted BSC USDT/USDC deposit amount %s is not divisible by factor %s",
+			amount.String(),
+			convert.String(),
+		)
+	}
+	return nil
 }

@@ -89,3 +89,53 @@ func TestGetExternalUnlockAmount(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateMintAmountRejectsBscUsdtUsdcDustAndRemainders(t *testing.T) {
+	bridgeToken := &BridgeToken{
+		Symbol:  "USDT",
+		Decimal: 18,
+	}
+
+	tests := []struct {
+		name      string
+		amount    sdk.Int
+		chainName string
+		wantErr   bool
+	}{
+		{
+			name:      "rejects dust that would mint zero vouchers",
+			amount:    sdkmath.NewInt(999_999_999_999),
+			chainName: "bsc",
+			wantErr:   true,
+		},
+		{
+			name:      "rejects non-divisible amount that would lose remainder",
+			amount:    sdkmath.NewInt(1_000_000_000_123),
+			chainName: "bsc",
+			wantErr:   true,
+		},
+		{
+			name:      "accepts exact conversion factor",
+			amount:    sdkmath.NewInt(1_000_000_000_000),
+			chainName: "bsc",
+			wantErr:   false,
+		},
+		{
+			name:      "does not reject other chains",
+			amount:    sdkmath.NewInt(123),
+			chainName: "eth",
+			wantErr:   false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := ValidateMintAmount(tc.amount, tc.chainName, bridgeToken)
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}

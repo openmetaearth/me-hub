@@ -195,6 +195,43 @@ func (s *KeeperTestSuite) TestGrav004_FailedAttestationMustNotLockNonce() {
 	}
 }
 
+func (s *KeeperTestSuite) TestSendToMeClaimRejectsBscUsdtDustBeforeMint() {
+	k := s.Keeper()
+	tokenContract := "0x0000000000000000000000000000000000000203"
+	receiver := s.relayerAddrs[0]
+	bridgeToken := &types.BridgeToken{
+		ContractAddress: tokenContract,
+		Denom:           "uusdt",
+		Name:            "Tether USD",
+		Symbol:          "USDT",
+		Decimal:         18,
+		Supply:          sdkmath.ZeroInt(),
+	}
+	k.SetBridgeToken(s.Ctx, bridgeToken)
+
+	dustClaim := &types.MsgSendToMeClaim{
+		EventNonce:     1,
+		BlockHeight:    1,
+		TokenContract:  tokenContract,
+		Amount:         sdkmath.NewInt(999_999_999_999),
+		Sender:         "0x0000000000000000000000000000000000000204",
+		Receiver:       receiver.String(),
+		RelayerAddress: s.relayerAddrs[1].String(),
+		ChainName:      s.chainName,
+	}
+
+	err := k.AttestationHandler(s.Ctx, dustClaim)
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, types.ErrInvalid)
+
+	balance := s.App.BankKeeper.GetBalance(s.Ctx, receiver, bridgeToken.Denom)
+	s.Require().True(balance.Amount.IsZero(), "dust claim must not mint vouchers")
+
+	storedToken, err := k.GetBridgeTokenByContract(s.Ctx, tokenContract)
+	s.Require().NoError(err)
+	s.Require().True(storedToken.Supply.IsZero(), "dust claim must not increase bridge token supply")
+}
+
 // ---------------------------------------------------------------------------
 // Helper: bond relayers, confirm and observe the initial relayer set.
 // Mirrors the opening of TestRequestBatchBaseFee in msg_server_test.go, but

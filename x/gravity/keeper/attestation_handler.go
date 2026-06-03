@@ -26,6 +26,9 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			return errorsmod.Wrap(types.ErrInvalid, "receiver address")
 		}
 
+		if err := types.ValidateMintAmount(claim.Amount, claim.ChainName, bridgeToken); err != nil {
+			return err
+		}
 		mintAmount := types.GetMintCoin(claim.Amount, claim.ChainName, bridgeToken)
 		if err := k.bankKeeper.MintCoins(ctx, k.moduleName, sdk.NewCoins(mintAmount)); err != nil {
 			return errorsmod.Wrapf(err, "mint vouchers coins")
