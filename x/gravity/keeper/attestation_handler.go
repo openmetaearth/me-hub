@@ -27,6 +27,19 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		}
 
 		mintAmount := types.GetMintCoin(claim.Amount, claim.ChainName, bridgeToken)
+
+		// Guard: enforce per-token supply cap to prevent unbounded minting
+		maxSupply, ok := sdkmath.NewIntFromString(types.MaxMintPerClaim)
+		if !ok {
+			return errorsmod.Wrap(types.ErrInvalid, "invalid MaxMintPerClaim constant")
+		}
+		newSupply := bridgeToken.Supply.Add(mintAmount.Amount)
+		if newSupply.GT(maxSupply) {
+			return errorsmod.Wrapf(types.ErrInvalid,
+				"mint would exceed supply cap: current=%s, mint=%s, cap=%s",
+				bridgeToken.Supply, mintAmount.Amount, maxSupply)
+		}
+
 		if err := k.bankKeeper.MintCoins(ctx, k.moduleName, sdk.NewCoins(mintAmount)); err != nil {
 			return errorsmod.Wrapf(err, "mint vouchers coins")
 		}

@@ -14,6 +14,7 @@ const (
 	MaxGasLimit                = 30_000_000
 	MaxResults                 = 100
 	PowerBase           uint64 = 10000
+	MaxMintPerClaim               = "1000000000000000" // 1 quadrillion uME cap per claim
 )
 
 var (
