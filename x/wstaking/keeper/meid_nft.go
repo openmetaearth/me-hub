@@ -32,7 +32,7 @@ func (k Keeper) RemoveMeidNFT(ctx sdk.Context, account, regionId string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidNFTKeyPrefix))
 	store.Delete(types.MeidNFTKey(account))
 
-	storeReg := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidNFTAccountKeyPrefix+account))
+	storeReg := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidNFTAccountKeyPrefix+regionId))
 	storeReg.Delete(types.MeidNFTKey(account))
 }
 
