@@ -1,12 +1,15 @@
 package ibctesting_test
 
 import (
+	"reflect"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/openmetaearth/me-hub/x/bridgingfee"
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	"github.com/stretchr/testify/suite"
 )
@@ -105,3 +108,74 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	txFeesBalance := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), addr.GetAddress(), denom)
 	s.Equal(expectedFee, txFeesBalance.Amount)
 }
+
+func (s *bridgingFeeSuite) TestBridgingFeeChargeFailure() {
+	path := s.newTransferPath(s.hubChain(), s.rollappChain())
+	s.coordinator.Setup(path)
+	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
+	s.registerSequencer()
+
+	rollappEndpoint := path.EndpointB
+
+	// Update rollapp state
+	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight())
+	s.updateRollappState(currentRollappBlockHeight)
+
+	// Traverse the TransferStack to find the bridging fee module
+	var bfModule *bridgingfee.IBCModule
+	curr := s.hubApp().TransferStack
+	for curr != nil {
+		if bf, ok := curr.(*bridgingfee.IBCModule); ok {
+			bfModule = bf
+			break
+		}
+		v := reflect.ValueOf(curr)
+		if v.Kind() == reflect.Ptr {
+			v = v.Elem()
+		}
+		f := v.FieldByName("IBCModule")
+		if f.IsValid() && f.CanInterface() {
+			if next, ok := f.Interface().(porttypes.IBCModule); ok {
+				curr = next
+				continue
+			}
+		}
+		break
+	}
+	s.Require().NotNil(bfModule)
+
+	// Modify FeeModuleAddr to a invalid address to force fee transfer failure
+	bfModule.FeeModuleAddr = sdk.AccAddress("invalid_address_here")
+
+	timeoutHeight := clienttypes.NewHeight(100, 110)
+	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
+	s.Require().True(ok)
+	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+
+	// Initiate transfer on rollapp
+	msg := types.NewMsgTransfer(
+		rollappEndpoint.ChannelConfig.PortID,
+		rollappEndpoint.ChannelID,
+		coinToSendToB,
+		s.rollappChain().SenderAccount.GetAddress().String(),
+		s.hubChain().SenderAccount.GetAddress().String(),
+		timeoutHeight,
+		0,
+		"",
+	)
+	res, err := s.rollappChain().SendMsgs(msg)
+	s.Require().NoError(err)
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	s.Require().NoError(err)
+
+	err = path.RelayPacket(packet)
+	s.Require().Error(err)
+
+	// Finalize the rollapp state
+	currentRollappBlockHeight = uint64(s.rollappCtx().BlockHeight())
+	_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
+	// Finalization should fail or fail to process/release the packet because the bridging fee transfer fails, returning an error acknowledgement
+	s.Require().Error(err)
+	s.Require().Contains(err.Error(), "charge bridging fee failed")
+}
+

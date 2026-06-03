@@ -27,7 +27,7 @@ type IBCModule struct {
 	rollappKeeper    rollappkeeper.Keeper
 	delayedAckKeeper delayedackkeeper.Keeper
 	transferKeeper   transferkeeper.Keeper
-	feeModuleAddr    sdk.AccAddress
+	FeeModuleAddr    sdk.AccAddress
 }
 
 func NewIBCModule(
@@ -41,7 +41,7 @@ func NewIBCModule(
 		IBCModule:        next,
 		delayedAckKeeper: keeper,
 		transferKeeper:   transferKeeper,
-		feeModuleAddr:    feeModuleAddr,
+		FeeModuleAddr:    feeModuleAddr,
 		rollappKeeper:    rollappKeeper,
 	}
 }
@@ -85,26 +85,24 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 	feeData.Amount = fee.String()
-	feeData.Receiver = w.feeModuleAddr.String()
+	feeData.Receiver = w.FeeModuleAddr.String()
 
 	// No event emitted, as we called the transfer keeper directly (vs the transfer middleware)
 	err = w.transferKeeper.OnRecvPacket(ctx, packet, feeData.FungibleTokenPacketData)
 	if err != nil {
 		l.Error("Charge bridging fee.", "err", err)
-		// we continue as we don't want the fee charge to fail the transfer in any case
-		fee = sdk.ZeroInt()
-	} else {
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				EventTypeBridgingFee,
-				sdk.NewAttribute(AttributeKeyFee, fee.String()),
-				sdk.NewAttribute(sdk.AttributeKeySender, transfer.Sender),
-				sdk.NewAttribute(transfertypes.AttributeKeyReceiver, transfer.Receiver),
-				sdk.NewAttribute(transfertypes.AttributeKeyDenom, transfer.Denom),
-				sdk.NewAttribute(transfertypes.AttributeKeyAmount, transfer.Amount),
-			),
-		)
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(err, "%s: charge bridging fee failed", ModuleName))
 	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			EventTypeBridgingFee,
+			sdk.NewAttribute(AttributeKeyFee, fee.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, transfer.Sender),
+			sdk.NewAttribute(transfertypes.AttributeKeyReceiver, transfer.Receiver),
+			sdk.NewAttribute(transfertypes.AttributeKeyDenom, transfer.Denom),
+			sdk.NewAttribute(transfertypes.AttributeKeyAmount, transfer.Amount),
+		),
+	)
 
 	// transfer the rest to the original recipient
 	transfer.Amount = transfer.MustAmountInt().Sub(fee).String()
