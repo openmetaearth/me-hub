@@ -117,10 +117,16 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId, creator
 				oldSequencer.RollappId, rollappId)
 		}
 		if oldSequencer.IsProposer() || oldSequencer.Status == types.Bonded {
+			oldStatus := oldSequencer.Status
 			oldSequencer.Proposer = false
 			oldSequencer.Status = types.Unbonding
 			oldSequencer.UnbondingHeight = ctx.BlockHeight()
-			k.UpdateSequencer(ctx, oldSequencer, types.Bonded)
+			oldSequencer.UnbondTime = ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
+			k.UpdateSequencer(ctx, oldSequencer, oldStatus)
+			// enqueue the replaced proposer so UnbondAllMatureSequencers can
+			// mature it and return its bond; without this the sequencer is
+			// stuck in Unbonding forever and its tokens are locked.
+			k.setUnbondingSequencerQueue(ctx, oldSequencer)
 			newSequencer, found := k.GetSequencer(ctx, val.ReplaceProposer.NewProposer)
 			if !found {
 				return fmt.Errorf("can not found new sequencer: %s", val.ReplaceProposer.NewProposer)
