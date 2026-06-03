@@ -553,3 +553,37 @@ func (s *KeeperTestSuite) TestSlashRelayer() {
 		s.Require().Equal(int64(1), relayer.SlashTimes)
 	}
 }
+
+func (s *KeeperTestSuite) TestUnbondedRelayer_GovernanceGate() {
+	// Initialize and bond 1 relayer
+	msgBondedRelayer := &types.MsgBondedRelayer{
+		RelayerAddress:  s.relayerAddrs[0].String(),
+		ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[0].PublicKey),
+		DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+		ChainName:       s.chainName,
+	}
+	s.Require().NoError(msgBondedRelayer.ValidateBasic())
+	_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msgBondedRelayer)
+	s.Require().NoError(err)
+
+	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
+
+	// Make the relayer offline so they are eligible to unbond (online relayers are blocked anyway)
+	relayer, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[0])
+	s.Require().True(found)
+	relayer.Online = false
+	s.Keeper().SetRelayer(s.Ctx, s.relayerAddrs[0], relayer)
+
+	// Set BlockHeight above governance gate threshold
+	s.Ctx = s.Ctx.WithBlockHeight(10167305)
+
+	// Attempting to unbond should now fail because they are a proposal relayer and block height is > 10167300
+	_, err = s.MsgServer().UnbondedRelayer(s.Ctx, &types.MsgUnbondedRelayer{
+		ChainName:      s.chainName,
+		RelayerAddress: s.relayerAddrs[0].String(),
+	})
+	s.Require().Error(err)
+	s.Require().Contains(err.Error(), "need to pass a proposal to unbond")
+}
+
