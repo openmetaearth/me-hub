@@ -252,6 +252,12 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 			submittedBy: eibcSupplyAddr.String(),
 			expectError: true,
 		},
+		{
+			name:        "negative fee",
+			newFee:      sdk.NewInt(-100),
+			submittedBy: eibcSupplyAddr.String(),
+			expectError: true,
+		},
 	}
 
 	for _, tc := range testCases {
