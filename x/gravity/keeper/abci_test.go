@@ -553,3 +553,59 @@ func (s *KeeperTestSuite) TestSlashRelayer() {
 		s.Require().Equal(int64(1), relayer.SlashTimes)
 	}
 }
+
+func (s *KeeperTestSuite) TestOfflineRelayersDoNotConcentrateAttestationPower() {
+	delegateAmount := sdk.NewInt(10 * 1e8)
+
+	for i := 0; i < len(s.relayerAddrs); i++ {
+		msgBondedRelayer := &types.MsgBondedRelayer{
+			RelayerAddress:  s.relayerAddrs[i].String(),
+			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, delegateAmount),
+			ChainName:       s.chainName,
+		}
+		s.Require().NoError(msgBondedRelayer.ValidateBasic())
+		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msgBondedRelayer)
+		s.Require().NoError(err)
+	}
+
+	initialTotalPower := s.Keeper().GetLastTotalPower(s.Ctx)
+	remainingRelayer, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[0])
+	s.Require().True(found)
+	initialShare := remainingRelayer.GetPower().
+		Mul(sdkmath.NewInt(int64(types.PowerBase))).
+		Quo(initialTotalPower)
+	s.Require().True(initialShare.LTE(types.AttestationProposalRelayerChangePowerThreshold))
+
+	for i := 1; i < len(s.relayerAddrs); i++ {
+		err := s.Keeper().SlashRelayer(s.Ctx, s.relayerAddrs[i].String())
+		s.Require().NoError(err)
+
+		slashedRelayer, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[i])
+		s.Require().True(found)
+		s.Require().False(slashedRelayer.Online)
+	}
+
+	s.Keeper().SetLastTotalPower(s.Ctx)
+	recomputedTotalPower := s.Keeper().GetLastTotalPower(s.Ctx)
+	s.Require().Equal(initialTotalPower.String(), recomputedTotalPower.String())
+
+	bridgeToken := helpers.GenExternalAddr(s.chainName)
+	claim := &types.MsgBridgeTokenClaim{
+		EventNonce:     1,
+		BlockHeight:    1000,
+		TokenContract:  bridgeToken,
+		Name:           "Concentration Guard Token",
+		Symbol:         "CGT",
+		Decimals:       6,
+		RelayerAddress: s.relayerAddrs[0].String(),
+		ChainName:      s.chainName,
+	}
+	_, err := s.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(s.Ctx), claim)
+	s.Require().NoError(err)
+
+	attestation := s.Keeper().GetAttestation(s.Ctx, claim.EventNonce, claim.ClaimHash())
+	s.Require().NotNil(attestation)
+	s.Require().False(attestation.Observed)
+	s.Require().Len(attestation.Votes, 1)
+}
