@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/wdistri"
 	"github.com/openmetaearth/me-hub/x/wmint"
 	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
@@ -67,4 +68,35 @@ func (s *KeeperTestSuite) TestTransferKycRegion() {
 	s.Require().Equal(delegation.Unmovable.String(), types.Bonus.String())
 	s.Require().Equal(delegation.ValidatorAddress, s.usaValidator.OperatorAddress)
 	s.Require().EqualValues(delegation.StartHeight, wmintTypes.OneDayTotalBlocks+1)
+}
+
+func (s *KeeperTestSuite) TestGetRegionIdByAccountRequiresActiveDID() {
+	s.SetupTest()
+
+	account := s.TestAccs[0]
+	did := "1111111111111111"
+	didInfo := didtypes.DidInfo{
+		Did:      did,
+		Address:  account.String(),
+		RegionId: types.MeEarthRegionId,
+		KycLevel: didtypes.KYC_LEVEL_TWO,
+		Status:   didtypes.DID_STATUS_ACTIVE,
+	}
+	kyc := didtypes.Credential{Did: did, Data: []byte(types.MeEarthRegionId)}
+
+	s.App.KycKeeper.SetDID(s.Ctx, account, did)
+	s.App.KycKeeper.SetDidInfo(s.Ctx, did, didInfo)
+	s.App.KycKeeper.SetKYC(s.Ctx, did, kyc)
+
+	s.Require().Equal(types.MeEarthRegionId, s.Keeper().GetRegionIdByAccount(s.Ctx, account))
+	regionId, err := s.Keeper().MustGetKycRegionIdByAccount(s.Ctx, account.String())
+	s.Require().NoError(err)
+	s.Require().Equal(types.MeEarthRegionId, regionId)
+
+	didInfo.Status = didtypes.DID_STATUS_INACTIVE
+	s.App.KycKeeper.SetDidInfo(s.Ctx, did, didInfo)
+
+	s.Require().Equal(strings.ToLower(types.ExperienceRegionName), s.Keeper().GetRegionIdByAccount(s.Ctx, account))
+	_, err = s.Keeper().MustGetKycRegionIdByAccount(s.Ctx, account.String())
+	s.Require().Error(err)
 }

@@ -28,6 +28,7 @@ type StakingKeeper interface {
 
 type KycKeeper interface {
 	GetDID(ctx sdk.Context, addr sdk.AccAddress) (string, bool)
+	GetDidInfo(ctx sdk.Context, did string) (info didtypes.DidInfo, found bool)
 	GetKYC(ctx sdk.Context, did string) (kyc didtypes.Credential, found bool)
 }
 

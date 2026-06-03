@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/openmetaearth/me-hub/app/params"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"strings"
 )
@@ -16,11 +17,11 @@ func (k Keeper) GetRegionIdByAccount(ctx sdk.Context, address sdk.AccAddress) st
 	if !ok {
 		return regionId
 	}
-	kycData, ok := k.kycKeeper.GetKYC(ctx, did)
+	kycRegionId, ok := k.getActiveKycRegionId(ctx, did)
 	if !ok {
 		return regionId
 	}
-	return string(kycData.Data)
+	return kycRegionId
 }
 
 func (k Keeper) MustGetKycRegionIdByAccount(ctx sdk.Context, account string) (string, error) {
@@ -28,11 +29,23 @@ func (k Keeper) MustGetKycRegionIdByAccount(ctx sdk.Context, account string) (st
 	if !ok {
 		return "", sdkerrors.Wrapf(types.ErrDidNotExists, "did with account %s not exist", account)
 	}
-	kycData, ok := k.kycKeeper.GetKYC(ctx, did)
+	kycRegionId, ok := k.getActiveKycRegionId(ctx, did)
 	if !ok {
-		return "", sdkerrors.Wrapf(types.ErrKycNotExists, "kyc with account %s not exist", account)
+		return "", sdkerrors.Wrapf(types.ErrKycNotExists, "active kyc with account %s not exist", account)
 	}
-	return string(kycData.Data), nil
+	return kycRegionId, nil
+}
+
+func (k Keeper) getActiveKycRegionId(ctx sdk.Context, did string) (string, bool) {
+	didInfo, found := k.didKeeper.GetDidInfo(ctx, did)
+	if !found || didInfo.Status != didtypes.DID_STATUS_ACTIVE {
+		return "", false
+	}
+	kycData, found := k.kycKeeper.GetKYC(ctx, did)
+	if !found {
+		return "", false
+	}
+	return string(kycData.Data), true
 }
 
 func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creator, fromRegionId, toRegionId string) error {

@@ -264,6 +264,21 @@ func (mr *MockKycKeeperMockRecorder) GetDID(ctx, addr interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDID", reflect.TypeOf((*MockKycKeeper)(nil).GetDID), ctx, addr)
 }
 
+// GetDidInfo mocks base method.
+func (m *MockKycKeeper) GetDidInfo(ctx types0.Context, did string) (types2.DidInfo, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDidInfo", ctx, did)
+	ret0, _ := ret[0].(types2.DidInfo)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetDidInfo indicates an expected call of GetDidInfo.
+func (mr *MockKycKeeperMockRecorder) GetDidInfo(ctx, did interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDidInfo", reflect.TypeOf((*MockKycKeeper)(nil).GetDidInfo), ctx, did)
+}
+
 // GetKYC mocks base method.
 func (m *MockKycKeeper) GetKYC(ctx types0.Context, did string) (types2.Credential, bool) {
 	m.ctrl.T.Helper()

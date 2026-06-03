@@ -74,6 +74,9 @@ func (k Keeper) DIDs(goCtx context.Context, req *types.QueryDIDs) (*types.QueryD
 		if !found {
 			return nil, status.Error(codes.Internal, fmt.Sprintf("kyc exist, but did %s is not found", kyc.Did))
 		}
+		if info.Status != didtypes.DID_STATUS_ACTIVE {
+			continue
+		}
 
 		infos = append(infos, info)
 	}
@@ -87,8 +90,12 @@ func (k Keeper) KYC(goCtx context.Context, req *types.QueryKYC) (*types.QueryKYC
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.HasDidInfo(ctx, req.Did) {
+	didInfo, found := k.GetDidInfo(ctx, req.Did)
+	if !found {
 		return nil, status.Error(codes.Internal, "DID not found")
+	}
+	if didInfo.Status != didtypes.DID_STATUS_ACTIVE {
+		return nil, status.Error(codes.Internal, "DID not active")
 	}
 	kyc, found := k.GetKYC(ctx, req.Did)
 	if !found {
@@ -109,7 +116,15 @@ func (k Keeper) KYCs(goCtx context.Context, req *types.QueryKYCs) (*types.QueryK
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryKYCsResponse{KYCs: KYCs, Pagination: pageRes}, nil
+	var activeKYCs []didtypes.Credential
+	for _, kyc := range KYCs {
+		didInfo, found := k.GetDidInfo(ctx, kyc.Did)
+		if found && didInfo.Status == didtypes.DID_STATUS_ACTIVE {
+			activeKYCs = append(activeKYCs, kyc)
+		}
+	}
+
+	return &types.QueryKYCsResponse{KYCs: activeKYCs, Pagination: pageRes}, nil
 }
 
 func (k Keeper) SBT(goCtx context.Context, req *types.QuerySBT) (*types.QuerySBTResponse, error) {

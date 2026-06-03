@@ -142,6 +142,48 @@ func (s *KeeperTestSuite) TestKYC() {
 	s.Require().Equal(res.Kyc.Data, []byte(strings.ToLower(wstakingtypes.MeEarthRegionName)))
 }
 
+func (s *KeeperTestSuite) TestInactiveDIDDoesNotReturnKYC() {
+	s.SetupTest()
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	did := "1111111111111111"
+	kycAccount, newUserPubkey := s.NewAccount()
+	inviter, _ := s.NewAccount()
+	msg := &types.MsgApprove{
+		Issuer:   s.Dao.GlobalDao,
+		Did:      did,
+		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
+		Address:  kycAccount.String(),
+		Pubkey:   newUserPubkey,
+		Uri:      "http://127.0.0.1/8001",
+		Hash:     "aaaa",
+		Inviter:  inviter.String(),
+		Level:    didtypes.KYC_LEVEL_TWO,
+	}
+	_, err := s.msgServer.Approve(s.Ctx, msg)
+	s.Require().NoError(err)
+
+	didInfo, found := s.Keeper().GetDidInfo(s.Ctx, did)
+	s.Require().True(found)
+	didInfo.Status = didtypes.DID_STATUS_INACTIVE
+	didInfo.KycLevel = didtypes.KYC_LEVEL_NONE
+	s.Keeper().SetDidInfo(s.Ctx, did, didInfo)
+
+	_, err = s.queryClient.KYC(s.Ctx, &types.QueryKYC{Did: did})
+	s.Require().Error(err)
+
+	dids, err := s.queryClient.DIDs(s.Ctx, &types.QueryDIDs{RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName)})
+	s.Require().NoError(err)
+	s.Require().Empty(dids.Infos)
+
+	kycs, err := s.queryClient.KYCs(s.Ctx, &types.QueryKYCs{RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName)})
+	s.Require().NoError(err)
+	s.Require().Empty(kycs.KYCs)
+}
+
 func (s *KeeperTestSuite) TestKYCs() {
 	s.SetupTest()
 

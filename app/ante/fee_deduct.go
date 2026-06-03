@@ -227,7 +227,10 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			kyc, isKyc := didtypes.Credential{}, false
 			did, hasDid := dfd.kycKeeper.GetDID(ctx, deductFeesFrom)
 			if hasDid {
-				kyc, isKyc = dfd.kycKeeper.GetKYC(ctx, did)
+				didInfo, hasDidInfo := dfd.kycKeeper.GetDidInfo(ctx, did)
+				if hasDidInfo && didInfo.Status == didtypes.DID_STATUS_ACTIVE {
+					kyc, isKyc = dfd.kycKeeper.GetKYC(ctx, did)
+				}
 			}
 			if isKyc {
 				fee20Address, err = dfd.stakingKeeper.GetValOwnerAddress(ctx, string(kyc.Data))
