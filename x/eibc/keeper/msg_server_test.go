@@ -50,6 +50,15 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			expectedDemandOrdefFulfillmentStatus: false,
 		},
 		{
+			name:                                 "Test demand order fulfillment - malformed expected fee",
+			demandOrderPrice:                     150,
+			demandOrderFee:                       50,
+			fulfillmentExpectedFee:               "not_a_number",
+			expectedFulfillmentError:             sdkerrors.ErrInvalidRequest,
+			eIBCdemandAddrBalance:                math.NewInt(1000),
+			expectedDemandOrdefFulfillmentStatus: false,
+		},
+		{
 			name:                                 "Test demand order fulfillment - insufficient balance same denom",
 			demandOrderPrice:                     150,
 			demandOrderFee:                       50,
@@ -222,6 +231,7 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 	testCases := []struct {
 		name          string
 		newFee        sdk.Int
+		newFeeText    string
 		submittedBy   string
 		expectError   bool
 		expectedPrice sdk.Int
@@ -252,6 +262,13 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 			submittedBy: eibcSupplyAddr.String(),
 			expectError: true,
 		},
+		{
+			name:        "malformed fee",
+			newFee:      sdk.ZeroInt(),
+			newFeeText:  "not_a_number",
+			submittedBy: eibcSupplyAddr.String(),
+			expectError: true,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -261,10 +278,18 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 		suite.Require().NoError(err)
 
 		// try to update the demand order
-		msg := types.NewMsgUpdateDemandOrder(tc.submittedBy, demandOrder.Id, tc.newFee.String())
+		newFeeText := tc.newFeeText
+		if newFeeText == "" {
+			newFeeText = tc.newFee.String()
+		}
+		msg := types.NewMsgUpdateDemandOrder(tc.submittedBy, demandOrder.Id, newFeeText)
 		_, err = suite.msgServer.UpdateDemandOrder(suite.Ctx, msg)
 		if tc.expectError {
 			suite.Require().Error(err, tc.name)
+			updatedDemandOrder, getErr := suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, rollappPacket.Status, demandOrder.Id)
+			suite.Require().NoError(getErr, tc.name)
+			suite.Assert().Equal(initialFee, updatedDemandOrder.Fee.AmountOf(denom), tc.name)
+			suite.Assert().Equal(initialPrice, updatedDemandOrder.Price.AmountOf(denom), tc.name)
 			continue
 		}
 		suite.Require().NoError(err, tc.name)
