@@ -12,6 +12,13 @@ import (
 	"github.com/openmetaearth/me-hub/x/wgov/keeper"
 )
 
+type activeProposalTally struct {
+	proposal     v1.Proposal
+	passes       bool
+	burnDeposits bool
+	tallyResults v1.TallyResult
+}
+
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, keeper *keeper.Keeper) {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyEndBlocker)
@@ -52,18 +59,31 @@ func EndBlocker(ctx sdk.Context, keeper *keeper.Keeper) {
 	})
 
 	// fetch active proposals whose voting periods have ended (are passed the block time)
+	// Tally every ending proposal before executing any passed proposal so
+	// same-block proposal execution cannot influence another proposal's tally.
+	activeTallies := make([]activeProposalTally, 0)
 	keeper.IterateActiveProposalsQueue(ctx, ctx.BlockHeader().Time, func(proposal v1.Proposal) bool {
-		var tagValue, logMsg string
-
 		passes, burnDeposits, tallyResults := keeper.Tally(ctx, proposal)
+		activeTallies = append(activeTallies, activeProposalTally{
+			proposal:     proposal,
+			passes:       passes,
+			burnDeposits: burnDeposits,
+			tallyResults: tallyResults,
+		})
+		return false
+	})
 
-		if burnDeposits {
+	for _, activeTally := range activeTallies {
+		var tagValue, logMsg string
+		proposal := activeTally.proposal
+
+		if activeTally.burnDeposits {
 			keeper.DeleteAndBurnDeposits(ctx, proposal.Id)
 		} else {
 			keeper.RefundAndDeleteDeposits(ctx, proposal.Id)
 		}
 
-		if passes {
+		if activeTally.passes {
 			var (
 				idx    int
 				events sdk.Events
@@ -112,7 +132,7 @@ func EndBlocker(ctx sdk.Context, keeper *keeper.Keeper) {
 			logMsg = "rejected"
 		}
 
-		proposal.FinalTallyResult = &tallyResults
+		proposal.FinalTallyResult = &activeTally.tallyResults
 
 		keeper.SetProposal(ctx, proposal)
 		keeper.RemoveFromActiveProposalQueue(ctx, proposal.Id, *proposal.VotingEndTime)
@@ -133,8 +153,7 @@ func EndBlocker(ctx sdk.Context, keeper *keeper.Keeper) {
 				sdk.NewAttribute(types.AttributeKeyProposalResult, tagValue),
 			),
 		)
-		return false
-	})
+	}
 }
 
 // executes handle(msg) and recovers from panic.
