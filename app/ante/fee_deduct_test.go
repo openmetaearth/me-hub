@@ -11,6 +11,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/openmetaearth/me-hub/app/ante"
 	"github.com/openmetaearth/me-hub/app/params"
+	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	"regexp"
 	"strconv"
 	"testing"
@@ -32,6 +33,36 @@ func NewAccountWithEthPrivKey() (*authtypes.BaseAccount, *ethsecp256k1.PrivKey) 
 	return acc, senderPrivKey
 }
 
+type feeTxForFreeGasTest struct {
+	msgs     []sdk.Msg
+	feePayer sdk.AccAddress
+	fees     sdk.Coins
+}
+
+func (tx feeTxForFreeGasTest) GetMsgs() []sdk.Msg {
+	return tx.msgs
+}
+
+func (tx feeTxForFreeGasTest) ValidateBasic() error {
+	return nil
+}
+
+func (tx feeTxForFreeGasTest) GetGas() uint64 {
+	return 0
+}
+
+func (tx feeTxForFreeGasTest) GetFee() sdk.Coins {
+	return tx.fees
+}
+
+func (tx feeTxForFreeGasTest) FeePayer() sdk.AccAddress {
+	return tx.feePayer
+}
+
+func (tx feeTxForFreeGasTest) FeeGranter() sdk.AccAddress {
+	return nil
+}
+
 func TestMockBankKeeper(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -46,6 +77,58 @@ func TestMockBankKeeper(t *testing.T) {
 
 	balances := mockBankKeeper.GetAllBalances(ctx, addr)
 	require.Equal(t, expectedBalances, balances)
+}
+
+func TestInvalidJoinGroupDoesNotGetFreeGas(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	ctx := sdk.Context{}
+	mockBankKeeper := mock.NewMockBankKeeper(ctrl)
+	mockAccountKeeper := authantetestutil.NewMockAccountKeeper(ctrl)
+	mockFeegrantKeeper := authantetestutil.NewMockFeegrantKeeper(ctrl)
+	mockStakingKeeper := mock.NewMockStakingKeeper(ctrl)
+	mockKycKeeper := mock.NewMockKycKeeper(ctrl)
+	mockDaoKeeper := mock.NewMockDaoKeeper(ctrl)
+	mockWasmKeeper := mock.NewMockWasmKeeper(ctrl)
+
+	feeCheckerCalled := false
+	decorator := ante.NewDeductFeeDecorator(
+		mockAccountKeeper,
+		mockBankKeeper,
+		mockFeegrantKeeper,
+		mockDaoKeeper,
+		mockStakingKeeper,
+		mockKycKeeper,
+		func(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
+			feeCheckerCalled = true
+			return nil, 0, sdkerrors.Wrap(sdkerrors.ErrInsufficientFee, "invalid join group should pay fees")
+		},
+		mockWasmKeeper,
+	)
+
+	feePayer := NewAccount()
+	msg := &megrouptypes.MsgJoinGroup{
+		Creator:          feePayer.Address,
+		GroupId:          0,
+		ApplicantAddress: "",
+	}
+
+	mockDaoKeeper.EXPECT().IsDao(gomock.Any(), feePayer.Address).Return(false)
+	mockDaoKeeper.EXPECT().CheckFreeGasAccount(gomock.Any(), feePayer.Address).Return(false)
+
+	nextCalled := false
+	_, err := decorator.AnteHandle(ctx, feeTxForFreeGasTest{
+		msgs:     []sdk.Msg{msg},
+		feePayer: feePayer.GetAddress(),
+	}, false, func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
+		nextCalled = true
+		return ctx, nil
+	})
+
+	require.ErrorIs(t, err, sdkerrors.ErrInsufficientFee)
+	require.True(t, feeCheckerCalled)
+	require.False(t, nextCalled)
 }
 
 func TestCheckFunds(t *testing.T) {

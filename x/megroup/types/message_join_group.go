@@ -43,6 +43,12 @@ func (msg *MsgJoinGroup) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
+	if msg.GroupId == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "group_id cannot be 0")
+	}
+	if _, err = sdk.AccAddressFromBech32(msg.ApplicantAddress); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid applicant address (%s)", err)
+	}
 	return nil
 }
 

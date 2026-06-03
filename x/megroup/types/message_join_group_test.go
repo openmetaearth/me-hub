@@ -20,10 +20,30 @@ func TestMsgJoinGroup_ValidateBasic(t *testing.T) {
 				Creator: "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
-		}, {
+		},
+		{
+			name: "missing group id",
+			msg: MsgJoinGroup{
+				Creator:          sample.AccAddress(),
+				ApplicantAddress: sample.AccAddress(),
+			},
+			err: sdkerrors.ErrInvalidRequest,
+		},
+		{
+			name: "invalid applicant address",
+			msg: MsgJoinGroup{
+				Creator:          sample.AccAddress(),
+				GroupId:          1,
+				ApplicantAddress: "invalid_address",
+			},
+			err: sdkerrors.ErrInvalidAddress,
+		},
+		{
 			name: "valid address",
 			msg: MsgJoinGroup{
-				Creator: sample.AccAddress(),
+				Creator:          sample.AccAddress(),
+				GroupId:          1,
+				ApplicantAddress: sample.AccAddress(),
 			},
 		},
 	}

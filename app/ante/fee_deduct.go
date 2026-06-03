@@ -143,7 +143,12 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	if !freeGas && len(feeTx.GetMsgs()) > 0 {
 		allJoinGroup := true
 		for _, msg := range feeTx.GetMsgs() {
-			if _, ok := msg.(*megrouptypes.MsgJoinGroup); !ok {
+			joinGroupMsg, ok := msg.(*megrouptypes.MsgJoinGroup)
+			if !ok {
+				allJoinGroup = false
+				break
+			}
+			if err := joinGroupMsg.ValidateBasic(); err != nil {
 				allJoinGroup = false
 				break
 			}

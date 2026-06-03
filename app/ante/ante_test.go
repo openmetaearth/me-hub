@@ -95,6 +95,7 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	suite.mockDaoKeeper.EXPECT().GetGlobalDao(gomock.Any()).Return(devOperator.Address)
 	suite.mockDaoKeeper.EXPECT().GetMeidDao(gomock.Any()).Return(devOperator.Address)
 	suite.mockDaoKeeper.EXPECT().GetGlobalDaoFeePoolAddr(gomock.Any()).Return(devOperator.GetAddress())
+	suite.mockDaoKeeper.EXPECT().IsDao(gomock.Any(), addr.Address).Return(false)
 	suite.mockDaoKeeper.EXPECT().CheckFreeGasAccount(gomock.Any(), addr.Address).Return(false)
 
 	amt := sdk.NewInt(100)
