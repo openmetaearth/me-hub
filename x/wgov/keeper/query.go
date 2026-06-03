@@ -42,7 +42,8 @@ func (q Keeper) MeTallyResult(c context.Context, req *types.QueryMeTallyResultRe
 
 	default:
 		// proposal is in voting period
-		_, _, tallyResult = q.Tally(ctx, proposal)
+		cacheCtx, _ := ctx.CacheContext()
+		_, _, tallyResult = q.Tally(cacheCtx, proposal)
 	}
 
 	return &types.QueryMeTallyResultResponse{Tally: &tallyResult}, nil
