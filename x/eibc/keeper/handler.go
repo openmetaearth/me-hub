@@ -113,8 +113,7 @@ func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleToke
 	}
 	demandOrderPrice := amt.Sub(fee)
 
-	trace := transfertypes.ParseDenomTrace(fungibleTokenPacketData.Denom)
-	demandOrderDenom := trace.IBCDenom()
+	demandOrderDenom := k.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
 	demandOrderRecipient := fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
 
 	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)

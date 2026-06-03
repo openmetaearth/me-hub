@@ -3,6 +3,8 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/openmetaearth/me-hub/utils/uibc"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	dacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
 )
 
@@ -79,4 +81,24 @@ func (suite *KeeperTestSuite) TestCreateDemandOrderOnRecv() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestCreateDemandOrderOnErrAckOrTimeoutUsesTransferDenom() {
+	params := suite.App.EIBCKeeper.GetParams(suite.Ctx)
+	params.ErrackFee = sdk.NewDecWithPrec(1, 1) // 10%
+	suite.App.EIBCKeeper.SetParams(suite.Ctx, params)
+
+	ackPacket := *rollappPacket
+	ackPacket.Type = commontypes.RollappPacket_ON_ACK
+	ackPacket.Packet = &packet
+
+	order, err := suite.App.EIBCKeeper.CreateDemandOrderOnErrAckOrTimeout(suite.Ctx, transferPacketData, &ackPacket)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(order)
+
+	expectedDenom := uibc.GetForeignDenomTrace(packet.GetDestChannel(), transferPacketData.Denom).IBCDenom()
+	suite.Require().Equal(expectedDenom, order.Price[0].Denom)
+	suite.Require().Equal(expectedDenom, order.Fee[0].Denom)
+	suite.Require().Equal("100", order.Fee[0].Amount.String())
+	suite.Require().Equal("900", order.Price[0].Amount.String())
 }
