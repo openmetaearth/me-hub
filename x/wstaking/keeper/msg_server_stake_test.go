@@ -115,6 +115,46 @@ func (s *KeeperTestSuite) TestStake() {
 	}
 }
 
+func (s *KeeperTestSuite) TestStakeRejectsMissingRegion() {
+	s.SetupTest()
+
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            types.MeEarthRegionName,
+		OperatorAddress: s.meEarthValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
+	stakeAmount := sdk.NewCoin(params.BaseDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
+
+	valAddress, err := sdk.ValAddressFromBech32(s.meEarthValidator.OperatorAddress)
+	s.Require().NoError(err)
+
+	validatorBefore, found := s.Keeper().GetValidator(s.Ctx, valAddress)
+	s.Require().True(found)
+
+	s.Keeper().RemoveRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
+
+	_, err = s.msgServer.Stake(s.Ctx, &types.MsgStake{
+		StakerAddress:    s.Dao.GlobalDao,
+		ValidatorAddress: s.meEarthValidator.OperatorAddress,
+		Amount:           stakeAmount,
+	})
+	s.Require().ErrorIs(err, types.ErrRegionNotExist)
+
+	_, found = s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
+	s.Require().False(found)
+
+	validatorAfter, found := s.Keeper().GetValidator(s.Ctx, valAddress)
+	s.Require().True(found)
+	s.Require().Equal(validatorBefore.Tokens.String(), validatorAfter.Tokens.String())
+	s.Require().Equal(validatorBefore.DelegatorShares.String(), validatorAfter.DelegatorShares.String())
+
+	_, found = s.Keeper().GetStake(s.Ctx, sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), valAddress)
+	s.Require().False(found)
+}
+
 func (s *KeeperTestSuite) TestUnStake() {
 	s.SetupTest()
 

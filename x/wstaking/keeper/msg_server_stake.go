@@ -46,18 +46,19 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 			sdkerrors.ErrInvalidRequest, "invalid coin amount: got %s, expected %s integer multiple", msg.Amount.Amount.Int64(), int64(gomath.Pow10(params.BaseDenomUnit)),
 		)
 	}
+	region, found := k.Keeper.GetRegion(ctx, validator.Description.RegionID)
+	if !found {
+		return nil, sdkerrors.Wrapf(types.ErrRegionNotExist, "region %s not found", validator.Description.RegionID)
+	}
+
 	// should before modified region shared
 	err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, valAddr)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrHooks, "before stake:%+v", err)
 	}
 
-	region, found := k.Keeper.GetRegion(ctx, validator.Description.RegionID)
-	if found {
-		region.RegionShare = region.RegionShare.Add(msg.Amount.Amount)
-		k.Keeper.SetRegion(ctx, region)
-		//return nil, types.ErrValidatorRegion.Wrapf("%s not found", validator.Description.RegionID)
-	}
+	region.RegionShare = region.RegionShare.Add(msg.Amount.Amount)
+	k.Keeper.SetRegion(ctx, region)
 
 	// NOTE: source funds are always unbonded
 	newShares, err := k.Keeper.Stake(ctx, sdk.MustAccAddressFromBech32(msg.StakerAddress), msg.Amount.Amount, stakingtypes.Unbonded, validator, true, "stake_"+validator.Description.RegionID)
