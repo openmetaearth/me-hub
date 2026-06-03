@@ -80,3 +80,21 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketDeleted() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestAfterPendingRollappPacketDeleted() {
+	// Set a rollapp packet and a demand order that still tracks it as PENDING.
+	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
+
+	demandOrderFulfillerAddr := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1000))[0].String()
+	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(100), math.NewIntFromUint64(50), sdk.DefaultBondDenom, demandOrderFulfillerAddr)
+	suite.Require().Equal(commontypes.Status_PENDING, demandOrder.TrackingPacketStatus)
+	err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
+	suite.Require().NoError(err)
+
+	hooks := suite.App.EIBCKeeper.GetDelayedAckHooks()
+	err = hooks.AfterPacketDeleted(suite.Ctx, rollappPacket)
+	suite.Require().NoError(err)
+
+	_, err = suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, commontypes.Status_PENDING, demandOrder.Id)
+	suite.Require().ErrorIs(err, types.ErrDemandOrderDoesNotExist)
+}

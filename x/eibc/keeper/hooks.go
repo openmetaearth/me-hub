@@ -64,8 +64,8 @@ func (d delayedAckHooks) AfterPacketDeleted(ctx sdk.Context, rollappPacket *comm
 	packetKey := commontypes.RollappPacketKey(rollappPacket)
 	demandOrderID := types.BuildDemandIDFromPacketKey(string(packetKey))
 
-	// Check for demand order in both FINALIZED and REVERTED statuses
-	statuses := []commontypes.Status{commontypes.Status_FINALIZED, commontypes.Status_REVERTED}
+	// Check every status a demand order can have when its packet is deleted.
+	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_FINALIZED, commontypes.Status_REVERTED}
 	for _, status := range statuses {
 		demandOrder, err := d.GetDemandOrder(ctx, status, demandOrderID)
 		if err != nil {
