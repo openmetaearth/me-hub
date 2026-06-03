@@ -21,6 +21,12 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
+const reservedKYCCredentialSID = "kyc"
+
+func isReservedCredentialSID(sid string) bool {
+	return sid == reservedKYCCredentialSID
+}
+
 func (m msgServer) CreateDid(goCtx context.Context, msg *types.MsgCreateDid) (*types.MsgCreateDidResponse, error) {
 
 	// API inactive
@@ -134,6 +140,10 @@ func (m msgServer) UpdateServiceStatus(goCtx context.Context, msg *types.MsgUpda
 func (m msgServer) CreateVC(goCtx context.Context, msg *types.MsgCreateVC) (*types.MsgCreateVCResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if isReservedCredentialSID(msg.Sid) {
+		return &types.MsgCreateVCResponse{}, types.ErrReservedCredential
+	}
+
 	// check credential service
 	svc, found := m.GetService(ctx, msg.Sid)
 	if !found || svc.Status != types.SERVICE_STATUS_ACTIVE {
@@ -174,6 +184,10 @@ func (m msgServer) CreateVC(goCtx context.Context, msg *types.MsgCreateVC) (*typ
 func (m msgServer) UpdateVC(goCtx context.Context, msg *types.MsgUpdateVC) (*types.MsgUpdateVCResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if isReservedCredentialSID(msg.Sid) {
+		return &types.MsgUpdateVCResponse{}, types.ErrReservedCredential
+	}
+
 	// check vc
 	if found := m.HasCredential(ctx, msg.Did, msg.Sid); !found {
 		return &types.MsgUpdateVCResponse{}, types.ErrCredentialNotFound
@@ -213,6 +227,10 @@ func (m msgServer) UpdateVC(goCtx context.Context, msg *types.MsgUpdateVC) (*typ
 
 func (m msgServer) RemoveVC(goCtx context.Context, msg *types.MsgRemoveVC) (*types.MsgRemoveVCResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if isReservedCredentialSID(msg.Sid) {
+		return &types.MsgRemoveVCResponse{}, types.ErrReservedCredential
+	}
 
 	// check credential service
 	svc, found := m.GetService(ctx, msg.Sid)
