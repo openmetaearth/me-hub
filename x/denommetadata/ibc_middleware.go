@@ -139,7 +139,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 
 	// if denom metadata was found in the memo, it means we should have the rollapp record
 	if rollapp == nil {
-		return gerrc.ErrNotFound
+		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
 	if !Contains(rollapp.RegisteredDenoms, dm.Base) {

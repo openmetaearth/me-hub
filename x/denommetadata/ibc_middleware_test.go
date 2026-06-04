@@ -15,7 +15,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/stretchr/testify/require"
 
 	"github.com/openmetaearth/me-hub/x/denommetadata"
@@ -340,6 +339,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 		args        args
 		wantRollapp *rollapptypes.Rollapp
 		wantErr     error
+		wantAckCall bool
 	}{
 		{
 			name: "success: added token metadata to rollapp",
@@ -448,7 +448,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 			wantRollapp: nil,
 			wantErr:     errortypes.ErrInvalidRequest,
 		}, {
-			name: "error: rollapp not found",
+			name: "pass through: rollapp not found",
 			fields: fields{
 				IBCModule:     &mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{},
@@ -461,7 +461,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				acknowledgement: okAck(),
 			},
 			wantRollapp: nil,
-			wantErr:     gerrc.ErrNotFound,
+			wantAckCall: true,
 		}, {
 			name: "return early: rollapp already has token metadata",
 			fields: fields{
@@ -504,6 +504,11 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 			}
 
 			require.Equal(t, tt.wantRollapp, tt.fields.rollappKeeper.returnRollapp)
+			if tt.wantAckCall {
+				app, ok := tt.fields.IBCModule.(*mockIBCModule)
+				require.True(t, ok)
+				require.True(t, app.ackCalled)
+			}
 		})
 	}
 }
@@ -578,7 +583,8 @@ func mustMarshalJSON(v any) string {
 
 type mockIBCModule struct {
 	porttypes.IBCModule
-	sentData []byte
+	sentData  []byte
+	ackCalled bool
 }
 
 func okAck() []byte {
@@ -597,6 +603,7 @@ func (m *mockIBCModule) OnRecvPacket(_ sdk.Context, p channeltypes.Packet, _ sdk
 }
 
 func (m *mockIBCModule) OnAcknowledgementPacket(_ sdk.Context, _ channeltypes.Packet, ack []byte, _ sdk.AccAddress) error {
+	m.ackCalled = true
 	return nil
 }
 
