@@ -3,8 +3,11 @@ package keeper
 import (
 	"testing"
 
+	"github.com/cometbft/cometbft/libs/log"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	stakingTypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -122,4 +125,15 @@ func TestGetRewardsByHeight(t *testing.T) {
 			)
 		})
 	}
+}
+
+func TestCalculateInterestAfterMintCapReturnsZero(t *testing.T) {
+	k := newTestKeeper()
+
+	const capReachedHeight int64 = 132_444_800
+	ctx := sdk.NewContext(nil, tmproto.Header{Height: capReachedHeight + 100}, false, log.NewNopLogger())
+
+	rewards, err := k.CalculateInterest(ctx, sdk.NewInt(stakingTypes.CaclTotalSupply), capReachedHeight)
+	require.NoError(t, err)
+	require.True(t, rewards.IsZero(), "post-cap staking rewards should be zero, got %s", rewards)
 }

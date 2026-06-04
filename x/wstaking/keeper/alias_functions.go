@@ -23,17 +23,24 @@ func (k Keeper) CalculateInterest(ctx sdk.Context, totalStaking cmath.Int, heigh
 
 // getRewardsByHeight Get coins through the block height range
 func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
+	capHeight := mintCapRewardEndHeight()
+	if fromHeight >= capHeight {
+		return sdk.ZeroDec()
+	}
+	if toHeight > capHeight {
+		toHeight = capHeight
+	}
+	if fromHeight >= toHeight {
+		return sdk.ZeroDec()
+	}
+
 	totalCoins := sdk.ZeroInt()
 
 	lowMul := (fromHeight - 1) / mintTypes.OneYearTotalBlocks
 	highMul := (toHeight - 1) / mintTypes.OneYearTotalBlocks
 
 	for i := lowMul; i <= highMul; i++ {
-		halvingDivisor := sdk.NewDecFromBigInt(new(big.Int).Lsh(big.NewInt(1), uint(i)))
-		amountDec := sdk.NewDec(int64(mintTypes.InitOneYearMintAmount)).
-			Quo(sdk.NewDec(int64(mintTypes.OneYearTotalBlocks))).
-			Quo(halvingDivisor)
-		mintUMECAmount := wmint.RoundUpToFourDecimalsDec(amountDec).MulInt64(100_000_000).TruncateInt()
+		mintUMECAmount := mintUMECAmountByPeriod(i)
 
 		var blockCount int64
 		// If the range of from and to are in the same reduction period
@@ -55,6 +62,43 @@ func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdk.D
 
 	coin = sdk.NewDecFromInt(totalCoins)
 	return
+}
+
+func mintCapRewardEndHeight() int64 {
+	totalCap := sdk.NewInt(mintTypes.TotalMintCoinsAmount)
+	totalCoins := sdk.ZeroInt()
+	blocksPerPeriod := int64(mintTypes.OneYearTotalBlocks)
+
+	for i := int64(0); ; i++ {
+		mintUMECAmount := mintUMECAmountByPeriod(i)
+		if !mintUMECAmount.IsPositive() {
+			return i * blocksPerPeriod
+		}
+
+		periodCoins := mintUMECAmount.MulRaw(blocksPerPeriod)
+		if totalCoins.Add(periodCoins).GTE(totalCap) {
+			remaining := totalCap.Sub(totalCoins)
+			blocksToCap := ceilDivInt64(remaining, mintUMECAmount)
+			return i*blocksPerPeriod + blocksToCap
+		}
+
+		totalCoins = totalCoins.Add(periodCoins)
+	}
+}
+
+func mintUMECAmountByPeriod(period int64) sdk.Int {
+	halvingDivisor := sdk.NewDecFromBigInt(new(big.Int).Lsh(big.NewInt(1), uint(period)))
+	amountDec := sdk.NewDec(int64(mintTypes.InitOneYearMintAmount)).
+		Quo(sdk.NewDec(int64(mintTypes.OneYearTotalBlocks))).
+		Quo(halvingDivisor)
+	return wmint.RoundUpToFourDecimalsDec(amountDec).MulInt64(100_000_000).TruncateInt()
+}
+
+func ceilDivInt64(numerator sdk.Int, denominator sdk.Int) int64 {
+	adjusted := new(big.Int).Sub(numerator.BigInt(), big.NewInt(1))
+	adjusted.Div(adjusted, denominator.BigInt())
+	adjusted.Add(adjusted, big.NewInt(1))
+	return adjusted.Int64()
 }
 
 // Calculate computes the per-block staking reward for a given amount of staked tokens.
