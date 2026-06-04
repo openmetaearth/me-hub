@@ -33,8 +33,6 @@ func (k Keeper) RemoveGroupMemberCount(
 	store.Delete(types.GetBytesFromUint64(groupId))
 }
 
-// GetAllGroupMemberCount returns all groupMemberCount
-/*
 func (k Keeper) GetAllGroupMemberCount(ctx sdk.Context) (list []types.GroupMemberCount) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupMemberCountKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
@@ -42,12 +40,11 @@ func (k Keeper) GetAllGroupMemberCount(ctx sdk.Context) (list []types.GroupMembe
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.GroupMemberCount
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
+		list = append(list, types.GroupMemberCount{
+			GroupId: types.GetUint64FromBytes(iterator.Key()),
+			Num:     types.GetUint64FromBytes(iterator.Value()),
+		})
 	}
 
 	return
 }
-
-*/

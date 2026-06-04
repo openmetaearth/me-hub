@@ -29,6 +29,17 @@ func (k *Keeper) AddGroupMember(ctx sdk.Context, grpMember *types.GroupMember) e
 	return nil
 }
 
+func (k Keeper) SetGroupMember(ctx sdk.Context, groupMember types.GroupMember) {
+	if groupMember.Member == nil {
+		return
+	}
+
+	grpMemberPrefix := fmt.Sprintf("%s%d/", types.GroupMemberKey, groupMember.GroupId)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(grpMemberPrefix))
+	val := k.cdc.MustMarshal(&groupMember)
+	store.Set([]byte(groupMember.Member.Address), val)
+}
+
 // GetMemberJoined returns a memberJoined from its index
 func (k Keeper) GetMemberJoined(
 	ctx sdk.Context,
@@ -69,6 +80,21 @@ func (k Keeper) GetAllMemberJoined(ctx sdk.Context) (list []types.MemberJoined) 
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.MemberJoined
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		list = append(list, val)
+	}
+
+	return
+}
+
+func (k Keeper) GetAllGroupMember(ctx sdk.Context) (list []types.GroupMember) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(types.GroupMemberKey))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.GroupMember
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, val)
 	}
