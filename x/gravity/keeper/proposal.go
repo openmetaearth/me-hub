@@ -30,7 +30,7 @@ func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error
 
 	for _, relayer := range allRelayers {
 		if relayer.Online {
-			totalPower = totalPower.Add(relayer.GetPower())
+			totalPower = totalPower.Add(k.GetRelayerEffectivePower(ctx, relayer))
 		}
 		// relayer in new proposal
 		if _, ok := newRelayerMap[relayer.RelayerAddress]; ok {
@@ -40,7 +40,7 @@ func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error
 		if _, ok := oldRelayerMap[relayer.RelayerAddress]; ok {
 			unbondedRelayerList = append(unbondedRelayerList, relayer)
 			if relayer.Online {
-				deleteTotalPower = deleteTotalPower.Add(relayer.GetPower())
+				deleteTotalPower = deleteTotalPower.Add(k.GetRelayerEffectivePower(ctx, relayer))
 			}
 		}
 	}

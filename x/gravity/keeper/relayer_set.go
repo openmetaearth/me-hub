@@ -29,7 +29,7 @@ func (k Keeper) GetCurrentRelayerSet(ctx sdk.Context) *types.RelayerSet {
 	var totalPower uint64
 
 	for _, relayer := range allRelayers {
-		power := relayer.GetPower()
+		power := k.GetRelayerEffectivePower(ctx, relayer)
 		if power.LTE(sdkmath.ZeroInt()) {
 			continue
 		}

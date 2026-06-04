@@ -10,6 +10,7 @@ package keeper_test
 // Coverage:
 //   GRAV-001  Attest must reject historical-nonce claims (no backward rewind)
 //   GRAV-004  Failed AttestationHandler must not advance lastObservedEventNonce
+//   GRAV-381  Slashed/offline relayers must not retain active attestation power
 
 import (
 	"encoding/hex"
@@ -196,26 +197,101 @@ func (s *KeeperTestSuite) TestGrav004_FailedAttestationMustNotLockNonce() {
 }
 
 // ---------------------------------------------------------------------------
+// GRAV-381: Slashed/offline relayers must not retain active attestation power
+// ---------------------------------------------------------------------------
+//
+// SlashRelayer increments SlashTimes, but the attestation denominator is stored
+// in LastTotalPower. If LastTotalPower is not refreshed after the slash, the
+// next quorum calculation can keep using stale pre-slash power.
+//
+// A slashed relayer may remain Online until MaxSlashTimes is reached. During
+// that window, its effective power should be DelegateAmount minus slash debt.
+func (s *KeeperTestSuite) TestGrav381_SlashRelayerUpdatesEffectiveTotalPower() {
+	k := s.Keeper()
+	relayerAddr := s.relayerAddrs[0]
+
+	gravityParams := k.GetParams(s.Ctx)
+	gravityParams.MaxSlashTimes = 2
+	s.Require().NoError(k.SetParams(s.Ctx, &gravityParams))
+
+	delegate := sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10*1e8))
+	s.bondAuditRelayer(0, delegate)
+
+	preSlashPower := k.GetLastTotalPower(s.Ctx)
+	s.Require().Equal(delegate.Amount.Quo(sdk.DefaultPowerReduction), preSlashPower)
+
+	s.Require().NoError(k.SlashRelayer(s.Ctx, relayerAddr.String()))
+
+	relayer, found := k.GetRelayer(s.Ctx, relayerAddr)
+	s.Require().True(found)
+	s.Require().True(relayer.Online, "test precondition: first slash should not force offline when MaxSlashTimes is 2")
+	s.Require().EqualValues(1, relayer.SlashTimes)
+
+	slashAmount := relayer.GetSlashAmount(k.GetSlashFraction(s.Ctx)).Amount
+	expectedPower := relayer.DelegateAmount.Sub(slashAmount).Quo(sdk.DefaultPowerReduction)
+	s.Require().Equal(expectedPower, k.GetLastTotalPower(s.Ctx),
+		"GRAV-381: LastTotalPower must reflect slashed effective relayer power")
+}
+
+func (s *KeeperTestSuite) TestGrav381_OfflineRelayerCannotAttestDirectly() {
+	k := s.Keeper()
+	relayerAddr := s.relayerAddrs[0]
+
+	gravityParams := k.GetParams(s.Ctx)
+	gravityParams.MaxSlashTimes = 1
+	s.Require().NoError(k.SetParams(s.Ctx, &gravityParams))
+
+	s.bondAuditRelayer(0, sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10*1e8)))
+	s.Require().NoError(k.SlashRelayer(s.Ctx, relayerAddr.String()))
+
+	relayer, found := k.GetRelayer(s.Ctx, relayerAddr)
+	s.Require().True(found)
+	s.Require().False(relayer.Online, "test precondition: first slash should force offline when MaxSlashTimes is 1")
+
+	claim := &types.MsgSendToMeClaim{
+		EventNonce:     1,
+		BlockHeight:    1,
+		TokenContract:  "0x0000000000000000000000000000000000000001",
+		Amount:         sdkmath.NewInt(1000),
+		Sender:         "0x0000000000000000000000000000000000000002",
+		Receiver:       s.relayerAddrs[1].String(),
+		RelayerAddress: relayerAddr.String(),
+		ChainName:      s.chainName,
+	}
+
+	_, err := k.Attest(s.Ctx, relayerAddr, claim)
+	s.Require().ErrorIs(err, types.ErrRelayerNotOnLine,
+		"GRAV-381: offline relayers must not be able to vote through direct Attest calls")
+	s.Require().Nil(k.GetAttestation(s.Ctx, claim.GetEventNonce(), claim.ClaimHash()),
+		"GRAV-381: rejected offline votes must not create attestation state")
+}
+
+// ---------------------------------------------------------------------------
 // Helper: bond relayers, confirm and observe the initial relayer set.
 // Mirrors the opening of TestRequestBatchBaseFee in msg_server_test.go, but
 // stops before BridgeTokenClaim so the state is a clean "bridge initialized,
 // no tokens registered" baseline for audit tests.
 // ---------------------------------------------------------------------------
 
+func (s *KeeperTestSuite) bondAuditRelayer(relayerIndex int, delegate sdk.Coin) {
+	msg := &types.MsgBondedRelayer{
+		RelayerAddress:  s.relayerAddrs[relayerIndex].String(),
+		ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[relayerIndex].PublicKey),
+		DelegateAmount:  delegate,
+		ChainName:       s.chainName,
+	}
+	_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msg)
+	s.Require().NoError(err)
+}
+
 func (s *KeeperTestSuite) setupBondedRelayerSetForAuditTest() {
 	totalPower := sdkmath.ZeroInt()
 	delegateAmounts := make([]sdkmath.Int, 0, len(s.relayerAddrs))
-	for i, relayer := range s.relayerAddrs {
-		msg := &types.MsgBondedRelayer{
-			RelayerAddress:  relayer.String(),
-			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(int64(1e9))),
-			ChainName:       s.chainName,
-		}
-		delegateAmounts = append(delegateAmounts, msg.DelegateAmount.Amount)
-		totalPower = totalPower.Add(msg.DelegateAmount.Amount.Quo(sdk.DefaultPowerReduction))
-		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msg)
-		s.Require().NoError(err)
+	for i := range s.relayerAddrs {
+		delegate := sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(int64(1e9)))
+		delegateAmounts = append(delegateAmounts, delegate.Amount)
+		totalPower = totalPower.Add(delegate.Amount.Quo(sdk.DefaultPowerReduction))
+		s.bondAuditRelayer(i, delegate)
 	}
 	s.Keeper().EndBlocker(s.Ctx)
 

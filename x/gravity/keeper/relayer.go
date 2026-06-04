@@ -84,10 +84,19 @@ func (k Keeper) SetLastTotalPower(ctx sdk.Context) {
 	relayers := k.GetAllRelayers(ctx, true)
 	totalPower := sdkmath.ZeroInt()
 	for _, relayer := range relayers {
-		totalPower = totalPower.Add(relayer.GetPower())
+		totalPower = totalPower.Add(k.GetRelayerEffectivePower(ctx, relayer))
 	}
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.LastTotalPowerKey, k.cdc.MustMarshal(&sdk.IntProto{Int: totalPower}))
+}
+
+func (k Keeper) GetRelayerEffectivePower(ctx sdk.Context, relayer types.Relayer) sdkmath.Int {
+	slashAmount := relayer.GetSlashAmount(k.GetSlashFraction(ctx)).Amount
+	effectiveAmount := relayer.DelegateAmount.Sub(slashAmount)
+	if !effectiveAmount.IsPositive() {
+		return sdkmath.ZeroInt()
+	}
+	return effectiveAmount.Quo(sdk.DefaultPowerReduction)
 }
 
 // --- RELAYERS --- //
@@ -177,6 +186,7 @@ func (k Keeper) SlashRelayer(ctx sdk.Context, relayerAddrStr string) error {
 		relayer.Online = false
 	}
 	k.SetRelayer(ctx, relayerAddr, relayer)
+	k.SetLastTotalPower(ctx)
 	k.SetLastRelayerSlashBlockHeight(ctx, uint64(ctx.BlockHeight()))
 	return nil
 }

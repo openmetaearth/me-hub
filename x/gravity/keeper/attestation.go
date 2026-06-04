@@ -36,6 +36,14 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 		return nil, errorsmod.Wrapf(types.ErrNonContinuousEventNonce, "got %v, expected %v", claim.GetEventNonce(), expectedNonce)
 	}
 
+	relayer, found := k.GetRelayer(ctx, relayerAddr)
+	if !found {
+		return nil, types.ErrNotFoundRelayer
+	}
+	if !relayer.Online {
+		return nil, types.ErrRelayerNotOnLine
+	}
+
 	gasMeter := ctx.GasMeter()
 	ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 
@@ -95,7 +103,12 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 				claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
 			continue
 		}
-		relayerPower := relayer.GetPower()
+		if !relayer.Online {
+			k.Logger(ctx).Error("TryAttestation", "relayer offline", relayerAddr.String(), "claimEventNonce",
+				claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
+			continue
+		}
+		relayerPower := k.GetRelayerEffectivePower(ctx, relayer)
 		// Add it to the attestation power's sum
 		attestationPower = attestationPower.Add(relayerPower)
 		if attestationPower.LT(requiredPower) {
