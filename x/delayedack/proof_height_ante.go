@@ -49,6 +49,15 @@ func (rrd IBCProofHeightDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 				msg.Packet.SourceChannel,
 				msg.Packet.Sequence,
 			)
+
+		case *channeltypes.MsgTimeoutOnClose:
+			height = msg.ProofHeight
+			packetId = commontypes.NewPacketUID(
+				commontypes.RollappPacket_ON_TIMEOUT,
+				msg.Packet.SourcePort,
+				msg.Packet.SourceChannel,
+				msg.Packet.Sequence,
+			)
 		default:
 			continue
 		}
