@@ -37,7 +37,17 @@ func (v VirtualFrontierBankContractRegistrationHook) AfterDenomMetadataCreation(
 	return nil
 }
 
-func (v VirtualFrontierBankContractRegistrationHook) AfterDenomMetadataUpdate(sdk.Context, banktypes.Metadata) error {
-	// do nothing
-	return nil
+func (v VirtualFrontierBankContractRegistrationHook) AfterDenomMetadataUpdate(ctx sdk.Context, updatedDenomMetadata banktypes.Metadata) error {
+	if !strings.HasPrefix(strings.ToLower(updatedDenomMetadata.Base), ibcDenomPrefix) {
+		return nil
+	}
+
+	_, found := v.evmKeeper.GetVirtualFrontierBankContractAddressByDenom(ctx, updatedDenomMetadata.Base)
+	if !found {
+		return nil
+	}
+
+	// Existing VFBC instances keep their constructor metadata, so allowing a
+	// bank metadata update here would make the two records disagree.
+	return fmt.Errorf("cannot update IBC denom metadata for %s with existing virtual frontier bank contract", updatedDenomMetadata.Base)
 }

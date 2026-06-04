@@ -51,11 +51,11 @@ func (k *Keeper) UpdateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadat
 	if !found {
 		return gerrc.ErrNotFound
 	}
-	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 	err := k.hooks.AfterDenomMetadataUpdate(ctx, metadata)
 	if err != nil {
 		return err
 	}
+	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 	return nil
 }
 

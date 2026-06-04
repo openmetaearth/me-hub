@@ -159,6 +159,37 @@ func (suite *HooksTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
 	})
 }
 
+func (suite *HooksTestSuite) TestHookOperation_AfterDenomMetadataUpdateAllowsSafeUpdates() {
+	suite.SetupTest()
+
+	hooks := vfchooks.NewVirtualFrontierBankContractRegistrationHook(*suite.App.EvmKeeper.Keeper)
+
+	nonIbcDenom := createDenomMetadata("adym", "DYM", 18)
+	suite.Require().NoError(hooks.AfterDenomMetadataUpdate(suite.Ctx, nonIbcDenom))
+
+	ibcDenomWithoutVFBC := createDenomMetadata("ibc/not_deployed", "ATOM", 6)
+	suite.Require().NoError(hooks.AfterDenomMetadataUpdate(suite.Ctx, ibcDenomWithoutVFBC))
+}
+
+func (suite *HooksTestSuite) TestHookOperation_AfterDenomMetadataUpdateRejectsExistingVFBC() {
+	suite.SetupTest()
+
+	workingCtx := suite.Ctx.WithBlockHeight(0) // ignore invoking x/evm exec for contract deployment
+	hooks := vfchooks.NewVirtualFrontierBankContractRegistrationHook(*suite.App.EvmKeeper.Keeper)
+
+	ibcDenom := createDenomMetadata("ibc/uatom", "ATOM", 6)
+	suite.App.BankKeeper.SetDenomMetaData(workingCtx, ibcDenom)
+	suite.Require().NoError(hooks.AfterDenomMetadataCreation(workingCtx, ibcDenom))
+
+	_, found := suite.App.EvmKeeper.GetVirtualFrontierBankContractAddressByDenom(workingCtx, ibcDenom.Base)
+	suite.Require().True(found, "VFBC must exist before update rejection is tested")
+
+	updatedIbcDenom := createDenomMetadata(ibcDenom.Base, ibcDenom.Display, 18)
+	err := hooks.AfterDenomMetadataUpdate(workingCtx, updatedIbcDenom)
+	suite.Require().Error(err)
+	suite.Require().Contains(err.Error(), "existing virtual frontier bank contract")
+}
+
 func createDenomMetadata(base, display string, decimals uint32) banktypes.Metadata {
 	return banktypes.Metadata{
 		Description: display,

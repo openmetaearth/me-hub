@@ -58,6 +58,28 @@ func (suite *KeeperTestSuite) TestUpdateDenom() {
 	suite.Require().EqualValues(denom.DenomUnits[1].Exponent, suite.getDymUpdateMetadata().DenomUnits[1].Exponent)
 }
 
+func (suite *KeeperTestSuite) TestUpdateIbcDenomWithExistingVFBCDoesNotMutateBankMetadata() {
+	keeper := suite.App.DenomMetadataKeeper
+	bankKeeper := suite.App.BankKeeper
+
+	metadata := suite.getIbcMetadata()
+	err := keeper.CreateDenomMetadata(suite.Ctx, metadata)
+	suite.Require().NoError(err)
+
+	denom, found := bankKeeper.GetDenomMetaData(suite.Ctx, metadata.Base)
+	suite.Require().True(found)
+	suite.Require().EqualValues(metadata.DenomUnits[1].Exponent, denom.DenomUnits[1].Exponent)
+
+	updatedMetadata := suite.getIbcUpdateMetadata()
+	err = keeper.UpdateDenomMetadata(suite.Ctx, updatedMetadata)
+	suite.Require().Error(err)
+	suite.Require().Contains(err.Error(), "existing virtual frontier bank contract")
+
+	denom, found = bankKeeper.GetDenomMetaData(suite.Ctx, metadata.Base)
+	suite.Require().True(found)
+	suite.Require().EqualValues(metadata.DenomUnits[1].Exponent, denom.DenomUnits[1].Exponent)
+}
+
 func (suite *KeeperTestSuite) TestCreateExistingDenom() {
 	keeper := suite.App.DenomMetadataKeeper
 	err := keeper.CreateDenomMetadata(suite.Ctx, suite.getDymMetadata())
@@ -99,5 +121,33 @@ func (suite *KeeperTestSuite) getDymUpdateMetadata() banktypes.Metadata {
 		},
 		Base:    "adym",
 		Display: "DYM",
+	}
+}
+
+func (suite *KeeperTestSuite) getIbcMetadata() banktypes.Metadata {
+	return banktypes.Metadata{
+		Name:        "Atom IBC token",
+		Symbol:      "ATOM",
+		Description: "Denom metadata for IBC ATOM.",
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: "ibc/uatom", Exponent: uint32(0), Aliases: []string{}},
+			{Denom: "ATOM", Exponent: uint32(6), Aliases: []string{}},
+		},
+		Base:    "ibc/uatom",
+		Display: "ATOM",
+	}
+}
+
+func (suite *KeeperTestSuite) getIbcUpdateMetadata() banktypes.Metadata {
+	return banktypes.Metadata{
+		Name:        "Atom IBC token",
+		Symbol:      "ATOM",
+		Description: "Updated denom metadata for IBC ATOM.",
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: "ibc/uatom", Exponent: uint32(0), Aliases: []string{}},
+			{Denom: "ATOM", Exponent: uint32(18), Aliases: []string{}},
+		},
+		Base:    "ibc/uatom",
+		Display: "ATOM",
 	}
 }
