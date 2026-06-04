@@ -16,6 +16,19 @@ import (
 
 // HandleFraud handles the fraud evidence submitted by the user.
 func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHeight uint64, seqAddr string) error {
+	cacheCtx, writeCache := ctx.CacheContext()
+	if err := k.handleFraud(cacheCtx, rollappID, clientId, fraudHeight, seqAddr); err != nil {
+		return err
+	}
+
+	events := cacheCtx.EventManager().Events()
+	writeCache()
+	ctx.EventManager().EmitEvents(events)
+
+	return nil
+}
+
+func (k Keeper) handleFraud(ctx sdk.Context, rollappID, clientId string, fraudHeight uint64, seqAddr string) error {
 	// Get the rollapp from the store
 	rollapp, found := k.GetRollapp(ctx, rollappID)
 	if !found {

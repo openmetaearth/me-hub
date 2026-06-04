@@ -116,8 +116,28 @@ func (suite *RollappTestSuite) TestHandleFraud_WrongChannelID() {
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
+	storedRollapp, found := keeper.GetRollapp(*ctx, rollapp)
+	suite.Require().True(found)
+	suite.Require().False(storedRollapp.Frozen)
+
+	stateInfo, err := keeper.FindStateInfoByHeight(*ctx, rollapp, 2)
+	suite.Require().Nil(err)
+	suite.Require().Equal(common.Status_PENDING, stateInfo.Status)
+
 	err = keeper.HandleFraud(*ctx, rollapp, "wrongChannelID", 2, proposer)
 	suite.Require().NotNil(err)
+
+	storedRollapp, found = keeper.GetRollapp(*ctx, rollapp)
+	suite.Require().True(found)
+	suite.Require().False(storedRollapp.Frozen)
+
+	stateInfo, err = keeper.FindStateInfoByHeight(*ctx, rollapp, 2)
+	suite.Require().Nil(err)
+	suite.Require().Equal(common.Status_PENDING, stateInfo.Status)
+
+	sequencers := suite.App.SequencerKeeper.GetSequencersByRollapp(*ctx, rollapp)
+	suite.Require().Len(sequencers, 1)
+	suite.Require().Equal(types.Bonded, sequencers[0].Status)
 }
 
 // Fail - Disputing already reverted state
