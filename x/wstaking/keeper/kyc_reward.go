@@ -296,8 +296,8 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 	depositConfig := k.GetAllFixedDepositCfg(ctx, toRegion.RegionId)
 	depositConfigMap := make(map[int64]sdk.Dec)
 	for _, cfg := range depositConfig {
-		if cfg.Status == types.RegionFixedDepositCfgStatusInactive {
-			return errors.New("fixed deposit cfg status is inactive")
+		if cfg.Status != types.RegionFixedDepositCfgStatusActive {
+			continue
 		}
 		depositConfigMap[cfg.Term] = cfg.Rate
 	}
