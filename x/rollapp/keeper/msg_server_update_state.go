@@ -73,6 +73,10 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 		// bump state index
 		lastIndex = latestStateInfoIndex.Index
+	} else if msg.StartHeight != 1 {
+		return nil, errorsmod.Wrapf(types.ErrWrongBlockHeight,
+			"first state update must start at height 1, but received (%d)",
+			msg.StartHeight)
 	}
 	newIndex = lastIndex + 1
 

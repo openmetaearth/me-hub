@@ -324,7 +324,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 	suite.ErrorIs(err, types.ErrLogic)
 }
 
-func (suite *RollappTestSuite) TestFirstUpdateStateGensisHightGreaterThanZero() {
+func (suite *RollappTestSuite) TestFirstUpdateStateRejectsGenesisHeightGreaterThanOne() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
@@ -355,11 +355,14 @@ func (suite *RollappTestSuite) TestFirstUpdateStateGensisHightGreaterThanZero() 
 		NumBlocks:   3,
 		DAPath:      "",
 		Version:     3,
-		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 2}, {Height: 3}}},
+		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 2}, {Height: 3}, {Height: 4}}},
 	}
 
 	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
-	suite.NoError(err)
+	suite.ErrorIs(err, types.ErrWrongBlockHeight)
+
+	_, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
+	suite.Require().False(found)
 }
 
 func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
