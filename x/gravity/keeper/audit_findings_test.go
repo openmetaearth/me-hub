@@ -195,6 +195,61 @@ func (s *KeeperTestSuite) TestGrav004_FailedAttestationMustNotLockNonce() {
 	}
 }
 
+func (s *KeeperTestSuite) TestRemovedRelayerCannotUnbondBeforeExternalSetStopsTrustingIt() {
+	k := s.Keeper()
+	s.setupBondedRelayerSetForAuditTest()
+
+	removedRelayer := s.relayerAddrs[0]
+	relayer, found := k.GetRelayer(s.Ctx, removedRelayer)
+	s.Require().True(found)
+	s.Require().True(relayer.Online)
+
+	lastObserved := k.GetLastObservedRelayerSet(s.Ctx)
+	s.Require().NotNil(lastObserved)
+	s.Require().True(relayerSetHasExternalAddress(lastObserved, relayer.ExternalAddress),
+		"test precondition: external bridge still trusts the relayer")
+
+	newRelayerList := make([]string, 0, len(s.relayerAddrs)-1)
+	for _, relayerAddr := range s.relayerAddrs[1:] {
+		newRelayerList = append(newRelayerList, relayerAddr.String())
+	}
+	_, err := s.MsgServer().ProposalRelayers(s.Ctx, &types.MsgProposalRelayers{
+		Relayers:  newRelayerList,
+		Authority: s.Dao.GlobalDao,
+		ChainName: s.chainName,
+	})
+	s.Require().NoError(err)
+
+	relayer, found = k.GetRelayer(s.Ctx, removedRelayer)
+	s.Require().True(found)
+	s.Require().False(relayer.Online)
+
+	_, err = s.MsgServer().UnbondedRelayer(s.Ctx, &types.MsgUnbondedRelayer{
+		ChainName:      s.chainName,
+		RelayerAddress: removedRelayer.String(),
+	})
+	s.Require().Error(err,
+		"relayer stake must stay locked until a newer external relayer-set update no longer trusts it")
+
+	relayer, found = k.GetRelayer(s.Ctx, removedRelayer)
+	s.Require().True(found, "rejected unbond must keep the relayer record")
+	relayerAddr, found := k.GetRelayerByExternalAddress(s.Ctx, relayer.ExternalAddress)
+	s.Require().True(found, "rejected unbond must keep the external address mapping")
+	s.Require().Equal(removedRelayer.String(), relayerAddr.String())
+}
+
+func relayerSetHasExternalAddress(relayerSet *types.RelayerSet, externalAddress string) bool {
+	if relayerSet == nil {
+		return false
+	}
+	for _, member := range relayerSet.Members {
+		if member.ExternalAddress == externalAddress {
+			return true
+		}
+	}
+	return false
+}
+
 // ---------------------------------------------------------------------------
 // Helper: bond relayers, confirm and observe the initial relayer set.
 // Mirrors the opening of TestRequestBatchBaseFee in msg_server_test.go, but

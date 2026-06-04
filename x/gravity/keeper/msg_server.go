@@ -163,6 +163,9 @@ func (s MsgServer) UnbondedRelayer(c context.Context, msg *types.MsgUnbondedRela
 	if relayer.Online {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "relayer on line")
 	}
+	if relayerSetContainsExternalAddress(s.GetLastObservedRelayerSet(ctx), relayer.ExternalAddress) {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "relayer still trusted by last observed relayer set")
+	}
 
 	slashAmount := relayer.GetSlashAmount(s.GetSlashFraction(ctx))
 	if slashAmount.IsPositive() {
@@ -191,6 +194,18 @@ func (s MsgServer) UnbondedRelayer(c context.Context, msg *types.MsgUnbondedRela
 		sdk.NewAttribute(types.AttributeKeyUnbondAmount, unbondAmount.String()),
 	))
 	return &types.MsgUnbondedRelayerResponse{}, nil
+}
+
+func relayerSetContainsExternalAddress(relayerSet *types.RelayerSet, externalAddress string) bool {
+	if relayerSet == nil {
+		return false
+	}
+	for _, member := range relayerSet.Members {
+		if member.ExternalAddress == externalAddress {
+			return true
+		}
+	}
+	return false
 }
 
 func (s MsgServer) RelayerSetConfirm(c context.Context, msg *types.MsgRelayerSetConfirm) (*types.MsgRelayerSetConfirmResponse, error) {
