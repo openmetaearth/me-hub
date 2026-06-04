@@ -112,10 +112,6 @@ func (w IBCModule) OnRecvPacket(
 	}
 
 	ra := transfer.Rollapp
-	if ra.GenesisState.TransfersEnabled && w.rollappKeeper.IsSkipDelayRollapp(ctx, transfer.RollappId()) {
-		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
-	}
-
 	memo, err := getMemo(transfer.GetMemo())
 	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
 		// The first regular transfer marks the full opening of the bridge, more genesis transfers will not be allowed.
