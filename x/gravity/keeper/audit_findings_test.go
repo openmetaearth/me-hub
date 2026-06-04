@@ -131,6 +131,7 @@ func (s *KeeperTestSuite) TestGrav004_FailedAttestationMustNotLockNonce() {
 	preObserved := k.GetLastObservedEventNonce(s.Ctx)
 	s.Require().EqualValues(uint64(1), preObserved,
 		"test precondition: relayer set update claim should be observed at nonce 1")
+	preObservedHeight := k.GetLastObservedBlockHeight(s.Ctx)
 
 	// Use a bridge-token contract that has NEVER been registered. The handler
 	// path for MsgSendToMeClaim calls GetBridgeTokenByContract first and
@@ -144,10 +145,11 @@ func (s *KeeperTestSuite) TestGrav004_FailedAttestationMustNotLockNonce() {
 	// error and returns OK; we assert on the persisted state, not on err.
 	receiver := s.relayerAddrs[0]
 	sender := s.PubKeyToExternalAddr(s.externalPris[0].PublicKey)
+	failedClaimBlockHeight := uint64(2)
 	for i, relayer := range s.relayerAddrs {
 		claim := &types.MsgSendToMeClaim{
 			EventNonce:     k.GetLastEventNonceByRelayer(s.Ctx, relayer) + 1,
-			BlockHeight:    1,
+			BlockHeight:    failedClaimBlockHeight,
 			TokenContract:  unknownContract,
 			Amount:         sdkmath.NewIntWithDecimal(1, 6),
 			Sender:         sender,
@@ -172,13 +174,18 @@ func (s *KeeperTestSuite) TestGrav004_FailedAttestationMustNotLockNonce() {
 			"AttestationHandler returned an error (bridge token does not exist). "+
 			"This permanently locks the nonce and bricks the bridge for retries.",
 		preObserved, postObserved)
+	postObservedHeight := k.GetLastObservedBlockHeight(s.Ctx)
+	s.Require().Equalf(preObservedHeight, postObservedHeight,
+		"GRAV-004: lastObservedBlockHeight advanced from %+v to %+v even though "+
+			"AttestationHandler returned an error (bridge token does not exist).",
+		preObservedHeight, postObservedHeight)
 
 	// Assertion 2: the attestation record for the failed claim should NOT
 	// be marked Observed, so a future retry (after the underlying condition
 	// is fixed) can still reach quorum. We recreate the claim hash here.
 	probeClaim := &types.MsgSendToMeClaim{
 		EventNonce:     preObserved + 1,
-		BlockHeight:    1,
+		BlockHeight:    failedClaimBlockHeight,
 		TokenContract:  unknownContract,
 		Amount:         sdkmath.NewIntWithDecimal(1, 6),
 		Sender:         sender,

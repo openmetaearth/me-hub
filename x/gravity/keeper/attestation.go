@@ -102,15 +102,16 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 			continue
 		}
 
-		k.SetLastObservedEventNonce(ctx, claim.GetEventNonce())
-
-		// in case of web3 event is long time ago, we set the last observed me block height need long enough.
-		k.SetLastObservedBlockHeight(ctx, claim.GetBlockHeight(), uint64(ctx.BlockHeight()))
-
-		att.Observed = true
-		k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
-
 		err = k.processAttestation(ctx, claim)
+		if err == nil {
+			k.SetLastObservedEventNonce(ctx, claim.GetEventNonce())
+
+			// in case of web3 event is long time ago, we set the last observed me block height need long enough.
+			k.SetLastObservedBlockHeight(ctx, claim.GetBlockHeight(), uint64(ctx.BlockHeight()))
+
+			att.Observed = true
+			k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
+		}
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeContractEvent,
 			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
@@ -133,9 +134,9 @@ func (k Keeper) processAttestation(ctx sdk.Context, claim types.ExternalClaim) e
 	xCtx, commit := ctx.CacheContext()
 	if err := k.AttestationHandler(xCtx, claim); err != nil {
 		// execute with a transient storage
-		// If the attestation fails, something has gone wrong and we can't recover it. Log and move on
-		// The attestation will still be marked "Observed", and validators can still be slashed for not
-		// having voted for it.
+		// If the attestation fails, something has gone wrong. Log it without
+		// advancing the observed nonce, so the attestation can be retried after
+		// the underlying condition is fixed.
 		k.Logger(ctx).Error("attestation failed", "cause", err.Error(), "claim type", claim.GetType(),
 			"id", hex.EncodeToString(types.GetAttestationKey(claim.GetEventNonce(), claim.ClaimHash())),
 			"nonce", fmt.Sprint(claim.GetEventNonce()),
