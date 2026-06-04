@@ -454,6 +454,30 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 				},
 			},
 		}, {
+			name: "finalize pending: failed rollapp must not keep unrelated later successful queue as empty state",
+			pendingFinalizationQueue: []types.BlockHeightToFinalizationQueue{
+				{
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 1},
+					},
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp2", Index: 1},
+					},
+				},
+			},
+			errFinalizeIndices: []types.StateInfoIndex{{RollappId: "rollapp1", Index: 1}},
+			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
+				{
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 1},
+					},
+				},
+			},
+		}, {
 			name: "finalize pending: all rollapps failed to finalize",
 			pendingFinalizationQueue: []types.BlockHeightToFinalizationQueue{
 				{

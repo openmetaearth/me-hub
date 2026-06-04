@@ -109,6 +109,10 @@ func (k Keeper) updateQueueForHeight(ctx sdk.Context, blockHeightToFinalizationQ
 			idx, failed := failedRollapps[si.RollappId]
 			return !failed || si.Index < idx
 		})
+	if len(blockHeightToFinalizationQueue.FinalizationQueue) == 0 {
+		k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
+		return
+	}
 	// save the current queue with "leftover" rollapp's state changes
 	k.SetBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue)
 }
