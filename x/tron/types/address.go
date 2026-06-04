@@ -22,7 +22,7 @@ func (b TronAddress) ValidateExternalAddr(addr string) error {
 func (b TronAddress) ExternalAddrToAccAddr(addr string) sdk.AccAddress {
 	tronAddr, err := tronaddress.Base58ToAddress(addr)
 	if err != nil {
-		panic(err)
+		return nil
 	}
 	return tronAddr.Bytes()[1:]
 }
@@ -30,7 +30,7 @@ func (b TronAddress) ExternalAddrToAccAddr(addr string) sdk.AccAddress {
 func (b TronAddress) ExternalAddrToHexAddr(addr string) gethcommon.Address {
 	tronAddr, err := tronaddress.Base58ToAddress(addr)
 	if err != nil {
-		panic(err)
+		return gethcommon.Address{}
 	}
 	return gethcommon.BytesToAddress(tronAddr.Bytes()[1:])
 }

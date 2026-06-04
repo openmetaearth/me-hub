@@ -3,6 +3,7 @@ package types_test
 import (
 	"testing"
 
+	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/openmetaearth/me-hub/x/tron/types"
 	"github.com/stretchr/testify/require"
 )
@@ -61,4 +62,36 @@ func TestValidateTronAddress(t *testing.T) {
 			require.EqualValues(t, testCase.errStr, err.Error(), testCase.value)
 		})
 	}
+}
+
+func TestTronAddressExternalConversionsDoNotPanicOnInvalidInput(t *testing.T) {
+	tronAddr := types.TronAddress{}
+
+	testCases := []string{
+		"",
+		"invalid_address",
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase, func(t *testing.T) {
+			require.NotPanics(t, func() {
+				require.Nil(t, tronAddr.ExternalAddrToAccAddr(testCase))
+			})
+			require.NotPanics(t, func() {
+				require.Equal(t, gethcommon.Address{}, tronAddr.ExternalAddrToHexAddr(testCase))
+			})
+		})
+	}
+}
+
+func TestTronAddressExternalConversionsValidInput(t *testing.T) {
+	tronAddr := types.TronAddress{}
+	addr := "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+
+	accAddr := tronAddr.ExternalAddrToAccAddr(addr)
+	hexAddr := tronAddr.ExternalAddrToHexAddr(addr)
+
+	require.Len(t, accAddr, gethcommon.AddressLength)
+	require.NotEqual(t, gethcommon.Address{}, hexAddr)
+	require.Equal(t, []byte(accAddr), hexAddr.Bytes())
 }
