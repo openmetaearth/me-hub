@@ -70,6 +70,77 @@ func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestLiveLowFeeBatchDoesNotSupersedeHigherFeePendingBatch() {
+	tokenContract := helpers.GenerateAddress().Hex()
+	feeReceive := helpers.GenerateAddress().Hex()
+
+	makeTx := func(id uint64, fee int64) *types.OutgoingTransferTx {
+		return &types.OutgoingTransferTx{
+			Id:          id,
+			Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+			DestAddress: helpers.GenerateAddress().Hex(),
+			Token: types.ERC20Token{
+				Contract: tokenContract,
+				Amount:   sdkmath.NewInt(100),
+			},
+			Fee: types.ERC20Token{
+				Contract: tokenContract,
+				Amount:   sdkmath.NewInt(fee),
+			},
+		}
+	}
+
+	suite.NoError(suite.Keeper().AddUnbatchedTx(suite.Ctx, makeTx(1, 1_000)))
+
+	suite.Ctx = suite.Ctx.WithBlockHeight(20)
+	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, 10, 10)
+	firstBatch, err := suite.Keeper().BuildOutgoingTxBatch(
+		suite.Ctx,
+		tokenContract,
+		feeReceive,
+		100,
+		sdkmath.NewInt(1),
+		sdkmath.ZeroInt(),
+	)
+	suite.Require().NoError(err)
+	suite.Require().Equal(sdkmath.NewInt(1_000), types.OutgoingTransferTxs(firstBatch.Transactions).TotalFee())
+
+	lowFeeTx := makeTx(2, 1)
+	suite.NoError(suite.Keeper().AddUnbatchedTx(suite.Ctx, lowFeeTx))
+
+	suite.Ctx = suite.Ctx.WithBlockHeight(21)
+	secondBatch, err := suite.Keeper().BuildOutgoingTxBatch(
+		suite.Ctx,
+		tokenContract,
+		feeReceive,
+		100,
+		sdkmath.NewInt(1),
+		sdkmath.ZeroInt(),
+	)
+	suite.Require().Error(err)
+	suite.Require().Nil(secondBatch)
+
+	restoredTx, err := suite.Keeper().GetUnbatchedTxByFeeAndId(suite.Ctx, lowFeeTx.Fee, lowFeeTx.Id)
+	suite.Require().NoError(err)
+	suite.Require().Equal(lowFeeTx.Id, restoredTx.Id)
+
+	relayer := types.Relayer{
+		RelayerAddress: suite.relayerAddrs[0].String(),
+		StartHeight:    0,
+	}
+	suite.Keeper().SetRelayer(suite.Ctx, suite.relayerAddrs[0], relayer)
+
+	response, err := suite.QueryClient().LastPendingBatchRequestByAddr(
+		sdk.WrapSDKContext(suite.Ctx),
+		&types.QueryLastPendingBatchRequestByAddrRequest{
+			RelayerAddress: relayer.RelayerAddress,
+		},
+	)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(response.Batch)
+	suite.Require().Equal(firstBatch.BatchNonce, response.Batch.BatchNonce)
+}
+
 func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfirm() {
 	tokenContract := helpers.GenerateAddress().Hex()
 	batch := &types.OutgoingTxBatch{

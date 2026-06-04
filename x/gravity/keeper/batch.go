@@ -27,11 +27,9 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 		return nil, errorsmod.Wrapf(types.ErrInvalid, "batch timeout height %d less than 0", batchTimeout)
 	}
 
-	// if there is a more profitable batch for this token type do not create a new batch
-	if lastBatch := k.GetLastOutgoingBatchByTokenType(ctx, contractAddress); lastBatch != nil {
-		if lastBatch.BatchTimeout < projectedCurrentExternalHeight {
-			return nil, errorsmod.Wrap(types.ErrInvalid, "existing unexecuted batch, and the batch not timeout")
-		}
+	var liveBatch *types.OutgoingTxBatch
+	if lastBatch := k.GetLastOutgoingBatchByTokenType(ctx, contractAddress); lastBatch != nil && lastBatch.BatchTimeout >= projectedCurrentExternalHeight {
+		liveBatch = lastBatch
 	}
 	selectedTx, err := k.pickUnBatchedTx(ctx, contractAddress, maxElements, baseFee)
 	if err != nil {
@@ -42,6 +40,28 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 	}
 	if types.OutgoingTransferTxs(selectedTx).TotalFee().LT(minimumFee) {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "total fee less than minimum fee")
+	}
+	if liveBatch != nil {
+		selectedFee := types.OutgoingTransferTxs(selectedTx).TotalFee()
+		liveBatchFee := types.OutgoingTransferTxs(liveBatch.Transactions).TotalFee()
+		if selectedFee.LTE(liveBatchFee) {
+			for _, tx := range selectedTx {
+				if restoreErr := k.AddUnbatchedTx(ctx, tx); restoreErr != nil {
+					return nil, errorsmod.Wrapf(restoreErr, "restore selected tx %d after live batch fee check", tx.Id)
+				}
+			}
+			return nil, errorsmod.Wrapf(types.ErrInvalid,
+				"existing live batch fee (%s) is greater than or equal to selected batch fee (%s)",
+				liveBatchFee.String(), selectedFee.String())
+		}
+		if err = k.CancelOutgoingTxBatch(ctx, contractAddress, liveBatch.BatchNonce); err != nil {
+			for _, tx := range selectedTx {
+				if restoreErr := k.AddUnbatchedTx(ctx, tx); restoreErr != nil {
+					return nil, errorsmod.Wrapf(restoreErr, "restore selected tx %d after live batch cancel failure", tx.Id)
+				}
+			}
+			return nil, errorsmod.Wrapf(err, "cancel less profitable live batch %d", liveBatch.BatchNonce)
+		}
 	}
 
 	nextID := k.AutoIncrementID(ctx, types.KeyLastOutgoingBatchID)
