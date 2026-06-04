@@ -74,17 +74,8 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 				k.Logger(ctx).Info("AfterValidatorCreated hook ", "err", err.Error())
 				return nil, sdkerrors.Wrapf(types.ErrInterProc, "AfterValidatorCreated hook error: %v", err)
 			}
-			//directly set new signing info for new cons addr
 			newConsAddr := sdk.GetConsAddress(pk)
-			newSigningInfo := slashingtypes.NewValidatorSigningInfo(
-				newConsAddr,
-				ctx.BlockHeight(),
-				0,
-				time.Unix(0, 0),
-				false,
-				0,
-			)
-			k.slashingKeeper.SetValidatorSigningInfo(ctx, newConsAddr, newSigningInfo)
+			k.migrateValidatorSigningInfo(ctx, sdk.ConsAddress(updateInfo.OldConsAddress), newConsAddr)
 
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(types.EventTypeStartReplacePubKey,
@@ -121,6 +112,29 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 				ctx.BlockHeight(), updateInfo.UpdateAtHeight)
 		}
 	}
+}
+
+func (k Keeper) migrateValidatorSigningInfo(ctx sdk.Context, oldConsAddr, newConsAddr sdk.ConsAddress) {
+	signingInfo, found := k.slashingKeeper.GetValidatorSigningInfo(ctx, oldConsAddr)
+	if !found {
+		signingInfo = slashingtypes.NewValidatorSigningInfo(
+			newConsAddr,
+			ctx.BlockHeight(),
+			0,
+			time.Unix(0, 0),
+			false,
+			0,
+		)
+		k.slashingKeeper.SetValidatorSigningInfo(ctx, newConsAddr, signingInfo)
+		return
+	}
+
+	signingInfo.Address = newConsAddr.String()
+	k.slashingKeeper.SetValidatorSigningInfo(ctx, newConsAddr, signingInfo)
+	k.slashingKeeper.IterateValidatorMissedBlockBitArray(ctx, oldConsAddr, func(index int64, missed bool) (stop bool) {
+		k.slashingKeeper.SetValidatorMissedBlockBitArray(ctx, newConsAddr, index, missed)
+		return false
+	})
 }
 
 func (k Keeper) SetReplacePubKeyInfo(ctx sdk.Context, data *types.UpdatePubKeyInfo) error {
