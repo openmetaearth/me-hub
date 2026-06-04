@@ -146,10 +146,9 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 		return &types.MsgUpdateResponse{}, stktypes.ErrRegionNotExist
 	}
 
-	// update KYC level
-	//if msg.Level == didtypes.KYC_LEVEL_NONE {
-	//	return &types.MsgUpdateResponse{}, errors.Wrap(didtypes.ErrParameter, "KYC level must be greater than 0")
-	//}
+	if msg.Level == didtypes.KYC_LEVEL_NONE {
+		return &types.MsgUpdateResponse{}, errors.Wrap(didtypes.ErrParameter, "KYC level must be greater than 0; use Remove to revoke KYC")
+	}
 
 	holderInfo.RegionId = msg.RegionId
 	holderInfo.KycLevel = msg.Level
