@@ -257,7 +257,7 @@ func (k Keeper) GetDidAndKycActive(sdkCtx sdk.Context, address sdk.AccAddress, r
 	if didInfo.RegionId != regionID {
 		return "", false
 	}
-	if didInfo.KycLevel != didTypes.KYC_LEVEL_TWO {
+	if didInfo.KycLevel < didTypes.KYC_LEVEL_TWO {
 		return "", false
 	}
 	if didInfo.Status == didTypes.DID_STATUS_ACTIVE {
