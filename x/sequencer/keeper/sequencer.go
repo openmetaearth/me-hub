@@ -57,8 +57,16 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 	}
 
 	// take the next bonded sequencer to be the proposer. sorted by bond
+	bondDenom := k.GetParams(ctx).MinBond.Denom
 	sort.SliceStable(seqs, func(i, j int) bool {
-		return seqs[i].Tokens.IsAllGT(seqs[j].Tokens)
+		if bondDenom != "" {
+			iAmount := seqs[i].Tokens.AmountOf(bondDenom)
+			jAmount := seqs[j].Tokens.AmountOf(bondDenom)
+			if !iAmount.Equal(jAmount) {
+				return iAmount.GT(jAmount)
+			}
+		}
+		return seqs[i].SequencerAddress < seqs[j].SequencerAddress
 	})
 
 	seq := seqs[0]

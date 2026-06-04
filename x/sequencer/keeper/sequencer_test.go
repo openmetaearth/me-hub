@@ -71,17 +71,24 @@ func TestSequencersByRollappGet(t *testing.T) {
 func (suite *SequencerTestSuite) TestRotatingSequencerByBond() {
 	suite.SetupTest()
 	rollappId := suite.CreateDefaultRollapp()
+	params := suite.App.SequencerKeeper.GetParams(suite.Ctx)
+	params.MinBond = sdk.NewCoin(bond.Denom, sdk.NewInt(100))
+	suite.App.SequencerKeeper.SetParams(suite.Ctx, params)
 
 	numOfSequencers := 5
 
 	// create sequencers
 	seqAddrs := make([]string, numOfSequencers)
 	for j := 0; j < len(seqAddrs)-1; j++ {
-		seqAddrs[j] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+		seqAddrs[j] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, params.MinBond)
 	}
 	// last one with high bond is the expected new proposer
-	seqAddrs[len(seqAddrs)-1] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, sdk.NewCoin(bond.Denom, bond.Amount.MulRaw(2)))
-	expecetedProposer := seqAddrs[len(seqAddrs)-1]
+	seqAddrs[len(seqAddrs)-1] = suite.CreateSequencerWithBond(
+		suite.Ctx,
+		rollappId,
+		sdk.NewCoin(params.MinBond.Denom, params.MinBond.Amount.MulRaw(2)),
+	)
+	expectedProposer := seqAddrs[len(seqAddrs)-1]
 
 	// check starting proposer and unbond
 	sequencer, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddrs[0])
@@ -91,7 +98,57 @@ func (suite *SequencerTestSuite) TestRotatingSequencerByBond() {
 	suite.App.SequencerKeeper.RotateProposer(suite.Ctx, rollappId)
 
 	// check proposer rotation
-	newProposer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, expecetedProposer)
+	newProposer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, expectedProposer)
 	suite.Equal(types.Bonded, newProposer.Status)
 	suite.True(newProposer.Proposer)
+}
+
+func (suite *SequencerTestSuite) TestRotateProposerUsesMinBondDenom() {
+	suite.SetupTest()
+	rollappId := suite.CreateDefaultRollapp()
+
+	bondDenom := bond.Denom
+	otherDenom := "otherdenom"
+	if otherDenom == bondDenom {
+		otherDenom = "otherdenom2"
+	}
+
+	lowMinBondWithLargeOtherDenom := types.Sequencer{
+		SequencerAddress: "a-low-min-bond",
+		RollappId:        rollappId,
+		Status:           types.Bonded,
+		Tokens: sdk.NewCoins(
+			sdk.NewCoin(bondDenom, sdk.NewInt(90)),
+			sdk.NewCoin(otherDenom, sdk.NewInt(1000)),
+		),
+	}
+	expectedProposer := types.Sequencer{
+		SequencerAddress: "b-high-min-bond",
+		RollappId:        rollappId,
+		Status:           types.Bonded,
+		Tokens: sdk.NewCoins(
+			sdk.NewCoin(bondDenom, sdk.NewInt(100)),
+			sdk.NewCoin(otherDenom, sdk.NewInt(1)),
+		),
+	}
+	lowerBond := types.Sequencer{
+		SequencerAddress: "c-lower-bond",
+		RollappId:        rollappId,
+		Status:           types.Bonded,
+		Tokens:           sdk.NewCoins(sdk.NewCoin(bondDenom, sdk.NewInt(80))),
+	}
+
+	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, lowMinBondWithLargeOtherDenom)
+	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, expectedProposer)
+	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, lowerBond)
+
+	suite.App.SequencerKeeper.RotateProposer(suite.Ctx, rollappId)
+
+	selected, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, expectedProposer.SequencerAddress)
+	suite.Require().True(found)
+	suite.True(selected.Proposer)
+
+	lowBond, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, lowMinBondWithLargeOtherDenom.SequencerAddress)
+	suite.Require().True(found)
+	suite.False(lowBond.Proposer)
 }
