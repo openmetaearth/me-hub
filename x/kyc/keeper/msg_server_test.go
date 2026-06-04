@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/openmetaearth/me-hub/x/wdistri"
 	"github.com/openmetaearth/me-hub/x/wmint"
@@ -167,4 +168,70 @@ func (s *KeeperTestSuite) TestUpdate() {
 	s.Require().Equal(delegation.Unmovable.String(), wstakingtypes.Bonus.String())
 	s.Require().Equal(s.usaValidator.OperatorAddress, delegation.ValidatorAddress)
 	s.Require().EqualValues(delegation.StartHeight, wmintTypes.OneDayTotalBlocks+1)
+}
+
+func (s *KeeperTestSuite) TestInviteRewardCannotBePaidTwiceByLevelCycling() {
+	s.SetupTest()
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	kycAccount, newUserPubkey := s.NewAccount()
+	inviter, _ := s.NewAccount()
+	did := "1111111111111111"
+	regionID := strings.ToLower(wstakingtypes.MeEarthRegionName)
+
+	_, err := s.msgServer.Approve(s.Ctx, &types.MsgApprove{
+		Issuer:   s.Dao.GlobalDao,
+		Did:      did,
+		RegionId: regionID,
+		Address:  kycAccount.String(),
+		Pubkey:   newUserPubkey,
+		Uri:      "http://127.0.0.1/8001",
+		Hash:     "aaaa",
+		Inviter:  inviter.String(),
+		Level:    didtypes.KYC_LEVEL_ONE,
+	})
+	s.Require().NoError(err)
+
+	_, err = s.msgServer.Update(s.Ctx, &types.MsgUpdate{
+		Issuer:   s.Dao.GlobalDao,
+		Did:      did,
+		RegionId: regionID,
+		Uri:      "http://127.0.0.1/8001",
+		Hash:     "bbbb",
+		Inviter:  inviter.String(),
+		Level:    didtypes.KYC_LEVEL_TWO,
+	})
+	s.Require().NoError(err)
+
+	firstBalance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
+	s.Require().Equal(wstakingtypes.InviteReward.String(), firstBalance.Amount.String())
+	s.Require().True(s.App.StakingKeeper.HasInviterReward(s.Ctx, kycAccount.String()))
+
+	_, err = s.msgServer.Update(s.Ctx, &types.MsgUpdate{
+		Issuer:   s.Dao.GlobalDao,
+		Did:      did,
+		RegionId: regionID,
+		Uri:      "http://127.0.0.1/8001",
+		Hash:     "cccc",
+		Inviter:  inviter.String(),
+		Level:    didtypes.KYC_LEVEL_ONE,
+	})
+	s.Require().NoError(err)
+
+	_, err = s.msgServer.Update(s.Ctx, &types.MsgUpdate{
+		Issuer:   s.Dao.GlobalDao,
+		Did:      did,
+		RegionId: regionID,
+		Uri:      "http://127.0.0.1/8001",
+		Hash:     "dddd",
+		Inviter:  inviter.String(),
+		Level:    didtypes.KYC_LEVEL_TWO,
+	})
+	s.Require().NoError(err)
+
+	secondBalance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
+	s.Require().Equal(wstakingtypes.InviteReward.String(), secondBalance.Amount.String())
 }

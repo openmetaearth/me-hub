@@ -30,6 +30,7 @@ func (k Keeper) SendInviteReward(ctx sdk.Context, inviter, invitee, regionId str
 	); err != nil {
 		return fmt.Errorf("send kyc reward to inviter, %v", err)
 	}
+	k.SetInviterReward(ctx, invitee)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventInviteReward,
 			sdk.NewAttribute(types.AttributeKeyKycInviterRewardSender, region.RegionTreasureAddr),
