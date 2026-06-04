@@ -16,4 +16,5 @@ type ChannelKeeper interface {
 
 type DaoKeeper interface {
 	IsDao(ctx sdk.Context, address string) bool
+	IsGlobalDao(ctx sdk.Context, address string) bool
 }
