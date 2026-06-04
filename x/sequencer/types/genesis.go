@@ -15,6 +15,7 @@ func DefaultGenesis() *GenesisState {
 func (gs GenesisState) Validate() error {
 	// Check for duplicated index in sequencer
 	sequencerIndexMap := make(map[string]struct{})
+	bondedProposersByRollapp := make(map[string]string)
 
 	for _, elem := range gs.SequencerList {
 
@@ -25,9 +26,19 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("duplicated index for sequencer")
 		}
 		sequencerIndexMap[index] = struct{}{}
-	}
 
-	// FIXME: validate single PROPOSER per rollapp
+		if elem.Status == Bonded && elem.Proposer {
+			if existing, ok := bondedProposersByRollapp[elem.RollappId]; ok {
+				return fmt.Errorf(
+					"multiple bonded proposers for rollapp %s: %s and %s",
+					elem.RollappId,
+					existing,
+					elem.SequencerAddress,
+				)
+			}
+			bondedProposersByRollapp[elem.RollappId] = elem.SequencerAddress
+		}
+	}
 
 	return gs.Params.Validate()
 }
