@@ -33,6 +33,7 @@ var (
 	ErrNotFound                       = errorsmod.Register(ModuleName, 1037, "not found")
 	ErrLogic                          = errorsmod.Register(ModuleName, 1038, "internal logic error")
 	ErrInvalidAddress                 = errorsmod.Register(ModuleName, 1040, "invalid address")
+	ErrRollappFrozen                  = errorsmod.Register(ModuleName, 1041, "rollapp is frozen")
 
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")

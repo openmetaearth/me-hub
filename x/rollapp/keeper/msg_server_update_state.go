@@ -25,6 +25,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	if !isFound {
 		return nil, types.ErrUnknownRollappID
 	}
+	if rollapp.Frozen {
+		return nil, types.ErrRollappFrozen
+	}
 
 	// check rollapp version
 	if rollapp.Version != msg.Version {

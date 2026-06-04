@@ -155,9 +155,7 @@ func (w IBCModule) OnRecvPacket(
 }
 
 func (w IBCModule) handleDRSViolation(ctx sdk.Context, rollappID string) error {
-	// handleFraud : the rollapp has violated the DRS!
-	// TODO: finish implementing this method
-	return nil
+	return w.rollappKeeper.HandleDRSViolation(ctx, rollappID)
 }
 
 func getMemo(rawMemo string) (rollapptypes.GenesisTransferMemo, error) {
