@@ -15,6 +15,7 @@ func DefaultGenesis() *GenesisState {
 		LatestStateInfoIndexList:           []StateInfoIndex{},
 		LatestFinalizedStateIndexList:      []StateInfoIndex{},
 		BlockHeightToFinalizationQueueList: []BlockHeightToFinalizationQueue{},
+		SkipDelayRollappList:               []string{},
 		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
@@ -32,6 +33,18 @@ func (gs GenesisState) Validate() error {
 			return errors.New("duplicated index for rollapp")
 		}
 		rollappIndexMap[index] = struct{}{}
+	}
+	// Check for duplicated or unknown skip-delay rollapps
+	skipDelayRollappIndexMap := make(map[string]struct{})
+	for _, rollappId := range gs.SkipDelayRollappList {
+		index := string(RollappKey(rollappId))
+		if _, ok := rollappIndexMap[index]; !ok {
+			return errors.New("skip-delay rollapp not found in rollapp list")
+		}
+		if _, ok := skipDelayRollappIndexMap[index]; ok {
+			return errors.New("duplicated index for skipDelayRollapp")
+		}
+		skipDelayRollappIndexMap[index] = struct{}{}
 	}
 	// Check for duplicated index in stateInfo
 	stateInfoIndexMap := make(map[string]struct{})

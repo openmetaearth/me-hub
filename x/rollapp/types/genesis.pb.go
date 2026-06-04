@@ -31,6 +31,7 @@ type GenesisState struct {
 	LatestStateInfoIndexList           []StateInfoIndex                 `protobuf:"bytes,4,rep,name=latestStateInfoIndexList,proto3" json:"latestStateInfoIndexList"`
 	LatestFinalizedStateIndexList      []StateInfoIndex                 `protobuf:"bytes,5,rep,name=latestFinalizedStateIndexList,proto3" json:"latestFinalizedStateIndexList"`
 	BlockHeightToFinalizationQueueList []BlockHeightToFinalizationQueue `protobuf:"bytes,6,rep,name=blockHeightToFinalizationQueueList,proto3" json:"blockHeightToFinalizationQueueList"`
+	SkipDelayRollappList               []string                         `protobuf:"bytes,7,rep,name=skip_delay_rollapp_list,json=skipDelayRollappList,proto3" json:"skip_delay_rollapp_list,omitempty"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -108,6 +109,13 @@ func (m *GenesisState) GetBlockHeightToFinalizationQueueList() []BlockHeightToFi
 	return nil
 }
 
+func (m *GenesisState) GetSkipDelayRollappList() []string {
+	if m != nil {
+		return m.SkipDelayRollappList
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*GenesisState)(nil), "metaearth.rollapp.GenesisState")
 }
@@ -162,6 +170,15 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.SkipDelayRollappList) > 0 {
+		for iNdEx := len(m.SkipDelayRollappList) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.SkipDelayRollappList[iNdEx])
+			copy(dAtA[i:], m.SkipDelayRollappList[iNdEx])
+			i = encodeVarintGenesis(dAtA, i, uint64(len(m.SkipDelayRollappList[iNdEx])))
+			i--
+			dAtA[i] = 0x3a
+		}
+	}
 	if len(m.BlockHeightToFinalizationQueueList) > 0 {
 		for iNdEx := len(m.BlockHeightToFinalizationQueueList) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -291,6 +308,12 @@ func (m *GenesisState) Size() (n int) {
 	if len(m.BlockHeightToFinalizationQueueList) > 0 {
 		for _, e := range m.BlockHeightToFinalizationQueueList {
 			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	if len(m.SkipDelayRollappList) > 0 {
+		for _, s := range m.SkipDelayRollappList {
+			l = len(s)
 			n += 1 + l + sovGenesis(uint64(l))
 		}
 	}
@@ -534,6 +557,38 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			if err := m.BlockHeightToFinalizationQueueList[len(m.BlockHeightToFinalizationQueueList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SkipDelayRollappList", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SkipDelayRollappList = append(m.SkipDelayRollappList, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
