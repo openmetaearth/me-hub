@@ -21,6 +21,10 @@ type Querier struct {
 var _ types.QueryServer = Querier{}
 
 func (k Keeper) Region(goCtx context.Context, req *types.QueryRegionRequest) (*types.QueryRegionResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	region, found := k.GetRegion(ctx, req.RegionId)
 	if !found {
@@ -30,6 +34,10 @@ func (k Keeper) Region(goCtx context.Context, req *types.QueryRegionRequest) (*t
 }
 
 func (k Keeper) AllRegion(goCtx context.Context, req *types.QueryAllRegionRequest) (*types.QueryAllRegionResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
 	var regions []types.Region
 
 	ctx := sdk.UnwrapSDKContext(goCtx)

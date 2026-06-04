@@ -13,6 +13,8 @@ import (
 	"github.com/openmetaearth/me-hub/x/wmint"
 	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (s *KeeperTestSuite) TestNewRegion() {
@@ -120,6 +122,18 @@ func (s *KeeperTestSuite) TestRemoveRegion() {
 	// must error
 	_, err = s.queryClient.Region(s.Ctx, &types.QueryRegionRequest{RegionId: "usa"})
 	s.Require().ErrorIs(err, types.ErrRegionNotExist)
+}
+
+func (s *KeeperTestSuite) TestRegionQueriesRejectNilRequests() {
+	s.SetupTest()
+
+	_, err := s.App.StakingKeeper.Region(s.Ctx, nil)
+	s.Require().Error(err)
+	s.Require().Equal(codes.InvalidArgument, status.Code(err))
+
+	_, err = s.App.StakingKeeper.AllRegion(s.Ctx, nil)
+	s.Require().Error(err)
+	s.Require().Equal(codes.InvalidArgument, status.Code(err))
 }
 
 func (s *KeeperTestSuite) TestRemoveRegionThenCreateRegion() {
