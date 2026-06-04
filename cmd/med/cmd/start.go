@@ -431,15 +431,17 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts ethermin
 		}
 	}
 
-	chainID := metypes.ChainIdWithEIP155()
+	var chainID string
 	if config.API.Enable || config.JSONRPC.Enable {
-		if chainID == "" {
-			genDoc, err := genDocProvider()
-			if err != nil {
-				return err
-			}
-			chainID = genDoc.ChainID
+		genDoc, err := genDocProvider()
+		if err != nil {
+			return err
 		}
+		metypes.SetChainId(genDoc.ChainID)
+		chainID = metypes.ChainIdWithEIP155()
+	} else {
+		chainID = metypes.ChainIdWithEIP155()
+	}
 
 		clientCtx = clientCtx.
 			WithHomeDir(home).
@@ -541,13 +543,6 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts ethermin
 	)
 
 	if config.JSONRPC.Enable {
-		if chainID == "" {
-			genDoc, err := genDocProvider()
-			if err != nil {
-				return err
-			}
-			chainID = genDoc.ChainID
-		}
 		clientCtx := clientCtx.WithChainID(chainID)
 
 		tmEndpoint := "/websocket"
