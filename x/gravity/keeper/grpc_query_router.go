@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -219,16 +218,12 @@ func (k RouterKeeper) ClaimsByEventNonce(c context.Context, req *types.QueryClai
 	}
 }
 
-func (k RouterKeeper) BridgeChainList(c context.Context, req *types.QueryBridgeChainListRequest) (*types.QueryBridgeChainListResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(bsctypes.ModuleName); err != nil {
-		return nil, err
-	} else {
-		return queryServer.BridgeChainList(c, req)
-	}
+func (k RouterKeeper) BridgeChainList(_ context.Context, _ *types.QueryBridgeChainListRequest) (*types.QueryBridgeChainListResponse, error) {
+	return &types.QueryBridgeChainListResponse{ChainNames: types.GetSupportChains()}, nil
 }
 
 func (k RouterKeeper) LastObservedRelayer(c context.Context, req *types.QueryLastObservedRelayer) (*types.QueryLastObservedRelayerResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(bsctypes.ModuleName); err != nil {
+	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
 		return nil, err
 	} else {
 		return queryServer.LastObservedRelayer(c, req)
