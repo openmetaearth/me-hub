@@ -47,3 +47,36 @@ func TestKeeper_Filter(t *testing.T) {
 	vcs, _, _ = k.GetCredentialsByFilter(ctx, sid, f2, &pr)
 	assert.Equal(t, 0, len(vcs))
 }
+
+func TestKeeper_DeleteFiltersPersistsPartialLogger(t *testing.T) {
+	k, ctx := keeper.DidKeeper(t)
+
+	did := "1000000000000001"
+	sid := "test"
+	vc := didtypes.Credential{
+		Did:  did,
+		Sid:  sid,
+		Hash: "FF000000000000000000",
+		Uri:  "https://www.example.com",
+		Data: []byte("this is test data"),
+	}
+
+	f1 := []byte("fs1")
+	f2 := []byte("fs2")
+	f3 := []byte("fs3")
+	k.AddFilters(ctx, did, sid, [][]byte{f1, f2, f3}, vc)
+
+	k.DeleteFilters(ctx, did, sid, [][]byte{f2})
+
+	fs, found := k.GetFilters(ctx, did, sid)
+	assert.True(t, found)
+	assert.Equal(t, [][]byte{f1, f3}, fs)
+
+	pr := query.PageRequest{}
+	vcs, _, _ := k.GetCredentialsByFilter(ctx, sid, f1, &pr)
+	assert.Equal(t, 1, len(vcs))
+	vcs, _, _ = k.GetCredentialsByFilter(ctx, sid, f2, &pr)
+	assert.Equal(t, 0, len(vcs))
+	vcs, _, _ = k.GetCredentialsByFilter(ctx, sid, f3, &pr)
+	assert.Equal(t, 1, len(vcs))
+}
