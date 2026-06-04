@@ -219,26 +219,11 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	if !found {
 		return &types.MsgRemoveResponse{}, didtypes.ErrHolderNotFound
 	}
-	didInfo.RegionId = ""
-	didInfo.KycLevel = 0
-	didInfo.Status = didtypes.DID_STATUS_INACTIVE
-	m.SetDidInfo(ctx, msg.Did, didInfo)
-
-	// delete KYC
-	kyc, found := m.GetKYC(ctx, msg.Did)
-	if !found {
+	if !m.HasKYC(ctx, msg.Did) {
 		return &types.MsgRemoveResponse{}, didtypes.ErrCredentialNotFound
 	}
-	m.DeleteKYC(ctx, msg.Did)
-
-	// delete KYC region filter
-	filters, _ := m.GetFilters(ctx, msg.Did)
-	m.DeleteFilters(ctx, msg.Did, filters)
-
-	// cancel reward
-	address := sdk.MustAccAddressFromBech32(didInfo.Address)
-	if err := m.DeleteApproveReward(ctx, address.String(), string(kyc.Data)); err != nil {
-		return &types.MsgRemoveResponse{}, errors.Wrap(err, "delete reward failed")
+	if err := m.revokeKycForDid(ctx, didInfo); err != nil {
+		return &types.MsgRemoveResponse{}, err
 	}
 
 	return &types.MsgRemoveResponse{}, nil

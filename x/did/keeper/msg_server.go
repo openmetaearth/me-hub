@@ -46,6 +46,9 @@ func (m msgServer) UpdateDidStatus(goCtx context.Context, msg *types.MsgUpdateDi
 	m.SetDidInfo(ctx, info.Did, info)
 
 	ctx.EventManager().EmitEvent(types.NewDidEvent(types.EventTypeUpdateDidStatus, info.Did, info.Address, info.Status.String()))
+	if err := m.Hooks().AfterDidStatusUpdated(ctx, info); err != nil {
+		return &types.MsgUpdateDidStatusResponse{}, errors.Wrap(types.ErrHooks, err.Error())
+	}
 	return &types.MsgUpdateDidStatusResponse{}, nil
 }
 

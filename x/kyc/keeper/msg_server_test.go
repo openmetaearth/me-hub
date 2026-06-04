@@ -6,7 +6,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
+	didkeeper "github.com/openmetaearth/me-hub/x/did/keeper"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
+	groupkeeper "github.com/openmetaearth/me-hub/x/megroup/keeper"
+	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	"github.com/openmetaearth/me-hub/x/wdistri"
 	"github.com/openmetaearth/me-hub/x/wmint"
 	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
@@ -112,6 +116,72 @@ func (s *KeeperTestSuite) TestRemove() {
 	// check kyc
 	_, f = s.Keeper().GetKYC(s.Ctx, did)
 	s.Require().False(f)
+}
+
+func (s *KeeperTestSuite) TestUpdateDidStatusInactiveClearsKycDerivedGroupState() {
+	s.SetupTest()
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	kycAccount, newUserPubkey := s.NewAccount()
+	did := "did-status-inactive-member"
+	regionID := strings.ToLower(wstakingtypes.MeEarthRegionName)
+	inviter, _ := s.NewAccount()
+
+	_, err := s.msgServer.Approve(s.Ctx, &types.MsgApprove{
+		Issuer:   s.Dao.GlobalDao,
+		Did:      did,
+		RegionId: regionID,
+		Address:  kycAccount.String(),
+		Pubkey:   newUserPubkey,
+		Uri:      "http://127.0.0.1/8001",
+		Hash:     "aaaa",
+		Inviter:  inviter.String(),
+		Level:    didtypes.KYC_LEVEL_TWO,
+	})
+	s.Require().NoError(err)
+
+	groupID, found := s.App.GroupKeeper.GetGroupIdByRegion(s.Ctx, regionID)
+	s.Require().True(found)
+	groupMsgServer := groupkeeper.NewMsgServerImpl(*s.App.GroupKeeper)
+	_, err = groupMsgServer.JoinGroup(s.Ctx, &megrouptypes.MsgJoinGroup{
+		Creator:          kycAccount.String(),
+		GroupId:          groupID,
+		ApplicantAddress: kycAccount.String(),
+	})
+	s.Require().NoError(err)
+
+	joined, found := s.App.GroupKeeper.GetMemberJoined(s.Ctx, kycAccount.String())
+	s.Require().True(found)
+	s.Require().Equal(groupID, joined.GroupId)
+
+	didMsgServer := didkeeper.NewMsgServerImpl(s.App.DidKeeper)
+	_, err = didMsgServer.UpdateDidStatus(s.Ctx, didtypes.NewMsgUpdateDidStatus(
+		s.Dao.GlobalDao,
+		did,
+		didtypes.DID_STATUS_INACTIVE,
+	))
+	s.Require().NoError(err)
+
+	info, found := s.App.DidKeeper.GetDidInfo(s.Ctx, did)
+	s.Require().True(found)
+	s.Require().Equal(didtypes.DID_STATUS_INACTIVE, info.Status)
+	s.Require().Empty(info.RegionId)
+	s.Require().Equal(didtypes.KYC_LEVEL_NONE, info.KycLevel)
+
+	_, found = s.Keeper().GetKYC(s.Ctx, did)
+	s.Require().False(found)
+	s.Require().NotEqual(regionID, s.App.StakingKeeper.GetRegionIdByAccount(s.Ctx, kycAccount))
+
+	joined, found = s.App.GroupKeeper.GetMemberJoined(s.Ctx, kycAccount.String())
+	s.Require().True(found)
+	s.Require().Zero(joined.GroupId)
+
+	groupCount, found := s.App.GroupKeeper.GetGroupMemberCount(s.Ctx, groupID)
+	s.Require().True(found)
+	s.Require().Zero(groupCount)
 }
 
 func (s *KeeperTestSuite) TestUpdate() {

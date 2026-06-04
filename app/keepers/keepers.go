@@ -451,6 +451,7 @@ func (a *AppKeepers) InitKeepers(
 		a.KycKeeper,
 	)
 	a.StakingKeeper.SetGroupKeeper(a.GroupKeeper)
+	a.DidKeeper.SetHooks(didtypes.NewMultiDidHooks(a.KycKeeper))
 
 	a.BscKeeper = gravitykeeper.NewKeeper(
 		bsctypes.ModuleName,

@@ -14,6 +14,7 @@ var (
 	ErrDidNotFound   = errors.Register(ModuleName, 111, "DID not found")
 	ErrDidNotActive  = errors.Register(ModuleName, 112, "DID not active")
 	ErrSameDidStatus = errors.Register(ModuleName, 113, "same DID status")
+	ErrHooks         = errors.Register(ModuleName, 114, "hooks error")
 
 	ErrServiceExists     = errors.Register(ModuleName, 120, "credential service already exists")
 	ErrServiceNotFound   = errors.Register(ModuleName, 121, "credential service not found")

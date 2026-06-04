@@ -14,6 +14,7 @@ type Keeper struct {
 	cdc       codec.Codec
 	storeKey  storetypes.StoreKey
 	daoKeeper types.DaoKeeper
+	hooks     types.DidHooks
 }
 
 func NewKeeper(
@@ -26,6 +27,20 @@ func NewKeeper(
 		storeKey:  storeKey,
 		daoKeeper: daoKeeper,
 	}
+}
+
+func (k *Keeper) SetHooks(hooks types.DidHooks) {
+	if k.hooks != nil {
+		panic("did hooks already set")
+	}
+	k.hooks = hooks
+}
+
+func (k Keeper) Hooks() types.DidHooks {
+	if k.hooks == nil {
+		return types.MultiDidHooks{}
+	}
+	return k.hooks
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
