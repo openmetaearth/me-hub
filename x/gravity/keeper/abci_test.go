@@ -6,6 +6,7 @@ import (
 	"fmt"
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/testutil/helpers"
 	"github.com/openmetaearth/me-hub/utils"
@@ -179,6 +180,24 @@ func (s *KeeperTestSuite) TestProposalRelayers() {
 		Relayers:  newRelayerList2,
 	})
 	s.Require().NoError(err)
+}
+
+func (s *KeeperTestSuite) TestProposalRelayersRejectsMeidDaoAuthority() {
+	proposalRelayers, found := s.Keeper().GetProposalRelayer(s.Ctx)
+	s.Require().True(found)
+	s.Require().EqualValues(s.relayerNumber, len(proposalRelayers.Relayers))
+
+	newRelayerList := []string{s.relayerAddrs[0].String()}
+	_, err := s.MsgServer().ProposalRelayers(sdk.WrapSDKContext(s.Ctx), &types.MsgProposalRelayers{
+		ChainName: s.chainName,
+		Authority: s.Dao.MeidDao,
+		Relayers:  newRelayerList,
+	})
+	s.Require().ErrorIs(err, govtypes.ErrInvalidSigner)
+
+	afterProposalRelayers, found := s.Keeper().GetProposalRelayer(s.Ctx)
+	s.Require().True(found)
+	s.Require().Equal(proposalRelayers.Relayers, afterProposalRelayers.Relayers)
 }
 
 func (s *KeeperTestSuite) TestAttestationAfterRelayerUpdate() {

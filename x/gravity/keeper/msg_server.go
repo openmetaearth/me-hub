@@ -366,7 +366,7 @@ func (s MsgServer) IncreaseBridgeFee(c context.Context, msg *types.MsgIncreaseBr
 
 func (s MsgServer) ProposalRelayers(c context.Context, msg *types.MsgProposalRelayers) (*types.MsgProposalRelayersResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	if !s.daoKeeper.IsDao(ctx, msg.Authority) {
+	if !s.daoKeeper.IsGlobalDao(ctx, msg.Authority) {
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority")
 	}
 	if err := s.UpdateProposalRelayers(ctx, msg.Relayers); err != nil {
