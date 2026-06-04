@@ -84,8 +84,10 @@ func (k Keeper) AllocateBlockRewardEveryday(ctx sdk.Context, req abci.RequestEnd
 func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 	feeCollectorAddr := k.authKeeper.GetModuleAddress(k.GetTreasuryModuleAccount())
 	totalMintCoin := k.bankKeeper.GetAllBalances(ctx, feeCollectorAddr)
-	if totalMintCoin.AmountOf(params.BaseDenom).IsZero() {
+	totalMintAmount := totalMintCoin.AmountOf(params.BaseDenom)
+	if totalMintAmount.IsZero() {
 		ctx.Logger().Info("totalMintCoin is zero, no need to allocate reward")
+		k.SetZeroShareTreasuryBalance(ctx, sdkmath.ZeroInt())
 		return nil
 	}
 	regions := k.stakingKeeper.GetAllRegionI(ctx)
@@ -95,13 +97,25 @@ func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 	}
 	totalRegionShareDec := sdk.NewDecFromInt(totalRegionShare)
 	if totalRegionShare.IsZero() {
+		k.SetZeroShareTreasuryBalance(ctx, totalMintAmount)
+		ctx.Logger().Info("totalRegionShare is zero, treasury balance reserved from later region allocation")
+		return nil
+	}
+	zeroShareTreasuryBalance := k.GetZeroShareTreasuryBalance(ctx)
+	if zeroShareTreasuryBalance.GT(totalMintAmount) {
+		zeroShareTreasuryBalance = totalMintAmount
+		k.SetZeroShareTreasuryBalance(ctx, zeroShareTreasuryBalance)
+	}
+	distributableAmount := totalMintAmount.Sub(zeroShareTreasuryBalance)
+	if distributableAmount.IsZero() {
+		ctx.Logger().Info("distributable treasury balance is zero, no need to allocate reward")
 		return nil
 	}
 	for _, region := range regions {
 		// calculate every region coins: RegionShare * totalMintCoins / totalRegionShare
-		amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoin.AmountOf(params.BaseDenom).ToLegacyDec()).Quo(totalRegionShareDec)
+		amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(distributableAmount.ToLegacyDec()).Quo(totalRegionShareDec)
 		regionAmount := amount.TruncateInt()
-		regionCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(regionAmount.Int64())))
+		regionCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, regionAmount))
 		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.GetTreasuryModuleAccount(), sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), regionCoins)
 		if err != nil {
 			return err
@@ -116,4 +130,22 @@ func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 		})
 	}
 	return nil
+}
+
+func (k Keeper) GetZeroShareTreasuryBalance(ctx sdk.Context) sdkmath.Int {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ZeroShareTreasuryBalanceKey)
+	if bz == nil {
+		return sdkmath.ZeroInt()
+	}
+	return sdkmath.NewIntFromBigInt(sdkmath.NewInt(0).BigInt().SetBytes(bz))
+}
+
+func (k Keeper) SetZeroShareTreasuryBalance(ctx sdk.Context, amount sdkmath.Int) {
+	store := ctx.KVStore(k.storeKey)
+	if amount.IsZero() {
+		store.Delete(types.ZeroShareTreasuryBalanceKey)
+		return
+	}
+	store.Set(types.ZeroShareTreasuryBalanceKey, amount.BigInt().Bytes())
 }

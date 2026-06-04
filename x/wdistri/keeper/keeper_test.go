@@ -237,6 +237,28 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestSkippedZeroShareRewardsMustNotBeReassignedToLaterRegion() {
+	ctx := suite.HelperNewContextWith(types.OneDayTotalBlocks)
+
+	suite.SetMockGetBalance(ctx, sdk.NewInt(100))
+	suite.stakingKeeper.EXPECT().GetAllRegionI(ctx).Return(nil)
+
+	err := suite.App.DistrKeeper.AllocateBlockReward(ctx)
+	suite.Require().NoError(err)
+	suite.Require().Equal(sdk.NewInt(100), suite.App.DistrKeeper.GetZeroShareTreasuryBalance(ctx))
+
+	suite.SetMockGetBalance(ctx, sdk.NewInt(200))
+	addrs := suite.mockGetRegionI(ctx, 1)
+	suite.setMockSendCoinsFromModuleToAccountExpect(ctx, coinAndAddr{
+		num:  100,
+		addr: addrs[0],
+	})
+
+	err = suite.App.DistrKeeper.AllocateBlockReward(ctx)
+	suite.Require().NoError(err)
+	suite.Require().Equal(sdk.NewInt(100), suite.App.DistrKeeper.GetZeroShareTreasuryBalance(ctx))
+}
+
 func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int) []string {
 	var addrs []string
 	if len(regionShare) == 0 {
