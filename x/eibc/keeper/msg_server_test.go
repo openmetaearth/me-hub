@@ -313,3 +313,23 @@ func (suite *KeeperTestSuite) TestUpdateDemandOrderOnAckOrTimeout() {
 	suite.Assert().Equal(updatedDemandOrder.Fee.AmountOf(denom), newFee)
 	suite.Assert().Equal(updatedDemandOrder.Price.AmountOf(denom), expectedNewPrice)
 }
+
+func (suite *KeeperTestSuite) TestMsgFulfillOrderSelfFulfillment() {
+	// Create and fund the account
+	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, sdk.NewInt(1000))
+	addr := testAddresses[0]
+
+	// Set the rollapp packet
+	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
+
+	// Create new demand order where the recipient is addr
+	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), sdk.DefaultBondDenom, addr.String())
+	err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
+	suite.Require().NoError(err)
+
+	// try to fulfill the demand order using the same address (addr) as the fulfiller
+	msg := types.NewMsgFulfillOrder(addr.String(), demandOrder.Id, "50")
+	_, err = suite.msgServer.FulfillOrder(suite.Ctx, msg)
+	suite.Require().ErrorIs(err, types.ErrSelfFulfillment)
+}
+

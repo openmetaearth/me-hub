@@ -38,6 +38,10 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, err
 	}
 
+	if msg.FulfillerAddress == demandOrder.Recipient {
+		return nil, types.ErrSelfFulfillment
+	}
+
 	// Check that the fulfiller expected fee is equal to the demand order fee
 	expectedFee, _ := sdk.NewIntFromString(msg.ExpectedFee)
 	orderFee := demandOrder.GetFeeAmount()
