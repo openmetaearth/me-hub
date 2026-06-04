@@ -109,6 +109,8 @@ func (s *KeeperTestSuite) TestRemoveRegion() {
 		RegionId: "usa",
 	})
 	s.Require().ErrorIs(err, types.ErrCheckGlobalDao)
+	_, found := s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
+	s.Require().True(found)
 
 	// must no error
 	_, err = s.msgServer.RemoveRegion(s.Ctx, &types.MsgRemoveRegion{
@@ -116,6 +118,7 @@ func (s *KeeperTestSuite) TestRemoveRegion() {
 		RegionId: "usa",
 	})
 	s.Require().NoError(err)
+	s.Require().True(s.hasEvent(types.EventTypeRemoveRegion))
 
 	// must error
 	_, err = s.queryClient.Region(s.Ctx, &types.QueryRegionRequest{RegionId: "usa"})
@@ -401,4 +404,13 @@ func (s *KeeperTestSuite) TestRevokeRegionWithdraw() {
 			}
 		})
 	}
+}
+
+func (s *KeeperTestSuite) hasEvent(eventType string) bool {
+	for _, event := range s.Ctx.EventManager().Events() {
+		if event.Type == eventType {
+			return true
+		}
+	}
+	return false
 }
