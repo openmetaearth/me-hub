@@ -18,7 +18,7 @@ import (
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is
 // the end height of the latest finalized state
 func (k Keeper) FinalizeRollappPackets(ctx sdk.Context, ibc porttypes.IBCModule, rollappID string, stateEndHeight uint64) error {
-	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDByMaxHeight(rollappID, stateEndHeight))
+	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDByMaxHeight(rollappID, stateEndHeight).Take(1000))
 	if len(rollappPendingPackets) == 0 {
 		return nil
 	}
