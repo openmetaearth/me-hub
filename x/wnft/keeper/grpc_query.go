@@ -33,8 +33,20 @@ func (k Keeper) ClassAddress(goCtx context.Context, r *types.QueryClassAddressRe
 
 	nfts := k.GetNFTsOfClassByOwner(ctx, r.ClassId, address)
 
+	limit := r.Limit
+	if limit == 0 || limit > 1000 {
+		limit = 1000
+	}
+	offset := r.Offset
+
 	var tokenIds []string
-	for _, nft := range nfts {
+	for i, nft := range nfts {
+		if uint64(i) < offset {
+			continue
+		}
+		if uint64(len(tokenIds)) >= limit {
+			break
+		}
 		tokenIds = append(tokenIds, nft.Id)
 	}
 
@@ -46,9 +58,18 @@ func (k Keeper) ClassAddress(goCtx context.Context, r *types.QueryClassAddressRe
 }
 
 func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest) (*types.QueryNftFilterResponse, error) {
+	if r == nil {
+		return nil, sdkerrors.ErrInvalidRequest.Wrap("empty request")
+	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var list []*types.NftList
+
+	limit := r.Limit
+	if limit == 0 || limit > 1000 {
+		limit = 1000
+	}
+	offset := r.Offset
 
 	// determine query type based on request parameters
 	if r.TokenId != "" && r.ClassId != "" && r.Owner == "" {
@@ -82,10 +103,19 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 		if !has {
 			return nil, nil
 		}
-		address, _ := sdk.AccAddressFromBech32(r.Owner)
+		address, err := sdk.AccAddressFromBech32(r.Owner)
+		if err != nil {
+			return nil, err
+		}
 
 		nftInfos := k.GetNFTsOfClassByOwner(ctx, r.ClassId, address)
-		for _, nftInfo := range nftInfos {
+		for i, nftInfo := range nftInfos {
+			if uint64(i) < offset {
+				continue
+			}
+			if uint64(len(list)) >= limit {
+				break
+			}
 			list = append(list, &types.NftList{
 				ClassId: nftInfo.ClassId,
 				TokenId: nftInfo.Id,
@@ -101,10 +131,21 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 	} else if r.Owner != "" && r.TokenId == "" && r.ClassId == "" {
 		// query the nft information held by the address
 		classes := k.GetClasses(ctx)
-		address, _ := sdk.AccAddressFromBech32(r.Owner)
+		address, err := sdk.AccAddressFromBech32(r.Owner)
+		if err != nil {
+			return nil, err
+		}
+		var count uint64
 		for _, class := range classes {
 			nftInfos := k.GetNFTsOfClassByOwner(ctx, class.Id, address)
 			for _, nftInfo := range nftInfos {
+				if count < offset {
+					count++
+					continue
+				}
+				if uint64(len(list)) >= limit {
+					break
+				}
 				owner := k.GetOwner(ctx, nftInfo.ClassId, nftInfo.Id)
 				list = append(list, &types.NftList{
 					ClassId: nftInfo.ClassId,
@@ -112,6 +153,9 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 					Owner:   owner.String(),
 					Uri:     nftInfo.Uri,
 				})
+			}
+			if uint64(len(list)) >= limit {
+				break
 			}
 		}
 

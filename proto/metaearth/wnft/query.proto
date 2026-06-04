@@ -30,6 +30,10 @@ message QueryClassAddressRequest {
   string class_id = 1;
 
   string address = 2;
+
+  uint64 offset = 3;
+
+  uint64 limit = 4;
 }
 
 // QueryClassesResponse is the response type for the Query/Classes RPC method
@@ -48,6 +52,10 @@ message QueryNftFilterRequest {
   string class_id = 2;
 
   string token_id = 3;
+
+  uint64 offset = 4;
+
+  uint64 limit = 5;
 }
 
 // QueryNftFilterResponse is the response type for the Query/NftFilter RPC
