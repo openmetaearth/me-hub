@@ -39,15 +39,23 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, cre
 
 	validator.MeidAmount = validator.MeidAmount.Add(types.Bonus)
 
-	err = k.sendKycRewards(ctx, account, valAddr, validator, region)
+	payValidatorAndCommitteeRewards := !k.HasKycRewardPaid(ctx, account, region.RegionId)
+	err = k.sendKycRewards(ctx, account, valAddr, validator, region, payValidatorAndCommitteeRewards)
 	if err != nil {
 		return sdkerrors.Wrapf(types.ErrSendKycReward, err.Error())
+	}
+	if payValidatorAndCommitteeRewards {
+		k.SetKycRewardPaid(ctx, account, region.RegionId)
 	}
 
 	//validator rewards
 	ownerAddress := validator.OwnerAddress
 	if len(validator.OwnerAddress) <= 0 {
 		ownerAddress = k.daoKeeper.GetDevOperator(ctx)
+	}
+	validatorReward := sdk.ZeroInt()
+	if payValidatorAndCommitteeRewards {
+		validatorReward = types.ValidatorReward
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -57,7 +65,7 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, cre
 			sdk.NewAttribute(types.AttributeKeyCreator, creator),
 			sdk.NewAttribute(types.AttributeKeyKycRewardCommitteeAddress, k.daoKeeper.GetDevOperator(ctx)),
 			sdk.NewAttribute(types.AttributeKeyKycRewardNodeAddress, ownerAddress),
-			sdk.NewAttribute(types.AttributeKeyMeidNumAddReward, types.ValidatorReward.String()+params.BaseDenom),
+			sdk.NewAttribute(types.AttributeKeyMeidNumAddReward, validatorReward.String()+params.BaseDenom),
 		),
 	)
 	return nil
@@ -160,7 +168,7 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 }
 
 func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
-	validator stakingtypes.Validator, region types.Region) (err error) {
+	validator stakingtypes.Validator, region types.Region, payValidatorAndCommitteeRewards bool) (err error) {
 	experienceRegion, hasRegion := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegionName))
 	if !hasRegion {
 		return types.ErrExpRegionNotExist
@@ -227,30 +235,32 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 	delegation.ValidatorAddress = validator.OperatorAddress
 	treasureAddr := k.GetRegionAccount(ctx, types.RegionAccountTypeBase, region.RegionId)
 
-	// validator rewards
-	ownerAddress := validator.OwnerAddress
-	if len(ownerAddress) == 0 {
-		ownerAddress = k.daoKeeper.GetDevOperator(ctx)
-	}
-	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
-		treasureAddr.GetAddress(),
-		sdk.MustAccAddressFromBech32(ownerAddress),
-		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.ValidatorReward)),
-		fmt.Sprintf("ValidatorKycReward_%s", region.RegionId),
-	)
-	if err != nil {
-		return fmt.Errorf("send kyc reward to validator, %v", err)
-	}
+	if payValidatorAndCommitteeRewards {
+		// validator rewards
+		ownerAddress := validator.OwnerAddress
+		if len(ownerAddress) == 0 {
+			ownerAddress = k.daoKeeper.GetDevOperator(ctx)
+		}
+		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
+			treasureAddr.GetAddress(),
+			sdk.MustAccAddressFromBech32(ownerAddress),
+			sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.ValidatorReward)),
+			fmt.Sprintf("ValidatorKycReward_%s", region.RegionId),
+		)
+		if err != nil {
+			return fmt.Errorf("send kyc reward to validator, %v", err)
+		}
 
-	//committee rewards
-	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
-		treasureAddr.GetAddress(),
-		sdk.MustAccAddressFromBech32(k.daoKeeper.GetDevOperator(ctx)),
-		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.CommitteeReward)),
-		fmt.Sprintf("CommitteeKycReward_%s", region.RegionId),
-	)
-	if err != nil {
-		return fmt.Errorf("send kyc reward to committee, %v", err)
+		//committee rewards
+		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
+			treasureAddr.GetAddress(),
+			sdk.MustAccAddressFromBech32(k.daoKeeper.GetDevOperator(ctx)),
+			sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.CommitteeReward)),
+			fmt.Sprintf("CommitteeKycReward_%s", region.RegionId),
+		)
+		if err != nil {
+			return fmt.Errorf("send kyc reward to committee, %v", err)
+		}
 	}
 
 	delegation.Amount = delegation.Amount.Add(delegation.UnMeidAmount)

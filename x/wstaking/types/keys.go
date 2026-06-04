@@ -48,6 +48,7 @@ const (
 const (
 	FixedDepositCfgKeyPrefix        = "FixedDepositCfg/value/"
 	FixedDepositCountOfCfgKeyPrefix = "FixedDepositCountOfCfg/value/"
+	KycRewardPaidKeyPrefix          = "KycRewardPaid/value/"
 )
 
 const (
@@ -166,6 +167,15 @@ func MeidNFTKey(umeid string) []byte {
 func FixedDepositCfgKey(term int64) []byte {
 	var key = make([]byte, 8)
 	binary.BigEndian.PutUint64(key, uint64(term))
+	key = append(key, []byte("/")...)
+
+	return key
+}
+
+func KycRewardPaidKey(account sdk.AccAddress, regionId string) []byte {
+	var key []byte
+	key = append(key, address.MustLengthPrefix(account)...)
+	key = append(key, []byte(regionId)...)
 	key = append(key, []byte("/")...)
 
 	return key

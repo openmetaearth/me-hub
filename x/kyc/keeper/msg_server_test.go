@@ -114,6 +114,58 @@ func (s *KeeperTestSuite) TestRemove() {
 	s.Require().False(f)
 }
 
+func (s *KeeperTestSuite) TestKycRewardsCannotBePaidTwiceByRemoveAndReapprove() {
+	s.SetupTest()
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	kycAccount, newUserPubkey := s.NewAccount()
+	did := "1111111111111111"
+	regionID := strings.ToLower(wstakingtypes.MeEarthRegionName)
+
+	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, regionID)
+	s.Require().True(found)
+	valAddress, err := sdk.ValAddressFromBech32(region.OperatorAddress)
+	s.Require().NoError(err)
+	validator, found := s.App.StakingKeeper.GetValidator(s.Ctx, valAddress)
+	s.Require().True(found)
+
+	ownerAddress := sdk.MustAccAddressFromBech32(validator.OwnerAddress)
+	committeeAddress := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
+	ownerBefore := s.App.BankKeeper.GetBalance(s.Ctx, ownerAddress, params.BaseDenom).Amount
+	committeeBefore := s.App.BankKeeper.GetBalance(s.Ctx, committeeAddress, params.BaseDenom).Amount
+
+	approve := func() {
+		_, err = s.msgServer.Approve(s.Ctx, &types.MsgApprove{
+			Issuer:   s.Dao.GlobalDao,
+			Did:      did,
+			RegionId: regionID,
+			Address:  kycAccount.String(),
+			Pubkey:   newUserPubkey,
+			Uri:      "http://127.0.0.1/8001",
+			Hash:     "aaaa",
+			Level:    2,
+		})
+		s.Require().NoError(err)
+	}
+
+	approve()
+	_, err = s.msgServer.Remove(s.Ctx, &types.MsgRemove{
+		Issuer: s.Dao.GlobalDao,
+		Did:    did,
+	})
+	s.Require().NoError(err)
+	approve()
+
+	ownerAfter := s.App.BankKeeper.GetBalance(s.Ctx, ownerAddress, params.BaseDenom).Amount
+	committeeAfter := s.App.BankKeeper.GetBalance(s.Ctx, committeeAddress, params.BaseDenom).Amount
+
+	s.Require().Equal(wstakingtypes.ValidatorReward.String(), ownerAfter.Sub(ownerBefore).String())
+	s.Require().Equal(wstakingtypes.CommitteeReward.String(), committeeAfter.Sub(committeeBefore).String())
+}
+
 func (s *KeeperTestSuite) TestUpdate() {
 	s.SetupTest()
 
