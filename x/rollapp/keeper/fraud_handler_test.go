@@ -1,6 +1,12 @@
 package keeper_test
 
 import (
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v7/modules/core/23-commitment/types"
+	tmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	common "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
@@ -173,7 +179,66 @@ func (suite *RollappTestSuite) TestHandleFraud_AlreadyFinalized() {
 	suite.Require().NotNil(err)
 }
 
-// TODO: test IBC freeze
+func (suite *RollappTestSuite) TestHandleFraudFreezesIBCClientAtLatestHeight() {
+	suite.SetupTest()
+	keeper := suite.App.RollappKeeper
+
+	rollappId := suite.CreateDefaultRollapp()
+	proposer := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	_, err := suite.PostStateUpdate(suite.Ctx, rollappId, proposer, 1, uint64(10))
+	suite.Require().NoError(err)
+
+	const (
+		clientId     = "07-tendermint-0"
+		connectionId = "connection-0"
+		channelId    = "channel-0"
+	)
+
+	latestHeight := clienttypes.NewHeight(7, 12345)
+	clientState := tmtypes.NewClientState(
+		"rollapp_1234-7",
+		tmtypes.DefaultTrustLevel,
+		ibctesting.TrustingPeriod,
+		ibctesting.UnbondingPeriod,
+		ibctesting.MaxClockDrift,
+		latestHeight,
+		commitmenttypes.GetSDKSpecs(),
+		ibctesting.UpgradePath,
+	)
+	suite.App.IBCKeeper.ClientKeeper.SetClientState(suite.Ctx, clientId, clientState)
+
+	connection := connectiontypes.NewConnectionEnd(
+		connectiontypes.OPEN,
+		clientId,
+		connectiontypes.NewCounterparty("counterparty-client-0", "connection-1", commitmenttypes.NewMerklePrefix([]byte("ibc"))),
+		[]*connectiontypes.Version{connectiontypes.DefaultIBCVersion},
+		0,
+	)
+	suite.App.IBCKeeper.ConnectionKeeper.SetConnection(suite.Ctx, connectionId, connection)
+
+	channel := channeltypes.NewChannel(
+		channeltypes.OPEN,
+		channeltypes.UNORDERED,
+		channeltypes.NewCounterparty("transfer", "channel-1"),
+		[]string{connectionId},
+		"ics20-1",
+	)
+	suite.App.IBCKeeper.ChannelKeeper.SetChannel(suite.Ctx, "transfer", channelId, channel)
+
+	rollapp, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappId)
+	suite.Require().True(found)
+	rollapp.ChannelId = channelId
+	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+
+	err = keeper.HandleFraud(suite.Ctx, rollappId, clientId, 2, proposer)
+	suite.Require().NoError(err)
+
+	storedClientState, found := suite.App.IBCKeeper.ClientKeeper.GetClientState(suite.Ctx, clientId)
+	suite.Require().True(found)
+	tmClientState, ok := storedClientState.(*tmtypes.ClientState)
+	suite.Require().True(ok)
+	suite.Require().Equal(latestHeight, tmClientState.FrozenHeight)
+}
 
 /* ---------------------------------- utils --------------------------------- */
 
