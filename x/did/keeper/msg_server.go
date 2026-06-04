@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/x/did/types"
+	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 )
 
 type msgServer struct {
@@ -213,6 +214,10 @@ func (m msgServer) UpdateVC(goCtx context.Context, msg *types.MsgUpdateVC) (*typ
 
 func (m msgServer) RemoveVC(goCtx context.Context, msg *types.MsgRemoveVC) (*types.MsgRemoveVCResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if msg.Sid == kyctypes.ModuleName {
+		return &types.MsgRemoveVCResponse{}, types.ErrReservedCredentialService
+	}
 
 	// check credential service
 	svc, found := m.GetService(ctx, msg.Sid)
