@@ -26,10 +26,9 @@ func (k Keeper) Hooks() Hooks {
 // overwrite
 // withdraw delegation rewards (which also increments period)
 func (h Hooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
-	return nil
+	return h.Hooks.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
 }
 
 func (h Hooks) BeforeValidatorStakingModified(ctx sdk.Context, valAddr sdk.ValAddress) error {
-	ctx.Logger().Info("allocated block reward before validator's staking modified")
-	return h.k.AllocateBlockReward(ctx)
+	return nil
 }

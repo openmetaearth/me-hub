@@ -237,6 +237,37 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestBeforeDelegationSharesModifiedUsesDistributionHook() {
+	ctx := suite.HelperNewContextWith(1)
+	delAddr := suite.TestAccs[0]
+	valAddr := sdk.ValAddress(suite.TestAccs[1])
+	validator := stakingtypes.Validator{
+		OperatorAddress: valAddr.String(),
+		Tokens:          sdk.NewInt(1),
+		DelegatorShares: sdk.NewDec(1),
+	}
+	delegation := stakingtypes.Delegation{
+		DelegatorAddress: delAddr.String(),
+		ValidatorAddress: valAddr.String(),
+		Shares:           sdk.NewDec(1),
+	}
+
+	suite.stakingKeeper.EXPECT().Validator(ctx, valAddr).Return(validator)
+	suite.stakingKeeper.EXPECT().Delegation(ctx, delAddr, valAddr).Return(delegation)
+
+	err := suite.App.DistrKeeper.Hooks().BeforeDelegationSharesModified(ctx, delAddr, valAddr)
+	suite.Require().ErrorIs(err, distrtypes.ErrEmptyDelegationDistInfo)
+}
+
+func (suite *KeeperTestSuite) TestBeforeValidatorStakingModifiedDoesNotAllocateRewards() {
+	ctx := suite.HelperNewContextWith(types.OneDayTotalBlocks / 2)
+	valAddr := sdk.ValAddress(suite.TestAccs[1])
+
+	err := suite.App.DistrKeeper.Hooks().BeforeValidatorStakingModified(ctx, valAddr)
+	suite.Require().NoError(err)
+	suite.Require().Empty(ctx.EventManager().ABCIEvents())
+}
+
 func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int) []string {
 	var addrs []string
 	if len(regionShare) == 0 {
