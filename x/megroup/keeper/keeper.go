@@ -80,6 +80,10 @@ func (k Keeper) KycStatusChanged(goCtx context.Context, msgType string, data int
 	if val, ok := data.(sdk.Event); !ok {
 		return fmt.Errorf("data's type is not sdk.Event.but msgType is update")
 	} else {
+		attrAddress, found := val.GetAttribute(kycTypes.AttributeKeyAddress)
+		if !found {
+			return fmt.Errorf("can not found AttributeKeyAddress.but EventType is update")
+		}
 		attrPreRegion, found := val.GetAttribute(kycTypes.AttributeKeyRegionId)
 		if !found {
 			return fmt.Errorf("can not found AttributeKeyRegionId.but EventType is update")
@@ -88,15 +92,19 @@ func (k Keeper) KycStatusChanged(goCtx context.Context, msgType string, data int
 		if !found {
 			return fmt.Errorf("can not found AttributeKeyRegionIdChanged.but EventType is update")
 		}
+		attrNewLevel, found := val.GetAttribute(kycTypes.AttributeKeyLevelChanged)
+		if !found {
+			return fmt.Errorf("can not found AttributeKeyLevelChanged.but EventType is update")
+		}
+		if attrNewLevel.Value != didTypes.KYC_LEVEL_TWO.String() {
+			_, err := k.removeJoinedMember(ctx, attrAddress.Value)
+			return err
+		}
 		if attrPreRegion.Value == attrNewRegion.Value { //if region not changed,return
 			k.Logger(ctx).Info("regionID was not changed in KycStatusChanged!!!")
 			return nil
 		}
 		k.Logger(ctx).Info("start to proc KycStatusChanged!!!")
-		attrAddress, found := val.GetAttribute(kycTypes.AttributeKeyAddress)
-		if !found {
-			return fmt.Errorf("can not found AttributeKeyAddress.but EventType is update")
-		}
 
 		if err := k.procKycRegionChange(ctx, attrAddress.Value, attrPreRegion.Value, attrNewRegion.Value); err != nil {
 			return err
@@ -106,6 +114,40 @@ func (k Keeper) KycStatusChanged(goCtx context.Context, msgType string, data int
 
 	return nil
 
+}
+
+func (k Keeper) removeJoinedMember(sdkCtx sdk.Context, address string) (uint64, error) {
+	joined, found := k.GetMemberJoined(sdkCtx, address)
+	if !found || joined.GroupId == 0 {
+		return 0, nil
+	}
+
+	groupInfo, found := k.GetGroupInfo(sdkCtx, joined.GroupId)
+	if !found {
+		return 0, errors.Wrapf(types.ErrGroupNotExist, "can not found joined group.groupID = %d", joined.GroupId)
+	}
+	if address == groupInfo.Admin {
+		return 0, errors.Wrapf(types.ErrExecute, "admin of group can not leave")
+	}
+
+	groupNumber, found := k.GetGroupMemberCount(sdkCtx, joined.GroupId)
+	if !found {
+		return 0, fmt.Errorf("can not found group number count while removing KYC-ineligible member")
+	}
+	if groupNumber == 0 {
+		return 0, fmt.Errorf("group number is 0 while removing KYC-ineligible member")
+	}
+
+	if err := k.deleteMemberFormGroup(sdkCtx, joined.GroupId, address); err != nil {
+		return 0, err
+	}
+	k.SetGroupMemberCount(sdkCtx, joined.GroupId, groupNumber-1)
+	k.SetMemberJoined(sdkCtx, types.MemberJoined{
+		Address: address,
+		GroupId: 0,
+	})
+
+	return joined.GroupId, nil
 }
 
 func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, nowRegionID string) error {
