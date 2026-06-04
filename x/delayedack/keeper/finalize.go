@@ -74,9 +74,9 @@ func (k Keeper) finalizeRollappPacket(
 	// Update status to finalized
 	_, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
 	if err != nil {
-		// If we failed finalizing the packet we return an error to abort the end blocker otherwise it's
-		// invariant breaking
-		return err
+		// Log the hook error and proceed. The packet is already marked FINALIZED in the store,
+		// so hook failure is non-fatal for finalization and shouldn't block/wedge the finalization loop.
+		logger.Error("failed to update rollapp packet status: hook error", append(logContext, "error", err.Error())...)
 	}
 
 	logger.Debug("finalized IBC rollapp packet", logContext...)
