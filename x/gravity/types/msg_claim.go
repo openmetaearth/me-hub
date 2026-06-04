@@ -1,7 +1,10 @@
 package types
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -217,8 +220,27 @@ func (m *MsgBridgeTokenClaim) GetType() ClaimType {
 }
 
 func (m *MsgBridgeTokenClaim) ClaimHash() []byte {
-	path := fmt.Sprintf("%d/%d/%s/%s/%s/%d", m.BlockHeight, m.EventNonce, m.TokenContract, m.Name, m.Symbol, m.Decimals)
-	return tmhash.Sum([]byte(path))
+	var bz bytes.Buffer
+	writeClaimString(&bz, TypeMsgBridgeTokenClaim)
+	writeClaimString(&bz, m.ChainName)
+	writeClaimUint64(&bz, m.BlockHeight)
+	writeClaimUint64(&bz, m.EventNonce)
+	writeClaimString(&bz, m.TokenContract)
+	writeClaimString(&bz, m.Name)
+	writeClaimString(&bz, m.Symbol)
+	writeClaimUint64(&bz, m.Decimals)
+	return tmhash.Sum(bz.Bytes())
+}
+
+func writeClaimUint64(buf *bytes.Buffer, value uint64) {
+	var bz [8]byte
+	binary.BigEndian.PutUint64(bz[:], value)
+	buf.Write(bz[:])
+}
+
+func writeClaimString(buf *bytes.Buffer, value string) {
+	writeClaimUint64(buf, uint64(len(value)))
+	buf.WriteString(value)
 }
 
 // MsgRelayerSetUpdateClaim //
