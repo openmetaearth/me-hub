@@ -83,9 +83,32 @@ func (k Keeper) GetLastTotalPower(ctx sdk.Context) sdkmath.Int {
 func (k Keeper) SetLastTotalPower(ctx sdk.Context) {
 	relayers := k.GetAllRelayers(ctx, true)
 	totalPower := sdkmath.ZeroInt()
+	maxOnlinePower := sdkmath.ZeroInt()
 	for _, relayer := range relayers {
-		totalPower = totalPower.Add(relayer.GetPower())
+		power := relayer.GetPower()
+		totalPower = totalPower.Add(power)
+		if power.GT(maxOnlinePower) {
+			maxOnlinePower = power
+		}
 	}
+
+	// Calculate total bonded power (including offline relayers)
+	totalBondedPower := sdkmath.ZeroInt()
+	allRelayers := k.GetAllRelayers(ctx, false)
+	for _, relayer := range allRelayers {
+		totalBondedPower = totalBondedPower.Add(relayer.GetPower())
+	}
+
+	// If online power is over-concentrated (max online relayer > 33.34% of total online power)
+	// and there is offline power, override totalPower to totalBondedPower.
+	if totalPower.IsPositive() && totalBondedPower.GT(totalPower) {
+		// threshold = 33.34% of totalPower
+		threshold := types.AttestationProposalRelayerChangePowerThreshold.Mul(totalPower).Quo(sdkmath.NewIntFromUint64(types.PowerBase))
+		if maxOnlinePower.GT(threshold) {
+			totalPower = totalBondedPower
+		}
+	}
+
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.LastTotalPowerKey, k.cdc.MustMarshal(&sdk.IntProto{Int: totalPower}))
 }
