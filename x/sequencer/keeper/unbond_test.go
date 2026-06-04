@@ -120,3 +120,53 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	suite.Equal(types.Unbonding, sequencer2.Status)
 	suite.False(sequencer2.Tokens.IsZero())
 }
+
+func (suite *SequencerTestSuite) TestPendingReplaceProposerBlocksOldProposerUnbondBeforeActivation() {
+	suite.SetupTest()
+
+	rollappId := suite.CreateDefaultRollapp()
+	oldProposer := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	newProposer := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+
+	err := suite.App.SequencerKeeper.SetReplaceProposer(suite.Ctx, &types.MsgRepalceProposer{
+		RollappId:   rollappId,
+		OldProposer: oldProposer,
+		NewProposer: newProposer,
+		BlockHeight: 10,
+	})
+	suite.Require().NoError(err)
+
+	resp, err := suite.msgServer.Unbond(suite.Ctx, &types.MsgUnbond{Creator: oldProposer})
+	suite.Require().Nil(resp)
+	suite.Require().ErrorIs(err, types.ErrInvalidRequest)
+
+	seq, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, oldProposer)
+	suite.Require().True(found)
+	suite.Require().Equal(types.Bonded, seq.Status)
+	suite.Require().True(seq.Proposer)
+}
+
+func (suite *SequencerTestSuite) TestPendingReplaceProposerBlocksNewProposerUnbondBeforeActivation() {
+	suite.SetupTest()
+
+	rollappId := suite.CreateDefaultRollapp()
+	oldProposer := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	newProposer := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+
+	err := suite.App.SequencerKeeper.SetReplaceProposer(suite.Ctx, &types.MsgRepalceProposer{
+		RollappId:   rollappId,
+		OldProposer: oldProposer,
+		NewProposer: newProposer,
+		BlockHeight: 10,
+	})
+	suite.Require().NoError(err)
+
+	resp, err := suite.msgServer.Unbond(suite.Ctx, &types.MsgUnbond{Creator: newProposer})
+	suite.Require().Nil(resp)
+	suite.Require().ErrorIs(err, types.ErrInvalidRequest)
+
+	seq, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, newProposer)
+	suite.Require().True(found)
+	suite.Require().Equal(types.Bonded, seq.Status)
+	suite.Require().False(seq.Proposer)
+}

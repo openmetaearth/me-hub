@@ -37,6 +37,11 @@ func (k Keeper) setSequencerToUnbonding(ctx sdk.Context, seqAddr string) (time.T
 			seq.Status.String(),
 		)
 	}
+
+	if err := k.validateNoPendingReplaceProposerUnbond(ctx, seq); err != nil {
+		return time.Time{}, err
+	}
+
 	oldStatus := seq.Status
 	wasProposer := seq.Proposer
 
@@ -64,4 +69,26 @@ func (k Keeper) setSequencerToUnbonding(ctx sdk.Context, seqAddr string) (time.T
 	}
 
 	return completionTime, nil
+}
+
+func (k Keeper) validateNoPendingReplaceProposerUnbond(ctx sdk.Context, seq types.Sequencer) error {
+	pending, err := k.GetReplaceProposer(ctx, seq.RollappId)
+	if err != nil {
+		return err
+	}
+	if pending == nil {
+		return nil
+	}
+
+	replaceProposer := pending.ReplaceProposer
+	if seq.SequencerAddress != replaceProposer.OldProposer && seq.SequencerAddress != replaceProposer.NewProposer {
+		return nil
+	}
+
+	return errorsmod.Wrapf(
+		types.ErrInvalidRequest,
+		"sequencer %s cannot unbond while replace proposer is pending for rollapp %s",
+		seq.SequencerAddress,
+		seq.RollappId,
+	)
 }
