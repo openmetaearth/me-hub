@@ -1,10 +1,12 @@
 package ante_test
 
 import (
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authantetestutil "github.com/cosmos/cosmos-sdk/x/auth/ante/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
@@ -390,4 +392,50 @@ func TestCheckFunds(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAuthzWrappedWasmExecParsesContractCreator(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	ctx := sdk.Context{}
+	mockAccountKeeper := authantetestutil.NewMockAccountKeeper(ctrl)
+	mockBankKeeper := mock.NewMockBankKeeper(ctrl)
+	mockFeegrantKeeper := authantetestutil.NewMockFeegrantKeeper(ctrl)
+	mockDaoKeeper := mock.NewMockDaoKeeper(ctrl)
+	mockStakingKeeper := mock.NewMockStakingKeeper(ctrl)
+	mockKycKeeper := mock.NewMockKycKeeper(ctrl)
+	mockWasmKeeper := mock.NewMockWasmKeeper(ctrl)
+	decorator := ante.NewDeductFeeDecorator(
+		mockAccountKeeper,
+		mockBankKeeper,
+		mockFeegrantKeeper,
+		mockDaoKeeper,
+		mockStakingKeeper,
+		mockKycKeeper,
+		nil,
+		mockWasmKeeper,
+	)
+
+	grantee := NewAccount().GetAddress()
+	contract := NewAccount().GetAddress()
+	creator := NewAccount().GetAddress().String()
+	wasmMsg := &wasmtypes.MsgExecuteContract{
+		Sender:   grantee.String(),
+		Contract: contract.String(),
+		Msg:      []byte(`{}`),
+		Funds:    sdk.Coins{},
+	}
+	authzMsg := authz.NewMsgExec(grantee, []sdk.Msg{wasmMsg})
+
+	mockWasmKeeper.EXPECT().
+		GetContractInfo(ctx, contract).
+		Return(&wasmtypes.ContractInfo{Creator: creator})
+
+	gotCreator, ok := decorator.ParseWasmMsgContractCreator(ctx, &mock.MockTx{
+		Msgs: []sdk.Msg{&authzMsg},
+	})
+
+	require.True(t, ok)
+	require.Equal(t, creator, gotCreator)
 }

@@ -122,6 +122,20 @@ func (mr *MockDaoKeeperMockRecorder) GetMeidDao(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMeidDao", reflect.TypeOf((*MockDaoKeeper)(nil).GetMeidDao), ctx)
 }
 
+// IsDao mocks base method.
+func (m *MockDaoKeeper) IsDao(ctx types0.Context, addr string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsDao", ctx, addr)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsDao indicates an expected call of IsDao.
+func (mr *MockDaoKeeperMockRecorder) IsDao(ctx, addr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsDao", reflect.TypeOf((*MockDaoKeeper)(nil).IsDao), ctx, addr)
+}
+
 // MockBankKeeper is a mock of BankKeeper interface.
 type MockBankKeeper struct {
 	ctrl     *gomock.Controller

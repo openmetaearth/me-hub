@@ -12,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
@@ -79,19 +80,27 @@ func (dfd DeductFeeDecorator) ParseWasmMsgContractCreator(ctx sdk.Context, tx sd
 	allwasm := true
 	var contract string
 	for _, msg := range tx.GetMsgs() {
-		switch msg := msg.(type) {
-		case *wasmtypes.MsgExecuteContract:
-			contract = msg.Contract
-		case *wasmtypes.MsgMigrateContract:
-			contract = msg.Contract
-		case *wasmtypes.MsgUpdateAdmin:
-			contract = msg.Contract
-		case *wasmtypes.MsgClearAdmin:
-			contract = msg.Contract
-		case *wasmtypes.MsgSudoContract:
-			contract = msg.Contract
-		default:
+		msgs, ok := unwrapAuthzExecMsgs(msg)
+		if !ok || len(msgs) == 0 {
 			allwasm = false
+			continue
+		}
+
+		for _, msg := range msgs {
+			switch msg := msg.(type) {
+			case *wasmtypes.MsgExecuteContract:
+				contract = msg.Contract
+			case *wasmtypes.MsgMigrateContract:
+				contract = msg.Contract
+			case *wasmtypes.MsgUpdateAdmin:
+				contract = msg.Contract
+			case *wasmtypes.MsgClearAdmin:
+				contract = msg.Contract
+			case *wasmtypes.MsgSudoContract:
+				contract = msg.Contract
+			default:
+				allwasm = false
+			}
 		}
 	}
 
@@ -108,6 +117,29 @@ func (dfd DeductFeeDecorator) ParseWasmMsgContractCreator(ctx sdk.Context, tx sd
 		return admin, true
 	}
 	return "", false
+}
+
+func unwrapAuthzExecMsgs(msg sdk.Msg) ([]sdk.Msg, bool) {
+	execMsg, ok := msg.(*authz.MsgExec)
+	if !ok {
+		return []sdk.Msg{msg}, true
+	}
+
+	msgs, err := execMsg.GetMessages()
+	if err != nil {
+		return nil, false
+	}
+
+	unwrapped := make([]sdk.Msg, 0, len(msgs))
+	for _, msg := range msgs {
+		nested, ok := unwrapAuthzExecMsgs(msg)
+		if !ok {
+			return nil, false
+		}
+		unwrapped = append(unwrapped, nested...)
+	}
+
+	return unwrapped, true
 }
 
 func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
