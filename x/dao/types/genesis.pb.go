@@ -25,7 +25,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState defines the sudo module's genesis state.
 type GenesisState struct {
-	DaoAddresses DaoAddresses `protobuf:"bytes,1,opt,name=dao_addresses,json=daoAddresses,proto3" json:"dao_addresses"`
+	DaoAddresses    DaoAddresses `protobuf:"bytes,1,opt,name=dao_addresses,json=daoAddresses,proto3" json:"dao_addresses"`
+	FreeGasAccounts []string     `protobuf:"bytes,2,rep,name=free_gas_accounts,json=freeGasAccounts,proto3" json:"free_gas_accounts,omitempty"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -66,6 +67,13 @@ func (m *GenesisState) GetDaoAddresses() DaoAddresses {
 		return m.DaoAddresses
 	}
 	return DaoAddresses{}
+}
+
+func (m *GenesisState) GetFreeGasAccounts() []string {
+	if m != nil {
+		return m.FreeGasAccounts
+	}
+	return nil
 }
 
 func init() {
@@ -111,6 +119,15 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.FreeGasAccounts) > 0 {
+		for iNdEx := len(m.FreeGasAccounts) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.FreeGasAccounts[iNdEx])
+			copy(dAtA[i:], m.FreeGasAccounts[iNdEx])
+			i = encodeVarintGenesis(dAtA, i, uint64(len(m.FreeGasAccounts[iNdEx])))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
 	{
 		size, err := m.DaoAddresses.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
@@ -143,6 +160,12 @@ func (m *GenesisState) Size() (n int) {
 	_ = l
 	l = m.DaoAddresses.Size()
 	n += 1 + l + sovGenesis(uint64(l))
+	if len(m.FreeGasAccounts) > 0 {
+		for _, s := range m.FreeGasAccounts {
+			l = len(s)
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
 	return n
 }
 
@@ -213,6 +236,38 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			if err := m.DaoAddresses.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FreeGasAccounts", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FreeGasAccounts = append(m.FreeGasAccounts, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

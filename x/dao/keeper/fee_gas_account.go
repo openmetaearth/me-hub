@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/x/dao/types"
 )
@@ -31,4 +32,16 @@ func (k Keeper) CheckFreeGasAccount(ctx sdk.Context, address string) bool {
 		return false
 	}
 	return true
+}
+
+func (k Keeper) GetAllFreeGasAccounts(ctx sdk.Context) (list []string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.FreeGasAddressePrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		list = append(list, string(iterator.Value()))
+	}
+
+	return list
 }
