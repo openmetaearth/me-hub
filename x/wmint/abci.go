@@ -51,6 +51,14 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic mintypes.InflationCalcula
 		mintingUMECAmount = sdk.ZeroInt()
 	}
 
+	if mintingUMECAmount.IsZero() {
+		perBlockMintAmount := k.GetPerBlockMintCoinAmount(ctx)
+		if perBlockMintAmount.Sign() != 0 {
+			k.SetPerBlockMintCoinAmount(ctx, *mintingUMECAmount.BigInt())
+		}
+		return
+	}
+
 	k.SetPerBlockMintCoinAmount(ctx, *mintingUMECAmount.BigInt())
 
 	mintedCoin := sdk.NewCoin(params.BaseDenom, mintingUMECAmount)

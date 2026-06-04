@@ -176,6 +176,23 @@ func (suite *KeeperTestSuite) TestBeginBlocker() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestBeginBlockerSkipsZeroMintAfterCap() {
+	ctx := suite.newContextWith(1)
+	suite.wmintKeeper.SetMintedCoinAmount(ctx, *big.NewInt(types.TotalMintCoinsAmount))
+	suite.wmintKeeper.SetPerBlockMintCoinAmount(ctx, *big.NewInt(123))
+
+	BeginBlocker(ctx, suite.wmintKeeper, nil)
+
+	minted := suite.wmintKeeper.GetMintedCoinAmount(ctx)
+	perBlock := suite.wmintKeeper.GetPerBlockMintCoinAmount(ctx)
+	require.Equal(suite.T(), int64(types.TotalMintCoinsAmount), minted.Int64())
+	require.Zero(suite.T(), perBlock.Sign())
+	require.Empty(suite.T(), ctx.EventManager().Events())
+	suite.bankKeeper.AssertNotCalled(suite.T(), "MintCoins")
+	suite.bankKeeper.AssertNotCalled(suite.T(), "SendCoinsFromModuleToModule")
+}
+
 func (suite *KeeperTestSuite) newContextWith(height int64) sdk.Context {
 	return sdk.NewContext(suite.ctx.MultiStore(), tmproto.Header{Time: tmtime.Now(), Height: height}, false, log.NewNopLogger())
 }
