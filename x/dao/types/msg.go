@@ -40,15 +40,20 @@ func (msg *MsgUpdateDao) GetSignBytes() []byte {
 }
 
 func (msg *MsgUpdateDao) ValidateBasic() error {
-	if len(msg.DaoAddresses.GlobalDao) > 0 {
-		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.GlobalDao); err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.GlobalDao)
-		}
+	// GlobalDao and MeidDao are required: an empty value would permanently
+	// lock out all DAO-gated operations (IsGlobalDao/IsMeidDao can never match
+	// an empty address), bricking governance.
+	if len(msg.DaoAddresses.GlobalDao) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "GlobalDao address cannot be empty")
 	}
-	if len(msg.DaoAddresses.MeidDao) > 0 {
-		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.MeidDao); err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.MeidDao)
-		}
+	if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.GlobalDao); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.GlobalDao)
+	}
+	if len(msg.DaoAddresses.MeidDao) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "MeidDao address cannot be empty")
+	}
+	if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.MeidDao); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.DaoAddresses.MeidDao)
 	}
 	if len(msg.DaoAddresses.DevOperator) > 0 {
 		if _, err := sdk.AccAddressFromBech32(msg.DaoAddresses.DevOperator); err != nil {
