@@ -22,6 +22,11 @@ func (k msgServer) UpdateRollapp(goCtx context.Context, msg *types.MsgUpdateRoll
 		return nil, types.ErrUnknownRollappID
 	}
 
+	// ensure only the rollapp creator can update it
+	if msg.Creator != rollapp.Creator {
+		return nil, types.ErrUnauthorizedRollappCreator
+	}
+
 	if msg.MaxSequencers != 0 {
 		rollapp.MaxSequencers = msg.MaxSequencers
 	}
