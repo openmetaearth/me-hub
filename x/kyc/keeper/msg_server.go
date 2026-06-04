@@ -69,6 +69,15 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	}
 
 	// create DID
+	if found && holderInfo.Address != "" && holderInfo.Address != msg.Address {
+		oldAddress, err := sdk.AccAddressFromBech32(holderInfo.Address)
+		if err != nil {
+			return &types.MsgApproveResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, holderInfo.Address)
+		}
+		if oldDid, oldFound := m.GetDID(ctx, oldAddress); oldFound && oldDid == msg.Did {
+			m.DeleteDID(ctx, oldAddress)
+		}
+	}
 	m.SetDID(ctx, address, msg.Did)
 	m.SetDidInfo(ctx, msg.Did, didtypes.DidInfo{
 		Did:      msg.Did,
@@ -239,6 +248,9 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	address := sdk.MustAccAddressFromBech32(didInfo.Address)
 	if err := m.DeleteApproveReward(ctx, address.String(), string(kyc.Data)); err != nil {
 		return &types.MsgRemoveResponse{}, errors.Wrap(err, "delete reward failed")
+	}
+	if oldDid, found := m.GetDID(ctx, address); found && oldDid == msg.Did {
+		m.DeleteDID(ctx, address)
 	}
 
 	return &types.MsgRemoveResponse{}, nil

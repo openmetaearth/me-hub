@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/openmetaearth/me-hub/x/wdistri"
 	"github.com/openmetaearth/me-hub/x/wmint"
@@ -112,6 +113,62 @@ func (s *KeeperTestSuite) TestRemove() {
 	// check kyc
 	_, f = s.Keeper().GetKYC(s.Ctx, did)
 	s.Require().False(f)
+}
+
+func (s *KeeperTestSuite) TestRemoveThenReapproveDoesNotKeepOldAddressActive() {
+	s.SetupTest()
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	oldAddress, oldPubkey := s.NewAccount()
+	newAddress, newPubkey := s.NewAccount()
+	did := "1111111111111111"
+	regionID := strings.ToLower(wstakingtypes.MeEarthRegionName)
+
+	_, err := s.msgServer.Approve(s.Ctx, &types.MsgApprove{
+		Issuer:   s.Dao.GlobalDao,
+		Did:      did,
+		RegionId: regionID,
+		Address:  oldAddress.String(),
+		Pubkey:   oldPubkey,
+		Uri:      "http://127.0.0.1/8001",
+		Hash:     "aaaa",
+		Level:    didtypes.KYC_LEVEL_TWO,
+	})
+	s.Require().NoError(err)
+
+	_, err = s.msgServer.Remove(s.Ctx, &types.MsgRemove{
+		Issuer: s.Dao.GlobalDao,
+		Did:    did,
+	})
+	s.Require().NoError(err)
+
+	_, err = s.msgServer.Approve(s.Ctx, &types.MsgApprove{
+		Issuer:   s.Dao.GlobalDao,
+		Did:      did,
+		RegionId: regionID,
+		Address:  newAddress.String(),
+		Pubkey:   newPubkey,
+		Uri:      "http://127.0.0.1/8001",
+		Hash:     "aaaa",
+		Level:    didtypes.KYC_LEVEL_TWO,
+	})
+	s.Require().NoError(err)
+
+	_, found := s.Keeper().GetDID(s.Ctx, oldAddress)
+	s.Require().False(found)
+
+	newDid, found := s.Keeper().GetDID(s.Ctx, newAddress)
+	s.Require().True(found)
+	s.Require().Equal(did, newDid)
+
+	_, oldAddressActive := s.App.GroupKeeper.GetDidAndKycActive(s.Ctx, oldAddress, regionID)
+	s.Require().False(oldAddressActive)
+
+	_, newAddressActive := s.App.GroupKeeper.GetDidAndKycActive(s.Ctx, newAddress, regionID)
+	s.Require().True(newAddressActive)
 }
 
 func (s *KeeperTestSuite) TestUpdate() {

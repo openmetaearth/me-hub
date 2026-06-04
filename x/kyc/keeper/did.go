@@ -23,6 +23,10 @@ func (k *Keeper) SetDID(ctx sdk.Context, addr sdk.AccAddress, did string) {
 	k.didKeeper.SetDID(ctx, addr, did)
 }
 
+func (k *Keeper) DeleteDID(ctx sdk.Context, addr sdk.AccAddress) {
+	k.didKeeper.DeleteDID(ctx, addr)
+}
+
 func (k *Keeper) HasDidInfo(ctx sdk.Context, did string) bool {
 	return k.didKeeper.HasDidInfo(ctx, did)
 }

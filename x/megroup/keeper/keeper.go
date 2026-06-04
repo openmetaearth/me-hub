@@ -254,6 +254,9 @@ func (k Keeper) GetDidAndKycActive(sdkCtx sdk.Context, address sdk.AccAddress, r
 	if !found {
 		return "", false
 	}
+	if didInfo.Address != address.String() {
+		return "", false
+	}
 	if didInfo.RegionId != regionID {
 		return "", false
 	}
