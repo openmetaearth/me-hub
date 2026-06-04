@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
@@ -43,6 +44,14 @@ func (k *Keeper) GetProtocol(ctx sdk.Context) (types.Protocol, bool) {
 	return types.Protocol{Service: svc, Regions: regions}, true
 }
 
-func (k *Keeper) SetProtocol(ctx sdk.Context, proto types.Protocol) {
+func (k *Keeper) SetProtocol(ctx sdk.Context, proto types.Protocol) error {
+	if len(proto.Regions) != 0 {
+		return sdkerrors.Wrap(
+			sdkerrors.ErrInvalidRequest,
+			"kyc protocol regions are derived from staking and cannot be set through SetProtocol",
+		)
+	}
+
 	k.SetService(ctx, proto.Service)
+	return nil
 }

@@ -3,6 +3,7 @@ package keeper_test
 import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
@@ -32,6 +33,34 @@ func (s *KeeperTestSuite) TestProtocol() {
 	s.Require().Equal(len(res.Protocol.Service.Issuers), len(genesis.Issuers))
 	s.Require().Equal(res.Protocol.Service.Status, didtypes.SERVICE_STATUS_ACTIVE)
 	s.Require().Equal(len(res.Protocol.Regions), 0)
+}
+
+func (s *KeeperTestSuite) TestSetProtocolRejectsRegions() {
+	s.SetupTest()
+
+	svc := didtypes.Service{
+		Sid:  types.ModuleName,
+		Name: "updated-kyc",
+	}
+	err := s.Keeper().SetProtocol(s.Ctx, types.Protocol{Service: svc})
+	s.Require().NoError(err)
+
+	gotSvc, found := s.Keeper().GetService(s.Ctx)
+	s.Require().True(found)
+	s.Require().Equal("updated-kyc", gotSvc.Name)
+
+	err = s.Keeper().SetProtocol(s.Ctx, types.Protocol{
+		Service: didtypes.Service{
+			Sid:  types.ModuleName,
+			Name: "must-not-overwrite",
+		},
+		Regions: []types.Region{{Id: "custom", Name: "Custom"}},
+	})
+	s.Require().ErrorIs(err, sdkerrors.ErrInvalidRequest)
+
+	gotSvc, found = s.Keeper().GetService(s.Ctx)
+	s.Require().True(found)
+	s.Require().Equal("updated-kyc", gotSvc.Name)
 }
 
 func (s *KeeperTestSuite) TestDID() {
