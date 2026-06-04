@@ -60,6 +60,33 @@ func (s *KeeperTestSuite) TestApprove() {
 	s.Require().Equal(msg.Hash, kyc.Hash)
 }
 
+func (s *KeeperTestSuite) TestApproveRejectsPubkeyAddressMismatch() {
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	did := "1111111111111111"
+	kycAccount, _ := s.NewAccount()
+	_, attackerPubkey := s.NewAccount()
+
+	_, err := s.msgServer.Approve(s.Ctx, &types.MsgApprove{
+		Issuer:   s.Dao.GlobalDao,
+		Did:      did,
+		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
+		Address:  kycAccount.String(),
+		Pubkey:   attackerPubkey,
+		Uri:      "http://127.0.0.1/8001",
+		Hash:     "aaaa",
+		Level:    2,
+	})
+	s.Require().ErrorIs(err, types.ErrInvalidPubkey)
+
+	_, found := s.Keeper().GetDID(s.Ctx, kycAccount)
+	s.Require().False(found)
+	_, found = s.Keeper().GetDidInfo(s.Ctx, did)
+	s.Require().False(found)
+}
+
 func (s *KeeperTestSuite) TestRemove() {
 	s.SetupTest()
 

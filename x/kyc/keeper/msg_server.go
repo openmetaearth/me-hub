@@ -62,6 +62,14 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 
 	// check holder address and pubkey
 	address := sdk.MustAccAddressFromBech32(msg.Address)
+	pubkeyAddress, err := m.MustAccAddressFromPubkeyString(msg.Pubkey)
+	if err != nil {
+		return &types.MsgApproveResponse{}, sdkerrors.Wrap(types.ErrInvalidPubkey, err.Error())
+	}
+	if !pubkeyAddress.Equals(address) {
+		return &types.MsgApproveResponse{}, sdkerrors.Wrap(types.ErrInvalidPubkey, "pubkey does not match address")
+	}
+
 	did, found := m.GetDID(ctx, address)
 	if found && did != msg.Did {
 		// notice: holder must have not DID
