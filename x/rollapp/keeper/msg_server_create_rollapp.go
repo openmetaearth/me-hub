@@ -15,7 +15,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		return nil, types.ErrRollappsDisabled
 	}
 
-	err := k.checkIfRollappExists(ctx, msg.RollappId)
+	err := k.checkIfRollappExists(ctx, msg.RollappId, msg.Creator)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	return &types.MsgCreateRollappResponse{}, nil
 }
 
-func (k msgServer) checkIfRollappExists(ctx sdk.Context, RawRollappId string) error {
+func (k msgServer) checkIfRollappExists(ctx sdk.Context, RawRollappId string, creator string) error {
 	rollappId, err := types.NewChainID(RawRollappId)
 	if err != nil {
 		return err
@@ -64,6 +64,9 @@ func (k msgServer) checkIfRollappExists(ctx sdk.Context, RawRollappId string) er
 	}
 	if !existingRollapp.Frozen {
 		return types.ErrRollappExists
+	}
+	if existingRollapp.Creator != creator {
+		return errorsmod.Wrapf(types.ErrUnauthorizedRollappCreator, "only original creator %s can recover frozen EIP155 rollapp", existingRollapp.Creator)
 	}
 	existingRollappChainId, _ := types.NewChainID(existingRollapp.RollappId)
 

@@ -324,6 +324,53 @@ func (suite *RollappTestSuite) TestForkChainId() {
 	}
 }
 
+func (suite *RollappTestSuite) TestFrozenEIP155ForkRequiresOriginalCreator() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	originalRollapp := types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             "rollapp_1234-1",
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{alice},
+	}
+	_, err := suite.msgServer.CreateRollapp(goCtx, &originalRollapp)
+	suite.Require().NoError(err)
+
+	rollapp, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, originalRollapp.RollappId)
+	suite.Require().True(found)
+	rollapp.Frozen = true
+	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+
+	hijackRollapp := types.MsgCreateRollapp{
+		Creator:               bob,
+		RollappId:             "rollapp_1234-2",
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{bob},
+	}
+	_, err = suite.msgServer.CreateRollapp(goCtx, &hijackRollapp)
+	suite.Require().ErrorIs(err, types.ErrUnauthorizedRollappCreator)
+
+	rollappByEIP155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, uint64(1234))
+	suite.Require().True(found)
+	suite.Require().Equal(originalRollapp.RollappId, rollappByEIP155.RollappId)
+	suite.Require().Equal(alice, rollappByEIP155.Creator)
+
+	recoveryRollapp := types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             "rollapp_1234-2",
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{alice},
+	}
+	_, err = suite.msgServer.CreateRollapp(goCtx, &recoveryRollapp)
+	suite.Require().NoError(err)
+
+	rollappByEIP155, found = suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, uint64(1234))
+	suite.Require().True(found)
+	suite.Require().Equal(recoveryRollapp.RollappId, rollappByEIP155.RollappId)
+	suite.Require().Equal(alice, rollappByEIP155.Creator)
+}
+
 func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 	tests := []struct {
 		name         string
