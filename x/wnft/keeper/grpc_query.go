@@ -31,21 +31,24 @@ func (k Keeper) ClassAddress(goCtx context.Context, r *types.QueryClassAddressRe
 		return nil, err
 	}
 
-	nfts := k.GetNFTsOfClassByOwner(ctx, r.ClassId, address)
-
-	var tokenIds []string
-	for _, nft := range nfts {
-		tokenIds = append(tokenIds, nft.Id)
+	tokenIds, pageRes, err := k.paginateNFTIDsOfClassByOwner(ctx, r.ClassId, address, r.Pagination)
+	if err != nil {
+		return nil, err
 	}
 
 	return &types.QueryClassAddressResponse{
 		Exists:      true,
 		TotalSupply: class.TotalSupply,
 		Nfts:        tokenIds,
+		Pagination:  pageRes,
 	}, nil
 }
 
 func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest) (*types.QueryNftFilterResponse, error) {
+	if r == nil {
+		return nil, sdkerrors.ErrInvalidRequest.Wrap("empty request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var list []*types.NftList
@@ -82,9 +85,15 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 		if !has {
 			return nil, nil
 		}
-		address, _ := sdk.AccAddressFromBech32(r.Owner)
+		address, err := sdk.AccAddressFromBech32(r.Owner)
+		if err != nil {
+			return nil, err
+		}
 
-		nftInfos := k.GetNFTsOfClassByOwner(ctx, r.ClassId, address)
+		nftInfos, pageRes, err := k.paginateNFTsOfClassByOwner(ctx, r.ClassId, address, r.Pagination)
+		if err != nil {
+			return nil, err
+		}
 		for _, nftInfo := range nftInfos {
 			list = append(list, &types.NftList{
 				ClassId: nftInfo.ClassId,
@@ -95,28 +104,34 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 		}
 
 		return &types.QueryNftFilterResponse{
-			Nfts: list,
+			Nfts:       list,
+			Pagination: pageRes,
 		}, nil
 
 	} else if r.Owner != "" && r.TokenId == "" && r.ClassId == "" {
 		// query the nft information held by the address
-		classes := k.GetClasses(ctx)
-		address, _ := sdk.AccAddressFromBech32(r.Owner)
-		for _, class := range classes {
-			nftInfos := k.GetNFTsOfClassByOwner(ctx, class.Id, address)
-			for _, nftInfo := range nftInfos {
-				owner := k.GetOwner(ctx, nftInfo.ClassId, nftInfo.Id)
-				list = append(list, &types.NftList{
-					ClassId: nftInfo.ClassId,
-					TokenId: nftInfo.Id,
-					Owner:   owner.String(),
-					Uri:     nftInfo.Uri,
-				})
-			}
+		address, err := sdk.AccAddressFromBech32(r.Owner)
+		if err != nil {
+			return nil, err
+		}
+
+		nftInfos, pageRes, err := k.paginateNFTsByOwner(ctx, address, r.Pagination)
+		if err != nil {
+			return nil, err
+		}
+		for _, nftInfo := range nftInfos {
+			owner := k.GetOwner(ctx, nftInfo.ClassId, nftInfo.Id)
+			list = append(list, &types.NftList{
+				ClassId: nftInfo.ClassId,
+				TokenId: nftInfo.Id,
+				Owner:   owner.String(),
+				Uri:     nftInfo.Uri,
+			})
 		}
 
 		return &types.QueryNftFilterResponse{
-			Nfts: list,
+			Nfts:       list,
+			Pagination: pageRes,
 		}, nil
 
 	}

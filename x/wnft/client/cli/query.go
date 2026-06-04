@@ -60,6 +60,11 @@ func GetCmdQueryClassAddress() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
 			owner := args[1]
 
 			if len(owner) > 0 {
@@ -69,8 +74,9 @@ func GetCmdQueryClassAddress() *cobra.Command {
 			}
 
 			res, err := queryClient.ClassAddress(cmd.Context(), &types.QueryClassAddressRequest{
-				ClassId: args[0],
-				Address: owner,
+				ClassId:    args[0],
+				Address:    owner,
+				Pagination: pageReq,
 			})
 			if err != nil {
 				return err
@@ -78,6 +84,7 @@ func GetCmdQueryClassAddress() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
@@ -95,7 +102,15 @@ func GetCmdQueryNftFilter() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
 			owner, err := cmd.Flags().GetString(FlagOwner)
+			if err != nil {
+				return err
+			}
 
 			if len(owner) > 0 {
 				if _, err := sdk.AccAddressFromBech32(owner); err != nil {
@@ -103,14 +118,21 @@ func GetCmdQueryNftFilter() *cobra.Command {
 				}
 			}
 
-			classId, _ := cmd.Flags().GetString(FlagClassID)
+			classId, err := cmd.Flags().GetString(FlagClassID)
+			if err != nil {
+				return err
+			}
 
-			tokenId, _ := cmd.Flags().GetString(FlagTokenId)
+			tokenId, err := cmd.Flags().GetString(FlagTokenId)
+			if err != nil {
+				return err
+			}
 
 			res, err := queryClient.NftFilter(cmd.Context(), &types.QueryNftFilterRequest{
-				Owner:   owner,
-				ClassId: classId,
-				TokenId: tokenId,
+				Owner:      owner,
+				ClassId:    classId,
+				TokenId:    tokenId,
+				Pagination: pageReq,
 			})
 			if err != nil {
 				return err
@@ -122,6 +144,7 @@ func GetCmdQueryNftFilter() *cobra.Command {
 	cmd.Flags().String(FlagOwner, "", "The owner of the nft")
 	cmd.Flags().String(FlagClassID, "", "The class-id of the nft")
 	cmd.Flags().String(FlagTokenId, "", "nft token id")
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 
 	return cmd
 }
