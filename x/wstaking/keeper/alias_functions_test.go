@@ -77,36 +77,39 @@ func TestGetRewardsByHeight(t *testing.T) {
 			wantUMEC: perBlockUMEC[2] * 100,
 		},
 		{
+			name:       "halving boundary uses new year rate",
+			fromHeight: Y,
+			toHeight:   Y + 1,
+			// Rewarded interval is (Y, Y+1], so only block Y+1 is counted.
+			wantUMEC: perBlockUMEC[1],
+		},
+		{
 			// Cross-period: period 0 -> period 1
 			// fromHeight=Y-5, toHeight=Y+5
-			// i=0 (lowMul): blockCount = Y*1 - (Y-5) + 1 = 6  (includes fromHeight)
-			// i=1 (highMul): blockCount = (Y+5) - Y*1 - 1 = 4  (misses last block of period 1)
+			// rewarded heights are Y-4..Y+5, so each period gets 5 blocks.
 			name:       "cross-period year1 to year2",
 			fromHeight: Y - 5,
 			toHeight:   Y + 5,
-			wantUMEC:   perBlockUMEC[0]*6 + perBlockUMEC[1]*4,
+			wantUMEC:   perBlockUMEC[0]*5 + perBlockUMEC[1]*5,
 		},
 		{
 			// Cross-period: period 1 -> period 2
 			// fromHeight=2Y-3, toHeight=2Y+3
-			// i=1 (lowMul): blockCount = Y*2 - (2Y-3) + 1 = 4
-			// i=2 (highMul): blockCount = (2Y+3) - Y*2 - 1 = 2
+			// rewarded heights are 2Y-2..2Y+3, so each period gets 3 blocks.
 			name:       "cross-period year2 to year3",
 			fromHeight: 2*Y - 3,
 			toHeight:   2*Y + 3,
-			wantUMEC:   perBlockUMEC[1]*4 + perBlockUMEC[2]*2,
+			wantUMEC:   perBlockUMEC[1]*3 + perBlockUMEC[2]*3,
 		},
 		{
 			// Cross three periods: period 0 -> period 1 -> period 2
 			// fromHeight=Y-1, toHeight=2Y+1
 			// lowMul=0, highMul=2
-			// i=0: blockCount = Y*1 - (Y-1) + 1 = 2
-			// i=1: (full middle period) blockCount = Y
-			// i=2: blockCount = (2Y+1) - Y*2 - 1 = 0
+			// rewarded heights are Y..2Y+1.
 			name:       "cross three periods year1 to year3",
 			fromHeight: Y - 1,
 			toHeight:   2*Y + 1,
-			wantUMEC:   perBlockUMEC[0]*2 + perBlockUMEC[1]*Y + perBlockUMEC[2]*0,
+			wantUMEC:   perBlockUMEC[0] + perBlockUMEC[1]*Y + perBlockUMEC[2],
 		},
 	}
 

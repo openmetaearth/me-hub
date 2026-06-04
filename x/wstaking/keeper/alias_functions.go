@@ -35,19 +35,22 @@ func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdk.D
 			Quo(halvingDivisor)
 		mintUMECAmount := wmint.RoundUpToFourDecimalsDec(amountDec).MulInt64(100_000_000).TruncateInt()
 
-		var blockCount int64
-		// If the range of from and to are in the same reduction period
-		if i == lowMul && lowMul == highMul {
-			blockCount = toHeight - fromHeight
-			// Calculate the number of tokens between fromHeight and its first halving boundary
-		} else if i == lowMul {
-			blockCount = int64(mintTypes.OneYearTotalBlocks)*(lowMul+1) - fromHeight + 1
-			// Calculate the number of tokens between the last halving boundary and toHeight
-		} else if i == highMul {
-			blockCount = toHeight - int64(mintTypes.OneYearTotalBlocks)*i - 1
-		} else {
-			// Calculate the number of tokens for each full halving interval
-			blockCount = int64(mintTypes.OneYearTotalBlocks)
+		periodStart := int64(mintTypes.OneYearTotalBlocks)*i + 1
+		periodEnd := int64(mintTypes.OneYearTotalBlocks) * (i + 1)
+
+		firstRewardHeight := fromHeight + 1
+		if firstRewardHeight < periodStart {
+			firstRewardHeight = periodStart
+		}
+
+		lastRewardHeight := toHeight
+		if lastRewardHeight > periodEnd {
+			lastRewardHeight = periodEnd
+		}
+
+		blockCount := int64(0)
+		if lastRewardHeight >= firstRewardHeight {
+			blockCount = lastRewardHeight - firstRewardHeight + 1
 		}
 
 		totalCoins = totalCoins.Add(mintUMECAmount.MulRaw(blockCount))
