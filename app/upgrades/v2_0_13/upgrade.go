@@ -3,6 +3,8 @@ package v2_0_13
 import (
 	sdkmath "cosmossdk.io/math"
 	"fmt"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -15,7 +17,11 @@ import (
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
-	"time"
+)
+
+const (
+	govMaxDepositPeriod = 14 * 24 * time.Hour
+	govVotingPeriod     = 7 * 24 * time.Hour
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v2.0.13
@@ -38,9 +44,9 @@ func CreateUpgradeHandler(
 		}
 
 		params := keepers.GovKeeper.GetParams(ctx)
-		maxDepositPeriod := 30 * time.Minute
+		maxDepositPeriod := govMaxDepositPeriod
 		params.MaxDepositPeriod = &maxDepositPeriod
-		votingPeriod := 30 * time.Minute
+		votingPeriod := govVotingPeriod
 		params.VotingPeriod = &votingPeriod
 		if err := keepers.GovKeeper.SetParams(ctx, params); err != nil {
 			panic(fmt.Sprintf("failed to set gov module params during upgrade: %s", err.Error()))

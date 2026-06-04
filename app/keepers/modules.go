@@ -171,7 +171,7 @@ var MaccPerms = map[string][]string{
 	nft.ModuleName:                                     nil,
 	bsctypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
 	trontypes.ModuleName:                               {authtypes.Minter, authtypes.Burner},
-	gravitytypes.SlashingModuleAccount:                 {authtypes.Minter, authtypes.Burner},
+	gravitytypes.SlashingModuleAccount:                 {authtypes.Burner},
 }
 
 var BeginBlockers = []string{
