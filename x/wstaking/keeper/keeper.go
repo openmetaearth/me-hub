@@ -3,6 +3,7 @@ package keeper
 import (
 	"math/big"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -11,6 +12,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -88,6 +90,19 @@ func (k Keeper) GetProposerOwnerAddress(ctx sdk.Context) (string, error) {
 
 func (k Keeper) GetStoreKey() storetypes.StoreKey {
 	return k.storeKey
+}
+
+func (k Keeper) GetValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(stakingtypes.ValidatorUpdatesKey)
+	if bz == nil {
+		return nil
+	}
+
+	var valUpdates stakingtypes.ValidatorUpdates
+	k.cdc.MustUnmarshal(bz, &valUpdates)
+
+	return valUpdates.Updates
 }
 
 func (k Keeper) GetCdc() codec.BinaryCodec {

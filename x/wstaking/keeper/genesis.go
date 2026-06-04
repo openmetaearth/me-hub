@@ -142,6 +142,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 			update.Power = lv.Power // keep the next-val-set offset, use the last power for the first block
 			res = append(res, update)
 		}
+		k.SetValidatorUpdates(ctx, res)
 	} else {
 		var err error
 
