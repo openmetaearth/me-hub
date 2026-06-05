@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+	"fmt"
 )
 
 // DefaultIndex is the default capability global index
@@ -51,6 +52,9 @@ func (gs GenesisState) Validate() error {
 		if _, ok := latestStateInfoIndexIndexMap[index]; ok {
 			return errors.New("duplicated index for latestStateInfoIndex")
 		}
+		if _, ok := stateInfoIndexMap[string(StateInfoKey(elem))]; !ok {
+			return fmt.Errorf("latestStateInfoIndex references missing stateInfo: rollappId=%s index=%d", elem.RollappId, elem.Index)
+		}
 		latestStateInfoIndexIndexMap[index] = struct{}{}
 	}
 	// Check for duplicated index in latestFinalizedStateIndex
@@ -61,6 +65,9 @@ func (gs GenesisState) Validate() error {
 		if _, ok := latestFinalizedStateIndexIndexMap[index]; ok {
 			return errors.New("duplicated index for latestFinalizedStateIndex")
 		}
+		if _, ok := stateInfoIndexMap[string(StateInfoKey(elem))]; !ok {
+			return fmt.Errorf("latestFinalizedStateIndex references missing stateInfo: rollappId=%s index=%d", elem.RollappId, elem.Index)
+		}
 		latestFinalizedStateIndexIndexMap[index] = struct{}{}
 	}
 	// Check for duplicated index in blockHeightToFinalizationQueue
@@ -70,6 +77,17 @@ func (gs GenesisState) Validate() error {
 		index := string(BlockHeightToFinalizationQueueKey(elem.CreationHeight))
 		if _, ok := blockHeightToFinalizationQueueIndexMap[index]; ok {
 			return errors.New("duplicated index for blockHeightToFinalizationQueue")
+		}
+		finalizationQueueIndexMap := make(map[string]struct{})
+		for _, stateInfoIndex := range elem.FinalizationQueue {
+			index := string(StateInfoKey(stateInfoIndex))
+			if _, ok := finalizationQueueIndexMap[index]; ok {
+				return fmt.Errorf("duplicated stateInfoIndex in finalization queue: creationHeight=%d rollappId=%s index=%d", elem.CreationHeight, stateInfoIndex.RollappId, stateInfoIndex.Index)
+			}
+			if _, ok := stateInfoIndexMap[index]; !ok {
+				return fmt.Errorf("finalization queue references missing stateInfo: creationHeight=%d rollappId=%s index=%d", elem.CreationHeight, stateInfoIndex.RollappId, stateInfoIndex.Index)
+			}
+			finalizationQueueIndexMap[index] = struct{}{}
 		}
 		blockHeightToFinalizationQueueIndexMap[index] = struct{}{}
 	}
