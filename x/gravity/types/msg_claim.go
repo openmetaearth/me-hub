@@ -239,6 +239,9 @@ func (m *MsgRelayerSetUpdateClaim) ValidateBasic() (err error) {
 	if len(m.Members) == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("empty members")
 	}
+	if m.RelayerSetNonce == 0 {
+		return errortypes.ErrInvalidRequest.Wrap("zero relayer set nonce")
+	}
 	for _, member := range m.Members {
 		if err = ValidateExternalAddr(m.ChainName, member.ExternalAddress); err != nil {
 			return errortypes.ErrInvalidAddress.Wrapf("invalid external address: %s", err)

@@ -101,24 +101,31 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 			Nonce:   claim.RelayerSetNonce,
 			Members: claim.Members,
 		}
-		// check the contents of the validator set against the store
-		if claim.RelayerSetNonce != 0 {
-			trustedRelayerSet := k.GetRelayerSet(ctx, claim.RelayerSetNonce)
-			if trustedRelayerSet == nil {
-				ctx.Logger().Error("Received attestation for a relayer set which does not exist in store", "relayerSetNonce", claim.RelayerSetNonce, "claim", claim)
-				return errorsmod.Wrapf(types.ErrInvalid, "attested relayerSet (%v) does not exist in store", claim.RelayerSetNonce)
-			}
+		if claim.RelayerSetNonce == 0 {
+			return errorsmod.Wrap(types.ErrInvalid, "zero relayer set nonce")
+		}
 
-			// overwrite the height, since it's not part of the claim
-			observedRelayerSet.Height = trustedRelayerSet.Height
-			match, err := trustedRelayerSet.Equal(observedRelayerSet)
-			if err != nil {
-				// this indicates that the members of the two sets are not equal
-				return errorsmod.Wrapf(types.ErrInvalid, "potential bridge hijacking: observed relayerSet (%+v) does not match stored relayerSet (%+v)! %s", observedRelayerSet, trustedRelayerSet, err.Error())
-			}
-			if !match {
-				return errorsmod.Wrapf(types.ErrInvalid, "potential bridge hijacking: observed relayerSet (%d) does not match stored relayerSet (%d)", observedRelayerSet.Nonce, trustedRelayerSet.Nonce)
-			}
+		// Check the contents of the relayer set against the store.
+		trustedRelayerSet := k.GetRelayerSet(ctx, claim.RelayerSetNonce)
+		if trustedRelayerSet == nil {
+			ctx.Logger().Error("Received attestation for a relayer set which does not exist in store", "relayerSetNonce", claim.RelayerSetNonce, "claim", claim)
+			return errorsmod.Wrapf(types.ErrInvalid, "attested relayerSet (%v) does not exist in store", claim.RelayerSetNonce)
+		}
+
+		// overwrite the height, since it's not part of the claim
+		observedRelayerSet.Height = trustedRelayerSet.Height
+		match, err := trustedRelayerSet.Equal(observedRelayerSet)
+		if err != nil {
+			// this indicates that the members of the two sets are not equal
+			return errorsmod.Wrapf(types.ErrInvalid, "potential bridge hijacking: observed relayerSet (%+v) does not match stored relayerSet (%+v)! %s", observedRelayerSet, trustedRelayerSet, err.Error())
+		}
+		if !match {
+			return errorsmod.Wrapf(types.ErrInvalid, "potential bridge hijacking: observed relayerSet (%d) does not match stored relayerSet (%d)", observedRelayerSet.Nonce, trustedRelayerSet.Nonce)
+		}
+
+		lastObservedRelayerSet := k.GetLastObservedRelayerSet(ctx)
+		if lastObservedRelayerSet != nil && observedRelayerSet.Nonce < lastObservedRelayerSet.Nonce {
+			return errorsmod.Wrapf(types.ErrInvalid, "relayer set nonce regression: observed relayerSet (%d) is older than last observed relayerSet (%d)", observedRelayerSet.Nonce, lastObservedRelayerSet.Nonce)
 		}
 		k.SetLastObservedRelayerSet(ctx, observedRelayerSet)
 	default:

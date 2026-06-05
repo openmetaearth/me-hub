@@ -195,6 +195,76 @@ func (s *KeeperTestSuite) TestGrav004_FailedAttestationMustNotLockNonce() {
 	}
 }
 
+func (s *KeeperTestSuite) TestRelayerSetUpdateClaimRejectsNonceZeroObservedSetForgery() {
+	k := s.Keeper()
+	s.setupBondedRelayerSetForAuditTest()
+
+	nonce1RelayerSet := k.GetRelayerSet(s.Ctx, 1)
+	s.Require().NotNil(nonce1RelayerSet)
+
+	preObserved := k.GetLastObservedRelayerSet(s.Ctx)
+	s.Require().NotNil(preObserved)
+	s.Require().EqualValues(1, preObserved.Nonce)
+
+	forgedMembers := types.BridgeValidators{
+		{
+			Power:           types.PowerBase,
+			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[0].PublicKey),
+		},
+	}
+
+	for _, relayer := range s.relayerAddrs {
+		msg := &types.MsgRelayerSetUpdateClaim{
+			EventNonce:      k.GetLastEventNonceByRelayer(s.Ctx, relayer) + 1,
+			BlockHeight:     2,
+			RelayerSetNonce: 0,
+			Members:         forgedMembers,
+			RelayerAddress:  relayer.String(),
+			ChainName:       s.chainName,
+		}
+		_, err := s.MsgServer().RelayerSetUpdateClaim(sdk.WrapSDKContext(s.Ctx), msg)
+		s.Require().Error(err)
+	}
+
+	postObserved := k.GetLastObservedRelayerSet(s.Ctx)
+	s.Require().NotNil(postObserved)
+	s.Require().EqualValues(1, postObserved.Nonce)
+	s.Require().Equal(nonce1RelayerSet.Members, postObserved.Members)
+}
+
+func (s *KeeperTestSuite) TestRelayerSetUpdateClaimRejectsObservedSetNonceRegression() {
+	k := s.Keeper()
+	s.setupBondedRelayerSetForAuditTest()
+
+	nonce1RelayerSet := k.GetRelayerSet(s.Ctx, 1)
+	s.Require().NotNil(nonce1RelayerSet)
+
+	nonce2RelayerSet := *nonce1RelayerSet
+	nonce2RelayerSet.Nonce = 2
+	nonce2RelayerSet.Height = uint64(s.Ctx.BlockHeight()) + 1
+	k.StoreRelayerSet(s.Ctx, &nonce2RelayerSet)
+	k.SetLastRelayerSetNonce(s.Ctx, 2)
+	k.SetLastObservedRelayerSet(s.Ctx, &nonce2RelayerSet)
+
+	for _, relayer := range s.relayerAddrs {
+		msg := &types.MsgRelayerSetUpdateClaim{
+			EventNonce:      k.GetLastEventNonceByRelayer(s.Ctx, relayer) + 1,
+			BlockHeight:     2,
+			RelayerSetNonce: 1,
+			Members:         nonce1RelayerSet.Members,
+			RelayerAddress:  relayer.String(),
+			ChainName:       s.chainName,
+		}
+		_, err := s.MsgServer().RelayerSetUpdateClaim(sdk.WrapSDKContext(s.Ctx), msg)
+		s.Require().NoError(err)
+	}
+
+	postObserved := k.GetLastObservedRelayerSet(s.Ctx)
+	s.Require().NotNil(postObserved)
+	s.Require().EqualValues(2, postObserved.Nonce)
+	s.Require().Equal(nonce2RelayerSet.Members, postObserved.Members)
+}
+
 // ---------------------------------------------------------------------------
 // Helper: bond relayers, confirm and observe the initial relayer set.
 // Mirrors the opening of TestRequestBatchBaseFee in msg_server_test.go, but
