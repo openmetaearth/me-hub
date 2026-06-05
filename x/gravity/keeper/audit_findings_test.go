@@ -10,6 +10,7 @@ package keeper_test
 // Coverage:
 //   GRAV-001  Attest must reject historical-nonce claims (no backward rewind)
 //   GRAV-004  Failed AttestationHandler must not advance lastObservedEventNonce
+//   GRAV-005  External block height must not rewind LastObservedBlockHeight
 
 import (
 	"encoding/hex"
@@ -193,6 +194,85 @@ func (s *KeeperTestSuite) TestGrav004_FailedAttestationMustNotLockNonce() {
 				"handler failed; retries are now impossible",
 			probeClaim.GetEventNonce())
 	}
+}
+
+// ---------------------------------------------------------------------------
+// GRAV-005: Later attestations must not rewind external block height
+// ---------------------------------------------------------------------------
+//
+// cleanupTimedOutBatches depends on LastObservedBlockHeight.ExternalBlockHeight
+// to decide which outgoing batches have expired on the external chain. A later
+// claim with a lower external block height must not be accepted, otherwise the
+// timeout watermark can move backwards and keep expired batches alive.
+
+func (s *KeeperTestSuite) TestGrav005_AttestRejectsExternalBlockHeightRegression() {
+	k := s.Keeper()
+	s.setupBondedRelayerSetForAuditTest()
+
+	tokenContract := "0x42D755c5494180be5a44D6Ca7D9291F6D4B4228A"
+	for i := 0; i < 7; i++ {
+		claim := &types.MsgBridgeTokenClaim{
+			EventNonce:     2,
+			BlockHeight:    1000,
+			TokenContract:  tokenContract,
+			Name:           "Height Guard Token",
+			Symbol:         "HGT",
+			Decimals:       6,
+			RelayerAddress: s.relayerAddrs[i].String(),
+			ChainName:      s.chainName,
+		}
+		_, err := s.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(s.Ctx), claim)
+		s.Require().NoError(err)
+	}
+
+	s.Require().EqualValues(1000, k.GetLastObservedBlockHeight(s.Ctx).ExternalBlockHeight)
+	s.Require().EqualValues(2, k.GetLastObservedEventNonce(s.Ctx))
+
+	expiredBatch := &types.OutgoingTxBatch{
+		BatchNonce:   77,
+		BatchTimeout: 500,
+		Transactions: []*types.OutgoingTransferTx{
+			{
+				Id:          1,
+				Sender:      s.relayerAddrs[0].String(),
+				DestAddress: s.PubKeyToExternalAddr(s.externalPris[1].PublicKey),
+				Token: types.ERC20Token{
+					Contract: tokenContract,
+					Amount:   sdkmath.NewInt(100),
+				},
+				Fee: types.ERC20Token{
+					Contract: tokenContract,
+					Amount:   sdkmath.NewInt(1),
+				},
+			},
+		},
+		TokenContract: tokenContract,
+		Block:         uint64(s.Ctx.BlockHeight()),
+		FeeReceive:    s.PubKeyToExternalAddr(s.externalPris[2].PublicKey),
+	}
+	s.Require().NoError(k.StoreBatch(s.Ctx, expiredBatch))
+
+	regressingClaim := &types.MsgBridgeTokenClaim{
+		EventNonce:     3,
+		BlockHeight:    1,
+		TokenContract:  tokenContract,
+		Name:           "Height Guard Token",
+		Symbol:         "HGT",
+		Decimals:       6,
+		RelayerAddress: s.relayerAddrs[0].String(),
+		ChainName:      s.chainName,
+	}
+	_, err := s.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(s.Ctx), regressingClaim)
+	s.Require().ErrorIs(err, types.ErrInvalid)
+	s.Require().Contains(err.Error(), "external block height regression")
+
+	s.Require().EqualValues(1000, k.GetLastObservedBlockHeight(s.Ctx).ExternalBlockHeight)
+	s.Require().EqualValues(2, k.GetLastObservedEventNonce(s.Ctx))
+	s.Require().EqualValues(2, k.GetLastEventNonceByRelayer(s.Ctx, s.relayerAddrs[0]))
+	s.Require().Nil(k.GetAttestation(s.Ctx, regressingClaim.GetEventNonce(), regressingClaim.ClaimHash()))
+
+	k.EndBlocker(s.Ctx)
+	s.Require().Nil(k.GetOutgoingTxBatch(s.Ctx, tokenContract, expiredBatch.BatchNonce))
 }
 
 // ---------------------------------------------------------------------------

@@ -35,9 +35,11 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 		// second: if not continuous, event nonce must greater than last observed nonce.
 		return nil, errorsmod.Wrapf(types.ErrNonContinuousEventNonce, "got %v, expected %v", claim.GetEventNonce(), expectedNonce)
 	}
-
 	gasMeter := ctx.GasMeter()
 	ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+	if err := k.validateExternalBlockHeightProgression(ctx, claim); err != nil {
+		return nil, err
+	}
 
 	// Tries to get an attestation with the same eventNonce and claim as the claim that was submitted.
 	att := k.GetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash())
@@ -101,6 +103,11 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		if attestationPower.LT(requiredPower) {
 			continue
 		}
+		if err := k.validateExternalBlockHeightProgression(ctx, claim); err != nil {
+			k.Logger(ctx).Error("TryAttestation", "external block height regression", "error", err,
+				"claimEventNonce", claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
+			break
+		}
 
 		k.SetLastObservedEventNonce(ctx, claim.GetEventNonce())
 
@@ -143,6 +150,14 @@ func (k Keeper) processAttestation(ctx sdk.Context, claim types.ExternalClaim) e
 		return err
 	}
 	commit() // persist transient storage
+	return nil
+}
+
+func (k Keeper) validateExternalBlockHeightProgression(ctx sdk.Context, claim types.ExternalClaim) error {
+	lastHeight := k.GetLastObservedBlockHeight(ctx).ExternalBlockHeight
+	if lastHeight != 0 && claim.GetBlockHeight() < lastHeight {
+		return errorsmod.Wrapf(types.ErrInvalid, "external block height regression: got %d, observed %d", claim.GetBlockHeight(), lastHeight)
+	}
 	return nil
 }
 
