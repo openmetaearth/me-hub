@@ -33,32 +33,34 @@ func TestGenesisState_Validate(t *testing.T) {
 				},
 				RollappList: []types.Rollapp{
 					{
-						RollappId: "0",
+						RollappId: "rollapp-1",
+						Creator:   deployerAddr1,
 					},
 					{
-						RollappId: "1",
+						RollappId: "otherrollapp-1",
+						Creator:   deployerAddr2,
 					},
 				},
 				StateInfoList: []types.StateInfo{
 					{
 						StateInfoIndex: types.StateInfoIndex{
-							RollappId: "0",
+							RollappId: "rollapp-1",
 							Index:     0,
 						},
 					},
 					{
 						StateInfoIndex: types.StateInfoIndex{
-							RollappId: "1",
+							RollappId: "otherrollapp-1",
 							Index:     1,
 						},
 					},
 				},
 				LatestStateInfoIndexList: []types.StateInfoIndex{
 					{
-						RollappId: "0",
+						RollappId: "rollapp-1",
 					},
 					{
-						RollappId: "1",
+						RollappId: "otherrollapp-1",
 					},
 				},
 				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
@@ -82,32 +84,34 @@ func TestGenesisState_Validate(t *testing.T) {
 				},
 				RollappList: []types.Rollapp{
 					{
-						RollappId: "0",
+						RollappId: "rollapp-1",
+						Creator:   deployerAddr1,
 					},
 					{
-						RollappId: "1",
+						RollappId: "otherrollapp-1",
+						Creator:   deployerAddr2,
 					},
 				},
 				StateInfoList: []types.StateInfo{
 					{
 						StateInfoIndex: types.StateInfoIndex{
-							RollappId: "0",
+							RollappId: "rollapp-1",
 							Index:     0,
 						},
 					},
 					{
 						StateInfoIndex: types.StateInfoIndex{
-							RollappId: "1",
+							RollappId: "otherrollapp-1",
 							Index:     1,
 						},
 					},
 				},
 				LatestStateInfoIndexList: []types.StateInfoIndex{
 					{
-						RollappId: "0",
+						RollappId: "rollapp-1",
 					},
 					{
-						RollappId: "1",
+						RollappId: "otherrollapp-1",
 					},
 				},
 				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
@@ -143,7 +147,122 @@ func TestGenesisState_Validate(t *testing.T) {
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
 					DeployerWhitelist:     []types.DeployerParams{},
 				},
-				RollappList:                        []types.Rollapp{{RollappId: "0"}, {RollappId: "0"}},
+				RollappList:                        []types.Rollapp{{RollappId: "rollapp-1", Creator: deployerAddr1}, {RollappId: "rollapp-1", Creator: deployerAddr1}},
+				StateInfoList:                      []types.StateInfo{},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+			},
+			valid: false,
+		},
+		{
+			desc: "invalid rollapp basic validation",
+			genState: &types.GenesisState{
+				Params: types.Params{
+					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
+					DeployerWhitelist:     []types.DeployerParams{},
+				},
+				RollappList: []types.Rollapp{
+					{
+						RollappId:     "rollapp-1",
+						Creator:       deployerAddr1,
+						MaxSequencers: types.MaxAllowedSequencers + 1,
+					},
+				},
+				StateInfoList:                      []types.StateInfo{},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicated active eip155 rollapp",
+			genState: &types.GenesisState{
+				Params: types.Params{
+					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
+					DeployerWhitelist:     []types.DeployerParams{},
+				},
+				RollappList: []types.Rollapp{
+					{
+						RollappId: "alpha_42-1",
+						Creator:   deployerAddr1,
+					},
+					{
+						RollappId: "beta_42-1",
+						Creator:   deployerAddr2,
+					},
+				},
+				StateInfoList:                      []types.StateInfo{},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+			},
+			valid: false,
+		},
+		{
+			desc: "valid frozen eip155 revision replacement",
+			genState: &types.GenesisState{
+				Params: types.Params{
+					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
+					DeployerWhitelist:     []types.DeployerParams{},
+				},
+				RollappList: []types.Rollapp{
+					{
+						RollappId: "rollapp_42-1",
+						Creator:   deployerAddr1,
+						Frozen:    true,
+					},
+					{
+						RollappId: "rollapp_42-2",
+						Creator:   deployerAddr2,
+					},
+				},
+				StateInfoList:                      []types.StateInfo{},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+			},
+			valid: true,
+		},
+		{
+			desc: "invalid frozen eip155 revision replacement name",
+			genState: &types.GenesisState{
+				Params: types.Params{
+					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
+					DeployerWhitelist:     []types.DeployerParams{},
+				},
+				RollappList: []types.Rollapp{
+					{
+						RollappId: "rollapp_42-1",
+						Creator:   deployerAddr1,
+						Frozen:    true,
+					},
+					{
+						RollappId: "otherrollapp_42-2",
+						Creator:   deployerAddr2,
+					},
+				},
+				StateInfoList:                      []types.StateInfo{},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+			},
+			valid: false,
+		},
+		{
+			desc: "invalid frozen eip155 revision replacement gap",
+			genState: &types.GenesisState{
+				Params: types.Params{
+					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
+					DeployerWhitelist:     []types.DeployerParams{},
+				},
+				RollappList: []types.Rollapp{
+					{
+						RollappId: "rollapp_42-1",
+						Creator:   deployerAddr1,
+						Frozen:    true,
+					},
+					{
+						RollappId: "rollapp_42-3",
+						Creator:   deployerAddr2,
+					},
+				},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
 				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},

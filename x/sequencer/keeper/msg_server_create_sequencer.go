@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 
 	errorsmod "cosmossdk.io/errors"
@@ -87,7 +88,11 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	unbondingSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Unbonding)
 	// check to see if we reached the maximum number of sequencers for this rollapp
 	currentNumOfSequencers := len(bondedSequencers) + len(unbondingSequencers)
-	if rollapp.MaxSequencers > 0 && uint64(currentNumOfSequencers) >= rollapp.MaxSequencers {
+	maxSequencers := rollapp.MaxSequencers
+	if maxSequencers > rollapptypes.MaxAllowedSequencers {
+		maxSequencers = rollapptypes.MaxAllowedSequencers
+	}
+	if maxSequencers > 0 && uint64(currentNumOfSequencers) >= maxSequencers {
 		return nil, types.ErrMaxSequencersLimit
 	}
 	// this is the first sequencer, make it a PROPOSER
