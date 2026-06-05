@@ -27,12 +27,7 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 	lastEventNonce := k.GetLastEventNonceByRelayer(ctx, relayerAddr)
 	expectedNonce := lastEventNonce + 1
 
-	// fist check continuity
-	if claim.GetEventNonce() <= lastEventNonce {
-		return nil, errorsmod.Wrapf(types.ErrNonContinuousEventNonce, "got %v, expected %v", claim.GetEventNonce(), expectedNonce)
-	}
-	if claim.GetEventNonce() != expectedNonce && claim.GetEventNonce() > lastObservedNonce {
-		// second: if not continuous, event nonce must greater than last observed nonce.
+	if claim.GetEventNonce() != expectedNonce {
 		return nil, errorsmod.Wrapf(types.ErrNonContinuousEventNonce, "got %v, expected %v", claim.GetEventNonce(), expectedNonce)
 	}
 
