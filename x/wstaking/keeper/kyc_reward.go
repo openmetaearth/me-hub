@@ -306,10 +306,10 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 	for _, fixed := range fixedDeposits {
 		totalFixedDepositByAcc = totalFixedDepositByAcc.Add(fixed.Principal.Amount)
 		totalFixedInterestCoin = totalFixedInterestCoin.Add(fixed.Interest.Amount)
-		//check toRegion deposit config is exist and deposit rate is equal
-		rate, exists := depositConfigMap[fixed.Term]
-		if !exists || !rate.Equal(fixed.Rate) {
-			return errors.New(fmt.Sprintf("deposit cfg not same.rate=%s,fixed.Rate=%s,exists=%v,fixed.Term=%v", rate.String(), fixed.Rate.String(), exists, fixed.Term))
+		//check toRegion deposit config exists and has an active term
+		_, exists := depositConfigMap[fixed.Term]
+		if !exists {
+			return errors.New(fmt.Sprintf("deposit cfg not found for term=%v in target region %s", fixed.Term, toRegion.RegionId))
 		}
 
 		err := k.IncreaseFixedDepositCountOfCfg(ctx, toRegion.RegionId, fixed.Term)
