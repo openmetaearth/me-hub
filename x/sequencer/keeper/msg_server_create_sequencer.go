@@ -46,26 +46,31 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, err
 	}
 
-	bond := sdk.Coins{}
 	minBond := k.GetParams(ctx).MinBond
-	if !minBond.IsNil() && !minBond.IsZero() {
-		if msg.Bond.Denom != minBond.Denom {
-			return nil, errorsmod.Wrapf(
-				types.ErrInvalidCoinDenom, "got %s, expected %s", msg.Bond.Denom, minBond.Denom,
-			)
-		}
+	if !minBond.IsValid() || !minBond.IsPositive() {
+		return nil, errorsmod.Wrapf(types.ErrInvalidMinBond, "expected positive min bond, got %s", minBond)
+	}
 
-		if msg.Bond.Amount.LT(minBond.Amount) {
-			return nil, errorsmod.Wrapf(
-				types.ErrInsufficientBond, "got %s, expected %s", msg.Bond.Amount, minBond,
-			)
-		}
+	if !msg.Bond.IsValid() || !msg.Bond.IsPositive() {
+		return nil, errorsmod.Wrapf(types.ErrInsufficientBond, "got %s, expected at least %s", msg.Bond, minBond)
+	}
 
-		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.Bond))
-		if err != nil {
-			return nil, err
-		}
-		bond = sdk.NewCoins(msg.Bond)
+	if msg.Bond.Denom != minBond.Denom {
+		return nil, errorsmod.Wrapf(
+			types.ErrInvalidCoinDenom, "got %s, expected %s", msg.Bond.Denom, minBond.Denom,
+		)
+	}
+
+	if msg.Bond.Amount.LT(minBond.Amount) {
+		return nil, errorsmod.Wrapf(
+			types.ErrInsufficientBond, "got %s, expected %s", msg.Bond.Amount, minBond,
+		)
+	}
+
+	bond := sdk.NewCoins(msg.Bond)
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, bond)
+	if err != nil {
+		return nil, err
 	}
 
 	sequencer := types.Sequencer{

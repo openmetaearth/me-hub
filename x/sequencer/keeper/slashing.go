@@ -22,13 +22,17 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	}
 
 	seqTokens := seq.Tokens
-	if !seqTokens.Empty() {
-		err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, seqTokens)
-		if err != nil {
-			return err
-		}
-	} else {
-		k.Logger(ctx).Error("sequencer has no tokens to slash", "sequencer", seq.SequencerAddress)
+	if !seqTokens.IsValid() || seqTokens.Empty() {
+		return errorsmod.Wrapf(
+			types.ErrInvalidSequencerTokens,
+			"sequencer %s has no slashable bond",
+			seq.SequencerAddress,
+		)
+	}
+
+	err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, seqTokens)
+	if err != nil {
+		return err
 	}
 	seq.Tokens = sdk.Coins{}
 
