@@ -3,6 +3,8 @@ package keeper_test
 import (
 	common "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	cometbfttypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
 // Happy Flow
@@ -242,4 +244,25 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string) {
 			suite.Require().NotEqual(rollappId, stateInfoIndex.RollappId)
 		}
 	}
+}
+
+func (suite *RollappTestSuite) TestFreezeClientState() {
+	suite.SetupTest()
+	k := suite.App.RollappKeeper
+
+	clientId := "07-tendermint-0"
+	clientState := &cometbfttypes.ClientState{
+		LatestHeight: clienttypes.NewHeight(2, 500),
+	}
+	k.SetClientStateForTest(suite.Ctx, clientId, clientState)
+
+	err := k.FreezeClientStateForTest(suite.Ctx, clientId)
+	suite.Require().NoError(err)
+
+	frozenState, ok := k.GetClientStateForTest(suite.Ctx, clientId)
+	suite.Require().True(ok)
+
+	tmFrozenState := frozenState.(*cometbfttypes.ClientState)
+	suite.Require().Equal(uint64(2), tmFrozenState.FrozenHeight.RevisionNumber)
+	suite.Require().Equal(uint64(500), tmFrozenState.FrozenHeight.RevisionHeight)
 }
