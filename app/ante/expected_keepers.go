@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
 )
 
@@ -14,6 +15,10 @@ type DaoKeeper interface {
 	GetDevOperator(ctx sdk.Context) string
 	GetGlobalDaoFeePoolAddr(ctx sdk.Context) sdk.AccAddress
 	CheckFreeGasAccount(ctx sdk.Context, address string) bool
+	// IsGlobalDao and GetMeidDao are used by JoinGroupValidateDecorator to
+	// verify that a non-self creator is a privileged DAO account.
+	IsGlobalDao(ctx sdk.Context, address string) bool
+	GetMeidDao(ctx sdk.Context) string
 }
 
 type BankKeeper interface {
@@ -34,4 +39,10 @@ type KycKeeper interface {
 type WasmKeeper interface {
 	HasContractInfo(ctx sdk.Context, contractAddress sdk.AccAddress) bool
 	GetContractInfo(ctx sdk.Context, contractAddress sdk.AccAddress) *wasmtypes.ContractInfo
+}
+
+// MeGroupKeeper is the subset of the megroup keeper needed by JoinGroupValidateDecorator.
+type MeGroupKeeper interface {
+	GetGroupInfo(ctx sdk.Context, id uint64) (megrouptypes.GroupInfo, bool)
+	GetDidAndKycActive(ctx sdk.Context, addr sdk.AccAddress, regionID string) (string, bool)
 }

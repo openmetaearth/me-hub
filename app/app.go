@@ -232,6 +232,7 @@ func New(
 		StakingKeeper:          app.StakingKeeper,
 		KycKeeper:              app.KycKeeper,
 		WasmViewKeeper:         app.WasmKeeper,
+		MeGroupKeeper:          app.GroupKeeper,
 	})
 	if err != nil {
 		panic(err)

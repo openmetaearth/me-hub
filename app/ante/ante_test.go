@@ -2,9 +2,10 @@ package ante_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"github.com/openmetaearth/me-hub/app/ante/mock"
-	"testing"
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
@@ -61,6 +62,7 @@ func (s *AnteTestSuite) SetupTest(isCheckTx bool) {
 	defer ctrl.Finish()
 	mockStakingKeeper := mock.NewMockStakingKeeper(ctrl)
 	mockDaoKeeper := mock.NewMockDaoKeeper(ctrl)
+	mockMeGroupKeeper := mock.NewMockMeGroupKeeper(ctrl)
 
 	anteHandler, err := ante.NewAnteHandler(
 		ante.HandlerOptions{
@@ -75,6 +77,7 @@ func (s *AnteTestSuite) SetupTest(isCheckTx bool) {
 			StakingKeeper:   mockStakingKeeper,
 			KycKeeper:       s.app.KycKeeper,
 			WasmViewKeeper:  s.app.WasmKeeper,
+			MeGroupKeeper:   mockMeGroupKeeper,
 		},
 	)
 
@@ -92,6 +95,7 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	suite.mockStakingKeeper.EXPECT().GetProposerOwnerAddress(gomock.Any()).Return(proposerOwner.Address, nil)
 	devOperator := NewAccount()
 	suite.mockDaoKeeper.EXPECT().GetDevOperator(gomock.Any()).Return(devOperator.Address)
+	suite.mockDaoKeeper.EXPECT().IsDao(gomock.Any(), addr.Address).Return(false)
 	suite.mockDaoKeeper.EXPECT().GetGlobalDao(gomock.Any()).Return(devOperator.Address)
 	suite.mockDaoKeeper.EXPECT().GetMeidDao(gomock.Any()).Return(devOperator.Address)
 	suite.mockDaoKeeper.EXPECT().GetGlobalDaoFeePoolAddr(gomock.Any()).Return(devOperator.GetAddress())

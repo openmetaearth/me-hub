@@ -12,6 +12,7 @@ import (
 	types1 "github.com/cosmos/cosmos-sdk/x/bank/types"
 	gomock "github.com/golang/mock/gomock"
 	types2 "github.com/openmetaearth/me-hub/x/did/types"
+	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	types3 "github.com/openmetaearth/me-hub/x/wbank/types"
 )
 
@@ -120,6 +121,34 @@ func (m *MockDaoKeeper) GetMeidDao(ctx types0.Context) string {
 func (mr *MockDaoKeeperMockRecorder) GetMeidDao(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMeidDao", reflect.TypeOf((*MockDaoKeeper)(nil).GetMeidDao), ctx)
+}
+
+// IsGlobalDao mocks base method.
+func (m *MockDaoKeeper) IsGlobalDao(ctx types0.Context, address string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsGlobalDao", ctx, address)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsGlobalDao indicates an expected call of IsGlobalDao.
+func (mr *MockDaoKeeperMockRecorder) IsGlobalDao(ctx, address interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsGlobalDao", reflect.TypeOf((*MockDaoKeeper)(nil).IsGlobalDao), ctx, address)
+}
+
+// IsDao mocks base method.
+func (m *MockDaoKeeper) IsDao(ctx types0.Context, addr string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsDao", ctx, addr)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsDao indicates an expected call of IsDao.
+func (mr *MockDaoKeeperMockRecorder) IsDao(ctx, addr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsDao", reflect.TypeOf((*MockDaoKeeper)(nil).IsDao), ctx, addr)
 }
 
 // MockBankKeeper is a mock of BankKeeper interface.
@@ -328,4 +357,57 @@ func (m *MockWasmKeeper) HasContractInfo(ctx types0.Context, contractAddress typ
 func (mr *MockWasmKeeperMockRecorder) HasContractInfo(ctx, contractAddress interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasContractInfo", reflect.TypeOf((*MockWasmKeeper)(nil).HasContractInfo), ctx, contractAddress)
+}
+
+// MockMeGroupKeeper is a mock of MeGroupKeeper interface.
+type MockMeGroupKeeper struct {
+	ctrl     *gomock.Controller
+	recorder *MockMeGroupKeeperMockRecorder
+}
+
+// MockMeGroupKeeperMockRecorder is the mock recorder for MockMeGroupKeeper.
+type MockMeGroupKeeperMockRecorder struct {
+	mock *MockMeGroupKeeper
+}
+
+// NewMockMeGroupKeeper creates a new mock instance.
+func NewMockMeGroupKeeper(ctrl *gomock.Controller) *MockMeGroupKeeper {
+	mock := &MockMeGroupKeeper{ctrl: ctrl}
+	mock.recorder = &MockMeGroupKeeperMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockMeGroupKeeper) EXPECT() *MockMeGroupKeeperMockRecorder {
+	return m.recorder
+}
+
+// GetGroupInfo mocks base method.
+func (m *MockMeGroupKeeper) GetGroupInfo(ctx types0.Context, id uint64) (megrouptypes.GroupInfo, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetGroupInfo", ctx, id)
+	ret0, _ := ret[0].(megrouptypes.GroupInfo)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetGroupInfo indicates an expected call of GetGroupInfo.
+func (mr *MockMeGroupKeeperMockRecorder) GetGroupInfo(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupInfo", reflect.TypeOf((*MockMeGroupKeeper)(nil).GetGroupInfo), ctx, id)
+}
+
+// GetDidAndKycActive mocks base method.
+func (m *MockMeGroupKeeper) GetDidAndKycActive(ctx types0.Context, addr types0.AccAddress, regionID string) (string, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDidAndKycActive", ctx, addr, regionID)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetDidAndKycActive indicates an expected call of GetDidAndKycActive.
+func (mr *MockMeGroupKeeperMockRecorder) GetDidAndKycActive(ctx, addr, regionID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDidAndKycActive", reflect.TypeOf((*MockMeGroupKeeper)(nil).GetDidAndKycActive), ctx, addr, regionID)
 }

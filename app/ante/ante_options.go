@@ -31,6 +31,7 @@ type HandlerOptions struct {
 	KycKeeper      KycKeeper
 	WasmViewKeeper wasmTypes.ViewKeeper
 	TxFeeChecker   ante.TxFeeChecker
+	MeGroupKeeper  MeGroupKeeper
 }
 
 func (options HandlerOptions) validate() error {
@@ -57,6 +58,9 @@ func (options HandlerOptions) validate() error {
 	}
 	if options.WasmViewKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "wasm view keeper is required for AnteHandler")
+	}
+	if options.MeGroupKeeper == nil {
+		return errorsmod.Wrap(errortypes.ErrLogic, "megroup keeper is required for AnteHandler")
 	}
 	return nil
 }
