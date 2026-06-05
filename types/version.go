@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 	"sync"
 )
@@ -18,9 +17,8 @@ const (
 )
 
 var (
-	chainId            = MainnetV1ChainId
-	once               sync.Once
-	eip155SuffixRegexp = regexp.MustCompile(`_[0-9]+-[0-9]+$`)
+	chainId = MainnetV1ChainId
+	once    sync.Once
 )
 
 func SetChainId(id string) {
@@ -34,15 +32,8 @@ func ChainId() string {
 }
 
 func ChainIdWithEIP155() string {
-	curr := ChainId()
-	if curr == "" {
-		return ""
+	if strings.Contains(ChainId(), "testnet") {
+		return fmt.Sprintf("%s_%d-1", ChainId(), TestnetEvmChainID)
 	}
-	if eip155SuffixRegexp.MatchString(curr) {
-		return curr
-	}
-	if strings.Contains(curr, "testnet") {
-		return fmt.Sprintf("%s_%d-1", curr, TestnetEvmChainID)
-	}
-	return fmt.Sprintf("%s_%d-1", curr, MainnetEvmChainID)
+	return fmt.Sprintf("%s_%d-1", ChainId(), MainnetEvmChainID)
 }
