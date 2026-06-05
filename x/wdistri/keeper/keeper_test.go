@@ -283,3 +283,27 @@ func (suite *KeeperTestSuite) setMockSendCoinsFromModuleToAccountExpect(ctx sdk.
 			).Return(nil)
 	}
 }
+
+func (suite *KeeperTestSuite) TestAllocateBlockRewardLargeAmount() {
+	largeAmount, ok := sdkmath.NewIntFromString("100000000000000000000") // 10^20 > MaxInt64
+	suite.Require().True(ok)
+
+	ctx := suite.HelperNewContextWith(types.OneDayTotalBlocks)
+	regions := suite.mockGetRegionI(ctx, 1)
+	addr := regions[0]
+
+	acc := authtypes.NewModuleAddress(suite.App.DistrKeeper.GetTreasuryModuleAccount())
+	suite.authKeeper.EXPECT().GetModuleAddress(suite.App.DistrKeeper.GetTreasuryModuleAccount()).Return(acc)
+	suite.bankKeeper.EXPECT().GetAllBalances(ctx, acc).Return(sdk.NewCoins(sdk.NewCoin(params.BaseDenom, largeAmount)))
+
+	suite.bankKeeper.EXPECT().
+		SendCoinsFromModuleToAccount(
+			ctx,
+			suite.App.DistrKeeper.GetTreasuryModuleAccount(),
+			sdk.MustAccAddressFromBech32(addr),
+			sdk.NewCoins(sdk.NewCoin(params.BaseDenom, largeAmount)),
+		).Return(nil)
+
+	err := suite.App.DistrKeeper.AllocateBlockReward(ctx)
+	suite.Require().NoError(err)
+}
