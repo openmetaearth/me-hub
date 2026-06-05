@@ -82,7 +82,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 
 // GetBatchTimeoutHeight This gets the batch timeout height in External blocks.
 func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) (uint64, uint64) {
-	currentMeHeight := ctx.BlockHeight()
+	currentMeHeight := uint64(ctx.BlockHeight())
 	params := k.GetParams(ctx)
 	if params.AverageExternalBlockTime == 0 {
 		return 0, 0
@@ -93,8 +93,13 @@ func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) (uint64, uint64) {
 	if heights.ExternalBlockHeight == 0 {
 		return 0, 0
 	}
+	// Genesis import may carry an old local height; clamp elapsed local blocks to avoid uint64 underflow.
+	elapsedMeBlocks := uint64(0)
+	if currentMeHeight >= heights.BlockHeight {
+		elapsedMeBlocks = currentMeHeight - heights.BlockHeight
+	}
 	// we project how long it has been in milliseconds since the last Ethereum block height was observed
-	projectedMillis := (uint64(currentMeHeight) - heights.BlockHeight) * params.AverageBlockTime
+	projectedMillis := elapsedMeBlocks * params.AverageBlockTime
 	// we convert that projection into the current Ethereum height using the average Ethereum block time in millis
 	projectedCurrentEthereumHeight := (projectedMillis / params.AverageExternalBlockTime) + heights.ExternalBlockHeight
 	// we convert our target time for block timeouts (lets say 12 hours) into a number of blocks to

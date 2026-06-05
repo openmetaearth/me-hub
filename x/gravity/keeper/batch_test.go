@@ -155,3 +155,16 @@ func (suite *KeeperTestSuite) TestKeeper_IterateBatch() {
 	)
 	suite.Equal(len(batchs), index)
 }
+
+func (suite *KeeperTestSuite) TestBatchTimeoutHeightDoesNotUnderflowAfterGenesisImport() {
+	// Simulate a fresh chain height after importing an old-chain local observation height.
+	suite.Ctx = suite.Ctx.WithBlockHeight(1)
+	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, 1_000, 100)
+
+	projectedCurrentExternalHeight, batchTimeout := suite.Keeper().GetBatchTimeoutHeight(suite.Ctx)
+
+	params := suite.Keeper().GetParams(suite.Ctx)
+	expectedBatchTimeout := uint64(1_000) + params.ExternalBatchTimeout/params.AverageExternalBlockTime
+	suite.Equal(uint64(1_000), projectedCurrentExternalHeight)
+	suite.Equal(expectedBatchTimeout, batchTimeout)
+}
