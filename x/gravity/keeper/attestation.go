@@ -110,6 +110,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		err = k.processAttestation(ctx, claim)
 		if err == nil {
 			k.SetLastObservedEventNonce(ctx, claim.GetEventNonce())
+			// in case of web3 event is long time ago, we set the last observed me block height need long enough.
 			k.SetLastObservedBlockHeight(ctx, claim.GetBlockHeight(), uint64(ctx.BlockHeight()))
 			att.Observed = true
 			k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
@@ -123,6 +124,8 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 			sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprint(claim.GetBlockHeight())),
 			sdk.NewAttribute(types.AttributeKeyStateSuccess, fmt.Sprint(err == nil)),
 		))
+		// execute the timeout logic
+		//k.cleanupTimedOutBatches(ctx)
 		if err == nil {
 			k.PruneAttestations(ctx)
 		}
