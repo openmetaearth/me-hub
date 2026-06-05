@@ -14,6 +14,7 @@ const (
 	TypeMsgSendToExternalClaim   = "send_to_external_claim"
 	TypeMsgRelayerSetUpdateClaim = "relayer_set_updated_claim"
 	TypeMsgBridgeTokenClaim      = "bridge_token_claim"
+	MaxBridgeTokenDecimals       = 18
 )
 
 // ExternalClaim represents a claim on ethereum state
@@ -191,11 +192,25 @@ func (m *MsgBridgeTokenClaim) ValidateBasic() (err error) {
 	if len(m.Symbol) == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("empty token symbol")
 	}
+	if err = ValidateBridgeTokenDecimals(m.Decimals); err != nil {
+		return err
+	}
 	if m.EventNonce == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
 	}
 	if m.BlockHeight == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("zero block height")
+	}
+	return nil
+}
+
+func ValidateBridgeTokenDecimals(decimals uint64) error {
+	if decimals > MaxBridgeTokenDecimals {
+		return errortypes.ErrInvalidRequest.Wrapf(
+			"bridge token decimals %d exceeds maximum %d",
+			decimals,
+			MaxBridgeTokenDecimals,
+		)
 	}
 	return nil
 }

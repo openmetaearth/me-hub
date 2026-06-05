@@ -250,6 +250,9 @@ func (s MsgServer) RelayerSetUpdateClaim(c context.Context, msg *types.MsgRelaye
 
 func (s MsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
 	if err := s.claimHandlerCommon(ctx, msg); err != nil {
 		return nil, err
 	}

@@ -89,3 +89,20 @@ func TestGetExternalUnlockAmount(t *testing.T) {
 		})
 	}
 }
+
+func TestBscStablecoinOversizedDecimalsFailClosed(t *testing.T) {
+	bridgeToken := &BridgeToken{
+		Symbol:  "USDT",
+		Decimal: 255,
+	}
+
+	require.NotPanics(t, func() {
+		result := GetMintAmount(sdkmath.NewIntWithDecimal(1, 18), "bsc", bridgeToken)
+		require.True(t, result.IsZero(), "oversized mint conversion should fail closed")
+	})
+
+	require.NotPanics(t, func() {
+		result := GetExternalUnlockAmount(sdkmath.NewInt(1_000_000), "bsc", bridgeToken)
+		require.True(t, result.IsZero(), "oversized external unlock conversion should fail closed")
+	})
+}

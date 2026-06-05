@@ -736,6 +736,35 @@ func (s *KeeperTestSuite) TestMsgBridgeTokenClaim() {
 	}
 }
 
+func (s *KeeperTestSuite) TestBridgeTokenClaimRejectsOversizedDecimalsBeforeAttestation() {
+	randomPrivateKey, err := crypto.GenerateKey()
+	s.Require().NoError(err)
+	tokenContract := s.PubKeyToExternalAddr(randomPrivateKey.PublicKey)
+
+	msg := &types.MsgBridgeTokenClaim{
+		EventNonce:     1,
+		BlockHeight:    1,
+		TokenContract:  tokenContract,
+		Name:           "Tether USD",
+		Symbol:         "USDT",
+		Decimals:       types.MaxBridgeTokenDecimals + 1,
+		RelayerAddress: s.relayerAddrs[0].String(),
+		ChainName:      s.chainName,
+	}
+
+	err = msg.ValidateBasic()
+	s.Require().ErrorContains(err, "bridge token decimals")
+	s.Require().ErrorContains(err, "exceeds maximum")
+
+	_, err = s.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(s.Ctx), msg)
+	s.Require().ErrorContains(err, "bridge token decimals")
+	s.Require().ErrorContains(err, "exceeds maximum")
+	s.Require().False(s.Keeper().HasBridgeToken(s.Ctx, tokenContract))
+
+	msg.Decimals = types.MaxBridgeTokenDecimals
+	s.Require().NoError(msg.ValidateBasic())
+}
+
 func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	// 1. First sets up a valid relayer set
 	totalPower := sdk.ZeroInt()
