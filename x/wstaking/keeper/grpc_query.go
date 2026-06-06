@@ -160,6 +160,10 @@ func (k Keeper) Stakes(goCtx context.Context, req *types.QueryStakesRequest) (*t
 }
 
 func (k Keeper) QueryAllRecord(goCtx context.Context, req *types.QueryAllRecords) (*types.QueryAllRecordsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
 	var records []types.Record
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -184,6 +188,10 @@ func (k Keeper) QueryAllRecord(goCtx context.Context, req *types.QueryAllRecords
 }
 
 func (k Querier) QueryRecordByAddress(goCtx context.Context, req *types.QueryRecordsByAddress) (*types.QueryRecordsByAddressResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	from, err := sdk.AccAddressFromBech32(req.Account)
 	if err != nil {
@@ -194,6 +202,10 @@ func (k Querier) QueryRecordByAddress(goCtx context.Context, req *types.QueryRec
 }
 
 func (k Querier) QueryReviewRecordByID(goCtx context.Context, req *types.QueryReviewRecordByNumber) (*types.QueryReviewRecordByNumberResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if req.ActionNumber == "" {
 		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("ActionNumber is empty"))
@@ -204,6 +216,10 @@ func (k Querier) QueryReviewRecordByID(goCtx context.Context, req *types.QueryRe
 
 // Delegation queries delegate info for given validator delegator pair
 func (k Querier) AllDelegations(c context.Context, req *types.QueryAllDelegationsRequest) (*types.QueryAllDelegationsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
