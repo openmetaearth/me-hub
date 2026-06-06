@@ -142,6 +142,7 @@ func (s *KeeperTestSuite) NewRelayer() (sdk.AccAddress, cryptotypes.PrivKey) {
 	newRelayer := gravitytypes.Relayer{
 		RelayerAddress:  relayer.String(),
 		ExternalAddress: externalAddress,
+		Online:          true,
 	}
 	s.App.TronKeeper.SetRelayer(s.Ctx, relayer, newRelayer)
 	s.App.TronKeeper.SetRelayerByExternalAddress(s.Ctx, externalAddress, relayer)

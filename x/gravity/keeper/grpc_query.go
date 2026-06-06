@@ -82,16 +82,23 @@ func (k QueryServer) RelayerSetConfirm(c context.Context, req *types.QueryRelaye
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
-	return &types.QueryRelayerSetConfirmResponse{Confirm: k.GetRelayerSetConfirm(ctx, req.Nonce, sdk.MustAccAddressFromBech32(req.RelayerAddress))}, nil
+	relayerAddress := sdk.MustAccAddressFromBech32(req.RelayerAddress)
+	if !k.confirmRelayerOnlineAddress(ctx, relayerAddress) {
+		return &types.QueryRelayerSetConfirmResponse{}, nil
+	}
+	return &types.QueryRelayerSetConfirmResponse{Confirm: k.GetRelayerSetConfirm(ctx, req.Nonce, relayerAddress)}, nil
 }
 
 func (k QueryServer) RelayerSetConfirmsByNonce(c context.Context, req *types.QueryRelayerSetConfirmsByNonceRequest) (*types.QueryRelayerSetConfirmsByNonceResponse, error) {
 	if req.GetNonce() <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
+	ctx := sdk.UnwrapSDKContext(c)
 	var confirms []*types.MsgRelayerSetConfirm
-	k.IterateRelayerSetConfirmByNonce(sdk.UnwrapSDKContext(c), req.Nonce, func(confirm *types.MsgRelayerSetConfirm) bool {
-		confirms = append(confirms, confirm)
+	k.IterateRelayerSetConfirmByNonce(ctx, req.Nonce, func(confirm *types.MsgRelayerSetConfirm) bool {
+		if k.confirmRelayerOnline(ctx, confirm.RelayerAddress) {
+			confirms = append(confirms, confirm)
+		}
 		return false
 	})
 	return &types.QueryRelayerSetConfirmsByNonceResponse{Confirms: confirms}, nil
@@ -224,9 +231,12 @@ func (k QueryServer) BatchConfirm(c context.Context, req *types.QueryBatchConfir
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	RelayerAddress := sdk.MustAccAddressFromBech32(req.RelayerAddress)
-	_, ok := k.GetRelayer(ctx, RelayerAddress)
+	relayer, ok := k.GetRelayer(ctx, RelayerAddress)
 	if !ok {
 		return nil, types.ErrNotFoundRelayer
+	}
+	if !relayer.Online {
+		return &types.QueryBatchConfirmResponse{}, nil
 	}
 	confirm := k.GetBatchConfirm(ctx, req.TokenContract, req.Nonce, RelayerAddress)
 	return &types.QueryBatchConfirmResponse{Confirm: confirm}, nil
@@ -239,12 +249,28 @@ func (k QueryServer) BatchConfirms(c context.Context, req *types.QueryBatchConfi
 	if req.GetNonce() <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
+	ctx := sdk.UnwrapSDKContext(c)
 	var confirms []*types.MsgConfirmBatch
-	k.IterateBatchConfirmByNonceAndTokenContract(sdk.UnwrapSDKContext(c), req.Nonce, req.TokenContract, func(confirm *types.MsgConfirmBatch) bool {
-		confirms = append(confirms, confirm)
+	k.IterateBatchConfirmByNonceAndTokenContract(ctx, req.Nonce, req.TokenContract, func(confirm *types.MsgConfirmBatch) bool {
+		if k.confirmRelayerOnline(ctx, confirm.RelayerAddress) {
+			confirms = append(confirms, confirm)
+		}
 		return false
 	})
 	return &types.QueryBatchConfirmsResponse{Confirms: confirms}, nil
+}
+
+func (k QueryServer) confirmRelayerOnline(ctx sdk.Context, relayerAddress string) bool {
+	relayerAddr, err := sdk.AccAddressFromBech32(relayerAddress)
+	if err != nil {
+		return false
+	}
+	return k.confirmRelayerOnlineAddress(ctx, relayerAddr)
+}
+
+func (k QueryServer) confirmRelayerOnlineAddress(ctx sdk.Context, relayerAddr sdk.AccAddress) bool {
+	relayer, found := k.GetRelayer(ctx, relayerAddr)
+	return found && relayer.Online
 }
 
 func (k QueryServer) PendingOutgoingTxByAddr(c context.Context, req *types.QueryPendingOutgoingTxByAddrRequest) (*types.QueryPendingOutgoingTxByAddrResponse, error) {
