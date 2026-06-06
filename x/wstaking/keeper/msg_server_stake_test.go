@@ -217,3 +217,27 @@ func (s *KeeperTestSuite) TestUnStake() {
 		})
 	}
 }
+
+func (s *KeeperTestSuite) TestValidateUnbondAmountProtectsCombinedMeidAndDelegationAmount() {
+	s.SetupTest()
+
+	valAddress, err := sdk.ValAddressFromBech32(s.meEarthValidator.OperatorAddress)
+	s.Require().NoError(err)
+	stakerAddress := sdk.MustAccAddressFromBech32(s.Dao.GlobalDao)
+
+	validator, found := s.Keeper().GetValidator(s.Ctx, valAddress)
+	s.Require().True(found)
+
+	validator.Tokens = sdk.NewInt(6)
+	validator.DelegatorShares = sdk.NewDec(6)
+	validator.DelegationAmount = sdk.NewInt(3)
+	validator.MeidAmount = sdk.NewInt(3)
+	s.Keeper().SetValidator(s.Ctx, validator)
+	s.Keeper().SetStake(s.Ctx, types.NewStake(stakerAddress, valAddress, sdk.NewDec(6)))
+
+	_, err = s.Keeper().ValidateUnbondAmount(s.Ctx, stakerAddress, valAddress, sdk.NewInt(1))
+	s.Require().ErrorIs(err, types.ErrValidatorTokensAmount)
+
+	_, err = s.Keeper().ValidateUnbondAmount(s.Ctx, stakerAddress, valAddress, sdk.ZeroInt())
+	s.Require().NoError(err)
+}

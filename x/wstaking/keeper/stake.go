@@ -298,19 +298,10 @@ func (k Keeper) ValidateUnbondAmount(
 		return shares, stakingtypes.ErrNoValidatorFound
 	}
 
-	valTokens := math.ZeroInt()
-
-	// ensure validator's tokens can not less than meid amount or delegate amount
-	if validator.MeidAmount.GTE(validator.DelegationAmount) {
-		valTokens = validator.Tokens.Sub(amt)
-		if valTokens.LT(validator.MeidAmount) {
-			return shares, types.ErrValidatorTokensAmount
-		}
-	} else {
-		valTokens = validator.Tokens.Sub(amt)
-		if valTokens.LT(validator.DelegationAmount) {
-			return shares, types.ErrValidatorTokensAmount
-		}
+	valTokens := validator.Tokens.Sub(amt)
+	requiredTokens := validator.MeidAmount.Add(validator.DelegationAmount)
+	if valTokens.LT(requiredTokens) {
+		return shares, types.ErrValidatorTokensAmount
 	}
 
 	sta, found := k.GetStake(ctx, stakerAddr, valAddr)
