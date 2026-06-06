@@ -18,6 +18,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/testutil/helpers"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 )
@@ -193,6 +194,86 @@ func (s *KeeperTestSuite) TestGrav004_FailedAttestationMustNotLockNonce() {
 				"handler failed; retries are now impossible",
 			probeClaim.GetEventNonce())
 	}
+}
+
+func (s *KeeperTestSuite) TestNewRelayerVotesDoNotCountBeforeExternalSetObservesIt() {
+	k := s.Keeper()
+	bondRelayer := func(index int) {
+		msg := &types.MsgBondedRelayer{
+			RelayerAddress:  s.relayerAddrs[index].String(),
+			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[index].PublicKey),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1_000_000_000)),
+			ChainName:       s.chainName,
+		}
+		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msg)
+		s.Require().NoError(err)
+	}
+
+	for _, index := range []int{0, 1, 2} {
+		bondRelayer(index)
+	}
+
+	k.SetLastObservedRelayerSet(s.Ctx, &types.RelayerSet{
+		Nonce:  1,
+		Height: uint64(s.Ctx.BlockHeight()),
+		Members: types.BridgeValidators{
+			{Power: 3000, ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[0].PublicKey)},
+			{Power: 3000, ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[1].PublicKey)},
+			{Power: 4000, ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[2].PublicKey)},
+		},
+	})
+
+	// Relayer 3 is bonded locally, but the external bridge has not observed a
+	// relayer-set update that includes its external address.
+	bondRelayer(3)
+
+	tokenContract := helpers.GenExternalAddr(s.chainName)
+	receiver := s.relayerAddrs[4]
+	sender := helpers.GenExternalAddr(s.chainName)
+	amount := sdkmath.NewInt(12345)
+	k.SetBridgeToken(s.Ctx, &types.BridgeToken{
+		ContractAddress: tokenContract,
+		Denom:           "bug403",
+		Name:            "Bug 403",
+		Symbol:          "BUG403",
+		Decimal:         6,
+		Supply:          sdkmath.ZeroInt(),
+	})
+
+	newClaim := func(relayerIndex int) *types.MsgSendToMeClaim {
+		return &types.MsgSendToMeClaim{
+			EventNonce:     1,
+			BlockHeight:    1000,
+			TokenContract:  tokenContract,
+			Amount:         amount,
+			Sender:         sender,
+			Receiver:       receiver.String(),
+			RelayerAddress: s.relayerAddrs[relayerIndex].String(),
+			ChainName:      s.chainName,
+		}
+	}
+
+	for _, relayerIndex := range []int{0, 1, 3} {
+		_, err := s.MsgServer().SendToMeClaim(sdk.WrapSDKContext(s.Ctx), newClaim(relayerIndex))
+		s.Require().NoError(err)
+	}
+
+	probeClaim := newClaim(0)
+	att := k.GetAttestation(s.Ctx, probeClaim.EventNonce, probeClaim.ClaimHash())
+	s.Require().NotNil(att)
+	s.Require().False(att.Observed, "new local relayer must not help finalize before the external bridge observes it")
+	s.Require().Equal(sdkmath.ZeroInt(), s.App.BankKeeper.GetBalance(s.Ctx, receiver, "bug403").Amount)
+
+	_, err := s.MsgServer().SendToMeClaim(sdk.WrapSDKContext(s.Ctx), newClaim(2))
+	s.Require().NoError(err)
+	att = k.GetAttestation(s.Ctx, probeClaim.EventNonce, probeClaim.ClaimHash())
+	s.Require().NotNil(att)
+	s.Require().True(att.Observed, "old observed relayer quorum should still finalize the claim")
+	s.Require().Equal(amount, s.App.BankKeeper.GetBalance(s.Ctx, receiver, "bug403").Amount)
+
+	bridgeToken, err := k.GetBridgeTokenByContract(s.Ctx, tokenContract)
+	s.Require().NoError(err)
+	s.Require().Equal(amount, bridgeToken.Supply)
 }
 
 // ---------------------------------------------------------------------------
