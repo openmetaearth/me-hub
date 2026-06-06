@@ -105,13 +105,15 @@ func (w IBCMiddleware) OnRecvPacket(
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	rollappPacket := w.savePacket(ctx, packet, transfer, relayer, commontypes.RollappPacket_ON_RECV, nil)
+	cacheCtx, write := ctx.CacheContext()
+	rollappPacket := w.savePacket(cacheCtx, packet, transfer, relayer, commontypes.RollappPacket_ON_RECV, nil)
 
-	err = w.EIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
+	err = w.EIBCDemandOrderHandler(cacheCtx, rollappPacket, transfer.FungibleTokenPacketData)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "delayed ack"))
 	}
 
+	write()
 	return nil
 }
 

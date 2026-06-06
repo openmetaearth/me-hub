@@ -56,10 +56,13 @@ func (k Keeper) finalizeRollappPacket(
 	var packetErr error
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
-		ack := ibc.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
-		if ack != nil { // NOTE: in practice ack should not be nil, since ibc transfer core module always returns something
-			packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
-		}
+		packetErr = osmoutils.ApplyFuncIfNoError(ctx, func(cacheCtx sdk.Context) error {
+			ack := ibc.OnRecvPacket(cacheCtx, *rollappPacket.Packet, rollappPacket.Relayer)
+			if ack == nil {
+				return nil
+			}
+			return k.writeRecvAck(rollappPacket, ack)(cacheCtx)
+		})
 	case commontypes.RollappPacket_ON_ACK:
 		packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.onAckPacket(rollappPacket, ibc))
 	case commontypes.RollappPacket_ON_TIMEOUT:
