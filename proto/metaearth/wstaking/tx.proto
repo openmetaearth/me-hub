@@ -316,7 +316,7 @@ message MsgIbcTransferFromRegionTreasure {
   cosmos.base.v1beta1.Coin token = 4 [(gogoproto.nullable) = false];
 
   // the recipient address on the destination chain
-  // string receiver = 5;
+  string receiver = 5;
   // Timeout height relative to the current block height.
   // The timeout is disabled when set to 0.
   Height timeout_height = 6 [

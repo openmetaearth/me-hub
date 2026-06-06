@@ -15,12 +15,13 @@ const TypeMsgIbcTransferFromRegionTreasure = "ibc_transfer_from_region_treasure"
 
 var _ sdk.Msg = &MsgIbcTransferFromRegionTreasure{}
 
-func NewMsgIbcTransferFromRegionTreasure(sourcePort, sourceChannel, regionId string, amount sdk.Coin, timeoutHeight Height, timeoutTimestamp uint64, momo, creator string) *MsgIbcTransferFromRegionTreasure {
+func NewMsgIbcTransferFromRegionTreasure(sourcePort, sourceChannel, regionId, receiver string, amount sdk.Coin, timeoutHeight Height, timeoutTimestamp uint64, momo, creator string) *MsgIbcTransferFromRegionTreasure {
 	return &MsgIbcTransferFromRegionTreasure{
 		SourcePort:       sourcePort,
 		SourceChannel:    sourceChannel,
 		RegionId:         regionId,
 		Token:            amount,
+		Receiver:         receiver,
 		TimeoutHeight:    timeoutHeight,
 		TimeoutTimestamp: timeoutTimestamp,
 		Memo:             momo,
@@ -64,6 +65,9 @@ func (msg *MsgIbcTransferFromRegionTreasure) ValidateBasic() error {
 	}
 	if !msg.Token.IsPositive() {
 		return sdkerrors.Wrap(sdkerrors.ErrInsufficientFunds, msg.Token.String())
+	}
+	if strings.TrimSpace(msg.Receiver) == "" {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {

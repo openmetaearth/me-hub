@@ -1879,7 +1879,7 @@ type MsgIbcTransferFromRegionTreasure struct {
 	// the tokens to be transferred
 	Token types1.Coin `protobuf:"bytes,4,opt,name=token,proto3" json:"token"`
 	// the recipient address on the destination chain
-	// string receiver = 5;
+	Receiver string `protobuf:"bytes,5,opt,name=receiver,proto3" json:"receiver,omitempty"`
 	// Timeout height relative to the current block height.
 	// The timeout is disabled when set to 0.
 	TimeoutHeight Height `protobuf:"bytes,6,opt,name=timeout_height,json=timeoutHeight,proto3" json:"timeout_height" yaml:"timeout_height"`
@@ -4951,6 +4951,13 @@ func (m *MsgIbcTransferFromRegionTreasure) MarshalToSizedBuffer(dAtA []byte) (in
 	}
 	i--
 	dAtA[i] = 0x32
+	if len(m.Receiver) > 0 {
+		i -= len(m.Receiver)
+		copy(dAtA[i:], m.Receiver)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Receiver)))
+		i--
+		dAtA[i] = 0x2a
+	}
 	{
 		size, err := m.Token.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
@@ -5985,6 +5992,10 @@ func (m *MsgIbcTransferFromRegionTreasure) Size() (n int) {
 	}
 	l = m.Token.Size()
 	n += 1 + l + sovTx(uint64(l))
+	l = len(m.Receiver)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	l = m.TimeoutHeight.Size()
 	n += 1 + l + sovTx(uint64(l))
 	if m.TimeoutTimestamp != 0 {
@@ -10421,6 +10432,38 @@ func (m *MsgIbcTransferFromRegionTreasure) Unmarshal(dAtA []byte) error {
 			if err := m.Token.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Receiver", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Receiver = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {

@@ -30,7 +30,7 @@ func (k MsgServer) IbcTransferFromRegionTreasure(goCtx context.Context, msg *typ
 		msg.SourceChannel,
 		msg.Token,
 		treasureAddress,
-		treasureAddress,
+		msg.Receiver,
 		ibcclienttypes.Height{RevisionNumber: msg.TimeoutHeight.RevisionNumber, RevisionHeight: msg.TimeoutHeight.RevisionHeight},
 		msg.TimeoutTimestamp,
 		msg.Memo,
