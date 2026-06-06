@@ -235,6 +235,12 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	filters, _ := m.GetFilters(ctx, msg.Did)
 	m.DeleteFilters(ctx, msg.Did, filters)
 
+	if m.HasSBT(ctx, msg.Did) {
+		if err := m.RemoveSBT(ctx, msg.Did); err != nil {
+			return &types.MsgRemoveResponse{}, errors.Wrap(err, "burn SBT failed")
+		}
+	}
+
 	// cancel reward
 	address := sdk.MustAccAddressFromBech32(didInfo.Address)
 	if err := m.DeleteApproveReward(ctx, address.String(), string(kyc.Data)); err != nil {

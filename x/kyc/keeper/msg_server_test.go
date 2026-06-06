@@ -94,6 +94,16 @@ func (s *KeeperTestSuite) TestRemove() {
 	s.Require().Equal(msg.Uri, kyc.Uri)
 	s.Require().Equal(msg.Hash, kyc.Hash)
 
+	_, err = s.msgServer.CreateSBT(s.Ctx, &types.MsgCreateSBT{
+		Issuer:  s.Dao.GlobalDao,
+		Did:     did,
+		Uri:     "http://127.0.0.1/8001/sbt",
+		UriHash: "bbbb",
+		Data:    []byte("kyc-sbt"),
+	})
+	s.Require().NoError(err)
+	s.Require().True(s.Keeper().HasSBT(s.Ctx, did))
+
 	// remove kyc
 	_, err = s.msgServer.Remove(s.Ctx, &types.MsgRemove{
 		Issuer: s.Dao.GlobalDao,
@@ -112,6 +122,7 @@ func (s *KeeperTestSuite) TestRemove() {
 	// check kyc
 	_, f = s.Keeper().GetKYC(s.Ctx, did)
 	s.Require().False(f)
+	s.Require().False(s.Keeper().HasSBT(s.Ctx, did))
 }
 
 func (s *KeeperTestSuite) TestUpdate() {
