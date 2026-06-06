@@ -1,7 +1,10 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
@@ -28,18 +31,24 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, ibc porttypes.IBC
 			"sequence", rollappPacket.Packet.Sequence,
 		}
 
-		if rollappPacket.Type == commontypes.RollappPacket_ON_ACK || rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
-			// refund all pending outgoing packets
-			// we don't have access directly to `refundPacketToken` function, so we'll use the `OnTimeoutPacket` function
-			err := ibc.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
-			if err != nil {
-				logger.Error("failed to refund reverted packet", append(logContext, "error", err.Error())...)
+		err := osmoutils.ApplyFuncIfNoError(ctx, func(cacheCtx sdk.Context) error {
+			if rollappPacket.Type == commontypes.RollappPacket_ON_ACK || rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
+				// refund all pending outgoing packets
+				// we don't have access directly to `refundPacketToken` function, so we'll use the `OnTimeoutPacket` function
+				err := ibc.OnTimeoutPacket(cacheCtx, *rollappPacket.Packet, rollappPacket.Relayer)
+				if err != nil {
+					logger.Error("failed to refund reverted packet", append(logContext, "error", err.Error())...)
+					return fmt.Errorf("refund reverted packet: sequence %d: %w", rollappPacket.Packet.Sequence, err)
+				}
 			}
-		}
-		// Update status to reverted
-		_, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_REVERTED)
+			// Update status to reverted
+			_, err := k.UpdateRollappPacketWithStatus(cacheCtx, rollappPacket, commontypes.Status_REVERTED)
+			if err != nil {
+				logger.Error("error reverting IBC rollapp packet", append(logContext, "error", err.Error())...)
+			}
+			return err
+		})
 		if err != nil {
-			logger.Error("error reverting IBC rollapp packet", append(logContext, "error", err.Error())...)
 			return err
 		}
 
