@@ -100,8 +100,12 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes bool, 
 
 	// If there is not enough quorum of votes, the proposal fails
 	//percentVoting := totalVotingPower.Quo(sdk.NewDecFromInt(keeper.stakingKeeper.TotalBondedStakePool(ctx)))
-	percentVoting := totalVotingPower.Quo(sdk.NewDecFromInt(sdk.NewInt(int64(totalValidatorNumber))))
 	quorum, _ := sdk.NewDecFromStr(params.Quorum)
+	if totalValidatorNumber == 0 {
+		return false, params.BurnVoteQuorum, tallyResults
+	}
+
+	percentVoting := totalVotingPower.Quo(sdk.NewDecFromInt(sdk.NewInt(int64(totalValidatorNumber))))
 	if percentVoting.LT(quorum) {
 		return false, params.BurnVoteQuorum, tallyResults
 	}
