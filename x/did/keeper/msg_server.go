@@ -42,6 +42,17 @@ func (m msgServer) UpdateDidStatus(goCtx context.Context, msg *types.MsgUpdateDi
 		return &types.MsgUpdateDidStatusResponse{}, types.ErrSameDidStatus
 	}
 
+	if msg.Status == types.DID_STATUS_INACTIVE {
+		for _, svc := range m.GetServices(ctx) {
+			if slices.Contains(svc.Issuers, msg.Did) {
+				svc.Issuers = slices.DeleteFunc(svc.Issuers, func(issuer string) bool {
+					return issuer == msg.Did
+				})
+				m.SetService(ctx, svc.Sid, svc)
+			}
+		}
+	}
+
 	info.Status = msg.Status
 	m.SetDidInfo(ctx, info.Did, info)
 
