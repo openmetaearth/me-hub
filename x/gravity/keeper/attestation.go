@@ -95,6 +95,11 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 				claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
 			continue
 		}
+		if !relayer.Online {
+			k.Logger(ctx).Error("TryAttestation", "offline relayer vote ignored", relayerAddr.String(), "claimEventNonce",
+				claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
+			continue
+		}
 		relayerPower := relayer.GetPower()
 		// Add it to the attestation power's sum
 		attestationPower = attestationPower.Add(relayerPower)
