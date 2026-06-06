@@ -116,7 +116,11 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string) {
 				continue
 			}
 
-			stateInfo, _ := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
+			stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
+			if !found {
+				k.Logger(ctx).Error("pending rollapp state info not found during fraud rollback", "rollapp_id", stateInfoIndex.RollappId, "index", stateInfoIndex.Index)
+				continue
+			}
 			stateInfo.Status = common.Status_REVERTED
 			k.SetStateInfo(ctx, stateInfo)
 		}
