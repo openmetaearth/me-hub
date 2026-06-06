@@ -9,6 +9,7 @@ import (
 	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
 	"github.com/openmetaearth/me-hub/x/wdistri/types"
 	"github.com/openmetaearth/me-hub/x/wdistri/types/mock"
+	"math/big"
 	"testing"
 
 	"github.com/openmetaearth/me-hub/app/params"
@@ -215,7 +216,7 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 		totalWantReward := 0
 		for i, addr := range addrs {
 			wantReward = append(wantReward, coinAndAddr{
-				num:  int64(testcase.regionWantGetReward[i]),
+				num:  sdk.NewInt(int64(testcase.regionWantGetReward[i])),
 				addr: addr,
 			})
 			totalWantReward += testcase.regionWantGetReward[i]
@@ -235,6 +236,22 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 			runCase(i)
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestAllocateBlockRewardHandlesLargeTreasuryAmount() {
+	ctx := suite.HelperNewContextWith(types.OneDayTotalBlocks)
+	addrs := suite.mockGetRegionI(ctx, 1)
+	largeAmount := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(19), nil))
+
+	suite.SetMockGetBalance(ctx, largeAmount)
+	suite.setMockSendCoinsFromModuleToAccountExpect(ctx, coinAndAddr{
+		num:  largeAmount,
+		addr: addrs[0],
+	})
+
+	err := suite.App.DistrKeeper.AllocateBlockReward(ctx)
+	suite.Require().NoError(err)
+	suite.Require().Len(ctx.EventManager().ABCIEvents(), 1)
 }
 
 func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int) []string {
@@ -267,7 +284,7 @@ func (suite *KeeperTestSuite) HelperNewContextWith(height int64) sdk.Context {
 }
 
 type coinAndAddr struct {
-	num  int64
+	num  sdkmath.Int
 	addr string
 }
 
@@ -279,7 +296,7 @@ func (suite *KeeperTestSuite) setMockSendCoinsFromModuleToAccountExpect(ctx sdk.
 				ctx,
 				suite.App.DistrKeeper.GetTreasuryModuleAccount(),
 				sdk.MustAccAddressFromBech32(w.addr),
-				sdk.NewCoins(sdk.NewCoin(baseDenom, sdk.NewInt(w.num))),
+				sdk.NewCoins(sdk.NewCoin(baseDenom, w.num)),
 			).Return(nil)
 	}
 }
