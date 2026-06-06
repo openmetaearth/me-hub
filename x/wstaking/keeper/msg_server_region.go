@@ -189,7 +189,16 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 }
 
 func (k MsgServer) TransferRegion(goCtx context.Context, msg *types.MsgTransferRegion) (*types.MsgTransferRegionResponse, error) {
-	return &types.MsgTransferRegionResponse{}, nil
+	if msg == nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "nil transfer region message")
+	}
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+	return nil, sdkerrors.Wrap(
+		sdkerrors.ErrInvalidRequest,
+		"MsgTransferRegion is not supported; update the holder KYC region through the kyc Update flow",
+	)
 }
 
 // GrantRegionWithdraw grants (or overwrites) a address for who can withdraw from the region treasury.

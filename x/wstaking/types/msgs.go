@@ -2,6 +2,7 @@ package types
 
 import (
 	gomath "math"
+	"strings"
 
 	"cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -27,6 +28,7 @@ const (
 	TypeMsgResetValidator                  = "create_validator"
 	TypeMsgNewMeid                         = "new_meid"
 	TypeMsgRemoveMeid                      = "remove_meid"
+	TypeMsgTransferRegion                  = "msg_transfer_meid"
 )
 
 var (
@@ -37,6 +39,7 @@ var (
 	_ sdk.Msg = &MsgWithdrawDelegatorReward{}
 	_ sdk.Msg = &MsgWithdrawFromRegion{}
 	_ sdk.Msg = &MsgWithdrawFromGlobalDaoFeePool{}
+	_ sdk.Msg = &MsgTransferRegion{}
 )
 
 // NewMsgStake creates a new MsgStake instance.
@@ -469,7 +472,7 @@ func (msg *MsgTransferRegion) Route() string {
 }
 
 func (msg *MsgTransferRegion) Type() string {
-	return "msg_transfer_meid"
+	return TypeMsgTransferRegion
 }
 
 func (msg *MsgTransferRegion) GetSigners() []sdk.AccAddress {
@@ -489,6 +492,23 @@ func (msg *MsgTransferRegion) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+	if strings.TrimSpace(msg.FromRegion) == "" {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "from region cannot be empty")
+	}
+	if strings.TrimSpace(msg.ToRegion) == "" {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "to region cannot be empty")
+	}
+	if strings.EqualFold(strings.TrimSpace(msg.FromRegion), strings.TrimSpace(msg.ToRegion)) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "from region and to region must be different")
+	}
+	if len(msg.Address) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "transfer address cannot be empty")
+	}
+	for _, address := range msg.Address {
+		if _, err := sdk.AccAddressFromBech32(strings.TrimSpace(address)); err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid transfer address (%s)", err)
+		}
 	}
 	return nil
 }

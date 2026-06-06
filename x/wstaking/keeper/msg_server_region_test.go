@@ -168,6 +168,18 @@ func (s *KeeperTestSuite) TestRemoveRegionThenCreateRegion() {
 	s.Require().NoError(err)
 }
 
+func (s *KeeperTestSuite) TestTransferRegionReturnsExplicitUnsupportedError() {
+	s.SetupTest()
+
+	_, err := s.msgServer.TransferRegion(s.Ctx, &types.MsgTransferRegion{
+		Creator:    s.Dao.GlobalDao,
+		FromRegion: strings.ToLower(types.MeEarthRegionName),
+		ToRegion:   "usa",
+		Address:    []string{s.Dao.DevOperator},
+	})
+	s.Require().ErrorIs(err, sdkerrors.ErrInvalidRequest)
+}
+
 func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 	s.SetupTest()
 
