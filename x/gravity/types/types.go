@@ -193,12 +193,12 @@ func (r *RelayerSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	for i, m := range r.Members {
 		//memberAddresses[i] = gethcommon.HexToAddress(m.ExternalAddress)
 		memberAddresses[i] = toHexAddr(gravityIDStr, m.ExternalAddress)
-		convertedPowers[i] = big.NewInt(int64(m.Power))
+		convertedPowers[i] = new(big.Int).SetUint64(m.Power)
 	}
 	// the word 'checkpoint' needs to be the same as the 'name' above in the checkpointAbiJson
 	// but other than that it's a constant that has no impact on the output. This is because
 	// it gets encoded as a function name which we must then discard.
-	packBytes, packErr := relayerSetCheckpointABI.Pack("checkpoint", gravityID, checkpoint, big.NewInt(int64(r.Nonce)), memberAddresses, convertedPowers)
+	packBytes, packErr := relayerSetCheckpointABI.Pack("checkpoint", gravityID, checkpoint, new(big.Int).SetUint64(r.Nonce), memberAddresses, convertedPowers)
 
 	// this should never happen outside of test since any case that could crash on encoding
 	// should be filtered above.
@@ -305,9 +305,9 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 		txAmounts,
 		txDestinations,
 		txFees,
-		big.NewInt(int64(m.BatchNonce)),
+		new(big.Int).SetUint64(m.BatchNonce),
 		toHexAddr(gravityIDString, m.TokenContract),
-		big.NewInt(int64(m.BatchTimeout)),
+		new(big.Int).SetUint64(m.BatchTimeout),
 		toHexAddr(gravityIDString, m.FeeReceive),
 	)
 	// this should never happen outside of test since any case that could crash on encoding

@@ -16,7 +16,7 @@ func GetCheckpointRelayerSet(relayerSet *types.RelayerSet, gravityIDStr string) 
 	powers := make([]*big.Int, len(relayerSet.Members))
 	for i, member := range relayerSet.Members {
 		addresses[i] = member.ExternalAddress
-		powers[i] = big.NewInt(int64(member.Power))
+		powers[i] = new(big.Int).SetUint64(member.Power)
 	}
 
 	gravityID, err := utils.StrToByte32(gravityIDStr)
@@ -31,7 +31,7 @@ func GetCheckpointRelayerSet(relayerSet *types.RelayerSet, gravityIDStr string) 
 	params := []abi.Param{
 		{"bytes32": gravityID},
 		{"bytes32": checkpoint},
-		{"uint256": big.NewInt(int64(relayerSet.Nonce))},
+		{"uint256": new(big.Int).SetUint64(relayerSet.Nonce)},
 		{"address[]": addresses},
 		{"uint256[]": powers},
 	}
@@ -68,9 +68,9 @@ func GetCheckpointConfirmBatch(txBatch *types.OutgoingTxBatch, gravityIDStr stri
 		{"uint256[]": amounts},
 		{"address[]": destinations},
 		{"uint256[]": fees},
-		{"uint256": big.NewInt(int64(txBatch.BatchNonce))},
+		{"uint256": new(big.Int).SetUint64(txBatch.BatchNonce)},
 		{"address": txBatch.TokenContract},
-		{"uint256": big.NewInt(int64(txBatch.BatchTimeout))},
+		{"uint256": new(big.Int).SetUint64(txBatch.BatchTimeout)},
 		{"address": txBatch.FeeReceive},
 	}
 
