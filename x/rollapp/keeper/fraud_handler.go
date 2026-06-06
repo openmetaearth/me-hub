@@ -52,7 +52,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHe
 	rollapp.Frozen = true
 	k.SetRollapp(ctx, rollapp)
 
-	k.RevertPendingStates(ctx, rollappID)
+	k.RevertPendingStates(ctx, rollappID, fraudHeight)
 
 	if rollapp.ChannelId != "" {
 		extractedClientId, _, err := k.channelKeeper.GetChannelClientState(ctx, "transfer", rollapp.ChannelId)
@@ -103,8 +103,8 @@ func (k Keeper) freezeClientState(ctx sdk.Context, clientId string) error {
 	return nil
 }
 
-// revert all pending states of a rollapp
-func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string) {
+// revert pending states of a rollapp from the fraudulent height onward.
+func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string, fraudHeight uint64) {
 	// TODO (#631): Prefix store by rollappID for efficient querying
 	queuePerHeight := k.GetAllBlockHeightToFinalizationQueue(ctx)
 	for _, queue := range queuePerHeight {
@@ -117,6 +117,11 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string) {
 			}
 
 			stateInfo, _ := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
+			if stateInfo.GetLatestHeight() < fraudHeight {
+				leftPendingStates = append(leftPendingStates, stateInfoIndex)
+				continue
+			}
+
 			stateInfo.Status = common.Status_REVERTED
 			k.SetStateInfo(ctx, stateInfo)
 		}

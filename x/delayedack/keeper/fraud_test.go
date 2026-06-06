@@ -40,7 +40,7 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	_, err = keeper.UpdateRollappPacketWithStatus(ctx, pkts2[0], commontypes.Status_FINALIZED)
 	suite.Require().Nil(err)
 
-	err = keeper.HandleFraud(ctx, rollappId, transferStack)
+	err = keeper.HandleFraud(ctx, rollappId, 0, transferStack)
 	suite.Require().Nil(err)
 
 	suite.Require().Equal(0, len(keeper.ListRollappPackets(ctx, prefixPending1)))
@@ -48,6 +48,40 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	suite.Require().Equal(4, len(keeper.ListRollappPackets(ctx, prefixReverted)))
 	suite.Require().Equal(1, len(keeper.ListRollappPackets(ctx, prefixFinalized)))
 	suite.Require().Equal(1, len(keeper.ListRollappPackets(ctx, prefixFinalized2)))
+}
+
+func (suite *DelayedAckTestSuite) TestHandleFraudKeepsPacketsBeforeFraudHeight() {
+	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
+	transferStack := damodule.NewIBCMiddleware(
+		damodule.WithIBCModule(ibctransfer.NewIBCModule(suite.App.TransferKeeper)),
+		damodule.WithKeeper(keeper),
+		damodule.WithRollappKeeper(suite.App.RollappKeeper),
+	)
+
+	rollappId := "testRollappId"
+	fraudHeight := uint64(3)
+	pkts := generatePackets(rollappId, 5)
+	prefixPending := types.ByRollappIDByStatus(rollappId, commontypes.Status_PENDING)
+	prefixReverted := types.ByRollappIDByStatus(rollappId, commontypes.Status_REVERTED)
+
+	for _, pkt := range pkts {
+		keeper.SetRollappPacket(ctx, pkt)
+	}
+
+	err := keeper.HandleFraud(ctx, rollappId, fraudHeight, transferStack)
+	suite.Require().NoError(err)
+
+	pendingPackets := keeper.ListRollappPackets(ctx, prefixPending)
+	revertedPackets := keeper.ListRollappPackets(ctx, prefixReverted)
+	suite.Require().Len(pendingPackets, 3)
+	suite.Require().Len(revertedPackets, 2)
+
+	for _, pkt := range pendingPackets {
+		suite.Require().True(pkt.ProofHeight < fraudHeight)
+	}
+	for _, pkt := range revertedPackets {
+		suite.Require().True(pkt.ProofHeight >= fraudHeight)
+	}
 }
 
 func (suite *DelayedAckTestSuite) TestDeletionOfRevertedPackets() {
@@ -67,7 +101,7 @@ func (suite *DelayedAckTestSuite) TestDeletionOfRevertedPackets() {
 		keeper.SetRollappPacket(ctx, pkt)
 	}
 
-	err := keeper.HandleFraud(ctx, rollappId, transferStack)
+	err := keeper.HandleFraud(ctx, rollappId, 0, transferStack)
 	suite.Require().Nil(err)
 
 	suite.Require().Equal(10, len(keeper.GetAllRollappPackets(ctx)))

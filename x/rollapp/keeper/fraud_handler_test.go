@@ -57,7 +57,7 @@ func (suite *RollappTestSuite) TestHandleFraud() {
 	err = keeper.HandleFraud(*ctx, rollapp, "", fraudHeight, proposer)
 	suite.Require().Nil(err)
 
-	suite.assertFraudHandled(rollapp)
+	suite.assertFraudHandled(rollapp, fraudHeight)
 }
 
 // Fail - Invalid rollapp
@@ -147,7 +147,7 @@ func (suite *RollappTestSuite) TestHandleFraud_AlreadyReverted() {
 	err = keeper.HandleFraud(*ctx, rollapp, "", 11, proposer)
 	suite.Require().Nil(err)
 
-	err = keeper.HandleFraud(*ctx, rollapp, "", 1, proposer)
+	err = keeper.HandleFraud(*ctx, rollapp, "", 11, proposer)
 	suite.Require().NotNil(err)
 }
 
@@ -171,6 +171,49 @@ func (suite *RollappTestSuite) TestHandleFraud_AlreadyFinalized() {
 
 	err = keeper.HandleFraud(*ctx, rollapp, "", 2, proposer)
 	suite.Require().NotNil(err)
+}
+
+func (suite *RollappTestSuite) TestHandleFraudDoesNotRevertPendingStateBeforeFraudHeight() {
+	suite.SetupTest()
+	ctx := &suite.Ctx
+	keeper := suite.App.RollappKeeper
+
+	rollapp := suite.CreateDefaultRollapp()
+	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+
+	nextHeight, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, 10)
+	suite.Require().NoError(err)
+	_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, nextHeight, 10)
+	suite.Require().NoError(err)
+
+	err = keeper.HandleFraud(*ctx, rollapp, "", 11, proposer)
+	suite.Require().NoError(err)
+
+	stateBeforeFraud, found := keeper.GetStateInfo(*ctx, rollapp, 1)
+	suite.Require().True(found)
+	suite.Require().Equal(common.Status_PENDING, stateBeforeFraud.Status)
+
+	stateAtFraud, found := keeper.GetStateInfo(*ctx, rollapp, 2)
+	suite.Require().True(found)
+	suite.Require().Equal(common.Status_REVERTED, stateAtFraud.Status)
+
+	foundStateBeforeFraudInQueue := false
+	foundStateAtFraudInQueue := false
+	for _, queue := range keeper.GetAllBlockHeightToFinalizationQueue(*ctx) {
+		for _, stateInfoIndex := range queue.FinalizationQueue {
+			if stateInfoIndex.RollappId != rollapp {
+				continue
+			}
+			switch stateInfoIndex.Index {
+			case 1:
+				foundStateBeforeFraudInQueue = true
+			case 2:
+				foundStateAtFraudInQueue = true
+			}
+		}
+	}
+	suite.Require().True(foundStateBeforeFraudInQueue)
+	suite.Require().False(foundStateAtFraudInQueue)
 }
 
 // TODO: test IBC freeze
@@ -211,7 +254,7 @@ func (suite *RollappTestSuite) assertBeforeFraud(rollappId string, height uint64
 	suite.Require().True(found)
 }
 
-func (suite *RollappTestSuite) assertFraudHandled(rollappId string) {
+func (suite *RollappTestSuite) assertFraudHandled(rollappId string, fraudHeight uint64) {
 	rollapp, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappId)
 	suite.Require().True(found)
 	suite.Require().True(rollapp.Frozen)
@@ -231,6 +274,10 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string) {
 	for i := start; i <= end; i++ {
 		stateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollappId, i)
 		suite.Require().True(found)
+		if stateInfo.GetLatestHeight() < fraudHeight {
+			suite.Require().Equal(common.Status_PENDING, stateInfo.Status, "state info for height %d should remain pending", stateInfo.StartHeight)
+			continue
+		}
 		suite.Require().Equal(common.Status_REVERTED, stateInfo.Status, "state info for height %d is not reverted", stateInfo.StartHeight)
 	}
 
@@ -239,7 +286,12 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string) {
 	suite.Greater(len(queue), 0)
 	for _, q := range queue {
 		for _, stateInfoIndex := range q.FinalizationQueue {
-			suite.Require().NotEqual(rollappId, stateInfoIndex.RollappId)
+			if stateInfoIndex.RollappId != rollappId {
+				continue
+			}
+			stateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollappId, stateInfoIndex.Index)
+			suite.Require().True(found)
+			suite.Require().True(stateInfo.GetLatestHeight() < fraudHeight)
 		}
 	}
 }

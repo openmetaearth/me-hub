@@ -9,23 +9,28 @@ import (
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 )
 
-func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, ibc porttypes.IBCModule) error {
+func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, fraudHeight uint64, ibc porttypes.IBCModule) error {
 	// Get all the pending packets
 	rollappPendingPackets := k.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappID, commontypes.Status_PENDING))
 	if len(rollappPendingPackets) == 0 {
 		return nil
 	}
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
-	logger.Info("reverting IBC rollapp packets", "rollappID", rollappID)
+	logger.Info("reverting IBC rollapp packets", "rollappID", rollappID, "fraudHeight", fraudHeight)
 
 	// Iterate over all the pending packets and revert them
 	for _, rollappPacket := range rollappPendingPackets {
+		if rollappPacket.ProofHeight < fraudHeight {
+			continue
+		}
+
 		logContext := []interface{}{
 			"rollappID", rollappID,
 			"sourceChannel", rollappPacket.Packet.SourceChannel,
 			"destChannel", rollappPacket.Packet.DestinationChannel,
 			"type", rollappPacket.Type,
 			"sequence", rollappPacket.Packet.Sequence,
+			"proofHeight", rollappPacket.ProofHeight,
 		}
 
 		if rollappPacket.Type == commontypes.RollappPacket_ON_ACK || rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
