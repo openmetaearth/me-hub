@@ -142,6 +142,9 @@ func (a *AppKeepers) SetupModules(
 func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range MaccPerms {
+		if acc == wstakingtypes.BridgeFeePool {
+			continue
+		}
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 	return modAccAddrs
