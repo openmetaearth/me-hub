@@ -102,14 +102,19 @@ func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 		amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoin.AmountOf(params.BaseDenom).ToLegacyDec()).Quo(totalRegionShareDec)
 		regionAmount := amount.TruncateInt()
 		regionCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(regionAmount.Int64())))
-		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.GetTreasuryModuleAccount(), sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), regionCoins)
+		regionTreasureAddr := region.GetRegionTreasureAddr()
+		regionAddr, err := sdk.AccAddressFromBech32(regionTreasureAddr)
+		if err != nil {
+			return fmt.Errorf("invalid region treasury address %s: %w", regionTreasureAddr, err)
+		}
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.GetTreasuryModuleAccount(), regionAddr, regionCoins)
 		if err != nil {
 			return err
 		}
 		ctx.EventManager().EmitEvents(sdk.Events{
 			sdk.NewEvent(
 				types.EventTypeRegionTreasuryReward,
-				sdk.NewAttribute(types.AttributeKeyRegionTreasuryAddress, region.GetRegionTreasureAddr()),
+				sdk.NewAttribute(types.AttributeKeyRegionTreasuryAddress, regionTreasureAddr),
 				sdk.NewAttribute(types.AttributeKeyRegionId, region.GetRegionId()),
 				sdk.NewAttribute(sdk.AttributeKeyAmount, regionCoins.String()),
 			),

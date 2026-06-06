@@ -237,6 +237,23 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestAllocateBlockRewardReturnsErrorForInvalidRegionTreasuryAddress() {
+	ctx := suite.HelperNewContextWith(types.OneDayTotalBlocks)
+	suite.SetMockGetBalance(ctx, sdk.NewInt(100))
+
+	region := mocks.NewMockRegionI(suite.T())
+	region.EXPECT().GetRegionShare().Return(sdk.NewInt(1))
+	region.EXPECT().GetRegionTreasureAddr().Return("not-a-bech32-address")
+	suite.stakingKeeper.EXPECT().GetAllRegionI(ctx).Return([]wstakingtypes.RegionI{region})
+
+	var err error
+	suite.NotPanics(func() {
+		err = suite.App.DistrKeeper.AllocateBlockReward(ctx)
+	})
+	suite.Error(err)
+	suite.Contains(err.Error(), "invalid region treasury address not-a-bech32-address")
+}
+
 func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int) []string {
 	var addrs []string
 	if len(regionShare) == 0 {
