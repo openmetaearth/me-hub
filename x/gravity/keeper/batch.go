@@ -108,7 +108,8 @@ func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) (uint64, uint64) {
 func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, contractAddress string, batchNonce uint64) {
 	batch := k.GetOutgoingTxBatch(ctx, contractAddress, batchNonce)
 	if batch == nil {
-		panic(fmt.Sprintf("unknown batch nonce for outgoing tx batch %s %d", contractAddress, batchNonce))
+		k.Logger(ctx).Error("unknown batch nonce for outgoing tx batch", "contract", contractAddress, "nonce", batchNonce)
+		return
 	}
 
 	// Iterate through remaining batches

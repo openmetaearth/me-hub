@@ -118,6 +118,13 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfirm() {
 	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, batch.TokenContract, batch.BatchNonce))
 }
 
+func (suite *KeeperTestSuite) TestKeeper_OutgoingTxBatchExecutedIgnoresUnknownBatch() {
+	tokenContract := helpers.GenerateAddress().Hex()
+	suite.NotPanics(func() {
+		suite.Keeper().OutgoingTxBatchExecuted(suite.Ctx, tokenContract, 999)
+	})
+}
+
 func (suite *KeeperTestSuite) TestKeeper_IterateBatch() {
 	index := tmrand.Intn(100)
 	for i := 1; i <= index; i++ {
