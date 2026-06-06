@@ -294,22 +294,19 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 	}
 	//It is a regional rule used to define parameters such as fixed deposit term and interest rate for a certain region.
 	depositConfig := k.GetAllFixedDepositCfg(ctx, toRegion.RegionId)
-	depositConfigMap := make(map[int64]sdk.Dec)
+	depositConfigMap := make(map[int64]types.FixedDepositCfg)
 	for _, cfg := range depositConfig {
-		if cfg.Status == types.RegionFixedDepositCfgStatusInactive {
-			return errors.New("fixed deposit cfg status is inactive")
-		}
-		depositConfigMap[cfg.Term] = cfg.Rate
+		depositConfigMap[cfg.Term] = cfg
 	}
 	totalFixedDepositByAcc := sdk.ZeroInt()
 	totalFixedInterestCoin := sdk.ZeroInt()
 	for _, fixed := range fixedDeposits {
 		totalFixedDepositByAcc = totalFixedDepositByAcc.Add(fixed.Principal.Amount)
 		totalFixedInterestCoin = totalFixedInterestCoin.Add(fixed.Interest.Amount)
-		//check toRegion deposit config is exist and deposit rate is equal
-		rate, exists := depositConfigMap[fixed.Term]
-		if !exists || !rate.Equal(fixed.Rate) {
-			return errors.New(fmt.Sprintf("deposit cfg not same.rate=%s,fixed.Rate=%s,exists=%v,fixed.Term=%v", rate.String(), fixed.Rate.String(), exists, fixed.Term))
+		// Historical deposits keep their stored rate and interest. Migration only
+		// needs the destination term to still exist and accept deposits.
+		if err := validateTransferFixedDepositCfg(fixed, depositConfigMap); err != nil {
+			return err
 		}
 
 		err := k.IncreaseFixedDepositCountOfCfg(ctx, toRegion.RegionId, fixed.Term)
@@ -360,6 +357,17 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 			sdk.NewAttribute(types.AttributeKeyFixedDeposit, totalFixedInterestCoin.String()+params.BaseDenom),
 		),
 	})
+	return nil
+}
+
+func validateTransferFixedDepositCfg(fixed types.FixedDeposit, depositConfigMap map[int64]types.FixedDepositCfg) error {
+	cfg, exists := depositConfigMap[fixed.Term]
+	if !exists {
+		return errors.New(fmt.Sprintf("deposit cfg not found.exists=%v,fixed.Term=%v", exists, fixed.Term))
+	}
+	if cfg.Status != types.RegionFixedDepositCfgStatusActive {
+		return errors.New(fmt.Sprintf("fixed deposit cfg status is not active.term=%v,status=%v", fixed.Term, cfg.Status))
+	}
 	return nil
 }
 
