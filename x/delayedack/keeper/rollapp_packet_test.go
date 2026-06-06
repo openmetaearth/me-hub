@@ -2,8 +2,10 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	delayedackkeeper "github.com/openmetaearth/me-hub/x/delayedack/keeper"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
 )
 
@@ -166,6 +168,51 @@ func (s *DelayedAckTestSuite) TestListRollappPackets() {
 	s.Equal(expectOnTimeoutLength, len(onTimeoutPackets))
 
 	s.Require().Equal(totalLength, len(onRecvPackets)+len(onAckPackets)+len(onTimeoutPackets))
+}
+
+func (s *DelayedAckTestSuite) TestGetPacketsAppliesPagination() {
+	keeper, ctx := s.App.DelayedAckKeeper, s.Ctx
+	rollappID := "paginationRollapp"
+
+	for i := 1; i <= 3; i++ {
+		keeper.SetRollappPacket(ctx, commontypes.RollappPacket{
+			RollappId: rollappID,
+			Packet: &channeltypes.Packet{
+				SourcePort:         "testSourcePort",
+				SourceChannel:      "testSourceChannel",
+				DestinationPort:    "testDestinationPort",
+				DestinationChannel: "testDestinationChannel",
+				Data:               []byte("testData"),
+				Sequence:           uint64(i),
+			},
+			Status:      commontypes.Status_PENDING,
+			Type:        commontypes.RollappPacket_ON_RECV,
+			ProofHeight: uint64(i),
+		})
+	}
+
+	querier := delayedackkeeper.NewQuerier(keeper)
+	response, err := querier.GetPackets(sdk.WrapSDKContext(ctx), &types.QueryRollappPacketsRequest{
+		RollappId: rollappID,
+		Status:    commontypes.Status_PENDING,
+		Pagination: &sdkquery.PageRequest{
+			Limit: 1,
+		},
+	})
+	s.Require().NoError(err)
+	s.Require().Len(response.RollappPackets, 1)
+	s.Require().NotEmpty(response.Pagination.NextKey)
+
+	nextResponse, err := querier.GetPackets(sdk.WrapSDKContext(ctx), &types.QueryRollappPacketsRequest{
+		RollappId: rollappID,
+		Status:    commontypes.Status_PENDING,
+		Pagination: &sdkquery.PageRequest{
+			Key:   response.Pagination.NextKey,
+			Limit: 1,
+		},
+	})
+	s.Require().NoError(err)
+	s.Require().Len(nextResponse.RollappPackets, 1)
 }
 
 func (suite *DelayedAckTestSuite) TestUpdateRollappPacketWithStatus() {

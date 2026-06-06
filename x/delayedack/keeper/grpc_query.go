@@ -3,8 +3,11 @@ package keeper
 import (
 	"context"
 
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
 
 	"google.golang.org/grpc/codes"
@@ -39,16 +42,32 @@ func (q Querier) GetPackets(goCtx context.Context, req *types.QueryRollappPacket
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	res := &types.QueryRollappPacketListResponse{}
+	var filter types.RollappPacketListFilter
 
 	if req.RollappId == "" {
 		// query by status (PENDING by default) and type (if not UNDEFINED)
-		res.RollappPackets = q.ListRollappPackets(ctx, types.ByTypeByStatus(req.Type, req.Status))
+		filter = types.ByTypeByStatus(req.Type, req.Status)
 	} else {
 		// query by rollapp id and status (PENDING by default) and type (if not UNDEFINED)
-		res.RollappPackets = q.ListRollappPackets(ctx, types.ByRollappIDByTypeByStatus(req.RollappId, req.Type, req.Status))
+		filter = types.ByRollappIDByTypeByStatus(req.RollappId, req.Type, req.Status)
 	}
 
-	// TODO: handle pagination
+	packetStore := prefix.NewStore(ctx.KVStore(q.storeKey), filter.Prefixes[0].Start)
+	pageRes, err := query.FilteredPaginate(packetStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		var packet commontypes.RollappPacket
+		q.cdc.MustUnmarshal(value, &packet)
+		if !filter.FilterFunc(packet) {
+			return false, nil
+		}
+		if accumulate {
+			res.RollappPackets = append(res.RollappPackets, packet)
+		}
+		return true, nil
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	res.Pagination = pageRes
 
 	return res, nil
 }
