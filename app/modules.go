@@ -46,6 +46,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/wmint"
 	"github.com/openmetaearth/me-hub/x/wnft"
 	"github.com/openmetaearth/me-hub/x/wstaking"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 
 	rollappmoduleclient "github.com/openmetaearth/me-hub/x/rollapp/client"
 	"github.com/openmetaearth/me-hub/x/sequencer"
@@ -110,10 +111,31 @@ var ModuleBasics = module.NewBasicManager(
 
 func GenTxMessageValidator(msgs []sdk.Msg) error {
 	if len(msgs) == 0 {
-		return fmt.Errorf("unexpected number of GenTx messages; got: %d, expected great than 0", len(msgs))
+		return fmt.Errorf("unexpected number of GenTx messages; got: %d, expected 1 or 2", len(msgs))
 	}
-	if _, ok := msgs[0].(*stakingtypes.MsgCreateValidator); !ok {
+	if len(msgs) > 2 {
+		return fmt.Errorf("unexpected number of GenTx messages; got: %d, expected 1 or 2", len(msgs))
+	}
+
+	createValidator, ok := msgs[0].(*stakingtypes.MsgCreateValidator)
+	if !ok || createValidator == nil {
 		return fmt.Errorf("unexpected GenTx message type; expected: MsgCreateValidator, got: %T", msgs[0])
 	}
+	if err := createValidator.ValidateBasic(); err != nil {
+		return fmt.Errorf("invalid GenTx MsgCreateValidator: %w", err)
+	}
+
+	if len(msgs) == 1 {
+		return nil
+	}
+
+	newRegion, ok := msgs[1].(*wstakingtypes.MsgNewRegion)
+	if !ok || newRegion == nil {
+		return fmt.Errorf("unexpected GenTx message type at index 1; expected: MsgNewRegion, got: %T", msgs[1])
+	}
+	if err := newRegion.ValidateBasic(); err != nil {
+		return fmt.Errorf("invalid GenTx MsgNewRegion: %w", err)
+	}
+
 	return nil
 }
