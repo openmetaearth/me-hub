@@ -46,6 +46,10 @@ func (k Keeper) ClassAddress(goCtx context.Context, r *types.QueryClassAddressRe
 }
 
 func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest) (*types.QueryNftFilterResponse, error) {
+	if r == nil {
+		return nil, sdkerrors.ErrInvalidRequest.Wrap("empty request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var list []*types.NftList
