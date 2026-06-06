@@ -33,8 +33,7 @@ func (msg MsgNewClass) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 func (msg MsgNewClass) GetSigners() []sdk.AccAddress {
-	signer, _ := sdk.AccAddressFromBech32(msg.Sender)
-	return []sdk.AccAddress{signer}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(msg.Sender)}
 }
 func (msg MsgNewClass) ValidateBasic() error {
 	if len(msg.ClassId) == 0 {
@@ -102,8 +101,7 @@ func (m MsgMintNFT) ValidateBasic() error {
 
 // GetSigners returns the expected signers for MsgMintNFT.
 func (m MsgMintNFT) GetSigners() []sdk.AccAddress {
-	signer, _ := sdk.AccAddressFromBech32(m.Creator)
-	return []sdk.AccAddress{signer}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Creator)}
 }
 
 // Route implements the sdk.Msg interface.
@@ -153,8 +151,7 @@ func (m MsgSend) ValidateBasic() error {
 
 // GetSigners returns the expected signers for MsgSend.
 func (m MsgSend) GetSigners() []sdk.AccAddress {
-	signer, _ := sdk.AccAddressFromBech32(m.Sender)
-	return []sdk.AccAddress{signer}
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.Sender)}
 }
 
 // GetSignBytes get the bytes for the message signer to sign on
