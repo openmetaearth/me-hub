@@ -233,6 +233,49 @@ func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 	}
 }
 
+func (s *KeeperTestSuite) TestWithdrawFromRegionPreservesReservedBalance() {
+	s.SetupTest()
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	regionResp, err := s.queryClient.Region(s.Ctx, &types.QueryRegionRequest{RegionId: strings.ToLower(types.ExperienceRegionName)})
+	s.Require().NoError(err)
+
+	treasuryAddr := sdk.MustAccAddressFromBech32(regionResp.Region.RegionTreasureAddr)
+	balance := s.App.BankKeeper.GetBalance(s.Ctx, treasuryAddr, params.BaseDenom)
+	s.Require().True(balance.Amount.IsPositive())
+
+	reserve := balance.Amount.QuoRaw(2)
+	available := balance.Amount.Sub(reserve)
+
+	region := regionResp.Region
+	region.DelegateInterest = sdk.NewDecFromInt(reserve)
+	region.FixedDepositAmount = sdk.ZeroInt()
+	s.Keeper().SetRegion(s.Ctx, region)
+
+	_, err = s.msgServer.WithdrawFromRegion(s.Ctx, &types.MsgWithdrawFromRegion{
+		Withdrawer: s.Dao.GlobalDao,
+		RegionId:   region.RegionId,
+		Receiver:   s.Dao.GlobalDao,
+		Amount:     sdk.NewCoins(sdk.NewCoin(params.BaseDenom, available.Add(sdk.NewInt(1)))),
+	})
+	s.Require().ErrorIs(err, sdkerrors.ErrInsufficientFunds)
+	s.Require().Equal(balance.String(), s.App.BankKeeper.GetBalance(s.Ctx, treasuryAddr, params.BaseDenom).String())
+
+	_, err = s.msgServer.WithdrawFromRegion(s.Ctx, &types.MsgWithdrawFromRegion{
+		Withdrawer: s.Dao.GlobalDao,
+		RegionId:   region.RegionId,
+		Receiver:   s.Dao.GlobalDao,
+		Amount:     sdk.NewCoins(sdk.NewCoin(params.BaseDenom, available)),
+	})
+	s.Require().NoError(err)
+
+	balanceAfter := s.App.BankKeeper.GetBalance(s.Ctx, treasuryAddr, params.BaseDenom)
+	s.Require().Equal(reserve.String(), balanceAfter.Amount.String())
+}
+
 func (s *KeeperTestSuite) TestGrantRegionWithdraw() {
 	s.SetupTest()
 

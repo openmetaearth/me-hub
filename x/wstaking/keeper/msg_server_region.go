@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
+	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/utils"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -164,6 +165,24 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 	toAddr, err := sdk.AccAddressFromBech32(msg.Receiver)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrUnknownAccount, "receiver account %s format error %s", msg.Receiver, err)
+	}
+
+	baseWithdrawAmount := msg.Amount.AmountOf(params.BaseDenom)
+	if baseWithdrawAmount.IsPositive() {
+		reservedBalance := region.DelegateInterest.Add(sdk.NewDecFromInt(region.FixedDepositAmount))
+		balanceAfterWithdraw := sdk.NewDecFromInt(
+			k.bankKeeper.GetBalance(ctx, fromAddr, params.BaseDenom).Amount.Sub(baseWithdrawAmount),
+		)
+		if balanceAfterWithdraw.LT(reservedBalance) {
+			return nil, sdkerrors.Wrapf(
+				sdkerrors.ErrInsufficientFunds,
+				"withdrawal would breach region reserve: balance after withdrawal %s%s, reserved %s%s",
+				balanceAfterWithdraw.String(),
+				params.BaseDenom,
+				reservedBalance.String(),
+				params.BaseDenom,
+			)
+		}
 	}
 
 	err = k.bankKeeper.Extend().SendCoinsWithTag(
