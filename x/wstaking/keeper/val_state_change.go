@@ -163,5 +163,5 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 		)
 	}
 
-	return validatorUpdates
+	return deduplicateValidatorUpdates(validatorUpdates)
 }
