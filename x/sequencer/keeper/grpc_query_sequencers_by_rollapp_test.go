@@ -173,3 +173,11 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 		})
 	}
 }
+
+func (suite *SequencerTestSuite) TestReplaceProposerInfoInvalidRequest() {
+	suite.SetupTest()
+
+	response, err := suite.App.SequencerKeeper.ReplaceProposerInfo(suite.Ctx, nil)
+	require.Nil(suite.T(), response)
+	require.ErrorIs(suite.T(), err, status.Error(codes.InvalidArgument, "invalid request"))
+}
