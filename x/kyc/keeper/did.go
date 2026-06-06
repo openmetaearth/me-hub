@@ -45,7 +45,6 @@ func (k Keeper) SetKycIssers(ctx sdk.Context, oldDaoAddress, newDaoAddress []str
 		return fmt.Errorf("kyc service not found")
 	}
 
-	dids := []string{}
 	for i, dao := range oldDaoAddress {
 		did, found := k.GetDID(ctx, sdk.MustAccAddressFromBech32(dao))
 		if !found {
@@ -62,10 +61,8 @@ func (k Keeper) SetKycIssers(ctx sdk.Context, oldDaoAddress, newDaoAddress []str
 
 		didInfo.Address = newDaoAddress[i]
 		k.SetDidInfo(ctx, did, didInfo)
-		dids = append(dids, did)
 	}
 
-	service.Issuers = dids
 	k.didKeeper.SetService(ctx, types.ModuleName, service)
 	return nil
 }
