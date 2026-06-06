@@ -398,7 +398,7 @@ func (a *AppKeepers) InitKeepers(
 
 	// The last arguments can contain custom message handlers, and custom query handlers,
 	// if we want to allow any custom callbacks
-	availableCapabilities := strings.Join(wasmapp.AllCapabilities(), ",")
+	availableCapabilities := strings.Join(filterWasmCapabilities(wasmapp.AllCapabilities(), "stargate"), ",")
 	a.WasmKeeper = wasmkeeper.NewKeeper(
 		appCodec,
 		a.keys[wasmtypes.StoreKey],

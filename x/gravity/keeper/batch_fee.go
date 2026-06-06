@@ -87,6 +87,9 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 	if err != nil {
 		return errorsmod.Wrapf(types.ErrInvalid, "txId %d not in unbatched index! Must be in a batch!", txId)
 	}
+	if tx.Sender != sender.String() {
+		return errorsmod.Wrapf(types.ErrInvalid, "sender %s did not create bridge tx %d", sender.String(), txId)
+	}
 
 	bridgeToken, err := k.GetBridgeTokenByDenom(ctx, addBridgeFee.Denom)
 	if err != nil {

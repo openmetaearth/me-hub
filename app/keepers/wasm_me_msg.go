@@ -62,6 +62,7 @@ func (a *AppKeepers) SetupCustomMsgs() wasmkeeper.Option {
 	// Create KYC custom querier
 
 	return wasmkeeper.WithMessageEncoders(&wasmkeeper.MessageEncoders{
+		Stargate: rejectStargateMsg,
 		Custom: func(sender sdk.AccAddress, msg json.RawMessage) ([]sdk.Msg, error) {
 			var meMsg MeMsg
 			if err := json.Unmarshal(msg, &meMsg); err != nil {
