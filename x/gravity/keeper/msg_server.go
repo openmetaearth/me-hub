@@ -229,6 +229,9 @@ func (s MsgServer) RelayerSetConfirm(c context.Context, msg *types.MsgRelayerSet
 // RelayerSetUpdateClaim handles claims for executing a relayer set update on Ethereum
 func (s MsgServer) RelayerSetUpdateClaim(c context.Context, msg *types.MsgRelayerSetUpdateClaim) (*types.MsgRelayerSetUpdateClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
+	if msg.RelayerSetNonce == 0 {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "zero relayer set nonce")
+	}
 	relayerAddress := sdk.MustAccAddressFromBech32(msg.RelayerAddress)
 	err := s.checkIsRelayer(ctx, relayerAddress)
 	if err != nil {

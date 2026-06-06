@@ -104,13 +104,21 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 
 		k.SetLastObservedEventNonce(ctx, claim.GetEventNonce())
 
-		// in case of web3 event is long time ago, we set the last observed me block height need long enough.
-		k.SetLastObservedBlockHeight(ctx, claim.GetBlockHeight(), uint64(ctx.BlockHeight()))
+		err = k.validateObservedExternalBlockHeight(ctx, claim)
+		if err == nil {
+			// in case of web3 event is long time ago, we set the last observed me block height need long enough.
+			k.SetLastObservedBlockHeight(ctx, claim.GetBlockHeight(), uint64(ctx.BlockHeight()))
+			err = k.processAttestation(ctx, claim)
+		} else {
+			k.Logger(ctx).Error("attestation failed", "cause", err.Error(), "claim type", claim.GetType(),
+				"id", hex.EncodeToString(types.GetAttestationKey(claim.GetEventNonce(), claim.ClaimHash())),
+				"nonce", fmt.Sprint(claim.GetEventNonce()),
+			)
+		}
 
 		att.Observed = true
 		k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
 
-		err = k.processAttestation(ctx, claim)
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeContractEvent,
 			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
@@ -125,6 +133,19 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		k.PruneAttestations(ctx)
 		break
 	}
+}
+
+func (k Keeper) validateObservedExternalBlockHeight(ctx sdk.Context, claim types.ExternalClaim) error {
+	lastObserved := k.GetLastObservedBlockHeight(ctx)
+	if lastObserved.ExternalBlockHeight != 0 && claim.GetBlockHeight() < lastObserved.ExternalBlockHeight {
+		return errorsmod.Wrapf(
+			types.ErrInvalid,
+			"external block height regression: got %d, observed %d",
+			claim.GetBlockHeight(),
+			lastObserved.ExternalBlockHeight,
+		)
+	}
+	return nil
 }
 
 // processAttestation actually applies the attestation to the consensus state
