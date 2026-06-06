@@ -155,3 +155,22 @@ func (suite *KeeperTestSuite) TestKeeper_IterateBatch() {
 	)
 	suite.Equal(len(batchs), index)
 }
+
+func (suite *KeeperTestSuite) TestGravityTimingParamsRejectUnsafeBatchTimeouts() {
+	params := suite.Keeper().GetParams(suite.Ctx)
+	params.ExternalBatchTimeout = 60_000
+	params.AverageExternalBlockTime = 120_000
+	suite.Require().ErrorContains(
+		suite.Keeper().SetParams(suite.Ctx, &params),
+		"at least one average external block",
+	)
+
+	params = suite.Keeper().GetParams(suite.Ctx)
+	params.AverageBlockTime = uint64(1) << 63
+	params.AverageExternalBlockTime = 100
+	params.ExternalBatchTimeout = 60_000
+	suite.Require().ErrorContains(
+		suite.Keeper().SetParams(suite.Ctx, &params),
+		"at least one average ME block",
+	)
+}

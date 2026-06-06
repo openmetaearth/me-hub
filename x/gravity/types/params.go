@@ -55,6 +55,12 @@ func (m *Params) ValidateBasic() error {
 	if m.AverageExternalBlockTime < 100 {
 		return fmt.Errorf("invalid average external block time, too short for latency limitations")
 	}
+	if m.ExternalBatchTimeout < m.AverageExternalBlockTime {
+		return fmt.Errorf("invalid target batch timeout, must cover at least one average external block")
+	}
+	if m.ExternalBatchTimeout < m.AverageBlockTime {
+		return fmt.Errorf("invalid target batch timeout, must cover at least one average ME block")
+	}
 	if m.SignedWindow <= 1 {
 		return fmt.Errorf("invalid signed window, too short")
 	}

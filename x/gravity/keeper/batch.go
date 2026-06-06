@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"math/bits"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -23,8 +24,8 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 		return nil, errorsmod.Wrap(types.ErrInvalid, "max elements value")
 	}
 	projectedCurrentExternalHeight, batchTimeout := k.GetBatchTimeoutHeight(ctx)
-	if batchTimeout <= 0 {
-		return nil, errorsmod.Wrapf(types.ErrInvalid, "batch timeout height %d less than 0", batchTimeout)
+	if batchTimeout == 0 || batchTimeout <= projectedCurrentExternalHeight {
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "batch timeout height %d not above projected current external height %d", batchTimeout, projectedCurrentExternalHeight)
 	}
 
 	// if there is a more profitable batch for this token type do not create a new batch
@@ -82,25 +83,49 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 
 // GetBatchTimeoutHeight This gets the batch timeout height in External blocks.
 func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) (uint64, uint64) {
-	currentMeHeight := ctx.BlockHeight()
-	params := k.GetParams(ctx)
+	return projectBatchTimeoutHeight(ctx.BlockHeight(), k.GetLastObservedBlockHeight(ctx), k.GetParams(ctx))
+}
+
+func projectBatchTimeoutHeight(currentMeHeight int64, heights types.LastObservedBlockHeight, params types.Params) (uint64, uint64) {
 	if params.AverageExternalBlockTime == 0 {
 		return 0, 0
 	}
-	// we store the last observed Cosmos and Ethereum heights, we do not concern ourselves if these values
-	// are zero because no batch can be produced if the last Ethereum block height is not first populated by a deposit event.
-	heights := k.GetLastObservedBlockHeight(ctx)
+	if params.ExternalBatchTimeout < params.AverageExternalBlockTime {
+		return 0, 0
+	}
+	if currentMeHeight < 0 {
+		return 0, 0
+	}
 	if heights.ExternalBlockHeight == 0 {
 		return 0, 0
 	}
+	currentBlockHeight := uint64(currentMeHeight)
+	elapsedMeBlocks := uint64(0)
+	if currentBlockHeight > heights.BlockHeight {
+		elapsedMeBlocks = currentBlockHeight - heights.BlockHeight
+	}
 	// we project how long it has been in milliseconds since the last Ethereum block height was observed
-	projectedMillis := (uint64(currentMeHeight) - heights.BlockHeight) * params.AverageBlockTime
+	overflow, projectedMillis := bits.Mul64(elapsedMeBlocks, params.AverageBlockTime)
+	if overflow != 0 {
+		return 0, 0
+	}
 	// we convert that projection into the current Ethereum height using the average Ethereum block time in millis
-	projectedCurrentEthereumHeight := (projectedMillis / params.AverageExternalBlockTime) + heights.ExternalBlockHeight
+	projectedExternalBlocks := projectedMillis / params.AverageExternalBlockTime
+	projectedCurrentEthereumHeight, carry := bits.Add64(projectedExternalBlocks, heights.ExternalBlockHeight, 0)
+	if carry != 0 {
+		return 0, 0
+	}
 	// we convert our target time for block timeouts (lets say 12 hours) into a number of blocks to
 	// place on top of our projection of the current Ethereum block height.
 	blocksToAdd := params.ExternalBatchTimeout / params.AverageExternalBlockTime
-	return projectedCurrentEthereumHeight, projectedCurrentEthereumHeight + blocksToAdd
+	if blocksToAdd == 0 {
+		return 0, 0
+	}
+	batchTimeout, carry := bits.Add64(projectedCurrentEthereumHeight, blocksToAdd, 0)
+	if carry != 0 {
+		return 0, 0
+	}
+	return projectedCurrentEthereumHeight, batchTimeout
 }
 
 // OutgoingTxBatchExecuted is run when the Cosmos chain detects that a batch has been executed on Ethereum
