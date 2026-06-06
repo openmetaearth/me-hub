@@ -33,12 +33,13 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			expectedDemandOrdefFulfillmentStatus: true,
 		},
 		{
-			name:                                 "order with zero fee - success",
+			name:                                 "order with zero expected fee - rejected",
 			demandOrderPrice:                     150,
 			demandOrderFee:                       0,
 			fulfillmentExpectedFee:               "0",
+			expectedFulfillmentError:             sdkerrors.ErrInvalidRequest,
 			eIBCdemandAddrBalance:                math.NewInt(1000),
-			expectedDemandOrdefFulfillmentStatus: true,
+			expectedDemandOrdefFulfillmentStatus: false,
 		},
 		{
 			name:                                 "Test demand order fulfillment - wrong expected fee",

@@ -21,4 +21,5 @@ var (
 	ErrNegativeFee                  = errorsmod.Register(ModuleName, 13, "Fee must be greater than or equal to 0")
 	ErrMultipleDenoms               = errorsmod.Register(ModuleName, 15, "Multiple denoms not allowed")
 	ErrEmptyPrice                   = errorsmod.Register(ModuleName, 16, "Price must be greater than 0")
+	ErrNonPositiveFee               = errorsmod.Register(ModuleName, 17, "Fee must be greater than 0")
 )

@@ -45,6 +45,13 @@ const defaultFee = {
   gas: "200000",
 };
 
+function validateMsgFulfillOrder(value: MsgFulfillOrder): void {
+	const expectedFee = value.expectedFee?.trim() ?? "";
+	if (!/^[0-9]+$/.test(expectedFee) || /^0+$/.test(expectedFee)) {
+		throw new Error('expectedFee must be a positive integer')
+	}
+}
+
 interface TxClientOptions {
   addr: string
 	prefix: string
@@ -72,7 +79,9 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 		
 		msgFulfillOrder({ value }: msgFulfillOrderParams): EncodeObject {
 			try {
-				return { typeUrl: "/dymensionxyz.dymension.eibc.MsgFulfillOrder", value: MsgFulfillOrder.fromPartial( value ) }  
+				const msg = MsgFulfillOrder.fromPartial( value )
+				validateMsgFulfillOrder(msg)
+				return { typeUrl: "/dymensionxyz.dymension.eibc.MsgFulfillOrder", value: msg }
 			} catch (e: any) {
 				throw new Error('TxClient:MsgFulfillOrder: Could not create message: ' + e.message)
 			}

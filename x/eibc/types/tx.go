@@ -49,6 +49,9 @@ func (m *MsgFulfillOrder) ValidateBasic() error {
 	if err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
+	if err := validatePositiveFee(m.ExpectedFee); err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+	}
 	return nil
 }
 
@@ -104,14 +107,29 @@ func validateCommon(orderId, address, fee string) error {
 		return err
 	}
 
+	_, err = validateFee(fee)
+	return err
+}
+
+func validateFee(fee string) (sdk.Int, error) {
 	feeInt, ok := sdk.NewIntFromString(fee)
 	if !ok {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("parse fee: %s", fee))
+		return sdk.Int{}, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("parse fee: %s", fee))
 	}
-
 	if feeInt.IsNegative() {
-		return ErrNegativeFee
+		return sdk.Int{}, ErrNegativeFee
 	}
 
+	return feeInt, nil
+}
+
+func validatePositiveFee(fee string) error {
+	feeInt, err := validateFee(fee)
+	if err != nil {
+		return err
+	}
+	if !feeInt.IsPositive() {
+		return ErrNonPositiveFee
+	}
 	return nil
 }
