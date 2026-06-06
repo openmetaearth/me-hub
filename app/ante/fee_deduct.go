@@ -345,6 +345,9 @@ func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 
 	feeCoins := feeTx.GetFee()
 	gas := feeTx.GetGas()
+	if gas > uint64(math.MaxInt64) {
+		return nil, 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidGasLimit, "tx gas limit %d exceeds max supported gas %d", gas, uint64(math.MaxInt64))
+	}
 
 	// Ensure that the provided fees meet a minimum threshold for the validator,
 	// if this is a CheckTx. This is only for local mempool purposes, and thus
