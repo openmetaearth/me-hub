@@ -118,6 +118,57 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfirm() {
 	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, batch.TokenContract, batch.BatchNonce))
 }
 
+func (suite *KeeperTestSuite) TestKeeper_StoreBatchAllowsDifferentTokensInSameBlock() {
+	blockHeight := uint64(200)
+	tokenA := helpers.GenerateAddress().Hex()
+	tokenB := helpers.GenerateAddress().Hex()
+	feeReceiver := helpers.GenerateAddress().Hex()
+
+	newBatch := func(tokenContract string, nonce uint64) *types.OutgoingTxBatch {
+		return &types.OutgoingTxBatch{
+			BatchNonce:   nonce,
+			BatchTimeout: 0,
+			Transactions: []*types.OutgoingTransferTx{
+				{
+					Id:          nonce,
+					Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+					DestAddress: helpers.GenerateAddress().Hex(),
+					Token: types.ERC20Token{
+						Contract: tokenContract,
+						Amount:   sdkmath.NewInt(1),
+					},
+					Fee: types.ERC20Token{
+						Contract: tokenContract,
+						Amount:   sdkmath.NewInt(1),
+					},
+				},
+			},
+			TokenContract: tokenContract,
+			Block:         blockHeight,
+			FeeReceive:    feeReceiver,
+		}
+	}
+
+	batchA := newBatch(tokenA, 1)
+	batchB := newBatch(tokenB, 2)
+
+	suite.NoError(suite.Keeper().StoreBatch(suite.Ctx, batchA))
+	suite.NoError(suite.Keeper().StoreBatch(suite.Ctx, batchB))
+	suite.Error(suite.Keeper().StoreBatch(suite.Ctx, newBatch(tokenA, 3)))
+
+	var batches []*types.OutgoingTxBatch
+	suite.Keeper().IterateBatchByBlockHeight(suite.Ctx, blockHeight, blockHeight+1,
+		func(batch *types.OutgoingTxBatch) bool {
+			batches = append(batches, batch)
+			return false
+		},
+	)
+	suite.Len(batches, 2)
+
+	suite.Keeper().DeleteBatch(suite.Ctx, batchA)
+	suite.NoError(suite.Keeper().StoreBatch(suite.Ctx, newBatch(tokenA, 3)))
+}
+
 func (suite *KeeperTestSuite) TestKeeper_IterateBatch() {
 	index := tmrand.Intn(100)
 	for i := 1; i <= index; i++ {

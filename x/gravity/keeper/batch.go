@@ -132,10 +132,10 @@ func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error 
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetOutgoingTxBatchKey(batch.TokenContract, batch.BatchNonce)
 
-	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block)
-	// Note: Only one OutgoingTxBatch can be submitted in a block
+	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block, batch.TokenContract)
+	// Note: only one OutgoingTxBatch per token contract can be submitted in a block.
 	if store.Has(blockKey) {
-		return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("block:[%v] has batch request", batch.Block))
+		return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("block:[%v] token:[%s] has batch request", batch.Block, batch.TokenContract))
 	}
 
 	value := k.cdc.MustMarshal(batch)
@@ -148,7 +148,7 @@ func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error 
 func (k Keeper) DeleteBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetOutgoingTxBatchKey(batch.TokenContract, batch.BatchNonce))
-	store.Delete(types.GetOutgoingTxBatchBlockKey(batch.Block))
+	store.Delete(types.GetOutgoingTxBatchBlockKey(batch.Block, batch.TokenContract))
 }
 
 // pickUnBatchedTx find Tx in pool and remove from "available" second index
