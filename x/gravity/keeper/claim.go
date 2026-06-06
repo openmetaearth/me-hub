@@ -34,6 +34,9 @@ func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, relayerAddr sdk.AccAddr
 	if !found {
 		return types.ErrNotFoundRelayer
 	}
+	if !relayer.Online {
+		return types.ErrRelayerNotOnLine
+	}
 
 	if relayer.ExternalAddress != signatureAddr {
 		return errorsmod.Wrapf(types.ErrExternalAddressNotMatch, "got %s, expected %s", signatureAddr, relayer.ExternalAddress)
