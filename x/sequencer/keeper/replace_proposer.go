@@ -146,6 +146,10 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId, creator
 			)
 			return nil
 		} else {
+			k.Logger(ctx).Info("ProcSequencerByPendingStates cleared stale ReplaceProposer.",
+				"rollapp", rollappId, "old_sequencer", val.ReplaceProposer.OldProposer,
+				"old_status", oldSequencer.Status, "old_proposer", oldSequencer.Proposer)
+			k.DeleteReplaceProposer(ctx, rollappId)
 			return nil
 		}
 	}

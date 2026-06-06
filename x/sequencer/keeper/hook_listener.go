@@ -1,7 +1,9 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
@@ -56,6 +58,10 @@ func (hook rollappHook) AfterStateFinalized(ctx sdk.Context, rollappID string, s
 				hook.k.Logger(ctx).Error("forceRemoveUnbondingSequencer error.", "sequencer", val.ReplaceProposer.OldProposer,
 					"rollapp", rollappID, "state_block_info", fmt.Sprintf("%d-%d", stateInfo.StartHeight,
 						stateInfo.StartHeight+stateInfo.NumBlocks-1), "error", err.Error())
+				if errors.Is(err, types.ErrUnknownSequencer) || errors.Is(err, types.ErrInvalidSequencerStatus) {
+					hook.k.DeleteReplaceProposer(ctx, rollappID)
+					return nil
+				}
 				return fmt.Errorf("forceRemoveUnbondingSequencer error in AfterStateFinalized.sequencer=%s,"+
 					" rollapp = %s, err = %s", val.ReplaceProposer.OldProposer, rollappID, err.Error())
 			}
