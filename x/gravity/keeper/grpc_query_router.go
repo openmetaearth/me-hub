@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"reflect"
+
 	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
 
 	"google.golang.org/grpc/codes"
@@ -12,6 +14,10 @@ import (
 
 var _ types.QueryServer = RouterKeeper{}
 
+type chainNameQueryRequest interface {
+	GetChainName() string
+}
+
 func (k RouterKeeper) getQueryServerByChainName(chainName string) (types.QueryServer, error) {
 	if !k.router.HasRoute(chainName) {
 		return nil, status.Error(codes.InvalidArgument, "chain name not found:"+chainName)
@@ -19,8 +25,15 @@ func (k RouterKeeper) getQueryServerByChainName(chainName string) (types.QuerySe
 	return k.router.GetRoute(chainName).QueryServer, nil
 }
 
+func (k RouterKeeper) getQueryServerByRequest(req chainNameQueryRequest) (types.QueryServer, error) {
+	if req == nil || reflect.ValueOf(req).IsNil() {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	return k.getQueryServerByChainName(req.GetChainName())
+}
+
 func (k RouterKeeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.Params(c, req)
@@ -28,7 +41,7 @@ func (k RouterKeeper) Params(c context.Context, req *types.QueryParamsRequest) (
 }
 
 func (k RouterKeeper) ProposalRelayers(c context.Context, req *types.QueryProposalRelayersRequest) (*types.QueryProposalRelayersResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.ProposalRelayers(c, req)
@@ -36,7 +49,7 @@ func (k RouterKeeper) ProposalRelayers(c context.Context, req *types.QueryPropos
 }
 
 func (k RouterKeeper) Relayer(c context.Context, req *types.QueryRelayerRequest) (*types.QueryRelayerResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.Relayer(c, req)
@@ -44,7 +57,7 @@ func (k RouterKeeper) Relayer(c context.Context, req *types.QueryRelayerRequest)
 }
 
 func (k RouterKeeper) Relayers(c context.Context, req *types.QueryRelayersRequest) (*types.QueryRelayersResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.Relayers(c, req)
@@ -52,7 +65,7 @@ func (k RouterKeeper) Relayers(c context.Context, req *types.QueryRelayersReques
 }
 
 func (k RouterKeeper) CurrentRelayerSet(c context.Context, req *types.QueryCurrentRelayerSetRequest) (*types.QueryCurrentRelayerSetResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.CurrentRelayerSet(c, req)
@@ -60,7 +73,7 @@ func (k RouterKeeper) CurrentRelayerSet(c context.Context, req *types.QueryCurre
 }
 
 func (k RouterKeeper) RelayerSetRequest(c context.Context, req *types.QueryRelayerSetRequestRequest) (*types.QueryRelayerSetRequestResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.RelayerSetRequest(c, req)
@@ -68,7 +81,7 @@ func (k RouterKeeper) RelayerSetRequest(c context.Context, req *types.QueryRelay
 }
 
 func (k RouterKeeper) RelayerSetConfirm(c context.Context, req *types.QueryRelayerSetConfirmRequest) (*types.QueryRelayerSetConfirmResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.RelayerSetConfirm(c, req)
@@ -76,7 +89,7 @@ func (k RouterKeeper) RelayerSetConfirm(c context.Context, req *types.QueryRelay
 }
 
 func (k RouterKeeper) RelayerSetConfirmsByNonce(c context.Context, req *types.QueryRelayerSetConfirmsByNonceRequest) (*types.QueryRelayerSetConfirmsByNonceResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.RelayerSetConfirmsByNonce(c, req)
@@ -84,7 +97,7 @@ func (k RouterKeeper) RelayerSetConfirmsByNonce(c context.Context, req *types.Qu
 }
 
 func (k RouterKeeper) LastRelayerSetRequests(c context.Context, req *types.QueryLastRelayerSetRequestsRequest) (*types.QueryLastRelayerSetRequestsResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.LastRelayerSetRequests(c, req)
@@ -92,7 +105,7 @@ func (k RouterKeeper) LastRelayerSetRequests(c context.Context, req *types.Query
 }
 
 func (k RouterKeeper) LastPendingRelayerSetRequestByAddr(c context.Context, req *types.QueryLastPendingRelayerSetRequestByAddrRequest) (*types.QueryLastPendingRelayerSetRequestByAddrResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.LastPendingRelayerSetRequestByAddr(c, req)
@@ -100,7 +113,7 @@ func (k RouterKeeper) LastPendingRelayerSetRequestByAddr(c context.Context, req 
 }
 
 func (k RouterKeeper) LastPendingBatchRequestByAddr(c context.Context, req *types.QueryLastPendingBatchRequestByAddrRequest) (*types.QueryLastPendingBatchRequestByAddrResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.LastPendingBatchRequestByAddr(c, req)
@@ -108,7 +121,7 @@ func (k RouterKeeper) LastPendingBatchRequestByAddr(c context.Context, req *type
 }
 
 func (k RouterKeeper) OutgoingTxBatches(c context.Context, req *types.QueryOutgoingTxBatchesRequest) (*types.QueryOutgoingTxBatchesResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.OutgoingTxBatches(c, req)
@@ -116,7 +129,7 @@ func (k RouterKeeper) OutgoingTxBatches(c context.Context, req *types.QueryOutgo
 }
 
 func (k RouterKeeper) BatchRequestByNonce(c context.Context, req *types.QueryBatchRequestByNonceRequest) (*types.QueryBatchRequestByNonceResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.BatchRequestByNonce(c, req)
@@ -124,7 +137,7 @@ func (k RouterKeeper) BatchRequestByNonce(c context.Context, req *types.QueryBat
 }
 
 func (k RouterKeeper) BatchConfirm(c context.Context, req *types.QueryBatchConfirmRequest) (*types.QueryBatchConfirmResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.BatchConfirm(c, req)
@@ -132,7 +145,7 @@ func (k RouterKeeper) BatchConfirm(c context.Context, req *types.QueryBatchConfi
 }
 
 func (k RouterKeeper) BatchConfirms(c context.Context, req *types.QueryBatchConfirmsRequest) (*types.QueryBatchConfirmsResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.BatchConfirms(c, req)
@@ -140,7 +153,7 @@ func (k RouterKeeper) BatchConfirms(c context.Context, req *types.QueryBatchConf
 }
 
 func (k RouterKeeper) LastEventNonceByAddr(c context.Context, req *types.QueryLastEventNonceByAddrRequest) (*types.QueryLastEventNonceByAddrResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.LastEventNonceByAddr(c, req)
@@ -148,7 +161,7 @@ func (k RouterKeeper) LastEventNonceByAddr(c context.Context, req *types.QueryLa
 }
 
 func (k RouterKeeper) PendingOutgoingTxByAddr(c context.Context, req *types.QueryPendingOutgoingTxByAddrRequest) (*types.QueryPendingOutgoingTxByAddrResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.PendingOutgoingTxByAddr(c, req)
@@ -156,7 +169,7 @@ func (k RouterKeeper) PendingOutgoingTxByAddr(c context.Context, req *types.Quer
 }
 
 func (k RouterKeeper) UnbatchedTxs(c context.Context, req *types.QueryUnbatchedTxsRequest) (*types.QueryUnbatchedTxsResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.UnbatchedTxs(c, req)
@@ -164,7 +177,7 @@ func (k RouterKeeper) UnbatchedTxs(c context.Context, req *types.QueryUnbatchedT
 }
 
 func (k RouterKeeper) LastObservedBlockHeight(c context.Context, req *types.QueryLastObservedBlockHeightRequest) (*types.QueryLastObservedBlockHeightResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.LastObservedBlockHeight(c, req)
@@ -172,7 +185,7 @@ func (k RouterKeeper) LastObservedBlockHeight(c context.Context, req *types.Quer
 }
 
 func (k RouterKeeper) LastEventBlockHeightByAddr(c context.Context, req *types.QueryLastEventBlockHeightByAddrRequest) (*types.QueryLastEventBlockHeightByAddrResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.LastEventBlockHeightByAddr(c, req)
@@ -180,7 +193,7 @@ func (k RouterKeeper) LastEventBlockHeightByAddr(c context.Context, req *types.Q
 }
 
 func (k RouterKeeper) ProjectedBatchTimeoutHeight(c context.Context, req *types.QueryProjectedBatchTimeoutHeightRequest) (*types.QueryProjectedBatchTimeoutHeightResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.ProjectedBatchTimeoutHeight(c, req)
@@ -188,7 +201,7 @@ func (k RouterKeeper) ProjectedBatchTimeoutHeight(c context.Context, req *types.
 }
 
 func (k RouterKeeper) BridgeTokens(c context.Context, req *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.BridgeTokens(c, req)
@@ -196,7 +209,7 @@ func (k RouterKeeper) BridgeTokens(c context.Context, req *types.QueryBridgeToke
 }
 
 func (k RouterKeeper) BridgeToken(c context.Context, req *types.QueryBridgeTokenRequest) (*types.QueryBridgeTokenResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.BridgeToken(c, req)
@@ -204,7 +217,7 @@ func (k RouterKeeper) BridgeToken(c context.Context, req *types.QueryBridgeToken
 }
 
 func (k RouterKeeper) BatchFees(c context.Context, req *types.QueryBatchFeeRequest) (*types.QueryBatchFeeResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.BatchFees(c, req)
@@ -212,7 +225,7 @@ func (k RouterKeeper) BatchFees(c context.Context, req *types.QueryBatchFeeReque
 }
 
 func (k RouterKeeper) ClaimsByEventNonce(c context.Context, req *types.QueryClaimsByEventNonceRequest) (*types.QueryClaimsByEventNonceResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByRequest(req); err != nil {
 		return nil, err
 	} else {
 		return queryServer.ClaimsByEventNonce(c, req)
