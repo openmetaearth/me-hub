@@ -70,6 +70,8 @@ message GenesisState {
   repeated FixedDeposit fixedDepositList = 11 [(gogoproto.nullable) = false];
   uint64 fixedDepositCount = 12;
   bool exported = 13;
+  // replace_consensus_pubkey stores a pending consensus-key replacement plan.
+  bytes replace_consensus_pubkey = 14;
 }
 
 // LastValidatorPower required for validator set update logic.

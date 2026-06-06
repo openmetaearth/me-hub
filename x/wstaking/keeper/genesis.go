@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"cosmossdk.io/math"
+	"encoding/json"
 	"fmt"
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -29,6 +30,16 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 		panic(err)
 	}
 	k.SetLastTotalPower(ctx, data.LastTotalPower)
+
+	if len(data.ReplaceConsensusPubKey) > 0 {
+		updateInfo := wstakingtypes.UpdatePubKeyInfo{}
+		if err := json.Unmarshal(data.ReplaceConsensusPubKey, &updateInfo); err != nil {
+			panic(fmt.Sprintf("unmarshal replace consensus pubkey genesis data: %s", err))
+		}
+		if err := k.SetReplacePubKeyInfo(ctx, &updateInfo); err != nil {
+			panic(err)
+		}
+	}
 
 	for _, validator := range data.Validators {
 		k.SetValidator(ctx, validator)
@@ -182,19 +193,32 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *wstakingtypes.GenesisState {
 		return false
 	})
 
+	updateInfo, err := k.GetReplaceConsensusPubKeyInfo(ctx)
+	if err != nil {
+		panic(err)
+	}
+	var replaceConsensusPubKey []byte
+	if updateInfo != nil {
+		replaceConsensusPubKey, err = json.Marshal(updateInfo)
+		if err != nil {
+			panic(fmt.Sprintf("marshal replace consensus pubkey genesis data: %s", err))
+		}
+	}
+
 	return &wstakingtypes.GenesisState{
-		Params:               k.GetParams(ctx),
-		LastTotalPower:       k.GetLastTotalPower(ctx),
-		LastValidatorPowers:  lastValidatorPowers,
-		Validators:           k.GetAllValidators(ctx),
-		Delegations:          k.GetAllDelegations(ctx),
-		UnbondingDelegations: unbondingDelegations,
-		Redelegations:        redelegations,
-		Stakes:               k.GetAllStakes(ctx),
-		UnbondingStakes:      unbondingStakes,
-		Regions:              k.GetAllRegion(ctx),
-		FixedDepositList:     k.GetAllFixedDeposit(ctx),
-		FixedDepositCount:    k.GetFixedDepositCount(ctx),
-		Exported:             true,
+		Params:                 k.GetParams(ctx),
+		LastTotalPower:         k.GetLastTotalPower(ctx),
+		LastValidatorPowers:    lastValidatorPowers,
+		Validators:             k.GetAllValidators(ctx),
+		Delegations:            k.GetAllDelegations(ctx),
+		UnbondingDelegations:   unbondingDelegations,
+		Redelegations:          redelegations,
+		Stakes:                 k.GetAllStakes(ctx),
+		UnbondingStakes:        unbondingStakes,
+		Regions:                k.GetAllRegion(ctx),
+		FixedDepositList:       k.GetAllFixedDeposit(ctx),
+		FixedDepositCount:      k.GetFixedDepositCount(ctx),
+		Exported:               true,
+		ReplaceConsensusPubKey: replaceConsensusPubKey,
 	}
 }

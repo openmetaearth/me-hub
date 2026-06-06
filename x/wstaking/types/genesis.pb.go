@@ -53,6 +53,8 @@ type GenesisState struct {
 	FixedDepositList  []FixedDeposit   `protobuf:"bytes,11,rep,name=fixedDepositList,proto3" json:"fixedDepositList"`
 	FixedDepositCount uint64           `protobuf:"varint,12,opt,name=fixedDepositCount,proto3" json:"fixedDepositCount,omitempty"`
 	Exported          bool             `protobuf:"varint,13,opt,name=exported,proto3" json:"exported,omitempty"`
+	// replace_consensus_pubkey stores a pending consensus-key replacement plan.
+	ReplaceConsensusPubKey []byte `protobuf:"bytes,14,opt,name=replace_consensus_pubkey,json=replaceConsensusPubkey,proto3" json:"replace_consensus_pubkey,omitempty"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -172,6 +174,13 @@ func (m *GenesisState) GetExported() bool {
 	return false
 }
 
+func (m *GenesisState) GetReplaceConsensusPubKey() []byte {
+	if m != nil {
+		return m.ReplaceConsensusPubKey
+	}
+	return nil
+}
+
 // LastValidatorPower required for validator set update logic.
 type LastValidatorPower struct {
 	// address is the address of the validator.
@@ -286,6 +295,13 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.ReplaceConsensusPubKey) > 0 {
+		i -= len(m.ReplaceConsensusPubKey)
+		copy(dAtA[i:], m.ReplaceConsensusPubKey)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.ReplaceConsensusPubKey)))
+		i--
+		dAtA[i] = 0x72
+	}
 	if m.Exported {
 		i--
 		if m.Exported {
@@ -565,6 +581,10 @@ func (m *GenesisState) Size() (n int) {
 	}
 	if m.Exported {
 		n += 2
+	}
+	if len(m.ReplaceConsensusPubKey) > 0 {
+		l = len(m.ReplaceConsensusPubKey)
+		n += 1 + l + sovGenesis(uint64(l))
 	}
 	return n
 }
@@ -1031,6 +1051,40 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.Exported = bool(v != 0)
+		case 14:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReplaceConsensusPubKey", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ReplaceConsensusPubKey = append(m.ReplaceConsensusPubKey[:0], dAtA[iNdEx:postIndex]...)
+			if m.ReplaceConsensusPubKey == nil {
+				m.ReplaceConsensusPubKey = []byte{}
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipGenesis(dAtA[iNdEx:])
