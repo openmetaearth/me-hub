@@ -249,6 +249,44 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
 	suite.ErrorIs(err, sequencertypes.ErrUnknownSequencer)
 }
 
+func (suite *RollappTestSuite) TestFrozenRollappRejectsUpdateState() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	rollapp := types.Rollapp{
+		RollappId:     "rollapp1",
+		Creator:       alice,
+		Version:       3,
+		MaxSequencers: 1,
+		Frozen:        true,
+	}
+	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+
+	sequencer := sequencertypes.Sequencer{
+		SequencerAddress: bob,
+		RollappId:        rollapp.GetRollappId(),
+		Status:           sequencertypes.Bonded,
+		Proposer:         true,
+	}
+	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
+
+	updateState := types.MsgUpdateState{
+		Creator:     bob,
+		RollappId:   rollapp.GetRollappId(),
+		StartHeight: 1,
+		NumBlocks:   3,
+		DAPath:      "",
+		Version:     3,
+		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
+	}
+
+	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
+	suite.ErrorIs(err, sequencertypes.ErrRollappJailed)
+
+	_, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
+	suite.Require().False(found)
+}
+
 func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)

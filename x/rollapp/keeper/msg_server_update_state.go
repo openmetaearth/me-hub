@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
+	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState) (*types.MsgUpdateStateResponse, error) {
@@ -24,6 +25,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	rollapp, isFound := k.GetRollapp(ctx, msg.RollappId)
 	if !isFound {
 		return nil, types.ErrUnknownRollappID
+	}
+	if rollapp.Frozen {
+		return nil, sequencertypes.ErrRollappJailed
 	}
 
 	// check rollapp version
