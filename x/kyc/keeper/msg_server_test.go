@@ -112,6 +112,64 @@ func (s *KeeperTestSuite) TestRemove() {
 	// check kyc
 	_, f = s.Keeper().GetKYC(s.Ctx, did)
 	s.Require().False(f)
+
+	// check address mapping
+	_, f = s.Keeper().GetDID(s.Ctx, kycAccount)
+	s.Require().False(f)
+}
+
+func (s *KeeperTestSuite) TestApproveClearsStaleAddressMappingOnReapproval() {
+	s.SetupTest()
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	did := "1111111111111111"
+	oldAccount, oldPubkey := s.NewAccount()
+	inviter, _ := s.NewAccount()
+	_, err := s.msgServer.Approve(s.Ctx, &types.MsgApprove{
+		Issuer:   s.Dao.GlobalDao,
+		Did:      did,
+		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
+		Address:  oldAccount.String(),
+		Pubkey:   oldPubkey,
+		Uri:      "http://127.0.0.1/8001",
+		Hash:     "aaaa",
+		Inviter:  inviter.String(),
+		Level:    2,
+	})
+	s.Require().NoError(err)
+
+	_, err = s.msgServer.Remove(s.Ctx, &types.MsgRemove{
+		Issuer: s.Dao.GlobalDao,
+		Did:    did,
+	})
+	s.Require().NoError(err)
+	s.Keeper().SetDID(s.Ctx, oldAccount, did)
+	staleDID, found := s.Keeper().GetDID(s.Ctx, oldAccount)
+	s.Require().True(found)
+	s.Require().Equal(did, staleDID)
+
+	newAccount, newPubkey := s.NewAccount()
+	_, err = s.msgServer.Approve(s.Ctx, &types.MsgApprove{
+		Issuer:   s.Dao.GlobalDao,
+		Did:      did,
+		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
+		Address:  newAccount.String(),
+		Pubkey:   newPubkey,
+		Uri:      "http://127.0.0.1/8001",
+		Hash:     "bbbb",
+		Inviter:  inviter.String(),
+		Level:    2,
+	})
+	s.Require().NoError(err)
+
+	_, found = s.Keeper().GetDID(s.Ctx, oldAccount)
+	s.Require().False(found)
+	approvedDID, found := s.Keeper().GetDID(s.Ctx, newAccount)
+	s.Require().True(found)
+	s.Require().Equal(did, approvedDID)
 }
 
 func (s *KeeperTestSuite) TestUpdate() {

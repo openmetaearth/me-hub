@@ -67,6 +67,12 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 		// notice: holder must have not DID
 		return &types.MsgApproveResponse{}, didtypes.ErrHolderExists
 	}
+	if holderInfo.Address != "" && holderInfo.Address != msg.Address {
+		oldAddress := sdk.MustAccAddressFromBech32(holderInfo.Address)
+		if oldDID, found := m.GetDID(ctx, oldAddress); found && oldDID == msg.Did {
+			m.DeleteDID(ctx, oldAddress)
+		}
+	}
 
 	// create DID
 	m.SetDID(ctx, address, msg.Did)
@@ -223,6 +229,10 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	didInfo.KycLevel = 0
 	didInfo.Status = didtypes.DID_STATUS_INACTIVE
 	m.SetDidInfo(ctx, msg.Did, didInfo)
+	address := sdk.MustAccAddressFromBech32(didInfo.Address)
+	if did, found := m.GetDID(ctx, address); found && did == msg.Did {
+		m.DeleteDID(ctx, address)
+	}
 
 	// delete KYC
 	kyc, found := m.GetKYC(ctx, msg.Did)
@@ -236,7 +246,6 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	m.DeleteFilters(ctx, msg.Did, filters)
 
 	// cancel reward
-	address := sdk.MustAccAddressFromBech32(didInfo.Address)
 	if err := m.DeleteApproveReward(ctx, address.String(), string(kyc.Data)); err != nil {
 		return &types.MsgRemoveResponse{}, errors.Wrap(err, "delete reward failed")
 	}
