@@ -2,9 +2,12 @@ package keeper
 
 import (
 	"context"
-	sdkerrors "cosmossdk.io/errors"
 	"encoding/json"
+
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/openmetaearth/me-hub/x/dao/types"
 )
 
@@ -33,11 +36,15 @@ func (k msgServer) UpdateDao(goCtx context.Context, msg *types.MsgUpdateDao) (*t
 		return nil, types.ErrNotFound
 	}
 
+	if err := k.validateDaoAddresses(ctx, msg.DaoAddresses); err != nil {
+		return nil, err
+	}
+
 	k.SetDaoAddresses(ctx, msg.DaoAddresses)
 
 	err := k.kycHook.SetKycIssers(ctx, []string{oldDao.GlobalDao, oldDao.MeidDao}, []string{msg.DaoAddresses.GlobalDao, msg.DaoAddresses.MeidDao})
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrSetKycIssuer, err.Error())
+		return nil, errorsmod.Wrap(types.ErrSetKycIssuer, err.Error())
 	}
 
 	oldByte, _ := json.Marshal(oldDao)
@@ -52,6 +59,40 @@ func (k msgServer) UpdateDao(goCtx context.Context, msg *types.MsgUpdateDao) (*t
 	return &types.MsgUpdateDaoResponse{}, nil
 }
 
+type accountGetter interface {
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+}
+
+func (k msgServer) validateDaoAddresses(ctx sdk.Context, daoAddresses types.DaoAddresses) error {
+	if err := validateDaoAddressNotModuleAccount(ctx, k.authKeeper, "GlobalDao", daoAddresses.GlobalDao); err != nil {
+		return err
+	}
+	if err := validateDaoAddressNotModuleAccount(ctx, k.authKeeper, "MeidDao", daoAddresses.MeidDao); err != nil {
+		return err
+	}
+	if err := validateDaoAddressNotModuleAccount(ctx, k.authKeeper, "DevOperator", daoAddresses.DevOperator); err != nil {
+		return err
+	}
+	return validateDaoAddressNotModuleAccount(ctx, k.authKeeper, "AirdropAddress", daoAddresses.AirdropAddress)
+}
+
+func validateDaoAddressNotModuleAccount(ctx sdk.Context, accountKeeper accountGetter, fieldName, address string) error {
+	if address == "" {
+		return nil
+	}
+
+	addr, err := sdk.AccAddressFromBech32(address)
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "%s: %s", fieldName, address)
+	}
+
+	account := accountKeeper.GetAccount(ctx, addr)
+	if _, ok := account.(authtypes.ModuleAccountI); ok {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "%s cannot be a module account: %s", fieldName, address)
+	}
+	return nil
+}
+
 func (k msgServer) FreeGasAccount(goCtx context.Context, msg *types.MsgFreeGasAccount) (*types.MsgFreeGasAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -64,7 +105,7 @@ func (k msgServer) FreeGasAccount(goCtx context.Context, msg *types.MsgFreeGasAc
 		isExist := k.CheckFreeGasAccount(ctx, account.Address)
 		if isExist {
 			if account.IsFree {
-				return nil, sdkerrors.Wrap(types.ErrFreeGasAccountAlreadyExist, account.Address)
+				return nil, errorsmod.Wrap(types.ErrFreeGasAccountAlreadyExist, account.Address)
 			} else {
 				k.RemoveFreeGasAccount(ctx, account.Address)
 			}
@@ -74,7 +115,7 @@ func (k msgServer) FreeGasAccount(goCtx context.Context, msg *types.MsgFreeGasAc
 			if account.IsFree {
 				k.SetFreeGasAccount(ctx, account.Address)
 			} else {
-				return nil, sdkerrors.Wrap(types.ErrAccountIsNotFree, account.Address)
+				return nil, errorsmod.Wrap(types.ErrAccountIsNotFree, account.Address)
 			}
 		}
 	}
