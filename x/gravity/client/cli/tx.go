@@ -17,7 +17,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
+	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
+	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 	"github.com/spf13/cobra"
 )
 
@@ -326,7 +328,6 @@ func CmdRequestBatchConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			externalAddress := ethcrypto.PubkeyToAddress(privateKey.PublicKey)
 
 			queryClient := types.NewQueryClient(clientCtx)
 			batchRequestByNonceResp, err := queryClient.BatchRequestByNonce(cmd.Context(), &types.QueryBatchRequestByNonceRequest{
@@ -360,18 +361,18 @@ func CmdRequestBatchConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			checkpoint, err := batchRequestByNonceResp.GetBatch().GetCheckpoint(paramsResp.Params.GetGravityId())
+			checkpoint, err := confirmBatchCheckpoint(chainName, batchRequestByNonceResp.GetBatch(), paramsResp.Params.GetGravityId())
 			if err != nil {
 				return err
 			}
-			signature, err := types.NewEthereumSignature(checkpoint, privateKey)
+			externalAddress, signature, err := confirmExternalMaterial(chainName, privateKey, checkpoint)
 			if err != nil {
 				return err
 			}
 			msg := &types.MsgConfirmBatch{
 				Nonce:           nonce,
 				TokenContract:   tokenContract,
-				ExternalAddress: externalAddress.String(),
+				ExternalAddress: externalAddress,
 				RelayerAddress:  fromAddress.String(),
 				Signature:       hex.EncodeToString(signature),
 				ChainName:       chainName,
@@ -402,7 +403,6 @@ func CmdRelayerSetConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			externalAddress := ethcrypto.PubkeyToAddress(privateKey.PublicKey)
 
 			queryClient := types.NewQueryClient(clientCtx)
 			relayerSetRequestResp, err := queryClient.RelayerSetRequest(cmd.Context(), &types.QueryRelayerSetRequestRequest{
@@ -430,18 +430,18 @@ func CmdRelayerSetConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			checkpoint, err := relayerSetRequestResp.GetRelayerSet().GetCheckpoint(paramsResp.Params.GetGravityId())
+			checkpoint, err := relayerSetCheckpoint(chainName, relayerSetRequestResp.GetRelayerSet(), paramsResp.Params.GetGravityId())
 			if err != nil {
 				return err
 			}
-			signature, err := types.NewEthereumSignature(checkpoint, privateKey)
+			externalAddress, signature, err := confirmExternalMaterial(chainName, privateKey, checkpoint)
 			if err != nil {
 				return err
 			}
 			msg := &types.MsgRelayerSetConfirm{
 				Nonce:           nonce,
 				RelayerAddress:  fromAddress.String(),
-				ExternalAddress: externalAddress.String(),
+				ExternalAddress: externalAddress,
 				Signature:       hex.EncodeToString(signature),
 				ChainName:       chainName,
 			}
@@ -449,6 +449,30 @@ func CmdRelayerSetConfirm(chainName string) *cobra.Command {
 		},
 	}
 	return cmd
+}
+
+func confirmBatchCheckpoint(chainName string, batch *types.OutgoingTxBatch, gravityID string) ([]byte, error) {
+	if chainName == trontypes.ModuleName {
+		return trontypes.GetCheckpointConfirmBatch(batch, gravityID)
+	}
+	return batch.GetCheckpoint(gravityID)
+}
+
+func relayerSetCheckpoint(chainName string, relayerSet *types.RelayerSet, gravityID string) ([]byte, error) {
+	if chainName == trontypes.ModuleName {
+		return trontypes.GetCheckpointRelayerSet(relayerSet, gravityID)
+	}
+	return relayerSet.GetCheckpoint(gravityID)
+}
+
+func confirmExternalMaterial(chainName string, privateKey *ecdsa.PrivateKey, checkpoint []byte) (string, []byte, error) {
+	if chainName == trontypes.ModuleName {
+		signature, err := trontypes.NewTronSignature(checkpoint, privateKey)
+		return tronaddress.PubkeyToAddress(privateKey.PublicKey).String(), signature, err
+	}
+
+	signature, err := types.NewEthereumSignature(checkpoint, privateKey)
+	return ethcrypto.PubkeyToAddress(privateKey.PublicKey).String(), signature, err
 }
 
 func recoveryPrivateKeyByKeystore(privateKey string) (*ecdsa.PrivateKey, error) {
