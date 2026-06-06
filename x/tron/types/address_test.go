@@ -3,6 +3,7 @@ package types_test
 import (
 	"testing"
 
+	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/openmetaearth/me-hub/x/tron/types"
 	"github.com/stretchr/testify/require"
 )
@@ -59,6 +60,21 @@ func TestValidateTronAddress(t *testing.T) {
 				return
 			}
 			require.EqualValues(t, testCase.errStr, err.Error(), testCase.value)
+		})
+	}
+}
+
+func TestTronAddressExternalConversionsDoNotPanicOnInvalidInput(t *testing.T) {
+	converter := types.TronAddress{}
+
+	for _, value := range []string{"", "invalid_address"} {
+		t.Run(value, func(t *testing.T) {
+			require.NotPanics(t, func() {
+				require.Nil(t, converter.ExternalAddrToAccAddr(value))
+			})
+			require.NotPanics(t, func() {
+				require.Equal(t, gethcommon.Address{}, converter.ExternalAddrToHexAddr(value))
+			})
 		})
 	}
 }
