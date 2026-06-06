@@ -25,7 +25,7 @@ func (k *Keeper) GetRegion(ctx sdk.Context, regionId string) (reg types.Region, 
 
 func (k *Keeper) GetAllRegions(ctx sdk.Context) (regs []types.Region) {
 	raws := k.stkKeeper.GetAllRegion(ctx)
-	regions := make([]types.Region, len(raws))
+	regions := make([]types.Region, 0, len(raws))
 	for _, rew := range raws {
 		regions = append(regions, types.Region{Id: rew.RegionId, Name: rew.Name})
 	}
@@ -43,6 +43,6 @@ func (k *Keeper) GetProtocol(ctx sdk.Context) (types.Protocol, bool) {
 	return types.Protocol{Service: svc, Regions: regions}, true
 }
 
-func (k *Keeper) SetProtocol(ctx sdk.Context, proto types.Protocol) {
-	k.SetService(ctx, proto.Service)
+func (k *Keeper) SetProtocol(ctx sdk.Context, svc didtypes.Service) {
+	k.SetService(ctx, svc)
 }

@@ -30,7 +30,37 @@ func (s *KeeperTestSuite) TestProtocol() {
 	s.Require().Equal(res.Protocol.Service.Description, "The KYC verifiable credential issuer based The DID(Decentralized Identity).")
 	s.Require().Equal(1, len(res.Protocol.Service.Issuers))
 	s.Require().Equal(res.Protocol.Service.Status, didtypes.SERVICE_STATUS_ACTIVE)
-	s.Require().Equal(6, len(res.Protocol.Regions))
+
+	expectedRegions := s.App.StakingKeeper.GetAllRegion(s.Ctx)
+	s.Require().Len(res.Protocol.Regions, len(expectedRegions))
+
+	regionsByID := make(map[string]string, len(res.Protocol.Regions))
+	for _, region := range res.Protocol.Regions {
+		s.Require().NotEmpty(region.Id)
+		s.Require().NotEmpty(region.Name)
+		regionsByID[region.Id] = region.Name
+	}
+
+	for _, region := range expectedRegions {
+		s.Require().Equal(region.Name, regionsByID[region.RegionId])
+	}
+}
+
+func (s *KeeperTestSuite) TestSetProtocolUpdatesService() {
+	s.SetupTest()
+
+	svc := didtypes.Service{
+		Sid:         types.ModuleName,
+		Name:        "updated-kyc",
+		Description: "updated service",
+		Status:      didtypes.SERVICE_STATUS_ACTIVE,
+	}
+	s.Keeper().SetProtocol(s.Ctx, svc)
+
+	proto, found := s.Keeper().GetProtocol(s.Ctx)
+	s.Require().True(found)
+	s.Require().Equal(svc, proto.Service)
+	s.Require().Len(proto.Regions, len(s.App.StakingKeeper.GetAllRegion(s.Ctx)))
 }
 
 func (s *KeeperTestSuite) TestDID() {
