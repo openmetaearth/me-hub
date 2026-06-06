@@ -65,6 +65,23 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 		k.SetStake(ctx, stake)
 	}
 
+	for _, ubs := range data.UnbondingStakes {
+		k.SetUnbondingStake(ctx, ubs)
+
+		for _, entry := range ubs.Entries {
+			k.InsertUBSQueue(ctx, ubs, entry.CompletionTime)
+		}
+	}
+
+	for _, region := range data.Regions {
+		k.SetRegion(ctx, region)
+	}
+
+	for _, fixedDeposit := range data.FixedDepositList {
+		k.SetFixedDeposit(ctx, fixedDeposit)
+	}
+	k.SetFixedDepositCount(ctx, data.FixedDepositCount)
+
 	for _, delegation := range data.Delegations {
 		k.SetDelegation(ctx, delegation)
 	}
