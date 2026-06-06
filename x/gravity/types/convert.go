@@ -12,6 +12,9 @@ func CheckBscUsdtUsdc(symbol, chainName string) bool {
 
 func GetDecimals(claim *MsgBridgeTokenClaim) (decimals uint32) {
 	decimals = uint32(claim.Decimals)
+	if claim.Decimals > MaxBridgeTokenDecimals {
+		decimals = uint32(MaxBridgeTokenDecimals)
+	}
 	if CheckBscUsdtUsdc(claim.Symbol, claim.ChainName) {
 		decimals = uint32(6)
 	}
@@ -25,17 +28,24 @@ func GetMintCoin(amount sdk.Int, chainName string, bridgeToken *BridgeToken) sdk
 }
 
 func GetMintAmount(amount sdk.Int, chainName string, bridgeToken *BridgeToken) sdk.Int {
-	if CheckBscUsdtUsdc(bridgeToken.Symbol, chainName) && bridgeToken.Decimal > 6 {
-		convert := sdk.NewDec(10).Power(bridgeToken.Decimal - 6).TruncateInt()
+	if exponent, ok := bscStablecoinConversionExponent(chainName, bridgeToken); ok {
+		convert := sdk.NewDec(10).Power(exponent).TruncateInt()
 		amount = amount.Quo(convert)
 	}
 	return amount
 }
 
 func GetExternalUnlockAmount(amount sdk.Int, chainName string, bridgeToken *BridgeToken) sdk.Int {
-	if CheckBscUsdtUsdc(bridgeToken.Symbol, chainName) && bridgeToken.Decimal > 6 {
-		convert := sdk.NewDec(10).Power(bridgeToken.Decimal - 6).TruncateInt()
+	if exponent, ok := bscStablecoinConversionExponent(chainName, bridgeToken); ok {
+		convert := sdk.NewDec(10).Power(exponent).TruncateInt()
 		amount = amount.Mul(convert)
 	}
 	return amount
+}
+
+func bscStablecoinConversionExponent(chainName string, bridgeToken *BridgeToken) (uint64, bool) {
+	if !CheckBscUsdtUsdc(bridgeToken.Symbol, chainName) || bridgeToken.Decimal <= 6 || bridgeToken.Decimal > MaxBridgeTokenDecimals {
+		return 0, false
+	}
+	return bridgeToken.Decimal - 6, true
 }

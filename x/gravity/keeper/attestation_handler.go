@@ -41,6 +41,9 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)
 
 	case *types.MsgBridgeTokenClaim:
+		if claim.Decimals > types.MaxBridgeTokenDecimals {
+			return errorsmod.Wrapf(types.ErrInvalid, "bridge token decimals %d exceeds max %d", claim.Decimals, types.MaxBridgeTokenDecimals)
+		}
 		// Check if it already exists
 		exists := k.HasBridgeToken(ctx, claim.TokenContract)
 		if exists {

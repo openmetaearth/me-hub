@@ -89,3 +89,20 @@ func TestGetExternalUnlockAmount(t *testing.T) {
 		})
 	}
 }
+
+func TestBscStablecoinConversionDoesNotPanicOnOversizedDecimals(t *testing.T) {
+	amount := sdkmath.NewInt(1_000_000)
+	bridgeToken := &BridgeToken{
+		Symbol:  "USDT",
+		Decimal: MaxBridgeTokenDecimals + 1,
+	}
+
+	require.NotPanics(t, func() {
+		result := GetMintAmount(amount, "bsc", bridgeToken)
+		require.Equal(t, amount, result)
+	})
+	require.NotPanics(t, func() {
+		result := GetExternalUnlockAmount(amount, "bsc", bridgeToken)
+		require.Equal(t, amount, result)
+	})
+}

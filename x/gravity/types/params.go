@@ -9,11 +9,12 @@ import (
 )
 
 const (
-	OutgoingTxBatchSize        = 100
-	MaxKeepEventSize           = 20
-	MaxGasLimit                = 30_000_000
-	MaxResults                 = 100
-	PowerBase           uint64 = 10000
+	OutgoingTxBatchSize           = 100
+	MaxKeepEventSize              = 20
+	MaxGasLimit                   = 30_000_000
+	MaxResults                    = 100
+	PowerBase              uint64 = 10000
+	MaxBridgeTokenDecimals        = 18
 )
 
 var (

@@ -191,6 +191,9 @@ func (m *MsgBridgeTokenClaim) ValidateBasic() (err error) {
 	if len(m.Symbol) == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("empty token symbol")
 	}
+	if m.Decimals > MaxBridgeTokenDecimals {
+		return errortypes.ErrInvalidRequest.Wrapf("bridge token decimals %d exceeds max %d", m.Decimals, MaxBridgeTokenDecimals)
+	}
 	if m.EventNonce == 0 {
 		return errortypes.ErrInvalidRequest.Wrap("zero event nonce")
 	}
