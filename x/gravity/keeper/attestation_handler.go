@@ -38,7 +38,9 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		k.SetBridgeToken(ctx, bridgeToken)
 
 	case *types.MsgSendToExternalClaim:
-		k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce)
+		if err := k.OutgoingTxBatchExecuted(ctx, claim.TokenContract, claim.BatchNonce); err != nil {
+			return err
+		}
 
 	case *types.MsgBridgeTokenClaim:
 		// Check if it already exists

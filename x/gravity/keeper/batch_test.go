@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
+	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
@@ -110,12 +111,75 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfirm() {
 		msgConfirmBatch.ExternalAddress = crypto.PubkeyToAddress(suite.externalPris[i].PublicKey).String()
 		suite.Keeper().SetBatchConfirm(suite.Ctx, relayer, msgConfirmBatch)
 	}
-	suite.Keeper().OutgoingTxBatchExecuted(suite.Ctx, batch.TokenContract, batch.BatchNonce)
+	suite.NoError(suite.Keeper().OutgoingTxBatchExecuted(suite.Ctx, batch.TokenContract, batch.BatchNonce))
 
 	for _, relayer := range suite.relayerAddrs {
 		suite.Nil(suite.Keeper().GetBatchConfirm(suite.Ctx, batch.TokenContract, batch.BatchNonce, relayer))
 	}
 	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, batch.TokenContract, batch.BatchNonce))
+}
+
+func (suite *KeeperTestSuite) TestCleanupTimedOutBatchesPreservesConfirmedBatch() {
+	tokenContract := helpers.GenerateAddress().Hex()
+	for i := range suite.relayerAddrs {
+		suite.Keeper().SetRelayer(suite.Ctx, suite.relayerAddrs[i], types.Relayer{
+			RelayerAddress:  suite.relayerAddrs[i].String(),
+			ExternalAddress: crypto.PubkeyToAddress(suite.externalPris[i].PublicKey).String(),
+			DelegateAmount:  sdk.NewInt(10 * 1e8),
+			Online:          true,
+		})
+	}
+	suite.Keeper().SetLastTotalPower(suite.Ctx)
+
+	batch := &types.OutgoingTxBatch{
+		BatchNonce:   1,
+		BatchTimeout: 10,
+		Transactions: []*types.OutgoingTransferTx{
+			{
+				Id:          1,
+				Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+				DestAddress: helpers.GenerateAddress().Hex(),
+				Token: types.ERC20Token{
+					Contract: tokenContract,
+					Amount:   sdkmath.NewInt(1),
+				},
+				Fee: types.ERC20Token{
+					Contract: tokenContract,
+					Amount:   sdkmath.NewInt(1),
+				},
+			},
+		},
+		TokenContract: tokenContract,
+		Block:         uint64(suite.Ctx.BlockHeight()),
+		FeeReceive:    helpers.GenerateAddress().Hex(),
+	}
+	suite.NoError(suite.Keeper().StoreBatch(suite.Ctx, batch))
+
+	msgConfirmBatch := &types.MsgConfirmBatch{
+		Nonce:         batch.BatchNonce,
+		TokenContract: tokenContract,
+		ChainName:     suite.chainName,
+	}
+	for i := 0; i < 7; i++ {
+		msgConfirmBatch.RelayerAddress = suite.relayerAddrs[i].String()
+		msgConfirmBatch.ExternalAddress = crypto.PubkeyToAddress(suite.externalPris[i].PublicKey).String()
+		suite.Keeper().SetBatchConfirm(suite.Ctx, suite.relayerAddrs[i], msgConfirmBatch)
+		if i == 0 {
+			suite.False(suite.Keeper().HasBatchConfirmQuorum(suite.Ctx, batch.BatchNonce, batch.TokenContract))
+		}
+	}
+	suite.True(suite.Keeper().HasBatchConfirmQuorum(suite.Ctx, batch.BatchNonce, batch.TokenContract))
+
+	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, batch.BatchTimeout+1, uint64(suite.Ctx.BlockHeight()))
+	suite.App.EndBlock(abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+
+	suite.NotNil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, batch.TokenContract, batch.BatchNonce))
+	suite.NotNil(suite.Keeper().GetBatchConfirm(suite.Ctx, batch.TokenContract, batch.BatchNonce, suite.relayerAddrs[0]))
+}
+
+func (suite *KeeperTestSuite) TestOutgoingTxBatchExecutedReturnsErrorForMissingBatch() {
+	err := suite.Keeper().OutgoingTxBatchExecuted(suite.Ctx, helpers.GenerateAddress().Hex(), 99)
+	suite.Error(err)
 }
 
 func (suite *KeeperTestSuite) TestKeeper_IterateBatch() {

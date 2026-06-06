@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
@@ -40,6 +41,32 @@ func (k Keeper) IterateBatchConfirmByNonceAndTokenContract(ctx sdk.Context, batc
 			break
 		}
 	}
+}
+
+func (k Keeper) HasBatchConfirmQuorum(ctx sdk.Context, batchNonce uint64, tokenContract string) bool {
+	totalPower := k.GetLastTotalPower(ctx)
+	if totalPower.IsZero() {
+		return false
+	}
+
+	requiredPower := types.AttestationVotesPowerThreshold.Mul(totalPower).Quo(sdk.NewIntFromUint64(types.PowerBase))
+	confirmPower := sdkmath.ZeroInt()
+	k.IterateBatchConfirmByNonceAndTokenContract(ctx, batchNonce, tokenContract, func(confirm *types.MsgConfirmBatch) bool {
+		relayerAddr, err := sdk.AccAddressFromBech32(confirm.RelayerAddress)
+		if err != nil {
+			k.Logger(ctx).Error("HasBatchConfirmQuorum", "invalid relayer address", confirm.RelayerAddress, "error", err)
+			return false
+		}
+
+		relayer, found := k.GetRelayer(ctx, relayerAddr)
+		if !found || !relayer.Online {
+			return false
+		}
+
+		confirmPower = confirmPower.Add(relayer.GetPower())
+		return confirmPower.GTE(requiredPower)
+	})
+	return confirmPower.GTE(requiredPower)
 }
 
 func (k Keeper) DeleteBatchConfirm(ctx sdk.Context, batchNonce uint64, tokenContract string) {
