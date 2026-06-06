@@ -156,20 +156,7 @@ func (k Keeper) Credentials(goCtx context.Context, req *types.QueryCredentials) 
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	var vcs []types.Credential
-
-	store := ctx.KVStore(k.storeKey)
-	filterStore := prefix.NewStore(store, types.GetFilterPrefixBySidAndFilter(req.Sid, req.Filter))
-
-	pageRes, err := query.Paginate(filterStore, req.Pagination, func(key []byte, value []byte) error {
-		var vc types.Credential
-		if err := k.cdc.Unmarshal(value, &vc); err != nil {
-			return err
-		}
-
-		vcs = append(vcs, vc)
-		return nil
-	})
+	vcs, pageRes, err := k.GetCredentialsByFilter(ctx, req.Sid, req.Filter, req.Pagination)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

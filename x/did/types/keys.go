@@ -1,6 +1,10 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	"encoding/binary"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 const (
 	// ModuleName defines the module name
@@ -64,8 +68,25 @@ func GetFilterLoggerKey(did, sid string) []byte {
 	return append(append(FilterLoggerPrefix, did...), sid...)
 }
 
+func appendLengthPrefixed(dst, value []byte) []byte {
+	var lenBz [8]byte
+	binary.BigEndian.PutUint64(lenBz[:], uint64(len(value)))
+	dst = append(dst, lenBz[:]...)
+	return append(dst, value...)
+}
+
+func GetLegacyFilterPrefixBySidAndFilter(sid string, filter []byte) []byte {
+	return append(append(append([]byte{}, FilterPrefix...), sid...), filter...)
+}
+
+func GetLegacyFilterKey(sid, did string, filter []byte) []byte {
+	return append(GetLegacyFilterPrefixBySidAndFilter(sid, filter), did...)
+}
+
 func GetFilterPrefixBySidAndFilter(sid string, filter []byte) []byte {
-	return append(append(FilterPrefix, sid...), filter...)
+	key := append([]byte{}, FilterPrefix...)
+	key = appendLengthPrefixed(key, []byte(sid))
+	return appendLengthPrefixed(key, filter)
 }
 
 func GetFilterKey(sid, did string, filter []byte) []byte {

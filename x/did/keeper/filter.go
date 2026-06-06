@@ -50,6 +50,7 @@ func (k Keeper) DeleteFilters(ctx sdk.Context, did, sid string, filters [][]byte
 
 	for _, filter := range filters {
 		store.Delete(types.GetFilterKey(sid, did, filter))
+		store.Delete(types.GetLegacyFilterKey(sid, did, filter))
 		// delete the filter form FilterLogger
 		flog.Delete(filter)
 	}
