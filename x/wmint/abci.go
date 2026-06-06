@@ -46,25 +46,30 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic mintypes.InflationCalcula
 		} else {
 			mintedAmount.Set(newMinted)
 		}
-		k.SetMintedCoinAmount(ctx, mintedAmount)
 	default:
 		mintingUMECAmount = sdk.ZeroInt()
 	}
 
-	k.SetPerBlockMintCoinAmount(ctx, *mintingUMECAmount.BigInt())
-
 	mintedCoin := sdk.NewCoin(params.BaseDenom, mintingUMECAmount)
 	mintedCoins := sdk.NewCoins(mintedCoin)
-	err := k.MintCoins(ctx, mintedCoins)
+
+	cacheCtx, write := ctx.CacheContext()
+	k.SetMintedCoinAmount(cacheCtx, mintedAmount)
+	k.SetPerBlockMintCoinAmount(cacheCtx, *mintingUMECAmount.BigInt())
+
+	err := k.MintCoins(cacheCtx, mintedCoins)
 	if err != nil {
-		panic(err)
+		logger.Error("mint coins failed", "err", err)
+		return
 	}
 
 	// send the minted coins to me treasury module account
-	err = k.SendCoinsToTreasury(ctx, mintedCoins)
+	err = k.SendCoinsToTreasury(cacheCtx, mintedCoins)
 	if err != nil {
-		panic(err)
+		logger.Error("send minted coins to treasury failed", "err", err)
+		return
 	}
+	write()
 
 	if mintedCoin.Amount.IsInt64() {
 		defer telemetry.ModuleSetGauge(types.ModuleName, float32(mintedCoin.Amount.Int64()), "minted_tokens")

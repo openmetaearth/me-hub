@@ -15,6 +15,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/openmetaearth/me-hub/x/wmint/types/mock_types"
 	"github.com/stretchr/testify/assert"
+	testifymock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -176,16 +177,56 @@ func (suite *KeeperTestSuite) TestBeginBlocker() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestBeginBlockerDoesNotPanicWhenMintFails() {
+	ctx := suite.newContextWith(1)
+	suite.wmintKeeper.SetMintedCoinAmount(ctx, *big.NewInt(0))
+	suite.bankKeeper.EXPECT().
+		MintCoins(testifymock.Anything, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("umec", sdk.NewInt(79274480000)))).
+		Return(fmt.Errorf("mint failed"))
+
+	suite.NotPanics(func() {
+		BeginBlocker(ctx, suite.wmintKeeper, nil)
+	})
+
+	minted := suite.wmintKeeper.GetMintedCoinAmount(ctx)
+	suite.Equal(int64(0), minted.Int64())
+	perBlock := suite.wmintKeeper.GetPerBlockMintCoinAmount(ctx)
+	suite.Equal(int64(0), perBlock.Int64())
+}
+
+func (suite *KeeperTestSuite) TestBeginBlockerDoesNotCommitWhenTreasurySendFails() {
+	ctx := suite.newContextWith(1)
+	suite.wmintKeeper.SetMintedCoinAmount(ctx, *big.NewInt(0))
+	mintedCoins := sdk.NewCoins(sdk.NewCoin("umec", sdk.NewInt(79274480000)))
+	suite.bankKeeper.EXPECT().
+		MintCoins(testifymock.Anything, minttypes.ModuleName, mintedCoins).
+		Return(nil)
+	suite.bankKeeper.EXPECT().
+		SendCoinsFromModuleToModule(testifymock.Anything, minttypes.ModuleName, "treasury_pool", mintedCoins).
+		Return(fmt.Errorf("send failed"))
+
+	suite.NotPanics(func() {
+		BeginBlocker(ctx, suite.wmintKeeper, nil)
+	})
+
+	minted := suite.wmintKeeper.GetMintedCoinAmount(ctx)
+	suite.Equal(int64(0), minted.Int64())
+	perBlock := suite.wmintKeeper.GetPerBlockMintCoinAmount(ctx)
+	suite.Equal(int64(0), perBlock.Int64())
+}
+
 func (suite *KeeperTestSuite) newContextWith(height int64) sdk.Context {
 	return sdk.NewContext(suite.ctx.MultiStore(), tmproto.Header{Time: tmtime.Now(), Height: height}, false, log.NewNopLogger())
 }
 func (suite *KeeperTestSuite) setMockBankKeeper(ctx sdk.Context, mintAmount int64) {
+	_ = ctx
 
 	suite.bankKeeper.EXPECT().
-		MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("umec", sdk.NewInt(mintAmount)))).
+		MintCoins(testifymock.Anything, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("umec", sdk.NewInt(mintAmount)))).
 		Return(nil)
 
 	suite.bankKeeper.EXPECT().
-		SendCoinsFromModuleToModule(ctx, minttypes.ModuleName, "treasury_pool", sdk.NewCoins(sdk.NewCoin("umec", sdk.NewInt(mintAmount)))).
+		SendCoinsFromModuleToModule(testifymock.Anything, minttypes.ModuleName, "treasury_pool", sdk.NewCoins(sdk.NewCoin("umec", sdk.NewInt(mintAmount)))).
 		Return(nil)
 }
