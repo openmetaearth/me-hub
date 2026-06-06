@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -42,19 +43,28 @@ func (q Querier) DemandOrderById(goCtx context.Context, req *types.QueryGetDeman
 	var demandOrder *types.DemandOrder
 	var err error
 	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_FINALIZED, commontypes.Status_REVERTED}
-	for _, status := range statuses {
-		demandOrder, err = q.GetDemandOrder(ctx, status, req.Id)
+	for _, orderStatus := range statuses {
+		demandOrder, err = q.GetDemandOrder(ctx, orderStatus, req.Id)
 		if err == nil && demandOrder != nil {
 			return &types.QueryGetDemandOrderResponse{DemandOrder: demandOrder}, nil
 		}
+		if err != nil && !errors.Is(err, types.ErrDemandOrderDoesNotExist) {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
 	}
-	return nil, status.Error(codes.Internal, err.Error())
+	return nil, status.Error(codes.NotFound, types.ErrDemandOrderDoesNotExist.Error())
 }
 
 func (q Querier) DemandOrdersByStatus(goCtx context.Context, req *types.QueryDemandOrdersByStatusRequest) (*types.QueryDemandOrdersByStatusResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+	if req.FulfillmentState != types.FulfillmentState_UNDEFINED {
+		if _, ok := types.FulfillmentState_name[int32(req.FulfillmentState)]; !ok {
+			return nil, status.Error(codes.InvalidArgument, "invalid fulfillment state")
+		}
+	}
+
 	// Get the demand orders by status, with optional filters
 	demandOrders, err := q.ListDemandOrdersByStatus(sdk.UnwrapSDKContext(goCtx), req.Status, int(req.Limit), filterOpts(req)...)
 	if err != nil {

@@ -10,6 +10,8 @@ import (
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (suite *KeeperTestSuite) TestParamsQuery() {
@@ -31,6 +33,12 @@ func (suite *KeeperTestSuite) TestQueryDemandOrderById() {
 	res, err := suite.queryClient.DemandOrderById(sdk.WrapSDKContext(suite.Ctx), &types.QueryGetDemandOrderRequest{})
 	suite.Require().Error(err)
 	suite.Require().Nil(res)
+	suite.Require().Equal(codes.NotFound, status.Code(err))
+
+	res, err = suite.queryClient.DemandOrderById(sdk.WrapSDKContext(suite.Ctx), &types.QueryGetDemandOrderRequest{Id: "does-not-exist"})
+	suite.Require().Error(err)
+	suite.Require().Nil(res)
+	suite.Require().Equal(codes.NotFound, status.Code(err))
 
 	// Create a demand order with status pending
 	recipientAddress := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1000))[0]
@@ -102,4 +110,12 @@ func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res.DemandOrders)
 	suite.Require().Equal(false, res.DemandOrders[0].IsFulfilled(), "Expected 0 demand orders with fulfillment state unfulfilled")
+
+	res, err = suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{
+		Status:           commontypes.Status_PENDING,
+		FulfillmentState: types.FulfillmentState(99),
+	})
+	suite.Require().Error(err)
+	suite.Require().Nil(res)
+	suite.Require().Equal(codes.InvalidArgument, status.Code(err))
 }
