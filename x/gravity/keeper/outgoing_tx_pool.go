@@ -150,6 +150,10 @@ func (k Keeper) RemoveFromOutgoingPoolAndRefund(ctx sdk.Context, txId uint64, se
 
 // AddUnbatchedTx creates a new transaction in the pool
 func (k Keeper) AddUnbatchedTx(ctx sdk.Context, outgoingTransferTx *types.OutgoingTransferTx) error {
+	if existingTx, err := k.GetUnbatchedTxById(ctx, outgoingTransferTx.Id); err == nil && existingTx != nil {
+		return errorsmod.Wrapf(types.ErrDuplicate, "transaction id %d already in pool", outgoingTransferTx.Id)
+	}
+
 	store := ctx.KVStore(k.storeKey)
 	idxKey := types.GetOutgoingTxPoolKey(outgoingTransferTx.Fee, outgoingTransferTx.Id)
 	if store.Has(idxKey) {

@@ -155,19 +155,35 @@ func (k Keeper) DeleteBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) {
 func (k Keeper) pickUnBatchedTx(ctx sdk.Context, contractAddress string, maxElements uint, baseFee sdkmath.Int) ([]*types.OutgoingTransferTx, error) {
 	var selectedTx []*types.OutgoingTransferTx
 	var err error
+	selectedIDs := make(map[uint64]struct{})
+
 	k.IterateUnbatchedTransactions(ctx, contractAddress, func(tx *types.OutgoingTransferTx) bool {
 		if tx.Fee.Amount.LT(baseFee) {
 			return true
 		}
+		if _, found := selectedIDs[tx.Id]; found {
+			err = errorsmod.Wrapf(types.ErrDuplicate, "transaction id %d appears more than once in the unbatched pool", tx.Id)
+			return true
+		}
+		selectedIDs[tx.Id] = struct{}{}
 		selectedTx = append(selectedTx, tx)
+		return uint(len(selectedTx)) == maxElements
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, tx := range selectedTx {
 		err = k.DelUnbatchedTx(ctx, tx.Fee, tx.Id)
+		if err != nil {
+			return nil, err
+		}
 		oldTx, oldTxErr := k.GetUnbatchedTxByFeeAndId(ctx, tx.Fee, tx.Id)
 		if oldTx != nil || oldTxErr == nil {
-			panic("picked a duplicate transaction from the pool, duplicates should never exist!")
+			return nil, errorsmod.Wrapf(types.ErrDuplicate, "transaction id %d was not removed from the unbatched pool", tx.Id)
 		}
-		return err != nil || uint(len(selectedTx)) == maxElements
-	})
-	return selectedTx, err
+	}
+	return selectedTx, nil
 }
 
 // GetOutgoingTxBatch loads a batch object. Returns nil when not exists.

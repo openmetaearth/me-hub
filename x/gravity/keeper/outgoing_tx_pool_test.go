@@ -39,3 +39,38 @@ func (s *KeeperTestSuite) TestKeeper_OutgoingAncCancel() {
 	s.Equal(s.App.BankKeeper.GetAllBalances(s.Ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
 	s.Equal(sendAmount, s.App.BankKeeper.GetSupply(s.Ctx, denom))
 }
+
+func (s *KeeperTestSuite) TestAddUnbatchedTxRejectsDuplicateTxIDWithDifferentFee() {
+	tokenContract := helpers.GenerateAddress().Hex()
+	sender := sdk.AccAddress(helpers.GenerateAddress().Bytes()).String()
+	dest := helpers.GenerateAddress().Hex()
+
+	first := &types.OutgoingTransferTx{
+		Id:          7,
+		Sender:      sender,
+		DestAddress: dest,
+		Token: types.ERC20Token{
+			Contract: tokenContract,
+			Amount:   sdkmath.NewInt(100),
+		},
+		Fee: types.ERC20Token{
+			Contract: tokenContract,
+			Amount:   sdkmath.NewInt(1),
+		},
+	}
+	duplicate := *first
+	duplicate.Fee = types.ERC20Token{
+		Contract: tokenContract,
+		Amount:   sdkmath.NewInt(2),
+	}
+
+	s.NoError(s.Keeper().AddUnbatchedTx(s.Ctx, first))
+	err := s.Keeper().AddUnbatchedTx(s.Ctx, &duplicate)
+	s.Error(err)
+	s.Contains(err.Error(), "transaction id 7 already in pool")
+
+	unbatched := s.Keeper().GetUnbatchedTransactions(s.Ctx)
+	s.Len(unbatched, 1)
+	s.Equal(uint64(7), unbatched[0].Id)
+	s.Equal(sdkmath.NewInt(1), unbatched[0].Fee.Amount)
+}
