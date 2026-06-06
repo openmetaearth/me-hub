@@ -100,7 +100,7 @@ func (k Keeper) ReplaceProposerInfo(goCtx context.Context, req *types.QueryRepla
 			req.RollappId, err.Error())
 	}
 	if nil == replaceProposer {
-		return nil, nil
+		return nil, status.Error(codes.NotFound, "replace proposer not found")
 	}
 	return &types.QueryReplaceProposerInfoResponse{
 		ReplaceProposer: *replaceProposer,

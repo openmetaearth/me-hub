@@ -173,3 +173,16 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 		})
 	}
 }
+
+func (suite *SequencerTestSuite) TestReplaceProposerInfoNoHandoffReturnsNotFound() {
+	suite.SetupTest()
+
+	rollappId := suite.CreateDefaultRollapp()
+	response, err := suite.App.SequencerKeeper.ReplaceProposerInfo(suite.Ctx, &types.QueryReplaceProposerInfoRequest{
+		RollappId: rollappId,
+	})
+
+	require.Nil(suite.T(), response)
+	require.Error(suite.T(), err)
+	require.Equal(suite.T(), codes.NotFound, status.Code(err))
+}
