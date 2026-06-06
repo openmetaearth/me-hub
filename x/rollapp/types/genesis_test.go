@@ -59,6 +59,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					},
 					{
 						RollappId: "1",
+						Index:     1,
 					},
 				},
 				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
@@ -108,6 +109,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					},
 					{
 						RollappId: "1",
+						Index:     1,
 					},
 				},
 				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
@@ -201,6 +203,29 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid: false,
 		},
 		{
+			desc: "latestStateInfoIndex references missing stateInfo",
+			genState: &types.GenesisState{
+				Params:                             types.Params{},
+				RollappList:                        []types.Rollapp{},
+				StateInfoList:                      []types.StateInfo{{StateInfoIndex: types.StateInfoIndex{RollappId: "0", Index: 0}}},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{{RollappId: "0", Index: 1}},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+			},
+			valid: false,
+		},
+		{
+			desc: "latestFinalizedStateIndex references missing stateInfo",
+			genState: &types.GenesisState{
+				Params:                             types.Params{},
+				RollappList:                        []types.Rollapp{},
+				StateInfoList:                      []types.StateInfo{{StateInfoIndex: types.StateInfoIndex{RollappId: "0", Index: 0}}},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				LatestFinalizedStateIndexList:      []types.StateInfoIndex{{RollappId: "0", Index: 1}},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+			},
+			valid: false,
+		},
+		{
 			desc: "duplicated blockHeightToFinalizationQueue",
 			genState: &types.GenesisState{
 				Params:                             types.Params{},
@@ -208,6 +233,23 @@ func TestGenesisState_Validate(t *testing.T) {
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
 				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{{CreationHeight: 0}, {CreationHeight: 0}},
+			},
+			valid: false,
+		},
+		{
+			desc: "finalizationQueue references missing stateInfo",
+			genState: &types.GenesisState{
+				Params:                        types.Params{},
+				RollappList:                   []types.Rollapp{},
+				StateInfoList:                 []types.StateInfo{{StateInfoIndex: types.StateInfoIndex{RollappId: "0", Index: 0}}},
+				LatestStateInfoIndexList:      []types.StateInfoIndex{},
+				LatestFinalizedStateIndexList: []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
+					{
+						CreationHeight:    0,
+						FinalizationQueue: []types.StateInfoIndex{{RollappId: "0", Index: 1}},
+					},
+				},
 			},
 			valid: false,
 		},

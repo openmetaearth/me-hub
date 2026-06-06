@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+	"fmt"
 )
 
 // DefaultIndex is the default capability global index
@@ -52,6 +53,10 @@ func (gs GenesisState) Validate() error {
 			return errors.New("duplicated index for latestStateInfoIndex")
 		}
 		latestStateInfoIndexIndexMap[index] = struct{}{}
+
+		if _, ok := stateInfoIndexMap[string(StateInfoKey(elem))]; !ok {
+			return fmt.Errorf("latestStateInfoIndex references missing stateInfo: rollappId %s index %d", elem.RollappId, elem.Index)
+		}
 	}
 	// Check for duplicated index in latestFinalizedStateIndex
 	latestFinalizedStateIndexIndexMap := make(map[string]struct{})
@@ -62,6 +67,10 @@ func (gs GenesisState) Validate() error {
 			return errors.New("duplicated index for latestFinalizedStateIndex")
 		}
 		latestFinalizedStateIndexIndexMap[index] = struct{}{}
+
+		if _, ok := stateInfoIndexMap[string(StateInfoKey(elem))]; !ok {
+			return fmt.Errorf("latestFinalizedStateIndex references missing stateInfo: rollappId %s index %d", elem.RollappId, elem.Index)
+		}
 	}
 	// Check for duplicated index in blockHeightToFinalizationQueue
 	blockHeightToFinalizationQueueIndexMap := make(map[string]struct{})
@@ -72,6 +81,12 @@ func (gs GenesisState) Validate() error {
 			return errors.New("duplicated index for blockHeightToFinalizationQueue")
 		}
 		blockHeightToFinalizationQueueIndexMap[index] = struct{}{}
+
+		for _, stateInfoIndex := range elem.FinalizationQueue {
+			if _, ok := stateInfoIndexMap[string(StateInfoKey(stateInfoIndex))]; !ok {
+				return fmt.Errorf("finalizationQueue references missing stateInfo: rollappId %s index %d", stateInfoIndex.RollappId, stateInfoIndex.Index)
+			}
+		}
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
 
