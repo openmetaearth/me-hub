@@ -294,22 +294,15 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 	}
 	//It is a regional rule used to define parameters such as fixed deposit term and interest rate for a certain region.
 	depositConfig := k.GetAllFixedDepositCfg(ctx, toRegion.RegionId)
-	depositConfigMap := make(map[int64]sdk.Dec)
-	for _, cfg := range depositConfig {
-		if cfg.Status == types.RegionFixedDepositCfgStatusInactive {
-			return errors.New("fixed deposit cfg status is inactive")
-		}
-		depositConfigMap[cfg.Term] = cfg.Rate
-	}
+	depositConfigMap := fixedDepositConfigByTerm(depositConfig)
 	totalFixedDepositByAcc := sdk.ZeroInt()
 	totalFixedInterestCoin := sdk.ZeroInt()
 	for _, fixed := range fixedDeposits {
 		totalFixedDepositByAcc = totalFixedDepositByAcc.Add(fixed.Principal.Amount)
 		totalFixedInterestCoin = totalFixedInterestCoin.Add(fixed.Interest.Amount)
 		//check toRegion deposit config is exist and deposit rate is equal
-		rate, exists := depositConfigMap[fixed.Term]
-		if !exists || !rate.Equal(fixed.Rate) {
-			return errors.New(fmt.Sprintf("deposit cfg not same.rate=%s,fixed.Rate=%s,exists=%v,fixed.Term=%v", rate.String(), fixed.Rate.String(), exists, fixed.Term))
+		if err := validateFixedDepositTransferConfig(depositConfigMap, fixed); err != nil {
+			return err
 		}
 
 		err := k.IncreaseFixedDepositCountOfCfg(ctx, toRegion.RegionId, fixed.Term)
