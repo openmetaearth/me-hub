@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
-	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
 )
 
@@ -136,20 +135,6 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	isDao := dfd.daoKeeper.IsDao(ctx, feePayer.String())
 	isFreeGasAccount := dfd.daoKeeper.CheckFreeGasAccount(ctx, feePayer.String())
 	freeGas := isFreeGasAccount || isDao
-
-	// freeGas for MsgJoinGroup only when ALL messages in the tx are MsgJoinGroup.
-	// Mixing MsgJoinGroup with other message types is not allowed to get free gas,
-	// preventing attackers from bundling arbitrary messages with MsgJoinGroup to bypass fees.
-	if !freeGas && len(feeTx.GetMsgs()) > 0 {
-		allJoinGroup := true
-		for _, msg := range feeTx.GetMsgs() {
-			if _, ok := msg.(*megrouptypes.MsgJoinGroup); !ok {
-				allJoinGroup = false
-				break
-			}
-		}
-		freeGas = allJoinGroup
-	}
 
 	if !freeGas && !simulate {
 		_, priority, err = dfd.txFeeChecker(ctx, tx)
