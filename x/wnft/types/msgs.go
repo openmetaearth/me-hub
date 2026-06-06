@@ -3,6 +3,8 @@ package types
 import (
 	"cosmossdk.io/errors"
 	"fmt"
+	"strconv"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
@@ -74,6 +76,19 @@ func NewMsgNewClass(classId, sender, name, symbol, description, uri, uriHash str
 	}
 }
 
+func ParseCanonicalTokenId(tokenID string) (uint64, error) {
+	parsedTokenID, err := strconv.ParseUint(tokenID, 10, 64)
+	if err != nil || parsedTokenID < 1 {
+		return 0, errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id")
+	}
+
+	if tokenID != strconv.FormatUint(parsedTokenID, 10) {
+		return 0, errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id")
+	}
+
+	return parsedTokenID, nil
+}
+
 // ValidateBasic implements the Msg.ValidateBasic method.
 func (m MsgMintNFT) ValidateBasic() error {
 	if len(m.ClassId) == 0 {
@@ -82,6 +97,10 @@ func (m MsgMintNFT) ValidateBasic() error {
 
 	if len(m.TokenId) == 0 {
 		return ErrEmptyTokenId
+	}
+
+	if _, err := ParseCanonicalTokenId(m.TokenId); err != nil {
+		return err
 	}
 
 	if len(m.Uri) == 0 {
