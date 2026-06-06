@@ -47,9 +47,16 @@ func (w IBCModuleCanonicalChannelHack) OnRecvPacket(
 	}
 	ra, ok := w.rollappKeeper.GetRollapp(ctx, chainID)
 	if ok && ra.ChannelId == "" {
+		cacheCtx, writeCache := ctx.CacheContext()
 		ra.ChannelId = packet.GetDestChannel()
-		w.rollappKeeper.SetRollapp(ctx, ra)
+		w.rollappKeeper.SetRollapp(cacheCtx, ra)
 		l.Info("Set the canonical channel.", "channel id", packet.GetDestChannel())
+
+		ack := w.IBCModule.OnRecvPacket(cacheCtx, packet, relayer)
+		if ack.Success() {
+			writeCache()
+		}
+		return ack
 	}
 	return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 }
