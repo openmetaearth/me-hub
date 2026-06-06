@@ -80,7 +80,12 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 
 	// Use the packet as a basis for a fee transfer
 	feeData := transfer
-	fee := w.delayedAckKeeper.BridgingFeeFromAmt(ctx, transfer.MustAmountInt())
+	amount := transfer.MustAmountInt()
+	rawFee := w.delayedAckKeeper.BridgingFeeFromAmt(ctx, amount)
+	fee := chargeableBridgingFee(amount, rawFee)
+	if rawFee.GT(amount) {
+		l.Error("Bridging fee exceeds transfer amount.", "amount", amount.String(), "fee", rawFee.String())
+	}
 	if fee.IsZero() {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
@@ -107,7 +112,14 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 	}
 
 	// transfer the rest to the original recipient
-	transfer.Amount = transfer.MustAmountInt().Sub(fee).String()
+	transfer.Amount = amount.Sub(fee).String()
 	packet.Data = transfer.GetBytes()
 	return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
+}
+
+func chargeableBridgingFee(amount sdk.Int, fee sdk.Int) sdk.Int {
+	if !fee.IsPositive() || fee.GT(amount) {
+		return sdk.ZeroInt()
+	}
+	return fee
 }
