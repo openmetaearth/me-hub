@@ -34,7 +34,9 @@ func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.
 	completionTime := ctx.BlockHeader().Time
 	// transfer the validator tokens to the not bonded pool
 	if !isMeid {
-		k.bondedTokensToNotBonded(ctx, returnAmount)
+		if err = k.bondedTokensToNotBonded(ctx, returnAmount); err != nil {
+			return completionTime, returnAmount, err
+		}
 		completionTime = ctx.BlockHeader().Time.Add(unbondingTime)
 		ubd := k.SetUnbondingDelegationEntry(ctx, delAddr, valAddr, ctx.BlockHeight(), completionTime, returnAmount)
 		k.InsertUBDQueue(ctx, ubd, completionTime)
@@ -99,11 +101,12 @@ func (k Keeper) Unbond(ctx sdk.Context, delAmount math.Int, isMeid bool, delegat
 }
 
 // bondedTokensToNotBonded transfers coins from the bonded to the not bonded pool within staking
-func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, tokens math.Int) {
+func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, tokens math.Int) error {
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokens))
 	if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, stakingtypes.BondedPoolName, stakingtypes.NotBondedPoolName, coins, "BondedTokensToNotBonded"); err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
 
 // Delegate performs a delegation, set/update everything necessary within the store.
