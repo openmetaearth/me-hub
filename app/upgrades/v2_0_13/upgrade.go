@@ -8,6 +8,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	appkeepers "github.com/openmetaearth/me-hub/app/keepers"
+	appparams "github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/app/upgrades"
 	"github.com/openmetaearth/me-hub/utils"
 	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
@@ -58,16 +59,10 @@ func CreateUpgradeHandler(
 
 		// delegate total amount to module account
 		delegateAmount := sdk.NewInt(1 * 1e8)
-		//for _, relayerAddr := range proposalRelayers {
-		//if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), bsctypes.ModuleName,
-		//	sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
-		//	panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
-		//}
-		//if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), trontypes.ModuleName,
-		//	sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
-		//	panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
-		//}
-		//}
+		delegateCoins := sdk.NewCoins(sdk.NewCoin(appparams.BaseDenom, delegateAmount))
+		if err := fundGravityRelayerModuleAccounts(ctx, keepers.BankKeeper, proposalRelayers, delegateCoins); err != nil {
+			panic(err.Error())
+		}
 
 		bscGenState := GenGravityGenesis(ctx.BlockHeight(), proposalRelayers, bsctypes.DefaultGenesisState(), delegateAmount, bsctypes.ModuleName)
 		gravitykeeper.InitGenesis(ctx, keepers.BscKeeper, bscGenState)
@@ -98,6 +93,23 @@ func CreateUpgradeHandler(
 		logger.Info("upgrade finished successfully.")
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}
+}
+
+type relayerDelegationBankKeeper interface {
+	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+}
+
+func fundGravityRelayerModuleAccounts(ctx sdk.Context, bankKeeper relayerDelegationBankKeeper, proposalRelayers []string, delegateCoins sdk.Coins) error {
+	for _, relayerAddr := range proposalRelayers {
+		relayer := sdk.MustAccAddressFromBech32(relayerAddr)
+		if err := bankKeeper.SendCoinsFromAccountToModule(ctx, relayer, bsctypes.ModuleName, delegateCoins); err != nil {
+			return fmt.Errorf("failed to delegate coins to BSC relayer %s: %w", relayerAddr, err)
+		}
+		if err := bankKeeper.SendCoinsFromAccountToModule(ctx, relayer, trontypes.ModuleName, delegateCoins); err != nil {
+			return fmt.Errorf("failed to delegate coins to Tron relayer %s: %w", relayerAddr, err)
+		}
+	}
+	return nil
 }
 
 func GenGravityGenesis(height int64, proposalRelayers []string, defaultGenesis *gravitytypes.GenesisState, delegateAmount sdk.Int, moduleName string) *gravitytypes.GenesisState {
