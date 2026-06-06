@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/evmos/ethermint/x/evm"
+	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/openmetaearth/me-hub/x/evm/keeper"
@@ -78,7 +79,17 @@ func NewAppModule(k *keeper.Keeper, accountKeeper evmtypes.AccountKeeper, bankKe
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	am.AppModule.RegisterServices(cfg)
+	evmtypes.RegisterMsgServer(cfg.MsgServer(), am.keeper.Keeper)
+	evmtypes.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+
+	m := evmkeeper.NewMigrator(*am.keeper.Keeper, am.legacySubspace)
+	if err := cfg.RegisterMigration(evmtypes.ModuleName, 3, m.Migrate3to4); err != nil {
+		panic(err)
+	}
+
+	if err := cfg.RegisterMigration(evmtypes.ModuleName, 4, m.Migrate4to5); err != nil {
+		panic(err)
+	}
 }
 
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
