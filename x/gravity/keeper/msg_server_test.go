@@ -277,6 +277,49 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 	}
 }
 
+func (s *KeeperTestSuite) TestMsgUpdateParamsKeepsGravityIDImmutable() {
+	originalParams := s.Keeper().GetParams(s.Ctx)
+	originalGravityID := originalParams.GravityId
+	relayerSet := types.RelayerSet{
+		Nonce:  1,
+		Height: 1,
+		Members: []types.BridgeValidator{
+			{
+				Power:           types.PowerBase,
+				ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[0].PublicKey),
+			},
+		},
+	}
+	originalCheckpoint, err := relayerSet.GetCheckpoint(originalGravityID)
+	s.Require().NoError(err)
+
+	updatedParams := originalParams
+	updatedParams.SignedWindow++
+	_, err = s.MsgServer().UpdateParams(sdk.WrapSDKContext(s.Ctx), &types.MsgUpdateParams{
+		Authority: s.Keeper().GetAuthority(),
+		ChainName: s.chainName,
+		Params:    updatedParams,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(originalGravityID, s.Keeper().GetGravityID(s.Ctx))
+	s.Require().Equal(updatedParams.SignedWindow, s.Keeper().GetParams(s.Ctx).SignedWindow)
+
+	mutatedParams := s.Keeper().GetParams(s.Ctx)
+	mutatedParams.GravityId = "changed-gravity-id"
+	_, err = s.MsgServer().UpdateParams(sdk.WrapSDKContext(s.Ctx), &types.MsgUpdateParams{
+		Authority: s.Keeper().GetAuthority(),
+		ChainName: s.chainName,
+		Params:    mutatedParams,
+	})
+	s.Require().Error(err)
+	s.Require().Contains(err.Error(), "GravityId cannot be changed after initialization")
+	s.Require().Equal(originalGravityID, s.Keeper().GetGravityID(s.Ctx))
+
+	currentCheckpoint, err := relayerSet.GetCheckpoint(s.Keeper().GetGravityID(s.Ctx))
+	s.Require().NoError(err)
+	s.Require().Equal(originalCheckpoint, currentCheckpoint)
+}
+
 func (s *KeeperTestSuite) TestMsgSetRelayerSetConfirm() {
 	normalMsg := &types.MsgBondedRelayer{
 		RelayerAddress:  s.relayerAddrs[0].String(),

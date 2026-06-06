@@ -380,6 +380,10 @@ func (s MsgServer) UpdateParams(c context.Context, req *types.MsgUpdateParams) (
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", s.authority, req.Authority)
 	}
 	ctx := sdk.UnwrapSDKContext(c)
+	currentParams := s.GetParams(ctx)
+	if currentParams.GravityId != "" && currentParams.GravityId != req.Params.GravityId {
+		return nil, errorsmod.Wrap(types.ErrInvalid, "GravityId cannot be changed after initialization")
+	}
 	if err := s.SetParams(ctx, &req.Params); err != nil {
 		return nil, err
 	}
