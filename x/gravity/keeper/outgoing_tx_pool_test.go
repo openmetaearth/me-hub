@@ -39,3 +39,40 @@ func (s *KeeperTestSuite) TestKeeper_OutgoingAncCancel() {
 	s.Equal(s.App.BankKeeper.GetAllBalances(s.Ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
 	s.Equal(sendAmount, s.App.BankKeeper.GetSupply(s.Ctx, denom))
 }
+
+func (s *KeeperTestSuite) TestAddToOutgoingPoolAllowsMultipleWithdrawalsAfterBurnedPendingSupply() {
+	sender := helpers.GenerateAddress().Bytes()
+	denom := "testpending"
+	initialAmount := sdk.NewCoin(denom, sdkmath.NewInt(100))
+	bridgeToken := s.NewBridgeToken(sender, initialAmount)
+	receiver := helpers.GenerateAddress().Hex()
+
+	_, err := s.Keeper().AddToOutgoingPool(
+		s.Ctx,
+		sender,
+		receiver,
+		sdk.NewCoin(denom, sdkmath.NewInt(30)),
+		sdk.NewCoin(denom, sdkmath.NewInt(10)),
+	)
+	s.Require().NoError(err)
+
+	tokenAfterFirst, err := s.Keeper().GetBridgeTokenByContract(s.Ctx, bridgeToken.ContractAddress)
+	s.Require().NoError(err)
+	s.Require().Equal(sdkmath.NewInt(60), tokenAfterFirst.Supply)
+	s.Require().Equal(sdkmath.NewInt(60), s.App.BankKeeper.GetBalance(s.Ctx, sender, denom).Amount)
+
+	_, err = s.Keeper().AddToOutgoingPool(
+		s.Ctx,
+		sender,
+		receiver,
+		sdk.NewCoin(denom, sdkmath.NewInt(20)),
+		sdk.NewCoin(denom, sdkmath.NewInt(5)),
+	)
+	s.Require().NoError(err)
+
+	tokenAfterSecond, err := s.Keeper().GetBridgeTokenByContract(s.Ctx, bridgeToken.ContractAddress)
+	s.Require().NoError(err)
+	s.Require().Equal(sdkmath.NewInt(35), tokenAfterSecond.Supply)
+	s.Require().Equal(sdkmath.NewInt(35), s.App.BankKeeper.GetBalance(s.Ctx, sender, denom).Amount)
+	s.Require().Len(s.Keeper().GetUnbatchedTransactions(s.Ctx), 2)
+}
