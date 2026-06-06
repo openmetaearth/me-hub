@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -23,12 +24,17 @@ func (k Keeper) GroupMemberCountAll(goCtx context.Context, req *types.QueryAllGr
 	groupMemberCountStore := prefix.NewStore(store, types.KeyPrefix(types.GroupMemberCountKeyPrefix))
 
 	pageRes, err := query.Paginate(groupMemberCountStore, req.Pagination, func(key []byte, value []byte) error {
-		var groupMemberCount types.GroupMemberCount
-		if err := k.cdc.Unmarshal(value, &groupMemberCount); err != nil {
-			return err
+		if len(key) != 8 {
+			return fmt.Errorf("invalid group member count key length %d", len(key))
+		}
+		if len(value) != 8 {
+			return fmt.Errorf("invalid group member count value length %d", len(value))
 		}
 
-		groupMemberCounts = append(groupMemberCounts, groupMemberCount)
+		groupMemberCounts = append(groupMemberCounts, types.GroupMemberCount{
+			GroupId: types.GetUint64FromBytes(key),
+			Num:     types.GetUint64FromBytes(value),
+		})
 		return nil
 	})
 
