@@ -75,6 +75,7 @@ func TestCheckFunds(t *testing.T) {
 	feePayer := NewAccount()
 	receiver := NewAccount()
 	sender := NewAccount()
+	secondSender := NewAccount()
 
 	tests := []struct {
 		name         string
@@ -295,6 +296,37 @@ func TestCheckFunds(t *testing.T) {
 			expectError: false,
 		},
 		{
+			name:     "MsgMultiSend with multiple inputs and separate fee payer",
+			feePayer: feePayer.Address,
+			fees:     sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(10))),
+			balances: map[string]sdk.Coins{
+				feePayer.Address:     sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(10))),
+				sender.Address:       sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(100))),
+				secondSender.Address: sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(100))),
+			},
+			messages: []sdk.Msg{
+				&banktypes.MsgMultiSend{
+					Inputs: []banktypes.Input{
+						{
+							Address: sender.Address,
+							Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(100))),
+						},
+						{
+							Address: secondSender.Address,
+							Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(100))),
+						},
+					},
+					Outputs: []banktypes.Output{
+						{
+							Address: receiver.Address,
+							Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(200))),
+						},
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
 			name:     "MsgMultiSend with insufficient funds",
 			feePayer: feePayer.Address,
 			fees:     sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(100))),
@@ -322,7 +354,7 @@ func TestCheckFunds(t *testing.T) {
 				},
 			},
 			expectError:  true,
-			expectAmount: 400,
+			expectAmount: 300,
 		},
 		{
 			name:     "MsgMultiSend with insufficient funds, not enough for fees",
