@@ -36,6 +36,9 @@ func (k Keeper) MustGetKycRegionIdByAccount(ctx sdk.Context, account string) (st
 }
 
 func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creator, fromRegionId, toRegionId string) error {
+	if strings.EqualFold(fromRegionId, toRegionId) {
+		return nil
+	}
 
 	fromRegion, found := k.GetRegion(ctx, fromRegionId)
 	if !found {

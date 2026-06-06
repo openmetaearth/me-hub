@@ -68,3 +68,48 @@ func (s *KeeperTestSuite) TestTransferKycRegion() {
 	s.Require().Equal(delegation.ValidatorAddress, s.usaValidator.OperatorAddress)
 	s.Require().EqualValues(delegation.StartHeight, wmintTypes.OneDayTotalBlocks+1)
 }
+
+func (s *KeeperTestSuite) TestTransferKycRegionNoopsForSameRegion() {
+	s.SetupTest()
+	accounts := s.NewAccounts(1)
+
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            types.MeEarthRegionName,
+		OperatorAddress: s.meEarthValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	kycAccount := accounts[0]
+	regionID := s.meEarthValidator.Description.RegionID
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, regionID, s.Dao.GlobalDao)
+	s.Require().NoError(err)
+
+	regionBefore, found := s.Keeper().GetRegion(s.Ctx, regionID)
+	s.Require().True(found)
+	delegationBefore, found := s.Keeper().GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
+	s.Require().True(found)
+	balanceBefore := s.App.BankKeeper.GetBalance(s.Ctx, kycAccount, params.BaseDenom)
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks + 10).WithChainID(apptesting.TestChainID)
+	err = s.Keeper().TransferKycRegion(s.Ctx, kycAccount, s.Dao.GlobalDao, regionID, regionID)
+	s.Require().NoError(err)
+
+	regionAfter, found := s.Keeper().GetRegion(s.Ctx, regionID)
+	s.Require().True(found)
+	delegationAfter, found := s.Keeper().GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
+	s.Require().True(found)
+	balanceAfter := s.App.BankKeeper.GetBalance(s.Ctx, kycAccount, params.BaseDenom)
+
+	s.Require().Equal(regionBefore.DelegateAmount.String(), regionAfter.DelegateAmount.String())
+	s.Require().Equal(regionBefore.DelegateInterest.String(), regionAfter.DelegateInterest.String())
+	s.Require().Equal(delegationBefore.ValidatorAddress, delegationAfter.ValidatorAddress)
+	s.Require().Equal(delegationBefore.StartHeight, delegationAfter.StartHeight)
+	s.Require().Equal(delegationBefore.Unmovable.String(), delegationAfter.Unmovable.String())
+	s.Require().Equal(balanceBefore.String(), balanceAfter.String())
+}
