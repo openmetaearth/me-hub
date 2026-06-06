@@ -45,7 +45,7 @@ func (k Keeper) SetKycIssers(ctx sdk.Context, oldDaoAddress, newDaoAddress []str
 		return fmt.Errorf("kyc service not found")
 	}
 
-	dids := []string{}
+	daoDIDs := []string{}
 	for i, dao := range oldDaoAddress {
 		did, found := k.GetDID(ctx, sdk.MustAccAddressFromBech32(dao))
 		if !found {
@@ -62,10 +62,32 @@ func (k Keeper) SetKycIssers(ctx sdk.Context, oldDaoAddress, newDaoAddress []str
 
 		didInfo.Address = newDaoAddress[i]
 		k.SetDidInfo(ctx, did, didInfo)
-		dids = append(dids, did)
+		daoDIDs = append(daoDIDs, did)
 	}
 
-	service.Issuers = dids
+	service.Issuers = mergeKycIssuerDIDs(service.Issuers, daoDIDs)
 	k.didKeeper.SetService(ctx, types.ModuleName, service)
 	return nil
+}
+
+func mergeKycIssuerDIDs(existingIssuers, daoDIDs []string) []string {
+	seen := make(map[string]struct{}, len(existingIssuers)+len(daoDIDs))
+	merged := make([]string, 0, len(existingIssuers)+len(daoDIDs))
+
+	for _, issuer := range existingIssuers {
+		if _, ok := seen[issuer]; ok {
+			continue
+		}
+		merged = append(merged, issuer)
+		seen[issuer] = struct{}{}
+	}
+	for _, did := range daoDIDs {
+		if _, ok := seen[did]; ok {
+			continue
+		}
+		merged = append(merged, did)
+		seen[did] = struct{}{}
+	}
+
+	return merged
 }
