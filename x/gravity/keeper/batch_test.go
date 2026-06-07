@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"math"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -154,4 +156,32 @@ func (suite *KeeperTestSuite) TestKeeper_IterateBatch() {
 		},
 	)
 	suite.Equal(len(batchs), index)
+}
+
+func (suite *KeeperTestSuite) TestBatchTimeoutHeightProjection() {
+	params := suite.Keeper().GetParams(suite.Ctx)
+	params.AverageBlockTime = 100
+	params.AverageExternalBlockTime = 100
+	params.ExternalBatchTimeout = 60_000
+	suite.Require().NoError(suite.Keeper().SetParams(suite.Ctx, &params))
+
+	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, 1_000, uint64(suite.Ctx.BlockHeight()))
+
+	projectedCurrentExternalHeight, batchTimeout := suite.Keeper().GetBatchTimeoutHeight(suite.Ctx)
+	suite.Require().Equal(uint64(1_000), projectedCurrentExternalHeight)
+	suite.Require().Equal(uint64(1_600), batchTimeout)
+}
+
+func (suite *KeeperTestSuite) TestBatchTimeoutAdditionMustNotWrapBelowProjection() {
+	params := suite.Keeper().GetParams(suite.Ctx)
+	params.AverageBlockTime = 100
+	params.AverageExternalBlockTime = 100
+	params.ExternalBatchTimeout = 60_000
+	suite.Require().NoError(suite.Keeper().SetParams(suite.Ctx, &params))
+
+	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, math.MaxUint64-100, uint64(suite.Ctx.BlockHeight()))
+
+	projectedCurrentExternalHeight, batchTimeout := suite.Keeper().GetBatchTimeoutHeight(suite.Ctx)
+	suite.Require().Zero(projectedCurrentExternalHeight)
+	suite.Require().Zero(batchTimeout)
 }

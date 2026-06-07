@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -83,6 +84,9 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 // GetBatchTimeoutHeight This gets the batch timeout height in External blocks.
 func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) (uint64, uint64) {
 	currentMeHeight := ctx.BlockHeight()
+	if currentMeHeight < 0 {
+		return 0, 0
+	}
 	params := k.GetParams(ctx)
 	if params.AverageExternalBlockTime == 0 {
 		return 0, 0
@@ -94,12 +98,27 @@ func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) (uint64, uint64) {
 		return 0, 0
 	}
 	// we project how long it has been in milliseconds since the last Ethereum block height was observed
-	projectedMillis := (uint64(currentMeHeight) - heights.BlockHeight) * params.AverageBlockTime
+	currentMeHeightUint := uint64(currentMeHeight)
+	if currentMeHeightUint < heights.BlockHeight {
+		return 0, 0
+	}
+	heightDelta := currentMeHeightUint - heights.BlockHeight
+	if params.AverageBlockTime > 0 && heightDelta > math.MaxUint64/params.AverageBlockTime {
+		return 0, 0
+	}
+	projectedMillis := heightDelta * params.AverageBlockTime
 	// we convert that projection into the current Ethereum height using the average Ethereum block time in millis
-	projectedCurrentEthereumHeight := (projectedMillis / params.AverageExternalBlockTime) + heights.ExternalBlockHeight
+	projectedExternalBlocks := projectedMillis / params.AverageExternalBlockTime
+	if projectedExternalBlocks > math.MaxUint64-heights.ExternalBlockHeight {
+		return 0, 0
+	}
+	projectedCurrentEthereumHeight := projectedExternalBlocks + heights.ExternalBlockHeight
 	// we convert our target time for block timeouts (lets say 12 hours) into a number of blocks to
 	// place on top of our projection of the current Ethereum block height.
 	blocksToAdd := params.ExternalBatchTimeout / params.AverageExternalBlockTime
+	if blocksToAdd == 0 || projectedCurrentEthereumHeight > math.MaxUint64-blocksToAdd {
+		return 0, 0
+	}
 	return projectedCurrentEthereumHeight, projectedCurrentEthereumHeight + blocksToAdd
 }
 
