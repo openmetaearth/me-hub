@@ -38,21 +38,32 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 		description.RegionID = oldRegionId
 		validator.Description = description
 	} else {
-		if _, err := utils.CheckRegionName(strings.ToUpper(msg.Description.RegionID)); err != nil {
+		newRegionId := strings.ToLower(msg.Description.RegionID)
+		if _, err := utils.CheckRegionName(strings.ToUpper(newRegionId)); err != nil {
 			return nil, types.ErrRegionName
 		}
-		// remove duplication
-		validators := k.GetAllValidators(ctx)
-		for _, v := range validators {
-			if v.Description.RegionID == msg.Description.RegionID {
+		if strings.EqualFold(oldRegionId, newRegionId) {
+			description.RegionID = newRegionId
+			validator.Description = description
+		} else {
+			region, found := k.GetRegion(ctx, newRegionId)
+			if !found {
+				return nil, types.ErrRegionNotExist
+			}
+			if region.OperatorAddress != "" {
 				return nil, types.ErrValidatorRegionDuplication
 			}
-		}
-		k.UnBondRegion(ctx, oldRegionId)
-		description.RegionID = msg.Description.RegionID
-		validator.Description = description
-		region, f := k.GetRegion(ctx, msg.Description.RegionID)
-		if f && region.OperatorAddress == "" {
+
+			// remove duplication
+			validators := k.GetAllValidators(ctx)
+			for _, v := range validators {
+				if v.OperatorAddress != validator.OperatorAddress && strings.EqualFold(v.Description.RegionID, newRegionId) {
+					return nil, types.ErrValidatorRegionDuplication
+				}
+			}
+			k.UnBondRegion(ctx, oldRegionId)
+			description.RegionID = newRegionId
+			validator.Description = description
 			k.BondRegion(ctx, validator, validator.Tokens, true)
 		}
 	}
