@@ -54,6 +54,30 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 		return nil, errors.Wrap(types.ErrPermissionDenied, errLogBytes)
 	}
 
+	var (
+		adminAccAddr          sdk.AccAddress
+		regionTreasureAccAddr sdk.AccAddress
+		rewardRegionID        string
+	)
+	if !JoinGroupFound { //send rewards if user has not joined group
+		region, found := k.stakingKeeper.GetRegion(ctx, groupInfo.RegionID)
+		if !found {
+			return nil, errors.Wrapf(types.ErrRegionNotExist, "group's region: %s", groupInfo.RegionID)
+		}
+		rewardRegionID = region.RegionId
+
+		regionTreasureAccAddr, err = sdk.AccAddressFromBech32(region.GetRegionTreasureAddr())
+		if err != nil {
+			return nil, errors.Wrapf(types.ErrProcData, "region treasure address is invalid. err = %s, addr = %s",
+				err.Error(), region.GetRegionTreasureAddr())
+		}
+		adminAccAddr, err = sdk.AccAddressFromBech32(groupInfo.Admin)
+		if err != nil {
+			return nil, errors.Wrapf(types.ErrProcData, "group admin address is invalid. err = %s, addr = %s",
+				err.Error(), groupInfo.Admin)
+		}
+	}
+
 	//set member's join group info
 	k.SetMemberJoined(ctx, types.MemberJoined{
 		Address: msg.ApplicantAddress,
@@ -72,28 +96,23 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 	k.SetGroupMemberCount(ctx, msg.GroupId, grpNumber+1)
 
 	if !JoinGroupFound { //send rewards if user has not joined group
-		//get RegionTreasureAddr
-		region, found := k.stakingKeeper.GetRegion(ctx, groupInfo.RegionID)
-		if !found {
-			return nil, errors.Wrap(types.ErrRegionNotExist, fmt.Sprintf("group's region: %s", groupInfo.RegionID))
-		}
 		rewardsCoin := sdk.NewCoin(params.BaseDenom, math.NewInt(1000000))
-		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
-			sdk.MustAccAddressFromBech32(msg.ApplicantAddress), sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_SendApplicantRewards_%s", region.RegionId))
+		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAccAddr,
+			userAccAddr, sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_SendApplicantRewards_%s", rewardRegionID))
 		if err != nil {
 			return nil, errors.Wrap(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
-				err.Error(), region.GetRegionTreasureAddr(), msg.ApplicantAddress))
+				err.Error(), regionTreasureAccAddr.String(), msg.ApplicantAddress))
 		}
-		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
-			sdk.MustAccAddressFromBech32(groupInfo.Admin), sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_SendAdminRewards_%s", region.RegionId))
+		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAccAddr,
+			adminAccAddr, sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_SendAdminRewards_%s", rewardRegionID))
 		if err != nil {
 			return nil, errors.Wrap(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
-				err.Error(), region.GetRegionTreasureAddr(), groupInfo.Admin))
+				err.Error(), regionTreasureAccAddr.String(), groupInfo.Admin))
 		}
 		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtJoinGroupReward,
 			sdk.NewAttribute("applicant", msg.ApplicantAddress),
 			sdk.NewAttribute("admin", groupInfo.Admin),
-			sdk.NewAttribute("regionTreasureAddress", region.GetRegionTreasureAddr()),
+			sdk.NewAttribute("regionTreasureAddress", regionTreasureAccAddr.String()),
 			sdk.NewAttribute("rewards", rewardsCoin.String()),
 		))
 	}
