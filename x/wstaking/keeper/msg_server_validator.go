@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"math"
 	"strings"
 
 	ed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -184,12 +185,16 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 	if err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrInterProc, "GetConsAddr from validator error: %v", err)
 	}
+	updateAtHeight, err := safeReplaceConsensusPubKeyUpdateHeight(ctx.BlockHeight(), req.ReplacePubKey.BlockNumber)
+	if err != nil {
+		return nil, err
+	}
 
 	update := &types.UpdatePubKeyInfo{
 		OperatorAddress: req.ReplacePubKey.OperatorAddress,
 		OldConsAddress:  needReplaceConsAddr.Bytes(),
 		PubKey:          pubKeyData,
-		UpdateAtHeight:  ctx.BlockHeight() + req.ReplacePubKey.BlockNumber,
+		UpdateAtHeight:  updateAtHeight,
 	}
 
 	if err = k.SetReplacePubKeyInfo(ctx, update); err != nil {
@@ -206,4 +211,24 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 	})
 
 	return &types.MsgReplaceConsensusPubKeyResponse{}, nil
+}
+
+func safeReplaceConsensusPubKeyUpdateHeight(currentHeight, blockNumber int64) (int64, error) {
+	const cleanupDelayBlocks int64 = 2
+	if blockNumber < 1 {
+		return 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid block number (%d)", blockNumber)
+	}
+	if currentHeight < 0 {
+		return 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid current block height (%d)", currentHeight)
+	}
+	maxDelay := int64(math.MaxInt64) - currentHeight - cleanupDelayBlocks
+	if maxDelay < 1 || blockNumber > maxDelay {
+		return 0, sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidRequest,
+			"replace consensus pubkey update height overflows: current height %d, block number %d",
+			currentHeight,
+			blockNumber,
+		)
+	}
+	return currentHeight + blockNumber, nil
 }
