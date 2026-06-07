@@ -33,11 +33,21 @@ func (k Keeper) GetCurrentRelayerSet(ctx sdk.Context) *types.RelayerSet {
 		if power.LTE(sdkmath.ZeroInt()) {
 			continue
 		}
-		totalPower += power.Uint64()
+		if !power.IsUint64() {
+			continue
+		}
+		powerUint64 := power.Uint64()
+		if totalPower > math.MaxUint64-powerUint64 {
+			continue
+		}
+		totalPower += powerUint64
 		bridgeValidators = append(bridgeValidators, types.BridgeValidator{
-			Power:           power.Uint64(),
+			Power:           powerUint64,
 			ExternalAddress: relayer.ExternalAddress,
 		})
+	}
+	if totalPower == 0 {
+		return types.CurrentRelayerSet(k.GetLastRelayerSetNonce(ctx), uint64(ctx.BlockHeight()), bridgeValidators)
 	}
 	for i := range bridgeValidators {
 		// normalize power, use 10000 as the base, meaning 50.01% is 5001.
