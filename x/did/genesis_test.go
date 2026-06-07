@@ -16,6 +16,7 @@ import (
 func TestInitExportGenesis(t *testing.T) {
 	genesisState := types.GenesisState{
 		Infos: []types.DidInfo{
+<<<<<<< HEAD
 			{
 				Did:     "1000000000001",
 				Address: sample.AccAddress(),
@@ -28,7 +29,7 @@ func TestInitExportGenesis(t *testing.T) {
 				Sid:         "kyc",
 				Name:        "kyc",
 				Description: "this is kyc test service.",
-				Issuers:     []string{"0000000000001"},
+				Issuers:     []string{"1000000000001"},
 				Status:      types.SERVICE_STATUS_ACTIVE,
 			},
 		},
