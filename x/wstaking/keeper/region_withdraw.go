@@ -29,6 +29,22 @@ func (k Keeper) DeleteRegionWithdraw(ctx sdk.Context, regionId string) {
 	store.Delete([]byte(regionId))
 }
 
+// GetAllRegionWithdrawGrants returns every region withdraw grant in store.
+func (k Keeper) GetAllRegionWithdrawGrants(ctx sdk.Context) (grants []types.RegionWithdrawGrant) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RegionWithdrawKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		grants = append(grants, types.RegionWithdrawGrant{
+			RegionId: string(iterator.Key()),
+			Address:  string(iterator.Value()),
+		})
+	}
+
+	return grants
+}
+
 // CanRegionWithdraw returns true if address is the authorized
 // withdrawer for regionId.
 func (k Keeper) CanRegionWithdraw(ctx sdk.Context, address, regionId string) bool {

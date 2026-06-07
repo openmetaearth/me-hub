@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"time"
 )
@@ -45,6 +46,9 @@ func ValidateGenesis(data *GenesisState) error {
 	if err := validateGenesisStateValidators(data.Validators); err != nil {
 		return err
 	}
+	if err := validateGenesisStateRegionWithdrawGrants(data.RegionWithdrawGrants, data.Regions); err != nil {
+		return err
+	}
 
 	return data.Params.Validate()
 }
@@ -82,6 +86,34 @@ func validateGenesisStateValidators(validators []stakingtypes.Validator) error {
 		}
 
 		addrMap[strKey] = true
+	}
+
+	return nil
+}
+
+func validateGenesisStateRegionWithdrawGrants(grants []RegionWithdrawGrant, regions []Region) error {
+	regionIDs := make(map[string]struct{}, len(regions))
+	for _, region := range regions {
+		if region.RegionId != "" {
+			regionIDs[region.RegionId] = struct{}{}
+		}
+	}
+
+	seen := make(map[string]struct{}, len(grants))
+	for _, grant := range grants {
+		if grant.RegionId == "" {
+			return fmt.Errorf("region withdraw grant has empty region id")
+		}
+		if _, ok := regionIDs[grant.RegionId]; !ok {
+			return fmt.Errorf("region withdraw grant references unknown region: %s", grant.RegionId)
+		}
+		if _, ok := seen[grant.RegionId]; ok {
+			return fmt.Errorf("duplicate region withdraw grant in genesis state: region %s", grant.RegionId)
+		}
+		if _, err := sdk.AccAddressFromBech32(grant.Address); err != nil {
+			return fmt.Errorf("invalid region withdraw grant address for region %s: %w", grant.RegionId, err)
+		}
+		seen[grant.RegionId] = struct{}{}
 	}
 
 	return nil

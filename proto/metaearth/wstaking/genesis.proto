@@ -70,6 +70,12 @@ message GenesisState {
   repeated FixedDeposit fixedDepositList = 11 [(gogoproto.nullable) = false];
   uint64 fixedDepositCount = 12;
   bool exported = 13;
+  repeated RegionWithdrawGrant regionWithdrawGrants = 14 [(gogoproto.nullable) = false];
+}
+
+message RegionWithdrawGrant {
+  string regionId = 1;
+  string address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 // LastValidatorPower required for validator set update logic.

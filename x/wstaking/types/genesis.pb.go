@@ -48,11 +48,12 @@ type GenesisState struct {
 	// stakes defines the stakes active at genesis.
 	Stakes []Stake `protobuf:"bytes,8,rep,name=stakes,proto3" json:"stakes"`
 	// unbonding_stakes defines the unbonding stakes active at genesis.
-	UnbondingStakes   []UnbondingStake `protobuf:"bytes,9,rep,name=unbonding_stakes,json=unbondingStakes,proto3" json:"unbonding_stakes"`
-	Regions           []Region         `protobuf:"bytes,10,rep,name=regions,proto3" json:"regions"`
-	FixedDepositList  []FixedDeposit   `protobuf:"bytes,11,rep,name=fixedDepositList,proto3" json:"fixedDepositList"`
-	FixedDepositCount uint64           `protobuf:"varint,12,opt,name=fixedDepositCount,proto3" json:"fixedDepositCount,omitempty"`
-	Exported          bool             `protobuf:"varint,13,opt,name=exported,proto3" json:"exported,omitempty"`
+	UnbondingStakes      []UnbondingStake      `protobuf:"bytes,9,rep,name=unbonding_stakes,json=unbondingStakes,proto3" json:"unbonding_stakes"`
+	Regions              []Region              `protobuf:"bytes,10,rep,name=regions,proto3" json:"regions"`
+	FixedDepositList     []FixedDeposit        `protobuf:"bytes,11,rep,name=fixedDepositList,proto3" json:"fixedDepositList"`
+	FixedDepositCount    uint64                `protobuf:"varint,12,opt,name=fixedDepositCount,proto3" json:"fixedDepositCount,omitempty"`
+	Exported             bool                  `protobuf:"varint,13,opt,name=exported,proto3" json:"exported,omitempty"`
+	RegionWithdrawGrants []RegionWithdrawGrant `protobuf:"bytes,14,rep,name=regionWithdrawGrants,proto3" json:"regionWithdrawGrants"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -172,6 +173,65 @@ func (m *GenesisState) GetExported() bool {
 	return false
 }
 
+func (m *GenesisState) GetRegionWithdrawGrants() []RegionWithdrawGrant {
+	if m != nil {
+		return m.RegionWithdrawGrants
+	}
+	return nil
+}
+
+type RegionWithdrawGrant struct {
+	RegionId string `protobuf:"bytes,1,opt,name=regionId,proto3" json:"regionId,omitempty"`
+	Address  string `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+}
+
+func (m *RegionWithdrawGrant) Reset()         { *m = RegionWithdrawGrant{} }
+func (m *RegionWithdrawGrant) String() string { return proto.CompactTextString(m) }
+func (*RegionWithdrawGrant) ProtoMessage()    {}
+func (*RegionWithdrawGrant) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4c2ce6d8a4a0b180, []int{1}
+}
+func (m *RegionWithdrawGrant) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RegionWithdrawGrant) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RegionWithdrawGrant.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RegionWithdrawGrant) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegionWithdrawGrant.Merge(m, src)
+}
+func (m *RegionWithdrawGrant) XXX_Size() int {
+	return m.Size()
+}
+func (m *RegionWithdrawGrant) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegionWithdrawGrant.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RegionWithdrawGrant proto.InternalMessageInfo
+
+func (m *RegionWithdrawGrant) GetRegionId() string {
+	if m != nil {
+		return m.RegionId
+	}
+	return ""
+}
+
+func (m *RegionWithdrawGrant) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
 // LastValidatorPower required for validator set update logic.
 type LastValidatorPower struct {
 	// address is the address of the validator.
@@ -215,6 +275,7 @@ var xxx_messageInfo_LastValidatorPower proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterType((*GenesisState)(nil), "metaearth.wstaking.GenesisState")
+	proto.RegisterType((*RegionWithdrawGrant)(nil), "metaearth.wstaking.RegionWithdrawGrant")
 	proto.RegisterType((*LastValidatorPower)(nil), "metaearth.wstaking.LastValidatorPower")
 }
 
@@ -286,6 +347,20 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.RegionWithdrawGrants) > 0 {
+		for iNdEx := len(m.RegionWithdrawGrants) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.RegionWithdrawGrants[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x72
+		}
+	}
 	if m.Exported {
 		i--
 		if m.Exported {
@@ -450,6 +525,43 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *RegionWithdrawGrant) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RegionWithdrawGrant) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RegionWithdrawGrant) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Address) > 0 {
+		i -= len(m.Address)
+		copy(dAtA[i:], m.Address)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.Address)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.RegionId) > 0 {
+		i -= len(m.RegionId)
+		copy(dAtA[i:], m.RegionId)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.RegionId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *LastValidatorPower) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -565,6 +677,29 @@ func (m *GenesisState) Size() (n int) {
 	}
 	if m.Exported {
 		n += 2
+	}
+	if len(m.RegionWithdrawGrants) > 0 {
+		for _, e := range m.RegionWithdrawGrants {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *RegionWithdrawGrant) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RegionId)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
 	}
 	return n
 }
@@ -1031,6 +1166,154 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.Exported = bool(v != 0)
+		case 14:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RegionWithdrawGrants", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RegionWithdrawGrants = append(m.RegionWithdrawGrants, RegionWithdrawGrant{})
+			if err := m.RegionWithdrawGrants[len(m.RegionWithdrawGrants)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGenesis(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RegionWithdrawGrant) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGenesis
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RegionWithdrawGrant: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RegionWithdrawGrant: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RegionId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RegionId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipGenesis(dAtA[iNdEx:])

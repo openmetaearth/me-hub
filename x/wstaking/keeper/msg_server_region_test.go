@@ -402,3 +402,35 @@ func (s *KeeperTestSuite) TestRevokeRegionWithdraw() {
 		})
 	}
 }
+
+func (s *KeeperTestSuite) TestExportGenesisPreservesRegionWithdrawGrant() {
+	s.SetupTest()
+
+	regionId := types.ExperienceRegionId
+	grantee := s.TestAccs[0].String()
+	_, err := s.msgServer.GrantRegionWithdraw(s.Ctx, &types.MsgGrantRegionWithdraw{
+		Creator:  s.Dao.GlobalDao,
+		RegionId: regionId,
+		Address:  grantee,
+	})
+	s.Require().NoError(err)
+	s.Require().True(s.Keeper().CanRegionWithdraw(s.Ctx, grantee, regionId))
+
+	exported := s.Keeper().ExportGenesis(s.Ctx)
+	s.Require().Contains(exported.RegionWithdrawGrants, types.RegionWithdrawGrant{
+		RegionId: regionId,
+		Address:  grantee,
+	})
+
+	freshApp := apptesting.Setup(s.T(), false)
+	freshCtx := freshApp.GetBaseApp().NewContext(false, tmproto.Header{})
+	imported := types.DefaultGenesisState()
+	imported.Exported = true
+	imported.Regions = exported.Regions
+	imported.RegionWithdrawGrants = exported.RegionWithdrawGrants
+	freshApp.StakingKeeper.InitGenesis(freshCtx, imported)
+
+	restored, found := freshApp.StakingKeeper.GetRegionWithdraw(freshCtx, regionId)
+	s.Require().True(found)
+	s.Require().Equal(grantee, restored)
+}

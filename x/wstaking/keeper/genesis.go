@@ -65,6 +65,10 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 		k.SetStake(ctx, stake)
 	}
 
+	for _, grant := range data.RegionWithdrawGrants {
+		k.SetRegionWithdraw(ctx, grant.RegionId, grant.Address)
+	}
+
 	for _, delegation := range data.Delegations {
 		k.SetDelegation(ctx, delegation)
 	}
@@ -196,5 +200,6 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *wstakingtypes.GenesisState {
 		FixedDepositList:     k.GetAllFixedDeposit(ctx),
 		FixedDepositCount:    k.GetFixedDepositCount(ctx),
 		Exported:             true,
+		RegionWithdrawGrants: k.GetAllRegionWithdrawGrants(ctx),
 	}
 }
