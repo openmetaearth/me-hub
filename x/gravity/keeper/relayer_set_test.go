@@ -10,6 +10,7 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/openmetaearth/me-hub/testutil/helpers"
+	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
@@ -88,6 +89,39 @@ func (s *KeeperTestSuite) TestGetUnSlashedRelayerSets() {
 
 	sets = s.Keeper().GetUnSlashedRelayerSets(s.Ctx, uint64(height+index+1))
 	require.EqualValues(s.T(), index-1, sets.Len())
+}
+
+func (s *KeeperTestSuite) TestGenesisExportImportPreservesPrunedRelayerSetNonceCounter() {
+	lastObservedNonce := uint64(5)
+	member := types.BridgeValidator{
+		Power:           types.PowerBase,
+		ExternalAddress: helpers.GenerateAddress().Hex(),
+	}
+	observedSet := &types.RelayerSet{
+		Nonce:   lastObservedNonce,
+		Height:  100,
+		Members: types.BridgeValidators{member},
+	}
+
+	s.Keeper().SetLastRelayerSetNonce(s.Ctx, lastObservedNonce)
+	s.Keeper().SetLastObservedRelayerSet(s.Ctx, observedSet)
+	s.Keeper().StoreRelayerSet(s.Ctx, observedSet)
+	s.Keeper().DeleteRelayerSet(s.Ctx, lastObservedNonce)
+
+	exported := gravitykeeper.ExportGenesis(s.Ctx, s.Keeper())
+	s.Require().Empty(exported.RelayerSets)
+	s.Require().Equal(lastObservedNonce, exported.LastObservedRelayerSet.Nonce)
+
+	s.SetupTest()
+	gravitykeeper.InitGenesis(s.Ctx, s.Keeper(), exported)
+	s.Require().Equal(lastObservedNonce, s.Keeper().GetLastRelayerSetNonce(s.Ctx))
+
+	nextRequest := &types.RelayerSet{
+		Height:  uint64(s.Ctx.BlockHeight()),
+		Members: types.BridgeValidators{member},
+	}
+	s.Keeper().AddRelayerSetChangeRequest(s.Ctx, nextRequest)
+	s.Require().Equal(lastObservedNonce+1, nextRequest.Nonce)
 }
 
 func (s *KeeperTestSuite) TestKeeper_IterateRelayerSetConfirmByNonce() {

@@ -29,7 +29,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 	}
 	k.SetLastTotalPower(ctx)
 
-	latestRelayerSetNonce := uint64(0)
+	latestRelayerSetNonce := state.LastObservedRelayerSet.Nonce
+	if state.LastSlashedRelayerSetNonce > latestRelayerSetNonce {
+		latestRelayerSetNonce = state.LastSlashedRelayerSetNonce
+	}
 	for i := 0; i < len(state.RelayerSets); i++ {
 		set := state.RelayerSets[i]
 		if set.Nonce > latestRelayerSetNonce {
