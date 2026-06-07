@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
@@ -51,13 +52,17 @@ func (hook rollappHook) AfterStateFinalized(ctx sdk.Context, rollappID string, s
 	}
 	if val != nil {
 		if (stateInfo.StartHeight + stateInfo.NumBlocks - 1) >= uint64(val.ReplaceProposer.BlockHeight) {
-			err = hook.k.forceRemoveUnbondingSequencer(ctx, val.ReplaceProposer.OldProposer, stateInfo.StartHeight, stateInfo.NumBlocks)
-			if err != nil {
-				hook.k.Logger(ctx).Error("forceRemoveUnbondingSequencer error.", "sequencer", val.ReplaceProposer.OldProposer,
-					"rollapp", rollappID, "state_block_info", fmt.Sprintf("%d-%d", stateInfo.StartHeight,
-						stateInfo.StartHeight+stateInfo.NumBlocks-1), "error", err.Error())
-				return fmt.Errorf("forceRemoveUnbondingSequencer error in AfterStateFinalized.sequencer=%s,"+
-					" rollapp = %s, err = %s", val.ReplaceProposer.OldProposer, rollappID, err.Error())
+			oldSequencer, found := hook.k.GetSequencer(ctx, val.ReplaceProposer.OldProposer)
+			if !found {
+				return types.ErrUnknownSequencer
+			}
+			if oldSequencer.Status != types.Unbonding {
+				return errorsmod.Wrapf(
+					types.ErrInvalidSequencerStatus,
+					"replace proposer old sequencer %s is not unbonding: got %s",
+					val.ReplaceProposer.OldProposer,
+					oldSequencer.Status.String(),
+				)
 			}
 			hook.k.DeleteReplaceProposer(ctx, rollappID)
 			hook.k.Logger(ctx).Info("AfterStateFinalized processed ReplaceProposer.", "rollapp", rollappID,
