@@ -10,17 +10,14 @@ import (
 func (k msgServer) UpdateRollapp(goCtx context.Context, msg *types.MsgUpdateRollapp) (*types.MsgUpdateRollappResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// check to see if there is an active whitelist
-	if whitelist := k.DeployerWhitelist(ctx); len(whitelist) > 0 {
-		if !k.IsAddressInDeployerWhiteList(ctx, msg.Creator) {
-			return nil, types.ErrUnauthorizedRollappCreator
-		}
-	}
-
 	rollapp, found := k.GetRollapp(ctx, msg.RollappId)
 	if !found {
 		return nil, types.ErrUnknownRollappID
 	}
+
+	if msg.Creator != rollapp.Creator {
+		return nil, types.ErrUnauthorizedRollappCreator
+	} 
 
 	if msg.MaxSequencers != 0 {
 		rollapp.MaxSequencers = msg.MaxSequencers
