@@ -36,7 +36,7 @@ func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFi
 	}
 
 	if err := validateFixedDepositCfgRate(msg.Rate); err != nil {
-		return nil, types.ErrAddFixedDepositConfig.Wrap(err)
+		return nil, types.ErrAddFixedDepositConfig.Wrapf("%v", err)
 	}
 
 	_, ok := k.GetFixedDepositCfg(ctx, msg.RegionId, msg.Term)
@@ -108,7 +108,7 @@ func (k MsgServer) SetFixedDepositCfgRate(goCtx context.Context, msg *types.MsgS
 	}
 
 	if err := validateFixedDepositCfgRate(msg.Rate); err != nil {
-		return nil, types.ErrSetFixedDepositConfigRate.Wrap(err)
+		return nil, types.ErrSetFixedDepositConfigRate.Wrapf("%v", err)
 	}
 
 	config.Rate = msg.Rate
