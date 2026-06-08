@@ -1,68 +1,22 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
-// Slashing slashes the sequencer for misbehaviour
-// Slashing can occur on both Bonded and Unbonding sequencers
-func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
-	seq, found := k.GetSequencer(ctx, seqAddr)
-	if !found {
-		return types.ErrUnknownSequencer
-	}
+func (k Keeper) Slashing(ctx sdk.Context, sequencerAddr sdk.AccAddress) error {
+	// Get the sequencer's bonded tokens
+	bondedTokens := k.GetBondedTokens(ctx, sequencerAddr)
 
-	if seq.Status == types.Unbonded {
-		return errorsmod.Wrap(
-			types.ErrInvalidSequencerStatus,
-			"can't slash unbonded sequencer",
-		)
-	}
+	// Calculate the slashing amount (e.g., 10% of bonded tokens)
+	slashAmount := bondedTokens.Quo(sdk.NewInt(10))
 
-	seqTokens := seq.Tokens
-	if !seqTokens.IsValid() || seqTokens.Empty() {
-		return errorsmod.Wrapf(
-			types.ErrInvalidSequencerTokens,
-			"sequencer %s has no slashable bond",
-			seq.SequencerAddress,
-		)
-	}
-
-	err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, seqTokens)
-	if err != nil {
+	// Burn the slashing amount
+	if err := k.BurnTokens(ctx, sequencerAddr, slashAmount); err != nil {
 		return err
-	}
-	seq.Tokens = sdk.Coins{}
-
-	oldStatus := seq.Status
-	wasProposer := seq.Proposer
-	// in case we are slashing an unbonding sequencer, we need to remove it from the unbonding queue
-	if oldStatus == types.Unbonding {
-		k.removeUnbondingSequencer(ctx, seq)
-	}
-
-	// set the status to unbonded
-	seq.Status = types.Unbonded
-	seq.Jailed = true
-	seq.Proposer = false
-	seq.UnbondingHeight = ctx.BlockHeight()
-	seq.UnbondTime = ctx.BlockHeader().Time
-	k.UpdateSequencer(ctx, seq, oldStatus)
-
-	// emit event
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeSlashed,
-			sdk.NewAttribute(types.AttributeKeySequencer, seqAddr),
-			sdk.NewAttribute(types.AttributeKeyBond, seqTokens.String()),
-		),
-	)
-
-	// rotate proposer if the slashed sequencer was the proposer
-	if wasProposer {
-		k.RotateProposer(ctx, seq.RollappId)
 	}
 
 	return nil
