@@ -46,8 +46,8 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		options.KycKeeper,
 		options.TxFeeChecker,
 		options.WasmViewKeeper,
+		options.MeGroupKeeper,
 	)
-	joinGroupValidateDecorator := NewJoinGroupValidateDecorator(options.DaoKeeper, options.MeGroupKeeper)
 	return sdk.ChainAnteDecorators(
 		/*
 			See https://jumpcrypto.com/writing/bypassing-ethermint-ante-handlers/
@@ -65,9 +65,7 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		ante.NewSetUpContextDecorator(),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
-		// JoinGroupValidateDecorator runs before fee deduction so that invalid
-		// MsgJoinGroup fields are caught before the zero-fee exemption is applied.
-		joinGroupValidateDecorator,
+
 		// Use Mempool Fee TransferEnabledDecorator from our txfees module instead of default one from auth
 		//mempoolFeeDecorator,
 		deductFeeDecorator,
@@ -101,8 +99,8 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		options.KycKeeper,
 		options.TxFeeChecker,
 		options.WasmViewKeeper,
+		options.MeGroupKeeper,
 	)
-	joinGroupValidateDecorator := NewJoinGroupValidateDecorator(options.DaoKeeper, options.MeGroupKeeper)
 	return sdk.ChainAnteDecorators(
 
 		NewRejectMessagesDecorator(), // reject MsgEthereumTxs and vesting msgs
@@ -115,9 +113,6 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		),
 		ante.NewSetUpContextDecorator(),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
-		// JoinGroupValidateDecorator runs before fee deduction so that invalid
-		// MsgJoinGroup fields are caught before the zero-fee exemption is applied.
-		joinGroupValidateDecorator,
 		// Use Mempool Fee TransferEnabledDecorator from our txfees module instead of default one from auth
 		//mempoolFeeDecorator,
 		deductFeeDecorator,

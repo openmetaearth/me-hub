@@ -1,6 +1,10 @@
 package ante_test
 
 import (
+	"regexp"
+	"strconv"
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authantetestutil "github.com/cosmos/cosmos-sdk/x/auth/ante/testutil"
@@ -11,9 +15,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/openmetaearth/me-hub/app/ante"
 	"github.com/openmetaearth/me-hub/app/params"
-	"regexp"
-	"strconv"
-	"testing"
+	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/app/ante/mock"
@@ -60,6 +62,7 @@ func TestCheckFunds(t *testing.T) {
 	mockKycKeeper := mock.NewMockKycKeeper(ctrl)
 	mockDaoKeeper := mock.NewMockDaoKeeper(ctrl)
 	mockWasmKeeper := mock.NewMockWasmKeeper(ctrl)
+	mockMeGroupKeeper := mock.NewMockMeGroupKeeper(ctrl)
 
 	decorator := ante.NewDeductFeeDecorator(
 		mockAccountKeeper,
@@ -70,6 +73,7 @@ func TestCheckFunds(t *testing.T) {
 		mockKycKeeper,
 		nil,
 		mockWasmKeeper,
+		mockMeGroupKeeper,
 	)
 
 	feePayer := NewAccount()
@@ -385,6 +389,156 @@ func TestCheckFunds(t *testing.T) {
 				} else {
 					t.Errorf("Failed to extract required amount from error: %s", err.Error())
 				}
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func buildJoinMsg(creator, applicant string, groupID uint64) *megrouptypes.MsgJoinGroup {
+	return &megrouptypes.MsgJoinGroup{
+		Creator:          creator,
+		ApplicantAddress: applicant,
+		GroupId:          groupID,
+	}
+}
+
+func newDeductFeeDecorator(
+	ctrl *gomock.Controller,
+	dk *mock.MockDaoKeeper,
+	gk *mock.MockMeGroupKeeper,
+) ante.DeductFeeDecorator {
+	ak := authantetestutil.NewMockAccountKeeper(ctrl)
+	fk := authantetestutil.NewMockFeegrantKeeper(ctrl)
+	sk := mock.NewMockStakingKeeper(ctrl)
+	kk := mock.NewMockKycKeeper(ctrl)
+	bk := mock.NewMockBankKeeper(ctrl)
+	wk := mock.NewMockWasmKeeper(ctrl)
+	return ante.NewDeductFeeDecorator(ak, bk, fk, dk, sk, kk, nil, wk, gk)
+}
+
+func passThrough(ctx sdk.Context, _ sdk.Tx, _ bool) (sdk.Context, error) { return ctx, nil }
+
+func TestDeductFeeDecorator_JoinGroupValidation(t *testing.T) {
+	regionID := "region-1"
+	group := megrouptypes.GroupInfo{Id: 1, RegionID: regionID}
+
+	creator := NewAccount()
+	applicant := NewAccount()
+	daoUser := NewAccount()
+
+	tests := []struct {
+		name      string
+		feePayer  *authtypes.BaseAccount
+		msgs      []sdk.Msg
+		setup     func(dk *mock.MockDaoKeeper, gk *mock.MockMeGroupKeeper)
+		expectErr bool
+		errText   string
+	}{
+		{
+			name:     "valid_creator_equals_applicant",
+			feePayer: creator,
+			msgs:     []sdk.Msg{buildJoinMsg(creator.Address, creator.Address, 1)},
+			setup: func(_ *mock.MockDaoKeeper, gk *mock.MockMeGroupKeeper) {
+				gk.EXPECT().GetGroupInfo(gomock.Any(), uint64(1)).Return(group, true)
+				gk.EXPECT().GetDidAndKycActive(gomock.Any(), creator.GetAddress(), regionID).Return("did1", true)
+			},
+			expectErr: false,
+		},
+		{
+			name:     "valid_dao_creator_for_other_applicant",
+			feePayer: daoUser,
+			msgs:     []sdk.Msg{buildJoinMsg(daoUser.Address, applicant.Address, 1)},
+			setup: func(dk *mock.MockDaoKeeper, gk *mock.MockMeGroupKeeper) {
+				dk.EXPECT().IsDao(gomock.Any(), daoUser.Address).Return(true)
+				gk.EXPECT().GetGroupInfo(gomock.Any(), uint64(1)).Return(group, true)
+				gk.EXPECT().GetDidAndKycActive(gomock.Any(), applicant.GetAddress(), regionID).Return("did2", true)
+			},
+			expectErr: false,
+		},
+		{
+			name:      "reject_group_id_zero",
+			feePayer:  creator,
+			msgs:      []sdk.Msg{buildJoinMsg(creator.Address, creator.Address, 0)},
+			setup:     func(_ *mock.MockDaoKeeper, _ *mock.MockMeGroupKeeper) {},
+			expectErr: true,
+			errText:   "group_id must be greater than 0",
+		},
+		{
+			name:      "reject_empty_applicant",
+			feePayer:  creator,
+			msgs:      []sdk.Msg{buildJoinMsg(creator.Address, "", 1)},
+			setup:     func(_ *mock.MockDaoKeeper, _ *mock.MockMeGroupKeeper) {},
+			expectErr: true,
+			errText:   "applicant_address is required",
+		},
+		{
+			name:      "reject_invalid_applicant_address",
+			feePayer:  creator,
+			msgs:      []sdk.Msg{buildJoinMsg(creator.Address, "not-bech32", 1)},
+			setup:     func(_ *mock.MockDaoKeeper, _ *mock.MockMeGroupKeeper) {},
+			expectErr: true,
+			errText:   "invalid applicant_address",
+		},
+		{
+			name:     "reject_non_dao_creator_for_other_applicant",
+			feePayer: creator,
+			msgs:     []sdk.Msg{buildJoinMsg(creator.Address, applicant.Address, 1)},
+			setup: func(dk *mock.MockDaoKeeper, _ *mock.MockMeGroupKeeper) {
+				dk.EXPECT().IsDao(gomock.Any(), creator.Address).Return(false)
+			},
+			expectErr: true,
+			errText:   "creator is neither the applicant nor a DAO admin",
+		},
+		{
+			name:     "reject_group_not_found",
+			feePayer: creator,
+			msgs:     []sdk.Msg{buildJoinMsg(creator.Address, creator.Address, 99)},
+			setup: func(_ *mock.MockDaoKeeper, gk *mock.MockMeGroupKeeper) {
+				gk.EXPECT().GetGroupInfo(gomock.Any(), uint64(99)).Return(megrouptypes.GroupInfo{}, false)
+			},
+			expectErr: true,
+			errText:   "group 99 does not exist",
+		},
+		{
+			name:     "reject_inactive_kyc",
+			feePayer: creator,
+			msgs:     []sdk.Msg{buildJoinMsg(creator.Address, creator.Address, 1)},
+			setup: func(_ *mock.MockDaoKeeper, gk *mock.MockMeGroupKeeper) {
+				gk.EXPECT().GetGroupInfo(gomock.Any(), uint64(1)).Return(group, true)
+				gk.EXPECT().GetDidAndKycActive(gomock.Any(), creator.GetAddress(), regionID).Return("", false)
+			},
+			expectErr: true,
+			errText:   "does not have active KYC",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			dk := mock.NewMockDaoKeeper(ctrl)
+			gk := mock.NewMockMeGroupKeeper(ctrl)
+			d := newDeductFeeDecorator(ctrl, dk, gk)
+
+			dk.EXPECT().IsDao(gomock.Any(), tc.feePayer.Address).Return(false)
+			dk.EXPECT().CheckFreeGasAccount(gomock.Any(), tc.feePayer.Address).Return(false)
+
+			tc.setup(dk, gk)
+
+			tx := &mock.MockFeeTx{
+				Msgs:      tc.msgs,
+				FeeAmount: sdk.Coins{},
+				GasLimit:  200_000,
+				Payer:     tc.feePayer.GetAddress(),
+			}
+
+			_, err := d.AnteHandle(sdk.Context{}, tx, false, passThrough)
+			if tc.expectErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.errText)
 			} else {
 				require.NoError(t, err)
 			}

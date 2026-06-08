@@ -29,9 +29,9 @@ type HandlerOptions struct {
 	DaoKeeper      DaoKeeper
 	StakingKeeper  StakingKeeper
 	KycKeeper      KycKeeper
+	MeGroupKeeper  MeGroupKeeper
 	WasmViewKeeper wasmTypes.ViewKeeper
 	TxFeeChecker   ante.TxFeeChecker
-	MeGroupKeeper  MeGroupKeeper
 }
 
 func (options HandlerOptions) validate() error {

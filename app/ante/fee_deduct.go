@@ -37,6 +37,7 @@ type DeductFeeDecorator struct {
 	daoKeeper      DaoKeeper
 	stakingKeeper  StakingKeeper
 	kycKeeper      KycKeeper
+	meGroupKeeper  MeGroupKeeper
 	txFeeChecker   ante.TxFeeChecker
 	wasmKeeper     WasmKeeper
 }
@@ -50,12 +51,13 @@ func NewDeductFeeDecorator(
 	kycKeeper KycKeeper,
 	tfc ante.TxFeeChecker,
 	wk WasmKeeper,
+	mk MeGroupKeeper,
 ) DeductFeeDecorator {
 	if tfc == nil {
 		tfc = checkTxFeeWithValidatorMinGasPrices
 	}
 
-	if ak == nil || fk == nil || dk == nil || sk == nil || wk == nil {
+	if ak == nil || fk == nil || dk == nil || sk == nil || wk == nil || mk == nil {
 		panic("invalid parameter")
 	}
 
@@ -66,6 +68,7 @@ func NewDeductFeeDecorator(
 		daoKeeper:      dk,
 		stakingKeeper:  sk,
 		kycKeeper:      kycKeeper,
+		meGroupKeeper:  mk,
 		txFeeChecker:   tfc,
 		wasmKeeper:     wk,
 	}
@@ -137,9 +140,8 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	isFreeGasAccount := dfd.daoKeeper.CheckFreeGasAccount(ctx, feePayer.String())
 	freeGas := isFreeGasAccount || isDao
 
-	// freeGas for MsgJoinGroup only when ALL messages in the tx are MsgJoinGroup.
-	// Mixing MsgJoinGroup with other message types is not allowed to get free gas,
-	// preventing attackers from bundling arbitrary messages with MsgJoinGroup to bypass fees.
+	// freeGas for MsgJoinGroup only when ALL messages in the tx are MsgJoinGroup AND
+	// every message passes stateful validation.
 	if !freeGas && len(feeTx.GetMsgs()) > 0 {
 		allJoinGroup := true
 		for _, msg := range feeTx.GetMsgs() {
@@ -148,7 +150,14 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 				break
 			}
 		}
-		freeGas = allJoinGroup
+		if allJoinGroup {
+			for _, msg := range feeTx.GetMsgs() {
+				if err := dfd.validateJoinGroup(ctx, msg.(*megrouptypes.MsgJoinGroup)); err != nil {
+					return ctx, err
+				}
+			}
+			freeGas = true
+		}
 	}
 
 	if !freeGas && !simulate {
@@ -278,6 +287,44 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	}
 	newCtx := ctx.WithPriority(priority)
 	return next(newCtx, tx, simulate)
+}
+
+func (dfd DeductFeeDecorator) validateJoinGroup(ctx sdk.Context, msg *megrouptypes.MsgJoinGroup) error {
+	if msg.GroupId == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "group_id must be greater than 0")
+	}
+
+	if msg.ApplicantAddress == "" {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "applicant_address is required")
+	}
+
+	applicant, err := sdk.AccAddressFromBech32(msg.ApplicantAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid applicant_address (%s)", err)
+	}
+
+	if msg.ApplicantAddress != msg.Creator {
+		if !dfd.daoKeeper.IsDao(ctx, msg.Creator) {
+			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "creator is neither the applicant nor a DAO admin")
+		}
+	}
+
+	groupInfo, found := dfd.meGroupKeeper.GetGroupInfo(ctx, msg.GroupId)
+	if !found {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "group %d does not exist", msg.GroupId)
+	}
+
+	_, isKycActive := dfd.meGroupKeeper.GetDidAndKycActive(ctx, applicant, groupInfo.RegionID)
+	if !isKycActive {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrUnauthorized,
+			"applicant %s does not have active KYC in region %s",
+			msg.ApplicantAddress,
+			groupInfo.RegionID,
+		)
+	}
+
+	return nil
 }
 
 func (dfd DeductFeeDecorator) CheckFunds(ctx sdk.Context, tx sdk.Tx, feePayer string, fees sdk.Coins) error {

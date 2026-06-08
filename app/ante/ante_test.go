@@ -42,6 +42,7 @@ type AnteTestSuite struct {
 	txBuilder         client.TxBuilder
 	mockStakingKeeper *mock.MockStakingKeeper
 	mockDaoKeeper     *mock.MockDaoKeeper
+	mockMeGroupKeeper *mock.MockMeGroupKeeper
 }
 
 func TestAnteTestSuite(t *testing.T) {
@@ -76,14 +77,15 @@ func (s *AnteTestSuite) SetupTest(isCheckTx bool) {
 			DaoKeeper:       mockDaoKeeper,
 			StakingKeeper:   mockStakingKeeper,
 			KycKeeper:       s.app.KycKeeper,
-			WasmViewKeeper:  s.app.WasmKeeper,
 			MeGroupKeeper:   mockMeGroupKeeper,
+			WasmViewKeeper:  s.app.WasmKeeper,
 		},
 	)
 
 	s.Require().NoError(err)
 	s.mockStakingKeeper = mockStakingKeeper
 	s.mockDaoKeeper = mockDaoKeeper
+	s.mockMeGroupKeeper = mockMeGroupKeeper
 	s.anteHandler = anteHandler
 }
 
@@ -94,10 +96,8 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	proposerOwner := NewAccount()
 	suite.mockStakingKeeper.EXPECT().GetProposerOwnerAddress(gomock.Any()).Return(proposerOwner.Address, nil)
 	devOperator := NewAccount()
-	suite.mockDaoKeeper.EXPECT().GetDevOperator(gomock.Any()).Return(devOperator.Address)
 	suite.mockDaoKeeper.EXPECT().IsDao(gomock.Any(), addr.Address).Return(false)
-	suite.mockDaoKeeper.EXPECT().GetGlobalDao(gomock.Any()).Return(devOperator.Address)
-	suite.mockDaoKeeper.EXPECT().GetMeidDao(gomock.Any()).Return(devOperator.Address)
+	suite.mockDaoKeeper.EXPECT().GetDevOperator(gomock.Any()).Return(devOperator.Address)
 	suite.mockDaoKeeper.EXPECT().GetGlobalDaoFeePoolAddr(gomock.Any()).Return(devOperator.GetAddress())
 	suite.mockDaoKeeper.EXPECT().CheckFreeGasAccount(gomock.Any(), addr.Address).Return(false)
 
