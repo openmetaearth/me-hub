@@ -80,6 +80,11 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 	// This conditional stops the attestation from accidentally being applied twice.
 	// Sum the current powers of all validators who have voted and see if it passes the current threshold
 	totalPower := k.GetLastTotalPower(ctx)
+	if !totalPower.IsPositive() {
+		k.Logger(ctx).Error("TryAttestation", "non-positive total relayer power", totalPower.String(),
+			"claimEventNonce", claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
+		return
+	}
 	requiredPower := types.AttestationVotesPowerThreshold.Mul(totalPower).Quo(sdk.NewIntFromUint64(types.PowerBase))
 	attestationPower := sdkmath.NewInt(0)
 

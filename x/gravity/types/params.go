@@ -76,6 +76,9 @@ func (m *Params) ValidateBasic() error {
 	if !m.MinDelegate.IsPositive() {
 		return fmt.Errorf("invalid delegate threshold")
 	}
+	if m.MinDelegate.LT(sdk.DefaultPowerReduction) {
+		return fmt.Errorf("min delegate threshold must produce non-zero relayer power")
+	}
 	if !m.MaxDelegate.IsPositive() {
 		return fmt.Errorf("invalid delegate threshold")
 	}
