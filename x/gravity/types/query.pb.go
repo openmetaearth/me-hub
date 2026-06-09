@@ -2980,8 +2980,9 @@ type QueryClient interface {
 	BridgeTokens(ctx context.Context, in *QueryBridgeTokensRequest, opts ...grpc.CallOption) (*QueryBridgeTokensResponse, error)
 	BridgeToken(ctx context.Context, in *QueryBridgeTokenRequest, opts ...grpc.CallOption) (*QueryBridgeTokenResponse, error)
 	BridgeChainList(ctx context.Context, in *QueryBridgeChainListRequest, opts ...grpc.CallOption) (*QueryBridgeChainListResponse, error)
-	// ClaimsByEventNonce queries all claims for a given event nonce, normally only one claim for one nonce,
-	// if relayers have bug, there's will be more than one claim.
+	// ClaimsByEventNonce queries all claims for a given event nonce, normally
+	// only one claim for one nonce, if relayers have bug, there's will be more
+	// than one claim.
 	ClaimsByEventNonce(ctx context.Context, in *QueryClaimsByEventNonceRequest, opts ...grpc.CallOption) (*QueryClaimsByEventNonceResponse, error)
 	LastObservedRelayer(ctx context.Context, in *QueryLastObservedRelayer, opts ...grpc.CallOption) (*QueryLastObservedRelayerResponse, error)
 }
@@ -3265,8 +3266,9 @@ type QueryServer interface {
 	BridgeTokens(context.Context, *QueryBridgeTokensRequest) (*QueryBridgeTokensResponse, error)
 	BridgeToken(context.Context, *QueryBridgeTokenRequest) (*QueryBridgeTokenResponse, error)
 	BridgeChainList(context.Context, *QueryBridgeChainListRequest) (*QueryBridgeChainListResponse, error)
-	// ClaimsByEventNonce queries all claims for a given event nonce, normally only one claim for one nonce,
-	// if relayers have bug, there's will be more than one claim.
+	// ClaimsByEventNonce queries all claims for a given event nonce, normally
+	// only one claim for one nonce, if relayers have bug, there's will be more
+	// than one claim.
 	ClaimsByEventNonce(context.Context, *QueryClaimsByEventNonceRequest) (*QueryClaimsByEventNonceResponse, error)
 	LastObservedRelayer(context.Context, *QueryLastObservedRelayer) (*QueryLastObservedRelayerResponse, error)
 }

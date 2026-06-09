@@ -97,7 +97,101 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 		defaultGenesisState[evmtypes.ModuleName] = encCdc.Codec.MustMarshalJSON(&evmGenesisState)
 	}
 
+	// Strip wstaking-specific fields from staking genesis for ibc-go compatibility.
+	// ibc-go testing framework unmarshals genesisState["staking"] into cosmos SDK's
+	// staking.GenesisState which panics on unknown fields.
+	if stakingGenesisJson, found := defaultGenesisState[stakingtypes.ModuleName]; found {
+		var rawGenesis map[string]json.RawMessage
+		if err := json.Unmarshal(stakingGenesisJson, &rawGenesis); err == nil {
+			delete(rawGenesis, "stakes")
+			delete(rawGenesis, "unbonding_stakes")
+			delete(rawGenesis, "unbondingStakes")
+			delete(rawGenesis, "regions")
+			delete(rawGenesis, "fixedDepositList")
+			delete(rawGenesis, "fixedDepositCount")
+			delete(rawGenesis, "exported")
+			// Fix bond denom and unbonding time in params for ibc-go compatibility
+			if paramsJson, ok := rawGenesis["params"]; ok {
+				var rawParams map[string]json.RawMessage
+				if err := json.Unmarshal(paramsJson, &rawParams); err == nil {
+					rawParams["bond_denom"], _ = json.Marshal(params.BaseDenom)
+					// Match ibc-go testing UnbondingPeriod (504h = 21 days)
+					rawParams["unbonding_time"], _ = json.Marshal("1814400s")
+					if newParams, err := json.Marshal(rawParams); err == nil {
+						rawGenesis["params"] = newParams
+					}
+				}
+			}
+			if cleanedJson, err := json.Marshal(rawGenesis); err == nil {
+				defaultGenesisState[stakingtypes.ModuleName] = cleanedJson
+			}
+		}
+	}
+
 	return newApp, defaultGenesisState
+}
+
+// IBCTestApp wraps *app.App to intercept InitChain and fix the bonded pool
+// address mismatch between ibc-go testing (which uses BondedPoolName) and
+// wstaking (which uses BondedStakePoolName).
+type IBCTestApp struct {
+	*app.App
+}
+
+func (a *IBCTestApp) InitChain(req abci.RequestInitChain) abci.ResponseInitChain {
+	req.AppStateBytes = fixBondedPoolGenesis(req.AppStateBytes)
+	return a.App.InitChain(req)
+}
+
+// fixBondedPoolGenesis replaces BondedPoolName module address with
+// BondedStakePoolName module address in bank genesis balances, and removes
+// delegations from staking genesis (ibc-go creates delegations which trigger
+// distribution invariant failures without corresponding distribution info).
+// Also zeros out DelegatorShares on validators to keep staking invariants consistent.
+func fixBondedPoolGenesis(appStateBytes []byte) []byte {
+	bondedPoolAddr := authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String()
+	bondedStakePoolAddr := authtypes.NewModuleAddress(wstakingtypes.BondedStakePoolName).String()
+
+	var genesisState map[string]json.RawMessage
+	if err := json.Unmarshal(appStateBytes, &genesisState); err != nil {
+		return appStateBytes
+	}
+
+	// Fix bank genesis: rename bonded pool address
+	if bankGenBytes, ok := genesisState[banktypes.ModuleName]; ok {
+		fixed := bytes.ReplaceAll(bankGenBytes, []byte(bondedPoolAddr), []byte(bondedStakePoolAddr))
+		genesisState[banktypes.ModuleName] = fixed
+	}
+
+	// Fix staking genesis: remove delegations and zero DelegatorShares
+	if stakingGenBytes, ok := genesisState[stakingtypes.ModuleName]; ok {
+		var rawStaking map[string]json.RawMessage
+		if err := json.Unmarshal(stakingGenBytes, &rawStaking); err == nil {
+			// Remove delegations to avoid distribution invariant panic
+			rawStaking["delegations"], _ = json.Marshal([]interface{}{})
+
+			// Zero out DelegatorShares on validators to keep staking shares invariant consistent
+			if validatorsBytes, ok := rawStaking["validators"]; ok {
+				var validators []map[string]json.RawMessage
+				if err := json.Unmarshal(validatorsBytes, &validators); err == nil {
+					for i := range validators {
+						validators[i]["delegator_shares"], _ = json.Marshal("0.000000000000000000")
+					}
+					rawStaking["validators"], _ = json.Marshal(validators)
+				}
+			}
+
+			if fixed, err := json.Marshal(rawStaking); err == nil {
+				genesisState[stakingtypes.ModuleName] = fixed
+			}
+		}
+	}
+
+	result, err := json.Marshal(genesisState)
+	if err != nil {
+		return appStateBytes
+	}
+	return result
 }
 
 func NewValidatorSet(t *testing.T, n int) *cometbfttypes.ValidatorSet {

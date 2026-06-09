@@ -1,6 +1,10 @@
 package ante_test
 
 import (
+	"regexp"
+	"strconv"
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authantetestutil "github.com/cosmos/cosmos-sdk/x/auth/ante/testutil"
@@ -11,9 +15,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/openmetaearth/me-hub/app/ante"
 	"github.com/openmetaearth/me-hub/app/params"
-	"regexp"
-	"strconv"
-	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/app/ante/mock"
@@ -49,29 +50,6 @@ func TestMockBankKeeper(t *testing.T) {
 }
 
 func TestCheckFunds(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	ctx := sdk.Context{}
-	mockBankKeeper := mock.NewMockBankKeeper(ctrl)
-	mockAccountKeeper := authantetestutil.NewMockAccountKeeper(ctrl)
-	mockFeegrantKeeper := authantetestutil.NewMockFeegrantKeeper(ctrl)
-	mockStakingKeeper := mock.NewMockStakingKeeper(ctrl)
-	mockKycKeeper := mock.NewMockKycKeeper(ctrl)
-	mockDaoKeeper := mock.NewMockDaoKeeper(ctrl)
-	mockWasmKeeper := mock.NewMockWasmKeeper(ctrl)
-
-	decorator := ante.NewDeductFeeDecorator(
-		mockAccountKeeper,
-		mockBankKeeper,
-		mockFeegrantKeeper,
-		mockDaoKeeper,
-		mockStakingKeeper,
-		mockKycKeeper,
-		nil,
-		mockWasmKeeper,
-	)
-
 	feePayer := NewAccount()
 	receiver := NewAccount()
 	sender := NewAccount()
@@ -358,11 +336,34 @@ func TestCheckFunds(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			ctx := sdk.Context{}
+			mockBankKeeper := mock.NewMockBankKeeper(ctrl)
+			mockAccountKeeper := authantetestutil.NewMockAccountKeeper(ctrl)
+			mockFeegrantKeeper := authantetestutil.NewMockFeegrantKeeper(ctrl)
+			mockStakingKeeper := mock.NewMockStakingKeeper(ctrl)
+			mockKycKeeper := mock.NewMockKycKeeper(ctrl)
+			mockDaoKeeper := mock.NewMockDaoKeeper(ctrl)
+			mockWasmKeeper := mock.NewMockWasmKeeper(ctrl)
+
+			decorator := ante.NewDeductFeeDecorator(
+				mockAccountKeeper,
+				mockBankKeeper,
+				mockFeegrantKeeper,
+				mockDaoKeeper,
+				mockStakingKeeper,
+				mockKycKeeper,
+				nil,
+				mockWasmKeeper,
+			)
+
 			// Mock the balances for all involved addresses
 			for address, balance := range tc.balances {
 				mockBankKeeper.EXPECT().
 					GetAllBalances(gomock.Any(), sdk.MustAccAddressFromBech32(address)).
-					Return(balance)
+					Return(balance).AnyTimes()
 			}
 
 			// Create a mock transaction with the provided messages

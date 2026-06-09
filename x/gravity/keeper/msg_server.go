@@ -2,12 +2,14 @@ package keeper
 
 import (
 	"context"
-	errorsmod "cosmossdk.io/errors"
 	"fmt"
+
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/utils"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
@@ -250,6 +252,11 @@ func (s MsgServer) RelayerSetUpdateClaim(c context.Context, msg *types.MsgRelaye
 
 func (s MsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
+	// Reject early if the derived denom collides with the native denom.
+	denom := utils.GetDenom(msg.Symbol)
+	if denom == params.BaseDenom {
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "bridge token symbol %q derives to native denom %q", msg.Symbol, denom)
+	}
 	if err := s.claimHandlerCommon(ctx, msg); err != nil {
 		return nil, err
 	}

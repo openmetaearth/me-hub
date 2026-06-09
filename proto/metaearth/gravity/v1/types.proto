@@ -194,8 +194,8 @@ message MinBatchFee {
 
 // relayer_set_update_power_change_percent
 //
-// If power change between validators of CurrentRelayerSet and latest relayer set
-// request is > 10%
+// If power change between validators of CurrentRelayerSet and latest relayer
+// set request is > 10%
 message Params {
   option (gogoproto.stringer) = false;
   string gravity_id = 1;

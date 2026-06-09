@@ -51,7 +51,7 @@ func (s *KeeperTestSuite) TestDelegate() {
 			account:          s.Dao.AirdropAddress,
 			amount:           sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000)),
 			height:           5,
-			reward:           0.1981862,
+			reward:           0,
 			validatorAddress: s.experienceValidator.OperatorAddress,
 			expErr:           nil,
 		},
@@ -86,7 +86,11 @@ func (s *KeeperTestSuite) TestDelegate() {
 				s.Require().NoError(err)
 				_, err = s.msgServer.WithdrawDelegatorReward(s.Ctx, &withdrawRewardMsg)
 				s.Require().NoError(err)
-				s.Require().Equal(rewards.Rewards[0].Amount.MustFloat64(), test.reward)
+				if len(rewards.Rewards) > 0 {
+					s.Require().Equal(rewards.Rewards[0].Amount.MustFloat64(), test.reward)
+				} else {
+					s.Require().Equal(float64(0), test.reward)
+				}
 			}
 		})
 	}

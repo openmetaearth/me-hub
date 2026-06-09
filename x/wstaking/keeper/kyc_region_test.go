@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"strings"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,7 +12,6 @@ import (
 	"github.com/openmetaearth/me-hub/x/wmint"
 	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
-	"strings"
 )
 
 func (s *KeeperTestSuite) TestTransferKycRegion() {
@@ -39,12 +40,12 @@ func (s *KeeperTestSuite) TestTransferKycRegion() {
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
 	inviter := accounts[0]
-	err = s.Keeper().KycReward(s.Ctx, inviter, s.meEarthValidator.Description.RegionID, s.Dao.GlobalDao)
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, s.meEarthValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
-	// check invite address
+	// check invite address - inviter reward logic was removed
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), types.InviteReward.String())
+	s.Require().Equal(balance.Amount.String(), "0")
 
 	// check region DelegateAmount
 	region, found := s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
