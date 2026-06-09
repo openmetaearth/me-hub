@@ -3,6 +3,7 @@ package keeper_test
 import (
 	sdkmath "cosmossdk.io/math"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"fmt"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -169,6 +170,32 @@ func (s *KeeperTestSuite) SignRelayerSetConfirm(external *ecdsa.PrivateKey, rela
 		//s.Require().NoError(err)
 	}
 	return externalAddress, signature
+}
+
+func (s *KeeperTestSuite) NewBondedRelayerMsg(relayerIndex int, delegateAmount sdk.Coin) *types.MsgBondedRelayer {
+	msg := &types.MsgBondedRelayer{
+		RelayerAddress:  s.relayerAddrs[relayerIndex].String(),
+		ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[relayerIndex].PublicKey),
+		DelegateAmount:  delegateAmount,
+		ChainName:       s.chainName,
+	}
+	s.SignBondedRelayerMsg(msg, s.externalPris[relayerIndex])
+	return msg
+}
+
+func (s *KeeperTestSuite) SignBondedRelayerMsg(msg *types.MsgBondedRelayer, external *ecdsa.PrivateKey) {
+	checkpoint := types.GetBondedRelayerExternalAddressCheckpoint(
+		s.Keeper().GetGravityID(s.Ctx),
+		msg.ChainName,
+		msg.RelayerAddress,
+		msg.ExternalAddress,
+	)
+	signature, err := types.NewEthereumSignature(checkpoint, external)
+	if trontypes.ModuleName == s.chainName {
+		signature, err = trontypes.NewTronSignature(checkpoint, external)
+	}
+	s.Require().NoError(err)
+	msg.ExternalSignature = hex.EncodeToString(signature)
 }
 
 func (s *KeeperTestSuite) SendClaim(externalClaim types.ExternalClaim) {

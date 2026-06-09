@@ -86,12 +86,7 @@ func (s *KeeperTestSuite) TestMsgBondedRelayer() {
 	for _, testCase := range testCases {
 		s.Run(testCase.name, func() {
 			relayerIndex := tmrand.Intn(len(s.relayerAddrs))
-			msg := &types.MsgBondedRelayer{
-				RelayerAddress:  s.relayerAddrs[relayerIndex].String(),
-				ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[relayerIndex].PublicKey),
-				DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
-				ChainName:       s.chainName,
-			}
+			msg := s.NewBondedRelayerMsg(relayerIndex, sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)))
 
 			testCase.preRun(msg)
 
@@ -124,6 +119,29 @@ func (s *KeeperTestSuite) TestMsgBondedRelayer() {
 			s.Require().EqualValues(msg.DelegateAmount.Amount.Quo(sdk.DefaultPowerReduction).Int64(), totalPower.Int64())
 		})
 	}
+}
+
+func (s *KeeperTestSuite) TestBondedRelayerRejectsUnprovenExternalAddress() {
+	msg := s.NewBondedRelayerMsg(0, sdk.NewCoin(params.BaseDenom, s.Keeper().GetGravityMinDelegate(s.Ctx)))
+	victimExternalAddress := s.PubKeyToExternalAddr(s.externalPris[1].PublicKey)
+	msg.ExternalAddress = victimExternalAddress
+	s.SignBondedRelayerMsg(msg, s.externalPris[0])
+
+	err := msg.ValidateBasic()
+	s.Require().NoError(err)
+
+	_, err = s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msg)
+	s.Require().ErrorIs(err, types.ErrInvalid)
+	s.Require().Contains(err.Error(), "external signature verification failed")
+
+	_, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[0])
+	s.Require().False(found)
+	_, found = s.Keeper().GetRelayerByExternalAddress(s.Ctx, victimExternalAddress)
+	s.Require().False(found)
+
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
+	s.Keeper().EndBlocker(s.Ctx)
+	s.Require().Nil(s.Keeper().GetLastRelayerSet(s.Ctx))
 }
 
 func (s *KeeperTestSuite) TestMsgAddDelegate() {
@@ -239,12 +257,7 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 			relayerIndex := tmrand.Intn(len(s.relayerAddrs))
 
 			// init bonded relayer
-			_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), &types.MsgBondedRelayer{
-				RelayerAddress:  s.relayerAddrs[relayerIndex].String(),
-				ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[relayerIndex].PublicKey),
-				DelegateAmount:  sdk.NewCoin(params.BaseDenom, initDelegateAmount),
-				ChainName:       s.chainName,
-			})
+			_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), s.NewBondedRelayerMsg(relayerIndex, sdk.NewCoin(params.BaseDenom, initDelegateAmount)))
 			s.Require().NoError(err)
 
 			msg := &types.MsgAddDelegate{
@@ -279,12 +292,7 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 }
 
 func (s *KeeperTestSuite) TestMsgSetRelayerSetConfirm() {
-	normalMsg := &types.MsgBondedRelayer{
-		RelayerAddress:  s.relayerAddrs[0].String(),
-		ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[0].PublicKey),
-		DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
-		ChainName:       s.chainName,
-	}
+	normalMsg := s.NewBondedRelayerMsg(0, sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)))
 	_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), normalMsg)
 	s.Require().NoError(err)
 
@@ -402,12 +410,7 @@ func (s *KeeperTestSuite) TestMsgSetRelayerSetConfirm() {
 }
 
 func (s *KeeperTestSuite) TestClaimWithRelayerOnline() {
-	normalMsg := &types.MsgBondedRelayer{
-		RelayerAddress:  s.relayerAddrs[0].String(),
-		ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[0].PublicKey),
-		DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
-		ChainName:       s.chainName,
-	}
+	normalMsg := s.NewBondedRelayerMsg(0, sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)))
 	_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), normalMsg)
 	s.Require().NoError(err)
 
@@ -608,13 +611,8 @@ func (s *KeeperTestSuite) TestClaimMsgGasConsumed() {
 
 	for _, testCase := range testCases {
 		s.Run(fmt.Sprintf("%s-%s", s.chainName, testCase.name), func() {
-			for i, relayer := range s.relayerAddrs {
-				msg := &types.MsgBondedRelayer{
-					RelayerAddress:  relayer.String(),
-					ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-					DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(2*1e8)),
-					ChainName:       s.chainName,
-				}
+			for i := range s.relayerAddrs {
+				msg := s.NewBondedRelayerMsg(i, sdk.NewCoin(params.BaseDenom, sdk.NewInt(2*1e8)))
 				_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msg)
 				s.Require().NoError(err)
 			}
@@ -628,12 +626,7 @@ func (s *KeeperTestSuite) TestClaimMsgGasConsumed() {
 }
 
 func (s *KeeperTestSuite) TestMsgBridgeTokenClaim() {
-	normalMsg := &types.MsgBondedRelayer{
-		RelayerAddress:  s.relayerAddrs[0].String(),
-		ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[0].PublicKey),
-		DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
-		ChainName:       s.chainName,
-	}
+	normalMsg := s.NewBondedRelayerMsg(0, sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)))
 	_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), normalMsg)
 	s.Require().NoError(err)
 
@@ -741,13 +734,8 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	// 1. First sets up a valid relayer set
 	totalPower := sdk.ZeroInt()
 	delegateAmounts := make([]sdk.Int, 0, len(s.relayerAddrs))
-	for i, relayer := range s.relayerAddrs {
-		msg := &types.MsgBondedRelayer{
-			RelayerAddress:  relayer.String(),
-			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt((tmrand.Int63n(5)+1)*1e8)),
-			ChainName:       s.chainName,
-		}
+	for i := range s.relayerAddrs {
+		msg := s.NewBondedRelayerMsg(i, sdk.NewCoin(params.BaseDenom, sdk.NewInt((tmrand.Int63n(5)+1)*1e8)))
 		delegateAmounts = append(delegateAmounts, msg.DelegateAmount.Amount)
 		totalPower = totalPower.Add(msg.DelegateAmount.Amount.Quo(sdk.DefaultPowerReduction))
 		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msg)

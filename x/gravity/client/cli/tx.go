@@ -18,6 +18,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
+	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 	"github.com/spf13/cobra"
 )
 
@@ -63,7 +64,7 @@ func getTxSubCmds(chainName string) []*cobra.Command {
 
 func CmdBondedRelayer(chainName string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bonded-relayer [external-address] [delegate-amount]",
+		Use:   "bonded-relayer [external-private-key] [delegate-amount]",
 		Short: "Allows relayer to delegate their voting responsibilities to a given key.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -75,16 +76,46 @@ func CmdBondedRelayer(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			privateKey, err := recoveryPrivateKeyByKeystore(args[0])
+			if err != nil {
+				return err
+			}
+			externalAddress := types.ExternalAddrToStr(chainName, ethcrypto.PubkeyToAddress(privateKey.PublicKey).Bytes())
+			queryClient := types.NewQueryClient(cliCtx)
+			paramsResp, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{
+				ChainName: chainName,
+			})
+			if err != nil {
+				return err
+			}
+			checkpoint := types.GetBondedRelayerExternalAddressCheckpoint(
+				paramsResp.Params.GetGravityId(),
+				chainName,
+				cliCtx.GetFromAddress().String(),
+				externalAddress,
+			)
+			signature, err := signExternalAddressProof(chainName, checkpoint, privateKey)
+			if err != nil {
+				return err
+			}
 			msg := types.MsgBondedRelayer{
-				ChainName:       chainName,
-				RelayerAddress:  cliCtx.GetFromAddress().String(),
-				ExternalAddress: args[0],
-				DelegateAmount:  amount,
+				ChainName:         chainName,
+				RelayerAddress:    cliCtx.GetFromAddress().String(),
+				ExternalAddress:   externalAddress,
+				DelegateAmount:    amount,
+				ExternalSignature: hex.EncodeToString(signature),
 			}
 			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), &msg)
 		},
 	}
 	return cmd
+}
+
+func signExternalAddressProof(chainName string, checkpoint []byte, privateKey *ecdsa.PrivateKey) ([]byte, error) {
+	if chainName == trontypes.ModuleName {
+		return trontypes.NewTronSignature(checkpoint, privateKey)
+	}
+	return types.NewEthereumSignature(checkpoint, privateKey)
 }
 
 func CmdUnbondedRelayer(chainName string) *cobra.Command {

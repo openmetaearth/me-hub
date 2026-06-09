@@ -40,6 +40,7 @@ message MsgBondedRelayer {
   string relayer_address = 2;
   string external_address = 3;
   cosmos.base.v1beta1.Coin delegate_amount = 4 [(gogoproto.nullable) = false];
+  string external_signature = 5;
 }
 
 message MsgBondedRelayerResponse {}

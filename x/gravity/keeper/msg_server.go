@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -11,6 +12,7 @@ import (
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/utils"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
+	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 )
 
 var _ types.MsgServer = MsgServer{}
@@ -41,6 +43,9 @@ func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer)
 	// check external address is bound to relayer
 	if _, found := s.GetRelayerByExternalAddress(ctx, msg.ExternalAddress); found {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "external already bonded")
+	}
+	if err := s.verifyBondedRelayerExternalAddress(ctx, msg); err != nil {
+		return nil, err
 	}
 	minThreshold := s.GetGravityMinDelegate(ctx)
 	relayer := types.Relayer{
@@ -80,6 +85,31 @@ func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer)
 		sdk.NewAttribute(types.AttributeKeyExternalAddress, msg.ExternalAddress),
 	))
 	return &types.MsgBondedRelayerResponse{}, nil
+}
+
+func (s MsgServer) verifyBondedRelayerExternalAddress(ctx sdk.Context, msg *types.MsgBondedRelayer) error {
+	sigBytes, err := hex.DecodeString(msg.ExternalSignature)
+	if err != nil {
+		return errorsmod.Wrap(types.ErrInvalid, "external signature decoding failed")
+	}
+
+	checkpoint := types.GetBondedRelayerExternalAddressCheckpoint(
+		s.GetGravityID(ctx),
+		msg.ChainName,
+		msg.RelayerAddress,
+		msg.ExternalAddress,
+	)
+	if s.moduleName == trontypes.ModuleName {
+		if err = trontypes.ValidateTronSignature(checkpoint, sigBytes, msg.ExternalAddress); err != nil {
+			return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("external signature verification failed expected sig by %s with checkpoint %s and sig %s", msg.ExternalAddress, hex.EncodeToString(checkpoint), msg.ExternalSignature))
+		}
+		return nil
+	}
+
+	if err = types.ValidateEthereumSignature(checkpoint, sigBytes, msg.ExternalAddress); err != nil {
+		return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("external signature verification failed expected sig by %s with checkpoint %s and sig %s", msg.ExternalAddress, hex.EncodeToString(checkpoint), msg.ExternalSignature))
+	}
+	return nil
 }
 
 func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*types.MsgAddDelegateResponse, error) {

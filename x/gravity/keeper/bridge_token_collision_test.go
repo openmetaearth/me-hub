@@ -12,13 +12,8 @@ import (
 
 // bondAllRelayers bonds all test relayers so they can submit claims.
 func (suite *KeeperTestSuite) bondAllRelayers() {
-	for i, relayer := range suite.relayerAddrs {
-		msg := &types.MsgBondedRelayer{
-			RelayerAddress:  relayer.String(),
-			ExternalAddress: suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
-			ChainName:       suite.chainName,
-		}
+	for i := range suite.relayerAddrs {
+		msg := suite.NewBondedRelayerMsg(i, sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)))
 		_, err := suite.MsgServer().BondedRelayer(sdk.WrapSDKContext(suite.Ctx), msg)
 		suite.Require().NoError(err)
 	}

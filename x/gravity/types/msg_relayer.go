@@ -41,6 +41,16 @@ func (m *MsgBondedRelayer) ValidateBasic() error {
 	if err := ValidateExternalAddr(m.ChainName, m.ExternalAddress); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
 	}
+	if len(m.ExternalSignature) == 0 {
+		return sdkerrors.ErrInvalidRequest.Wrap("empty external signature")
+	}
+	externalSignature, err := hex.DecodeString(m.ExternalSignature)
+	if err != nil {
+		return sdkerrors.ErrInvalidRequest.Wrap("could not hex decode external signature")
+	}
+	if len(externalSignature) != 65 {
+		return sdkerrors.ErrInvalidRequest.Wrap("external signature must be 65 bytes")
+	}
 	if !m.DelegateAmount.IsValid() || !m.DelegateAmount.IsPositive() {
 		return sdkerrors.ErrInvalidRequest.Wrap("invalid delegation amount")
 	}

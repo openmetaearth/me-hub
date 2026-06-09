@@ -17,12 +17,7 @@ func (s *KeeperTestSuite) TestDepositClaim() {
 	s.Require().True(found)
 	s.Require().EqualValues(s.relayerNumber, len(proposalRelayers.Relayers))
 
-	normalMsg := &types.MsgBondedRelayer{
-		RelayerAddress:  s.relayerAddrs[0].String(),
-		ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[0].PublicKey),
-		DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
-		ChainName:       s.chainName,
-	}
+	normalMsg := s.NewBondedRelayerMsg(0, sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)))
 	_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), normalMsg)
 	s.Require().NoError(err)
 
@@ -78,12 +73,7 @@ func (s *KeeperTestSuite) TestProposalRelayers() {
 
 	// init 10 relayers
 	for i := 0; i < s.relayerNumber; i++ {
-		msgBondedRelayer := &types.MsgBondedRelayer{
-			RelayerAddress:  s.relayerAddrs[i].String(),
-			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
-			ChainName:       s.chainName,
-		}
+		msgBondedRelayer := s.NewBondedRelayerMsg(i, sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)))
 		s.Require().NoError(msgBondedRelayer.ValidateBasic())
 		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msgBondedRelayer)
 
@@ -187,12 +177,7 @@ func (s *KeeperTestSuite) TestAttestationAfterRelayerUpdate() {
 	s.Require().EqualValues(s.relayerNumber, len(proposalRelayers.Relayers))
 
 	for i := 0; i < s.relayerNumber; i++ {
-		msgBondedRelayer := &types.MsgBondedRelayer{
-			RelayerAddress:  s.relayerAddrs[i].String(),
-			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
-			ChainName:       s.chainName,
-		}
+		msgBondedRelayer := s.NewBondedRelayerMsg(i, sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)))
 		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msgBondedRelayer)
 		s.Require().NoError(err)
 		s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
@@ -386,12 +371,7 @@ func (s *KeeperTestSuite) TestRelayerDelete() {
 	s.Require().EqualValues(0, nonce)
 
 	for i := 0; i < len(s.relayerAddrs); i++ {
-		msgBondedRelayer := &types.MsgBondedRelayer{
-			RelayerAddress:  s.relayerAddrs[i].String(),
-			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
-			ChainName:       s.chainName,
-		}
+		msgBondedRelayer := s.NewBondedRelayerMsg(i, sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)))
 		s.Require().NoError(msgBondedRelayer.ValidateBasic())
 		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msgBondedRelayer)
 		s.Require().NoError(err)
@@ -453,12 +433,7 @@ func (s *KeeperTestSuite) TestRelayerDelete() {
 
 func (s *KeeperTestSuite) TestRelayerSetSlash() {
 	for i := 0; i < len(s.relayerAddrs); i++ {
-		msgBondedRelayer := &types.MsgBondedRelayer{
-			RelayerAddress:  s.relayerAddrs[i].String(),
-			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
-			ChainName:       s.chainName,
-		}
+		msgBondedRelayer := s.NewBondedRelayerMsg(i, sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)))
 		s.Require().NoError(msgBondedRelayer.ValidateBasic())
 		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msgBondedRelayer)
 		s.Require().NoError(err)
@@ -509,12 +484,7 @@ func (s *KeeperTestSuite) TestRelayerSetSlash() {
 
 func (s *KeeperTestSuite) TestSlashRelayer() {
 	for i := 0; i < len(s.relayerAddrs); i++ {
-		msgBondedRelayer := &types.MsgBondedRelayer{
-			RelayerAddress:  s.relayerAddrs[i].String(),
-			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
-			ChainName:       s.chainName,
-		}
+		msgBondedRelayer := s.NewBondedRelayerMsg(i, sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)))
 		s.Require().NoError(msgBondedRelayer.ValidateBasic())
 		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msgBondedRelayer)
 		s.Require().NoError(err)

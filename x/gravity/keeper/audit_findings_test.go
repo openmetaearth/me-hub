@@ -253,13 +253,8 @@ func (s *KeeperTestSuite) TestGrav005_TryAttestationRejectsZeroTotalPower() {
 func (s *KeeperTestSuite) setupBondedRelayerSetForAuditTest() {
 	totalPower := sdkmath.ZeroInt()
 	delegateAmounts := make([]sdkmath.Int, 0, len(s.relayerAddrs))
-	for i, relayer := range s.relayerAddrs {
-		msg := &types.MsgBondedRelayer{
-			RelayerAddress:  relayer.String(),
-			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(int64(1e9))),
-			ChainName:       s.chainName,
-		}
+	for i := range s.relayerAddrs {
+		msg := s.NewBondedRelayerMsg(i, sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(int64(1e9))))
 		delegateAmounts = append(delegateAmounts, msg.DelegateAmount.Amount)
 		totalPower = totalPower.Add(msg.DelegateAmount.Amount.Quo(sdk.DefaultPowerReduction))
 		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msg)
