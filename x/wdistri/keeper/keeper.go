@@ -103,10 +103,11 @@ func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 		regionAmount := amount.TruncateInt()
 		regionCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(regionAmount.Int64())))
 		treasuryAddr, addrErr := sdk.AccAddressFromBech32(region.GetRegionTreasureAddr())
-                if addrErr != nil {
-                    return addrErr
-                }
-                err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.GetTreasuryModuleAccount(), treasuryAddr, regionCoins)
+		if addrErr != nil {
+			ctx.Logger().Error("invalid region treasure address, skipping reward", "regionId", region.GetRegionId(), "addr", region.GetRegionTreasureAddr(), "err", addrErr)
+			continue
+		}
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.GetTreasuryModuleAccount(), treasuryAddr, regionCoins)
 		if err != nil {
 			return err
 		}
