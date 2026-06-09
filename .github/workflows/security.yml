@@ -39,7 +39,7 @@ jobs:
       contents: read
       actions: read
       security-events: write
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     env:
       GO111MODULE: on
     steps:
