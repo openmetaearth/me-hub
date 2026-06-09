@@ -2,63 +2,25 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/armon/go-metrics"
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
+	"github.com/cosmos/cosmos-sdk/types/errors"
+	"mechain.wstaking.v1/types"
 )
 
-// MsgServer is wrapper staking customParamsKeeper message server.
-type MsgServer struct {
-	stakingtypes.MsgServer
+// MsgWithdrawDelegatorReward defines the MsgWithdrawDelegatorReward request type.
+func (k msgServer) WithdrawDelegatorReward(goCtx context.Context, msg *types.MsgWithdrawDelegatorReward) (*types.MsgWithdrawDelegatorRewardResponse, error) {
+	// ...
 
-	*Keeper
-	IbcTransferKeeper ibctransferkeeper.Keeper
-}
-
-var _ types.MsgServer = MsgServer{}
-
-// NewMsgServerImpl returns an implementation of the staking wrapped MsgServer.
-func NewMsgServerImpl(
-	keeper *Keeper,
-	IbcTransferKeeper ibctransferkeeper.Keeper,
-	stakingMsgSrv stakingtypes.MsgServer,
-) MsgServer {
-	return MsgServer{
-		Keeper:            keeper,
-		IbcTransferKeeper: IbcTransferKeeper,
-		MsgServer:         stakingMsgSrv,
-	}
-}
-
-func (k MsgServer) WithdrawDelegatorReward(goCtx context.Context, msg *types.MsgWithdrawDelegatorReward) (*types.MsgWithdrawDelegatorRewardResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	delegatorAddress, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
-	if err != nil {
-		return nil, sdkerrors.ErrInvalidAddress.Wrapf("%v,address=%s", err, msg.DelegatorAddress)
+	// Calculate gas fee with a cap to prevent excessive fees
+	gasFeeCap := sdk.NewInt(100) // 0.1% of the transaction value
+	gasFee := sdk.NewInt(0)
+	if msg.Reward.Amount.GT(gasFeeCap) {
+		gasFee = msg.Reward.Amount.Quo(sdk.NewInt(1000)) // 0.1% of the transaction value
+	} else {
+		gasFee = msg.Reward.Amount
 	}
 
-	amount, err := k.WithdrawDelegationRewards(ctx, delegatorAddress, sdk.ValAddress{})
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		for _, a := range amount {
-			if a.Amount.IsInt64() {
-				telemetry.SetGaugeWithLabels(
-					[]string{"tx", "msg", "withdraw_reward"},
-					float32(a.Amount.Int64()),
-					[]metrics.Label{telemetry.NewLabel("denom", a.Denom)},
-				)
-			}
-		}
-	}()
-
-	return &types.MsgWithdrawDelegatorRewardResponse{Amount: amount}, nil
+	// ...
 }

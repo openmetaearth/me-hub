@@ -1,99 +1,36 @@
 package keeper
 
 import (
-	"math/big"
-
-	"github.com/cometbft/cometbft/libs/log"
-	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
+	"mechain.wstaking.v1/types"
 )
 
+// Keeper defines the wstaking module keeper
 type Keeper struct {
-	*stakingkeeper.Keeper
-	cdc            codec.BinaryCodec
-	storeKey       storetypes.StoreKey
-	authKeeper     banktypes.AccountKeeper
-	bankKeeper     types.BankKeeper
-	daoKeeper      types.DaoKeeper
-	mintKeeper     types.MintKeeper
-	nftKeeper      types.NFTKeeper
-	wstakingHooks  types.WstakingHooks
-	kycKeeper      types.KycKeeper
-	didKeeper      types.DidKeeper
-	groupKeeper    types.GroupKeeper
-	slashingKeeper slashingkeeper.Keeper
+	storeKey sdk.StoreKey
+	cdc      codec.BinaryCodec
 }
 
-func NewKeeper(
-	cdc codec.BinaryCodec,
-	storeKey storetypes.StoreKey,
-	ak banktypes.AccountKeeper,
-	bk types.BankKeeper,
-	dk types.DaoKeeper,
-	nk types.NFTKeeper,
-	authority string,
-) *Keeper {
+// NewKeeper returns a new wstaking Keeper instance
+func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey) *Keeper {
 	return &Keeper{
-		Keeper:     stakingkeeper.NewKeeper(cdc, storeKey, ak, bk, authority),
-		cdc:        cdc,
-		storeKey:   storeKey,
-		authKeeper: ak,
-		bankKeeper: bk,
-		daoKeeper:  dk,
-		nftKeeper:  nk,
+		storeKey: key,
+		cdc:      cdc,
 	}
 }
 
-func (k *Keeper) SetMintKeeper(mintKeeper types.MintKeeper) {
-	k.mintKeeper = mintKeeper
-}
+// WithdrawDelegatorReward handles the MsgWithdrawDelegatorReward request
+func (k Keeper) WithdrawDelegatorReward(ctx sdk.Context, msg *types.MsgWithdrawDelegatorReward) (*types.MsgWithdrawDelegatorRewardResponse, error) {
+	// ...
 
-func (k *Keeper) SetKycKeeper(keeper types.KycKeeper) {
-	k.kycKeeper = keeper
-}
-
-func (k *Keeper) SetGroupKeeper(keeper types.GroupKeeper) {
-	k.groupKeeper = keeper
-}
-
-func (k *Keeper) SetDidKeeper(keeper types.DidKeeper) {
-	k.didKeeper = keeper
-}
-
-func (k *Keeper) SetSlashingKeeper(keeper slashingkeeper.Keeper) {
-	k.slashingKeeper = keeper
-}
-
-// Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+types.ModuleName)
-}
-
-func (k Keeper) GetProposerOwnerAddress(ctx sdk.Context) (string, error) {
-	header := ctx.BlockHeader()
-	addr := header.GetProposerAddress()
-
-	validator, ok := k.GetValidatorByConsAddr(ctx, addr)
-	if !ok {
-		return "", sdkerrors.Wrapf(types.ErrParameter, "proposer not found")
+	// Calculate gas fee with a cap to prevent excessive fees
+	gasFeeCap := sdk.NewInt(100) // 0.1% of the transaction value
+	gasFee := sdk.NewInt(0)
+	if msg.Reward.Amount.GT(gasFeeCap) {
+		gasFee = msg.Reward.Amount.Quo(sdk.NewInt(1000)) // 0.1% of the transaction value
+	} else {
+		gasFee = msg.Reward.Amount
 	}
-	return validator.OwnerAddress, nil
-}
 
-func (k Keeper) GetStoreKey() storetypes.StoreKey {
-	return k.storeKey
-}
-
-func (k Keeper) GetCdc() codec.BinaryCodec {
-	return k.cdc
-}
-
-func (k Keeper) GetPerBlockMintCoinAmount(ctx sdk.Context) (amount big.Int) {
-	return k.mintKeeper.GetPerBlockMintCoinAmount(ctx)
+	// ...
 }
