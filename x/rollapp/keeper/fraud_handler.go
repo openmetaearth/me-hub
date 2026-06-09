@@ -97,7 +97,7 @@ func (k Keeper) freezeClientState(ctx sdk.Context, clientId string) error {
 		return errorsmod.Wrapf(types.ErrInvalidClientState, "client state with ID %s is not a tendermint client state", clientId)
 	}
 
-	tmClientState.FrozenHeight = clienttypes.NewHeight(tmClientState.GetLatestHeight().GetRevisionHeight(), tmClientState.GetLatestHeight().GetRevisionNumber())
+	tmClientState.FrozenHeight = clienttypes.NewHeight(tmClientState.GetLatestHeight().GetRevisionNumber(), tmClientState.GetLatestHeight().GetRevisionHeight())
 	k.ibcClientKeeper.SetClientState(ctx, clientId, tmClientState)
 
 	return nil
