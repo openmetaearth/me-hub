@@ -2,8 +2,11 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	dacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
+	eibctypes "github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 func (suite *KeeperTestSuite) TestCreateDemandOrderOnRecv() {
@@ -79,4 +82,26 @@ func (suite *KeeperTestSuite) TestCreateDemandOrderOnRecv() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestBlockedAddr() {
+	suite.Require().True(suite.App.EIBCKeeper.BlockedAddr("not-a-bech32-address"))
+	suite.Require().True(suite.App.EIBCKeeper.BlockedAddr(authtypes.NewModuleAddress(authtypes.FeeCollectorName).String()))
+	suite.Require().False(suite.App.EIBCKeeper.BlockedAddr(eibcReceiverAddr.String()))
+}
+
+func (suite *KeeperTestSuite) TestDemandOrderHandlerBlocksMalformedOriginalReceiver() {
+	data := transferPacketData
+	data.Receiver = "not-a-bech32-address"
+	packet := channeltypes.NewPacket(data.GetBytes(), 2, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
+	localRollappPacket := *rollappPacket
+	localRollappPacket.Type = commontypes.RollappPacket_ON_TIMEOUT
+	localRollappPacket.Packet = &packet
+
+	err := suite.App.EIBCKeeper.EIBCDemandOrderHandler(suite.Ctx, localRollappPacket, data)
+	suite.Require().ErrorIs(err, eibctypes.ErrBlockedAddress)
+
+	orders, err := suite.App.EIBCKeeper.ListAllDemandOrders(suite.Ctx)
+	suite.Require().NoError(err)
+	suite.Require().Empty(orders)
 }

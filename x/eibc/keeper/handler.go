@@ -147,7 +147,7 @@ func (k *Keeper) getEIBCTransferDenom(packet channeltypes.Packet, fungibleTokenP
 func (k Keeper) BlockedAddr(addr string) bool {
 	account, err := sdk.AccAddressFromBech32(addr)
 	if err != nil {
-		return false
+		return true
 	}
 	return k.bk.BlockedAddr(account)
 }
