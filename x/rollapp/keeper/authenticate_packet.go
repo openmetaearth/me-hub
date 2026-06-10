@@ -4,16 +4,45 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 	uibc "github.com/openmetaearth/me-hub/utils/uibc"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
-// GetValidTransfer takes a packet, ensures it is a (basic) validated fungible token packet, and gets the chain id.
+// GetValidTransferFromReceivedPacket authenticates a received IBC transfer against
+// the packet destination endpoint on the hub.
+func (k Keeper) GetValidTransferFromReceivedPacket(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+) (types.TransferData, error) {
+	return k.getValidTransfer(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
+}
+
+// GetValidTransferFromSentPacket authenticates an acknowledgement or timeout
+// against the packet source endpoint on the hub.
+func (k Keeper) GetValidTransferFromSentPacket(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+) (types.TransferData, error) {
+	return k.getValidTransfer(ctx, packet.GetData(), packet.GetSourcePort(), packet.GetSourceChannel())
+}
+
+// GetValidTransferFromSendPacket authenticates an outgoing SendPacket transfer
+// against the source endpoint supplied by the ICS4 wrapper.
+func (k Keeper) GetValidTransferFromSendPacket(
+	ctx sdk.Context,
+	packetData []byte,
+	sourcePort, sourceChannel string,
+) (types.TransferData, error) {
+	return k.getValidTransfer(ctx, packetData, sourcePort, sourceChannel)
+}
+
+// getValidTransfer takes a packet, ensures it is a (basic) validated fungible token packet, and gets the chain id.
 // If the channel chain id is also a rollapp id, we check that the canonical channel id we have saved for that rollapp
 // agrees is indeed the channel we are receiving from. In this way, we stop anyone from pretending to be the RA. (Assuming
 // that the mechanism for setting the canonical channel in the first place is correct).
-func (k Keeper) GetValidTransfer(
+func (k Keeper) getValidTransfer(
 	ctx sdk.Context,
 	packetData []byte,
 	raPortOnHub, raChanOnHub string,

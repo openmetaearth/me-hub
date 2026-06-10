@@ -55,7 +55,7 @@ func (im IBCModule) OnRecvPacket(
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	transferData, err := im.rollappKeeper.GetValidTransfer(ctx, packet.Data, packet.DestinationPort, packet.DestinationChannel)
+	transferData, err := im.rollappKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
@@ -117,7 +117,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	transferData, err := im.rollappKeeper.GetValidTransfer(ctx, packet.Data, packet.GetSourcePort(), packet.GetSourceChannel())
+	transferData, err := im.rollappKeeper.GetValidTransferFromSentPacket(ctx, packet)
 	if err != nil {
 		return errorsmod.Wrapf(errortypes.ErrInvalidRequest, "get valid transfer data: %s", err.Error())
 	}
@@ -195,7 +195,7 @@ func (m *ICS4Wrapper) SendPacket(
 		return 0, types.ErrMemoDenomMetadataAlreadyExists
 	}
 
-	transferData, err := m.rollappKeeper.GetValidTransfer(ctx, data, sourcePort, sourceChannel)
+	transferData, err := m.rollappKeeper.GetValidTransferFromSendPacket(ctx, data, sourcePort, sourceChannel)
 	if err != nil {
 		return 0, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "get valid transfer data: %s", err.Error())
 	}

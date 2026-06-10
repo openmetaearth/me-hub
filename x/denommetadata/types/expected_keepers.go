@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
@@ -18,9 +19,17 @@ type DenomMetadataKeeper interface {
 
 type RollappKeeper interface {
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
-	GetValidTransfer(
+	GetValidTransferFromReceivedPacket(
+		ctx sdk.Context,
+		packet channeltypes.Packet,
+	) (data rollapptypes.TransferData, err error)
+	GetValidTransferFromSentPacket(
+		ctx sdk.Context,
+		packet channeltypes.Packet,
+	) (data rollapptypes.TransferData, err error)
+	GetValidTransferFromSendPacket(
 		ctx sdk.Context,
 		packetData []byte,
-		raPortOnHub, raChanOnHub string,
+		sourcePort, sourceChannel string,
 	) (data rollapptypes.TransferData, err error)
 }

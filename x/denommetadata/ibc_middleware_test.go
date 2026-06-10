@@ -636,7 +636,19 @@ func (m *mockRollappKeeper) SetRollapp(_ sdk.Context, rollapp rollapptypes.Rolla
 	m.returnRollapp = &rollapp
 }
 
-func (m *mockRollappKeeper) GetValidTransfer(sdk.Context, []byte, string, string) (data rollapptypes.TransferData, err error) {
+func (m *mockRollappKeeper) GetValidTransferFromReceivedPacket(sdk.Context, channeltypes.Packet) (data rollapptypes.TransferData, err error) {
+	return m.transferData()
+}
+
+func (m *mockRollappKeeper) GetValidTransferFromSentPacket(sdk.Context, channeltypes.Packet) (data rollapptypes.TransferData, err error) {
+	return m.transferData()
+}
+
+func (m *mockRollappKeeper) GetValidTransferFromSendPacket(sdk.Context, []byte, string, string) (data rollapptypes.TransferData, err error) {
+	return m.transferData()
+}
+
+func (m *mockRollappKeeper) transferData() (data rollapptypes.TransferData, err error) {
 	return rollapptypes.TransferData{
 		Rollapp:                 m.returnRollapp,
 		FungibleTokenPacketData: m.packetData,

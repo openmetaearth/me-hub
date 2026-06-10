@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
@@ -20,10 +21,13 @@ type RollappKeeper interface {
 	MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) rollapptypes.StateInfo
 	GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfoIndex, found bool)
 	GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp)
-	GetValidTransfer(
+	GetValidTransferFromReceivedPacket(
 		ctx sdk.Context,
-		packetData []byte,
-		raPortOnHub, raChanOnHub string,
+		packet channeltypes.Packet,
+	) (data rollapptypes.TransferData, err error)
+	GetValidTransferFromSentPacket(
+		ctx sdk.Context,
+		packet channeltypes.Packet,
 	) (data rollapptypes.TransferData, err error)
 	IsSkipDelayRollapp(ctx sdk.Context, rollappId string) bool
 }

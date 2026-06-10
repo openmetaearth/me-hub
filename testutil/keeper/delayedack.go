@@ -101,7 +101,11 @@ func (RollappKeeperStub) GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Ro
 	return []rollapptypes.Rollapp{}
 }
 
-func (r RollappKeeperStub) GetValidTransfer(ctx sdk.Context, packetData []byte, raPortOnHub, raChanOnHub string) (data rollapptypes.TransferData, err error) {
+func (r RollappKeeperStub) GetValidTransferFromReceivedPacket(ctx sdk.Context, packet channeltypes.Packet) (data rollapptypes.TransferData, err error) {
+	return rollapptypes.TransferData{}, nil
+}
+
+func (r RollappKeeperStub) GetValidTransferFromSentPacket(ctx sdk.Context, packet channeltypes.Packet) (data rollapptypes.TransferData, err error) {
 	return rollapptypes.TransferData{}, nil
 }
 

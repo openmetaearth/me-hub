@@ -23,11 +23,15 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 	switch packetType {
 	case commontypes.RollappPacket_ON_RECV:
 		port, channel = packet.GetDestPort(), packet.GetDestChannel()
+		data.TransferData, err = k.rollappKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
 	case commontypes.RollappPacket_ON_TIMEOUT, commontypes.RollappPacket_ON_ACK:
 		port, channel = packet.GetSourcePort(), packet.GetSourceChannel()
+		data.TransferData, err = k.rollappKeeper.GetValidTransferFromSentPacket(ctx, packet)
+	default:
+		err = errors.Wrapf(gerrc.ErrInvalidArgument, "unsupported rollapp packet type: %s", packetType)
+		return
 	}
 
-	data.TransferData, err = k.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), port, channel)
 	if err != nil {
 		err = errors.Wrap(err, "get valid transfer data")
 		return
