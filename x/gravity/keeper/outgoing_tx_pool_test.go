@@ -39,3 +39,47 @@ func (s *KeeperTestSuite) TestKeeper_OutgoingAncCancel() {
 	s.Equal(s.App.BankKeeper.GetAllBalances(s.Ctx, sender).AmountOf(denom).String(), sendAmount.Amount.String())
 	s.Equal(sendAmount, s.App.BankKeeper.GetSupply(s.Ctx, denom))
 }
+
+func (s *KeeperTestSuite) TestSendToExternalPendingDoesNotBlockRemainingSupply() {
+	attacker := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	victim := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	receiver := helpers.GenerateAddress().Hex()
+	denom := "pendingdoublecount"
+
+	bridgeToken := s.NewBridgeToken(attacker, sdk.NewCoin(denom, sdkmath.NewInt(60)))
+	victimInitialBalance := sdk.NewCoin(denom, sdkmath.NewInt(40))
+	s.Require().NoError(s.App.BankKeeper.MintCoins(s.Ctx, s.chainName, sdk.NewCoins(victimInitialBalance)))
+	s.Require().NoError(s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, s.chainName, victim, sdk.NewCoins(victimInitialBalance)))
+
+	bridgeToken.Supply = bridgeToken.Supply.Add(victimInitialBalance.Amount)
+	s.Keeper().SetBridgeToken(s.Ctx, &bridgeToken)
+
+	_, err := s.MsgServer().SendToExternal(sdk.WrapSDKContext(s.Ctx), &types.MsgSendToExternal{
+		Sender:    attacker.String(),
+		Dest:      receiver,
+		Amount:    sdk.NewCoin(denom, sdkmath.NewInt(50)),
+		BridgeFee: sdk.NewCoin(denom, sdkmath.NewInt(10)),
+		ChainName: s.chainName,
+	})
+	s.Require().NoError(err)
+
+	storedBridgeToken, err := s.Keeper().GetBridgeTokenByDenom(s.Ctx, denom)
+	s.Require().NoError(err)
+	s.Require().Equal(sdkmath.NewInt(40), storedBridgeToken.Supply)
+	s.Require().Equal(sdkmath.NewInt(40), s.App.BankKeeper.GetBalance(s.Ctx, victim, denom).Amount)
+	s.Require().Equal(sdkmath.NewInt(60), s.Keeper().GetOutgoingPendingTxTotal(s.Ctx, s.chainName, &bridgeToken))
+
+	_, err = s.MsgServer().SendToExternal(sdk.WrapSDKContext(s.Ctx), &types.MsgSendToExternal{
+		Sender:    victim.String(),
+		Dest:      receiver,
+		Amount:    sdk.NewCoin(denom, sdkmath.NewInt(1)),
+		BridgeFee: sdk.NewCoin(denom, sdkmath.ZeroInt()),
+		ChainName: s.chainName,
+	})
+	s.Require().NoError(err)
+
+	storedBridgeToken, err = s.Keeper().GetBridgeTokenByDenom(s.Ctx, denom)
+	s.Require().NoError(err)
+	s.Require().Equal(sdkmath.NewInt(39), storedBridgeToken.Supply)
+	s.Require().Equal(sdkmath.NewInt(39), s.App.BankKeeper.GetBalance(s.Ctx, victim, denom).Amount)
+}
