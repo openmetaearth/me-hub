@@ -26,6 +26,11 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 			totalInVouchers.Amount.String(), bridgeToken.Supply.String(), k.moduleName)
 	}
 
+	totalPending := k.GetOutgoingPendingTxTotal(ctx, bridgeToken.ContractAddress)
+	if totalInVouchers.Amount.Add(totalPending).GT(bridgeToken.Supply) {
+		return 0, errorsmod.Wrapf(types.ErrInvalid, "total pending amount %s plus current amount %s exceeds bridge token supply %s in %s chain",
+			totalPending.String(), totalInVouchers.Amount.String(), bridgeToken.Supply.String(), k.moduleName)
+	}
 	sendCoins := sdk.NewCoins(totalInVouchers)
 	// If it is an external blockchain asset we burn it send coins to module in prep for burn
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, sendCoins); err != nil {
@@ -244,20 +249,27 @@ func (k Keeper) ClearAutoIncrementID(ctx sdk.Context) {
 }
 
 // GetOutgoingPendingTxTotal returns the total amount of a given token pending in the outgoing pool and all batches
-func (k Keeper) GetOutgoingPendingTxTotal(ctx sdk.Context, chainName string, bridgeToken *types.BridgeToken) sdk.Int {
+func (k Keeper) GetOutgoingPendingTxTotal(ctx sdk.Context, tokenContract string) sdk.Int {
 	totalPending := sdk.ZeroInt()
 	// Add all unbatched transactions
-	k.IterateUnbatchedTransactions(ctx, bridgeToken.ContractAddress, func(tx *types.OutgoingTransferTx) bool {
-		totalPending = totalPending.Add(types.GetMintAmount(tx.Token.Amount, chainName, bridgeToken))
-		totalPending = totalPending.Add(types.GetMintAmount(tx.Fee.Amount, chainName, bridgeToken))
+	k.IterateUnbatchedTransactions(ctx, tokenContract, func(tx *types.OutgoingTransferTx) bool {
+		totalPending = totalPending.Add(tx.Token.Amount)
+		totalPending = totalPending.Add(tx.Fee.Amount)
 		return false
 	})
 	// Add all batched transactions
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
-		if batch.TokenContract == bridgeToken.ContractAddress {
-			totalPending = totalPending.Add(types.GetMintAmount(batch.TotalAmount(), chainName, bridgeToken))
+		if batch.TokenContract == tokenContract {
+			totalPending = totalPending.Add(batch.TotalAmount())
 		}
 		return false
 	})
+
+	if bridgeToken, err := k.GetBridgeTokenByContract(ctx, tokenContract); err == nil {
+		if types.CheckBscUsdtUsdc(bridgeToken.Symbol, k.moduleName) {
+			totalPending = totalPending.Quo(types.BaseConvert)
+		}
+	}
+
 	return totalPending
 }

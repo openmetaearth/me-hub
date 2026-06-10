@@ -837,7 +837,7 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	sendToMeSendAddr := s.PubKeyToExternalAddr(s.externalPris[0].PublicKey)
 	sendToMeReceiveAddr := s.relayerAddrs[0]
 	sendToMeClaim := new(types.MsgSendToMeClaim)
-	sendToMeAmount := sdkmath.NewIntWithDecimal(1000, 6)
+	sendToMeAmount := sdkmath.NewIntWithDecimal(1000, 18)
 	for i, relayer := range s.relayerAddrs {
 		sendToMeClaim = &types.MsgSendToMeClaim{
 			EventNonce:     s.Keeper().GetLastEventNonceByRelayer(s.Ctx, relayer) + 1,
@@ -864,7 +864,7 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 			msg := &types.MsgSendToExternal{
 				Sender:    sendToMeReceiveAddr.String(),
 				Dest:      sendToMeSendAddr,
-				Amount:    sdk.NewCoin(bridgeDenomData.Denom, sdk.NewInt(3).MulRaw(1e12)),
+				Amount:    sdk.NewCoin(bridgeDenomData.Denom, sdk.NewInt(3)),
 				BridgeFee: sdk.NewCoin(bridgeDenomData.Denom, bridgeFee),
 				ChainName: s.chainName,
 			}
@@ -873,11 +873,11 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 		}
 	}
 
-	sendToExternal([]sdk.Int{sdk.NewInt(1).MulRaw(1e12), sdk.NewInt(2).MulRaw(1e12), sdk.NewInt(3).MulRaw(1e12)})
+	sendToExternal([]sdk.Int{sdk.NewInt(1), sdk.NewInt(2), sdk.NewInt(3)})
 	usdtBatchFee := s.Keeper().GetBatchFeesByTokenType(s.Ctx, tokenContract, 100, sdk.NewInt(0))
 	s.Require().EqualValues(tokenContract, usdtBatchFee.TokenContract)
 	s.Require().EqualValues(3, usdtBatchFee.TotalTxs)
-	s.Require().EqualValues(sdk.NewInt(6), usdtBatchFee.TotalFees)
+	s.Require().EqualValues(sdk.NewInt(6000000000000), usdtBatchFee.TotalFees)
 
 	testCases := []struct {
 		testName       string
@@ -888,21 +888,21 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	}{
 		{
 			testName:       "Support - baseFee 1000",
-			baseFee:        sdk.NewInt(1000),
+			baseFee:        sdk.NewInt(1000).Mul(types.BaseConvert),
 			pass:           false,
 			expectTotalTxs: 3,
 			err:            errorsmod.Wrap(types.ErrEmpty, "no batch tx selected"),
 		},
 		{
 			testName:       "Support - baseFee 2",
-			baseFee:        sdk.NewInt(2),
+			baseFee:        sdk.NewInt(2).Mul(types.BaseConvert),
 			pass:           true,
 			expectTotalTxs: 1,
 			err:            nil,
 		},
 		{
 			testName:       "Support - baseFee 0",
-			baseFee:        sdk.NewInt(0),
+			baseFee:        sdk.NewInt(0).Mul(types.BaseConvert),
 			pass:           true,
 			expectTotalTxs: 0,
 			err:            nil,
@@ -914,7 +914,7 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 		_, err := s.MsgServer().RequestBatch(sdk.WrapSDKContext(s.Ctx), &types.MsgRequestBatch{
 			Sender:     s.relayerAddrs[0].String(),
 			Denom:      bridgeDenomData.Denom,
-			MinimumFee: sdk.NewInt(1),
+			MinimumFee: sdk.NewInt(1).Mul(types.BaseConvert),
 			FeeReceive: "0x0000000000000000000000000000000000000000",
 			ChainName:  s.chainName,
 			BaseFee:    testCase.baseFee,

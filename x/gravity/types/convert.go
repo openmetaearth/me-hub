@@ -3,8 +3,11 @@ package types
 import (
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+var BaseConvert = sdkmath.NewInt(1_000_000_000_000) // 10^12
 
 func CheckBscUsdtUsdc(symbol, chainName string) bool {
 	return (strings.ToLower(symbol) == "usdt" || strings.ToLower(symbol) == "usdc") && strings.ToLower(chainName) == "bsc"
@@ -19,23 +22,16 @@ func GetDecimals(claim *MsgBridgeTokenClaim) (decimals uint32) {
 }
 
 func GetMintCoin(amount sdk.Int, chainName string, bridgeToken *BridgeToken) sdk.Coin {
-	mintAmount := GetMintAmount(amount, chainName, bridgeToken)
-	coin := sdk.NewCoin(bridgeToken.Denom, mintAmount)
+	if CheckBscUsdtUsdc(bridgeToken.Symbol, chainName) {
+		amount = amount.Quo(BaseConvert)
+	}
+	coin := sdk.NewCoin(bridgeToken.Denom, amount)
 	return coin
 }
 
-func GetMintAmount(amount sdk.Int, chainName string, bridgeToken *BridgeToken) sdk.Int {
-	if CheckBscUsdtUsdc(bridgeToken.Symbol, chainName) && bridgeToken.Decimal > 6 {
-		convert := sdk.NewDec(10).Power(bridgeToken.Decimal - 6).TruncateInt()
-		amount = amount.Mul(convert)
-	}
-	return amount
-}
-
 func GetExternalUnlockAmount(amount sdk.Int, chainName string, bridgeToken *BridgeToken) sdk.Int {
-	if CheckBscUsdtUsdc(bridgeToken.Symbol, chainName) && bridgeToken.Decimal > 6 {
-		convert := sdk.NewDec(10).Power(bridgeToken.Decimal - 6).TruncateInt()
-		amount = amount.Quo(convert)
+	if CheckBscUsdtUsdc(bridgeToken.Symbol, chainName) {
+		amount = amount.Mul(BaseConvert)
 	}
 	return amount
 }
