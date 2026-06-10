@@ -2,8 +2,7 @@ name: Cleanup caches by a branch
 
 on:
   pull_request:
-    types:
-      - closed
+    types: [opened, synchronize, reopened, labeled]
 
 jobs:
   main:
