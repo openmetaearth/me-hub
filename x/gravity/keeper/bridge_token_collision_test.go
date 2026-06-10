@@ -73,6 +73,7 @@ func (suite *KeeperTestSuite) TestBridgeTokenSymbolNonNativeAllowed() {
 	for _, relayer := range relayers {
 		claim := &types.MsgBridgeTokenClaim{
 			EventNonce:     1,
+			BlockHeight:    1,
 			TokenContract:  tokenContract,
 			Symbol:         "USDT",
 			Name:           "Tether USD",

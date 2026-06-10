@@ -12,6 +12,10 @@ import (
 // claimHandlerCommon is an internal function that provides common code for processing claims once they are
 // translated from the message to the Ethereum claim interface
 func (s MsgServer) claimHandlerCommon(ctx sdk.Context, msg types.ExternalClaim) (err error) {
+	if err := s.validateClaimRoute(msg); err != nil {
+		return err
+	}
+
 	bridgerAddr := msg.GetClaimer()
 	if err := s.checkIsRelayer(ctx, bridgerAddr); err != nil {
 		return err
@@ -20,6 +24,16 @@ func (s MsgServer) claimHandlerCommon(ctx sdk.Context, msg types.ExternalClaim) 
 	// Add the claim to the store
 	if _, err := s.Attest(ctx, bridgerAddr, msg); err != nil {
 		return err
+	}
+	return nil
+}
+
+func (k Keeper) validateClaimRoute(msg types.ExternalClaim) error {
+	if err := msg.ValidateBasic(); err != nil {
+		return err
+	}
+	if msg.GetChainName() != k.moduleName {
+		return errorsmod.Wrapf(types.ErrInvalid, "claim chain name %s does not match module %s", msg.GetChainName(), k.moduleName)
 	}
 	return nil
 }
