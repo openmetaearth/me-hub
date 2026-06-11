@@ -23,7 +23,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	"github.com/openmetaearth/me-hub/app/keepers"
 	"github.com/openmetaearth/me-hub/app/upgrades"
-	v2_0_14_patch_2 "github.com/openmetaearth/me-hub/app/upgrades/v2.0.14.patch.2"
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_14"
 
 	dbm "github.com/cometbft/cometbft-db"
@@ -89,7 +88,6 @@ var (
 	// Upgrades contains the upgrade handlers for the application
 	Upgrades = []upgrades.Upgrade{
 		v2_0_14.Upgrade,
-		v2_0_14_patch_2.Upgrade,
 	}
 )
 
@@ -101,7 +99,7 @@ func init() {
 
 	DefaultNodeHome = filepath.Join(userHomeDir, "."+appparams.Name)
 
-	//sdk.DefaultPowerReduction = ethermint.PowerReduction
+	// sdk.DefaultPowerReduction = ethermint.PowerReduction
 }
 
 // App extends an ABCI application, but with most of its parameters exported.
@@ -204,7 +202,7 @@ func New(
 	app.mm.RegisterInvariants(app.CrisisKeeper)
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
-	//app.mm.RegisterServices(app.configurator)
+	// app.mm.RegisterServices(app.configurator)
 	app.RegisterServices(app.configurator)
 
 	// initialize stores
@@ -334,7 +332,7 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {
-		//RegisterSwaggerAPI(clientCtx, apiSvr.Router)
+		// RegisterSwaggerAPI(clientCtx, apiSvr.Router)
 		docs.RegisterOpenAPIService(appparams.Name, apiSvr.Router)
 	}
 	HealthcheckRegister(clientCtx, apiSvr.Router)
