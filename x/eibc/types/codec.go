@@ -11,6 +11,7 @@ import (
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgFulfillOrder{}, "eibc/MsgFulfillOrder", nil)
+	cdc.RegisterConcrete(&MsgUpdateDemandOrder{}, "eibc/MsgUpdateDemandOrder", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -18,6 +19,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgFulfillOrder{},
+		&MsgUpdateDemandOrder{},
 	)
 }
 
