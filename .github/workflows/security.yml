@@ -16,6 +16,7 @@ on:
       - '!**.sol.go'
       - '!statik.go'
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     branches:
       - main
     paths:
