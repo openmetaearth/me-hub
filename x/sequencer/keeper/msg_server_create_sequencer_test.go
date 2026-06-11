@@ -7,6 +7,7 @@ import (
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
 	"github.com/openmetaearth/me-hub/testutil/sample"
+	"github.com/openmetaearth/me-hub/x/sequencer/keeper"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
@@ -501,6 +502,67 @@ func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 		_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 		suite.EqualError(err, types.ErrMaxSequencersLimit.Error())
 	}
+}
+
+func (suite *SequencerTestSuite) TestPermissionedSequencerCanJoinWhenPublicSlotsAreFull() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	rollapp := rollapptypes.Rollapp{
+		RollappId:             "rollapp1",
+		Creator:               alice,
+		Version:               0,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	}
+	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+	rollappId := rollapp.GetRollappId()
+
+	publicSequencer := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	suite.Require().NotEmpty(publicSequencer)
+
+	permissionedPubkey := secp256k1.GenPrivKey().PubKey()
+	permissionedAddr := sdk.AccAddress(permissionedPubkey.Address())
+	permissionedAddress := permissionedAddr.String()
+	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, permissionedAddr, sdk.NewCoins(bond))
+	suite.Require().NoError(err)
+
+	rollapp.PermissionedAddresses = []string{permissionedAddress}
+	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+
+	pkAny, err := codectypes.NewAnyWithValue(permissionedPubkey)
+	suite.Require().NoError(err)
+	sequencerMsg := types.MsgCreateSequencer{
+		Creator:      permissionedAddress,
+		DymintPubKey: pkAny,
+		Bond:         bond,
+		RollappId:    rollappId,
+		Description:  types.Description{},
+	}
+
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+	suite.Require().NoError(err)
+
+	sequencers := suite.App.SequencerKeeper.GetSequencersByRollapp(suite.Ctx, rollappId)
+	suite.Require().Len(sequencers, 2)
+
+	unpermissionedPubkey := secp256k1.GenPrivKey().PubKey()
+	unpermissionedAddr := sdk.AccAddress(unpermissionedPubkey.Address())
+	unpermissionedPkAny, err := codectypes.NewAnyWithValue(unpermissionedPubkey)
+	suite.Require().NoError(err)
+	unpermissionedMsg := types.MsgCreateSequencer{
+		Creator:      unpermissionedAddr.String(),
+		DymintPubKey: unpermissionedPkAny,
+		Bond:         bond,
+		RollappId:    rollappId,
+		Description:  types.Description{},
+	}
+
+	_, err = suite.msgServer.CreateSequencer(goCtx, &unpermissionedMsg)
+	suite.Require().ErrorIs(err, types.ErrSequencerNotPermissioned)
+
+	msg, broken := keeper.AllInvariants(suite.App.SequencerKeeper)(suite.Ctx)
+	suite.Require().False(broken, msg)
 }
 
 func (suite *SequencerTestSuite) TestMaxSequencersNotSet() {

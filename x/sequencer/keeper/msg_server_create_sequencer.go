@@ -36,7 +36,8 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	// check if there are permissionedAddresses.
 	// if the list is not empty, it means that only permissioned sequencers can be added
 	permissionedAddresses := rollapp.PermissionedAddresses
-	if 0 < len(permissionedAddresses) && !slices.Contains(permissionedAddresses, msg.Creator) {
+	isPermissioned := slices.Contains(permissionedAddresses, msg.Creator)
+	if 0 < len(permissionedAddresses) && !isPermissioned {
 		return nil, types.ErrSequencerNotPermissioned
 	}
 
@@ -87,7 +88,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	unbondingSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Unbonding)
 	// check to see if we reached the maximum number of sequencers for this rollapp
 	currentNumOfSequencers := len(bondedSequencers) + len(unbondingSequencers)
-	if rollapp.MaxSequencers > 0 && uint64(currentNumOfSequencers) >= rollapp.MaxSequencers {
+	if !isPermissioned && rollapp.MaxSequencers > 0 && uint64(currentNumOfSequencers) >= rollapp.MaxSequencers {
 		return nil, types.ErrMaxSequencersLimit
 	}
 	// this is the first sequencer, make it a PROPOSER

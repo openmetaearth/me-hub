@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"slices"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
@@ -75,7 +77,13 @@ func SequencersPerRollappInvariant(k Keeper) sdk.Invariant {
 			bonded := k.GetSequencersByRollappByStatus(ctx, rollapp.RollappId, types.Bonded)
 			unbonding := k.GetSequencersByRollappByStatus(ctx, rollapp.RollappId, types.Unbonding)
 
-			if rollapp.MaxSequencers > 0 && len(bonded)+len(unbonding) > int(rollapp.MaxSequencers) {
+			limitedSequencers := len(bonded) + len(unbonding)
+			if len(rollapp.PermissionedAddresses) > 0 {
+				limitedSequencers = countNonPermissionedSequencers(bonded, rollapp.PermissionedAddresses) +
+					countNonPermissionedSequencers(unbonding, rollapp.PermissionedAddresses)
+			}
+
+			if rollapp.MaxSequencers > 0 && limitedSequencers > int(rollapp.MaxSequencers) {
 				broken = true
 				msg += "too many sequencers for rollapp " + rollapp.RollappId + "\n"
 			}
@@ -106,4 +114,14 @@ func SequencersPerRollappInvariant(k Keeper) sdk.Invariant {
 			msg,
 		), broken
 	}
+}
+
+func countNonPermissionedSequencers(sequencers []types.Sequencer, permissionedAddresses []string) int {
+	count := 0
+	for _, sequencer := range sequencers {
+		if !slices.Contains(permissionedAddresses, sequencer.SequencerAddress) {
+			count++
+		}
+	}
+	return count
 }
