@@ -58,12 +58,6 @@ func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer)
 		return nil, types.ErrDelegateAmountAboveMaximum
 	}
 
-	maxBondedAmount := s.GetAllBondedAmount(ctx).Mul(types.AttestationProposalRelayerChangePowerThreshold).Quo(sdk.NewInt(100))
-	if !maxBondedAmount.IsZero() && msg.DelegateAmount.Amount.GT(maxBondedAmount) {
-		return nil, errorsmod.Wrapf(types.ErrMaxChangePowerLimitExceeded,
-			"max bond amount: %s, bond amont: %s", maxBondedAmount, msg.DelegateAmount.Amount)
-	}
-
 	if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, relayerAddress, s.moduleName, sdk.NewCoins(msg.DelegateAmount)); err != nil {
 		return nil, err
 	}
@@ -116,12 +110,6 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 		return nil, types.ErrDelegateAmountAboveMaximum
 	}
 
-	maxBondedAmount := s.GetAllBondedAmount(ctx).Mul(types.AttestationProposalRelayerChangePowerThreshold).Quo(sdk.NewInt(100))
-	if relayer.DelegateAmount.GT(maxBondedAmount) {
-		return nil, errorsmod.Wrapf(types.ErrMaxChangePowerLimitExceeded,
-			"max bond amount: %s, bond amont: %s", maxBondedAmount, msg.Amount)
-	}
-
 	if delegateCoin.IsPositive() {
 		if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, relayerAddress, s.moduleName, sdk.NewCoins(delegateCoin)); err != nil {
 			return nil, err
@@ -150,12 +138,6 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 func (s MsgServer) UnbondedRelayer(c context.Context, msg *types.MsgUnbondedRelayer) (*types.MsgUnbondedRelayerResponse, error) {
 	relayerAddress := sdk.MustAccAddressFromBech32(msg.RelayerAddress)
 	ctx := sdk.UnwrapSDKContext(c)
-
-	//if ctx.BlockHeight() > 10167300 {
-	//	if s.IsProposalRelayer(ctx, msg.RelayerAddress) {
-	//		return nil, errorsmod.Wrap(types.ErrInvalid, "need to pass a proposal to unbond")
-	//	}
-	//}
 
 	relayer, found := s.GetRelayer(ctx, relayerAddress)
 	if !found {
