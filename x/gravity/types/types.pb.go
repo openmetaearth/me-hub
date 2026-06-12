@@ -872,8 +872,8 @@ func (m *MinBatchFee) GetTokenContract() string {
 
 // relayer_set_update_power_change_percent
 //
-// If power change between validators of CurrentRelayerSet and latest relayer set
-// request is > 10%
+// If power change between validators of CurrentRelayerSet and latest relayer
+// set request is > 10%
 type Params struct {
 	GravityId                          string                                 `protobuf:"bytes,1,opt,name=gravity_id,json=gravityId,proto3" json:"gravity_id,omitempty"`
 	AverageBlockTime                   uint64                                 `protobuf:"varint,2,opt,name=average_block_time,json=averageBlockTime,proto3" json:"average_block_time,omitempty"`

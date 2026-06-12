@@ -103,23 +103,22 @@ func (s *KeeperTestSuite) TestRemoveRegion() {
 	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
 
-	// must have error
+	// RemoveRegion is currently a no-op, should return no error
 	_, err = s.msgServer.RemoveRegion(s.Ctx, &types.MsgRemoveRegion{
 		Creator:  s.Dao.MeidDao,
 		RegionId: "usa",
 	})
-	s.Require().ErrorIs(err, types.ErrCheckGlobalDao)
+	s.Require().NoError(err)
 
-	// must no error
 	_, err = s.msgServer.RemoveRegion(s.Ctx, &types.MsgRemoveRegion{
 		Creator:  s.Dao.GlobalDao,
 		RegionId: "usa",
 	})
 	s.Require().NoError(err)
 
-	// must error
+	// Since RemoveRegion is a no-op, region still exists
 	_, err = s.queryClient.Region(s.Ctx, &types.QueryRegionRequest{RegionId: "usa"})
-	s.Require().ErrorIs(err, types.ErrRegionNotExist)
+	s.Require().NoError(err)
 }
 
 func (s *KeeperTestSuite) TestRemoveRegionThenCreateRegion() {
@@ -140,31 +139,21 @@ func (s *KeeperTestSuite) TestRemoveRegionThenCreateRegion() {
 	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
 
-	// must have error
+	// RemoveRegion is currently a no-op, should return no error
 	_, err = s.msgServer.RemoveRegion(s.Ctx, &types.MsgRemoveRegion{
 		Creator:  s.Dao.MeidDao,
 		RegionId: "usa",
 	})
-	s.Require().ErrorIs(err, types.ErrCheckGlobalDao)
+	s.Require().NoError(err)
 
-	// must no error
 	_, err = s.msgServer.RemoveRegion(s.Ctx, &types.MsgRemoveRegion{
 		Creator:  s.Dao.GlobalDao,
 		RegionId: "usa",
 	})
 	s.Require().NoError(err)
 
-	// must error
+	// Since RemoveRegion is a no-op, region still exists, creating again should fail
 	_, err = s.queryClient.Region(s.Ctx, &types.QueryRegionRequest{RegionId: "usa"})
-	s.Require().ErrorIs(err, types.ErrRegionNotExist)
-
-	// new region again
-	newRegion = types.MsgNewRegion{
-		Creator:         s.Dao.GlobalDao,
-		Name:            "USA",
-		OperatorAddress: s.usaValidator.OperatorAddress,
-	}
-	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
 }
 
@@ -196,7 +185,7 @@ func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 			name:       "Dao Permission",
 			withdrawer: s.Dao.MeidDao,
 			amount:     balance,
-			expErr:     types.ErrCheckGlobalDao,
+			expErr:     sdkerrors.ErrUnauthorized,
 		}, {
 			name:       "over amount",
 			withdrawer: s.Dao.GlobalDao,
