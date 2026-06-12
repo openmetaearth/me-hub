@@ -67,14 +67,16 @@ func TestFeeToReceiversRejectsReceiverTypeMismatchBeforeTransfer(t *testing.T) {
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
 	feePayer := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	receiver := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	receiverA := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	receiverB := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 
 	fee := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(100)))
 	err := banktestutil.FundAccount(app.BankKeeper, ctx, feePayer, fee)
 	require.NoError(t, err)
 
 	feePayerBalanceBefore := app.BankKeeper.GetAllBalances(ctx, feePayer)
-	receiverBalanceBefore := app.BankKeeper.GetAllBalances(ctx, receiver)
+	receiverABalanceBefore := app.BankKeeper.GetAllBalances(ctx, receiverA)
+	receiverBBalanceBefore := app.BankKeeper.GetAllBalances(ctx, receiverB)
 
 	err = app.BankKeeper.FeeToReceivers(
 		ctx,
@@ -82,20 +84,27 @@ func TestFeeToReceiversRejectsReceiverTypeMismatchBeforeTransfer(t *testing.T) {
 			Address: feePayer.String(),
 			Coins:   fee,
 		}},
-		[]banktypes.Output{{
-			Address: receiver.String(),
-			Coins:   fee,
-		}},
+		[]banktypes.Output{
+			{
+				Address: receiverA.String(),
+				Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(40))),
+			},
+			{
+				Address: receiverB.String(),
+				Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(60))),
+			},
+		},
 		[]wbanktypes.FeeReceiverType{
 			wbanktypes.FeeReceiverDevOperator,
-			wbanktypes.FeeReceiverGlobalDaoFeePool,
 		},
 	)
 
 	require.Error(t, err)
 	require.True(t, sdkerrors.ErrInvalidRequest.Is(err))
+	require.ErrorContains(t, err, "fee receiver types and outputs are not equal")
 	require.Equal(t, feePayerBalanceBefore, app.BankKeeper.GetAllBalances(ctx, feePayer))
-	require.Equal(t, receiverBalanceBefore, app.BankKeeper.GetAllBalances(ctx, receiver))
+	require.Equal(t, receiverABalanceBefore, app.BankKeeper.GetAllBalances(ctx, receiverA))
+	require.Equal(t, receiverBBalanceBefore, app.BankKeeper.GetAllBalances(ctx, receiverB))
 }
 
 func TestFeeToReceiversRejectsInvalidReceiverBeforeTransfer(t *testing.T) {

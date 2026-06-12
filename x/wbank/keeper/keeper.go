@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -90,11 +92,16 @@ func (k BaseKeeperWrapper) UnstakeCoinsFromModuleToModule(
 
 func (k BaseKeeperWrapper) FeeToReceivers(ctx sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output, receiverTypes []types.FeeReceiverType) error {
 	if len(inputs) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "at least one input is required")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "inputs error")
 	}
 
 	if len(receiverTypes) != len(outputs) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "fee receiver types and outputs are not equal")
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidRequest,
+			"fee receiver types and outputs are not equal: got %d receiver types for %d outputs",
+			len(receiverTypes),
+			len(outputs),
+		)
 	}
 
 	for _, output := range outputs {
@@ -117,7 +124,7 @@ func (k BaseKeeperWrapper) FeeToReceivers(ctx sdk.Context, inputs []banktypes.In
 		sdk.NewAttribute(sdk.AttributeKeySender, inputs[0].Address),
 	}
 	for index, output := range outputs {
-		receiverType := string(receiverTypes[index])
+		receiverType := fmt.Sprintf("%s", receiverTypes[index])
 		attributes = append(attributes, sdk.NewAttribute(receiverType, output.Address))
 		attributes = append(attributes, sdk.NewAttribute(receiverType+"_amount", output.Coins.String()))
 	}
