@@ -10,6 +10,7 @@ package keeper_test
 // Coverage:
 //   GRAV-001  Attest must reject historical-nonce claims (no backward rewind)
 //   GRAV-004  Failed AttestationHandler must not advance lastObservedEventNonce
+//   GRAV-005  Zero-total-power attestations must not satisfy quorum
 
 import (
 	"encoding/hex"
@@ -193,6 +194,53 @@ func (s *KeeperTestSuite) TestGrav004_FailedAttestationMustNotLockNonce() {
 				"handler failed; retries are now impossible",
 			probeClaim.GetEventNonce())
 	}
+}
+
+// ---------------------------------------------------------------------------
+// GRAV-005: Zero-power relayers must not satisfy attestation quorum
+// ---------------------------------------------------------------------------
+//
+// TryAttestation derives requiredPower from LastTotalPower. When total power is
+// zero, requiredPower is also zero and the old comparison allowed a zero-power
+// vote to mark the attestation observed. Legacy imported state can still contain
+// a dust relayer, so attestation processing must reject zero total power even
+// after params validation prevents new zero-power bonding.
+
+func (s *KeeperTestSuite) TestGrav005_TryAttestationRejectsZeroTotalPower() {
+	k := s.Keeper()
+	relayer := s.relayerAddrs[0]
+
+	k.SetRelayer(s.Ctx, relayer, types.Relayer{
+		RelayerAddress:  relayer.String(),
+		ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[0].PublicKey),
+		DelegateAmount:  sdkmath.NewInt(1),
+		Online:          true,
+	})
+	k.SetLastTotalPower(s.Ctx)
+	s.Require().True(k.GetLastTotalPower(s.Ctx).IsZero(),
+		"test precondition: dust relayer should truncate to zero voting power")
+
+	claim := &types.MsgSendToMeClaim{
+		EventNonce:     1,
+		BlockHeight:    1,
+		TokenContract:  "0x0000000000000000000000000000000000000001",
+		Amount:         sdkmath.NewInt(12345),
+		Sender:         "0x0000000000000000000000000000000000000002",
+		Receiver:       s.relayerAddrs[1].String(),
+		RelayerAddress: relayer.String(),
+		ChainName:      s.chainName,
+	}
+	att := &types.Attestation{
+		Observed: false,
+		Votes:    []string{relayer.String()},
+	}
+
+	k.TryAttestation(s.Ctx, att, claim)
+
+	s.Require().False(att.Observed,
+		"GRAV-005: zero total relayer power must not observe an attestation")
+	s.Require().EqualValues(uint64(0), k.GetLastObservedEventNonce(s.Ctx),
+		"GRAV-005: zero-power attestation must not advance observed nonce")
 }
 
 // ---------------------------------------------------------------------------
