@@ -2,12 +2,14 @@ package keeper
 
 import (
 	"context"
-	errorsmod "cosmossdk.io/errors"
 	"fmt"
+
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/utils"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
@@ -54,12 +56,6 @@ func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer)
 	}
 	if msg.DelegateAmount.Amount.GT(s.GetGravityMaxDelegate(ctx)) {
 		return nil, types.ErrDelegateAmountAboveMaximum
-	}
-
-	maxBondedAmount := s.GetAllBondedAmount(ctx).Mul(types.AttestationProposalRelayerChangePowerThreshold).Quo(sdk.NewInt(100))
-	if !maxBondedAmount.IsZero() && msg.DelegateAmount.Amount.GT(maxBondedAmount) {
-		return nil, errorsmod.Wrapf(types.ErrMaxChangePowerLimitExceeded,
-			"max bond amount: %s, bond amont: %s", maxBondedAmount, msg.DelegateAmount.Amount)
 	}
 
 	if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, relayerAddress, s.moduleName, sdk.NewCoins(msg.DelegateAmount)); err != nil {
@@ -114,12 +110,6 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 		return nil, types.ErrDelegateAmountAboveMaximum
 	}
 
-	maxBondedAmount := s.GetAllBondedAmount(ctx).Mul(types.AttestationProposalRelayerChangePowerThreshold).Quo(sdk.NewInt(100))
-	if relayer.DelegateAmount.GT(maxBondedAmount) {
-		return nil, errorsmod.Wrapf(types.ErrMaxChangePowerLimitExceeded,
-			"max bond amount: %s, bond amont: %s", maxBondedAmount, msg.Amount)
-	}
-
 	if delegateCoin.IsPositive() {
 		if err := s.bankKeeper.SendCoinsFromAccountToModule(ctx, relayerAddress, s.moduleName, sdk.NewCoins(delegateCoin)); err != nil {
 			return nil, err
@@ -148,12 +138,6 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 func (s MsgServer) UnbondedRelayer(c context.Context, msg *types.MsgUnbondedRelayer) (*types.MsgUnbondedRelayerResponse, error) {
 	relayerAddress := sdk.MustAccAddressFromBech32(msg.RelayerAddress)
 	ctx := sdk.UnwrapSDKContext(c)
-
-	//if ctx.BlockHeight() > 10167300 {
-	//	if s.IsProposalRelayer(ctx, msg.RelayerAddress) {
-	//		return nil, errorsmod.Wrap(types.ErrInvalid, "need to pass a proposal to unbond")
-	//	}
-	//}
 
 	relayer, found := s.GetRelayer(ctx, relayerAddress)
 	if !found {
@@ -250,6 +234,11 @@ func (s MsgServer) RelayerSetUpdateClaim(c context.Context, msg *types.MsgRelaye
 
 func (s MsgServer) BridgeTokenClaim(c context.Context, msg *types.MsgBridgeTokenClaim) (*types.MsgBridgeTokenClaimResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
+	// Reject early if the derived denom collides with the native denom.
+	denom := utils.GetDenom(msg.Symbol)
+	if denom == params.BaseDenom {
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "bridge token symbol %q derives to native denom %q", msg.Symbol, denom)
+	}
 	if err := s.claimHandlerCommon(ctx, msg); err != nil {
 		return nil, err
 	}
