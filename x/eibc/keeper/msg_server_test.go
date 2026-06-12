@@ -6,6 +6,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/params"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	dacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
@@ -94,13 +95,13 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			eibcSupplyAddr := testAddresses[0]
 			eibcDemandAddr := testAddresses[1]
 			// Get balances
-			eibcSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, sdk.DefaultBondDenom)
-			eibcDemandAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, sdk.DefaultBondDenom)
+			eibcSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, params.BaseDenom)
+			eibcDemandAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, params.BaseDenom)
 			// Set the rollapp packet
 			suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 			// Create new demand order
 			if tc.demandOrderDenom == "" {
-				tc.demandOrderDenom = sdk.DefaultBondDenom
+				tc.demandOrderDenom = params.BaseDenom
 			}
 			demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(tc.demandOrderPrice), math.NewIntFromUint64(tc.demandOrderFee), tc.demandOrderDenom, eibcSupplyAddr.String())
 			if tc.demandOrderFulfillmentStatus {
@@ -134,10 +135,10 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			suite.Assert().Equal(tc.expectedDemandOrdefFulfillmentStatus, demandOrder.IsFulfilled(), tc.name)
 			// Check balances updates in case of success
 			if tc.expectedFulfillmentError == nil {
-				afterFulfillmentSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, sdk.DefaultBondDenom)
-				afterFulfillmentDemandAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, sdk.DefaultBondDenom)
-				suite.Require().Equal(eibcSupplyAddrBalance.Add(sdk.NewCoin(sdk.DefaultBondDenom, math.NewIntFromUint64(tc.demandOrderPrice))), afterFulfillmentSupplyAddrBalance)
-				suite.Require().Equal(eibcDemandAddrBalance.Sub(sdk.NewCoin(sdk.DefaultBondDenom, math.NewIntFromUint64(tc.demandOrderPrice))), afterFulfillmentDemandAddrBalance)
+				afterFulfillmentSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, params.BaseDenom)
+				afterFulfillmentDemandAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, params.BaseDenom)
+				suite.Require().Equal(eibcSupplyAddrBalance.Add(sdk.NewCoin(params.BaseDenom, math.NewIntFromUint64(tc.demandOrderPrice))), afterFulfillmentSupplyAddrBalance)
+				suite.Require().Equal(eibcDemandAddrBalance.Sub(sdk.NewCoin(params.BaseDenom, math.NewIntFromUint64(tc.demandOrderPrice))), afterFulfillmentDemandAddrBalance)
 			}
 		})
 	}
@@ -152,7 +153,7 @@ func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
 	// Set the rollapp packet
 	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 	// Create new demand order
-	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(200), math.NewIntFromUint64(50), sdk.DefaultBondDenom, eibcSupplyAddr.String())
+	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(200), math.NewIntFromUint64(50), params.BaseDenom, eibcSupplyAddr.String())
 	err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
 	suite.Require().NoError(err)
 
@@ -169,8 +170,8 @@ func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
 			expectedPostFulfillmentEventsCount: 1,
 			expectedPostFulfillmentEventsAttributes: []sdk.Attribute{
 				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
-				sdk.NewAttribute(types.AttributeKeyPrice, "200"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyFee, "50"+sdk.DefaultBondDenom),
+				sdk.NewAttribute(types.AttributeKeyPrice, "200"+params.BaseDenom),
+				sdk.NewAttribute(types.AttributeKeyFee, "50"+params.BaseDenom),
 				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "true"),
 				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
 			},
