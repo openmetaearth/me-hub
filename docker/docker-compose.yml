@@ -24,7 +24,7 @@ services:
             # JSON-RPC WebSocket
             - "9546:9546"
         environment:
-            - CHAIN_ID=mechain_100-1
+            - CHAIN_ID=mechain_202404-1
             - MONIKER_NAME=local
             - KEY_NAME=global_dao
             - TZ=Asia/Shanghai
