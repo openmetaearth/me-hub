@@ -109,6 +109,9 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 			delete(rawGenesis, "regions")
 			delete(rawGenesis, "fixedDepositList")
 			delete(rawGenesis, "fixedDepositCount")
+			delete(rawGenesis, "fixedDepositCfgList")
+			delete(rawGenesis, "fixedDepositCountOfCfgList")
+			delete(rawGenesis, "fixedDepositTotalAmount")
 			delete(rawGenesis, "exported")
 			// Fix bond denom and unbonding time in params for ibc-go compatibility
 			if paramsJson, ok := rawGenesis["params"]; ok {
