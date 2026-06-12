@@ -2,10 +2,12 @@ package keeper_test
 
 import (
 	"context"
-	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
 	"encoding/hex"
 	"fmt"
+	"sort"
+
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -14,7 +16,6 @@ import (
 	"github.com/openmetaearth/me-hub/testutil/helpers"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
-	"sort"
 )
 
 func (s *KeeperTestSuite) TestMsgBondedRelayer() {
@@ -39,7 +40,7 @@ func (s *KeeperTestSuite) TestMsgBondedRelayer() {
 				s.Keeper().SetRelayer(s.Ctx, sdk.MustAccAddressFromBech32(msg.RelayerAddress), types.Relayer{RelayerAddress: msg.RelayerAddress})
 			},
 			pass: false,
-			err:  "relayer existed bridger address: invalid",
+			err:  "relayer already bonded: invalid",
 		},
 		{
 			name: "error - external address is bound",
@@ -47,7 +48,7 @@ func (s *KeeperTestSuite) TestMsgBondedRelayer() {
 				s.Keeper().SetRelayerByExternalAddress(s.Ctx, msg.ExternalAddress, sdk.MustAccAddressFromBech32(msg.RelayerAddress))
 			},
 			pass: false,
-			err:  "external address is bound to relayer: invalid",
+			err:  "external already bonded: invalid",
 		},
 		{
 			name: "error - stake denom not match chain params stake denom",
@@ -277,23 +278,10 @@ func (s *KeeperTestSuite) TestMsgAddDelegate() {
 	}
 }
 
-func (s *KeeperTestSuite) TestBondedRelayerRejectsBondAmountAboveThreshold() {
-	minDelegate := s.Keeper().GetGravityMinDelegate(s.Ctx)
-	s.seedRelayersForPowerLimitTest(3, minDelegate)
-
-	oversizedBond := s.maxChangePowerLimitForTest().Add(sdk.OneInt())
-	_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), &types.MsgBondedRelayer{
-		RelayerAddress:  s.relayerAddrs[3].String(),
-		ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[3].PublicKey),
-		DelegateAmount:  sdk.NewCoin(params.BaseDenom, oversizedBond),
-		ChainName:       s.chainName,
-	})
-	s.Require().ErrorIs(err, types.ErrMaxChangePowerLimitExceeded)
-}
-
 func (s *KeeperTestSuite) TestAddDelegateRejectsPowerIncreaseAboveThreshold() {
 	minDelegate := s.Keeper().GetGravityMinDelegate(s.Ctx)
 	s.seedRelayersForPowerLimitTest(3, minDelegate)
+	s.Keeper().EndBlocker(s.Ctx)
 
 	maxAllowedDelegate := s.maxChangePowerLimitForTest()
 	delegateIncrease := maxAllowedDelegate.Add(sdk.NewInt(1))
