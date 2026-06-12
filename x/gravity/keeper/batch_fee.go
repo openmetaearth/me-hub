@@ -106,6 +106,9 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 		if err := k.bankKeeper.BurnCoins(ctx, k.moduleName, sdk.NewCoins(addBridgeFee)); err != nil {
 			return err
 		}
+
+		bridgeToken.Supply = bridgeToken.Supply.Sub(addBridgeFee.Amount)
+	    k.SetBridgeToken(ctx, bridgeToken)
 	}
 
 	if err := k.DelUnbatchedTx(ctx, tx.Fee, txId); err != nil {
