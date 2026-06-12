@@ -38,11 +38,15 @@ func init() {
 	ibctesting.ChainIDPrefix = chainIDPrefix
 	ibctesting.ChainIDSuffix = ""
 	ibctesting.DefaultTestingAppInit = func() (ibctesting.TestingApp, map[string]json.RawMessage) {
-		return apptesting.SetupTestingApp()
+		a, gs := apptesting.SetupTestingApp()
+		return &apptesting.IBCTestApp{App: a}, gs
 	}
 }
 
 func convertToApp(chain *ibctesting.TestChain) *app.App {
+	if wrapper, ok := chain.App.(*apptesting.IBCTestApp); ok {
+		return wrapper.App
+	}
 	a, ok := chain.App.(*app.App)
 	require.True(chain.T, ok)
 
