@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -92,27 +91,32 @@ func (k BaseKeeperWrapper) UnstakeCoinsFromModuleToModule(
 }
 
 func (k BaseKeeperWrapper) FeeToReceivers(ctx sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output, receiverTypes []types.FeeReceiverType) error {
+	if len(inputs) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "inputs error")
+	}
+	if len(receiverTypes) != len(outputs) {
+		return sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidRequest,
+			"fee receiver types and outputs are not equal: got %d receiver types for %d outputs",
+			len(receiverTypes),
+			len(outputs),
+		)
+	}
+
 	err := k.InputOutputCoins(ctx, inputs, outputs)
 	if err != nil {
 		return sdkerrors.Wrap(err, "failed to process input-output coins")
 	}
 
-	if len(receiverTypes) != len(outputs) {
-		return sdkerrors.Wrap(err, "fee receiver types and outputs are not equal")
-	}
-
 	attributes := []sdk.Attribute{}
-	if len(inputs) > 0 {
-		attributes = append(attributes, sdk.NewAttribute(sdk.AttributeKeySender, inputs[0].Address))
-		for index, output := range outputs {
-			attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s", receiverTypes[index]), output.Address))
-			attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s_amount", receiverTypes[index]), output.Coins.String()))
-		}
-		event := sdk.NewEvent(types.EventTypeFeeToReceivers, attributes...)
-		ctx.EventManager().EmitEvent(event)
-	} else {
-		return errors.New("inputs error")
+	attributes = append(attributes, sdk.NewAttribute(sdk.AttributeKeySender, inputs[0].Address))
+	for index, output := range outputs {
+		attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s", receiverTypes[index]), output.Address))
+		attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s_amount", receiverTypes[index]), output.Coins.String()))
 	}
+	event := sdk.NewEvent(types.EventTypeFeeToReceivers, attributes...)
+	ctx.EventManager().EmitEvent(event)
+
 	return nil
 }
 
