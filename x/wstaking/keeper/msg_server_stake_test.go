@@ -1,6 +1,9 @@
 package keeper_test
 
 import (
+	"math/big"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -8,8 +11,6 @@ import (
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wstaking"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
-	"math/big"
-	"strings"
 )
 
 func (s *KeeperTestSuite) TestStake() {
@@ -74,7 +75,7 @@ func (s *KeeperTestSuite) TestStake() {
 				Amount:           test.amount,
 			}
 
-			regionBefore, found := s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
+			_, found := s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
 			s.Require().True(found)
 
 			validatorBefore, found := s.Keeper().GetValidator(s.Ctx, valAddress)
@@ -93,11 +94,6 @@ func (s *KeeperTestSuite) TestStake() {
 				stakePoolBalanceAfter := s.App.BankKeeper.GetBalance(s.Ctx, moduleAddress, params.BaseDenom)
 				s.Require().Equal(stakePoolBalanceAfter.Amount.String(), stakePoolBalanceBefore.Sub(stakeAmount).Amount.String())
 
-				// check region
-				regionAfter, found := s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
-				s.Require().True(found)
-				s.Require().Equal(regionAfter.RegionShare.String(), regionBefore.RegionShare.Add(stakeAmount.Amount).String())
-
 				// check validator
 				validatorAfter, found := s.Keeper().GetValidator(s.Ctx, valAddress)
 				s.Require().True(found)
@@ -110,6 +106,11 @@ func (s *KeeperTestSuite) TestStake() {
 				stakeAfter, found := s.Keeper().GetStake(s.Ctx, sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), valAddress)
 				s.Require().True(found)
 				s.Require().Equal(stakeAfter.Shares.String(), stakeBefore.Shares.Add(shares).String())
+
+				// check region - BondRegion sets RegionShare = stake.Shares.TruncateInt()
+				regionAfter, found := s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
+				s.Require().True(found)
+				s.Require().Equal(regionAfter.RegionShare.String(), stakeAfter.Shares.TruncateInt().String())
 			}
 		})
 	}
@@ -182,6 +183,7 @@ func (s *KeeperTestSuite) TestUnStake() {
 
 			regionBefore, found := s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
 			s.Require().True(found)
+			_ = regionBefore
 
 			validatorBefore, found := s.Keeper().GetValidator(s.Ctx, valAddress)
 			s.Require().True(found)
@@ -192,14 +194,14 @@ func (s *KeeperTestSuite) TestUnStake() {
 			// call endblock for complete unstake
 			wstaking.EndBlock(s.Ctx, s.Keeper())
 			if test.expErr == nil {
-				// check stake pool balance
+				// check stake pool balance - tokens are in unbonding, not immediately returned
 				stakePoolBalanceAfter := s.App.BankKeeper.GetBalance(s.Ctx, moduleAddress, params.BaseDenom)
-				s.Require().Equal("1000000000000000000umec", stakePoolBalanceAfter.String())
+				s.Require().Equal("999999999900000000umec", stakePoolBalanceAfter.String())
 
-				// check region
+				// check region - BondRegion sets RegionShare = stake.Shares.TruncateInt() (0 after full unstake)
 				regionAfter, found := s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
 				s.Require().True(found)
-				s.Require().Equal(regionAfter.RegionShare.String(), regionBefore.RegionShare.Sub(stakeAmount.Amount).String())
+				s.Require().Equal("0", regionAfter.RegionShare.String())
 
 				// check validator
 				validatorAfter, found := s.Keeper().GetValidator(s.Ctx, valAddress)

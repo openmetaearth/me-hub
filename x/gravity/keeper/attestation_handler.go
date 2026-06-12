@@ -6,6 +6,7 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/utils"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
@@ -49,6 +50,12 @@ func (k Keeper) AttestationHandler(ctx sdk.Context, externalClaim types.External
 		denom := utils.GetDenom(claim.Symbol)
 		if err := sdk.ValidateDenom(denom); err != nil {
 			return errorsmod.Wrapf(types.ErrInvalid, "invalid denom derived from symbol: %v", err)
+		}
+		// Reject bridge tokens whose derived denom collides with the Hub native
+		// base denom. Without this check, a bridge token with symbol "MEC" would
+		// derive to "umec", allowing MsgSendToMeClaim to mint native supply.
+		if denom == params.BaseDenom {
+			return errorsmod.Wrapf(types.ErrInvalid, "bridge token symbol %q derives to native denom %q", claim.Symbol, denom)
 		}
 		// This requires determining whether the same denom exists on the same chain, because different chains share the same denom.
 		if existing, err := k.GetBridgeTokenByDenom(ctx, denom); err == nil {
