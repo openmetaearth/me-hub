@@ -32,7 +32,7 @@ func (s *transferGenesisSuite) SetupTest() {
 	s.utilSuite.SetupTest()
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.Setup(path)
-	s.createRollapp(false, nil) // genesis protocol is not finished yet
+	s.createRollapp(false, &path.EndpointA.ChannelID) // genesis protocol is not finished yet
 	s.registerSequencer()
 	s.path = path
 
