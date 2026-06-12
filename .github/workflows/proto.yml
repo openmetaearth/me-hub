@@ -2,6 +2,7 @@ name: Protobuf
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     paths:
       - "proto/**"
       - ".github/workflows/proto.yml"
@@ -15,7 +16,7 @@ concurrency:
 
 jobs:
   lint:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Run proto format and generate
