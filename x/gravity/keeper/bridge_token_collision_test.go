@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,14 +10,28 @@ import (
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
+// bondAllRelayers bonds all test relayers so they can submit claims.
+func (suite *KeeperTestSuite) bondAllRelayers() {
+	for i, relayer := range suite.relayerAddrs {
+		msg := &types.MsgBondedRelayer{
+			RelayerAddress:  relayer.String(),
+			ExternalAddress: suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+			ChainName:       suite.chainName,
+		}
+		_, err := suite.MsgServer().BondedRelayer(sdk.WrapSDKContext(suite.Ctx), msg)
+		suite.Require().NoError(err)
+	}
+}
+
 // TestBridgeTokenSymbolMECRejected verifies that a MsgBridgeTokenClaim with
 // symbol "MEC" is rejected because the derived denom "umec" collides with
 // the Hub native base denom. This prevents an attacker from registering a
 // bridge token that mints native supply via MsgSendToMeClaim.
 func (suite *KeeperTestSuite) TestBridgeTokenSymbolMECRejected() {
+	suite.bondAllRelayers()
 	// Arrange: create enough relayers to meet the attestation threshold
 	relayers := suite.relayerAddrs
-	externalPris := suite.externalPris
 
 	// Act: attempt to register a bridge token with symbol "MEC"
 	tokenContract := helpers.GenerateAddress().Hex()
@@ -32,8 +45,7 @@ func (suite *KeeperTestSuite) TestBridgeTokenSymbolMECRejected() {
 			Name:           "MEC Token",
 			Decimals:       18,
 			ChainName:      suite.chainName,
-			ExternalAddress: suite.PubKeyToExternalAddr(externalPris[i].PublicKey),
-			RelayerAddress:  relayer.String(),
+			RelayerAddress: relayer.String(),
 		}
 		_, err := suite.MsgServer().BridgeTokenClaim(suite.Ctx, claim)
 		if i == 0 {
@@ -52,23 +64,21 @@ func (suite *KeeperTestSuite) TestBridgeTokenSymbolMECRejected() {
 // TestBridgeTokenSymbolNonNativeAllowed verifies that bridge tokens with
 // symbols that do NOT collide with the native denom are still accepted.
 func (suite *KeeperTestSuite) TestBridgeTokenSymbolNonNativeAllowed() {
+	suite.bondAllRelayers()
 	relayers := suite.relayerAddrs
-	externalPris := suite.externalPris
 
 	tokenContract := helpers.GenerateAddress().Hex()
-	nonce := uint64(1)
 
-	// Submit claims from enough relayers to reach attestation threshold
-	for i, relayer := range relayers {
+	// All relayers submit the same claim (same event nonce) to reach quorum
+	for _, relayer := range relayers {
 		claim := &types.MsgBridgeTokenClaim{
-			EventNonce:     nonce + uint64(i),
+			EventNonce:     1,
 			TokenContract:  tokenContract,
 			Symbol:         "USDT",
 			Name:           "Tether USD",
 			Decimals:       6,
 			ChainName:      suite.chainName,
-			ExternalAddress: suite.PubKeyToExternalAddr(externalPris[i].PublicKey),
-			RelayerAddress:  relayer.String(),
+			RelayerAddress: relayer.String(),
 		}
 		_, err := suite.MsgServer().BridgeTokenClaim(suite.Ctx, claim)
 		suite.NoError(err)
@@ -88,6 +98,7 @@ func (suite *KeeperTestSuite) TestBridgeTokenSymbolNonNativeAllowed() {
 // TestBridgeTokenNativeDenomSupplyIsolation verifies that after the fix,
 // the native umec supply cannot be inflated through bridge token claims.
 func (suite *KeeperTestSuite) TestBridgeTokenNativeDenomSupplyIsolation() {
+	suite.bondAllRelayers()
 	// Record initial native supply
 	initialSupply := suite.App.BankKeeper.GetSupply(suite.Ctx, params.BaseDenom)
 
@@ -100,8 +111,7 @@ func (suite *KeeperTestSuite) TestBridgeTokenNativeDenomSupplyIsolation() {
 		Name:           "MEC Token",
 		Decimals:       18,
 		ChainName:      suite.chainName,
-		ExternalAddress: suite.PubKeyToExternalAddr(suite.externalPris[0].PublicKey),
-		RelayerAddress:  suite.relayerAddrs[0].String(),
+		RelayerAddress: suite.relayerAddrs[0].String(),
 	}
 	_, err := suite.MsgServer().BridgeTokenClaim(suite.Ctx, claim)
 	suite.Error(err, "MEC bridge token registration should be rejected")
