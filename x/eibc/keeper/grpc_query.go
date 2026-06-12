@@ -108,7 +108,7 @@ func isOrderType(orderType ...commontypes.RollappPacket_Type) filterOption {
 
 func isFulfiller(fulfiller string) filterOption {
 	return func(order types.DemandOrder) bool {
-		return order.Recipient == fulfiller
+		return order.FulfillerAddress == fulfiller
 	}
 }
 

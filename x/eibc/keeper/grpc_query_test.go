@@ -102,4 +102,40 @@ func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res.DemandOrders)
 	suite.Require().Equal(false, res.DemandOrders[0].IsFulfilled(), "Expected 0 demand orders with fulfillment state unfulfilled")
+
+	// Regression test for issue #1108: isFulfiller must compare FulfillerAddress, not Recipient.
+	// Create two extra addresses: one is the packet recipient, the other is the actual fulfiller.
+	extraAddrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, math.NewInt(1000))
+	recipientAddr := extraAddrs[0].String()
+	fulfillerAddr := extraAddrs[1].String()
+
+	regressionPacket := &commontypes.RollappPacket{
+		RollappId:   "regressionRollapp",
+		Status:      commontypes.Status_FINALIZED,
+		ProofHeight: 3,
+		Packet:      &packet,
+	}
+	regressionOrder := types.NewDemandOrder(*regressionPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", recipientAddr)
+	regressionOrder.TrackingPacketStatus = commontypes.Status_FINALIZED
+	regressionOrder.FulfillerAddress = fulfillerAddr
+
+	err = keeper.SetDemandOrder(suite.Ctx, regressionOrder)
+	suite.Require().NoError(err)
+
+	// Querying by the actual fulfiller must return the order.
+	resByFulfiller, err := suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{
+		Status:    commontypes.Status_FINALIZED,
+		Fulfiller: fulfillerAddr,
+	})
+	suite.Require().NoError(err)
+	suite.Require().Len(resByFulfiller.DemandOrders, 1, "expected 1 order when filtering by actual fulfiller address")
+	suite.Require().Equal(regressionOrder.Id, resByFulfiller.DemandOrders[0].Id)
+
+	// Querying by the recipient must NOT return the order (recipient != fulfiller).
+	resByRecipient, err := suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{
+		Status:    commontypes.Status_FINALIZED,
+		Fulfiller: recipientAddr,
+	})
+	suite.Require().NoError(err)
+	suite.Require().Len(resByRecipient.DemandOrders, 0, "expected 0 orders when filtering by recipient address as fulfiller")
 }
