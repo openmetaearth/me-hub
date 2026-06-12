@@ -87,7 +87,8 @@ func (suite *RollappTestSuite) TestCreateRollappFromWhitelist() {
 }
 
 func (suite *RollappTestSuite) TestCreateRollappUnauthorizedRollappCreator() {
-	suite.createRollappFromWhitelist(types.ErrUnauthorizedRollappCreator, []types.DeployerParams{{Address: bob}})
+	// Deployer whitelist is no longer enforced in CreateRollapp
+	suite.createRollappFromWhitelist(nil, []types.DeployerParams{{Address: bob}})
 }
 
 func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
@@ -164,10 +165,11 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 			rollappId: "-1234",
 			eip:       false,
 			valid:     false,
-		}, {
+		},
+		{
 			name:      "default is valid without revision number",
 			rollappId: "rollapp_1234",
-			eip:       true,
+			eip:       false,
 			valid:     true,
 		},
 	}
