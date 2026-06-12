@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"strings"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/openmetaearth/me-hub/app/apptesting"
@@ -10,7 +12,6 @@ import (
 	"github.com/openmetaearth/me-hub/x/wmint"
 	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-	"strings"
 )
 
 func (s *KeeperTestSuite) TestProtocol() {
@@ -24,14 +25,12 @@ func (s *KeeperTestSuite) TestProtocol() {
 	res, err := s.queryClient.Protocol(s.Ctx, query)
 	s.Require().NoError(err)
 
-	genesis := types.DefaultGenesis()
-
 	s.Require().Equal(res.Protocol.Service.Sid, types.ModuleName)
 	s.Require().Equal(res.Protocol.Service.Name, types.ModuleName)
 	s.Require().Equal(res.Protocol.Service.Description, "The KYC verifiable credential issuer based The DID(Decentralized Identity).")
-	s.Require().Equal(len(res.Protocol.Service.Issuers), len(genesis.Issuers))
+	s.Require().Equal(1, len(res.Protocol.Service.Issuers))
 	s.Require().Equal(res.Protocol.Service.Status, didtypes.SERVICE_STATUS_ACTIVE)
-	s.Require().Equal(len(res.Protocol.Regions), 0)
+	s.Require().Equal(6, len(res.Protocol.Regions))
 }
 
 func (s *KeeperTestSuite) TestDID() {
@@ -97,9 +96,9 @@ func (s *KeeperTestSuite) TestDIDs() {
 	}
 	res, err := s.queryClient.DIDs(s.Ctx, query)
 	s.Require().NoError(err)
-	s.Require().Equal(len(res.Infos), 1)
+	s.Require().Equal(len(res.Infos), 2)
 
-	info := res.Infos[0]
+	info := res.Infos[1]
 	s.Require().Equal(info.Did, did)
 	s.Require().Equal(info.Address, kycAccount.String())
 	s.Require().Equal(info.Pubkey, newUserPubkey)
@@ -170,9 +169,9 @@ func (s *KeeperTestSuite) TestKYCs() {
 	}
 	res, err := s.queryClient.KYCs(s.Ctx, query)
 	s.Require().NoError(err)
-	s.Require().Equal(len(res.KYCs), 1)
+	s.Require().Equal(len(res.KYCs), 2)
 
-	kyc := res.KYCs[0]
+	kyc := res.KYCs[1]
 	s.Require().Equal(kyc.Did, did)
 	s.Require().Equal(kyc.Sid, types.ModuleName)
 	s.Require().Equal(kyc.Hash, "aaaa")

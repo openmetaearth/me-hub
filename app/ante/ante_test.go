@@ -2,9 +2,10 @@ package ante_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"github.com/openmetaearth/me-hub/app/ante/mock"
-	"testing"
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
@@ -92,8 +93,7 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	suite.mockStakingKeeper.EXPECT().GetProposerOwnerAddress(gomock.Any()).Return(proposerOwner.Address, nil)
 	devOperator := NewAccount()
 	suite.mockDaoKeeper.EXPECT().GetDevOperator(gomock.Any()).Return(devOperator.Address)
-	suite.mockDaoKeeper.EXPECT().GetGlobalDao(gomock.Any()).Return(devOperator.Address)
-	suite.mockDaoKeeper.EXPECT().GetMeidDao(gomock.Any()).Return(devOperator.Address)
+	suite.mockDaoKeeper.EXPECT().IsDao(gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 	suite.mockDaoKeeper.EXPECT().GetGlobalDaoFeePoolAddr(gomock.Any()).Return(devOperator.GetAddress())
 	suite.mockDaoKeeper.EXPECT().CheckFreeGasAccount(gomock.Any(), addr.Address).Return(false)
 
