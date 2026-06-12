@@ -90,6 +90,9 @@ func (k Keeper) FixedDepositByRegion(goCtx context.Context, req *types.QueryFixe
 }
 
 func (k Keeper) queryFixedDepositByRegionRecursively(ctx sdk.Context, req *types.QueryFixedDepositByRegionRequest, accumulated []types.FixedDeposit) ([]types.FixedDeposit, *query.PageResponse, error) {
+	if req.Pagination == nil {
+		req.Pagination = &query.PageRequest{Limit: query.DefaultLimit}
+	}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKey))
 	fixedDeposits := make([]types.FixedDeposit, 0)
 
