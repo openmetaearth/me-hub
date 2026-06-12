@@ -1,7 +1,12 @@
 package ante_test
 
 import (
+	"regexp"
+	"strconv"
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authantetestutil "github.com/cosmos/cosmos-sdk/x/auth/ante/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -10,13 +15,8 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/golang/mock/gomock"
 	"github.com/openmetaearth/me-hub/app/ante"
-	"github.com/openmetaearth/me-hub/app/params"
-	"regexp"
-	"strconv"
-	"testing"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/app/ante/mock"
+	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/stretchr/testify/require"
 )
 
