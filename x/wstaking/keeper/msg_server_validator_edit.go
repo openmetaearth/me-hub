@@ -48,6 +48,10 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 				return nil, types.ErrValidatorRegionDuplication
 			}
 		}
+		oldRegion, found := k.GetRegion(ctx, oldRegionId)
+		if found && oldRegion.DelegateAmount.GT(sdk.ZeroInt()) {
+			return nil, types.ErrRegion.Wrapf("cannot reassign validator from region %s with active delegations", oldRegionId)
+		}
 		k.UnBondRegion(ctx, oldRegionId)
 		description.RegionID = msg.Description.RegionID
 		validator.Description = description
