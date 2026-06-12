@@ -24,6 +24,7 @@ const (
 	TypeMsgUnstake                         = "unstake"
 	TypeMsgWithdrawFromRegion              = "withdraw_from_region"
 	TypeMsgWithdrawFromGlobalDaoFeePool    = "withdraw_from_global_dao_fee_pool"
+	TypeMsgTransferRegion                  = "transfer_region"
 	TypeMsgResetValidator                  = "create_validator"
 	TypeMsgNewMeid                         = "new_meid"
 	TypeMsgRemoveMeid                      = "remove_meid"
@@ -469,7 +470,7 @@ func (msg *MsgTransferRegion) Route() string {
 }
 
 func (msg *MsgTransferRegion) Type() string {
-	return "msg_transfer_meid"
+	return TypeMsgTransferRegion
 }
 
 func (msg *MsgTransferRegion) GetSigners() []sdk.AccAddress {

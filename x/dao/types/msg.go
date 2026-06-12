@@ -11,6 +11,11 @@ var (
 	_ sdk.Msg = &MsgFreeGasAccount{}
 )
 
+const (
+	TypeMsgUpdateDao      = "UpdateDao"
+	TypeMsgFreeGasAccount = "free_gas_account"
+)
+
 func NewMsgUpdateDao(creator sdk.AccAddress, addresses DaoAddresses) *MsgUpdateDao {
 	return &MsgUpdateDao{
 		Creator:      creator.String(),
@@ -23,7 +28,7 @@ func (msg *MsgUpdateDao) Route() string {
 }
 
 func (msg *MsgUpdateDao) Type() string {
-	return "UpdateDao"
+	return TypeMsgUpdateDao
 }
 
 func (msg *MsgUpdateDao) GetSigners() []sdk.AccAddress {
@@ -75,7 +80,7 @@ func (msg *MsgFreeGasAccount) Route() string {
 }
 
 func (msg *MsgFreeGasAccount) Type() string {
-	return "UpdateDao"
+	return TypeMsgFreeGasAccount
 }
 
 func (msg *MsgFreeGasAccount) GetSigners() []sdk.AccAddress {

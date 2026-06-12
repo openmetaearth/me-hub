@@ -5,7 +5,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const TypeMsgJoinGroup = "join_group"
+const (
+	TypeMsgJoinGroup  = "join_group"
+	TypeMsgLeaveGroup = "leave_group"
+)
 
 var _ sdk.Msg = &MsgJoinGroup{}
 
@@ -58,7 +61,7 @@ func (msg *MsgLeaveGroupRequest) Route() string {
 }
 
 func (msg *MsgLeaveGroupRequest) Type() string {
-	return TypeMsgJoinGroup
+	return TypeMsgLeaveGroup
 }
 
 func (msg *MsgLeaveGroupRequest) GetSigners() []sdk.AccAddress {
