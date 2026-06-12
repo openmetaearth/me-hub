@@ -1903,8 +1903,8 @@ type MsgClient interface {
 	SendToExternalClaim(ctx context.Context, in *MsgSendToExternalClaim, opts ...grpc.CallOption) (*MsgSendToExternalClaimResponse, error)
 	RequestBatch(ctx context.Context, in *MsgRequestBatch, opts ...grpc.CallOption) (*MsgRequestBatchResponse, error)
 	ConfirmBatch(ctx context.Context, in *MsgConfirmBatch, opts ...grpc.CallOption) (*MsgConfirmBatchResponse, error)
-	// UpdateParams defines a governance operation for updating the x/gravity module
-	// parameters. The authority is hard-coded to the x/gov module account.
+	// UpdateParams defines a governance operation for updating the x/gravity
+	// module parameters. The authority is hard-coded to the x/gov module account.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 	IncreaseBridgeFee(ctx context.Context, in *MsgIncreaseBridgeFee, opts ...grpc.CallOption) (*MsgIncreaseBridgeFeeResponse, error)
 	ProposalRelayers(ctx context.Context, in *MsgProposalRelayers, opts ...grpc.CallOption) (*MsgProposalRelayersResponse, error)
@@ -2067,8 +2067,8 @@ type MsgServer interface {
 	SendToExternalClaim(context.Context, *MsgSendToExternalClaim) (*MsgSendToExternalClaimResponse, error)
 	RequestBatch(context.Context, *MsgRequestBatch) (*MsgRequestBatchResponse, error)
 	ConfirmBatch(context.Context, *MsgConfirmBatch) (*MsgConfirmBatchResponse, error)
-	// UpdateParams defines a governance operation for updating the x/gravity module
-	// parameters. The authority is hard-coded to the x/gov module account.
+	// UpdateParams defines a governance operation for updating the x/gravity
+	// module parameters. The authority is hard-coded to the x/gov module account.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	IncreaseBridgeFee(context.Context, *MsgIncreaseBridgeFee) (*MsgIncreaseBridgeFeeResponse, error)
 	ProposalRelayers(context.Context, *MsgProposalRelayers) (*MsgProposalRelayersResponse, error)

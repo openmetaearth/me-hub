@@ -24,6 +24,10 @@ func TestMsgCreateGroup_ValidateBasic(t *testing.T) {
 			name: "valid address",
 			msg: MsgCreateGroup{
 				Creator: sample.AccAddress(),
+				GroupInfo: &GroupInfo{
+					Admin:    sample.AccAddress(),
+					RegionID: "meearth",
+				},
 			},
 		},
 	}
