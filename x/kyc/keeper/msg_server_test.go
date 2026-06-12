@@ -10,6 +10,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/wdistri"
 	"github.com/openmetaearth/me-hub/x/wmint"
 	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	"github.com/openmetaearth/me-hub/x/wstaking"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 	"strings"
 )
@@ -152,6 +153,7 @@ func (s *KeeperTestSuite) TestUpdate() {
 	s.Require().Equal(delegation.ValidatorAddress, s.meEarthValidator.OperatorAddress)
 
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks + 1).WithChainID(apptesting.TestChainID)
+	wstaking.BeginBlock(s.Ctx, s.App.StakingKeeper)
 	// transfer kyc region
 	_, err = s.msgServer.Update(s.Ctx, &types.MsgUpdate{
 		Issuer:   s.Dao.GlobalDao,
