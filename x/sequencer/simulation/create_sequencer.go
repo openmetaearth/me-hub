@@ -44,6 +44,7 @@ func SimulateMsgCreateSequencer(
 			DymintPubKey: pkAny,
 			RollappId:    rollappId,
 			Description:  types.Description{},
+			Bond:         k.GetParams(ctx).MinBond,
 		}
 
 		bNotPermissioned := false
