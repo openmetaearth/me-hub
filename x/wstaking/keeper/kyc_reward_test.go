@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"math/big"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,7 +15,6 @@ import (
 	"github.com/openmetaearth/me-hub/x/wmint"
 	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
-	"math/big"
 )
 
 func (s *KeeperTestSuite) TestKycReward_WithDelegation() {
@@ -117,12 +118,12 @@ func (s *KeeperTestSuite) TestKycReward_WithoutDelegation() {
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
 	inviter, _ := s.NewAccount()
-	err = s.Keeper().KycReward(s.Ctx, inviter, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
-	// check invite address
+	// check invite address - inviter reward logic was removed
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), types.InviteReward.String())
+	s.Require().Equal(balance.Amount.String(), "0")
 
 	// check region DelegateAmount
 	region, found := s.Keeper().GetRegion(s.Ctx, "usa")
@@ -151,12 +152,12 @@ func (s *KeeperTestSuite) TestRemoveKycReward() {
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
 	inviter, _ := s.NewAccount()
-	err = s.Keeper().KycReward(s.Ctx, inviter, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
-	// check invite address
+	// check invite address - inviter reward logic was removed
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), types.InviteReward.String())
+	s.Require().Equal(balance.Amount.String(), "0")
 
 	// remove kyc
 	err = s.Keeper().RemoveKycReward(s.Ctx, kycAccount, s.usaValidator.Description.RegionID)
@@ -205,9 +206,9 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithDelegation() {
 	err = s.Keeper().KycReward(s.Ctx, userAccount, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
-	// check invite address
+	// check invite address - inviter reward logic was removed
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), types.InviteReward.String())
+	s.Require().Equal(balance.Amount.String(), "0")
 
 	// check delegation after kyc
 	del, f := s.Keeper().GetDelegation(s.Ctx, userAccount, sdk.ValAddress{})
@@ -222,7 +223,7 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithDelegation() {
 	s.Require().Equal(sdk.NewInt(0).String(), expRegion.DelegateAmount.String())
 
 	// delegate
-	delegateAmount := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit+1), nil))
+	delegateAmount := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit-1), nil))
 	_, err = s.msgServer.Delegate(s.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: userAccount.String(),
 		ValidatorAddress: s.usaValidator.OperatorAddress,
@@ -273,12 +274,12 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithFixedDeposit() {
 	})
 
 	inviter, _ := s.NewAccount()
-	err = s.Keeper().KycReward(s.Ctx, inviter, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
+	err = s.Keeper().KycReward(s.Ctx, userAccount, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
-	// check invite address
+	// check invite address - inviter reward logic was removed
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), types.InviteReward.String())
+	s.Require().Equal(balance.Amount.String(), "0")
 
 	// check delegation after kyc
 	del, f := s.Keeper().GetDelegation(s.Ctx, userAccount, sdk.ValAddress{})
@@ -293,7 +294,7 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithFixedDeposit() {
 	s.Require().Equal(sdk.NewInt(0).String(), expRegion.DelegateAmount.String())
 
 	// delegate
-	delegateAmount := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit+1), nil))
+	delegateAmount := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit-1), nil))
 	_, err = s.msgServer.Delegate(s.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: userAccount.String(),
 		ValidatorAddress: s.usaValidator.OperatorAddress,

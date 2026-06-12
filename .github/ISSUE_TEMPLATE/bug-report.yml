@@ -32,7 +32,7 @@ body:
     attributes:
       label: Chain ID
       description: Which chain are you running into issues with?
-      placeholder: "e.g. mechain_100-1"
+      placeholder: "e.g. mechain_202404-1"
     validations:
       required: false
 

@@ -103,7 +103,7 @@ func (s *KeeperTestSuite) TestRemoveRegion() {
 	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
 
-	// must have error
+	// non-global DAO cannot remove regions
 	_, err = s.msgServer.RemoveRegion(s.Ctx, &types.MsgRemoveRegion{
 		Creator:  s.Dao.MeidDao,
 		RegionId: "usa",
@@ -124,7 +124,7 @@ func (s *KeeperTestSuite) TestRemoveRegion() {
 	})
 	s.Require().NoError(err)
 
-	// must error
+	// region should be removed from state
 	_, err = s.queryClient.Region(s.Ctx, &types.QueryRegionRequest{RegionId: "usa"})
 	s.Require().ErrorIs(err, types.ErrRegionNotExist)
 }
@@ -147,31 +147,28 @@ func (s *KeeperTestSuite) TestRemoveRegionThenCreateRegion() {
 	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
 
-	// must have error
+	// non-global DAO cannot remove regions
 	_, err = s.msgServer.RemoveRegion(s.Ctx, &types.MsgRemoveRegion{
 		Creator:  s.Dao.MeidDao,
 		RegionId: "usa",
 	})
 	s.Require().ErrorIs(err, types.ErrCheckGlobalDao)
 
-	// must no error
 	_, err = s.msgServer.RemoveRegion(s.Ctx, &types.MsgRemoveRegion{
 		Creator:  s.Dao.GlobalDao,
 		RegionId: "usa",
 	})
 	s.Require().NoError(err)
 
-	// must error
+	// region should be removed, so creating it again should succeed
 	_, err = s.queryClient.Region(s.Ctx, &types.QueryRegionRequest{RegionId: "usa"})
 	s.Require().ErrorIs(err, types.ErrRegionNotExist)
 
-	// new region again
-	newRegion = types.MsgNewRegion{
+	_, err = s.msgServer.NewRegion(s.Ctx, &types.MsgNewRegion{
 		Creator:         s.Dao.GlobalDao,
 		Name:            "USA",
 		OperatorAddress: s.usaValidator.OperatorAddress,
-	}
-	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
+	})
 	s.Require().NoError(err)
 }
 
@@ -203,7 +200,7 @@ func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 			name:       "Dao Permission",
 			withdrawer: s.Dao.MeidDao,
 			amount:     balance,
-			expErr:     types.ErrCheckGlobalDao,
+			expErr:     sdkerrors.ErrUnauthorized,
 		}, {
 			name:       "over amount",
 			withdrawer: s.Dao.GlobalDao,
