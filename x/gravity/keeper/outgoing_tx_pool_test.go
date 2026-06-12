@@ -40,46 +40,45 @@ func (s *KeeperTestSuite) TestKeeper_OutgoingAncCancel() {
 	s.Equal(sendAmount, s.App.BankKeeper.GetSupply(s.Ctx, denom))
 }
 
-func (s *KeeperTestSuite) TestSendToExternalPendingDoesNotBlockRemainingSupply() {
-	attacker := sdk.AccAddress(helpers.GenerateAddress().Bytes())
-	victim := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+func (s *KeeperTestSuite) TestKeeper_IncreaseBridgeFeeDecrementsBridgeTokenSupply() {
+	sender := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	bridgeToken := helpers.GenerateAddress().Hex()
+
+	denom := "testsupply"
+	initialSupply := sdk.NewCoin(denom, sdkmath.NewInt(150))
+	err := s.App.BankKeeper.MintCoins(s.Ctx, s.chainName, sdk.NewCoins(initialSupply))
+	s.NoError(err)
+	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, s.chainName, sender, sdk.NewCoins(initialSupply))
+	s.NoError(err)
+
+	bridgeTokenState := &types.BridgeToken{ContractAddress: bridgeToken, Denom: denom, Supply: initialSupply.Amount}
+	s.Keeper().SetBridgeToken(s.Ctx, bridgeTokenState)
+
 	receiver := helpers.GenerateAddress().Hex()
-	denom := "pendingdoublecount"
+	amount := sdk.NewCoin(denom, sdkmath.NewInt(40))
+	fee := sdk.NewCoin(denom, sdkmath.NewInt(10))
+	txId, err := s.Keeper().AddToOutgoingPool(s.Ctx, sender, receiver, amount, fee)
+	s.NoError(err)
 
-	bridgeToken := s.NewBridgeToken(attacker, sdk.NewCoin(denom, sdkmath.NewInt(60)))
-	victimInitialBalance := sdk.NewCoin(denom, sdkmath.NewInt(40))
-	s.Require().NoError(s.App.BankKeeper.MintCoins(s.Ctx, s.chainName, sdk.NewCoins(victimInitialBalance)))
-	s.Require().NoError(s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, s.chainName, victim, sdk.NewCoins(victimInitialBalance)))
+	s.Require().EqualValues(sdkmath.NewInt(100), s.App.BankKeeper.GetSupply(s.Ctx, denom).Amount)
+	bridgeTokenState, err = s.Keeper().GetBridgeTokenByDenom(s.Ctx, denom)
+	s.Require().NoError(err)
+	s.Require().EqualValues(sdkmath.NewInt(100), bridgeTokenState.Supply)
 
-	bridgeToken.Supply = bridgeToken.Supply.Add(victimInitialBalance.Amount)
-	s.Keeper().SetBridgeToken(s.Ctx, &bridgeToken)
-
-	_, err := s.MsgServer().SendToExternal(sdk.WrapSDKContext(s.Ctx), &types.MsgSendToExternal{
-		Sender:    attacker.String(),
-		Dest:      receiver,
-		Amount:    sdk.NewCoin(denom, sdkmath.NewInt(50)),
-		BridgeFee: sdk.NewCoin(denom, sdkmath.NewInt(10)),
-		ChainName: s.chainName,
+	_, err = s.MsgServer().IncreaseBridgeFee(sdk.WrapSDKContext(s.Ctx), &types.MsgIncreaseBridgeFee{
+		ChainName:     s.chainName,
+		Sender:        sender.String(),
+		TransactionId: txId,
+		AddBridgeFee:  sdk.NewCoin(denom, sdkmath.NewInt(5)),
 	})
 	s.Require().NoError(err)
 
-	storedBridgeToken, err := s.Keeper().GetBridgeTokenByDenom(s.Ctx, denom)
+	s.Require().EqualValues(sdkmath.NewInt(95), s.App.BankKeeper.GetSupply(s.Ctx, denom).Amount)
+	bridgeTokenState, err = s.Keeper().GetBridgeTokenByDenom(s.Ctx, denom)
 	s.Require().NoError(err)
-	s.Require().Equal(sdkmath.NewInt(40), storedBridgeToken.Supply)
-	s.Require().Equal(sdkmath.NewInt(40), s.App.BankKeeper.GetBalance(s.Ctx, victim, denom).Amount)
-	s.Require().Equal(sdkmath.NewInt(60), s.Keeper().GetOutgoingPendingTxTotal(s.Ctx, s.chainName, &bridgeToken))
+	s.Require().EqualValues(sdkmath.NewInt(95), bridgeTokenState.Supply)
 
-	_, err = s.MsgServer().SendToExternal(sdk.WrapSDKContext(s.Ctx), &types.MsgSendToExternal{
-		Sender:    victim.String(),
-		Dest:      receiver,
-		Amount:    sdk.NewCoin(denom, sdkmath.NewInt(1)),
-		BridgeFee: sdk.NewCoin(denom, sdkmath.ZeroInt()),
-		ChainName: s.chainName,
-	})
+	tx, err := s.Keeper().GetUnbatchedTxById(s.Ctx, txId)
 	s.Require().NoError(err)
-
-	storedBridgeToken, err = s.Keeper().GetBridgeTokenByDenom(s.Ctx, denom)
-	s.Require().NoError(err)
-	s.Require().Equal(sdkmath.NewInt(39), storedBridgeToken.Supply)
-	s.Require().Equal(sdkmath.NewInt(39), s.App.BankKeeper.GetBalance(s.Ctx, victim, denom).Amount)
+	s.Require().EqualValues(sdkmath.NewInt(15), tx.Fee.Amount)
 }
