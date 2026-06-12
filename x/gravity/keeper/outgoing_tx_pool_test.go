@@ -143,3 +143,46 @@ func (s *KeeperTestSuite) TestKeeper_IncreaseBridgeFeeRejectsInvalidStoredSender
 	s.Require().NoError(err)
 	s.Require().EqualValues(tx.Fee.Amount, storedTx.Fee.Amount)
 }
+
+func (s *KeeperTestSuite) TestKeeper_IncreaseBridgeFeeDecrementsBridgeTokenSupply() {
+	sender := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	bridgeToken := helpers.GenerateAddress().Hex()
+
+	denom := "testsupply"
+	initialSupply := sdk.NewCoin(denom, sdkmath.NewInt(150))
+	err := s.App.BankKeeper.MintCoins(s.Ctx, s.chainName, sdk.NewCoins(initialSupply))
+	s.NoError(err)
+	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, s.chainName, sender, sdk.NewCoins(initialSupply))
+	s.NoError(err)
+
+	bridgeTokenState := &types.BridgeToken{ContractAddress: bridgeToken, Denom: denom, Supply: initialSupply.Amount}
+	s.Keeper().SetBridgeToken(s.Ctx, bridgeTokenState)
+
+	receiver := helpers.GenerateAddress().Hex()
+	amount := sdk.NewCoin(denom, sdkmath.NewInt(40))
+	fee := sdk.NewCoin(denom, sdkmath.NewInt(10))
+	txId, err := s.Keeper().AddToOutgoingPool(s.Ctx, sender, receiver, amount, fee)
+	s.NoError(err)
+
+	s.Require().EqualValues(sdkmath.NewInt(100), s.App.BankKeeper.GetSupply(s.Ctx, denom).Amount)
+	bridgeTokenState, err = s.Keeper().GetBridgeTokenByDenom(s.Ctx, denom)
+	s.Require().NoError(err)
+	s.Require().EqualValues(sdkmath.NewInt(100), bridgeTokenState.Supply)
+
+	_, err = s.MsgServer().IncreaseBridgeFee(sdk.WrapSDKContext(s.Ctx), &types.MsgIncreaseBridgeFee{
+		ChainName:     s.chainName,
+		Sender:        sender.String(),
+		TransactionId: txId,
+		AddBridgeFee:  sdk.NewCoin(denom, sdkmath.NewInt(5)),
+	})
+	s.Require().NoError(err)
+
+	s.Require().EqualValues(sdkmath.NewInt(95), s.App.BankKeeper.GetSupply(s.Ctx, denom).Amount)
+	bridgeTokenState, err = s.Keeper().GetBridgeTokenByDenom(s.Ctx, denom)
+	s.Require().NoError(err)
+	s.Require().EqualValues(sdkmath.NewInt(95), bridgeTokenState.Supply)
+
+	tx, err := s.Keeper().GetUnbatchedTxById(s.Ctx, txId)
+	s.Require().NoError(err)
+	s.Require().EqualValues(sdkmath.NewInt(15), tx.Fee.Amount)
+}
