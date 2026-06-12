@@ -93,14 +93,14 @@ docker run -d \
 
 ### Access Endpoints
 
-| Service | Port | URL |
-|---------|------|-----|
-| **RPC** | 36657 | http://localhost:36657 |
-| **REST API** | 1318 | http://localhost:1318 |
-| **JSON-RPC** | 9545 | http://localhost:9545 |
-| **JSON-RPC WS** | 9546 | ws://localhost:9546 |
-| **gRPC** | 8090 | localhost:8090 |
-| **gRPC-web** | 8091 | localhost:8091 |
+| Service         | Port  | URL                    |
+| --------------- | ----- | ---------------------- |
+| **RPC**         | 36657 | http://localhost:36657 |
+| **REST API**    | 1318  | http://localhost:1318  |
+| **JSON-RPC**    | 9545  | http://localhost:9545  |
+| **JSON-RPC WS** | 9546  | ws://localhost:9546    |
+| **gRPC**        | 8090  | localhost:8090         |
+| **gRPC-web**    | 8091  | localhost:8091         |
 
 ### Quick Tests
 
@@ -159,7 +159,7 @@ docker exec mechain-private-net med tx bank send \
   <from_address> \
   <to_address> \
   1000000umec \
-  --chain-id mechain_100-1 \
+  --chain-id mechain_202404-1 \
   --keyring-backend test \
   --yes
 
@@ -324,7 +324,7 @@ const client = await SigningStargateClient.connect(rpcEndpoint);
 from cosmpy.aerial.client import LedgerClient, NetworkConfig
 
 network = NetworkConfig(
-    chain_id="mechain_100-1",
+    chain_id="mechain_202404-1",
     url="grpc+http://localhost:8090",
     fee_minimum_gas_price=1,
     fee_denomination="umec",
@@ -339,7 +339,7 @@ import "github.com/cosmos/cosmos-sdk/client"
 
 clientCtx := client.Context{}.
     WithNodeURI("tcp://localhost:36657").
-    WithChainID("mechain_100-1")
+    WithChainID("mechain_202404-1")
 ```
 
 ### Q8: How to use in CI/CD?
