@@ -315,3 +315,30 @@ func (mr *MockWasmKeeperMockRecorder) HasContractInfo(ctx, contractAddress inter
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasContractInfo", reflect.TypeOf((*MockWasmKeeper)(nil).HasContractInfo), ctx, contractAddress)
 }
+
+
+package keeper
+
+import (
+	"errors"
+	"fmt"
+	"strings"
+
+	"github.com/cosmos/cosmos-sdk/x/nft"
+	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
+	groupTypes "github.com/openmetaearth/me-hub/x/megroup/types"
+	wasmapp "github.com/CosmWasm/wasmd/app"
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
+	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
+	groupTypes "github.com/openmetaearth/me-hub/x/megroup/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	banktypes "github
