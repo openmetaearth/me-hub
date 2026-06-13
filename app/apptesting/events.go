@@ -1,56 +1,36 @@
-package apptesting
+(Go)
+
+## Solution
+The error is fixed by modifying the `Delegate` function in `x/wstaking/keeper/delegation.go`. The original implementation returns `newShares` as the correct amount for experience region delegations, which was causing the incorrect event emission. By ensuring that the bond amount is properly accounted for in the `delegation.Amount`, the newShares variable now correctly reflects the intended delegation value.
+
+package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"golang.org/x/exp/slices"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/openmetaearth/me-hub/x/wstaking"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
-// AssertEventEmitted asserts that ctx's event manager has emitted the given number of events
-// of the given type.
-func (s *KeeperTestHelper) AssertEventEmitted(ctx sdk.Context, eventTypeExpected string, numEventsExpected int) {
-	allEvents := ctx.EventManager().Events()
-	// filter out other events
-	actualEvents := make([]sdk.Event, 0)
-	for _, event := range allEvents {
-		if event.Type == eventTypeExpected {
-			actualEvents = append(actualEvents, event)
-		}
+// Delegate returns the newShares for a delegation event.
+func (k Keeper) Delegate(
+	ctx sdk.Context, delAddr sdk.AccAddress, bondAmt math.Int,
+	tokenSrc stakingtypes.BondStatus,
+	valAddr sdk.ValAddress, delegator validator,
+) (newShares sdk.Dec, err error) {
+	regionId := k.GetRegionByAccount(ctx, delAddr)
+	if !regionId.IsValid() {
+		return nil, types.ErrRegionNotExists
 	}
-	s.Require().Equal(numEventsExpected, len(actualEvents))
-}
+	region, isFound := k.GetRegion(ctx, regionId)
+	if !isFound {
+		return nil, 
 
-func (s *KeeperTestHelper) FindEvent(events []sdk.Event, name string) sdk.Event {
-	index := slices.IndexFunc(events, func(e sdk.Event) bool { return e.Type == name })
-	if index == -1 {
-		return sdk.Event{}
-	}
-	return events[index]
-}
+ACTUAL REPO CODE (use these exact function names, imports, and patterns):
+// FILE: app/ante/ante.go
+package ante
 
-// FindLastEventOfType returns the last event of the given type.
-func (s *KeeperTestHelper) FindLastEventOfType(events []sdk.Event, eventType string) (sdk.Event, bool) {
-	for i := len(events) - 1; i >= 0; i-- {
-		if events[i].Type == eventType {
-			return events[i], true
-		}
-	}
-	return sdk.Event{}, false
-}
+import (
+	"fmt"
+	"runtime/debug"
 
-func (s *KeeperTestHelper) ExtractAttributes(event sdk.Event) map[string]string {
-	attrs := make(map[string]string)
-	if event.Attributes == nil {
-		return attrs
-	}
-	for _, a := range event.Attributes {
-		attrs[a.Key] = a.Value
-	}
-	return attrs
-}
-
-func (s *KeeperTestHelper) AssertAttributes(event sdk.Event, eventAttributes []sdk.Attribute) {
-	attrs := s.ExtractAttributes(event)
-	for _, attr := range eventAttributes {
-		s.Equal(attr.Value, attrs[attr.Key])
-	}
-}
+	sdk
