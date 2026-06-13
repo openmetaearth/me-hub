@@ -118,6 +118,60 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfirm() {
 	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, batch.TokenContract, batch.BatchNonce))
 }
 
+func (suite *KeeperTestSuite) TestOutgoingTxBatchExecutedCancelsEarlierBatchesAfterIteration() {
+	tokenContract := helpers.GenerateAddress().Hex()
+	otherTokenContract := helpers.GenerateAddress().Hex()
+
+	olderBatch := newTestOutgoingBatch(tokenContract, 1, 100, 101, 1001)
+	middleBatch := newTestOutgoingBatch(tokenContract, 2, 100, 102, 1002)
+	executedBatch := newTestOutgoingBatch(tokenContract, 3, 100, 103, 1003)
+	otherTokenBatch := newTestOutgoingBatch(otherTokenContract, 1, 100, 104, 2001)
+
+	suite.Require().NoError(suite.Keeper().StoreBatch(suite.Ctx, olderBatch))
+	suite.Require().NoError(suite.Keeper().StoreBatch(suite.Ctx, middleBatch))
+	suite.Require().NoError(suite.Keeper().StoreBatch(suite.Ctx, executedBatch))
+	suite.Require().NoError(suite.Keeper().StoreBatch(suite.Ctx, otherTokenBatch))
+
+	suite.Keeper().OutgoingTxBatchExecuted(suite.Ctx, tokenContract, executedBatch.BatchNonce)
+
+	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, tokenContract, olderBatch.BatchNonce))
+	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, tokenContract, middleBatch.BatchNonce))
+	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, tokenContract, executedBatch.BatchNonce))
+	suite.NotNil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, otherTokenContract, otherTokenBatch.BatchNonce))
+
+	_, err := suite.Keeper().GetUnbatchedTxById(suite.Ctx, olderBatch.Transactions[0].Id)
+	suite.Require().NoError(err)
+	_, err = suite.Keeper().GetUnbatchedTxById(suite.Ctx, middleBatch.Transactions[0].Id)
+	suite.Require().NoError(err)
+	_, err = suite.Keeper().GetUnbatchedTxById(suite.Ctx, executedBatch.Transactions[0].Id)
+	suite.Require().Error(err)
+}
+
+func (suite *KeeperTestSuite) TestEndBlockerCancelsTimedOutBatchesAfterIteration() {
+	tokenContract := helpers.GenerateAddress().Hex()
+	expiredBatch := newTestOutgoingBatch(tokenContract, 1, 10, 201, 3001)
+	alsoExpiredBatch := newTestOutgoingBatch(tokenContract, 2, 11, 202, 3002)
+	activeBatch := newTestOutgoingBatch(tokenContract, 3, 99, 203, 3003)
+
+	suite.Require().NoError(suite.Keeper().StoreBatch(suite.Ctx, expiredBatch))
+	suite.Require().NoError(suite.Keeper().StoreBatch(suite.Ctx, alsoExpiredBatch))
+	suite.Require().NoError(suite.Keeper().StoreBatch(suite.Ctx, activeBatch))
+	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, 12, uint64(suite.Ctx.BlockHeight()))
+
+	suite.Keeper().EndBlocker(suite.Ctx)
+
+	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, tokenContract, expiredBatch.BatchNonce))
+	suite.Nil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, tokenContract, alsoExpiredBatch.BatchNonce))
+	suite.NotNil(suite.Keeper().GetOutgoingTxBatch(suite.Ctx, tokenContract, activeBatch.BatchNonce))
+
+	_, err := suite.Keeper().GetUnbatchedTxById(suite.Ctx, expiredBatch.Transactions[0].Id)
+	suite.Require().NoError(err)
+	_, err = suite.Keeper().GetUnbatchedTxById(suite.Ctx, alsoExpiredBatch.Transactions[0].Id)
+	suite.Require().NoError(err)
+	_, err = suite.Keeper().GetUnbatchedTxById(suite.Ctx, activeBatch.Transactions[0].Id)
+	suite.Require().Error(err)
+}
+
 func (suite *KeeperTestSuite) TestKeeper_IterateBatch() {
 	index := tmrand.Intn(100)
 	for i := 1; i <= index; i++ {
@@ -154,4 +208,29 @@ func (suite *KeeperTestSuite) TestKeeper_IterateBatch() {
 		},
 	)
 	suite.Equal(len(batchs), index)
+}
+
+func newTestOutgoingBatch(tokenContract string, nonce, timeout, block, txID uint64) *types.OutgoingTxBatch {
+	return &types.OutgoingTxBatch{
+		BatchNonce:   nonce,
+		BatchTimeout: timeout,
+		Transactions: []*types.OutgoingTransferTx{
+			{
+				Id:          txID,
+				Sender:      sdk.AccAddress(helpers.GenerateAddress().Bytes()).String(),
+				DestAddress: helpers.GenerateAddress().Hex(),
+				Token: types.ERC20Token{
+					Contract: tokenContract,
+					Amount:   sdkmath.NewInt(1),
+				},
+				Fee: types.ERC20Token{
+					Contract: tokenContract,
+					Amount:   sdkmath.NewInt(1),
+				},
+			},
+		},
+		TokenContract: tokenContract,
+		Block:         block,
+		FeeReceive:    helpers.GenerateAddress().Hex(),
+	}
 }

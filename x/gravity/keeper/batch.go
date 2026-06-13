@@ -111,16 +111,29 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, contractAddress string,
 		panic(fmt.Sprintf("unknown batch nonce for outgoing tx batch %s %d", contractAddress, batchNonce))
 	}
 
-	// Iterate through remaining batches
+	type batchRef struct {
+		tokenContract string
+		nonce         uint64
+	}
+	var batchesToCancel []batchRef
+
+	// Iterate through remaining batches. Do not cancel from inside the
+	// iterator, because CancelOutgoingTxBatch deletes from the same prefix.
 	k.IterateOutgoingTxBatches(ctx, func(iterBatch *types.OutgoingTxBatch) bool {
 		// If the iterated batches nonce is lower than the one that was just executed, cancel it
 		if iterBatch.BatchNonce < batch.BatchNonce && iterBatch.TokenContract == contractAddress {
-			if err := k.CancelOutgoingTxBatch(ctx, contractAddress, iterBatch.BatchNonce); err != nil {
-				panic(fmt.Sprintf("Failed cancel out batch %s-%d while trying to execute failed: %s", batch.TokenContract, batch.BatchNonce, err))
-			}
+			batchesToCancel = append(batchesToCancel, batchRef{
+				tokenContract: iterBatch.TokenContract,
+				nonce:         iterBatch.BatchNonce,
+			})
 		}
 		return false
 	})
+	for _, batchToCancel := range batchesToCancel {
+		if err := k.CancelOutgoingTxBatch(ctx, batchToCancel.tokenContract, batchToCancel.nonce); err != nil {
+			panic(fmt.Sprintf("Failed cancel out batch %s-%d while trying to execute failed: %s", batch.TokenContract, batch.BatchNonce, err))
+		}
+	}
 
 	// Delete batch since it is finished
 	k.DeleteBatch(ctx, batch)

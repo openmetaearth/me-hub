@@ -143,14 +143,26 @@ func (k Keeper) batchSlashing(ctx sdk.Context, relayers types.Relayers, signedWi
 //	AND any deposit or withdraw has occurred to update the Ethereum block height.
 func (k Keeper) cleanupTimedOutBatches(ctx sdk.Context) {
 	externalBlockHeight := k.GetLastObservedBlockHeight(ctx).ExternalBlockHeight
+	type batchRef struct {
+		tokenContract string
+		nonce         uint64
+	}
+	var batchesToCancel []batchRef
+
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		if batch.BatchTimeout < externalBlockHeight {
-			if err := k.CancelOutgoingTxBatch(ctx, batch.TokenContract, batch.BatchNonce); err != nil {
-				k.Logger(ctx).Error("failed to cancel timed out batch", "tokenContract", batch.TokenContract, "nonce", batch.BatchNonce, "error", err)
-			}
+			batchesToCancel = append(batchesToCancel, batchRef{
+				tokenContract: batch.TokenContract,
+				nonce:         batch.BatchNonce,
+			})
 		}
 		return false
 	})
+	for _, batchToCancel := range batchesToCancel {
+		if err := k.CancelOutgoingTxBatch(ctx, batchToCancel.tokenContract, batchToCancel.nonce); err != nil {
+			k.Logger(ctx).Error("failed to cancel timed out batch", "tokenContract", batchToCancel.tokenContract, "nonce", batchToCancel.nonce, "error", err)
+		}
+	}
 }
 
 func (k Keeper) pruneRelayerSet(ctx sdk.Context, signedRelayerSetsWindow uint64) {
