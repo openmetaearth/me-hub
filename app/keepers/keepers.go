@@ -381,6 +381,7 @@ func (a *AppKeepers) InitKeepers(
 		a.keys[delayedacktypes.StoreKey],
 		a.GetSubspace(delayedacktypes.ModuleName),
 		a.RollappKeeper,
+		a.IBCKeeper.ClientKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		&a.EIBCKeeper,

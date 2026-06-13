@@ -15,7 +15,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
 
@@ -167,9 +169,10 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	// populate the block descriptors
 	blockDescriptors := &rollapptypes.BlockDescriptors{BD: make([]rollapptypes.BlockDescriptor, numBlocks)}
 	for i := 0; i < int(numBlocks); i++ {
+		height := startHeight + uint64(i)
 		blockDescriptors.BD[i] = rollapptypes.BlockDescriptor{
-			Height:    startHeight + uint64(i),
-			StateRoot: bytes.Repeat([]byte{byte(startHeight) + byte(i)}, 32),
+			Height:    height,
+			StateRoot: s.rollappStateRootAtHeight(height),
 		}
 	}
 	// Update the state
@@ -188,6 +191,60 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	s.Require().NoError(err)
 }
 
+type consensusStateWithRoot interface {
+	GetRoot() exported.Root
+}
+
+func (s *utilSuite) rollappStateRootAtHeight(height uint64) []byte {
+	mockRoot := bytes.Repeat([]byte{byte(height)}, 32)
+	stateRoot, found := s.rollappConsensusRootAtHeight(height)
+	if !found {
+		return mockRoot
+	}
+
+	return stateRoot
+}
+
+func (s *utilSuite) rollappConsensusRootAtHeight(height uint64) ([]byte, bool) {
+	rollapp, found := s.hubApp().RollappKeeper.GetRollapp(s.hubCtx(), rollappChainID())
+	if !found || rollapp.ChannelId == "" {
+		return nil, false
+	}
+
+	clientID, clientState, err := s.hubApp().IBCKeeper.ChannelKeeper.GetChannelClientState(
+		s.hubCtx(),
+		transfertypes.PortID,
+		rollapp.ChannelId,
+	)
+	s.Require().NoError(err)
+
+	consensusHeight := clienttypes.NewHeight(clientState.GetLatestHeight().GetRevisionNumber(), height)
+	consensusState, found := s.hubApp().IBCKeeper.ClientKeeper.GetClientConsensusState(
+		s.hubCtx(),
+		clientID,
+		consensusHeight,
+	)
+	if !found {
+		return nil, false
+	}
+
+	rootedConsensusState, ok := consensusState.(consensusStateWithRoot)
+	s.Require().True(ok)
+	stateRoot := rootedConsensusState.GetRoot().GetHash()
+	s.Require().Len(stateRoot, 32)
+
+	return stateRoot, true
+}
+
+func (s *utilSuite) refreshRollappStateRoots(stateInfo *rollapptypes.StateInfo) {
+	for i, descriptor := range stateInfo.BDs.BD {
+		stateRoot, found := s.rollappConsensusRootAtHeight(descriptor.Height)
+		if found {
+			stateInfo.BDs.BD[i].StateRoot = stateRoot
+		}
+	}
+}
+
 func (s *utilSuite) finalizeRollappState(index uint64, endHeight uint64) (sdk.Events, error) {
 	rollappKeeper := s.hubApp().RollappKeeper
 	ctx := s.hubCtx()
@@ -197,6 +254,7 @@ func (s *utilSuite) finalizeRollappState(index uint64, endHeight uint64) (sdk.Ev
 	s.Require().True(found)
 	stateInfo.NumBlocks = endHeight - stateInfo.StartHeight + 1
 	stateInfo.Status = common.Status_FINALIZED
+	s.refreshRollappStateRoots(&stateInfo)
 	// update the status of the stateInfo
 	rollappKeeper.SetStateInfo(ctx, stateInfo)
 	// update the LatestStateInfoIndex of the rollapp

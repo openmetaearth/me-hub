@@ -60,6 +60,10 @@ func (ClientKeeperStub) GetClientState(ctx sdk.Context, clientID string) (export
 	return nil, false
 }
 
+func (ClientKeeperStub) GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool) {
+	return nil, false
+}
+
 func (ClientKeeperStub) GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool) {
 	return connectiontypes.ConnectionEnd{}, false
 }
@@ -139,6 +143,7 @@ func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		storeKey,
 		paramsSubspace,
 		RollappKeeperStub{},
+		ClientKeeperStub{},
 		ICS4WrapperStub{},
 		ChannelKeeperStub{},
 		nil,

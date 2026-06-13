@@ -22,6 +22,7 @@ type Keeper struct {
 	paramstore paramtypes.Subspace
 
 	rollappKeeper types.RollappKeeper
+	clientKeeper  types.IBCClientKeeper
 	porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	types.EIBCKeeper
@@ -32,6 +33,7 @@ func NewKeeper(
 	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	rollappKeeper types.RollappKeeper,
+	clientKeeper types.IBCClientKeeper,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	eibcKeeper types.EIBCKeeper,
@@ -45,6 +47,7 @@ func NewKeeper(
 		storeKey:      storeKey,
 		paramstore:    ps,
 		rollappKeeper: rollappKeeper,
+		clientKeeper:  clientKeeper,
 		ICS4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
 		EIBCKeeper:    eibcKeeper,

@@ -1,23 +1,28 @@
 package keeper
 
 import (
+	"bytes"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
 	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is
 // the end height of the latest finalized state
-func (k Keeper) FinalizeRollappPackets(ctx sdk.Context, ibc porttypes.IBCModule, rollappID string, stateEndHeight uint64) error {
+func (k Keeper) FinalizeRollappPackets(ctx sdk.Context, ibc porttypes.IBCModule, rollappID string, stateInfo rollapptypes.StateInfo) error {
+	stateEndHeight := stateInfo.StartHeight + stateInfo.NumBlocks - 1
 	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDByMaxHeight(rollappID, stateEndHeight))
 	if len(rollappPendingPackets) == 0 {
 		return nil
@@ -29,11 +34,85 @@ func (k Keeper) FinalizeRollappPackets(ctx sdk.Context, ibc porttypes.IBCModule,
 		"state end height", stateEndHeight,
 		"num packets", len(rollappPendingPackets))
 	for _, rollappPacket := range rollappPendingPackets {
+		if err := k.validatePacketProofRoot(ctx, rollappPacket, stateInfo); err != nil {
+			return fmt.Errorf("validate rollapp packet proof root: %w", err)
+		}
 		if err := k.finalizeRollappPacket(ctx, ibc, rollappID, logger, rollappPacket); err != nil {
 			return fmt.Errorf("finalize rollapp packet: %w", err)
 		}
 	}
 	return nil
+}
+
+type consensusRoot interface {
+	GetRoot() exported.Root
+}
+
+func (k Keeper) validatePacketProofRoot(
+	ctx sdk.Context,
+	rollappPacket commontypes.RollappPacket,
+	stateInfo rollapptypes.StateInfo,
+) error {
+	stateRoot, ok := blockDescriptorRootAtHeight(stateInfo, rollappPacket.ProofHeight)
+	if !ok {
+		return nil
+	}
+
+	portID, channelID := packetProofPortChannel(rollappPacket)
+	clientID, clientState, err := k.channelKeeper.GetChannelClientState(ctx, portID, channelID)
+	if err != nil {
+		return errorsmod.Wrapf(err, "get channel client state for %s/%s", portID, channelID)
+	}
+
+	consensusHeight := clienttypes.NewHeight(clientState.GetLatestHeight().GetRevisionNumber(), rollappPacket.ProofHeight)
+	consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, clientID, consensusHeight)
+	if !found {
+		return errorsmod.Wrapf(types.ErrUnknownRequest,
+			"consensus state not found for client %s at height %s", clientID, consensusHeight)
+	}
+
+	rootedConsensusState, ok := consensusState.(consensusRoot)
+	if !ok {
+		return errorsmod.Wrapf(types.ErrUnknownRequest,
+			"consensus state for client %s at height %s has no commitment root", clientID, consensusHeight)
+	}
+
+	consensusRoot := rootedConsensusState.GetRoot().GetHash()
+	if !bytes.Equal(stateRoot, consensusRoot) {
+		return errorsmod.Wrapf(types.ErrUnknownRequest,
+			"rollapp state root mismatch at height %d: descriptor root %X != consensus root %X",
+			rollappPacket.ProofHeight, stateRoot, consensusRoot)
+	}
+
+	return nil
+}
+
+func blockDescriptorRootAtHeight(stateInfo rollapptypes.StateInfo, proofHeight uint64) ([]byte, bool) {
+	if proofHeight < stateInfo.StartHeight || proofHeight >= stateInfo.StartHeight+stateInfo.NumBlocks {
+		return nil, false
+	}
+
+	for _, descriptor := range stateInfo.BDs.BD {
+		if descriptor.Height == proofHeight {
+			if len(descriptor.StateRoot) == 0 {
+				return nil, false
+			}
+			return descriptor.StateRoot, true
+		}
+	}
+
+	return nil, false
+}
+
+func packetProofPortChannel(rollappPacket commontypes.RollappPacket) (string, string) {
+	switch rollappPacket.Type {
+	case commontypes.RollappPacket_ON_RECV:
+		return rollappPacket.Packet.DestinationPort, rollappPacket.Packet.DestinationChannel
+	case commontypes.RollappPacket_ON_ACK, commontypes.RollappPacket_ON_TIMEOUT:
+		return rollappPacket.Packet.SourcePort, rollappPacket.Packet.SourceChannel
+	default:
+		return rollappPacket.Packet.SourcePort, rollappPacket.Packet.SourceChannel
+	}
 }
 
 type wrappedFunc func(ctx sdk.Context) error
