@@ -25,23 +25,32 @@ import (
 // implementations are involved.
 func (k Keeper) GetCurrentRelayerSet(ctx sdk.Context) *types.RelayerSet {
 	allRelayers := k.GetAllRelayers(ctx, true)
+	type relayerPower struct {
+		power           sdkmath.Int
+		externalAddress string
+	}
+	relayerPowers := make([]relayerPower, 0, len(allRelayers))
 	bridgeValidators := make([]types.BridgeValidator, 0, len(allRelayers))
-	var totalPower uint64
+	totalPower := sdkmath.ZeroInt()
 
 	for _, relayer := range allRelayers {
 		power := relayer.GetPower()
 		if power.LTE(sdkmath.ZeroInt()) {
 			continue
 		}
-		totalPower += power.Uint64()
-		bridgeValidators = append(bridgeValidators, types.BridgeValidator{
-			Power:           power.Uint64(),
-			ExternalAddress: relayer.ExternalAddress,
+		totalPower = totalPower.Add(power)
+		relayerPowers = append(relayerPowers, relayerPower{
+			power:           power,
+			externalAddress: relayer.ExternalAddress,
 		})
 	}
-	for i := range bridgeValidators {
+	powerBase := sdkmath.NewIntFromUint64(types.PowerBase)
+	for _, relayerPower := range relayerPowers {
 		// normalize power, use 10000 as the base, meaning 50.01% is 5001.
-		bridgeValidators[i].Power = sdkmath.NewUint(bridgeValidators[i].Power).MulUint64(types.PowerBase).QuoUint64(totalPower).Uint64()
+		bridgeValidators = append(bridgeValidators, types.BridgeValidator{
+			Power:           relayerPower.power.Mul(powerBase).Quo(totalPower).Uint64(),
+			ExternalAddress: relayerPower.externalAddress,
+		})
 	}
 	relayerSetNonce := k.GetLastRelayerSetNonce(ctx)
 	return types.CurrentRelayerSet(relayerSetNonce, uint64(ctx.BlockHeight()), bridgeValidators)

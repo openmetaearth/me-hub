@@ -3,7 +3,9 @@ package keeper_test
 import (
 	"encoding/hex"
 	"fmt"
+	"math"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
@@ -12,6 +14,30 @@ import (
 	"github.com/openmetaearth/me-hub/testutil/helpers"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
+
+func (s *KeeperTestSuite) TestGetCurrentRelayerSetNormalizesLargeTotalPower() {
+	power := sdkmath.NewIntFromUint64(math.MaxUint64/2 + 100)
+	delegateAmount := power.Mul(sdk.DefaultPowerReduction)
+
+	for i := 0; i < 2; i++ {
+		s.Keeper().SetRelayer(s.Ctx, s.relayerAddrs[i], types.Relayer{
+			RelayerAddress:  s.relayerAddrs[i].String(),
+			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
+			DelegateAmount:  delegateAmount,
+			Online:          true,
+		})
+	}
+
+	relayerSet := s.Keeper().GetCurrentRelayerSet(s.Ctx)
+
+	s.Require().Len(relayerSet.Members, 2)
+	var totalNormalizedPower uint64
+	for _, member := range relayerSet.Members {
+		s.Require().EqualValues(types.PowerBase/2, member.Power)
+		totalNormalizedPower += member.Power
+	}
+	s.Require().EqualValues(types.PowerBase, totalNormalizedPower)
+}
 
 func (s *KeeperTestSuite) TestLastPendingRelayerSetRequestByAddr() {
 	testCases := []struct {
