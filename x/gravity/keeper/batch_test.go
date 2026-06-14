@@ -70,6 +70,22 @@ func (suite *KeeperTestSuite) TestLastPendingBatchRequestByAddr() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestBatchTimeoutHeightDoesNotUnderflowWhenObservedLocalHeightAhead() {
+	suite.SetupTest()
+
+	suite.Ctx = suite.Ctx.WithBlockHeight(1)
+	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, 1_000, 100)
+
+	params := suite.Keeper().GetParams(suite.Ctx)
+	expectedBlocksToAdd := params.ExternalBatchTimeout / params.AverageExternalBlockTime
+
+	projectedHeight, batchTimeout := suite.Keeper().GetBatchTimeoutHeight(suite.Ctx)
+
+	suite.Require().Equal(uint64(1_000), projectedHeight)
+	suite.Require().Equal(uint64(1_000)+expectedBlocksToAdd, batchTimeout)
+	suite.Require().Less(batchTimeout, uint64(2_000_000))
+}
+
 func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfirm() {
 	tokenContract := helpers.GenerateAddress().Hex()
 	batch := &types.OutgoingTxBatch{
