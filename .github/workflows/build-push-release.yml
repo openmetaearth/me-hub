@@ -1,138 +1,81 @@
-name: Build and Push Release Docker Image
+name: Build and Publish Release Docker Image
 
 on:
-    push:
-        tags:
-            - "v*"
-    workflow_dispatch:
-
-env:
-    IMAGE_NAME: openmetaearth/me_hub
+  push:
+    tags:
+      - "v*"
 
 jobs:
-    build-and-push:
-        runs-on: ubuntu-latest
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-            - name: Set up Go
-              uses: actions/setup-go@v5
-              with:
-                  go-version: "1.23"
-                  cache: false
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-            - name: Get version information
-              id: version
-              run: |
-                  # Extract tag name (e.g., v1.0.0)
-                  TAG_NAME=${GITHUB_REF#refs/tags/}
-                  echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
-                  echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-                  echo "commit=$(git log -1 --format='%H')" >> $GITHUB_OUTPUT
-                  echo "date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
-                  echo "Building version: $TAG_NAME"
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
 
-            - name: Set image tag
-              id: image
-              run: |
-                  IMAGE_TAG="${{ secrets.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}"
-                  echo "tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
-                  echo "Image will be tagged as: $IMAGE_TAG"
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=tag
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          flavor: |
+            latest=true
 
-            - name: Clean up previous builds
-              run: |
-                  rm -rf vendor build
-                  docker system prune -f
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          file: docker/Dockerfile.release
+          platforms: linux/amd64
+          pull: true
+          push: true
+          build-args: |
+            GIT_VERSION=${{ github.ref_name }}
+            GIT_COMMIT=${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-            - name: Build release Docker image
-              run: |
-                  echo "Building release version..."
+      - name: Verify published image
+        run: |
+          IMAGE_REF=$(echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}" | tr '[:upper:]' '[:lower:]')
+          docker pull "$IMAGE_REF"
+          docker run --rm "$IMAGE_REF" version
+          docker run --rm "$IMAGE_REF" version --long
 
-                  # Prepare vendor directory
-                  go mod vendor
-
-                  # Build Docker image
-                  DOCKER_BUILDKIT=1 docker build \
-                    --build-arg GIT_VERSION=${{ steps.version.outputs.tag }} \
-                    --build-arg GIT_COMMIT=${{ steps.version.outputs.commit }} \
-                    -t me-hub/release:build-temp \
-                    -f docker/Dockerfile.release .
-
-            # - name: Log in to Harbor Registry
-            #   run: |
-            #       echo "${{ secrets.HARBOR_PASSWORD }}" | docker login ${{ secrets.HARBOR_REGISTRY }} \
-            #         -u "${{ secrets.HARBOR_USERNAME }}" \
-            #         --password-stdin
-
-            - name: Tag and push image
-              run: |
-                  # Tag the image
-                  docker tag me-hub/release:build-temp ${{ steps.image.outputs.tag }}
-
-                  # Push to Harbor
-                  echo "Pushing image to Harbor..."
-                  docker push ${{ steps.image.outputs.tag }}
-
-                  # Also tag and push as latest
-                  VERSION_LATEST="${{ secrets.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-                  docker tag me-hub/release:build-temp $VERSION_LATEST
-                  docker push $VERSION_LATEST
-
-            - name: Verify image
-              run: |
-                  echo "Verifying pushed image..."
-                  docker pull ${{ steps.image.outputs.tag }}
-
-                  echo "Testing med binary version..."
-                  docker run --rm ${{ steps.image.outputs.tag }} version
-
-                  echo "Displaying detailed version information..."
-                  docker run --rm ${{ steps.image.outputs.tag }} version --long
-
-                  echo "Image verification completed successfully!"
-
-            - name: Clean up
-              if: always()
-              run: |
-                  # Clean up local images
-                  docker rmi me-hub/release:build-temp || true
-                  docker rmi ${{ steps.image.outputs.tag }} || true
-
-                  # Clean up build artifacts
-                  rm -rf vendor
-
-            - name: Generate build summary
-              if: always()
-              run: |
-                  echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "### Image Information" >> $GITHUB_STEP_SUMMARY
-                  echo "- **Image Tag:** \`${{ steps.image.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
-                  echo "- **Git Tag:** \`${{ steps.version.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
-                  echo "- **Git Commit:** \`${{ steps.version.outputs.commit }}\`" >> $GITHUB_STEP_SUMMARY
-                  echo "- **Build Date:** \`${{ steps.version.outputs.date }}\`" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "### Image Type" >> $GITHUB_STEP_SUMMARY
-                  echo "This is a **release build** - a minimal runtime image containing only the compiled binary." >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "### Pull and Run" >> $GITHUB_STEP_SUMMARY
-                  echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-                  echo "# Pull the image" >> $GITHUB_STEP_SUMMARY
-                  echo "docker pull ${{ steps.image.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "# Check version" >> $GITHUB_STEP_SUMMARY
-                  echo "docker run --rm ${{ steps.image.outputs.tag }} version" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "# Run med commands" >> $GITHUB_STEP_SUMMARY
-                  echo "docker run --rm ${{ steps.image.outputs.tag }} --help" >> $GITHUB_STEP_SUMMARY
-                  echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-
-            - name: Send notification (on failure)
-              if: failure()
-              run: |
-                  echo "Build failed for tag ${{ steps.version.outputs.tag }}"
-                  echo "Check the logs at: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      - name: Generate build summary
+        if: always()
+        run: |
+          IMAGE_REF=$(echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_LATEST=$(echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" | tr '[:upper:]' '[:lower:]')
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image:** \`$IMAGE_REF\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Latest:** \`$IMAGE_LATEST\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Digest:** \`${{ steps.build.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Git Tag:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Git Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Public GHCR images can be pulled anonymously after the package visibility is set to **Public**." >> $GITHUB_STEP_SUMMARY
