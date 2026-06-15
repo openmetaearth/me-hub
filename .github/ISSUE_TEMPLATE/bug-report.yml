@@ -27,15 +27,6 @@ body:
     validations:
       required: false
 
-  - type: input
-    id: chain-id
-    attributes:
-      label: Chain ID
-      description: Which chain are you running into issues with?
-      placeholder: "e.g. mechain_202404-1"
-    validations:
-      required: false
-
   - type: dropdown
     id: module
     attributes:
