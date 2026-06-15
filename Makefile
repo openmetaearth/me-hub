@@ -20,6 +20,7 @@ DEPS_COSMOS_PROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos
 DEPS_COSMOS_GOGOPROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/gogoproto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_CONFIO_ICS23_VERSION := go/$(shell cat go.sum | grep 'github.com/confio/ics23/go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_WASM_VERSION := $(shell cat go.sum | grep 'github.com/CosmWasm/wasmd' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+WASMVM_VERSION := $(shell awk '$$1 == "github.com/CosmWasm/wasmvm" { print $$2; exit }' go.mod)
 
 export GO111MODULE = on
 
@@ -96,7 +97,8 @@ install: go.sum
 .PHONY: build build-debug build-linux build-test
 
 build: go.sum
-	go build $(BUILD_FLAGS) -o $(BUILDDIR)/med ./cmd/med
+	go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/med ./cmd/med
+	@echo "--> Done building."
 
 build-vendor: go.sum
 	@echo "Building with vendor mode (without ledger support for Docker)..."
@@ -126,12 +128,17 @@ build-linux-debug: go.sum
 .PHONY: docker-github docker-local docker-run-debug docker-private-net docker-private-net-start docker-private-net-stop docker-private-net-test docker-release
 
 docker-github:
-	DOCKER_BUILDKIT=1 docker build -t ghcr.io/me-hub/med:latest -f Dockerfile .
+	@echo "--> Building med docker image for linux/amd64"
+	docker build --platform=linux/amd64 --progress plain -t ghcr.io/openmetaearth/med:latest .
 
 # docker pull --platform=linux/amd64 ubuntu:24.04
 docker-local: build-linux
-	@DOCKER_BUILDKIT=1 docker build -t 192.168.0.79/me-hub/med:$(TAG) -f Dockerfile_local .
-	@docker push 192.168.0.79/me-hub/med:$(TAG)
+	@DOCKER_BUILDKIT=1 docker build --platform=linux/amd64 --build-arg WASMVM_VERSION=$(WASMVM_VERSION) -t ghcr.io/openmetaearth/med:$(TAG) -f Dockerfile_local .
+	@docker push ghcr.io/openmetaearth/med:$(TAG)
+
+#docker-local: build-linux
+# 	@DOCKER_BUILDKIT=1 docker build -t 192.168.0.79/me-hub/med:$(TAG) -f Dockerfile_local .
+# 	@docker push 192.168.0.79/me-hub/med:$(TAG)
 
 docker-run-debug:
 	@DOCKER_BUILDKIT=1 docker-compose -f docker-compose.debug.yml up

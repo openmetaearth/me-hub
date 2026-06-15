@@ -12,7 +12,9 @@ go.work.sum
 *.md
 # Exclude markdown files in docs but keep Go source files needed for build
 docs/*.md
-build/
+# Exclude build artifacts but keep the cross-compiled med binary needed by Dockerfile_local
+build/*
+!build/med
 .test/
 *.tar.gz
 *.zip
