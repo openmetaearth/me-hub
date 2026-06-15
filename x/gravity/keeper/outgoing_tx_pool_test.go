@@ -82,3 +82,49 @@ func (s *KeeperTestSuite) TestKeeper_IncreaseBridgeFeeDecrementsBridgeTokenSuppl
 	s.Require().NoError(err)
 	s.Require().EqualValues(sdkmath.NewInt(15), tx.Fee.Amount)
 }
+
+func (s *KeeperTestSuite) TestKeeper_IncreaseBridgeFeeUSDTConversion() {
+	sender := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	bridgeTokenContract := helpers.GenerateAddress().Hex()
+
+	denom := "usdt"
+	initialSupply := sdk.NewCoin(denom, sdkmath.NewInt(150))
+	err := s.App.BankKeeper.MintCoins(s.Ctx, s.chainName, sdk.NewCoins(initialSupply))
+	s.NoError(err)
+	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, s.chainName, sender, sdk.NewCoins(initialSupply))
+	s.NoError(err)
+
+	s.chainName = "bsc"
+
+	bridgeTokenState := &types.BridgeToken{
+		ContractAddress: bridgeTokenContract,
+		Denom:           denom,
+		Supply:          initialSupply.Amount,
+		Symbol:          "usdt",
+		Decimal:         18,
+	}
+	s.Keeper().SetBridgeToken(s.Ctx, bridgeTokenState)
+
+	receiver := helpers.GenerateAddress().Hex()
+	amount := sdk.NewCoin(denom, sdkmath.NewInt(40))
+	fee := sdk.NewCoin(denom, sdkmath.NewInt(10))
+	txId, err := s.Keeper().AddToOutgoingPool(s.Ctx, sender, receiver, amount, fee)
+	s.NoError(err)
+
+	tx, err := s.Keeper().GetUnbatchedTxById(s.Ctx, txId)
+	s.Require().NoError(err)
+	s.Require().EqualValues(sdkmath.NewInt(10_000_000_000_000), tx.Fee.Amount)
+
+	_, err = s.MsgServer().IncreaseBridgeFee(sdk.WrapSDKContext(s.Ctx), &types.MsgIncreaseBridgeFee{
+		ChainName:     s.chainName,
+		Sender:        sender.String(),
+		TransactionId: txId,
+		AddBridgeFee:  sdk.NewCoin(denom, sdkmath.NewInt(5)),
+	})
+	s.Require().NoError(err)
+
+	tx, err = s.Keeper().GetUnbatchedTxById(s.Ctx, txId)
+	s.Require().NoError(err)
+	s.Require().EqualValues(sdkmath.NewInt(15_000_000_000_000), tx.Fee.Amount)
+}
+
