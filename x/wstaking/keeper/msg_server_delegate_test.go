@@ -10,6 +10,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/wmint"
 	"github.com/openmetaearth/me-hub/x/wstaking"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 )
 
 func (s *KeeperTestSuite) TestDelegate() {
@@ -165,3 +166,67 @@ func (s *KeeperTestSuite) TestUnDelegate() {
 		})
 	}
 }
+
+func (s *KeeperTestSuite) TestUpdateValidatorRegionBlockedWithDelegations() {
+	s.SetupTest()
+
+	// 1. Create a region and bond a validator to it
+	regionID := "USA"
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            regionID,
+		OperatorAddress: s.usaValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
+	// 2. Set KYC data for delegator1 to "usa" region
+	delegator1 := s.TestAccs[0]
+	s.App.KycKeeper.SetDID(s.Ctx, delegator1, "did1")
+	s.App.KycKeeper.SetDidInfo(s.Ctx, "did1", didtypes.DidInfo{
+		Did:      "did1",
+		Address:  delegator1.String(),
+		RegionId: "usa",
+		KycLevel: 2,
+		Status:   didtypes.DID_STATUS_ACTIVE,
+	})
+	vc1 := didtypes.Credential{Did: "did1", Data: []byte("usa")}
+	s.App.KycKeeper.SetKYC(s.Ctx, "did1", vc1)
+	s.App.KycKeeper.AddFilters(s.Ctx, "did1", [][]byte{[]byte("usa")}, vc1)
+
+	// Fund delegator1
+	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, delegator1, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000)})
+	s.Require().NoError(err)
+
+	// 3. Delegate some tokens so oldRegion.DelegateAmount > 0
+	msgDelegate := stakingtypes.MsgDelegate{
+		DelegatorAddress: delegator1.String(),
+		ValidatorAddress: s.usaValidator.OperatorAddress,
+		Amount:           sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000)),
+	}
+	_, err = s.msgServer.Delegate(s.Ctx, &msgDelegate)
+	s.Require().NoError(err)
+
+	// Verify old region has DelegateAmount > 0
+	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
+	s.Require().True(found)
+	s.Require().True(region.DelegateAmount.GT(sdk.ZeroInt()))
+
+	// 4. Try to update validator region to a new region
+	msgUpdate := types.MsgUpdateValidator{
+		StakerAddress:   s.Dao.GlobalDao,
+		OperatorAddress: s.usaValidator.OperatorAddress,
+		Description: stakingtypes.Description{
+			Moniker:         "new-moniker",
+			Identity:        stakingtypes.DoNotModifyDesc,
+			Website:         stakingtypes.DoNotModifyDesc,
+			SecurityContact: stakingtypes.DoNotModifyDesc,
+			Details:         stakingtypes.DoNotModifyDesc,
+			RegionID:        "CHN",
+		},
+	}
+	_, err = s.msgServer.UpdateValidator(s.Ctx, &msgUpdate)
+	s.Require().Error(err)
+	s.Require().Contains(err.Error(), "cannot reassign validator: old region (usa) still has active delegations")
+}
+
