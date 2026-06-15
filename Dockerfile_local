@@ -24,7 +24,7 @@ RUN chmod +x /usr/local/bin/med
 WORKDIR /root
 VOLUME ["/root"]
 
-EXPOSE 36656/tcp 36657/tcp 36660/tcp 8090/tcp 1318/tcp
+EXPOSE 26656/tcp 26657/tcp 26660/tcp 9090/tcp 1317/tcp 8545/tcp 8546/tcp
 
 ENTRYPOINT ["med"]
 
