@@ -74,13 +74,13 @@ demo_send_tokens() {
     print_info "From: ${FROM_ADDR}"
     print_info "To: ${TO_ADDR}"
 
-    print_command "med tx bank send ${FROM_ADDR} ${TO_ADDR} ${AMOUNT} --chain-id mechain_202404-1 --keyring-backend test --yes"
+    print_command "med tx bank send ${FROM_ADDR} ${TO_ADDR} ${AMOUNT} --chain-id mechain_2404-1 --keyring-backend test --yes"
 
     TX_HASH=$(docker exec "${CONTAINER_NAME}" med tx bank send \
         ${FROM_ADDR} \
         ${TO_ADDR} \
         ${AMOUNT} \
-        --chain-id mechain_202404-1 \
+        --chain-id mechain_2404-1 \
         --keyring-backend ${KEYRING_BACKEND} \
         --yes \
         --output json | jq -r '.txhash')
@@ -193,7 +193,7 @@ demo_create_account() {
         ${FROM_ADDR} \
         ${NEW_ADDR} \
         5000000umec \
-        --chain-id mechain_202404-1 \
+        --chain-id mechain_2404-1 \
         --keyring-backend ${KEYRING_BACKEND} \
         --yes > /dev/null
 

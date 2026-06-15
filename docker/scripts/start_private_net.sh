@@ -2,7 +2,7 @@
 # Startup script for ME-Chain private network in Docker
 
 echo "Starting ME-Chain private network..."
-echo "Chain ID: ${CHAIN_ID:-mechain_202404-1}"
+echo "Chain ID: ${CHAIN_ID:-mechain_2404-1}"
 echo "Moniker: ${MONIKER_NAME:-local}"
 
 # Check if chain is already initialized

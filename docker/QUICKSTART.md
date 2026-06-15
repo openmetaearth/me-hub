@@ -159,7 +159,7 @@ docker exec mechain-private-net med tx bank send \
   <from_address> \
   <to_address> \
   1000000umec \
-  --chain-id mechain_202404-1 \
+  --chain-id mechain_2404-1 \
   --keyring-backend test \
   --yes
 
@@ -324,7 +324,7 @@ const client = await SigningStargateClient.connect(rpcEndpoint);
 from cosmpy.aerial.client import LedgerClient, NetworkConfig
 
 network = NetworkConfig(
-    chain_id="mechain_202404-1",
+    chain_id="mechain_2404-1",
     url="grpc+http://localhost:8090",
     fee_minimum_gas_price=1,
     fee_denomination="umec",
@@ -339,7 +339,7 @@ import "github.com/cosmos/cosmos-sdk/client"
 
 clientCtx := client.Context{}.
     WithNodeURI("tcp://localhost:36657").
-    WithChainID("mechain_202404-1")
+    WithChainID("mechain_2404-1")
 ```
 
 ### Q8: How to use in CI/CD?

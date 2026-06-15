@@ -8,8 +8,8 @@ import (
 
 const (
 	MainnetV1ChainId  = "mechain"
-	MainnetV2ChainId  = "mechain_202404-1"
-	MainnetEvmChainID = 202404
+	MainnetV2ChainId  = "mechain_2404-1"
+	MainnetEvmChainID = 2404
 
 	TestnetV1ChainId  = "mechain_testnet"
 	TestnetV2ChainId  = "mechain_testnet_202405-1"
