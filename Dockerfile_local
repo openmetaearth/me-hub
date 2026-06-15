@@ -25,6 +25,3 @@ WORKDIR /root
 VOLUME ["/root"]
 
 EXPOSE 26656/tcp 26657/tcp 26660/tcp 9090/tcp 1317/tcp 8545/tcp 8546/tcp
-
-ENTRYPOINT ["med"]
-
