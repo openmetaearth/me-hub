@@ -22,16 +22,30 @@ func TestMsgIbcTransferFromRegionTreasure_ValidateBasic(t *testing.T) {
 				SourceChannel: "channel-0",
 				RegionId:      "USA",
 				Token:         sdk.NewCoin("umec", sdk.NewInt(100)),
+				Receiver:      sample.AccAddress(),
 				Creator:       "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
-		}, {
+		},
+		{
+			name: "empty receiver",
+			msg: MsgIbcTransferFromRegionTreasure{
+				SourcePort:    "transfer",
+				SourceChannel: "channel-0",
+				RegionId:      "USA",
+				Token:         sdk.NewCoin("umec", sdk.NewInt(100)),
+				Creator:       sample.AccAddress(),
+			},
+			err: sdkerrors.ErrInvalidAddress,
+		},
+		{
 			name: "valid address",
 			msg: MsgIbcTransferFromRegionTreasure{
 				SourcePort:    "transfer",
 				SourceChannel: "channel-0",
 				RegionId:      "USA",
 				Token:         sdk.NewCoin("umec", sdk.NewInt(100)),
+				Receiver:      sample.AccAddress(),
 				Creator:       sample.AccAddress(),
 			},
 		},

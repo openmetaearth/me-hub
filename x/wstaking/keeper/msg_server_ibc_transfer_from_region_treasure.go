@@ -25,19 +25,26 @@ func (k MsgServer) IbcTransferFromRegionTreasure(goCtx context.Context, msg *typ
 
 	treasureAddress := region.RegionTreasureAddr
 
-	_, err := k.IbcTransferKeeper.Transfer(ctx, ibctransfertypes.NewMsgTransfer(
-		msg.SourcePort,
-		msg.SourceChannel,
-		msg.Token,
+	_, err := k.IbcTransferKeeper.Transfer(ctx, newRegionTreasureIBCTransferMsg(
+		msg,
 		treasureAddress,
-		treasureAddress,
-		ibcclienttypes.Height{RevisionNumber: msg.TimeoutHeight.RevisionNumber, RevisionHeight: msg.TimeoutHeight.RevisionHeight},
-		msg.TimeoutTimestamp,
-		msg.Memo,
 	))
 	if err != nil {
 		return nil, err
 	}
 
 	return &types.MsgIbcTransferFromRegionTreasureResponse{}, nil
+}
+
+func newRegionTreasureIBCTransferMsg(msg *types.MsgIbcTransferFromRegionTreasure, treasureAddress string) *ibctransfertypes.MsgTransfer {
+	return ibctransfertypes.NewMsgTransfer(
+		msg.SourcePort,
+		msg.SourceChannel,
+		msg.Token,
+		treasureAddress,
+		msg.Receiver,
+		ibcclienttypes.Height{RevisionNumber: msg.TimeoutHeight.RevisionNumber, RevisionHeight: msg.TimeoutHeight.RevisionHeight},
+		msg.TimeoutTimestamp,
+		msg.Memo,
+	)
 }
