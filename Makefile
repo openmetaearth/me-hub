@@ -12,14 +12,15 @@ DOCKER := $(shell which docker)
 BUILDDIR ?= $(CURDIR)/build
 
 # Dependencies version
-DEPS_COSMOS_SDK_VERSION := $(shell cat go.sum | grep 'github.com/st-chain/cosmos-sdk' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
-DEPS_ETHERMINT_VERSION := $(shell cat go.sum | grep 'github.com/st-chain/ethermint' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
-DEPS_OSMOSIS_VERSION := $(shell cat go.sum | grep 'github.com/st-chain/osmosis' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_COSMOS_SDK_VERSION := $(shell cat go.sum | grep 'github.com/openmetaearth/cosmos-sdk' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_ETHERMINT_VERSION := $(shell cat go.sum | grep 'github.com/openmetaearth/ethermint' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_OSMOSIS_VERSION := $(shell cat go.sum | grep 'github.com/openmetaearth/osmosis' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_IBC_GO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/ibc-go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_COSMOS_PROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos-proto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_COSMOS_GOGOPROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/gogoproto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_CONFIO_ICS23_VERSION := go/$(shell cat go.sum | grep 'github.com/confio/ics23/go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_WASM_VERSION := $(shell cat go.sum | grep 'github.com/CosmWasm/wasmd' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+WASMVM_VERSION := $(shell awk '$$1 == "github.com/CosmWasm/wasmvm" { print $$2; exit }' go.mod)
 
 export GO111MODULE = on
 
@@ -96,7 +97,8 @@ install: go.sum
 .PHONY: build build-debug build-linux build-test
 
 build: go.sum
-	go build $(BUILD_FLAGS) -o $(BUILDDIR)/med ./cmd/med
+	go build -mod=readonly -v $(BUILD_FLAGS) -o $(BUILDDIR)/med ./cmd/med
+	@echo "--> Done building."
 
 build-vendor: go.sum
 	@echo "Building with vendor mode (without ledger support for Docker)..."
@@ -106,7 +108,7 @@ build-vendor: go.sum
 
 TRIGGER_BLOCKS ?= 100
 build-test: go.sum
-	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)) -X github.com/st-chain/me-hub/x/wmint/types.OneDayTotalBlocks=$(TRIGGER_BLOCKS))
+	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)) -X github.com/openmetaearth/me-hub/x/wmint/types.OneDayTotalBlocks=$(TRIGGER_BLOCKS))
 	go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -o $(BUILDDIR)/med ./cmd/med
 
 build-debug: go.sum
@@ -126,12 +128,17 @@ build-linux-debug: go.sum
 .PHONY: docker-github docker-local docker-run-debug docker-private-net docker-private-net-start docker-private-net-stop docker-private-net-test docker-release
 
 docker-github:
-	DOCKER_BUILDKIT=1 docker build -t ghcr.io/me-hub/med:latest -f Dockerfile .
+	@echo "--> Building med docker image for linux/amd64"
+	docker build --platform=linux/amd64 --progress plain -t ghcr.io/openmetaearth/med:latest .
 
 # docker pull --platform=linux/amd64 ubuntu:24.04
 docker-local: build-linux
-	@DOCKER_BUILDKIT=1 docker build -t 192.168.0.79/me-hub/med:$(TAG) -f Dockerfile_local .
-	@docker push 192.168.0.79/me-hub/med:$(TAG)
+	@DOCKER_BUILDKIT=1 docker build --platform=linux/amd64 --build-arg WASMVM_VERSION=v1.3.0 -t ghcr.io/openmetaearth/med:$(TAG) -f Dockerfile_local .
+	@docker push ghcr.io/openmetaearth/med:$(TAG)
+
+#docker-local: build-linux
+# 	@DOCKER_BUILDKIT=1 docker build -t 192.168.0.79/me-hub/med:$(TAG) -f Dockerfile_local .
+# 	@docker push 192.168.0.79/me-hub/med:$(TAG)
 
 docker-run-debug:
 	@DOCKER_BUILDKIT=1 docker-compose -f docker-compose.debug.yml up
@@ -286,14 +293,14 @@ THIRD_PARTY_DIR=$(SWAGGER_DIR)/third_party
 proto-download-deps:
 	mkdir -p "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
-	git clone -b me-hub/v0.47.13 --single-branch --depth 1 https://github.com/st-chain/cosmos-sdk.git && \
+	git clone -b me-hub/v0.47.13 --single-branch --depth 1 https://github.com/openmetaearth/cosmos-sdk.git && \
 	rm -f ./cosmos-sdk/proto/buf.* && \
 	mv ./cosmos-sdk/proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/cosmos_tmp"
 
 	mkdir -p "$(THIRD_PARTY_DIR)/ethermint_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/ethermint_tmp" && \
-	git clone -b dev --single-branch --depth 1 https://github.com/st-chain/ethermint.git && \
+	git clone -b dev --single-branch --depth 1 https://github.com/openmetaearth/ethermint.git && \
 	rm -f ./ethermint/proto/buf.* && \
 	mv ./ethermint/proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/ethermint_tmp"
