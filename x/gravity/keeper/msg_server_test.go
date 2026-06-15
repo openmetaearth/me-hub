@@ -910,7 +910,11 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	}
 
 	for _, testCase := range testCases {
-		s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
+		if testCase.testName == "Support - baseFee 0" {
+			s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 300000)
+		} else {
+			s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
+		}
 		_, err := s.MsgServer().RequestBatch(sdk.WrapSDKContext(s.Ctx), &types.MsgRequestBatch{
 			Sender:     s.relayerAddrs[0].String(),
 			Denom:      bridgeDenomData.Denom,

@@ -155,3 +155,62 @@ func (suite *KeeperTestSuite) TestKeeper_IterateBatch() {
 	)
 	suite.Equal(len(batchs), index)
 }
+
+func (suite *KeeperTestSuite) TestKeeper_BuildOutgoingTxBatchTimeoutCheck() {
+	// 1. Setup token and add transactions to outgoing pool
+	sender := sdk.AccAddress(helpers.GenerateAddress().Bytes())
+	bridgeToken := helpers.GenerateAddress().Hex()
+	denom := "testtimeout"
+	feeReceiver := helpers.GenerateAddress().Hex()
+
+	// Mint and send tokens to sender
+	sendAmount := sdk.NewCoin(denom, sdkmath.NewInt(1000))
+	err := suite.App.BankKeeper.MintCoins(suite.Ctx, suite.chainName, sdk.NewCoins(sendAmount))
+	suite.NoError(err)
+	err = suite.App.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, suite.chainName, sender, sdk.NewCoins(sendAmount))
+	suite.NoError(err)
+
+	suite.Keeper().SetBridgeToken(suite.Ctx, &types.BridgeToken{
+		ContractAddress: bridgeToken,
+		Denom:           denom,
+		Supply:          sendAmount.Amount,
+	})
+
+	// Add two txs to the pool so we can build two batches (if timeouts allow)
+	receiver := helpers.GenerateAddress().Hex()
+	txId1, err := suite.Keeper().AddToOutgoingPool(suite.Ctx, sender, receiver, sdk.NewCoin(denom, sdkmath.NewInt(100)), sdk.NewCoin(denom, sdkmath.NewInt(10)))
+	suite.NoError(err)
+	_ = txId1
+
+	txId2, err := suite.Keeper().AddToOutgoingPool(suite.Ctx, sender, receiver, sdk.NewCoin(denom, sdkmath.NewInt(100)), sdk.NewCoin(denom, sdkmath.NewInt(10)))
+	suite.NoError(err)
+	_ = txId2
+
+	// Setup observed block height
+	suite.Keeper().SetLastObservedBlockHeight(suite.Ctx, 100, 100)
+	suite.Ctx = suite.Ctx.WithBlockHeight(100)
+
+	// 2. Build the first batch - should succeed
+	batch1, err := suite.Keeper().BuildOutgoingTxBatch(suite.Ctx, bridgeToken, feeReceiver, 1, sdkmath.ZeroInt(), sdkmath.ZeroInt())
+	suite.NoError(err)
+	suite.NotNil(batch1)
+
+	// 3. Trying to build another batch immediately when it's not timed out must fail.
+	// We advance height slightly to avoid the "only one batch in a block" restriction,
+	// but it should still fail because of the timeout guard.
+	suite.Ctx = suite.Ctx.WithBlockHeight(101)
+	batch2, err := suite.Keeper().BuildOutgoingTxBatch(suite.Ctx, bridgeToken, feeReceiver, 1, sdkmath.ZeroInt(), sdkmath.ZeroInt())
+	suite.Error(err)
+	suite.Nil(batch2)
+	suite.Contains(err.Error(), "existing unexecuted batch, and the batch not timeout")
+
+	// 4. Advance block height to simulate batch timeout
+	suite.Ctx = suite.Ctx.WithBlockHeight(300000)
+
+	// Now it has timed out, so building the batch should pass the timeout check.
+	// Since we advanced height, the second transaction is still in the pool and can be batched.
+	batch3, err := suite.Keeper().BuildOutgoingTxBatch(suite.Ctx, bridgeToken, feeReceiver, 1, sdkmath.ZeroInt(), sdkmath.ZeroInt())
+	suite.NoError(err)
+	suite.NotNil(batch3)
+}
+
