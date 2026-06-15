@@ -157,7 +157,7 @@ func (k Keeper) Delegate(
 	delegation.StartHeight = ctx.BlockHeight()
 	k.SetDelegation(ctx, delegation)
 
-	return sdk.NewDecFromInt(delegation.Amount), nil
+	return sdk.NewDecFromInt(bondAmt), nil
 }
 
 // WithdrawDelegationRewards withdraw rewards from a delegation

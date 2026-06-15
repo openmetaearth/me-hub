@@ -96,6 +96,31 @@ func (s *KeeperTestSuite) TestDelegate() {
 	}
 }
 
+func (s *KeeperTestSuite) TestDelegateExperienceRegionEmitsAddedShares() {
+	s.SetupTest()
+
+	delegator := sdk.MustAccAddressFromBech32(s.Dao.AirdropAddress)
+	delegateAmount := sdk.NewInt(1000000)
+	msg := stakingtypes.MsgDelegate{
+		DelegatorAddress: delegator.String(),
+		ValidatorAddress: s.experienceValidator.OperatorAddress,
+		Amount:           sdk.NewCoin(params.BaseDenom, delegateAmount),
+	}
+
+	_, err := s.msgServer.Delegate(s.Ctx, &msg)
+	s.Require().NoError(err)
+
+	delegation, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator, s.experienceValidator.GetOperator())
+	s.Require().True(found)
+	s.Require().Equal(delegateAmount.String(), delegation.UnMeidAmount.String())
+	s.Require().Equal(sdk.ZeroInt().String(), delegation.Amount.String())
+
+	delegateEvent, found := s.FindLastEventOfType(s.Ctx.EventManager().Events(), stakingtypes.EventTypeDelegate)
+	s.Require().True(found)
+	attrs := s.ExtractAttributes(delegateEvent)
+	s.Require().Equal(sdk.NewDecFromInt(delegateAmount).String(), attrs[types.AttributeKeyNewShares])
+}
+
 func (s *KeeperTestSuite) TestUnDelegate() {
 	s.SetupTest()
 
