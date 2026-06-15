@@ -6,17 +6,23 @@
 
 FROM golang:1.23-bullseye as go-builder
 
-ARG arch=x86_64
-ARG GIT_VERSION
-ARG GIT_COMMIT
+ARG GIT_VERSION=dev
+ARG GIT_COMMIT=unknown
 
 WORKDIR /me-hub
+
+COPY go.mod go.sum ./
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
 # Copy source code
 COPY . .
 
-# Build using vendor mode (make will run go mod vendor)
-RUN make build-vendor
+# Build using Go modules directly
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    make LEDGER_ENABLED=false VERSION=${GIT_VERSION} COMMIT=${GIT_COMMIT} build
 
 # Find and copy the dynamic libwasmvm library
 RUN cp `ldd ./build/med | grep -P '/.+libwasmvm.*.so' -o` /go/
