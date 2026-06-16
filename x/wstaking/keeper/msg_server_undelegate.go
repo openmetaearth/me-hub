@@ -78,10 +78,22 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 		isMeid = false
 	}
 
+	expectedReturnAmount, err := expectedUndelegateReturnAmount(msg.Amount.Amount, isMeid, delegation)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateUndelegateCounterAmounts(region, val, expectedReturnAmount); err != nil {
+		return nil, err
+	}
+
 	completionTime, returnAmount, err := k.Keeper.Undelegate(ctx, delegatorAddress, valAddr, isMeid, msg.Amount.Amount, delegation)
 	if err != nil {
 		return nil, err
 	}
+	if err := validateUndelegateCounterAmounts(region, val, returnAmount); err != nil {
+		return nil, err
+	}
+
 	region.DelegateAmount = region.DelegateAmount.Sub(returnAmount)
 	k.SetRegion(ctx, region)
 	val.DelegationAmount = val.DelegationAmount.Sub(returnAmount)
@@ -123,4 +135,41 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	return &stakingtypes.MsgUndelegateResponse{
 		CompletionTime: completionTime,
 	}, nil
+}
+
+func expectedUndelegateReturnAmount(amount sdk.Int, isMeid bool, delegation stakingtypes.Delegation) (sdk.Int, error) {
+	if amount.LTE(sdk.ZeroInt()) {
+		return sdk.ZeroInt(), types.ErrAmountNotPositive
+	}
+
+	delegatedAmount := delegation.Amount
+	if !isMeid {
+		delegatedAmount = delegation.UnMeidAmount
+	}
+	if delegatedAmount.LTE(sdk.ZeroInt()) {
+		return sdk.ZeroInt(), types.ErrNotEnoughDelegationAmount
+	}
+
+	if amount.GTE(delegatedAmount) {
+		return delegatedAmount, nil
+	}
+
+	remainingAmount := delegatedAmount.Sub(amount)
+	if err := types.CheckMinDelegate(remainingAmount); err != nil {
+		return delegatedAmount, nil
+	}
+
+	return amount, nil
+}
+
+func validateUndelegateCounterAmounts(region types.Region, validator stakingtypes.Validator, returnAmount sdk.Int) error {
+	if region.DelegateAmount.Sub(returnAmount).LT(sdk.ZeroInt()) {
+		return types.ErrRegion.Wrapf("delegate amount: %s, requested undelegation return: %s",
+			region.DelegateAmount.String(), returnAmount.String())
+	}
+	if validator.DelegationAmount.Sub(returnAmount).LT(sdk.ZeroInt()) {
+		return types.ErrValidatorDelegationAmount.Wrapf("validator amount: %s, requested undelegation return: %s",
+			validator.DelegationAmount.String(), returnAmount.String())
+	}
+	return nil
 }

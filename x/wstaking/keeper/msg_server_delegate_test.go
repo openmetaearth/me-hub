@@ -165,3 +165,101 @@ func (s *KeeperTestSuite) TestUnDelegate() {
 		})
 	}
 }
+
+func (s *KeeperTestSuite) TestUndelegateRejectsNegativeRegionDelegateAmount() {
+	amount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000))
+	region, validator := s.setupMeEarthDelegation(amount)
+	corruptedRegionAmount := amount.Amount.Sub(sdk.NewInt(1))
+
+	region.DelegateAmount = corruptedRegionAmount
+	s.Keeper().SetRegion(s.Ctx, region)
+
+	undelegateMsg := stakingtypes.MsgUndelegate{
+		DelegatorAddress: s.Dao.GlobalDao,
+		ValidatorAddress: "",
+		Amount:           amount,
+	}
+	_, err := s.msgServer.Undelegate(s.Ctx, &undelegateMsg)
+	s.Require().ErrorIs(err, types.ErrRegion)
+
+	delegation, found := s.Keeper().GetDelegation(s.Ctx, sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), sdk.ValAddress{})
+	s.Require().True(found)
+	s.Require().Equal(amount.Amount.String(), delegation.Amount.String())
+
+	storedRegion, found := s.Keeper().GetRegion(s.Ctx, types.MeEarthRegionId)
+	s.Require().True(found)
+	s.Require().Equal(corruptedRegionAmount.String(), storedRegion.DelegateAmount.String())
+
+	valAddr, err := sdk.ValAddressFromBech32(s.meEarthValidator.OperatorAddress)
+	s.Require().NoError(err)
+	storedValidator, found := s.Keeper().GetValidator(s.Ctx, valAddr)
+	s.Require().True(found)
+	s.Require().Equal(validator.DelegationAmount.String(), storedValidator.DelegationAmount.String())
+}
+
+func (s *KeeperTestSuite) TestUndelegateRejectsNegativeValidatorDelegationAmount() {
+	amount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000))
+	region, validator := s.setupMeEarthDelegation(amount)
+	corruptedValidatorAmount := amount.Amount.Sub(sdk.NewInt(1))
+
+	valAddr, err := sdk.ValAddressFromBech32(s.meEarthValidator.OperatorAddress)
+	s.Require().NoError(err)
+	validator.DelegationAmount = corruptedValidatorAmount
+	s.Keeper().SetValidator(s.Ctx, validator)
+
+	undelegateMsg := stakingtypes.MsgUndelegate{
+		DelegatorAddress: s.Dao.GlobalDao,
+		ValidatorAddress: "",
+		Amount:           amount,
+	}
+	_, err = s.msgServer.Undelegate(s.Ctx, &undelegateMsg)
+	s.Require().ErrorIs(err, types.ErrValidatorDelegationAmount)
+
+	delegation, found := s.Keeper().GetDelegation(s.Ctx, sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), sdk.ValAddress{})
+	s.Require().True(found)
+	s.Require().Equal(amount.Amount.String(), delegation.Amount.String())
+
+	storedRegion, found := s.Keeper().GetRegion(s.Ctx, types.MeEarthRegionId)
+	s.Require().True(found)
+	s.Require().Equal(region.DelegateAmount.String(), storedRegion.DelegateAmount.String())
+
+	storedValidator, found := s.Keeper().GetValidator(s.Ctx, valAddr)
+	s.Require().True(found)
+	s.Require().Equal(corruptedValidatorAmount.String(), storedValidator.DelegationAmount.String())
+}
+
+func (s *KeeperTestSuite) setupMeEarthDelegation(amount sdk.Coin) (types.Region, stakingtypes.Validator) {
+	s.SetupTest()
+
+	newMeEarthRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            types.MeEarthRegionName,
+		OperatorAddress: s.meEarthValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newMeEarthRegion)
+	s.Require().NoError(err)
+
+	region, found := s.Keeper().GetRegion(s.Ctx, types.MeEarthRegionId)
+	s.Require().True(found)
+
+	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
+	s.Require().NoError(err)
+
+	delegateMsg := stakingtypes.MsgDelegate{
+		DelegatorAddress: s.Dao.GlobalDao,
+		ValidatorAddress: "",
+		Amount:           amount,
+	}
+	_, err = s.msgServer.Delegate(s.Ctx, &delegateMsg)
+	s.Require().NoError(err)
+
+	region, found = s.Keeper().GetRegion(s.Ctx, types.MeEarthRegionId)
+	s.Require().True(found)
+
+	valAddr, err := sdk.ValAddressFromBech32(s.meEarthValidator.OperatorAddress)
+	s.Require().NoError(err)
+	validator, found := s.Keeper().GetValidator(s.Ctx, valAddr)
+	s.Require().True(found)
+
+	return region, validator
+}
