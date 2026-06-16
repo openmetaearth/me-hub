@@ -10,24 +10,26 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 type Keeper struct {
 	*stakingkeeper.Keeper
-	cdc            codec.BinaryCodec
-	storeKey       storetypes.StoreKey
-	authKeeper     banktypes.AccountKeeper
-	bankKeeper     types.BankKeeper
-	daoKeeper      types.DaoKeeper
-	mintKeeper     types.MintKeeper
-	nftKeeper      types.NFTKeeper
-	wstakingHooks  types.WstakingHooks
-	kycKeeper      types.KycKeeper
-	didKeeper      types.DidKeeper
-	groupKeeper    types.GroupKeeper
-	slashingKeeper slashingkeeper.Keeper
+	cdc              codec.BinaryCodec
+	storeKey         storetypes.StoreKey
+	authKeeper       banktypes.AccountKeeper
+	bankKeeper       types.BankKeeper
+	daoKeeper        types.DaoKeeper
+	mintKeeper       types.MintKeeper
+	nftKeeper        types.NFTKeeper
+	wstakingHooks    types.WstakingHooks
+	kycKeeper        types.KycKeeper
+	didKeeper        types.DidKeeper
+	groupKeeper      types.GroupKeeper
+	slashingKeeper   slashingkeeper.Keeper
+	slashingStoreKey storetypes.StoreKey
 }
 
 func NewKeeper(
@@ -66,8 +68,20 @@ func (k *Keeper) SetDidKeeper(keeper types.DidKeeper) {
 	k.didKeeper = keeper
 }
 
-func (k *Keeper) SetSlashingKeeper(keeper slashingkeeper.Keeper) {
+func (k *Keeper) SetSlashingKeeper(keeper slashingkeeper.Keeper, storeKey ...storetypes.StoreKey) {
 	k.slashingKeeper = keeper
+	if len(storeKey) > 0 {
+		k.slashingStoreKey = storeKey[0]
+	}
+}
+
+func (k Keeper) deleteValidatorSigningInfo(ctx sdk.Context, consAddr sdk.ConsAddress) {
+	if k.slashingStoreKey == nil {
+		return
+	}
+
+	store := ctx.KVStore(k.slashingStoreKey)
+	store.Delete(slashingtypes.ValidatorSigningInfoKey(consAddr))
 }
 
 // Logger returns a module-specific logger.

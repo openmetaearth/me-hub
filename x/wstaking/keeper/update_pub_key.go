@@ -100,17 +100,19 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 			}, nil
 
 		} else if ctx.BlockHeight() == (updateInfo.UpdateAtHeight + 2) { //delay remove old cons addr because of distribution rewards delayed by one block
-			k.RemoveValidatorByConsAddr(ctx, sdk.ConsAddress(updateInfo.OldConsAddress))
+			oldConsAddr := sdk.ConsAddress(updateInfo.OldConsAddress)
+			k.RemoveValidatorByConsAddr(ctx, oldConsAddr)
+			k.deleteValidatorSigningInfo(ctx, oldConsAddr)
 			k.DeleteReplaceConsensusPubKey(ctx)
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(types.EventTypeDelayRemoveOldConsAddr,
 					sdk.NewAttribute(types.AttributeKeyOperatorAddress, updateInfo.OperatorAddress),
-					sdk.NewAttribute(types.AttributeKeyOldConsAddr, sdk.ConsAddress(updateInfo.OldConsAddress).String()),
+					sdk.NewAttribute(types.AttributeKeyOldConsAddr, oldConsAddr.String()),
 					sdk.NewAttribute(types.AttributeKeyUpdateAtHeight, fmt.Sprintf("%d", updateInfo.UpdateAtHeight)),
 					sdk.NewAttribute("height", fmt.Sprintf("%d", ctx.BlockHeight()))),
 			)
 			k.Logger(ctx).Info("completed delayed removed old cons addr from index", "old_cons_addr",
-				sdk.ConsAddress(updateInfo.OldConsAddress).String(), "height", ctx.BlockHeight())
+				oldConsAddr.String(), "height", ctx.BlockHeight())
 			return nil, nil
 
 		} else if ctx.BlockHeight() == (updateInfo.UpdateAtHeight + 1) {

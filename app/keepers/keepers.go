@@ -286,7 +286,7 @@ func (a *AppKeepers) InitKeepers(
 		a.StakingKeeper,
 		govModuleAddress,
 	)
-	a.StakingKeeper.SetSlashingKeeper(a.SlashingKeeper)
+	a.StakingKeeper.SetSlashingKeeper(a.SlashingKeeper, a.keys[slashingtypes.StoreKey])
 
 	a.FeeGrantKeeper = feegrantkeeper.NewKeeper(
 		appCodec,
