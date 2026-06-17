@@ -11,6 +11,7 @@ package keeper_test
 //   GRAV-001  Attest must reject historical-nonce claims (no backward rewind)
 //   GRAV-004  Failed AttestationHandler must not advance lastObservedEventNonce
 //   GRAV-005  Zero-total-power attestations must not satisfy quorum
+//   GRAV-006  Newly bonded relayer votes count only after external observation
 
 import (
 	"encoding/hex"
@@ -244,6 +245,81 @@ func (s *KeeperTestSuite) TestGrav005_TryAttestationRejectsZeroTotalPower() {
 }
 
 // ---------------------------------------------------------------------------
+// GRAV-006: Newly bonded relayers must not vote before external observation
+// ---------------------------------------------------------------------------
+//
+// Local bonding updates LastTotalPower immediately, but the external bridge
+// still trusts the last observed relayer set until a relayer-set update claim
+// advances it. External event attestations must therefore use the observed set
+// powers, not the current local relayer powers.
+func (s *KeeperTestSuite) TestGrav006_NewRelayerVoteWaitsForObservedSet() {
+	k := s.Keeper()
+	s.bondGravityRelayerForAuditTest(0, 300_000_000)
+	s.bondGravityRelayerForAuditTest(1, 300_000_000)
+	s.bondGravityRelayerForAuditTest(2, 400_000_000)
+
+	s.Ctx = s.Ctx.WithBlockHeight(1)
+	k.EndBlocker(s.Ctx)
+	observedSet := k.GetLastRelayerSet(s.Ctx)
+	s.Require().NotNil(observedSet)
+	s.Require().Len(observedSet.Members, 3)
+	k.SetLastObservedRelayerSet(s.Ctx, observedSet)
+
+	tokenContract := "0x0000000000000000000000000000000000000403"
+	bridgeToken := types.BridgeToken{
+		ContractAddress: tokenContract,
+		Denom:           "uusdt",
+		Name:            "Tether USD",
+		Symbol:          "USDT",
+		Decimal:         6,
+		Supply:          sdkmath.ZeroInt(),
+	}
+	k.SetBridgeToken(s.Ctx, &bridgeToken)
+
+	s.bondGravityRelayerForAuditTest(3, 200_000_000)
+	s.Ctx = s.Ctx.WithBlockHeight(2)
+	k.EndBlocker(s.Ctx)
+	latestSet := k.GetLastRelayerSet(s.Ctx)
+	s.Require().NotNil(latestSet)
+	s.Require().Len(latestSet.Members, 4)
+
+	receiver := s.relayerAddrs[5]
+	claim := &types.MsgSendToMeClaim{
+		EventNonce:     2,
+		BlockHeight:    2,
+		TokenContract:  tokenContract,
+		Amount:         sdkmath.NewInt(12_345),
+		Sender:         "0x0000000000000000000000000000000000000503",
+		Receiver:       receiver.String(),
+		RelayerAddress: s.relayerAddrs[3].String(),
+		ChainName:      s.chainName,
+	}
+	votes := []string{
+		s.relayerAddrs[0].String(),
+		s.relayerAddrs[1].String(),
+		s.relayerAddrs[3].String(),
+	}
+
+	earlyAttestation := &types.Attestation{Votes: votes}
+	k.TryAttestation(s.Ctx, earlyAttestation, claim)
+
+	s.Require().False(earlyAttestation.Observed,
+		"GRAV-006: new relayer vote must not satisfy quorum before external observation")
+	s.Require().True(s.App.BankKeeper.GetBalance(s.Ctx, receiver, bridgeToken.Denom).Amount.IsZero(),
+		"GRAV-006: send-to-me claim minted before the external bridge trusted the new relayer")
+
+	k.SetLastObservedRelayerSet(s.Ctx, latestSet)
+	observedAttestation := &types.Attestation{Votes: votes}
+	k.TryAttestation(s.Ctx, observedAttestation, claim)
+
+	minted := types.GetMintCoin(claim.Amount, claim.ChainName, &bridgeToken)
+	balance := s.App.BankKeeper.GetBalance(s.Ctx, receiver, minted.Denom)
+	s.Require().True(observedAttestation.Observed,
+		"GRAV-006: same votes should satisfy quorum after the external observed set includes the new relayer")
+	s.Require().Equal(minted.Amount, balance.Amount)
+}
+
+// ---------------------------------------------------------------------------
 // Helper: bond relayers, confirm and observe the initial relayer set.
 // Mirrors the opening of TestRequestBatchBaseFee in msg_server_test.go, but
 // stops before BridgeTokenClaim so the state is a clean "bridge initialized,
@@ -320,4 +396,15 @@ func (s *KeeperTestSuite) setupBondedRelayerSetForAuditTest() {
 		s.Require().NoError(err)
 	}
 	s.Keeper().EndBlocker(s.Ctx)
+}
+
+func (s *KeeperTestSuite) bondGravityRelayerForAuditTest(relayerIndex int, amount int64) {
+	msg := &types.MsgBondedRelayer{
+		RelayerAddress:  s.relayerAddrs[relayerIndex].String(),
+		ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[relayerIndex].PublicKey),
+		DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(amount)),
+		ChainName:       s.chainName,
+	}
+	_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msg)
+	s.Require().NoError(err)
 }

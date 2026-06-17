@@ -78,8 +78,10 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim types.ExternalClaim) {
 	// If the attestation has not yet been Observed, sum up the votes and see if it is ready to apply to the state.
 	// This conditional stops the attestation from accidentally being applied twice.
-	// Sum the current powers of all validators who have voted and see if it passes the current threshold
-	totalPower := k.GetLastTotalPower(ctx)
+	// Sum the powers trusted by the external bridge. After the first relayer
+	// set has been observed, local relayer changes are not trusted for
+	// external claims until the bridge observes that new set.
+	observedRelayerPowers, totalPower, useObservedRelayerSet := k.attestationObservedRelayerPowers(ctx)
 	if !totalPower.IsPositive() {
 		k.Logger(ctx).Error("TryAttestation", "non-positive total relayer power", totalPower.String(),
 			"claimEventNonce", claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
@@ -101,6 +103,16 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 			continue
 		}
 		relayerPower := relayer.GetPower()
+		if useObservedRelayerSet {
+			observedPower, trusted := observedRelayerPowers[relayer.ExternalAddress]
+			if !trusted {
+				k.Logger(ctx).Info("TryAttestation", "relayer not in last observed relayer set", relayerAddr.String(),
+					"externalAddress", relayer.ExternalAddress, "claimEventNonce", claim.GetEventNonce(),
+					"claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
+				continue
+			}
+			relayerPower = observedPower
+		}
 		// Add it to the attestation power's sum
 		attestationPower = attestationPower.Add(relayerPower)
 		if attestationPower.LT(requiredPower) {
@@ -128,6 +140,26 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 		}
 		break
 	}
+}
+
+func (k Keeper) attestationObservedRelayerPowers(ctx sdk.Context) (map[string]sdkmath.Int, sdkmath.Int, bool) {
+	lastObservedRelayerSet := k.GetLastObservedRelayerSet(ctx)
+	if lastObservedRelayerSet == nil || len(lastObservedRelayerSet.Members) == 0 {
+		return nil, k.GetLastTotalPower(ctx), false
+	}
+
+	powers := make(map[string]sdkmath.Int, len(lastObservedRelayerSet.Members))
+	totalPower := sdkmath.ZeroInt()
+	for _, member := range lastObservedRelayerSet.Members {
+		power := sdkmath.NewIntFromUint64(member.Power)
+		if !power.IsPositive() {
+			continue
+		}
+		powers[member.ExternalAddress] = power
+		totalPower = totalPower.Add(power)
+	}
+
+	return powers, totalPower, true
 }
 
 // processAttestation actually applies the attestation to the consensus state
