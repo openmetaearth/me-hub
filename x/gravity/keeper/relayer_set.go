@@ -263,6 +263,20 @@ func (k Keeper) GetLastObservedRelayerSet(ctx sdk.Context) *types.RelayerSet {
 	return &relayerSet
 }
 
+func (k Keeper) relayerExternalAddressInLastObservedSet(ctx sdk.Context, externalAddress string) bool {
+	lastObserved := k.GetLastObservedRelayerSet(ctx)
+	if lastObserved == nil {
+		return false
+	}
+
+	for _, member := range lastObserved.Members {
+		if member.ExternalAddress == externalAddress {
+			return true
+		}
+	}
+	return false
+}
+
 // SetLastObservedRelayerSet updates the last observed relayer set in the store
 func (k Keeper) SetLastObservedRelayerSet(ctx sdk.Context, relayerSet *types.RelayerSet) {
 	store := ctx.KVStore(k.storeKey)

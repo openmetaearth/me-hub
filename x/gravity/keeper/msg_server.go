@@ -148,6 +148,10 @@ func (s MsgServer) UnbondedRelayer(c context.Context, msg *types.MsgUnbondedRela
 		return nil, errorsmod.Wrap(types.ErrInvalid, "relayer on line")
 	}
 
+	if s.relayerExternalAddressInLastObservedSet(ctx, relayer.ExternalAddress) {
+		return nil, errorsmod.Wrapf(types.ErrInvalid, "relayer external address %s is still trusted by the last observed relayer set", relayer.ExternalAddress)
+	}
+
 	slashAmount := relayer.GetSlashAmount(s.GetSlashFraction(ctx))
 	if slashAmount.IsPositive() {
 		if err := s.bankKeeper.SendCoinsFromModuleToModule(ctx, s.moduleName, types.SlashingModuleAccount, sdk.NewCoins(slashAmount)); err != nil {

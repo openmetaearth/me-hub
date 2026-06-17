@@ -451,6 +451,72 @@ func (s *KeeperTestSuite) TestRelayerDelete() {
 	s.Require().False(found)
 }
 
+func (s *KeeperTestSuite) TestRemovedRelayerCannotUnbondUntilExternallyUntrusted() {
+	for i := 0; i < len(s.relayerAddrs); i++ {
+		msgBondedRelayer := &types.MsgBondedRelayer{
+			RelayerAddress:  s.relayerAddrs[i].String(),
+			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+			ChainName:       s.chainName,
+		}
+		s.Require().NoError(msgBondedRelayer.ValidateBasic())
+		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msgBondedRelayer)
+		s.Require().NoError(err)
+	}
+	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
+
+	initialRelayerSet := s.Keeper().GetLastRelayerSet(s.Ctx)
+	s.Require().NotNil(initialRelayerSet)
+	s.Keeper().SetLastObservedRelayerSet(s.Ctx, initialRelayerSet)
+
+	externalAddress := s.PubKeyToExternalAddr(s.externalPris[0].PublicKey)
+	s.Require().True(relayerSetContainsExternalAddress(initialRelayerSet, externalAddress))
+
+	newRelayerAddressList := make([]string, 0, len(s.relayerAddrs)-1)
+	for _, address := range s.relayerAddrs[1:] {
+		newRelayerAddressList = append(newRelayerAddressList, address.String())
+	}
+	_, err := s.MsgServer().ProposalRelayers(s.Ctx, &types.MsgProposalRelayers{
+		Relayers:  newRelayerAddressList,
+		Authority: s.Dao.GlobalDao,
+		ChainName: s.chainName,
+	})
+	s.Require().NoError(err)
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
+	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+
+	latestRelayerSet := s.Keeper().GetLastRelayerSet(s.Ctx)
+	s.Require().NotNil(latestRelayerSet)
+	s.Require().False(relayerSetContainsExternalAddress(latestRelayerSet, externalAddress))
+
+	_, err = s.MsgServer().UnbondedRelayer(s.Ctx, &types.MsgUnbondedRelayer{
+		ChainName:      s.chainName,
+		RelayerAddress: s.relayerAddrs[0].String(),
+	})
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "last observed relayer set")
+
+	relayer, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[0])
+	s.Require().True(found)
+	s.Require().False(relayer.Online)
+	relayerAddr, found := s.Keeper().GetRelayerByExternalAddress(s.Ctx, externalAddress)
+	s.Require().True(found)
+	s.Require().Equal(s.relayerAddrs[0].String(), relayerAddr.String())
+
+	s.Keeper().SetLastObservedRelayerSet(s.Ctx, latestRelayerSet)
+	_, err = s.MsgServer().UnbondedRelayer(s.Ctx, &types.MsgUnbondedRelayer{
+		ChainName:      s.chainName,
+		RelayerAddress: s.relayerAddrs[0].String(),
+	})
+	s.Require().NoError(err)
+
+	_, found = s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[0])
+	s.Require().False(found)
+	_, found = s.Keeper().GetRelayerByExternalAddress(s.Ctx, externalAddress)
+	s.Require().False(found)
+}
+
 func (s *KeeperTestSuite) TestRelayerSetSlash() {
 	for i := 0; i < len(s.relayerAddrs); i++ {
 		msgBondedRelayer := &types.MsgBondedRelayer{
@@ -552,4 +618,13 @@ func (s *KeeperTestSuite) TestSlashRelayer() {
 		// not online, not change
 		s.Require().Equal(int64(1), relayer.SlashTimes)
 	}
+}
+
+func relayerSetContainsExternalAddress(relayerSet *types.RelayerSet, externalAddress string) bool {
+	for _, member := range relayerSet.Members {
+		if member.ExternalAddress == externalAddress {
+			return true
+		}
+	}
+	return false
 }
