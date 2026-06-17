@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"time"
+
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -164,4 +166,62 @@ func (s *KeeperTestSuite) TestUnDelegate() {
 			}
 		})
 	}
+}
+
+func (s *KeeperTestSuite) TestUnDelegateRegularDelegationUsesUnbondingQueue() {
+	s.SetupTest()
+
+	newMeEarthRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            types.MeEarthRegionName,
+		OperatorAddress: s.meEarthValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newMeEarthRegion)
+	s.Require().NoError(err)
+
+	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, types.MeEarthRegionId)
+	s.Require().True(found)
+
+	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(
+		s.Ctx,
+		mintypes.ModuleName,
+		sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
+		sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)},
+	)
+	s.Require().NoError(err)
+
+	blockTime := time.Unix(1000, 0).UTC()
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{Time: blockTime}).WithBlockHeight(5).WithChainID(apptesting.TestChainID)
+
+	delegatorAddr := sdk.MustAccAddressFromBech32(s.Dao.GlobalDao)
+	valAddr, err := sdk.ValAddressFromBech32(s.meEarthValidator.OperatorAddress)
+	s.Require().NoError(err)
+
+	amount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000))
+	_, err = s.msgServer.Delegate(s.Ctx, &stakingtypes.MsgDelegate{
+		DelegatorAddress: s.Dao.GlobalDao,
+		ValidatorAddress: "",
+		Amount:           amount,
+	})
+	s.Require().NoError(err)
+
+	balanceAfterDelegate := s.App.BankKeeper.GetBalance(s.Ctx, delegatorAddr, params.BaseDenom)
+	resp, err := s.msgServer.Undelegate(s.Ctx, &stakingtypes.MsgUndelegate{
+		DelegatorAddress: s.Dao.GlobalDao,
+		ValidatorAddress: "",
+		Amount:           amount,
+	})
+	s.Require().NoError(err)
+
+	expectedCompletion := blockTime.Add(7 * 24 * time.Hour)
+	s.Require().Equal(expectedCompletion, resp.CompletionTime)
+
+	balanceAfterUndelegate := s.App.BankKeeper.GetBalance(s.Ctx, delegatorAddr, params.BaseDenom)
+	s.Require().Equal(balanceAfterDelegate.Amount.String(), balanceAfterUndelegate.Amount.String())
+
+	ubd, found := s.Keeper().GetUnbondingDelegation(s.Ctx, delegatorAddr, valAddr)
+	s.Require().True(found)
+	s.Require().Len(ubd.Entries, 1)
+	s.Require().Equal(amount.Amount.String(), ubd.Entries[0].Balance.String())
+	s.Require().Equal(expectedCompletion, ubd.Entries[0].CompletionTime)
 }
