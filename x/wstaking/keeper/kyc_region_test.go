@@ -69,3 +69,76 @@ func (s *KeeperTestSuite) TestTransferKycRegion() {
 	s.Require().Equal(delegation.ValidatorAddress, s.usaValidator.OperatorAddress)
 	s.Require().EqualValues(delegation.StartHeight, wmintTypes.OneDayTotalBlocks+1)
 }
+
+func (s *KeeperTestSuite) TestTransferKycRegionDoesNotCommitPartialStateOnError() {
+	s.SetupTest()
+
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            types.MeEarthRegionName,
+		OperatorAddress: s.meEarthValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
+	newRegion = types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            "USA",
+		OperatorAddress: s.usaValidator.OperatorAddress,
+	}
+	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
+	err = s.Keeper().KycReward(s.Ctx, kycAccount, s.meEarthValidator.Description.RegionID, s.Dao.GlobalDao)
+	s.Require().NoError(err)
+
+	fromRegion, found := s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
+	s.Require().True(found)
+	toRegion, found := s.Keeper().GetRegion(s.Ctx, s.usaValidator.Description.RegionID)
+	s.Require().True(found)
+
+	delegationBefore, found := s.Keeper().GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
+	s.Require().True(found)
+
+	fromValAddr, err := sdk.ValAddressFromBech32(fromRegion.OperatorAddress)
+	s.Require().NoError(err)
+	toValAddr, err := sdk.ValAddressFromBech32(toRegion.OperatorAddress)
+	s.Require().NoError(err)
+
+	fromValidatorBefore, found := s.Keeper().GetValidator(s.Ctx, fromValAddr)
+	s.Require().True(found)
+	toValidatorBefore, found := s.Keeper().GetValidator(s.Ctx, toValAddr)
+	s.Require().True(found)
+
+	fromRegion.DelegateAmount = sdk.ZeroInt()
+	s.Keeper().SetRegion(s.Ctx, fromRegion)
+	corruptedFromRegion := fromRegion
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks + 1).WithChainID(apptesting.TestChainID)
+
+	err = s.Keeper().TransferKycRegion(s.Ctx, kycAccount, s.Dao.GlobalDao, s.meEarthValidator.Description.RegionID, s.usaValidator.Description.RegionID)
+	s.Require().Error(err)
+
+	delegationAfter, found := s.Keeper().GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
+	s.Require().True(found)
+	s.Require().Equal(delegationBefore, delegationAfter)
+
+	fromRegionAfter, found := s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
+	s.Require().True(found)
+	s.Require().Equal(corruptedFromRegion, fromRegionAfter)
+	toRegionAfter, found := s.Keeper().GetRegion(s.Ctx, s.usaValidator.Description.RegionID)
+	s.Require().True(found)
+	s.Require().Equal(toRegion, toRegionAfter)
+
+	fromValidatorAfter, found := s.Keeper().GetValidator(s.Ctx, fromValAddr)
+	s.Require().True(found)
+	s.Require().Equal(fromValidatorBefore, fromValidatorAfter)
+	toValidatorAfter, found := s.Keeper().GetValidator(s.Ctx, toValAddr)
+	s.Require().True(found)
+	s.Require().Equal(toValidatorBefore, toValidatorAfter)
+}

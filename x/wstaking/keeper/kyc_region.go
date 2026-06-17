@@ -66,40 +66,42 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 	if !found {
 		return types.ErrNoDelegatorForAddress
 	}
-	delegation.ValidatorAddress = toRegion.OperatorAddress
-	k.SetDelegation(ctx, delegation)
 
-	// Handling fixed deposits
-	err := k.transferDeposit(ctx, &fromRegion, &toRegion, address.String())
-	if err != nil {
-		return types.ErrTransferRegion.Wrap(err.Error())
-	}
-
-	// fix validator meid amount
-	validator.DelegationAmount = validator.DelegationAmount.Add(delegation.Amount)
-	if validator.Tokens.LT(validator.DelegationAmount) {
+	nextDelegationAmount := validator.DelegationAmount.Add(delegation.Amount)
+	if validator.Tokens.LT(nextDelegationAmount) {
 		return types.ErrNodeLimitExceeded
 	}
-	if validator.MeidAmount.Add(types.Bonus).GT(validator.Tokens) {
+	nextMeidAmount := validator.MeidAmount.Add(types.Bonus)
+	if nextMeidAmount.GT(validator.Tokens) {
 		return types.ErrTransferRegion.Wrap(fmt.Sprintf("meid bonded validator can not hold this meid user, reach meid limit"))
 	}
-	validator.MeidAmount = validator.MeidAmount.Add(types.Bonus)
-	k.SetValidator(ctx, validator)
 
-	err = k.transferRemoveMeid(ctx, address.String(), &fromRegion, delegation)
+	cacheCtx, writeCache := ctx.CacheContext()
+
+	// Handling fixed deposits
+	err := k.transferDeposit(cacheCtx, &fromRegion, &toRegion, address.String())
 	if err != nil {
 		return types.ErrTransferRegion.Wrap(err.Error())
 	}
 
-	err = k.transferNewMeid(ctx, &toRegion, address.String(), valAddr, delegation)
+	err = k.transferRemoveMeid(cacheCtx, address.String(), &fromRegion, delegation)
 	if err != nil {
 		return types.ErrTransferRegion.Wrap(err.Error())
 	}
 
-	k.SetRegion(ctx, fromRegion)
-	k.SetRegion(ctx, toRegion)
+	validator.DelegationAmount = nextDelegationAmount
+	validator.MeidAmount = nextMeidAmount
+	k.SetValidator(cacheCtx, validator)
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	err = k.transferNewMeid(cacheCtx, &toRegion, address.String(), valAddr, delegation)
+	if err != nil {
+		return types.ErrTransferRegion.Wrap(err.Error())
+	}
+
+	k.SetRegion(cacheCtx, fromRegion)
+	k.SetRegion(cacheCtx, toRegion)
+
+	cacheCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTransferRegion,
 			sdk.NewAttribute(sdk.AttributeKeySender, creator),
@@ -109,5 +111,6 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 			sdk.NewAttribute(types.AttributeKeyRewards, types.Bonus.String()+params.BaseDenom),
 		),
 	})
+	writeCache()
 	return nil
 }
