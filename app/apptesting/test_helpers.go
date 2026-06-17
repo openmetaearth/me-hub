@@ -66,7 +66,7 @@ var DefaultConsensusParams = &cometbftproto.ConsensusParams{
 	},
 }
 
-var TestChainID = "mechain_202404-1"
+var TestChainID = "mechain_2404-1"
 
 // SetupOptions defines arguments that are passed into `Simapp` constructor.
 type SetupOptions struct {
