@@ -97,7 +97,7 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	suite.mockDaoKeeper.EXPECT().GetGlobalDaoFeePoolAddr(gomock.Any()).Return(devOperator.GetAddress())
 	suite.mockDaoKeeper.EXPECT().CheckFreeGasAccount(gomock.Any(), addr.Address).Return(false)
 
-	amt := sdk.NewInt(100)
+	amt := sdk.NewInt(10001)
 	err := testutil.FundAccount(
 		suite.app.BankKeeper,
 		suite.ctx,
@@ -123,7 +123,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	priv cryptotypes.PrivKey, msgs []sdk.Msg,
 ) client.TxBuilder {
 	txConfig := suite.clientCtx.TxConfig
-	coinAmount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(20))
+	coinAmount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(10000))
 	fees := sdk.NewCoins(coinAmount)
 
 	pc, err := ethermint.ParseChainID(suite.ctx.ChainID())
