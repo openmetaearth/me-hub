@@ -156,8 +156,8 @@ func GetOutgoingTxBatchKey(tokenContract string, batchNonce uint64) []byte {
 }
 
 // GetOutgoingTxBatchBlockKey returns the following key format
-func GetOutgoingTxBatchBlockKey(blockHeight uint64) []byte {
-	return append(OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(blockHeight)...)
+func GetOutgoingTxBatchBlockKey(blockHeight uint64, batchNonce uint64) []byte {
+	return append(OutgoingTxBatchBlockKey, append(sdk.Uint64ToBigEndian(blockHeight), sdk.Uint64ToBigEndian(batchNonce)...)...)
 }
 
 // GetBatchConfirmKey returns the following key format
