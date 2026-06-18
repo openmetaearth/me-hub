@@ -532,9 +532,11 @@ func CmdPendingOutgoingTxByAddr(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			pageReq, _ := client.ReadPageRequest(cmd.Flags())
 			res, err := queryClient.PendingOutgoingTxByAddr(cmd.Context(), &types.QueryPendingOutgoingTxByAddrRequest{
 				ChainName:     chainName,
 				SenderAddress: addr.String(),
+				Pagination:    pageReq,
 			})
 			if err != nil {
 				return err
@@ -542,6 +544,7 @@ func CmdPendingOutgoingTxByAddr(chainName string) *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+	flags.AddPaginationFlagsToCmd(cmd, "pending outgoing transactions")
 	return cmd
 }
 

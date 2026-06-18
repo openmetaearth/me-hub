@@ -3,12 +3,14 @@ package keeper
 import (
 	"context"
 	errorsmod "cosmossdk.io/errors"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"math"
 )
 
 var _ types.QueryServer = QueryServer{}
@@ -248,34 +250,93 @@ func (k QueryServer) BatchConfirms(c context.Context, req *types.QueryBatchConfi
 }
 
 func (k QueryServer) PendingOutgoingTxByAddr(c context.Context, req *types.QueryPendingOutgoingTxByAddrRequest) (*types.QueryPendingOutgoingTxByAddrResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
 	if _, err := sdk.AccAddressFromBech32(req.GetSenderAddress()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, "sender address")
 	}
+	offset, limit, countTotal, err := pendingOutgoingPagination(req.Pagination)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	end := offset + limit
+	if end < offset {
+		end = math.MaxUint64
+	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	var batches []*types.OutgoingTxBatch
-	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
-		batches = append(batches, batch)
-		return false
-	})
 	res := &types.QueryPendingOutgoingTxByAddrResponse{
 		TransfersInBatches: make([]*types.OutgoingTransferTx, 0),
 		UnbatchedTransfers: make([]*types.OutgoingTransferTx, 0),
+		Pagination:         &query.PageResponse{},
 	}
-	for _, batch := range batches {
-		for _, tx := range batch.Transactions {
-			if tx.Sender == req.SenderAddress {
+
+	var matches uint64
+	appendTx := func(tx *types.OutgoingTransferTx, inBatch bool) bool {
+		if tx.Sender != req.SenderAddress {
+			return false
+		}
+		if matches >= offset && matches < end {
+			if inBatch {
 				res.TransfersInBatches = append(res.TransfersInBatches, tx)
+			} else {
+				res.UnbatchedTransfers = append(res.UnbatchedTransfers, tx)
 			}
 		}
+		matches++
+		if matches > end && res.Pagination.NextKey == nil {
+			res.Pagination.NextKey = sdk.Uint64ToBigEndian(end)
+			return !countTotal
+		}
+		return false
 	}
-	k.IterateUnbatchedTransactions(ctx, "", func(tx *types.OutgoingTransferTx) bool {
-		if tx.Sender == req.SenderAddress {
-			res.UnbatchedTransfers = append(res.UnbatchedTransfers, tx)
+
+	stop := false
+	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
+		for _, tx := range batch.Transactions {
+			if appendTx(tx, true) {
+				stop = true
+				return true
+			}
 		}
 		return false
 	})
+	if stop {
+		return res, nil
+	}
+	k.IterateUnbatchedTransactions(ctx, "", func(tx *types.OutgoingTransferTx) bool {
+		return appendTx(tx, false)
+	})
+	if countTotal {
+		res.Pagination.Total = matches
+	}
 	return res, nil
+}
+
+func pendingOutgoingPagination(pageReq *query.PageRequest) (offset, limit uint64, countTotal bool, err error) {
+	if pageReq == nil {
+		pageReq = &query.PageRequest{}
+	}
+	if pageReq.Offset > 0 && len(pageReq.Key) != 0 {
+		return 0, 0, false, fmt.Errorf("invalid request, either offset or key is expected, got both")
+	}
+	if pageReq.Reverse {
+		return 0, 0, false, fmt.Errorf("reverse pagination is not supported")
+	}
+	offset = pageReq.Offset
+	if len(pageReq.Key) != 0 {
+		if len(pageReq.Key) != 8 {
+			return 0, 0, false, fmt.Errorf("invalid pagination key")
+		}
+		offset = sdk.BigEndianToUint64(pageReq.Key)
+	}
+	limit = pageReq.Limit
+	countTotal = pageReq.CountTotal
+	if limit == 0 {
+		limit = query.DefaultLimit
+	}
+	return offset, limit, countTotal, nil
 }
 
 func (k QueryServer) UnbatchedTxs(c context.Context, req *types.QueryUnbatchedTxsRequest) (*types.QueryUnbatchedTxsResponse, error) {

@@ -224,10 +224,12 @@ message QueryRelayerResponse {
 message QueryPendingOutgoingTxByAddrRequest {
   string chain_name = 1;
   string sender_address = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 message QueryPendingOutgoingTxByAddrResponse {
   repeated OutgoingTransferTx transfers_in_batches = 1;
   repeated OutgoingTransferTx unbatched_transfers = 2;
+  cosmos.base.query.v1beta1.PageResponse pagination = 3;
 }
 
 message QueryUnbatchedTxsRequest {
