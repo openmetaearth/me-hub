@@ -13,6 +13,7 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 const DayPerYear uint64 = 365
@@ -258,26 +259,18 @@ func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWit
 
 	expired := fixedDeposit.EndTime.Unix() <= ctx.BlockTime().Unix()
 	if expired {
-		//1. deposit period has expired, send the principal from principal module account to user account
-		err = k.bankKeeper.Extend().SendCoinsFromModuleToAccountWithTag(ctx,
-			types.FixedDepositPrincipalPool,
-			accAddr,
-			sdk.NewCoins(fixedDeposit.Principal),
-			fmt.Sprintf("WithdrawFixedPrincipal_%d", fixedDeposit.Term),
-		)
-		if err != nil {
-			return nil, types.ErrDoFixedWithDraw.Wrapf("send coin from principal vault to account error (%s)", err)
+		// deposit period has expired, atomically send principal and interest
+		inputs := []banktypes.Input{
+			banktypes.NewInput(principalAddr, sdk.NewCoins(fixedDeposit.Principal)),
+			banktypes.NewInput(regionInterestAddr, sdk.NewCoins(fixedDeposit.Interest)),
+		}
+		outputs := []banktypes.Output{
+			banktypes.NewOutput(accAddr, sdk.NewCoins(fixedDeposit.Principal).Add(fixedDeposit.Interest)),
 		}
 
-		//2. deposit period has expired, send the interest from interest account to user account
-		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
-			regionInterestAddr,
-			accAddr,
-			sdk.NewCoins(fixedDeposit.Interest),
-			fmt.Sprintf("WithdrawFixedInterest_%d", fixedDeposit.Term),
-		)
+		err = k.bankKeeper.InputOutputCoins(ctx, inputs, outputs)
 		if err != nil {
-			return nil, types.ErrDoFixedWithDraw.Wrapf("send coin from interest vault to account error (%s)", err)
+			return nil, types.ErrDoFixedWithDraw.Wrapf("atomic send coin from vaults to account error (%s)", err)
 		}
 
 		interest = fixedDeposit.Interest
