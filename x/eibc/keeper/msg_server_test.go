@@ -144,6 +144,34 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestFulfillOrderRollsBackWhenFulfillmentHookFails() {
+	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(1000))
+	eibcSupplyAddr := testAddresses[0]
+	eibcDemandAddr := testAddresses[1]
+
+	price := math.NewInt(200)
+	fee := math.NewInt(50)
+	demandOrder := types.NewDemandOrder(*rollappPacket, price, fee, params.BaseDenom, eibcSupplyAddr.String())
+	err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
+	suite.Require().NoError(err)
+
+	supplyBalanceBefore := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, params.BaseDenom)
+	demandBalanceBefore := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, params.BaseDenom)
+
+	suite.Ctx = suite.Ctx.WithEventManager(sdk.NewEventManager())
+	msg := types.NewMsgFulfillOrder(eibcDemandAddr.String(), demandOrder.Id, fee.String())
+	_, err = suite.msgServer.FulfillOrder(suite.Ctx, msg)
+	suite.Require().ErrorIs(err, dacktypes.ErrRollappPacketDoesNotExist)
+
+	storedOrder, err := suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, commontypes.Status_PENDING, demandOrder.Id)
+	suite.Require().NoError(err)
+	suite.Require().False(storedOrder.IsFulfilled())
+
+	suite.Require().Equal(supplyBalanceBefore, suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, params.BaseDenom))
+	suite.Require().Equal(demandBalanceBefore, suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, params.BaseDenom))
+	suite.AssertEventEmitted(suite.Ctx, eibcEventType, 0)
+}
+
 // TestFulfillOrderEvent tests the event upon fulfilling a demand order
 func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
 	// Create and fund the account

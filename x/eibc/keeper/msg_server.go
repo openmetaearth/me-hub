@@ -51,19 +51,23 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, types.ErrFulfillerAddressDoesNotExist
 	}
 
+	cacheCtx, writeCache := ctx.CacheContext()
+
 	// Send the funds from the fulfiller to the eibc packet original recipient
-	err = m.bk.SendCoins(ctx, fulfillerAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
+	err = m.bk.SendCoins(cacheCtx, fulfillerAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
 	if err != nil {
 		logger.Error("Failed to send coins", "error", err)
 		return nil, err
 	}
 	// Fulfill the order by updating the order status and underlying packet recipient
-	err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, fulfillerAccount.GetAddress())
+	err = m.Keeper.SetOrderFulfilled(cacheCtx, demandOrder, fulfillerAccount.GetAddress())
 	if err != nil {
 		return nil, err
 	}
 
-	return &types.MsgFulfillOrderResponse{}, err
+	writeCache()
+
+	return &types.MsgFulfillOrderResponse{}, nil
 }
 
 // UpdateDemandOrder implements types.MsgServer.
