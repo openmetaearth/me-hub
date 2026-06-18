@@ -60,6 +60,12 @@ func (s *KeeperTestSuite) TestStake() {
 			amount:          sdk.NewCoin(params.BaseDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit-1), nil))),
 			expErr:          sdkerrors.ErrInvalidRequest,
 		}, {
+			name:            "zero amount",
+			staker:          s.Dao.GlobalDao,
+			operatorAddress: s.meEarthValidator.OperatorAddress,
+			amount:          sdk.Coin{Denom: params.BaseDenom, Amount: sdk.ZeroInt()},
+			expErr:          sdkerrors.ErrInvalidRequest,
+		}, {
 			name:            "No error",
 			staker:          s.Dao.GlobalDao,
 			operatorAddress: s.meEarthValidator.OperatorAddress,
@@ -165,6 +171,12 @@ func (s *KeeperTestSuite) TestUnStake() {
 			operatorAddress: "mevaloper139mq752delxv78jvtmwxhasyrycufsvr707ate",
 			amount:          stakeAmount,
 			expErr:          stakingtypes.ErrNoValidatorFound,
+		}, {
+			name:            "zero amount",
+			staker:          s.Dao.GlobalDao,
+			operatorAddress: s.meEarthValidator.OperatorAddress,
+			amount:          sdk.Coin{Denom: params.BaseDenom, Amount: sdk.ZeroInt()},
+			expErr:          sdkerrors.ErrInvalidRequest,
 		}, {
 			name:            "No error",
 			staker:          s.Dao.GlobalDao,

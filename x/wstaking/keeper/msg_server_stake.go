@@ -19,6 +19,10 @@ import (
 func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.MsgStakeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+
 	if !k.daoKeeper.IsGlobalDao(ctx, msg.StakerAddress) {
 		return nil, types.ErrCheckGlobalDao
 	}
@@ -90,6 +94,10 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 // Unstake defines a method for performing an unstake from a stake and a validator
 func (k MsgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types.MsgUnstakeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
 
 	stakerAddress, err := sdk.AccAddressFromBech32(msg.StakerAddress)
 	if err != nil {
