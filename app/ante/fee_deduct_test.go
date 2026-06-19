@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"testing"
 
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authantetestutil "github.com/cosmos/cosmos-sdk/x/auth/ante/testutil"
@@ -15,6 +16,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/openmetaearth/me-hub/app/ante"
 	"github.com/openmetaearth/me-hub/app/params"
+	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/app/ante/mock"
@@ -33,6 +35,38 @@ func NewAccountWithEthPrivKey() (*authtypes.BaseAccount, *ethsecp256k1.PrivKey) 
 	return acc, senderPrivKey
 }
 
+type wasmFeeTx struct {
+	msgs       []sdk.Msg
+	fee        sdk.Coins
+	gas        uint64
+	feePayer   sdk.AccAddress
+	feeGranter sdk.AccAddress
+}
+
+func (tx wasmFeeTx) GetMsgs() []sdk.Msg {
+	return tx.msgs
+}
+
+func (tx wasmFeeTx) ValidateBasic() error {
+	return nil
+}
+
+func (tx wasmFeeTx) GetGas() uint64 {
+	return tx.gas
+}
+
+func (tx wasmFeeTx) GetFee() sdk.Coins {
+	return tx.fee
+}
+
+func (tx wasmFeeTx) FeePayer() sdk.AccAddress {
+	return tx.feePayer
+}
+
+func (tx wasmFeeTx) FeeGranter() sdk.AccAddress {
+	return tx.feeGranter
+}
+
 func TestMockBankKeeper(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -47,6 +81,169 @@ func TestMockBankKeeper(t *testing.T) {
 
 	balances := mockBankKeeper.GetAllBalances(ctx, addr)
 	require.Equal(t, expectedBalances, balances)
+}
+
+func TestSingleWasmMessageRoutesContractCreatorFeeShare(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	ctx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
+	mockBankKeeper := mock.NewMockBankKeeper(ctrl)
+	mockAccountKeeper := authantetestutil.NewMockAccountKeeper(ctrl)
+	mockFeegrantKeeper := authantetestutil.NewMockFeegrantKeeper(ctrl)
+	mockStakingKeeper := mock.NewMockStakingKeeper(ctrl)
+	mockKycKeeper := mock.NewMockKycKeeper(ctrl)
+	mockDaoKeeper := mock.NewMockDaoKeeper(ctrl)
+	mockWasmKeeper := mock.NewMockWasmKeeper(ctrl)
+
+	decorator := ante.NewDeductFeeDecorator(
+		mockAccountKeeper,
+		mockBankKeeper,
+		mockFeegrantKeeper,
+		mockDaoKeeper,
+		mockStakingKeeper,
+		mockKycKeeper,
+		nil,
+		mockWasmKeeper,
+	)
+
+	feePayer := NewAccount()
+	contract := NewAccount()
+	contractCreator := NewAccount()
+	devOperator := NewAccount()
+	proposerOwner := NewAccount()
+	globalDaoFeePool := NewAccount()
+	fee := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(100)))
+
+	tx := wasmFeeTx{
+		msgs: []sdk.Msg{
+			&wasmtypes.MsgExecuteContract{
+				Sender:   feePayer.Address,
+				Contract: contract.Address,
+				Msg:      []byte(`{"execute":{}}`),
+			},
+		},
+		fee:      fee,
+		gas:      200000,
+		feePayer: feePayer.GetAddress(),
+	}
+
+	mockDaoKeeper.EXPECT().IsDao(gomock.Any(), feePayer.Address).Return(false)
+	mockDaoKeeper.EXPECT().CheckFreeGasAccount(gomock.Any(), feePayer.Address).Return(false)
+	mockBankKeeper.EXPECT().
+		GetAllBalances(gomock.Any(), feePayer.GetAddress()).
+		Return(sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000))))
+	mockDaoKeeper.EXPECT().GetDevOperator(gomock.Any()).Return(devOperator.Address)
+	mockKycKeeper.EXPECT().GetDID(gomock.Any(), feePayer.GetAddress()).Return("", false)
+	mockStakingKeeper.EXPECT().GetProposerOwnerAddress(gomock.Any()).Return(proposerOwner.Address, nil)
+	mockWasmKeeper.EXPECT().
+		GetContractInfo(gomock.Any(), contract.GetAddress()).
+		Return(&wasmtypes.ContractInfo{Creator: contractCreator.Address})
+	mockDaoKeeper.EXPECT().GetGlobalDaoFeePoolAddr(gomock.Any()).Return(globalDaoFeePool.GetAddress())
+	mockBankKeeper.EXPECT().
+		FeeToReceivers(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output, receiverTypes []wbanktypes.FeeReceiverType) error {
+			require.Equal(t, []banktypes.Input{{Address: feePayer.Address, Coins: fee}}, inputs)
+			require.Equal(t, []wbanktypes.FeeReceiverType{
+				wbanktypes.FeeReceiverDevOperator,
+				wbanktypes.FeeReceiverProposerOwner,
+				wbanktypes.FeeReceiverContractCreator,
+				wbanktypes.FeeReceiverGlobalDaoFeePool,
+			}, receiverTypes)
+			require.Len(t, outputs, 4)
+			require.Equal(t, banktypes.Output{Address: devOperator.Address, Coins: sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(10)))}, outputs[0])
+			require.Equal(t, banktypes.Output{Address: proposerOwner.Address, Coins: sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(20)))}, outputs[1])
+			require.Equal(t, banktypes.Output{Address: contractCreator.Address, Coins: sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(40)))}, outputs[2])
+			require.Equal(t, banktypes.Output{Address: globalDaoFeePool.Address, Coins: sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(30)))}, outputs[3])
+			return nil
+		})
+
+	_, err := decorator.AnteHandle(ctx, tx, false, func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
+		return ctx, nil
+	})
+	require.NoError(t, err)
+}
+
+func TestMultipleWasmMessagesRouteAmbiguousFeeShareToGlobalDao(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	ctx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
+	mockBankKeeper := mock.NewMockBankKeeper(ctrl)
+	mockAccountKeeper := authantetestutil.NewMockAccountKeeper(ctrl)
+	mockFeegrantKeeper := authantetestutil.NewMockFeegrantKeeper(ctrl)
+	mockStakingKeeper := mock.NewMockStakingKeeper(ctrl)
+	mockKycKeeper := mock.NewMockKycKeeper(ctrl)
+	mockDaoKeeper := mock.NewMockDaoKeeper(ctrl)
+	mockWasmKeeper := mock.NewMockWasmKeeper(ctrl)
+
+	decorator := ante.NewDeductFeeDecorator(
+		mockAccountKeeper,
+		mockBankKeeper,
+		mockFeegrantKeeper,
+		mockDaoKeeper,
+		mockStakingKeeper,
+		mockKycKeeper,
+		nil,
+		mockWasmKeeper,
+	)
+
+	feePayer := NewAccount()
+	targetContract := NewAccount()
+	trailingContract := NewAccount()
+	devOperator := NewAccount()
+	proposerOwner := NewAccount()
+	globalDaoFeePool := NewAccount()
+	fee := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(100)))
+
+	tx := wasmFeeTx{
+		msgs: []sdk.Msg{
+			&wasmtypes.MsgExecuteContract{
+				Sender:   feePayer.Address,
+				Contract: targetContract.Address,
+				Msg:      []byte(`{"target":{}}`),
+			},
+			&wasmtypes.MsgExecuteContract{
+				Sender:   feePayer.Address,
+				Contract: trailingContract.Address,
+				Msg:      []byte(`{"noop":{}}`),
+			},
+		},
+		fee:      fee,
+		gas:      200000,
+		feePayer: feePayer.GetAddress(),
+	}
+
+	mockDaoKeeper.EXPECT().IsDao(gomock.Any(), feePayer.Address).Return(false)
+	mockDaoKeeper.EXPECT().CheckFreeGasAccount(gomock.Any(), feePayer.Address).Return(false)
+	mockBankKeeper.EXPECT().
+		GetAllBalances(gomock.Any(), feePayer.GetAddress()).
+		Return(sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000))))
+	mockDaoKeeper.EXPECT().GetDevOperator(gomock.Any()).Return(devOperator.Address)
+	mockKycKeeper.EXPECT().GetDID(gomock.Any(), feePayer.GetAddress()).Return("", false)
+	mockStakingKeeper.EXPECT().GetProposerOwnerAddress(gomock.Any()).Return(proposerOwner.Address, nil)
+	mockWasmKeeper.EXPECT().GetContractInfo(gomock.Any(), gomock.Any()).Times(0)
+	mockDaoKeeper.EXPECT().GetGlobalDaoFeePoolAddr(gomock.Any()).Return(globalDaoFeePool.GetAddress())
+	mockBankKeeper.EXPECT().
+		FeeToReceivers(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output, receiverTypes []wbanktypes.FeeReceiverType) error {
+			require.Equal(t, []banktypes.Input{{Address: feePayer.Address, Coins: fee}}, inputs)
+			require.Equal(t, []wbanktypes.FeeReceiverType{
+				wbanktypes.FeeReceiverDevOperator,
+				wbanktypes.FeeReceiverProposerOwner,
+				wbanktypes.FeeReceiverGlobalDaoFeePool,
+			}, receiverTypes)
+			require.Len(t, outputs, 3)
+			require.Equal(t, banktypes.Output{Address: devOperator.Address, Coins: sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(10)))}, outputs[0])
+			require.Equal(t, banktypes.Output{Address: proposerOwner.Address, Coins: sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(20)))}, outputs[1])
+			require.Equal(t, banktypes.Output{Address: globalDaoFeePool.Address, Coins: sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(70)))}, outputs[2])
+			return nil
+		})
+
+	_, err := decorator.AnteHandle(ctx, tx, false, func(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
+		return ctx, nil
+	})
+	require.NoError(t, err)
 }
 
 func TestCheckFunds(t *testing.T) {

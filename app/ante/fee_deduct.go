@@ -76,38 +76,37 @@ func (dfd DeductFeeDecorator) ParseWasmMsgContractCreator(ctx sdk.Context, tx sd
 	// to be considered as a wasm transaction
 	// this criterion is coarse, refine it later!
 
-	allwasm := true
-	var contract string
-	for _, msg := range tx.GetMsgs() {
-		switch msg := msg.(type) {
-		case *wasmtypes.MsgExecuteContract:
-			contract = msg.Contract
-		case *wasmtypes.MsgMigrateContract:
-			contract = msg.Contract
-		case *wasmtypes.MsgUpdateAdmin:
-			contract = msg.Contract
-		case *wasmtypes.MsgClearAdmin:
-			contract = msg.Contract
-		case *wasmtypes.MsgSudoContract:
-			contract = msg.Contract
-		default:
-			allwasm = false
-		}
+	msgs := tx.GetMsgs()
+	if len(msgs) != 1 {
+		return "", false
 	}
 
-	if allwasm {
-		addr, err := sdk.AccAddressFromBech32(contract)
-		if err != nil {
-			return "", false
-		}
-		contractInfo := dfd.wasmKeeper.GetContractInfo(ctx, addr)
-		if contractInfo == nil {
-			return "", false
-		}
-		admin := contractInfo.Creator
-		return admin, true
+	var contract string
+	switch msg := msgs[0].(type) {
+	case *wasmtypes.MsgExecuteContract:
+		contract = msg.Contract
+	case *wasmtypes.MsgMigrateContract:
+		contract = msg.Contract
+	case *wasmtypes.MsgUpdateAdmin:
+		contract = msg.Contract
+	case *wasmtypes.MsgClearAdmin:
+		contract = msg.Contract
+	case *wasmtypes.MsgSudoContract:
+		contract = msg.Contract
+	default:
+		return "", false
 	}
-	return "", false
+
+	addr, err := sdk.AccAddressFromBech32(contract)
+	if err != nil {
+		return "", false
+	}
+	contractInfo := dfd.wasmKeeper.GetContractInfo(ctx, addr)
+	if contractInfo == nil {
+		return "", false
+	}
+	admin := contractInfo.Creator
+	return admin, true
 }
 
 func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
