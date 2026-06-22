@@ -17,7 +17,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
+	"github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
+	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 	"github.com/spf13/cobra"
 )
 
@@ -326,7 +328,12 @@ func CmdRequestBatchConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			externalAddress := ethcrypto.PubkeyToAddress(privateKey.PublicKey)
+			var externalAddress string
+			if chainName == trontypes.ModuleName {
+				externalAddress = address.PubkeyToAddress(privateKey.PublicKey).String()
+			} else {
+				externalAddress = ethcrypto.PubkeyToAddress(privateKey.PublicKey).String()
+			}
 
 			queryClient := types.NewQueryClient(clientCtx)
 			batchRequestByNonceResp, err := queryClient.BatchRequestByNonce(cmd.Context(), &types.QueryBatchRequestByNonceRequest{
@@ -364,14 +371,19 @@ func CmdRequestBatchConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			signature, err := types.NewEthereumSignature(checkpoint, privateKey)
+			var signature []byte
+			if chainName == trontypes.ModuleName {
+				signature, err = trontypes.NewTronSignature(checkpoint, privateKey)
+			} else {
+				signature, err = types.NewEthereumSignature(checkpoint, privateKey)
+			}
 			if err != nil {
 				return err
 			}
 			msg := &types.MsgConfirmBatch{
 				Nonce:           nonce,
 				TokenContract:   tokenContract,
-				ExternalAddress: externalAddress.String(),
+				ExternalAddress: externalAddress,
 				RelayerAddress:  fromAddress.String(),
 				Signature:       hex.EncodeToString(signature),
 				ChainName:       chainName,
@@ -402,7 +414,12 @@ func CmdRelayerSetConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			externalAddress := ethcrypto.PubkeyToAddress(privateKey.PublicKey)
+			var externalAddress string
+			if chainName == trontypes.ModuleName {
+				externalAddress = address.PubkeyToAddress(privateKey.PublicKey).String()
+			} else {
+				externalAddress = ethcrypto.PubkeyToAddress(privateKey.PublicKey).String()
+			}
 
 			queryClient := types.NewQueryClient(clientCtx)
 			relayerSetRequestResp, err := queryClient.RelayerSetRequest(cmd.Context(), &types.QueryRelayerSetRequestRequest{
@@ -434,14 +451,19 @@ func CmdRelayerSetConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			signature, err := types.NewEthereumSignature(checkpoint, privateKey)
+			var signature []byte
+			if chainName == trontypes.ModuleName {
+				signature, err = trontypes.NewTronSignature(checkpoint, privateKey)
+			} else {
+				signature, err = types.NewEthereumSignature(checkpoint, privateKey)
+			}
 			if err != nil {
 				return err
 			}
 			msg := &types.MsgRelayerSetConfirm{
 				Nonce:           nonce,
 				RelayerAddress:  fromAddress.String(),
-				ExternalAddress: externalAddress.String(),
+				ExternalAddress: externalAddress,
 				Signature:       hex.EncodeToString(signature),
 				ChainName:       chainName,
 			}
