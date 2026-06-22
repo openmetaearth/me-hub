@@ -1,21 +1,21 @@
 # PR Audit Report
 
-Generated: 2026-06-18 10:10 UTC
-Total open PRs fetched: **295**
+Generated: 2026-06-22 01:18 UTC
+Total open PRs fetched: **267**
 
 ## Summary
 
 | Category | Count |
 |----------|-------|
-| Auto-close candidates | **32** |
-| Keep open (manual review) | **263** |
+| Auto-close candidates | **0** |
+| Keep open (manual review) | **267** |
 
 **Auto-close criteria:**
 - Has merge conflicts
 - Bot/AI account (detected via GitHub API type=Bot or app/ prefix) with zero human engagement
 - Stale draft PR with zero engagement
 
-**Bot accounts detected:** app/copilot-swe-agent
+**Bot accounts detected:** none
 
 **Keep criteria (any one is enough to preserve):**
 - Author is not a known bot account
@@ -28,42 +28,10 @@ Total open PRs fetched: **295**
 
 ---
 
-## Auto-Close List (32 PRs)
+## Auto-Close List (0 PRs)
 
 | # | Title | Author | Reason | Date | Files |
 |---|-------|--------|--------|------|-------|
-| #1054 | fix(eibc): return query input errors accurately | modelsbridgeaicom-ship-it | merge conflict | 2026-06-06 | 2 |
-| #1052 | fix(gravity): count attestations by observed relayer se | modelsbridgeaicom-ship-it | merge conflict | 2026-06-06 | 2 |
-| #1051 | fix(gravity): avoid double counting pending withdrawals | modelsbridgeaicom-ship-it | merge conflict | 2026-06-06 | 2 |
-| #1047 | fix(wdistri): reject invalid region treasury address | modelsbridgeaicom-ship-it | merge conflict | 2026-06-06 | 2 |
-| #1046 | fix(gravity): reject duplicate unbatched tx ids | modelsbridgeaicom-ship-it | merge conflict | 2026-06-06 | 3 |
-| #1024 | fix(wstaking): route ibc treasury transfers to receiver | modelsbridgeaicom-ship-it | merge conflict | 2026-06-06 | 6 |
-| #1021 | fix(wdistri): preserve large reward amounts | modelsbridgeaicom-ship-it | merge conflict | 2026-06-06 | 2 |
-| #1010 | fix(wasm): block stargate gravity bypass | modelsbridgeaicom-ship-it | merge conflict | 2026-06-06 | 8 |
-| #996 | fix(gravity): bound bridge token decimals | modelsbridgeaicom-ship-it | merge conflict | 2026-06-06 | 8 |
-| #995 | fix(gravity): keep observed bridge state monotonic | modelsbridgeaicom-ship-it | merge conflict | 2026-06-06 | 6 |
-| #952 | fix: bound gravity bridge token decimals | jamilahmadzai | merge conflict | 2026-06-05 | 6 |
-| #951 | fix(gravity): reject external block height regressions | jamilahmadzai | merge conflict | 2026-06-05 | 2 |
-| #887 | fix(gravity): enforce exact attestation quorum threshol | x0tta6bl4-ai | merge conflict | 2026-06-04 | 2 |
-| #880 | fix(gravity): convert bridge fee increases to external  | x0tta6bl4-ai | merge conflict | 2026-06-04 | 2 |
-| #875 | fix(sequencer): reject multiple genesis proposers | x0tta6bl4-ai | merge conflict | 2026-06-04 | 2 |
-| #870 | fix(rollapp): freeze fraud client at latest height | x0tta6bl4-ai | merge conflict | 2026-06-04 | 2 |
-| #833 | fix(wstaking): execute remove region message | x0tta6bl4-ai | merge conflict | 2026-06-04 | 3 |
-| #830 | fix(rollapp): preserve frozen client height order | x0tta6bl4-ai | merge conflict | 2026-06-04 | 2 |
-| #818 | fix(ante): unwrap authz wasm fee messages | x0tta6bl4-ai | merge conflict | 2026-06-04 | 4 |
-| #812 | fix(gravity): observe attestations only after successfu | x0tta6bl4-ai | merge conflict | 2026-06-04 | 2 |
-| #804 | fix(wdistri): reserve zero-share treasury rewards | x0tta6bl4-ai | merge conflict | 2026-06-04 | 3 |
-| #789 | fix(eibc): reject demand order self fulfillment | x0tta6bl4-ai | merge conflict | 2026-06-03 | 3 |
-| #788 | fix(upgrades): preserve module version map migrations | x0tta6bl4-ai | merge conflict | 2026-06-03 | 4 |
-| #765 | fix(wdistri): avoid int64 reward overflow | x0tta6bl4-ai | merge conflict | 2026-06-03 | 2 |
-| #760 | fix(megroup): validate join group before free gas | x0tta6bl4-ai | merge conflict | 2026-06-03 | 6 |
-| #754 | fix(gravity): decrement supply on added bridge fee | x0tta6bl4-ai | merge conflict | 2026-06-03 | 2 |
-| #753 | fix(wbank): validate fee receivers before transfer | x0tta6bl4-ai | merge conflict | 2026-06-03 | 2 |
-| #723 | fix(rollapp): preserve frozen height revision order | x0tta6bl4-ai | merge conflict | 2026-06-03 | 1 |
-| #650 | feat: automated issue triage – label all 512 issues and | app/copilot-swe-agent | bot/AI PR, no human engagement | 2026-06-02 | 2 |
-| #508 | fix: reject missing megroup create info | Aglcr7 | merge conflict | 2026-05-31 | 2 |
-| #505 | fix: normalize fixed deposit region pagination | Aglcr7 | merge conflict | 2026-05-31 | 4 |
-| #463 | fix: reject zero gravity external addresses | Aglcr7 | merge conflict | 2026-05-30 | 5 |
 
 ---
 
@@ -71,6 +39,10 @@ Total open PRs fetched: **295**
 
 | # | Title | Author | Reason | Date | Files |
 |---|-------|--------|--------|------|-------|
+| #1361 | fix(ante): require single wasm message for creator fee | jamilahmadzai | human contributor | 2026-06-19 | 2 |
+| #1358 | fix(denommetadata): return update proposal type | jamilahmadzai | human contributor | 2026-06-19 | 2 |
+| #1357 | fix(gravity): paginate pending outgoing address query | jamilahmadzai | human contributor | 2026-06-18 | 5 |
+| #1356 | fix(eibc): make order fulfillment atomic | jamilahmadzai | human contributor | 2026-06-18 | 2 |
 | #1286 | fix(gravity): convert added bridge fee to external prec | sureshchouksey8 | human contributor | 2026-06-15 | 2 |
 | #1285 | fix(wstaking): block region reassignment if old region  | sureshchouksey8 | human contributor | 2026-06-15 | 2 |
 | #1284 | fix(gravity): clamp batch timeout projection height | jamilahmadzai | human contributor | 2026-06-14 | 2 |
@@ -141,7 +113,7 @@ Total open PRs fetched: **295**
 | #968 | fix(gravity): use tron confirm material in cli | modelsbridgeaicom-ship-it | human contributor | 2026-06-06 | 2 |
 | #967 | fix(kyc): preserve issuers during dao rotation | modelsbridgeaicom-ship-it | human contributor | 2026-06-06 | 2 |
 | #966 | fix(wstaking): protect region reserves on withdrawal | modelsbridgeaicom-ship-it | human contributor | 2026-06-06 | 2 |
-| #962 | fix(gravity): reject offline relayer confirmations | jamilahmadzai | human contributor | 2026-06-06 | 3 |
+| #962 | fix(gravity): reject offline relayer confirmations | jamilahmadzai | human contributor | 2026-06-06 | 4 |
 | #957 | fix(rollapp): validate genesis rollapp invariants | jamilahmadzai | human contributor | 2026-06-05 | 4 |
 | #955 | fix(rollapp): validate genesis state indexes | jamilahmadzai | human contributor | 2026-06-05 | 2 |
 | #953 | fix: remove rate equality check in transferDeposit | q3515 | human contributor | 2026-06-05 | 1 |
