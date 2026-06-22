@@ -12,6 +12,7 @@ concurrency:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       pull-requests: write
@@ -25,12 +26,11 @@ jobs:
           go-version: "1.24"
           cache: true
 
-      - uses: reviewdog/action-golangci-lint@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          golangci_lint_version: "v1.64.8"
-          golangci_lint_flags: "--config=.golangci.yml --new-from-rev=origin/main --timeout=10m"
-          reporter: github-pr-review
-          level: warning
-          fail_level: error
-          filter_mode: nofilter
+          version: "v1.64.8"
+          args: --config=.golangci.yml --new-from-rev=origin/main --timeout=15m
+          # Cache lint results between runs — key includes config hash so
+          # cache is invalidated when .golangci.yml changes
+          cache: true
