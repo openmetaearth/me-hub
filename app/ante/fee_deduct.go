@@ -9,6 +9,7 @@ import (
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -76,36 +77,49 @@ func (dfd DeductFeeDecorator) ParseWasmMsgContractCreator(ctx sdk.Context, tx sd
 	// to be considered as a wasm transaction
 	// this criterion is coarse, refine it later!
 
-	allwasm := true
-	var contract string
-	for _, msg := range tx.GetMsgs() {
-		switch msg := msg.(type) {
-		case *wasmtypes.MsgExecuteContract:
-			contract = msg.Contract
-		case *wasmtypes.MsgMigrateContract:
-			contract = msg.Contract
-		case *wasmtypes.MsgUpdateAdmin:
-			contract = msg.Contract
-		case *wasmtypes.MsgClearAdmin:
-			contract = msg.Contract
-		case *wasmtypes.MsgSudoContract:
-			contract = msg.Contract
-		default:
-			allwasm = false
-		}
+	msgs := tx.GetMsgs()
+	if len(msgs) != 1 {
+		return "", false
 	}
 
-	if allwasm {
-		addr, err := sdk.AccAddressFromBech32(contract)
-		if err != nil {
+	contract, ok := dfd.extractWasmContract(msgs[0])
+	if !ok {
+		return "", false
+	}
+
+	addr, err := sdk.AccAddressFromBech32(contract)
+	if err != nil {
+		return "", false
+	}
+	contractInfo := dfd.wasmKeeper.GetContractInfo(ctx, addr)
+	if contractInfo == nil {
+		return "", false
+	}
+	admin := contractInfo.Creator
+	return admin, true
+}
+
+func (dfd DeductFeeDecorator) extractWasmContract(msg sdk.Msg) (string, bool) {
+	switch msg := msg.(type) {
+	case *wasmtypes.MsgExecuteContract:
+		return msg.Contract, true
+	case *wasmtypes.MsgMigrateContract:
+		return msg.Contract, true
+	case *wasmtypes.MsgUpdateAdmin:
+		return msg.Contract, true
+	case *wasmtypes.MsgClearAdmin:
+		return msg.Contract, true
+	case *wasmtypes.MsgSudoContract:
+		return msg.Contract, true
+	case *authz.MsgExec:
+		if len(msg.Msgs) != 1 {
 			return "", false
 		}
-		contractInfo := dfd.wasmKeeper.GetContractInfo(ctx, addr)
-		if contractInfo == nil {
+		inner, err := msg.GetMessages()
+		if err != nil || len(inner) != 1 {
 			return "", false
 		}
-		admin := contractInfo.Creator
-		return admin, true
+		return dfd.extractWasmContract(inner[0].Msg)
 	}
 	return "", false
 }
