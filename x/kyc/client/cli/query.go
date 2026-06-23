@@ -25,6 +25,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdQueryKYC())
 	cmd.AddCommand(CmdQueryKYCs())
 	cmd.AddCommand(CmdQuerySBT())
+	cmd.AddCommand(CmdQuerySubAccountDid())
 	return cmd
 }
 
@@ -154,6 +155,32 @@ func CmdQuerySBT() *cobra.Command {
 
 			did := args[0]
 			res, err := queryClient.SBT(cmd.Context(), &types.QuerySBT{Did: did})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func CmdQuerySubAccountDid() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "sub-account-did [sub-account]",
+		Short: "Query the DID information by sub-account",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			subAccount := args[0]
+			res, err := queryClient.SubAccountDid(cmd.Context(), &types.QuerySubAccountDid{SubAccount: subAccount})
 			if err != nil {
 				return err
 			}

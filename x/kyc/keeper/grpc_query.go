@@ -135,3 +135,23 @@ func (k Keeper) SBT(goCtx context.Context, req *types.QuerySBT) (*types.QuerySBT
 
 	return &types.QuerySBTResponse{Sbt: sbt}, nil
 }
+
+func (k Keeper) SubAccountDid(goCtx context.Context, req *types.QuerySubAccountDid) (*types.QuerySubAccountDidResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+
+	did, ok := k.didKeeper.GetDidBySubAccount(ctx, req.SubAccount)
+	if !ok {
+		return nil, status.Error(codes.Internal, "failed to get DID by sub-account")
+	}
+
+	info, found := k.didKeeper.GetDidInfo(ctx, did)
+	if !found {
+		return nil, status.Error(codes.Internal, "failed to get DID info by sub-account")
+	}
+
+	return &types.QuerySubAccountDidResponse{Info: info}, nil
+}
