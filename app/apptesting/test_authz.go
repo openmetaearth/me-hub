@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/stretchr/testify/require"
 
-	app "github.com/openmetaearth/me-hub/app"
+	"github.com/openmetaearth/me-hub/app"
 )
 
 func TestMessageAuthzSerialization(t *testing.T, msg sdk.Msg) {

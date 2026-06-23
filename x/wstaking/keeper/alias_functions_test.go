@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	mintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	minttypes "github.com/openmetaearth/me-hub/x/wmint/types"
 )
 
 // perBlockUMEC returns the expected per-block umec reward for each halving period.
@@ -27,7 +27,7 @@ func newTestKeeper() Keeper {
 }
 
 func TestGetRewardsByHeight(t *testing.T) {
-	Y := int64(mintTypes.OneYearTotalBlocks)
+	Y := int64(minttypes.OneYearTotalBlocks)
 
 	tests := []struct {
 		name       string

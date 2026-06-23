@@ -7,7 +7,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -55,7 +54,7 @@ func (s *KeeperTestSuite) Keeper() *keeper.Keeper {
 
 func (s *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	nativeQuerier := distrkeeper.Querier{Keeper: app.DistrKeeper.Keeper}

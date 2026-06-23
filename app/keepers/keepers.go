@@ -85,7 +85,7 @@ import (
 	kyckeeper "github.com/openmetaearth/me-hub/x/kyc/keeper"
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 	groupkeeper "github.com/openmetaearth/me-hub/x/megroup/keeper"
-	groupTypes "github.com/openmetaearth/me-hub/x/megroup/types"
+	grouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	rollappmodule "github.com/openmetaearth/me-hub/x/rollapp"
 	rollappmodulekeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	"github.com/openmetaearth/me-hub/x/rollapp/transfergenesis"
@@ -441,8 +441,8 @@ func (a *AppKeepers) InitKeepers(
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
 	a.GroupKeeper = groupkeeper.NewKeeper(
 		appCodec,
-		a.keys[groupTypes.StoreKey],
-		a.GetSubspace(groupTypes.ModuleName),
+		a.keys[grouptypes.StoreKey],
+		a.GetSubspace(grouptypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.StakingKeeper,
@@ -629,6 +629,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 
 	paramsKeeper.Subspace(wasmtypes.ModuleName)
 	paramsKeeper.Subspace(nft.ModuleName)
-	paramsKeeper.Subspace(groupTypes.ModuleName)
+	paramsKeeper.Subspace(grouptypes.ModuleName)
 	return paramsKeeper
 }

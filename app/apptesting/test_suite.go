@@ -16,7 +16,6 @@ import (
 
 	"github.com/openmetaearth/me-hub/app"
 	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/x/dao/types"
 	daotypes "github.com/openmetaearth/me-hub/x/dao/types"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
@@ -136,7 +135,7 @@ func (s *KeeperTestHelper) InitializeDao() {
 	airdropAcc := authtypes.NewBaseAccount(airdrop.PubKey().Address().Bytes(), airdrop.PubKey(), 3, 0)
 	airdropAddress := sdk.AccAddress(airdrop.PubKey().Address().Bytes())
 
-	s.App.DaoKeeper.SetDaoAddresses(s.Ctx, types.DaoAddresses{
+	s.App.DaoKeeper.SetDaoAddresses(s.Ctx, daotypes.DaoAddresses{
 		GlobalDao:      globalDaoAcc.Address,
 		MeidDao:        meidDaoAcc.Address,
 		DevOperator:    devOperatorAcc.Address,

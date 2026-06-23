@@ -16,7 +16,7 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
 	"github.com/openmetaearth/me-hub/utils/gerrc"
-	uibc "github.com/openmetaearth/me-hub/utils/uibc"
+	"github.com/openmetaearth/me-hub/utils/uibc"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	delayedackkeeper "github.com/openmetaearth/me-hub/x/delayedack/keeper"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"

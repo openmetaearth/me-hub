@@ -99,7 +99,6 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 				OldPubKey:       oldPubKey,
 				NewPubKey:       pk,
 			}, nil
-
 		} else if ctx.BlockHeight() == (updateInfo.UpdateAtHeight + 2) { // delay remove old cons addr because of distribution rewards delayed by one block
 			k.RemoveValidatorByConsAddr(ctx, sdk.ConsAddress(updateInfo.OldConsAddress))
 			k.DeleteReplaceConsensusPubKey(ctx)

@@ -21,8 +21,6 @@ import (
 	stakingTypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-type kycHookFunc func(ctx sdk.Context, eventType string, beforeData, afterData interface{}) error
-
 type (
 	Keeper struct {
 		cdc        codec.BinaryCodec
@@ -155,7 +153,6 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 			return err
 		}
 		k.SetGroupMemberCount(sdkCtx, joined.GroupId, preGroupNumber-1)
-
 	} else {
 		return nil
 	}
@@ -208,7 +205,6 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 	}
 	k.SetGroupMemberCount(sdkCtx, newGrpId, newGrpNumberCnt+1)
 	if !JoinGroupFound { // send rewards if user has not joined group
-
 		// get RegionTreasureAddr
 		region, found := k.stakingKeeper.GetRegion(sdkCtx, nowRegionID)
 		if !found {

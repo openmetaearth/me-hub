@@ -368,7 +368,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 func (k Keeper) transferNewMeid(ctx sdk.Context, region *types.Region, address string, valAddr sdk.ValAddress, delegation stakingtypes.Delegation) error {
 	accAddr, err := sdk.AccAddressFromBech32(address)
 	if err != nil {
-		return fmt.Errorf("account format error (%s)", err)
+		return fmt.Errorf("account format error (%w)", err)
 	}
 	has := k.authKeeper.HasAccount(ctx, accAddr)
 	if !has {

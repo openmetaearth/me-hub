@@ -64,7 +64,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/kyc"
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 	groupmodule "github.com/openmetaearth/me-hub/x/megroup"
-	groupTypes "github.com/openmetaearth/me-hub/x/megroup/types"
+	grouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	rollappmodule "github.com/openmetaearth/me-hub/x/rollapp"
 	rollappmoduletypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencermodule "github.com/openmetaearth/me-hub/x/sequencer"
@@ -166,7 +166,7 @@ var MaccPerms = map[string][]string{
 	wstakingtypes.FixedDepositPrincipalPool:            nil,
 	wstakingtypes.BridgeFeePool:                        nil,
 	wasmtypes.ModuleName:                               {authtypes.Burner},
-	groupTypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
+	grouptypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
 	nft.ModuleName:                                     nil,
 	bsctypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
 	trontypes.ModuleName:                               {authtypes.Minter, authtypes.Burner},
@@ -206,7 +206,7 @@ var BeginBlockers = []string{
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
 	nft.ModuleName,
-	groupTypes.ModuleName,
+	grouptypes.ModuleName,
 	bsctypes.ModuleName,
 	trontypes.ModuleName,
 }
@@ -244,7 +244,7 @@ var EndBlockers = []string{
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
 	nft.ModuleName,
-	groupTypes.ModuleName,
+	grouptypes.ModuleName,
 	bsctypes.ModuleName,
 	trontypes.ModuleName,
 }
@@ -282,7 +282,7 @@ var InitGenesis = []string{
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
 	nft.ModuleName,
-	groupTypes.ModuleName,
+	grouptypes.ModuleName,
 	bsctypes.ModuleName,
 	trontypes.ModuleName,
 }

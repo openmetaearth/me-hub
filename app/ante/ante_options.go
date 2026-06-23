@@ -2,7 +2,7 @@ package ante
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -29,7 +29,7 @@ type HandlerOptions struct {
 	DaoKeeper      DaoKeeper
 	StakingKeeper  StakingKeeper
 	KycKeeper      KycKeeper
-	WasmViewKeeper wasmTypes.ViewKeeper
+	WasmViewKeeper wasmtypes.ViewKeeper
 	TxFeeChecker   ante.TxFeeChecker
 }
 

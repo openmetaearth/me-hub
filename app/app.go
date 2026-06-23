@@ -52,7 +52,7 @@ import (
 	"github.com/openmetaearth/me-hub/app/keepers"
 	appparams "github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/app/upgrades"
-	v2_0_14_patch_2 "github.com/openmetaearth/me-hub/app/upgrades/v2.0.14.patch.2"
+	v2_0_14_patch_2 "github.com/openmetaearth/me-hub/app/upgrades/v2.0.14.patch.2" //nolint:revive
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_14"
 	"github.com/openmetaearth/me-hub/docs"
 	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
