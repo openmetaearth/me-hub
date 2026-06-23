@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
 	didTypes "github.com/openmetaearth/me-hub/x/did/types"
 	kycTypes "github.com/openmetaearth/me-hub/x/kyc/types"
@@ -20,7 +21,7 @@ import (
 	stakingTypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-type kycHookFunc func(ctx sdk.Context, eventType string, beforeData interface{}, afterData interface{}) error
+type kycHookFunc func(ctx sdk.Context, eventType string, beforeData, afterData interface{}) error
 
 type (
 	Keeper struct {
@@ -72,7 +73,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) KycStatusChanged(goCtx context.Context, msgType string, data interface{}) error {
-	//if eventType
+	// if eventType
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if kycTypes.EventTypeUpdate != msgType {
 		return nil
@@ -88,7 +89,7 @@ func (k Keeper) KycStatusChanged(goCtx context.Context, msgType string, data int
 		if !found {
 			return fmt.Errorf("can not found AttributeKeyRegionIdChanged.but EventType is update")
 		}
-		if attrPreRegion.Value == attrNewRegion.Value { //if region not changed,return
+		if attrPreRegion.Value == attrNewRegion.Value { // if region not changed,return
 			k.Logger(ctx).Info("regionID was not changed in KycStatusChanged!!!")
 			return nil
 		}
@@ -105,7 +106,6 @@ func (k Keeper) KycStatusChanged(goCtx context.Context, msgType string, data int
 	}
 
 	return nil
-
 }
 
 func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, nowRegionID string) error {
@@ -114,7 +114,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 		newGrpId = 0
 		//	return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found groupId in region.regionID = %s", nowRegionID))
 	}
-	//if 0 == newGrpId {
+	// if 0 == newGrpId {
 	//	return errors.Wrapf(types.ErrProcData, fmt.Sprintf("groupId is 0 in new region.regionID = %s", nowRegionID))
 	//}
 	joined, JoinGroupFound := k.GetMemberJoined(sdkCtx, address)
@@ -139,8 +139,8 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 		if !found {
 			return errors.Wrapf(types.ErrGroupNotExist, "can not found joined previous gourp.groupID = %d", joined.GroupId)
 		}
-		//admin can not migrate
-		if address == preGroupInfo.Admin { //admin can not leave group
+		// admin can not migrate
+		if address == preGroupInfo.Admin { // admin can not leave group
 			return errors.Wrapf(types.ErrExecute, "admin of group can not leave")
 		}
 
@@ -159,9 +159,9 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 	} else {
 		return nil
 	}
-	if 0 == newGrpId {
+	if newGrpId == 0 {
 		if preJoinedGroupID > 0 {
-			//set member's join group info
+			// set member's join group info
 			k.SetMemberJoined(sdkCtx, types.MemberJoined{
 				Address: address,
 				GroupId: 0,
@@ -172,7 +172,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 				sdk.NewAttribute("now_region_id", nowRegionID),
 				sdk.NewAttribute("previous_group_id", strconv.FormatUint(preJoinedGroupID, 10)),
 				sdk.NewAttribute("now_group_id", "0"),
-				//1sdk.NewAttribute("metadata", msg.),
+				// 1sdk.NewAttribute("metadata", msg.),
 			))
 		}
 		return nil
@@ -180,7 +180,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 	}
 
 	newGrpInfo, found := k.GetGroupInfo(sdkCtx, newGrpId)
-	if !found { //if new group has not been created,emit event and return
+	if !found { // if new group has not been created,emit event and return
 		return errors.Wrapf(types.ErrGroupNotExist, "can not found group by groupID.groupID = %d", newGrpId)
 	}
 	newGrpNumberCnt, found := k.GetGroupMemberCount(sdkCtx, newGrpId)
@@ -193,21 +193,23 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 		GroupId: newGrpId,
 	}
 
-	//set member's join group info
+	// set member's join group info
 	k.SetMemberJoined(sdkCtx, newJoin)
-	//add to group_member
+	// add to group_member
 	err := k.AddGroupMember(sdkCtx, &types.GroupMember{
 		GroupId: newGrpId,
 		Member: &types.Member{
 			Address: address,
-			AddedAt: sdkCtx.BlockTime()}})
+			AddedAt: sdkCtx.BlockTime(),
+		},
+	})
 	if err != nil {
 		return err
 	}
 	k.SetGroupMemberCount(sdkCtx, newGrpId, newGrpNumberCnt+1)
-	if !JoinGroupFound { //send rewards if user has not joined group
+	if !JoinGroupFound { // send rewards if user has not joined group
 
-		//get RegionTreasureAddr
+		// get RegionTreasureAddr
 		region, found := k.stakingKeeper.GetRegion(sdkCtx, nowRegionID)
 		if !found {
 			return errors.Wrapf(types.ErrRegionNotExist, "group's region = %s", nowRegionID)
@@ -239,10 +241,9 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 		sdk.NewAttribute("now_region_id", nowRegionID),
 		sdk.NewAttribute("previous_group_id", strconv.FormatUint(preJoinedGroupID, 10)),
 		sdk.NewAttribute("now_group_id", strconv.FormatUint(newGrpId, 10)),
-		//1sdk.NewAttribute("metadata", msg.),
+		// 1sdk.NewAttribute("metadata", msg.),
 	))
 	return nil
-
 }
 
 func (k Keeper) GetDidAndKycActive(sdkCtx sdk.Context, address sdk.AccAddress, regionID string) (string, bool) {
@@ -268,8 +269,7 @@ func (k Keeper) GetDidAndKycActive(sdkCtx sdk.Context, address sdk.AccAddress, r
 
 // only called by wstaking/newRgion
 func (k Keeper) CreateGroupByRegion(sdkCtx sdk.Context, regionInfo stakingTypes.Region) (uint64, error) {
-
-	//check group has been created
+	// check group has been created
 	preGroupID, found := k.GetGroupIdByRegion(sdkCtx, regionInfo.RegionId)
 	if found {
 		return 0, errors.Wrap(types.ErrGroupExceededInRegion, fmt.Sprintf("group of region has been created.groupId = %d", preGroupID))
@@ -297,7 +297,7 @@ func (k Keeper) CreateGroupByRegion(sdkCtx sdk.Context, regionInfo stakingTypes.
 	}
 	k.SetGroupToRegion(sdkCtx, regionInfo.RegionId, newGroupID)
 	k.SetGroupMemberCount(sdkCtx, newGroupID, 0)
-	//group's admin(region's operator) no need to add group
+	// group's admin(region's operator) no need to add group
 
 	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(types.EvtGroupCreated,
 		sdk.NewAttribute("group_id", fmt.Sprintf("%d", groupInfo.Id)),
@@ -306,5 +306,4 @@ func (k Keeper) CreateGroupByRegion(sdkCtx sdk.Context, regionInfo stakingTypes.
 		sdk.NewAttribute("metadata", groupInfo.Metadata),
 	))
 	return groupInfo.Id, nil
-
 }

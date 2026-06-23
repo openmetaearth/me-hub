@@ -3,18 +3,6 @@ package keeper_test
 import (
 	"crypto/ecdsa"
 	"fmt"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/openmetaearth/me-hub/app/apptesting"
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/testutil/helpers"
-	"github.com/openmetaearth/me-hub/utils"
-	"github.com/openmetaearth/me-hub/x/gravity/keeper"
-	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
-	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-	"github.com/stretchr/testify/suite"
 	"math/big"
 	"testing"
 
@@ -24,7 +12,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/suite"
+
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/testutil/helpers"
+	"github.com/openmetaearth/me-hub/utils"
+	"github.com/openmetaearth/me-hub/x/gravity/keeper"
 	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
+	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 type KeeperTestSuite struct {

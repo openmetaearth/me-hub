@@ -2,34 +2,33 @@ package keeper_test
 
 import (
 	"fmt"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/golang/mock/gomock"
-	"github.com/openmetaearth/me-hub/app/apptesting"
-	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
-	"github.com/openmetaearth/me-hub/x/wdistri/types"
-	"github.com/openmetaearth/me-hub/x/wdistri/types/mock"
 	"testing"
-
-	"github.com/openmetaearth/me-hub/app/params"
 
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	"github.com/openmetaearth/me-hub/testutil/mocks"
-	"github.com/openmetaearth/me-hub/x/wdistri/keeper"
-	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cometbft/cometbft/libs/log"
-	tmtime "github.com/cometbft/cometbft/types/time"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/testutil/mocks"
+	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
+	"github.com/openmetaearth/me-hub/x/wdistri/keeper"
+	"github.com/openmetaearth/me-hub/x/wdistri/types"
+	"github.com/openmetaearth/me-hub/x/wdistri/types/mock"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 type KeeperTestSuite struct {
@@ -87,11 +86,11 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.InitializeDao()
 
-	//validators := s.Keeper().GetValidators(s.Ctx, 10)
-	//s.Require().True(len(validators) >= 3)
-	//s.meEarthValidator = validators[0]
-	//s.experienceValidator = validators[1]
-	//s.usaValidator = validators[2]
+	// validators := s.Keeper().GetValidators(s.Ctx, 10)
+	// s.Require().True(len(validators) >= 3)
+	// s.meEarthValidator = validators[0]
+	// s.experienceValidator = validators[1]
+	// s.usaValidator = validators[2]
 
 	s.TestAccs = s.NewAccounts(3)
 }

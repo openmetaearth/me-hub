@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 )
 

@@ -3,8 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/openmetaearth/me-hub/x/tron/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/openmetaearth/me-hub/x/tron/types"
 )
 
 func TestValidateTronAddress(t *testing.T) {

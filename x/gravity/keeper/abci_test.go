@@ -1,11 +1,13 @@
 package keeper_test
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"encoding/hex"
 	"fmt"
+
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/testutil/helpers"
 	"github.com/openmetaearth/me-hub/utils"

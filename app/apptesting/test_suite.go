@@ -2,30 +2,29 @@ package apptesting
 
 import (
 	"fmt"
+
 	"github.com/cometbft/cometbft/libs/rand"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/openmetaearth/me-hub/app"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/dao/types"
+	daotypes "github.com/openmetaearth/me-hub/x/dao/types"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
-	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-	"github.com/stretchr/testify/suite"
-
-	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
-
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencerkeeper "github.com/openmetaearth/me-hub/x/sequencer/keeper"
-
-	daotypes "github.com/openmetaearth/me-hub/x/dao/types"
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 var (
@@ -125,7 +124,7 @@ func (suite *KeeperTestHelper) StateNotAltered() {
 func (s *KeeperTestHelper) InitializeDao() {
 	globalDaoPrivKey, _ := ethsecp256k1.GenerateKey()
 	globalDaoAcc := authtypes.NewBaseAccount(globalDaoPrivKey.PubKey().Address().Bytes(), globalDaoPrivKey.PubKey(), 1, 0)
-	//globalOutput, _ := keyring.NewKeyOutput("global_dao", keyring.TypeLocal, globalDaoAddress, globalDaoPrivKey.PubKey())
+	// globalOutput, _ := keyring.NewKeyOutput("global_dao", keyring.TypeLocal, globalDaoAddress, globalDaoPrivKey.PubKey())
 
 	meidDao, _ := ethsecp256k1.GenerateKey()
 	meidDaoAcc := authtypes.NewBaseAccount(meidDao.PubKey().Address().Bytes(), meidDao.PubKey(), 1, 0)
@@ -155,8 +154,8 @@ func (s *KeeperTestHelper) InitializeDao() {
 	_ = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, airdropAddress, sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
 }
 
-func (s *KeeperTestHelper) InitKyc(address sdk.AccAddress, did string, regionId string) {
-	//address, _ := s.App.KycKeeper.MustAccAddressFromPubkeyString(pubkey)
+func (s *KeeperTestHelper) InitKyc(address sdk.AccAddress, did, regionId string) {
+	// address, _ := s.App.KycKeeper.MustAccAddressFromPubkeyString(pubkey)
 	if _, found := s.App.KycKeeper.GetDID(s.Ctx, address); found {
 		panic(fmt.Errorf("issuer %s already exists", address))
 	}
@@ -195,7 +194,7 @@ func (s *KeeperTestHelper) NewAccounts(count int) []sdk.AccAddress {
 	for i := 0; i < count; i++ {
 		key, _ := ethsecp256k1.GenerateKey()
 		address := sdk.AccAddress(key.PubKey().Address().Bytes())
-		//account := authtypes.NewBaseAccount(airdrop.PubKey().Address().Bytes(), airdrop.PubKey(), 3, 0)
+		// account := authtypes.NewBaseAccount(airdrop.PubKey().Address().Bytes(), airdrop.PubKey(), 3, 0)
 		accounts[i] = address
 	}
 	return accounts

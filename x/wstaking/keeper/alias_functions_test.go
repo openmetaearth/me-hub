@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	mintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/stretchr/testify/require"
+
+	mintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
 )
 
 // perBlockUMEC returns the expected per-block umec reward for each halving period.
