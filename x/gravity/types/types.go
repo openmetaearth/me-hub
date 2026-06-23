@@ -2,9 +2,6 @@ package types
 
 import (
 	"bytes"
-	"github.com/fbsobreira/gotron-sdk/pkg/address"
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/utils"
 	"math"
 	"math/big"
 	"sort"
@@ -15,6 +12,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/fbsobreira/gotron-sdk/pkg/address"
+
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/utils"
 )
 
 // --- ERC20Token --- //
@@ -191,7 +192,7 @@ func (r *RelayerSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	memberAddresses := make([]gethcommon.Address, len(r.Members))
 	convertedPowers := make([]*big.Int, len(r.Members))
 	for i, m := range r.Members {
-		//memberAddresses[i] = gethcommon.HexToAddress(m.ExternalAddress)
+		// memberAddresses[i] = gethcommon.HexToAddress(m.ExternalAddress)
 		memberAddresses[i] = toHexAddr(gravityIDStr, m.ExternalAddress)
 		convertedPowers[i] = big.NewInt(int64(m.Power))
 	}
@@ -291,7 +292,7 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	txFees := make([]*big.Int, len(m.Transactions))
 	for i, tx := range m.Transactions {
 		txAmounts[i] = tx.Token.Amount.BigInt()
-		//txDestinations[i] = gethcommon.HexToAddress(tx.DestAddress)
+		// txDestinations[i] = gethcommon.HexToAddress(tx.DestAddress)
 		txDestinations[i] = toHexAddr(gravityIDString, tx.DestAddress)
 		txFees[i] = tx.Fee.Amount.BigInt()
 	}

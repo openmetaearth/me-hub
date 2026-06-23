@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	appkeepers "github.com/openmetaearth/me-hub/app/keepers"
 	"github.com/openmetaearth/me-hub/app/upgrades"
 )
@@ -25,6 +26,19 @@ func CreateUpgradeHandler(
 			if mod, ok := m.(module.HasConsensusVersion); ok {
 				fromVM[n] = mod.ConsensusVersion()
 			}
+		}
+
+		evmParams := keepers.EvmKeeper.GetParams(ctx)
+		evmParams.EvmDenom = "umec"
+		if err := keepers.EvmKeeper.SetParams(ctx, evmParams); err != nil {
+			panic("failed to set EVM params: " + err.Error())
+		}
+
+		feemarketParams := keepers.FeeMarketKeeper.GetParams(ctx)
+		feemarketParams.BaseFee = sdk.NewInt(4700000000)
+		feemarketParams.MinGasPrice = sdk.NewDecFromInt(sdk.NewInt(4700000000))
+		if err := keepers.FeeMarketKeeper.SetParams(ctx, feemarketParams); err != nil {
+			panic("failed to set FeeMarket params: " + err.Error())
 		}
 
 		logger.Info("upgrade finished successfully.")

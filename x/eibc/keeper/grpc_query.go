@@ -4,12 +4,11 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var _ types.QueryServer = Querier{}
@@ -108,7 +107,7 @@ func isOrderType(orderType ...commontypes.RollappPacket_Type) filterOption {
 
 func isFulfiller(fulfiller string) filterOption {
 	return func(order types.DemandOrder) bool {
-		return order.Recipient == fulfiller
+		return order.FulfillerAddress == fulfiller
 	}
 }
 

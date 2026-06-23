@@ -3,10 +3,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_13"
-	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
-	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -19,6 +15,11 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/evmos/ethermint/crypto/hd"
 	"github.com/spf13/cobra"
+
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_13"
+	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
+	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 )
 
 func GenRelayersCmd(defaultNodeHome string) *cobra.Command {

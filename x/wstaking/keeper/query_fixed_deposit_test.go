@@ -1,19 +1,21 @@
 package keeper_test
 
 import (
+	"strings"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/stretchr/testify/require"
+
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wdistri"
 	"github.com/openmetaearth/me-hub/x/wmint"
 	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
-	"github.com/stretchr/testify/require"
-	"strings"
 )
 
 func (s *KeeperTestSuite) createGlobalRegion() {
@@ -157,4 +159,36 @@ func (s *KeeperTestSuite) TestFixedDepositByRegionPagination() {
 
 	// Check the total number of FixedDeposits
 	require.Equal(s.T(), 30, len(allFixedDeposits))
+}
+
+// TestFixedDepositByRegionNilPagination ensures that omitting the pagination
+// field (nil Pagination) does not panic and returns results using default
+// pagination behavior (issue #1107).
+func (s *KeeperTestSuite) TestFixedDepositByRegionNilPagination() {
+	s.SetupTest()
+	s.createGlobalRegion()
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	accounts := s.NewAccounts(1)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	err := s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx,
+		mintypes.ModuleName,
+		accounts[0],
+		sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 10000000000)})
+	s.Require().NoError(err)
+	s.InitKyc(accounts[0], "0000000000001", types.MeEarthRegionId)
+	s.createFixedDeposits(3, accounts[0].String())
+
+	// Omit pagination entirely — must not panic (regression for issue #1107).
+	req := &types.QueryFixedDepositByRegionRequest{
+		RegionId:   types.MeEarthRegionId,
+		Pagination: nil,
+		QueryType:  types.FixedDepositState_AllState,
+	}
+	res, err := s.queryClient.FixedDepositByRegion(s.Ctx, req)
+	require.NoError(s.T(), err)
+	require.NotNil(s.T(), res)
+	require.Equal(s.T(), 3, len(res.FixedDeposit))
 }

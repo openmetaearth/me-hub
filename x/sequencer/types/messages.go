@@ -98,7 +98,7 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 		return err
 	}
 
-	if !msg.Bond.IsValid() {
+	if !msg.Bond.IsValid() || !msg.Bond.IsPositive() {
 		return errorsmod.Wrapf(ErrInvalidCoins, "invalid bond amount: %s", msg.Bond.String())
 	}
 
@@ -142,6 +142,7 @@ func NewMsgReplaceProposerRequest(creator, rollappId, oldProposer, newProposer s
 		},
 	}, nil
 }
+
 func (msg *MsgReplaceProposerRequest) Route() string {
 	return RouterKey
 }

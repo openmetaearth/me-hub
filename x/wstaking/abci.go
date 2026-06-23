@@ -1,13 +1,14 @@
 package wstaking
 
 import (
-	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cosmos/cosmos-sdk/telemetry"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"time"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/wstaking/keeper"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // BeginBlocker will persist the current header and validator set as a historical entry
@@ -18,7 +19,10 @@ func BeginBlock(ctx sdk.Context, k *keeper.Keeper) {
 	regions := k.GetAllRegion(ctx)
 
 	for _, region := range regions {
-		rewards, _ := k.Calculate(ctx, sdk.NewDecFromInt(totalRewardsPerBlock), region.DelegateAmount) //rate.MulInt(totalRewardsPerBlock.Mul(region.DelegateAmount)).Mul(sdk.NewDecWithPrec(1, sdk.MEExponent))
+		if region.DelegateAmount.IsZero() {
+			continue
+		}
+		rewards := k.Calculate(sdk.NewDecFromInt(totalRewardsPerBlock), region.DelegateAmount)
 		region.DelegateInterest = region.DelegateInterest.Add(rewards)
 		k.SetRegion(ctx, region)
 	}

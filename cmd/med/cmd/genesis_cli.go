@@ -9,19 +9,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	stakingcli "github.com/cosmos/cosmos-sdk/x/staking/client/cli"
+	"github.com/spf13/cobra"
+
 	"github.com/openmetaearth/me-hub/x/dao/types"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
-	"github.com/spf13/cobra"
-
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-
-	stakingcli "github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 )
 
 func SetDAOCmd() *cobra.Command {
@@ -29,7 +28,7 @@ func SetDAOCmd() *cobra.Command {
 		Use:   "gentx_DAO --pubkey [DAO_ADDRESS]",
 		Short: "create new genesis DAO and DID",
 		Args:  cobra.NoArgs,
-		//FIXME:
+		// FIXME:
 		Long: fmt.Sprintf(`Generate a genesis sequencer, by providing the public key of the sequencer and the rollapp address of the sequencer.
 Example:
 $ %s gentx \'%s dymint show-sequencer\' --home=/path/to/home/dir --keyring-backend=os --from sequencer-account
@@ -95,7 +94,7 @@ $ %s gentx \'%s dymint show-sequencer\' --home=/path/to/home/dir --keyring-backe
 	}
 
 	cmd.Flags().AddFlagSet(stakingcli.FlagSetPublicKey())
-	//cmd.Flags().String(flags.FlagFrom, "", "Name or address of private key with which to sign")
+	// cmd.Flags().String(flags.FlagFrom, "", "Name or address of private key with which to sign")
 	cmd.Flags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|kwallet|pass|test|memory)")
 
 	_ = cmd.MarkFlagRequired(stakingcli.FlagPubKey)
@@ -107,7 +106,6 @@ $ %s gentx \'%s dymint show-sequencer\' --home=/path/to/home/dir --keyring-backe
 func AddDAOToGenesis(
 	cdc codec.JSONCodec, appGenesisState map[string]json.RawMessage, addr string,
 ) (map[string]json.RawMessage, error) {
-
 	var genState types.GenesisState
 	cdc.MustUnmarshalJSON(appGenesisState[types.ModuleName], &genState)
 
@@ -121,10 +119,10 @@ func AddDAOToGenesis(
 
 	return appGenesisState, nil
 }
-func SetGenesisIssuerToGenesis(
-	cdc codec.JSONCodec, appGenesisState map[string]json.RawMessage, addr string, pkStr string,
-) (map[string]json.RawMessage, error) {
 
+func SetGenesisIssuerToGenesis(
+	cdc codec.JSONCodec, appGenesisState map[string]json.RawMessage, addr, pkStr string,
+) (map[string]json.RawMessage, error) {
 	var genState kyctypes.GenesisState
 	cdc.MustUnmarshalJSON(appGenesisState[kyctypes.ModuleName], &genState)
 
