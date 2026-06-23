@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"encoding/binary"
 	"fmt"
+
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/x/gravity/types"
@@ -14,7 +15,7 @@ import (
 // - burns the voucher for transfer amount and fees
 // - persists an OutgoingTx
 // - adds the TX to the `available` TX pool via a second index
-func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
+func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount, fee sdk.Coin) (uint64, error) {
 	bridgeToken, err := k.GetBridgeTokenByDenom(ctx, amount.Denom)
 	if err != nil {
 		return 0, errorsmod.Wrapf(types.ErrInvalid, "get bridge token: %v", err)
@@ -24,12 +25,6 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 	if totalInVouchers.Amount.GT(bridgeToken.Supply) {
 		return 0, errorsmod.Wrapf(types.ErrInvalid, "%s exceeds bridge token supply %s in %s chain",
 			totalInVouchers.Amount.String(), bridgeToken.Supply.String(), k.moduleName)
-	}
-
-	totalPending := k.GetOutgoingPendingTxTotal(ctx, k.moduleName, bridgeToken)
-	if totalInVouchers.Amount.Add(totalPending).GT(bridgeToken.Supply) {
-		return 0, errorsmod.Wrapf(types.ErrInvalid, "total pending amount %s plus current amount %s exceeds bridge token supply %s in %s chain",
-			totalPending.String(), totalInVouchers.Amount.String(), bridgeToken.Supply.String(), k.moduleName)
 	}
 
 	sendCoins := sdk.NewCoins(totalInVouchers)

@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -9,6 +10,11 @@ import (
 var (
 	_ sdk.Msg = &MsgUpdateDao{}
 	_ sdk.Msg = &MsgFreeGasAccount{}
+)
+
+const (
+	TypeMsgUpdateDao      = "UpdateDao"
+	TypeMsgFreeGasAccount = "free_gas_account"
 )
 
 func NewMsgUpdateDao(creator sdk.AccAddress, addresses DaoAddresses) *MsgUpdateDao {
@@ -23,7 +29,7 @@ func (msg *MsgUpdateDao) Route() string {
 }
 
 func (msg *MsgUpdateDao) Type() string {
-	return "UpdateDao"
+	return TypeMsgUpdateDao
 }
 
 func (msg *MsgUpdateDao) GetSigners() []sdk.AccAddress {
@@ -75,7 +81,7 @@ func (msg *MsgFreeGasAccount) Route() string {
 }
 
 func (msg *MsgFreeGasAccount) Type() string {
-	return "UpdateDao"
+	return TypeMsgFreeGasAccount
 }
 
 func (msg *MsgFreeGasAccount) GetSigners() []sdk.AccAddress {

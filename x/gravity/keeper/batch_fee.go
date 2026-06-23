@@ -1,12 +1,14 @@
 package keeper
 
 import (
+	"fmt"
+	"sort"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/gravity/types"
-	"sort"
 )
 
 // GetBatchFeesByTokenType gets the fee the next batch of a given token type would
@@ -17,7 +19,7 @@ func (k Keeper) GetBatchFeesByTokenType(ctx sdk.Context, tokenContract string, m
 	batchFee := &types.BatchFees{TokenContract: tokenContract, TotalFees: sdkmath.NewInt(0), TotalAmount: sdkmath.NewInt(0)}
 	k.IterateUnbatchedTransactions(ctx, tokenContract, func(tx *types.OutgoingTransferTx) bool {
 		if tx.Fee.Contract != tokenContract {
-			//panic(fmt.Errorf("unexpected fee contract %s when getting batch fees for contract %s", tx.Fee.Contract, tokenContract))
+			// panic(fmt.Errorf("unexpected fee contract %s when getting batch fees for contract %s", tx.Fee.Contract, tokenContract))
 			// Log error and skip transaction instead of panicking
 			ctx.Logger().Error("unexpected fee contract", "got", tx.Fee.Contract, "expected", tokenContract)
 			return false
@@ -106,6 +108,9 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 		if err := k.bankKeeper.BurnCoins(ctx, k.moduleName, sdk.NewCoins(addBridgeFee)); err != nil {
 			return err
 		}
+
+		bridgeToken.Supply = bridgeToken.Supply.Sub(addBridgeFee.Amount)
+		k.SetBridgeToken(ctx, bridgeToken)
 	}
 
 	if err := k.DelUnbatchedTx(ctx, tx.Fee, txId); err != nil {

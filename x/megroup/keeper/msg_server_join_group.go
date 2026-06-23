@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"context"
+	"fmt"
+
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
@@ -13,7 +15,7 @@ import (
 func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*types.MsgJoinGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	//creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	// creator, err := sdk.AccAddressFromBech32(msg.Creator)
 	//if err != nil {
 	//	return nil, err
 	//}
@@ -45,7 +47,7 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 
 	grpNumber, found := k.GetGroupMemberCount(ctx, msg.GroupId)
 	if !found {
-		return nil, errors.Wrap(types.ErrProcData, fmt.Sprintf("can not found group number count in JoinGroup"))
+		return nil, errors.Wrap(types.ErrProcData, "can not found group number count in JoinGroup")
 	}
 
 	joined, JoinGroupFound := k.GetMemberJoined(ctx, msg.ApplicantAddress)
@@ -54,25 +56,27 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 		return nil, errors.Wrap(types.ErrPermissionDenied, errLogBytes)
 	}
 
-	//set member's join group info
+	// set member's join group info
 	k.SetMemberJoined(ctx, types.MemberJoined{
 		Address: msg.ApplicantAddress,
 		GroupId: msg.GroupId,
 	})
-	//add to group_member
+	// add to group_member
 
 	err = k.AddGroupMember(ctx, &types.GroupMember{
 		GroupId: msg.GroupId,
 		Member: &types.Member{
 			Address: msg.ApplicantAddress,
-			AddedAt: ctx.BlockTime()}})
+			AddedAt: ctx.BlockTime(),
+		},
+	})
 	if err != nil {
 		return nil, err
 	}
 	k.SetGroupMemberCount(ctx, msg.GroupId, grpNumber+1)
 
-	if !JoinGroupFound { //send rewards if user has not joined group
-		//get RegionTreasureAddr
+	if !JoinGroupFound { // send rewards if user has not joined group
+		// get RegionTreasureAddr
 		region, found := k.stakingKeeper.GetRegion(ctx, groupInfo.RegionID)
 		if !found {
 			return nil, errors.Wrap(types.ErrRegionNotExist, fmt.Sprintf("group's region: %s", groupInfo.RegionID))
@@ -114,7 +118,7 @@ func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupReq
 		return nil, errors.Wrap(types.ErrGroupNotExist, fmt.Sprintf("can not found gourp.groupID = %d", req.GroupId))
 	}
 
-	if req.Creator == groupInfo.Admin { //admin can not leave group
+	if req.Creator == groupInfo.Admin { // admin can not leave group
 		return nil, errors.Wrapf(types.ErrExecute, "admin of group can not leave")
 	}
 

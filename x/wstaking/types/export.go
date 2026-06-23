@@ -20,9 +20,11 @@ type RegionI interface {
 func (m *Region) GetRegionShare() github_com_cosmos_cosmos_sdk_types.Int {
 	return m.RegionShare
 }
+
 func (m *Region) GetDelegateInterest() github_com_cosmos_cosmos_sdk_types.Dec {
 	return m.DelegateInterest
 }
+
 func (m *Region) GetDelegateAmount() github_com_cosmos_cosmos_sdk_types.Int {
 	return m.DelegateAmount
 }

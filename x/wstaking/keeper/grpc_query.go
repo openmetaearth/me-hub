@@ -8,10 +8,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 type Querier struct {
@@ -36,7 +37,7 @@ func (k Keeper) AllRegion(goCtx context.Context, req *types.QueryAllRegionReques
 	store := ctx.KVStore(k.storeKey)
 	regionStore := prefix.NewStore(store, types.KeyPrefix(types.RegionKeyPrefix))
 
-	pageRes, err := query.Paginate(regionStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(regionStore, req.Pagination, func(key, value []byte) error {
 		var region types.Region
 		if err := k.cdc.Unmarshal(value, &region); err != nil {
 			return err
@@ -44,7 +45,6 @@ func (k Keeper) AllRegion(goCtx context.Context, req *types.QueryAllRegionReques
 		regions = append(regions, region)
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -66,7 +66,7 @@ func (k Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationR
 		return nil, err
 	}
 	//regionID := strings.ToLower(types.ExperienceRegionName)
-	//meid, found := k.GetMeid(ctx, req.DelegatorAddress)
+	// meid, found := k.GetMeid(ctx, req.DelegatorAddress)
 	//if found {
 	//	regionID = meid.RegionId
 	//}
@@ -90,12 +90,11 @@ func (k Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationR
 	if err != nil {
 		return nil, err
 	}
-	//endingPeriod := k.IncrementValidatorPeriod(ctx, val)
-	//rewards := k.CalculateDelegationRewards(ctx, val, del, endingPeriod)
+	// endingPeriod := k.IncrementValidatorPeriod(ctx, val)
+	// rewards := k.CalculateDelegationRewards(ctx, val, del, endingPeriod)
 	rewards := sdk.NewDecCoins(sdk.NewDecCoinFromDec(params.BaseDenom, interest))
 	return &types.QueryDelegationRewardsResponse{Rewards: rewards}, nil
-	//return &types.QueryDelegationRewardsResponse{Rewards: sdk.NewDecCoinsFromCoins(sdk.NewCoin(sdk.BaseMEDenom, interest.TruncateInt()))}, nil
-
+	// return &types.QueryDelegationRewardsResponse{Rewards: sdk.NewDecCoinsFromCoins(sdk.NewCoin(sdk.BaseMEDenom, interest.TruncateInt()))}, nil
 }
 
 // Delegation queries delegate info for given validator delegator pair
@@ -166,7 +165,7 @@ func (k Keeper) QueryAllRecord(goCtx context.Context, req *types.QueryAllRecords
 	store := ctx.KVStore(k.storeKey)
 	meidStore := prefix.NewStore(store, types.NewRecordKey)
 
-	pageRes, err := query.Paginate(meidStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(meidStore, req.Pagination, func(key, value []byte) error {
 		var record types.Record
 		if err := k.cdc.Unmarshal(value, &record); err != nil {
 			return err
@@ -175,7 +174,6 @@ func (k Keeper) QueryAllRecord(goCtx context.Context, req *types.QueryAllRecords
 		records = append(records, record)
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("query all records err=%s", err.Error()))
 	}
@@ -196,7 +194,7 @@ func (k Querier) QueryRecordByAddress(goCtx context.Context, req *types.QueryRec
 func (k Querier) QueryReviewRecordByID(goCtx context.Context, req *types.QueryReviewRecordByNumber) (*types.QueryReviewRecordByNumberResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if req.ActionNumber == "" {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("ActionNumber is empty"))
+		return nil, status.Error(codes.InvalidArgument, "ActionNumber is empty")
 	}
 	rr := k.GetReviewRecordByID(ctx, req.ActionNumber)
 	return &types.QueryReviewRecordByNumberResponse{ReviewRecord: rr}, nil
@@ -210,7 +208,7 @@ func (k Querier) AllDelegations(c context.Context, req *types.QueryAllDelegation
 	queryStore := prefix.NewStore(store, stakingtypes.DelegationKey)
 
 	delegations := []stakingtypes.Delegation{}
-	pageRes, err := query.Paginate(queryStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(queryStore, req.Pagination, func(key, value []byte) error {
 		delegation := types.MustUnmarshalDelegation(k.cdc, value)
 		delegations = append(delegations, delegation)
 		return nil

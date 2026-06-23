@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
+
 	"github.com/openmetaearth/me-hub/utils"
+	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -42,7 +42,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	if !ok {
 		return nil, types.ErrRegionValidatorNotExist
 	}
-	if strings.ToLower(validator.Description.RegionID) != strings.ToLower(regionId) {
+	if !strings.EqualFold(validator.Description.RegionID, regionId) {
 		return nil, types.ErrRegion.Wrapf("only the validator with region id %s can be bound, not bound %s region", validator.Description.RegionID, regionId)
 	}
 
@@ -102,7 +102,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 
 	event4Nft := utils.GenEventCompactAttrWithBytes(types.EventNewNftClass, k.cdc.MustMarshal(&nftClass))
 	k.SetRegion(ctx, region)
-	//create megroup
+	// create megroup
 	if regionId != strings.ToLower(types.ExperienceRegionName) {
 		if _, err := k.groupKeeper.CreateGroupByRegion(ctx, region); err != nil {
 			return nil, err

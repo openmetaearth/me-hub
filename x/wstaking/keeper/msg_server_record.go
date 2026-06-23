@@ -5,8 +5,9 @@ import (
 
 	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"golang.org/x/net/context"
+
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func (k MsgServer) NewRecord(goCtx context.Context, msg *types.MsgNewRecord) (*types.MsgNewRecordResponse, error) {
