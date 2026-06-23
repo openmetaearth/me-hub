@@ -42,10 +42,23 @@ func (s *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 			expPass: false,
 		},
 		{
+			name: "relayer not online",
+			malleate: func() {
+				newOutgoingTx := s.NewOutgoingTxBatch()
+				relayer, _ := s.NewRelayer(false)
+				msg = &gravitytypes.MsgConfirmBatch{
+					Nonce:          newOutgoingTx.BatchNonce,
+					TokenContract:  newOutgoingTx.TokenContract,
+					RelayerAddress: relayer.String(),
+				}
+			},
+			expPass: false,
+		},
+		{
 			name: "signature decoding failed",
 			malleate: func() {
 				newOutgoingTx := s.NewOutgoingTxBatch()
-				relayer, externalKey := s.NewRelayer()
+				relayer, externalKey := s.NewRelayer(true)
 				msg = &gravitytypes.MsgConfirmBatch{
 					Nonce:           newOutgoingTx.BatchNonce,
 					TokenContract:   newOutgoingTx.TokenContract,
@@ -60,7 +73,7 @@ func (s *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 			name: "confirm batch",
 			malleate: func() {
 				newOutgoingTx := s.NewOutgoingTxBatch()
-				relayer, externalKey := s.NewRelayer()
+				relayer, externalKey := s.NewRelayer(true)
 				params, err := s.queryServer.Params(sdk.WrapSDKContext(s.Ctx), &gravitytypes.QueryParamsRequest{ChainName: trontypes.ModuleName})
 				s.Require().NoError(err)
 				batchHash, err := trontypes.GetCheckpointConfirmBatch(newOutgoingTx, params.Params.GravityId)
@@ -125,7 +138,7 @@ func (s *KeeperTestSuite) Test_msgServer_RelayerSetConfirm() {
 		{
 			name: "signature decoding",
 			malleate: func() {
-				relayer, externalKey := s.NewRelayer()
+				relayer, externalKey := s.NewRelayer(true)
 				currentRelayerSet := s.CurrentRelayerSet(externalKey)
 				msg = &gravitytypes.MsgRelayerSetConfirm{
 					Nonce:           currentRelayerSet.Nonce,
@@ -139,7 +152,7 @@ func (s *KeeperTestSuite) Test_msgServer_RelayerSetConfirm() {
 		{
 			name: "relayer set confirm",
 			malleate: func() {
-				relayer, externalKey := s.NewRelayer()
+				relayer, externalKey := s.NewRelayer(true)
 				currentRelayerSet := s.CurrentRelayerSet(externalKey)
 				key, err := externalKey.(*ethsecp256k1.PrivKey).ToECDSA()
 				s.Require().NoError(err)

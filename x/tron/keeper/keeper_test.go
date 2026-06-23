@@ -135,13 +135,14 @@ func (s *KeeperTestSuite) NewOutgoingTxBatch() *gravitytypes.OutgoingTxBatch {
 	return newOutgoingTx
 }
 
-func (s *KeeperTestSuite) NewRelayer() (sdk.AccAddress, cryptotypes.PrivKey) {
+func (s *KeeperTestSuite) NewRelayer(online bool) (sdk.AccAddress, cryptotypes.PrivKey) {
 	relayer := helpers.GenAccAddress()
 	externalKey := helpers.NewEthPrivKey()
 	externalAddress := helpers.HexAddrToTronAddr(externalKey.PubKey().Address().String())
 	newRelayer := gravitytypes.Relayer{
 		RelayerAddress:  relayer.String(),
 		ExternalAddress: externalAddress,
+		Online:          online,
 	}
 	s.App.TronKeeper.SetRelayer(s.Ctx, relayer, newRelayer)
 	s.App.TronKeeper.SetRelayerByExternalAddress(s.Ctx, externalAddress, relayer)

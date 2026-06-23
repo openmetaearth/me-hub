@@ -193,7 +193,7 @@ func (s Keeper) checkIsRelayer(ctx sdk.Context, addr sdk.AccAddress) error {
 		return types.ErrNotFoundRelayer
 	}
 	if !relayer.Online {
-		return types.ErrRelayerNotOnLine
+		return types.ErrRelayerNotOnline
 	}
 	return nil
 }
