@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -55,7 +55,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	}
 
 	// current interest balance * personal withdrawal pledge limit / district total pledge limit
-	//person_dele_inte := region.DelegateInterest.Mul(sdk.NewDecFromInt(msg.Amount.Amount).Quo(sdk.NewDecFromInt(validator.DelegationAmount)))
+	// person_dele_inte := region.DelegateInterest.Mul(sdk.NewDecFromInt(msg.Amount.Amount).Quo(sdk.NewDecFromInt(validator.DelegationAmount)))
 	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, val.GetOperator())
 	if !isOK {
 		return nil, types.ErrEmptyDelegationDistInfo
@@ -69,12 +69,12 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	if region.DelegateInterest.GTE(rewards) {
 		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
 	} else {
-		return nil, errors.New(fmt.Sprintf("undelegate err,region(%s) total interest not enough.need pay %s,only have %s",
-			region.RegionId, rewards.String(), region.DelegateInterest.String()))
+		return nil, fmt.Errorf("undelegate err,region(%s) total interest not enough.need pay %s,only have %s",
+			region.RegionId, rewards.String(), region.DelegateInterest.String())
 	}
 
 	isMeid := true
-	if strings.ToLower(val.Description.RegionID) == strings.ToLower(types.ExperienceRegionName) {
+	if strings.EqualFold(val.Description.RegionID, types.ExperienceRegionName) {
 		isMeid = false
 	}
 
@@ -86,7 +86,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	k.SetRegion(ctx, region)
 	val.DelegationAmount = val.DelegationAmount.Sub(returnAmount)
 	k.SetValidator(ctx, val)
-	//send delegation rewards
+	// send delegation rewards
 	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())),
 		fmt.Sprintf("Undelegate_SendRewards_%s", region.RegionId),
 	)

@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
+
 	"github.com/openmetaearth/me-hub/utils"
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/openmetaearth/me-hub/x/wnft/types"
@@ -41,7 +42,7 @@ func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "class %s already exists", msg.ClassId)
 	}
 
-	//Check if the name occupies the zone name todo
+	// Check if the name occupies the zone name todo
 	if utils.CheckIsRegionName(msg.ClassId) {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid class name %s", msg.ClassId)
 	}
@@ -77,7 +78,7 @@ func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.
 func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.MsgMintNFTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	//check token id An integer between 1 and the total supply of the NFT type, non-repeating
+	// check token id An integer between 1 and the total supply of the NFT type, non-repeating
 	if !k.HasClass(ctx, msg.ClassId) {
 		return nil, sdkerrors.Wrap(nft.ErrClassNotExists, msg.ClassId)
 	}

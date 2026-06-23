@@ -6,6 +6,7 @@ import (
 	"github.com/cometbft/cometbft/crypto"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
 )
 

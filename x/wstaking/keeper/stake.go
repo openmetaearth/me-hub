@@ -3,19 +3,20 @@ package keeper
 import (
 	"time"
 
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
-
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // Stake performs a stake, set/update everything necessary within the store.
 // tokenSrc indicates the bond status of the incoming funds.
 func (k Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt math.Int,
-	tokenSrc stakingtypes.BondStatus, validator stakingtypes.Validator, subtractAccount bool, tag string) (newShares sdk.Dec, err error) {
+	tokenSrc stakingtypes.BondStatus, validator stakingtypes.Validator, subtractAccount bool, tag string,
+) (newShares sdk.Dec, err error) {
 	// In some situations, the exchange rate becomes invalid, e.g. if
 	// Validator loses all tokens due to slashing. In this case,
 	// make all future stakes invalid.
@@ -234,7 +235,7 @@ func (k Keeper) UnStakeBond(
 		k.BondRegion(ctx, validator, stake.Shares.TruncateInt(), false)
 		k.SetStake(ctx, stake)
 		// call the after stake modification hook
-		//err = k.AfterDelegationModified(ctx, stakerAddress, stake.GetValidatorAddr())
+		// err = k.AfterDelegationModified(ctx, stakerAddress, stake.GetValidatorAddr())
 	}
 
 	// remove the shares and coins from the validator
@@ -262,7 +263,7 @@ func (k Keeper) RemoveStake(ctx sdk.Context, stake types.Stake) error {
 	stakerAddress := sdk.MustAccAddressFromBech32(stake.StakerAddress)
 
 	// TODO: Consider calling hooks outside of the store wrapper functions, it's unobvious.
-	//if err := k.BeforeDelegationRemoved(ctx, stakerAddress, stake.GetValidatorAddr()); err != nil {
+	// if err := k.BeforeDelegationRemoved(ctx, stakerAddress, stake.GetValidatorAddr()); err != nil {
 	//	return err
 	//}
 

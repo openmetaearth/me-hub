@@ -25,19 +25,9 @@ import (
 	"runtime/pprof"
 	"time"
 
-	rpcclient "github.com/cometbft/cometbft/rpc/client"
-	ethermintserver "github.com/evmos/ethermint/server"
-	metypes "github.com/openmetaearth/me-hub/types"
-
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/cosmos/cosmos-sdk/telemetry"
-
-	"github.com/spf13/cobra"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/tools/rosetta"
+	crgserver "cosmossdk.io/tools/rosetta/lib/server"
 	dbm "github.com/cometbft/cometbft-db"
 	abciserver "github.com/cometbft/cometbft/abci/server"
 	tcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
@@ -46,29 +36,32 @@ import (
 	"github.com/cometbft/cometbft/p2p"
 	pvm "github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/proxy"
+	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	"github.com/cometbft/cometbft/rpc/client/local"
-
-	"cosmossdk.io/tools/rosetta"
-	crgserver "cosmossdk.io/tools/rosetta/lib/server"
-
-	ethmetricsexp "github.com/ethereum/go-ethereum/metrics/exp"
-
-	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servergrpc "github.com/cosmos/cosmos-sdk/server/grpc"
 	"github.com/cosmos/cosmos-sdk/server/types"
 	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	ethmetricsexp "github.com/ethereum/go-ethereum/metrics/exp"
 	"github.com/evmos/ethermint/indexer"
 	ethdebug "github.com/evmos/ethermint/rpc/namespaces/ethereum/debug"
+	ethermintserver "github.com/evmos/ethermint/server"
 	"github.com/evmos/ethermint/server/config"
 	srvflags "github.com/evmos/ethermint/server/flags"
 	ethermint "github.com/evmos/ethermint/types"
+	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
+	metypes "github.com/openmetaearth/me-hub/types"
 )
 
 // StartCmd runs the service passed in, either stand-alone or in-process with
@@ -251,7 +244,7 @@ func startStandAlone(ctx *server.Context, opts ethermintserver.StartOptions) err
 
 	svr, err := abciserver.NewServer(addr, transport, app)
 	if err != nil {
-		return fmt.Errorf("error creating listener: %v", err)
+		return fmt.Errorf("error creating listener: %w", err)
 	}
 
 	svr.SetLogger(ctx.Logger.With("server", "abci"))

@@ -243,7 +243,7 @@ func (k Keeper) GetLastOutgoingBatchByTokenType(ctx sdk.Context, token string) *
 }
 
 // IterateBatchByBlockHeight iterates through all Batch by block in the half-open interval [start,end)
-func (k Keeper) IterateBatchByBlockHeight(ctx sdk.Context, start uint64, end uint64, cb func(*types.OutgoingTxBatch) bool) {
+func (k Keeper) IterateBatchByBlockHeight(ctx sdk.Context, start, end uint64, cb func(*types.OutgoingTxBatch) bool) {
 	store := ctx.KVStore(k.storeKey)
 	startKey := append(types.OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(start)...)
 	endKey := append(types.OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(end)...)
