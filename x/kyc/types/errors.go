@@ -10,4 +10,6 @@ var (
 	ErrInvalidPubkey  = errors.Register(ModuleName, 102, "invalid pubkey")
 	ErrTransferRegion = errors.Register(ModuleName, 103, "transfer region")
 	ErrInviteReward   = errors.Register(ModuleName, 104, "send inviter reward failed")
+	ErrSubAccountAlreadyExists = errors.Register(ModuleName, 105, "sub account already exists")
+	ErrSubAccountAlreadyRegistered = errors.Register(ModuleName, 106, "sub account already registered")
 )
