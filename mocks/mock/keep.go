@@ -23,9 +23,9 @@ type MockRegion struct {
 	RegionTreasureAddr  string `protobuf:"bytes,6,opt,name=region_treasure_addr,json=regionTreasureAddr,proto3" json:"region_treasure_addr,omitempty"`
 	DepositInterestAddr string `protobuf:"bytes,8,opt,name=deposit_interest_addr,json=depositInterestAddr,proto3" json:"deposit_interest_addr,omitempty"`
 	// tokens define the region tokens share
-	RegionShare      sdk.Int `protobuf:"bytes,9,opt,name=region_share,json=regionShare,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"region_share"` //nolint:revive
+	RegionShare      sdk.Int `protobuf:"bytes,9,opt,name=region_share,json=regionShare,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"region_share"`                 //nolint:revive
 	DelegateInterest sdk.Dec `protobuf:"bytes,10,opt,name=delegate_interest,json=delegateInterest,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"delegate_interest"` //nolint:revive
-	DelegateAmount   sdk.Int `protobuf:"bytes,11,opt,name=delegate_amount,json=delegateAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"delegate_amount"` //nolint:revive
+	DelegateAmount   sdk.Int `protobuf:"bytes,11,opt,name=delegate_amount,json=delegateAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"delegate_amount"`       //nolint:revive
 }
 type MockBankKeeper struct {
 	bank.Keeper
