@@ -2,17 +2,18 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/did/types"
 )
 
 func (k Keeper) HasDidBySubAccount(ctx sdk.Context, subAccount string) bool {
-	if _, found := k.GetDidBySubAccount(ctx, subAccount); found {
+	if _, found := k.GetSubAccountDidMap(ctx, subAccount); found {
 		return true
 	}
 	return false
 }
 
-func (k Keeper) GetDidBySubAccount(ctx sdk.Context, subAccount string) (string, bool) {
+func (k Keeper) GetSubAccountDidMap(ctx sdk.Context, subAccount string) (string, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetSubAccountKey(subAccount))
 	if bz == nil {
@@ -22,12 +23,12 @@ func (k Keeper) GetDidBySubAccount(ctx sdk.Context, subAccount string) (string, 
 	return string(bz), true
 }
 
-func (k Keeper) SetDidSubAccountMap(ctx sdk.Context, did string, subAccount string) {
+func (k Keeper) SetSubAccountDidMap(ctx sdk.Context, subAccount, did string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetSubAccountKey(subAccount), []byte(did))
 }
 
-func (k Keeper) DeleteDidSubAccountMap(ctx sdk.Context, subAccount string) {
+func (k Keeper) DeleteSubAccountDidMap(ctx sdk.Context, subAccount string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetSubAccountKey(subAccount))
 }

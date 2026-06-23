@@ -41,8 +41,8 @@ type DIDKeeper interface {
 	AddFilters(ctx sdk.Context, did, sid string, filters [][]byte, vc didtypes.Credential)
 	DeleteFilters(ctx sdk.Context, did, sid string, filters [][]byte)
 
-	GetDidBySubAccount(ctx sdk.Context, subAccount string) (string, bool)
-	SetDidSubAccountMap(ctx sdk.Context, did string, subAccount string)
+	GetSubAccountDidMap(ctx sdk.Context, subAccount string) (string, bool)
+	SetSubAccountDidMap(ctx sdk.Context, subAccount, did string)
 	HasDidBySubAccount(ctx sdk.Context, subAccount string) bool
 }
 

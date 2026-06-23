@@ -143,8 +143,7 @@ func (k Keeper) SubAccountDid(goCtx context.Context, req *types.QuerySubAccountD
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-
-	did, ok := k.didKeeper.GetDidBySubAccount(ctx, req.SubAccount)
+	did, ok := k.didKeeper.GetSubAccountDidMap(ctx, req.SubAccount)
 	if !ok {
 		return nil, status.Error(codes.Internal, "failed to get DID by sub-account")
 	}
