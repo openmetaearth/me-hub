@@ -13,6 +13,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgRemove{}, "kyc/Remove", nil)
 	cdc.RegisterConcrete(&MsgCreateSBT{}, "kyc/CreateSBT", nil)
 	cdc.RegisterConcrete(&MsgDeleteSBT{}, "kyc/DeleteSBT", nil)
+	cdc.RegisterConcrete(&MsgCreateSubAccount{}, "kyc/CreateSubAccount", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -22,6 +23,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgRemove{},
 		&MsgCreateSBT{},
 		&MsgDeleteSBT{},
+		&MsgCreateSubAccount{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

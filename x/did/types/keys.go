@@ -30,6 +30,7 @@ var (
 	CredentialPrefix   = []byte{0x40}
 	FilterLoggerPrefix = []byte{0x50}
 	FilterPrefix       = []byte{0x51}
+	SubAccountPrefix   = []byte{0x52}
 )
 
 func GetDIDKey(addr sdk.AccAddress) []byte {
@@ -70,4 +71,8 @@ func GetFilterPrefixBySidAndFilter(sid string, filter []byte) []byte {
 
 func GetFilterKey(sid, did string, filter []byte) []byte {
 	return append(GetFilterPrefixBySidAndFilter(sid, filter), did...)
+}
+
+func GetSubAccountKey(addr string) []byte {
+	return append(SubAccountPrefix, []byte(addr)...)
 }

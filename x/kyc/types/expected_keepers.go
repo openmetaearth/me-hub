@@ -40,6 +40,10 @@ type DIDKeeper interface {
 	GetFilters(ctx sdk.Context, did, sid string) (filters [][]byte, found bool)
 	AddFilters(ctx sdk.Context, did, sid string, filters [][]byte, vc didtypes.Credential)
 	DeleteFilters(ctx sdk.Context, did, sid string, filters [][]byte)
+
+	GetSubAccountDidMap(ctx sdk.Context, subAccount string) (string, bool)
+	SetSubAccountDidMap(ctx sdk.Context, subAccount, did string)
+	HasDidBySubAccount(ctx sdk.Context, subAccount string) bool
 }
 
 type NFTKeeper interface {
