@@ -3,42 +3,48 @@ package keeper
 import (
 	"testing"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	cometbfttypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/stretchr/testify/require"
-
-	"github.com/openmetaearth/me-hub/app/apptesting"
 )
 
-func TestFreezeClientState(t *testing.T) {
-	app := apptesting.Setup(t, false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+type testIBCClientKeeper struct {
+	states map[string]exported.ClientState
+}
 
-	k := app.RollappKeeper
+func (k *testIBCClientKeeper) GetClientState(_ sdk.Context, clientID string) (exported.ClientState, bool) {
+	state, found := k.states[clientID]
+	return state, found
+}
+
+func (k *testIBCClientKeeper) SetClientState(_ sdk.Context, clientID string, clientState exported.ClientState) {
+	k.states[clientID] = clientState
+}
+
+func TestFreezeClientStateUsesLatestHeightRevisionOrder(t *testing.T) {
 	clientID := "test-client-id"
-
-	// Create and set a tendermint client state
-	latestHeight := clienttypes.NewHeight(1, 100000) // revision 1, height 100000
-	clientState := &cometbfttypes.ClientState{
-		LatestHeight: latestHeight,
+	clientKeeper := &testIBCClientKeeper{
+		states: map[string]exported.ClientState{
+			clientID: &cometbfttypes.ClientState{
+				LatestHeight: clienttypes.NewHeight(1, 100000),
+			},
+		},
 	}
-	app.IBCKeeper.ClientKeeper.SetClientState(ctx, clientID, clientState)
+	k := Keeper{
+		ibcClientKeeper: clientKeeper,
+	}
 
-	// Call freezeClientState (unexported helper)
-	err := k.freezeClientState(ctx, clientID)
+	err := k.freezeClientState(sdk.Context{}, clientID)
 	require.NoError(t, err)
 
-	// Retrieve the updated client state
-	updatedState, found := app.IBCKeeper.ClientKeeper.GetClientState(ctx, clientID)
+	updatedState, found := clientKeeper.GetClientState(sdk.Context{}, clientID)
 	require.True(t, found)
 
 	tmClientState, ok := updatedState.(*cometbfttypes.ClientState)
 	require.True(t, ok)
 
-	// Verify FrozenHeight
-	// revision number should be 1 (revisionNumber from latestHeight)
-	// revision height should be 100000 (revisionHeight from latestHeight)
 	require.Equal(t, uint64(1), tmClientState.FrozenHeight.GetRevisionNumber())
 	require.Equal(t, uint64(100000), tmClientState.FrozenHeight.GetRevisionHeight())
 }
