@@ -173,7 +173,6 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 			))
 		}
 		return nil
-
 	}
 
 	newGrpInfo, found := k.GetGroupInfo(sdkCtx, newGrpId)
@@ -229,7 +228,6 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 			sdk.NewAttribute("regionTreasureAddress", region.GetRegionTreasureAddr()),
 			sdk.NewAttribute("rewards", rewardsCoin.String()),
 		))
-
 	}
 	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(types.EvtGrpMigrateByKyc,
 		sdk.NewAttribute("applicant", address),

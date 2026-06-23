@@ -27,7 +27,7 @@ func newTestKeeper() Keeper {
 }
 
 func TestGetRewardsByHeight(t *testing.T) {
-	Y := int64(minttypes.OneYearTotalBlocks)
+	y := int64(minttypes.OneYearTotalBlocks)
 
 	tests := []struct {
 		name       string
@@ -65,49 +65,49 @@ func TestGetRewardsByHeight(t *testing.T) {
 		},
 		{
 			name:       "same period (year 2): 3 blocks",
-			fromHeight: Y + 1,
-			toHeight:   Y + 4,
+			fromHeight: y + 1,
+			toHeight:   y + 4,
 			// lowMul=1, highMul=1, blockCount=3
 			wantUMEC: perBlockUMEC[1] * 3,
 		},
 		{
 			name:       "same period (year 3): 100 blocks",
-			fromHeight: 2*Y + 1,
-			toHeight:   2*Y + 101,
+			fromHeight: 2*y + 1,
+			toHeight:   2*y + 101,
 			// lowMul=2, highMul=2, blockCount=100
 			wantUMEC: perBlockUMEC[2] * 100,
 		},
 		{
 			// Cross-period: period 0 -> period 1
-			// fromHeight=Y-5, toHeight=Y+5
-			// i=0 (lowMul): blockCount = Y*1 - (Y-5) + 1 = 6  (includes fromHeight)
-			// i=1 (highMul): blockCount = (Y+5) - Y*1 - 1 = 4  (misses last block of period 1)
+			// fromHeight=y-5, toHeight=y+5
+			// i=0 (lowMul): blockCount = y*1 - (y-5) + 1 = 6  (includes fromHeight)
+			// i=1 (highMul): blockCount = (y+5) - y*1 - 1 = 4  (misses last block of period 1)
 			name:       "cross-period year1 to year2",
-			fromHeight: Y - 5,
-			toHeight:   Y + 5,
+			fromHeight: y - 5,
+			toHeight:   y + 5,
 			wantUMEC:   perBlockUMEC[0]*6 + perBlockUMEC[1]*4,
 		},
 		{
 			// Cross-period: period 1 -> period 2
 			// fromHeight=2Y-3, toHeight=2Y+3
-			// i=1 (lowMul): blockCount = Y*2 - (2Y-3) + 1 = 4
-			// i=2 (highMul): blockCount = (2Y+3) - Y*2 - 1 = 2
+			// i=1 (lowMul): blockCount = y*2 - (2Y-3) + 1 = 4
+			// i=2 (highMul): blockCount = (2Y+3) - y*2 - 1 = 2
 			name:       "cross-period year2 to year3",
-			fromHeight: 2*Y - 3,
-			toHeight:   2*Y + 3,
+			fromHeight: 2*y - 3,
+			toHeight:   2*y + 3,
 			wantUMEC:   perBlockUMEC[1]*4 + perBlockUMEC[2]*2,
 		},
 		{
 			// Cross three periods: period 0 -> period 1 -> period 2
-			// fromHeight=Y-1, toHeight=2Y+1
+			// fromHeight=y-1, toHeight=2Y+1
 			// lowMul=0, highMul=2
-			// i=0: blockCount = Y*1 - (Y-1) + 1 = 2
-			// i=1: (full middle period) blockCount = Y
-			// i=2: blockCount = (2Y+1) - Y*2 - 1 = 0
+			// i=0: blockCount = y*1 - (y-1) + 1 = 2
+			// i=1: (full middle period) blockCount = y
+			// i=2: blockCount = (2Y+1) - y*2 - 1 = 0
 			name:       "cross three periods year1 to year3",
-			fromHeight: Y - 1,
-			toHeight:   2*Y + 1,
-			wantUMEC:   perBlockUMEC[0]*2 + perBlockUMEC[1]*Y + perBlockUMEC[2]*0,
+			fromHeight: y - 1,
+			toHeight:   2*y + 1,
+			wantUMEC:   perBlockUMEC[0]*2 + perBlockUMEC[1]*y + perBlockUMEC[2]*0,
 		},
 	}
 

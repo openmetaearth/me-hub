@@ -112,7 +112,6 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 			k.Logger(ctx).Info("completed delayed removed old cons addr from index", "old_cons_addr",
 				sdk.ConsAddress(updateInfo.OldConsAddress).String(), "height", ctx.BlockHeight())
 			return nil, nil
-
 		} else if ctx.BlockHeight() == (updateInfo.UpdateAtHeight + 1) {
 			// do nothing, wait for next block to remove old cons addr
 			return nil, nil
