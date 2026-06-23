@@ -30,12 +30,8 @@ func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, relayerAddr sdk.AccAddr
 		return errorsmod.Wrap(types.ErrInvalid, "signature decoding failed")
 	}
 
-	relayer, found := s.GetRelayer(ctx, relayerAddr)
-	if !found {
-		return types.ErrNotFoundRelayer
-	}
-	if !relayer.Online {
-		return types.ErrRelayerNotOnLine
+   if err := s.checkIsRelayer(ctx, relayerAddr); err != nil {
+		return err
 	}
 
 	if relayer.ExternalAddress != signatureAddr {
