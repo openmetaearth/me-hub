@@ -2,7 +2,9 @@ package keeper
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
@@ -21,7 +23,7 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 	}
 }
 
-func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
+func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string) error {
 	// check to see if the sequencer has been registered before
 	sequencer, found := hook.k.GetSequencer(ctx, seqAddr)
 	if !found {

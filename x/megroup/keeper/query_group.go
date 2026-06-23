@@ -2,12 +2,14 @@ package keeper
 
 import (
 	"context"
-	"cosmossdk.io/errors"
 	"fmt"
+
+	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
 	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
@@ -22,7 +24,7 @@ func (k Keeper) GroupAll(goCtx context.Context, req *types.QueryAllGroupRequest)
 	store := ctx.KVStore(k.storeKey)
 	groupStore := prefix.NewStore(store, types.KeyPrefix(types.GroupKey))
 
-	pageRes, err := query.Paginate(groupStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(groupStore, req.Pagination, func(key, value []byte) error {
 		var group types.GroupInfo
 		if err := k.cdc.Unmarshal(value, &group); err != nil {
 			return err
@@ -31,7 +33,6 @@ func (k Keeper) GroupAll(goCtx context.Context, req *types.QueryAllGroupRequest)
 		groups = append(groups, group)
 		return nil
 	})
-
 	if err != nil {
 		return nil, errors.Wrap(sdkerrors.ErrLogic, fmt.Sprintf(" query.Paginate error.err = %s,req.Pagination = %s",
 			err.Error(), req.Pagination.String()))

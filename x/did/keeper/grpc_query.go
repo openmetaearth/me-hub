@@ -6,9 +6,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/openmetaearth/me-hub/x/did/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/openmetaearth/me-hub/x/did/types"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -60,7 +61,7 @@ func (k Keeper) DidInfos(goCtx context.Context, req *types.QueryDidInfos) (*type
 	store := ctx.KVStore(k.storeKey)
 	pstore := prefix.NewStore(store, types.DidInfoPrefix)
 	infos := []types.DidInfo{}
-	pageRes, err := query.Paginate(pstore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(pstore, req.Pagination, func(key, value []byte) error {
 		var info types.DidInfo
 		if err := k.cdc.Unmarshal(value, &info); err != nil {
 			return err
@@ -120,7 +121,7 @@ func (k Keeper) Services(goCtx context.Context, req *types.QueryServices) (*type
 	store := ctx.KVStore(k.storeKey)
 	filterStore := prefix.NewStore(store, types.ServicePrefix)
 
-	pageRes, err := query.Paginate(filterStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(filterStore, req.Pagination, func(key, value []byte) error {
 		var svc types.Service
 		if err := k.cdc.Unmarshal(value, &svc); err != nil {
 			return err
@@ -161,7 +162,7 @@ func (k Keeper) Credentials(goCtx context.Context, req *types.QueryCredentials) 
 	store := ctx.KVStore(k.storeKey)
 	filterStore := prefix.NewStore(store, types.GetFilterPrefixBySidAndFilter(req.Sid, req.Filter))
 
-	pageRes, err := query.Paginate(filterStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(filterStore, req.Pagination, func(key, value []byte) error {
 		var vc types.Credential
 		if err := k.cdc.Unmarshal(value, &vc); err != nil {
 			return err

@@ -1,20 +1,22 @@
 package keeper_test
 
 import (
+	"testing"
+
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/kyc/keeper"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type KeeperTestSuite struct {

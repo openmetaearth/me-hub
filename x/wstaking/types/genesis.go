@@ -3,9 +3,10 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"time"
 )
 
 const DefaultUnbondingTime time.Duration = time.Hour * 24 * 7

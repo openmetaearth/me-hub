@@ -3,8 +3,6 @@ package network
 import (
 	"testing"
 
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
-
 	"cosmossdk.io/simapp"
 	cometbftdb "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -12,6 +10,7 @@ import (
 	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	"github.com/cosmos/cosmos-sdk/testutil/sims"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/openmetaearth/me-hub/app"

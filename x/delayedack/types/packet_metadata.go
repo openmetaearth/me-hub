@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

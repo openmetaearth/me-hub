@@ -2,12 +2,13 @@ package keeper
 
 import (
 	"context"
+
 	"cosmossdk.io/errors"
+
 	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
 func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup) (*types.MsgCreateGroupResponse, error) {
-
 	return nil, errors.Wrapf(types.ErrNotSupport, "")
 	/* temp hidden because of new scheme
 

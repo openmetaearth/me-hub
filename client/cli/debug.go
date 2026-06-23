@@ -7,8 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/openmetaearth/me-hub/utils"
 	"strings"
 
 	"github.com/btcsuite/btcutil/base58"
@@ -30,7 +28,10 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
+
+	"github.com/openmetaearth/me-hub/utils"
 )
 
 func Debug() *cobra.Command {

@@ -1,10 +1,12 @@
 package keeper_test
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/testutil/keeper"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/openmetaearth/me-hub/testutil/keeper"
 )
 
 func TestKeeper_DID(t *testing.T) {

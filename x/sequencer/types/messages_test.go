@@ -8,11 +8,11 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/stretchr/testify/require"
+
+	"github.com/openmetaearth/me-hub/testutil/sample"
 )
 
 func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {

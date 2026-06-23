@@ -5,48 +5,40 @@ import (
 	"io"
 	"os"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/types/mempool"
-
-	"github.com/evmos/ethermint/crypto/hd"
-	ethermintserver "github.com/evmos/ethermint/server"
-	mecli "github.com/openmetaearth/me-hub/client/cli"
-
-	"github.com/openmetaearth/me-hub/logger"
-
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/config"
-	"github.com/cosmos/cosmos-sdk/client/debug"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/pruning"
-	"github.com/cosmos/cosmos-sdk/client/snapshot"
-
-	"github.com/cosmos/cosmos-sdk/client/rpc"
-
 	dbm "github.com/cometbft/cometbft-db"
 	cometbftcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cometbftcfg "github.com/cometbft/cometbft/config"
 	cometbftcli "github.com/cometbft/cometbft/libs/cli"
 	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/config"
+	"github.com/cosmos/cosmos-sdk/client/debug"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/pruning"
+	"github.com/cosmos/cosmos-sdk/client/rpc"
+	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/mempool"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	ethermintclient "github.com/evmos/ethermint/client"
+	"github.com/evmos/ethermint/crypto/hd"
+	ethermintserver "github.com/evmos/ethermint/server"
+	servercfg "github.com/evmos/ethermint/server/config"
 	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
-	// this line is used by starport scaffolding # root/moduleImport
-
 	"github.com/openmetaearth/me-hub/app"
 	appparams "github.com/openmetaearth/me-hub/app/params"
-
-	ethermintclient "github.com/evmos/ethermint/client"
-	servercfg "github.com/evmos/ethermint/server/config"
+	mecli "github.com/openmetaearth/me-hub/client/cli"
+	"github.com/openmetaearth/me-hub/logger"
 )
 
 // NewRootCmd creates a new root command for me hub
@@ -276,7 +268,7 @@ func (a appCreator) newApp(
 
 	// NOTE we use custom transaction decoder that supports the sdk.Tx interface instead of sdk.StdTx
 	// Setup Mempool and Proposal Handlers
-	//baseAppOptions = append(baseAppOptions, func(bapp *baseapp.BaseApp) {
+	// baseAppOptions = append(baseAppOptions, func(bapp *baseapp.BaseApp) {
 	//	maxTxs := cast.ToInt(appOpts.Get(sdkserver.FlagMempoolMaxTxs))
 	//	if maxTxs <= 0 {
 	//		maxTxs = 5000

@@ -5,8 +5,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/spf13/cobra"
+
+	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -109,7 +110,7 @@ func CmdQueryKYCs() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "KYCs",
 		Short: "Query the KYCs information",
-		//Args:  cobra.ExactArgs(1),
+		// Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {

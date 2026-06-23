@@ -2,7 +2,9 @@ package keeper
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -23,7 +25,7 @@ func (k Keeper) SendInviteReward(ctx sdk.Context, inviter, invitee, regionId str
 		sdk.NewCoins(sdk.NewCoin(params.BaseDenom, types.InviteReward)),
 		fmt.Sprintf("SendInviteReward_%s", region.RegionId),
 	); err != nil {
-		return fmt.Errorf("send invite reward to inviter, %v", err)
+		return fmt.Errorf("send invite reward to inviter, %w", err)
 	}
 
 	ctx.EventManager().EmitEvent(

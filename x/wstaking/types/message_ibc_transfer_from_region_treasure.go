@@ -6,9 +6,9 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/openmetaearth/me-hub/utils"
-
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+
+	"github.com/openmetaearth/me-hub/utils"
 )
 
 const TypeMsgIbcTransferFromRegionTreasure = "ibc_transfer_from_region_treasure"

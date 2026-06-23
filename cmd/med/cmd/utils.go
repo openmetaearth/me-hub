@@ -5,16 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
-
-	"github.com/cosmos/gogoproto/proto"
-
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
+	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
+	"github.com/cosmos/gogoproto/proto"
+	"github.com/spf13/cobra"
 )
 
 // GetEncodeCommand returns the encode command to take a JSONified transaction and turn it into
@@ -50,7 +47,7 @@ If you supply a dash (-) argument in place of an input filename, the command rea
 			if err != nil {
 				return err
 			}
-			//if flag hex is true
+			// if flag hex is true
 			if useHex, _ := cmd.Flags().GetBool("hex"); useHex {
 				return clientCtx.PrintString(hex.EncodeToString(encodeJson))
 			}
@@ -63,6 +60,7 @@ If you supply a dash (-) argument in place of an input filename, the command rea
 
 	return cmd
 }
+
 func GetDecodeRawTxCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "decode-raw-tx [tx_content]",
@@ -76,7 +74,7 @@ func GetDecodeRawTxCommand() *cobra.Command {
 			if useHex, _ := cmd.Flags().GetBool("hex"); useHex {
 				txBytes, err := hex.DecodeString(args[0])
 				if err != nil {
-					return fmt.Errorf("failed to decode hex tx: %s", err)
+					return fmt.Errorf("failed to decode hex tx: %w", err)
 				}
 				txBz = txBytes
 			} else {
@@ -85,16 +83,16 @@ func GetDecodeRawTxCommand() *cobra.Command {
 			var rawTx tx.TxRaw
 			err := json.Unmarshal([]byte(txBz), &rawTx)
 			if err != nil {
-				return fmt.Errorf("failed to unmarshal raw tx: %s", err)
+				return fmt.Errorf("failed to unmarshal raw tx: %w", err)
 			}
 			// re-encode it
 			txBytes, err := proto.Marshal(&rawTx)
 			if err != nil {
-				return fmt.Errorf("failed to marshal raw tx: %s", err)
+				return fmt.Errorf("failed to marshal raw tx: %w", err)
 			}
 			decodeTx, err := clientCtx.TxConfig.TxDecoder()(txBytes)
 			if err != nil {
-				return fmt.Errorf("failed to decode raw tx: %s", err)
+				return fmt.Errorf("failed to decode raw tx: %w", err)
 			}
 			jsonTx, err := clientCtx.TxConfig.TxJSONEncoder()(decodeTx)
 			if err != nil {

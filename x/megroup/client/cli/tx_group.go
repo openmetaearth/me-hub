@@ -1,16 +1,16 @@
 package cli
 
 import (
+	"encoding/json"
 	"strconv"
 	"time"
-
-	"encoding/json"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/openmetaearth/me-hub/x/megroup/types"
 	"github.com/spf13/cobra"
+
+	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
 func CmdCreateGroup() *cobra.Command {
@@ -19,7 +19,6 @@ func CmdCreateGroup() *cobra.Command {
 		Short: "Create a new group",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -38,7 +37,7 @@ func CmdCreateGroup() *cobra.Command {
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			//clientCtx.PrintProto(argGroupInfo)
+			// clientCtx.PrintProto(argGroupInfo)
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}

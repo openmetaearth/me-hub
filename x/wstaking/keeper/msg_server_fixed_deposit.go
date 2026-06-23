@@ -6,13 +6,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/openmetaearth/me-hub/app/params"
-	minttypes "github.com/openmetaearth/me-hub/x/wmint/types"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
-
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/openmetaearth/me-hub/app/params"
+	minttypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 const DayPerYear uint64 = 365
@@ -23,7 +23,7 @@ func (k MsgServer) TermToDuration(term int64) (time.Duration, error) {
 	// for formal environment
 	minutesPerDay := (24 * 60 * time.Minute)
 	// for test environment
-	//minutesPerDay := time.Minute
+	// minutesPerDay := time.Minute
 
 	return time.Duration(int64(minutesPerDay) * term), nil
 }
@@ -88,7 +88,7 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit, "account format error (%s)", err)
 	}
 
-	//principal from user account to principal vault, interest from base vault to interest vault
+	// principal from user account to principal vault, interest from base vault to interest vault
 	region, found := k.GetRegion(ctx, regionId)
 	if !found {
 		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit, "region id(%s) no exist", regionId)
@@ -130,7 +130,7 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 			interest.String())
 	}
 
-	//1. send principal from user account principal module account
+	// 1. send principal from user account principal module account
 	err = k.bankKeeper.Extend().SendCoinsFromAccountToModuleWithTag(
 		ctx,
 		accAddr,
@@ -143,7 +143,7 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 			regionBaseAddr.String(), types.FixedDepositPrincipalPool, err)
 	}
 
-	//2. send interest from region base account to region interest account
+	// 2. send interest from region base account to region interest account
 	err = k.bankKeeper.Extend().SendCoinsWithTag(
 		ctx,
 		regionBaseAddr,
@@ -226,8 +226,8 @@ func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWit
 		return nil, sdkerrors.Wrapf(types.ErrDoFixedWithDraw, "account format error (%s)", err)
 	}
 
-	//expired: principal from principal vault to user account addr; interest from interest vault to user account
-	//no expired: principal from principal vault to user account addr; interest from interest vault to base vault
+	// expired: principal from principal vault to user account addr; interest from interest vault to user account
+	// no expired: principal from principal vault to user account addr; interest from interest vault to base vault
 	region, found := k.GetRegion(ctx, regionId)
 	if !found {
 		return nil, sdkerrors.Wrapf(types.ErrDoFixedWithDraw, "region id(%s) no exist", regionId)
@@ -258,7 +258,7 @@ func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWit
 
 	expired := fixedDeposit.EndTime.Unix() <= ctx.BlockTime().Unix()
 	if expired {
-		//1. deposit period has expired, send the principal from principal module account to user account
+		// 1. deposit period has expired, send the principal from principal module account to user account
 		err = k.bankKeeper.Extend().SendCoinsFromModuleToAccountWithTag(ctx,
 			types.FixedDepositPrincipalPool,
 			accAddr,
@@ -269,7 +269,7 @@ func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWit
 			return nil, types.ErrDoFixedWithDraw.Wrapf("send coin from principal vault to account error (%s)", err)
 		}
 
-		//2. deposit period has expired, send the interest from interest account to user account
+		// 2. deposit period has expired, send the interest from interest account to user account
 		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
 			regionInterestAddr,
 			accAddr,

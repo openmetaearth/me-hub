@@ -3,9 +3,9 @@ package cli
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 

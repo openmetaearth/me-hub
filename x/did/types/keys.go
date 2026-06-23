@@ -26,7 +26,7 @@ var (
 	DidInfoPrefix = []byte{0x11}
 	IssuerPrefix  = []byte{0x20}
 	ServicePrefix = []byte{0x30}
-	//ServiceIssuerPrefix   = []byte{0x31}
+	// ServiceIssuerPrefix   = []byte{0x31}
 	CredentialPrefix   = []byte{0x40}
 	FilterLoggerPrefix = []byte{0x50}
 	FilterPrefix       = []byte{0x51}
@@ -48,7 +48,7 @@ func GetServiceKey(sid string) []byte {
 	return append(ServicePrefix, []byte(sid)...)
 }
 
-//func GetServiceIssuerKey(sid string) []byte {
+// func GetServiceIssuerKey(sid string) []byte {
 //	return append(ServiceIssuerPrefix, []byte(sid)...)
 //}
 

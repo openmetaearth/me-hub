@@ -16,7 +16,6 @@ import (
 	"github.com/spf13/cobra"
 
 	simulationtypes "github.com/openmetaearth/me-hub/simulation/types"
-
 	"github.com/openmetaearth/me-hub/x/rollapp/client/cli"
 	"github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"

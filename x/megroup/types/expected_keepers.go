@@ -1,10 +1,9 @@
 package types
 
 import (
-	//"me-hub/mocks/mock"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/handler"
 	bankkeeper "github.com/openmetaearth/me-hub/x/wbank/keeper"
@@ -14,7 +13,7 @@ import (
 type StakingKeeper interface {
 	// Methods imported from staking should be defined here
 
-	//FIXME: wait wstaking keep and types.Meid ;Temporarily use MockMeid instead of MEID and MockRegion instead types.Region
+	// FIXME: wait wstaking keep and types.Meid ;Temporarily use MockMeid instead of MEID and MockRegion instead types.Region
 	// GetMeid(ctx sdk.Context, account string) (val types.Meid, found bool)
 	GetMeid(ctx sdk.Context, account string) (val stakingTypes.Meid, found bool)
 	// SetMeid(ctx sdk.Context, meid types.Meid)

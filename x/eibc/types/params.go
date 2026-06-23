@@ -31,7 +31,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(epochIdentifier string, timeoutFee sdk.Dec, errAckFee sdk.Dec) Params {
+func NewParams(epochIdentifier string, timeoutFee, errAckFee sdk.Dec) Params {
 	return Params{
 		EpochIdentifier: epochIdentifier,
 		TimeoutFee:      timeoutFee,

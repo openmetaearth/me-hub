@@ -2,14 +2,16 @@ package cli
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"github.com/spf13/cobra"
-	"strings"
+
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // NewStakeCmd returns a CLI command handler for creating a MsgStake transaction.

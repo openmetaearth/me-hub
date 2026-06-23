@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	dbm "github.com/cometbft/cometbft-db"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"

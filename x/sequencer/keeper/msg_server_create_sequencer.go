@@ -5,10 +5,10 @@ import (
 	"slices"
 	"strconv"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
-
 	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 // CreateSequencer defines a method for creating a new sequencer

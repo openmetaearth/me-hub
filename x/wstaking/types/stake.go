@@ -1,9 +1,10 @@
 package types
 
 import (
+	"time"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"time"
 )
 
 func (s Stake) GetValidatorAddr() sdk.ValAddress {

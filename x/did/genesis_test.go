@@ -3,14 +3,14 @@ package did_test
 import (
 	"testing"
 
+	_ "github.com/evmos/ethermint/crypto/ethsecp256k1"
+	"github.com/stretchr/testify/require"
+
+	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/testutil/nullify"
 	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/openmetaearth/me-hub/x/did"
-
-	_ "github.com/evmos/ethermint/crypto/ethsecp256k1"
-	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/x/did/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestInitExportGenesis(t *testing.T) {

@@ -1,10 +1,12 @@
 package keeper
 
 import (
-	"cosmossdk.io/errors"
 	"fmt"
+
+	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
@@ -35,7 +37,6 @@ func (k Keeper) AppendGroup(ctx sdk.Context, group *types.GroupInfo) error {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupKey))
 	if nil != store.Get(types.GetBytesFromUint64(group.Id)) {
 		return errors.Wrapf(types.ErrGroupCreateRepeated, "group id has bee existed.groupID = %d", group.Id)
-
 	}
 	appendedValue := k.cdc.MustMarshal(group)
 
@@ -105,7 +106,7 @@ func (k Keeper) GetGroupIdByRegion(ctx sdk.Context, regionID string) (uint64, bo
 	return types.GetUint64FromBytes(data), true
 }
 
-func (k Keeper) UpdateGroupAdmin(ctx sdk.Context, regionID string, admin string) {
+func (k Keeper) UpdateGroupAdmin(ctx sdk.Context, regionID, admin string) {
 	groupId, found := k.GetGroupIdByRegion(ctx, regionID)
 	if !found {
 		return

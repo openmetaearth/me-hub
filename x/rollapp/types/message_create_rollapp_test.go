@@ -3,8 +3,9 @@ package types
 import (
 	"testing"
 
-	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/stretchr/testify/require"
+
+	"github.com/openmetaearth/me-hub/testutil/sample"
 )
 
 func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {

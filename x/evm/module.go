@@ -2,6 +2,7 @@ package evm
 
 import (
 	"encoding/json"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -11,8 +12,9 @@ import (
 	"github.com/evmos/ethermint/x/evm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/openmetaearth/me-hub/x/evm/keeper"
 	"github.com/spf13/cobra"
+
+	"github.com/openmetaearth/me-hub/x/evm/keeper"
 )
 
 // AppModuleBasic implements the basic application module for the wrapped nft module.

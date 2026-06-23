@@ -142,6 +142,7 @@ func NewMsgReplaceProposerRequest(creator, rollappId, oldProposer, newProposer s
 		},
 	}, nil
 }
+
 func (msg *MsgReplaceProposerRequest) Route() string {
 	return RouterKey
 }

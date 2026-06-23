@@ -5,19 +5,20 @@ import (
 	"encoding/json"
 	"testing"
 
-	cometbfttypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometbfttypes "github.com/cometbft/cometbft/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/openmetaearth/me-hub/app"
 	"github.com/openmetaearth/me-hub/app/apptesting"
@@ -26,9 +27,6 @@ import (
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
-
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 )
 
 // chainIDPrefix defines the default chain ID prefix for Evmos test chains
@@ -188,7 +186,7 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	s.Require().NoError(err)
 }
 
-func (s *utilSuite) finalizeRollappState(index uint64, endHeight uint64) (sdk.Events, error) {
+func (s *utilSuite) finalizeRollappState(index, endHeight uint64) (sdk.Events, error) {
 	rollappKeeper := s.hubApp().RollappKeeper
 	ctx := s.hubCtx()
 
@@ -228,7 +226,7 @@ func (s *utilSuite) getRollappToHubIBCDenomFromPacket(packet channeltypes.Packet
 	return s.getIBCDenomForChannel(packet.GetDestChannel(), data.Denom)
 }
 
-func (s *utilSuite) getIBCDenomForChannel(channel string, denom string) string {
+func (s *utilSuite) getIBCDenomForChannel(channel, denom string) string {
 	// since SendPacket did not prefix the denomination, we must prefix denomination here
 	sourcePrefix := transfertypes.GetDenomPrefix("transfer", channel)
 	// NOTE: sourcePrefix contains the trailing "/"

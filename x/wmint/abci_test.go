@@ -5,30 +5,28 @@ import (
 	"math/big"
 	"testing"
 
-	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/openmetaearth/me-hub/x/wmint/keeper"
-	"github.com/openmetaearth/me-hub/x/wmint/types"
-	"github.com/openmetaearth/me-hub/x/wmint/types/mock_types"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
-
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+
+	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
+	"github.com/openmetaearth/me-hub/x/wmint/keeper"
+	"github.com/openmetaearth/me-hub/x/wmint/types"
+	"github.com/openmetaearth/me-hub/x/wmint/types/mock_types"
 )
 
 func TestPrintRewardInfo(t *testing.T) {
@@ -176,11 +174,12 @@ func (suite *KeeperTestSuite) TestBeginBlocker() {
 		})
 	}
 }
+
 func (suite *KeeperTestSuite) newContextWith(height int64) sdk.Context {
 	return sdk.NewContext(suite.ctx.MultiStore(), tmproto.Header{Time: tmtime.Now(), Height: height}, false, log.NewNopLogger())
 }
-func (suite *KeeperTestSuite) setMockBankKeeper(ctx sdk.Context, mintAmount int64) {
 
+func (suite *KeeperTestSuite) setMockBankKeeper(ctx sdk.Context, mintAmount int64) {
 	suite.bankKeeper.EXPECT().
 		MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("umec", sdk.NewInt(mintAmount)))).
 		Return(nil)

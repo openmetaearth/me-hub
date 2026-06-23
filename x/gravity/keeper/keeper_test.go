@@ -1,9 +1,11 @@
 package keeper_test
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"crypto/ecdsa"
 	"fmt"
+	"testing"
+
+	sdkmath "cosmossdk.io/math"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,6 +14,8 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/testutil/helpers"
@@ -22,8 +26,6 @@ import (
 	minttypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type KeeperTestSuite struct {
@@ -44,7 +46,7 @@ type KeeperTestSuite struct {
 func TestGravityKeeperTestSuite(t *testing.T) {
 	subModules := []string{
 		bsctypes.ModuleName,
-		//trontypes.ModuleName,
+		// trontypes.ModuleName,
 	}
 	for _, moduleName := range subModules {
 		suite.Run(t, &KeeperTestSuite{
@@ -54,7 +56,7 @@ func TestGravityKeeperTestSuite(t *testing.T) {
 }
 
 func (s *KeeperTestSuite) MsgServer() types.MsgServer {
-	//if suite.chainName == trontypes.ModuleName {
+	// if suite.chainName == trontypes.ModuleName {
 	//	return tronkeeper.NewMsgServerImpl(suite.app.TronKeeper)
 	//}
 	return keeper.NewMsgServerImpl(s.Keeper())
@@ -70,7 +72,7 @@ func (s *KeeperTestSuite) Keeper() keeper.Keeper {
 	switch s.chainName {
 	case bsctypes.ModuleName:
 		return s.App.BscKeeper
-	//case trontypes.ModuleName:
+	// case trontypes.ModuleName:
 	//	return s.App.TronKeeper.Keeper
 	default:
 		panic(fmt.Sprintf("invalid chain name:%s", s.chainName))
@@ -78,7 +80,6 @@ func (s *KeeperTestSuite) Keeper() keeper.Keeper {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-
 	app := apptesting.Setup(s.T(), false)
 	s.Ctx = app.NewContext(false, cometbftproto.Header{Height: 0, ChainID: apptesting.TestChainID})
 	s.App = app
@@ -160,7 +161,7 @@ func (s *KeeperTestSuite) SignRelayerSetConfirm(external *ecdsa.PrivateKey, rela
 	signature, err := types.NewEthereumSignature(checkpoint, external)
 	s.NoError(err)
 	if trontypes.ModuleName == s.chainName {
-		//externalAddress = tronaddress.PubkeyToAddress(external.PublicKey).String()
+		// externalAddress = tronaddress.PubkeyToAddress(external.PublicKey).String()
 		//
 		//checkpoint, err = trontypes.GetCheckpointRelayerSet(relayerSet, gravityId)
 		//s.Require().NoError(err)

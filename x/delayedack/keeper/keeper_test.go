@@ -3,10 +3,10 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/openmetaearth/me-hub/app/apptesting"
-
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/openmetaearth/me-hub/app/apptesting"
 )
 
 const (

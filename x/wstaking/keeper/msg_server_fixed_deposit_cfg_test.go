@@ -1,9 +1,11 @@
 package keeper_test
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"strings"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func (s *KeeperTestSuite) TestNewFixedDepositCfg() {

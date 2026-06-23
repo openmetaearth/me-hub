@@ -5,13 +5,13 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/app/apptesting"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	"github.com/stretchr/testify/suite"
+
+	"github.com/openmetaearth/me-hub/app/apptesting"
 )
 
 type transfersEnabledSuite struct {

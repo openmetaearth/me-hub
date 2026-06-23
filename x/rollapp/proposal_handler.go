@@ -1,13 +1,12 @@
 package rollapp
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/x/rollapp/keeper"
-	"github.com/openmetaearth/me-hub/x/rollapp/types"
-
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	errorsmod "cosmossdk.io/errors"
+	"github.com/openmetaearth/me-hub/x/rollapp/keeper"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func NewRollappProposalHandler(k *keeper.Keeper) govtypes.Handler {

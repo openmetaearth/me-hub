@@ -3,12 +3,12 @@ package keeper
 import (
 	"math/big"
 
-	"github.com/openmetaearth/me-hub/x/wmint"
-
 	cmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/wmint"
 	mintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -22,7 +22,7 @@ func (k Keeper) CalculateInterest(ctx sdk.Context, totalStaking cmath.Int, heigh
 }
 
 // getRewardsByHeight Get coins through the block height range
-func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdk.Dec) {
+func (k Keeper) getRewardsByHeight(fromHeight, toHeight int64) (coin sdk.Dec) {
 	totalCoins := sdk.ZeroInt()
 
 	lowMul := (fromHeight - 1) / mintTypes.OneYearTotalBlocks
@@ -54,7 +54,7 @@ func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdk.D
 	}
 
 	coin = sdk.NewDecFromInt(totalCoins)
-	return
+	return coin
 }
 
 // Calculate computes the per-block staking reward for a given amount of staked tokens.

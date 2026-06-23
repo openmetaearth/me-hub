@@ -1,13 +1,15 @@
 package cli
 
 import (
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
-	"strings"
+
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func CmdUpdateRollapp() *cobra.Command {

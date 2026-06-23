@@ -4,14 +4,13 @@ import (
 	"context"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
-	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func (k Keeper) FixedDepositAll(c context.Context, req *types.QueryAllFixedDepositRequest) (*types.QueryAllFixedDepositResponse, error) {
@@ -96,7 +95,7 @@ func (k Keeper) queryFixedDepositByRegionRecursively(ctx sdk.Context, req *types
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKey))
 	fixedDeposits := make([]types.FixedDeposit, 0)
 
-	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		var fd types.FixedDeposit
 		if err := k.cdc.Unmarshal(value, &fd); err != nil {
 			return err
@@ -123,7 +122,6 @@ func (k Keeper) queryFixedDepositByRegionRecursively(ctx sdk.Context, req *types
 		}
 		return nil
 	})
-
 	if err != nil {
 		return nil, nil, err
 	}

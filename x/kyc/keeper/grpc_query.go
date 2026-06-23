@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	didtypes "github.com/openmetaearth/me-hub/x/did/types"
-	"github.com/openmetaearth/me-hub/x/kyc/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	"github.com/openmetaearth/me-hub/x/kyc/types"
+	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
 )
 
 type Querier struct {

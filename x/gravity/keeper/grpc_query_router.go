@@ -2,11 +2,11 @@ package keeper
 
 import (
 	"context"
-	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	ethcmd "github.com/evmos/ethermint/cmd/config"
 )
 

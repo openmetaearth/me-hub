@@ -10,7 +10,6 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
-
 	"github.com/openmetaearth/me-hub/x/eibc/types"
 )
 

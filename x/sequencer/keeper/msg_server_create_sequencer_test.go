@@ -4,17 +4,14 @@ import (
 	"fmt"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
 	"github.com/openmetaearth/me-hub/testutil/sample"
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
-
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
-
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 const (
@@ -614,7 +611,7 @@ func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 }
 
 // equalSequencer receives two sequencers and compares them. If there they not equal, fails the test
-func equalSequencer(suite *SequencerTestSuite, s1 *types.Sequencer, s2 *types.Sequencer) {
+func equalSequencer(suite *SequencerTestSuite, s1, s2 *types.Sequencer) {
 	eq := CompareSequencers(s1, s2)
 	suite.Require().True(eq, "expected: %v\nfound: %v", *s1, *s2)
 }

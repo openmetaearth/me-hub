@@ -82,7 +82,7 @@ func (r RollappPacket) MustGetTransferPacketData() transfertypes.FungibleTokenPa
 	data, err := r.GetTransferPacketData()
 	if err != nil {
 		// impossible for this to fail since the packet data was already unmarshaled once and we never change the format of the data, so we panic if it does fail
-		panic(fmt.Errorf("failed to unmarshal transfer packet data: %v", err))
+		panic(fmt.Errorf("failed to unmarshal transfer packet data: %w", err))
 	}
 	return data
 }

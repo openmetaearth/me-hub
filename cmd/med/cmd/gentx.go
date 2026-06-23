@@ -5,6 +5,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -21,14 +26,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/openmetaearth/me-hub/x/wstaking/client/cli"
-	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"io"
-	"os"
-	"path/filepath"
-	"strings"
+
+	"github.com/openmetaearth/me-hub/x/wstaking/client/cli"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // GenTxCmd builds the application's gentx command.
@@ -123,7 +125,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			if err != nil {
 				return errors.Wrap(err, "failed to parse coins")
 			}
-			//addr, err := key.GetAddress()
+			// addr, err := key.GetAddress()
 			//if err != nil {
 			//	return err
 			//}

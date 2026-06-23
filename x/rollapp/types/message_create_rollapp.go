@@ -10,7 +10,7 @@ var _ sdk.Msg = &MsgCreateRollapp{}
 
 const MaxAllowedSequencers = 100
 
-func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string) *MsgCreateRollapp {
+func NewMsgCreateRollapp(creator, rollappId string, maxSequencers uint64, permissionedAddresses []string) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
 		Creator:               creator,
 		RollappId:             rollappId,

@@ -2,10 +2,11 @@ package types
 
 import (
 	"fmt"
-	"github.com/openmetaearth/me-hub/utils"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/openmetaearth/me-hub/utils"
 )
 
 const (

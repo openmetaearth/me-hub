@@ -3,6 +3,7 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
@@ -27,7 +28,6 @@ func (k Keeper) GetGroupMemberCount(ctx sdk.Context, groupId uint64) (uint64, bo
 func (k Keeper) RemoveGroupMemberCount(
 	ctx sdk.Context,
 	groupId uint64,
-
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.GroupMemberCountKeyPrefix))
 	store.Delete(types.GetBytesFromUint64(groupId))

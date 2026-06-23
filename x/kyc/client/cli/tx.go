@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
 
 // GetTxCmd returns the transaction commands for this module

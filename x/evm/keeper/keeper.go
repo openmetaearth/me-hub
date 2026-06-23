@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
+
 	metypes "github.com/openmetaearth/me-hub/types"
 )
 
