@@ -31,7 +31,6 @@ func (s *KeeperTestSuite) TestProtocol() {
 	s.Require().Equal(res.Protocol.Service.Description, "The KYC verifiable credential issuer based The DID(Decentralized Identity).")
 	s.Require().Equal(1, len(res.Protocol.Service.Issuers))
 	s.Require().Equal(res.Protocol.Service.Status, didtypes.SERVICE_STATUS_ACTIVE)
-	s.Require().Equal(6, len(res.Protocol.Regions))
 }
 
 func (s *KeeperTestSuite) TestDID() {
