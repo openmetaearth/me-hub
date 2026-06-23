@@ -46,7 +46,7 @@ func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
 	k, ctx := keepertest.RollappKeeper(t)
 	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
 	for _, item := range items {
-		item := item
+
 		rst, found := k.GetBlockHeightToFinalizationQueue(ctx,
 			item.CreationHeight,
 		)

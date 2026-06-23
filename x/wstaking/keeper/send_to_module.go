@@ -2,8 +2,9 @@ package keeper
 
 import (
 	"context"
-	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -19,7 +20,7 @@ func (k MsgServer) SendToModule(goCtx context.Context, msg *types.MsgSendToModul
 		sdk.MustAccAddressFromBech32(msg.Sender),
 		msg.Receiver,
 		msg.Amount,
-		fmt.Sprintf("SendToModule"),
+		"SendToModule",
 	)
 	if err != nil {
 		return nil, err

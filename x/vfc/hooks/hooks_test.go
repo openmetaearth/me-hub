@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/openmetaearth/me-hub/app/apptesting"
 )
 
 type HooksTestSuite struct {

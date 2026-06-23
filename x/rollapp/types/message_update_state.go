@@ -11,7 +11,7 @@ const TypeMsgUpdateState = "update_state"
 
 var _ sdk.Msg = &MsgUpdateState{}
 
-func NewMsgUpdateState(creator string, rollappId string, startHeight uint64, numBlocks uint64, dAPath string, version uint64, bDs *BlockDescriptors) *MsgUpdateState {
+func NewMsgUpdateState(creator, rollappId string, startHeight, numBlocks uint64, dAPath string, version uint64, bDs *BlockDescriptors) *MsgUpdateState {
 	return &MsgUpdateState{
 		Creator:     creator,
 		RollappId:   rollappId,

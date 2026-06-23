@@ -4,6 +4,7 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
 )

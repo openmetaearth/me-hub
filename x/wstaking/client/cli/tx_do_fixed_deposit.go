@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -10,6 +9,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
+
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 var _ = strconv.Itoa(0)
