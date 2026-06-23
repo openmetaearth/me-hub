@@ -2,8 +2,10 @@ package keeper
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	rollappTypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
@@ -107,7 +109,7 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId, creator
 	}
 
 	if (rollappState.StartHeight + rollappState.NumBlocks - 1) >= uint64(val.ReplaceProposer.BlockHeight) {
-		//delete the replaced sequencer address record and set the new sequencer as proposer
+		// delete the replaced sequencer address record and set the new sequencer as proposer
 		oldSequencer, found := k.GetSequencer(ctx, val.ReplaceProposer.OldProposer)
 		if !found {
 			return fmt.Errorf("can not found old sequencer: %s", val.ReplaceProposer.OldProposer)
@@ -150,9 +152,9 @@ func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId, creator
 		}
 	}
 	return nil
-
 }
-func (k Keeper) IsExceedAuthoredBlockHeight(ctx sdk.Context, rollappId, creator string, startHeight uint64, numBlocks uint64) error {
+
+func (k Keeper) IsExceedAuthoredBlockHeight(ctx sdk.Context, rollappId, creator string, startHeight, numBlocks uint64) error {
 	val, err := k.GetReplaceProposer(ctx, rollappId)
 	if err != nil {
 		return err

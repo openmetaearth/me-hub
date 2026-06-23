@@ -4,9 +4,10 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/testutil/nullify"
-	"github.com/stretchr/testify/require"
 )
 
 // Prevent strconv unused error
@@ -16,7 +17,7 @@ func TestRollappGet(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	items, _ := createNRollapp(keeper, ctx, 10)
 	for _, item := range items {
-		item := item
+
 		rst, found := keeper.GetRollapp(ctx,
 			item.RollappId,
 		)

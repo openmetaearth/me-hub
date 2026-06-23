@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
@@ -17,7 +18,7 @@ func (k msgServer) UpdateRollapp(goCtx context.Context, msg *types.MsgUpdateRoll
 
 	if msg.Creator != rollapp.Creator {
 		return nil, types.ErrUnauthorizedRollappCreator
-	} 
+	}
 
 	if msg.MaxSequencers != 0 {
 		rollapp.MaxSequencers = msg.MaxSequencers

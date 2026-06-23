@@ -3,22 +3,19 @@ package keeper_test
 import (
 	"testing"
 
+	"github.com/cometbft/cometbft/libs/rand"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/keeper"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
-
-	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
-
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
-
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-
-	"github.com/cometbft/cometbft/libs/rand"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 )
 
 type SequencerTestSuite struct {

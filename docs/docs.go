@@ -2,9 +2,10 @@ package docs
 
 import (
 	"embed"
-	"github.com/gorilla/mux"
 	httptemplate "html/template"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 //go:embed static

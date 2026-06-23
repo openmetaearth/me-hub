@@ -1,8 +1,9 @@
 package types
 
 import (
-	"cosmossdk.io/errors"
 	"fmt"
+
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
@@ -32,10 +33,12 @@ func (msg MsgNewClass) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
+
 func (msg MsgNewClass) GetSigners() []sdk.AccAddress {
 	signer, _ := sdk.AccAddressFromBech32(msg.Sender)
 	return []sdk.AccAddress{signer}
 }
+
 func (msg MsgNewClass) ValidateBasic() error {
 	if len(msg.ClassId) == 0 {
 		return nft.ErrEmptyClassID

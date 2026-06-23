@@ -12,21 +12,13 @@ import (
 	"testing"
 	"time"
 
-	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
-	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-
 	errorsmod "cosmossdk.io/errors"
-
 	"cosmossdk.io/math"
-
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cometbfttypes "github.com/cometbft/cometbft/types"
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/stretchr/testify/require"
-
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -44,7 +36,12 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	"github.com/stretchr/testify/require"
+
 	app "github.com/openmetaearth/me-hub/app"
+	"github.com/openmetaearth/me-hub/app/params"
+	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
@@ -220,7 +217,7 @@ func Setup(t *testing.T, isCheckTx bool) *app.App {
 	moduleAddress := authtypes.NewModuleAddress(wstakingtypes.StakePoolName)
 	stakePoolBalances := banktypes.Balance{Address: moduleAddress.String(), Coins: coins.Sort()}
 
-	//balance := banktypes.Balance{
+	// balance := banktypes.Balance{
 	//	Address: acc.GetAddress().String(),
 	//	Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000000000000000))),
 	//}
@@ -436,7 +433,7 @@ func ConvertAddrsToValAddrs(addrs []sdk.AccAddress) []sdk.ValAddress {
 	return valAddrs
 }
 
-func TestAddr(addr string, bech string) (sdk.AccAddress, error) {
+func TestAddr(addr, bech string) (sdk.AccAddress, error) {
 	res, err := sdk.AccAddressFromHexUnsafe(addr)
 	if err != nil {
 		return nil, err
@@ -519,7 +516,7 @@ func SignCheckDeliver(
 // GenSequenceOfTxs generates a set of signed transactions of messages, such
 // that they differ only by having the sequence numbers incremented between
 // every transaction.
-func GenSequenceOfTxs(txGen client.TxConfig, msgs []sdk.Msg, accNums []uint64, initSeqNums []uint64, numToGenerate int, priv ...cryptotypes.PrivKey) ([]sdk.Tx, error) {
+func GenSequenceOfTxs(txGen client.TxConfig, msgs []sdk.Msg, accNums, initSeqNums []uint64, numToGenerate int, priv ...cryptotypes.PrivKey) ([]sdk.Tx, error) {
 	txs := make([]sdk.Tx, numToGenerate)
 	var err error
 	for i := 0; i < numToGenerate; i++ {
