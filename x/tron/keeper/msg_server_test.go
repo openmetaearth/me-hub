@@ -41,7 +41,7 @@ func (s *KeeperTestSuite) Test_msgServer_ConfirmBatch() {
 			},
 			expPass: false,
 		},
-			{
+		{
 			name: "relayer not online",
 			malleate: func() {
 				newOutgoingTx := s.NewOutgoingTxBatch()
