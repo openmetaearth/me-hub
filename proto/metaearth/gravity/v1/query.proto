@@ -90,8 +90,9 @@ service Query {
   rpc BridgeChainList(QueryBridgeChainListRequest) returns (QueryBridgeChainListResponse) {
     option (google.api.http).get = "/gravity/v1/bridge_chain_list";
   }
-  // ClaimsByEventNonce queries all claims for a given event nonce, normally only one claim for one nonce,
-  // if relayers have bug, there's will be more than one claim.
+  // ClaimsByEventNonce queries all claims for a given event nonce, normally
+  // only one claim for one nonce, if relayers have bug, there's will be more
+  // than one claim.
   rpc ClaimsByEventNonce(QueryClaimsByEventNonceRequest) returns (QueryClaimsByEventNonceResponse) {
     option (google.api.http).get = "/gravity/v1/claims_by_event_nonce";
   }

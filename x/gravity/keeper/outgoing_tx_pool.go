@@ -26,12 +26,6 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 			totalInVouchers.Amount.String(), bridgeToken.Supply.String(), k.moduleName)
 	}
 
-	totalPending := k.GetOutgoingPendingTxTotal(ctx, k.moduleName, bridgeToken)
-	if totalInVouchers.Amount.Add(totalPending).GT(bridgeToken.Supply) {
-		return 0, errorsmod.Wrapf(types.ErrInvalid, "total pending amount %s plus current amount %s exceeds bridge token supply %s in %s chain",
-			totalPending.String(), totalInVouchers.Amount.String(), bridgeToken.Supply.String(), k.moduleName)
-	}
-
 	sendCoins := sdk.NewCoins(totalInVouchers)
 	// If it is an external blockchain asset we burn it send coins to module in prep for burn
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, k.moduleName, sendCoins); err != nil {

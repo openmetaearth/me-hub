@@ -22,7 +22,7 @@ func NewMsgUpdateServiceStatus(creator, sid string, status ServiceStatus) *MsgUp
 func (m *MsgUpdateServiceStatus) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (m *MsgUpdateServiceStatus) Type() string { return TypeMsgCreateDid }
+func (m *MsgUpdateServiceStatus) Type() string { return TypeMsgUpdateServiceStatus }
 
 func (m *MsgUpdateServiceStatus) GetSigners() []sdk.AccAddress {
 	creator, err := sdk.AccAddressFromBech32(m.Creator)

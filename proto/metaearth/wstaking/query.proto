@@ -94,7 +94,8 @@ service Query {
     option (google.api.http).get = "/metaearth/wstaking/review_record/{action_number}";
   }
 
-  // QueryRegionWithdraw queries which address is granted withdraw for the given region.
+  // QueryRegionWithdraw queries which address is granted withdraw for the given
+  // region.
   rpc RegionWithdrawer(QueryRegionWithdrawerRequest) returns (QueryRegionWithdrawerResponse) {
     option (google.api.http).get = "/metaearth/wstaking/region_withdrawer/{region_id}";
   }
