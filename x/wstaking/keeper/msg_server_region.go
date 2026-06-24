@@ -165,6 +165,9 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 	if err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrUnknownAccount, "receiver account %s format error %s", msg.Receiver, err)
 	}
+	if k.bankKeeper.Extend().BlockedAddr(toAddr) {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive region treasury withdrawals", toAddr)
+	}
 
 	err = k.bankKeeper.Extend().SendCoinsWithTag(
 		ctx,
