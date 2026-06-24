@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -87,7 +88,7 @@ func (k Keeper) UnConfirmSequencerAddressByRollappByStatus(goCtx context.Context
 				"cacheHeight", k.replaceSequencerCacheHeight)
 		}
 	*/
-	return nil, fmt.Errorf("unsupport function")
+	return nil, errors.New("unsupport function")
 }
 
 func (k Keeper) ReplaceProposerInfo(goCtx context.Context, req *types.QueryReplaceProposerInfoRequest) (*types.QueryReplaceProposerInfoResponse, error) {

@@ -7,7 +7,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/types/tx"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/cosmos/gogoproto/proto"
@@ -80,7 +79,7 @@ func GetDecodeRawTxCommand() *cobra.Command {
 			} else {
 				txBz = []byte(args[0])
 			}
-			var rawTx tx.TxRaw
+			var rawTx txtypes.TxRaw
 			err := json.Unmarshal(txBz, &rawTx)
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal raw tx: %w", err)
