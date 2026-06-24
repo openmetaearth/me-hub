@@ -49,11 +49,17 @@ func ValidateTronAddress(address string) error {
 		return errors.New("empty")
 	}
 	if len(address) != tronaddress.AddressLengthBase58 {
-		return errors.New("wrong length")
+		return fmt.Errorf("invalid address length: expected %d chars, got %d", tronaddress.AddressLengthBase58, len(address))
 	}
 	tronAddr, err := common.DecodeCheck(address)
 	if err != nil {
 		return errors.New("doesn't pass format validation")
+	}
+	if len(tronAddr) != tronaddress.AddressLength {
+		return fmt.Errorf("invalid address length: expected decoded %d bytes, got %d", tronaddress.AddressLength, len(tronAddr))
+	}
+	if tronAddr[0] != tronaddress.TronBytePrefix {
+		return errors.New("invalid tron prefix")
 	}
 	expectAddress := common.EncodeCheck(tronAddr)
 	if expectAddress != address {
