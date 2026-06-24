@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fmt"
+	"errors"
 )
 
 func MustStrToByte32(str string) [32]byte {
@@ -24,7 +24,7 @@ func Byte32ToString(bytes [32]byte) string {
 func StrToByte32(s string) ([32]byte, error) {
 	var out [32]byte
 	if len([]byte(s)) > 32 {
-		return out, fmt.Errorf("string too long")
+		return out, errors.New("string too long")
 	}
 	copy(out[:], s)
 	return out, nil

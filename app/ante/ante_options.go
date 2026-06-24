@@ -4,7 +4,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
+	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"

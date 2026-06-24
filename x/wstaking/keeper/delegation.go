@@ -52,7 +52,7 @@ func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.
 // Unbond unbonds a particular delegation and perform associated store operations.
 func (k Keeper) Unbond(ctx sdk.Context, delAmount math.Int, isMeid bool, delegation stakingtypes.Delegation) (amount math.Int, err error) {
 	// check if a delegation object exists in the store
-	overAmount := sdk.ZeroInt()
+	var overAmount sdk.Int
 	if isMeid {
 		if delegation.Amount.LTE(sdk.ZeroInt()) {
 			return amount, types.ErrNotEnoughDelegationAmount
@@ -184,7 +184,7 @@ func (k Keeper) WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddres
 
 func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, region types.Region) (sdk.Coins, error) {
 	// valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
-	//if valErr != nil {
+	// if valErr != nil {
 	//	k.Logger(ctx).Error("internalWithdrawDelegationRewards err=", valErr.Error())
 	//	return nil, valErr
 	//}

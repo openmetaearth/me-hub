@@ -61,11 +61,11 @@ func CreateUpgradeHandler(
 		// delegate total amount to module account
 		delegateAmount := sdk.NewInt(1 * 1e8)
 		// for _, relayerAddr := range proposalRelayers {
-		//if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), bsctypes.ModuleName,
+		// if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), bsctypes.ModuleName,
 		//	sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
 		//	panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
 		//}
-		//if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), trontypes.ModuleName,
+		// if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), trontypes.ModuleName,
 		//	sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
 		//	panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
 		//}

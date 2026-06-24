@@ -37,7 +37,7 @@ $ %s tx distribution withdraw-rewards --from %saddress`, version.AppName, bech32
 			}
 			delAddr := clientCtx.GetFromAddress()
 			// valAddr, err := sdk.ValAddressFromBech32(args[0])
-			//if err != nil {
+			// if err != nil {
 			//	return err
 			//}
 

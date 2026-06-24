@@ -97,7 +97,7 @@ func ToBytes32Cmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args[0]) > 32 {
-				return fmt.Errorf("input data length greater than 32")
+				return errors.New("input data length greater than 32")
 			}
 			var byte32 [32]byte
 			copy(byte32[:], args[0])
@@ -298,11 +298,15 @@ $ %s debug pubkey '{"@type":"/cosmos.crypto.ed25519.PubKey","key":"eKlxn6Xoe9LNm
 				}
 			} else {
 				if err = clientCtx.Codec.UnmarshalInterfaceJSON([]byte(args[0]), &pubkey); err != nil {
-					if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.ConsPK, args[0]); err == nil { // nolint:staticcheck
-					} else if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.AccPK, args[0]); err == nil { // nolint:staticcheck
-					} else if pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.ValPK, args[0]); err == nil { // nolint:staticcheck
-					} else {
-						return fmt.Errorf("pubkey '%s' invalid", args[0])
+					pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.ConsPK, args[0]) // nolint:staticcheck
+					if err != nil {
+						pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.AccPK, args[0]) // nolint:staticcheck
+						if err != nil {
+							pubkey, err = legacybech32.UnmarshalPubKey(legacybech32.ValPK, args[0]) // nolint:staticcheck
+							if err != nil {
+								return fmt.Errorf("pubkey '%s' invalid", args[0])
+							}
+						}
 					}
 				}
 			}
@@ -413,7 +417,7 @@ func ConvertTronAddrCmd() *cobra.Command {
 			// Validate the Tron address prefix (0x41) and length (20 bytes for the address itself).
 			const tronAddressPrefix = 0x41
 			if version != tronAddressPrefix || len(addressBytes) != 20 {
-				return fmt.Errorf("invalid tron address format: incorrect version or length")
+				return errors.New("invalid tron address format: incorrect version or length")
 			}
 
 			// Convert to Ethereum address

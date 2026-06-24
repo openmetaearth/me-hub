@@ -6,7 +6,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
-	uibc "github.com/openmetaearth/me-hub/utils/uibc"
+	"github.com/openmetaearth/me-hub/utils/uibc"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 )
 

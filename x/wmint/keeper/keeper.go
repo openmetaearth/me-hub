@@ -15,7 +15,6 @@ import (
 // Wrapper wraps the original mint keeper and intercepts its original methods if needed.
 type Keeper struct {
 	mintkeeper.Keeper
-	cdc                   codec.BinaryCodec
 	storeKey              storetypes.StoreKey
 	bankKeeper            minttypes.BankKeeper
 	treasuryModuleAccount string

@@ -107,10 +107,7 @@ func (p Params) Validate() error {
 	if err := validateEpochIdentifier(p.EpochIdentifier); err != nil {
 		return err
 	}
-	if err := validateDeletePacketsEpochLimit(p.DeletePacketsEpochLimit); err != nil {
-		return err
-	}
-	return nil
+	return validateDeletePacketsEpochLimit(p.DeletePacketsEpochLimit)
 }
 
 // String implements the Stringer interface.

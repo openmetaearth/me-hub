@@ -74,7 +74,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 		Symbol:      types.GetClassSymbol(msg.Name),
 		Description: types.GetClassDescription(regionId),
 		Uri:         uri,
-		UriHash:     utils.CalculateUriHash(uri),
+		UriHash:     utils.CalculateURIHash(uri),
 		Data:        metadata,
 	}
 

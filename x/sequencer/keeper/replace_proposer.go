@@ -54,10 +54,7 @@ func (k Keeper) DeleteReplaceProposer(ctx sdk.Context, rollappId string) {
 func (k Keeper) IsHasReplaceProposer(ctx sdk.Context, rollappId string) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	bz := store.Get(types.RepalceRollappProposerKey(rollappId))
-	if bz == nil {
-		return false
-	}
-	return true
+	return bz != nil
 }
 
 /*

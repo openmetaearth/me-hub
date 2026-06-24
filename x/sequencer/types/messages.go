@@ -91,7 +91,6 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 		if err != nil {
 			return errorsmod.Wrapf(ErrInvalidPubKey, "%s", err)
 		}
-
 	}
 
 	if _, err := msg.Description.EnsureLength(); err != nil {

@@ -67,11 +67,11 @@ func (k Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationR
 	}
 	//regionID := strings.ToLower(types.ExperienceRegionName)
 	// meid, found := k.GetMeid(ctx, req.DelegatorAddress)
-	//if found {
+	// if found {
 	//	regionID = meid.RegionId
 	//}
 	//region, isFound := k.GetRegion(ctx, regionID)
-	//if !isFound {
+	// if !isFound {
 	//	return nil, types.ErrRegionNotExist.Wrapf("region not found=%s", regionID)
 	//}
 	//valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)

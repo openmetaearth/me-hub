@@ -1,7 +1,7 @@
 package types
 
 import (
-	fmt "fmt"
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,7 +18,7 @@ var (
 	// MinBond is the minimum bond required to be a sequencer.
 	DefaultMinBond uint64 = 100_000_000
 	// UnbondingTime is the time duration for unbonding
-	DefaultUnbondingTime time.Duration = time.Hour
+	DefaultUnbondingTime = time.Hour
 
 	// KeyMinBond is store's key for MinBond Params
 	KeyMinBond = []byte("MinBond")
@@ -94,12 +94,7 @@ func (p Params) Validate() error {
 	if err := validateMinBond(p.MinBond); err != nil {
 		return err
 	}
-
-	if err := validateUnbondingTime(p.UnbondingTime); err != nil {
-		return err
-	}
-
-	return nil
+	return validateUnbondingTime(p.UnbondingTime)
 }
 
 // String implements the Stringer interface.

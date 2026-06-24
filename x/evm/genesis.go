@@ -17,6 +17,7 @@ package evm
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -44,7 +45,7 @@ func InitGenesis(
 ) []abci.ValidatorUpdate {
 	// Enable evm Create code
 	if utils.IsOneOfDymensionChains(ctx) && data.Params.EnableCreate {
-		panic(fmt.Errorf("enable create is not allowed on mechain chains"))
+		panic(errors.New("enable create is not allowed on mechain chains"))
 	}
 
 	k.WithChainID(sdk.Context{}.WithChainID(metypes.ChainIdWithEIP155()))

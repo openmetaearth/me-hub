@@ -15,11 +15,6 @@ import (
 func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*types.MsgJoinGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	//if err != nil {
-	//	return nil, err
-	//}
-
 	// allow join group when creator is applicant or global DAO or Meid DAO
 
 	if msg.ApplicantAddress != msg.Creator {

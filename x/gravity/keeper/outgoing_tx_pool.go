@@ -181,7 +181,7 @@ func (k Keeper) GetUnbatchedTxByFeeAndId(ctx sdk.Context, fee types.ERC20Token, 
 // GetUnbatchedTxById grabs a tx from the pool given only the txID
 // note that due to the way unbatched txs are indexed, the GetUnbatchedTxByFeeAndId method is much faster
 func (k Keeper) GetUnbatchedTxById(ctx sdk.Context, txID uint64) (*types.OutgoingTransferTx, error) {
-	var r *types.OutgoingTransferTx = nil
+	var r *types.OutgoingTransferTx
 	k.IterateUnbatchedTransactions(ctx, "", func(tx *types.OutgoingTransferTx) bool {
 		if tx.Id == txID {
 			r = tx

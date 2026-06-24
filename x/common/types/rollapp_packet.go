@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -15,10 +16,10 @@ func (r RollappPacket) LogString() string {
 
 func (r RollappPacket) ValidateBasic() error {
 	if r.RollappId == "" {
-		return fmt.Errorf("rollapp id cannot be empty")
+		return errors.New("rollapp id cannot be empty")
 	}
 	if len(r.Relayer) == 0 {
-		return fmt.Errorf("status cannot be empty")
+		return errors.New("status cannot be empty")
 	}
 	if r.OriginalTransferTarget != "" {
 		if _, err := sdk.AccAddressFromBech32(r.OriginalTransferTarget); err != nil {
@@ -26,10 +27,10 @@ func (r RollappPacket) ValidateBasic() error {
 		}
 	}
 	if r.ProofHeight == 0 {
-		return fmt.Errorf("proof height revision height cannot be zero")
+		return errors.New("proof height revision height cannot be zero")
 	}
 	if r.Packet == nil {
-		return fmt.Errorf("packet cannot be nil")
+		return errors.New("packet cannot be nil")
 	}
 	if err := r.Packet.ValidateBasic(); err != nil {
 		return fmt.Errorf("packet: %w", err)

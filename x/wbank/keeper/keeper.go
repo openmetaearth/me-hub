@@ -19,7 +19,6 @@ import (
 type BaseKeeperWrapper struct {
 	bankkeeper.BaseKeeper
 	ak banktypes.AccountKeeper
-	dk types.DaoKeeper
 }
 
 // NewKeeper returns a new BaseKeeperWrapper instance.
@@ -34,7 +33,6 @@ func NewKeeper(
 	return BaseKeeperWrapper{
 		BaseKeeper: bankkeeper.NewBaseKeeper(cdc, storeKey, ak, blockedAddrs, authority),
 		ak:         ak,
-		dk:         dk,
 	}
 }
 

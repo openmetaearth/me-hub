@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -79,7 +80,7 @@ func validateEpochIdentifier(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if len(v) == 0 {
-		return fmt.Errorf("epoch identifier cannot be empty")
+		return errors.New("epoch identifier cannot be empty")
 	}
 	return nil
 }

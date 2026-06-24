@@ -66,7 +66,9 @@ func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	gravitytypes.RegisterQueryHandlerClient(context.Background(), mux, gravitytypes.NewQueryClient(clientCtx))
+	if err := gravitytypes.RegisterQueryHandlerClient(context.Background(), mux, gravitytypes.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
 }
 
 // GetQueryCmd implements app module basic

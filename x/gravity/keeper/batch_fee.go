@@ -30,7 +30,7 @@ func (k Keeper) GetBatchFeesByTokenType(ctx sdk.Context, tokenContract string, m
 		}
 		batchFee.TotalFees = batchFee.TotalFees.Add(tx.Fee.Amount)
 		batchFee.TotalAmount = batchFee.TotalAmount.Add(tx.Token.Amount)
-		batchFee.TotalTxs += 1
+		batchFee.TotalTxs++
 		return batchFee.TotalTxs == uint64(maxElements)
 	})
 	return batchFee

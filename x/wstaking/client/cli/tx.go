@@ -391,7 +391,7 @@ $ %s tx staking delegate 1000mec --from mykey
 				return errors.New("from address is empty")
 			}
 			// validatorAddress, err := cmd.Flags().GetString(FlagValidatorAddress)
-			//if err != nil {
+			// if err != nil {
 			//	return err
 			//}
 
