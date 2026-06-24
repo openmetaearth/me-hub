@@ -4,11 +4,10 @@ import (
 	fmt "fmt"
 
 	"github.com/cometbft/cometbft/libs/rand"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expectedErr error) types.RollappSummary {

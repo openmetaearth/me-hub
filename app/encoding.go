@@ -2,18 +2,15 @@ package app
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/std"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
-	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
-
-	"github.com/openmetaearth/me-hub/app/params"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-
+	"github.com/cosmos/cosmos-sdk/std"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	cryptocodec "github.com/evmos/ethermint/crypto/codec"
 	ethermint "github.com/evmos/ethermint/types"
+
+	"github.com/openmetaearth/me-hub/app/params"
+	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 // makeEncodingConfig creates an EncodingConfig for an amino based test configuration.

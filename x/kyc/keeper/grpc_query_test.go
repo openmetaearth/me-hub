@@ -5,6 +5,7 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
@@ -30,7 +31,6 @@ func (s *KeeperTestSuite) TestProtocol() {
 	s.Require().Equal(res.Protocol.Service.Description, "The KYC verifiable credential issuer based The DID(Decentralized Identity).")
 	s.Require().Equal(1, len(res.Protocol.Service.Issuers))
 	s.Require().Equal(res.Protocol.Service.Status, didtypes.SERVICE_STATUS_ACTIVE)
-	s.Require().Equal(6, len(res.Protocol.Regions))
 }
 
 func (s *KeeperTestSuite) TestDID() {

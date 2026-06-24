@@ -5,12 +5,13 @@ import (
 )
 
 const (
-	EventTypeApprove   = "approve"
-	EventTypeUpdate    = "update"
-	EventTypeRemove    = "remove"
-	EventTypeCreateSBT = "create_sbt"
-	EventTypeUpdateSBT = "update_sbt"
-	EventTypeDeleteSBT = "delete_sbt"
+	EventTypeApprove          = "approve"
+	EventTypeUpdate           = "update"
+	EventTypeRemove           = "remove"
+	EventTypeCreateSBT        = "create_sbt"
+	EventTypeUpdateSBT        = "update_sbt"
+	EventTypeDeleteSBT        = "delete_sbt"
+	EventTypeCreateSubAccount = "create_sub_account"
 )
 
 const (
@@ -20,6 +21,9 @@ const (
 	AttributeKeyLevel           = "level"
 	AttributeKeyLevelChanged    = "level_changed"
 	AttributeKeyInviter         = "inviter"
+	AttributeKeySubAccount      = "sub_account"
+	AttributeKeyDid             = "did"
+	AttributeKeyCreator         = "creator"
 )
 
 func NewSbtEvent(eventType, did, uri, hash, regionId, kycLevel, meIdAddress string) sdkTypes.Event {
