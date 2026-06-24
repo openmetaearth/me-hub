@@ -31,6 +31,10 @@ func (k Keeper) GlobalDaoFeePool(goCtx context.Context, req *types.QueryGlobalDa
 }
 
 func (k Keeper) FreeGasAccounts(goCtx context.Context, req *types.QueryFreeGasAccountsReq) (*types.QueryFreeGasAccountsResp, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	store := ctx.KVStore(k.storeKey)
 	pstore := prefix.NewStore(store, types.FreeGasAddressePrefix)
@@ -47,6 +51,10 @@ func (k Keeper) FreeGasAccounts(goCtx context.Context, req *types.QueryFreeGasAc
 }
 
 func (k Keeper) IsFreeGasAccount(goCtx context.Context, req *types.QueryIsFreeGasAccountReq) (*types.QueryIsFreeGasAccountResp, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	return &types.QueryIsFreeGasAccountResp{IsFree: k.CheckFreeGasAccount(ctx, req.Address)}, nil
 }
