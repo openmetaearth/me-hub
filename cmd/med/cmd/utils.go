@@ -81,7 +81,7 @@ func GetDecodeRawTxCommand() *cobra.Command {
 				txBz = []byte(args[0])
 			}
 			var rawTx tx.TxRaw
-			err := json.Unmarshal([]byte(txBz), &rawTx)
+			err := json.Unmarshal(txBz, &rawTx)
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal raw tx: %w", err)
 			}

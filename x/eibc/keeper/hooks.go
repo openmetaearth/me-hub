@@ -7,7 +7,7 @@ import (
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	delayeacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
-	types "github.com/openmetaearth/me-hub/x/eibc/types"
+	"github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 /* -------------------------------------------------------------------------- */

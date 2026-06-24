@@ -284,7 +284,7 @@ func (a appCreator) newApp(
 	//	bapp.SetMempool(priorityMempool)
 	//	bapp.SetPrepareProposal(baseapp.NoOpPrepareProposal())
 	//	bapp.SetProcessProposal(baseapp.NoOpProcessProposal())
-	//})
+	// })
 
 	return app.New(
 		logger,

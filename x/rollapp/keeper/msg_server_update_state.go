@@ -4,7 +4,6 @@ import (
 	"context"
 	"slices"
 
-	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -33,7 +32,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// call the before-update-state hook
 	err := k.hooks.BeforeUpdateState(ctx, msg.Creator, msg.RollappId)
 	if err != nil {
-		return nil, errors.Wrapf(err, "BeforeUpdateState hook failed for rollappId(%s) from sequencer(%s)", msg.RollappId, msg.Creator)
+		return nil, errorsmod.Wrapf(err, "BeforeUpdateState hook failed for rollappId(%s) from sequencer(%s)", msg.RollappId, msg.Creator)
 	}
 
 	// Logic Error check - must be done after BeforeUpdateStateRecoverable

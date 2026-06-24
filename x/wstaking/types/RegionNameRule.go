@@ -9,7 +9,7 @@ var regionNameMap map[string]string
 
 func init() {
 	regionNameMap = make(map[string]string, 256)
-	RegionName = strings.Replace(RegionName, "\n", "", -1)
+	RegionName = strings.ReplaceAll(RegionName, "\n", "")
 	regionNameSli := strings.Split(RegionName, ",")
 	for _, rn := range regionNameSli {
 		name := strings.Split(rn, "-")

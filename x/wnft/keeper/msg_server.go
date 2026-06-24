@@ -71,7 +71,9 @@ func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.
 	if err != nil {
 		return &types.MsgNewClassResponse{}, err
 	}
-	ctx.EventManager().EmitTypedEvent(&class)
+	if err := ctx.EventManager().EmitTypedEvent(&class); err != nil {
+		return nil, err
+	}
 	return &types.MsgNewClassResponse{}, nil
 }
 
@@ -177,7 +179,7 @@ func (k MsgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 			sdk.NewAttribute(types.AttributeKeyTokenID, msg.Id),
 			sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-			sdk.NewAttribute(types.AttributeKeyUri, myNFT.Uri),
+			sdk.NewAttribute(types.AttributeKeyURI, myNFT.Uri),
 			sdk.NewAttribute(types.AttributeKeyClassName, class.Name),
 		),
 	})
