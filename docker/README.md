@@ -251,7 +251,7 @@ docker exec mechain-private-net med tx bank send \
   me139mq752delxv78jvtmwxhasyrycufsvr0mue6u \
   <target_address> \
   1000000umec \
-  --chain-id mechain_202404-1 \
+  --chain-id mechain_2404-1 \
   --keyring-backend test \
   --yes
 
@@ -306,19 +306,19 @@ docker stats mechain-private-net --no-stream
 
 Customize chain configuration through environment variables:
 
-| Variable                | Default Value    | Description                             |
-| ----------------------- | ---------------- | --------------------------------------- |
-| `CHAIN_ID`              | mechain_202404-1 | Chain ID                                |
-| `MONIKER_NAME`          | local            | Node name                               |
-| `KEY_NAME`              | global_dao       | Main account name                       |
-| `TZ`                    | Asia/Shanghai    | Timezone setting                        |
-| `GENESIS_ACCOUNTS`      | ""               | Custom genesis accounts (simple format) |
-| `GENESIS_ACCOUNTS_JSON` | ""               | Custom genesis accounts (JSON format)   |
+| Variable                | Default Value  | Description                             |
+| ----------------------- | -------------- | --------------------------------------- |
+| `CHAIN_ID`              | mechain_2404-1 | Chain ID                                |
+| `MONIKER_NAME`          | local          | Node name                               |
+| `KEY_NAME`              | global_dao     | Main account name                       |
+| `TZ`                    | Asia/Shanghai  | Timezone setting                        |
+| `GENESIS_ACCOUNTS`      | ""             | Custom genesis accounts (simple format) |
+| `GENESIS_ACCOUNTS_JSON` | ""             | Custom genesis accounts (JSON format)   |
 
 **Example**:
 ```bash
 docker run -d \
-  -e CHAIN_ID="mechain_202404-1" \
+  -e CHAIN_ID="mechain_2404-1" \
   -e MONIKER_NAME="my-node" \
   -e KEY_NAME="global_dao" \
   -e TZ="UTC" \

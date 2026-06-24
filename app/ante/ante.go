@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	cometbftlog "github.com/cometbft/cometbft/libs/log"
-	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
-
 	errorsmod "cosmossdk.io/errors"
+	cometbftlog "github.com/cometbft/cometbft/libs/log"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 )
 
 // NewAnteHandler returns an ante handler responsible for attempting to route an

@@ -1,21 +1,23 @@
 package keeper_test
 
 import (
+	"strings"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/openmetaearth/me-hub/x/wdistri"
 	"github.com/openmetaearth/me-hub/x/wmint"
-	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-	"strings"
 )
 
 func (s *KeeperTestSuite) TestApprove() {
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
@@ -63,7 +65,7 @@ func (s *KeeperTestSuite) TestApprove() {
 func (s *KeeperTestSuite) TestRemove() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
@@ -117,7 +119,7 @@ func (s *KeeperTestSuite) TestRemove() {
 func (s *KeeperTestSuite) TestUpdate() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
@@ -151,7 +153,7 @@ func (s *KeeperTestSuite) TestUpdate() {
 	s.Require().Equal(delegation.Unmovable.String(), wstakingtypes.Bonus.String())
 	s.Require().Equal(delegation.ValidatorAddress, s.meEarthValidator.OperatorAddress)
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks + 1).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks + 1).WithChainID(apptesting.TestChainID)
 	// transfer kyc region
 	_, err = s.msgServer.Update(s.Ctx, &types.MsgUpdate{
 		Issuer:   s.Dao.GlobalDao,
@@ -166,5 +168,5 @@ func (s *KeeperTestSuite) TestUpdate() {
 	s.Require().True(f)
 	s.Require().Equal(delegation.Unmovable.String(), wstakingtypes.Bonus.String())
 	s.Require().Equal(s.usaValidator.OperatorAddress, delegation.ValidatorAddress)
-	s.Require().EqualValues(delegation.StartHeight, wmintTypes.OneDayTotalBlocks+1)
+	s.Require().EqualValues(delegation.StartHeight, wminttypes.OneDayTotalBlocks+1)
 }

@@ -15,7 +15,7 @@ var (
 	ErrNotProposedRelayer      = errorsmod.Register(ModuleName, 8, "not a proposed relayer")
 	ErrNotFoundRelayer         = errorsmod.Register(ModuleName, 9, "not found relayer")
 	ErrExternalAddressNotMatch = errorsmod.Register(ModuleName, 10, "external address not match relayer")
-	ErrRelayerNotOnLine        = errorsmod.Register(ModuleName, 11, "relayer not on line")
+	ErrRelayerNotOnline        = errorsmod.Register(ModuleName, 11, "relayer not online")
 
 	ErrDelegateAmountBelowMinimum  = errorsmod.Register(ModuleName, 12, "delegate amount must be greater than relayer stake threshold")
 	ErrDelegateAmountAboveMaximum  = errorsmod.Register(ModuleName, 13, "delegate amount must be less than relayer stake threshold")

@@ -1,8 +1,9 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/big"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type WminkHooks interface {
