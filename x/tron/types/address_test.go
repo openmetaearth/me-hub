@@ -2,10 +2,10 @@ package types_test
 
 import (
 	"bytes"
-	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
-	troncommon "github.com/fbsobreira/gotron-sdk/pkg/common"
 	"testing"
 
+	tronaddress "github.com/fbsobreira/gotron-sdk/pkg/address"
+	troncommon "github.com/fbsobreira/gotron-sdk/pkg/common"
 	"github.com/stretchr/testify/require"
 
 	"github.com/openmetaearth/me-hub/x/tron/types"
