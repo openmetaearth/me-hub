@@ -8,6 +8,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
@@ -55,8 +56,8 @@ func (k Keeper) finalizeRollappPacket(
 	var packetErr error
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
-		ack := ibc.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
-		if ack != nil { // NOTE: in practice ack should not be nil, since ibc transfer core module always returns something
+		ack := replayRecvPacket(ctx, ibc, rollappPacket)
+		if ack != nil {
 			packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
 		}
 	case commontypes.RollappPacket_ON_ACK:
@@ -80,6 +81,41 @@ func (k Keeper) finalizeRollappPacket(
 
 	logger.Debug("finalized IBC rollapp packet", logContext...)
 	return nil
+}
+
+func replayRecvPacket(
+	ctx sdk.Context,
+	ibc porttypes.IBCModule,
+	rollappPacket commontypes.RollappPacket,
+) exported.Acknowledgement {
+	cacheCtx, writeFn := ctx.CacheContext()
+	ack := ibc.OnRecvPacket(cacheCtx, *rollappPacket.Packet, rollappPacket.Relayer)
+
+	if ack == nil || ack.Success() {
+		writeFn()
+	} else {
+		ctx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
+	}
+
+	return ack
+}
+
+func convertToErrorEvents(events sdk.Events) sdk.Events {
+	if events == nil {
+		return nil
+	}
+
+	newEvents := make(sdk.Events, len(events))
+	for i, event := range events {
+		newAttributes := make([]sdk.Attribute, len(event.Attributes))
+		for j, attribute := range event.Attributes {
+			newAttributes[j] = sdk.NewAttribute(coretypes.ErrorAttributeKeyPrefix+attribute.Key, attribute.Value)
+		}
+
+		newEvents[i] = sdk.NewEvent(coretypes.ErrorAttributeKeyPrefix+event.Type, newAttributes...)
+	}
+
+	return newEvents
 }
 
 func (k Keeper) writeRecvAck(rollappPacket commontypes.RollappPacket, ack exported.Acknowledgement) wrappedFunc {
