@@ -173,7 +173,6 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				// Add the new account to the set of genesis accounts and sanitize the
 				// accounts afterwards.
 				accs = append(accs, genAccount)
-
 			}
 			accs = authtypes.SanitizeGenesisAccounts(accs)
 

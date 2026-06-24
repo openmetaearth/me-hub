@@ -37,7 +37,7 @@ func EncodeMeMsg(sender sdk.AccAddress, msg *MeMsg) ([]sdk.Msg, error) {
 		return nil, err
 	}
 
-	var outputs []banktypes.Output
+	outputs := make([]banktypes.Output, 0, len(msg.MultiSend.Output))
 	for _, o := range msg.MultiSend.Output {
 		amt, err := wasmkeeper.ConvertWasmCoinsToSdkCoins(o.Amount)
 		if err != nil {

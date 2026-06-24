@@ -350,6 +350,8 @@ proto-download-deps:
 ###############################################################################
 
 golangci_version=v1.64.8
+lint_base_rev?=origin/main
+lint_pr_base_rev?=$(lint_base_rev)
 
 lint-install:
 	@echo "--> Installing golangci-lint $(golangci_version)"
@@ -361,8 +363,20 @@ lint-install:
 	fi
 
 lint: lint-install
-	@echo "--> Running linter"
-	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab
+	@echo "--> Running linter on changes since $(lint_base_rev)"
+	@golangci-lint run --config=.golangci.yml --build-tags=$(GO_BUILD) --out-format=tab --new-from-rev=$(lint_base_rev) --timeout=15m
+
+lint-fix: lint-install
+	@echo "--> Running linter with fixes on changes since $(lint_base_rev)"
+	@golangci-lint run --config=.golangci.yml --build-tags=$(GO_BUILD) --out-format=tab --new-from-rev=$(lint_base_rev) --timeout=15m --fix
+
+lint-pr: lint-install
+	@echo "--> Running PR linter on changes since $(lint_pr_base_rev)"
+	@golangci-lint run --config=.golangci.yml --build-tags=$(GO_BUILD) --out-format=tab --new-from-rev=$(lint_pr_base_rev) --timeout=15m
+
+lint-all: lint-install
+	@echo "--> Running linter on entire repository"
+	@golangci-lint run --config=.golangci.yml --build-tags=$(GO_BUILD) --out-format=tab --timeout=15m
 
 format: lint-install
 	@golangci-lint run --build-tags=$(GO_BUILD) --out-format=tab --fix
@@ -376,7 +390,7 @@ shell-format:
 	#go install mvdan.cc/sh/v3/cmd/shfmt@v3.8.0
 	grep -r '^#!/usr/bin/env bash' --exclude-dir={node_modules,build} . | cut -d: -f1 | xargs shfmt -l -w -i 2
 
-.PHONY: format lint shell-lint shell-format
+.PHONY: format lint lint-fix lint-pr lint-all shell-lint shell-format
 
 ###############################################################################
 ###                           Tests & Simulation                            ###

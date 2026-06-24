@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -38,7 +39,7 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 				return fmt.Errorf("parse coins: %w", err)
 			}
 			if !coins.IsValid() {
-				return fmt.Errorf("invalid coins")
+				return errors.New("invalid coins")
 			}
 
 			rawAddrList := strings.Split(args[0], ",")
@@ -64,7 +65,7 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 				proposalRelayers = append(proposalRelayers, addrStr)
 			}
 			if len(addrs) == 0 {
-				return fmt.Errorf("no valid addresses provided")
+				return errors.New("no valid addresses provided")
 			}
 
 			genFile := config.GenesisFile()

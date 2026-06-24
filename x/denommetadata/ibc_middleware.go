@@ -1,7 +1,7 @@
 package denommetadata
 
 import (
-	. "slices"
+	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -142,7 +142,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return gerrc.ErrNotFound
 	}
 
-	if !Contains(rollapp.RegisteredDenoms, dm.Base) {
+	if !slices.Contains(rollapp.RegisteredDenoms, dm.Base) {
 		// add the new token denom base to the list of rollapp's registered denoms
 		rollapp.RegisteredDenoms = append(rollapp.RegisteredDenoms, dm.Base)
 
@@ -215,7 +215,7 @@ func (m *ICS4Wrapper) SendPacket(
 	// At the first match, we assume that the rollapp already contains the metadata.
 	// It would be technically possible to have a race condition where the denom metadata is added to the rollapp
 	// from another packet before this packet is acknowledged.
-	if Contains(rollapp.RegisteredDenoms, packet.Denom) {
+	if slices.Contains(rollapp.RegisteredDenoms, packet.Denom) {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 

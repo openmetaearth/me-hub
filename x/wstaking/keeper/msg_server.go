@@ -18,7 +18,7 @@ type MsgServer struct {
 	stakingtypes.MsgServer
 
 	*Keeper
-	IbcTransferKeeper ibctransferkeeper.Keeper
+	ibcTransferKeeper ibctransferkeeper.Keeper
 }
 
 var _ types.MsgServer = MsgServer{}
@@ -26,12 +26,12 @@ var _ types.MsgServer = MsgServer{}
 // NewMsgServerImpl returns an implementation of the staking wrapped MsgServer.
 func NewMsgServerImpl(
 	keeper *Keeper,
-	IbcTransferKeeper ibctransferkeeper.Keeper,
+	ibcTransferKeeper ibctransferkeeper.Keeper,
 	stakingMsgSrv stakingtypes.MsgServer,
 ) MsgServer {
 	return MsgServer{
 		Keeper:            keeper,
-		IbcTransferKeeper: IbcTransferKeeper,
+		ibcTransferKeeper: ibcTransferKeeper,
 		MsgServer:         stakingMsgSrv,
 	}
 }

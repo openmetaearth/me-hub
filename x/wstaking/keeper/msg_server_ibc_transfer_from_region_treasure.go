@@ -25,7 +25,7 @@ func (k MsgServer) IbcTransferFromRegionTreasure(goCtx context.Context, msg *typ
 
 	treasureAddress := region.RegionTreasureAddr
 
-	_, err := k.IbcTransferKeeper.Transfer(ctx, ibctransfertypes.NewMsgTransfer(
+	_, err := k.ibcTransferKeeper.Transfer(ctx, ibctransfertypes.NewMsgTransfer(
 		msg.SourcePort,
 		msg.SourceChannel,
 		msg.Token,

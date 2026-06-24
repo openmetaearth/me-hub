@@ -154,7 +154,7 @@ func (s *KeeperTestSuite) TestGetTreasuryModuleAccount() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestEndBlocker() {
+func (s *KeeperTestSuite) TestEndBlocker() {
 	/*
 		first year per block reward is :792.7448 mec 79274480000 umec
 		first year daily reward is :13698630.1440 mec 1369863014400000 umec
@@ -207,8 +207,8 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 	}
 	runCase := func(index int) {
 		testcase := testsCases[index]
-		ctx := suite.HelperNewContextWith(int64(testcase.height))
-		addrs := suite.mockGetRegionI(ctx, testcase.regionShares...)
+		ctx := s.HelperNewContextWith(int64(testcase.height))
+		addrs := s.mockGetRegionI(ctx, testcase.regionShares...)
 		var wantReward []coinAndAddr
 		totalWantReward := 0
 		for i, addr := range addrs {
@@ -219,30 +219,30 @@ func (suite *KeeperTestSuite) TestEndBlocker() {
 			totalWantReward += testcase.regionWantGetReward[i]
 		}
 		if totalWantReward != 0 {
-			suite.SetMockGetBalance(ctx, sdk.NewInt(int64(totalWantReward)))
+			s.SetMockGetBalance(ctx, sdk.NewInt(int64(totalWantReward)))
 		}
-		suite.setMockSendCoinsFromModuleToAccountExpect(ctx, wantReward...)
+		s.setMockSendCoinsFromModuleToAccountExpect(ctx, wantReward...)
 
-		err := suite.App.DistrKeeper.AllocateBlockRewardEveryday(ctx, abci.RequestEndBlock{Height: ctx.BlockHeight()})
+		err := s.App.DistrKeeper.AllocateBlockRewardEveryday(ctx, abci.RequestEndBlock{Height: ctx.BlockHeight()})
 		events := ctx.EventManager().ABCIEvents()
-		suite.Require().NoError(err, "case %d: %s", index, testcase.name)
-		assert.Equal(suite.T(), len(addrs), len(events))
+		s.Require().NoError(err, "case %d: %s", index, testcase.name)
+		assert.Equal(s.T(), len(addrs), len(events))
 	}
 	for i := range testsCases {
-		suite.Run(testsCases[i].name, func() {
+		s.Run(testsCases[i].name, func() {
 			runCase(i)
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int) []string {
-	var addrs []string
+func (s *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int) []string {
+	addrs := make([]string, 0, len(regionShare))
 	if len(regionShare) == 0 {
 		return addrs
 	}
-	var regions []wstakingtypes.RegionI
+	regions := make([]wstakingtypes.RegionI, 0, len(regionShare))
 	for i, share := range regionShare {
-		region := mocks.NewMockRegionI(suite.T())
+		region := mocks.NewMockRegionI(s.T())
 		region.EXPECT().GetRegionShare().Return(sdk.NewInt(int64(share)))
 		addr := authtypes.NewModuleAddress(fmt.Sprintf("region_%d", i)).String()
 		addrs = append(addrs, addr)
@@ -250,18 +250,18 @@ func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int
 		region.EXPECT().GetRegionId().Return(fmt.Sprintf("region_ID_%d", i))
 		regions = append(regions, region)
 	}
-	suite.stakingKeeper.EXPECT().GetAllRegionI(ctx).Return(regions)
+	s.stakingKeeper.EXPECT().GetAllRegionI(ctx).Return(regions)
 	return addrs
 }
 
-func (suite *KeeperTestSuite) SetMockGetBalance(ctx sdk.Context, amount sdkmath.Int) {
-	acc := authtypes.NewModuleAddress(suite.App.DistrKeeper.GetTreasuryModuleAccount())
-	suite.authKeeper.EXPECT().GetModuleAddress(suite.App.DistrKeeper.GetTreasuryModuleAccount()).Return(acc)
-	suite.bankKeeper.EXPECT().GetAllBalances(ctx, acc).Return(sdk.NewCoins(sdk.NewCoin(params.BaseDenom, amount)))
+func (s *KeeperTestSuite) SetMockGetBalance(ctx sdk.Context, amount sdkmath.Int) {
+	acc := authtypes.NewModuleAddress(s.App.DistrKeeper.GetTreasuryModuleAccount())
+	s.authKeeper.EXPECT().GetModuleAddress(s.App.DistrKeeper.GetTreasuryModuleAccount()).Return(acc)
+	s.bankKeeper.EXPECT().GetAllBalances(ctx, acc).Return(sdk.NewCoins(sdk.NewCoin(params.BaseDenom, amount)))
 }
 
-func (suite *KeeperTestSuite) HelperNewContextWith(height int64) sdk.Context {
-	return sdk.NewContext(suite.Ctx.MultiStore(), tmproto.Header{Time: tmtime.Now(), Height: height}, false, log.NewNopLogger())
+func (s *KeeperTestSuite) HelperNewContextWith(height int64) sdk.Context {
+	return sdk.NewContext(s.Ctx.MultiStore(), tmproto.Header{Time: tmtime.Now(), Height: height}, false, log.NewNopLogger())
 }
 
 type coinAndAddr struct {
@@ -269,13 +269,13 @@ type coinAndAddr struct {
 	addr string
 }
 
-func (suite *KeeperTestSuite) setMockSendCoinsFromModuleToAccountExpect(ctx sdk.Context, want ...coinAndAddr) {
+func (s *KeeperTestSuite) setMockSendCoinsFromModuleToAccountExpect(ctx sdk.Context, want ...coinAndAddr) {
 	baseDenom := params.BaseDenom
 	for _, w := range want {
-		suite.bankKeeper.EXPECT().
+		s.bankKeeper.EXPECT().
 			SendCoinsFromModuleToAccount(
 				ctx,
-				suite.App.DistrKeeper.GetTreasuryModuleAccount(),
+				s.App.DistrKeeper.GetTreasuryModuleAccount(),
 				sdk.MustAccAddressFromBech32(w.addr),
 				sdk.NewCoins(sdk.NewCoin(baseDenom, sdk.NewInt(w.num))),
 			).Return(nil)
