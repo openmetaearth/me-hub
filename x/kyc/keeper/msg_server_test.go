@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/openmetaearth/me-hub/x/wstaking"
 	"strings"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -154,6 +155,8 @@ func (s *KeeperTestSuite) TestUpdate() {
 	s.Require().Equal(delegation.ValidatorAddress, s.meEarthValidator.OperatorAddress)
 
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks + 1).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wstaking.BeginBlock(s.Ctx, s.App.StakingKeeper)
 	// transfer kyc region
 	_, err = s.msgServer.Update(s.Ctx, &types.MsgUpdate{
 		Issuer:   s.Dao.GlobalDao,
