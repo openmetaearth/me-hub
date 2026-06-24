@@ -107,6 +107,13 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 		return types.ErrCalculateInterest.Wrap(err.Error())
 	}
 
+	if region.DelegateInterest.GTE(rewards) {
+		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
+	} else {
+		return fmt.Errorf("RemoveKycReward err,region(%s) total interest not enough.need pay %s,only have %s",
+			region.RegionId, rewards.String(), region.DelegateInterest.String())
+	}
+
 	// settle interest
 	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
 		sdk.MustAccAddressFromBech32(region.RegionTreasureAddr),
@@ -182,21 +189,27 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 		if err != nil {
 			return types.ErrCalculateInterest.Wrap(err.Error())
 		}
+
+		if experienceRegion.DelegateInterest.GTE(interest) {
+			experienceRegion.DelegateInterest = experienceRegion.DelegateInterest.Sub(interest)
+		} else {
+			return fmt.Errorf("sendKycRewards err,region(%s) total interest not enough.need pay %s,only have %s",
+				experienceRegion.RegionId, interest.String(), experienceRegion.DelegateInterest.String())
+		}
+
 		// add coins to user account
 		if interest.GT(sdk.ZeroDec()) {
 			err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
 				sdk.MustAccAddressFromBech32(experienceRegion.RegionTreasureAddr),
 				sdk.MustAccAddressFromBech32(delegation.DelegatorAddress),
 				sdk.NewCoins(sdk.NewCoin(params.BaseDenom, interest.TruncateInt())),
-				fmt.Sprintf("ApproveKyc_SettlementInterest_%s", region.RegionId),
+				fmt.Sprintf("ApproveKyc_SettlementInterest_%s", experienceRegion.RegionId),
 			)
 			if err != nil {
 				return err
 			}
 		}
-		if experienceRegion.DelegateInterest.GTE(interest) {
-			experienceRegion.DelegateInterest = experienceRegion.DelegateInterest.Sub(interest)
-		}
+
 		experienceRegion.DelegateAmount = experienceRegion.DelegateAmount.Sub(delegation.UnMeidAmount)
 		k.SetRegion(ctx, experienceRegion)
 
@@ -428,6 +441,9 @@ func (k Keeper) transferUnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, 
 
 	if region.DelegateInterest.GTE(rewards) {
 		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
+	} else {
+		return amount, fmt.Errorf("transferUnRegisterMeid err,region(%s) total interest not enough.need pay %s,only have %s",
+			region.RegionId, rewards.String(), region.DelegateInterest.String())
 	}
 
 	if delegation.Unmovable.LTE(sdk.ZeroInt()) {
