@@ -47,7 +47,7 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, cre
 
 	// validator rewards
 	ownerAddress := validator.OwnerAddress
-	if len(validator.OwnerAddress) <= 0 {
+	if len(validator.OwnerAddress) == 0 {
 		ownerAddress = k.daoKeeper.GetDevOperator(ctx)
 	}
 
@@ -72,12 +72,12 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 
 	valAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
 	if err != nil {
-		return fmt.Errorf("invalid region operator address")
+		return errors.New("invalid region operator address")
 	}
 
 	validator, ok := k.GetValidator(ctx, valAddr)
 	if !ok {
-		return fmt.Errorf("region bonded validator not found")
+		return errors.New("region bonded validator not found")
 	}
 
 	delegation, found := k.GetDelegation(ctx, account, valAddr)
@@ -202,7 +202,7 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 
 		experienceVal, ok := k.GetValidator(ctx, experienceValAddress)
 		if !ok {
-			return fmt.Errorf("experience region validator no found")
+			return errors.New("experience region validator no found")
 		}
 		if experienceVal.DelegationAmount.GTE(delegation.UnMeidAmount) {
 			experienceVal.DelegationAmount = experienceVal.DelegationAmount.Sub(delegation.UnMeidAmount)

@@ -9,8 +9,6 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,7 +16,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -55,13 +52,11 @@ func TestPrintRewardInfo(t *testing.T) {
 
 type KeeperTestSuite struct {
 	suite.Suite
-	ctx            sdk.Context
-	wmintKeeper    keeper.Keeper
-	bankKeeper     *mock_types.MockBankKeeper
-	accKeeper      *mock_types.MockAccountKeeper
-	stakingKeeper  *mock_types.MockStakingKeeper
-	encCfg         moduletestutil.TestEncodingConfig
-	paramsSubspace typesparams.Subspace
+	ctx           sdk.Context
+	wmintKeeper   keeper.Keeper
+	bankKeeper    *mock_types.MockBankKeeper
+	accKeeper     *mock_types.MockAccountKeeper
+	stakingKeeper *mock_types.MockStakingKeeper
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -77,14 +72,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(memStoreKey, storetypes.StoreTypeMemory, nil)
 	require.NoError(t, stateStore.LoadLatestVersion())
-	registry := codectypes.NewInterfaceRegistry()
-	cdc := codec.NewProtoCodec(registry)
-	paramsSubspace := typesparams.NewSubspace(cdc,
-		codec.NewLegacyAmino(),
-		storeKey,
-		memStoreKey,
-		"WmintParams",
-	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{Time: tmtime.Now()}, false, log.NewNopLogger())
 	encCfg := moduletestutil.MakeTestEncodingConfig()
@@ -96,8 +83,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	bankKeeper := mock_types.NewMockBankKeeper(t)
 	stakingKeeper := mock_types.NewMockStakingKeeper(t)
 	suite.ctx = ctx
-	suite.encCfg = encCfg
-	suite.paramsSubspace = paramsSubspace
 	suite.bankKeeper = bankKeeper
 	suite.stakingKeeper = stakingKeeper
 	suite.accKeeper = accKeeper

@@ -51,7 +51,7 @@ func SimulateMsgUpdateState(
 		if bWrongStartHeight {
 			randStartheight := uint64(r.Intn(20000000))
 			if startHeight == randStartheight {
-				startHeight -= 1
+				startHeight--
 			} else {
 				startHeight = randStartheight
 			}

@@ -46,9 +46,5 @@ func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 
 func (msg *MsgCreateRollapp) ValidateBasic() error {
 	rollapp := msg.GetRollapp()
-	if err := rollapp.ValidateBasic(); err != nil {
-		return err
-	}
-
-	return nil
+	return rollapp.ValidateBasic()
 }

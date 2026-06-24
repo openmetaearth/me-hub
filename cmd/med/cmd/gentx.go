@@ -126,7 +126,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 				return errors.Wrap(err, "failed to parse coins")
 			}
 			// addr, err := key.GetAddress()
-			//if err != nil {
+			// if err != nil {
 			//	return err
 			//}
 			moduleAddress := authtypes.NewModuleAddress(wstakingtypes.StakePoolName)

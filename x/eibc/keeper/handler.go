@@ -8,7 +8,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/pkg/errors"
 
-	uibc "github.com/openmetaearth/me-hub/utils/uibc"
+	"github.com/openmetaearth/me-hub/utils/uibc"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	dacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
 	"github.com/openmetaearth/me-hub/x/eibc/types"

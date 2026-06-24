@@ -46,7 +46,7 @@ func NewKeeper(
 	feeCollectorName string,
 	authority string,
 ) *Keeper {
-	DistrKeeper := distriKeeper.NewKeeper(
+	distriKeeperImpl := distriKeeper.NewKeeper(
 		cdc,
 		storeKey,
 		accountKeeper,
@@ -56,7 +56,7 @@ func NewKeeper(
 		authority,
 	)
 	return &Keeper{
-		Keeper:           DistrKeeper,
+		Keeper:           distriKeeperImpl,
 		cdc:              cdc,
 		storeKey:         storeKey,
 		paramstore:       ps,

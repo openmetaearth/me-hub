@@ -67,17 +67,17 @@ func (k msgServer) FreeGasAccount(goCtx context.Context, msg *types.MsgFreeGasAc
 		if isExist {
 			if account.IsFree {
 				return nil, sdkerrors.Wrap(types.ErrFreeGasAccountAlreadyExist, account.Address)
-			} else {
-				k.RemoveFreeGasAccount(ctx, account.Address)
 			}
+
+			k.RemoveFreeGasAccount(ctx, account.Address)
 		}
 
 		if !isExist {
-			if account.IsFree {
-				k.SetFreeGasAccount(ctx, account.Address)
-			} else {
+			if !account.IsFree {
 				return nil, sdkerrors.Wrap(types.ErrAccountIsNotFree, account.Address)
 			}
+
+			k.SetFreeGasAccount(ctx, account.Address)
 		}
 	}
 

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	ed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -155,10 +155,7 @@ func (k Keeper) DeleteReplaceConsensusPubKey(ctx sdk.Context) {
 func (k Keeper) IsHasReplaceConsensusPubKey(ctx sdk.Context) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	data := store.Get(types.KeyPrefix(types.ReplaceConsensusPubKey))
-	if data == nil {
-		return false
-	}
-	return true
+	return data != nil
 }
 
 func (k Keeper) RemoveValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) {
@@ -176,7 +173,9 @@ func (k Keeper) MoveStakesToAnotherVal(ctx sdk.Context, fromValAddr, toValAddr s
 	}
 	for _, stake := range stakes {
 		// remove old stake record
-		k.RemoveStake(ctx, *stake)
+		if err := k.RemoveStake(ctx, *stake); err != nil {
+			return err
+		}
 		// create new stake record
 		stake.ValidatorAddress = toValAddr.String()
 		stake.StartHeight = ctx.BlockHeight()

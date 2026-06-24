@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -44,7 +45,7 @@ func (k Keeper) SetKycIssers(ctx sdk.Context, oldDaoAddress, newDaoAddress []str
 
 	service, ok := k.GetService(ctx)
 	if !ok {
-		return fmt.Errorf("kyc service not found")
+		return errors.New("kyc service not found")
 	}
 
 	dids := []string{}

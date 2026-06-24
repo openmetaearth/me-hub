@@ -52,6 +52,8 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 			return nil, types.ErrValidatorDelegationAmount.Wrapf("validator amount: %s, requested value: %s",
 				val.DelegationAmount.String(), msg.Amount.Amount.String())
 		}
+	} else {
+		return nil, stakingtypes.ErrNoValidatorFound
 	}
 
 	// current interest balance * personal withdrawal pledge limit / district total pledge limit

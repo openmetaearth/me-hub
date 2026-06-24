@@ -2,6 +2,7 @@ package cli
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -167,7 +168,7 @@ func CmdCreateSBT() *cobra.Command {
 			uriHash := args[2]
 			data, err := hex.DecodeString(args[3])
 			if err != nil {
-				return fmt.Errorf("data is not a valid hex string")
+				return errors.New("data is not a valid hex string")
 			}
 
 			msg := types.NewMsgCreateSBT(
@@ -204,7 +205,7 @@ func CmdUpdateSBT() *cobra.Command {
 			uriHash := args[2]
 			data, err := hex.DecodeString(args[3])
 			if err != nil {
-				return fmt.Errorf("data is not a valid hex string")
+				return errors.New("data is not a valid hex string")
 			}
 
 			msg := types.NewMsgUpdateSBT(
