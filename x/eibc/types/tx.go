@@ -2,7 +2,7 @@ package types
 
 import (
 	"encoding/hex"
-	fmt "fmt"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -43,16 +43,16 @@ func (msg *MsgFulfillOrder) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (m *MsgFulfillOrder) ValidateBasic() error {
-	err := validateCommon(m.OrderId, m.FulfillerAddress, m.ExpectedFee)
+func (msg *MsgFulfillOrder) ValidateBasic() error {
+	err := validateCommon(msg.OrderId, msg.FulfillerAddress, msg.ExpectedFee)
 	if err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 	return nil
 }
 
-func (m *MsgFulfillOrder) GetFulfillerBech32Address() []byte {
-	return sdk.MustAccAddressFromBech32(m.FulfillerAddress)
+func (msg *MsgFulfillOrder) GetFulfillerBech32Address() []byte {
+	return sdk.MustAccAddressFromBech32(msg.FulfillerAddress)
 }
 
 func NewMsgUpdateDemandOrder(ownerAddr, orderId, newFee string) *MsgUpdateDemandOrder {

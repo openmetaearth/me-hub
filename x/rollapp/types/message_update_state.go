@@ -70,7 +70,7 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 	}
 
 	// check that the blocks are sequential by height
-	for bdIndex := uint64(0); bdIndex < msg.NumBlocks; bdIndex += 1 {
+	for bdIndex := uint64(0); bdIndex < msg.NumBlocks; bdIndex++ {
 		if msg.BDs.BD[bdIndex].Height != msg.StartHeight+bdIndex {
 			return ErrInvalidBlockSequence
 		}

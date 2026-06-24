@@ -64,7 +64,7 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes, burnD
 		//	}
 		//
 		//	return false
-		//})
+		// })
 
 		keeper.DeleteVote(ctx, vote.ProposalId, voter)
 		return false

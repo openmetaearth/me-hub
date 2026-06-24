@@ -70,7 +70,9 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 			}
 			validator.ConsensusPubkey = anyPk
 			k.SetValidator(ctx, validator)
-			k.SetValidatorByConsAddr(ctx, validator)
+			if err := k.SetValidatorByConsAddr(ctx, validator); err != nil {
+				return nil, err
+			}
 			if err = k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
 				k.Logger(ctx).Info("AfterValidatorCreated hook ", "err", err.Error())
 				return nil, sdkerrors.Wrapf(types.ErrInterProc, "AfterValidatorCreated hook error: %v", err)
@@ -155,10 +157,7 @@ func (k Keeper) DeleteReplaceConsensusPubKey(ctx sdk.Context) {
 func (k Keeper) IsHasReplaceConsensusPubKey(ctx sdk.Context) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	data := store.Get(types.KeyPrefix(types.ReplaceConsensusPubKey))
-	if data == nil {
-		return false
-	}
-	return true
+	return data != nil
 }
 
 func (k Keeper) RemoveValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) {
@@ -176,7 +175,9 @@ func (k Keeper) MoveStakesToAnotherVal(ctx sdk.Context, fromValAddr, toValAddr s
 	}
 	for _, stake := range stakes {
 		// remove old stake record
-		k.RemoveStake(ctx, *stake)
+		if err := k.RemoveStake(ctx, *stake); err != nil {
+			return err
+		}
 		// create new stake record
 		stake.ValidatorAddress = toValAddr.String()
 		stake.StartHeight = ctx.BlockHeight()

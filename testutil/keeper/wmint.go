@@ -42,7 +42,7 @@ func WmintKeeper(t testing.TB, sk types.StakingKeeper, ak types.AccountKeeper, b
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())
 
 	// Initialize params
-	k.SetParams(ctx, types.DefaultParams())
+	require.NoError(t, k.SetParams(ctx, types.DefaultParams()))
 
 	return &k, ctx
 }

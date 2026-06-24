@@ -44,8 +44,8 @@ func (ubs *UnbondingStake) AddEntry(creationHeight int64, minTime time.Time, bal
 }
 
 // RemoveEntry - remove entry at index i to the unbonding stake
-func (ubd *UnbondingStake) RemoveEntry(i int64) {
-	ubd.Entries = append(ubd.Entries[:i], ubd.Entries[i+1:]...)
+func (ubs *UnbondingStake) RemoveEntry(i int64) {
+	ubs.Entries = append(ubs.Entries[:i], ubs.Entries[i+1:]...)
 }
 
 // IsMature - is the current entry mature

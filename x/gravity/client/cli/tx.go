@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/ecdsa"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -146,7 +147,7 @@ func CmdProposalRelayers(chainName string) *cobra.Command {
 				return err
 			}
 			if len(relayers) == 0 {
-				return fmt.Errorf("at least one relayer is required")
+				return errors.New("at least one relayer is required")
 			}
 			// Clean the relayer list: trim spaces, remove duplicates and empty entries
 			clean := make([]string, 0, len(relayers))
@@ -163,7 +164,7 @@ func CmdProposalRelayers(chainName string) *cobra.Command {
 				clean = append(clean, r)
 			}
 			if len(clean) == 0 {
-				return fmt.Errorf("at least one relayer is required")
+				return errors.New("at least one relayer is required")
 			}
 
 			msg := &types.MsgProposalRelayers{

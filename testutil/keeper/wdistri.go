@@ -52,7 +52,7 @@ func WdistriKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())
 
 	// Initialize params
-	k.SetParams(ctx, distributiontypes.DefaultParams())
+	require.NoError(t, k.SetParams(ctx, distributiontypes.DefaultParams()))
 
 	return k, ctx
 }
