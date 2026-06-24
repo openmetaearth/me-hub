@@ -9,7 +9,7 @@ import (
 
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wmint"
-	mintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -25,13 +25,13 @@ func (k Keeper) CalculateInterest(ctx sdk.Context, totalStaking cmath.Int, heigh
 func (k Keeper) getRewardsByHeight(fromHeight, toHeight int64) (coin sdk.Dec) {
 	totalCoins := sdk.ZeroInt()
 
-	lowMul := (fromHeight - 1) / mintTypes.OneYearTotalBlocks
-	highMul := (toHeight - 1) / mintTypes.OneYearTotalBlocks
+	lowMul := (fromHeight - 1) / wminttypes.OneYearTotalBlocks
+	highMul := (toHeight - 1) / wminttypes.OneYearTotalBlocks
 
 	for i := lowMul; i <= highMul; i++ {
 		halvingDivisor := sdk.NewDecFromBigInt(new(big.Int).Lsh(big.NewInt(1), uint(i)))
-		amountDec := sdk.NewDec(int64(mintTypes.InitOneYearMintAmount)).
-			Quo(sdk.NewDec(int64(mintTypes.OneYearTotalBlocks))).
+		amountDec := sdk.NewDec(int64(wminttypes.InitOneYearMintAmount)).
+			Quo(sdk.NewDec(int64(wminttypes.OneYearTotalBlocks))).
 			Quo(halvingDivisor)
 		mintUMECAmount := wmint.RoundUpToFourDecimalsDec(amountDec).MulInt64(100_000_000).TruncateInt()
 
@@ -41,13 +41,13 @@ func (k Keeper) getRewardsByHeight(fromHeight, toHeight int64) (coin sdk.Dec) {
 			blockCount = toHeight - fromHeight
 			// Calculate the number of tokens between fromHeight and its first halving boundary
 		} else if i == lowMul {
-			blockCount = int64(mintTypes.OneYearTotalBlocks)*(lowMul+1) - fromHeight + 1
+			blockCount = int64(wminttypes.OneYearTotalBlocks)*(lowMul+1) - fromHeight + 1
 			// Calculate the number of tokens between the last halving boundary and toHeight
 		} else if i == highMul {
-			blockCount = toHeight - int64(mintTypes.OneYearTotalBlocks)*i - 1
+			blockCount = toHeight - int64(wminttypes.OneYearTotalBlocks)*i - 1
 		} else {
 			// Calculate the number of tokens for each full halving interval
-			blockCount = int64(mintTypes.OneYearTotalBlocks)
+			blockCount = int64(wminttypes.OneYearTotalBlocks)
 		}
 
 		totalCoins = totalCoins.Add(mintUMECAmount.MulRaw(blockCount))

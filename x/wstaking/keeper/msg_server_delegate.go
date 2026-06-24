@@ -69,7 +69,8 @@ func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 		}
 		if region.DelegateInterest.GTE(rewards) {
 			region.DelegateInterest = region.DelegateInterest.Sub(rewards)
-		} else {
+		}
+		if !region.DelegateInterest.GTE(rewards) {
 			return nil, fmt.Errorf("region(%s) total interest not enough.need pay %s,only have %s",
 				region.RegionId, rewards.String(), region.DelegateInterest.String())
 		}

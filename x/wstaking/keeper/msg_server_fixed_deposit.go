@@ -305,7 +305,8 @@ func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWit
 				"decrease fixed deposit count under the current config error, region(%s) term (%s) error(%s)",
 				region.RegionId, fixedDeposit.Term, err)
 		}
-	} else {
+	}
+	if !expired {
 		return nil, types.ErrDoFixedWithDraw.Wrapf("withdraw fixed deposit error (%s)", types.ErrFixedDepositNotExpired)
 	}
 
