@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/cometbft/cometbft/libs/log"
@@ -63,7 +64,7 @@ func (k *Keeper) MustAccAddressFromPubkeyString(s string) (sdk.AccAddress, error
 		}
 		return sdk.AccAddress(pk.Address()), nil
 	}
-	return sdk.AccAddress{}, fmt.Errorf("pubkey is empty")
+	return sdk.AccAddress{}, errors.New("pubkey is empty")
 }
 
 func (k *Keeper) RegisterEventHandler(eventType string, priority int, module string, handler handler.HandlerFunc) {

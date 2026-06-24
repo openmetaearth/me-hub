@@ -1,18 +1,19 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	rollappTypes "github.com/openmetaearth/me-hub/x/rollapp/types"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func (k Keeper) SetReplaceProposer(ctx sdk.Context, data *types.MsgRepalceProposer) error {
 	if nil == data {
-		return fmt.Errorf("SetReplaceProposer data is nil")
+		return errors.New("SetReplaceProposer data is nil")
 	}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	val := store.Get(types.RepalceRollappProposerKey(data.RollappId))
@@ -93,7 +94,7 @@ func (k Keeper) IsReplacedSequencerAddress(ctx sdk.Context, rollappId, addr stri
 
 */
 
-func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId, creator string, rollappState *rollappTypes.StateInfo) error {
+func (k Keeper) ProcSequencerByPendingStates(ctx sdk.Context, rollappId, creator string, rollappState *rollapptypes.StateInfo) error {
 	val, err := k.GetReplaceProposer(ctx, rollappId)
 	if err != nil {
 		return err
