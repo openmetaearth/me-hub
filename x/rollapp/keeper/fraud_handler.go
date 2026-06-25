@@ -4,9 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	cometbfttypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 
@@ -97,7 +95,7 @@ func (k Keeper) freezeClientState(ctx sdk.Context, clientId string) error {
 		return errorsmod.Wrapf(types.ErrInvalidClientState, "client state with ID %s is not a tendermint client state", clientId)
 	}
 
-	tmClientState.FrozenHeight = clienttypes.NewHeight(tmClientState.GetLatestHeight().GetRevisionHeight(), tmClientState.GetLatestHeight().GetRevisionNumber())
+	tmClientState.FrozenHeight = clienttypes.NewHeight(tmClientState.GetLatestHeight().GetRevisionNumber(), tmClientState.GetLatestHeight().GetRevisionHeight())
 	k.ibcClientKeeper.SetClientState(ctx, clientId, tmClientState)
 
 	return nil

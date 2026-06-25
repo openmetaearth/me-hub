@@ -8,7 +8,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/openmetaearth/me-hub/utils/gerrc"
-
 	"github.com/openmetaearth/me-hub/x/denommetadata/types"
 )
 

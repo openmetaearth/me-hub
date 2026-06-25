@@ -2,13 +2,7 @@ package ante_test
 
 import (
 	"fmt"
-	"github.com/golang/mock/gomock"
-	"github.com/openmetaearth/me-hub/app/ante/mock"
 	"testing"
-
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/signer/core/apitypes"
-	"github.com/stretchr/testify/suite"
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -20,13 +14,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/ethereum/eip712"
 	"github.com/evmos/ethermint/testutil"
 	ethermint "github.com/evmos/ethermint/types"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/openmetaearth/me-hub/app"
 	"github.com/openmetaearth/me-hub/app/ante"
+	"github.com/openmetaearth/me-hub/app/ante/mock"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 )
@@ -92,8 +91,7 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	suite.mockStakingKeeper.EXPECT().GetProposerOwnerAddress(gomock.Any()).Return(proposerOwner.Address, nil)
 	devOperator := NewAccount()
 	suite.mockDaoKeeper.EXPECT().GetDevOperator(gomock.Any()).Return(devOperator.Address)
-	suite.mockDaoKeeper.EXPECT().GetGlobalDao(gomock.Any()).Return(devOperator.Address)
-	suite.mockDaoKeeper.EXPECT().GetMeidDao(gomock.Any()).Return(devOperator.Address)
+	suite.mockDaoKeeper.EXPECT().IsDao(gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 	suite.mockDaoKeeper.EXPECT().GetGlobalDaoFeePoolAddr(gomock.Any()).Return(devOperator.GetAddress())
 	suite.mockDaoKeeper.EXPECT().CheckFreeGasAccount(gomock.Any(), addr.Address).Return(false)
 

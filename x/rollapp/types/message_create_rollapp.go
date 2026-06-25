@@ -10,7 +10,7 @@ var _ sdk.Msg = &MsgCreateRollapp{}
 
 const MaxAllowedSequencers = 100
 
-func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string) *MsgCreateRollapp {
+func NewMsgCreateRollapp(creator, rollappId string, maxSequencers uint64, permissionedAddresses []string) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
 		Creator:               creator,
 		RollappId:             rollappId,
@@ -46,9 +46,5 @@ func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 
 func (msg *MsgCreateRollapp) ValidateBasic() error {
 	rollapp := msg.GetRollapp()
-	if err := rollapp.ValidateBasic(); err != nil {
-		return err
-	}
-
-	return nil
+	return rollapp.ValidateBasic()
 }

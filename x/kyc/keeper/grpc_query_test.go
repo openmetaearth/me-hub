@@ -1,22 +1,24 @@
 package keeper_test
 
 import (
+	"strings"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/openmetaearth/me-hub/x/wdistri"
 	"github.com/openmetaearth/me-hub/x/wmint"
-	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-	"strings"
 )
 
 func (s *KeeperTestSuite) TestProtocol() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
@@ -24,20 +26,17 @@ func (s *KeeperTestSuite) TestProtocol() {
 	res, err := s.queryClient.Protocol(s.Ctx, query)
 	s.Require().NoError(err)
 
-	genesis := types.DefaultGenesis()
-
 	s.Require().Equal(res.Protocol.Service.Sid, types.ModuleName)
 	s.Require().Equal(res.Protocol.Service.Name, types.ModuleName)
 	s.Require().Equal(res.Protocol.Service.Description, "The KYC verifiable credential issuer based The DID(Decentralized Identity).")
-	s.Require().Equal(len(res.Protocol.Service.Issuers), len(genesis.Issuers))
+	s.Require().Equal(1, len(res.Protocol.Service.Issuers))
 	s.Require().Equal(res.Protocol.Service.Status, didtypes.SERVICE_STATUS_ACTIVE)
-	s.Require().Equal(len(res.Protocol.Regions), 0)
 }
 
 func (s *KeeperTestSuite) TestDID() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
@@ -72,7 +71,7 @@ func (s *KeeperTestSuite) TestDID() {
 func (s *KeeperTestSuite) TestDIDs() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
@@ -97,9 +96,9 @@ func (s *KeeperTestSuite) TestDIDs() {
 	}
 	res, err := s.queryClient.DIDs(s.Ctx, query)
 	s.Require().NoError(err)
-	s.Require().Equal(len(res.Infos), 1)
+	s.Require().Equal(len(res.Infos), 2)
 
-	info := res.Infos[0]
+	info := res.Infos[1]
 	s.Require().Equal(info.Did, did)
 	s.Require().Equal(info.Address, kycAccount.String())
 	s.Require().Equal(info.Pubkey, newUserPubkey)
@@ -109,7 +108,7 @@ func (s *KeeperTestSuite) TestDIDs() {
 func (s *KeeperTestSuite) TestKYC() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
@@ -145,7 +144,7 @@ func (s *KeeperTestSuite) TestKYC() {
 func (s *KeeperTestSuite) TestKYCs() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
@@ -170,9 +169,9 @@ func (s *KeeperTestSuite) TestKYCs() {
 	}
 	res, err := s.queryClient.KYCs(s.Ctx, query)
 	s.Require().NoError(err)
-	s.Require().Equal(len(res.KYCs), 1)
+	s.Require().Equal(len(res.KYCs), 2)
 
-	kyc := res.KYCs[0]
+	kyc := res.KYCs[1]
 	s.Require().Equal(kyc.Did, did)
 	s.Require().Equal(kyc.Sid, types.ModuleName)
 	s.Require().Equal(kyc.Hash, "aaaa")

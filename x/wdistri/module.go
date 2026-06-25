@@ -2,6 +2,7 @@ package wdistri
 
 import (
 	"fmt"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/distribution/exported"
 	distributionkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+
 	"github.com/openmetaearth/me-hub/x/wdistri/keeper"
 	"github.com/openmetaearth/me-hub/x/wdistri/types"
 )

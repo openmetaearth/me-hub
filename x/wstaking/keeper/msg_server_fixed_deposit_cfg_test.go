@@ -1,9 +1,11 @@
 package keeper_test
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"strings"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
@@ -160,4 +162,39 @@ func (s *KeeperTestSuite) TestSetFixedDepositCfgRateRejectsInvalidRates() {
 			s.Require().ErrorIs(err, types.ErrSetFixedDepositConfigRate)
 		})
 	}
+}
+
+func (s *KeeperTestSuite) TestSetFixedDepositCfgStatusRejectsUnknownStatus() {
+	s.SetupTest()
+
+	newRegion := types.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            types.MeEarthRegionName,
+		OperatorAddress: s.meEarthValidator.OperatorAddress,
+	}
+	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
+	s.Require().NoError(err)
+
+	regionID := strings.ToLower(types.MeEarthRegionName)
+	newCfg := types.MsgNewFixedDepositCfg{
+		Dao:      s.Dao.GlobalDao,
+		RegionId: regionID,
+		Term:     1,
+		Rate:     sdk.MustNewDecFromStr("0.1"),
+	}
+	_, err = s.msgServer.NewFixedDepositCfg(s.Ctx, &newCfg)
+	s.Require().NoError(err)
+
+	_, err = s.msgServer.SetFixedDepositCfgStatus(s.Ctx, &types.MsgSetFixedDepositCfgStatus{
+		Admin:    s.Dao.GlobalDao,
+		RegionId: regionID,
+		Term:     1,
+		Status:   types.FIXED_DEPOSIT_CFG_STATUS(99),
+	})
+	s.Require().Error(err)
+	s.Require().ErrorIs(err, types.ErrSetFixedDepositConfigStatus)
+
+	cfg, found := s.Keeper().GetFixedDepositCfg(s.Ctx, regionID, 1)
+	s.Require().True(found)
+	s.Require().Equal(types.RegionFixedDepositCfgStatusActive, cfg.Status)
 }

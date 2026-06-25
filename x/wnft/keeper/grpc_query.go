@@ -2,8 +2,10 @@ package keeper
 
 import (
 	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/openmetaearth/me-hub/x/wnft/types"
 )
 
@@ -93,10 +95,7 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 			Uri:     nftInfo.Uri,
 		})
 
-		return &types.QueryNftFilterResponse{
-			Nfts: list,
-		}, nil
-
+		return &types.QueryNftFilterResponse{Nfts: list}, nil
 	} else if r.ClassId != "" && r.Owner != "" && r.TokenId == "" {
 		// query the holdings of a specific type of nft
 		_, has := k.GetClass(ctx, r.ClassId)
@@ -124,10 +123,7 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 			})
 		}
 
-		return &types.QueryNftFilterResponse{
-			Nfts: list,
-		}, nil
-
+		return &types.QueryNftFilterResponse{Nfts: list}, nil
 	} else if r.Owner != "" && r.TokenId == "" && r.ClassId == "" {
 		// query the nft information held by the address
 		classes := k.GetClasses(ctx)
@@ -159,10 +155,7 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 			}
 		}
 
-		return &types.QueryNftFilterResponse{
-			Nfts: list,
-		}, nil
-
+		return &types.QueryNftFilterResponse{Nfts: list}, nil
 	}
 	return nil, nil
 }

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
@@ -77,6 +78,31 @@ func (suite *SequencerTestSuite) TestSlashingUnbondingSequencer() {
 	suite.NoError(err)
 
 	suite.assertSlashed(seqAddr)
+}
+
+func (suite *SequencerTestSuite) TestSlashingBondedSequencerWithoutTokensFails() {
+	suite.SetupTest()
+	keeper := suite.App.SequencerKeeper
+
+	rollappId := suite.CreateDefaultRollapp()
+	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+
+	seq, found := keeper.GetSequencer(suite.Ctx, seqAddr)
+	suite.Require().True(found)
+	suite.Require().Equal(types.Bonded, seq.Status)
+	suite.Require().True(seq.Proposer)
+
+	seq.Tokens = sdk.Coins{}
+	keeper.SetSequencer(suite.Ctx, seq)
+
+	err := keeper.Slashing(suite.Ctx, seqAddr)
+	suite.Require().ErrorIs(err, types.ErrInvalidSequencerTokens)
+
+	seq, found = keeper.GetSequencer(suite.Ctx, seqAddr)
+	suite.Require().True(found)
+	suite.Require().Equal(types.Bonded, seq.Status)
+	suite.Require().True(seq.Proposer)
+	suite.Require().True(seq.Tokens.Empty())
 }
 
 func (suite *SequencerTestSuite) TestSlashingPropserSequencer() {

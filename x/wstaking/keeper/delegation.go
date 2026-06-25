@@ -2,15 +2,16 @@ package keeper
 
 import (
 	"fmt"
-	didtypes "github.com/openmetaearth/me-hub/x/did/types"
-	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 	"time"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -51,7 +52,7 @@ func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.
 // Unbond unbonds a particular delegation and perform associated store operations.
 func (k Keeper) Unbond(ctx sdk.Context, delAmount math.Int, isMeid bool, delegation stakingtypes.Delegation) (amount math.Int, err error) {
 	// check if a delegation object exists in the store
-	overAmount := sdk.ZeroInt()
+	var overAmount sdk.Int
 	if isMeid {
 		if delegation.Amount.LTE(sdk.ZeroInt()) {
 			return amount, types.ErrNotEnoughDelegationAmount
@@ -182,8 +183,8 @@ func (k Keeper) WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddres
 }
 
 func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, region types.Region) (sdk.Coins, error) {
-	//valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
-	//if valErr != nil {
+	// valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
+	// if valErr != nil {
 	//	k.Logger(ctx).Error("internalWithdrawDelegationRewards err=", valErr.Error())
 	//	return nil, valErr
 	//}
@@ -208,7 +209,7 @@ func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.A
 			region.RegionId, rewards.String(), region.DelegateInterest.String()))
 	}
 	// truncate reward dec coins, return remainder to community pool
-	//finalRewards, remainder := rewards.TruncateDecimal()
+	// finalRewards, remainder := rewards.TruncateDecimal()
 	coin := sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())
 	coins := sdk.NewCoins(coin)
 	// add coins to user account
