@@ -7,7 +7,7 @@ import (
 
 var (
 	ErrParameter        = errors.Register(sdkerrors.RootCodespace, 100, "parameter error")
-	ErrApiInactive      = errors.Register(ModuleName, 101, "api is inactive")
+	ErrAPIInactive      = errors.Register(ModuleName, 101, "api is inactive")
 	ErrPermissionDenial = errors.Register(ModuleName, 102, "permission denial")
 
 	ErrDidExists     = errors.Register(ModuleName, 110, "DID already exists")

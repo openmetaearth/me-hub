@@ -2,10 +2,11 @@ package keeper
 
 import (
 	"context"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
 
 	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func (k msgServer) ReplaceProposer(goCtx context.Context, msg *types.MsgReplaceProposerRequest) (*types.MsgReplaceProposerResponse, error) {
@@ -21,7 +22,6 @@ func (k msgServer) ReplaceProposer(goCtx context.Context, msg *types.MsgReplaceP
 	}
 	if msg.Creator != rollapp.Creator {
 		return nil, errorsmod.Wrapf(types.ErrUnauthorized, "only rollapp creator %s can replace proposer, but got %s", rollapp.Creator, msg.Creator)
-
 	}
 
 	if found := k.IsHasReplaceProposer(ctx, msg.ReplaceProposer.RollappId); found {
@@ -75,5 +75,4 @@ func (k msgServer) ReplaceProposer(goCtx context.Context, msg *types.MsgReplaceP
 		),
 	)
 	return &types.MsgReplaceProposerResponse{}, nil
-
 }

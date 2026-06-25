@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/dao/types"
 )
 
@@ -27,8 +28,5 @@ func (k Keeper) CheckFreeGasAccount(ctx sdk.Context, address string) bool {
 	store := ctx.KVStore(k.storeKey)
 	key := append(types.FreeGasAddressePrefix, []byte(address)...)
 	value := store.Get(key)
-	if len(value) == 0 {
-		return false
-	}
-	return true
+	return len(value) != 0
 }

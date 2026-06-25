@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/did/types"
 )
 
@@ -40,6 +41,9 @@ func (k Keeper) GetDidInfos(ctx sdk.Context) (infos []types.DidInfo) {
 func (k Keeper) SetDidInfo(ctx sdk.Context, did string, info types.DidInfo) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetDidInfoKey(did), k.cdc.MustMarshal(&info))
+	if info.SubAccount != "" {
+		k.SetSubAccountDidMap(ctx, info.SubAccount, did)
+	}
 }
 
 func (k Keeper) DeleteDidInfo(ctx sdk.Context, did string) {

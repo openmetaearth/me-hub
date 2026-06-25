@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -76,7 +77,7 @@ func (k Keeper) IncreaseFixedDepositCountOfCfg(ctx sdk.Context, regionId string,
 		return types.ErrNoFixedDepositCountOfCfgFound
 	}
 	count := binary.BigEndian.Uint64(bz)
-	count += 1
+	count++
 
 	buf := make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, count)
@@ -95,7 +96,7 @@ func (k Keeper) DecreaseFixedDepositCountOfCfg(ctx sdk.Context, regionId string,
 	if count == 0 {
 		return types.ErrFixedDepositCountOfCfgIsZero
 	}
-	count -= 1
+	count--
 
 	buf := make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, count)

@@ -5,8 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/stretchr/testify/require"
+
+	"github.com/openmetaearth/me-hub/testutil/sample"
 )
 
 func TestMsgIbcTransferFromRegionTreasure_ValidateBasic(t *testing.T) {

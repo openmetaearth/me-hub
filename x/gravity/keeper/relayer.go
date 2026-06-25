@@ -172,7 +172,7 @@ func (k Keeper) SlashRelayer(ctx sdk.Context, relayerAddrStr string) error {
 	if !relayer.Online {
 		return nil
 	}
-	relayer.SlashTimes += 1
+	relayer.SlashTimes++
 	if uint64(relayer.SlashTimes) >= k.GetParams(ctx).MaxSlashTimes {
 		relayer.Online = false
 	}
@@ -187,13 +187,13 @@ func (k Keeper) SetLastRelayerSlashBlockHeight(ctx sdk.Context, blockHeight uint
 	store.Set(types.LastRelayerSlashBlockHeight, sdk.Uint64ToBigEndian(blockHeight))
 }
 
-func (s Keeper) checkIsRelayer(ctx sdk.Context, addr sdk.AccAddress) error {
-	relayer, found := s.GetRelayer(ctx, addr)
+func (k Keeper) checkIsRelayer(ctx sdk.Context, addr sdk.AccAddress) error {
+	relayer, found := k.GetRelayer(ctx, addr)
 	if !found {
 		return types.ErrNotFoundRelayer
 	}
 	if !relayer.Online {
-		return types.ErrRelayerNotOnLine
+		return types.ErrRelayerNotOnline
 	}
 	return nil
 }

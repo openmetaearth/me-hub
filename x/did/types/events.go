@@ -2,7 +2,8 @@ package types
 
 import (
 	"fmt"
-	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -15,31 +16,31 @@ const (
 	EventTypeRemoveVC            = "remove_vc"
 )
 
-func NewDidEvent(eventType, did, address, status string) sdkTypes.Event {
-	attributes := []sdkTypes.Attribute{
+func NewDidEvent(eventType, did, address, status string) sdktypes.Event {
+	attributes := []sdktypes.Attribute{
 		{Key: "did", Value: did},
 		{Key: "address", Value: address},
 		{Key: "status", Value: status},
 	}
-	return sdkTypes.NewEvent(eventType, attributes...)
+	return sdktypes.NewEvent(eventType, attributes...)
 }
 
-func NewServiceEvent(eventType, sid, name, status string, issuers []string) sdkTypes.Event {
-	attributes := []sdkTypes.Attribute{
+func NewServiceEvent(eventType, sid, name, status string, issuers []string) sdktypes.Event {
+	attributes := []sdktypes.Attribute{
 		{Key: "sid", Value: sid},
 		{Key: "name", Value: name},
 		{Key: "status", Value: status},
 		{Key: "issuers", Value: fmt.Sprintf("%v", issuers)},
 	}
-	return sdkTypes.NewEvent(eventType, attributes...)
+	return sdktypes.NewEvent(eventType, attributes...)
 }
 
-func NewVcEvent(eventType, sid, did, hash, uri string) sdkTypes.Event {
-	attributes := []sdkTypes.Attribute{
+func NewVcEvent(eventType, sid, did, hash, uri string) sdktypes.Event {
+	attributes := []sdktypes.Attribute{
 		{Key: "sid", Value: sid},
 		{Key: "did", Value: did},
 		{Key: "hash", Value: hash},
 		{Key: "uri", Value: uri},
 	}
-	return sdkTypes.NewEvent(eventType, attributes...)
+	return sdktypes.NewEvent(eventType, attributes...)
 }

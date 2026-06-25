@@ -11,6 +11,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	"github.com/openmetaearth/me-hub/x/wbank/types"
 )
 
@@ -18,7 +19,6 @@ import (
 type BaseKeeperWrapper struct {
 	bankkeeper.BaseKeeper
 	ak banktypes.AccountKeeper
-	dk types.DaoKeeper
 }
 
 // NewKeeper returns a new BaseKeeperWrapper instance.
@@ -33,7 +33,6 @@ func NewKeeper(
 	return BaseKeeperWrapper{
 		BaseKeeper: bankkeeper.NewBaseKeeper(cdc, storeKey, ak, blockedAddrs, authority),
 		ak:         ak,
-		dk:         dk,
 	}
 }
 
@@ -41,7 +40,7 @@ func NewKeeper(
 // module account to a module account. It will panic if the module account
 // does not exist or is unauthorized.
 func (k BaseKeeperWrapper) StakeCoinsFromModuleToModule(
-	ctx sdk.Context, senderModule string, recipientModule string, amt sdk.Coins,
+	ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins,
 ) error {
 	senderAcc := k.ak.GetModuleAccount(ctx, senderModule)
 	if senderAcc == nil {
@@ -67,7 +66,7 @@ func (k BaseKeeperWrapper) StakeCoinsFromModuleToModule(
 // them from a module account to the stake_tokens_pool module's account. It will panic if the
 // module account does not exist or is unauthorized.
 func (k BaseKeeperWrapper) UnstakeCoinsFromModuleToModule(
-	ctx sdk.Context, senderModule string, recipientModule string, amt sdk.Coins,
+	ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins,
 ) error {
 	senderAcc := k.ak.GetModuleAccount(ctx, senderModule)
 	if senderAcc == nil {
@@ -111,7 +110,7 @@ func (k BaseKeeperWrapper) FeeToReceivers(ctx sdk.Context, inputs []banktypes.In
 	attributes := []sdk.Attribute{}
 	attributes = append(attributes, sdk.NewAttribute(sdk.AttributeKeySender, inputs[0].Address))
 	for index, output := range outputs {
-		attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s", receiverTypes[index]), output.Address))
+		attributes = append(attributes, sdk.NewAttribute(string(receiverTypes[index]), output.Address))
 		attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s_amount", receiverTypes[index]), output.Coins.String()))
 	}
 	event := sdk.NewEvent(types.EventTypeFeeToReceivers, attributes...)
@@ -179,7 +178,7 @@ func (k BankKeeperExtend) SendCoinsFromAccountToModuleWithTag(
 	return k.SendCoinsWithTag(ctx, senderAddr, recipientAcc.GetAddress(), amt, tag...)
 }
 
-func (k BankKeeperExtend) SendCoinsWithTag(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins, tags ...string) error {
+func (k BankKeeperExtend) SendCoinsWithTag(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amt sdk.Coins, tags ...string) error {
 	if len(tags) == 0 {
 		return k.SendCoins(ctx, fromAddr, toAddr, amt)
 	}
