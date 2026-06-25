@@ -17,19 +17,21 @@ package evm
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"strings"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/evmos/ethermint/utils"
-	metypes "github.com/openmetaearth/me-hub/types"
-	"strings"
-
 	ethermint "github.com/evmos/ethermint/types"
+	"github.com/evmos/ethermint/utils"
 	"github.com/evmos/ethermint/x/evm/types"
+
+	metypes "github.com/openmetaearth/me-hub/types"
 	"github.com/openmetaearth/me-hub/x/evm/keeper"
 )
 
@@ -41,17 +43,16 @@ func InitGenesis(
 	bankKeeper types.BankKeeper,
 	data types.GenesisState,
 ) []abci.ValidatorUpdate {
-
 	// Enable evm Create code
 	if utils.IsOneOfDymensionChains(ctx) && data.Params.EnableCreate {
-		panic(fmt.Errorf("enable create is not allowed on mechain chains"))
+		panic(errors.New("enable create is not allowed on mechain chains"))
 	}
 
 	k.WithChainID(sdk.Context{}.WithChainID(metypes.ChainIdWithEIP155()))
 
 	err := k.SetParams(ctx, data.Params)
 	if err != nil {
-		panic(fmt.Errorf("error setting params %s", err))
+		panic(fmt.Errorf("error setting params %w", err))
 	}
 
 	// ensure evm module account is set

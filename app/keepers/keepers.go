@@ -2,16 +2,8 @@ package keepers
 
 import (
 	"fmt"
-	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
-	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 	"path/filepath"
 	"strings"
-
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-
-	"github.com/cosmos/cosmos-sdk/x/nft"
-	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
-	groupTypes "github.com/openmetaearth/me-hub/x/megroup/types"
 
 	wasmapp "github.com/CosmWasm/wasmd/app"
 	"github.com/CosmWasm/wasmd/x/wasm"
@@ -34,6 +26,7 @@ import (
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
@@ -42,6 +35,7 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/cosmos/cosmos-sdk/x/nft"
 	nftkeeper "github.com/cosmos/cosmos-sdk/x/nft/keeper"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
@@ -71,7 +65,9 @@ import (
 	"github.com/evmos/ethermint/x/evm/vm/geth"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+
 	"github.com/openmetaearth/me-hub/x/bridgingfee"
+	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
 	daokeeper "github.com/openmetaearth/me-hub/x/dao/keeper"
 	daotypes "github.com/openmetaearth/me-hub/x/dao/types"
 	delayedackmodule "github.com/openmetaearth/me-hub/x/delayedack"
@@ -85,15 +81,18 @@ import (
 	eibckeeper "github.com/openmetaearth/me-hub/x/eibc/keeper"
 	eibcmoduletypes "github.com/openmetaearth/me-hub/x/eibc/types"
 	evmkeeper "github.com/openmetaearth/me-hub/x/evm/keeper"
+	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
 	kyckeeper "github.com/openmetaearth/me-hub/x/kyc/keeper"
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 	groupkeeper "github.com/openmetaearth/me-hub/x/megroup/keeper"
+	grouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	rollappmodule "github.com/openmetaearth/me-hub/x/rollapp"
 	rollappmodulekeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	"github.com/openmetaearth/me-hub/x/rollapp/transfergenesis"
 	rollappmoduletypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencermodulekeeper "github.com/openmetaearth/me-hub/x/sequencer/keeper"
 	sequencermoduletypes "github.com/openmetaearth/me-hub/x/sequencer/types"
+	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 	vfchooks "github.com/openmetaearth/me-hub/x/vfc/hooks"
 	wbankkeeper "github.com/openmetaearth/me-hub/x/wbank/keeper"
 	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
@@ -442,8 +441,8 @@ func (a *AppKeepers) InitKeepers(
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
 	a.GroupKeeper = groupkeeper.NewKeeper(
 		appCodec,
-		a.keys[groupTypes.StoreKey],
-		a.GetSubspace(groupTypes.ModuleName),
+		a.keys[grouptypes.StoreKey],
+		a.GetSubspace(grouptypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.StakingKeeper,
@@ -492,7 +491,7 @@ func (a *AppKeepers) InitKeepers(
 		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(a.DenomMetadataKeeper)).
 		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(a.EvmKeeper.Keeper))
 
-	// Create evidence Keeper for to register the IBC light client misbehaviour evidence route
+	// Create evidence Keeper for to register the IBC light client misbehavior evidence route
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	a.EvidenceKeeper = *evidencekeeper.NewKeeper(
 		appCodec, a.keys[evidencetypes.StoreKey], a.StakingKeeper, a.SlashingKeeper,
@@ -630,6 +629,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 
 	paramsKeeper.Subspace(wasmtypes.ModuleName)
 	paramsKeeper.Subspace(nft.ModuleName)
-	paramsKeeper.Subspace(groupTypes.ModuleName)
+	paramsKeeper.Subspace(grouptypes.ModuleName)
 	return paramsKeeper
 }

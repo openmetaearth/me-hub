@@ -6,9 +6,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/openmetaearth/me-hub/x/rollapp/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest) (*types.QueryAllRollappResponse, error) {
@@ -22,7 +23,7 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 	store := ctx.KVStore(k.storeKey)
 	rollappStore := prefix.NewStore(store, types.KeyPrefix(types.RollappKeyPrefix))
 
-	pageRes, err := query.Paginate(rollappStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(rollappStore, req.Pagination, func(key, value []byte) error {
 		var rollapp types.Rollapp
 		if err := k.cdc.Unmarshal(value, &rollapp); err != nil {
 			return err

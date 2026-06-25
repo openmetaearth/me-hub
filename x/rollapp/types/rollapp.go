@@ -5,7 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func NewRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string, transfersEnabled bool) Rollapp {
+func NewRollapp(creator, rollappId string, maxSequencers uint64, permissionedAddresses []string, transfersEnabled bool) Rollapp {
 	ret := Rollapp{
 		RollappId:             rollappId,
 		Creator:               creator,

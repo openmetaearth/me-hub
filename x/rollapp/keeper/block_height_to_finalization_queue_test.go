@@ -46,7 +46,7 @@ func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
 	k, ctx := keepertest.RollappKeeper(t)
 	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
 	for _, item := range items {
-		item := item
+
 		rst, found := k.GetBlockHeightToFinalizationQueue(ctx,
 			item.CreationHeight,
 		)
@@ -448,8 +448,9 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp1", Index: 3},
+						{RollappId: "rollapp2", Index: 4},
 						{RollappId: "rollapp1", Index: 4},
-						{RollappId: "rollapp3", Index: 4},
+						{RollappId: "rollapp2", Index: 5},
 					},
 				},
 			},

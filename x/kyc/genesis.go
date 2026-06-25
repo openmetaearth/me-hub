@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/keeper"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
@@ -17,7 +18,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		addr := sdk.MustAccAddressFromBech32(issuer.Address)
 
 		if _, found := k.GetDID(ctx, addr); found {
-			panic(fmt.Errorf("issuer %s already exists", addr.String()))
+			continue
 		}
 
 		k.SetDID(ctx, addr, issuer.Did)

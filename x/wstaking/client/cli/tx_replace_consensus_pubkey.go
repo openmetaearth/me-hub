@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"fmt"
+	"errors"
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -9,8 +9,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"github.com/spf13/cobra"
+
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func CmdReplaceConsensusPubKey() *cobra.Command {
@@ -20,7 +21,7 @@ func CmdReplaceConsensusPubKey() *cobra.Command {
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			operator := args[0]
-			blocl_number, err := strconv.ParseInt(args[2], 10, 64)
+			bloclNumber, err := strconv.ParseInt(args[2], 10, 64)
 			if err != nil {
 				return err
 			}
@@ -35,7 +36,7 @@ func CmdReplaceConsensusPubKey() *cobra.Command {
 				return err
 			}
 			if pk.Bytes() == nil {
-				return fmt.Errorf("pubkey by UnmarshalInterfaceJSON cannot be nil")
+				return errors.New("pubkey by UnmarshalInterfaceJSON cannot be nil")
 			}
 			codecPubKey, err := codectypes.NewAnyWithValue(pk)
 			if err != nil {
@@ -47,8 +48,9 @@ func CmdReplaceConsensusPubKey() *cobra.Command {
 				ReplacePubKey: &types.MsgReplaceConsensusPubKey{
 					OperatorAddress: operator,
 					PubKey:          codecPubKey,
-					BlockNumber:     blocl_number,
-				}}
+					BlockNumber:     bloclNumber,
+				},
+			}
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
