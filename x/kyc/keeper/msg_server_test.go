@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"github.com/openmetaearth/me-hub/x/wstaking"
 	"strings"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -14,6 +13,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/wdistri"
 	"github.com/openmetaearth/me-hub/x/wmint"
 	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	"github.com/openmetaearth/me-hub/x/wstaking"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 

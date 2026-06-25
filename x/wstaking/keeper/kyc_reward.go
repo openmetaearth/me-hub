@@ -107,12 +107,11 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 		return types.ErrCalculateInterest.Wrap(err.Error())
 	}
 
-	if region.DelegateInterest.GTE(rewards) {
-		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
-	} else {
+	if region.DelegateInterest.LT(rewards) {
 		return fmt.Errorf("RemoveKycReward err,region(%s) total interest not enough.need pay %s,only have %s",
 			region.RegionId, rewards.String(), region.DelegateInterest.String())
 	}
+	region.DelegateInterest = region.DelegateInterest.Sub(rewards)
 
 	// settle interest
 	err = k.bankKeeper.Extend().SendCoinsWithTag(ctx,
@@ -123,10 +122,6 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 	)
 	if err != nil {
 		return fmt.Errorf("settle interest error: %w", err)
-	}
-
-	if region.DelegateInterest.GTE(rewards) {
-		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
 	}
 
 	if delegation.Unmovable.LTE(sdk.ZeroInt()) {
@@ -190,12 +185,11 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 			return types.ErrCalculateInterest.Wrap(err.Error())
 		}
 
-		if experienceRegion.DelegateInterest.GTE(interest) {
-			experienceRegion.DelegateInterest = experienceRegion.DelegateInterest.Sub(interest)
-		} else {
+		if experienceRegion.DelegateInterest.LT(interest) {
 			return fmt.Errorf("sendKycRewards err,region(%s) total interest not enough.need pay %s,only have %s",
 				experienceRegion.RegionId, interest.String(), experienceRegion.DelegateInterest.String())
 		}
+		experienceRegion.DelegateInterest = experienceRegion.DelegateInterest.Sub(interest)
 
 		// add coins to user account
 		if interest.GT(sdk.ZeroDec()) {
@@ -439,12 +433,11 @@ func (k Keeper) transferUnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, 
 		return amount, err
 	}
 
-	if region.DelegateInterest.GTE(rewards) {
-		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
-	} else {
+	if region.DelegateInterest.LT(rewards) {
 		return amount, fmt.Errorf("transferUnRegisterMeid err,region(%s) total interest not enough.need pay %s,only have %s",
 			region.RegionId, rewards.String(), region.DelegateInterest.String())
 	}
+	region.DelegateInterest = region.DelegateInterest.Sub(rewards)
 
 	if delegation.Unmovable.LTE(sdk.ZeroInt()) {
 		return amount, errors.New("UnRegisterMeid err: delegation UnMovable <= 0")
