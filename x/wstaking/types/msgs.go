@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
 )
 
@@ -24,6 +25,7 @@ const (
 	TypeMsgUnstake                         = "unstake"
 	TypeMsgWithdrawFromRegion              = "withdraw_from_region"
 	TypeMsgWithdrawFromGlobalDaoFeePool    = "withdraw_from_global_dao_fee_pool"
+	TypeMsgTransferRegion                  = "transfer_region"
 	TypeMsgResetValidator                  = "create_validator"
 	TypeMsgNewMeid                         = "new_meid"
 	TypeMsgRemoveMeid                      = "remove_meid"
@@ -149,7 +151,7 @@ func (msg MsgUnstake) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgNewRegion(creator string, name string, validator string) *MsgNewRegion {
+func NewMsgNewRegion(creator, name, validator string) *MsgNewRegion {
 	return &MsgNewRegion{
 		Creator:         creator,
 		Name:            name,
@@ -192,7 +194,7 @@ func (msg *MsgNewRegion) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgRemoveRegion(creator string, regionId string) *MsgRemoveRegion {
+func NewMsgRemoveRegion(creator, regionId string) *MsgRemoveRegion {
 	return &MsgRemoveRegion{
 		Creator:  creator,
 		RegionId: regionId,
@@ -228,7 +230,7 @@ func (msg *MsgRemoveRegion) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgWithdrawFromRegion(withdrawer string, regionId string, receiver string, amount sdk.Coins) *MsgWithdrawFromRegion {
+func NewMsgWithdrawFromRegion(withdrawer, regionId, receiver string, amount sdk.Coins) *MsgWithdrawFromRegion {
 	return &MsgWithdrawFromRegion{
 		Withdrawer: withdrawer,
 		RegionId:   regionId,
@@ -402,7 +404,7 @@ func (msg *MsgWithdrawFromGlobalDaoFeePool) ValidateBasic() error {
 //nolint:interfacer
 func NewMsgDelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin, valStr string) *types.MsgDelegate {
 	valAddrStr := valAddr.String()
-	//if valStr == NotBondedPoolName && valAddr.Empty() {
+	// if valStr == NotBondedPoolName && valAddr.Empty() {
 	//	valAddrStr = valStr
 	//}
 	return &types.MsgDelegate{
@@ -464,12 +466,13 @@ func (msg MsgWithdrawDelegatorReward) ValidateBasic() error {
 func NewMsgTransferRegion(from, to, creatorAddr string, address []string) *MsgTransferRegion {
 	return &MsgTransferRegion{FromRegion: from, ToRegion: to, Address: address, Creator: creatorAddr}
 }
+
 func (msg *MsgTransferRegion) Route() string {
 	return RouterKey
 }
 
 func (msg *MsgTransferRegion) Type() string {
-	return "msg_transfer_meid"
+	return TypeMsgTransferRegion
 }
 
 func (msg *MsgTransferRegion) GetSigners() []sdk.AccAddress {
@@ -508,6 +511,7 @@ func NewMsgReplaceConsensusPubKeyRequest(creator, operator string, pubkey crypto
 		},
 	}, nil
 }
+
 func (msg *MsgReplaceConsensusPubKeyRequest) Route() string {
 	return RouterKey
 }

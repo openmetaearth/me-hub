@@ -1,10 +1,12 @@
 package keeper
 
 import (
-	"cosmossdk.io/errors"
 	"fmt"
+
+	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
@@ -33,7 +35,6 @@ func (k *Keeper) AddGroupMember(ctx sdk.Context, grpMember *types.GroupMember) e
 func (k Keeper) GetMemberJoined(
 	ctx sdk.Context,
 	address string,
-
 ) (val types.MemberJoined, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MemberJoinedKeyPrefix))
 
@@ -52,7 +53,6 @@ func (k Keeper) GetMemberJoined(
 func (k Keeper) RemoveMemberJoined(
 	ctx sdk.Context,
 	address string,
-
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MemberJoinedKeyPrefix))
 	store.Delete(types.MemberJoinedKey(
