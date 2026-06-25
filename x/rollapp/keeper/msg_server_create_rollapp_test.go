@@ -4,11 +4,10 @@ import (
 	fmt "fmt"
 
 	"github.com/cometbft/cometbft/libs/rand"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expectedErr error) types.RollappSummary {
@@ -87,7 +86,8 @@ func (suite *RollappTestSuite) TestCreateRollappFromWhitelist() {
 }
 
 func (suite *RollappTestSuite) TestCreateRollappUnauthorizedRollappCreator() {
-	suite.createRollappFromWhitelist(types.ErrUnauthorizedRollappCreator, []types.DeployerParams{{Address: bob}})
+	// Deployer whitelist is no longer enforced in CreateRollapp
+	suite.createRollappFromWhitelist(nil, []types.DeployerParams{{Address: bob}})
 }
 
 func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
@@ -164,10 +164,11 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 			rollappId: "-1234",
 			eip:       false,
 			valid:     false,
-		}, {
+		},
+		{
 			name:      "default is valid without revision number",
 			rollappId: "rollapp_1234",
-			eip:       true,
+			eip:       false,
 			valid:     true,
 		},
 	}

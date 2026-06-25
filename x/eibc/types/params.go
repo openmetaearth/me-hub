@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -31,7 +32,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(epochIdentifier string, timeoutFee sdk.Dec, errAckFee sdk.Dec) Params {
+func NewParams(epochIdentifier string, timeoutFee, errAckFee sdk.Dec) Params {
 	return Params{
 		EpochIdentifier: epochIdentifier,
 		TimeoutFee:      timeoutFee,
@@ -79,7 +80,7 @@ func validateEpochIdentifier(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if len(v) == 0 {
-		return fmt.Errorf("epoch identifier cannot be empty")
+		return errors.New("epoch identifier cannot be empty")
 	}
 	return nil
 }

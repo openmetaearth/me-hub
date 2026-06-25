@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/stretchr/testify/require"
+
+	"github.com/openmetaearth/me-hub/testutil/sample"
 )
 
 func TestMsgCreateGroup_ValidateBasic(t *testing.T) {
@@ -24,6 +25,10 @@ func TestMsgCreateGroup_ValidateBasic(t *testing.T) {
 			name: "valid address",
 			msg: MsgCreateGroup{
 				Creator: sample.AccAddress(),
+				GroupInfo: &GroupInfo{
+					Admin:    sample.AccAddress(),
+					RegionID: "meearth",
+				},
 			},
 		},
 	}

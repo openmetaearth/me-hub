@@ -62,7 +62,7 @@ RUN chmod +x /scripts/*.sh
 WORKDIR /root
 
 # Environment variables with defaults
-ENV CHAIN_ID="mechain_202404-1"
+ENV CHAIN_ID="mechain_2404-1"
 ENV MONIKER_NAME="local"
 ENV KEY_NAME="global_dao"
 ENV HOME="/root"

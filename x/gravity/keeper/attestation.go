@@ -80,6 +80,11 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 	// This conditional stops the attestation from accidentally being applied twice.
 	// Sum the current powers of all validators who have voted and see if it passes the current threshold
 	totalPower := k.GetLastTotalPower(ctx)
+	if !totalPower.IsPositive() {
+		k.Logger(ctx).Error("TryAttestation", "non-positive total relayer power", totalPower.String(),
+			"claimEventNonce", claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
+		return
+	}
 	requiredPower := types.AttestationVotesPowerThreshold.Mul(totalPower).Quo(sdk.NewIntFromUint64(types.PowerBase))
 	attestationPower := sdkmath.NewInt(0)
 
@@ -107,15 +112,13 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 			continue
 		}
 
-		k.SetLastObservedEventNonce(ctx, claim.GetEventNonce())
-
-		// in case of web3 event is long time ago, we set the last observed me block height need long enough.
-		k.SetLastObservedBlockHeight(ctx, claim.GetBlockHeight(), uint64(ctx.BlockHeight()))
-
-		att.Observed = true
-		k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
-
 		err = k.processAttestation(ctx, claim)
+		if err == nil {
+			k.SetLastObservedEventNonce(ctx, claim.GetEventNonce())
+			k.SetLastObservedBlockHeight(ctx, claim.GetBlockHeight(), uint64(ctx.BlockHeight()))
+			att.Observed = true
+			k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
+		}
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeContractEvent,
 			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
@@ -125,9 +128,9 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 			sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprint(claim.GetBlockHeight())),
 			sdk.NewAttribute(types.AttributeKeyStateSuccess, fmt.Sprint(err == nil)),
 		))
-		// execute the timeout logic
-		//k.cleanupTimedOutBatches(ctx)
-		k.PruneAttestations(ctx)
+		if err == nil {
+			k.PruneAttestations(ctx)
+		}
 		break
 	}
 }

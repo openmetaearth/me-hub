@@ -4,7 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrikeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	Wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
+
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 type Hooks struct {
@@ -14,7 +15,7 @@ type Hooks struct {
 
 var (
 	_ stakingtypes.StakingHooks   = Hooks{}
-	_ Wstakingtypes.WstakingHooks = Hooks{}
+	_ wstakingtypes.WstakingHooks = Hooks{}
 )
 
 // overwrite
