@@ -1,7 +1,9 @@
 package types
 
 import (
+	"errors"
 	"fmt"
+
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 )
 
@@ -21,11 +23,11 @@ func (gs GenesisState) Validate() error {
 		}
 
 		if issuer.Pubkey == "" {
-			return fmt.Errorf("the pubkey is empty")
+			return errors.New("the pubkey is empty")
 		}
 
 		if issuer.Status != didtypes.DID_STATUS_ACTIVE {
-			return fmt.Errorf("DID status must be active")
+			return errors.New("DID status must be active")
 		}
 	}
 

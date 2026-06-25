@@ -8,19 +8,19 @@ import (
 	"strings"
 
 	"cosmossdk.io/math"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/version"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
+
+	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -209,7 +209,7 @@ $ %s tx staking update-validator %s1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm --own
 			if commissionRate != "" {
 				rate, err := sdk.NewDecFromStr(commissionRate)
 				if err != nil {
-					return fmt.Errorf("invalid new commission rate: %v", err)
+					return fmt.Errorf("invalid new commission rate: %w", err)
 				}
 
 				newRate = &rate
@@ -390,8 +390,8 @@ $ %s tx staking delegate 1000mec --from mykey
 			if delAddr.Empty() {
 				return errors.New("from address is empty")
 			}
-			//validatorAddress, err := cmd.Flags().GetString(FlagValidatorAddress)
-			//if err != nil {
+			// validatorAddress, err := cmd.Flags().GetString(FlagValidatorAddress)
+			// if err != nil {
 			//	return err
 			//}
 

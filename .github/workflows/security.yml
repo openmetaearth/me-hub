@@ -16,6 +16,7 @@ on:
       - '!**.sol.go'
       - '!statik.go'
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     branches:
       - main
     paths:
@@ -39,7 +40,7 @@ jobs:
       contents: read
       actions: read
       security-events: write
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     env:
       GO111MODULE: on
     steps:

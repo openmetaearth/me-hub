@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"context"
-	sdkerrors "cosmossdk.io/errors"
 	"encoding/json"
+
+	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/dao/types"
 )
 
@@ -65,17 +67,17 @@ func (k msgServer) FreeGasAccount(goCtx context.Context, msg *types.MsgFreeGasAc
 		if isExist {
 			if account.IsFree {
 				return nil, sdkerrors.Wrap(types.ErrFreeGasAccountAlreadyExist, account.Address)
-			} else {
-				k.RemoveFreeGasAccount(ctx, account.Address)
 			}
+
+			k.RemoveFreeGasAccount(ctx, account.Address)
 		}
 
 		if !isExist {
-			if account.IsFree {
-				k.SetFreeGasAccount(ctx, account.Address)
-			} else {
+			if !account.IsFree {
 				return nil, sdkerrors.Wrap(types.ErrAccountIsNotFree, account.Address)
 			}
+
+			k.SetFreeGasAccount(ctx, account.Address)
 		}
 	}
 

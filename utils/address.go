@@ -3,8 +3,8 @@ package utils
 import (
 	"crypto/sha256"
 	"errors"
-	"github.com/btcsuite/btcutil/base58"
 
+	"github.com/btcsuite/btcutil/base58"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/ethereum/go-ethereum/common"

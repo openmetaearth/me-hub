@@ -2,11 +2,12 @@ package keeper
 
 import (
 	"context"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func (k Keeper) FixedDepositCfg(goCtx context.Context, req *types.QueryFixedDepositCfgRequest) (*types.QueryFixedDepositCfgResponse, error) {
@@ -17,7 +18,7 @@ func (k Keeper) FixedDepositCfg(goCtx context.Context, req *types.QueryFixedDepo
 	var configs []types.RegionAllFixedDepositCfg
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if req.RegionIds == nil || len(req.RegionIds) == 0 {
+	if len(req.RegionIds) == 0 {
 		regions := k.GetAllRegion(ctx)
 		for _, region := range regions {
 			req.RegionIds = append(req.RegionIds, region.RegionId)
