@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -11,11 +12,12 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/spf13/cobra"
+
 	"github.com/openmetaearth/me-hub/app/keepers"
 	"github.com/openmetaearth/me-hub/app/params"
 	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-	"github.com/spf13/cobra"
 )
 
 // AddGenesisModuleAccountCmd returns add-genesis-module-account cobra Command.
@@ -171,7 +173,6 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				// Add the new account to the set of genesis accounts and sanitize the
 				// accounts afterwards.
 				accs = append(accs, genAccount)
-
 			}
 			accs = authtypes.SanitizeGenesisAccounts(accs)
 

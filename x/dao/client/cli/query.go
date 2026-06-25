@@ -2,10 +2,12 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/openmetaearth/me-hub/x/dao/types"
 	"github.com/spf13/cobra"
+
+	"github.com/openmetaearth/me-hub/x/dao/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module
