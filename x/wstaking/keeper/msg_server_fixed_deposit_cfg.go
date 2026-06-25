@@ -21,6 +21,15 @@ func validateFixedDepositCfgRate(rate sdk.Dec) error {
 	return nil
 }
 
+func validateFixedDepositCfgStatus(status types.FIXED_DEPOSIT_CFG_STATUS) error {
+	switch status {
+	case types.RegionFixedDepositCfgStatusActive, types.RegionFixedDepositCfgStatusInactive:
+		return nil
+	default:
+		return types.ErrSetFixedDepositConfigStatus.Wrapf("invalid fixed deposit config status %d", status)
+	}
+}
+
 func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFixedDepositCfg) (*types.MsgNewFixedDepositCfgResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -85,6 +94,10 @@ func (k MsgServer) SetFixedDepositCfgStatus(goCtx context.Context, msg *types.Ms
 
 	if !k.daoKeeper.IsGlobalDao(ctx, msg.Admin) {
 		return nil, types.ErrCheckGlobalDao
+	}
+
+	if err := validateFixedDepositCfgStatus(msg.Status); err != nil {
+		return nil, err
 	}
 
 	config, ok := k.GetFixedDepositCfg(ctx, msg.RegionId, msg.Term)
