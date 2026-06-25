@@ -12,6 +12,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/wdistri"
 	"github.com/openmetaearth/me-hub/x/wmint"
 	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	"github.com/openmetaearth/me-hub/x/wstaking"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -59,6 +60,8 @@ func (s *KeeperTestSuite) TestTransferKycRegion() {
 	s.Require().Equal(delegation.ValidatorAddress, s.meEarthValidator.OperatorAddress)
 
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks + 1).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wstaking.BeginBlock(s.Ctx, s.Keeper())
 
 	// transfer kyc region
 	err = s.Keeper().TransferKycRegion(s.Ctx, kycAccount, s.Dao.GlobalDao, s.meEarthValidator.Description.RegionID, s.usaValidator.Description.RegionID)
