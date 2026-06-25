@@ -1,10 +1,11 @@
 package types
 
 import (
-	"cosmossdk.io/errors"
 	"fmt"
 	"strconv"
 
+
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
@@ -34,10 +35,12 @@ func (msg MsgNewClass) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
+
 func (msg MsgNewClass) GetSigners() []sdk.AccAddress {
 	signer, _ := sdk.AccAddressFromBech32(msg.Sender)
 	return []sdk.AccAddress{signer}
 }
+
 func (msg MsgNewClass) ValidateBasic() error {
 	if len(msg.ClassId) == 0 {
 		return nft.ErrEmptyClassID
@@ -104,7 +107,7 @@ func (m MsgMintNFT) ValidateBasic() error {
 	}
 
 	if len(m.Uri) == 0 {
-		return ErrEmptyUri
+		return ErrEmptyURI
 	}
 
 	_, err := sdk.AccAddressFromBech32(m.Creator)
@@ -126,21 +129,21 @@ func (m MsgMintNFT) GetSigners() []sdk.AccAddress {
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgMintNFT) Route() string { return nft.RouterKey }
+func (m MsgMintNFT) Route() string { return nft.RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgMintNFT) Type() string { return TypeMsgMintNFT }
+func (m MsgMintNFT) Type() string { return TypeMsgMintNFT }
 
 // GetSignBytes implements the sdk.Msg interface.
-func (msg MsgMintNFT) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
+func (m MsgMintNFT) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&m)
 	return sdk.MustSortJSON(bz)
 }
 
-func NewMsgMintNFT(class_id, token_id, uri, uriHash, sender, receiver string) *MsgMintNFT {
+func NewMsgMintNFT(classId, tokenId, uri, uriHash, sender, receiver string) *MsgMintNFT {
 	return &MsgMintNFT{
-		ClassId:  class_id,
-		TokenId:  token_id,
+		ClassId:  classId,
+		TokenId:  tokenId,
 		Uri:      uri,
 		UriHash:  uriHash,
 		Creator:  sender,
@@ -177,13 +180,13 @@ func (m MsgSend) GetSigners() []sdk.AccAddress {
 }
 
 // GetSignBytes get the bytes for the message signer to sign on
-func (msg MsgSend) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
+func (m MsgSend) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&m)
 	return sdk.MustSortJSON(bz)
 }
 
 // Route implements the LegacyMsg interface.
-func (msg MsgSend) Route() string { return nft.RouterKey }
+func (m MsgSend) Route() string { return nft.RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgSend) Type() string { return TypeMsgSend }
+func (m MsgSend) Type() string { return TypeMsgSend }

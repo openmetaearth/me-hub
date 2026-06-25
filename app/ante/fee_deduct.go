@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"math"
 
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/openmetaearth/me-hub/app/params"
-	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	"github.com/openmetaearth/me-hub/app/params"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 const (
@@ -178,7 +178,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		}
 
 		err = dfd.CheckFunds(ctx, tx, deductFeesFrom.String(), fee)
-		if err != nil {
+		if err != nil && !fee.IsZero() {
 			return ctx, err
 		}
 		// deduct the fees
@@ -262,7 +262,8 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 
 			outputs = append(outputs, banktypes.Output{
 				Address: dfd.daoKeeper.GetGlobalDaoFeePoolAddr(ctx).String(),
-				Coins:   globalFee})
+				Coins:   globalFee,
+			})
 			feeReceiverTypes = append(feeReceiverTypes, wbanktypes.FeeReceiverGlobalDaoFeePool)
 
 			err = dfd.BankKeeper.FeeToReceivers(ctx, inputs, outputs, feeReceiverTypes)

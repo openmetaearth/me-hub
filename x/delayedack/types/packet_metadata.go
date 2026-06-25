@@ -2,10 +2,10 @@ package types
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -43,10 +43,10 @@ const (
 )
 
 var (
-	ErrMemoUnmarshal         = fmt.Errorf("unmarshal memo")
-	ErrEIBCMetadataUnmarshal = fmt.Errorf("unmarshal eibc metadata")
-	ErrMemoHashPFMandEIBC    = fmt.Errorf("EIBC packet with PFM is currently not supported")
-	ErrMemoEibcEmpty         = fmt.Errorf("memo eIBC field is missing")
+	ErrMemoUnmarshal         = errors.New("unmarshal memo")
+	ErrEIBCMetadataUnmarshal = errors.New("unmarshal eibc metadata")
+	ErrMemoHashPFMandEIBC    = errors.New("EIBC packet with PFM is currently not supported")
+	ErrMemoEibcEmpty         = errors.New("memo eIBC field is missing")
 )
 
 func ParsePacketMetadata(input string) (*PacketMetadata, error) {

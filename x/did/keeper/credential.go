@@ -5,6 +5,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
 	"github.com/openmetaearth/me-hub/x/did/types"
 )
 
@@ -63,7 +64,7 @@ func (k Keeper) GetCredentialsByFilter(
 ) (vcs []types.Credential, pageRes *query.PageResponse, err error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetFilterPrefixBySidAndFilter(sid, filter))
 
-	pageRes, err = query.Paginate(store, pageReq, func(key []byte, value []byte) error {
+	pageRes, err = query.Paginate(store, pageReq, func(key, value []byte) error {
 		var vc types.Credential
 		if err := k.cdc.Unmarshal(value, &vc); err != nil {
 			return err // todo: warp error

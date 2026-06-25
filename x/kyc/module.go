@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/openmetaearth/me-hub/x/kyc/keeper"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -17,6 +16,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/openmetaearth/me-hub/x/kyc/client/cli"
+	"github.com/openmetaearth/me-hub/x/kyc/keeper"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
 
@@ -153,6 +153,6 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 	return []abci.ValidatorUpdate{}
 }
 
-//func (am AppModule) GetHooks() []types.KYCHooks {
+// func (am AppModule) GetHooks() []types.KYCHooks {
 //	return am.keeper.GetHooks()
 //}

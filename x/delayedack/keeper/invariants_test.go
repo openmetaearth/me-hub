@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"github.com/cometbft/cometbft/libs/rand"
-
 	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
