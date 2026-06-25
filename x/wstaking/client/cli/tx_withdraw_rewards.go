@@ -2,14 +2,16 @@ package cli
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"github.com/spf13/cobra"
-	"strings"
+
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 var FlagCommission = "commission"
@@ -27,21 +29,21 @@ and optionally withdraw validator commission if the delegation address given is 
 Example:
 $ %s tx distribution withdraw-rewards --from %saddress`, version.AppName, bech32PrefixValAddr),
 		),
-		//Args: cobra.ExactArgs(1),
+		// Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 			delAddr := clientCtx.GetFromAddress()
-			//valAddr, err := sdk.ValAddressFromBech32(args[0])
-			//if err != nil {
+			// valAddr, err := sdk.ValAddressFromBech32(args[0])
+			// if err != nil {
 			//	return err
 			//}
 
 			msgs := []sdk.Msg{types.NewMsgWithdrawDelegatorReward(delAddr, sdk.ValAddress{})}
 
-			//if commission, _ := cmd.Flags().GetBool(FlagCommission); commission {
+			// if commission, _ := cmd.Flags().GetBool(FlagCommission); commission {
 			//	msgs = append(msgs, types.NewMsgWithdrawValidatorCommission(valAddr))
 			//}
 

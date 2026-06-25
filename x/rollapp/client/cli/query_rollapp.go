@@ -3,8 +3,9 @@ package cli
 import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/spf13/cobra"
+
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func CmdListRollapp() *cobra.Command {

@@ -33,7 +33,7 @@ enum DidStatus {
 message DidInfo {
   // same as the MEID
   string did = 1; // MEIDNFT.umeid
-  string address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"]; // MEID.account
+  string address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // public_key is mapped to the user address
   // the issuer will use public_key to encrypt the user's certificate to ensure
   // the privacy of the off-chain certificate
@@ -41,6 +41,7 @@ message DidInfo {
   DidStatus status = 4;
   string regionId = 5; // unused!
   KycLevel kycLevel = 6;
+  string sub_account = 7;
 }
 
 // did document

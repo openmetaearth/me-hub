@@ -2,16 +2,17 @@ package cli
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strconv"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -30,6 +31,7 @@ func GetTxCmd() *cobra.Command {
 		CmdCreateSBT(),
 		CmdUpdateSBT(),
 		CmdDeleteSBT(),
+		CmdCreateSubAccount(),
 	)
 	return cmd
 }
@@ -166,7 +168,7 @@ func CmdCreateSBT() *cobra.Command {
 			uriHash := args[2]
 			data, err := hex.DecodeString(args[3])
 			if err != nil {
-				return fmt.Errorf("data is not a valid hex string")
+				return errors.New("data is not a valid hex string")
 			}
 
 			msg := types.NewMsgCreateSBT(
@@ -203,7 +205,7 @@ func CmdUpdateSBT() *cobra.Command {
 			uriHash := args[2]
 			data, err := hex.DecodeString(args[3])
 			if err != nil {
-				return fmt.Errorf("data is not a valid hex string")
+				return errors.New("data is not a valid hex string")
 			}
 
 			msg := types.NewMsgUpdateSBT(
@@ -239,6 +241,45 @@ func CmdDeleteSBT() *cobra.Command {
 			msg := types.NewMsgDeleteSBT(
 				clientCtx.GetFromAddress().String(),
 				did,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+func CmdCreateSubAccount() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create-sub-account [DID] [sub_account] [pubkey]",
+		Short: "bind a sub-account address to a KYC DID",
+		Long: `Bind an ethsecp256k1 sub-account address to a KYC DID.
+
+[pubkey] must be the proto-JSON encoded public key of the sub-account, e.g.:
+  '{"@type":"/ethermint.crypto.v1.ethsecp256k1.PubKey","key":"<base64>"}'
+
+The chain verifies that the pubkey derives to sub_account and that the key type
+is ethsecp256k1.`,
+		Args: cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			did := args[0]
+			subAccount := args[1]
+			pubkey := args[2]
+
+			msg := types.NewMsgCreateSubAccount(
+				clientCtx.GetFromAddress().String(),
+				did,
+				subAccount,
+				pubkey,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

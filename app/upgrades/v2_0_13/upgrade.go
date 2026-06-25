@@ -1,12 +1,15 @@
 package v2_0_13
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"fmt"
+	"time"
+
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	appkeepers "github.com/openmetaearth/me-hub/app/keepers"
 	"github.com/openmetaearth/me-hub/app/upgrades"
 	"github.com/openmetaearth/me-hub/utils"
@@ -15,7 +18,6 @@ import (
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
-	"time"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v2.0.13
@@ -58,12 +60,12 @@ func CreateUpgradeHandler(
 
 		// delegate total amount to module account
 		delegateAmount := sdk.NewInt(1 * 1e8)
-		//for _, relayerAddr := range proposalRelayers {
-		//if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), bsctypes.ModuleName,
+		// for _, relayerAddr := range proposalRelayers {
+		// if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), bsctypes.ModuleName,
 		//	sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
 		//	panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
 		//}
-		//if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), trontypes.ModuleName,
+		// if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), trontypes.ModuleName,
 		//	sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
 		//	panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
 		//}
@@ -159,7 +161,7 @@ func GenGravityGenesis(height int64, proposalRelayers []string, defaultGenesis *
 	return defaultGenesis
 }
 
-//func setNewModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
+// func setNewModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
 //	bscState := bsctypes.DefaultGenesisState()
 //	if err := keepers.BscKeeper.SetParams(ctx, &bscState.Params); err != nil {
 //		panic(fmt.Sprintf("failed to set bsc module params during upgrade: %s", err.Error()))

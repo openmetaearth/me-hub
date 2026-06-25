@@ -25,7 +25,7 @@ func NewTronSignature(hash []byte, privateKey *ecdsa.PrivateKey) ([]byte, error)
 // It handles Ethereum-style V value normalization (27/28 -> 0/1) for backwards compatibility.
 // Returns the Tron address as a string or an error if signature recovery fails.
 // Note: This function modifies the signature slice in place for V value normalization.
-func TronAddressFromSignature(hash []byte, signature []byte) (string, error) {
+func TronAddressFromSignature(hash, signature []byte) (string, error) {
 	if len(signature) < 65 {
 		return "", errorsmod.Wrap(types.ErrInvalid, "signature too short")
 	}
@@ -60,7 +60,7 @@ func TronAddressFromSignature(hash []byte, signature []byte) (string, error) {
 // ValidateTronSignature validates that the given signature was created by the private key
 // corresponding to the provided Tron address. It recovers the address from the signature
 // and hash, then compares it to the expected address. Returns an error if validation fails.
-func ValidateTronSignature(hash []byte, signature []byte, tronAddress string) error {
+func ValidateTronSignature(hash, signature []byte, tronAddress string) error {
 	addr, err := TronAddressFromSignature(hash, signature)
 	if err != nil {
 		return err
