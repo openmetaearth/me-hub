@@ -5,12 +5,13 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/testutil/nullify"
 	common "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
-	"github.com/stretchr/testify/require"
 )
 
 // Prevent strconv unused error
@@ -36,7 +37,7 @@ func TestLatestFinalizedStateIndexGet(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	items := createNLatestFinalizedStateIndex(keeper, ctx, 10)
 	for _, item := range items {
-		item := item
+
 		rst, found := keeper.GetLatestFinalizedStateIndex(ctx,
 			item.RollappId,
 		)
