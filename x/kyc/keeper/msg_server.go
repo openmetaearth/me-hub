@@ -273,6 +273,9 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 	if !m.HasKYC(ctx, msg.Did) {
 		return &types.MsgCreateSBTResponse{}, didtypes.ErrCredentialNotFound //
 	}
+	if m.HasSBT(ctx, msg.Did) {
+		return &types.MsgCreateSBTResponse{}, types.ErrSbtExists
+	}
 
 	// mint SBT to KYC module address
 	nftData, err := codectypes.NewAnyWithValue(&wnfttypes.Extension{Data: hex.EncodeToString(msg.Data)})
