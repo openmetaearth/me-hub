@@ -6,9 +6,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/openmetaearth/me-hub/x/megroup/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
 func (k Keeper) MemberJoinedAll(goCtx context.Context, req *types.QueryAllMemberJoinedRequest) (*types.QueryAllMemberJoinedResponse, error) {
@@ -22,7 +23,7 @@ func (k Keeper) MemberJoinedAll(goCtx context.Context, req *types.QueryAllMember
 	store := ctx.KVStore(k.storeKey)
 	memberJoinedStore := prefix.NewStore(store, types.KeyPrefix(types.MemberJoinedKeyPrefix))
 
-	pageRes, err := query.Paginate(memberJoinedStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(memberJoinedStore, req.Pagination, func(key, value []byte) error {
 		var memberJoined types.MemberJoined
 		if err := k.cdc.Unmarshal(value, &memberJoined); err != nil {
 			return err
@@ -31,7 +32,6 @@ func (k Keeper) MemberJoinedAll(goCtx context.Context, req *types.QueryAllMember
 		memberJoineds = append(memberJoineds, memberJoined)
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

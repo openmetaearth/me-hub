@@ -2,13 +2,15 @@ package keeper
 
 import (
 	"context"
+
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/openmetaearth/me-hub/x/gravity/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 var _ types.QueryServer = QueryServer{}
@@ -101,7 +103,7 @@ func (k QueryServer) LastRelayerSetRequests(c context.Context, req *types.QueryL
 	var relayerSets []*types.RelayerSet
 	ctx := sdk.UnwrapSDKContext(c)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.RelayerSetRequestKey)
-	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		var relayerSet types.RelayerSet
 		if err := k.cdc.Unmarshal(value, &relayerSet); err != nil {
 			return status.Errorf(codes.Internal, "failed to unmarshal relayerSet: %v", err)
@@ -187,7 +189,7 @@ func (k QueryServer) OutgoingTxBatches(c context.Context, req *types.QueryOutgoi
 	var batches []*types.OutgoingTxBatch
 	ctx := sdk.UnwrapSDKContext(c)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutgoingTxBatchKey)
-	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		var batch types.OutgoingTxBatch
 		if err := k.cdc.Unmarshal(value, &batch); err != nil {
 			return status.Errorf(codes.Internal, "failed to unmarshal batch: %v", err)
@@ -283,7 +285,7 @@ func (k QueryServer) UnbatchedTxs(c context.Context, req *types.QueryUnbatchedTx
 	ctx := sdk.UnwrapSDKContext(c)
 	prefixKey := types.GetOutgoingTxPoolContractPrefix(req.GetTokenContract())
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), prefixKey)
-	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		var tx types.OutgoingTransferTx
 		k.cdc.MustUnmarshal(value, &tx)
 		unbatchedTxs = append(unbatchedTxs, &tx)
@@ -303,14 +305,15 @@ func (k QueryServer) ProjectedBatchTimeoutHeight(c context.Context, _ *types.Que
 	projectedCurrentExternalHeight, batchTimeout := k.GetBatchTimeoutHeight(ctx)
 	return &types.QueryProjectedBatchTimeoutHeightResponse{
 		TimeoutHeight:                  batchTimeout,
-		ProjectedCurrentExternalHeight: projectedCurrentExternalHeight}, nil
+		ProjectedCurrentExternalHeight: projectedCurrentExternalHeight,
+	}, nil
 }
 
 func (k QueryServer) BridgeTokens(c context.Context, req *types.QueryBridgeTokensRequest) (*types.QueryBridgeTokensResponse, error) {
 	bridgeTokens := make([]*types.BridgeToken, 0)
 	ctx := sdk.UnwrapSDKContext(c)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.BridgeTokenByDenomKey)
-	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		var bridgeToken types.BridgeToken
 		if err := k.cdc.Unmarshal(value, &bridgeToken); err != nil {
 			return status.Errorf(codes.Internal, "failed to unmarshal bridgeToken: %v", err)

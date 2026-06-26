@@ -2,7 +2,9 @@ package keeper
 
 import (
 	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -17,6 +19,15 @@ func validateFixedDepositCfgRate(rate sdk.Dec) error {
 		return types.ErrFixedDepositConfigRateInvalid.Wrapf("rate(%s) out of range [0.0001, 10000]", rate.String())
 	}
 	return nil
+}
+
+func validateFixedDepositCfgStatus(status types.FIXED_DEPOSIT_CFG_STATUS) error {
+	switch status {
+	case types.RegionFixedDepositCfgStatusActive, types.RegionFixedDepositCfgStatusInactive:
+		return nil
+	default:
+		return types.ErrSetFixedDepositConfigStatus.Wrapf("invalid fixed deposit config status %d", status)
+	}
 }
 
 func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFixedDepositCfg) (*types.MsgNewFixedDepositCfgResp, error) {
@@ -83,6 +94,10 @@ func (k MsgServer) SetFixedDepositCfgStatus(goCtx context.Context, msg *types.Ms
 
 	if !k.daoKeeper.IsGlobalDao(ctx, msg.Admin) {
 		return nil, types.ErrCheckGlobalDao
+	}
+
+	if err := validateFixedDepositCfgStatus(msg.Status); err != nil {
+		return nil, err
 	}
 
 	config, ok := k.GetFixedDepositCfg(ctx, msg.RegionId, msg.Term)

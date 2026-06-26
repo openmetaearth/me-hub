@@ -1,11 +1,7 @@
 package keeper
 
 import (
-	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
 	"testing"
-
-	"github.com/cosmos/cosmos-sdk/x/mint/types"
-	"github.com/openmetaearth/me-hub/x/wmint/keeper"
 
 	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
@@ -15,7 +11,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/stretchr/testify/require"
+
+	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
+	"github.com/openmetaearth/me-hub/x/wmint/keeper"
 )
 
 func WmintKeeper(t testing.TB, sk types.StakingKeeper, ak types.AccountKeeper, bk types.BankKeeper) (*keeper.Keeper, sdk.Context) {
@@ -42,7 +42,7 @@ func WmintKeeper(t testing.TB, sk types.StakingKeeper, ak types.AccountKeeper, b
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())
 
 	// Initialize params
-	k.SetParams(ctx, types.DefaultParams())
+	require.NoError(t, k.SetParams(ctx, types.DefaultParams()))
 
 	return &k, ctx
 }

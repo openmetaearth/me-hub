@@ -9,10 +9,11 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/stretchr/testify/require"
+
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestFeeToReceiversRejectsReceiverTypeMismatchBeforeTransfer(t *testing.T) {

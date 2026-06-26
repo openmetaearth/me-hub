@@ -3,18 +3,18 @@ package keeper
 import (
 	"testing"
 
+	cometbftdb "github.com/cometbft/cometbft-db"
+	"github.com/cometbft/cometbft/libs/log"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
 	"github.com/openmetaearth/me-hub/x/did/keeper"
 	"github.com/openmetaearth/me-hub/x/did/types"
-
-	cometbftdb "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/stretchr/testify/require"
 )
 
 func DidKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
