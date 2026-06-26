@@ -12,9 +12,10 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/stretchr/testify/require"
+
 	"github.com/openmetaearth/me-hub/x/eibc/keeper"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
-	"github.com/stretchr/testify/require"
 )
 
 func EibcKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {

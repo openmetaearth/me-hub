@@ -1,16 +1,17 @@
 package types
 
 import (
-	sdkTypes "github.com/cosmos/cosmos-sdk/types"
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
-	EventTypeApprove   = "approve"
-	EventTypeUpdate    = "update"
-	EventTypeRemove    = "remove"
-	EventTypeCreateSBT = "create_sbt"
-	EventTypeUpdateSBT = "update_sbt"
-	EventTypeDeleteSBT = "delete_sbt"
+	EventTypeApprove          = "approve"
+	EventTypeUpdate           = "update"
+	EventTypeRemove           = "remove"
+	EventTypeCreateSBT        = "create_sbt"
+	EventTypeUpdateSBT        = "update_sbt"
+	EventTypeDeleteSBT        = "delete_sbt"
+	EventTypeCreateSubAccount = "create_sub_account"
 )
 
 const (
@@ -20,10 +21,13 @@ const (
 	AttributeKeyLevel           = "level"
 	AttributeKeyLevelChanged    = "level_changed"
 	AttributeKeyInviter         = "inviter"
+	AttributeKeySubAccount      = "sub_account"
+	AttributeKeyDid             = "did"
+	AttributeKeyCreator         = "creator"
 )
 
-func NewSbtEvent(eventType, did, uri, hash, regionId, kycLevel, meIdAddress string) sdkTypes.Event {
-	attributes := []sdkTypes.Attribute{
+func NewSbtEvent(eventType, did, uri, hash, regionId, kycLevel, meIdAddress string) sdktypes.Event {
+	attributes := []sdktypes.Attribute{
 		{Key: "did", Value: did},
 		{Key: "uri", Value: uri},
 		{Key: "hash", Value: hash},
@@ -32,5 +36,5 @@ func NewSbtEvent(eventType, did, uri, hash, regionId, kycLevel, meIdAddress stri
 		{Key: "meIdAddress", Value: meIdAddress},
 		{Key: "class_id", Value: ModuleName},
 	}
-	return sdkTypes.NewEvent(eventType, attributes...)
+	return sdktypes.NewEvent(eventType, attributes...)
 }

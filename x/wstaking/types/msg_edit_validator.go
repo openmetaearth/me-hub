@@ -32,7 +32,7 @@ func (msg MsgUpdateValidator) Type() string { return TypeMsgUpdateValidator }
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgUpdateValidator) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(msg.StakerAddress)
-	return []sdk.AccAddress{sdk.AccAddress(addr)}
+	return []sdk.AccAddress{addr}
 }
 
 // GetSignBytes implements the sdk.Msg interface.

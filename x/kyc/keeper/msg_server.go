@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
-	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
 	"slices"
 	"strings"
 
@@ -12,8 +11,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
+
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
+	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
 	stktypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -147,7 +148,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	}
 
 	// update KYC level
-	//if msg.Level == didtypes.KYC_LEVEL_NONE {
+	// if msg.Level == didtypes.KYC_LEVEL_NONE {
 	//	return &types.MsgUpdateResponse{}, errors.Wrap(didtypes.ErrParameter, "KYC level must be greater than 0")
 	//}
 
@@ -277,6 +278,9 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 	}
 	if !m.HasKYC(ctx, msg.Did) {
 		return &types.MsgCreateSBTResponse{}, didtypes.ErrCredentialNotFound //
+	}
+	if m.HasSBT(ctx, msg.Did) {
+		return &types.MsgCreateSBTResponse{}, types.ErrSbtExists
 	}
 
 	// mint SBT to KYC module address

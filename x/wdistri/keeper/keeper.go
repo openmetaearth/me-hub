@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"fmt"
+
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -11,6 +12,7 @@ import (
 	distriKeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wdistri/types"
 )
@@ -44,7 +46,7 @@ func NewKeeper(
 	feeCollectorName string,
 	authority string,
 ) *Keeper {
-	DistrKeeper := distriKeeper.NewKeeper(
+	distriKeeperImpl := distriKeeper.NewKeeper(
 		cdc,
 		storeKey,
 		accountKeeper,
@@ -54,7 +56,7 @@ func NewKeeper(
 		authority,
 	)
 	return &Keeper{
-		Keeper:           DistrKeeper,
+		Keeper:           distriKeeperImpl,
 		cdc:              cdc,
 		storeKey:         storeKey,
 		paramstore:       ps,

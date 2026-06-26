@@ -2,12 +2,14 @@ package keeper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequencersByRollappRequest) (*types.QueryGetSequencersByRollappResponse, error) {
@@ -86,8 +88,9 @@ func (k Keeper) UnConfirmSequencerAddressByRollappByStatus(goCtx context.Context
 				"cacheHeight", k.replaceSequencerCacheHeight)
 		}
 	*/
-	return nil, fmt.Errorf("unsupport function")
+	return nil, errors.New("unsupport function")
 }
+
 func (k Keeper) ReplaceProposerInfo(goCtx context.Context, req *types.QueryReplaceProposerInfoRequest) (*types.QueryReplaceProposerInfoResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	_, found := k.rollappKeeper.GetRollapp(ctx, req.RollappId)
