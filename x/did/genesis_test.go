@@ -16,7 +16,6 @@ import (
 func TestInitExportGenesis(t *testing.T) {
 	genesisState := types.GenesisState{
 		Infos: []types.DidInfo{
-<<<<<<< HEAD
 			{
 				Did:     "1000000000001",
 				Address: sample.AccAddress(),
