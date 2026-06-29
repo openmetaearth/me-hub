@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/nft"
@@ -63,6 +64,7 @@ func TestMintNFTRejectsLeadingZeroTokenID(t *testing.T) {
 		Receiver: receiver.String(),
 	})
 	require.Error(t, err)
+	require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
 	require.ErrorContains(t, err, "invalid token id")
 
 	_, found := helper.App.WNFTKeeper.GetNFT(helper.Ctx, "class-leading-zero", "01")
@@ -109,6 +111,7 @@ func TestMintNFTEnforcesClassTotalSupplyByMintCount(t *testing.T) {
 		Receiver: receiver.String(),
 	})
 	require.Error(t, err)
+	require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
 	require.ErrorContains(t, err, "invalid token id")
 
 	_, err = msgServer.MintNFT(helper.Ctx, &types.MsgMintNFT{
@@ -120,6 +123,7 @@ func TestMintNFTEnforcesClassTotalSupplyByMintCount(t *testing.T) {
 		Receiver: receiver.String(),
 	})
 	require.Error(t, err)
+	require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
 	require.ErrorContains(t, err, "invalid token id")
 
 	err = helper.App.WNFTKeeper.Keeper.Mint(helper.Ctx, nft.NFT{
@@ -140,5 +144,6 @@ func TestMintNFTEnforcesClassTotalSupplyByMintCount(t *testing.T) {
 		Receiver: receiver.String(),
 	})
 	require.Error(t, err)
+	require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
 	require.ErrorContains(t, err, "total supply exceeded")
 }
