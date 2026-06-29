@@ -56,6 +56,14 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		info, found := s.Keeper().GetDidInfo(s.Ctx, did)
 		s.Require().True(found)
 		s.Require().Equal(subAddr.String(), info.SubAccount)
+
+		subDid, ok := s.Keeper().GetSubAccountDidMap(s.Ctx, subAddr.String())
+		s.Require().True(ok)
+		s.Require().Equal(did, subDid)
+
+		account := s.App.AccountKeeper.GetAccount(s.Ctx, subAddr)
+		s.Require().NotNil(account)
+		s.Require().NotNil(account.GetPubKey())	
 	})
 
 	s.Run("did not found", func() {
