@@ -94,7 +94,7 @@ func (csp *UpdateDenomMetadataProposal) GetDescription() string { return csp.Des
 func (csp *UpdateDenomMetadataProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a community pool spend proposal.
-func (csp *UpdateDenomMetadataProposal) ProposalType() string { return ProposalTypeCreateDenomMetadata }
+func (csp *UpdateDenomMetadataProposal) ProposalType() string { return ProposalTypeUpdateDenomMetadata }
 
 // ValidateBasic runs basic stateless validity checks
 func (csp *UpdateDenomMetadataProposal) ValidateBasic() error {

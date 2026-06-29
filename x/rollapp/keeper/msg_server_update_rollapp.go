@@ -16,6 +16,10 @@ func (k msgServer) UpdateRollapp(goCtx context.Context, msg *types.MsgUpdateRoll
 		return nil, types.ErrUnknownRollappID
 	}
 
+	if rollapp.Frozen {
+		return nil, types.ErrRollappJailed
+	}
+
 	if msg.Creator != rollapp.Creator {
 		return nil, types.ErrUnauthorizedRollappCreator
 	}
