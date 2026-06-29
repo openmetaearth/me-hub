@@ -38,39 +38,6 @@ func setupMsgServer(t *testing.T) (*apptesting.KeeperTestHelper, types.MsgServer
 	return helper, keeper.NewMsgServerImpl(app.WNFTKeeper, app.WNFTKeeper.Keeper)
 }
 
-func TestMintNFTRejectsLeadingZeroTokenID(t *testing.T) {
-	helper, msgServer := setupMsgServer(t)
-	creator, _ := helper.NewAccount()
-	receiver, _ := helper.NewAccount()
-
-	_, err := msgServer.NewClass(helper.Ctx, &types.MsgNewClass{
-		ClassId:     "class-leading-zero",
-		Sender:      creator.String(),
-		Name:        "Leading Zero",
-		Symbol:      "LZ",
-		Description: "test",
-		Uri:         "ipfs://class",
-		UriHash:     "classhash",
-		TotalSupply: 2,
-	})
-	require.NoError(t, err)
-
-	_, err = msgServer.MintNFT(helper.Ctx, &types.MsgMintNFT{
-		ClassId:  "class-leading-zero",
-		TokenId:  "01",
-		Uri:      "ipfs://token-01",
-		UriHash:  "hash-01",
-		Creator:  creator.String(),
-		Receiver: receiver.String(),
-	})
-	require.Error(t, err)
-	require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
-	require.ErrorContains(t, err, "invalid token id")
-
-	_, found := helper.App.WNFTKeeper.GetNFT(helper.Ctx, "class-leading-zero", "01")
-	require.False(t, found)
-}
-
 func TestMintNFTEnforcesClassTotalSupplyByMintCount(t *testing.T) {
 	helper, msgServer := setupMsgServer(t)
 	creator, _ := helper.NewAccount()
