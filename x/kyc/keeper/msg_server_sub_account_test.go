@@ -63,7 +63,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 		account := s.App.AccountKeeper.GetAccount(s.Ctx, subAddr)
 		s.Require().NotNil(account)
-		s.Require().NotNil(account.GetPubKey())	
+		s.Require().NotNil(account.GetPubKey())
 	})
 
 	s.Run("did not found", func() {
