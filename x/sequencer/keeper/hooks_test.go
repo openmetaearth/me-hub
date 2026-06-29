@@ -79,7 +79,7 @@ func (suite *SequencerTestSuite) TestReplaceProposerAfterStateFinalizedRollappBi
 	err = keeper.RollappHooks().AfterStateFinalized(suite.Ctx, rollappId, &stateInfo)
 	suite.Require().NoError(err)
 
-	// 2. Corrupted ReplaceProposer state matching wrong oldProposer rollapp
+	// 2. Corrupted ReplaceProposer state: oldProposer belongs to wrong rollapp
 	// Cleanup and set a new one
 	keeper.DeleteReplaceProposer(suite.Ctx, rollappId)
 	
@@ -104,9 +104,28 @@ func (suite *SequencerTestSuite) TestReplaceProposerAfterStateFinalizedRollappBi
 	suite.Require().NoError(err)
 	store.Set(types.RepalceRollappProposerKey(rollappId), bz)
 
-	// Trigger hook with the wrong binding
+	// Trigger hook with the wrong binding — should recover (no error) and delete the bad entry
 	err = keeper.RollappHooks().AfterStateFinalized(suite.Ctx, rollappId, &stateInfo)
-	suite.Require().Error(err)
-	suite.Require().ErrorIs(err, types.ErrSequencerRollappMismatch)
+	suite.Require().NoError(err)
+	// Verify the corrupted entry was cleaned up
+	suite.Require().False(keeper.IsHasReplaceProposer(suite.Ctx, rollappId))
+
+	// 3. Unknown old sequencer — should also recover and delete
+	unknownBadMsg := types.MsgRepalceProposer{
+		RollappId:   rollappId,
+		OldProposer: "cosmos1nonexistent",
+		NewProposer: oldProposerAddr,
+		BlockHeight: 10,
+	}
+	bz, err = suite.App.AppCodec().Marshal(&types.MsgStoreReplaceProposer{
+		ReplaceProposer: unknownBadMsg,
+		HubBlockHeight:  suite.Ctx.BlockHeight(),
+	})
+	suite.Require().NoError(err)
+	store.Set(types.RepalceRollappProposerKey(rollappId), bz)
+
+	err = keeper.RollappHooks().AfterStateFinalized(suite.Ctx, rollappId, &stateInfo)
+	suite.Require().NoError(err)
+	suite.Require().False(keeper.IsHasReplaceProposer(suite.Ctx, rollappId))
 }
 

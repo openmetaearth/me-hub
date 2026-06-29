@@ -53,13 +53,17 @@ func (hook rollappHook) AfterStateFinalized(ctx sdk.Context, rollappID string, s
 	}
 	if val != nil {
 		if (stateInfo.StartHeight + stateInfo.NumBlocks - 1) >= uint64(val.ReplaceProposer.BlockHeight) {
-			// Rollapp-binding check to prevent stalled finalization / cross-rollapp proposers
+			// Rollapp-binding check: drop corrupted ReplaceProposer state to prevent stalled finalization
 			oldSeq, found := hook.k.GetSequencer(ctx, val.ReplaceProposer.OldProposer)
 			if !found {
-				return types.ErrUnknownSequencer
+				hook.k.DeleteReplaceProposer(ctx, rollappID)
+				hook.k.Logger(ctx).Error("dropping invalid ReplaceProposer", "rollapp", rollappID, "old_sequencer", val.ReplaceProposer.OldProposer, "reason", "unknown old sequencer")
+				return nil
 			}
 			if oldSeq.RollappId != rollappID {
-				return types.ErrSequencerRollappMismatch
+				hook.k.DeleteReplaceProposer(ctx, rollappID)
+				hook.k.Logger(ctx).Error("dropping invalid ReplaceProposer", "rollapp", rollappID, "old_sequencer", val.ReplaceProposer.OldProposer, "reason", "rollapp mismatch")
+				return nil
 			}
 
 			err = hook.k.forceRemoveUnbondingSequencer(ctx, val.ReplaceProposer.OldProposer, stateInfo.StartHeight, stateInfo.NumBlocks)
