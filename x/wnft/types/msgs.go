@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strconv"
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -87,11 +88,16 @@ func (m MsgMintNFT) ValidateBasic() error {
 		return ErrEmptyTokenId
 	}
 
+	parsedTokenID, err := strconv.ParseUint(m.TokenId, 10, 64)
+	if err != nil || parsedTokenID < 1 || m.TokenId != strconv.FormatUint(parsedTokenID, 10) {
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id")
+	}
+
 	if len(m.Uri) == 0 {
 		return ErrEmptyURI
 	}
 
-	_, err := sdk.AccAddressFromBech32(m.Creator)
+	_, err = sdk.AccAddressFromBech32(m.Creator)
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid mint address (%s)", m.Creator)
 	}
