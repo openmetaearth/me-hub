@@ -220,6 +220,12 @@ func (m msgServer) RemoveVC(goCtx context.Context, msg *types.MsgRemoveVC) (*typ
 		return &types.MsgRemoveVCResponse{}, types.ErrServiceNotActive
 	}
 
+	// check user credential
+	found = m.HasCredential(ctx, msg.Did, msg.Sid)
+	if !found {
+		return &types.MsgRemoveVCResponse{}, types.ErrCredentialNotFound
+	}
+
 	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
 	if !found || !slices.Contains(svc.Issuers, issuer) {
