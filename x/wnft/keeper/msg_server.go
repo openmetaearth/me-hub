@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"strconv"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -99,13 +98,17 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not the creator of class %s", msg.Creator, msg.ClassId)
 	}
 
-	tokenId, err := strconv.ParseUint(msg.TokenId, 10, 64)
+	tokenId, err := types.ParseCanonicalTokenId(msg.TokenId)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id")
+		return nil, err
 	}
 
 	if tokenId < 1 || tokenId > class.TotalSupply {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id")
+	}
+
+	if k.GetTotalSupply(ctx, msg.ClassId) >= class.TotalSupply {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "total supply exceeded")
 	}
 	receiver, err := sdk.AccAddressFromBech32(msg.Receiver)
 	if err != nil {
