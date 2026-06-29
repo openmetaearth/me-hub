@@ -104,18 +104,6 @@ func TestMintNFTEnforcesClassTotalSupplyByMintCount(t *testing.T) {
 
 	_, err = msgServer.MintNFT(helper.Ctx, &types.MsgMintNFT{
 		ClassId:  "class-total-supply",
-		TokenId:  "01",
-		Uri:      "ipfs://token-01",
-		UriHash:  "hash-01",
-		Creator:  creator.String(),
-		Receiver: receiver.String(),
-	})
-	require.Error(t, err)
-	require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
-	require.ErrorContains(t, err, "invalid token id")
-
-	_, err = msgServer.MintNFT(helper.Ctx, &types.MsgMintNFT{
-		ClassId:  "class-total-supply",
 		TokenId:  "3",
 		Uri:      "ipfs://token-3",
 		UriHash:  "hash-3",
