@@ -1,10 +1,12 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"encoding/hex"
 	"fmt"
+
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 )
@@ -33,6 +35,10 @@ func (s MsgServer) confirmHandlerCommon(ctx sdk.Context, relayerAddr sdk.AccAddr
 	relayer, found := s.GetRelayer(ctx, relayerAddr)
 	if !found {
 		return types.ErrNotFoundRelayer
+	}
+
+	if !relayer.Online {
+		return types.ErrRelayerNotOnline
 	}
 
 	if relayer.ExternalAddress != signatureAddr {

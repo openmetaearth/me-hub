@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/ecdsa"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -17,8 +18,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/openmetaearth/me-hub/x/gravity/types"
 	"github.com/spf13/cobra"
+
+	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 func GetTxCmd(moduleName string, subNames ...string) *cobra.Command {
@@ -145,7 +147,7 @@ func CmdProposalRelayers(chainName string) *cobra.Command {
 				return err
 			}
 			if len(relayers) == 0 {
-				return fmt.Errorf("at least one relayer is required")
+				return errors.New("at least one relayer is required")
 			}
 			// Clean the relayer list: trim spaces, remove duplicates and empty entries
 			clean := make([]string, 0, len(relayers))
@@ -162,7 +164,7 @@ func CmdProposalRelayers(chainName string) *cobra.Command {
 				clean = append(clean, r)
 			}
 			if len(clean) == 0 {
-				return fmt.Errorf("at least one relayer is required")
+				return errors.New("at least one relayer is required")
 			}
 
 			msg := &types.MsgProposalRelayers{

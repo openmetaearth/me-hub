@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"testing"
 
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -13,8 +14,6 @@ import (
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
-
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 )
 
 // Prevent strconv unused error

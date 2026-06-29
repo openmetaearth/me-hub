@@ -3,11 +3,11 @@ package keeper
 import (
 	"encoding/binary"
 
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // GetFixedDepositCount get the total number of fixedDeposit
@@ -117,7 +117,7 @@ func (k Keeper) RemoveFixedDeposit(ctx sdk.Context, id uint64) {
 // GetAllFixedDeposit returns all fixedDeposit
 func (k Keeper) GetAllFixedDepositWithPage(ctx sdk.Context, req *types.QueryAllFixedDepositRequest) (list []types.FixedDeposit, pageRes *query.PageResponse, err error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKey))
-	pageRes, err = query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err = query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		var vc types.FixedDeposit
 		if err := k.cdc.Unmarshal(value, &vc); err != nil {
 			return err // todo: warp error

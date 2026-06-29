@@ -25,13 +25,14 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+
 	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
 	daotypes "github.com/openmetaearth/me-hub/x/dao/types"
 	delayedacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	eibcmoduletypes "github.com/openmetaearth/me-hub/x/eibc/types"
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
-	gourpTypes "github.com/openmetaearth/me-hub/x/megroup/types"
+	grouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	rollappmoduletypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencermoduletypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
@@ -125,8 +126,8 @@ var KVStoreKeys = sdk.NewKVStoreKeys(
 	daotypes.StoreKey,
 	nftkeeper.StoreKey,
 	wasmtypes.StoreKey,
-	//megroup
-	gourpTypes.StoreKey,
+	// megroup
+	grouptypes.StoreKey,
 	// gravity bridge
 	bsctypes.StoreKey,
 	trontypes.StoreKey,

@@ -7,11 +7,13 @@ import (
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wdistri"
 	"github.com/openmetaearth/me-hub/x/wmint"
-	wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -160,7 +162,7 @@ func (s *KeeperTestSuite) TestRemoveRegionThenCreateRegion() {
 func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
@@ -388,6 +390,64 @@ func (s *KeeperTestSuite) TestRevokeRegionWithdraw() {
 				s.Require().NoError(err)
 				s.Require().Empty(res.Address)
 			}
+		})
+	}
+}
+
+func (s *KeeperTestSuite) TestWithdrawFromRegionRejectsBlockedModuleReceiver() {
+	s.SetupTest()
+
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
+	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+
+	regionResp, err := s.queryClient.Region(s.Ctx, &types.QueryRegionRequest{RegionId: types.ExperienceRegionId})
+	s.Require().NoError(err)
+
+	regionTreasury := sdk.MustAccAddressFromBech32(regionResp.Region.RegionTreasureAddr)
+	regionBalance := s.App.BankKeeper.GetBalance(s.Ctx, regionTreasury, params.BaseDenom)
+	s.Require().True(regionBalance.IsPositive())
+
+	blockedReceiver := authtypes.NewModuleAddress(authtypes.FeeCollectorName)
+	s.Require().True(s.App.BankKeeper.BlockedAddr(blockedReceiver))
+
+	grantedWithdrawer := s.TestAccs[0].String()
+	_, err = s.msgServer.GrantRegionWithdraw(s.Ctx, &types.MsgGrantRegionWithdraw{
+		Creator:  s.Dao.GlobalDao,
+		RegionId: types.ExperienceRegionId,
+		Address:  grantedWithdrawer,
+	})
+	s.Require().NoError(err)
+
+	tests := []struct {
+		name       string
+		withdrawer string
+	}{
+		{
+			name:       "global dao",
+			withdrawer: s.Dao.GlobalDao,
+		},
+		{
+			name:       "granted withdrawer",
+			withdrawer: grantedWithdrawer,
+		},
+	}
+	for _, test := range tests {
+		s.Run(test.name, func() {
+			receiverBefore := s.App.BankKeeper.GetBalance(s.Ctx, blockedReceiver, params.BaseDenom)
+			treasuryBefore := s.App.BankKeeper.GetBalance(s.Ctx, regionTreasury, params.BaseDenom)
+
+			_, err := s.msgServer.WithdrawFromRegion(s.Ctx, &types.MsgWithdrawFromRegion{
+				Withdrawer: test.withdrawer,
+				RegionId:   types.ExperienceRegionId,
+				Receiver:   blockedReceiver.String(),
+				Amount:     sdk.NewCoins(regionBalance),
+			})
+
+			s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+			s.Require().Contains(err.Error(), "not allowed to receive region treasury withdrawals")
+			s.Require().Equal(receiverBefore.String(), s.App.BankKeeper.GetBalance(s.Ctx, blockedReceiver, params.BaseDenom).String())
+			s.Require().Equal(treasuryBefore.String(), s.App.BankKeeper.GetBalance(s.Ctx, regionTreasury, params.BaseDenom).String())
 		})
 	}
 }

@@ -1,11 +1,7 @@
 package keeper
 
 import (
-	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
 	"testing"
-
-	"github.com/openmetaearth/me-hub/x/wdistri/keeper"
 
 	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
@@ -15,8 +11,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/require"
+
+	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
+	"github.com/openmetaearth/me-hub/x/wdistri/keeper"
 )
 
 func WdistriKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
@@ -52,7 +52,7 @@ func WdistriKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())
 
 	// Initialize params
-	k.SetParams(ctx, distributiontypes.DefaultParams())
+	require.NoError(t, k.SetParams(ctx, distributiontypes.DefaultParams()))
 
 	return k, ctx
 }
