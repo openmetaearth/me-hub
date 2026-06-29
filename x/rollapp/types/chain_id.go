@@ -42,6 +42,10 @@ func NewChainID(id string) (ChainID, error) {
 		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "exceeds 48 chars: %s: len: %d", chainID, len(chainID))
 	}
 
+	if strings.Contains(chainID, "/") {
+		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "contains reserved key separator '/'")
+	}
+
 	eip155, err := getEIP155ID(chainID)
 	if err != nil {
 		return ChainID{}, err
