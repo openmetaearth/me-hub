@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+
 	"github.com/CosmWasm/wasmd/x/wasm"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -29,16 +30,19 @@ import (
 	"github.com/evmos/ethermint/x/evm"
 	evmclient "github.com/evmos/ethermint/x/evm/client"
 	"github.com/evmos/ethermint/x/feemarket"
+
 	"github.com/openmetaearth/me-hub/x/bsc"
 	"github.com/openmetaearth/me-hub/x/dao"
 	"github.com/openmetaearth/me-hub/x/delayedack"
 	"github.com/openmetaearth/me-hub/x/denommetadata"
 	denommetadatamoduleclient "github.com/openmetaearth/me-hub/x/denommetadata/client"
-	did "github.com/openmetaearth/me-hub/x/did"
+	"github.com/openmetaearth/me-hub/x/did"
 	"github.com/openmetaearth/me-hub/x/eibc"
-	kyc "github.com/openmetaearth/me-hub/x/kyc"
+	"github.com/openmetaearth/me-hub/x/kyc"
 	groupmodule "github.com/openmetaearth/me-hub/x/megroup"
 	"github.com/openmetaearth/me-hub/x/rollapp"
+	rollappmoduleclient "github.com/openmetaearth/me-hub/x/rollapp/client"
+	"github.com/openmetaearth/me-hub/x/sequencer"
 	"github.com/openmetaearth/me-hub/x/tron"
 	"github.com/openmetaearth/me-hub/x/wbank"
 	"github.com/openmetaearth/me-hub/x/wdistri"
@@ -46,9 +50,6 @@ import (
 	"github.com/openmetaearth/me-hub/x/wmint"
 	"github.com/openmetaearth/me-hub/x/wnft"
 	"github.com/openmetaearth/me-hub/x/wstaking"
-
-	rollappmoduleclient "github.com/openmetaearth/me-hub/x/rollapp/client"
-	"github.com/openmetaearth/me-hub/x/sequencer"
 )
 
 // ModuleBasics defines the module BasicManager is in charge of setting up basic,

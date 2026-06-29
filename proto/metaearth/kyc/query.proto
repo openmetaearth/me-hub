@@ -33,6 +33,9 @@ service Query {
   rpc SBT(QuerySBT) returns (QuerySBTResponse) {
     option (google.api.http).get = "/metaearth/kyc/SBT";
   }
+  rpc SubAccountDid(QuerySubAccountDid) returns (QuerySubAccountDidResponse) {
+    option (google.api.http).get = "/metaearth/kyc/QuerySubAccountDidResponse";
+  }
 }
 
 message QueryProtocol {}
@@ -85,12 +88,10 @@ message QuerySBTResponse {
   cosmos.nft.v1beta1.NFT sbt = 1 [(gogoproto.nullable) = false];
 }
 
-// message QuerySBTs {
-//   string regionId = 1;
-//   cosmos.base.query.v1beta1.PageRequest pagination = 2;
-// }
-//
-// message QuerySBTsResponse {
-//   repeated SBT SBTs = 1;
-//   cosmos.base.query.v1beta1.PageResponse pagination = 2;
-// }
+message QuerySubAccountDid {
+  string sub_account = 1;
+}
+
+message QuerySubAccountDidResponse {
+  did.DidInfo info = 1 [(gogoproto.nullable) = false];
+}
