@@ -30,6 +30,8 @@ message QueryClassAddressRequest {
   string class_id = 1;
 
   string address = 2;
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
 // QueryClassesResponse is the response type for the Query/Classes RPC method
@@ -39,6 +41,8 @@ message QueryClassAddressResponse {
   uint64 total_supply = 2;
 
   repeated string nfts = 3;
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 4;
 }
 
 // QueryNftFilterResponse is the request type for the Query/NftFilter RPC method
@@ -48,12 +52,16 @@ message QueryNftFilterRequest {
   string class_id = 2;
 
   string token_id = 3;
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 4;
 }
 
 // QueryNftFilterResponse is the response type for the Query/NftFilter RPC
 // method
 message QueryNftFilterResponse {
   repeated NftList nfts = 1;
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message NftList {
