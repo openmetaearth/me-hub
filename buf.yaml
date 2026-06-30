@@ -2,9 +2,10 @@ version: v2
 modules:
   - path: proto
 deps:
-  - buf.build/cosmos/cosmos-proto
-  - buf.build/cosmos/cosmos-sdk
+  - buf.build/cosmos/cosmos-proto:1935555c206d4afb9e94615dfd0fad31
+  - buf.build/cosmos/cosmos-sdk:v0.47.0
   - buf.build/cosmos/gogo-proto
+  - buf.build/cosmos/ibc:fbb44f5ad3194450af479a615fa715d9
   - buf.build/cosmos/ics23
   - buf.build/googleapis/googleapis
   - buf.build/protocolbuffers/wellknowntypes
