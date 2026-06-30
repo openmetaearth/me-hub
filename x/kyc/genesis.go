@@ -12,17 +12,18 @@ import (
 
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
-	var issuers []string
+	issuers := make([]string, 0, len(genState.Issuers))
 
 	for _, issuer := range genState.Issuers {
 		addr := sdk.MustAccAddressFromBech32(issuer.Address)
 
-		if _, found := k.GetDID(ctx, addr); found {
-			continue
+		if _, found := k.GetDID(ctx, addr); !found {
+			k.SetDID(ctx, addr, issuer.Did)
 		}
 
-		k.SetDID(ctx, addr, issuer.Did)
-		k.SetDidInfo(ctx, issuer.Did, issuer)
+		if _, found := k.GetDidInfo(ctx, issuer.Did); !found {
+			k.SetDidInfo(ctx, issuer.Did, issuer)
+		}
 
 		issuers = append(issuers, issuer.Did)
 	}
@@ -32,14 +33,16 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		k.SetKycEventSeq(ctx, *genState.KycEventSeq)
 	}
 
-	service := didtypes.Service{
-		Sid:         types.ModuleName,
-		Name:        types.ModuleName,
-		Description: "The KYC verifiable credential issuer based The DID(Decentralized Identity).",
-		Issuers:     issuers,
-		Status:      didtypes.SERVICE_STATUS_ACTIVE,
+	if _, found := k.GetService(ctx); !found {
+		service := didtypes.Service{
+			Sid:         types.ModuleName,
+			Name:        types.ModuleName,
+			Description: "The KYC verifiable credential issuer based The DID(Decentralized Identity).",
+			Issuers:     issuers,
+			Status:      didtypes.SERVICE_STATUS_ACTIVE,
+		}
+		k.SetService(ctx, service)
 	}
-	k.SetService(ctx, service)
 
 	// set SBT class
 	if err := k.SetSbtClass(ctx); err != nil {
@@ -60,7 +63,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		genesis.KycEventSeq = &kycEventSeq
 	}
 
-	var issuers []didtypes.DidInfo
+	issuers := make([]didtypes.DidInfo, 0, len(svc.Issuers))
 	for _, issuer := range svc.Issuers {
 		didInfo, found := k.GetDidInfo(ctx, issuer)
 		if !found {
