@@ -49,6 +49,11 @@ func (k Keeper) SetDidInfo(ctx sdk.Context, did string, info types.DidInfo) {
 }
 
 func (k Keeper) DeleteDidInfo(ctx sdk.Context, did string) {
+	if info, found := k.GetDidInfo(ctx, did); found && info.SubAccount != "" {
+		if _, ok := k.GetSubAccountDidMap(ctx, info.SubAccount); ok {
+			k.DeleteSubAccountDidMap(ctx, info.SubAccount)
+		}
+	}
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetDidInfoKey(did))
 }
