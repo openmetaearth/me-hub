@@ -1,9 +1,10 @@
 package keeper_test
 
 import (
-	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
 )
 
 func (s *KeeperTestSuite) TestDirectQueriesRejectNilRequests() {
