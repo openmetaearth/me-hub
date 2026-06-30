@@ -48,7 +48,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 
 	val, isFound := k.GetValidator(ctx, valAddr)
 	if isFound {
-		if val.DelegationAmount.LT(sdk.ZeroInt()) {
+		if val.DelegationAmount.LT(msg.Amount.Amount) {
 			return nil, types.ErrValidatorDelegationAmount.Wrapf("validator amount: %s, requested value: %s",
 				val.DelegationAmount.String(), msg.Amount.Amount.String())
 		}
