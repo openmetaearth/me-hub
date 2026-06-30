@@ -8,9 +8,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/cosmos-sdk/x/nft"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/x/wnft/types"
-	"github.com/stretchr/testify/suite"
 )
 
 type WnftKeeperTestSuite struct {
