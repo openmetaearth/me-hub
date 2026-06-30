@@ -166,7 +166,7 @@ func (s *KeeperTestSuite) SignRelayerSetConfirm(external *ecdsa.PrivateKey, rela
 		// checkpoint, err = trontypes.GetCheckpointRelayerSet(relayerSet, gravityId)
 		// s.Require().NoError(err)
 		//
-		//signature, err = trontypes.NewTronSignature(checkpoint, external)
+		// signature, err = trontypes.NewTronSignature(checkpoint, external)
 		//s.Require().NoError(err)
 	}
 	return externalAddress, signature

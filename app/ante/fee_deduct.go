@@ -286,44 +286,34 @@ func (dfd DeductFeeDecorator) CheckFunds(ctx sdk.Context, tx sdk.Tx, feePayer st
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "denom is empty")
 	}
 
-	fromAddress := ""
 	userSendAmount := make(map[string]sdk.Coins)
 	for _, msg := range tx.GetMsgs() {
 		switch txMsg := msg.(type) {
 		case *banktypes.MsgSend:
-			fromAddress = txMsg.FromAddress
 			sendAmount := userSendAmount[txMsg.FromAddress]
-			sendAmount = sendAmount.Add(txMsg.Amount...)
-			userSendAmount[txMsg.FromAddress] = sendAmount
+			userSendAmount[txMsg.FromAddress] = sendAmount.Add(txMsg.Amount...)
 		case *banktypes.MsgMultiSend:
 			if len(txMsg.Inputs) == 0 {
 				return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "no input coins provided")
 			}
-			fromAddress = txMsg.Inputs[0].Address
-			sendAmount := userSendAmount[fromAddress]
-			for _, output := range txMsg.Outputs {
-				sendAmount = sendAmount.Add(output.Coins...)
+			for _, input := range txMsg.Inputs {
+				sendAmount := userSendAmount[input.Address]
+				userSendAmount[input.Address] = sendAmount.Add(input.Coins...)
 			}
-			userSendAmount[fromAddress] = sendAmount
 		case *stakingtypes.MsgDelegate:
-			fromAddress = txMsg.DelegatorAddress
 			sendAmount := userSendAmount[txMsg.DelegatorAddress]
-			sendAmount = sendAmount.Add(txMsg.Amount)
-			userSendAmount[txMsg.DelegatorAddress] = sendAmount
+			userSendAmount[txMsg.DelegatorAddress] = sendAmount.Add(txMsg.Amount)
 		case *wstakingtypes.MsgDoFixedDeposit:
-			fromAddress = txMsg.Account
 			sendAmount := userSendAmount[txMsg.Account]
-			sendAmount = sendAmount.Add(txMsg.Principal)
-			userSendAmount[txMsg.Account] = sendAmount
+			userSendAmount[txMsg.Account] = sendAmount.Add(txMsg.Principal)
 		}
 	}
 
-	if _, exists := userSendAmount[feePayer]; !exists {
+	// fees are always deducted from feePayer, so always add them to feePayer's required balance
+	if existing, exists := userSendAmount[feePayer]; !exists {
 		userSendAmount[feePayer] = fees
 	} else {
-		if fromAddress == feePayer {
-			userSendAmount[feePayer] = userSendAmount[feePayer].Add(fees...)
-		}
+		userSendAmount[feePayer] = existing.Add(fees...)
 	}
 
 	for address, sendAmount := range userSendAmount {
