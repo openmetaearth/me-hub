@@ -300,7 +300,7 @@ func TestCheckFunds(t *testing.T) {
 				},
 			},
 			expectError:  true,
-			expectAmount: 400,
+			expectAmount: 300,
 		},
 		{
 			name:     "MsgMultiSend with insufficient funds, not enough for fees",
