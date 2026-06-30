@@ -11,6 +11,10 @@ import (
 func (k msgServer) UpdateRollapp(goCtx context.Context, msg *types.MsgUpdateRollapp) (*types.MsgUpdateRollappResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if !k.RollappsEnabled(ctx) {
+		return nil, types.ErrRollappsDisabled
+	}
+
 	rollapp, found := k.GetRollapp(ctx, msg.RollappId)
 	if !found {
 		return nil, types.ErrUnknownRollappID
