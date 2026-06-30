@@ -24,6 +24,7 @@ import (
 const (
 	FlagHeight     = "height"
 	FlagTraceStore = "trace-store"
+	FlagTendermint = "tendermint"
 )
 
 // InspectCmd dumps app state to JSON.
@@ -31,7 +32,7 @@ const (
 func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "inspect",
-		Short: "Inspect db state [tendermint]",
+		Short: "Inspect db state",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.OutOrStderr())
@@ -47,8 +48,8 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 				return err
 			}
 
-			// TODO: fix to flag
-			if len(args) > 0 && args[0] == "tendermint" {
+			tendermint, _ := cmd.Flags().GetBool(FlagTendermint)
+			if tendermint {
 				return getCometbftState(serverCtx.Config)
 			}
 
@@ -136,6 +137,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 	cmd.Flags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
 	cmd.Flags().Int64(FlagHeight, -1, "Export state from a particular height (-1 means latest height)")
 	cmd.Flags().String(FlagTraceStore, "", "Enable KVStore tracing to an output file")
+	cmd.Flags().Bool(FlagTendermint, false, "Inspect tendermint state")
 
 	return cmd
 }
