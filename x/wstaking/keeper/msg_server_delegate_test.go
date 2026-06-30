@@ -166,3 +166,49 @@ func (s *KeeperTestSuite) TestUnDelegate() {
 		})
 	}
 }
+
+func (s *KeeperTestSuite) TestUnDelegateRejectsAmountExceedingValidatorDelegationAmount() {
+	s.SetupTest()
+
+	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, types.ExperienceRegionId)
+	s.Require().True(found)
+
+	err := s.App.BankKeeper.SendCoinsFromModuleToAccount(
+		s.Ctx,
+		mintypes.ModuleName,
+		sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
+		sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)},
+	)
+	s.Require().NoError(err)
+
+	delegateAmount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000))
+	_, err = s.msgServer.Delegate(s.Ctx, &stakingtypes.MsgDelegate{
+		DelegatorAddress: s.Dao.AirdropAddress,
+		ValidatorAddress: "",
+		Amount:           delegateAmount,
+	})
+	s.Require().NoError(err)
+
+	region, found = s.App.StakingKeeper.GetRegion(s.Ctx, types.ExperienceRegionId)
+	s.Require().True(found)
+	valAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
+	s.Require().NoError(err)
+	validator, found := s.App.StakingKeeper.GetValidator(s.Ctx, valAddr)
+	s.Require().True(found)
+	s.Require().Equal(delegateAmount.Amount.String(), validator.DelegationAmount.String())
+
+	undelegateAmount := sdk.NewCoin(params.BaseDenom, delegateAmount.Amount.Add(sdk.OneInt()))
+	_, err = s.msgServer.Undelegate(s.Ctx, &stakingtypes.MsgUndelegate{
+		DelegatorAddress: s.Dao.AirdropAddress,
+		ValidatorAddress: "",
+		Amount:           undelegateAmount,
+	})
+	s.Require().ErrorIs(err, types.ErrValidatorDelegationAmount)
+
+	validator, found = s.App.StakingKeeper.GetValidator(s.Ctx, valAddr)
+	s.Require().True(found)
+	s.Require().Equal(delegateAmount.Amount.String(), validator.DelegationAmount.String())
+	region, found = s.App.StakingKeeper.GetRegion(s.Ctx, types.ExperienceRegionId)
+	s.Require().True(found)
+	s.Require().Equal(delegateAmount.Amount.String(), region.DelegateAmount.String())
+}
