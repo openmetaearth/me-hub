@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+
 	"cosmossdk.io/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -41,6 +42,9 @@ type DIDKeeper interface {
 	GetFilters(ctx sdk.Context, did, sid string) (filters [][]byte, found bool)
 	AddFilters(ctx sdk.Context, did, sid string, filters [][]byte, vc didtypes.Credential)
 	DeleteFilters(ctx sdk.Context, did, sid string, filters [][]byte)
+
+	HasDidBySubAccount(ctx sdk.Context, subAccount string) bool
+	SetSubAccountDidMap(ctx sdk.Context, subAccount, did string)
 }
 
 type NFTKeeper interface {

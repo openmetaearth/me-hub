@@ -19,3 +19,7 @@ app/upgrades/v2_0_10/configs/nft.json
 .test
 vendor
 .github
+*.test
+.claude
+.pr-close-list.txt
+audit-report.md

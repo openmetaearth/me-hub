@@ -1,0 +1,52 @@
+package keeper
+
+import (
+	"context"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"github.com/openmetaearth/me-hub/x/wgov/types"
+)
+
+type Querier struct {
+	*Keeper
+}
+
+var _ types.QueryServer = Querier{}
+
+func (q Keeper) MeTallyResult(c context.Context, req *types.QueryMeTallyResultRequest) (*types.QueryMeTallyResultResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	if req.ProposalId == 0 {
+		return nil, status.Error(codes.InvalidArgument, "proposal id can not be 0")
+	}
+
+	proposal, err := q.Proposals.Get(c, req.ProposalId)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "proposal %d doesn't exist", req.ProposalId)
+	}
+
+	var tallyResult v1.TallyResult
+
+	switch {
+	case proposal.Status == v1.StatusDepositPeriod:
+		tallyResult = v1.EmptyTallyResult()
+
+	case proposal.Status == v1.StatusPassed || proposal.Status == v1.StatusRejected || proposal.Status == v1.StatusFailed:
+		tallyResult = *proposal.FinalTallyResult
+
+	default:
+		ctx := sdk.UnwrapSDKContext(c)
+		_, _, tallyResult, err = q.Tally(ctx, proposal)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &types.QueryMeTallyResultResponse{Tally: &tallyResult}, nil
+}
