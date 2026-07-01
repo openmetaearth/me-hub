@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"testing"
 
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -389,6 +390,151 @@ func TestCheckFunds(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
+		})
+	}
+}
+
+func newDeductFeeDecoratorWithWasm(t *testing.T) (*ante.DeductFeeDecorator, *mock.MockWasmKeeper, func()) {
+	t.Helper()
+	ctrl := gomock.NewController(t)
+	mockWasmKeeper := mock.NewMockWasmKeeper(ctrl)
+	d := ante.NewDeductFeeDecorator(
+		authantetestutil.NewMockAccountKeeper(ctrl),
+		mock.NewMockBankKeeper(ctrl),
+		authantetestutil.NewMockFeegrantKeeper(ctrl),
+		mock.NewMockDaoKeeper(ctrl),
+		mock.NewMockStakingKeeper(ctrl),
+		mock.NewMockKycKeeper(ctrl),
+		nil,
+		mockWasmKeeper,
+	)
+	return &d, mockWasmKeeper, ctrl.Finish
+}
+
+func TestParseWasmMsgContractCreator(t *testing.T) {
+	ctx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
+
+	contractAddr := NewAccount()
+	creatorAddr := NewAccount()
+
+	tests := []struct {
+		name        string
+		msgs        []sdk.Msg
+		setupMock   func(wk *mock.MockWasmKeeper)
+		wantCreator string
+		wantOk      bool
+	}{
+		{
+			name: "single MsgExecuteContract returns creator",
+			msgs: []sdk.Msg{
+				&wasmtypes.MsgExecuteContract{
+					Sender:   NewAccount().Address,
+					Contract: contractAddr.Address,
+					Msg:      []byte(`{}`),
+				},
+			},
+			setupMock: func(wk *mock.MockWasmKeeper) {
+				wk.EXPECT().
+					GetContractInfo(gomock.Any(), contractAddr.GetAddress()).
+					Return(&wasmtypes.ContractInfo{Creator: creatorAddr.Address})
+			},
+			wantCreator: creatorAddr.Address,
+			wantOk:      true,
+		},
+		{
+			name: "two wasm messages rejected — issue #23 regression",
+			msgs: []sdk.Msg{
+				&wasmtypes.MsgExecuteContract{
+					Sender:   NewAccount().Address,
+					Contract: contractAddr.Address,
+					Msg:      []byte(`{"target":{}}`),
+				},
+				&wasmtypes.MsgExecuteContract{
+					Sender:   NewAccount().Address,
+					Contract: NewAccount().Address,
+					Msg:      []byte(`{"noop":{}}`),
+				},
+			},
+			setupMock: func(wk *mock.MockWasmKeeper) {
+				// GetContractInfo must never be called when more than one msg
+				wk.EXPECT().GetContractInfo(gomock.Any(), gomock.Any()).Times(0)
+			},
+			wantCreator: "",
+			wantOk:      false,
+		},
+		{
+			name: "zero messages rejected",
+			msgs: []sdk.Msg{},
+			setupMock: func(wk *mock.MockWasmKeeper) {
+				wk.EXPECT().GetContractInfo(gomock.Any(), gomock.Any()).Times(0)
+			},
+			wantCreator: "",
+			wantOk:      false,
+		},
+		{
+			name: "single non-wasm message rejected",
+			msgs: []sdk.Msg{
+				&banktypes.MsgSend{
+					FromAddress: NewAccount().Address,
+					ToAddress:   NewAccount().Address,
+					Amount:      sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1))),
+				},
+			},
+			setupMock: func(wk *mock.MockWasmKeeper) {
+				wk.EXPECT().GetContractInfo(gomock.Any(), gomock.Any()).Times(0)
+			},
+			wantCreator: "",
+			wantOk:      false,
+		},
+		{
+			name: "single wasm + one non-wasm message rejected",
+			msgs: []sdk.Msg{
+				&wasmtypes.MsgExecuteContract{
+					Sender:   NewAccount().Address,
+					Contract: contractAddr.Address,
+					Msg:      []byte(`{}`),
+				},
+				&banktypes.MsgSend{
+					FromAddress: NewAccount().Address,
+					ToAddress:   NewAccount().Address,
+					Amount:      sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1))),
+				},
+			},
+			setupMock: func(wk *mock.MockWasmKeeper) {
+				wk.EXPECT().GetContractInfo(gomock.Any(), gomock.Any()).Times(0)
+			},
+			wantCreator: "",
+			wantOk:      false,
+		},
+		{
+			name: "single wasm message with nil contract info returns false",
+			msgs: []sdk.Msg{
+				&wasmtypes.MsgExecuteContract{
+					Sender:   NewAccount().Address,
+					Contract: contractAddr.Address,
+					Msg:      []byte(`{}`),
+				},
+			},
+			setupMock: func(wk *mock.MockWasmKeeper) {
+				wk.EXPECT().
+					GetContractInfo(gomock.Any(), contractAddr.GetAddress()).
+					Return(nil)
+			},
+			wantCreator: "",
+			wantOk:      false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			d, mockWasm, finish := newDeductFeeDecoratorWithWasm(t)
+			defer finish()
+			tc.setupMock(mockWasm)
+
+			tx := &mock.MockTx{Msgs: tc.msgs}
+			creator, ok := d.ParseWasmMsgContractCreator(ctx, tx)
+			require.Equal(t, tc.wantOk, ok)
+			require.Equal(t, tc.wantCreator, creator)
 		})
 	}
 }

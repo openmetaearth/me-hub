@@ -74,7 +74,9 @@ func NewDeductFeeDecorator(
 func (dfd DeductFeeDecorator) ParseWasmMsgContractCreator(ctx sdk.Context, tx sdk.Tx) (string, bool) {
 	// wasm exec message should be the only message in tx
 	// to be considered as a wasm transaction
-	// this criterion is coarse, refine it later!
+	if len(tx.GetMsgs()) != 1 {
+		return "", false
+	}
 
 	allwasm := true
 	var contract string
