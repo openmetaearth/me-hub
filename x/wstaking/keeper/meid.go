@@ -11,7 +11,7 @@ import (
 )
 
 // SetMeid set a specific meid in the store from its index
-func (k Keeper) SetMeid(ctx sdk.Context, meid types.Meid) {
+func (k *Keeper) SetMeid(ctx sdk.Context, meid types.Meid) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidKeyPrefix))
 	b := k.cdc.MustMarshal(&meid)
 	store.Set(types.MeidKey(meid.Account), b)
@@ -20,7 +20,7 @@ func (k Keeper) SetMeid(ctx sdk.Context, meid types.Meid) {
 }
 
 // GetMeid returns a meid from its index
-func (k Keeper) GetMeid(ctx sdk.Context, account string) (val types.Meid, found bool) {
+func (k *Keeper) GetMeid(ctx sdk.Context, account string) (val types.Meid, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidKeyPrefix))
 	b := store.Get(types.MeidKey(account))
 	if b == nil {
@@ -31,7 +31,7 @@ func (k Keeper) GetMeid(ctx sdk.Context, account string) (val types.Meid, found 
 }
 
 // RemoveMeid removes a meid from the store
-func (k Keeper) RemoveMeid(ctx sdk.Context, account, regionid string) {
+func (k *Keeper) RemoveMeid(ctx sdk.Context, account, regionid string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidKeyPrefix))
 	store.Delete(types.MeidKey(account))
 	storeReg := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidRegionKeyPrefix+regionid))
@@ -39,7 +39,7 @@ func (k Keeper) RemoveMeid(ctx sdk.Context, account, regionid string) {
 }
 
 // GetAllMeid returns all meid
-func (k Keeper) GetAllMeid(ctx sdk.Context) (list []types.Meid) {
+func (k *Keeper) GetAllMeid(ctx sdk.Context) (list []types.Meid) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidKeyPrefix))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
@@ -52,7 +52,7 @@ func (k Keeper) GetAllMeid(ctx sdk.Context) (list []types.Meid) {
 	return
 }
 
-func (k Keeper) GetMeidByRegion(ctx sdk.Context, regionId string) (list []types.Meid) {
+func (k *Keeper) GetMeidByRegion(ctx sdk.Context, regionId string) (list []types.Meid) {
 	storeReg := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidRegionKeyPrefix+regionId))
 	iterator := storetypes.KVStorePrefixIterator(storeReg, []byte{})
 	defer iterator.Close()
@@ -68,7 +68,7 @@ func (k Keeper) GetMeidByRegion(ctx sdk.Context, regionId string) (list []types.
 	return
 }
 
-func (k Keeper) GetValOwnerAddress(ctx sdk.Context, regionId string) (string, error) {
+func (k *Keeper) GetValOwnerAddress(ctx sdk.Context, regionId string) (string, error) {
 	region, ok := k.GetRegionCache(regionId)
 	if !ok {
 		return "", errorsmod.Wrapf(types.ErrRegionNotExist, "region(%s) not found", regionId)

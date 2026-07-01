@@ -26,7 +26,7 @@ const unbondingTime = time.Hour * 24 * 7
 // are not exceeded and unbond the staked tokens (based on shares) by creating
 // an unbonding object and inserting it into the unbonding queue which will be
 // processed during the staking EndBlocker.
-func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, isMeid bool, anmout sdkmath.Int, delegation stakingtypes.Delegation) (time.Time, sdkmath.Int, error) {
+func (k *Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, isMeid bool, anmout sdkmath.Int, delegation stakingtypes.Delegation) (time.Time, sdkmath.Int, error) {
 	if has, _ := k.HasMaxUnbondingDelegationEntries(ctx, delAddr, valAddr); has {
 		return time.Time{}, anmout, stakingtypes.ErrMaxUnbondingDelegationEntries
 	}
@@ -59,7 +59,7 @@ func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.
 }
 
 // Unbond unbonds a particular delegation and perform associated store operations.
-func (k Keeper) Unbond(ctx sdk.Context, delAmount sdkmath.Int, isMeid bool, delegation stakingtypes.Delegation) (amount sdkmath.Int, err error) {
+func (k *Keeper) Unbond(ctx sdk.Context, delAmount sdkmath.Int, isMeid bool, delegation stakingtypes.Delegation) (amount sdkmath.Int, err error) {
 	// check if a delegation object exists in the store
 	overAmount := sdkmath.ZeroInt()
 	if isMeid {
@@ -109,7 +109,7 @@ func (k Keeper) Unbond(ctx sdk.Context, delAmount sdkmath.Int, isMeid bool, dele
 }
 
 // bondedTokensToNotBonded transfers coins from the bonded to the not bonded pool within staking
-func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, tokens sdkmath.Int) {
+func (k *Keeper) bondedTokensToNotBonded(ctx sdk.Context, tokens sdkmath.Int) {
 	bondDenom, err := k.BondDenom(ctx)
 	if err != nil {
 		panic(fmt.Sprintf("unable to get bond denom: %s", err.Error()))
@@ -122,7 +122,7 @@ func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, tokens sdkmath.Int) {
 
 // Delegate performs a delegation, set/update everything necessary within the store.
 // tokenSrc indicates the bond status of the incoming funds.
-func (k Keeper) Delegate(
+func (k *Keeper) Delegate(
 	ctx sdk.Context, delAddr sdk.AccAddress, bondAmt sdkmath.Int, tokenSrc stakingtypes.BondStatus,
 	validator stakingtypes.Validator, delegation stakingtypes.Delegation, valAddr sdk.ValAddress,
 ) (newShares sdkmath.LegacyDec, err error) {
@@ -175,7 +175,7 @@ func (k Keeper) Delegate(
 }
 
 // WithdrawDelegationRewards withdraw rewards from a delegation
-func (k Keeper) WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error) {
+func (k *Keeper) WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error) {
 	regionId := k.GetRegionIdByAccount(ctx, delAddr)
 	region, hasRegion := k.GetRegion(ctx, regionId)
 	if !hasRegion {
@@ -195,7 +195,7 @@ func (k Keeper) WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddres
 	return rewards, nil
 }
 
-func (k Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, region types.Region) (sdk.Coins, error) {
+func (k *Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, region types.Region) (sdk.Coins, error) {
 	//valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
 	//if valErr != nil {
 	//	k.Logger(ctx).Error("internalWithdrawDelegationRewards err=", valErr.Error())
@@ -255,7 +255,7 @@ func NewDelegationResp(del stakingtypes.Delegation, balance sdk.Coin) stakingtyp
 	}
 }
 
-func (k Keeper) GetDelegation(ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (stakingtypes.Delegation, error) {
+func (k *Keeper) GetDelegation(ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (stakingtypes.Delegation, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	store := sdkCtx.KVStore(k.storeKey)
 	key := stakingtypes.GetDelegationKey(delAddr, sdk.ValAddress{})
@@ -270,14 +270,14 @@ func (k Keeper) GetDelegation(ctx context.Context, delAddr sdk.AccAddress, valAd
 	return delegation, nil
 }
 
-func (k Keeper) SetDelegation(ctx sdk.Context, delegation stakingtypes.Delegation) {
+func (k *Keeper) SetDelegation(ctx sdk.Context, delegation stakingtypes.Delegation) {
 	delegatorAddress := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
 	store := ctx.KVStore(k.storeKey)
 	b := stakingtypes.MustMarshalDelegation(k.cdc, delegation)
 	store.Set(stakingtypes.GetDelegationKey(delegatorAddress, sdk.ValAddress{}), b)
 }
 
-func (k Keeper) removeDelegation(ctx sdk.Context, delegation stakingtypes.Delegation) error {
+func (k *Keeper) removeDelegation(ctx sdk.Context, delegation stakingtypes.Delegation) error {
 	delegatorAddress := sdk.MustAccAddressFromBech32(delegation.DelegatorAddress)
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(stakingtypes.GetDelegationKey(delegatorAddress, sdk.ValAddress{}))

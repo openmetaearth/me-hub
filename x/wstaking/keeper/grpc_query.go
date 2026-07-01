@@ -21,7 +21,7 @@ type Querier struct {
 
 var _ types.QueryServer = Querier{}
 
-func (k Keeper) Region(goCtx context.Context, req *types.QueryRegionRequest) (*types.QueryRegionResponse, error) {
+func (k *Keeper) Region(goCtx context.Context, req *types.QueryRegionRequest) (*types.QueryRegionResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	region, found := k.GetRegion(ctx, req.RegionId)
 	if !found {
@@ -30,7 +30,7 @@ func (k Keeper) Region(goCtx context.Context, req *types.QueryRegionRequest) (*t
 	return &types.QueryRegionResponse{Region: region}, nil
 }
 
-func (k Keeper) AllRegion(goCtx context.Context, req *types.QueryAllRegionRequest) (*types.QueryAllRegionResponse, error) {
+func (k *Keeper) AllRegion(goCtx context.Context, req *types.QueryAllRegionRequest) (*types.QueryAllRegionResponse, error) {
 	var regions []types.Region
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -52,7 +52,7 @@ func (k Keeper) AllRegion(goCtx context.Context, req *types.QueryAllRegionReques
 	return &types.QueryAllRegionResponse{Region: regions, Pagination: pageRes}, nil
 }
 
-func (k Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationRewardsRequest) (*types.QueryDelegationRewardsResponse, error) {
+func (k *Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationRewardsRequest) (*types.QueryDelegationRewardsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -139,13 +139,13 @@ func DelegationToDelegationResponse(ctx sdk.Context, k *Keeper, del stakingtypes
 	return NewDelegationResp(del, sdk.NewCoin(bondDenom, amount)), nil
 }
 
-func (k Keeper) Stakes(goCtx context.Context, req *types.QueryStakesRequest) (*types.QueryStakesResponse, error) {
+func (k *Keeper) Stakes(goCtx context.Context, req *types.QueryStakesRequest) (*types.QueryStakesResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	stakes := k.GetAllStakes(ctx)
 	return &types.QueryStakesResponse{Stakes: stakes}, nil
 }
 
-func (k Keeper) QueryAllRecord(goCtx context.Context, req *types.QueryAllRecords) (*types.QueryAllRecordsResponse, error) {
+func (k *Keeper) QueryAllRecord(goCtx context.Context, req *types.QueryAllRecords) (*types.QueryAllRecordsResponse, error) {
 	var records []types.Record
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

@@ -82,11 +82,11 @@ func (k *Keeper) SetSlashingKeeper(keeper slashingkeeper.Keeper) {
 }
 
 // Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+types.ModuleName)
 }
 
-func (k Keeper) GetProposerOwnerAddress(ctx sdk.Context) (string, error) {
+func (k *Keeper) GetProposerOwnerAddress(ctx sdk.Context) (string, error) {
 	header := ctx.BlockHeader()
 	addr := header.GetProposerAddress()
 	validator, err := k.GetValidatorByConsAddr(ctx, addr)
@@ -96,14 +96,14 @@ func (k Keeper) GetProposerOwnerAddress(ctx sdk.Context) (string, error) {
 	return validator.OwnerAddress, nil
 }
 
-func (k Keeper) GetStoreKey() storetypes.StoreKey {
+func (k *Keeper) GetStoreKey() storetypes.StoreKey {
 	return k.storeKey
 }
 
-func (k Keeper) GetCdc() codec.BinaryCodec {
+func (k *Keeper) GetCdc() codec.BinaryCodec {
 	return k.cdc
 }
 
-func (k Keeper) GetPerBlockMintCoinAmount(ctx sdk.Context) (amount big.Int) {
+func (k *Keeper) GetPerBlockMintCoinAmount(ctx sdk.Context) (amount big.Int) {
 	return k.mintKeeper.GetPerBlockMintCoinAmount(ctx)
 }

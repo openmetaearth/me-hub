@@ -37,17 +37,11 @@ func BenchmarkSimulation(b *testing.B) {
 		require.NoError(b, err)
 	})
 
-	encoding := app.MakeEncodingConfig()
-
 	medApp := app.New(
 		logger,
 		db,
 		nil,
 		true,
-		map[int64]bool{},
-		app.DefaultNodeHome,
-		0,
-		encoding,
 		simapp.EmptyAppOptions{},
 	)
 
@@ -59,7 +53,7 @@ func BenchmarkSimulation(b *testing.B) {
 		simapp.AppStateFn(medApp.AppCodec(), medApp.SimulationManager(), app.NewDefaultGenesisState(medApp.AppCodec())),
 		simulationtypes.RandomAccounts,
 		simapp.SimulationOperations(medApp, medApp.AppCodec(), config),
-		medApp.ModuleAccountAddrs(),
+		app.ModuleAccountAddrs(),
 		config,
 		medApp.AppCodec(),
 	)

@@ -6,7 +6,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-func (k Keeper) SetRecord(ctx sdk.Context, record types.Record, acc sdk.AccAddress) {
+func (k *Keeper) SetRecord(ctx sdk.Context, record types.Record, acc sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	userKey := types.GetRecordKey(acc)
 	userKey = append(userKey, []byte(record.RecordNumber)...)
@@ -14,7 +14,7 @@ func (k Keeper) SetRecord(ctx sdk.Context, record types.Record, acc sdk.AccAddre
 	store.Set(userKey, bz)
 }
 
-func (k Keeper) GetRecordsByAddress(ctx sdk.Context, from sdk.AccAddress) []types.Record {
+func (k *Keeper) GetRecordsByAddress(ctx sdk.Context, from sdk.AccAddress) []types.Record {
 	store := ctx.KVStore(k.storeKey)
 
 	prefix := types.GetRecordKey(from)
@@ -30,7 +30,7 @@ func (k Keeper) GetRecordsByAddress(ctx sdk.Context, from sdk.AccAddress) []type
 	return records
 }
 
-func (k Keeper) GetAllRecords(ctx sdk.Context) []types.Record {
+func (k *Keeper) GetAllRecords(ctx sdk.Context) []types.Record {
 	store := ctx.KVStore(k.storeKey)
 	iterator := storetypes.KVStorePrefixIterator(store, types.NewRecordKey)
 	defer iterator.Close()
@@ -44,13 +44,13 @@ func (k Keeper) GetAllRecords(ctx sdk.Context) []types.Record {
 	return records
 }
 
-func (k Keeper) SetReviewRecord(ctx sdk.Context, rr types.ReviewRecord) {
+func (k *Keeper) SetReviewRecord(ctx sdk.Context, rr types.ReviewRecord) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalReviewRecord(k.cdc, rr)
 	store.Set(types.GetReviewRecordKey(rr.ActionNumber), bz)
 }
 
-func (k Keeper) GetReviewRecordByID(ctx sdk.Context, recordNumber string) types.ReviewRecord {
+func (k *Keeper) GetReviewRecordByID(ctx sdk.Context, recordNumber string) types.ReviewRecord {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.GetReviewRecordKey(recordNumber))
 	return types.MustUnmarshalReviewRecord(k.cdc, b)

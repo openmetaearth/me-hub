@@ -103,7 +103,7 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 	return &types.MsgUpdateValidatorResponse{}, nil
 }
 
-func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.AccAddress, validator stakingtypes.Validator) error {
+func (k *Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.AccAddress, validator stakingtypes.Validator) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	oldValOperator := validator.GetOperator()
 	oldValOpAddr, err := sdk.ValAddressFromBech32(oldValOperator)

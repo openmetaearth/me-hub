@@ -14,7 +14,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, creator string) error {
+func (k *Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, creator string) error {
 	if regionId == strings.ToLower(types.ExperienceRegionName) {
 		return errorsmod.Wrapf(types.ErrSendKycReward, "cannot set kyc to %s region", regionId)
 	}
@@ -64,7 +64,7 @@ func (k Keeper) KycReward(ctx sdk.Context, account sdk.AccAddress, regionId, cre
 	return nil
 }
 
-func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionId string) error {
+func (k *Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionId string) error {
 	region, found := k.GetRegion(ctx, regionId)
 	if !found {
 		return errorsmod.Wrapf(types.ErrRegionNotExist, "%s not exists", regionId)
@@ -158,7 +158,7 @@ func (k Keeper) RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionI
 	return nil
 }
 
-func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
+func (k *Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
 	validator stakingtypes.Validator, region types.Region,
 ) (err error) {
 	experienceRegion, hasRegion := k.GetRegion(ctx, strings.ToLower(types.ExperienceRegionName))
@@ -265,7 +265,7 @@ func (k Keeper) sendKycRewards(ctx sdk.Context, delAddr sdk.AccAddress, validato
 	return nil
 }
 
-func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Region, userAddr string) error {
+func (k *Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Region, userAddr string) error {
 	// GetFixedDepositByAcct returns the list of fixedDeposits of an account
 	fixedDeposits, _ := k.GetFixedDepositByAcct(ctx, userAddr)
 	if len(fixedDeposits) == 0 {
@@ -360,7 +360,7 @@ func (k Keeper) transferDeposit(ctx sdk.Context, fromRegion, toRegion *types.Reg
 	return nil
 }
 
-func (k Keeper) transferNewMeid(ctx sdk.Context, region *types.Region, address string, valAddr sdk.ValAddress, delegation stakingtypes.Delegation) error {
+func (k *Keeper) transferNewMeid(ctx sdk.Context, region *types.Region, address string, valAddr sdk.ValAddress, delegation stakingtypes.Delegation) error {
 	accAddr, err := sdk.AccAddressFromBech32(address)
 	if err != nil {
 		return errors.New(fmt.Sprintf("account format error (%s)", err))
@@ -378,7 +378,7 @@ func (k Keeper) transferNewMeid(ctx sdk.Context, region *types.Region, address s
 	return nil
 }
 
-func (k Keeper) transferRemoveMeid(ctx sdk.Context, address string, region *types.Region, delegation stakingtypes.Delegation) error {
+func (k *Keeper) transferRemoveMeid(ctx sdk.Context, address string, region *types.Region, delegation stakingtypes.Delegation) error {
 	accAddr, err := sdk.AccAddressFromBech32(address)
 	if err != nil {
 		return err
@@ -406,7 +406,7 @@ func (k Keeper) transferRemoveMeid(ctx sdk.Context, address string, region *type
 	return nil
 }
 
-func (k Keeper) transferUnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, region *types.Region, delegation stakingtypes.Delegation) (amount sdkmath.Int, err error) {
+func (k *Keeper) transferUnRegisterMeid(ctx sdk.Context, delAddr sdk.AccAddress, region *types.Region, delegation stakingtypes.Delegation) (amount sdkmath.Int, err error) {
 	bonus := sdkmath.LegacyNewDec(1).Quo(sdkmath.LegacyNewDecWithPrec(1, params.BaseDenomUnit))
 	region.DelegateAmount = region.DelegateAmount.Sub(bonus.RoundInt()).Sub(delegation.Amount)
 	if region.DelegateAmount.LT(sdkmath.ZeroInt()) {

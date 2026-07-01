@@ -331,19 +331,19 @@ func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
 			ibcTransferAmountInt, _ := strconv.ParseInt(tc.IBCTransferAmount, 10, 64)
 			eibcTransferFeeInt, _ := strconv.ParseInt(tc.EIBCTransferFee, 10, 64)
 			demandOrderPriceInt := ibcTransferAmountInt - eibcTransferFeeInt
-			s.Require().True(fulfillerAccountBalance.IsEqual(preFulfillmentAccountBalance.Sub(sdk.NewCoin(IBCDenom, sdkmath.NewInt(demandOrderPriceInt)))))
-			s.Require().True(recipientAccountBalance.IsEqual(initialIBCOriginalRecipientBalance.Add(sdk.NewCoin(IBCDenom, sdkmath.NewInt(demandOrderPriceInt)))))
+			s.Require().True(fulfillerAccountBalance.Equal(preFulfillmentAccountBalance.Sub(sdk.NewCoin(IBCDenom, sdkmath.NewInt(demandOrderPriceInt)))))
+			s.Require().True(recipientAccountBalance.Equal(initialIBCOriginalRecipientBalance.Add(sdk.NewCoin(IBCDenom, sdkmath.NewInt(demandOrderPriceInt)))))
 
 			// Finalize rollapp and check fulfiller balance was updated with fee
 			currentRollappBlockHeight = uint64(s.rollappCtx().BlockHeight())
 			evts, err := s.finalizeRollappState(rollappStateIndex, currentRollappBlockHeight)
 			s.Require().NoError(err)
 
-			ack, err := ibctesting.ParseAckFromEvents(evts)
+			ack, err := ibctesting.ParseAckFromEvents(evts.ToABCIEvents())
 			s.Require().NoError(err)
 
 			fulfillerAccountBalanceAfterFinalization := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), fulfiller)
-			s.Require().True(fulfillerAccountBalanceAfterFinalization.IsEqual(preFulfillmentAccountBalance.Add(sdk.NewCoin(IBCDenom, sdkmath.NewInt(eibcTransferFeeInt)))))
+			s.Require().True(fulfillerAccountBalanceAfterFinalization.Equal(preFulfillmentAccountBalance.Add(sdk.NewCoin(IBCDenom, sdkmath.NewInt(eibcTransferFeeInt)))))
 
 			// Validate demand order fulfilled and packet status updated
 			finalizedDemandOrders, err := eibcKeeper.ListDemandOrdersByStatus(s.hubCtx(), commontypes.Status_FINALIZED, 0)
@@ -492,16 +492,16 @@ func (s *eibcSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			fulfillerAccountBalance := bankKeeper.GetBalance(s.hubCtx(), fulfillerAccount, sdk.DefaultBondDenom)
 			senderAccountBalance := bankKeeper.GetBalance(s.hubCtx(), senderAccount, sdk.DefaultBondDenom)
 			receiverAccountBalance := bankKeeper.GetBalance(s.hubCtx(), receiverAccount, sdk.DefaultBondDenom)
-			s.Require().True(fulfillerAccountBalance.IsEqual(fulfillerInitialBalance.Sub(lastDemandOrder.Price[0])))
-			s.Require().True(senderAccountBalance.IsEqual(senderInitialBalance.Sub(lastDemandOrder.Fee[0])))
-			s.Require().True(receiverAccountBalance.IsEqual(receiverInitialBalance))
+			s.Require().True(fulfillerAccountBalance.Equal(fulfillerInitialBalance.Sub(lastDemandOrder.Price[0])))
+			s.Require().True(senderAccountBalance.Equal(senderInitialBalance.Sub(lastDemandOrder.Fee[0])))
+			s.Require().True(receiverAccountBalance.Equal(receiverInitialBalance))
 			// Finalize the rollapp state
 			currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight())
 			_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
 			s.Require().NoError(err)
 			// Funds are passed to the fulfiller
 			fulfillerAccountBalanceAfterTimeout := bankKeeper.GetBalance(s.hubCtx(), fulfillerAccount, sdk.DefaultBondDenom)
-			s.Require().True(fulfillerAccountBalanceAfterTimeout.IsEqual(fulfillerInitialBalance.Add(lastDemandOrder.Fee[0])))
+			s.Require().True(fulfillerAccountBalanceAfterTimeout.Equal(fulfillerInitialBalance.Add(lastDemandOrder.Fee[0])))
 		})
 	}
 }

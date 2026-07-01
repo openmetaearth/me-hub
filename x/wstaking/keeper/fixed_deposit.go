@@ -12,7 +12,7 @@ import (
 )
 
 // GetFixedDepositCount get the total number of fixedDeposit
-func (k Keeper) GetFixedDepositCount(ctx sdk.Context) uint64 {
+func (k *Keeper) GetFixedDepositCount(ctx sdk.Context) uint64 {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	byteKey := types.KeyPrefix(types.FixedDepositCountKey)
 	bz := store.Get(byteKey)
@@ -27,7 +27,7 @@ func (k Keeper) GetFixedDepositCount(ctx sdk.Context) uint64 {
 }
 
 // SetFixedDepositCount set the total number of fixedDeposit
-func (k Keeper) SetFixedDepositCount(ctx sdk.Context, count uint64) {
+func (k *Keeper) SetFixedDepositCount(ctx sdk.Context, count uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	byteKey := types.KeyPrefix(types.FixedDepositCountKey)
 	bz := make([]byte, 8)
@@ -36,7 +36,7 @@ func (k Keeper) SetFixedDepositCount(ctx sdk.Context, count uint64) {
 }
 
 // AppendFixedDeposit appends a fixedDeposit in the store with a new id and update the count
-func (k Keeper) AppendFixedDeposit(
+func (k *Keeper) AppendFixedDeposit(
 	ctx sdk.Context,
 	fixedDeposit types.FixedDeposit,
 ) uint64 {
@@ -60,7 +60,7 @@ func (k Keeper) AppendFixedDeposit(
 }
 
 // SetFixedDeposit set a specific fixedDeposit in the store
-func (k Keeper) SetFixedDeposit(ctx sdk.Context, fixedDeposit types.FixedDeposit) {
+func (k *Keeper) SetFixedDeposit(ctx sdk.Context, fixedDeposit types.FixedDeposit) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKey))
 	b := k.cdc.MustMarshal(&fixedDeposit)
 	store.Set(GetFixedDepositIDBytes(fixedDeposit.Id), b)
@@ -70,7 +70,7 @@ func (k Keeper) SetFixedDeposit(ctx sdk.Context, fixedDeposit types.FixedDeposit
 }
 
 // GetFixedDeposit returns a fixedDeposit from its id
-func (k Keeper) GetFixedDeposit(ctx sdk.Context, id uint64) (val types.FixedDeposit, found bool) {
+func (k *Keeper) GetFixedDeposit(ctx sdk.Context, id uint64) (val types.FixedDeposit, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKey))
 	b := store.Get(GetFixedDepositIDBytes(id))
 	if b == nil {
@@ -81,7 +81,7 @@ func (k Keeper) GetFixedDeposit(ctx sdk.Context, id uint64) (val types.FixedDepo
 }
 
 // GetFixedDepositByAcct returns the list of fixedDeposits of an account
-func (k Keeper) GetFixedDepositByAcct(ctx sdk.Context, acct string) ([]types.FixedDeposit, error) {
+func (k *Keeper) GetFixedDepositByAcct(ctx sdk.Context, acct string) ([]types.FixedDeposit, error) {
 	var list []types.FixedDeposit
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKeyAcct+acct))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
@@ -101,7 +101,7 @@ func (k Keeper) GetFixedDepositByAcct(ctx sdk.Context, acct string) ([]types.Fix
 }
 
 // RemoveFixedDeposit removes a fixedDeposit from the store
-func (k Keeper) RemoveFixedDeposit(ctx sdk.Context, id uint64) {
+func (k *Keeper) RemoveFixedDeposit(ctx sdk.Context, id uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKey))
 	var fixedDeposit types.FixedDeposit
 	b := store.Get(GetFixedDepositIDBytes(id))
@@ -116,7 +116,7 @@ func (k Keeper) RemoveFixedDeposit(ctx sdk.Context, id uint64) {
 }
 
 // GetAllFixedDeposit returns all fixedDeposit
-func (k Keeper) GetAllFixedDepositWithPage(ctx sdk.Context, req *types.QueryAllFixedDepositRequest) (list []types.FixedDeposit, pageRes *query.PageResponse, err error) {
+func (k *Keeper) GetAllFixedDepositWithPage(ctx sdk.Context, req *types.QueryAllFixedDepositRequest) (list []types.FixedDeposit, pageRes *query.PageResponse, err error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKey))
 	pageRes, err = query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
 		var vc types.FixedDeposit
@@ -133,7 +133,7 @@ func (k Keeper) GetAllFixedDepositWithPage(ctx sdk.Context, req *types.QueryAllF
 }
 
 // GetAllFixedDeposit returns all fixedDeposit
-func (k Keeper) GetAllFixedDeposit(ctx sdk.Context) (list []types.FixedDeposit) {
+func (k *Keeper) GetAllFixedDeposit(ctx sdk.Context) (list []types.FixedDeposit) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKey))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
@@ -158,13 +158,13 @@ func GetFixedDepositIDFromBytes(bz []byte) uint64 {
 	return binary.BigEndian.Uint64(bz)
 }
 
-func (k Keeper) SetFixedDepositTotalAmount(ctx sdk.Context, fixedDepositTotal types.FixedDepositTotal) {
+func (k *Keeper) SetFixedDepositTotalAmount(ctx sdk.Context, fixedDepositTotal types.FixedDepositTotal) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	b := k.cdc.MustMarshal(&fixedDepositTotal)
 	store.Set([]byte(types.FixedDepositTotalAmountKey), b)
 }
 
-func (k Keeper) GetFixedDepositTotalAmount(
+func (k *Keeper) GetFixedDepositTotalAmount(
 	ctx sdk.Context,
 ) (val types.FixedDepositTotal, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})

@@ -8,7 +8,7 @@ import (
 )
 
 // SetMeidNFT set a specific meid in the store from its index
-func (k Keeper) SetMeidNFT(ctx sdk.Context, meidNFT types.MeidNFT) {
+func (k *Keeper) SetMeidNFT(ctx sdk.Context, meidNFT types.MeidNFT) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidNFTKeyPrefix))
 	b := k.cdc.MustMarshal(&meidNFT)
 	store.Set(types.MeidNFTKey(meidNFT.Account), b)
@@ -18,7 +18,7 @@ func (k Keeper) SetMeidNFT(ctx sdk.Context, meidNFT types.MeidNFT) {
 }
 
 // GetMeidNFT returns a meidNFT from its index
-func (k Keeper) GetMeidNFT(ctx sdk.Context, meidNFT string) (val types.MeidNFT, found bool) {
+func (k *Keeper) GetMeidNFT(ctx sdk.Context, meidNFT string) (val types.MeidNFT, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidNFTKeyPrefix))
 	b := store.Get(types.MeidNFTKey(meidNFT))
 	if b == nil {
@@ -29,7 +29,7 @@ func (k Keeper) GetMeidNFT(ctx sdk.Context, meidNFT string) (val types.MeidNFT, 
 }
 
 // RemoveMeidNFT removes a meidNFT from the store
-func (k Keeper) RemoveMeidNFT(ctx sdk.Context, account, regionId string) {
+func (k *Keeper) RemoveMeidNFT(ctx sdk.Context, account, regionId string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidNFTKeyPrefix))
 	store.Delete(types.MeidNFTKey(account))
 
@@ -37,7 +37,7 @@ func (k Keeper) RemoveMeidNFT(ctx sdk.Context, account, regionId string) {
 	storeReg.Delete(types.MeidNFTKey(account))
 }
 
-func (k Keeper) GetMeidNFTByAccount(ctx sdk.Context, account string) (val types.MeidNFT, found bool) {
+func (k *Keeper) GetMeidNFTByAccount(ctx sdk.Context, account string) (val types.MeidNFT, found bool) {
 	storeReg := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MeidNFTAccountKeyPrefix+account))
 	iterator := storetypes.KVStorePrefixIterator(storeReg, []byte{})
 	defer iterator.Close()

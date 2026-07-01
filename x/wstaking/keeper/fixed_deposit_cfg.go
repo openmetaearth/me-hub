@@ -10,13 +10,13 @@ import (
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-func (k Keeper) SetFixedDepositCfg(ctx sdk.Context, cfg types.FixedDepositCfg) {
+func (k *Keeper) SetFixedDepositCfg(ctx sdk.Context, cfg types.FixedDepositCfg) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositCfgKeyPrefix+cfg.RegionId))
 	b := k.cdc.MustMarshal(&cfg)
 	store.Set(types.FixedDepositCfgKey(cfg.Term), b)
 }
 
-func (k Keeper) GetFixedDepositCfg(ctx sdk.Context, regionId string, term int64) (val types.FixedDepositCfg, found bool) {
+func (k *Keeper) GetFixedDepositCfg(ctx sdk.Context, regionId string, term int64) (val types.FixedDepositCfg, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositCfgKeyPrefix+regionId))
 	b := store.Get(types.FixedDepositCfgKey(term))
 	if b == nil {
@@ -26,12 +26,12 @@ func (k Keeper) GetFixedDepositCfg(ctx sdk.Context, regionId string, term int64)
 	return val, true
 }
 
-func (k Keeper) RemoveFixedDepositCfg(ctx sdk.Context, regionId string, term int64) {
+func (k *Keeper) RemoveFixedDepositCfg(ctx sdk.Context, regionId string, term int64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositCfgKeyPrefix+regionId))
 	store.Delete(types.FixedDepositCfgKey(term))
 }
 
-func (k Keeper) GetAllFixedDepositCfg(ctx sdk.Context, regionId string) (list []types.FixedDepositCfg) {
+func (k *Keeper) GetAllFixedDepositCfg(ctx sdk.Context, regionId string) (list []types.FixedDepositCfg) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositCfgKeyPrefix+regionId))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
@@ -46,7 +46,7 @@ func (k Keeper) GetAllFixedDepositCfg(ctx sdk.Context, regionId string) (list []
 	return
 }
 
-func (k Keeper) InitFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term int64) {
+func (k *Keeper) InitFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term int64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositCountOfCfgKeyPrefix+regionId))
 	byteKey := types.KeyPrefix(strconv.FormatInt(term, 10))
 	bz := store.Get(byteKey)
@@ -58,7 +58,7 @@ func (k Keeper) InitFixedDepositCountOfCfg(ctx sdk.Context, regionId string, ter
 	return
 }
 
-func (k Keeper) GetFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term int64) uint64 {
+func (k *Keeper) GetFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term int64) uint64 {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositCountOfCfgKeyPrefix+regionId))
 	byteKey := types.KeyPrefix(strconv.FormatInt(term, 10))
 	bz := store.Get(byteKey)
@@ -69,7 +69,7 @@ func (k Keeper) GetFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term
 	return binary.BigEndian.Uint64(bz)
 }
 
-func (k Keeper) IncreaseFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term int64) error {
+func (k *Keeper) IncreaseFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term int64) error {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositCountOfCfgKeyPrefix+regionId))
 	byteKey := types.KeyPrefix(strconv.FormatInt(term, 10))
 	bz := store.Get(byteKey)
@@ -85,7 +85,7 @@ func (k Keeper) IncreaseFixedDepositCountOfCfg(ctx sdk.Context, regionId string,
 	return nil
 }
 
-func (k Keeper) DecreaseFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term int64) error {
+func (k *Keeper) DecreaseFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term int64) error {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositCountOfCfgKeyPrefix+regionId))
 	byteKey := types.KeyPrefix(strconv.FormatInt(term, 10))
 	bz := store.Get(byteKey)

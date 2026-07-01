@@ -15,7 +15,7 @@ import (
 // setting the indexes. In addition, it also sets any delegations found in
 // data. Finally, it updates the bonded validators.
 // Returns final validator set after applying all declaration and delegations
-func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (res []abci.ValidatorUpdate) {
+func (k *Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (res []abci.ValidatorUpdate) {
 	bondedTokens := math.ZeroInt()
 	notBondedTokens := math.ZeroInt()
 
@@ -162,7 +162,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 // ExportGenesis returns a GenesisState for a given context and keeper. The
 // GenesisState will contain the pool, params, validators, and bonds found in
 // the keeper.
-func (k Keeper) ExportGenesis(ctx sdk.Context) *wstakingtypes.GenesisState {
+func (k *Keeper) ExportGenesis(ctx sdk.Context) *wstakingtypes.GenesisState {
 	var unbondingDelegations []types.UnbondingDelegation
 	k.IterateUnbondingDelegations(ctx, func(_ int64, ubd types.UnbondingDelegation) (stop bool) {
 		unbondingDelegations = append(unbondingDelegations, ubd)

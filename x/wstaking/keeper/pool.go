@@ -10,23 +10,23 @@ import (
 )
 
 // GetBondedStakePool returns the bonded stake tokens pool's module account
-func (k Keeper) GetBondedStakePool(ctx sdk.Context) (bondedStakePool authtypes.ModuleAccountI) {
+func (k *Keeper) GetBondedStakePool(ctx sdk.Context) (bondedStakePool authtypes.ModuleAccountI) {
 	return k.authKeeper.GetModuleAccount(ctx, types.BondedStakePoolName)
 }
 
 // GetNotBondedStakePool returns the not bonded stake tokens pool's module account
-func (k Keeper) GetNotBondedStakePool(ctx sdk.Context) (bondedStakePool authtypes.ModuleAccountI) {
+func (k *Keeper) GetNotBondedStakePool(ctx sdk.Context) (bondedStakePool authtypes.ModuleAccountI) {
 	return k.authKeeper.GetModuleAccount(ctx, types.NotBondedStakePoolName)
 }
 
-func (k Keeper) TotalBondedStakePool(ctx sdk.Context) math.Int {
+func (k *Keeper) TotalBondedStakePool(ctx sdk.Context) math.Int {
 	bondedStakePool := k.GetBondedStakePool(ctx)
 	bondDenom, _ := k.BondDenom(ctx)
 	return k.bankKeeper.GetBalance(ctx, bondedStakePool.GetAddress(), bondDenom).Amount
 }
 
 // bondedStakeTokensToNotBonded transfers coins from the bonded to the not bonded pool within staking
-func (k Keeper) BondedStakeTokensToNotBonded(ctx sdk.Context, tokens math.Int, regionID string) {
+func (k *Keeper) BondedStakeTokensToNotBonded(ctx sdk.Context, tokens math.Int, regionID string) {
 	bondDenom, _ := k.BondDenom(ctx)
 	coins := sdk.NewCoins(sdk.NewCoin(bondDenom, tokens))
 	if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, types.BondedStakePoolName, types.NotBondedStakePoolName, coins,
@@ -37,7 +37,7 @@ func (k Keeper) BondedStakeTokensToNotBonded(ctx sdk.Context, tokens math.Int, r
 }
 
 // notBondedStakeTokensToBonded transfers coins from the not bonded to the bonded pool within staking
-func (k Keeper) NotBondedStakeTokensToBonded(ctx sdk.Context, tokens math.Int) {
+func (k *Keeper) NotBondedStakeTokensToBonded(ctx sdk.Context, tokens math.Int) {
 	bondDenom, _ := k.BondDenom(ctx)
 	coins := sdk.NewCoins(sdk.NewCoin(bondDenom, tokens))
 	if err := k.bankKeeper.Extend().SendCoinsFromModuleToModuleWithTag(ctx, types.NotBondedStakePoolName, types.BondedStakePoolName, coins,

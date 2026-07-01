@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) FixedDepositCfg(goCtx context.Context, req *types.QueryFixedDepositCfgRequest) (*types.QueryFixedDepositCfgResponse, error) {
+func (k *Keeper) FixedDepositCfg(goCtx context.Context, req *types.QueryFixedDepositCfgRequest) (*types.QueryFixedDepositCfgResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -44,7 +44,7 @@ func (k Keeper) FixedDepositCfg(goCtx context.Context, req *types.QueryFixedDepo
 	return &types.QueryFixedDepositCfgResponse{RegionFixedDepositCfgs: configs}, nil
 }
 
-func (k Keeper) FixedDepositCfgByTerm(goCtx context.Context, req *types.QueryFixedDepositCfgByTermRequest) (*types.QueryFixedDepositCfgByTermResponse, error) {
+func (k *Keeper) FixedDepositCfgByTerm(goCtx context.Context, req *types.QueryFixedDepositCfgByTermRequest) (*types.QueryFixedDepositCfgByTermResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}

@@ -11,7 +11,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-func (k Keeper) GetRegionIdByAccount(ctx sdk.Context, address sdk.AccAddress) string {
+func (k *Keeper) GetRegionIdByAccount(ctx sdk.Context, address sdk.AccAddress) string {
 	regionId := strings.ToLower(types.ExperienceRegionName)
 	did, ok := k.kycKeeper.GetDID(ctx, address)
 	if !ok {
@@ -24,7 +24,7 @@ func (k Keeper) GetRegionIdByAccount(ctx sdk.Context, address sdk.AccAddress) st
 	return string(kycData.Data)
 }
 
-func (k Keeper) MustGetKycRegionIdByAccount(ctx sdk.Context, account string) (string, error) {
+func (k *Keeper) MustGetKycRegionIdByAccount(ctx sdk.Context, account string) (string, error) {
 	did, ok := k.kycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(account))
 	if !ok {
 		return "", errorsmod.Wrapf(types.ErrDidNotExists, "did with account %s not exist", account)
@@ -36,7 +36,7 @@ func (k Keeper) MustGetKycRegionIdByAccount(ctx sdk.Context, account string) (st
 	return string(kycData.Data), nil
 }
 
-func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creator, fromRegionId, toRegionId string) error {
+func (k *Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creator, fromRegionId, toRegionId string) error {
 	fromRegion, found := k.GetRegion(ctx, fromRegionId)
 	if !found {
 		return types.ErrRegionNotExist

@@ -18,7 +18,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey, error) {
+func (k *Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey, error) {
 	updateInfo, err := k.GetReplaceConsensusPubKeyInfo(ctx)
 	if err != nil {
 		panic(fmt.Sprintf("GetReplaceConsensusPubKeyInfo error,err = %s ", err.Error()))
@@ -124,7 +124,7 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 	}
 }
 
-func (k Keeper) SetReplacePubKeyInfo(ctx sdk.Context, data *types.UpdatePubKeyInfo) error {
+func (k *Keeper) SetReplacePubKeyInfo(ctx sdk.Context, data *types.UpdatePubKeyInfo) error {
 	bz, err := json.Marshal(data)
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrJSONMarshal, "marshal repalce pubkey info error: %v", err)
@@ -135,7 +135,7 @@ func (k Keeper) SetReplacePubKeyInfo(ctx sdk.Context, data *types.UpdatePubKeyIn
 }
 
 // GetGroup returns a group from its id
-func (k Keeper) GetReplaceConsensusPubKeyInfo(ctx sdk.Context) (*types.UpdatePubKeyInfo, error) {
+func (k *Keeper) GetReplaceConsensusPubKeyInfo(ctx sdk.Context) (*types.UpdatePubKeyInfo, error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	data := store.Get(types.KeyPrefix(types.ReplaceConsensusPubKey))
 	if data == nil {
@@ -149,12 +149,12 @@ func (k Keeper) GetReplaceConsensusPubKeyInfo(ctx sdk.Context) (*types.UpdatePub
 	return &val, nil
 }
 
-func (k Keeper) DeleteReplaceConsensusPubKey(ctx sdk.Context) {
+func (k *Keeper) DeleteReplaceConsensusPubKey(ctx sdk.Context) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	store.Delete(types.KeyPrefix(types.ReplaceConsensusPubKey))
 }
 
-func (k Keeper) IsHasReplaceConsensusPubKey(ctx sdk.Context) bool {
+func (k *Keeper) IsHasReplaceConsensusPubKey(ctx sdk.Context) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	data := store.Get(types.KeyPrefix(types.ReplaceConsensusPubKey))
 	if data == nil {
@@ -163,12 +163,12 @@ func (k Keeper) IsHasReplaceConsensusPubKey(ctx sdk.Context) bool {
 	return true
 }
 
-func (k Keeper) RemoveValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) {
+func (k *Keeper) RemoveValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(stakingtypes.GetValidatorByConsAddrKey(consAddr))
 }
 
-func (k Keeper) MoveStakesToAnotherVal(ctx sdk.Context, fromValAddr, toValAddr sdk.ValAddress) error {
+func (k *Keeper) MoveStakesToAnotherVal(ctx sdk.Context, fromValAddr, toValAddr sdk.ValAddress) error {
 	stakes, err := k.GetStakesByValidator(ctx, fromValAddr)
 	if err != nil {
 		return err

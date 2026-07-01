@@ -12,7 +12,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-func (k Keeper) CalculateInterest(ctx sdk.Context, totalStaking sdkmath.Int, height int64) (rewards sdkmath.LegacyDec, err error) {
+func (k *Keeper) CalculateInterest(ctx sdk.Context, totalStaking sdkmath.Int, height int64) (rewards sdkmath.LegacyDec, err error) {
 	if height >= ctx.BlockHeight() {
 		return sdkmath.LegacyZeroDec(), nil
 	}
@@ -21,7 +21,7 @@ func (k Keeper) CalculateInterest(ctx sdk.Context, totalStaking sdkmath.Int, hei
 }
 
 // getRewardsByHeight Get coins through the block height range
-func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdkmath.LegacyDec) {
+func (k *Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdkmath.LegacyDec) {
 	var totalCoins int64
 
 	lowMul := (fromHeight - 1) / mintTypes.OneYearTotalBlocks
@@ -62,7 +62,7 @@ func (k Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdkma
 	return
 }
 
-func (k Keeper) Calculate(ctx sdk.Context, blockRewards sdkmath.LegacyDec, totalStaking sdkmath.Int) (rewards sdkmath.LegacyDec, err error) {
+func (k *Keeper) Calculate(ctx sdk.Context, blockRewards sdkmath.LegacyDec, totalStaking sdkmath.Int) (rewards sdkmath.LegacyDec, err error) {
 	totalSupply := sdkmath.LegacyNewDec(types.CaclTotalSupply)
 	rate := sdkmath.LegacyOneDec().Quo(totalSupply)
 	rewards = blockRewards.Mul(sdkmath.LegacyNewDecFromInt(totalStaking).Mul(rate)).Mul(sdkmath.LegacyNewDecWithPrec(1, params.BaseDenomUnit))
@@ -77,7 +77,7 @@ func RoundUpToFourDecimals(x float64) float64 {
 	return math.Ceil(x*10000) / 10000
 }
 
-func (k Keeper) Delegation(ctx context.Context, addrDel sdk.AccAddress, addrVal sdk.ValAddress) (stakingtypes.DelegationI, error) {
+func (k *Keeper) Delegation(ctx context.Context, addrDel sdk.AccAddress, addrVal sdk.ValAddress) (stakingtypes.DelegationI, error) {
 	bond, err := k.GetDelegation(ctx, addrDel, addrVal)
 	if err != nil {
 		return nil, err

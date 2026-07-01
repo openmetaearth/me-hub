@@ -11,14 +11,14 @@ import (
 )
 
 // SetRegion set a specific region in the store from its index
-func (k Keeper) SetRegion(ctx sdk.Context, region types.Region) {
+func (k *Keeper) SetRegion(ctx sdk.Context, region types.Region) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RegionKeyPrefix))
 	b := k.cdc.MustMarshal(&region)
 	store.Set(types.RegionKey(region.RegionId), b)
 }
 
 // GetRegion returns a region from its index
-func (k Keeper) GetRegion(ctx sdk.Context, regionId string) (region types.Region, found bool) {
+func (k *Keeper) GetRegion(ctx sdk.Context, regionId string) (region types.Region, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RegionKeyPrefix))
 	b := store.Get(types.RegionKey(regionId))
 	if b == nil {
@@ -29,14 +29,14 @@ func (k Keeper) GetRegion(ctx sdk.Context, regionId string) (region types.Region
 }
 
 // RemoveRegion removes a region from the store
-func (k Keeper) RemoveRegion(ctx sdk.Context, regionId string) {
+func (k *Keeper) RemoveRegion(ctx sdk.Context, regionId string) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RegionKeyPrefix))
 	store.Delete(types.RegionKey(regionId))
 	k.groupKeeper.DeleteGroupAssociateWithRegion(ctx, regionId)
 }
 
 // GetAllRegion returns all region
-func (k Keeper) GetAllRegion(ctx sdk.Context) (list []types.Region) {
+func (k *Keeper) GetAllRegion(ctx sdk.Context) (list []types.Region) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RegionKeyPrefix))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
@@ -48,7 +48,7 @@ func (k Keeper) GetAllRegion(ctx sdk.Context) (list []types.Region) {
 	return
 }
 
-func (k Keeper) CreateRegionAccount(ctx sdk.Context, accountType types.REGION_ACCOUNT_TYPE, regionId string) sdk.AccAddress {
+func (k *Keeper) CreateRegionAccount(ctx sdk.Context, accountType types.REGION_ACCOUNT_TYPE, regionId string) sdk.AccAddress {
 	regionAcc := k.GetRegionAccount(ctx, accountType, regionId)
 	if regionAcc == nil {
 		vaultAddr := types.GetRegionAccountAddr(accountType, regionId)
@@ -58,13 +58,13 @@ func (k Keeper) CreateRegionAccount(ctx sdk.Context, accountType types.REGION_AC
 	return regionAcc.GetAddress()
 }
 
-func (k Keeper) GetRegionAccount(ctx sdk.Context, accountType types.REGION_ACCOUNT_TYPE, regionId string) authtypes.AccountI {
+func (k *Keeper) GetRegionAccount(ctx sdk.Context, accountType types.REGION_ACCOUNT_TYPE, regionId string) authtypes.AccountI {
 	vaultAddr := types.GetRegionAccountAddr(accountType, regionId)
 	return k.authKeeper.GetAccount(ctx, vaultAddr)
 }
 
 // GetAllRegion returns all region
-func (k Keeper) GetAllRegionI(ctx sdk.Context) (list []types.RegionI) {
+func (k *Keeper) GetAllRegionI(ctx sdk.Context) (list []types.RegionI) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RegionKeyPrefix))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
@@ -77,7 +77,7 @@ func (k Keeper) GetAllRegionI(ctx sdk.Context) (list []types.RegionI) {
 	return
 }
 
-func (k Keeper) BondRegion(ctx sdk.Context, validator stakingtypes.Validator, tokens sdkmath.Int, changeOperator bool) {
+func (k *Keeper) BondRegion(ctx sdk.Context, validator stakingtypes.Validator, tokens sdkmath.Int, changeOperator bool) {
 	region, found := k.GetRegion(ctx, validator.Description.RegionID)
 	if !found {
 		return
@@ -91,7 +91,7 @@ func (k Keeper) BondRegion(ctx sdk.Context, validator stakingtypes.Validator, to
 }
 
 // UpdateRegionOperator updates only the OperatorAddress of the region, without changing RegionShare.
-func (k Keeper) UpdateRegionOperator(ctx sdk.Context, validator stakingtypes.Validator) {
+func (k *Keeper) UpdateRegionOperator(ctx sdk.Context, validator stakingtypes.Validator) {
 	region, found := k.GetRegion(ctx, validator.Description.RegionID)
 	if !found {
 		return
@@ -101,7 +101,7 @@ func (k Keeper) UpdateRegionOperator(ctx sdk.Context, validator stakingtypes.Val
 	k.SetRegion(ctx, region)
 }
 
-func (k Keeper) UnBondRegion(ctx sdk.Context, regionId string) {
+func (k *Keeper) UnBondRegion(ctx sdk.Context, regionId string) {
 	region, found := k.GetRegion(ctx, regionId)
 	if !found {
 		return

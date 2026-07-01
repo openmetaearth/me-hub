@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) FixedDepositAll(c context.Context, req *types.QueryAllFixedDepositRequest) (*types.QueryAllFixedDepositResponse, error) {
+func (k *Keeper) FixedDepositAll(c context.Context, req *types.QueryAllFixedDepositRequest) (*types.QueryAllFixedDepositResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -27,7 +27,7 @@ func (k Keeper) FixedDepositAll(c context.Context, req *types.QueryAllFixedDepos
 	return &types.QueryAllFixedDepositResponse{FixedDeposit: fixedDeposits, Pagination: pageRes}, err
 }
 
-func (k Keeper) FixedDeposit(c context.Context, req *types.QueryGetFixedDepositRequest) (*types.QueryGetFixedDepositResponse, error) {
+func (k *Keeper) FixedDeposit(c context.Context, req *types.QueryGetFixedDepositRequest) (*types.QueryGetFixedDepositResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -41,7 +41,7 @@ func (k Keeper) FixedDeposit(c context.Context, req *types.QueryGetFixedDepositR
 	return &types.QueryGetFixedDepositResponse{FixedDeposit: fixedDeposit}, nil
 }
 
-func (k Keeper) FixedDepositByAcct(goCtx context.Context, req *types.QueryFixedDepositByAcctRequest) (*types.QueryFixedDepositByAcctResponse, error) {
+func (k *Keeper) FixedDepositByAcct(goCtx context.Context, req *types.QueryFixedDepositByAcctRequest) (*types.QueryFixedDepositByAcctResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -73,7 +73,7 @@ func (k Keeper) FixedDepositByAcct(goCtx context.Context, req *types.QueryFixedD
 	return &types.QueryFixedDepositByAcctResponse{FixedDeposit: fixedDeposits}, nil
 }
 
-func (k Keeper) FixedDepositByRegion(goCtx context.Context, req *types.QueryFixedDepositByRegionRequest) (*types.QueryFixedDepositByRegionResponse, error) {
+func (k *Keeper) FixedDepositByRegion(goCtx context.Context, req *types.QueryFixedDepositByRegionRequest) (*types.QueryFixedDepositByRegionResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -90,7 +90,7 @@ func (k Keeper) FixedDepositByRegion(goCtx context.Context, req *types.QueryFixe
 	return &types.QueryFixedDepositByRegionResponse{FixedDeposit: fixedDeposits, Pagination: pageRes}, nil
 }
 
-func (k Keeper) queryFixedDepositByRegionRecursively(ctx sdk.Context, req *types.QueryFixedDepositByRegionRequest, accumulated []types.FixedDeposit) ([]types.FixedDeposit, *query.PageResponse, error) {
+func (k *Keeper) queryFixedDepositByRegionRecursively(ctx sdk.Context, req *types.QueryFixedDepositByRegionRequest, accumulated []types.FixedDeposit) ([]types.FixedDeposit, *query.PageResponse, error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKey))
 	fixedDeposits := make([]types.FixedDeposit, 0)
 
@@ -135,7 +135,7 @@ func (k Keeper) queryFixedDepositByRegionRecursively(ctx sdk.Context, req *types
 	return accumulated, pageRes, nil
 }
 
-func (k Keeper) FixedDepositTotalAmount(goCtx context.Context, req *types.QueryFixedDepositTotalAmountRequest) (*types.QueryFixedDepositTotalAmountResponse, error) {
+func (k *Keeper) FixedDepositTotalAmount(goCtx context.Context, req *types.QueryFixedDepositTotalAmountRequest) (*types.QueryFixedDepositTotalAmountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	amount, found := k.GetFixedDepositTotalAmount(ctx)
 	if !found {
@@ -144,7 +144,7 @@ func (k Keeper) FixedDepositTotalAmount(goCtx context.Context, req *types.QueryF
 	return &types.QueryFixedDepositTotalAmountResponse{Amount: amount.Amount}, nil
 }
 
-func (k Keeper) FixedDepositAmountByMeid(goCtx context.Context, req *types.QueryFixedDepositAmountByMeidRequest) (*types.QueryFixedDepositAmountByMeidResponse, error) {
+func (k *Keeper) FixedDepositAmountByMeid(goCtx context.Context, req *types.QueryFixedDepositAmountByMeidRequest) (*types.QueryFixedDepositAmountByMeidResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
