@@ -48,8 +48,8 @@ service Query {
   // Queries a list of FixedDepositByRegion items.
   rpc FixedDepositByRegion(QueryFixedDepositByRegionRequest) returns (QueryFixedDepositByRegionResponse) {
     option (google.api.http).get =
-    "/cosmos/staking/v1beta1/fixed_deposit_by_region/{region_id}/"
-        "{query_type}";
+      "/cosmos/staking/v1beta1/fixed_deposit_by_region/{region_id}/"
+      "{query_type}";
   }
 
   // Queries a list of FixedDeposit items.
