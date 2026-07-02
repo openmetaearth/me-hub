@@ -16,6 +16,10 @@ func DefaultGenesis() *GenesisState {
 	}
 }
 
+// credKey is used as a composite map key to safely deduplicate (did, sid) pairs
+// without risk of "/" collisions that a string concatenation key would have.
+type credKey struct{ Did, Sid string }
+
 // Validate performs basic genesis state validation returning an error upon any failure.
 func (gs *GenesisState) Validate() error {
 	// --- validate Infos ---
@@ -50,6 +54,17 @@ func (gs *GenesisState) Validate() error {
 		if len(svc.Sid) < 2 || len(svc.Sid) > 8 {
 			return fmt.Errorf("svcs[%d]: sid length must be between 2 and 8, got %d", i, len(svc.Sid))
 		}
+		if len(svc.Name) == 0 || len(svc.Name) > 20 {
+			return fmt.Errorf("svcs[%d]: name length must be between 1 and 20, got %d", i, len(svc.Name))
+		}
+		if len(svc.Description) > 1024 {
+			return fmt.Errorf("svcs[%d]: description length exceeds 1024, got %d", i, len(svc.Description))
+		}
+		for j, issuer := range svc.Issuers {
+			if len(issuer) != DidLength {
+				return fmt.Errorf("svcs[%d].issuers[%d]: issuer DID length must be %d, got %d", i, j, DidLength, len(issuer))
+			}
+		}
 		if _, ok := ServiceStatus_name[int32(svc.Status)]; !ok {
 			return fmt.Errorf("svcs[%d]: invalid service status %d", i, svc.Status)
 		}
@@ -60,7 +75,7 @@ func (gs *GenesisState) Validate() error {
 	}
 
 	// --- validate Vcs ---
-	vcSet := make(map[string]struct{}, len(gs.Vcs))
+	vcSet := make(map[credKey]struct{}, len(gs.Vcs))
 	for i, vc := range gs.Vcs {
 		if len(vc.Did) != DidLength {
 			return fmt.Errorf("vcs[%d]: DID length must be %d, got %d", i, DidLength, len(vc.Did))
@@ -71,10 +86,13 @@ func (gs *GenesisState) Validate() error {
 		if len(vc.Hash) == 0 || len(vc.Hash) > 128 {
 			return fmt.Errorf("vcs[%d]: hash length must be between 1 and 128, got %d", i, len(vc.Hash))
 		}
+		if len(vc.Uri) > 1024 {
+			return fmt.Errorf("vcs[%d]: uri length exceeds 1024, got %d", i, len(vc.Uri))
+		}
 		if len(vc.Data) > maxCredentialDataLength {
 			return fmt.Errorf("vcs[%d]: data length exceeds %d", i, maxCredentialDataLength)
 		}
-		key := vc.Did + "/" + vc.Sid
+		key := credKey{vc.Did, vc.Sid}
 		if _, dup := vcSet[key]; dup {
 			return fmt.Errorf("vcs[%d]: duplicate credential (did=%s, sid=%s)", i, vc.Did, vc.Sid)
 		}
@@ -84,7 +102,7 @@ func (gs *GenesisState) Validate() error {
 	// --- validate Flogs ---
 	// Each FilterLogger must reference an existing Credential in Vcs to prevent
 	// a panic in InitGenesis when GetCredential returns not-found.
-	flogSet := make(map[string]struct{}, len(gs.Flogs))
+	flogSet := make(map[credKey]struct{}, len(gs.Flogs))
 	for i, flog := range gs.Flogs {
 		if len(flog.Did) != DidLength {
 			return fmt.Errorf("flogs[%d]: DID length must be %d, got %d", i, DidLength, len(flog.Did))
@@ -92,7 +110,7 @@ func (gs *GenesisState) Validate() error {
 		if len(flog.Sid) < 2 || len(flog.Sid) > 8 {
 			return fmt.Errorf("flogs[%d]: sid length must be between 2 and 8, got %d", i, len(flog.Sid))
 		}
-		vcKey := flog.Did + "/" + flog.Sid
+		vcKey := credKey{flog.Did, flog.Sid}
 		if _, found := vcSet[vcKey]; !found {
 			return fmt.Errorf("flogs[%d]: referenced credential (did=%s, sid=%s) not found in vcs", i, flog.Did, flog.Sid)
 		}
@@ -100,6 +118,11 @@ func (gs *GenesisState) Validate() error {
 			return fmt.Errorf("flogs[%d]: duplicate filter logger (did=%s, sid=%s)", i, flog.Did, flog.Sid)
 		}
 		flogSet[vcKey] = struct{}{}
+		for k, filter := range flog.Filters {
+			if len(filter) > 1024 {
+				return fmt.Errorf("flogs[%d].filters[%d]: filter length exceeds 1024, got %d", i, k, len(filter))
+			}
+		}
 	}
 
 	return nil
