@@ -13,9 +13,10 @@ import (
 // prefix before any test runs.
 
 const (
-	genesisTestDID     = "1000000000001" // length == DidLength (13)
-	genesisTestAddress = "me1kjnt3ypezt3yf58w8upujvejdtt5xsvkq5dpk4"
-	genesisTestPubkey  = "{\"@type\":\"/ethermint.crypto.v1.ethsecp256k1.PubKey\",\"key\":\"AjkBriaNQIyoihm/Op5a53ovjdThnbs8G3GhSdErW7Mt\"}"
+	genesisTestDID        = "1000000000001" // length == DidLength (13)
+	genesisTestAddress    = "me1kjnt3ypezt3yf58w8upujvejdtt5xsvkq5dpk4"
+	genesisTestPubkey     = "{\"@type\":\"/ethermint.crypto.v1.ethsecp256k1.PubKey\",\"key\":\"AjkBriaNQIyoihm/Op5a53ovjdThnbs8G3GhSdErW7Mt\"}"
+	genesisTestShortValue = "short" // invalid DID/sid value used across multiple tests
 )
 
 func validGenesis() GenesisState {
@@ -91,7 +92,7 @@ func TestGenesisState_Validate_DuplicateAddress(t *testing.T) {
 
 func TestGenesisState_Validate_InvalidDIDLength(t *testing.T) {
 	gs := validGenesis()
-	gs.Infos[0].Did = "short"
+	gs.Infos[0].Did = genesisTestShortValue
 	require.ErrorContains(t, gs.Validate(), "DID length")
 }
 
@@ -167,7 +168,7 @@ func TestGenesisState_Validate_DuplicateCredential(t *testing.T) {
 
 func TestGenesisState_Validate_InvalidCredentialDIDLength(t *testing.T) {
 	gs := validGenesis()
-	gs.Vcs[0].Did = "short"
+	gs.Vcs[0].Did = genesisTestShortValue
 	require.ErrorContains(t, gs.Validate(), "DID length")
 }
 
@@ -211,7 +212,7 @@ func TestGenesisState_Validate_FlogOrphanCredential(t *testing.T) {
 
 func TestGenesisState_Validate_FlogInvalidDIDLength(t *testing.T) {
 	gs := validGenesis()
-	gs.Flogs[0].Did = "short"
+	gs.Flogs[0].Did = genesisTestShortValue
 	require.ErrorContains(t, gs.Validate(), "DID length")
 }
 
