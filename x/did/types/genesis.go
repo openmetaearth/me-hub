@@ -32,7 +32,8 @@ func (gs *GenesisState) Validate() error {
 		if info.Pubkey == "" {
 			return fmt.Errorf("infos[%d]: pubkey must not be empty", i)
 		}
-		if _, err := sdk.AccAddressFromBech32(info.Address); err != nil {
+		addr, err := sdk.AccAddressFromBech32(info.Address)
+		if err != nil {
 			return fmt.Errorf("infos[%d]: invalid address %q: %w", i, info.Address, err)
 		}
 		if _, ok := DidStatus_name[int32(info.Status)]; !ok {
@@ -42,10 +43,13 @@ func (gs *GenesisState) Validate() error {
 			return fmt.Errorf("infos[%d]: duplicate DID %q", i, info.Did)
 		}
 		didSet[info.Did] = struct{}{}
-		if _, dup := addrSet[info.Address]; dup {
+		// Normalize to canonical bech32 to prevent case-variant bypass
+		// (e.g. "ME1..." and "me1..." decode to the same bytes but differ as strings).
+		canonicalAddr := addr.String()
+		if _, dup := addrSet[canonicalAddr]; dup {
 			return fmt.Errorf("infos[%d]: duplicate address %q", i, info.Address)
 		}
-		addrSet[info.Address] = struct{}{}
+		addrSet[canonicalAddr] = struct{}{}
 	}
 
 	// --- validate Svcs ---

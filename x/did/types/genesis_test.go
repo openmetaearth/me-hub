@@ -90,6 +90,20 @@ func TestGenesisState_Validate_DuplicateAddress(t *testing.T) {
 	require.ErrorContains(t, gs.Validate(), "duplicate address")
 }
 
+func TestGenesisState_Validate_DuplicateAddressCaseVariant(t *testing.T) {
+	// bech32 upper-case variant of genesisTestAddress decodes to the same bytes
+	// but differs as a raw string — must still be caught as a duplicate.
+	gs := validGenesis()
+	upperAddr := strings.ToUpper(genesisTestAddress)
+	gs.Infos = append(gs.Infos, DidInfo{
+		Did:     "9999999999999",
+		Address: upperAddr,
+		Pubkey:  genesisTestPubkey,
+		Status:  DID_STATUS_ACTIVE,
+	})
+	require.ErrorContains(t, gs.Validate(), "duplicate address")
+}
+
 func TestGenesisState_Validate_InvalidDIDLength(t *testing.T) {
 	gs := validGenesis()
 	gs.Infos[0].Did = genesisTestShortValue
