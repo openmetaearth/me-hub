@@ -65,7 +65,7 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 			PubKey: oldPubkey,
 			Power:  0,
 		})
-		
+
 		valAddr, errP := sdk.ValAddressFromBech32(replacePubKey.OperatorAddress)
 		if errP != nil {
 			panic(fmt.Sprintf("invalid validator address %s,err = %s", replacePubKey.OperatorAddress, errP.Error()))

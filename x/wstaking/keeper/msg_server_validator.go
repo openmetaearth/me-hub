@@ -55,7 +55,7 @@ func (k MsgServer) CreateValidator(
 	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
 		return nil, stakingtypes.ErrValidatorPubKeyExists
 	}
-	//check if the pubkey of validator is equal to the pubkey of validator replacing its consensus public key
+	// check if the pubkey of validator is equal to the pubkey of validator replacing its consensus public key
 	updatePubKeyInfo, errP := k.GetReplaceConsensusPubKeyInfo(ctx)
 	if errP != nil {
 		return nil, errP
@@ -239,4 +239,3 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 
 	return &types.MsgReplaceConsensusPubKeyResponse{}, nil
 }
-
