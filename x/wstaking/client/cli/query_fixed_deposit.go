@@ -143,7 +143,7 @@ func CmdFixedDepositByRegion() *cobra.Command {
 				return types.ErrParameter.Wrap("query type invalid")
 			}
 
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}

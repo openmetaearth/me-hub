@@ -351,7 +351,7 @@ func local_request_Query_FixedDepositByAcct_0(ctx context.Context, marshaler run
 }
 
 var (
-	filter_Query_FixedDepositByRegion_0 = &utilities.DoubleArray{Encoding: map[string]int{"region_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_Query_FixedDepositByRegion_0 = &utilities.DoubleArray{Encoding: map[string]int{"region_id": 0, "query_type": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
 )
 
 func request_Query_FixedDepositByRegion_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -360,6 +360,7 @@ func request_Query_FixedDepositByRegion_0(ctx context.Context, marshaler runtime
 
 	var (
 		val string
+		e   int32
 		ok  bool
 		err error
 		_   = err
@@ -375,6 +376,19 @@ func request_Query_FixedDepositByRegion_0(ctx context.Context, marshaler runtime
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "region_id", err)
 	}
+
+	val, ok = pathParams["query_type"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_type")
+	}
+
+	e, err = runtime.Enum(val, FixedDepositState_value)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_type", err)
+	}
+
+	protoReq.QueryType = FixedDepositState(e)
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -394,6 +408,7 @@ func local_request_Query_FixedDepositByRegion_0(ctx context.Context, marshaler r
 
 	var (
 		val string
+		e   int32
 		ok  bool
 		err error
 		_   = err
@@ -409,6 +424,19 @@ func local_request_Query_FixedDepositByRegion_0(ctx context.Context, marshaler r
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "region_id", err)
 	}
+
+	val, ok = pathParams["query_type"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "query_type")
+	}
+
+	e, err = runtime.Enum(val, FixedDepositState_value)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "query_type", err)
+	}
+
+	protoReq.QueryType = FixedDepositState(e)
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -1781,7 +1809,7 @@ var (
 
 	pattern_Query_FixedDepositByAcct_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"metaearth", "wstaking", "fixed_deposit_by_acct", "account", "query_type"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_FixedDepositByRegion_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit_by_region", "region_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_FixedDepositByRegion_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"cosmos", "staking", "v1beta1", "fixed_deposit_by_region", "region_id", "query_type"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_FixedDeposit_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "wstaking", "fixed_deposit", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
