@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	"encoding/hex"
 	"fmt"
@@ -53,6 +54,36 @@ func (k MsgServer) CreateValidator(
 
 	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
 		return nil, stakingtypes.ErrValidatorPubKeyExists
+	}
+	// check if the pubkey of validator is equal to the pubkey of validator replacing its consensus public key
+	updatePubKeyInfo, errP := k.GetReplaceConsensusPubKeyInfo(ctx)
+	if errP != nil {
+		return nil, errP
+	}
+	if updatePubKeyInfo != nil {
+		newValidatorPubKey, ok := msg.Pubkey.GetCachedValue().(*ed25519.PubKey)
+		if !ok {
+			// if the pubkey of new validator is not ed25519.PubKey, then it is unexpected,but only record the event and log the error, do not return error to avoid affecting the creation of new validator
+			k.Logger(ctx).Error("pubkey of new validator is not ed25519.PubKey", "pubkey is", msg.Pubkey.GetCachedValue())
+			ctx.EventManager().EmitEvents(sdk.Events{
+				sdk.NewEvent(
+					types.EventPubKeyUnexpected,
+					sdk.NewAttribute(types.AttributeKeyOperatorAddress, msg.ValidatorAddress),
+					sdk.NewAttribute(types.AttributeKeyPubKey, msg.Pubkey.String()),
+					sdk.NewAttribute(types.AttributeKeyOperatorType, "CreateValidator"),
+					sdk.NewAttribute(types.AttributeKeyUpdateAtHeight, fmt.Sprintf("%d", ctx.BlockHeight())),
+				),
+			})
+		} else {
+			newPubKeyData, err := newValidatorPubKey.Marshal()
+			if err != nil {
+				return nil, sdkerrors.Wrapf(types.ErrInterProc, "marshal pubkey of validator error: %v", err)
+			}
+			if bytes.Equal(newPubKeyData, updatePubKeyInfo.PubKey) {
+				return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "pubkey of new validator is equal to the new pubkey of replaceConsensusPubkeyInfo,"+
+					"new pubKey is %s", hex.EncodeToString(updatePubKeyInfo.PubKey))
+			}
+		}
 	}
 
 	bondDenom := k.BondDenom(ctx)

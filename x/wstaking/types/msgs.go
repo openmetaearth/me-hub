@@ -31,6 +31,11 @@ const (
 	TypeMsgRemoveMeid                      = "remove_meid"
 )
 
+const (
+	MinReplacePubKeyBlockNumber int64 = 100
+	MaxReplacePubKeyBlockNumber int64 = 720 // almost 1 hour
+)
+
 var (
 	_ sdk.Msg = &MsgStake{}
 	_ sdk.Msg = &MsgUnstake{}
@@ -545,8 +550,9 @@ func (msg *MsgReplaceConsensusPubKeyRequest) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address (%s)", err)
 	}
-	if msg.ReplacePubKey.BlockNumber < 1 {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid block number (%d)", msg.ReplacePubKey.BlockNumber)
+	if msg.ReplacePubKey.BlockNumber < MinReplacePubKeyBlockNumber || msg.ReplacePubKey.BlockNumber > MaxReplacePubKeyBlockNumber {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid block number (%d), must be between %d and %d",
+			msg.ReplacePubKey.BlockNumber, MinReplacePubKeyBlockNumber, MaxReplacePubKeyBlockNumber)
 	}
 
 	return nil
