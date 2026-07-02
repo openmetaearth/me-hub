@@ -56,10 +56,16 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 		if errP != nil {
 			panic(errP)
 		}
-		validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
+		// If ApplyAndReturnValidatorSetUpdates already emitted an update for the old
+		// consensus key in this block (the validator's power changed at the same
+		// height the pubkey replacement takes effect), merge with it by forcing its
+		// power to 0 instead of appending a second entry for the same consensus
+		// address. CometBFT rejects a changeset with duplicate validator addresses.
+		validatorUpdates = upsertValidatorUpdate(validatorUpdates, abci.ValidatorUpdate{
 			PubKey: oldPubkey,
 			Power:  0,
 		})
+		
 		valAddr, errP := sdk.ValAddressFromBech32(replacePubKey.OperatorAddress)
 		if errP != nil {
 			panic(fmt.Sprintf("invalid validator address %s,err = %s", replacePubKey.OperatorAddress, errP.Error()))
@@ -163,4 +169,14 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 	}
 
 	return validatorUpdates
+}
+
+func upsertValidatorUpdate(updates []abci.ValidatorUpdate, update abci.ValidatorUpdate) []abci.ValidatorUpdate {
+	for i := range updates {
+		if updates[i].PubKey.Equal(update.PubKey) {
+			updates[i].Power = update.Power
+			return updates
+		}
+	}
+	return append(updates, update)
 }
