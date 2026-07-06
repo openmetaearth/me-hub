@@ -34,6 +34,10 @@ func (k *Keeper) GetDidInfo(ctx sdk.Context, did string) (didtypes.DidInfo, bool
 	return k.didKeeper.GetDidInfo(ctx, did)
 }
 
+func (k *Keeper) GetSubAccountDidMap(ctx sdk.Context, did string) (string, bool) {
+	return k.didKeeper.GetSubAccountDidMap(ctx, did)
+}
+
 func (k *Keeper) SetDidInfo(ctx sdk.Context, did string, info didtypes.DidInfo) {
 	k.didKeeper.SetDidInfo(ctx, did, info)
 }
