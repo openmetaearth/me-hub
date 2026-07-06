@@ -1,78 +1,42 @@
-# syntax=docker/dockerfile:1
+# Use Alpine 3.18 (musl 1.2.4) for compatibility with wasmvm v1.4.1's prebuilt muslc static lib,
+# which references LFS64 symbols (fstat64, etc.) that musl >= 1.2.5 (Alpine 3.19+) no longer exports.
+# Go 1.21 here is just the bootstrap toolchain; go.mod's `toolchain go1.24.7` triggers auto-download
+# of Go 1.24.7 for the actual build.
+FROM golang:1.21-alpine3.18 AS builder
 
-# Please, when adding/editing this Dockerfile also take care of Dockerfile.cosmovisor as well
+RUN apk add --no-cache git build-base linux-headers binutils-gold
 
-ARG GO_VERSION="1.23"
-ARG RUNNER_IMAGE="gcr.io/distroless/static-debian11"
-ARG BUILD_TAGS="netgo,ledger,muslc"
+WORKDIR /app
 
-# --------------------------------------------------------
-# Builder
-# --------------------------------------------------------
-
-FROM golang:${GO_VERSION}-alpine3.20 as builder
-
-ARG GIT_VERSION
-ARG GIT_COMMIT
-ARG BUILD_TAGS
-
-RUN apk add --no-cache \
-    ca-certificates \
-    build-base \
-    linux-headers \
-    binutils-gold
-
-# Download go dependencies
-WORKDIR /me-hub
 COPY go.mod go.sum ./
-RUN --mount=type=cache,target=/root/.cache/go-build \
-    --mount=type=cache,target=/root/go/pkg/mod \
-    go mod download
 
 # Cosmwasm - Download correct libwasmvm version
-RUN ARCH=$(uname -m) && WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm | sed 's/.* //') && \
+RUN ARCH=$(uname -m) && \
+    WASMVM_VERSION=$(awk '$1 == "github.com/CosmWasm/wasmvm" { print $2; exit }' go.mod) && \
+    test -n "$WASMVM_VERSION" && \
     wget https://github.com/CosmWasm/wasmvm/releases/download/$WASMVM_VERSION/libwasmvm_muslc.$ARCH.a \
     -O /lib/libwasmvm_muslc.$ARCH.a && \
     # verify checksum
     wget https://github.com/CosmWasm/wasmvm/releases/download/$WASMVM_VERSION/checksums.txt -O /tmp/checksums.txt && \
-    sha256sum /lib/libwasmvm_muslc.$ARCH.a | grep $(cat /tmp/checksums.txt | grep libwasmvm_muslc.$ARCH | cut -d ' ' -f 1) 
+    sha256sum /lib/libwasmvm_muslc.$ARCH.a | grep $(cat /tmp/checksums.txt | grep libwasmvm_muslc.$ARCH.a | cut -d ' ' -f 1) && \
+    # wasmvm's link_muslc.go uses `-lwasmvm_muslc` (no arch suffix), so expose the lib under that name
+    cp /lib/libwasmvm_muslc.$ARCH.a /lib/libwasmvm_muslc.a
 
-# Copy the remaining files
 COPY . .
 
-# Build med binary
-RUN --mount=type=cache,target=/root/.cache/go-build \
-    --mount=type=cache,target=/root/go/pkg/mod \
-    GOWORK=off go build \
-    -mod=readonly \
-    -tags "netgo,ledger,muslc" \
-    -ldflags \
-    "-X github.com/cosmos/cosmos-sdk/version.Name="me-hub" \
-    -X github.com/cosmos/cosmos-sdk/version.AppName="med" \
-    -X github.com/cosmos/cosmos-sdk/version.Version=${GIT_VERSION} \
-    -X github.com/cosmos/cosmos-sdk/version.Commit=${GIT_COMMIT} \
-    -X github.com/cosmos/cosmos-sdk/version.BuildTags=${BUILD_TAGS} \
-    -w -s -linkmode=external -extldflags '-Wl,-z,muldefs -static'" \
-    -trimpath \
-    -o /me-hub/build/med \
-    /me-hub/cmd/med/main.go
+ARG GIT_VERSION=dev
+ARG GIT_COMMIT=unknown
 
-# --------------------------------------------------------
-# Runner
-# --------------------------------------------------------
+RUN make build VERSION="$GIT_VERSION" COMMIT="$GIT_COMMIT" LEDGER_ENABLED=false BUILD_TAGS=muslc LINK_STATICALLY=true
 
-FROM ${RUNNER_IMAGE}
+FROM alpine:3.19
 
-COPY --from=builder /me-hub/build/med /bin/med
+WORKDIR /root
 
-ENV HOME=/me-hub
-WORKDIR $HOME
+COPY --from=builder /app/build/med /usr/bin/med
 
-EXPOSE 26656
-EXPOSE 26657
-EXPOSE 1317
-# Note: uncomment the line below if you need pprof in localosmosis
-# We disable it by default in out main Dockerfile for security reasons
-# EXPOSE 6060
+EXPOSE 26656/tcp 26657/tcp 26660/tcp 9090/tcp 1317/tcp 8545/tcp 8546/tcp
+
+VOLUME ["/root"]
 
 ENTRYPOINT ["med"]
