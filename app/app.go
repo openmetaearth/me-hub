@@ -51,9 +51,9 @@ import (
 	"github.com/openmetaearth/me-hub/app/ante"
 	"github.com/openmetaearth/me-hub/app/keepers"
 	appparams "github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/app/upgrades"
-	v2_0_14_patch_2 "github.com/openmetaearth/me-hub/app/upgrades/v2.0.14.patch.2" //nolint:revive
+	"github.com/openmetaearth/me-hub/app/upgrades" //nolint:revive
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_14"
+	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_15"
 	"github.com/openmetaearth/me-hub/docs"
 	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
 	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
@@ -74,7 +74,7 @@ var (
 	// Upgrades contains the upgrade handlers for the application
 	Upgrades = []upgrades.Upgrade{
 		v2_0_14.Upgrade,
-		v2_0_14_patch_2.Upgrade,
+		v2_0_15.Upgrade,
 	}
 )
 
