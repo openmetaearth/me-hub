@@ -31,4 +31,5 @@ var (
 
 	ErrCredentialExists   = errors.Register(ModuleName, 150, "credential already exists")
 	ErrCredentialNotFound = errors.Register(ModuleName, 151, "credential not found")
+	ErrUnauthorized       = errors.Register(ModuleName, 152, "unauthorized")
 )
