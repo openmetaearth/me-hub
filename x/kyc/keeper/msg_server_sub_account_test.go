@@ -47,7 +47,6 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:    kycAddr.String(),
-			Did:        did,
 			SubAccount: subAddr.String(),
 			Pubkey:     subPubkey,
 		})
@@ -66,16 +65,16 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		s.Require().NotNil(account.GetPubKey())
 	})
 
-	s.Run("did not found", func() {
+	s.Run("creator did not found", func() {
+		creatorWithoutDid, _ := s.NewAccount()
 		subAddr, subPubkey := s.newEthSubAccount()
 
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:    kycAddr.String(),
-			Did:        "9999999999999",
+			Creator:    creatorWithoutDid.String(),
 			SubAccount: subAddr.String(),
 			Pubkey:     subPubkey,
 		})
-		s.Require().ErrorIs(err, didtypes.ErrHolderNotFound)
+		s.Require().ErrorIs(err, didtypes.ErrDidNotFound)
 	})
 
 	s.Run("no kyc credential", func() {
@@ -93,7 +92,6 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		subAddr, subPubkey := s.newEthSubAccount()
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:    noKycAddr.String(),
-			Did:        didNoKyc,
 			SubAccount: subAddr.String(),
 			Pubkey:     subPubkey,
 		})
@@ -108,7 +106,6 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		subAddr, subPubkey := s.newEthSubAccount()
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:    kycAddr2.String(),
-			Did:        did2,
 			SubAccount: subAddr.String(),
 			Pubkey:     subPubkey,
 		})
@@ -118,7 +115,6 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		subAddr2, subPubkey2 := s.newEthSubAccount()
 		_, err = s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:    kycAddr2.String(),
-			Did:        did2,
 			SubAccount: subAddr2.String(),
 			Pubkey:     subPubkey2,
 		})
@@ -133,7 +129,6 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		subAddr, subPubkey := s.newEthSubAccount()
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:    kycAddr3.String(),
-			Did:        did3,
 			SubAccount: subAddr.String(),
 			Pubkey:     subPubkey,
 		})
@@ -146,7 +141,6 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 		_, err = s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:    kycAddr4.String(),
-			Did:        did4,
 			SubAccount: subAddr.String(),
 			Pubkey:     subPubkey,
 		})
@@ -161,7 +155,6 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		subAddr, _ := s.newEthSubAccount()
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:    kycAddr5.String(),
-			Did:        did5,
 			SubAccount: subAddr.String(),
 			Pubkey:     "not-valid-json",
 		})
@@ -180,7 +173,6 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 		_, err = s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:    kycAddr6.String(),
-			Did:        did6,
 			SubAccount: secpAddr.String(),
 			Pubkey:     string(secpPubkeyJSON),
 		})
@@ -197,7 +189,6 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:    kycAddr7.String(),
-			Did:        did7,
 			SubAccount: differentAddr.String(),
 			Pubkey:     subPubkey,
 		})

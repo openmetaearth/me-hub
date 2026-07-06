@@ -4,16 +4,13 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 )
 
 const TypeMsgCreateSubAccount = "create_sub_account"
 
-func NewMsgCreateSubAccount(creator, did, subAccount, pubkey string) *MsgCreateSubAccount {
+func NewMsgCreateSubAccount(creator, subAccount, pubkey string) *MsgCreateSubAccount {
 	return &MsgCreateSubAccount{
 		Creator:    creator,
-		Did:        did,
 		SubAccount: subAccount,
 		Pubkey:     pubkey,
 	}
@@ -38,9 +35,6 @@ func (m *MsgCreateSubAccount) GetSignBytes() []byte {
 func (m *MsgCreateSubAccount) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Creator); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "invalid creator address")
-	}
-	if len(m.Did) != didtypes.DidLength {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "DID length must be %d", didtypes.DidLength)
 	}
 	if _, err := sdk.AccAddressFromBech32(m.SubAccount); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sub_account address")
