@@ -11,6 +11,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -97,4 +98,22 @@ func (k Keeper) GetCdc() codec.BinaryCodec {
 
 func (k Keeper) GetPerBlockMintCoinAmount(ctx sdk.Context) (amount big.Int) {
 	return k.mintKeeper.GetPerBlockMintCoinAmount(ctx)
+}
+
+func (k Keeper) GetValOwnerAddress(ctx sdk.Context, regionId string) (string, error) {
+	region, ok := k.GetRegion(ctx, regionId)
+	if !ok {
+		return "", sdkerrors.Wrapf(types.ErrRegionNotExist, "region(%s) not found", regionId)
+	}
+
+	valAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
+	if err != nil {
+		return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "region bonded validator address(%s) invalid", region.OperatorAddress)
+	}
+
+	validator, ok := k.GetValidator(ctx, valAddr)
+	if !ok {
+		return "", sdkerrors.Wrapf(stakingtypes.ErrNoValidatorFound, "region bonded validator(%s) not found", valAddr.String())
+	}
+	return validator.OwnerAddress, nil
 }
