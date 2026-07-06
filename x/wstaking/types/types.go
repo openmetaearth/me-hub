@@ -6,10 +6,11 @@ import (
 	"github.com/cometbft/cometbft/crypto"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
 )
 
-type MEID_REWARD_TYPE int32
+type MeidRewardType int32
 
 const (
 	MeEarthRegionName    = "ME_EARTH"
@@ -17,10 +18,10 @@ const (
 
 	CaclTotalSupply = 20000000000
 
-	MeidJoinGroupNoReward MEID_REWARD_TYPE = 0
-	MeidJoinGroupRewarded MEID_REWARD_TYPE = 1
-	MeEarthRegionId                        = "me_earth"
-	ExperienceRegionId                     = "experience_region"
+	MeidJoinGroupNoReward MeidRewardType = 0
+	MeidJoinGroupRewarded MeidRewardType = 1
+	MeEarthRegionId                      = "me_earth"
+	ExperienceRegionId                   = "experience_region"
 )
 
 var (
@@ -50,7 +51,7 @@ func GetClassDescription(regionId string) string {
 	return "nft class for region " + regionId
 }
 
-func (m MEID_REWARD_TYPE) Int32() int32 {
+func (m MeidRewardType) Int32() int32 {
 	return int32(m)
 }
 

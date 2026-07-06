@@ -1,7 +1,7 @@
 package types
 
 import (
-	fmt "fmt"
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,10 +15,10 @@ var (
 	// MinBond types.Coin `protobuf:"bytes,1,opt,name=min_bond,json=minBond,proto3" json:"min_bond,omitempty"`
 	// UnbondingTime time.Duration `protobuf:"bytes,2,opt,name=unbonding_time,json=unbondingTime,proto3,stdduration" json:"unbonding_time"`
 
-	// MinBond is the minimum bond required to be a validator
-	DefaultMinBond uint64 = 0
+	// MinBond is the minimum bond required to be a sequencer.
+	DefaultMinBond uint64 = 100_000_000
 	// UnbondingTime is the time duration for unbonding
-	DefaultUnbondingTime time.Duration = time.Hour
+	DefaultUnbondingTime = time.Hour
 
 	// KeyMinBond is store's key for MinBond Params
 	KeyMinBond = []byte("MinBond")
@@ -78,13 +78,14 @@ func validateMinBond(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if v.IsNil() || v.IsZero() {
-		return nil
-	}
-
 	if !v.IsValid() {
 		return fmt.Errorf("invalid coin: %s", v)
 	}
+
+	if !v.IsPositive() {
+		return fmt.Errorf("min bond must be positive: %s", v)
+	}
+
 	return nil
 }
 
@@ -93,12 +94,7 @@ func (p Params) Validate() error {
 	if err := validateMinBond(p.MinBond); err != nil {
 		return err
 	}
-
-	if err := validateUnbondingTime(p.UnbondingTime); err != nil {
-		return err
-	}
-
-	return nil
+	return validateUnbondingTime(p.UnbondingTime)
 }
 
 // String implements the Stringer interface.

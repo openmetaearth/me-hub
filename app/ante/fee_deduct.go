@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"math"
 
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/openmetaearth/me-hub/app/params"
-	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	"github.com/openmetaearth/me-hub/app/params"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 const (
@@ -74,7 +74,9 @@ func NewDeductFeeDecorator(
 func (dfd DeductFeeDecorator) ParseWasmMsgContractCreator(ctx sdk.Context, tx sdk.Tx) (string, bool) {
 	// wasm exec message should be the only message in tx
 	// to be considered as a wasm transaction
-	// this criterion is coarse, refine it later!
+	if len(tx.GetMsgs()) != 1 {
+		return "", false
+	}
 
 	allwasm := true
 	var contract string
@@ -178,7 +180,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		}
 
 		err = dfd.CheckFunds(ctx, tx, deductFeesFrom.String(), fee)
-		if err != nil {
+		if err != nil && !fee.IsZero() {
 			return ctx, err
 		}
 		// deduct the fees
@@ -262,7 +264,8 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 
 			outputs = append(outputs, banktypes.Output{
 				Address: dfd.daoKeeper.GetGlobalDaoFeePoolAddr(ctx).String(),
-				Coins:   globalFee})
+				Coins:   globalFee,
+			})
 			feeReceiverTypes = append(feeReceiverTypes, wbanktypes.FeeReceiverGlobalDaoFeePool)
 
 			err = dfd.BankKeeper.FeeToReceivers(ctx, inputs, outputs, feeReceiverTypes)
@@ -285,44 +288,34 @@ func (dfd DeductFeeDecorator) CheckFunds(ctx sdk.Context, tx sdk.Tx, feePayer st
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "denom is empty")
 	}
 
-	fromAddress := ""
 	userSendAmount := make(map[string]sdk.Coins)
 	for _, msg := range tx.GetMsgs() {
 		switch txMsg := msg.(type) {
 		case *banktypes.MsgSend:
-			fromAddress = txMsg.FromAddress
 			sendAmount := userSendAmount[txMsg.FromAddress]
-			sendAmount = sendAmount.Add(txMsg.Amount...)
-			userSendAmount[txMsg.FromAddress] = sendAmount
+			userSendAmount[txMsg.FromAddress] = sendAmount.Add(txMsg.Amount...)
 		case *banktypes.MsgMultiSend:
 			if len(txMsg.Inputs) == 0 {
 				return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "no input coins provided")
 			}
-			fromAddress = txMsg.Inputs[0].Address
-			sendAmount := userSendAmount[fromAddress]
-			for _, output := range txMsg.Outputs {
-				sendAmount = sendAmount.Add(output.Coins...)
+			for _, input := range txMsg.Inputs {
+				sendAmount := userSendAmount[input.Address]
+				userSendAmount[input.Address] = sendAmount.Add(input.Coins...)
 			}
-			userSendAmount[fromAddress] = sendAmount
 		case *stakingtypes.MsgDelegate:
-			fromAddress = txMsg.DelegatorAddress
 			sendAmount := userSendAmount[txMsg.DelegatorAddress]
-			sendAmount = sendAmount.Add(txMsg.Amount)
-			userSendAmount[txMsg.DelegatorAddress] = sendAmount
+			userSendAmount[txMsg.DelegatorAddress] = sendAmount.Add(txMsg.Amount)
 		case *wstakingtypes.MsgDoFixedDeposit:
-			fromAddress = txMsg.Account
 			sendAmount := userSendAmount[txMsg.Account]
-			sendAmount = sendAmount.Add(txMsg.Principal)
-			userSendAmount[txMsg.Account] = sendAmount
+			userSendAmount[txMsg.Account] = sendAmount.Add(txMsg.Principal)
 		}
 	}
 
-	if _, exists := userSendAmount[feePayer]; !exists {
+	// fees are always deducted from feePayer, so always add them to feePayer's required balance
+	if existing, exists := userSendAmount[feePayer]; !exists {
 		userSendAmount[feePayer] = fees
 	} else {
-		if fromAddress == feePayer {
-			userSendAmount[feePayer] = userSendAmount[feePayer].Add(fees...)
-		}
+		userSendAmount[feePayer] = existing.Add(fees...)
 	}
 
 	for address, sendAmount := range userSendAmount {

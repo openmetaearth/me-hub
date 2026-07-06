@@ -9,69 +9,55 @@ import (
 	"os"
 	"path/filepath"
 
-	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
-	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
-
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
-	"github.com/prometheus/client_golang/prometheus"
-
 	simappparams "cosmossdk.io/simapp/params"
-	"github.com/cosmos/cosmos-sdk/runtime"
-	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
-	"github.com/openmetaearth/me-hub/app/keepers"
-	"github.com/openmetaearth/me-hub/app/upgrades"
-	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_14"
-
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	cometbftjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cometbft/cometbft/libs/log"
 	cometbftos "github.com/cometbft/cometbft/libs/os"
-
-	"github.com/gorilla/mux"
-	"github.com/spf13/cast"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
+	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/store/streaming"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-
 	"github.com/cosmos/cosmos-sdk/x/crisis"
-
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
-	"github.com/openmetaearth/me-hub/docs"
-
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-
-	"github.com/openmetaearth/me-hub/app/ante"
-	appparams "github.com/openmetaearth/me-hub/app/params"
-
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
-
-	/* ------------------------------ ethermint imports ----------------------------- */
-
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/evmos/ethermint/ethereum/eip712"
-
 	"github.com/evmos/ethermint/server/flags"
-	/* ----------------------------- osmosis imports ---------------------------- */ /* ---------------------------- upgrade handlers ---------------------------- */)
+	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/spf13/cast"
+
+	"github.com/openmetaearth/me-hub/app/ante"
+	"github.com/openmetaearth/me-hub/app/keepers"
+	appparams "github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/app/upgrades" //nolint:revive
+	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_14"
+	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_15"
+	"github.com/openmetaearth/me-hub/docs"
+	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
+	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
+)
 
 var (
 	_ = packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp
@@ -88,6 +74,7 @@ var (
 	// Upgrades contains the upgrade handlers for the application
 	Upgrades = []upgrades.Upgrade{
 		v2_0_14.Upgrade,
+		v2_0_15.Upgrade,
 	}
 )
 

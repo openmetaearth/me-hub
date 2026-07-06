@@ -12,8 +12,8 @@ const (
 	MainnetEvmChainID = 2404
 
 	TestnetV1ChainId  = "mechain_testnet"
-	TestnetV2ChainId  = "mechain_testnet_2405-1"
-	TestnetEvmChainID = 2405
+	TestnetV2ChainId  = "mechain_testnet_202405-1"
+	TestnetEvmChainID = 202405
 )
 
 var (

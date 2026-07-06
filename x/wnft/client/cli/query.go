@@ -2,16 +2,16 @@ package cli
 
 import (
 	"fmt"
-	"github.com/openmetaearth/me-hub/x/wnft/types"
-	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/nft"
-
 	nftcli "github.com/cosmos/cosmos-sdk/x/nft/client/cli"
+	"github.com/spf13/cobra"
+
+	"github.com/openmetaearth/me-hub/x/wnft/types"
 )
 
 // Flag names and values
@@ -59,6 +59,10 @@ func GetCmdQueryClassAddress() *cobra.Command {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
 
 			owner := args[1]
 
@@ -69,8 +73,9 @@ func GetCmdQueryClassAddress() *cobra.Command {
 			}
 
 			res, err := queryClient.ClassAddress(cmd.Context(), &types.QueryClassAddressRequest{
-				ClassId: args[0],
-				Address: owner,
+				ClassId:    args[0],
+				Address:    owner,
+				Pagination: pageReq,
 			})
 			if err != nil {
 				return err
@@ -78,6 +83,8 @@ func GetCmdQueryClassAddress() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
@@ -96,6 +103,13 @@ func GetCmdQueryNftFilter() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			owner, err := cmd.Flags().GetString(FlagOwner)
+			if err != nil {
+				return err
+			}
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
 
 			if len(owner) > 0 {
 				if _, err := sdk.AccAddressFromBech32(owner); err != nil {
@@ -108,9 +122,10 @@ func GetCmdQueryNftFilter() *cobra.Command {
 			tokenId, _ := cmd.Flags().GetString(FlagTokenId)
 
 			res, err := queryClient.NftFilter(cmd.Context(), &types.QueryNftFilterRequest{
-				Owner:   owner,
-				ClassId: classId,
-				TokenId: tokenId,
+				Owner:      owner,
+				ClassId:    classId,
+				TokenId:    tokenId,
+				Pagination: pageReq,
 			})
 			if err != nil {
 				return err
@@ -118,6 +133,8 @@ func GetCmdQueryNftFilter() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 	cmd.Flags().String(FlagOwner, "", "The owner of the nft")
 	cmd.Flags().String(FlagClassID, "", "The class-id of the nft")

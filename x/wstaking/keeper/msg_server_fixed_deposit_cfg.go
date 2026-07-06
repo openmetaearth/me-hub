@@ -2,9 +2,33 @@ package keeper
 
 import (
 	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
+
+func validateFixedDepositCfgRate(rate sdk.Dec) error {
+	if !rate.IsPositive() {
+		return types.ErrFixedDepositConfigRateInvalid.Wrapf("rate must be > 0 (%s)", rate.String())
+	}
+
+	minRate := sdk.MustNewDecFromStr("0.0001")
+	maxRate := sdk.MustNewDecFromStr("10000")
+	if rate.LT(minRate) || rate.GT(maxRate) {
+		return types.ErrFixedDepositConfigRateInvalid.Wrapf("rate(%s) out of range [0.0001, 10000]", rate.String())
+	}
+	return nil
+}
+
+func validateFixedDepositCfgStatus(status types.FIXED_DEPOSIT_CFG_STATUS) error {
+	switch status {
+	case types.RegionFixedDepositCfgStatusActive, types.RegionFixedDepositCfgStatusInactive:
+		return nil
+	default:
+		return types.ErrSetFixedDepositConfigStatus.Wrapf("invalid fixed deposit config status %d", status)
+	}
+}
 
 func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFixedDepositCfg) (*types.MsgNewFixedDepositCfgResp, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -22,15 +46,8 @@ func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFi
 		return nil, types.ErrAddFixedDepositConfig.Wrapf("add fixed deposit config error, term is not positive 0 (%d)", msg.Term)
 	}
 
-	if !msg.Rate.IsPositive() {
-		return nil, types.ErrAddFixedDepositConfig.Wrapf("add fixed deposit config error, rate is not positive 0 (%s)", msg.Rate.String())
-	}
-
-	minRate := sdk.MustNewDecFromStr("0.0001")
-	maxRate := sdk.MustNewDecFromStr("10000")
-	if msg.Rate.LT(minRate) || msg.Rate.GT(maxRate) {
-		return nil, types.ErrAddFixedDepositConfig.Wrapf("add fixed deposit config rate(%s) error (%s)",
-			msg.Rate.String(), types.ErrFixedDepositConfigRateInvalid)
+	if err := validateFixedDepositCfgRate(msg.Rate); err != nil {
+		return nil, types.ErrAddFixedDepositConfig.Wrapf("%v", err)
 	}
 
 	_, ok := k.GetFixedDepositCfg(ctx, msg.RegionId, msg.Term)
@@ -79,6 +96,10 @@ func (k MsgServer) SetFixedDepositCfgStatus(goCtx context.Context, msg *types.Ms
 		return nil, types.ErrCheckGlobalDao
 	}
 
+	if err := validateFixedDepositCfgStatus(msg.Status); err != nil {
+		return nil, err
+	}
+
 	config, ok := k.GetFixedDepositCfg(ctx, msg.RegionId, msg.Term)
 	if !ok {
 		return nil, types.ErrSetFixedDepositConfigStatus.Wrapf("set fixed deposit config status error (%s)", types.ErrNoFixedDepositCountOfCfgFound)
@@ -99,6 +120,10 @@ func (k MsgServer) SetFixedDepositCfgRate(goCtx context.Context, msg *types.MsgS
 	config, ok := k.GetFixedDepositCfg(ctx, msg.RegionId, msg.Term)
 	if !ok {
 		return nil, types.ErrSetFixedDepositConfigRate.Wrapf("set fixed deposit config rate error (%s)", types.ErrNoFixedDepositCountOfCfgFound)
+	}
+
+	if err := validateFixedDepositCfgRate(msg.Rate); err != nil {
+		return nil, types.ErrSetFixedDepositConfigRate.Wrapf("%v", err)
 	}
 
 	config.Rate = msg.Rate

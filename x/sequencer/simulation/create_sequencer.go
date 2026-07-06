@@ -44,6 +44,7 @@ func SimulateMsgCreateSequencer(
 			DymintPubKey: pkAny,
 			RollappId:    rollappId,
 			Description:  types.Description{},
+			Bond:         k.GetParams(ctx).MinBond,
 		}
 
 		bNotPermissioned := false
@@ -67,7 +68,7 @@ func SimulateMsgCreateSequencer(
 			for _, item := range simulation.GlobalSequencerAddressesList {
 				// check how many sequencers already attached to this rollapp
 				if item.RollappIndex == rollappIndex {
-					rollappSeqNum += 1
+					rollappSeqNum++
 				}
 				// check if we already created it
 				if item.Account.Address.String() == seqAddress {

@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
+
 	"github.com/openmetaearth/me-hub/utils"
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/openmetaearth/me-hub/x/wnft/types"
@@ -41,7 +42,7 @@ func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "class %s already exists", msg.ClassId)
 	}
 
-	//Check if the name occupies the zone name todo
+	// Check if the name occupies the zone name todo
 	if utils.CheckIsRegionName(msg.ClassId) {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid class name %s", msg.ClassId)
 	}
@@ -70,14 +71,16 @@ func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.
 	if err != nil {
 		return &types.MsgNewClassResponse{}, err
 	}
-	ctx.EventManager().EmitTypedEvent(&class)
+	if err := ctx.EventManager().EmitTypedEvent(&class); err != nil {
+		return nil, err
+	}
 	return &types.MsgNewClassResponse{}, nil
 }
 
 func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.MsgMintNFTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	//check token id An integer between 1 and the total supply of the NFT type, non-repeating
+	// check token id An integer between 1 and the total supply of the NFT type, non-repeating
 	if !k.HasClass(ctx, msg.ClassId) {
 		return nil, sdkerrors.Wrap(nft.ErrClassNotExists, msg.ClassId)
 	}
@@ -103,6 +106,10 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 
 	if tokenId < 1 || tokenId > class.TotalSupply {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id")
+	}
+
+	if k.GetTotalSupply(ctx, msg.ClassId) >= class.TotalSupply {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "total supply exceeded")
 	}
 	receiver, err := sdk.AccAddressFromBech32(msg.Receiver)
 	if err != nil {
@@ -176,7 +183,7 @@ func (k MsgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 			sdk.NewAttribute(types.AttributeKeyTokenID, msg.Id),
 			sdk.NewAttribute(types.AttributeKeySender, msg.Sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, msg.Receiver),
-			sdk.NewAttribute(types.AttributeKeyUri, myNFT.Uri),
+			sdk.NewAttribute(types.AttributeKeyURI, myNFT.Uri),
 			sdk.NewAttribute(types.AttributeKeyClassName, class.Name),
 		),
 	})

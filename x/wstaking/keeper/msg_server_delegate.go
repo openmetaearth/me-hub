@@ -2,16 +2,17 @@ package keeper
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"time"
+
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
-	"time"
 )
 
 // Delegate defines a method for performing a delegation of coins from a delegator to a validator
@@ -66,12 +67,13 @@ func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 		if err != nil {
 			return nil, err
 		}
-		if region.DelegateInterest.GTE(rewards) {
-			region.DelegateInterest = region.DelegateInterest.Sub(rewards)
-		} else {
-			return nil, errors.New(fmt.Sprintf("region(%s) total interest not enough.need pay %s,only have %s",
-				region.RegionId, rewards.String(), region.DelegateInterest.String()))
+
+		if region.DelegateInterest.LT(rewards) {
+			return nil, fmt.Errorf("delegate err, region(%s) total interest not enough.need pay %s,only have %s",
+				region.RegionId, rewards.String(), region.DelegateInterest.String())
 		}
+		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
+
 		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, regionTreasureAddr, delegatorAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, rewards.TruncateInt())),
 			fmt.Sprintf("Delegate_SendRewards_%s", region.RegionId),
 		)
