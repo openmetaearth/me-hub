@@ -1,8 +1,9 @@
 package types
 
 import (
-	"cosmossdk.io/errors"
 	"fmt"
+
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -67,6 +68,10 @@ func (m *MsgCreateVC) ValidateBasic() error {
 	}
 	if len(m.Uri) > 1024 {
 		return errors.Wrap(sdkerrors.ErrInvalidType, "uri length exceeds 1024")
+	}
+
+	if len(m.Data) > maxCredentialDataLength {
+		return errors.Wrapf(sdkerrors.ErrInvalidType, "data length exceeds %d", maxCredentialDataLength)
 	}
 
 	for _, filter := range m.Filters {

@@ -1,13 +1,17 @@
 package keeper_test
 
 import (
+	"encoding/hex"
+	"math/big"
+
 	sdkmath "cosmossdk.io/math"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // TestCreateValidator tests validator creation
@@ -31,7 +35,7 @@ func (s *KeeperTestSuite) TestCreateValidator() {
 						Identity: "test",
 						Website:  "https://test.com",
 						Details:  "test validator",
-						RegionID: types.ExperienceRegionName,
+						RegionID: wstakingtypes.ExperienceRegionName,
 					},
 					Commission: stakingtypes.CommissionRates{
 						Rate:          sdkmath.LegacyNewDecWithPrec(1, 1), // 10%
@@ -108,7 +112,7 @@ func (s *KeeperTestSuite) TestCreateValidator() {
 				return &stakingtypes.MsgCreateValidator{
 					Description: stakingtypes.Description{
 						Moniker:  "test-validator-4",
-						RegionID: types.ExperienceRegionName,
+						RegionID: wstakingtypes.ExperienceRegionName,
 					},
 					Commission: stakingtypes.CommissionRates{
 						Rate:          sdkmath.LegacyZeroDec(), // Too low
@@ -177,13 +181,13 @@ func (s *KeeperTestSuite) TestUpdateValidator() {
 
 	testCases := []struct {
 		name      string
-		msg       *types.MsgUpdateValidator
+		msg       *wstakingtypes.MsgUpdateValidator
 		expectErr bool
 		errMsg    string
 	}{
 		{
 			name: "successful validator update",
-			msg: &types.MsgUpdateValidator{
+			msg: &wstakingtypes.MsgUpdateValidator{
 				Description: stakingtypes.Description{
 					Moniker:  "Updated Moniker",
 					Identity: "updated",
@@ -200,7 +204,7 @@ func (s *KeeperTestSuite) TestUpdateValidator() {
 		},
 		{
 			name: "non-dao updater",
-			msg: &types.MsgUpdateValidator{
+			msg: &wstakingtypes.MsgUpdateValidator{
 				Description: stakingtypes.Description{
 					Moniker:  "Unauthorized Update",
 					RegionID: stakingtypes.DoNotModifyDesc,
@@ -214,7 +218,7 @@ func (s *KeeperTestSuite) TestUpdateValidator() {
 		},
 		{
 			name: "update non-existent validator",
-			msg: &types.MsgUpdateValidator{
+			msg: &wstakingtypes.MsgUpdateValidator{
 				Description: stakingtypes.Description{
 					Moniker:  "Non-existent",
 					RegionID: stakingtypes.DoNotModifyDesc,
@@ -228,10 +232,10 @@ func (s *KeeperTestSuite) TestUpdateValidator() {
 		},
 		{
 			name: "update with new region",
-			msg: &types.MsgUpdateValidator{
+			msg: &wstakingtypes.MsgUpdateValidator{
 				Description: stakingtypes.Description{
 					Moniker:  "New Region Validator",
-					RegionID: types.MeEarthRegionName,
+					RegionID: wstakingtypes.MeEarthRegionName,
 				},
 				OperatorAddress: validator.OperatorAddress,
 				StakerAddress:   s.Dao.GlobalDao,
@@ -266,7 +270,7 @@ func (s *KeeperTestSuite) TestUpdateValidator() {
 				events := ctx.EventManager().Events()
 				foundUpdateEvent := false
 				for _, event := range events {
-					if event.Type == types.EventTypeUpdateValidator {
+					if event.Type == wstakingtypes.EventTypeUpdateValidator {
 						foundUpdateEvent = true
 						break
 					}
@@ -292,7 +296,7 @@ func (s *KeeperTestSuite) TestCreateValidatorDuplicatePubKey() {
 	msg := &stakingtypes.MsgCreateValidator{
 		Description: stakingtypes.Description{
 			Moniker:  "duplicate-pubkey",
-			RegionID: types.ExperienceRegionName,
+			RegionID: wstakingtypes.ExperienceRegionName,
 		},
 		Commission: stakingtypes.CommissionRates{
 			Rate:          sdkmath.LegacyNewDecWithPrec(1, 1),
@@ -326,4 +330,90 @@ func (s *KeeperTestSuite) TestEditValidatorNotImplemented() {
 	_, err := s.msgServer.EditValidator(s.Ctx, msg)
 	s.Require().Error(err)
 	s.Require().Contains(err.Error(), "not implemented")
+}
+
+func (s *KeeperTestSuite) newCreateValidatorMsgForTest(operatorAcc sdk.AccAddress, pubKey *ed25519.PubKey) *stakingtypes.MsgCreateValidator {
+	validatorPubKeyAny, err := codectypes.NewAnyWithValue(pubKey)
+	s.Require().NoError(err)
+
+	createAmount := sdk.NewCoin(
+		params.BaseDenom,
+		sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)),
+	)
+
+	return &stakingtypes.MsgCreateValidator{
+		Description: stakingtypes.Description{
+			Moniker:  "replacement-conflict",
+			RegionID: wstakingtypes.MeEarthRegionName,
+		},
+		Commission: stakingtypes.NewCommissionRates(
+			s.Keeper().MinCommissionRate(s.Ctx),
+			sdk.OneDec(),
+			sdk.ZeroDec(),
+		),
+		MinSelfDelegation: sdk.OneInt(),
+		DelegatorAddress:  s.Dao.GlobalDao,
+		ValidatorAddress:  sdk.ValAddress(operatorAcc).String(),
+		Pubkey:            validatorPubKeyAny,
+		Value:             createAmount,
+	}
+}
+
+func (s *KeeperTestSuite) TestMsgServerCreateValidatorRejectsPendingReplacementPubKey() {
+	s.SetupTest()
+
+	pendingPubKey, ok := ed25519.GenPrivKey().PubKey().(*ed25519.PubKey)
+	s.Require().True(ok)
+
+	replaceReq, err := wstakingtypes.NewMsgReplaceConsensusPubKeyRequest(
+		s.Dao.GlobalDao,
+		s.meEarthValidator.OperatorAddress,
+		pendingPubKey,
+		wstakingtypes.MinReplacePubKeyBlockNumber,
+	)
+	s.Require().NoError(err)
+
+	_, err = s.msgServer.ReplaceConsensusPubKey(s.Ctx, replaceReq)
+	s.Require().NoError(err)
+
+	pubKeyData, err := pendingPubKey.Marshal()
+	s.Require().NoError(err)
+
+	msg := s.newCreateValidatorMsgForTest(s.TestAccs[0], pendingPubKey)
+	_, err = s.msgServer.CreateValidator(s.Ctx, msg)
+	s.Require().Error(err)
+	s.Require().Contains(err.Error(), hex.EncodeToString(pubKeyData))
+}
+
+func (s *KeeperTestSuite) TestMsgServerCreateValidatorAllowsDifferentPendingReplacementPubKey() {
+	s.SetupTest()
+
+	pendingPubKey, ok := ed25519.GenPrivKey().PubKey().(*ed25519.PubKey)
+	s.Require().True(ok)
+
+	replaceReq, err := wstakingtypes.NewMsgReplaceConsensusPubKeyRequest(
+		s.Dao.GlobalDao,
+		s.meEarthValidator.OperatorAddress,
+		pendingPubKey,
+		wstakingtypes.MinReplacePubKeyBlockNumber,
+	)
+	s.Require().NoError(err)
+
+	_, err = s.msgServer.ReplaceConsensusPubKey(s.Ctx, replaceReq)
+	s.Require().NoError(err)
+
+	createPubKey, ok := ed25519.GenPrivKey().PubKey().(*ed25519.PubKey)
+	s.Require().True(ok)
+
+	msg := s.newCreateValidatorMsgForTest(s.TestAccs[1], createPubKey)
+	_, err = s.msgServer.CreateValidator(s.Ctx, msg)
+	s.Require().NoError(err)
+
+	validatorAddr := sdk.ValAddress(s.TestAccs[1])
+	validator, found := s.Keeper().GetValidator(s.Ctx, validatorAddr)
+	s.Require().True(found)
+
+	validatorConsAddr, err := validator.GetConsAddr()
+	s.Require().NoError(err)
+	s.Require().Equal(sdk.GetConsAddress(createPubKey).String(), validatorConsAddr.String())
 }

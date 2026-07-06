@@ -57,6 +57,7 @@ const (
 	EventTypeStartReplacePubKey     = "start_replace_pubkey"
 	EventTypeDelayRemoveOldConsAddr = "delay_remove_old_cons_addr"
 	EventTypeReplacePubKeyFailed    = "replace_pubkey_failed"
+	EventPubKeyUnexpected           = "pubkey_unexpected"
 
 	AttributeKeyOperatorAddress = "operator_address"
 	AttributeKeyPubKey          = "pub_key"
@@ -64,6 +65,8 @@ const (
 	AttributeKeyNowConsAddr     = "now_cons_addr"
 	AttributeKeyUpdateAtHeight  = "update_at_height"
 	AttributeKeyFailedReason    = "failed_reason"
+
+	AttributeKeyOperatorType = "operator_type"
 )
 
 var (

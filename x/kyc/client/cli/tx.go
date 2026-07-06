@@ -30,6 +30,7 @@ func GetTxCmd() *cobra.Command {
 		CmdCreateSBT(),
 		CmdUpdateSBT(),
 		CmdDeleteSBT(),
+		CmdCreateSubAccount(),
 	)
 	return cmd
 }
@@ -239,6 +240,43 @@ func CmdDeleteSBT() *cobra.Command {
 			msg := types.NewMsgDeleteSBT(
 				clientCtx.GetFromAddress().String(),
 				did,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+func CmdCreateSubAccount() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create-sub-account [sub_account] [pubkey]",
+		Short: "bind a sub-account address to a KYC DID",
+		Long: `Bind an ethsecp256k1 sub-account address to a KYC DID.
+
+[pubkey] must be the proto-JSON encoded public key of the sub-account, e.g.:
+  '{"@type":"/ethermint.crypto.v1.ethsecp256k1.PubKey","key":"<base64>"}'
+
+The chain verifies that the pubkey derives to sub_account and that the key type
+is ethsecp256k1.`,
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			subAccount := args[0]
+			pubkey := args[1]
+
+			msg := types.NewMsgCreateSubAccount(
+				clientCtx.GetFromAddress().String(),
+				subAccount,
+				pubkey,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

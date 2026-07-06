@@ -45,6 +45,7 @@ type DIDKeeper interface {
 
 	HasDidBySubAccount(ctx sdk.Context, subAccount string) bool
 	SetSubAccountDidMap(ctx sdk.Context, subAccount, did string)
+	GetSubAccountDidMap(ctx sdk.Context, subAccount string) (did string, found bool)
 }
 
 type NFTKeeper interface {

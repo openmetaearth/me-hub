@@ -56,7 +56,7 @@ func (k *Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 			if errP != nil {
 				panic(errP)
 			}
-			validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
+			validatorUpdates = upsertValidatorUpdate(validatorUpdates, abci.ValidatorUpdate{
 				PubKey: oldPubkey,
 				Power:  0,
 			})
@@ -164,4 +164,14 @@ func (k *Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 	}
 
 	return validatorUpdates
+}
+
+func upsertValidatorUpdate(updates []abci.ValidatorUpdate, update abci.ValidatorUpdate) []abci.ValidatorUpdate {
+	for i := range updates {
+		if updates[i].PubKey.Equal(update.PubKey) {
+			updates[i].Power = update.Power
+			return updates
+		}
+	}
+	return append(updates, update)
 }

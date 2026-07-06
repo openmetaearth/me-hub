@@ -15,13 +15,31 @@ import (
 func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateSubAccount) (*types.MsgCreateSubAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	holderInfo, found := m.GetDidInfo(ctx, msg.Did)
+	sdkAccount, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return &types.MsgCreateSubAccountResponse{}, errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+
+	did, ok := m.GetDID(ctx, sdkAccount)
+	if !ok {
+		return &types.MsgCreateSubAccountResponse{}, didtypes.ErrDidNotFound
+	}
+
+	holderInfo, found := m.GetDidInfo(ctx, did)
 	if !found || holderInfo.Status != didtypes.DID_STATUS_ACTIVE {
 		return &types.MsgCreateSubAccountResponse{}, didtypes.ErrHolderNotFound
 	}
 
-	if !m.HasKYC(ctx, msg.Did) {
+	if !m.HasKYC(ctx, did) {
 		return &types.MsgCreateSubAccountResponse{}, didtypes.ErrCredentialNotFound
+	}
+
+	if holderInfo.Address != msg.Creator {
+		return &types.MsgCreateSubAccountResponse{}, didtypes.ErrUnauthorized
+	}
+
+	if holderInfo.SubAccount != "" {
+		return &types.MsgCreateSubAccountResponse{}, types.ErrSubAccountAlreadyExists
 	}
 
 	if m.didKeeper.HasDidBySubAccount(ctx, msg.SubAccount) {
@@ -57,14 +75,15 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 		m.accountKeeper.SetAccount(ctx, newAccount)
 	}
 
-	m.didKeeper.SetSubAccountDidMap(ctx, msg.SubAccount, msg.Did)
+	holderInfo.SubAccount = msg.SubAccount
+	m.SetDidInfo(ctx, did, holderInfo)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateSubAccount,
 			sdk.NewAttribute(types.AttributeKeyCreator, msg.Creator),
 			sdk.NewAttribute(types.AttributeKeySubAccount, msg.SubAccount),
-			sdk.NewAttribute(types.AttributeKeyDid, msg.Did),
+			sdk.NewAttribute(types.AttributeKeyDid, did),
 		),
 	})
 	return &types.MsgCreateSubAccountResponse{}, nil

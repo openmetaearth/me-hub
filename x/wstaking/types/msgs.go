@@ -13,6 +13,11 @@ import (
 	"github.com/openmetaearth/me-hub/app/params"
 )
 
+const (
+	MinReplacePubKeyBlockNumber int64 = 100
+	MaxReplacePubKeyBlockNumber int64 = 720 // almost 1 hour
+)
+
 var (
 	_ sdk.Msg = &MsgStake{}
 	_ sdk.Msg = &MsgUnstake{}
@@ -317,8 +322,9 @@ func (msg *MsgReplaceConsensusPubKeyRequest) ValidateBasic() error {
 	if msg.ReplacePubKey == nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "replace pubkey cannot be nil")
 	}
-	if msg.ReplacePubKey.BlockNumber < 1 {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid block number (%d)", msg.ReplacePubKey.BlockNumber)
+	if msg.ReplacePubKey.BlockNumber < MinReplacePubKeyBlockNumber || msg.ReplacePubKey.BlockNumber > MaxReplacePubKeyBlockNumber {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid block number (%d), must be between %d and %d",
+			msg.ReplacePubKey.BlockNumber, MinReplacePubKeyBlockNumber, MaxReplacePubKeyBlockNumber)
 	}
 
 	return nil

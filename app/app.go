@@ -3,6 +3,11 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/fs"
+	"net/http"
+	"os"
+	"path/filepath"
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
@@ -21,12 +26,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	evmclient "github.com/evmos/ethermint/x/evm/client"
-
-	"io"
-	"io/fs"
-	"net/http"
-	"os"
-	"path/filepath"
 
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	denommetadatamoduleclient "github.com/openmetaearth/me-hub/x/denommetadata/client"
@@ -76,12 +75,11 @@ import (
 
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 
-	"github.com/openmetaearth/me-hub/app/ante"
-	appparams "github.com/openmetaearth/me-hub/app/params"
-
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
+	"github.com/openmetaearth/me-hub/app/ante"
+	appparams "github.com/openmetaearth/me-hub/app/params"
 
 	/* ------------------------------ ethermint imports ----------------------------- */
 
