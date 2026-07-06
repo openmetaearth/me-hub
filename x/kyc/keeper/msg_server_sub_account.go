@@ -18,7 +18,7 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 	if err != nil {
 		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
-	
+
 	did, ok := m.GetDID(ctx, sdkAccount)
 	if !ok {
 		return &types.MsgCreateSubAccountResponse{}, didtypes.ErrDidNotFound
@@ -32,7 +32,6 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 	if !m.HasKYC(ctx, did) {
 		return &types.MsgCreateSubAccountResponse{}, didtypes.ErrCredentialNotFound
 	}
-
 
 	if holderInfo.Address != msg.Creator {
 		return &types.MsgCreateSubAccountResponse{}, didtypes.ErrUnauthorized
