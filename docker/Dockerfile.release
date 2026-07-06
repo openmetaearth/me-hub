@@ -4,7 +4,9 @@
 # This creates a minimal runtime image containing only the compiled binary
 # No chain initialization or configuration - suitable for production deployments
 
-FROM golang:1.23-bullseye as go-builder
+ARG GO_VERSION=1.24.7
+
+FROM golang:${GO_VERSION}-bullseye AS go-builder
 
 ARG GIT_VERSION=dev
 ARG GIT_COMMIT=unknown
