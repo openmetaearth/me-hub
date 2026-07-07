@@ -80,11 +80,10 @@ import (
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
 	"github.com/openmetaearth/me-hub/app/ante"
 	appparams "github.com/openmetaearth/me-hub/app/params"
-
-	/* ------------------------------ ethermint imports ----------------------------- */
+	metypes "github.com/openmetaearth/me-hub/types"
 
 	"github.com/evmos/ethermint/server/flags"
-	/* ----------------------------- osmosis imports ---------------------------- */ /* ---------------------------- upgrade handlers ---------------------------- */)
+)
 
 var (
 	_ = packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp
@@ -348,6 +347,7 @@ func (app *App) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
 
 // InitChainer application update at chain initialization
 func (app *App) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
+	metypes.SetChainId(ctx.ChainID())
 	var genesisState GenesisState
 	if err := cometbftjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)

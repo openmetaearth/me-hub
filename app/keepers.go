@@ -36,6 +36,7 @@ import (
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -79,6 +80,8 @@ import (
 	"github.com/evmos/ethermint/x/evm/vm/geth"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+
+	metypes "github.com/openmetaearth/me-hub/types"
 	daokeeper "github.com/openmetaearth/me-hub/x/dao/keeper"
 	daotypes "github.com/openmetaearth/me-hub/x/dao/types"
 	delayedackmodule "github.com/openmetaearth/me-hub/x/delayedack"
@@ -313,6 +316,9 @@ func (a *AppKeepers) InitKeepers(
 		a.tkeys[feemarkettypes.TransientKey],
 		a.GetSubspace(feemarkettypes.ModuleName),
 	)
+
+	// Seed global chain id before keeper init (supports legacy "mechain").
+	initGlobalChainID(homePath, appOpts)
 
 	// Create evmos keeper
 	a.EvmKeeper = evmkeeper.NewKeeper(
@@ -617,6 +623,19 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
 
 	return paramsKeeper
+}
+
+func initGlobalChainID(homePath string, appOpts servertypes.AppOptions) {
+	if chainID := cast.ToString(appOpts.Get(flags.FlagChainID)); chainID != "" {
+		metypes.SetChainId(chainID)
+		return
+	}
+
+	genesisFile := filepath.Join(homePath, "config", "genesis.json")
+	genDoc, err := tmtypes.GenesisDocFromFile(genesisFile)
+	if err == nil && genDoc.ChainID != "" {
+		metypes.SetChainId(genDoc.ChainID)
+	}
 }
 
 // this is a workaround to get rid of the denommetadata set automatically by ibc-go v8.x

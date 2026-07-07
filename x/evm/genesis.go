@@ -45,6 +45,8 @@ func InitGenesis(
 		panic(fmt.Errorf("enable create is not allowed on mechain chains"))
 	}
 
+	k.SetChainIDFromCosmos(ctx.ChainID())
+
 	err := k.SetParams(ctx, data.Params)
 	if err != nil {
 		panic(fmt.Errorf("error setting params %s", err))

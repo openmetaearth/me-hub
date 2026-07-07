@@ -1,6 +1,7 @@
 package evm
 
 import (
+	"context"
 	"encoding/json"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -80,6 +81,11 @@ func NewAppModule(k *keeper.Keeper, accountKeeper evmtypes.AccountKeeper, bankKe
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	am.AppModule.RegisterServices(cfg)
+}
+
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	am.keeper.SetChainIDFromCosmos(sdk.UnwrapSDKContext(ctx).ChainID())
+	return nil
 }
 
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
