@@ -1810,7 +1810,8 @@ type QueryClient interface {
 	QueryAllRecord(ctx context.Context, in *QueryAllRecords, opts ...grpc.CallOption) (*QueryAllRecordsResponse, error)
 	QueryRecordByAddress(ctx context.Context, in *QueryRecordsByAddress, opts ...grpc.CallOption) (*QueryRecordsByAddressResponse, error)
 	QueryReviewRecordByID(ctx context.Context, in *QueryReviewRecordByNumber, opts ...grpc.CallOption) (*QueryReviewRecordByNumberResponse, error)
-	// QueryRegionWithdraw queries which address is granted withdraw for the given region.
+	// QueryRegionWithdraw queries which address is granted withdraw for the given
+	// region.
 	RegionWithdrawer(ctx context.Context, in *QueryRegionWithdrawerRequest, opts ...grpc.CallOption) (*QueryRegionWithdrawerResponse, error)
 }
 
@@ -2009,7 +2010,8 @@ type QueryServer interface {
 	QueryAllRecord(context.Context, *QueryAllRecords) (*QueryAllRecordsResponse, error)
 	QueryRecordByAddress(context.Context, *QueryRecordsByAddress) (*QueryRecordsByAddressResponse, error)
 	QueryReviewRecordByID(context.Context, *QueryReviewRecordByNumber) (*QueryReviewRecordByNumberResponse, error)
-	// QueryRegionWithdraw queries which address is granted withdraw for the given region.
+	// QueryRegionWithdraw queries which address is granted withdraw for the given
+	// region.
 	RegionWithdrawer(context.Context, *QueryRegionWithdrawerRequest) (*QueryRegionWithdrawerResponse, error)
 }
 
