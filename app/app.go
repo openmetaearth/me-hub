@@ -55,6 +55,7 @@ import (
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_14"
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_15"
 	"github.com/openmetaearth/me-hub/docs"
+	metypes "github.com/openmetaearth/me-hub/types"
 	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
 	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 )
@@ -267,6 +268,7 @@ func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Respo
 
 // InitChainer application update at chain initialization
 func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+	metypes.SetChainId(ctx.ChainID())
 	var genesisState GenesisState
 	if err := cometbftjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)

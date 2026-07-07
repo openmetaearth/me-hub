@@ -31,7 +31,6 @@ import (
 	"github.com/evmos/ethermint/utils"
 	"github.com/evmos/ethermint/x/evm/types"
 
-	metypes "github.com/openmetaearth/me-hub/types"
 	"github.com/openmetaearth/me-hub/x/evm/keeper"
 )
 
@@ -48,7 +47,7 @@ func InitGenesis(
 		panic(errors.New("enable create is not allowed on mechain chains"))
 	}
 
-	k.WithChainID(sdk.Context{}.WithChainID(metypes.ChainIdWithEIP155()))
+	k.SetChainIDFromCosmos(ctx.ChainID())
 
 	err := k.SetParams(ctx, data.Params)
 	if err != nil {

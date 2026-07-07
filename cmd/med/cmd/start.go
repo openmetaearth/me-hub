@@ -431,7 +431,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts ethermin
 			if err != nil {
 				return err
 			}
-			chainID = genDoc.ChainID
+			chainID = metypes.ChainIdWithEIP155From(genDoc.ChainID)
 		}
 
 		clientCtx = clientCtx.
@@ -539,7 +539,7 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, opts ethermin
 			if err != nil {
 				return err
 			}
-			chainID = genDoc.ChainID
+			chainID = metypes.ChainIdWithEIP155From(genDoc.ChainID)
 		}
 		clientCtx := clientCtx.WithChainID(chainID)
 
