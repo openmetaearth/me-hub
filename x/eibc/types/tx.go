@@ -2,11 +2,13 @@ package types
 
 import (
 	"encoding/hex"
-	"fmt"
+	fmt "fmt"
 
 	errorsmod "cosmossdk.io/errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var (
@@ -43,16 +45,16 @@ func (msg *MsgFulfillOrder) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgFulfillOrder) ValidateBasic() error {
-	err := validateCommon(msg.OrderId, msg.FulfillerAddress, msg.ExpectedFee)
+func (m *MsgFulfillOrder) ValidateBasic() error {
+	err := validateCommon(m.OrderId, m.FulfillerAddress, m.ExpectedFee)
 	if err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 	return nil
 }
 
-func (msg *MsgFulfillOrder) GetFulfillerBech32Address() []byte {
-	return sdk.MustAccAddressFromBech32(msg.FulfillerAddress)
+func (m *MsgFulfillOrder) GetFulfillerBech32Address() []byte {
+	return sdk.MustAccAddressFromBech32(m.FulfillerAddress)
 }
 
 func NewMsgUpdateDemandOrder(ownerAddr, orderId, newFee string) *MsgUpdateDemandOrder {
@@ -103,7 +105,7 @@ func validateCommon(orderId, address, fee string) error {
 		return err
 	}
 
-	feeInt, ok := sdk.NewIntFromString(fee)
+	feeInt, ok := sdkmath.NewIntFromString(fee)
 	if !ok {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("parse fee: %s", fee))
 	}

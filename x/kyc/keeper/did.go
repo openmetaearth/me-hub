@@ -1,11 +1,9 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
@@ -49,7 +47,7 @@ func (k Keeper) SetKycIssers(ctx sdk.Context, oldDaoAddress, newDaoAddress []str
 
 	service, ok := k.GetService(ctx)
 	if !ok {
-		return errors.New("kyc service not found")
+		return fmt.Errorf("kyc service not found")
 	}
 
 	dids := []string{}

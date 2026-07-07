@@ -6,26 +6,23 @@ import (
 	"math/big"
 	"testing"
 
-	sdkmath "cosmossdk.io/math"
-	tmrand "github.com/cometbft/cometbft/libs/rand"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/testutil/helpers"
 	"github.com/openmetaearth/me-hub/utils"
 	"github.com/openmetaearth/me-hub/x/gravity/keeper"
-	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
+	"github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
 type KeeperTestSuite struct {
@@ -48,19 +45,13 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
-	s.Ctx = app.NewContext(false, cometbftproto.Header{Height: 0, ChainID: apptesting.TestChainID})
+	app := apptesting.Setup(s.T())
+	s.Ctx = app.NewContext(false).WithBlockHeight(0).WithChainID(apptesting.TestChainID)
 	s.App = app
-
-	err := app.AccountKeeper.SetParams(s.Ctx, authtypes.DefaultParams())
-	s.Require().NoError(err)
-
-	err = app.BankKeeper.SetParams(s.Ctx, banktypes.DefaultParams())
-	s.Require().NoError(err)
 
 	stakingParams := stakingtypes.DefaultParams()
 	stakingParams.BondDenom = params.BaseDenom
-	err = app.StakingKeeper.SetParams(s.Ctx, stakingParams)
+	err := app.StakingKeeper.SetParams(s.Ctx, stakingParams)
 	s.Require().NoError(err)
 
 	stakingKeeperMsgSrv := stakingkeeper.NewMsgServerImpl(app.StakingKeeper.Keeper)
@@ -68,7 +59,8 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.InitializeDao()
 
-	validators := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
+	validators, err := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
+	s.Require().NoError(err)
 	s.Require().True(len(validators) >= 3)
 	s.meEarthValidator = validators[0]
 
@@ -91,11 +83,11 @@ func (s *KeeperTestSuite) SetupTest() {
 		ExternalBatchTimeout:               24 * 3600 * 1000, // 24 hours
 		AverageExternalBlockTime:           3000,
 		SignedWindow:                       30_000,
-		SlashFraction:                      sdk.NewDec(1).Quo(sdk.NewDec(1000)),
-		RelayerSetUpdatePowerChangePercent: sdk.MustNewDecFromStr("0.2"),
+		SlashFraction:                      sdkmath.LegacyNewDec(1).Quo(sdkmath.LegacyNewDec(1000)),
+		RelayerSetUpdatePowerChangePercent: sdkmath.LegacyMustNewDecFromStr("0.2"),
 		MaxRelayers:                        10,
-		MinDelegate:                        sdk.NewInt(1000000000),
-		MaxDelegate:                        sdk.NewInt(100000000000),
+		MinDelegate:                        sdkmath.NewInt(1000000000),
+		MaxDelegate:                        sdkmath.NewInt(100000000000),
 	})
 	s.Require().NoError(err)
 
@@ -105,7 +97,7 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.msgServer = keeper.NewMsgServerImpl(s.App.TronKeeper)
 	s.signer = helpers.NewSigner(helpers.NewEthPrivKey())
-	apptesting.AddTestAddr(s.App, s.Ctx, s.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e8)))))
+	apptesting.FundAccount(s.App, s.Ctx, s.signer.AccAddress(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e8)))))
 }
 
 func (s *KeeperTestSuite) NewOutgoingTxBatch() *gravitytypes.OutgoingTxBatch {
@@ -136,14 +128,13 @@ func (s *KeeperTestSuite) NewOutgoingTxBatch() *gravitytypes.OutgoingTxBatch {
 	return newOutgoingTx
 }
 
-func (s *KeeperTestSuite) NewRelayer(online bool) (sdk.AccAddress, cryptotypes.PrivKey) {
+func (s *KeeperTestSuite) NewRelayer() (sdk.AccAddress, cryptotypes.PrivKey) {
 	relayer := helpers.GenAccAddress()
 	externalKey := helpers.NewEthPrivKey()
 	externalAddress := helpers.HexAddrToTronAddr(externalKey.PubKey().Address().String())
 	newRelayer := gravitytypes.Relayer{
 		RelayerAddress:  relayer.String(),
 		ExternalAddress: externalAddress,
-		Online:          online,
 	}
 	s.App.TronKeeper.SetRelayer(s.Ctx, relayer, newRelayer)
 	s.App.TronKeeper.SetRelayerByExternalAddress(s.Ctx, externalAddress, relayer)
@@ -170,7 +161,7 @@ func (s *KeeperTestSuite) NewBridgeToken(bridger sdk.AccAddress) []gravitytypes.
 			Name:            "",
 			Symbol:          fmt.Sprintf("test%d", i),
 			Decimal:         0,
-			Supply:          sdk.NewInt(0),
+			Supply:          sdkmath.NewInt(0),
 		}
 		err := s.App.TronKeeper.AttestationHandler(s.Ctx, &gravitytypes.MsgBridgeTokenClaim{
 			TokenContract:  bt.ContractAddress,

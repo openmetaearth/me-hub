@@ -1,9 +1,8 @@
 package types
 
 import (
-	"fmt"
-
 	"cosmossdk.io/errors"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -24,7 +23,7 @@ func NewMsgUpdateDidStatus(creator, did string, status DidStatus) *MsgUpdateDidS
 func (m *MsgUpdateDidStatus) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (m *MsgUpdateDidStatus) Type() string { return TypeMsgUpdateDidStatus }
+func (m *MsgUpdateDidStatus) Type() string { return TypeMsgCreateDid }
 
 func (m *MsgUpdateDidStatus) GetSigners() []sdk.AccAddress {
 	creator, err := sdk.AccAddressFromBech32(m.Creator)

@@ -6,20 +6,22 @@ import (
 	"strconv"
 
 	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
 	"cosmossdk.io/math"
-	"github.com/cometbft/cometbft/libs/log"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
 	"github.com/openmetaearth/me-hub/app/params"
 	didTypes "github.com/openmetaearth/me-hub/x/did/types"
 	kycTypes "github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/openmetaearth/me-hub/x/megroup/types"
 	stakingTypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
+
+type kycHookFunc func(ctx sdk.Context, eventType string, beforeData interface{}, afterData interface{}) error
 
 type (
 	Keeper struct {
@@ -112,7 +114,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 		newGrpId = 0
 		//	return errors.Wrapf(types.ErrGroupNotExist, fmt.Sprintf("can not found groupId in region.regionID = %s", nowRegionID))
 	}
-	// if 0 == newGrpId {
+	//if 0 == newGrpId {
 	//	return errors.Wrapf(types.ErrProcData, fmt.Sprintf("groupId is 0 in new region.regionID = %s", nowRegionID))
 	//}
 	joined, JoinGroupFound := k.GetMemberJoined(sdkCtx, address)
@@ -139,7 +141,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 		}
 		// admin can not migrate
 		if address == preGroupInfo.Admin { // admin can not leave group
-			return errors.Wrapf(types.ErrExecute, "admin of group can not leave")
+			return errors.Wrapf(types.ErrExcute, "admin of group can not leave")
 		}
 
 		preGroupNumber, found := k.GetGroupMemberCount(sdkCtx, joined.GroupId)
@@ -153,10 +155,11 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 			return err
 		}
 		k.SetGroupMemberCount(sdkCtx, joined.GroupId, preGroupNumber-1)
+
 	} else {
 		return nil
 	}
-	if newGrpId == 0 {
+	if 0 == newGrpId {
 		if preJoinedGroupID > 0 {
 			// set member's join group info
 			k.SetMemberJoined(sdkCtx, types.MemberJoined{
@@ -173,6 +176,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 			))
 		}
 		return nil
+
 	}
 
 	newGrpInfo, found := k.GetGroupInfo(sdkCtx, newGrpId)
@@ -204,6 +208,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 	}
 	k.SetGroupMemberCount(sdkCtx, newGrpId, newGrpNumberCnt+1)
 	if !JoinGroupFound { // send rewards if user has not joined group
+
 		// get RegionTreasureAddr
 		region, found := k.stakingKeeper.GetRegion(sdkCtx, nowRegionID)
 		if !found {
@@ -228,6 +233,7 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 			sdk.NewAttribute("regionTreasureAddress", region.GetRegionTreasureAddr()),
 			sdk.NewAttribute("rewards", rewardsCoin.String()),
 		))
+
 	}
 	sdkCtx.EventManager().EmitEvent(sdk.NewEvent(types.EvtGrpMigrateByKyc,
 		sdk.NewAttribute("applicant", address),
@@ -271,8 +277,7 @@ func (k Keeper) CreateGroupByRegion(sdkCtx sdk.Context, regionInfo stakingTypes.
 
 	operValAddr, err := sdk.ValAddressFromBech32(regionInfo.OperatorAddress)
 	if err != nil {
-		return 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, fmt.Sprintf("OperatorAddress can not convert to ValAddress."+
-			"err = %s, OperatorAddress = %s", err.Error(), regionInfo.OperatorAddress))
+		return 0, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "OperatorAddress can not convert to ValAddress.err = %s, OperatorAddress = %s", err.Error(), regionInfo.OperatorAddress)
 	}
 	accAddr := sdk.AccAddress(operValAddr.Bytes())
 

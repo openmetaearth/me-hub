@@ -6,12 +6,7 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
-)
-
-const (
-	TypeMsgUpdateSBT = "update_sbt"
 )
 
 func NewMsgUpdateSBT(issuer, did, uri, uriHash string, data []byte) *MsgUpdateSBT {
@@ -22,27 +17,6 @@ func NewMsgUpdateSBT(issuer, did, uri, uriHash string, data []byte) *MsgUpdateSB
 		UriHash: uriHash,
 		Data:    data,
 	}
-}
-
-// Route implements the sdk.Msg interface.
-func (m *MsgUpdateSBT) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (m *MsgUpdateSBT) Type() string { return TypeMsgUpdateSBT }
-
-func (m *MsgUpdateSBT) GetSigners() []sdk.AccAddress {
-	issuer, err := sdk.AccAddressFromBech32(m.Issuer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{issuer}
-}
-
-// GetSignBytes returns the message bytes to sign over.
-func (m *MsgUpdateSBT) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
-	return sdk.MustSortJSON(bz)
 }
 
 func (m *MsgUpdateSBT) ValidateBasic() error {

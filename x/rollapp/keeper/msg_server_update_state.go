@@ -4,7 +4,9 @@ import (
 	"context"
 	"slices"
 
+	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
@@ -32,7 +34,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// call the before-update-state hook
 	err := k.hooks.BeforeUpdateState(ctx, msg.Creator, msg.RollappId)
 	if err != nil {
-		return nil, errorsmod.Wrapf(err, "BeforeUpdateState hook failed for rollappId(%s) from sequencer(%s)", msg.RollappId, msg.Creator)
+		return nil, errors.Wrapf(err, "BeforeUpdateState hook failed for rollappId(%s) from sequencer(%s)", msg.RollappId, msg.Creator)
 	}
 
 	// Logic Error check - must be done after BeforeUpdateStateRecoverable
@@ -91,7 +93,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	stateInfoIndex := stateInfo.GetIndex()
 	newFinalizationQueue := []types.StateInfoIndex{stateInfoIndex}
 
-	k.Logger(ctx).Debug("Adding state to finalization queue at ", creationHeight)
+	ctx.Logger().Debug("Adding state to finalization queue at ", creationHeight)
 	// load FinalizationQueue and update
 	blockHeightToFinalizationQueue, found := k.GetBlockHeightToFinalizationQueue(ctx, creationHeight)
 	if found {

@@ -9,18 +9,16 @@ var regionNameMap map[string]string
 
 func init() {
 	regionNameMap = make(map[string]string, 256)
-	RegionName = strings.ReplaceAll(RegionName, "\n", "")
+	RegionName = strings.Replace(RegionName, "\n", "", -1)
 	regionNameSli := strings.Split(RegionName, ",")
 	for _, rn := range regionNameSli {
 		name := strings.Split(rn, "-")
 		regionNameMap[name[0]] = name[1]
 	}
 }
-
 func GetRegion() map[string]string {
 	return regionNameMap
 }
-
 func CheckRegionName(name string) (string, error) {
 	err := "input region name=" + name +
 		" is not find.It does not comply with the rules." +

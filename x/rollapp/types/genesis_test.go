@@ -3,10 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
+	"github.com/stretchr/testify/require"
 )
 
 var (

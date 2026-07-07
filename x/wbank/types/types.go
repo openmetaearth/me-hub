@@ -1,9 +1,7 @@
 package types
 
-const (
-	TreasuryPoolName        = "treasury_pool"
-	EventTypeFeeToReceivers = "fee_to_receivers"
-)
+const TreasuryPoolName = "treasury_pool"
+const EventTypeFeeToReceivers = "fee_to_receivers"
 
 type FeeReceiverType string
 

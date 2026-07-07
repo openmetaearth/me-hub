@@ -5,7 +5,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
@@ -20,6 +19,13 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	if err != nil {
 		return nil, err
 	}
+
+	// check to see if there is an active whitelist
+	//if whitelist := k.DeployerWhitelist(ctx); len(whitelist) > 0 {
+	//	if !k.IsAddressInDeployerWhiteList(ctx, msg.Creator) {
+	//		return nil, types.ErrUnauthorizedRollappCreator
+	//	}
+	//}
 
 	rollapp := msg.GetRollapp()
 	err = rollapp.ValidateBasic()

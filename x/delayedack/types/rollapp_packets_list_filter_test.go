@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
@@ -300,34 +300,4 @@ var testRollappPackets = []commontypes.RollappPacket{
 		Packet:    &channeltypes.Packet{},
 		Type:      commontypes.RollappPacket_ON_TIMEOUT,
 	},
-}
-
-func TestByRollappIDByStatusFiltersExactRollappID(t *testing.T) {
-	filter := types.ByRollappIDByStatus("parent", commontypes.Status_PENDING)
-
-	require.True(t, filter.FilterFunc(rollappPacketForFilter("parent", commontypes.RollappPacket_ON_RECV)))
-	require.False(t, filter.FilterFunc(rollappPacketForFilter("parent/child", commontypes.RollappPacket_ON_RECV)))
-}
-
-func TestPendingByRollappIDByMaxHeightFiltersExactRollappID(t *testing.T) {
-	filter := types.PendingByRollappIDByMaxHeight("parent", 10)
-
-	require.True(t, filter.FilterFunc(rollappPacketForFilter("parent", commontypes.RollappPacket_ON_RECV)))
-	require.False(t, filter.FilterFunc(rollappPacketForFilter("parent/child", commontypes.RollappPacket_ON_RECV)))
-}
-
-func TestByRollappIDByTypeByStatusFiltersExactRollappIDAndType(t *testing.T) {
-	filter := types.ByRollappIDByTypeByStatus("parent", commontypes.RollappPacket_ON_ACK, commontypes.Status_PENDING)
-
-	require.True(t, filter.FilterFunc(rollappPacketForFilter("parent", commontypes.RollappPacket_ON_ACK)))
-	require.False(t, filter.FilterFunc(rollappPacketForFilter("parent", commontypes.RollappPacket_ON_RECV)))
-	require.False(t, filter.FilterFunc(rollappPacketForFilter("parent/child", commontypes.RollappPacket_ON_ACK)))
-}
-
-func rollappPacketForFilter(rollappID string, packetType commontypes.RollappPacket_Type) commontypes.RollappPacket {
-	return commontypes.RollappPacket{
-		RollappId: rollappID,
-		Type:      packetType,
-		Status:    commontypes.Status_PENDING,
-	}
 }

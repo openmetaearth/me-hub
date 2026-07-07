@@ -4,11 +4,8 @@ import (
 	"strconv"
 	"testing"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
@@ -49,13 +46,9 @@ type RollappTestSuite struct {
 }
 
 func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerParams) {
-	app := apptesting.Setup(suite.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	app := apptesting.Setup(suite.T())
+	ctx := app.GetBaseApp().NewContext(false)
 
-	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	suite.Require().NoError(err)
-	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
-	suite.Require().NoError(err)
 	app.RollappKeeper.SetParams(ctx, types.NewParams(true, 2, deployerWhitelist))
 	rollappModuleAddress = app.AccountKeeper.GetModuleAddress(types.ModuleName).String()
 
@@ -71,6 +64,11 @@ func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerPara
 
 func TestRollappKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(RollappTestSuite))
+}
+
+func (suite *RollappTestSuite) CreateRollappWithName(name string) string {
+	suite.CreateRollappByName(name)
+	return name
 }
 
 func createNRollapp(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.Rollapp, []types.RollappSummary) {

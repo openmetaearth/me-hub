@@ -69,6 +69,7 @@ func (m *MsgCreateVC) ValidateBasic() error {
 	if len(m.Uri) > 1024 {
 		return errors.Wrap(sdkerrors.ErrInvalidType, "uri length exceeds 1024")
 	}
+
 	if len(m.Data) > maxCredentialDataLength {
 		return errors.Wrapf(sdkerrors.ErrInvalidType, "data length exceeds %d", maxCredentialDataLength)
 	}

@@ -11,12 +11,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clientutils "github.com/cosmos/ibc-go/v7/modules/core/02-client/client/utils"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channelutils "github.com/cosmos/ibc-go/v7/modules/core/04-channel/client/utils"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/spf13/cobra"
+
+	ibcTransferTypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clientutils "github.com/cosmos/ibc-go/v8/modules/core/02-client/client/utils"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channelutils "github.com/cosmos/ibc-go/v8/modules/core/04-channel/client/utils"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -57,7 +58,7 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 			}
 
 			if !strings.HasPrefix(coin.Denom, "ibc/") {
-				denomTrace := ibctransfertypes.ParseDenomTrace(coin.Denom)
+				denomTrace := ibcTransferTypes.ParseDenomTrace(coin.Denom)
 				coin.Denom = denomTrace.IBCDenom()
 			}
 
@@ -134,15 +135,15 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 					}
 
 					now := time.Now().UnixNano()
-					if now <= 0 {
-						return errors.New("local clock time is not greater than Jan 1st, 1970 12:00 AM")
-					}
-
-					nowUint64 := uint64(now)
-					if nowUint64 > consensusStateTimestamp {
-						timeoutTimestamp = nowUint64 + timeoutTimestamp
+					if now > 0 {
+						now := uint64(now)
+						if now > consensusStateTimestamp {
+							timeoutTimestamp = now + timeoutTimestamp
+						} else {
+							timeoutTimestamp = consensusStateTimestamp + timeoutTimestamp
+						}
 					} else {
-						timeoutTimestamp = consensusStateTimestamp + timeoutTimestamp
+						return errors.New("local clock time is not greater than Jan 1st, 1970 12:00 AM")
 					}
 				}
 			}
@@ -161,8 +162,8 @@ corresponding to the counterparty channel. Any timeout set to 0 is disabled.`),
 		},
 	}
 
-	cmd.Flags().String(flagPacketTimeoutHeight, ibctransfertypes.DefaultRelativePacketTimeoutHeight, "Packet timeout block height. The timeout is disabled when set to 0-0.")
-	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, ibctransfertypes.DefaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. The timeout is disabled when set to 0.")
+	cmd.Flags().String(flagPacketTimeoutHeight, ibcTransferTypes.DefaultRelativePacketTimeoutHeight, "Packet timeout block height. The timeout is disabled when set to 0-0.")
+	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, ibcTransferTypes.DefaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. The timeout is disabled when set to 0.")
 	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
 	cmd.Flags().String(flagMemo, "", "Memo to be sent along with the packet.")
 	flags.AddTxFlagsToCmd(cmd)

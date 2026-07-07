@@ -3,17 +3,19 @@ package keeper
 import (
 	"context"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/store/prefix"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
+
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) FixedDepositAll(c context.Context, req *types.QueryAllFixedDepositRequest) (*types.QueryAllFixedDepositResponse, error) {
+func (k *Keeper) FixedDepositAll(c context.Context, req *types.QueryAllFixedDepositRequest) (*types.QueryAllFixedDepositResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -25,7 +27,7 @@ func (k Keeper) FixedDepositAll(c context.Context, req *types.QueryAllFixedDepos
 	return &types.QueryAllFixedDepositResponse{FixedDeposit: fixedDeposits, Pagination: pageRes}, err
 }
 
-func (k Keeper) FixedDeposit(c context.Context, req *types.QueryGetFixedDepositRequest) (*types.QueryGetFixedDepositResponse, error) {
+func (k *Keeper) FixedDeposit(c context.Context, req *types.QueryGetFixedDepositRequest) (*types.QueryGetFixedDepositResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -39,7 +41,7 @@ func (k Keeper) FixedDeposit(c context.Context, req *types.QueryGetFixedDepositR
 	return &types.QueryGetFixedDepositResponse{FixedDeposit: fixedDeposit}, nil
 }
 
-func (k Keeper) FixedDepositByAcct(goCtx context.Context, req *types.QueryFixedDepositByAcctRequest) (*types.QueryFixedDepositByAcctResponse, error) {
+func (k *Keeper) FixedDepositByAcct(goCtx context.Context, req *types.QueryFixedDepositByAcctRequest) (*types.QueryFixedDepositByAcctResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -71,7 +73,7 @@ func (k Keeper) FixedDepositByAcct(goCtx context.Context, req *types.QueryFixedD
 	return &types.QueryFixedDepositByAcctResponse{FixedDeposit: fixedDeposits}, nil
 }
 
-func (k Keeper) FixedDepositByRegion(goCtx context.Context, req *types.QueryFixedDepositByRegionRequest) (*types.QueryFixedDepositByRegionResponse, error) {
+func (k *Keeper) FixedDepositByRegion(goCtx context.Context, req *types.QueryFixedDepositByRegionRequest) (*types.QueryFixedDepositByRegionResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -88,14 +90,11 @@ func (k Keeper) FixedDepositByRegion(goCtx context.Context, req *types.QueryFixe
 	return &types.QueryFixedDepositByRegionResponse{FixedDeposit: fixedDeposits, Pagination: pageRes}, nil
 }
 
-func (k Keeper) queryFixedDepositByRegionRecursively(ctx sdk.Context, req *types.QueryFixedDepositByRegionRequest, accumulated []types.FixedDeposit) ([]types.FixedDeposit, *query.PageResponse, error) {
-	if req.Pagination == nil {
-		req.Pagination = &query.PageRequest{Limit: query.DefaultLimit}
-	}
+func (k *Keeper) queryFixedDepositByRegionRecursively(ctx sdk.Context, req *types.QueryFixedDepositByRegionRequest, accumulated []types.FixedDeposit) ([]types.FixedDeposit, *query.PageResponse, error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FixedDepositKey))
 	fixedDeposits := make([]types.FixedDeposit, 0)
 
-	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
 		var fd types.FixedDeposit
 		if err := k.cdc.Unmarshal(value, &fd); err != nil {
 			return err
@@ -136,7 +135,7 @@ func (k Keeper) queryFixedDepositByRegionRecursively(ctx sdk.Context, req *types
 	return accumulated, pageRes, nil
 }
 
-func (k Keeper) FixedDepositTotalAmount(goCtx context.Context, req *types.QueryFixedDepositTotalAmountRequest) (*types.QueryFixedDepositTotalAmountResponse, error) {
+func (k *Keeper) FixedDepositTotalAmount(goCtx context.Context, req *types.QueryFixedDepositTotalAmountRequest) (*types.QueryFixedDepositTotalAmountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	amount, found := k.GetFixedDepositTotalAmount(ctx)
 	if !found {
@@ -145,7 +144,7 @@ func (k Keeper) FixedDepositTotalAmount(goCtx context.Context, req *types.QueryF
 	return &types.QueryFixedDepositTotalAmountResponse{Amount: amount.Amount}, nil
 }
 
-func (k Keeper) FixedDepositAmountByMeid(goCtx context.Context, req *types.QueryFixedDepositAmountByMeidRequest) (*types.QueryFixedDepositAmountByMeidResponse, error) {
+func (k *Keeper) FixedDepositAmountByMeid(goCtx context.Context, req *types.QueryFixedDepositAmountByMeidRequest) (*types.QueryFixedDepositAmountByMeidResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -155,7 +154,7 @@ func (k Keeper) FixedDepositAmountByMeid(goCtx context.Context, req *types.Query
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	totalAmount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(0))
+	totalAmount := sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(0))
 	for _, v := range tmpList {
 		totalAmount = totalAmount.Add(v.Principal)
 	}

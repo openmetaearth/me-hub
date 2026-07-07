@@ -2,10 +2,9 @@ package handler
 
 import (
 	"context"
+	"cosmossdk.io/errors"
 	"sort"
 	"sync"
-
-	"cosmossdk.io/errors"
 )
 
 type HandlerFunc func(ctx context.Context, eventType string, data interface{}) error

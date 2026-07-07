@@ -5,9 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/stretchr/testify/require"
-
 	"github.com/openmetaearth/me-hub/testutil/sample"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMsgIbcTransferFromRegionTreasure_ValidateBasic(t *testing.T) {
@@ -19,21 +18,21 @@ func TestMsgIbcTransferFromRegionTreasure_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid address",
 			msg: MsgIbcTransferFromRegionTreasure{
+				Creator:       "invalid_address",
 				SourcePort:    "transfer",
 				SourceChannel: "channel-0",
-				RegionId:      "USA",
-				Token:         sdk.NewCoin("umec", sdk.NewInt(100)),
-				Creator:       "invalid_address",
+				RegionId:      MeEarthRegionId,
+				Token:         sdk.NewInt64Coin("umec", 1),
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
 			msg: MsgIbcTransferFromRegionTreasure{
+				Creator:       sample.AccAddress(),
 				SourcePort:    "transfer",
 				SourceChannel: "channel-0",
-				RegionId:      "USA",
-				Token:         sdk.NewCoin("umec", sdk.NewInt(100)),
-				Creator:       sample.AccAddress(),
+				RegionId:      MeEarthRegionId,
+				Token:         sdk.NewInt64Coin("umec", 1),
 			},
 		},
 	}

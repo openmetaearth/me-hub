@@ -28,6 +28,7 @@ service Msg {
 }
 
 message MsgCreateDid {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   string did = 2;
   string address = 3;
@@ -37,6 +38,7 @@ message MsgCreateDid {
 message MsgCreateDidResponse {}
 
 message MsgUpdateDidStatus {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   string did = 2;
   DidStatus status = 3;
@@ -45,6 +47,7 @@ message MsgUpdateDidStatus {
 message MsgUpdateDidStatusResponse {}
 
 message MsgRemoveDid {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   string did = 2;
 }
@@ -52,6 +55,7 @@ message MsgRemoveDid {
 message MsgRemoveDidResponse {}
 
 message MsgCreateService {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   string sid = 2;
   string name = 3;
@@ -62,6 +66,7 @@ message MsgCreateService {
 message MsgCreateServiceResponse {}
 
 message MsgUpdateServiceStatus {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   string sid = 2;
   ServiceStatus status = 3;
@@ -70,6 +75,7 @@ message MsgUpdateServiceStatus {
 message MsgUpdateServiceStatusResponse {}
 
 message MsgRemoveService {
+  option (cosmos.msg.v1.signer) = "creator";
   string creator = 1;
   string sid = 2;
 }
@@ -77,6 +83,7 @@ message MsgRemoveService {
 message MsgRemoveServiceResponse {}
 
 message MsgCreateVC {
+  option (cosmos.msg.v1.signer) = "issuer";
   string issuer = 1;
   string did = 2;
   string sid = 3;
@@ -89,6 +96,7 @@ message MsgCreateVC {
 message MsgCreateVCResponse {}
 
 message MsgUpdateVC {
+  option (cosmos.msg.v1.signer) = "issuer";
   string issuer = 1;
   string did = 2;
   string sid = 3;
@@ -101,6 +109,7 @@ message MsgUpdateVC {
 message MsgUpdateVCResponse {}
 
 message MsgRemoveVC {
+  option (cosmos.msg.v1.signer) = "issuer";
   string issuer = 1;
   string did = 2;
   string sid = 3;

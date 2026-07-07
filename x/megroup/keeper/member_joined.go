@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
@@ -63,7 +63,7 @@ func (k Keeper) RemoveMemberJoined(
 // GetAllMemberJoined returns all memberJoined
 func (k Keeper) GetAllMemberJoined(ctx sdk.Context) (list []types.MemberJoined) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MemberJoinedKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
 

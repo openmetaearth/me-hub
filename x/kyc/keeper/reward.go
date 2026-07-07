@@ -1,9 +1,8 @@
 package keeper
 
 import (
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"strings"
 )
 
 func (k *Keeper) DeleteApproveReward(ctx sdk.Context, address, regionId string) error {

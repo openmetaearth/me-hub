@@ -3,32 +3,14 @@ package types
 import (
 	gomath "math"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	"github.com/openmetaearth/me-hub/app/params"
-)
-
-const (
-	TypeMsgNewRegion                       = "new-region"
-	TypeMsgRetrieveCoinFromRegion          = "retrieve-coin-from-region"
-	TypeMsgWithdrawDelegatorReward         = "withdraw_delegator_reward"
-	TypeMsgRemoveRegion                    = "remove-region"
-	TypeMsgRetrieveFeeFromGlobalDaoFeePool = "retrieve-fee-from-global-dao-fee-pool"
-	TypeMsgRecord                          = "new_record"
-	TypeReviewRecord                       = "review_record"
-	TypeMsgStake                           = "stake"
-	TypeMsgUnstake                         = "unstake"
-	TypeMsgWithdrawFromRegion              = "withdraw_from_region"
-	TypeMsgWithdrawFromGlobalDaoFeePool    = "withdraw_from_global_dao_fee_pool"
-	TypeMsgTransferRegion                  = "transfer_region"
-	TypeMsgResetValidator                  = "create_validator"
-	TypeMsgNewMeid                         = "new_meid"
-	TypeMsgRemoveMeid                      = "remove_meid"
 )
 
 const (
@@ -57,24 +39,6 @@ func NewMsgStake(stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.C
 	}
 }
 
-// Route implements the sdk.Msg interface.
-func (msg MsgStake) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgStake) Type() string { return TypeMsgStake }
-
-// GetSigners implements the sdk.Msg interface.
-func (msg MsgStake) GetSigners() []sdk.AccAddress {
-	staker, _ := sdk.AccAddressFromBech32(msg.StakerAddress)
-	return []sdk.AccAddress{staker}
-}
-
-// GetSignBytes implements the sdk.Msg interface.
-func (msg MsgStake) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgStake) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.StakerAddress); err != nil {
@@ -86,7 +50,7 @@ func (msg MsgStake) ValidateBasic() error {
 	}
 
 	if !msg.Amount.IsValid() || !msg.Amount.Amount.IsPositive() {
-		return sdkerrors.Wrap(
+		return errorsmod.Wrap(
 			sdkerrors.ErrInvalidRequest,
 			"invalid stake amount",
 		)
@@ -94,7 +58,7 @@ func (msg MsgStake) ValidateBasic() error {
 
 	minSelfStake := math.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
 	if !msg.Amount.Amount.Mod(minSelfStake).Equal(math.NewInt(0)) {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
 			"invalid stake amount: got %s, expected %s integer multiple", msg.Amount.Amount, minSelfStake)
 	}
@@ -112,24 +76,6 @@ func NewMsgUnstake(stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk
 	}
 }
 
-// Route implements the sdk.Msg interface.
-func (msg MsgUnstake) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgUnstake) Type() string { return TypeMsgUnstake }
-
-// GetSigners implements the sdk.Msg interface.
-func (msg MsgUnstake) GetSigners() []sdk.AccAddress {
-	staker, _ := sdk.AccAddressFromBech32(msg.StakerAddress)
-	return []sdk.AccAddress{staker}
-}
-
-// GetSignBytes implements the sdk.Msg interface.
-func (msg MsgUnstake) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgUnstake) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.StakerAddress); err != nil {
@@ -140,7 +86,7 @@ func (msg MsgUnstake) ValidateBasic() error {
 	}
 
 	if !msg.Amount.IsValid() || !msg.Amount.Amount.IsPositive() {
-		return sdkerrors.Wrap(
+		return errorsmod.Wrap(
 			sdkerrors.ErrInvalidRequest,
 			"invalid shares amount",
 		)
@@ -148,7 +94,7 @@ func (msg MsgUnstake) ValidateBasic() error {
 
 	minSelfStake := math.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
 	if !msg.Amount.Amount.Mod(minSelfStake).Equal(math.NewInt(0)) {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest,
 			"invalid unstake amount: got %s, expected %s integer multiple", msg.Amount.Amount, minSelfStake)
 	}
@@ -156,7 +102,7 @@ func (msg MsgUnstake) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgNewRegion(creator, name, validator string) *MsgNewRegion {
+func NewMsgNewRegion(creator string, name string, validator string) *MsgNewRegion {
 	return &MsgNewRegion{
 		Creator:         creator,
 		Name:            name,
@@ -164,78 +110,36 @@ func NewMsgNewRegion(creator, name, validator string) *MsgNewRegion {
 	}
 }
 
-func (msg *MsgNewRegion) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgNewRegion) Type() string {
-	return TypeMsgNewRegion
-}
-
-func (msg *MsgNewRegion) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgNewRegion) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
 func (msg *MsgNewRegion) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	_, err = sdk.ValAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address (%s)", err)
 	}
 
 	return nil
 }
 
-func NewMsgRemoveRegion(creator, regionId string) *MsgRemoveRegion {
+func NewMsgRemoveRegion(creator string, regionId string) *MsgRemoveRegion {
 	return &MsgRemoveRegion{
 		Creator:  creator,
 		RegionId: regionId,
 	}
 }
 
-func (msg *MsgRemoveRegion) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgRemoveRegion) Type() string {
-	return TypeMsgRemoveRegion
-}
-
-func (msg *MsgRemoveRegion) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgRemoveRegion) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
 func (msg *MsgRemoveRegion) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
 }
 
-func NewMsgWithdrawFromRegion(withdrawer, regionId, receiver string, amount sdk.Coins) *MsgWithdrawFromRegion {
+func NewMsgWithdrawFromRegion(withdrawer string, regionId string, receiver string, amount sdk.Coins) *MsgWithdrawFromRegion {
 	return &MsgWithdrawFromRegion{
 		Withdrawer: withdrawer,
 		RegionId:   regionId,
@@ -244,44 +148,23 @@ func NewMsgWithdrawFromRegion(withdrawer, regionId, receiver string, amount sdk.
 	}
 }
 
-func (msg *MsgWithdrawFromRegion) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgWithdrawFromRegion) Type() string {
-	return TypeMsgWithdrawFromRegion
-}
-
-func (msg *MsgWithdrawFromRegion) GetSigners() []sdk.AccAddress {
-	admin, err := sdk.AccAddressFromBech32(msg.Withdrawer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{admin}
-}
-
-func (msg *MsgWithdrawFromRegion) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
 func (msg *MsgWithdrawFromRegion) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Withdrawer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	_, err = sdk.AccAddressFromBech32(msg.Receiver)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address (%s)", err)
 	}
 
 	if !msg.Amount.IsValid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
 	}
 
 	if !msg.Amount.IsAllPositive() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
 	}
 
 	return nil
@@ -294,24 +177,6 @@ func NewMsgRecord(actionNum, url, addr string) *MsgNewRecord {
 		ActionUrl:    url,
 		From:         addr,
 	}
-}
-
-// Route implements the sdk.Msg interface.
-func (msg MsgNewRecord) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgNewRecord) Type() string { return TypeMsgRecord }
-
-// GetSigners implements the sdk.Msg interface.
-func (msg MsgNewRecord) GetSigners() []sdk.AccAddress {
-	staker, _ := sdk.AccAddressFromBech32(msg.From)
-	return []sdk.AccAddress{staker}
-}
-
-// GetSignBytes implements the sdk.Msg interface.
-func (msg MsgNewRecord) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
@@ -331,24 +196,6 @@ func NewMsgReviewRecord(hash, result, address, id, reviewedAddress string) *MsgR
 		ActionNumber:    id,
 		ReviewedAddress: reviewedAddress,
 	}
-}
-
-// Route implements the sdk.Msg interface.
-func (msg MsgReviewRecord) Route() string { return RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgReviewRecord) Type() string { return TypeReviewRecord }
-
-// GetSigners implements the sdk.Msg interface.
-func (msg MsgReviewRecord) GetSigners() []sdk.AccAddress {
-	staker, _ := sdk.AccAddressFromBech32(msg.From)
-	return []sdk.AccAddress{staker}
-}
-
-// GetSignBytes implements the sdk.Msg interface.
-func (msg MsgReviewRecord) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
@@ -375,31 +222,10 @@ func NewMsgWithdrawFromGlobalDaoFeePool(withdrawer string, amount sdk.Coins) *Ms
 	}
 }
 
-func (msg *MsgWithdrawFromGlobalDaoFeePool) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgWithdrawFromGlobalDaoFeePool) Type() string {
-	return TypeMsgWithdrawFromGlobalDaoFeePool
-}
-
-func (msg *MsgWithdrawFromGlobalDaoFeePool) GetSigners() []sdk.AccAddress {
-	admin, err := sdk.AccAddressFromBech32(msg.Withdrawer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{admin}
-}
-
-func (msg *MsgWithdrawFromGlobalDaoFeePool) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
 func (msg *MsgWithdrawFromGlobalDaoFeePool) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Withdrawer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
 }
@@ -409,7 +235,7 @@ func (msg *MsgWithdrawFromGlobalDaoFeePool) ValidateBasic() error {
 //nolint:interfacer
 func NewMsgDelegate(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin, valStr string) *types.MsgDelegate {
 	valAddrStr := valAddr.String()
-	// if valStr == NotBondedPoolName && valAddr.Empty() {
+	//if valStr == NotBondedPoolName && valAddr.Empty() {
 	//	valAddrStr = valStr
 	//}
 	return &types.MsgDelegate{
@@ -437,21 +263,6 @@ func NewMsgWithdrawDelegatorReward(delAddr sdk.AccAddress, valAddr sdk.ValAddres
 	}
 }
 
-func (msg MsgWithdrawDelegatorReward) Route() string { return ModuleName }
-func (msg MsgWithdrawDelegatorReward) Type() string  { return TypeMsgWithdrawDelegatorReward }
-
-// GetSigners Return address that must sign over msg.GetSignBytes()
-func (msg MsgWithdrawDelegatorReward) GetSigners() []sdk.AccAddress {
-	delegator, _ := sdk.AccAddressFromBech32(msg.DelegatorAddress)
-	return []sdk.AccAddress{delegator}
-}
-
-// GetSignBytes get the bytes for the message signer to sign on
-func (msg MsgWithdrawDelegatorReward) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
 // ValidateBasic quick validity check
 func (msg MsgWithdrawDelegatorReward) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.DelegatorAddress); err != nil {
@@ -472,31 +283,10 @@ func NewMsgTransferRegion(from, to, creatorAddr string, address []string) *MsgTr
 	return &MsgTransferRegion{FromRegion: from, ToRegion: to, Address: address, Creator: creatorAddr}
 }
 
-func (msg *MsgTransferRegion) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgTransferRegion) Type() string {
-	return TypeMsgTransferRegion
-}
-
-func (msg *MsgTransferRegion) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgTransferRegion) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
 func (msg *MsgTransferRegion) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
 }
@@ -517,41 +307,23 @@ func NewMsgReplaceConsensusPubKeyRequest(creator, operator string, pubkey crypto
 	}, nil
 }
 
-func (msg *MsgReplaceConsensusPubKeyRequest) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgReplaceConsensusPubKeyRequest) Type() string {
-	return TypeMsgReplaceConsensusPubKey
-}
-
-func (msg *MsgReplaceConsensusPubKeyRequest) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgReplaceConsensusPubKeyRequest) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
 func (msg *MsgReplaceConsensusPubKeyRequest) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	if msg.ReplacePubKey == nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "replace pubkey cannot be nil")
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "replace pubkey cannot be nil")
 	}
 	_, err = sdk.ValAddressFromBech32(msg.ReplacePubKey.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address (%s)", err)
+	}
+	if msg.ReplacePubKey == nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "replace pubkey cannot be nil")
 	}
 	if msg.ReplacePubKey.BlockNumber < MinReplacePubKeyBlockNumber || msg.ReplacePubKey.BlockNumber > MaxReplacePubKeyBlockNumber {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid block number (%d), must be between %d and %d",
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid block number (%d), must be between %d and %d",
 			msg.ReplacePubKey.BlockNumber, MinReplacePubKeyBlockNumber, MaxReplacePubKeyBlockNumber)
 	}
 
@@ -561,7 +333,7 @@ func (msg *MsgReplaceConsensusPubKeyRequest) ValidateBasic() error {
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (msg MsgReplaceConsensusPubKeyRequest) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	if msg.ReplacePubKey == nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "replace pubkey cannot be nil")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "replace pubkey cannot be nil")
 	}
 
 	var pubKey cryptotypes.PubKey

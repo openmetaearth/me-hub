@@ -3,10 +3,9 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/openmetaearth/me-hub/testutil/keeper"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestKeeper_DidInfo(t *testing.T) {

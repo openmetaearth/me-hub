@@ -11,7 +11,7 @@ type PacketUID struct {
 }
 
 // NewPacketUID creates a new PacketUID with the provided details.
-func NewPacketUID(packetType RollappPacket_Type, hubPort, hubChannel string, sequence uint64) PacketUID {
+func NewPacketUID(packetType RollappPacket_Type, hubPort string, hubChannel string, sequence uint64) PacketUID {
 	return PacketUID{
 		Type:              packetType,
 		RollappHubPort:    hubPort,

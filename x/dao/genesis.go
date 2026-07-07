@@ -2,7 +2,6 @@ package dao
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/openmetaearth/me-hub/x/dao/keeper"
 	"github.com/openmetaearth/me-hub/x/dao/types"
 )

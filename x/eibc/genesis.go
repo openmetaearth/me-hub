@@ -2,7 +2,6 @@ package eibc
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/openmetaearth/me-hub/x/eibc/keeper"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
 )

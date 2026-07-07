@@ -1,11 +1,10 @@
 package keeper
 
 import (
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-
 	"github.com/openmetaearth/me-hub/x/did/types"
 )
 
@@ -30,7 +29,7 @@ func (k Keeper) GetCredential(ctx sdk.Context, did, sid string) (vc types.Creden
 
 func (k Keeper) GetCredentials(ctx sdk.Context) (vcs []types.Credential) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.CredentialPrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, types.CredentialPrefix)
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -64,7 +63,7 @@ func (k Keeper) GetCredentialsByFilter(
 ) (vcs []types.Credential, pageRes *query.PageResponse, err error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetFilterPrefixBySidAndFilter(sid, filter))
 
-	pageRes, err = query.Paginate(store, pageReq, func(key, value []byte) error {
+	pageRes, err = query.Paginate(store, pageReq, func(key []byte, value []byte) error {
 		var vc types.Credential
 		if err := k.cdc.Unmarshal(value, &vc); err != nil {
 			return err // todo: warp error
@@ -91,7 +90,7 @@ func (k Keeper) DeleteCredential(ctx sdk.Context, did, sid string) {
 
 func (k Keeper) IteratorCredentialsByFilter(ctx sdk.Context, sid string, filter []byte, cb func(delegation types.Credential) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetFilterPrefixBySidAndFilter(sid, filter))
-	iterator := sdk.KVStorePrefixIterator(store, nil)
+	iterator := storetypes.KVStorePrefixIterator(store, nil)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {

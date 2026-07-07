@@ -1,16 +1,21 @@
 package keeper_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	errorsmod "cosmossdk.io/errors"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/stretchr/testify/suite"
 
+	_ "embed"
+
 	"github.com/openmetaearth/me-hub/app/apptesting"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
 )
+
+//go:embed testdata/denom_kas.json
+var denomKasJson string
 
 type KeeperTestSuite struct {
 	apptesting.KeeperTestHelper
@@ -21,8 +26,8 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(suite.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	app := apptesting.Setup(suite.T())
+	ctx := app.NewContext(false)
 
 	suite.App = app
 	suite.Ctx = ctx
@@ -37,6 +42,13 @@ func (suite *KeeperTestSuite) TestCreateDenom() {
 	denom, found := bankKeeper.GetDenomMetaData(suite.Ctx, suite.getDymMetadata().Base)
 	suite.Require().EqualValues(found, true)
 	suite.Require().EqualValues(denom.Symbol, suite.getDymMetadata().Symbol)
+}
+
+func (suite *KeeperTestSuite) TestParseJson() {
+	metadata := banktypes.Metadata{}
+	err := json.Unmarshal([]byte(denomKasJson), &metadata)
+	suite.Require().NoError(err)
+	suite.Require().EqualValues(metadata.Symbol, "KAS")
 }
 
 func (suite *KeeperTestSuite) TestUpdateDenom() {

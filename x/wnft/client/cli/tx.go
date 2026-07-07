@@ -5,15 +5,14 @@ import (
 	"strconv"
 	"strings"
 
+	"cosmossdk.io/x/nft"
+	"github.com/spf13/cobra"
+	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/nft"
-	"github.com/spf13/cobra"
-
-	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -92,16 +91,10 @@ func NewCmdMintNFT() *cobra.Command {
 			}
 
 			classId := args[0]
-
 			tokenId := args[1]
-
 			url := args[2]
 			urlHash := args[3]
 			receiver := args[4]
-
-			if err != nil {
-				return types.ErrParameter.Wrap("term error")
-			}
 
 			msg := wnfttypes.NewMsgMintNFT(classId, tokenId, url, urlHash, clientCtx.GetFromAddress().String(), receiver)
 

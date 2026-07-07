@@ -6,6 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -37,7 +38,7 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 	}
 
 	gasMeter := ctx.GasMeter()
-	ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 
 	// Tries to get an attestation with the same eventNonce and claim as the claim that was submitted.
 	att := k.GetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash())
@@ -80,12 +81,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 	// This conditional stops the attestation from accidentally being applied twice.
 	// Sum the current powers of all validators who have voted and see if it passes the current threshold
 	totalPower := k.GetLastTotalPower(ctx)
-	if !totalPower.IsPositive() {
-		k.Logger(ctx).Error("TryAttestation", "non-positive total relayer power", totalPower.String(),
-			"claimEventNonce", claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
-		return
-	}
-	requiredPower := types.AttestationVotesPowerThreshold.Mul(totalPower).Quo(sdk.NewIntFromUint64(types.PowerBase))
+	requiredPower := types.AttestationVotesPowerThreshold.Mul(totalPower).Quo(sdkmath.NewIntFromUint64(types.PowerBase))
 	attestationPower := sdkmath.NewInt(0)
 
 	for _, relayerStr := range att.Votes {
@@ -100,11 +96,6 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 				claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
 			continue
 		}
-		if !relayer.Online {
-			k.Logger(ctx).Error("TryAttestation", "offline relayer vote ignored", relayerAddr.String(), "claimEventNonce",
-				claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
-			continue
-		}
 		relayerPower := relayer.GetPower()
 		// Add it to the attestation power's sum
 		attestationPower = attestationPower.Add(relayerPower)
@@ -112,13 +103,15 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 			continue
 		}
 
+		k.SetLastObservedEventNonce(ctx, claim.GetEventNonce())
+
+		// in case of web3 event is long time ago, we set the last observed me block height need long enough.
+		k.SetLastObservedBlockHeight(ctx, claim.GetBlockHeight(), uint64(ctx.BlockHeight()))
+
+		att.Observed = true
+		k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
+
 		err = k.processAttestation(ctx, claim)
-		if err == nil {
-			k.SetLastObservedEventNonce(ctx, claim.GetEventNonce())
-			k.SetLastObservedBlockHeight(ctx, claim.GetBlockHeight(), uint64(ctx.BlockHeight()))
-			att.Observed = true
-			k.SetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash(), att)
-		}
 		ctx.EventManager().EmitEvent(sdk.NewEvent(
 			types.EventTypeContractEvent,
 			sdk.NewAttribute(sdk.AttributeKeyModule, k.moduleName),
@@ -128,9 +121,9 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 			sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprint(claim.GetBlockHeight())),
 			sdk.NewAttribute(types.AttributeKeyStateSuccess, fmt.Sprint(err == nil)),
 		))
-		if err == nil {
-			k.PruneAttestations(ctx)
-		}
+		// execute the timeout logic
+		// k.cleanupTimedOutBatches(ctx)
+		k.PruneAttestations(ctx)
 		break
 	}
 }
@@ -183,7 +176,7 @@ func (k Keeper) DeleteAttestation(ctx sdk.Context, claim types.ExternalClaim) {
 // IterateAttestationAndClaim iterates through all attestations
 func (k Keeper) IterateAttestationAndClaim(ctx sdk.Context, cb func(*types.Attestation, types.ExternalClaim) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.RelayerAttestationKey)
+	iter := storetypes.KVStorePrefixIterator(store, types.RelayerAttestationKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
@@ -204,7 +197,7 @@ func (k Keeper) IterateAttestationAndClaim(ctx sdk.Context, cb func(*types.Attes
 // IterateAttestations iterates through all attestations
 func (k Keeper) IterateAttestationsByNonce(ctx sdk.Context, nonce uint64, cb func(*types.Attestation) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetAttestationKeyByNonce(nonce))
+	iter := storetypes.KVStorePrefixIterator(store, types.GetAttestationKeyByNonce(nonce))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
@@ -220,7 +213,7 @@ func (k Keeper) IterateAttestationsByNonce(ctx sdk.Context, nonce uint64, cb fun
 // IterateAttestations iterates through all attestations
 func (k Keeper) IterateAttestations(ctx sdk.Context, cb func(*types.Attestation) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.RelayerAttestationKey)
+	iter := storetypes.KVStorePrefixIterator(store, types.RelayerAttestationKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {

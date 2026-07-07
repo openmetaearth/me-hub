@@ -3,13 +3,12 @@ package keeper
 import (
 	"context"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/openmetaearth/me-hub/x/dao/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/openmetaearth/me-hub/x/dao/types"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -31,16 +30,12 @@ func (k Keeper) GlobalDaoFeePool(goCtx context.Context, req *types.QueryGlobalDa
 }
 
 func (k Keeper) FreeGasAccounts(goCtx context.Context, req *types.QueryFreeGasAccountsReq) (*types.QueryFreeGasAccountsResp, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	store := ctx.KVStore(k.storeKey)
 	pstore := prefix.NewStore(store, types.FreeGasAddressePrefix)
 
 	var accounts []string
-	pageRes, err := query.Paginate(pstore, req.Pagination, func(key, value []byte) error {
+	pageRes, err := query.Paginate(pstore, req.Pagination, func(key []byte, value []byte) error {
 		accounts = append(accounts, string(value))
 		return nil
 	})
@@ -51,10 +46,6 @@ func (k Keeper) FreeGasAccounts(goCtx context.Context, req *types.QueryFreeGasAc
 }
 
 func (k Keeper) IsFreeGasAccount(goCtx context.Context, req *types.QueryIsFreeGasAccountReq) (*types.QueryIsFreeGasAccountResp, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	return &types.QueryIsFreeGasAccountResp{IsFree: k.CheckFreeGasAccount(ctx, req.Address)}, nil
 }

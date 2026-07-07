@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"cosmossdk.io/math"
-
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	eibckeeper "github.com/openmetaearth/me-hub/x/eibc/keeper"

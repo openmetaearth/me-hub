@@ -6,6 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/x/gravity/types"
@@ -131,13 +132,16 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, contractAddress string,
 func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetOutgoingTxBatchKey(batch.TokenContract, batch.BatchNonce)
-	store.Set(key, k.cdc.MustMarshal(batch))
 
-	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block, batch.BatchNonce)
+	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block)
+	// Note: Only one OutgoingTxBatch can be submitted in a block
 	if store.Has(blockKey) {
 		return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("block:[%v] has batch request", batch.Block))
 	}
-	store.Set(blockKey, k.cdc.MustMarshal(batch))
+
+	value := k.cdc.MustMarshal(batch)
+	store.Set(key, value)
+	store.Set(blockKey, value)
 	return nil
 }
 
@@ -145,7 +149,7 @@ func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error 
 func (k Keeper) DeleteBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetOutgoingTxBatchKey(batch.TokenContract, batch.BatchNonce))
-	store.Delete(types.GetOutgoingTxBatchBlockKey(batch.Block, batch.BatchNonce))
+	store.Delete(types.GetOutgoingTxBatchBlockKey(batch.Block))
 }
 
 // pickUnBatchedTx find Tx in pool and remove from "available" second index
@@ -207,7 +211,7 @@ func (k Keeper) CancelOutgoingTxBatch(ctx sdk.Context, contractAddress string, b
 // IterateOutgoingTxBatches iterates through all outgoing batches
 func (k Keeper) IterateOutgoingTxBatches(ctx sdk.Context, cb func(batch *types.OutgoingTxBatch) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStoreReversePrefixIterator(store, types.OutgoingTxBatchKey)
+	iter := storetypes.KVStoreReversePrefixIterator(store, types.OutgoingTxBatchKey)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		batch := new(types.OutgoingTxBatch)
@@ -243,7 +247,7 @@ func (k Keeper) GetLastOutgoingBatchByTokenType(ctx sdk.Context, token string) *
 }
 
 // IterateBatchByBlockHeight iterates through all Batch by block in the half-open interval [start,end)
-func (k Keeper) IterateBatchByBlockHeight(ctx sdk.Context, start, end uint64, cb func(*types.OutgoingTxBatch) bool) {
+func (k Keeper) IterateBatchByBlockHeight(ctx sdk.Context, start uint64, end uint64, cb func(*types.OutgoingTxBatch) bool) {
 	store := ctx.KVStore(k.storeKey)
 	startKey := append(types.OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(start)...)
 	endKey := append(types.OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(end)...)

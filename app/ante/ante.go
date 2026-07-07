@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	errorsmod "cosmossdk.io/errors"
-	cometbftlog "github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+
+	cometbftlog "cosmossdk.io/log"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
+
+	errorsmod "cosmossdk.io/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewAnteHandler returns an ante handler responsible for attempting to route an
@@ -36,16 +38,12 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 				case "/ethermint.evm.v1.ExtensionOptionsEthereumTx":
 					// handle as *evmtypes.MsgEthereumTx
 					anteHandler = newEthAnteHandler(options)
-				case "/ethermint.types.v1.ExtensionOptionsWeb3Tx":
-					// handle as normal Cosmos SDK tx, except signature is checked for EIP712 representation
-					anteHandler = newLegacyCosmosAnteHandlerEip712(options)
 				default:
 					return ctx, errorsmod.Wrapf(
 						errortypes.ErrUnknownExtensionOptions,
 						"rejecting tx with unsupported extension option: %s", typeURL,
 					)
 				}
-
 				return anteHandler(ctx, tx, sim)
 			}
 		}

@@ -3,13 +3,12 @@ package delayedack_test
 import (
 	"testing"
 
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/stretchr/testify/require"
-
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
+	"github.com/stretchr/testify/require"
 )
 
 var defBridgingFee = types.DefaultParams().BridgingFee

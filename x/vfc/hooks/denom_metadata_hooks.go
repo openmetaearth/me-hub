@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
-
 	denommetadatamoduletypes "github.com/openmetaearth/me-hub/x/denommetadata/types"
 )
 

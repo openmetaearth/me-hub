@@ -1,10 +1,9 @@
 package types
 
 import (
-	"errors"
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
 )
@@ -33,7 +32,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(epochIdentifier string, bridgingFee sdk.Dec, deletePacketsEpochLimit int) Params {
+func NewParams(epochIdentifier string, bridgingFee sdkmath.LegacyDec, deletePacketsEpochLimit int) Params {
 	return Params{
 		EpochIdentifier:         epochIdentifier,
 		BridgingFee:             bridgingFee,
@@ -45,7 +44,7 @@ func NewParams(epochIdentifier string, bridgingFee sdk.Dec, deletePacketsEpochLi
 func DefaultParams() Params {
 	return NewParams(
 		defaultEpochIdentifier,
-		sdk.ZeroDec(),
+		sdkmath.LegacyZeroDec(),
 		defaultDeletePacketsEpochLimit,
 	)
 }
@@ -60,7 +59,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 }
 
 func validateBridgingFee(i interface{}) error {
-	v, ok := i.(sdk.Dec)
+	v, ok := i.(sdkmath.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -71,7 +70,7 @@ func validateBridgingFee(i interface{}) error {
 		return fmt.Errorf("bridging fee must be positive: %s", v)
 	}
 
-	if v.GTE(sdk.OneDec()) {
+	if v.GTE(sdkmath.LegacyOneDec()) {
 		return fmt.Errorf("bridging fee too large: %s", v)
 	}
 
@@ -84,7 +83,7 @@ func validateEpochIdentifier(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if len(v) == 0 {
-		return errors.New("epoch identifier cannot be empty")
+		return fmt.Errorf("epoch identifier cannot be empty")
 	}
 	return nil
 }
@@ -108,7 +107,10 @@ func (p Params) Validate() error {
 	if err := validateEpochIdentifier(p.EpochIdentifier); err != nil {
 		return err
 	}
-	return validateDeletePacketsEpochLimit(p.DeletePacketsEpochLimit)
+	if err := validateDeletePacketsEpochLimit(p.DeletePacketsEpochLimit); err != nil {
+		return err
+	}
+	return nil
 }
 
 // String implements the Stringer interface.

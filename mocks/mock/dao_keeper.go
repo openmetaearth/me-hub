@@ -18,7 +18,6 @@ func (m *MockDAOKeeper) GetMeidDao(ctx sdk.Context) sdk.AccAddress {
 	}
 	return acc
 }
-
 func (m *MockDAOKeeper) IsGlobalDao(ctx sdk.Context, address string) bool {
 	return true
 }

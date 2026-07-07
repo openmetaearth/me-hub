@@ -9,55 +9,79 @@ import (
 	"os"
 	"path/filepath"
 
+	"cosmossdk.io/client/v2/autocli"
+	"cosmossdk.io/core/appmodule"
+	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
+	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	"github.com/cosmos/gogoproto/proto"
+	v3_0_0 "github.com/openmetaearth/me-hub/app/upgrades/v3.0.0"
+
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/cosmos/cosmos-sdk/x/gov"
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	evmclient "github.com/evmos/ethermint/x/evm/client"
+
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	denommetadatamoduleclient "github.com/openmetaearth/me-hub/x/denommetadata/client"
+	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
+	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
+	"github.com/openmetaearth/me-hub/x/wstaking"
+
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
-	simappparams "cosmossdk.io/simapp/params"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	dbm "github.com/cometbft/cometbft-db"
+	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
+	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/openmetaearth/me-hub/app/upgrades"
+
+	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
 	cometbftjson "github.com/cometbft/cometbft/libs/json"
-	"github.com/cometbft/cometbft/libs/log"
 	cometbftos "github.com/cometbft/cometbft/libs/os"
+	dbm "github.com/cosmos/cosmos-db"
+
+	"github.com/gorilla/mux"
+	"github.com/spf13/cast"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	tmservice "github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/runtime"
-	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/store/streaming"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	"github.com/cosmos/cosmos-sdk/x/crisis"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
-	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/keeper"
-	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/evmos/ethermint/ethereum/eip712"
-	"github.com/evmos/ethermint/server/flags"
-	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/spf13/cast"
 
-	"github.com/openmetaearth/me-hub/app/ante"
-	"github.com/openmetaearth/me-hub/app/keepers"
-	appparams "github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/app/upgrades" //nolint:revive
-	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_14"
-	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_15"
+	"github.com/cosmos/cosmos-sdk/x/crisis"
+
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	"github.com/openmetaearth/me-hub/docs"
+
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+
+	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
+	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/keeper"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
+	"github.com/openmetaearth/me-hub/app/ante"
+	appparams "github.com/openmetaearth/me-hub/app/params"
 	metypes "github.com/openmetaearth/me-hub/types"
-	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
-	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
+	"github.com/evmos/ethermint/server/flags"
 )
 
 var (
@@ -74,8 +98,7 @@ var (
 
 	// Upgrades contains the upgrade handlers for the application
 	Upgrades = []upgrades.Upgrade{
-		v2_0_14.Upgrade,
-		v2_0_15.Upgrade,
+		v3_0_0.Upgrade,
 	}
 )
 
@@ -96,16 +119,21 @@ func init() {
 type App struct {
 	*baseapp.BaseApp
 
-	cdc               *codec.LegacyAmino
+	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
+	txConfig          client.TxConfig
 	interfaceRegistry types.InterfaceRegistry
 
 	// keepers
-	keepers.AppKeepers
+	AppKeepers
 	// the module manager
-	mm *module.Manager
+	mm                 *module.Manager
+	BasicModuleManager module.BasicManager
+
 	// module configurator
 	configurator module.Configurator
+	// simulation manager
+	sm *module.SimulationManager
 }
 
 // New returns a reference to an initialized blockchain app
@@ -114,54 +142,50 @@ func New(
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,
-	skipUpgradeHeights map[int64]bool,
-	homePath string,
-	invCheckPeriod uint,
-	encodingConfig appparams.EncodingConfig,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
-	appCodec := encodingConfig.Codec
-	cdc := encodingConfig.Amino
-	interfaceRegistry := encodingConfig.InterfaceRegistry
-
-	eip712.SetEncodingConfig(simappparams.EncodingConfig{
-		InterfaceRegistry: interfaceRegistry,
-		Codec:             appCodec,
+	encodingConfig := appparams.MakeEncodingConfig()
+	encoding := appparams.EncodingConfig{
+		InterfaceRegistry: encodingConfig.InterfaceRegistry,
+		Codec:             encodingConfig.Codec,
 		TxConfig:          encodingConfig.TxConfig,
 		Amino:             encodingConfig.Amino,
-	})
+	}
+	appCodec := encoding.Codec
+	legacyAmino := encoding.Amino
+	txConfig := encoding.TxConfig
+	interfaceRegistry := encoding.InterfaceRegistry
 
-	bApp := baseapp.NewBaseApp(appparams.Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
+	bApp := baseapp.NewBaseApp(appparams.Name, logger, db, txConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
-	bApp.SetTxEncoder(encodingConfig.TxConfig.TxEncoder())
+	bApp.SetTxEncoder(txConfig.TxEncoder())
 
 	app := &App{
 		BaseApp:           bApp,
-		cdc:               cdc,
+		legacyAmino:       legacyAmino,
 		appCodec:          appCodec,
+		txConfig:          txConfig,
 		interfaceRegistry: interfaceRegistry,
-		AppKeepers:        keepers.AppKeepers{},
+		AppKeepers:        AppKeepers{},
 	}
 
 	app.GenerateKeys()
 
-	// load state streaming if enabled
-	if _, _, err := streaming.LoadStreamingServices(bApp, appOpts, appCodec, logger, keepers.KVStoreKeys); err != nil {
-		panic("failed to load state streaming services: " + err.Error())
+	// register streaming services
+	if err := bApp.RegisterStreamingServices(appOpts, app.keys); err != nil {
+		panic(fmt.Errorf("failed to register streaming services: %w", err))
 	}
-
-	tracer := cast.ToString(appOpts.Get(flags.EVMTracer))
 
 	var wasmOpts []wasmkeeper.Option
 	if cast.ToBool(appOpts.Get("telemetry.enabled")) {
 		wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
 	}
-	app.AppKeepers.InitKeepers(appCodec, cdc, bApp, app.ModuleAccountAddrs(), skipUpgradeHeights, invCheckPeriod, tracer, homePath, appOpts, wasmOpts)
-	app.AppKeepers.SetupHooks()
-	app.AppKeepers.InitTransferStack()
+	app.InitKeepers(appCodec, legacyAmino, bApp, logger, ModuleAccountAddrs(), appOpts, wasmOpts)
+	app.SetupHooks()
+	app.InitTransferStack()
 
 	/****  Module Options ****/
 
@@ -171,46 +195,100 @@ func New(
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
-	app.mm = module.NewManager(app.SetupModules(appCodec, bApp, encodingConfig, skipGenesisInvariants)...)
+	app.mm = module.NewManager(app.SetupModules(appCodec, bApp, encoding, skipGenesisInvariants)...)
 
+	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
+	// non-dependant module elements, such as codec registration and genesis verification.
+	// By default it is composed of all the module from the module manager.
+	// Additionally, app module basics can be overwritten by passing them as argument.
+	app.BasicModuleManager = module.NewBasicManagerFromManager(
+		app.mm,
+		map[string]module.AppModuleBasic{
+			genutiltypes.ModuleName: genutil.NewAppModuleBasic(GenTxMessageValidator),
+			govtypes.ModuleName: gov.NewAppModuleBasic(
+				[]govclient.ProposalHandler{
+					paramsclient.ProposalHandler,
+					denommetadatamoduleclient.CreateDenomMetadataHandler,
+					denommetadatamoduleclient.UpdateDenomMetadataHandler,
+					evmclient.UpdateVirtualFrontierBankContractProposalHandler,
+				},
+			),
+			stakingtypes.ModuleName: wstaking.AppModuleBasic{},
+		})
+
+	app.BasicModuleManager.RegisterLegacyAminoCodec(legacyAmino)
+	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
+
+	// NOTE: upgrade module is required to be prioritized
+	app.mm.SetOrderPreBlockers(PreBlockers...)
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
 	// NOTE: staking module is required if HistoricalEntries param > 0
-	// TODO: use "github.com/osmosis-labs/osmosis/osmoutils/partialord" to order modules
-	app.mm.SetOrderBeginBlockers(keepers.BeginBlockers...)
-	app.mm.SetOrderEndBlockers(keepers.EndBlockers...)
+	// TODO: use "github.com/openmetaearth/me-hub/utils/osmoutils/partialord" to order modules
+	app.mm.SetOrderBeginBlockers(BeginBlockers...)
+	app.mm.SetOrderEndBlockers(EndBlockers...)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
 	// NOTE: Capability module must occur first so that it can initialize any capabilities
 	// so that other modules that want to create or claim capabilities afterwards in InitChain
 	// can do so safely.
-	app.mm.SetOrderInitGenesis(keepers.InitGenesis...)
+	app.mm.SetOrderInitGenesis(InitGenesis...)
+	app.mm.SetOrderExportGenesis(InitGenesis...)
+
+	// Set a custom migration order here.
+	app.mm.SetOrderMigrations(CustomMigrationOrder(app.mm.ModuleNames())...)
+
 	app.mm.RegisterInvariants(app.CrisisKeeper)
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	// app.mm.RegisterServices(app.configurator)
-	app.RegisterServices(app.configurator)
+	err := app.mm.RegisterServices(app.configurator)
+	if err != nil {
+		panic(fmt.Errorf("failed to register services: %w", err))
+	}
+
+	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
+	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
+	app.setupUpgradeHandlers()
+
+	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.mm.Modules))
+
+	reflectionSvc, err := runtimeservices.NewReflectionService()
+	if err != nil {
+		panic(fmt.Errorf("failed to create reflection service: %w", err))
+	}
+	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
+
+	/****  Simulations ****/
+	overrideModules := map[string]module.AppModuleSimulation{
+		authtypes.ModuleName: auth.NewAppModule(app.appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
+	}
+	app.sm = module.NewSimulationManagerFromAppModules(app.mm.Modules, overrideModules)
+	app.sm.RegisterStoreDecoders()
 
 	// initialize stores
-	app.MountKVStores(keepers.KVStoreKeys)
+	app.MountKVStores(KVStoreKeys)
 	app.MountTransientStores(app.GetTransientStoreKey())
 	app.MountMemoryStores(app.GetMemoryStoreKey())
 
 	// initialize BaseApp
 	app.SetInitChainer(app.InitChainer)
+	app.SetPreBlocker(app.PreBlocker)
 	app.SetBeginBlocker(app.BeginBlocker)
+	app.SetEndBlocker(app.EndBlocker)
 
+	/* ---------------------------- set ante handler ---------------------------- */
 	maxGasWanted := cast.ToUint64(appOpts.Get(flags.EVMMaxTxGasWanted))
 	anteHandler, err := ante.NewAnteHandler(ante.HandlerOptions{
 		AccountKeeper:          &app.AccountKeeper,
-		BankKeeper:             app.BankKeeper,
+		BankKeeper:             app.WBankKeeper,
 		IBCKeeper:              app.IBCKeeper,
 		FeeMarketKeeper:        app.FeeMarketKeeper,
 		EvmKeeper:              app.EvmKeeper,
 		FeegrantKeeper:         app.FeeGrantKeeper,
-		SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
+		SignModeHandler:        txConfig.SignModeHandler(),
 		MaxTxGasWanted:         maxGasWanted,
 		ExtensionOptionChecker: nil, // uses default
 		RollappKeeper:          *app.RollappKeeper,
@@ -220,27 +298,22 @@ func New(
 		WasmViewKeeper:         app.WasmKeeper,
 	})
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to create ante handler: %w", err))
 	}
-	postHandler, err := posthandler.NewPostHandler(
-		posthandler.HandlerOptions{},
-	)
-	if err != nil {
-		panic(fmt.Errorf("failed to create PostHandler: %w", err))
-	}
-
 	app.SetAnteHandler(anteHandler)
-	app.SetEndBlocker(app.EndBlocker)
-	app.SetPostHandler(postHandler)
-	app.setupUpgradeHandlers()
 
-	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.mm.Modules))
-
-	reflectionSvc, err := runtimeservices.NewReflectionService()
+	// At startup, after all modules have been registered, check that all proto
+	// annotations are correct.
+	protoFiles, err := proto.MergedRegistry()
 	if err != nil {
 		panic(err)
 	}
-	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
+	err = msgservice.ValidateProtoAnnotations(protoFiles)
+	if err != nil {
+		// Once we switch to using protoreflect-based antehandlers, we might
+		// want to panic here instead of logging a warning.
+		fmt.Fprintln(os.Stderr, err.Error())
+	}
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -256,18 +329,23 @@ func (app *App) Name() string { return app.BaseApp.Name() }
 // GetBaseApp returns the base app of the application
 func (app App) GetBaseApp() *baseapp.BaseApp { return app.BaseApp }
 
+// PreBlocker application updates every pre block
+func (app *App) PreBlocker(ctx sdk.Context, _ *abci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
+	return app.mm.PreBlock(ctx)
+}
+
 // BeginBlocker application updates every begin block
-func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	return app.mm.BeginBlock(ctx, req)
+func (app *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
+	return app.mm.BeginBlock(ctx)
 }
 
 // EndBlocker application updates every end block
-func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	return app.mm.EndBlock(ctx, req)
+func (app *App) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
+	return app.mm.EndBlock(ctx)
 }
 
 // InitChainer application update at chain initialization
-func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+func (app *App) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
 	metypes.SetChainId(ctx.ChainID())
 	var genesisState GenesisState
 	if err := cometbftjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
@@ -287,7 +365,7 @@ func (app *App) LoadHeight(height int64) error {
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
 func (app *App) LegacyAmino() *codec.LegacyAmino {
-	return app.cdc
+	return app.legacyAmino
 }
 
 // AppCodec returns an app codec.
@@ -301,6 +379,32 @@ func (app *App) AppCodec() codec.Codec {
 // InterfaceRegistry returns an InterfaceRegistry
 func (app *App) InterfaceRegistry() types.InterfaceRegistry {
 	return app.interfaceRegistry
+}
+
+// TxConfig returns SimApp's TxConfig
+func (app *App) TxConfig() client.TxConfig {
+	return app.txConfig
+}
+
+// AutoCliOpts returns the autocli options for the app.
+func (app *App) AutoCliOpts() autocli.AppOptions {
+	modules := make(map[string]appmodule.AppModule, 0)
+	for _, m := range app.mm.Modules {
+		if moduleWithName, ok := m.(module.HasName); ok {
+			moduleName := moduleWithName.Name()
+			if appModule, ok := moduleWithName.(appmodule.AppModule); ok {
+				modules[moduleName] = appModule
+			}
+		}
+	}
+
+	return autocli.AppOptions{
+		Modules:               modules,
+		ModuleOptions:         runtimeservices.ExtractAutoCLIOptions(app.mm.Modules),
+		AddressCodec:          authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
+		ValidatorAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
+		ConsensusAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
+	}
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
@@ -317,7 +421,7 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register grpc-gateway routes for all modules.
-	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	app.BasicModuleManager.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {
@@ -342,8 +446,8 @@ func (app *App) RegisterTendermintService(clientCtx client.Context) {
 	)
 }
 
-func (app *App) RegisterNodeService(clientCtx client.Context) {
-	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter())
+func (app *App) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
+	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
@@ -368,7 +472,11 @@ func (app *App) GetTxConfig() client.TxConfig {
 }
 
 func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
-	return app.mm.ExportGenesis(ctx, app.AppCodec())
+	export, err := app.mm.ExportGenesis(ctx, app.AppCodec())
+	if err != nil {
+		panic(err)
+	}
+	return export
 }
 
 func (app *App) setupUpgradeHandlers() {
@@ -383,17 +491,25 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 		upgrade.CreateHandler(
 			app.mm,
 			app.configurator,
-			app.BaseApp,
-			&app.AppKeepers,
+			&upgrades.UpgradeKeepers{
+				AccountKeeper:    &app.AccountKeeper,
+				GovKeeper:        app.GovKeeper,
+				RollappKeeper:    app.RollappKeeper,
+				ParamsKeeper:     &app.ParamsKeeper,
+				DelayedAckKeeper: &app.DelayedAckKeeper,
+				EIBCKeeper:       &app.EIBCKeeper,
+				SequencerKeeper:  app.SequencerKeeper,
+				MintKeeper:       &app.MintKeeper,
+				SlashingKeeper:   &app.SlashingKeeper,
+				ConsensusKeeper:  &app.ConsensusParamsKeeper,
+				StakingKeeper:    app.StakingKeeper,
+			},
 		),
 	)
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(fmt.Errorf("failed to read upgrade info from disk: %w", err))
-	}
-
-	switch upgradeInfo.Name {
 	}
 
 	if upgradeInfo.Name == upgrade.Name && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {

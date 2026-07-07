@@ -2,10 +2,14 @@ package cmd
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/openmetaearth/me-hub/app/params"
+	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
+	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
+
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -16,11 +20,6 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/evmos/ethermint/crypto/hd"
 	"github.com/spf13/cobra"
-
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_13"
-	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
-	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 )
 
 func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
@@ -39,7 +38,7 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 				return fmt.Errorf("parse coins: %w", err)
 			}
 			if !coins.IsValid() {
-				return errors.New("invalid coins")
+				return fmt.Errorf("invalid coins")
 			}
 
 			rawAddrList := strings.Split(args[0], ",")
@@ -65,11 +64,11 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 				proposalRelayers = append(proposalRelayers, addrStr)
 			}
 			if len(addrs) == 0 {
-				return errors.New("no valid addresses provided")
+				return fmt.Errorf("no valid addresses provided")
 			}
 
 			genFile := config.GenesisFile()
-			appState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFile)
+			appState, appGenesis, err := genutiltypes.GenesisStateFromGenFile(genFile)
 			if err != nil {
 				return fmt.Errorf("unmarshal genesis state: %w", err)
 			}
@@ -115,8 +114,8 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 				bankGenState.Balances = append(bankGenState.Balances, bal)
 				bankGenState.Supply = bankGenState.Supply.Add(bal.Coins...)
 			}
-			delegateAmount := sdk.NewInt(1 * 1e8)
-			bondedAmount := delegateAmount.Mul(sdk.NewInt(int64(len(addrs))))
+			delegateAmount := sdkmath.NewInt(1 * 1e8)
+			bondedAmount := delegateAmount.Mul(sdkmath.NewInt(int64(len(addrs))))
 
 			bal1 := banktypes.Balance{
 				Address: authtypes.NewModuleAddress(bsctypes.ModuleName).String(),
@@ -141,7 +140,8 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 			appState[banktypes.ModuleName] = bankBz
 
 			{
-				bscGenState := v2_0_13.GenGravityGenesis(0, proposalRelayers, bsctypes.DefaultGenesisState(), delegateAmount, bsctypes.ModuleName)
+				bscGenState := bsctypes.DefaultGenesisState()
+				//  TODO: Restore relayer generation logic if needed
 				bscGenStateBz, err := cdc.MarshalJSON(bscGenState)
 				if err != nil {
 					return fmt.Errorf("marshal bsc genesis: %w", err)
@@ -150,7 +150,8 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 			}
 
 			{
-				tronGenState := v2_0_13.GenGravityGenesis(0, proposalRelayers, trontypes.DefaultGenesisState(), delegateAmount, trontypes.ModuleName)
+				tronGenState := trontypes.DefaultGenesisState()
+				// TODO: Restore relayer generation logic if needed
 				tronGenStateBz, err := cdc.MarshalJSON(tronGenState)
 				if err != nil {
 					return fmt.Errorf("marshal tron genesis: %w", err)
@@ -161,8 +162,8 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("marshal app state: %w", err)
 			}
-			genDoc.AppState = appStateJSON
-			return genutil.ExportGenesisFile(genDoc, genFile)
+			appGenesis.AppState = appStateJSON
+			return genutil.ExportGenesisFile(appGenesis, genFile)
 		},
 	}
 

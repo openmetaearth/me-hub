@@ -1,15 +1,18 @@
 package transfergenesis
 
 import (
-	_ "embed"
 	"testing"
-
-	errorsmod "cosmossdk.io/errors"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/stretchr/testify/require"
 
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
+
+	errorsmod "cosmossdk.io/errors"
+
+	_ "embed"
+
+	"github.com/stretchr/testify/require"
+
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 func Test_getExample(t *testing.T) {

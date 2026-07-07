@@ -10,7 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
-
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -36,14 +35,14 @@ $ %s tx distribution withdraw-rewards --from %saddress`, version.AppName, bech32
 				return err
 			}
 			delAddr := clientCtx.GetFromAddress()
-			// valAddr, err := sdk.ValAddressFromBech32(args[0])
-			// if err != nil {
+			//valAddr, err := sdk.ValAddressFromBech32(args[0])
+			//if err != nil {
 			//	return err
 			//}
 
 			msgs := []sdk.Msg{types.NewMsgWithdrawDelegatorReward(delAddr, sdk.ValAddress{})}
 
-			// if commission, _ := cmd.Flags().GetBool(FlagCommission); commission {
+			//if commission, _ := cmd.Flags().GetBool(FlagCommission); commission {
 			//	msgs = append(msgs, types.NewMsgWithdrawValidatorCommission(valAddr))
 			//}
 

@@ -5,19 +5,25 @@ import (
 	"errors"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
-	"github.com/cometbft/cometbft/libs/log"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-
 	"github.com/openmetaearth/me-hub/utils/gerrc"
-	"github.com/openmetaearth/me-hub/utils/uibc"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	uibc "github.com/openmetaearth/me-hub/utils/uibc"
+
+	"cosmossdk.io/log"
+
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+
+	errorsmod "cosmossdk.io/errors"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+
 	delayedackkeeper "github.com/openmetaearth/me-hub/x/delayedack/keeper"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
@@ -113,11 +119,11 @@ func (w IBCModule) OnRecvPacket(
 	memo, err := getMemo(transfer.GetMemo())
 	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
 		// The first regular transfer marks the full opening of the bridge, more genesis transfers will not be allowed.
-		ack := w.IBCModule.OnRecvPacket(ctx, packet, relayer)
-		if (ack == nil || ack.Success()) && !ra.GenesisState.TransfersEnabled {
+		err := w.IBCModule.OnRecvPacket(ctx, packet, relayer)
+		if err == nil && !ra.GenesisState.TransfersEnabled {
 			w.rollappKeeper.EnableTransfers(ctx, ra.RollappId)
 		}
-		return ack
+		return err
 	}
 	if err != nil {
 		l.Error("Get memo.", "err", err)

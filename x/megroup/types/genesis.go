@@ -19,7 +19,7 @@ func DefaultGenesis() *GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 	// Check for duplicated ID in group
-	// todo:稍后在做
+	//todo:稍后在做
 	return nil
 	/*
 		groupIdMap := make(map[uint64]bool)

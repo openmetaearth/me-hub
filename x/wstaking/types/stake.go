@@ -1,10 +1,9 @@
 package types
 
 import (
-	"time"
-
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"time"
 )
 
 func (s Stake) GetValidatorAddr() sdk.ValAddress {
@@ -15,7 +14,7 @@ func (s Stake) GetValidatorAddr() sdk.ValAddress {
 	return addr
 }
 
-func (s Stake) GetShares() sdk.Dec { return s.Shares }
+func (s Stake) GetShares() sdkmath.LegacyDec { return s.Shares }
 
 func (s Stake) GetStakerAddr() sdk.AccAddress {
 	stakerAddress := sdk.MustAccAddressFromBech32(s.StakerAddress)
@@ -25,27 +24,27 @@ func (s Stake) GetStakerAddr() sdk.AccAddress {
 // NewStake creates a new stake object
 //
 //nolint:interfacer
-func NewStake(stakerAddr sdk.AccAddress, validatorAddr sdk.ValAddress, shares sdk.Dec) Stake {
+func NewStake(stakerAddr sdk.AccAddress, validatorAddr sdk.ValAddress, shares sdkmath.LegacyDec) Stake {
 	return Stake{
 		StakerAddress:    stakerAddr.String(),
 		ValidatorAddress: validatorAddr.String(),
 		Shares:           shares,
 		StartHeight:      0,
-		Rewards:          sdk.ZeroDec(),
-		Amount:           sdk.ZeroInt(),
-		Unmovable:        sdk.ZeroInt(),
+		Rewards:          sdkmath.LegacyZeroDec(),
+		Amount:           sdkmath.ZeroInt(),
+		Unmovable:        sdkmath.ZeroInt(),
 	}
 }
 
 // AddEntry - append entry to the unbonding stake
-func (ubs *UnbondingStake) AddEntry(creationHeight int64, minTime time.Time, balance math.Int) {
+func (ubs *UnbondingStake) AddEntry(creationHeight int64, minTime time.Time, balance sdkmath.Int) {
 	entry := NewUnbondingStakeEntry(creationHeight, minTime, balance)
 	ubs.Entries = append(ubs.Entries, entry)
 }
 
 // RemoveEntry - remove entry at index i to the unbonding stake
-func (ubs *UnbondingStake) RemoveEntry(i int64) {
-	ubs.Entries = append(ubs.Entries[:i], ubs.Entries[i+1:]...)
+func (ubd *UnbondingStake) RemoveEntry(i int64) {
+	ubd.Entries = append(ubd.Entries[:i], ubd.Entries[i+1:]...)
 }
 
 // IsMature - is the current entry mature
@@ -53,7 +52,7 @@ func (e UnbondingStakeEntry) IsMature(currentTime time.Time) bool {
 	return !e.CompletionTime.After(currentTime)
 }
 
-func NewUnbondingStakeEntry(creationHeight int64, completionTime time.Time, balance math.Int) UnbondingStakeEntry {
+func NewUnbondingStakeEntry(creationHeight int64, completionTime time.Time, balance sdkmath.Int) UnbondingStakeEntry {
 	return UnbondingStakeEntry{
 		CreationHeight: creationHeight,
 		CompletionTime: completionTime,
@@ -67,7 +66,7 @@ func NewUnbondingStakeEntry(creationHeight int64, completionTime time.Time, bala
 //nolint:interfacer
 func NewUnbondingStake(
 	stakerAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
-	creationHeight int64, minTime time.Time, balance math.Int,
+	creationHeight int64, minTime time.Time, balance sdkmath.Int,
 ) UnbondingStake {
 	return UnbondingStake{
 		StakerAddress:    stakerAddr.String(),

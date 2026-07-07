@@ -4,11 +4,10 @@ import (
 	"context"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	"github.com/openmetaearth/me-hub/utils"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -26,8 +25,8 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 		return nil, err
 	}
 
-	validator, found := k.GetValidator(ctx, valAddr)
-	if !found {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return nil, stakingtypes.ErrNoValidatorFound
 	}
 	oldRegionId := validator.Description.RegionID
@@ -44,7 +43,7 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 			return nil, types.ErrRegionName
 		}
 		// remove duplication
-		validators := k.GetAllValidators(ctx)
+		validators, _ := k.GetAllValidators(ctx)
 		for _, v := range validators {
 			if v.Description.RegionID == msg.Description.RegionID {
 				return nil, types.ErrValidatorRegionDuplication
@@ -60,10 +59,10 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 	}
 
 	//region, f := k.GetRegion(ctx, validator.Description.RegionID)
-	// if !f {
-	//	return nil, sdkerrors.Wrapf(types.ErrRegionNotExist, "please set region first")
+	//if !f {
+	//	return nil, errorsmod.Wrapf(types.ErrRegionNotExist, "please set region first")
 	//}
-	// if region.OperatorAddress != validator.OperatorAddress {
+	//if region.OperatorAddress != validator.OperatorAddress {
 	//	return nil, fmt.Errorf("region id already bound to another validator(%s), please set region first", region.OperatorAddress)
 	//}
 
@@ -87,7 +86,7 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 			sdk.MustAccAddressFromBech32(msg.OwnerAddress),
 			validator)
 		if err != nil {
-			return nil, sdkerrors.Wrapf(types.ErrResetValidator, err.Error())
+			return nil, errorsmod.Wrap(types.ErrResetValidator, err.Error())
 		}
 	} else {
 		k.SetValidator(ctx, validator)
@@ -104,9 +103,13 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 	return &types.MsgUpdateValidatorResponse{}, nil
 }
 
-func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.AccAddress, validator stakingtypes.Validator) error {
+func (k *Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.AccAddress, validator stakingtypes.Validator) error {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	oldValOperator := validator.GetOperator()
+	oldValOpAddr, err := sdk.ValAddressFromBech32(oldValOperator)
+	if err != nil {
+		return err
+	}
 
 	acc := k.authKeeper.GetAccount(ctx, newValAddr)
 	if acc != nil {
@@ -117,23 +120,21 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 	}
 
 	newValOperAddr := sdk.ValAddress(newValAddr)
-	_, exist := k.GetValidator(ctx, newValOperAddr)
-	if exist {
+	_, errExist := k.GetValidator(ctx, newValOperAddr)
+	if errExist == nil {
 		return types.ErrValidatorExist
 	}
 
 	ctx.Logger().Info("==>old validator", "old validator", validator.String(), "old owner", validator.OwnerAddress)
 
-	stake, found := k.GetStake(ctx, staker, validator.GetOperator())
+	stake, found := k.GetStake(ctx, staker, oldValOpAddr)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrNoStake, "stake(%s) for operator(%s) not found", staker, validator.GetOperator())
+		return errorsmod.Wrapf(types.ErrNoStake, "stake(%s) for operator(%s) not found", staker, validator.GetOperator())
 	}
-	if err := k.RemoveStake(ctx, stake); err != nil {
-		return err
-	}
+	k.RemoveStake(ctx, stake)
 
-	k.RemoveValidator(ctx, validator.GetOperator())
-	k.DeleteLastValidatorPower(ctx, validator.GetOperator())
+	k.RemoveValidator(ctx, oldValOpAddr)
+	k.DeleteLastValidatorPower(ctx, oldValOpAddr)
 	if validator.Status == stakingtypes.Unbonding {
 		k.DeleteValidatorQueue(ctx, validator)
 	}
@@ -144,7 +145,7 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 	validator.OperatorAddress = newValOperAddr.String()
 	validator.OwnerAddress = newValAddr.String()
 
-	err := k.SetValidatorByConsAddr(ctx, validator)
+	err = k.SetValidatorByConsAddr(ctx, validator)
 	if err != nil {
 		return err
 	}
@@ -161,14 +162,14 @@ func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.Acc
 	k.SetChangeDelegationValidator(ctx, validator.Description.RegionID)
 
 	ctx.Logger().Info("==>new validator", "validator", validator.String(), "owner", validator.OwnerAddress)
-	if err := k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
+	if err := k.Hooks().AfterValidatorCreated(ctx, newValOperAddr); err != nil {
 		return err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeResetValidator,
-			sdk.NewAttribute(types.AttributeKeyValidator, oldValOperator.String()),
+			sdk.NewAttribute(types.AttributeKeyValidator, oldValOperator),
 			sdk.NewAttribute(types.AttributeKeyNewValidator, newValOperAddr.String()),
 			sdk.NewAttribute(types.AttributeKeyNewOwnerAddress, validator.OwnerAddress),
 		),

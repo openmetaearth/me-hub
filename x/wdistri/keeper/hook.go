@@ -1,11 +1,12 @@
 package keeper
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrikeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
+	Wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 type Hooks struct {
@@ -15,7 +16,7 @@ type Hooks struct {
 
 var (
 	_ stakingtypes.StakingHooks   = Hooks{}
-	_ wstakingtypes.WstakingHooks = Hooks{}
+	_ Wstakingtypes.WstakingHooks = Hooks{}
 )
 
 // overwrite
@@ -26,7 +27,7 @@ func (k Keeper) Hooks() Hooks {
 
 // overwrite
 // withdraw delegation rewards (which also increments period)
-func (h Hooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+func (h Hooks) BeforeDelegationSharesModified(ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
 	return nil
 }
 

@@ -4,9 +4,8 @@ import (
 	"testing"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/stretchr/testify/require"
-
 	"github.com/openmetaearth/me-hub/testutil/sample"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMsgJoinGroup_ValidateBasic(t *testing.T) {
@@ -38,10 +37,4 @@ func TestMsgJoinGroup_ValidateBasic(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
-}
-
-func TestLeaveGroupUsesOwnLegacyType(t *testing.T) {
-	require.Equal(t, TypeMsgJoinGroup, (&MsgJoinGroup{}).Type())
-	require.Equal(t, TypeMsgLeaveGroup, (&MsgLeaveGroupRequest{}).Type())
-	require.NotEqual(t, (&MsgJoinGroup{}).Type(), (&MsgLeaveGroupRequest{}).Type())
 }

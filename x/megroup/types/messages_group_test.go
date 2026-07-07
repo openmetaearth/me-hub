@@ -4,9 +4,8 @@ import (
 	"testing"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/stretchr/testify/require"
-
 	"github.com/openmetaearth/me-hub/testutil/sample"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMsgCreateGroup_ValidateBasic(t *testing.T) {
@@ -21,13 +20,33 @@ func TestMsgCreateGroup_ValidateBasic(t *testing.T) {
 				Creator: "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
-		}, {
-			name: "valid address",
+		},
+		{
+			name: "missing GroupInfo",
+			msg: MsgCreateGroup{
+				Creator: sample.AccAddress(),
+				// GroupInfo is nil -> should fail with ErrInvalidAddress on Admin
+			},
+			err: sdkerrors.ErrInvalidAddress,
+		},
+		{
+			name: "empty RegionID",
 			msg: MsgCreateGroup{
 				Creator: sample.AccAddress(),
 				GroupInfo: &GroupInfo{
 					Admin:    sample.AccAddress(),
-					RegionID: "meearth",
+					RegionID: "",
+				},
+			},
+			err: sdkerrors.ErrInvalidRequest,
+		},
+		{
+			name: "valid",
+			msg: MsgCreateGroup{
+				Creator: sample.AccAddress(),
+				GroupInfo: &GroupInfo{
+					Admin:    sample.AccAddress(),
+					RegionID: "ME_EARTH",
 				},
 			},
 		},

@@ -6,8 +6,9 @@ import (
 	"strconv"
 
 	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 )
@@ -66,7 +67,10 @@ func (m *DemandOrder) ValidateBasic() error {
 }
 
 func (m *DemandOrder) Validate() error {
-	return m.ValidateBasic()
+	if err := m.ValidateBasic(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *DemandOrder) GetEvents() []sdk.Attribute {

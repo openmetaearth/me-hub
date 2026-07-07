@@ -3,13 +3,12 @@ package keeper
 import (
 	"context"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/openmetaearth/me-hub/x/megroup/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
 func (k Keeper) GroupMemberCountAll(goCtx context.Context, req *types.QueryAllGroupMemberCountRequest) (*types.QueryAllGroupMemberCountResponse, error) {
@@ -23,7 +22,7 @@ func (k Keeper) GroupMemberCountAll(goCtx context.Context, req *types.QueryAllGr
 	store := ctx.KVStore(k.storeKey)
 	groupMemberCountStore := prefix.NewStore(store, types.KeyPrefix(types.GroupMemberCountKeyPrefix))
 
-	pageRes, err := query.Paginate(groupMemberCountStore, req.Pagination, func(key, value []byte) error {
+	pageRes, err := query.Paginate(groupMemberCountStore, req.Pagination, func(key []byte, value []byte) error {
 		var groupMemberCount types.GroupMemberCount
 		if err := k.cdc.Unmarshal(value, &groupMemberCount); err != nil {
 			return err

@@ -1,18 +1,12 @@
 package keeper
 
 import (
-	"fmt"
-
+	"cosmossdk.io/core/store"
 	sdkmath "cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distriKeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
-	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
+	distritypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wdistri/types"
 )
@@ -20,11 +14,10 @@ import (
 type Keeper struct {
 	distriKeeper.Keeper
 	cdc           codec.BinaryCodec
-	storeKey      storetypes.StoreKey
-	paramstore    paramtypes.Subspace
-	authKeeper    types.AccountKeeper
-	bankKeeper    types.BankKeeper
-	stakingKeeper types.StakingKeeper
+	authKeeper    distritypes.AccountKeeper
+	bankKeeper    distritypes.BankKeeper
+	stakingKeeper distritypes.StakingKeeper
+	regionStaking types.StakingKeeper
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
@@ -38,17 +31,17 @@ type WrapDistrKeeper struct {
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey storetypes.StoreKey,
-	ps paramtypes.Subspace,
-	accountKeeper types.AccountKeeper,
-	bankKeeper types.BankKeeper,
-	stakingKeeper types.StakingKeeper,
+	storeService store.KVStoreService,
+	accountKeeper distritypes.AccountKeeper,
+	bankKeeper distritypes.BankKeeper,
+	stakingKeeper distritypes.StakingKeeper,
+	regionStaking types.StakingKeeper,
 	feeCollectorName string,
 	authority string,
 ) *Keeper {
-	distriKeeperImpl := distriKeeper.NewKeeper(
+	distrKeeper := distriKeeper.NewKeeper(
 		cdc,
-		storeKey,
+		storeService,
 		accountKeeper,
 		bankKeeper,
 		stakingKeeper,
@@ -56,13 +49,12 @@ func NewKeeper(
 		authority,
 	)
 	return &Keeper{
-		Keeper:           distriKeeperImpl,
+		Keeper:           distrKeeper,
 		cdc:              cdc,
-		storeKey:         storeKey,
-		paramstore:       ps,
 		authKeeper:       accountKeeper,
 		bankKeeper:       bankKeeper,
 		stakingKeeper:    stakingKeeper,
+		regionStaking:    regionStaking,
 		authority:        authority,
 		feeCollectorName: feeCollectorName,
 	}
@@ -72,11 +64,7 @@ func (k Keeper) GetTreasuryModuleAccount() string {
 	return k.feeCollectorName
 }
 
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s", distributiontypes.ModuleName))
-}
-
-func (k Keeper) AllocateBlockRewardEveryday(ctx sdk.Context, req abci.RequestEndBlock) error {
+func (k Keeper) AllocateBlockRewardEveryday(ctx sdk.Context) error {
 	if ctx.BlockHeight()%types.OneDayTotalBlocks == 0 {
 		return k.AllocateBlockReward(ctx)
 	}
@@ -90,26 +78,21 @@ func (k Keeper) AllocateBlockReward(ctx sdk.Context) error {
 		ctx.Logger().Info("totalMintCoin is zero, no need to allocate reward")
 		return nil
 	}
-	regions := k.stakingKeeper.GetAllRegionI(ctx)
+	regions := k.regionStaking.GetAllRegionI(ctx)
 	totalRegionShare := sdkmath.NewInt(0)
 	for _, region := range regions {
 		totalRegionShare = region.GetRegionShare().Add(totalRegionShare)
 	}
-	totalRegionShareDec := sdk.NewDecFromInt(totalRegionShare)
+	totalRegionShareDec := sdkmath.LegacyNewDecFromInt(totalRegionShare)
 	if totalRegionShare.IsZero() {
 		return nil
 	}
 	for _, region := range regions {
 		// calculate every region coins: RegionShare * totalMintCoins / totalRegionShare
-		amount := sdk.NewDecFromInt(region.GetRegionShare()).Mul(totalMintCoin.AmountOf(params.BaseDenom).ToLegacyDec()).Quo(totalRegionShareDec)
+		amount := sdkmath.LegacyNewDecFromInt(region.GetRegionShare()).Mul(totalMintCoin.AmountOf(params.BaseDenom).ToLegacyDec()).Quo(totalRegionShareDec)
 		regionAmount := amount.TruncateInt()
-		regionCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(regionAmount.Int64())))
-		treasuryAddr, addrErr := sdk.AccAddressFromBech32(region.GetRegionTreasureAddr())
-		if addrErr != nil {
-			ctx.Logger().Error("invalid region treasure address, skipping reward", "regionId", region.GetRegionId(), "addr", region.GetRegionTreasureAddr(), "err", addrErr)
-			continue
-		}
-		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.GetTreasuryModuleAccount(), treasuryAddr, regionCoins)
+		regionCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(regionAmount.Int64())))
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.GetTreasuryModuleAccount(), sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()), regionCoins)
 		if err != nil {
 			return err
 		}

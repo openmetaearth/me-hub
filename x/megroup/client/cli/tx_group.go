@@ -8,9 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/spf13/cobra"
-
 	"github.com/openmetaearth/me-hub/x/megroup/types"
+	"github.com/spf13/cobra"
 )
 
 func CmdCreateGroup() *cobra.Command {

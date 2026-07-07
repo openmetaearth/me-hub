@@ -2,7 +2,6 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
@@ -26,7 +25,7 @@ func (k *Keeper) GetRegion(ctx sdk.Context, regionId string) (reg types.Region, 
 
 func (k *Keeper) GetAllRegions(ctx sdk.Context) (regs []types.Region) {
 	raws := k.stkKeeper.GetAllRegion(ctx)
-	regions := make([]types.Region, 0, len(raws))
+	regions := make([]types.Region, len(raws))
 	for _, rew := range raws {
 		regions = append(regions, types.Region{Id: rew.RegionId, Name: rew.Name})
 	}

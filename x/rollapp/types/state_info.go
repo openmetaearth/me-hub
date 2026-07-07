@@ -4,11 +4,10 @@ import (
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	common "github.com/openmetaearth/me-hub/x/common/types"
 )
 
-func NewStateInfo(rollappId string, newIndex uint64, creator string, startHeight, numBlocks uint64, daPath string, version, height uint64, bds BlockDescriptors) *StateInfo {
+func NewStateInfo(rollappId string, newIndex uint64, creator string, startHeight uint64, numBlocks uint64, daPath string, version uint64, height uint64, bds BlockDescriptors) *StateInfo {
 	stateInfoIndex := StateInfoIndex{RollappId: rollappId, Index: newIndex}
 	status := common.Status_PENDING
 	return &StateInfo{

@@ -7,13 +7,17 @@ import (
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
 func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*types.MsgJoinGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	//creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	// allow join group when creator is applicant or global DAO or Meid DAO
 
@@ -42,13 +46,12 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 
 	grpNumber, found := k.GetGroupMemberCount(ctx, msg.GroupId)
 	if !found {
-		return nil, errors.Wrap(types.ErrProcData, "can not found group number count in JoinGroup")
+		return nil, errors.Wrapf(types.ErrProcData, "can not found group number count in JoinGroup")
 	}
 
 	joined, JoinGroupFound := k.GetMemberJoined(ctx, msg.ApplicantAddress)
 	if JoinGroupFound && joined.GroupId > 0 {
-		errLogBytes := fmt.Sprintf("user has joined a group (groupID:%d)", joined.GroupId)
-		return nil, errors.Wrap(types.ErrPermissionDenied, errLogBytes)
+		return nil, errors.Wrapf(types.ErrPermissionDenied, "user has joined a group (groupID:%d)", joined.GroupId)
 	}
 
 	// set member's join group info
@@ -74,20 +77,20 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 		// get RegionTreasureAddr
 		region, found := k.stakingKeeper.GetRegion(ctx, groupInfo.RegionID)
 		if !found {
-			return nil, errors.Wrap(types.ErrRegionNotExist, fmt.Sprintf("group's region: %s", groupInfo.RegionID))
+			return nil, errors.Wrapf(types.ErrRegionNotExist, "group's region: %s", groupInfo.RegionID)
 		}
 		rewardsCoin := sdk.NewCoin(params.BaseDenom, math.NewInt(1000000))
 		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
 			sdk.MustAccAddressFromBech32(msg.ApplicantAddress), sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_SendApplicantRewards_%s", region.RegionId))
 		if err != nil {
-			return nil, errors.Wrap(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
-				err.Error(), region.GetRegionTreasureAddr(), msg.ApplicantAddress))
+			return nil, errors.Wrapf(types.ErrProcData, "transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
+				err.Error(), region.GetRegionTreasureAddr(), msg.ApplicantAddress)
 		}
 		err = k.bankKeeper.Extend().SendCoinsWithTag(ctx, sdk.MustAccAddressFromBech32(region.GetRegionTreasureAddr()),
 			sdk.MustAccAddressFromBech32(groupInfo.Admin), sdk.NewCoins(rewardsCoin), fmt.Sprintf("JoinGroup_SendAdminRewards_%s", region.RegionId))
 		if err != nil {
-			return nil, errors.Wrap(types.ErrProcData, fmt.Sprintf("transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
-				err.Error(), region.GetRegionTreasureAddr(), groupInfo.Admin))
+			return nil, errors.Wrapf(types.ErrProcData, "transfer rewards coins error. err = %s,fromAddr = %s,toAddr = %s",
+				err.Error(), region.GetRegionTreasureAddr(), groupInfo.Admin)
 		}
 		ctx.EventManager().EmitEvent(sdk.NewEvent(types.EvtJoinGroupReward,
 			sdk.NewAttribute("applicant", msg.ApplicantAddress),
@@ -110,19 +113,20 @@ func (k msgServer) LeaveGroup(goCtx context.Context, req *types.MsgLeaveGroupReq
 
 	groupInfo, found := k.GetGroupInfo(ctx, req.GroupId)
 	if !found {
-		return nil, errors.Wrap(types.ErrGroupNotExist, fmt.Sprintf("can not found gourp.groupID = %d", req.GroupId))
+		return nil, errors.Wrapf(types.ErrGroupNotExist, "can not found gourp.groupID = %d", req.GroupId)
 	}
 
 	if req.Creator == groupInfo.Admin { // admin can not leave group
-		return nil, errors.Wrapf(types.ErrExecute, "admin of group can not leave")
+		return nil, errors.Wrapf(types.ErrExcute, "admin of group can not leave")
 	}
 
 	joined, found := k.GetMemberJoined(ctx, req.Creator)
 	if !found {
-		return nil, errors.Wrapf(types.ErrExecute, "can not found join group")
+		return nil, errors.Wrapf(types.ErrExcute, "can not found join group")
 	}
 	if joined.GroupId != req.GroupId {
-		return nil, errors.Wrap(types.ErrExecute, fmt.Sprintf("group info dismatch.input group's id = %d,join gropp's id = %d", req.GroupId, joined.GroupId))
+		return nil, errors.Wrapf(types.ErrExcute, "group info dismatch.input group's id = %d,join gropp's id = %d",
+			req.GroupId, joined.GroupId)
 	}
 
 	grpNumber, found := k.GetGroupMemberCount(ctx, req.GroupId)

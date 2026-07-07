@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	delayedacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"

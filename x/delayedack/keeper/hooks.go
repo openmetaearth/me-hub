@@ -2,9 +2,6 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
-
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
 	eibctypes "github.com/openmetaearth/me-hub/x/eibc/types"
@@ -13,7 +10,6 @@ import (
 /* -------------------------------------------------------------------------- */
 /*                                 eIBC Hooks                                 */
 /* -------------------------------------------------------------------------- */
-
 var _ eibctypes.EIBCHooks = eibcHooks{}
 
 const (
@@ -43,57 +39,38 @@ func (k eibcHooks) AfterDemandOrderFulfilled(ctx sdk.Context, demandOrder *eibct
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                 epoch hooks                                */
+/*                               Epoch Hooks                                  */
 /* -------------------------------------------------------------------------- */
-var _ epochstypes.EpochHooks = epochHooks{}
 
 type epochHooks struct {
 	Keeper
 }
 
-func (k Keeper) GetEpochHooks() epochstypes.EpochHooks {
-	return epochHooks{
-		Keeper: k,
-	}
+// GetEpochHooks returns an epochHooks instance wrapping the keeper.
+func (k Keeper) GetEpochHooks() epochHooks {
+	return epochHooks{Keeper: k}
 }
 
-// BeforeEpochStart is the epoch start hook.
-func (e epochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	return nil
-}
-
-// AfterEpochEnd is the epoch end hook.
-// We want to clean up the demand orders that are with underlying packet status which are finalized.
-func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
+// AfterEpochEnd deletes all finalized and reverted rollapp packets for the matching epoch identifier.
+func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, _ int64) error {
 	params := e.GetParams(ctx)
-
-	if epochIdentifier != params.EpochIdentifier {
+	if params.EpochIdentifier != epochIdentifier {
 		return nil
 	}
 
-	listFilter := types.ByStatus(commontypes.Status_FINALIZED, commontypes.Status_REVERTED).Take(int(deletePacketsBatchSize))
-	count := 0
+	limit := int(params.DeletePacketsEpochLimit)
+	filter := types.ByStatus(commontypes.Status_FINALIZED, commontypes.Status_REVERTED)
+	if limit > 0 {
+		filter = filter.Take(limit)
+	}
 
-	// Get batch of rollapp packets with status != PENDING and delete them
-	for toDeletePackets := e.ListRollappPackets(ctx, listFilter); len(toDeletePackets) > 0; toDeletePackets = e.ListRollappPackets(ctx, listFilter) {
-		e.Logger(ctx).Debug("Deleting rollapp packets", "num_packets", len(toDeletePackets))
-
-		count += len(toDeletePackets)
-
-		for _, packet := range toDeletePackets {
-			err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				return e.deleteRollappPacket(ctx, &packet)
-			})
-			if err != nil {
-				e.Logger(ctx).Error("Failed to delete rollapp packet",
-					"packet", commontypes.RollappPacketKey(&packet), "error", err)
-			}
-		}
-
-		// if the total number of deleted packets reaches the hard limit for the epoch, stop deleting packets
-		if int32(count) >= params.DeletePacketsEpochLimit {
-			break
+	packets := e.ListRollappPackets(ctx, filter)
+	for _, packet := range packets {
+		p := packet
+		if err := e.deleteRollappPacket(ctx, &p); err != nil {
+			return err
 		}
 	}
+
 	return nil
 }

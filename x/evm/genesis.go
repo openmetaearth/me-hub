@@ -17,20 +17,18 @@ package evm
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"strings"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	ethermint "github.com/evmos/ethermint/types"
 	"github.com/evmos/ethermint/utils"
-	"github.com/evmos/ethermint/x/evm/types"
 
+	ethermint "github.com/evmos/ethermint/types"
+	"github.com/evmos/ethermint/x/evm/types"
 	"github.com/openmetaearth/me-hub/x/evm/keeper"
 )
 
@@ -44,14 +42,14 @@ func InitGenesis(
 ) []abci.ValidatorUpdate {
 	// Enable evm Create code
 	if utils.IsOneOfDymensionChains(ctx) && data.Params.EnableCreate {
-		panic(errors.New("enable create is not allowed on mechain chains"))
+		panic(fmt.Errorf("enable create is not allowed on mechain chains"))
 	}
 
 	k.SetChainIDFromCosmos(ctx.ChainID())
 
 	err := k.SetParams(ctx, data.Params)
 	if err != nil {
-		panic(fmt.Errorf("error setting params %w", err))
+		panic(fmt.Errorf("error setting params %s", err))
 	}
 
 	// ensure evm module account is set
@@ -150,34 +148,4 @@ func InitGenesis(
 	}
 
 	return []abci.ValidatorUpdate{}
-}
-
-// ExportGenesis exports genesis state of the EVM module
-func ExportGenesis(ctx sdk.Context, k *keeper.Keeper, ak types.AccountKeeper) *types.GenesisState {
-	var ethGenAccounts []types.GenesisAccount
-	ak.IterateAccounts(ctx, func(account authtypes.AccountI) bool {
-		ethAccount, ok := account.(ethermint.EthAccountI)
-		if !ok {
-			// ignore non EthAccounts
-			return false
-		}
-
-		addr := ethAccount.EthAddress()
-
-		storage := k.GetAccountStorage(ctx, addr)
-
-		genAccount := types.GenesisAccount{
-			Address: addr.String(),
-			Code:    common.Bytes2Hex(k.GetCode(ctx, ethAccount.GetCodeHash())),
-			Storage: storage,
-		}
-
-		ethGenAccounts = append(ethGenAccounts, genAccount)
-		return false
-	})
-
-	return &types.GenesisState{
-		Accounts: ethGenAccounts,
-		Params:   k.GetParams(ctx),
-	}
 }

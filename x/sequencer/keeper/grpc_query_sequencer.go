@@ -3,13 +3,12 @@ package keeper
 import (
 	"context"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func (k Keeper) Sequencers(c context.Context, req *types.QuerySequencersRequest) (*types.QuerySequencersResponse, error) {
@@ -23,7 +22,7 @@ func (k Keeper) Sequencers(c context.Context, req *types.QuerySequencersRequest)
 	store := ctx.KVStore(k.storeKey)
 	sequencerStore := prefix.NewStore(store, types.SequencersKey())
 
-	pageRes, err := query.Paginate(sequencerStore, req.Pagination, func(key, value []byte) error {
+	pageRes, err := query.Paginate(sequencerStore, req.Pagination, func(key []byte, value []byte) error {
 		var sequencer types.Sequencer
 		if err := k.cdc.Unmarshal(value, &sequencer); err != nil {
 			return err

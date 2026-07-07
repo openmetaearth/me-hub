@@ -1,10 +1,9 @@
 package types
 
 import (
-	"errors"
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
 )
@@ -32,7 +31,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(epochIdentifier string, timeoutFee, errAckFee sdk.Dec) Params {
+func NewParams(epochIdentifier string, timeoutFee sdkmath.LegacyDec, errAckFee sdkmath.LegacyDec) Params {
 	return Params{
 		EpochIdentifier: epochIdentifier,
 		TimeoutFee:      timeoutFee,
@@ -42,7 +41,7 @@ func NewParams(epochIdentifier string, timeoutFee, errAckFee sdk.Dec) Params {
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(defaultEpochIdentifier, sdk.MustNewDecFromStr(defaultTimeoutFee), sdk.MustNewDecFromStr(defaultErrAckFee))
+	return NewParams(defaultEpochIdentifier, sdkmath.LegacyMustNewDecFromStr(defaultTimeoutFee), sdkmath.LegacyMustNewDecFromStr(defaultErrAckFee))
 }
 
 // ParamSetPairs get the params.ParamSet
@@ -80,13 +79,13 @@ func validateEpochIdentifier(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if len(v) == 0 {
-		return errors.New("epoch identifier cannot be empty")
+		return fmt.Errorf("epoch identifier cannot be empty")
 	}
 	return nil
 }
 
 func validateTimeoutFee(i interface{}) error {
-	v, ok := i.(sdk.Dec)
+	v, ok := i.(sdkmath.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -97,7 +96,7 @@ func validateTimeoutFee(i interface{}) error {
 		return ErrNegativeFee
 	}
 
-	if v.GTE(sdk.OneDec()) {
+	if v.GTE(sdkmath.LegacyOneDec()) {
 		return ErrFeeTooHigh
 	}
 
@@ -105,7 +104,7 @@ func validateTimeoutFee(i interface{}) error {
 }
 
 func validateErrAckFee(i any) error {
-	v, ok := i.(sdk.Dec)
+	v, ok := i.(sdkmath.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -116,7 +115,7 @@ func validateErrAckFee(i any) error {
 		return ErrNegativeFee
 	}
 
-	if v.GTE(sdk.OneDec()) {
+	if v.GTE(sdkmath.LegacyOneDec()) {
 		return ErrFeeTooHigh
 	}
 

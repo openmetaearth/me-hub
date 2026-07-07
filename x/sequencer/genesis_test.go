@@ -3,16 +3,20 @@ package sequencer_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
-
+	"github.com/openmetaearth/me-hub/app/params"
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/testutil/nullify"
 	"github.com/openmetaearth/me-hub/x/sequencer"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestInitGenesis(t *testing.T) {
+	// Register denom before calling DefaultParams
+	params.RegisterDenomsIfNeeded()
+
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
 
@@ -44,7 +48,7 @@ func TestInitGenesis(t *testing.T) {
 
 func TestExportGenesis(t *testing.T) {
 	params := types.Params{
-		MinBond:       sdk.NewCoin("dym", sdk.NewInt(100)),
+		MinBond:       sdk.NewCoin("dym", sdkmath.NewInt(100)),
 		UnbondingTime: 100,
 	}
 	sequencerList := []types.Sequencer{

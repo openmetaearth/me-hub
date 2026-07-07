@@ -6,7 +6,7 @@ const (
 
 	AttributeKeyTokenID   = "token_id"
 	AttributeKeyOwner     = "owner"
-	AttributeKeyURI       = "uri"
+	AttributeKeyUri       = "uri"
 	AttributeKeyClassName = "class_name"
 	AttributeKeySender    = "sender"
 	AttributeKeyReceiver  = "receiver"

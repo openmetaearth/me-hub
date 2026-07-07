@@ -2,17 +2,13 @@ package keeper
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
-	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type Querier struct {
@@ -41,10 +37,7 @@ func (k Keeper) DID(goCtx context.Context, req *types.QueryDID) (*types.QueryDID
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	addr, err := sdk.AccAddressFromBech32(req.Address)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid address: "+err.Error())
-	}
+	addr := sdk.MustAccAddressFromBech32(req.Address)
 	did, found := k.GetDID(ctx, addr)
 	if !found {
 		return nil, status.Error(codes.Internal, "did not found")
@@ -122,16 +115,6 @@ func (k Keeper) SBT(goCtx context.Context, req *types.QuerySBT) (*types.QuerySBT
 	sbt, found := k.GetSBT(ctx, req.Did)
 	if !found {
 		return nil, status.Error(codes.Internal, "SBT not found")
-	}
-
-	// compatibility: fix SBTs whose Data.TypeUrl was left empty by a previous bug (UnsafePackAny).
-	// The raw bytes are re-wrapped into wnfttypes.Extension so REST/gRPC-gateway can resolve the type.
-	if sbt.Data != nil && sbt.Data.TypeUrl == "" {
-		newData, err := codectypes.NewAnyWithValue(&wnfttypes.Extension{Data: hex.EncodeToString(sbt.Data.Value)})
-		if err != nil {
-			return nil, status.Error(codes.Internal, "failed to fix SBT data encoding: "+err.Error())
-		}
-		sbt.Data = newData
 	}
 
 	return &types.QuerySBTResponse{Sbt: sbt}, nil

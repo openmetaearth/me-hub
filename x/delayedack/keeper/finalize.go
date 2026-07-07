@@ -3,13 +3,13 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+
+	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	"github.com/openmetaearth/me-hub/utils/osmoutils"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
@@ -56,8 +56,8 @@ func (k Keeper) finalizeRollappPacket(
 	var packetErr error
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
-		ack := replayRecvPacket(ctx, ibc, rollappPacket)
-		if ack != nil {
+		ack := ibc.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
+		if ack != nil { // NOTE: in practice ack should not be nil, since ibc transfer core module always returns something
 			packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
 		}
 	case commontypes.RollappPacket_ON_ACK:
@@ -83,41 +83,6 @@ func (k Keeper) finalizeRollappPacket(
 	return nil
 }
 
-func replayRecvPacket(
-	ctx sdk.Context,
-	ibc porttypes.IBCModule,
-	rollappPacket commontypes.RollappPacket,
-) exported.Acknowledgement {
-	cacheCtx, writeFn := ctx.CacheContext()
-	ack := ibc.OnRecvPacket(cacheCtx, *rollappPacket.Packet, rollappPacket.Relayer)
-
-	if ack == nil || ack.Success() {
-		writeFn()
-	} else {
-		ctx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
-	}
-
-	return ack
-}
-
-func convertToErrorEvents(events sdk.Events) sdk.Events {
-	if events == nil {
-		return nil
-	}
-
-	newEvents := make(sdk.Events, len(events))
-	for i, event := range events {
-		newAttributes := make([]sdk.Attribute, len(event.Attributes))
-		for j, attribute := range event.Attributes {
-			newAttributes[j] = sdk.NewAttribute(coretypes.ErrorAttributeKeyPrefix+attribute.Key, attribute.Value)
-		}
-
-		newEvents[i] = sdk.NewEvent(coretypes.ErrorAttributeKeyPrefix+event.Type, newAttributes...)
-	}
-
-	return newEvents
-}
-
 func (k Keeper) writeRecvAck(rollappPacket commontypes.RollappPacket, ack exported.Acknowledgement) wrappedFunc {
 	return func(ctx sdk.Context) (err error) {
 		var chanCap *capabilitytypes.Capability
@@ -134,7 +99,8 @@ func (k Keeper) writeRecvAck(rollappPacket commontypes.RollappPacket, ack export
 			to ensure the ack matches what the rollapp expects.
 		*/
 		rollappPacket = rollappPacket.RestoreOriginalTransferTarget()
-		return k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
+		err = k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
+		return
 	}
 }
 

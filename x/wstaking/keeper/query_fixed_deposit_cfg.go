@@ -4,13 +4,13 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-func (k Keeper) FixedDepositCfg(goCtx context.Context, req *types.QueryFixedDepositCfgRequest) (*types.QueryFixedDepositCfgResponse, error) {
+func (k *Keeper) FixedDepositCfg(goCtx context.Context, req *types.QueryFixedDepositCfgRequest) (*types.QueryFixedDepositCfgResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -18,7 +18,7 @@ func (k Keeper) FixedDepositCfg(goCtx context.Context, req *types.QueryFixedDepo
 	var configs []types.RegionAllFixedDepositCfg
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if len(req.RegionIds) == 0 {
+	if req.RegionIds == nil || len(req.RegionIds) == 0 {
 		regions := k.GetAllRegion(ctx)
 		for _, region := range regions {
 			req.RegionIds = append(req.RegionIds, region.RegionId)
@@ -44,7 +44,7 @@ func (k Keeper) FixedDepositCfg(goCtx context.Context, req *types.QueryFixedDepo
 	return &types.QueryFixedDepositCfgResponse{RegionFixedDepositCfgs: configs}, nil
 }
 
-func (k Keeper) FixedDepositCfgByTerm(goCtx context.Context, req *types.QueryFixedDepositCfgByTermRequest) (*types.QueryFixedDepositCfgByTermResponse, error) {
+func (k *Keeper) FixedDepositCfgByTerm(goCtx context.Context, req *types.QueryFixedDepositCfgByTermRequest) (*types.QueryFixedDepositCfgByTermResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}

@@ -4,13 +4,13 @@ import (
 	"strconv"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
-
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/testutil/nullify"
 	"github.com/openmetaearth/me-hub/x/sequencer/keeper"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
+	"github.com/stretchr/testify/require"
 )
 
 // Prevent strconv unused error
@@ -34,7 +34,7 @@ func TestSequencerGet(t *testing.T) {
 	keeper, ctx := keepertest.SequencerKeeper(t)
 	items := createNSequencer(keeper, ctx, 10)
 	for _, item := range items {
-
+		item := item
 		rst, found := keeper.GetSequencer(ctx,
 			item.SequencerAddress,
 		)
@@ -71,6 +71,20 @@ func TestSequencersByRollappGet(t *testing.T) {
 
 func (suite *SequencerTestSuite) TestRotatingSequencerByBond() {
 	suite.SetupTest()
+
+	// Get the base denom
+	baseDenom, err := sdk.GetBaseDenom()
+	suite.Require().NoError(err)
+
+	// Set MinBond params so that sequencers will have tokens
+	// Use non-zero bond for testing
+	nonZeroBond := sdk.NewCoin(baseDenom, sdkmath.NewInt(1000000))
+	seqParams := types.Params{
+		MinBond:       nonZeroBond,
+		UnbondingTime: 100,
+	}
+	suite.App.SequencerKeeper.SetParams(suite.Ctx, seqParams)
+
 	rollappId := suite.CreateDefaultRollapp()
 
 	numOfSequencers := 5
@@ -78,10 +92,10 @@ func (suite *SequencerTestSuite) TestRotatingSequencerByBond() {
 	// create sequencers
 	seqAddrs := make([]string, numOfSequencers)
 	for j := 0; j < len(seqAddrs)-1; j++ {
-		seqAddrs[j] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+		seqAddrs[j] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, nonZeroBond)
 	}
 	// last one with high bond is the expected new proposer
-	seqAddrs[len(seqAddrs)-1] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, sdk.NewCoin(bond.Denom, bond.Amount.MulRaw(2)))
+	seqAddrs[len(seqAddrs)-1] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, sdk.NewCoin(nonZeroBond.Denom, nonZeroBond.Amount.MulRaw(2)))
 	expecetedProposer := seqAddrs[len(seqAddrs)-1]
 
 	// check starting proposer and unbond

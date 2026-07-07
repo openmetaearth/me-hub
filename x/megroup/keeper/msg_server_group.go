@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"cosmossdk.io/errors"
-
 	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 

@@ -3,8 +3,7 @@ package keeper
 import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
@@ -31,19 +30,19 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 	data.TransferData, err = k.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), port, channel)
 	if err != nil {
 		err = errors.Wrap(err, "get valid transfer data")
-		return data, err
+		return
 	}
 
 	packetID := commontypes.NewPacketUID(packetType, port, channel, packet.Sequence)
 	height, ok := types.PacketProofHeightFromCtx(ctx, packetID)
 	if !ok {
 		err = errors.Wrapf(gerrc.ErrNotFound, "get proof height from context: packetID: %s", packetID)
-		return data, err
+		return
 	}
 	data.ProofHeight = height.RevisionHeight
 
 	if !data.IsRollapp() {
-		return data, err
+		return
 	}
 
 	finalizedHeight, err := k.getRollappFinalizedHeight(ctx, data.Rollapp.RollappId)
@@ -55,5 +54,5 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 		data.Finalized = data.ProofHeight <= finalizedHeight
 	}
 
-	return data, err
+	return
 }

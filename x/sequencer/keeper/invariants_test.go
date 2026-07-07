@@ -48,6 +48,6 @@ func (suite *SequencerTestSuite) TestInvariants() {
 	// additional rollapp with no sequencers
 	_ = suite.CreateDefaultRollapp()
 
-	msg, bool := keeper.AllInvariants(suite.App.SequencerKeeper)(suite.Ctx)
+	msg, bool := keeper.AllInvariants(*suite.App.SequencerKeeper)(suite.Ctx)
 	suite.Require().False(bool, msg)
 }

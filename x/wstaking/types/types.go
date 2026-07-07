@@ -3,14 +3,14 @@ package types
 import (
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cometbft/cometbft/crypto"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/openmetaearth/me-hub/app/params"
 )
 
-type MeidRewardType int32
+type MEID_REWARD_TYPE int32
 
 const (
 	MeEarthRegionName    = "ME_EARTH"
@@ -18,17 +18,17 @@ const (
 
 	CaclTotalSupply = 20000000000
 
-	MeidJoinGroupNoReward MeidRewardType = 0
-	MeidJoinGroupRewarded MeidRewardType = 1
-	MeEarthRegionId                      = "me_earth"
-	ExperienceRegionId                   = "experience_region"
+	MeidJoinGroupNoReward MEID_REWARD_TYPE = 0
+	MeidJoinGroupRewarded MEID_REWARD_TYPE = 1
+	MeEarthRegionId                        = "me_earth"
+	ExperienceRegionId                     = "experience_region"
 )
 
 var (
-	Bonus           = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil))
-	InviteReward    = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit-1), nil))
-	ValidatorReward = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit-2), nil))
-	CommitteeReward = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit-2), nil))
+	Bonus           = sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil))
+	InviteReward    = sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit-1), nil))
+	ValidatorReward = sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit-2), nil))
+	CommitteeReward = sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit-2), nil))
 )
 
 func GetRegionAccountAddr(accountType REGION_ACCOUNT_TYPE, regionId string) sdk.AccAddress {
@@ -51,7 +51,7 @@ func GetClassDescription(regionId string) string {
 	return "nft class for region " + regionId
 }
 
-func (m MeidRewardType) Int32() int32 {
+func (m MEID_REWARD_TYPE) Int32() int32 {
 	return int32(m)
 }
 

@@ -6,15 +6,15 @@ import (
 	"slices"
 	"strings"
 
+	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
+
 	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/x/nft"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/nft"
-
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
-	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
 	stktypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -42,7 +42,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	// check issuer did
 	issuer, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(msg.Issuer))
 	if !found || !slices.Contains(svc.Issuers, issuer) {
-		return &types.MsgApproveResponse{}, sdkerrors.Wrap(didtypes.ErrInvalidIssuer, msg.Issuer)
+		return &types.MsgApproveResponse{}, errorsmod.Wrap(didtypes.ErrInvalidIssuer, msg.Issuer)
 	}
 
 	issuerInfo, found := m.GetDidInfo(ctx, issuer)
@@ -57,7 +57,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	}
 
 	// check region
-	if _, found := m.stkKeeper.GetRegion(ctx, msg.RegionId); !found {
+	if _, found := m.stkKeeper.GetRegionCache(msg.RegionId); !found {
 		return &types.MsgApproveResponse{}, stktypes.ErrRegionNotExist
 	}
 
@@ -94,7 +94,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 
 	if msg.Level >= didtypes.KYC_LEVEL_TWO {
 		if err := m.stkKeeper.SendInviteReward(ctx, msg.Inviter, msg.Address, msg.RegionId); err != nil {
-			return &types.MsgApproveResponse{}, sdkerrors.Wrap(types.ErrInviteReward, err.Error())
+			return &types.MsgApproveResponse{}, errorsmod.Wrap(types.ErrInviteReward, err.Error())
 		}
 	}
 
@@ -108,7 +108,6 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 
 func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.MsgUpdateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call Update", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx)
@@ -123,7 +122,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	}
 	issuerInfo, found := m.GetDidInfo(ctx, issuer)
 	if !found || issuerInfo.Status != didtypes.DID_STATUS_ACTIVE {
-		return &types.MsgUpdateResponse{}, sdkerrors.Wrap(didtypes.ErrInvalidIssuer, msg.Issuer)
+		return &types.MsgUpdateResponse{}, errorsmod.Wrap(didtypes.ErrInvalidIssuer, msg.Issuer)
 	}
 
 	// check holder did
@@ -143,12 +142,12 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	}
 
 	// check region
-	if _, found := m.stkKeeper.GetRegion(ctx, msg.RegionId); !found {
+	if _, found := m.stkKeeper.GetRegionCache(msg.RegionId); !found {
 		return &types.MsgUpdateResponse{}, stktypes.ErrRegionNotExist
 	}
 
 	// update KYC level
-	// if msg.Level == didtypes.KYC_LEVEL_NONE {
+	//if msg.Level == didtypes.KYC_LEVEL_NONE {
 	//	return &types.MsgUpdateResponse{}, errors.Wrap(didtypes.ErrParameter, "KYC level must be greater than 0")
 	//}
 
@@ -166,12 +165,12 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 
 	// change reward
 	if err := m.TransferKycRegion(ctx, address.String(), msg.Issuer, perRegionId, msg.RegionId); err != nil {
-		return &types.MsgUpdateResponse{}, sdkerrors.Wrap(types.ErrTransferRegion, err.Error())
+		return &types.MsgUpdateResponse{}, errorsmod.Wrap(types.ErrTransferRegion, err.Error())
 	}
 
 	if perLevel == didtypes.KYC_LEVEL_ONE && msg.Level >= didtypes.KYC_LEVEL_TWO {
 		if err := m.stkKeeper.SendInviteReward(ctx, msg.Inviter, address.String(), msg.RegionId); err != nil {
-			return &types.MsgUpdateResponse{}, sdkerrors.Wrap(types.ErrInviteReward, err.Error())
+			return &types.MsgUpdateResponse{}, errorsmod.Wrap(types.ErrInviteReward, err.Error())
 		}
 	}
 
@@ -197,7 +196,6 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 
 func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.MsgRemoveResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call Remove", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx)
@@ -247,7 +245,6 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 
 func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*types.MsgCreateSBTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call CreateSBT", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx)
@@ -273,9 +270,6 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 	if !m.HasKYC(ctx, msg.Did) {
 		return &types.MsgCreateSBTResponse{}, didtypes.ErrCredentialNotFound //
 	}
-	if m.HasSBT(ctx, msg.Did) {
-		return &types.MsgCreateSBTResponse{}, types.ErrSbtExists
-	}
 
 	// mint SBT to KYC module address
 	nftData, err := codectypes.NewAnyWithValue(&wnfttypes.Extension{Data: hex.EncodeToString(msg.Data)})
@@ -300,7 +294,6 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 
 func (m msgServer) UpdateSBT(goCtx context.Context, msg *types.MsgUpdateSBT) (*types.MsgUpdateSBTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	m.Logger(ctx).Debug("call UpdateSBT", "msg", msg)
 
 	// check credential service
 	svc, found := m.GetService(ctx)

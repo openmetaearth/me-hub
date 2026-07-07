@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -12,12 +13,11 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/spf13/cobra"
-
-	"github.com/openmetaearth/me-hub/app/keepers"
+	"github.com/openmetaearth/me-hub/app"
 	"github.com/openmetaearth/me-hub/app/params"
 	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
+	"github.com/spf13/cobra"
 )
 
 // AddGenesisModuleAccountCmd returns add-genesis-module-account cobra Command.
@@ -40,7 +40,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 
 			config.SetRoot(clientCtx.HomeDir)
 
-			coins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(wminttypes.TotalBaseCoinsAmount)))
+			coins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(wminttypes.TotalBaseCoinsAmount)))
 
 			moduleAddress := authtypes.NewModuleAddress(wstakingtypes.StakePoolName)
 			moduleBaseAccount := authtypes.NewBaseAccount(moduleAddress, nil, 0, 0)
@@ -58,7 +58,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			}
 
 			genFile := config.GenesisFile()
-			appState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFile)
+			appState, appGenesis, err := genutiltypes.GenesisStateFromGenFile(genFile)
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal genesis state: %w", err)
 			}
@@ -106,8 +106,8 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			if err != nil {
 				return fmt.Errorf("failed to marshal application genesis state: %w", err)
 			}
-			genDoc.AppState = appStateJSON
-			x := genutil.ExportGenesisFile(genDoc, genFile)
+			appGenesis.AppState = appStateJSON
+			x := genutil.ExportGenesisFile(appGenesis, genFile)
 			return x
 		},
 	}
@@ -138,7 +138,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			config.SetRoot(clientCtx.HomeDir)
 
 			genFile := config.GenesisFile()
-			appState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFile)
+			appState, appGenesis, err := genutiltypes.GenesisStateFromGenFile(genFile)
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal genesis state: %w", err)
 			}
@@ -150,7 +150,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				return fmt.Errorf("failed to get accounts from any: %w", err)
 			}
 
-			for macc, perm := range keepers.MaccPerms {
+			for macc, perm := range app.MaccPerms {
 				moduleAddress := authtypes.NewModuleAddress(macc)
 				moduleBaseAccount := authtypes.NewBaseAccount(moduleAddress, nil, 0, 0)
 
@@ -173,6 +173,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				// Add the new account to the set of genesis accounts and sanitize the
 				// accounts afterwards.
 				accs = append(accs, genAccount)
+
 			}
 			accs = authtypes.SanitizeGenesisAccounts(accs)
 
@@ -193,8 +194,8 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			if err != nil {
 				return fmt.Errorf("failed to marshal application genesis state: %w", err)
 			}
-			genDoc.AppState = appStateJSON
-			x := genutil.ExportGenesisFile(genDoc, genFile)
+			appGenesis.AppState = appStateJSON
+			x := genutil.ExportGenesisFile(appGenesis, genFile)
 			return x
 		},
 	}

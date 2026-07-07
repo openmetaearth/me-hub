@@ -3,7 +3,6 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -76,20 +75,22 @@ func (s *KeeperTestSuite) TestIterateRegionKycDelegatins() {
 	s.Require().True(f)
 	region.OperatorAddress = s.usaValidator.OperatorAddress
 	s.App.StakingKeeper.SetRegion(s.Ctx, region)
+	// simulate EndBlock cache refresh so ChangeDelegationValidator can read updated region via GetRegionCache
+	s.App.StakingKeeper.SetRegionsCache(s.Ctx, s.App.StakingKeeper.GetAllRegion(s.Ctx))
 	s.App.StakingKeeper.SetChangeDelegationValidator(s.Ctx, types.MeEarthRegionId)
 	// Call ChangeDelegationValidator
 	s.App.StakingKeeper.ChangeDelegationValidator(s.Ctx)
 
 	// Verify delegations' validator addresses have been updated
-	delegation1, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator1, sdk.ValAddress{})
-	s.Require().True(found)
+	delegation1, err := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator1, sdk.ValAddress{})
+	s.Require().NoError(err)
 	s.Require().Equal(s.usaValidator.OperatorAddress, delegation1.ValidatorAddress)
 
-	delegation2, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator2, sdk.ValAddress{})
-	s.Require().True(found)
+	delegation2, err := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator2, sdk.ValAddress{})
+	s.Require().NoError(err)
 	s.Require().Equal(s.usaValidator.OperatorAddress, delegation2.ValidatorAddress)
 
-	delegation3, found := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator3, sdk.ValAddress{})
-	s.Require().True(found)
+	delegation3, err := s.App.StakingKeeper.GetDelegation(s.Ctx, delegator3, sdk.ValAddress{})
+	s.Require().NoError(err)
 	s.Require().Equal(s.usaValidator.OperatorAddress, delegation3.ValidatorAddress)
 }

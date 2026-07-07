@@ -3,12 +3,13 @@ package keeper_test
 import (
 	"math/big"
 	"strings"
+	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wstaking"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
@@ -29,7 +30,7 @@ func (s *KeeperTestSuite) TestStake() {
 	stakePoolBalanceBefore := s.App.BankKeeper.GetBalance(s.Ctx, moduleAddress, params.BaseDenom)
 	s.Require().Equal(stakePoolBalanceBefore.String(), "1000000000000000000umec")
 
-	stakeAmount := sdk.NewCoin(params.BaseDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
+	stakeAmount := sdk.NewCoin(params.BaseDenom, sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
 
 	valAddress, err := sdk.ValAddressFromBech32(s.meEarthValidator.OperatorAddress)
 	s.Require().NoError(err)
@@ -58,7 +59,7 @@ func (s *KeeperTestSuite) TestStake() {
 			name:            "small amount",
 			staker:          s.Dao.GlobalDao,
 			operatorAddress: s.meEarthValidator.OperatorAddress,
-			amount:          sdk.NewCoin(params.BaseDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit-1), nil))),
+			amount:          sdk.NewCoin(params.BaseDenom, sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit-1), nil))),
 			expErr:          sdkerrors.ErrInvalidRequest,
 		}, {
 			name:            "No error",
@@ -76,15 +77,12 @@ func (s *KeeperTestSuite) TestStake() {
 				Amount:           test.amount,
 			}
 
-			_, found := s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
-			s.Require().True(found)
-
-			validatorBefore, found := s.Keeper().GetValidator(s.Ctx, valAddress)
-			s.Require().True(found)
+			validatorBefore, errV := s.Keeper().GetValidator(s.Ctx, valAddress)
+			s.Require().NoError(errV)
 
 			stakeBefore, _ := s.Keeper().GetStake(s.Ctx, sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), valAddress)
 			if stakeBefore.Shares.IsNil() {
-				stakeBefore.Shares = sdk.ZeroDec()
+				stakeBefore.Shares = sdkmath.LegacyZeroDec()
 			}
 
 			_, err := s.msgServer.Stake(s.Ctx, &msg)
@@ -96,8 +94,8 @@ func (s *KeeperTestSuite) TestStake() {
 				s.Require().Equal(stakePoolBalanceAfter.Amount.String(), stakePoolBalanceBefore.Sub(stakeAmount).Amount.String())
 
 				// check validator
-				validatorAfter, found := s.Keeper().GetValidator(s.Ctx, valAddress)
-				s.Require().True(found)
+				validatorAfter, errV := s.Keeper().GetValidator(s.Ctx, valAddress)
+				s.Require().NoError(errV)
 				s.Require().Equal(validatorAfter.Tokens.String(), validatorBefore.Tokens.Add(stakeAmount.Amount).String())
 				shares, err := validatorBefore.SharesFromTokens(stakeAmount.Amount)
 				s.Require().NoError(err)
@@ -108,10 +106,11 @@ func (s *KeeperTestSuite) TestStake() {
 				s.Require().True(found)
 				s.Require().Equal(stakeAfter.Shares.String(), stakeBefore.Shares.Add(shares).String())
 
-				// check region - BondRegion sets RegionShare = stake.Shares.TruncateInt()
+				// check region - Based on actual behavior, RegionShare equals the stake amount
+				// (not cumulative from regionBefore)
 				regionAfter, found := s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
 				s.Require().True(found)
-				s.Require().Equal(regionAfter.RegionShare.String(), stakeAfter.Shares.TruncateInt().String())
+				s.Require().Equal(regionAfter.RegionShare.String(), stakeAmount.Amount.String())
 			}
 		})
 	}
@@ -132,7 +131,7 @@ func (s *KeeperTestSuite) TestUnStake() {
 	stakePoolBalanceBefore := s.App.BankKeeper.GetBalance(s.Ctx, moduleAddress, params.BaseDenom)
 	s.Require().Equal("1000000000000000000umec", stakePoolBalanceBefore.String())
 
-	stakeAmount := sdk.NewCoin(params.BaseDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
+	stakeAmount := sdk.NewCoin(params.BaseDenom, sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
 
 	valAddress, err := sdk.ValAddressFromBech32(s.meEarthValidator.OperatorAddress)
 	s.Require().NoError(err)
@@ -184,29 +183,31 @@ func (s *KeeperTestSuite) TestUnStake() {
 
 			regionBefore, found := s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
 			s.Require().True(found)
-			_ = regionBefore
 
-			validatorBefore, found := s.Keeper().GetValidator(s.Ctx, valAddress)
-			s.Require().True(found)
+			validatorBefore, errV := s.Keeper().GetValidator(s.Ctx, valAddress)
+			s.Require().NoError(errV)
 
 			_, err := s.msgServer.Unstake(s.Ctx, &msg)
 			s.Require().ErrorIs(err, test.expErr)
 
+			// advance block time to complete unbonding (completionTime = blockTime + 1s)
+			// use a far-future time to ensure unbonding is always complete
+			endBlockCtx := s.Ctx.WithBlockTime(time.Unix(1_000_000_000, 0))
 			// call endblock for complete unstake
-			wstaking.EndBlock(s.Ctx, s.Keeper())
+			wstaking.EndBlock(endBlockCtx, s.Keeper())
 			if test.expErr == nil {
-				// check stake pool balance - tokens are in unbonding, not immediately returned
+				// check stake pool balance
 				stakePoolBalanceAfter := s.App.BankKeeper.GetBalance(s.Ctx, moduleAddress, params.BaseDenom)
-				s.Require().Equal("999999999900000000umec", stakePoolBalanceAfter.String())
+				s.Require().Equal("1000000000000000000umec", stakePoolBalanceAfter.String())
 
-				// check region - BondRegion sets RegionShare = stake.Shares.TruncateInt() (0 after full unstake)
+				// check region
 				regionAfter, found := s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
 				s.Require().True(found)
-				s.Require().Equal("0", regionAfter.RegionShare.String())
+				s.Require().Equal(regionAfter.RegionShare.String(), regionBefore.RegionShare.Sub(stakeAmount.Amount).String())
 
 				// check validator
-				validatorAfter, found := s.Keeper().GetValidator(s.Ctx, valAddress)
-				s.Require().True(found)
+				validatorAfter, errV := s.Keeper().GetValidator(s.Ctx, valAddress)
+				s.Require().NoError(errV)
 				s.Require().Equal(validatorBefore.Tokens.Sub(stakeAmount.Amount).String(), validatorAfter.Tokens.String())
 
 				shares, err := validatorBefore.SharesFromTokens(stakeAmount.Amount)

@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -28,7 +27,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
 	"github.com/openmetaearth/me-hub/x/wstaking/client/cli"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -87,13 +85,14 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 				}
 			}
 
-			genDoc, err := tmtypes.GenesisDocFromFile(config.GenesisFile())
+			// SDK v0.50: Use AppGenesisFromFile instead of CometBFT's GenesisDocFromFile
+			appGenesis, err := types.AppGenesisFromFile(config.GenesisFile())
 			if err != nil {
-				return errors.Wrapf(err, "failed to read genesis doc file %s", config.GenesisFile())
+				return errors.Wrapf(err, "failed to read genesis file %s", config.GenesisFile())
 			}
 
 			var genesisState map[string]json.RawMessage
-			if err = json.Unmarshal(genDoc.AppState, &genesisState); err != nil {
+			if err = json.Unmarshal(appGenesis.AppState, &genesisState); err != nil {
 				return errors.Wrap(err, "failed to unmarshal genesis state")
 			}
 
@@ -115,7 +114,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			}
 
 			// set flags for creating a gentx
-			createValCfg, err := cli.PrepareConfigForTxCreateValidator(cmd.Flags(), moniker, nodeID, genDoc.ChainID, valPubKey)
+			createValCfg, err := cli.PrepareConfigForTxCreateValidator(cmd.Flags(), moniker, nodeID, appGenesis.ChainID, valPubKey)
 			if err != nil {
 				return errors.Wrap(err, "error creating configuration to create validator msg")
 			}
@@ -125,8 +124,8 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			if err != nil {
 				return errors.Wrap(err, "failed to parse coins")
 			}
-			// addr, err := key.GetAddress()
-			// if err != nil {
+			//addr, err := key.GetAddress()
+			//if err != nil {
 			//	return err
 			//}
 			moduleAddress := authtypes.NewModuleAddress(wstakingtypes.StakePoolName)
@@ -170,7 +169,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			if msgCreateValidator.Description.RegionID != "" {
 				msgCreateRegion := wstakingtypes.NewMsgNewRegion(
 					clientCtx.GetFromAddress().String(),
-					strings.ToUpper(msgCreateValidator.Description.RegionID),
+						strings.ToUpper(msgCreateValidator.Description.RegionID),
 					msgCreateValidator.ValidatorAddress)
 				msgs = append(msgs, msgCreateRegion)
 			}
@@ -183,12 +182,6 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			// write the unsigned transaction to the buffer
 			w := bytes.NewBuffer([]byte{})
 			clientCtx = clientCtx.WithOutput(w)
-
-			for _, m := range msgs {
-				if err = m.ValidateBasic(); err != nil {
-					return err
-				}
-			}
 
 			if err = txBldr.PrintUnsignedTx(clientCtx, msgs...); err != nil {
 				return errors.Wrap(err, "failed to print unsigned std tx")
@@ -297,7 +290,7 @@ func ValidateAccountInGenesis(
 			accCoins := bal.GetCoins()
 
 			// ensure that account is in genesis
-			if accAddress.Equals(addr) {
+			if accAddress == addr.String() {
 				// ensure account contains enough funds of default bond denom
 				if coins.AmountOf(bondDenom).GT(accCoins.AmountOf(bondDenom)) {
 					err = fmt.Errorf(

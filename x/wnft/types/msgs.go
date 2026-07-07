@@ -1,20 +1,11 @@
 package types
 
 import (
-	"fmt"
-	"strconv"
-
 	"cosmossdk.io/errors"
+	"cosmossdk.io/x/nft"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/nft"
-)
-
-const (
-	TypeMsgNewClass = "new_class"
-	TypeMsgMintNFT  = "mint_nft"
-	// TypeMsgSend nft message types
-	TypeMsgSend = "send"
 )
 
 var (
@@ -23,23 +14,7 @@ var (
 	_ sdk.Msg = &MsgSend{}
 )
 
-// Route implements the sdk.Msg interface.
-func (msg MsgNewClass) Route() string { return nft.RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (msg MsgNewClass) Type() string { return TypeMsgNewClass }
-
-// GetSignBytes implements the sdk.Msg interface.
-func (msg MsgNewClass) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-func (msg MsgNewClass) GetSigners() []sdk.AccAddress {
-	signer, _ := sdk.AccAddressFromBech32(msg.Sender)
-	return []sdk.AccAddress{signer}
-}
-
+// ValidateBasic implements the sdk.Msg interface.
 func (msg MsgNewClass) ValidateBasic() error {
 	if len(msg.ClassId) == 0 {
 		return nft.ErrEmptyClassID
@@ -88,16 +63,11 @@ func (m MsgMintNFT) ValidateBasic() error {
 		return ErrEmptyTokenId
 	}
 
-	parsedTokenID, err := strconv.ParseUint(m.TokenId, 10, 64)
-	if err != nil || parsedTokenID < 1 || m.TokenId != strconv.FormatUint(parsedTokenID, 10) {
-		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id")
-	}
-
 	if len(m.Uri) == 0 {
-		return ErrEmptyURI
+		return ErrEmptyUri
 	}
 
-	_, err = sdk.AccAddressFromBech32(m.Creator)
+	_, err := sdk.AccAddressFromBech32(m.Creator)
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid mint address (%s)", m.Creator)
 	}
@@ -109,28 +79,10 @@ func (m MsgMintNFT) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners returns the expected signers for MsgMintNFT.
-func (m MsgMintNFT) GetSigners() []sdk.AccAddress {
-	signer, _ := sdk.AccAddressFromBech32(m.Creator)
-	return []sdk.AccAddress{signer}
-}
-
-// Route implements the sdk.Msg interface.
-func (m MsgMintNFT) Route() string { return nft.RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (m MsgMintNFT) Type() string { return TypeMsgMintNFT }
-
-// GetSignBytes implements the sdk.Msg interface.
-func (m MsgMintNFT) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&m)
-	return sdk.MustSortJSON(bz)
-}
-
-func NewMsgMintNFT(classId, tokenId, uri, uriHash, sender, receiver string) *MsgMintNFT {
+func NewMsgMintNFT(class_id, token_id, uri, uriHash, sender, receiver string) *MsgMintNFT {
 	return &MsgMintNFT{
-		ClassId:  classId,
-		TokenId:  tokenId,
+		ClassId:  class_id,
+		TokenId:  token_id,
 		Uri:      uri,
 		UriHash:  uriHash,
 		Creator:  sender,
@@ -159,21 +111,3 @@ func (m MsgSend) ValidateBasic() error {
 	}
 	return nil
 }
-
-// GetSigners returns the expected signers for MsgSend.
-func (m MsgSend) GetSigners() []sdk.AccAddress {
-	signer, _ := sdk.AccAddressFromBech32(m.Sender)
-	return []sdk.AccAddress{signer}
-}
-
-// GetSignBytes get the bytes for the message signer to sign on
-func (m MsgSend) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&m)
-	return sdk.MustSortJSON(bz)
-}
-
-// Route implements the LegacyMsg interface.
-func (m MsgSend) Route() string { return nft.RouterKey }
-
-// Type implements the sdk.Msg interface.
-func (m MsgSend) Type() string { return TypeMsgSend }

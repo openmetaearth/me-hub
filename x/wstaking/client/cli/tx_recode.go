@@ -1,12 +1,12 @@
 package cli
 
 import (
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
-
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func CmdNewRecord() *cobra.Command {

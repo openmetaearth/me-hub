@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/openmetaearth/me-hub/x/megroup/types"
+
 	"cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
-
-	"github.com/openmetaearth/me-hub/x/megroup/types"
 )
 
 func (k Keeper) GroupMemberAll(goCtx context.Context, req *types.QueryGroupAllMemberRequest) (*types.QueryGroupAllMemberResponse, error) {
@@ -24,7 +24,7 @@ func (k Keeper) GroupMemberAll(goCtx context.Context, req *types.QueryGroupAllMe
 	grpMemberPrefix := fmt.Sprintf("%s%d/", types.GroupMemberKey, req.GroupID)
 	groupMemberStore := prefix.NewStore(ctx.KVStore(k.storeKey), []byte(grpMemberPrefix))
 
-	pageRes, err := query.Paginate(groupMemberStore, req.Pagination, func(key, value []byte) error {
+	pageRes, err := query.Paginate(groupMemberStore, req.Pagination, func(key []byte, value []byte) error {
 		var groupMember types.GroupMember
 		if err := k.cdc.Unmarshal(value, &groupMember); err != nil {
 			return err

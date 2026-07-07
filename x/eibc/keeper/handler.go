@@ -3,15 +3,15 @@ package keeper
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/pkg/errors"
-
-	"github.com/openmetaearth/me-hub/utils/uibc"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	uibc "github.com/openmetaearth/me-hub/utils/uibc"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	dacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
+	"github.com/pkg/errors"
 )
 
 // EIBCDemandOrderHandler handles the eibc packet by creating a demand order from the packet data and saving it in the store.
@@ -77,8 +77,8 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	}
 
 	// Calculate the demand order price and validate it,
-	amt, _ := sdk.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
-	fee, _ := eibcMetaData.FeeInt()                                // guaranteed ok by above validation
+	amt, _ := sdkmath.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
+	fee, _ := eibcMetaData.FeeInt()                                    // guaranteed ok by above validation
 	demandOrderPrice, err := types.CalcPriceWithBridgingFee(amt, fee, k.dack.BridgingFee(ctx))
 	if err != nil {
 		return nil, err
@@ -97,10 +97,10 @@ func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleToke
 	rollappPacket *commontypes.RollappPacket,
 ) (*types.DemandOrder, error) {
 	// Calculate the demand order price and validate it,
-	amt, _ := sdk.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
+	amt, _ := sdkmath.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
 
 	// Calculate the fee by multiplying the fee by the price
-	var feeMultiplier sdk.Dec
+	var feeMultiplier sdkmath.LegacyDec
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_TIMEOUT:
 		feeMultiplier = k.TimeoutFee(ctx)

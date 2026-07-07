@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/x/gravity/types"
@@ -13,7 +14,7 @@ import (
 func (k Keeper) EndBlocker(ctx sdk.Context) {
 	k.cleanupTimedOutBatches(ctx)
 	signedWindow := k.GetSignedWindow(ctx)
-	k.slashing(ctx, signedWindow)
+	// k.slashing(ctx, signedWindow)
 	k.createRelayerSetChangeRequest(ctx)
 	k.pruneRelayerSet(ctx, signedWindow)
 }
@@ -40,7 +41,7 @@ func (k Keeper) isNeedRelayerSetChange(ctx sdk.Context) (*types.RelayerSet, bool
 
 	// 3. Power diff
 	powerDiff := fmt.Sprintf("%.8f", types.BridgeValidators(currentRelayerSet.Members).PowerDiff(latestRelayerSet.Members))
-	powerDiffDec, err := sdk.NewDecFromStr(powerDiff)
+	powerDiffDec, err := sdkmath.LegacyNewDecFromStr(powerDiff)
 	if err != nil {
 		k.Logger(ctx).Error("failed to convert power diff to decimal, skipping power diff check", "powerDiff", powerDiff, "error", err)
 		return currentRelayerSet, false

@@ -1,5 +1,5 @@
 package types
 
-import wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
+import wmintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
 
-const OneDayTotalBlocks = wminttypes.OneDayTotalBlocks
+const OneDayTotalBlocks = wmintTypes.OneDayTotalBlocks

@@ -1,10 +1,9 @@
 package cli
 
 import (
-	"github.com/cosmos/cosmos-sdk/client"
-	stakingcli "github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 	"github.com/spf13/cobra"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -19,21 +18,11 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	stakingQueryCmd.AddCommand(
-		// stakingcli.GetCmdQueryDelegations(),
-		stakingcli.GetCmdQueryUnbondingDelegations(),
-		// stakingcli.GetCmdQueryRedelegation(),
-		// stakingcli.GetCmdQueryRedelegations(),
-		stakingcli.GetCmdQueryValidator(),
-		stakingcli.GetCmdQueryValidators(),
-		// stakingcli.GetCmdQueryValidatorDelegations(),
-		stakingcli.GetCmdQueryValidatorUnbondingDelegations(),
-		// stakingcli.GetCmdQueryValidatorRedelegations(),
-		stakingcli.GetCmdQueryHistoricalInfo(),
-		stakingcli.GetCmdQueryParams(),
-		// stakingcli.GetCmdQueryPool(),
-	)
-
-	stakingQueryCmd.AddCommand(
+		GetCmdQueryValidators(),
+		GetCmdQueryValidator(),
+		GetCmdQueryValidatorDelegations(),
+		GetCmdQueryPool(),
+		GetCmdQueryStakingParams(),
 		GetCmdQueryRegion(),
 		GetCmdQueryAllRegion(),
 		GetCmdQueryRegionWithdrawer(),
@@ -41,9 +30,6 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryDelegation(),
 		CmdQueryAllDelegations(),
 		GetCmdQueryStakes(),
-	)
-
-	stakingQueryCmd.AddCommand(
 		CmdListFixedDeposit(),
 		CmdShowFixedDeposit(),
 		CmdFixedDepositByRegion(),
@@ -56,6 +42,5 @@ func GetQueryCmd() *cobra.Command {
 		CmdShowRecordByAddress(),
 		CmdShowReviewRecord(),
 	)
-
 	return stakingQueryCmd
 }

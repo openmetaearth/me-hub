@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"crypto/ecdsa"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -18,11 +17,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/fbsobreira/gotron-sdk/pkg/address"
-	"github.com/spf13/cobra"
-
 	"github.com/openmetaearth/me-hub/x/gravity/types"
-	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
+	"github.com/spf13/cobra"
 )
 
 func GetTxCmd(moduleName string, subNames ...string) *cobra.Command {
@@ -149,7 +145,7 @@ func CmdProposalRelayers(chainName string) *cobra.Command {
 				return err
 			}
 			if len(relayers) == 0 {
-				return errors.New("at least one relayer is required")
+				return fmt.Errorf("at least one relayer is required")
 			}
 			// Clean the relayer list: trim spaces, remove duplicates and empty entries
 			clean := make([]string, 0, len(relayers))
@@ -166,7 +162,7 @@ func CmdProposalRelayers(chainName string) *cobra.Command {
 				clean = append(clean, r)
 			}
 			if len(clean) == 0 {
-				return errors.New("at least one relayer is required")
+				return fmt.Errorf("at least one relayer is required")
 			}
 
 			msg := &types.MsgProposalRelayers{
@@ -330,12 +326,7 @@ func CmdRequestBatchConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			var externalAddress string
-			if chainName == trontypes.ModuleName {
-				externalAddress = address.PubkeyToAddress(privateKey.PublicKey).String()
-			} else {
-				externalAddress = ethcrypto.PubkeyToAddress(privateKey.PublicKey).Hex()
-			}
+			externalAddress := ethcrypto.PubkeyToAddress(privateKey.PublicKey)
 
 			queryClient := types.NewQueryClient(clientCtx)
 			batchRequestByNonceResp, err := queryClient.BatchRequestByNonce(cmd.Context(), &types.QueryBatchRequestByNonceRequest{
@@ -373,19 +364,14 @@ func CmdRequestBatchConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			var signature []byte
-			if chainName == trontypes.ModuleName {
-				signature, err = trontypes.NewTronSignature(checkpoint, privateKey)
-			} else {
-				signature, err = types.NewEthereumSignature(checkpoint, privateKey)
-			}
+			signature, err := types.NewEthereumSignature(checkpoint, privateKey)
 			if err != nil {
 				return err
 			}
 			msg := &types.MsgConfirmBatch{
 				Nonce:           nonce,
 				TokenContract:   tokenContract,
-				ExternalAddress: externalAddress,
+				ExternalAddress: externalAddress.String(),
 				RelayerAddress:  fromAddress.String(),
 				Signature:       hex.EncodeToString(signature),
 				ChainName:       chainName,
@@ -416,12 +402,7 @@ func CmdRelayerSetConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			var externalAddress string
-			if chainName == trontypes.ModuleName {
-				externalAddress = address.PubkeyToAddress(privateKey.PublicKey).String()
-			} else {
-				externalAddress = ethcrypto.PubkeyToAddress(privateKey.PublicKey).Hex()
-			}
+			externalAddress := ethcrypto.PubkeyToAddress(privateKey.PublicKey)
 
 			queryClient := types.NewQueryClient(clientCtx)
 			relayerSetRequestResp, err := queryClient.RelayerSetRequest(cmd.Context(), &types.QueryRelayerSetRequestRequest{
@@ -453,19 +434,14 @@ func CmdRelayerSetConfirm(chainName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			var signature []byte
-			if chainName == trontypes.ModuleName {
-				signature, err = trontypes.NewTronSignature(checkpoint, privateKey)
-			} else {
-				signature, err = types.NewEthereumSignature(checkpoint, privateKey)
-			}
+			signature, err := types.NewEthereumSignature(checkpoint, privateKey)
 			if err != nil {
 				return err
 			}
 			msg := &types.MsgRelayerSetConfirm{
 				Nonce:           nonce,
 				RelayerAddress:  fromAddress.String(),
-				ExternalAddress: externalAddress,
+				ExternalAddress: externalAddress.String(),
 				Signature:       hex.EncodeToString(signature),
 				ChainName:       chainName,
 			}

@@ -2,17 +2,16 @@ package cli
 
 import (
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"strconv"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/spf13/cobra"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
-	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -168,7 +167,7 @@ func CmdCreateSBT() *cobra.Command {
 			uriHash := args[2]
 			data, err := hex.DecodeString(args[3])
 			if err != nil {
-				return errors.New("data is not a valid hex string")
+				return fmt.Errorf("data is not a valid hex string")
 			}
 
 			msg := types.NewMsgCreateSBT(
@@ -205,7 +204,7 @@ func CmdUpdateSBT() *cobra.Command {
 			uriHash := args[2]
 			data, err := hex.DecodeString(args[3])
 			if err != nil {
-				return errors.New("data is not a valid hex string")
+				return fmt.Errorf("data is not a valid hex string")
 			}
 
 			msg := types.NewMsgUpdateSBT(

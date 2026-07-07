@@ -2,11 +2,9 @@ package types
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
-	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 )
 
 type PacketMetadata struct {
@@ -29,10 +27,10 @@ func (e EIBCMetadata) ValidateBasic() error {
 	return nil
 }
 
-func (e EIBCMetadata) FeeInt() (math.Int, error) {
-	i, ok := sdk.NewIntFromString(e.Fee)
+func (e EIBCMetadata) FeeInt() (sdkmath.Int, error) {
+	i, ok := sdkmath.NewIntFromString(e.Fee)
 	if !ok || i.IsNegative() {
-		return math.Int{}, ErrBadEIBCFee
+		return sdkmath.Int{}, ErrBadEIBCFee
 	}
 	return i, nil
 }
@@ -43,10 +41,10 @@ const (
 )
 
 var (
-	ErrMemoUnmarshal         = errors.New("unmarshal memo")
-	ErrEIBCMetadataUnmarshal = errors.New("unmarshal eibc metadata")
-	ErrMemoHashPFMandEIBC    = errors.New("EIBC packet with PFM is currently not supported")
-	ErrMemoEibcEmpty         = errors.New("memo eIBC field is missing")
+	ErrMemoUnmarshal         = fmt.Errorf("unmarshal memo")
+	ErrEIBCMetadataUnmarshal = fmt.Errorf("unmarshal eibc metadata")
+	ErrMemoHashPFMandEIBC    = fmt.Errorf("EIBC packet with PFM is currently not supported")
+	ErrMemoEibcEmpty         = fmt.Errorf("memo eIBC field is missing")
 )
 
 func ParsePacketMetadata(input string) (*PacketMetadata, error) {

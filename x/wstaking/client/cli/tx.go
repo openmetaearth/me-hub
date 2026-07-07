@@ -7,20 +7,21 @@ import (
 	"os"
 	"strings"
 
-	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/tx"
+	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/version"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
-	"github.com/openmetaearth/me-hub/app/params"
+	errorsmod "cosmossdk.io/errors"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/tx"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -82,7 +83,7 @@ func NewCreateValidatorCmd() *cobra.Command {
 		Use:   "create-validator",
 		Short: "create a new validator initialized with a self-delegation to it",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+ 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -204,12 +205,12 @@ $ %s tx staking update-validator %s1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm --own
 			description := stakingtypes.NewDescription(moniker, identity, website, security, details)
 			description.RegionID = regionId
 
-			var newRate *sdk.Dec
+			var newRate *sdkmath.LegacyDec
 			commissionRate, _ := cmd.Flags().GetString(FlagCommissionRate)
 			if commissionRate != "" {
-				rate, err := sdk.NewDecFromStr(commissionRate)
+				rate, err := sdkmath.LegacyNewDecFromStr(commissionRate)
 				if err != nil {
-					return fmt.Errorf("invalid new commission rate: %w", err)
+					return fmt.Errorf("invalid new commission rate: %v", err)
 				}
 
 				newRate = &rate
@@ -280,7 +281,7 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		return txf, nil, err
 	}
 
-	minSelfDelegation := math.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
+	minSelfDelegation := sdkmath.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
 
 	var pkAny *codectypes.Any
 	if pk != nil {
@@ -304,9 +305,6 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		Value:             amount,
 		Commission:        commissionRates,
 		MinSelfDelegation: minSelfDelegation,
-	}
-	if err := msg.ValidateBasic(); err != nil {
-		return txf, nil, err
 	}
 
 	genOnly, _ := fs.GetBool(flags.FlagGenerateOnly)
@@ -390,8 +388,8 @@ $ %s tx staking delegate 1000mec --from mykey
 			if delAddr.Empty() {
 				return errors.New("from address is empty")
 			}
-			// validatorAddress, err := cmd.Flags().GetString(FlagValidatorAddress)
-			// if err != nil {
+			//validatorAddress, err := cmd.Flags().GetString(FlagValidatorAddress)
+			//if err != nil {
 			//	return err
 			//}
 
@@ -569,10 +567,10 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 
 	// get the initial validator min self delegation
 	msbStr := config.MinSelfDelegation
-	minSelfDelegation, ok := sdk.NewIntFromString(msbStr)
+	minSelfDelegation, ok := sdkmath.NewIntFromString(msbStr)
 
 	if !ok {
-		return txBldr, nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
+		return txBldr, nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
 	}
 
 	var pkAny *codectypes.Any
@@ -591,9 +589,6 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 		Value:             amount,
 		Commission:        commissionRates,
 		MinSelfDelegation: minSelfDelegation,
-	}
-	if err := msg.ValidateBasic(); err != nil {
-		return txBldr, nil, err
 	}
 
 	if generateOnly {

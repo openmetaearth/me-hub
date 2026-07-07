@@ -3,10 +3,10 @@ package transfergenesis
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/utils/uibc"
+
+	transferTypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
@@ -26,7 +26,7 @@ func NewTransferEnabledDecorator(getRollapp GetRollapp, getChannelClientState Ch
 	}
 }
 
-func (h TransferEnabledDecorator) transfersEnabled(ctx sdk.Context, transfer *transfertypes.MsgTransfer) (bool, error) {
+func (h TransferEnabledDecorator) transfersEnabled(ctx sdk.Context, transfer *transferTypes.MsgTransfer) (bool, error) {
 	chainID, err := uibc.ChainIDFromPortChannel(ctx, h.getChannelClientState, transfer.SourcePort, transfer.SourceChannel)
 	if err != nil {
 		return false, errorsmod.Wrap(err, "chain id from port channel")
@@ -42,8 +42,8 @@ func (h TransferEnabledDecorator) transfersEnabled(ctx sdk.Context, transfer *tr
 func (h TransferEnabledDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	for _, msg := range tx.GetMsgs() {
 		typeURL := sdk.MsgTypeURL(msg)
-		if typeURL == sdk.MsgTypeURL(&transfertypes.MsgTransfer{}) {
-			m, ok := msg.(*transfertypes.MsgTransfer)
+		if typeURL == sdk.MsgTypeURL(&transferTypes.MsgTransfer{}) {
+			m, ok := msg.(*transferTypes.MsgTransfer)
 			if !ok {
 				return ctx, errorsmod.Wrap(gerrc.ErrUnknown, "type url matched transfer type url but could not type cast")
 			}

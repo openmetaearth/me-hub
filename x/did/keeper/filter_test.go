@@ -4,10 +4,9 @@ import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/stretchr/testify/assert"
-
 	"github.com/openmetaearth/me-hub/testutil/keeper"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestKeeper_Filter(t *testing.T) {

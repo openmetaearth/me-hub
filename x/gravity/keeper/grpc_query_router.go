@@ -3,10 +3,11 @@ package keeper
 import (
 	"context"
 
+	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
@@ -228,7 +229,7 @@ func (k RouterKeeper) BridgeChainList(c context.Context, req *types.QueryBridgeC
 }
 
 func (k RouterKeeper) LastObservedRelayer(c context.Context, req *types.QueryLastObservedRelayer) (*types.QueryLastObservedRelayerResponse, error) {
-	if queryServer, err := k.getQueryServerByChainName(req.ChainName); err != nil {
+	if queryServer, err := k.getQueryServerByChainName(bsctypes.ModuleName); err != nil {
 		return nil, err
 	} else {
 		return queryServer.LastObservedRelayer(c, req)

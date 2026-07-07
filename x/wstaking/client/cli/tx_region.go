@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/openmetaearth/me-hub/utils"
+
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
-
-	"github.com/openmetaearth/me-hub/utils"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func CmdNewRegion() *cobra.Command {
@@ -148,7 +149,7 @@ func CmdTransferRegion() *cobra.Command {
 			creatorAddr := clientCtx.GetFromAddress().String()
 			msg := &types.MsgTransferRegion{FromRegion: from, ToRegion: to, Address: address, Creator: creatorAddr}
 
-			// if err = msg.ValidateBasic(); err != nil {
+			//if err = msg.ValidateBasic(); err != nil {
 			//	return err
 			//}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

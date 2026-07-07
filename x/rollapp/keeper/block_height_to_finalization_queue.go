@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	"github.com/openmetaearth/me-hub/utils/osmoutils"
 
 	common "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
@@ -57,7 +58,7 @@ func (k Keeper) finalizeStateForIndex(ctx sdk.Context, stateInfoIndex types.Stat
 	})
 	if err != nil {
 		// TODO: think about (non)recoverable errors and how to handle them accordingly
-		k.Logger(ctx).Error(
+		ctx.Logger().Error(
 			"failed to finalize state",
 			"rollapp", stateInfoIndex.RollappId,
 			"index", stateInfoIndex.Index,
@@ -164,7 +165,7 @@ func (k Keeper) GetAllBlockHeightToFinalizationQueue(ctx sdk.Context) (list []ty
 
 func (k Keeper) getFinalizationQueue(ctx sdk.Context, endHeightNonInclusive *uint64) (list []types.BlockHeightToFinalizationQueue) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {

@@ -1,16 +1,13 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/cometbft/cometbft/libs/log"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-
 	"github.com/openmetaearth/me-hub/x/kyc/handler"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
@@ -47,10 +44,6 @@ func NewKeeper(
 	}
 }
 
-func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
-}
-
 func (k *Keeper) PubKeyFromString(s string) (pk cryptotypes.PubKey, err error) {
 	err = k.cdc.UnmarshalInterfaceJSON([]byte(s), &pk)
 	return pk, err
@@ -64,7 +57,7 @@ func (k *Keeper) MustAccAddressFromPubkeyString(s string) (sdk.AccAddress, error
 		}
 		return sdk.AccAddress(pk.Address()), nil
 	}
-	return sdk.AccAddress{}, errors.New("pubkey is empty")
+	return sdk.AccAddress{}, fmt.Errorf("pubkey is empty")
 }
 
 func (k *Keeper) RegisterEventHandler(eventType string, priority int, module string, handler handler.HandlerFunc) {

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 
-	cmlog "github.com/cometbft/cometbft/libs/log"
 	ipfslog "github.com/ipfs/go-log/v2"
 )
 
@@ -19,16 +18,14 @@ type MeLogger struct {
 func (l MeLogger) Debug(msg string, keyvals ...interface{}) {
 	l.Logger.Debugw(msg, append(l.context, keyvals...)...)
 }
-
 func (l MeLogger) Info(msg string, keyvals ...interface{}) {
 	l.Logger.Infow(msg, append(l.context, keyvals...)...)
 }
-
 func (l MeLogger) Error(msg string, keyvals ...interface{}) {
 	l.Logger.Errorw(msg, append(l.context, keyvals...)...)
 }
 
-func (l MeLogger) With(keyvals ...interface{}) cmlog.Logger {
+func (l MeLogger) With(keyvals ...interface{}) MeLogger {
 	if len(keyvals)%2 != 0 {
 		keyvals = append(keyvals, ErrMissingValue)
 	}
@@ -37,7 +34,6 @@ func (l MeLogger) With(keyvals ...interface{}) cmlog.Logger {
 		context: append(l.context, keyvals...),
 	}
 }
-
 func (l MeLogger) WithStacktrace(traceLevel ipfslog.LogLevel) MeLogger {
 	return MeLogger{
 		Logger:  ipfslog.WithStacktrace(l.Logger, traceLevel),
@@ -65,7 +61,6 @@ func (l MeLogger) WithEnvLevelOr(level string) MeLogger {
 	}
 	return l
 }
-
 func NewLogger(name string) MeLogger {
 	l := ipfslog.Logger(name)
 	return MeLogger{

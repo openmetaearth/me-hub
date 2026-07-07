@@ -2,48 +2,85 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 
-	dbm "github.com/cometbft/cometbft-db"
-	cometbftcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
-	cometbftcfg "github.com/cometbft/cometbft/config"
-	cometbftcli "github.com/cometbft/cometbft/libs/cli"
-	"github.com/cometbft/cometbft/libs/log"
+	cmtcfg "github.com/cometbft/cometbft/config"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
+	"github.com/cosmos/cosmos-sdk/x/gov"
+
+	"time"
+
+	"github.com/cosmos/cosmos-sdk/server"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/types/mempool"
+
+	"github.com/evmos/ethermint/crypto/hd"
+	ethermintserver "github.com/evmos/ethermint/server"
+	mecli "github.com/openmetaearth/me-hub/client/cli"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
-	"github.com/cosmos/cosmos-sdk/client/snapshot"
+
+	"cosmossdk.io/log"
+	cometbftcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
+	cometbftcli "github.com/cometbft/cometbft/libs/cli"
+	dbm "github.com/cosmos/cosmos-db"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/mempool"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-	ethermintclient "github.com/evmos/ethermint/client"
-	"github.com/evmos/ethermint/crypto/hd"
-	ethermintserver "github.com/evmos/ethermint/server"
-	servercfg "github.com/evmos/ethermint/server/config"
-	ipfslog "github.com/ipfs/go-log/v2"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
+	// this line is used by starport scaffolding # root/moduleImport
+
 	"github.com/openmetaearth/me-hub/app"
 	appparams "github.com/openmetaearth/me-hub/app/params"
-	mecli "github.com/openmetaearth/me-hub/client/cli"
-	"github.com/openmetaearth/me-hub/logger"
+	wstakingcli "github.com/openmetaearth/me-hub/x/wstaking/client/cli"
+
+	ethermintclient "github.com/evmos/ethermint/client"
+	ethservercfg "github.com/evmos/ethermint/server/config"
 )
 
+// EmptyAppOptions is a stub implementing AppOptions
+// It skips WasmKeeper initialization to avoid file lock issues during CLI usage
+type EmptyAppOptions struct{}
+
+// Get implements AppOptions
+func (ao EmptyAppOptions) Get(o string) any {
+	// Skip WasmKeeper initialization for CLI commands (not med start)
+	if o == "skip-wasm-init" {
+		return true
+	}
+	return nil
+}
+
 // NewRootCmd creates a new root command for me hub
-func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
-	encodingConfig := app.MakeEncodingConfig()
+func NewRootCmd() *cobra.Command {
+	initSDKConfig()
+	tempApp := app.New(log.NewNopLogger(), dbm.NewMemDB(), nil, true, EmptyAppOptions{})
+
+	encodingConfig := appparams.EncodingConfig{
+		InterfaceRegistry: tempApp.InterfaceRegistry(),
+		Codec:             tempApp.AppCodec(),
+		TxConfig:          tempApp.TxConfig(),
+		Amino:             tempApp.LegacyAmino(),
+	}
+
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
@@ -83,36 +120,64 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := initAppConfig()
-			customTMConfig := initTendermintConfig()
-			err = sdkserver.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
+			// This needs to go after ReadFromClientConfig, as that function
+			// sets the RPC client needed for SIGN_MODE_TEXTUAL.
+			enabledSignModes := append(tx.DefaultSignModes, signing.SignMode_SIGN_MODE_TEXTUAL)
+			txConfigOpts := tx.ConfigOptions{
+				EnabledSignModes:           enabledSignModes,
+				TextualCoinMetadataQueryFn: txmodule.NewGRPCCoinMetadataQueryFn(initClientCtx),
+			}
+			txConfigWithTextual, err := tx.NewTxConfigWithOptions(
+				codec.NewProtoCodec(encodingConfig.InterfaceRegistry),
+				txConfigOpts,
+			)
 			if err != nil {
 				return err
 			}
-			enableMeLogger, _ := cmd.Flags().GetBool("enable_me_hub_logger")
-			if os.Getenv("ENABLE_MEHUB_LOGGER") != "" || enableMeLogger {
-				ctx := sdkserver.GetServerContextFromCmd(cmd)
-				ctx.Logger = logger.NewLogger("me-hub").WithEnvLevelOr("info").WithStacktrace(ipfslog.LevelError)
+			initClientCtx = initClientCtx.WithTxConfig(txConfigWithTextual)
+
+			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
+				return err
 			}
-			return nil
+
+			customAppTemplate, customAppConfig := initAppConfig()
+			customCMTConfig := initCometBFTConfig()
+
+			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customCMTConfig)
 		},
 	}
-	rootCmd.PersistentFlags().Bool("enable_me_hub_logger", false, "use me-hub logger instead of cosmos lib logger")
-	initRootCmd(rootCmd, encodingConfig)
+
+	initRootCmd(rootCmd, encodingConfig, tempApp.BasicModuleManager)
+
+	autoCliOpts := tempApp.AutoCliOpts()
+	initClientCtx, _ = config.ReadFromClientConfig(initClientCtx)
+	autoCliOpts.ClientCtx = initClientCtx
+
+	// a workaround to wire the legacy proposals to the cli
+	// autoCli uses AppModule, while the legacy proposals are registered on the AppModuleBasic
+	if govModule, ok := autoCliOpts.Modules["gov"].(gov.AppModule); ok {
+		if govBasicModule, ok := tempApp.BasicModuleManager["gov"].(gov.AppModuleBasic); ok {
+			govModule.AppModuleBasic = govBasicModule
+			autoCliOpts.Modules["gov"] = govModule
+		}
+	}
+
+	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
+		// TODO: fix proto service registration issues for custom modules
+		fmt.Fprintf(os.Stderr, "Warning: EnhanceRootCommand error (non-fatal): %v\n", err)
+	}
 
 	rootCmd.AddCommand(cometbftcmd.RootCmd)
-	return rootCmd, encodingConfig
+	return rootCmd
 }
 
-// initTendermintConfig helps to override default Tendermint Config values.
-// return tmcfg.DefaultConfig if no custom configuration is required for the application.
-func initTendermintConfig() *cometbftcfg.Config {
-	cfg := cometbftcfg.DefaultConfig()
-
-	// these values put a higher strain on node memory
-	// cfg.P2P.MaxNumInboundPeers = 100
-	// cfg.P2P.MaxNumOutboundPeers = 40
-
+// initCometBFTConfig helps to override default CometBFT Config values.
+// return cmtcfg.DefaultConfig if no custom configuration is required for the application.
+func initCometBFTConfig() *cmtcfg.Config {
+	cfg := cmtcfg.DefaultConfig()
+	// Set consensus timeouts to support fast block time
+	cfg.Consensus.TimeoutPropose = 1800 * time.Millisecond
+	cfg.Consensus.TimeoutCommit = 500 * time.Millisecond
 	return cfg
 }
 
@@ -124,36 +189,25 @@ func initAppConfig() (string, interface{}) {
 		panic(err)
 	}
 
-	customAppTemplate, customAppConfig := servercfg.AppConfig(baseDenom)
+	customAppTemplate, customAppConfig := ethservercfg.AppConfig(baseDenom)
 	return customAppTemplate, customAppConfig
 }
 
-func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig) {
-	initSDKConfig()
-
+func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig, basicManager module.BasicManager) {
 	a := appCreator{encodingConfig}
 	rootCmd.AddCommand(
-		ethermintclient.ValidateChainID(
-			genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
-		),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, app.GenTxMessageValidator),
-		genutilcli.MigrateGenesisCmd(),
-		GenTxCmd(
-			app.ModuleBasics,
-			encodingConfig.TxConfig,
-			banktypes.GenesisBalancesIterator{},
-			app.DefaultNodeHome,
-		),
-		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
+		ethermintclient.ValidateChainID(genutilcli.InitCmd(basicManager, app.DefaultNodeHome)),
+		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, app.GenTxMessageValidator, nil),
+		GenTxCmd(basicManager, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
+		genutilcli.ValidateGenesisCmd(basicManager),
 		AddGenesisAccountCmd(app.DefaultNodeHome),
 		GenRelayersCmd(app.DefaultNodeHome),
 		cometbftcli.NewCompletionCmd(rootCmd, true),
 		debug.Cmd(),
-		config.Cmd(),
-		pruning.PruningCmd(a.newApp),
 		AddGenesisStakePoolAccountCmd(app.DefaultNodeHome),
 		AddGenesisModuleAccountsCmd(app.DefaultNodeHome),
 		SetDAOCmd(),
+		mecli.Debug(),
 	)
 
 	// add server commands
@@ -164,24 +218,16 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		addModuleInitFlags,
 	)
 
-	for _, command := range rootCmd.Commands() {
-		if command.Use == "start" {
-			rootCmd.RemoveCommand(command)
-			rootCmd.AddCommand(StartCmd(ethermintserver.NewDefaultStartOptions(a.newApp, app.DefaultNodeHome)))
-		}
-	}
-
 	rootCmd.AddCommand(InspectCmd(a.appExport, a.newApp, app.DefaultNodeHome))
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
-		rpc.StatusCommand(),
+		server.StatusCommand(),
 		queryCommand(),
 		txCommand(),
 		ethermintclient.KeyCommands(app.DefaultNodeHome),
+		cometbftcli.NewCompletionCmd(rootCmd, true),
 	)
-	rootCmd.AddCommand(mecli.Debug())
-	rootCmd.AddCommand(snapshot.Cmd(a.newApp))
 }
 
 // queryCommand returns the sub-command to send queries to the app
@@ -196,13 +242,15 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		rpc.ValidatorCommand(),
-		rpc.BlockCommand(),
+		rpc.QueryEventForTxCmd(),
+		server.QueryBlockCmd(),
 		authcmd.QueryTxsByEventsCmd(),
+		server.QueryBlocksCmd(),
 		authcmd.QueryTxCmd(),
+		server.QueryBlockResultsCmd(),
+		rpc.ValidatorCommand(),
 	)
 
-	app.ModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -230,12 +278,16 @@ func txCommand() *cobra.Command {
 		GetEncodeToRawTxCommand(),
 		GetDecodeRawTxCommand(),
 		authcmd.GetDecodeCommand(),
-		authcmd.GetAuxToFeeCommand(),
+		authcmd.GetSimulateCmd(),
 	)
 
-	app.ModuleBasics.AddTxCommands(cmd)
-	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
+	// Add wstaking custom tx commands
+	stakingTxCmd := wstakingcli.NewTxCmd()
+	if stakingTxCmd != nil {
+		cmd.AddCommand(stakingTxCmd)
+	}
 
+	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 	return cmd
 }
 
@@ -268,7 +320,7 @@ func (a appCreator) newApp(
 
 	// NOTE we use custom transaction decoder that supports the sdk.Tx interface instead of sdk.StdTx
 	// Setup Mempool and Proposal Handlers
-	// baseAppOptions = append(baseAppOptions, func(bapp *baseapp.BaseApp) {
+	//baseAppOptions = append(baseAppOptions, func(bapp *baseapp.BaseApp) {
 	//	maxTxs := cast.ToInt(appOpts.Get(sdkserver.FlagMempoolMaxTxs))
 	//	if maxTxs <= 0 {
 	//		maxTxs = 5000
@@ -284,17 +336,13 @@ func (a appCreator) newApp(
 	//	bapp.SetMempool(priorityMempool)
 	//	bapp.SetPrepareProposal(baseapp.NoOpPrepareProposal())
 	//	bapp.SetProcessProposal(baseapp.NoOpProcessProposal())
-	// })
+	//})
 
 	return app.New(
 		logger,
 		db,
 		traceStore,
 		true,
-		skipUpgradeHeights,
-		cast.ToString(appOpts.Get(flags.FlagHome)),
-		cast.ToUint(appOpts.Get(sdkserver.FlagInvCheckPeriod)),
-		a.encodingConfig,
 		appOpts,
 		baseAppOptions...,
 	)
@@ -328,10 +376,6 @@ func (a appCreator) appExport(
 		db,
 		traceStore,
 		height == -1,
-		skipUpgradeHeights,
-		cast.ToString(appOpts.Get(flags.FlagHome)),
-		cast.ToUint(appOpts.Get(sdkserver.FlagInvCheckPeriod)),
-		a.encodingConfig,
 		appOpts,
 		baseAppOptions...,
 	)

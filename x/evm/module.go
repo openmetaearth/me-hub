@@ -1,6 +1,7 @@
 package evm
 
 import (
+	"context"
 	"encoding/json"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -12,9 +13,8 @@ import (
 	"github.com/evmos/ethermint/x/evm"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
-
 	"github.com/openmetaearth/me-hub/x/evm/keeper"
+	"github.com/spf13/cobra"
 )
 
 // AppModuleBasic implements the basic application module for the wrapped nft module.
@@ -83,8 +83,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	am.AppModule.RegisterServices(cfg)
 }
 
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	am.keeper.SetChainIDFromCosmos(ctx.ChainID())
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	am.keeper.SetChainIDFromCosmos(sdk.UnwrapSDKContext(ctx).ChainID())
+	return nil
 }
 
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {

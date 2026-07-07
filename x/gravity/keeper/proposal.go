@@ -4,7 +4,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
@@ -47,7 +46,7 @@ func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error
 	}
 
 	maxChangePowerThreshold := types.AttestationProposalRelayerChangePowerThreshold.Mul(totalPower).Quo(sdkmath.NewInt(int64(types.PowerBase)))
-	if deleteTotalPower.GT(sdk.ZeroInt()) && deleteTotalPower.GTE(maxChangePowerThreshold) {
+	if deleteTotalPower.GT(sdkmath.ZeroInt()) && deleteTotalPower.GTE(maxChangePowerThreshold) {
 		return errorsmod.Wrapf(types.ErrMaxChangePowerLimitExceeded,
 			"maxChangePowerThreshold: %s, deleteTotalPower: %s", maxChangePowerThreshold.String(), deleteTotalPower.String())
 	}
@@ -64,7 +63,7 @@ func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error
 
 func (k Keeper) UnbondedRelayerFromProposal(ctx sdk.Context, relayer types.Relayer) error {
 	relayerAddress := sdk.MustAccAddressFromBech32(relayer.RelayerAddress)
-	// if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, relayerAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, relayer.DelegateAmount))); err != nil {
+	//if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, k.moduleName, relayerAddress, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, relayer.DelegateAmount))); err != nil {
 	//	return nil
 	//}
 	relayer.Online = false

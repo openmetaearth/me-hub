@@ -2,14 +2,14 @@ package bridgingfee
 
 import (
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
-	transferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-
+	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	delayedackkeeper "github.com/openmetaearth/me-hub/x/delayedack/keeper"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
@@ -93,7 +93,7 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 	if err != nil {
 		l.Error("Charge bridging fee.", "err", err)
 		// we continue as we don't want the fee charge to fail the transfer in any case
-		fee = sdk.ZeroInt()
+		fee = sdkmath.ZeroInt()
 	} else {
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(

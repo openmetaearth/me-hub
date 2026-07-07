@@ -5,9 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/cosmos/cosmos-sdk/x/nft"
-
 	"github.com/openmetaearth/me-hub/x/wnft/types"
 )
 
@@ -25,41 +22,34 @@ func (k Keeper) ClassAddress(goCtx context.Context, r *types.QueryClassAddressRe
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	class, ok := k.GetClass(ctx, r.ClassId)
+	_, ok := k.GetClass(ctx, r.ClassId)
 	if !ok {
 		return &types.QueryClassAddressResponse{Exists: false}, nil
 	}
 
-	nftResp, err := k.Keeper.NFTs(goCtx, &nft.QueryNFTsRequest{
-		ClassId:    r.ClassId,
-		Owner:      r.Address,
-		Pagination: r.Pagination,
-	})
+	address, err := sdk.AccAddressFromBech32(r.Address)
 	if err != nil {
 		return nil, err
 	}
 
-	tokenIds := make([]string, 0, len(nftResp.Nfts))
-	for _, ownerNFT := range nftResp.Nfts {
-		tokenIds = append(tokenIds, ownerNFT.Id)
+	nfts := k.GetNFTsOfClassByOwner(ctx, r.ClassId, address)
+
+	var tokenIds []string
+	for _, nft := range nfts {
+		tokenIds = append(tokenIds, nft.Id)
 	}
 
 	return &types.QueryClassAddressResponse{
 		Exists:      true,
-		TotalSupply: class.TotalSupply,
+		TotalSupply: k.GetClassTotalSupplyCap(ctx, r.ClassId),
 		Nfts:        tokenIds,
-		Pagination:  nftResp.Pagination,
 	}, nil
 }
 
 func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest) (*types.QueryNftFilterResponse, error) {
-	if r == nil {
-		return nil, sdkerrors.ErrInvalidRequest.Wrap("empty request")
-	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var list []*types.NftList
-	pageRes := &query.PageResponse{}
 
 	// determine query type based on request parameters
 	if r.TokenId != "" && r.ClassId != "" && r.Owner == "" {
@@ -83,23 +73,20 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 			Uri:     nftInfo.Uri,
 		})
 
-		return &types.QueryNftFilterResponse{Nfts: list, Pagination: pageRes}, nil
+		return &types.QueryNftFilterResponse{
+			Nfts: list,
+		}, nil
+
 	} else if r.ClassId != "" && r.Owner != "" && r.TokenId == "" {
 		// query the holdings of a specific type of nft
 		_, has := k.GetClass(ctx, r.ClassId)
 		if !has {
 			return nil, nil
 		}
-		nftResp, err := k.Keeper.NFTs(goCtx, &nft.QueryNFTsRequest{
-			ClassId:    r.ClassId,
-			Owner:      r.Owner,
-			Pagination: r.Pagination,
-		})
-		if err != nil {
-			return nil, err
-		}
+		address, _ := sdk.AccAddressFromBech32(r.Owner)
 
-		for _, nftInfo := range nftResp.Nfts {
+		nftInfos := k.GetNFTsOfClassByOwner(ctx, r.ClassId, address)
+		for _, nftInfo := range nftInfos {
 			list = append(list, &types.NftList{
 				ClassId: nftInfo.ClassId,
 				TokenId: nftInfo.Id,
@@ -108,28 +95,31 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 			})
 		}
 
-		return &types.QueryNftFilterResponse{Nfts: list, Pagination: nftResp.Pagination}, nil
+		return &types.QueryNftFilterResponse{
+			Nfts: list,
+		}, nil
+
 	} else if r.Owner != "" && r.TokenId == "" && r.ClassId == "" {
 		// query the nft information held by the address
-		nftResp, err := k.Keeper.NFTs(goCtx, &nft.QueryNFTsRequest{
-			Owner:      r.Owner,
-			Pagination: r.Pagination,
-		})
-		if err != nil {
-			return nil, err
+		classes := k.GetClasses(ctx)
+		address, _ := sdk.AccAddressFromBech32(r.Owner)
+		for _, class := range classes {
+			nftInfos := k.GetNFTsOfClassByOwner(ctx, class.Id, address)
+			for _, nftInfo := range nftInfos {
+				owner := k.GetOwner(ctx, nftInfo.ClassId, nftInfo.Id)
+				list = append(list, &types.NftList{
+					ClassId: nftInfo.ClassId,
+					TokenId: nftInfo.Id,
+					Owner:   owner.String(),
+					Uri:     nftInfo.Uri,
+				})
+			}
 		}
 
-		for _, nftInfo := range nftResp.Nfts {
-			owner := k.GetOwner(ctx, nftInfo.ClassId, nftInfo.Id)
-			list = append(list, &types.NftList{
-				ClassId: nftInfo.ClassId,
-				TokenId: nftInfo.Id,
-				Owner:   owner.String(),
-				Uri:     nftInfo.Uri,
-			})
-		}
+		return &types.QueryNftFilterResponse{
+			Nfts: list,
+		}, nil
 
-		return &types.QueryNftFilterResponse{Nfts: list, Pagination: nftResp.Pagination}, nil
 	}
 	return nil, nil
 }

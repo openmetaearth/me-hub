@@ -21,16 +21,15 @@ func KeyPrefix(p string) []byte {
 }
 
 var (
-	ParamsKey     = []byte{0x01}
-	DIDPrefix     = []byte{0x10}
-	DidInfoPrefix = []byte{0x11}
-	IssuerPrefix  = []byte{0x20}
-	ServicePrefix = []byte{0x30}
-	// ServiceIssuerPrefix   = []byte{0x31}
+	ParamsKey          = []byte{0x01}
+	DIDPrefix          = []byte{0x10}
+	DidInfoPrefix      = []byte{0x11}
+	IssuerPrefix       = []byte{0x20}
+	ServicePrefix      = []byte{0x30}
 	CredentialPrefix   = []byte{0x40}
 	FilterLoggerPrefix = []byte{0x50}
 	FilterPrefix       = []byte{0x51}
-	SubAccountPrefix   = []byte{0x52}
+	SubAccountPrefix   = []byte{0x60}
 )
 
 func GetDIDKey(addr sdk.AccAddress) []byte {
@@ -49,7 +48,7 @@ func GetServiceKey(sid string) []byte {
 	return append(ServicePrefix, []byte(sid)...)
 }
 
-// func GetServiceIssuerKey(sid string) []byte {
+//func GetServiceIssuerKey(sid string) []byte {
 //	return append(ServiceIssuerPrefix, []byte(sid)...)
 //}
 
@@ -73,6 +72,6 @@ func GetFilterKey(sid, did string, filter []byte) []byte {
 	return append(GetFilterPrefixBySidAndFilter(sid, filter), did...)
 }
 
-func GetSubAccountKey(addr string) []byte {
-	return append(SubAccountPrefix, []byte(addr)...)
+func GetSubAccountKey(subAccount string) []byte {
+	return append(SubAccountPrefix, []byte(subAccount)...)
 }

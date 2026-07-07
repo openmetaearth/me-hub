@@ -1,9 +1,8 @@
 package keeper
 
 import (
+	"cosmossdk.io/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/nft"
-
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
 
@@ -19,7 +18,7 @@ func (k *Keeper) GetSBT(ctx sdk.Context, did string) (sbt nft.NFT, found bool) {
 	return k.nftKeeper.GetNFT(ctx, types.ModuleName, did)
 }
 
-// func (k *Keeper) GetAllSBTs(ctx sdk.Context, regionId string) (SBTs []nft.NFT) {
+//func (k *Keeper) GetAllSBTs(ctx sdk.Context, regionId string) (SBTs []nft.NFT) {
 //	// todo: implement, for export genesis
 //	return SBTs
 //}

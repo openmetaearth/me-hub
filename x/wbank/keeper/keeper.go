@@ -1,121 +1,195 @@
 package keeper
 
 import (
+	"context"
+	"errors"
 	"fmt"
 
+	"cosmossdk.io/core/store"
+	"cosmossdk.io/log"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	errorsmod "cosmossdk.io/errors"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	"github.com/openmetaearth/me-hub/x/wbank/types"
 )
 
-// BaseKeeperWrapper is a wrapper of the cosmos-sdk bank module.
+// BaseKeeperWrapper wraps bankkeeper.BaseKeeper with additional functionality.
+// It holds a reference to BaseKeeper instead of embedding it to support SDK v0.50 type assertions.
+// BaseKeeper field is exported for wbank module registration.
 type BaseKeeperWrapper struct {
-	bankkeeper.BaseKeeper
-	ak banktypes.AccountKeeper
+	BaseKeeper bankkeeper.BaseKeeper
+	ak         banktypes.AccountKeeper
+	dk         types.DaoKeeper
 }
 
-// NewKeeper returns a new BaseKeeperWrapper instance.
+// NewKeeper returns a new standard bank BaseKeeper (for app module registration).
 func NewKeeper(
-	cdc codec.BinaryCodec,
-	storeKey storetypes.StoreKey,
+	appCodec codec.BinaryCodec,
+	storeService store.KVStoreService,
 	ak banktypes.AccountKeeper,
 	dk types.DaoKeeper,
-	blockedAddrs map[string]bool,
-	authority string,
+	moduleAccountAddrs map[string]bool,
+	logger log.Logger,
+) bankkeeper.BaseKeeper {
+	return bankkeeper.NewBaseKeeper(
+		appCodec,
+		storeService,
+		ak,
+		moduleAccountAddrs,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		logger,
+	)
+}
+
+// NewBankKeeperWrapper creates a wrapper around BaseKeeper with extended functionality.
+// Use this for modules that need StakeCoinsFromModuleToModule and other custom methods.
+func NewBankKeeperWrapper(
+	bk bankkeeper.BaseKeeper,
+	ak banktypes.AccountKeeper,
+	dk types.DaoKeeper,
 ) BaseKeeperWrapper {
 	return BaseKeeperWrapper{
-		BaseKeeper: bankkeeper.NewBaseKeeper(cdc, storeKey, ak, blockedAddrs, authority),
+		BaseKeeper: bk,
 		ak:         ak,
+		dk:         dk,
 	}
+}
+
+// Delegate all standard bank keeper methods to the underlying BaseKeeper
+func (k BaseKeeperWrapper) GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins {
+	return k.BaseKeeper.GetAllBalances(ctx, addr)
+}
+
+func (k BaseKeeperWrapper) GetBalance(ctx context.Context, addr sdk.AccAddress, denom string) sdk.Coin {
+	return k.BaseKeeper.GetBalance(ctx, addr, denom)
+}
+
+func (k BaseKeeperWrapper) LockedCoins(ctx context.Context, addr sdk.AccAddress) sdk.Coins {
+	return k.BaseKeeper.LockedCoins(ctx, addr)
+}
+
+func (k BaseKeeperWrapper) SpendableCoins(ctx context.Context, addr sdk.AccAddress) sdk.Coins {
+	return k.BaseKeeper.SpendableCoins(ctx, addr)
+}
+
+func (k BaseKeeperWrapper) GetSupply(ctx context.Context, denom string) sdk.Coin {
+	return k.BaseKeeper.GetSupply(ctx, denom)
+}
+
+func (k BaseKeeperWrapper) SendCoinsFromModuleToModule(ctx context.Context, senderPool, recipientPool string, amt sdk.Coins) error {
+	return k.BaseKeeper.SendCoinsFromModuleToModule(ctx, senderPool, recipientPool, amt)
+}
+
+func (k BaseKeeperWrapper) SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error {
+	return k.BaseKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
+}
+
+func (k BaseKeeperWrapper) SendCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error {
+	return k.BaseKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, recipientModule, amt)
+}
+
+func (k BaseKeeperWrapper) SendCoins(ctx context.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error {
+	return k.BaseKeeper.SendCoins(ctx, fromAddr, toAddr, amt)
+}
+
+func (k BaseKeeperWrapper) UndelegateCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error {
+	return k.BaseKeeper.UndelegateCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
+}
+
+func (k BaseKeeperWrapper) DelegateCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error {
+	return k.BaseKeeper.DelegateCoinsFromAccountToModule(ctx, senderAddr, recipientModule, amt)
+}
+
+func (k BaseKeeperWrapper) BurnCoins(ctx context.Context, name string, amt sdk.Coins) error {
+	return k.BaseKeeper.BurnCoins(ctx, name, amt)
+}
+
+func (k BaseKeeperWrapper) BlockedAddr(addr sdk.AccAddress) bool {
+	return k.BaseKeeper.BlockedAddr(addr)
 }
 
 // StakeCoinsFromModuleToModule stakes coins and transfers them from stake pool
 // module account to a module account. It will panic if the module account
 // does not exist or is unauthorized.
 func (k BaseKeeperWrapper) StakeCoinsFromModuleToModule(
-	ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins,
+	ctx sdk.Context, senderModule string, recipientModule string, amt sdk.Coins,
 ) error {
 	senderAcc := k.ak.GetModuleAccount(ctx, senderModule)
 	if senderAcc == nil {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", senderModule))
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", senderModule))
 	}
 	if !senderAcc.HasPermission(authtypes.Staking) {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "module account %s does not have permissions to send stake coins", senderModule))
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "module account %s does not have permissions to send stake coins", senderModule))
 	}
 
 	recipientAcc := k.ak.GetModuleAccount(ctx, recipientModule)
 	if recipientAcc == nil {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", recipientModule))
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", recipientModule))
 	}
 
 	if !recipientAcc.HasPermission(authtypes.Staking) {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "module account %s does not have permissions to receive stake coins", recipientModule))
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "module account %s does not have permissions to receive stake coins", recipientModule))
 	}
 
-	return k.SendCoins(ctx, senderAcc.GetAddress(), recipientAcc.GetAddress(), amt)
+	return k.BaseKeeper.SendCoins(ctx, senderAcc.GetAddress(), recipientAcc.GetAddress(), amt)
 }
 
 // UnstakeCoinsFromModuleToModule unstakes the unbonding coins and transfers
 // them from a module account to the stake_tokens_pool module's account. It will panic if the
 // module account does not exist or is unauthorized.
 func (k BaseKeeperWrapper) UnstakeCoinsFromModuleToModule(
-	ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins,
+	ctx sdk.Context, senderModule string, recipientModule string, amt sdk.Coins,
 ) error {
 	senderAcc := k.ak.GetModuleAccount(ctx, senderModule)
 	if senderAcc == nil {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", senderModule))
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", senderModule))
 	}
 
 	if !senderAcc.HasPermission(authtypes.Staking) {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "module account %s does not have permissions to send unstake coins", senderModule))
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "module account %s does not have permissions to send unstake coins", senderModule))
 	}
 
 	recipientAcc := k.ak.GetModuleAccount(ctx, recipientModule)
 	if recipientAcc == nil {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", recipientAcc))
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", recipientAcc))
 	}
 
 	if !recipientAcc.HasPermission(authtypes.Staking) {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "module account %s does not have permissions to receive unstake coins", recipientModule))
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "module account %s does not have permissions to receive unstake coins", recipientModule))
 	}
 
-	return k.SendCoins(ctx, senderAcc.GetAddress(), recipientAcc.GetAddress(), amt)
+	return k.BaseKeeper.SendCoins(ctx, senderAcc.GetAddress(), recipientAcc.GetAddress(), amt)
 }
 
-func (k BaseKeeperWrapper) FeeToReceivers(ctx sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output, receiverTypes []types.FeeReceiverType) error {
+func (k BaseKeeperWrapper) FeeToReceivers(ctx context.Context, inputs []banktypes.Input, outputs []banktypes.Output, receiverTypes []types.FeeReceiverType) error {
 	if len(inputs) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "inputs error")
+		return errors.New("inputs error")
 	}
-	if len(receiverTypes) != len(outputs) {
-		return sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidRequest,
-			"fee receiver types and outputs are not equal: got %d receiver types for %d outputs",
-			len(receiverTypes),
-			len(outputs),
-		)
+	err := k.BaseKeeper.InputOutputCoins(ctx, inputs[0], outputs)
+	if err != nil {
+		return errorsmod.Wrap(err, "failed to process input-output coins")
 	}
 
-	err := k.InputOutputCoins(ctx, inputs, outputs)
-	if err != nil {
-		return sdkerrors.Wrap(err, "failed to process input-output coins")
+	if len(receiverTypes) != len(outputs) {
+		return errorsmod.Wrap(err, "fee receiver types and outputs are not equal")
 	}
 
 	attributes := []sdk.Attribute{}
 	attributes = append(attributes, sdk.NewAttribute(sdk.AttributeKeySender, inputs[0].Address))
 	for index, output := range outputs {
-		attributes = append(attributes, sdk.NewAttribute(string(receiverTypes[index]), output.Address))
+		attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s", receiverTypes[index]), output.Address))
 		attributes = append(attributes, sdk.NewAttribute(fmt.Sprintf("%s_amount", receiverTypes[index]), output.Coins.String()))
 	}
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	event := sdk.NewEvent(types.EventTypeFeeToReceivers, attributes...)
-	ctx.EventManager().EmitEvent(event)
-
+	sdkCtx.EventManager().EmitEvent(event)
 	return nil
 }
 
@@ -137,11 +211,11 @@ func (k BankKeeperExtend) SendCoinsFromModuleToAccountWithTag(
 ) error {
 	senderAddr := k.ak.GetModuleAddress(senderModule)
 	if senderAddr == nil {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", senderModule))
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", senderModule))
 	}
 
 	if k.BlockedAddr(recipientAddr) {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", recipientAddr)
+		return errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", recipientAddr)
 	}
 
 	return k.SendCoinsWithTag(ctx, senderAddr, recipientAddr, amt, tag...)
@@ -154,12 +228,12 @@ func (k BankKeeperExtend) SendCoinsFromModuleToModuleWithTag(
 ) error {
 	senderAddr := k.ak.GetModuleAddress(senderModule)
 	if senderAddr == nil {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", senderModule))
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", senderModule))
 	}
 
 	recipientAcc := k.ak.GetModuleAccount(ctx, recipientModule)
 	if recipientAcc == nil {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", recipientModule))
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", recipientModule))
 	}
 
 	return k.SendCoinsWithTag(ctx, senderAddr, recipientAcc.GetAddress(), amt, tag...)
@@ -172,13 +246,13 @@ func (k BankKeeperExtend) SendCoinsFromAccountToModuleWithTag(
 ) error {
 	recipientAcc := k.ak.GetModuleAccount(ctx, recipientModule)
 	if recipientAcc == nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", recipientModule)
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", recipientModule)
 	}
 
 	return k.SendCoinsWithTag(ctx, senderAddr, recipientAcc.GetAddress(), amt, tag...)
 }
 
-func (k BankKeeperExtend) SendCoinsWithTag(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amt sdk.Coins, tags ...string) error {
+func (k BankKeeperExtend) SendCoinsWithTag(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins, tags ...string) error {
 	if len(tags) == 0 {
 		return k.SendCoins(ctx, fromAddr, toAddr, amt)
 	}

@@ -4,30 +4,32 @@ import (
 	"fmt"
 	"testing"
 
-	sdkmath "cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmtime "github.com/cometbft/cometbft/types/time"
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/golang/mock/gomock"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
+	"github.com/openmetaearth/me-hub/x/wdistri/types"
+	"github.com/openmetaearth/me-hub/x/wdistri/types/mock"
+
+	"github.com/openmetaearth/me-hub/app/params"
+
+	sdkmath "cosmossdk.io/math"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	"github.com/openmetaearth/me-hub/testutil/mocks"
+	"github.com/openmetaearth/me-hub/x/wdistri/keeper"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/openmetaearth/me-hub/app/apptesting"
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/testutil/mocks"
-	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
-	"github.com/openmetaearth/me-hub/x/wdistri/keeper"
-	"github.com/openmetaearth/me-hub/x/wdistri/types"
-	"github.com/openmetaearth/me-hub/x/wdistri/types/mock"
-	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
+	"cosmossdk.io/log"
+	tmtime "github.com/cometbft/cometbft/types/time"
+	"github.com/cosmos/cosmos-sdk/runtime"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 type KeeperTestSuite struct {
@@ -53,8 +55,8 @@ func (s *KeeperTestSuite) Keeper() *keeper.Keeper {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
+	app := apptesting.Setup(s.T())
+	ctx := app.GetBaseApp().NewContext(false)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	nativeQuerier := distrkeeper.Querier{Keeper: app.DistrKeeper.Keeper}
@@ -74,10 +76,10 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.App.DistrKeeper = keeper.NewKeeper(
 		s.App.AppCodec(),
-		s.App.GetKey(distrtypes.StoreKey),
-		s.App.GetSubspace(distrtypes.ModuleName),
+		runtime.NewKVStoreService(s.App.GetKey(distrtypes.StoreKey)),
 		s.authKeeper,
 		s.bankKeeper,
+		s.App.StakingKeeper,
 		s.stakingKeeper,
 		wbanktypes.TreasuryPoolName,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
@@ -154,7 +156,7 @@ func (s *KeeperTestSuite) TestGetTreasuryModuleAccount() {
 	}
 }
 
-func (s *KeeperTestSuite) TestEndBlocker() {
+func (suite *KeeperTestSuite) TestEndBlocker() {
 	/*
 		first year per block reward is :792.7448 mec 79274480000 umec
 		first year daily reward is :13698630.1440 mec 1369863014400000 umec
@@ -207,8 +209,8 @@ func (s *KeeperTestSuite) TestEndBlocker() {
 	}
 	runCase := func(index int) {
 		testcase := testsCases[index]
-		ctx := s.HelperNewContextWith(int64(testcase.height))
-		addrs := s.mockGetRegionI(ctx, testcase.regionShares...)
+		ctx := suite.HelperNewContextWith(int64(testcase.height))
+		addrs := suite.mockGetRegionI(ctx, testcase.regionShares...)
 		var wantReward []coinAndAddr
 		totalWantReward := 0
 		for i, addr := range addrs {
@@ -219,49 +221,49 @@ func (s *KeeperTestSuite) TestEndBlocker() {
 			totalWantReward += testcase.regionWantGetReward[i]
 		}
 		if totalWantReward != 0 {
-			s.SetMockGetBalance(ctx, sdk.NewInt(int64(totalWantReward)))
+			suite.SetMockGetBalance(ctx, sdkmath.NewInt(int64(totalWantReward)))
 		}
-		s.setMockSendCoinsFromModuleToAccountExpect(ctx, wantReward...)
+		suite.setMockSendCoinsFromModuleToAccountExpect(ctx, wantReward...)
 
-		err := s.App.DistrKeeper.AllocateBlockRewardEveryday(ctx, abci.RequestEndBlock{Height: ctx.BlockHeight()})
+		err := suite.App.DistrKeeper.AllocateBlockRewardEveryday(ctx)
 		events := ctx.EventManager().ABCIEvents()
-		s.Require().NoError(err, "case %d: %s", index, testcase.name)
-		assert.Equal(s.T(), len(addrs), len(events))
+		suite.Require().NoError(err, "case %d: %s", index, testcase.name)
+		assert.Equal(suite.T(), len(addrs), len(events))
 	}
 	for i := range testsCases {
-		s.Run(testsCases[i].name, func() {
+		suite.Run(testsCases[i].name, func() {
 			runCase(i)
 		})
 	}
 }
 
-func (s *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int) []string {
-	addrs := make([]string, 0, len(regionShare))
+func (suite *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int) []string {
+	var addrs []string
 	if len(regionShare) == 0 {
 		return addrs
 	}
-	regions := make([]wstakingtypes.RegionI, 0, len(regionShare))
+	var regions []wstakingtypes.RegionI
 	for i, share := range regionShare {
-		region := mocks.NewMockRegionI(s.T())
-		region.EXPECT().GetRegionShare().Return(sdk.NewInt(int64(share)))
+		region := mocks.NewMockRegionI(suite.T())
+		region.EXPECT().GetRegionShare().Return(sdkmath.NewInt(int64(share)))
 		addr := authtypes.NewModuleAddress(fmt.Sprintf("region_%d", i)).String()
 		addrs = append(addrs, addr)
 		region.EXPECT().GetRegionTreasureAddr().Return(addr)
 		region.EXPECT().GetRegionId().Return(fmt.Sprintf("region_ID_%d", i))
 		regions = append(regions, region)
 	}
-	s.stakingKeeper.EXPECT().GetAllRegionI(ctx).Return(regions)
+	suite.stakingKeeper.EXPECT().GetAllRegionI(ctx).Return(regions)
 	return addrs
 }
 
-func (s *KeeperTestSuite) SetMockGetBalance(ctx sdk.Context, amount sdkmath.Int) {
-	acc := authtypes.NewModuleAddress(s.App.DistrKeeper.GetTreasuryModuleAccount())
-	s.authKeeper.EXPECT().GetModuleAddress(s.App.DistrKeeper.GetTreasuryModuleAccount()).Return(acc)
-	s.bankKeeper.EXPECT().GetAllBalances(ctx, acc).Return(sdk.NewCoins(sdk.NewCoin(params.BaseDenom, amount)))
+func (suite *KeeperTestSuite) SetMockGetBalance(ctx sdk.Context, amount sdkmath.Int) {
+	acc := authtypes.NewModuleAddress(suite.App.DistrKeeper.GetTreasuryModuleAccount())
+	suite.authKeeper.EXPECT().GetModuleAddress(suite.App.DistrKeeper.GetTreasuryModuleAccount()).Return(acc)
+	suite.bankKeeper.EXPECT().GetAllBalances(ctx, acc).Return(sdk.NewCoins(sdk.NewCoin(params.BaseDenom, amount)))
 }
 
-func (s *KeeperTestSuite) HelperNewContextWith(height int64) sdk.Context {
-	return sdk.NewContext(s.Ctx.MultiStore(), tmproto.Header{Time: tmtime.Now(), Height: height}, false, log.NewNopLogger())
+func (suite *KeeperTestSuite) HelperNewContextWith(height int64) sdk.Context {
+	return sdk.NewContext(suite.Ctx.MultiStore(), tmproto.Header{Time: tmtime.Now(), Height: height}, false, log.NewNopLogger())
 }
 
 type coinAndAddr struct {
@@ -269,15 +271,15 @@ type coinAndAddr struct {
 	addr string
 }
 
-func (s *KeeperTestSuite) setMockSendCoinsFromModuleToAccountExpect(ctx sdk.Context, want ...coinAndAddr) {
+func (suite *KeeperTestSuite) setMockSendCoinsFromModuleToAccountExpect(ctx sdk.Context, want ...coinAndAddr) {
 	baseDenom := params.BaseDenom
 	for _, w := range want {
-		s.bankKeeper.EXPECT().
+		suite.bankKeeper.EXPECT().
 			SendCoinsFromModuleToAccount(
 				ctx,
-				s.App.DistrKeeper.GetTreasuryModuleAccount(),
+				suite.App.DistrKeeper.GetTreasuryModuleAccount(),
 				sdk.MustAccAddressFromBech32(w.addr),
-				sdk.NewCoins(sdk.NewCoin(baseDenom, sdk.NewInt(w.num))),
+				sdk.NewCoins(sdk.NewCoin(baseDenom, sdkmath.NewInt(w.num))),
 			).Return(nil)
 	}
 }

@@ -30,7 +30,7 @@ message FixedDeposit {
   ];
   int64 term = 7;
   string rate = 8 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 }
@@ -54,7 +54,7 @@ message FixedDepositCfg {
   int64 term = 2;
   string rate = 3 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   FIXED_DEPOSIT_CFG_STATUS status = 4;
@@ -69,7 +69,7 @@ message RegionFixedDepositCfg {
   int64 term = 1;
   string rate = 2 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   FIXED_DEPOSIT_CFG_STATUS status = 3;

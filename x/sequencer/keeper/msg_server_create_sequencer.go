@@ -5,10 +5,10 @@ import (
 	"slices"
 	"strconv"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
+
+	errorsmod "cosmossdk.io/errors"
 )
 
 // CreateSequencer defines a method for creating a new sequencer
@@ -46,31 +46,26 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, err
 	}
 
+	bond := sdk.Coins{}
 	minBond := k.GetParams(ctx).MinBond
-	if !minBond.IsValid() || !minBond.IsPositive() {
-		return nil, errorsmod.Wrapf(types.ErrInvalidMinBond, "expected positive min bond, got %s", minBond)
-	}
+	if !minBond.IsNil() && !minBond.IsZero() {
+		if msg.Bond.Denom != minBond.Denom {
+			return nil, errorsmod.Wrapf(
+				types.ErrInvalidCoinDenom, "got %s, expected %s", msg.Bond.Denom, minBond.Denom,
+			)
+		}
 
-	if !msg.Bond.IsValid() || !msg.Bond.IsPositive() {
-		return nil, errorsmod.Wrapf(types.ErrInsufficientBond, "got %s, expected at least %s", msg.Bond, minBond)
-	}
+		if msg.Bond.Amount.LT(minBond.Amount) {
+			return nil, errorsmod.Wrapf(
+				types.ErrInsufficientBond, "got %s, expected %s", msg.Bond.Amount, minBond,
+			)
+		}
 
-	if msg.Bond.Denom != minBond.Denom {
-		return nil, errorsmod.Wrapf(
-			types.ErrInvalidCoinDenom, "got %s, expected %s", msg.Bond.Denom, minBond.Denom,
-		)
-	}
-
-	if msg.Bond.Amount.LT(minBond.Amount) {
-		return nil, errorsmod.Wrapf(
-			types.ErrInsufficientBond, "got %s, expected %s", msg.Bond.Amount, minBond,
-		)
-	}
-
-	bond := sdk.NewCoins(msg.Bond)
-	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, bond)
-	if err != nil {
-		return nil, err
+		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.Bond))
+		if err != nil {
+			return nil, err
+		}
+		bond = sdk.NewCoins(msg.Bond)
 	}
 
 	sequencer := types.Sequencer{

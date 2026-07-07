@@ -90,7 +90,7 @@ func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
 func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 	suite.SetupTest()
 
-	msgserver := keeper.NewMsgServerImpl(suite.App.SequencerKeeper)
+	msgserver := keeper.NewMsgServerImpl(*suite.App.SequencerKeeper)
 
 	rollappId := suite.CreateDefaultRollapp()
 	// create 2 sequencers on rollapp1

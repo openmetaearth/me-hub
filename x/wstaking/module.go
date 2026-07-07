@@ -8,20 +8,21 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
-	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/openmetaearth/me-hub/x/wstaking/client/cli"
 	"github.com/spf13/cobra"
 
-	"github.com/openmetaearth/me-hub/x/wstaking/client/cli"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/openmetaearth/me-hub/x/wstaking/keeper"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
+
+	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 )
 
 // AppModuleBasic defines the basic application module used by the wrapped staking module.
@@ -107,6 +108,20 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
 
+// GetQueryCmd returns the root query command for the wstaking AppModule.
+// This overrides the embedded staking.AppModule which does not expose GetQueryCmd,
+// ensuring AutoCLI discovers the legacy CLI commands via HasCustomQueryCommand.
+func (am AppModule) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
+}
+
+// GetTxCmd returns the root tx command for the wstaking AppModule.
+// This overrides the embedded staking.AppModule.AppModuleBasic.GetTxCmd,
+// ensuring AutoCLI uses wstaking's custom tx commands via HasCustomTxCommand.
+func (am AppModule) GetTxCmd() *cobra.Command {
+	return cli.NewTxCmd()
+}
+
 // InitGenesis performs genesis initialization for the staking module.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
@@ -119,12 +134,13 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // BeginBlock returns the begin blocker for the staking module.
-func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
-	BeginBlock(ctx, am.keeper)
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	BeginBlock(sdk.UnwrapSDKContext(ctx), am.keeper)
+	return nil
 }
 
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return EndBlock(ctx, am.keeper)
+func (am AppModule) EndBlock(ctx context.Context) ([]abci.ValidatorUpdate, error) {
+	return EndBlock(sdk.UnwrapSDKContext(ctx), am.keeper), nil
 }
 
 // RegisterServices registers module services.
@@ -139,6 +155,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	wstakingQuerier := keeper.Querier{Keeper: am.keeper}
 	types.RegisterQueryServer(cfg.QueryServer(), wstakingQuerier)
 
+	// Use standard Cosmos SDK migrator for v1-v4 migrations
 	m := stakingkeeper.NewMigrator(am.keeper.Keeper, am.legacySubspace)
 	if err := cfg.RegisterMigration(stakingtypes.ModuleName, 1, m.Migrate1to2); err != nil {
 		panic(fmt.Sprintf("failed to migrate x/%s from version 1 to 2: %v", stakingtypes.ModuleName, err))
@@ -148,6 +165,12 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 	if err := cfg.RegisterMigration(stakingtypes.ModuleName, 3, m.Migrate3to4); err != nil {
 		panic(fmt.Sprintf("failed to migrate x/%s from version 3 to 4: %v", stakingtypes.ModuleName, err))
+	}
+
+	// Use custom wstaking migrator for v4-v5 (only migrates HistoricalInfo, skips delegation index)
+	wstakingMigrator := keeper.NewMigrator(am.keeper)
+	if err := cfg.RegisterMigration(stakingtypes.ModuleName, 4, wstakingMigrator.Migrate4to5); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/%s from version 4 to 5: %v", stakingtypes.ModuleName, err))
 	}
 }
 

@@ -7,7 +7,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
@@ -30,7 +29,7 @@ func (k Keeper) GetBatchFeesByTokenType(ctx sdk.Context, tokenContract string, m
 		}
 		batchFee.TotalFees = batchFee.TotalFees.Add(tx.Fee.Amount)
 		batchFee.TotalAmount = batchFee.TotalAmount.Add(tx.Token.Amount)
-		batchFee.TotalTxs++
+		batchFee.TotalTxs += 1
 		return batchFee.TotalTxs == uint64(maxElements)
 	})
 	return batchFee
@@ -108,9 +107,6 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 		if err := k.bankKeeper.BurnCoins(ctx, k.moduleName, sdk.NewCoins(addBridgeFee)); err != nil {
 			return err
 		}
-
-		bridgeToken.Supply = bridgeToken.Supply.Sub(addBridgeFee.Amount)
-		k.SetBridgeToken(ctx, bridgeToken)
 	}
 
 	if err := k.DelUnbatchedTx(ctx, tx.Fee, txId); err != nil {
