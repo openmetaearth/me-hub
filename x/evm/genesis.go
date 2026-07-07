@@ -26,7 +26,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/utils"
-	metypes "github.com/openmetaearth/me-hub/types"
 
 	ethermint "github.com/evmos/ethermint/types"
 	"github.com/evmos/ethermint/x/evm/types"
@@ -45,8 +44,6 @@ func InitGenesis(
 	if utils.IsOneOfDymensionChains(ctx) && data.Params.EnableCreate {
 		panic(fmt.Errorf("enable create is not allowed on mechain chains"))
 	}
-
-	k.WithChainID(sdk.Context{}.WithChainID(metypes.ChainIdWithEIP155()))
 
 	err := k.SetParams(ctx, data.Params)
 	if err != nil {
