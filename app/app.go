@@ -50,6 +50,7 @@ import (
 
 	"github.com/openmetaearth/me-hub/app/ante"
 	"github.com/openmetaearth/me-hub/app/keepers"
+	metypes "github.com/openmetaearth/me-hub/types"
 	appparams "github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/app/upgrades" //nolint:revive
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_14"
@@ -267,6 +268,7 @@ func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Respo
 
 // InitChainer application update at chain initialization
 func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+	metypes.SetChainId(ctx.ChainID())
 	var genesisState GenesisState
 	if err := cometbftjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
