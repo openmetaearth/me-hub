@@ -9,23 +9,11 @@ import (
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/handler"
 	bankkeeper "github.com/openmetaearth/me-hub/x/wbank/keeper"
-	stakingTypes "github.com/openmetaearth/me-hub/x/wstaking/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 type StakingKeeper interface {
-	// Methods imported from staking should be defined here
-
-	// FIXME: wait wstaking keep and types.Meid ;Temporarily use MockMeid instead of MEID and MockRegion instead types.Region
-	// GetMeid(ctx sdk.Context, account string) (val types.Meid, found bool)
-	GetMeid(ctx sdk.Context, account string) (val stakingTypes.Meid, found bool)
-	// SetMeid(ctx sdk.Context, meid types.Meid)
-	SetMeid(ctx sdk.Context, meid stakingTypes.Meid)
-
-	// GetRegion(ctx sdk.Context, regionId string) (val types.Region, found bool)
-	//	GetRegion(ctx sdk.Context, regionId string) (val mock.MockRegion, found bool)
-
-	GetRegion(ctx sdk.Context, regionId string) (region stakingTypes.Region, found bool)
-	GetRegionCache(regionId string) (region stakingTypes.Region, found bool)
+	GetRegion(ctx sdk.Context, regionId string) (region wstakingtypes.Region, found bool)
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
