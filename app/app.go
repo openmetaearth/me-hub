@@ -50,12 +50,12 @@ import (
 
 	"github.com/openmetaearth/me-hub/app/ante"
 	"github.com/openmetaearth/me-hub/app/keepers"
-	metypes "github.com/openmetaearth/me-hub/types"
 	appparams "github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/app/upgrades" //nolint:revive
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_14"
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_15"
 	"github.com/openmetaearth/me-hub/docs"
+	metypes "github.com/openmetaearth/me-hub/types"
 	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
 	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 )
