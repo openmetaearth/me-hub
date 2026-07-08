@@ -42,10 +42,12 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "account not found")
 	}
 
-	if pk := account.GetPubKey(); pk != nil {
-		if _, ok := pk.(*ethsecp256k1.PubKey); ok {
-			return &types.MsgCreateSubAccountResponse{}, types.ErrEthAccountNotAllowed
-		}
+	if account.GetPubKey() == nil {
+		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "unknown account pubkey type")
+	}
+
+	if _, ok := account.GetPubKey().(*ethsecp256k1.PubKey); ok {
+		return &types.MsgCreateSubAccountResponse{}, types.ErrEthAccountNotAllowed
 	}
 
 	if holderInfo.SubAccount != "" {

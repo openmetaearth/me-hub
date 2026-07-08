@@ -41,6 +41,19 @@ func (s *KeeperTestSuite) newEthUserAccount() (sdk.AccAddress, string) {
 	return addr, string(pubkeyJSON)
 }
 
+// newAccountWithoutPubKey creates an on-chain account without a pubkey set.
+func (s *KeeperTestSuite) newAccountWithoutPubKey() (sdk.AccAddress, string) {
+	privKey := secp256k1.GenPrivKey()
+	addr := sdk.AccAddress(privKey.PubKey().Address())
+	pubkeyJSON, err := s.App.AppCodec().MarshalInterfaceJSON(privKey.PubKey())
+	s.Require().NoError(err)
+
+	acc := s.App.AccountKeeper.NewAccountWithAddress(s.Ctx, addr)
+	s.App.AccountKeeper.SetAccount(s.Ctx, acc)
+
+	return addr, string(pubkeyJSON)
+}
+
 // newEthSubAccount generates a fresh ethsecp256k1 keypair and returns the
 // cosmos address together with the pubkey encoded as proto-JSON, the format
 // expected by Keeper.PubKeyFromString.
@@ -214,6 +227,22 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 			SubAccountPubkey: "not-valid-json",
 		})
 		s.Require().ErrorIs(err, sdkerrors.ErrInvalidPubKey)
+	})
+
+	s.Run("account pubkey not set", func() {
+		const did8 = "1010101010101"
+		userAddr, userPubkey := s.newAccountWithoutPubKey()
+		s.setupActiveKyc(userAddr, userPubkey, did8)
+
+		subAddr, subPubkey := s.newEthSubAccount()
+		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
+			Creator:          daoCreator,
+			Account:          userAddr.String(),
+			SubAccount:       subAddr.String(),
+			SubAccountPubkey: subPubkey,
+		})
+		s.Require().ErrorIs(err, sdkerrors.ErrInvalidPubKey)
+		s.Require().Contains(err.Error(), "unknown account pubkey type")
 	})
 
 	s.Run("eth account not allowed to create sub account", func() {
