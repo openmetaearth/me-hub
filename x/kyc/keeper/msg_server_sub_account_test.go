@@ -10,6 +10,37 @@ import (
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
 
+// newSecp256k1UserAccount creates a user account with secp256k1 pubkey on chain.
+func (s *KeeperTestSuite) newSecp256k1UserAccount() (sdk.AccAddress, string) {
+	privKey := secp256k1.GenPrivKey()
+	addr := sdk.AccAddress(privKey.PubKey().Address())
+	pubkeyJSON, err := s.App.AppCodec().MarshalInterfaceJSON(privKey.PubKey())
+	s.Require().NoError(err)
+
+	acc := s.App.AccountKeeper.NewAccountWithAddress(s.Ctx, addr)
+	err = acc.SetPubKey(privKey.PubKey())
+	s.Require().NoError(err)
+	s.App.AccountKeeper.SetAccount(s.Ctx, acc)
+
+	return addr, string(pubkeyJSON)
+}
+
+// newEthUserAccount creates a user account with ethsecp256k1 pubkey on chain.
+func (s *KeeperTestSuite) newEthUserAccount() (sdk.AccAddress, string) {
+	privKey, err := ethsecp256k1.GenerateKey()
+	s.Require().NoError(err)
+	addr := sdk.AccAddress(privKey.PubKey().Address())
+	pubkeyJSON, err := s.App.AppCodec().MarshalInterfaceJSON(privKey.PubKey())
+	s.Require().NoError(err)
+
+	acc := s.App.AccountKeeper.NewAccountWithAddress(s.Ctx, addr)
+	err = acc.SetPubKey(privKey.PubKey())
+	s.Require().NoError(err)
+	s.App.AccountKeeper.SetAccount(s.Ctx, acc)
+
+	return addr, string(pubkeyJSON)
+}
+
 // newEthSubAccount generates a fresh ethsecp256k1 keypair and returns the
 // cosmos address together with the pubkey encoded as proto-JSON, the format
 // expected by Keeper.PubKeyFromString.
@@ -38,17 +69,20 @@ func (s *KeeperTestSuite) setupActiveKyc(addr sdk.AccAddress, pubkey, did string
 }
 
 func (s *KeeperTestSuite) TestCreateSubAccount() {
-	const did = "1111111111111"
-	kycAddr, kycPubkey := s.NewAccount()
-	s.setupActiveKyc(kycAddr, kycPubkey, did)
+	daoCreator := s.Dao.GlobalDao
 
 	s.Run("success", func() {
+		const did = "1111111111111"
+		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		s.setupActiveKyc(userAddr, userPubkey, did)
+
 		subAddr, subPubkey := s.newEthSubAccount()
 
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:    kycAddr.String(),
-			SubAccount: subAddr.String(),
-			Pubkey:     subPubkey,
+			Creator:          daoCreator,
+			Account:          userAddr.String(),
+			SubAccount:       subAddr.String(),
+			SubAccountPubkey: subPubkey,
 		})
 		s.Require().NoError(err)
 
@@ -65,106 +99,142 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		s.Require().NotNil(account.GetPubKey())
 	})
 
-	s.Run("creator did not found", func() {
-		creatorWithoutDid, _ := s.NewAccount()
+	s.Run("non-dao creator unauthorized", func() {
+		const did = "1000000000001"
+		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		s.setupActiveKyc(userAddr, userPubkey, did)
+
+		subAddr, subPubkey := s.newEthSubAccount()
+		nonDaoAddr, _ := s.newSecp256k1UserAccount()
+
+		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
+			Creator:          nonDaoAddr.String(),
+			Account:          userAddr.String(),
+			SubAccount:       subAddr.String(),
+			SubAccountPubkey: subPubkey,
+		})
+		s.Require().ErrorIs(err, types.ErrUnauthorized)
+	})
+
+	s.Run("account did not found", func() {
+		userAddr, _ := s.newSecp256k1UserAccount()
 		subAddr, subPubkey := s.newEthSubAccount()
 
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:    creatorWithoutDid.String(),
-			SubAccount: subAddr.String(),
-			Pubkey:     subPubkey,
+			Creator:          daoCreator,
+			Account:          userAddr.String(),
+			SubAccount:       subAddr.String(),
+			SubAccountPubkey: subPubkey,
 		})
 		s.Require().ErrorIs(err, didtypes.ErrDidNotFound)
 	})
 
 	s.Run("no kyc credential", func() {
-		// DidInfo exists and is active, but no KYC credential was stored.
 		const didNoKyc = "2222222222222"
-		noKycAddr, noKycPubkey := s.NewAccount()
-		s.Keeper().SetDID(s.Ctx, noKycAddr, didNoKyc)
+		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		s.Keeper().SetDID(s.Ctx, userAddr, didNoKyc)
 		s.Keeper().SetDidInfo(s.Ctx, didNoKyc, didtypes.DidInfo{
 			Did:     didNoKyc,
-			Address: noKycAddr.String(),
-			Pubkey:  noKycPubkey,
+			Address: userAddr.String(),
+			Pubkey:  userPubkey,
 			Status:  didtypes.DID_STATUS_ACTIVE,
 		})
 
 		subAddr, subPubkey := s.newEthSubAccount()
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:    noKycAddr.String(),
-			SubAccount: subAddr.String(),
-			Pubkey:     subPubkey,
+			Creator:          daoCreator,
+			Account:          userAddr.String(),
+			SubAccount:       subAddr.String(),
+			SubAccountPubkey: subPubkey,
 		})
 		s.Require().ErrorIs(err, didtypes.ErrCredentialNotFound)
 	})
 
 	s.Run("sub_account already set on did", func() {
 		const did2 = "3333333333333"
-		kycAddr2, kycPubkey2 := s.NewAccount()
-		s.setupActiveKyc(kycAddr2, kycPubkey2, did2)
+		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		s.setupActiveKyc(userAddr, userPubkey, did2)
 
 		subAddr, subPubkey := s.newEthSubAccount()
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:    kycAddr2.String(),
-			SubAccount: subAddr.String(),
-			Pubkey:     subPubkey,
+			Creator:          daoCreator,
+			Account:          userAddr.String(),
+			SubAccount:       subAddr.String(),
+			SubAccountPubkey: subPubkey,
 		})
 		s.Require().NoError(err)
 
-		// second attempt on the same DID must fail
 		subAddr2, subPubkey2 := s.newEthSubAccount()
 		_, err = s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:    kycAddr2.String(),
-			SubAccount: subAddr2.String(),
-			Pubkey:     subPubkey2,
+			Creator:          daoCreator,
+			Account:          userAddr.String(),
+			SubAccount:       subAddr2.String(),
+			SubAccountPubkey: subPubkey2,
 		})
 		s.Require().ErrorIs(err, types.ErrSubAccountAlreadyExists)
 	})
 
 	s.Run("sub_account already registered by another did", func() {
 		const did3 = "4444444444444"
-		kycAddr3, kycPubkey3 := s.NewAccount()
-		s.setupActiveKyc(kycAddr3, kycPubkey3, did3)
+		userAddr3, userPubkey3 := s.newSecp256k1UserAccount()
+		s.setupActiveKyc(userAddr3, userPubkey3, did3)
 
 		subAddr, subPubkey := s.newEthSubAccount()
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:    kycAddr3.String(),
-			SubAccount: subAddr.String(),
-			Pubkey:     subPubkey,
+			Creator:          daoCreator,
+			Account:          userAddr3.String(),
+			SubAccount:       subAddr.String(),
+			SubAccountPubkey: subPubkey,
 		})
 		s.Require().NoError(err)
 
-		// same sub_account address attempted for a different DID
 		const did4 = "5555555555555"
-		kycAddr4, kycPubkey4 := s.NewAccount()
-		s.setupActiveKyc(kycAddr4, kycPubkey4, did4)
+		userAddr4, userPubkey4 := s.newSecp256k1UserAccount()
+		s.setupActiveKyc(userAddr4, userPubkey4, did4)
 
 		_, err = s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:    kycAddr4.String(),
-			SubAccount: subAddr.String(),
-			Pubkey:     subPubkey,
+			Creator:          daoCreator,
+			Account:          userAddr4.String(),
+			SubAccount:       subAddr.String(),
+			SubAccountPubkey: subPubkey,
 		})
 		s.Require().ErrorIs(err, types.ErrSubAccountAlreadyRegistered)
 	})
 
-	s.Run("invalid pubkey string", func() {
+	s.Run("invalid sub_account pubkey string", func() {
 		const did5 = "6666666666666"
-		kycAddr5, kycPubkey5 := s.NewAccount()
-		s.setupActiveKyc(kycAddr5, kycPubkey5, did5)
+		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		s.setupActiveKyc(userAddr, userPubkey, did5)
 
 		subAddr, _ := s.newEthSubAccount()
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:    kycAddr5.String(),
-			SubAccount: subAddr.String(),
-			Pubkey:     "not-valid-json",
+			Creator:          daoCreator,
+			Account:          userAddr.String(),
+			SubAccount:       subAddr.String(),
+			SubAccountPubkey: "not-valid-json",
 		})
 		s.Require().ErrorIs(err, sdkerrors.ErrInvalidPubKey)
 	})
 
-	s.Run("wrong key type secp256k1 rejected", func() {
+	s.Run("eth account not allowed to create sub account", func() {
+		const didEth = "9999999999999"
+		userAddr, userPubkey := s.newEthUserAccount()
+		s.setupActiveKyc(userAddr, userPubkey, didEth)
+
+		subAddr, subPubkey := s.newEthSubAccount()
+		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
+			Creator:          daoCreator,
+			Account:          userAddr.String(),
+			SubAccount:       subAddr.String(),
+			SubAccountPubkey: subPubkey,
+		})
+		s.Require().ErrorIs(err, types.ErrEthAccountNotAllowed)
+	})
+
+	s.Run("sub_account pubkey must be ethsecp256k1", func() {
 		const did6 = "7777777777777"
-		kycAddr6, kycPubkey6 := s.NewAccount()
-		s.setupActiveKyc(kycAddr6, kycPubkey6, did6)
+		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		s.setupActiveKyc(userAddr, userPubkey, did6)
 
 		secpPrivKey := secp256k1.GenPrivKey()
 		secpAddr := sdk.AccAddress(secpPrivKey.PubKey().Address())
@@ -172,25 +242,27 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		s.Require().NoError(err)
 
 		_, err = s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:    kycAddr6.String(),
-			SubAccount: secpAddr.String(),
-			Pubkey:     string(secpPubkeyJSON),
+			Creator:          daoCreator,
+			Account:          userAddr.String(),
+			SubAccount:       secpAddr.String(),
+			SubAccountPubkey: string(secpPubkeyJSON),
 		})
 		s.Require().ErrorIs(err, sdkerrors.ErrInvalidPubKey)
 	})
 
-	s.Run("pubkey does not match sub_account address", func() {
+	s.Run("sub_account pubkey does not match sub_account address", func() {
 		const did7 = "8888888888888"
-		kycAddr7, kycPubkey7 := s.NewAccount()
-		s.setupActiveKyc(kycAddr7, kycPubkey7, did7)
+		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		s.setupActiveKyc(userAddr, userPubkey, did7)
 
 		_, subPubkey := s.newEthSubAccount()
 		differentAddr, _ := s.newEthSubAccount()
 
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:    kycAddr7.String(),
-			SubAccount: differentAddr.String(),
-			Pubkey:     subPubkey,
+			Creator:          daoCreator,
+			Account:          userAddr.String(),
+			SubAccount:       differentAddr.String(),
+			SubAccountPubkey: subPubkey,
 		})
 		s.Require().ErrorIs(err, sdkerrors.ErrInvalidPubKey)
 	})

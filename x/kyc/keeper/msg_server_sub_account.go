@@ -14,7 +14,11 @@ import (
 func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateSubAccount) (*types.MsgCreateSubAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	sdkAccount, err := sdk.AccAddressFromBech32(msg.Creator)
+	if !m.daoKeeper.IsDao(ctx, msg.Creator) {
+		return &types.MsgCreateSubAccountResponse{}, types.ErrUnauthorized
+	}
+
+	sdkAccount, err := sdk.AccAddressFromBech32(msg.Account)
 	if err != nil {
 		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
@@ -33,8 +37,15 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 		return &types.MsgCreateSubAccountResponse{}, didtypes.ErrCredentialNotFound
 	}
 
-	if holderInfo.Address != msg.Creator {
-		return &types.MsgCreateSubAccountResponse{}, didtypes.ErrUnauthorized
+	account := m.accountKeeper.GetAccount(ctx, sdkAccount)
+	if account == nil {
+		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "account not found")
+	}
+
+	if pk := account.GetPubKey(); pk != nil {
+		if _, ok := pk.(*ethsecp256k1.PubKey); ok {
+			return &types.MsgCreateSubAccountResponse{}, types.ErrEthAccountNotAllowed
+		}
 	}
 
 	if holderInfo.SubAccount != "" {
@@ -46,16 +57,16 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 	}
 
 	// validate that sub_account is an ethsecp256k1 address derived from the provided pubkey
-	pk, err := m.PubKeyFromString(msg.Pubkey)
+	subAccountPubKey, err := m.PubKeyFromString(msg.SubAccountPubkey)
 	if err != nil {
 		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, err.Error())
 	}
 
-	if _, ok := pk.(*ethsecp256k1.PubKey); !ok {
+	if _, ok := subAccountPubKey.(*ethsecp256k1.PubKey); !ok {
 		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "sub_account must be an ethsecp256k1 address")
 	}
 
-	derivedAddr := sdk.AccAddress(pk.Address())
+	derivedAddr := sdk.AccAddress(subAccountPubKey.Address())
 
 	subAccount, err := sdk.AccAddressFromBech32(msg.SubAccount)
 	if err != nil {
@@ -67,7 +78,7 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 
 	if !m.accountKeeper.HasAccount(ctx, subAccount) {
 		newAccount := m.accountKeeper.NewAccountWithAddress(ctx, subAccount)
-		err = newAccount.SetPubKey(pk)
+		err = newAccount.SetPubKey(subAccountPubKey)
 		if err != nil {
 			return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, err.Error())
 		}

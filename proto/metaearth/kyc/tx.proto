@@ -86,8 +86,9 @@ message MsgDeleteSBTResponse {}
 
 message MsgCreateSubAccount {
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string sub_account = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string pubkey = 3;
+  string account = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string sub_account = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string sub_account_pubkey = 4;
 }
 
 message MsgCreateSubAccountResponse {}

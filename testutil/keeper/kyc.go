@@ -31,7 +31,7 @@ func KycKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
 
-	k := keeper.NewKeeper(cdc, storeKey, nil, authkeeper.AccountKeeper{}, nil, nil)
+	k := keeper.NewKeeper(cdc, storeKey, nil, authkeeper.AccountKeeper{}, nil, nil, nil)
 	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())
 
 	return k, ctx

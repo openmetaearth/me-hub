@@ -55,3 +55,7 @@ type NFTKeeper interface {
 	Burn(ctx sdk.Context, classID, nftID string) error
 	SaveClass(ctx sdk.Context, class nft.Class) error
 }
+
+type DaoKeeper interface {
+	IsDao(ctx sdk.Context, address string) bool
+}

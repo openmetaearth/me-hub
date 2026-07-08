@@ -12,4 +12,6 @@ var (
 	ErrInviteReward                = errors.Register(ModuleName, 104, "send inviter reward failed")
 	ErrSubAccountAlreadyExists     = errors.Register(ModuleName, 105, "sub account already exists")
 	ErrSubAccountAlreadyRegistered = errors.Register(ModuleName, 106, "sub account already registered")
+	ErrUnauthorized                = errors.Register(ModuleName, 107, "unauthorized")
+	ErrEthAccountNotAllowed        = errors.Register(ModuleName, 108, "eth account is not allowed to create sub account")
 )
