@@ -42,10 +42,13 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "account not found")
 	}
 
-	if pk := account.GetPubKey(); pk != nil {
-		if _, ok := pk.(*ethsecp256k1.PubKey); ok {
-			return &types.MsgCreateSubAccountResponse{}, types.ErrEthAccountNotAllowed
-		}
+	pk := account.GetPubKey()
+	if pk == nil {
+		return &types.MsgCreateSubAccountResponse{}, types.ErrMainAccountPubkeyNotSet
+	}
+
+	if _, ok := pk.(*ethsecp256k1.PubKey); ok {
+		return &types.MsgCreateSubAccountResponse{}, types.ErrEthAccountNotAllowed
 	}
 
 	if holderInfo.SubAccount != "" {
@@ -91,9 +94,8 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateSubAccount,
-			sdk.NewAttribute(types.AttributeKeyCreator, msg.Creator),
+			sdk.NewAttribute(types.AttributeKeyAccount, msg.Account),
 			sdk.NewAttribute(types.AttributeKeySubAccount, msg.SubAccount),
-			sdk.NewAttribute(types.AttributeKeyDid, did),
 		),
 	})
 	return &types.MsgCreateSubAccountResponse{}, nil
