@@ -94,9 +94,8 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateSubAccount,
-			sdk.NewAttribute(types.AttributeKeyCreator, msg.Creator),
+			sdk.NewAttribute(types.AttributeKeyAccount, msg.Account),
 			sdk.NewAttribute(types.AttributeKeySubAccount, msg.SubAccount),
-			sdk.NewAttribute(types.AttributeKeyDid, did),
 		),
 	})
 	return &types.MsgCreateSubAccountResponse{}, nil
