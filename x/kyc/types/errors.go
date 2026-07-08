@@ -15,4 +15,5 @@ var (
 	ErrUnauthorized                = errors.Register(ModuleName, 107, "unauthorized")
 	ErrEthAccountNotAllowed        = errors.Register(ModuleName, 108, "main account is an eth account and cannot create sub account")
 	ErrMainAccountPubkeyNotSet     = errors.Register(ModuleName, 109, "main account pubkey is not set")
+	ErrSubAccountHasDID            = errors.Register(ModuleName, 110, "sub account already has a DID")
 )

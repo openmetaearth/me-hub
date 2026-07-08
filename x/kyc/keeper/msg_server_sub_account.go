@@ -79,6 +79,11 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "pubkey does not match sub_account address")
 	}
 
+	_, ok = m.GetDID(ctx, subAccount)
+	if ok {
+		return &types.MsgCreateSubAccountResponse{}, types.ErrSubAccountHasDID
+	}
+
 	if !m.accountKeeper.HasAccount(ctx, subAccount) {
 		newAccount := m.accountKeeper.NewAccountWithAddress(ctx, subAccount)
 		err = newAccount.SetPubKey(subAccountPubKey)

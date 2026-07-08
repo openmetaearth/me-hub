@@ -294,4 +294,22 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		})
 		s.Require().ErrorIs(err, sdkerrors.ErrInvalidPubKey)
 	})
+
+	s.Run("sub_account already has did", func() {
+		const did9 = "1212121212121"
+		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		s.setupActiveKyc(userAddr, userPubkey, did9)
+
+		subAddr, subPubkey := s.newEthSubAccount()
+		const subDid = "1313131313131"
+		s.Keeper().SetDID(s.Ctx, subAddr, subDid)
+
+		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
+			Creator:          daoCreator,
+			Account:          userAddr.String(),
+			SubAccount:       subAddr.String(),
+			SubAccountPubkey: subPubkey,
+		})
+		s.Require().ErrorIs(err, types.ErrSubAccountHasDID)
+	})
 }
