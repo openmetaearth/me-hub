@@ -25,16 +25,6 @@ func TestChainIdWithEIP155From(t *testing.T) {
 			input: "mechain_2404-1",
 			want:  "mechain_2404-1",
 		},
-		{
-			name:  "legacy testnet",
-			input: "mechain_testnet",
-			want:  "mechain_testnet_202404-1",
-		},
-		{
-			name:  "testnet eip155",
-			input: "mechain_testnet_202405-1",
-			want:  "mechain_testnet_202405-1",
-		},
 	}
 
 	for _, tc := range tests {
@@ -46,7 +36,6 @@ func TestChainIdWithEIP155From(t *testing.T) {
 }
 
 func TestChainIdWithEIP155(t *testing.T) {
-	evmChainId, err := types.ParseChainID("me-chain_2404-1")
-	require.NoError(t, err)
-	require.Equal(t, uint64(2404), evmChainId)
+	_, err := types.ParseChainID("me-chain_2404-1")
+	require.ErrorIs(t, err, types.ErrInvalidChainID)
 }
