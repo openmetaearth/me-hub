@@ -21,6 +21,7 @@ const (
 	AttributeKeyLevel           = "level"
 	AttributeKeyLevelChanged    = "level_changed"
 	AttributeKeyInviter         = "inviter"
+	AttributeKeyAccount         = "account"
 	AttributeKeySubAccount      = "sub_account"
 	AttributeKeyDid             = "did"
 	AttributeKeyCreator         = "creator"
