@@ -440,6 +440,7 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.DidKeeper,
 		a.WNFTKeeper,
+		a.DaoKeeper,
 	)
 	a.StakingKeeper.SetKycKeeper(a.KycKeeper)
 	a.StakingKeeper.SetDidKeeper(a.DidKeeper)

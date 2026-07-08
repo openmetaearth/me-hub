@@ -8,11 +8,12 @@ import (
 
 const TypeMsgCreateSubAccount = "create_sub_account"
 
-func NewMsgCreateSubAccount(creator, subAccount, pubkey string) *MsgCreateSubAccount {
+func NewMsgCreateSubAccount(creator, account, subAccount, SubAccountPubkey string) *MsgCreateSubAccount {
 	return &MsgCreateSubAccount{
 		Creator:    creator,
+		Account:    account,
 		SubAccount: subAccount,
-		Pubkey:     pubkey,
+		SubAccountPubkey:     SubAccountPubkey,
 	}
 }
 
@@ -36,10 +37,13 @@ func (m *MsgCreateSubAccount) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Creator); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "invalid creator address")
 	}
+	if _, err := sdk.AccAddressFromBech32(m.Account); err != nil {
+		return errors.Wrap(sdkerrors.ErrInvalidAddress, "invalid account address")
+	}
 	if _, err := sdk.AccAddressFromBech32(m.SubAccount); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sub_account address")
 	}
-	if m.Pubkey == "" {
+	if m.SubAccountPubkey == "" {
 		return errors.Wrap(sdkerrors.ErrInvalidPubKey, "pubkey is required")
 	}
 	return nil
