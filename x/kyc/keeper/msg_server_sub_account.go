@@ -43,9 +43,9 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 	}
 
 	pk := account.GetPubKey()
- 	if pk == nil {
- 		return &types.MsgCreateSubAccountResponse{}, types.ErrMainAccountPubkeyNotSet
- 	}
+	if pk == nil {
+		return &types.MsgCreateSubAccountResponse{}, types.ErrMainAccountPubkeyNotSet
+	}
 
 	if _, ok := pk.(*ethsecp256k1.PubKey); ok {
 		return &types.MsgCreateSubAccountResponse{}, types.ErrEthAccountNotAllowed
