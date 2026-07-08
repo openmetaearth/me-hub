@@ -8,12 +8,12 @@ import (
 
 const TypeMsgCreateSubAccount = "create_sub_account"
 
-func NewMsgCreateSubAccount(creator, account, subAccount, SubAccountPubkey string) *MsgCreateSubAccount {
+func NewMsgCreateSubAccount(creator, account, subAccount, subAccountPubkey string) *MsgCreateSubAccount {
 	return &MsgCreateSubAccount{
 		Creator:    creator,
 		Account:    account,
 		SubAccount: subAccount,
-		SubAccountPubkey:     SubAccountPubkey,
+		SubAccountPubkey:     subAccountPubkey,
 	}
 }
 
