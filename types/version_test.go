@@ -3,6 +3,7 @@ package types
 import (
 	"testing"
 
+	"github.com/evmos/ethermint/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,4 +43,10 @@ func TestChainIdWithEIP155From(t *testing.T) {
 			require.Equal(t, tc.want, ChainIdWithEIP155From(tc.input))
 		})
 	}
+}
+
+func TestChainIdWithEIP155(t *testing.T) {
+	evmChainId, err := types.ParseChainID("me-chain_2404-1")
+	require.NoError(t, err)
+	require.Equal(t, uint64(2404), evmChainId)
 }
