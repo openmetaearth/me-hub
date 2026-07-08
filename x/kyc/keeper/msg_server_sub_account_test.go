@@ -241,8 +241,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 			SubAccount:       subAddr.String(),
 			SubAccountPubkey: subPubkey,
 		})
-		s.Require().ErrorIs(err, sdkerrors.ErrInvalidPubKey)
-		s.Require().Contains(err.Error(), "unknown account pubkey type")
+		s.Require().ErrorIs(err, types.ErrMainAccountPubkeyNotSet)
 	})
 
 	s.Run("eth account not allowed to create sub account", func() {
