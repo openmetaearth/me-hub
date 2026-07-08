@@ -3,7 +3,6 @@ package types
 import (
 	"fmt"
 	"regexp"
-	"strings"
 	"sync"
 )
 
