@@ -1,14 +1,14 @@
 syntax = "proto3";
 package metaearth.eibc;
 
+import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "cosmos/base/query/v1beta1/pagination.proto";
-import "metaearth/eibc/params.proto";
-import "metaearth/common/status.proto";
 import "metaearth/common/rollapp_packet.proto";
+import "metaearth/common/status.proto";
 import "metaearth/eibc/demand_order.proto";
 import "metaearth/eibc/lp.proto";
+import "metaearth/eibc/params.proto";
 
 option go_package = "github.com/openmetaearth/me-hub/x/eibc/types";
 
@@ -19,27 +19,20 @@ service Query {
     option (google.api.http).get = "/metaearth/eibc/params";
   }
   // Queries a Demand Order by id.
-  rpc DemandOrderById(QueryGetDemandOrderRequest)
-      returns (QueryGetDemandOrderResponse) {
-    option (google.api.http).get =
-        "/metaearth/eibc/demand_order/{id}";
+  rpc DemandOrderById(QueryGetDemandOrderRequest) returns (QueryGetDemandOrderResponse) {
+    option (google.api.http).get = "/metaearth/eibc/demand_order/{id}";
   }
   // Queries a list of demand orders by status.
-  rpc DemandOrdersByStatus(QueryDemandOrdersByStatusRequest)
-      returns (QueryDemandOrdersByStatusResponse) {
-    option (google.api.http).get =
-        "/metaearth/eibc/demand_orders/{status}";
+  rpc DemandOrdersByStatus(QueryDemandOrdersByStatusRequest) returns (QueryDemandOrdersByStatusResponse) {
+    option (google.api.http).get = "/metaearth/eibc/demand_orders/{status}";
   }
 
   rpc OnDemandLPs(QueryOnDemandLPsRequest) returns (QueryOnDemandLPsResponse) {
-    option (google.api.http).get =
-        "/metaearth/eibc/on_demand_lps/{ids}";
+    option (google.api.http).get = "/metaearth/eibc/on_demand_lps/{ids}";
   }
 
-  rpc OnDemandLPsByByAddr(QueryOnDemandLPsByAddrRequest)
-      returns (QueryOnDemandLPsByAddrResponse) {
-    option (google.api.http).get =
-        "/metaearth/eibc/on_demand_lps_addr/{addr}";
+  rpc OnDemandLPsByByAddr(QueryOnDemandLPsByAddrRequest) returns (QueryOnDemandLPsByAddrResponse) {
+    option (google.api.http).get = "/metaearth/eibc/on_demand_lps_addr/{addr}";
   }
 }
 
@@ -49,7 +42,7 @@ message QueryParamsRequest {}
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
   // params holds all the parameters of this module.
-  Params params = 1 [ (gogoproto.nullable) = false ];
+  Params params = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryGetDemandOrderRequest is the request type for the Query/GetDemandOrder
@@ -106,10 +99,14 @@ message QueryOnDemandLPsRequest {
   repeated uint64 ids = 1; // can be empty to return all
 }
 
-message QueryOnDemandLPsResponse { repeated OnDemandLPRecord lps = 1; }
+message QueryOnDemandLPsResponse {
+  repeated OnDemandLPRecord lps = 1;
+}
 
 message QueryOnDemandLPsByAddrRequest {
   string addr = 1; // bech32-encoded
 }
 
-message QueryOnDemandLPsByAddrResponse { repeated OnDemandLPRecord lps = 1; }
+message QueryOnDemandLPsByAddrResponse {
+  repeated OnDemandLPRecord lps = 1;
+}

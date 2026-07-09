@@ -1,12 +1,12 @@
 syntax = "proto3";
 package metaearth.rollapp;
 
-import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
 import "cosmos/bank/v1beta1/bank.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
 import "ibc/applications/transfer/v2/packet.proto";
-import "metaearth/rollapp/metadata.proto";
 import "metaearth/rollapp/genesis_info.proto";
+import "metaearth/rollapp/metadata.proto";
 
 option go_package = "github.com/openmetaearth/me-hub/x/rollapp/types";
 
@@ -14,10 +14,9 @@ option go_package = "github.com/openmetaearth/me-hub/x/rollapp/types";
 // genesis bridge flow
 message GenesisBridgeData {
   // genesis_info is the genesis info of the rollapp. used for hub validation
-  GenesisBridgeInfo genesis_info = 1 [ (gogoproto.nullable) = false ];
+  GenesisBridgeInfo genesis_info = 1 [(gogoproto.nullable) = false];
   // native_denom is the native denom of the rollapp. registered on the hub
-  cosmos.bank.v1beta1.Metadata native_denom = 2
-      [ (gogoproto.nullable) = false ];
+  cosmos.bank.v1beta1.Metadata native_denom = 2 [(gogoproto.nullable) = false];
   // optional genesis transfer packet data
   ibc.applications.transfer.v2.FungibleTokenPacketData genesis_transfer = 3;
 }
@@ -30,7 +29,7 @@ message GenesisBridgeInfo {
   // unique bech32 prefix
   string bech32_prefix = 2;
   // native_denom is the base denom for the native token
-  DenomMetadata native_denom = 3 [ (gogoproto.nullable) = false ];
+  DenomMetadata native_denom = 3 [(gogoproto.nullable) = false];
   // initial_supply is the initial supply of the native token
   string initial_supply = 4 [
     (cosmos_proto.scalar) = "cosmos.Int",
@@ -38,5 +37,5 @@ message GenesisBridgeInfo {
     (gogoproto.nullable) = false
   ];
   // accounts on the Hub to fund with some bootstrapping transfers
-  repeated GenesisAccount genesis_accounts = 5 [ (gogoproto.nullable) = false ];
+  repeated GenesisAccount genesis_accounts = 5 [(gogoproto.nullable) = false];
 }

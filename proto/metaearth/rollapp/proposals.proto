@@ -1,17 +1,15 @@
 syntax = "proto3";
 package metaearth.rollapp;
 
-import "gogoproto/gogo.proto";
 import "cosmos/msg/v1/msg.proto";
+import "gogoproto/gogo.proto";
 import "metaearth/rollapp/genesis_info.proto";
 
 option go_package = "github.com/openmetaearth/me-hub/x/rollapp/types";
 
 service ProposalMsg {
-  rpc SubmitRollappFraud(MsgRollappFraudProposal)
-      returns (MsgRollappFraudProposalResponse);
-  rpc ForceGenesisInfoChange(MsgForceGenesisInfoChange)
-      returns (MsgForceGenesisInfoChangeResponse);
+  rpc SubmitRollappFraud(MsgRollappFraudProposal) returns (MsgRollappFraudProposalResponse);
+  rpc ForceGenesisInfoChange(MsgForceGenesisInfoChange) returns (MsgForceGenesisInfoChangeResponse);
 }
 
 message MsgRollappFraudProposal {
@@ -51,7 +49,7 @@ message MsgForceGenesisInfoChange {
 
   // NewGenesisInfo contains the new genesis information that will replace the
   // existing one
-  GenesisInfo new_genesis_info = 3 [ (gogoproto.nullable) = false ];
+  GenesisInfo new_genesis_info = 3 [(gogoproto.nullable) = false];
 }
 
 // MsgForceGenesisInfoChangeResponse defines the Msg/ForceGenesisInfoChange

@@ -1,15 +1,14 @@
 syntax = "proto3";
 package metaearth.rollapp;
 
-option go_package = "github.com/openmetaearth/me-hub/x/rollapp/types";
-
+import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
-
-import "metaearth/rollapp/state_info.proto";
-import "metaearth/rollapp/metadata.proto";
-import "cosmos/base/v1beta1/coin.proto";
 import "metaearth/rollapp/genesis_info.proto";
+import "metaearth/rollapp/metadata.proto";
+import "metaearth/rollapp/state_info.proto";
+
+option go_package = "github.com/openmetaearth/me-hub/x/rollapp/types";
 
 // RollappGenesisState is a partial repr of the state the hub can expect the
 // rollapp to be in upon genesis
@@ -36,7 +35,7 @@ message Rollapp {
   reserved 3 to 6;
   // genesis_state is a partial repr of the state the hub can expect the rollapp
   // to be in upon genesis
-  RollappGenesisState genesis_state = 7 [ (gogoproto.nullable) = false ];
+  RollappGenesisState genesis_state = 7 [(gogoproto.nullable) = false];
   // channel_id will be set to the canonical IBC channel of the rollapp.
   string channel_id = 8;
 
@@ -45,7 +44,7 @@ message Rollapp {
   // metadata is the rollapp metadata
   RollappMetadata metadata = 11;
   // genesis_info keeps immutable rollapp fields
-  GenesisInfo genesis_info = 12 [ (gogoproto.nullable) = false ];
+  GenesisInfo genesis_info = 12 [(gogoproto.nullable) = false];
   // initial_sequencer is an option to preset one or more coma-separated
   // bech32-encoded addresses of the sequencer(s) that are allowed to initially
   // register and serve for this rollapp. if left empty, no sequencer is allowed
@@ -74,7 +73,7 @@ message Rollapp {
   // pre_launch_time is the timestamp indicating the time before which the
   // rollapp cannot be started.
   // Set when creating IRO plan for the rollapp
-  google.protobuf.Timestamp pre_launch_time = 16 [ (gogoproto.stdtime) = true ];
+  google.protobuf.Timestamp pre_launch_time = 16 [(gogoproto.stdtime) = true];
   // LivenessEventHeight is the height on the HUB of an upcoming liveness event
   // (slash or jail against the rollapp). 0 means not set
   int64 liveness_event_height = 17;
@@ -84,9 +83,10 @@ message Rollapp {
   int64 liveness_countdown_start_height = 18;
 
   // Revisions is a list of all the rollapp revisions.
-  repeated Revision revisions = 19 [ (gogoproto.nullable) = false ];
+  repeated Revision revisions = 19 [(gogoproto.nullable) = false];
 
-  // togglable by owner: enable fast finalization via TEE nodes (note: global gov param required too)
+  // togglable by owner: enable fast finalization via TEE nodes (note: global
+  // gov param required too)
   bool enable_tee = 21;
 }
 
@@ -107,6 +107,6 @@ message RollappSummary {
   StateInfoIndex latestStateIndex = 2;
   // Defines the index of the last rollapp UpdateState that was finalized.
   StateInfoIndex latestFinalizedStateIndex = 3;
-  uint64 latestHeight = 4;          // TODO:
+  uint64 latestHeight = 4; // TODO:
   uint64 latestFinalizedHeight = 5; // TODO:
 }

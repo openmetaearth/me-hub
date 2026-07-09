@@ -13,11 +13,11 @@ import (
 	"io"
 	"net/http"
 
-	types_0 "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/golang/protobuf/descriptor"
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/utilities"
+	types_2 "github.com/openmetaearth/me-hub/x/common/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
@@ -84,13 +84,13 @@ func request_Query_GetPackets_0(ctx context.Context, marshaler runtime.Marshaler
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "status")
 	}
 
-	e, err = runtime.Enum(val, types_0.Status_value)
+	e, err = runtime.Enum(val, types_2.Status_value)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "status", err)
 	}
 
-	protoReq.Status = types_0.Status(e)
+	protoReq.Status = types_2.Status(e)
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -132,13 +132,13 @@ func local_request_Query_GetPackets_0(ctx context.Context, marshaler runtime.Mar
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "status")
 	}
 
-	e, err = runtime.Enum(val, types_0.Status_value)
+	e, err = runtime.Enum(val, types_2.Status_value)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "status", err)
 	}
 
-	protoReq.Status = types_0.Status(e)
+	protoReq.Status = types_2.Status(e)
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -404,11 +404,11 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "delayedack", "params"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "delayedack", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_GetPackets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"dymensionxyz", "dymension", "delayedack", "packets", "rollappId", "status"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_GetPackets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"metaearth", "delayedack", "packets", "rollappId", "status"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_GetPendingPacketsByAddress_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "delayedack", "pending-receiver-packets", "address"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_GetPendingPacketsByAddress_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "delayedack", "pending-receiver-packets", "address"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

@@ -1,9 +1,9 @@
 syntax = "proto3";
 package metaearth.sequencer;
 
-option go_package = "github.com/openmetaearth/me-hub/x/sequencer/types";
-
 import "gogoproto/gogo.proto";
+
+option go_package = "github.com/openmetaearth/me-hub/x/sequencer/types";
 
 // Metadata defines rollapp/sequencer extra information.
 message SequencerMetadata {

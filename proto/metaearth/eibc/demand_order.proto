@@ -2,10 +2,10 @@ syntax = "proto3";
 package metaearth.eibc;
 
 import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
 import "metaearth/common/completion_hook.proto";
 import "metaearth/common/rollapp_packet.proto";
 import "metaearth/common/status.proto";
-import "gogoproto/gogo.proto";
 
 option go_package = "github.com/openmetaearth/me-hub/x/eibc/types";
 
@@ -34,7 +34,7 @@ message DemandOrder {
 
   // Deprecated: use DemandOrder.IsFulfilled method instead.
   // Only used for backwards compatibility.
-  bool deprecated_is_fulfilled = 6 [ deprecated = true ];
+  bool deprecated_is_fulfilled = 6 [deprecated = true];
 
   metaearth.common.Status tracking_packet_status = 8;
   string rollapp_id = 9;

@@ -1,9 +1,9 @@
 syntax = "proto3";
 package metaearth.sequencer;
 
-import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 
 option go_package = "github.com/openmetaearth/me-hub/x/sequencer/types";
@@ -21,8 +21,10 @@ message Params {
   // notice_period is the time duration of notice period.
   // notice period is the duration between the unbond request and the actual
   // unbonding starting. the proposer is still bonded during this period.
-  google.protobuf.Duration notice_period = 3
-      [ (gogoproto.nullable) = false, (gogoproto.stdduration) = true ];
+  google.protobuf.Duration notice_period = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true
+  ];
 
   // liveness_slash_min_multiplier multiplies with the tokens of the slashed
   // sequencer to compute the burn amount.

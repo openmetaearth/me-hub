@@ -1,14 +1,13 @@
 syntax = "proto3";
 package metaearth.rollapp;
 
-option go_package = "github.com/openmetaearth/me-hub/x/rollapp/types";
-
-import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
-import "google/protobuf/timestamp.proto";
 import "cosmos/msg/v1/msg.proto";
-
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 import "metaearth/rollapp/metadata.proto";
+
+option go_package = "github.com/openmetaearth/me-hub/x/rollapp/types";
 
 message GenesisInfo {
   // checksum used to verify integrity of the genesis file
@@ -16,7 +15,7 @@ message GenesisInfo {
   // unique bech32 prefix
   string bech32_prefix = 2;
   // native_denom is the base denom for the native token
-  DenomMetadata native_denom = 3 [ (gogoproto.nullable) = false ];
+  DenomMetadata native_denom = 3 [(gogoproto.nullable) = false];
   // initial_supply is the initial supply of the native token
   string initial_supply = 4 [
     (cosmos_proto.scalar) = "cosmos.Int",
@@ -27,11 +26,11 @@ message GenesisInfo {
   // sealed indicates if the fields in this object are no longer updatable
   bool sealed = 5;
 
-  GenesisAccounts genesis_accounts = 6 [ (gogoproto.nullable) = true ];
+  GenesisAccounts genesis_accounts = 6 [(gogoproto.nullable) = true];
 }
 
 message GenesisAccounts {
-  repeated GenesisAccount accounts = 1 [ (gogoproto.nullable) = false ];
+  repeated GenesisAccount accounts = 1 [(gogoproto.nullable) = false];
 }
 
 // GenesisAccount is a struct for the genesis account for the rollapp

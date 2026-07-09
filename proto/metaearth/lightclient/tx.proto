@@ -10,8 +10,7 @@ option go_package = "github.com/openmetaearth/me-hub/x/lightclient/types";
 
 service Msg {
   option (cosmos.msg.v1.service) = true;
-  rpc SetCanonicalClient(MsgSetCanonicalClient)
-      returns (MsgSetCanonicalClientResponse);
+  rpc SetCanonicalClient(MsgSetCanonicalClient) returns (MsgSetCanonicalClientResponse);
 }
 
 // verify a client state and its consensus states against the rollapp

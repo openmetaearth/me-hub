@@ -1,13 +1,12 @@
 syntax = "proto3";
 package metaearth.rollapp;
 
-option go_package = "github.com/openmetaearth/me-hub/x/rollapp/types";
-
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
-
-import "metaearth/rollapp/block_descriptor.proto";
 import "metaearth/common/status.proto";
+import "metaearth/rollapp/block_descriptor.proto";
+
+option go_package = "github.com/openmetaearth/me-hub/x/rollapp/types";
 
 // StateInfoIndex is the data used for indexing and retrieving a StateInfo
 // it updated and saved with every UpdateState in StateInfo.
@@ -31,7 +30,7 @@ message StateInfoIndex {
 message StateInfo {
   // stateInfoIndex defines what rollapp the state belongs to
   // and in which index it can be referenced
-  StateInfoIndex stateInfoIndex = 1 [ (gogoproto.nullable) = false ];
+  StateInfoIndex stateInfoIndex = 1 [(gogoproto.nullable) = false];
   // sequencer is the bech32-encoded address of the sequencer sent the update
   string sequencer = 2;
   // startHeight is the block height of the first block in the batch
@@ -49,7 +48,7 @@ message StateInfo {
   // BDs is a list of block description objects (one per block)
   // the list must be ordered by height, starting from startHeight to
   // startHeight+numBlocks-1
-  BlockDescriptors BDs = 9 [ (gogoproto.nullable) = false ];
+  BlockDescriptors BDs = 9 [(gogoproto.nullable) = false];
   // created_at is the timestamp at which the StateInfo was created
   google.protobuf.Timestamp created_at = 10 [
     (gogoproto.stdtime) = true,
@@ -67,7 +66,7 @@ message StateInfo {
 message StateInfoSummary {
   // stateInfoIndex defines what rollapp the state belongs to
   // and in which index it can be referenced
-  StateInfoIndex stateInfoIndex = 1 [ (gogoproto.nullable) = false ];
+  StateInfoIndex stateInfoIndex = 1 [(gogoproto.nullable) = false];
   // status is the status of the state update
   common.Status status = 2;
   // creationHeight is the height at which the UpdateState took place
@@ -81,8 +80,7 @@ message BlockHeightToFinalizationQueue {
   uint64 creationHeight = 1;
   // FinalizationQueue is a list of states that are waiting to be finalized
   // when the block height becomes creationHeight
-  repeated StateInfoIndex finalizationQueue = 2
-      [ (gogoproto.nullable) = false ];
+  repeated StateInfoIndex finalizationQueue = 2 [(gogoproto.nullable) = false];
   // RollappID is the rollapp which the queue belongs to
   string rollapp_id = 3;
 }

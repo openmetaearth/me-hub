@@ -1,9 +1,9 @@
 syntax = "proto3";
 package metaearth.eibc;
 
-import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/openmetaearth/me-hub/x/eibc/types";
 
@@ -21,8 +21,7 @@ message DecProto {
 // FulfillOrderAuthorization allows the grantee to fulfill eIBC demand orders
 // from the granter's account.
 message FulfillOrderAuthorization {
-  option (cosmos_proto.implements_interface) =
-      "cosmos.authz.v1beta1.Authorization";
+  option (cosmos_proto.implements_interface) = "cosmos.authz.v1beta1.Authorization";
 
   // rollapps is an optional list of rollapp criteria that the grantee can
   // fulfill demand orders from
@@ -46,11 +45,11 @@ message RollappCriteria {
 
   // min_fee_percentage is the minimum gross fee earning percentage the LP is
   // willing to get from a demand order
-  DecProto min_fee_percentage = 4 [ (gogoproto.nullable) = false ];
+  DecProto min_fee_percentage = 4 [(gogoproto.nullable) = false];
 
   // operator_fee_share is the share of the fee earnings willing to give to the
   // operator
-  DecProto operator_fee_share = 5 [ (gogoproto.nullable) = false ];
+  DecProto operator_fee_share = 5 [(gogoproto.nullable) = false];
 
   // settlement_validated is the flag to only fulfill demand orders that have
   // been settlement validated
