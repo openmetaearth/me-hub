@@ -14,16 +14,12 @@ import (
 func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateSubAccount) (*types.MsgCreateSubAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !m.daoKeeper.IsDao(ctx, msg.Creator) {
-		return &types.MsgCreateSubAccountResponse{}, types.ErrUnauthorized
-	}
-
-	sdkAccount, err := sdk.AccAddressFromBech32(msg.Account)
+	creatorAccount, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
-	did, ok := m.GetDID(ctx, sdkAccount)
+	did, ok := m.GetDID(ctx, creatorAccount)
 	if !ok {
 		return &types.MsgCreateSubAccountResponse{}, didtypes.ErrDidNotFound
 	}
@@ -37,7 +33,7 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 		return &types.MsgCreateSubAccountResponse{}, didtypes.ErrCredentialNotFound
 	}
 
-	account := m.accountKeeper.GetAccount(ctx, sdkAccount)
+	account := m.accountKeeper.GetAccount(ctx, creatorAccount)
 	if account == nil {
 		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "account not found")
 	}
@@ -99,7 +95,7 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateSubAccount,
-			sdk.NewAttribute(types.AttributeKeyAccount, msg.Account),
+			sdk.NewAttribute(types.AttributeKeyCreator, msg.Creator),
 			sdk.NewAttribute(types.AttributeKeySubAccount, msg.SubAccount),
 		),
 	})

@@ -8,10 +8,9 @@ import (
 
 const TypeMsgCreateSubAccount = "create_sub_account"
 
-func NewMsgCreateSubAccount(creator, account, subAccount, subAccountPubkey string) *MsgCreateSubAccount {
+func NewMsgCreateSubAccount(creator, subAccount, subAccountPubkey string) *MsgCreateSubAccount {
 	return &MsgCreateSubAccount{
 		Creator:    creator,
-		Account:    account,
 		SubAccount: subAccount,
 		SubAccountPubkey:     subAccountPubkey,
 	}
@@ -36,9 +35,6 @@ func (m *MsgCreateSubAccount) GetSignBytes() []byte {
 func (m *MsgCreateSubAccount) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Creator); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "invalid creator address")
-	}
-	if _, err := sdk.AccAddressFromBech32(m.Account); err != nil {
-		return errors.Wrap(sdkerrors.ErrInvalidAddress, "invalid account address")
 	}
 	if _, err := sdk.AccAddressFromBech32(m.SubAccount); err != nil {
 		return errors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sub_account address")
