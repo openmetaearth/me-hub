@@ -1,15 +1,20 @@
 package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	errorsmod "cosmossdk.io/errors"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	epochstypes "github.com/openmetaearth/me-hub/x/epochs/types"
+
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	eibctypes "github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 /* -------------------------------------------------------------------------- */
 /*                                 eIBC Hooks                                 */
 /* -------------------------------------------------------------------------- */
+
 var _ eibctypes.EIBCHooks = eibcHooks{}
 
 const (
@@ -30,8 +35,15 @@ func (k Keeper) GetEIBCHooks() eibctypes.EIBCHooks {
 
 // AfterDemandOrderFulfilled is called every time a demand order is fulfilled.
 // Once it is fulfilled the underlying packet recipient should be updated to the fulfiller.
-func (k eibcHooks) AfterDemandOrderFulfilled(ctx sdk.Context, demandOrder *eibctypes.DemandOrder, fulfillerAddress string) error {
-	err := k.UpdateRollappPacketTransferAddress(ctx, demandOrder.TrackingPacketKey, fulfillerAddress)
+func (k eibcHooks) AfterDemandOrderFulfilled(ctx sdk.Context, o *eibctypes.DemandOrder, receiverAddr string) error {
+	if o.CompletionHook != nil {
+		err := k.RunOrderCompletionHook(ctx, o, o.PriceAmount())
+		if err != nil {
+			return errorsmod.Wrap(err, "run completion hook")
+		}
+	}
+
+	err := k.UpdateRollappPacketTransferAddress(ctx, o.TrackingPacketKey, receiverAddr)
 	if err != nil {
 		return err
 	}
@@ -39,38 +51,51 @@ func (k eibcHooks) AfterDemandOrderFulfilled(ctx sdk.Context, demandOrder *eibct
 }
 
 /* -------------------------------------------------------------------------- */
-/*                               Epoch Hooks                                  */
+/*                                 epoch hooks                                */
 /* -------------------------------------------------------------------------- */
+var _ epochstypes.EpochHooks = epochHooks{}
 
 type epochHooks struct {
 	Keeper
 }
 
-// GetEpochHooks returns an epochHooks instance wrapping the keeper.
-func (k Keeper) GetEpochHooks() epochHooks {
-	return epochHooks{Keeper: k}
+func (k Keeper) GetEpochHooks() epochstypes.EpochHooks {
+	return epochHooks{
+		Keeper: k,
+	}
 }
 
-// AfterEpochEnd deletes all finalized and reverted rollapp packets for the matching epoch identifier.
-func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, _ int64) error {
+// BeforeEpochStart is the epoch start hook.
+func (e epochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
+	return nil
+}
+
+// AfterEpochEnd is the epoch end hook.
+// We want to clean up the demand orders that are with underlying packet status which are finalized.
+func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	params := e.GetParams(ctx)
-	if params.EpochIdentifier != epochIdentifier {
+
+	if epochIdentifier != params.EpochIdentifier {
 		return nil
 	}
 
-	limit := int(params.DeletePacketsEpochLimit)
-	filter := types.ByStatus(commontypes.Status_FINALIZED, commontypes.Status_REVERTED)
-	if limit > 0 {
-		filter = filter.Take(limit)
-	}
+	listFilter := types.ByStatus(commontypes.Status_FINALIZED).Take(int(deletePacketsBatchSize))
+	count := 0
 
-	packets := e.ListRollappPackets(ctx, filter)
-	for _, packet := range packets {
-		p := packet
-		if err := e.deleteRollappPacket(ctx, &p); err != nil {
-			return err
+	// Get batch of rollapp packets with status != PENDING and delete them
+	for toDeletePackets := e.ListRollappPackets(ctx, listFilter); len(toDeletePackets) > 0; toDeletePackets = e.ListRollappPackets(ctx, listFilter) {
+		e.Logger(ctx).Debug("Deleting rollapp packets", "num_packets", len(toDeletePackets))
+
+		count += len(toDeletePackets)
+
+		for _, packet := range toDeletePackets {
+			e.DeleteRollappPacket(ctx, &packet)
+		}
+
+		// if the total number of deleted packets reaches the hard limit for the epoch, stop deleting packets
+		if count >= int(params.DeletePacketsEpochLimit) {
+			break
 		}
 	}
-
 	return nil
 }

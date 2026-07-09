@@ -3,8 +3,9 @@ package cli
 import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/spf13/cobra"
+
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func CmdShowLatestStateIndex() *cobra.Command {
@@ -12,14 +13,7 @@ func CmdShowLatestStateIndex() *cobra.Command {
 		Use:   "latest-state-index [rollapp-id]",
 		Short: "Query the index of the last UpdateState associated with the specified rollapp-id.",
 		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-
+		RunE: func(cmd *cobra.Command, args []string) error {
 			argRollappId := args[0]
 
 			argFinalized, err := cmd.Flags().GetBool(FlagFinalized)
@@ -31,6 +25,12 @@ func CmdShowLatestStateIndex() *cobra.Command {
 				RollappId: argRollappId,
 				Finalized: argFinalized,
 			}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.LatestStateIndex(cmd.Context(), params)
 			if err != nil {

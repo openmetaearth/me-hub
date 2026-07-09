@@ -2,6 +2,8 @@ package delayedack
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack/keeper"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
 )
@@ -10,6 +12,15 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	k.SetParams(ctx, genState.Params)
 	for _, packet := range genState.RollappPackets {
+		transferPacketData := packet.MustGetTransferPacketData()
+		switch packet.Type {
+		case commontypes.RollappPacket_ON_RECV:
+			k.MustSetPendingPacketByAddress(ctx, transferPacketData.Receiver, packet.RollappPacketKey())
+		case commontypes.RollappPacket_ON_ACK, commontypes.RollappPacket_ON_TIMEOUT:
+			k.MustSetPendingPacketByAddress(ctx, transferPacketData.Sender, packet.RollappPacketKey())
+		case commontypes.RollappPacket_UNDEFINED:
+			panic("invalid rollapp packet type")
+		}
 		k.SetRollappPacket(ctx, packet)
 	}
 }

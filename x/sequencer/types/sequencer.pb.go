@@ -9,7 +9,6 @@ import (
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types1 "github.com/cosmos/cosmos-sdk/types"
-	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
 	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
@@ -35,38 +34,42 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // Sequencer defines a sequencer identified by its' address (sequencerAddress).
 // The sequencer could be attached to only one rollapp (rollappId).
 type Sequencer struct {
-	// sequencerAddress is the bech32-encoded address of the sequencer account
-	// which is the account that the message was sent from.
-	SequencerAddress string `protobuf:"bytes,1,opt,name=sequencerAddress,proto3" json:"sequencerAddress,omitempty"`
-	// pubkey is the public key of the sequencers' dymint client, as a Protobuf
-	// Any.
+	// Address is the bech32-encoded address of the sequencer account which is the
+	// account that the message was sent from.
+	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	// DymintPubKey is the public key of the sequencers' dymint client, as a
+	// Protobuf Any.
 	DymintPubKey *types.Any `protobuf:"bytes,2,opt,name=dymintPubKey,proto3" json:"dymintPubKey,omitempty"`
-	// rollappId defines the rollapp to which the sequencer belongs.
+	// RollappId defines the rollapp to which the sequencer belongs.
 	RollappId string `protobuf:"bytes,3,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
-	// description defines the descriptive terms for the sequencer.
-	Description Description `protobuf:"bytes,4,opt,name=description,proto3" json:"description"`
-	// jailed defined whether the sequencer has been jailed from bonded status or
-	// not.
-	Jailed bool `protobuf:"varint,5,opt,name=jailed,proto3" json:"jailed,omitempty"`
-	// proposer defines whether the sequencer is a proposer or not.
-	Proposer bool `protobuf:"varint,6,opt,name=proposer,proto3" json:"proposer,omitempty"`
-	// status is the sequencer status (bonded/unbonding/unbonded).
+	// SequencerMetadata defines the extra information for the sequencer.
+	Metadata SequencerMetadata `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata"`
+	// OperatingStatus is the sequencer status (bonded/unbonded).
 	Status OperatingStatus `protobuf:"varint,7,opt,name=status,proto3,enum=metaearth.sequencer.OperatingStatus" json:"status,omitempty"`
-	// tokens define the delegated tokens (incl. self-delegation).
+	// OptedIn : when true and bonded, the sequencer can be chosen as proposer or
+	// successor has no effect if already proposer or successor
+	OptedIn bool `protobuf:"varint,14,opt,name=opted_in,json=optedIn,proto3" json:"opted_in,omitempty"`
+	// Tokens: A coins which should always be one dym coin. It's the amount of
+	// tokens the sequencer has given to the module.
 	Tokens github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,8,rep,name=tokens,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"tokens"`
-	// unbonding_height defines, if unbonding, the height at which this sequencer
-	// has begun unbonding.
-	UnbondingHeight int64 `protobuf:"varint,9,opt,name=unbonding_height,json=unbondingHeight,proto3" json:"unbonding_height,omitempty"`
-	// unbond_time defines, if unbonding, the min time for the sequencer to
-	// complete unbonding.
-	UnbondTime time.Time `protobuf:"bytes,10,opt,name=unbond_time,json=unbondTime,proto3,stdtime" json:"unbond_time"`
+	// NoticePeriodTime defines the time when the sequencer will finish it's
+	// notice period. Zero means not started.
+	NoticePeriodTime time.Time `protobuf:"bytes,11,opt,name=notice_period_time,json=noticePeriodTime,proto3,stdtime" json:"notice_period_time"`
+	// RewardAddr is a bech32 encoded sdk acc address
+	RewardAddr string `protobuf:"bytes,12,opt,name=reward_addr,json=rewardAddr,proto3" json:"reward_addr,omitempty"`
+	// WhitelistedRelayers is an array of the whitelisted relayer addresses.
+	// Addresses are bech32-encoded strings.
+	WhitelistedRelayers []string `protobuf:"bytes,13,rep,name=whitelisted_relayers,json=whitelistedRelayers,proto3" json:"whitelisted_relayers,omitempty"`
+	// how badly behaved sequencer is, can incur penalties (kicking) when high
+	// 0 is good/default, more is worse
+	Dishonor uint64 `protobuf:"varint,15,opt,name=dishonor,proto3" json:"dishonor,omitempty"`
 }
 
 func (m *Sequencer) Reset()         { *m = Sequencer{} }
 func (m *Sequencer) String() string { return proto.CompactTextString(m) }
 func (*Sequencer) ProtoMessage()    {}
 func (*Sequencer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6baf1dacd743f6bb, []int{0}
+	return fileDescriptor_997b8663a5fc0f58, []int{0}
 }
 func (m *Sequencer) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -95,9 +98,9 @@ func (m *Sequencer) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Sequencer proto.InternalMessageInfo
 
-func (m *Sequencer) GetSequencerAddress() string {
+func (m *Sequencer) GetAddress() string {
 	if m != nil {
-		return m.SequencerAddress
+		return m.Address
 	}
 	return ""
 }
@@ -116,25 +119,11 @@ func (m *Sequencer) GetRollappId() string {
 	return ""
 }
 
-func (m *Sequencer) GetDescription() Description {
+func (m *Sequencer) GetMetadata() SequencerMetadata {
 	if m != nil {
-		return m.Description
+		return m.Metadata
 	}
-	return Description{}
-}
-
-func (m *Sequencer) GetJailed() bool {
-	if m != nil {
-		return m.Jailed
-	}
-	return false
-}
-
-func (m *Sequencer) GetProposer() bool {
-	if m != nil {
-		return m.Proposer
-	}
-	return false
+	return SequencerMetadata{}
 }
 
 func (m *Sequencer) GetStatus() OperatingStatus {
@@ -144,6 +133,13 @@ func (m *Sequencer) GetStatus() OperatingStatus {
 	return Unbonded
 }
 
+func (m *Sequencer) GetOptedIn() bool {
+	if m != nil {
+		return m.OptedIn
+	}
+	return false
+}
+
 func (m *Sequencer) GetTokens() github_com_cosmos_cosmos_sdk_types.Coins {
 	if m != nil {
 		return m.Tokens
@@ -151,196 +147,81 @@ func (m *Sequencer) GetTokens() github_com_cosmos_cosmos_sdk_types.Coins {
 	return nil
 }
 
-func (m *Sequencer) GetUnbondingHeight() int64 {
+func (m *Sequencer) GetNoticePeriodTime() time.Time {
 	if m != nil {
-		return m.UnbondingHeight
-	}
-	return 0
-}
-
-func (m *Sequencer) GetUnbondTime() time.Time {
-	if m != nil {
-		return m.UnbondTime
+		return m.NoticePeriodTime
 	}
 	return time.Time{}
 }
 
-type MsgRepalceProposer struct {
-	RollappId   string `protobuf:"bytes,1,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
-	OldProposer string `protobuf:"bytes,2,opt,name=old_proposer,json=oldProposer,proto3" json:"old_proposer,omitempty"`
-	NewProposer string `protobuf:"bytes,3,opt,name=new_proposer,json=newProposer,proto3" json:"new_proposer,omitempty"`
-	BlockHeight int64  `protobuf:"varint,4,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
-}
-
-func (m *MsgRepalceProposer) Reset()         { *m = MsgRepalceProposer{} }
-func (m *MsgRepalceProposer) String() string { return proto.CompactTextString(m) }
-func (*MsgRepalceProposer) ProtoMessage()    {}
-func (*MsgRepalceProposer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6baf1dacd743f6bb, []int{1}
-}
-func (m *MsgRepalceProposer) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgRepalceProposer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgRepalceProposer.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgRepalceProposer) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRepalceProposer.Merge(m, src)
-}
-func (m *MsgRepalceProposer) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgRepalceProposer) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRepalceProposer.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgRepalceProposer proto.InternalMessageInfo
-
-func (m *MsgRepalceProposer) GetRollappId() string {
+func (m *Sequencer) GetRewardAddr() string {
 	if m != nil {
-		return m.RollappId
+		return m.RewardAddr
 	}
 	return ""
 }
 
-func (m *MsgRepalceProposer) GetOldProposer() string {
+func (m *Sequencer) GetWhitelistedRelayers() []string {
 	if m != nil {
-		return m.OldProposer
+		return m.WhitelistedRelayers
 	}
-	return ""
+	return nil
 }
 
-func (m *MsgRepalceProposer) GetNewProposer() string {
+func (m *Sequencer) GetDishonor() uint64 {
 	if m != nil {
-		return m.NewProposer
-	}
-	return ""
-}
-
-func (m *MsgRepalceProposer) GetBlockHeight() int64 {
-	if m != nil {
-		return m.BlockHeight
-	}
-	return 0
-}
-
-type MsgStoreReplaceProposer struct {
-	ReplaceProposer MsgRepalceProposer `protobuf:"bytes,1,opt,name=replace_proposer,json=replaceProposer,proto3" json:"replace_proposer"`
-	HubBlockHeight  int64              `protobuf:"varint,2,opt,name=hub_block_height,json=hubBlockHeight,proto3" json:"hub_block_height,omitempty"`
-}
-
-func (m *MsgStoreReplaceProposer) Reset()         { *m = MsgStoreReplaceProposer{} }
-func (m *MsgStoreReplaceProposer) String() string { return proto.CompactTextString(m) }
-func (*MsgStoreReplaceProposer) ProtoMessage()    {}
-func (*MsgStoreReplaceProposer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6baf1dacd743f6bb, []int{2}
-}
-func (m *MsgStoreReplaceProposer) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgStoreReplaceProposer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgStoreReplaceProposer.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgStoreReplaceProposer) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgStoreReplaceProposer.Merge(m, src)
-}
-func (m *MsgStoreReplaceProposer) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgStoreReplaceProposer) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgStoreReplaceProposer.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgStoreReplaceProposer proto.InternalMessageInfo
-
-func (m *MsgStoreReplaceProposer) GetReplaceProposer() MsgRepalceProposer {
-	if m != nil {
-		return m.ReplaceProposer
-	}
-	return MsgRepalceProposer{}
-}
-
-func (m *MsgStoreReplaceProposer) GetHubBlockHeight() int64 {
-	if m != nil {
-		return m.HubBlockHeight
+		return m.Dishonor
 	}
 	return 0
 }
 
 func init() {
 	proto.RegisterType((*Sequencer)(nil), "metaearth.sequencer.Sequencer")
-	proto.RegisterType((*MsgRepalceProposer)(nil), "metaearth.sequencer.MsgRepalceProposer")
-	proto.RegisterType((*MsgStoreReplaceProposer)(nil), "metaearth.sequencer.MsgStoreReplaceProposer")
 }
 
 func init() {
-	proto.RegisterFile("metaearth/sequencer/sequencer.proto", fileDescriptor_6baf1dacd743f6bb)
+	proto.RegisterFile("metaearth/sequencer/sequencer.proto", fileDescriptor_997b8663a5fc0f58)
 }
 
-var fileDescriptor_6baf1dacd743f6bb = []byte{
-	// 690 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x54, 0xcd, 0x6e, 0xd3, 0x4a,
-	0x14, 0x8e, 0x9b, 0xdc, 0xdc, 0x64, 0x12, 0xb5, 0x91, 0x6f, 0x75, 0xeb, 0x46, 0xe0, 0x98, 0x02,
-	0xc2, 0x54, 0xaa, 0x4d, 0xca, 0xb2, 0x6c, 0x6a, 0x40, 0x2a, 0xaa, 0x2a, 0x2a, 0x87, 0x05, 0x62,
-	0x13, 0xf9, 0x67, 0xb0, 0x4d, 0xed, 0x19, 0x33, 0x33, 0x6e, 0xc9, 0x5b, 0xf4, 0x05, 0x78, 0x01,
-	0xd6, 0x2c, 0x79, 0x80, 0x8a, 0x55, 0xc5, 0x8a, 0x15, 0x45, 0xed, 0x8b, 0x20, 0x8f, 0xc7, 0x76,
-	0xda, 0x46, 0x62, 0x65, 0x9f, 0xf3, 0x9d, 0x6f, 0xe6, 0x9c, 0xef, 0x7c, 0x1a, 0x70, 0x3f, 0x81,
-	0xcc, 0x81, 0x0e, 0x61, 0xa1, 0x49, 0xe1, 0xc7, 0x0c, 0x22, 0x0f, 0x92, 0xfa, 0xcf, 0x48, 0x09,
-	0x66, 0x58, 0xfe, 0xaf, 0x2a, 0x32, 0x2a, 0x68, 0xa8, 0x7a, 0x98, 0x26, 0x98, 0x9a, 0xae, 0x43,
-	0xa1, 0x79, 0x3c, 0x76, 0x21, 0x73, 0xc6, 0xa6, 0x87, 0x23, 0x54, 0x90, 0x86, 0x6b, 0x02, 0x4f,
-	0x68, 0x60, 0x1e, 0x8f, 0xf3, 0x8f, 0x00, 0xd6, 0x0b, 0x60, 0xca, 0x23, 0xb3, 0x08, 0x04, 0xb4,
-	0x1a, 0xe0, 0x00, 0x17, 0xf9, 0xfc, 0xaf, 0x24, 0x04, 0x18, 0x07, 0x31, 0x34, 0x79, 0xe4, 0x66,
-	0xef, 0x4d, 0x07, 0xcd, 0x04, 0x34, 0xba, 0x09, 0xb1, 0x28, 0x81, 0x94, 0x39, 0x49, 0x2a, 0x0a,
-	0x1e, 0x2e, 0x9a, 0xcf, 0x87, 0xd4, 0x23, 0x51, 0xca, 0x22, 0x5c, 0x36, 0xbb, 0xb9, 0xa8, 0x0c,
-	0xa7, 0x90, 0x38, 0x2c, 0x42, 0xc1, 0x94, 0x32, 0x87, 0x65, 0xa2, 0xc9, 0x8d, 0x6f, 0x2d, 0xd0,
-	0x9d, 0x94, 0x45, 0xf2, 0x26, 0x18, 0x54, 0x8c, 0x5d, 0xdf, 0x27, 0x90, 0x52, 0x45, 0xd2, 0x24,
-	0xbd, 0x6b, 0xdf, 0xca, 0xcb, 0x36, 0xe8, 0xfb, 0xb3, 0x24, 0x42, 0xec, 0x30, 0x73, 0xf7, 0xe1,
-	0x4c, 0x59, 0xd2, 0x24, 0xbd, 0xb7, 0xbd, 0x6a, 0x14, 0x43, 0x18, 0xe5, 0x10, 0xc6, 0x2e, 0x9a,
-	0x59, 0xca, 0xf7, 0xaf, 0x5b, 0xab, 0x42, 0x1c, 0x8f, 0xcc, 0x52, 0x86, 0x8d, 0x82, 0x65, 0x5f,
-	0x3b, 0x43, 0xbe, 0x03, 0xba, 0x04, 0xc7, 0xb1, 0x93, 0xa6, 0xaf, 0x7c, 0xa5, 0xc9, 0x2f, 0xae,
-	0x13, 0xf2, 0x1e, 0xe8, 0xcd, 0x0d, 0xab, 0xb4, 0xf8, 0x85, 0x9a, 0xb1, 0x60, 0x9f, 0xc6, 0x8b,
-	0xba, 0xce, 0x6a, 0x9d, 0xfd, 0x1a, 0x35, 0xec, 0x79, 0xaa, 0xfc, 0x3f, 0x68, 0x7f, 0x70, 0xa2,
-	0x18, 0xfa, 0xca, 0x3f, 0x9a, 0xa4, 0x77, 0x6c, 0x11, 0xc9, 0x43, 0xd0, 0x49, 0x09, 0x4e, 0x31,
-	0x85, 0x44, 0x69, 0x73, 0xa4, 0x8a, 0xe5, 0x67, 0xa0, 0x5d, 0x28, 0xa7, 0xfc, 0xab, 0x49, 0xfa,
-	0xf2, 0xf6, 0x83, 0x85, 0x17, 0xbf, 0x2e, 0x65, 0x9e, 0xf0, 0x5a, 0x5b, 0x70, 0x64, 0x0f, 0xb4,
-	0x19, 0x3e, 0x82, 0x88, 0x2a, 0x1d, 0xad, 0xa9, 0xf7, 0xb6, 0xd7, 0x0d, 0x21, 0x47, 0xee, 0x38,
-	0x43, 0x38, 0xce, 0x78, 0x8e, 0x23, 0x64, 0x3d, 0xc9, 0xfb, 0xfd, 0x72, 0x31, 0xd2, 0x83, 0x88,
-	0x85, 0x99, 0x6b, 0x78, 0x38, 0x11, 0xc6, 0x12, 0x9f, 0x2d, 0xea, 0x1f, 0x99, 0x6c, 0x96, 0x42,
-	0xca, 0x09, 0xd4, 0x16, 0x47, 0xcb, 0x8f, 0xc1, 0x20, 0x43, 0x2e, 0x46, 0x7e, 0xbe, 0xe6, 0x10,
-	0x46, 0x41, 0xc8, 0x94, 0xae, 0x26, 0xe9, 0x4d, 0x7b, 0xa5, 0xca, 0xef, 0xf1, 0xb4, 0xfc, 0x12,
-	0xf4, 0x8a, 0xd4, 0x34, 0x37, 0x99, 0x02, 0xb8, 0x96, 0xc3, 0x5b, 0xcb, 0x7b, 0x53, 0x3a, 0xd0,
-	0xea, 0xe4, 0x5d, 0x9d, 0x5e, 0x8c, 0x24, 0x1b, 0x14, 0xc4, 0x1c, 0xda, 0x38, 0x97, 0x80, 0x7c,
-	0x40, 0x03, 0x1b, 0xa6, 0x4e, 0xec, 0xc1, 0xc3, 0x52, 0xab, 0xbb, 0x00, 0x88, 0xb5, 0x4d, 0x23,
-	0x5f, 0x38, 0x68, 0x6e, 0x91, 0x3b, 0xa0, 0x8f, 0x63, 0x7f, 0x5a, 0x49, 0x9d, 0x5b, 0xa7, 0x6b,
-	0x29, 0x3f, 0x6a, 0x93, 0x08, 0x93, 0x4d, 0x18, 0x89, 0x50, 0x60, 0xf7, 0x70, 0xec, 0x57, 0x67,
-	0xef, 0x80, 0x3e, 0x82, 0x27, 0x35, 0xb9, 0xf9, 0x37, 0x32, 0x82, 0x27, 0x15, 0xf9, 0x1e, 0xe8,
-	0xbb, 0x31, 0xf6, 0x8e, 0x4a, 0x75, 0x5a, 0x5c, 0x9d, 0x1e, 0xcf, 0x15, 0xca, 0x6c, 0x7c, 0x96,
-	0xc0, 0xda, 0x01, 0x0d, 0x26, 0x0c, 0x13, 0x68, 0xc3, 0x34, 0x76, 0xe6, 0xe6, 0x7a, 0x0b, 0x06,
-	0xa4, 0x48, 0xd5, 0xf7, 0x4b, 0x5c, 0xba, 0x47, 0x0b, 0xdd, 0x70, 0x5b, 0x1a, 0xe1, 0xc6, 0x15,
-	0x72, 0xe3, 0x64, 0x1d, 0x0c, 0xc2, 0xcc, 0x9d, 0x5e, 0x6b, 0x6e, 0x89, 0x37, 0xb7, 0x1c, 0x66,
-	0xae, 0x55, 0xf7, 0x67, 0xed, 0x9f, 0x5d, 0xaa, 0xd2, 0xf9, 0xa5, 0x2a, 0xfd, 0xbe, 0x54, 0xa5,
-	0xd3, 0x2b, 0xb5, 0x71, 0x7e, 0xa5, 0x36, 0x7e, 0x5e, 0xa9, 0x8d, 0x77, 0xe3, 0x39, 0xc3, 0xe0,
-	0x14, 0xa2, 0xfa, 0x19, 0x48, 0xe0, 0x56, 0x98, 0xb9, 0xe6, 0xa7, 0xb9, 0xf7, 0x80, 0xfb, 0xc7,
-	0x6d, 0xf3, 0x4d, 0x3f, 0xfd, 0x13, 0x00, 0x00, 0xff, 0xff, 0x09, 0x1f, 0xa7, 0xd4, 0x3a, 0x05,
-	0x00, 0x00,
+var fileDescriptor_997b8663a5fc0f58 = []byte{
+	// 588 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x52, 0x41, 0x6f, 0xd3, 0x30,
+	0x18, 0x6d, 0x58, 0xd6, 0xa6, 0xee, 0x18, 0x95, 0xe9, 0xc1, 0xad, 0x50, 0x1a, 0x71, 0xca, 0x65,
+	0xce, 0xba, 0x49, 0x70, 0x5e, 0x39, 0xad, 0x08, 0x31, 0x65, 0x70, 0xe1, 0x52, 0xb9, 0xb1, 0xe9,
+	0xac, 0x35, 0x76, 0xb0, 0xdd, 0x6d, 0xe1, 0x57, 0xec, 0xc2, 0x9f, 0xe0, 0xcc, 0x8f, 0x98, 0x38,
+	0xed, 0xc8, 0x89, 0xa1, 0xf5, 0x8f, 0xa0, 0x24, 0x6e, 0x57, 0x40, 0xa8, 0xa7, 0xf8, 0xf9, 0xfb,
+	0xde, 0xe7, 0xbc, 0xf7, 0x3e, 0xb0, 0x4f, 0xf3, 0x94, 0x09, 0xcd, 0xa5, 0xb8, 0xca, 0x3f, 0x47,
+	0x2b, 0x10, 0x69, 0xf6, 0x69, 0xce, 0x44, 0xc2, 0xd4, 0xc3, 0x09, 0x67, 0x4a, 0x1a, 0x09, 0x83,
+	0x75, 0x06, 0x5e, 0x01, 0xbc, 0xea, 0xeb, 0x75, 0x13, 0xa9, 0x53, 0xa9, 0xc7, 0x65, 0x7f, 0x54,
+	0x81, 0x8a, 0xdc, 0xeb, 0x4e, 0xa5, 0x9c, 0xce, 0x58, 0x54, 0xa2, 0xc9, 0xfc, 0x63, 0x44, 0x44,
+	0x6e, 0x4b, 0x9d, 0xa9, 0x9c, 0xca, 0x8a, 0x52, 0x9c, 0xec, 0x6d, 0xff, 0x6f, 0x82, 0xe1, 0x29,
+	0xd3, 0x86, 0xa4, 0x99, 0x6d, 0xf0, 0xab, 0xf9, 0xd1, 0x84, 0x68, 0x16, 0x5d, 0x0c, 0x26, 0xcc,
+	0x90, 0x41, 0x94, 0x48, 0x2e, 0x6c, 0x3d, 0xda, 0x28, 0x30, 0x65, 0x86, 0x50, 0x62, 0x88, 0x25,
+	0xbc, 0xdc, 0x48, 0x90, 0x19, 0x53, 0xc4, 0x70, 0x31, 0x1d, 0x6b, 0x43, 0xcc, 0xdc, 0x6a, 0x7b,
+	0xfe, 0x65, 0x1b, 0x34, 0x4f, 0x97, 0x4d, 0x10, 0x81, 0x06, 0xa1, 0x54, 0x31, 0xad, 0x91, 0x13,
+	0x38, 0x61, 0x33, 0x5e, 0x42, 0x18, 0x83, 0x1d, 0x9a, 0xa7, 0x5c, 0x98, 0x93, 0xf9, 0xe4, 0x35,
+	0xcb, 0xd1, 0xa3, 0xc0, 0x09, 0x5b, 0x07, 0x1d, 0x5c, 0x29, 0xc5, 0x4b, 0xa5, 0xf8, 0x48, 0xe4,
+	0x43, 0xf4, 0xfd, 0xdb, 0x5e, 0xc7, 0x3a, 0x98, 0xa8, 0x3c, 0x33, 0x12, 0x57, 0xac, 0xf8, 0x8f,
+	0x19, 0xf0, 0x19, 0x68, 0x2a, 0x39, 0x9b, 0x91, 0x2c, 0x3b, 0xa6, 0x68, 0xab, 0x7c, 0xef, 0xe1,
+	0x02, 0xbe, 0x07, 0xde, 0x52, 0x24, 0x72, 0xcb, 0xd7, 0x0e, 0xf1, 0xa6, 0x14, 0xf1, 0x4a, 0xca,
+	0x1b, 0x4b, 0x1d, 0xba, 0x37, 0x3f, 0xfb, 0xb5, 0x78, 0x35, 0x0a, 0x1e, 0x83, 0x7a, 0x65, 0x00,
+	0x6a, 0x04, 0x4e, 0xb8, 0x7b, 0x30, 0xd8, 0x3c, 0xf4, 0xed, 0xd2, 0xba, 0xd3, 0x92, 0x18, 0xdb,
+	0x01, 0xb0, 0x0b, 0x3c, 0x99, 0x19, 0x46, 0xc7, 0x5c, 0xa0, 0xdd, 0xc0, 0x09, 0xbd, 0xb8, 0x51,
+	0xe2, 0x63, 0x01, 0x13, 0x50, 0x37, 0xf2, 0x9c, 0x09, 0x8d, 0xbc, 0x60, 0x2b, 0x6c, 0x1d, 0x74,
+	0xb1, 0xf5, 0xa3, 0x48, 0x1c, 0xdb, 0xc4, 0xf1, 0x2b, 0xc9, 0xc5, 0x70, 0xbf, 0xf8, 0xc1, 0xaf,
+	0x77, 0xfd, 0x70, 0xca, 0xcd, 0xd9, 0x7c, 0x82, 0x13, 0x99, 0xda, 0xf5, 0xb3, 0x9f, 0x3d, 0x4d,
+	0xcf, 0x23, 0x93, 0x67, 0x4c, 0x97, 0x04, 0x1d, 0xdb, 0xd1, 0x30, 0x06, 0x50, 0x48, 0xc3, 0x13,
+	0x36, 0xce, 0x98, 0xe2, 0x92, 0x8e, 0x8b, 0x35, 0x43, 0xad, 0xd2, 0xab, 0xde, 0x3f, 0xc9, 0xbc,
+	0x5b, 0xee, 0xe0, 0xd0, 0x2b, 0x5e, 0xbc, 0xbe, 0xeb, 0x3b, 0x71, 0xbb, 0xe2, 0x9f, 0x94, 0xf4,
+	0xa2, 0x01, 0xf6, 0x41, 0x4b, 0xb1, 0x4b, 0xa2, 0xe8, 0xb8, 0x48, 0x1e, 0xed, 0x94, 0xa9, 0x80,
+	0xea, 0xea, 0x88, 0x52, 0x05, 0x07, 0xa0, 0x73, 0x79, 0xc6, 0x0d, 0x9b, 0x71, 0x5d, 0x48, 0x57,
+	0x6c, 0x46, 0x72, 0xa6, 0x34, 0x7a, 0x1c, 0x6c, 0x85, 0xcd, 0xf8, 0xe9, 0x5a, 0x2d, 0xb6, 0x25,
+	0xd8, 0x03, 0x1e, 0xe5, 0xfa, 0x4c, 0x0a, 0xa9, 0xd0, 0x93, 0xc0, 0x09, 0xdd, 0x78, 0x85, 0x47,
+	0xae, 0xb7, 0xdd, 0xae, 0x8f, 0x5c, 0xaf, 0xde, 0x6e, 0x8c, 0x5c, 0xaf, 0xd9, 0x06, 0x23, 0xd7,
+	0x03, 0xed, 0xd6, 0xf0, 0xe4, 0xe6, 0xde, 0x77, 0x6e, 0xef, 0x7d, 0xe7, 0xd7, 0xbd, 0xef, 0x5c,
+	0x2f, 0xfc, 0xda, 0xed, 0xc2, 0xaf, 0xfd, 0x58, 0xf8, 0xb5, 0x0f, 0x2f, 0xd6, 0x7c, 0xfa, 0xcf,
+	0xd6, 0x5f, 0x1c, 0x46, 0x57, 0x6b, 0xab, 0x5f, 0x7a, 0x37, 0xa9, 0x97, 0x4e, 0x1c, 0xfe, 0x0e,
+	0x00, 0x00, 0xff, 0xff, 0xaa, 0xee, 0xfa, 0x07, 0x3d, 0x04, 0x00, 0x00,
 }
 
 func (m *Sequencer) Marshal() (dAtA []byte, err error) {
@@ -363,19 +244,45 @@ func (m *Sequencer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	n1, err1 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.UnbondTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.UnbondTime):])
+	if m.Dishonor != 0 {
+		i = encodeVarintSequencer(dAtA, i, uint64(m.Dishonor))
+		i--
+		dAtA[i] = 0x78
+	}
+	if m.OptedIn {
+		i--
+		if m.OptedIn {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x70
+	}
+	if len(m.WhitelistedRelayers) > 0 {
+		for iNdEx := len(m.WhitelistedRelayers) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.WhitelistedRelayers[iNdEx])
+			copy(dAtA[i:], m.WhitelistedRelayers[iNdEx])
+			i = encodeVarintSequencer(dAtA, i, uint64(len(m.WhitelistedRelayers[iNdEx])))
+			i--
+			dAtA[i] = 0x6a
+		}
+	}
+	if len(m.RewardAddr) > 0 {
+		i -= len(m.RewardAddr)
+		copy(dAtA[i:], m.RewardAddr)
+		i = encodeVarintSequencer(dAtA, i, uint64(len(m.RewardAddr)))
+		i--
+		dAtA[i] = 0x62
+	}
+	n1, err1 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.NoticePeriodTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.NoticePeriodTime):])
 	if err1 != nil {
 		return 0, err1
 	}
 	i -= n1
 	i = encodeVarintSequencer(dAtA, i, uint64(n1))
 	i--
-	dAtA[i] = 0x52
-	if m.UnbondingHeight != 0 {
-		i = encodeVarintSequencer(dAtA, i, uint64(m.UnbondingHeight))
-		i--
-		dAtA[i] = 0x48
-	}
+	dAtA[i] = 0x5a
 	if len(m.Tokens) > 0 {
 		for iNdEx := len(m.Tokens) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -395,28 +302,8 @@ func (m *Sequencer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x38
 	}
-	if m.Proposer {
-		i--
-		if m.Proposer {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i--
-		dAtA[i] = 0x30
-	}
-	if m.Jailed {
-		i--
-		if m.Jailed {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i--
-		dAtA[i] = 0x28
-	}
 	{
-		size, err := m.Description.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.Metadata.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -444,100 +331,13 @@ func (m *Sequencer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.SequencerAddress) > 0 {
-		i -= len(m.SequencerAddress)
-		copy(dAtA[i:], m.SequencerAddress)
-		i = encodeVarintSequencer(dAtA, i, uint64(len(m.SequencerAddress)))
+	if len(m.Address) > 0 {
+		i -= len(m.Address)
+		copy(dAtA[i:], m.Address)
+		i = encodeVarintSequencer(dAtA, i, uint64(len(m.Address)))
 		i--
 		dAtA[i] = 0xa
 	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgRepalceProposer) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgRepalceProposer) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgRepalceProposer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.BlockHeight != 0 {
-		i = encodeVarintSequencer(dAtA, i, uint64(m.BlockHeight))
-		i--
-		dAtA[i] = 0x20
-	}
-	if len(m.NewProposer) > 0 {
-		i -= len(m.NewProposer)
-		copy(dAtA[i:], m.NewProposer)
-		i = encodeVarintSequencer(dAtA, i, uint64(len(m.NewProposer)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.OldProposer) > 0 {
-		i -= len(m.OldProposer)
-		copy(dAtA[i:], m.OldProposer)
-		i = encodeVarintSequencer(dAtA, i, uint64(len(m.OldProposer)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.RollappId) > 0 {
-		i -= len(m.RollappId)
-		copy(dAtA[i:], m.RollappId)
-		i = encodeVarintSequencer(dAtA, i, uint64(len(m.RollappId)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgStoreReplaceProposer) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgStoreReplaceProposer) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgStoreReplaceProposer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.HubBlockHeight != 0 {
-		i = encodeVarintSequencer(dAtA, i, uint64(m.HubBlockHeight))
-		i--
-		dAtA[i] = 0x10
-	}
-	{
-		size, err := m.ReplaceProposer.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintSequencer(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -558,7 +358,7 @@ func (m *Sequencer) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.SequencerAddress)
+	l = len(m.Address)
 	if l > 0 {
 		n += 1 + l + sovSequencer(uint64(l))
 	}
@@ -570,14 +370,8 @@ func (m *Sequencer) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovSequencer(uint64(l))
 	}
-	l = m.Description.Size()
+	l = m.Metadata.Size()
 	n += 1 + l + sovSequencer(uint64(l))
-	if m.Jailed {
-		n += 2
-	}
-	if m.Proposer {
-		n += 2
-	}
 	if m.Status != 0 {
 		n += 1 + sovSequencer(uint64(m.Status))
 	}
@@ -587,48 +381,23 @@ func (m *Sequencer) Size() (n int) {
 			n += 1 + l + sovSequencer(uint64(l))
 		}
 	}
-	if m.UnbondingHeight != 0 {
-		n += 1 + sovSequencer(uint64(m.UnbondingHeight))
-	}
-	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.UnbondTime)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.NoticePeriodTime)
 	n += 1 + l + sovSequencer(uint64(l))
-	return n
-}
-
-func (m *MsgRepalceProposer) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.RollappId)
+	l = len(m.RewardAddr)
 	if l > 0 {
 		n += 1 + l + sovSequencer(uint64(l))
 	}
-	l = len(m.OldProposer)
-	if l > 0 {
-		n += 1 + l + sovSequencer(uint64(l))
+	if len(m.WhitelistedRelayers) > 0 {
+		for _, s := range m.WhitelistedRelayers {
+			l = len(s)
+			n += 1 + l + sovSequencer(uint64(l))
+		}
 	}
-	l = len(m.NewProposer)
-	if l > 0 {
-		n += 1 + l + sovSequencer(uint64(l))
+	if m.OptedIn {
+		n += 2
 	}
-	if m.BlockHeight != 0 {
-		n += 1 + sovSequencer(uint64(m.BlockHeight))
-	}
-	return n
-}
-
-func (m *MsgStoreReplaceProposer) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = m.ReplaceProposer.Size()
-	n += 1 + l + sovSequencer(uint64(l))
-	if m.HubBlockHeight != 0 {
-		n += 1 + sovSequencer(uint64(m.HubBlockHeight))
+	if m.Dishonor != 0 {
+		n += 1 + sovSequencer(uint64(m.Dishonor))
 	}
 	return n
 }
@@ -670,7 +439,7 @@ func (m *Sequencer) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SequencerAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -698,7 +467,7 @@ func (m *Sequencer) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.SequencerAddress = string(dAtA[iNdEx:postIndex])
+			m.Address = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -770,7 +539,7 @@ func (m *Sequencer) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -797,50 +566,10 @@ func (m *Sequencer) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Description.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
-		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Jailed", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSequencer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.Jailed = bool(v != 0)
-		case 6:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Proposer", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSequencer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.Proposer = bool(v != 0)
 		case 7:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
@@ -894,28 +623,9 @@ func (m *Sequencer) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 9:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UnbondingHeight", wireType)
-			}
-			m.UnbondingHeight = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSequencer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.UnbondingHeight |= int64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 10:
+		case 11:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UnbondTime", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field NoticePeriodTime", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -942,63 +652,13 @@ func (m *Sequencer) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.UnbondTime, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.NoticePeriodTime, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipSequencer(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthSequencer
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgRepalceProposer) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowSequencer
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRepalceProposer: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRepalceProposer: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
+		case 12:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field RewardAddr", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1026,11 +686,11 @@ func (m *MsgRepalceProposer) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.RollappId = string(dAtA[iNdEx:postIndex])
+			m.RewardAddr = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 2:
+		case 13:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OldProposer", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field WhitelistedRelayers", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1058,45 +718,13 @@ func (m *MsgRepalceProposer) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OldProposer = string(dAtA[iNdEx:postIndex])
+			m.WhitelistedRelayers = append(m.WhitelistedRelayers, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NewProposer", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSequencer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSequencer
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSequencer
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.NewProposer = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
+		case 14:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BlockHeight", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field OptedIn", wireType)
 			}
-			m.BlockHeight = 0
+			var v int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowSequencer
@@ -1106,99 +734,17 @@ func (m *MsgRepalceProposer) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.BlockHeight |= int64(b&0x7F) << shift
+				v |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipSequencer(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthSequencer
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgStoreReplaceProposer) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowSequencer
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgStoreReplaceProposer: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgStoreReplaceProposer: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ReplaceProposer", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSequencer
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthSequencer
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthSequencer
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.ReplaceProposer.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
+			m.OptedIn = bool(v != 0)
+		case 15:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field HubBlockHeight", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Dishonor", wireType)
 			}
-			m.HubBlockHeight = 0
+			m.Dishonor = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowSequencer
@@ -1208,7 +754,7 @@ func (m *MsgStoreReplaceProposer) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.HubBlockHeight |= int64(b&0x7F) << shift
+				m.Dishonor |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

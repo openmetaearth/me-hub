@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	"cosmossdk.io/core/appmodule"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -23,6 +23,12 @@ import (
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.HasGenesis     = AppModule{}
+	_ module.HasServices    = AppModule{}
+	_ module.HasInvariants  = AppModule{}
+
+	_ appmodule.AppModule     = AppModule{}
+	_ appmodule.HasEndBlocker = (*AppModule)(nil)
 )
 
 // ----------------------------------------------------------------------------
@@ -125,7 +131,8 @@ func (am AppModule) Name() string {
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(*am.keeper))
+	types.RegisterProposalMsgServer(cfg.MsgServer(), am.keeper)
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
@@ -138,9 +145,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) {
 	var genState types.GenesisState
-	// Initialize global index to index in genesis state
 	cdc.MustUnmarshalJSON(gs, &genState)
-
 	InitGenesis(ctx, *am.keeper, genState)
 }
 
@@ -153,17 +158,15 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 // ConsensusVersion implements ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 2 }
 
-// BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
-func (am AppModule) BeginBlock(_ sdk.Context) {}
-
 func (am AppModule) GetHooks() []types.RollappHooks {
 	return am.keeper.GetHooks()
 }
 
-// EndBlock executes all ABCI EndBlock logic respective to the capability module. It
-// returns no validator updates.
-func (am AppModule) EndBlock(ctx context.Context) ([]abci.ValidatorUpdate, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	am.keeper.FinalizeRollappStates(sdkCtx)
-	return []abci.ValidatorUpdate{}, nil
+// EndBlock finalizes states from rollapps (after dispute period) and corresponding packets. It slashes and jails
+// sequencers of inactive rollapps.
+func (am AppModule) EndBlock(goCtx context.Context) error {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	am.keeper.FinalizeRollappStates(ctx)
+	am.keeper.CheckLiveness(ctx)
+	return nil
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/bridgingfee"
 	delayedackmodule "github.com/openmetaearth/me-hub/x/delayedack"
 	denommetadatamodule "github.com/openmetaearth/me-hub/x/denommetadata"
-	"github.com/openmetaearth/me-hub/x/rollapp/transfergenesis"
+	"github.com/openmetaearth/me-hub/x/rollapp/genesisbridge"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -33,15 +33,13 @@ func (a *AppKeepers) InitTransferStack() {
 	a.TransferStack = denommetadatamodule.NewIBCModule(a.TransferStack, a.DenomMetadataKeeper, a.RollappKeeper)
 
 	// already instantiated in SetupHooks()
-	a.delayedAckMiddleware.Setup(
+	a.DelayedAckMiddleware.Setup(
 		delayedackmodule.WithIBCModule(a.TransferStack),
 		delayedackmodule.WithKeeper(a.DelayedAckKeeper),
 		delayedackmodule.WithRollappKeeper(a.RollappKeeper),
 	)
-	a.TransferStack = a.delayedAckMiddleware
-
-	a.TransferStack = transfergenesis.NewIBCModule(a.TransferStack, a.DelayedAckKeeper, *a.RollappKeeper, a.TransferKeeper, a.DenomMetadataKeeper)
-	a.TransferStack = transfergenesis.NewIBCModuleCanonicalChannelHack(a.TransferStack, *a.RollappKeeper, a.IBCKeeper.ChannelKeeper)
+	a.TransferStack = a.DelayedAckMiddleware
+	a.TransferStack = genesisbridge.NewIBCModule(a.TransferStack, a.RollappKeeper, a.TransferKeeper, a.DenomMetadataKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()

@@ -1,10 +1,13 @@
 package types
 
 import (
-	"context"
+	context "context"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
@@ -21,6 +24,11 @@ type BankKeeper interface {
 
 type DelayedAckKeeper interface {
 	GetRollappPacket(ctx sdk.Context, rollappPacketKey string) (*commontypes.RollappPacket, error)
-	BridgingFeeFromAmt(ctx sdk.Context, amt math.Int) (res math.Int)
 	BridgingFee(ctx sdk.Context) (res math.LegacyDec)
+	ValidateCompletionHook(info commontypes.CompletionHookCall) error
+}
+
+type RollappKeeper interface {
+	GetLatestStateInfo(ctx sdk.Context, rollappId string) (rollapptypes.StateInfo, bool)
+	IsHeightFinalized(ctx sdk.Context, rollappID string, height uint64) bool
 }

@@ -2,9 +2,10 @@ syntax = "proto3";
 package metaearth.eibc;
 
 import "cosmos/base/v1beta1/coin.proto";
-import "gogoproto/gogo.proto";
+import "metaearth/common/completion_hook.proto";
 import "metaearth/common/rollapp_packet.proto";
 import "metaearth/common/status.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/openmetaearth/me-hub/x/eibc/types";
 
@@ -30,11 +31,20 @@ message DemandOrder {
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
   string recipient = 5;
-  reserved 6;
+
+  // Deprecated: use DemandOrder.IsFulfilled method instead.
+  // Only used for backwards compatibility.
+  bool deprecated_is_fulfilled = 6 [ deprecated = true ];
+
   metaearth.common.Status tracking_packet_status = 8;
   string rollapp_id = 9;
   common.RollappPacket.Type type = 10;
   // fulfiller_address is the bech32-encoded address of the account which
   // fulfilled the order.
   string fulfiller_address = 11;
+  // creation_height is the height of the block on the hub when order was
+  // created.
+  uint64 creation_height = 12;
+  // an optional hook which uses the funds when the order is fulfilled
+  metaearth.common.CompletionHookCall completion_hook = 13;
 }

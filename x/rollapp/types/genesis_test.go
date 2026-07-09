@@ -3,14 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/openmetaearth/me-hub/testutil/sample"
-	"github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/stretchr/testify/require"
-)
 
-var (
-	deployerAddr1 = sample.AccAddress()
-	deployerAddr2 = sample.AccAddress()
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func TestGenesisState_Validate(t *testing.T) {
@@ -25,12 +20,9 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid:    true,
 		},
 		{
-			desc: "valid genesis state with empty DeployerWhitelist",
+			desc: "valid genesis state",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []types.DeployerParams{},
-				},
+				Params: types.DefaultParams(),
 				RollappList: []types.Rollapp{
 					{
 						RollappId: "0",
@@ -69,80 +61,14 @@ func TestGenesisState_Validate(t *testing.T) {
 						CreationHeight: 1,
 					},
 				},
-				// this line is used by starport scaffolding # types/genesis/validField
+				ObsoleteDrsVersions: []uint32{1, 2},
 			},
 			valid: true,
-		},
-		{
-			desc: "valid genesis state with DeployerWhitelist",
-			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []types.DeployerParams{{deployerAddr1}, {deployerAddr2}},
-				},
-				RollappList: []types.Rollapp{
-					{
-						RollappId: "0",
-					},
-					{
-						RollappId: "1",
-					},
-				},
-				StateInfoList: []types.StateInfo{
-					{
-						StateInfoIndex: types.StateInfoIndex{
-							RollappId: "0",
-							Index:     0,
-						},
-					},
-					{
-						StateInfoIndex: types.StateInfoIndex{
-							RollappId: "1",
-							Index:     1,
-						},
-					},
-				},
-				LatestStateInfoIndexList: []types.StateInfoIndex{
-					{
-						RollappId: "0",
-					},
-					{
-						RollappId: "1",
-					},
-				},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
-					{
-						CreationHeight: 0,
-					},
-					{
-						CreationHeight: 1,
-					},
-				},
-				// this line is used by starport scaffolding # types/genesis/validField
-			},
-			valid: true,
-		},
-		{
-			desc: "duplicated deployer in whitelist",
-			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []types.DeployerParams{{deployerAddr1}, {deployerAddr1}},
-				},
-				RollappList:                        []types.Rollapp{},
-				StateInfoList:                      []types.StateInfo{},
-				LatestStateInfoIndexList:           []types.StateInfoIndex{},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
-			},
-			valid: false,
 		},
 		{
 			desc: "duplicated rollapp",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []types.DeployerParams{},
-				},
+				Params:                             types.DefaultParams(),
 				RollappList:                        []types.Rollapp{{RollappId: "0"}, {RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
@@ -153,10 +79,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "invalid DisputePeriodInBlocks",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.MinDisputePeriodInBlocks - 1,
-					DeployerWhitelist:     []types.DeployerParams{},
-				},
+				Params:                             types.DefaultParams().WithDisputePeriodInBlocks(types.MinDisputePeriodInBlocks - 1),
 				RollappList:                        []types.Rollapp{{RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
@@ -165,12 +88,20 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid: false,
 		},
 		{
-			desc: "invalid DeployerWhitelist",
+			desc: "invalid LivenessSlashBlocks",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.MinDisputePeriodInBlocks,
-					DeployerWhitelist:     []types.DeployerParams{{"asdad"}},
-				},
+				Params:                             types.DefaultParams().WithLivenessSlashBlocks(0),
+				RollappList:                        []types.Rollapp{{RollappId: "0"}},
+				StateInfoList:                      []types.StateInfo{},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+			},
+			valid: false,
+		},
+		{
+			desc: "invalid LivenessSlashInterval",
+			genState: &types.GenesisState{
+				Params:                             types.DefaultParams().WithLivenessSlashInterval(0),
 				RollappList:                        []types.Rollapp{{RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
@@ -181,7 +112,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated stateInfo",
 			genState: &types.GenesisState{
-				Params:                             types.Params{},
+				Params:                             types.DefaultParams(),
 				RollappList:                        []types.Rollapp{},
 				StateInfoList:                      []types.StateInfo{{StateInfoIndex: types.StateInfoIndex{RollappId: "0", Index: 0}}, {StateInfoIndex: types.StateInfoIndex{RollappId: "0", Index: 0}}},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
@@ -192,7 +123,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated latestStateInfoIndex",
 			genState: &types.GenesisState{
-				Params:                             types.Params{},
+				Params:                             types.DefaultParams(),
 				RollappList:                        []types.Rollapp{},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{{RollappId: "0"}, {RollappId: "0"}},
@@ -203,7 +134,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated blockHeightToFinalizationQueue",
 			genState: &types.GenesisState{
-				Params:                             types.Params{},
+				Params:                             types.DefaultParams(),
 				RollappList:                        []types.Rollapp{},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
@@ -211,7 +142,124 @@ func TestGenesisState_Validate(t *testing.T) {
 			},
 			valid: false,
 		},
-		// this line is used by starport scaffolding # types/genesis/testcase
+		{
+			desc: "duplicated ObsoleteDrsVersions",
+			genState: &types.GenesisState{
+				Params:                             types.DefaultParams(),
+				RollappList:                        []types.Rollapp{},
+				StateInfoList:                      []types.StateInfo{},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+				ObsoleteDrsVersions:                []uint32{1, 1},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicated livenessEvents",
+			genState: &types.GenesisState{
+				Params:                             types.DefaultParams(),
+				RollappList:                        []types.Rollapp{},
+				StateInfoList:                      []types.StateInfo{},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+				ObsoleteDrsVersions:                []uint32{},
+				LivenessEvents: []types.LivenessEvent{
+					{RollappId: "rollapp1"},
+					{RollappId: "rollapp1"},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "empty RollappId in RegisteredDenoms",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				RegisteredDenoms: []types.RollappRegisteredDenoms{
+					{RollappId: "", Denoms: []string{"denom1"}},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicate RollappId in RegisteredDenoms",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				RegisteredDenoms: []types.RollappRegisteredDenoms{
+					{RollappId: "rollapp1", Denoms: []string{"denom1"}},
+					{RollappId: "rollapp1", Denoms: []string{"denom2"}},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "empty Denoms list in RegisteredDenoms",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				RegisteredDenoms: []types.RollappRegisteredDenoms{
+					{RollappId: "rollapp1", Denoms: []string{}},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "empty Denom value in RegisteredDenoms",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				RegisteredDenoms: []types.RollappRegisteredDenoms{
+					{RollappId: "rollapp1", Denoms: []string{"", "denom2"}},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicate Denoms in RegisteredDenoms for the same RollappId",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				RegisteredDenoms: []types.RollappRegisteredDenoms{
+					{RollappId: "rollapp1", Denoms: []string{"denom1", "denom1"}},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "valid RegisteredDenoms entry",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				RegisteredDenoms: []types.RollappRegisteredDenoms{
+					{RollappId: "rollapp1", Denoms: []string{"denom1", "denom2"}},
+					{RollappId: "rollapp2", Denoms: []string{"denom3"}},
+				},
+			},
+			valid: true,
+		},
+		{
+			desc: "empty Sequencer field",
+			genState: &types.GenesisState{
+				SequencerHeightPairs: []types.SequencerHeightPair{
+					{Sequencer: "", Height: 10},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "zero Height field",
+			genState: &types.GenesisState{
+				SequencerHeightPairs: []types.SequencerHeightPair{
+					{Sequencer: "sequencer1", Height: 0},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicate Sequencer-Height pair",
+			genState: &types.GenesisState{
+				SequencerHeightPairs: []types.SequencerHeightPair{
+					{Sequencer: "sequencer1", Height: 10},
+					{Sequencer: "sequencer1", Height: 10},
+				},
+			},
+			valid: false,
+		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			err := tc.genState.Validate()

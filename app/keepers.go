@@ -97,8 +97,10 @@ import (
 	evmkeeper "github.com/openmetaearth/me-hub/x/evm/keeper"
 	kyckeeper "github.com/openmetaearth/me-hub/x/kyc/keeper"
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
+	lightclientmodulekeeper "github.com/openmetaearth/me-hub/x/lightclient/keeper"
+	lightclientmoduletypes "github.com/openmetaearth/me-hub/x/lightclient/types"
 	groupkeeper "github.com/openmetaearth/me-hub/x/megroup/keeper"
-	rollappmodule "github.com/openmetaearth/me-hub/x/rollapp"
+	"github.com/openmetaearth/me-hub/x/rollapp/genesisbridge"
 	rollappmodulekeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollappmoduletypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencermodulekeeper "github.com/openmetaearth/me-hub/x/sequencer/keeper"
@@ -136,8 +138,7 @@ type AppKeepers struct {
 	ParamsKeeper                  paramskeeper.Keeper
 	IBCKeeper                     *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	TransferStack                 ibcporttypes.IBCModule
-	ICS4Wrapper                   ibcporttypes.ICS4Wrapper
-	delayedAckMiddleware          *delayedackmodule.IBCMiddleware
+	DelayedAckMiddleware          *delayedackmodule.IBCMiddleware
 	EvidenceKeeper                evidencekeeper.Keeper
 	TransferKeeper                ibctransferkeeper.Keeper
 	FeeGrantKeeper                feegrantkeeper.Keeper
@@ -156,9 +157,10 @@ type AppKeepers struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	RollappKeeper   *rollappmodulekeeper.Keeper
-	SequencerKeeper *sequencermodulekeeper.Keeper
-	EIBCKeeper      eibckeeper.Keeper
+	RollappKeeper     *rollappmodulekeeper.Keeper
+	SequencerKeeper   *sequencermodulekeeper.Keeper
+	LightClientKeeper lightclientmodulekeeper.Keeper
+	EIBCKeeper        eibckeeper.Keeper
 
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
@@ -348,25 +350,47 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 	)
 
-	a.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
-		a.BankKeeper,
-		a.RollappKeeper,
-	)
-
+	// Rollapp/Sequencer/LightClient have circular deps; construct then wire setters.
 	a.RollappKeeper = rollappmodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[rollappmoduletypes.StoreKey],
-		a.GetSubspace(rollappmoduletypes.ModuleName),
 		a.IBCKeeper.ChannelKeeper,
-		a.IBCKeeper.ClientKeeper,
-		a.DaoKeeper,
+		nil,
+		a.BankKeeper,
+		a.TransferKeeper,
+		govModuleAddress,
+		nil,
 	)
 
 	a.SequencerKeeper = sequencermodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[sequencermoduletypes.StoreKey],
-		a.keys[sequencermoduletypes.MemStoreKey],
-		a.GetSubspace(sequencermoduletypes.ModuleName),
+		a.BankKeeper,
+		a.AccountKeeper,
+		a.RollappKeeper,
+		govModuleAddress,
+	)
+
+	a.LightClientKeeper = *lightclientmodulekeeper.NewKeeper(
+		appCodec,
+		a.keys[lightclientmoduletypes.StoreKey],
+		a.IBCKeeper.ClientKeeper,
+		a.IBCKeeper.ConnectionKeeper,
+		a.IBCKeeper.ChannelKeeper,
+		a.SequencerKeeper,
+		a.RollappKeeper,
+	)
+
+	a.SequencerKeeper.SetUnbondBlockers(a.RollappKeeper, &a.LightClientKeeper)
+	a.SequencerKeeper.SetHooks(sequencermoduletypes.MultiHooks{
+		rollappmodulekeeper.SequencerHooks{Keeper: a.RollappKeeper},
+	})
+
+	a.RollappKeeper.SetSequencerKeeper(a.SequencerKeeper)
+	a.RollappKeeper.SetCanonicalClientKeeper(a.LightClientKeeper)
+	a.RollappKeeper.SetDaoKeeper(a.DaoKeeper)
+
+	a.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
 		a.BankKeeper,
 		a.RollappKeeper,
 	)
@@ -374,18 +398,26 @@ func (a *AppKeepers) InitKeepers(
 	a.EIBCKeeper = *eibckeeper.NewKeeper(
 		appCodec,
 		a.keys[eibcmoduletypes.StoreKey],
-		a.keys[eibcmoduletypes.MemStoreKey],
-		a.GetSubspace(eibcmoduletypes.ModuleName),
+		a.memKeys[eibcmoduletypes.MemStoreKey],
 		a.AccountKeeper,
 		a.BankKeeper,
-		nil,
+		a.DelayedAckKeeper,
+		a.RollappKeeper,
+		govModuleAddress,
+	)
+
+	// ICS4 stack (no ratelimit in phase 1): ChannelKeeper -> denommetadata -> genesisbridge
+	ics4Wrapper := genesisbridge.NewICS4Wrapper(
+		denommetadatamodule.NewICS4Wrapper(a.IBCKeeper.ChannelKeeper, a.RollappKeeper, a.BankKeeper),
+		a.RollappKeeper,
+		a.IBCKeeper.ChannelKeeper,
 	)
 
 	a.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		a.keys[ibctransfertypes.StoreKey],
 		a.GetSubspace(ibctransfertypes.ModuleName),
-		a.ICS4Wrapper, // ICS4Wrapper
+		ics4Wrapper,
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.PortKeeper,
 		a.AccountKeeper,
@@ -393,11 +425,13 @@ func (a *AppKeepers) InitKeepers(
 		a.ScopedTransferKeeper,
 		govModuleAddress,
 	)
+	a.RollappKeeper.SetTransferKeeper(a.TransferKeeper)
 
 	a.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
 		appCodec,
 		a.keys[delayedacktypes.StoreKey],
-		a.GetSubspace(delayedacktypes.ModuleName),
+		a.keys[ibcexported.StoreKey],
+		govModuleAddress,
 		a.RollappKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ChannelKeeper,
@@ -427,7 +461,7 @@ func (a *AppKeepers) InitKeepers(
 			a.BankKeeper,
 			a.StakingKeeper,
 			distrkeeper.NewQuerier(a.DistrKeeper.Keeper),
-			a.ICS4Wrapper, // ISC4 Wrapper: fee IBC middleware
+			ics4Wrapper, // ISC4 Wrapper: genesisbridge + denommetadata
 			a.IBCKeeper.ChannelKeeper,
 			a.IBCKeeper.PortKeeper,
 			scopedWasmKeeper,
@@ -513,7 +547,6 @@ func (a *AppKeepers) InitKeepers(
 	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(a.ParamsKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(a.IBCKeeper.ClientKeeper)).
-		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(a.RollappKeeper)).
 		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(a.DenomMetadataKeeper)).
 		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(a.EvmKeeper.Keeper))
 
@@ -575,12 +608,13 @@ func (a *AppKeepers) SetupHooks() {
 	))
 
 	// dependencies injected in InitTransferStack()
-	a.delayedAckMiddleware = delayedackmodule.NewIBCMiddleware()
+	a.DelayedAckMiddleware = delayedackmodule.NewIBCMiddleware()
 	// register the rollapp hooks
 	a.RollappKeeper.SetHooks(rollappmoduletypes.NewMultiRollappHooks(
 		// insert rollapp hooks receivers here
 		a.SequencerKeeper.RollappHooks(),
-		a.delayedAckMiddleware,
+		a.DelayedAckKeeper, // OnHardFork; AfterStateFinalized is stub (packets finalized via Msg)
+		a.LightClientKeeper.RollappHooks(),
 	))
 }
 
@@ -614,11 +648,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())
 	paramsKeeper.Subspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())
 
-	// Register subspaces for custom modules
-	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
-	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
-	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
-	paramsKeeper.Subspace(delayedacktypes.ModuleName)
+	// Register subspaces for custom modules that still use x/params
 	paramsKeeper.Subspace(groupTypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
 

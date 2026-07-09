@@ -73,6 +73,7 @@ import (
 	delayedackmodule "github.com/openmetaearth/me-hub/x/delayedack"
 	denommetadatamodule "github.com/openmetaearth/me-hub/x/denommetadata"
 	eibcmodule "github.com/openmetaearth/me-hub/x/eibc"
+	lightclientmodule "github.com/openmetaearth/me-hub/x/lightclient"
 	groupmodule "github.com/openmetaearth/me-hub/x/megroup"
 	groupTypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	rollappmodule "github.com/openmetaearth/me-hub/x/rollapp"
@@ -82,6 +83,7 @@ import (
 	denommetadatamoduletypes "github.com/openmetaearth/me-hub/x/denommetadata/types"
 	eibcmoduletypes "github.com/openmetaearth/me-hub/x/eibc/types"
 	meevm "github.com/openmetaearth/me-hub/x/evm"
+	lightclientmoduletypes "github.com/openmetaearth/me-hub/x/lightclient/types"
 	rollappmoduletypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencermoduletypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 )
@@ -116,10 +118,11 @@ func (app *App) SetupModules(
 		packetforwardmiddleware.NewAppModule(app.PacketForwardMiddlewareKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(app.TransferKeeper),
 		rollappmodule.NewAppModule(appCodec, app.RollappKeeper),
-		sequencermodule.NewAppModule(appCodec, *app.SequencerKeeper),
-		delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper),
+		sequencermodule.NewAppModule(appCodec, app.SequencerKeeper),
+		delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper, app.DelayedAckMiddleware),
 		denommetadatamodule.NewAppModule(app.DenomMetadataKeeper, *app.EvmKeeper.Keeper, app.BankKeeper),
-		eibcmodule.NewAppModule(appCodec, app.EIBCKeeper),
+		eibcmodule.NewAppModule(appCodec, app.EIBCKeeper, app.AccountKeeper, app.BankKeeper),
+		lightclientmodule.NewAppModule(appCodec, app.LightClientKeeper),
 
 		// Ethermint app modules
 		meevm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(evmtypes.ModuleName)),
@@ -208,6 +211,7 @@ var BeginBlockers = []string{
 	denommetadatamoduletypes.ModuleName,
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
+	lightclientmoduletypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	daotypes.ModuleName,
 	wasmtypes.ModuleName,
@@ -246,6 +250,7 @@ var EndBlockers = []string{
 	denommetadatamoduletypes.ModuleName,
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
+	lightclientmoduletypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	daotypes.ModuleName,
 	wasmtypes.ModuleName,
@@ -285,6 +290,7 @@ var InitGenesis = []string{
 	denommetadatamoduletypes.ModuleName, // must after `x/bank` to trigger hooks
 	delayedacktypes.ModuleName,
 	eibcmoduletypes.ModuleName,
+	lightclientmoduletypes.ModuleName,
 	consensusparamtypes.ModuleName,
 	wasmtypes.ModuleName,
 	didtypes.ModuleName,

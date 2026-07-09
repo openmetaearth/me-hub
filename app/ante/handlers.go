@@ -6,10 +6,10 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
 	ethante "github.com/evmos/ethermint/app/ante"
-	"github.com/openmetaearth/me-hub/x/rollapp/transfergenesis"
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	proofheightante "github.com/openmetaearth/me-hub/x/delayedack/ante"
+	lightclientkeeper "github.com/openmetaearth/me-hub/x/lightclient/keeper"
 )
 
 func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
@@ -66,11 +66,10 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		// decorator that runs our custom logic for all IBC messages, even wrapped msgs
 		NewInnerDecorator(
 			proofheightante.NewIBCProofHeightDecorator().InnerCallback,
+			lightclientkeeper.NewIBCMessagesDecorator(*options.LightClientKeeper, options.IBCKeeper.ClientKeeper, options.IBCKeeper.ChannelKeeper, options.RollappKeeper).InnerCallback,
 		),
 
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
-
-		transfergenesis.NewTransferEnabledDecorator(options.RollappKeeper.GetRollapp, options.IBCKeeper.ChannelKeeper),
 	)
 }

@@ -6,6 +6,7 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
+	lightclientkeeper "github.com/openmetaearth/me-hub/x/lightclient/keeper"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	wbankkeeper "github.com/openmetaearth/me-hub/x/wbank/keeper"
 
@@ -28,6 +29,7 @@ type HandlerOptions struct {
 	MaxTxGasWanted         uint64
 	ExtensionOptionChecker ante.ExtensionOptionChecker
 	RollappKeeper          rollappkeeper.Keeper
+	LightClientKeeper      *lightclientkeeper.Keeper
 
 	DaoKeeper      DaoKeeper
 	StakingKeeper  StakingKeeper
@@ -60,6 +62,9 @@ func (options HandlerOptions) validate() error {
 	}
 	if options.WasmViewKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "wasm view keeper is required for AnteHandler")
+	}
+	if options.LightClientKeeper == nil {
+		return errorsmod.Wrap(errortypes.ErrLogic, "light client keeper is required for AnteHandler")
 	}
 	return nil
 }

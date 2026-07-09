@@ -2,12 +2,17 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/openmetaearth/me-hub/internal/collcompat"
 
 	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
+	"github.com/openmetaearth/me-hub/internal/collcompat"
 )
+
+/*
+// TODO: rename denom to 'ibcDenom' https://github.com/metaearth/issues/1650
+*/
 
 func (k Keeper) SetRegisteredDenom(ctx sdk.Context, rollappID, denom string) error {
 	return k.registeredRollappDenoms.Set(ctx, collections.Join(rollappID, denom))

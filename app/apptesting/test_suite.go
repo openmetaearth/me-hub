@@ -2,6 +2,8 @@ package apptesting
 
 import (
 	"fmt"
+	"strings"
+	"time"
 
 	"cosmossdk.io/math"
 	"github.com/cometbft/cometbft/libs/rand"
@@ -22,8 +24,6 @@ import (
 )
 
 var Alice = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"
-
-var defaultMinSequencerBond = sdk.NewCoin(params.BaseDenom, math.NewInt(1000000))
 
 func init() {
 	config := sdk.GetConfig()
@@ -88,12 +88,34 @@ func (s *KeeperTestHelper) CreateDefaultRollapp() string {
 
 func (s *KeeperTestHelper) CreateRollappByName(name string) {
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
-		Creator:       Alice,
-		RollappId:     name,
-		MaxSequencers: 10,
+		Creator:          Alice,
+		RollappId:        name,
+		InitialSequencer: "*",
+		MinSequencerBond: rollapptypes.DefaultMinSequencerBondGlobalCoin,
+		Alias:            strings.ToLower(rand.Str(7)),
+		VmType:           rollapptypes.Rollapp_EVM,
+		GenesisInfo: &rollapptypes.GenesisInfo{
+			Bech32Prefix:    strings.ToLower(rand.Str(3)),
+			GenesisChecksum: "1234567890abcdefg",
+			InitialSupply:   math.NewInt(1000),
+			NativeDenom: rollapptypes.DenomMetadata{
+				Display:  "DEN",
+				Base:     "aden",
+				Exponent: 18,
+			},
+		},
+		Metadata: &rollapptypes.RollappMetadata{
+			Website:     "https://metaearth.xyz",
+			Description: "Sample description",
+			LogoUrl:     "https://metaearth.xyz/logo.png",
+			Telegram:    "https://t.me/rolly",
+			X:           "https://x.metaearth.xyz",
+		},
 	}
 
-	msgServer := rollappkeeper.NewMsgServerImpl(*s.App.RollappKeeper)
+	s.FundForAliasRegistration(msgCreateRollapp)
+
+	msgServer := rollappkeeper.NewMsgServerImpl(s.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(s.Ctx, &msgCreateRollapp)
 	s.Require().NoError(err)
 }
@@ -107,7 +129,7 @@ func (s *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId str
 
 func (s *KeeperTestHelper) CreateSequencerByPubkey(ctx sdk.Context, rollappId string, pubKey types.PubKey) error {
 	addr := sdk.AccAddress(pubKey.Address())
-	FundAccount(s.App, ctx, addr, sdk.NewCoins(defaultMinSequencerBond))
+	FundAccount(s.App, ctx, addr, sdk.NewCoins(rollapptypes.DefaultMinSequencerBondGlobalCoin))
 
 	pkAny, err := codectypes.NewAnyWithValue(pubKey)
 	s.Require().Nil(err)
@@ -115,32 +137,49 @@ func (s *KeeperTestHelper) CreateSequencerByPubkey(ctx sdk.Context, rollappId st
 	sequencerMsg1 := sequencertypes.MsgCreateSequencer{
 		Creator:      addr.String(),
 		DymintPubKey: pkAny,
-		Bond:         defaultMinSequencerBond,
+		Bond:         rollapptypes.DefaultMinSequencerBondGlobalCoin,
 		RollappId:    rollappId,
-		Description:  sequencertypes.Description{},
+		Metadata: sequencertypes.SequencerMetadata{
+			Rpcs:    []string{"https://rpc.wpd.evm.rollapp.example.xyz:443"},
+			EvmRpcs: []string{"https://rpc.evm.rollapp.example.xyz:443"},
+		},
 	}
 
-	msgServer := sequencerkeeper.NewMsgServerImpl(*s.App.SequencerKeeper)
+	msgServer := sequencerkeeper.NewMsgServerImpl(s.App.SequencerKeeper)
 	_, err = msgServer.CreateSequencer(ctx, &sequencerMsg1)
 	return err
 }
 
 func (s *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks uint64) (lastHeight uint64, err error) {
+	return s.PostStateUpdateWithOptions(ctx, rollappId, seqAddr, startHeight, numOfBlocks, 0, 1)
+}
+
+func (s *KeeperTestHelper) PostStateUpdateWithDRSVersion(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks uint64, drsVersion uint32) (lastHeight uint64, err error) {
+	return s.PostStateUpdateWithOptions(ctx, rollappId, seqAddr, startHeight, numOfBlocks, 0, drsVersion)
+}
+
+func (s *KeeperTestHelper) PostStateUpdateWithRevision(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks, revision uint64) (lastHeight uint64, err error) {
+	return s.PostStateUpdateWithOptions(ctx, rollappId, seqAddr, startHeight, numOfBlocks, revision, 1)
+}
+
+func (s *KeeperTestHelper) PostStateUpdateWithOptions(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks, revision uint64, drsVersion uint32) (lastHeight uint64, err error) {
 	var bds rollapptypes.BlockDescriptors
 	bds.BD = make([]rollapptypes.BlockDescriptor, numOfBlocks)
 	for k := uint64(0); k < numOfBlocks; k++ {
-		bds.BD[k] = rollapptypes.BlockDescriptor{Height: startHeight + k}
+		bds.BD[k] = rollapptypes.BlockDescriptor{Height: startHeight + k, Timestamp: time.Now().UTC(), DrsVersion: drsVersion}
 	}
 
 	updateState := rollapptypes.MsgUpdateState{
-		Creator:     seqAddr,
-		RollappId:   rollappId,
-		StartHeight: startHeight,
-		NumBlocks:   numOfBlocks,
-		DAPath:      "",
-		BDs:         bds,
+		Creator:         seqAddr,
+		RollappId:       rollappId,
+		StartHeight:     startHeight,
+		NumBlocks:       numOfBlocks,
+		DAPath:          "",
+		BDs:             bds,
+		RollappRevision: revision,
+		Last:            false,
 	}
-	msgServer := rollappkeeper.NewMsgServerImpl(*s.App.RollappKeeper)
+	msgServer := rollappkeeper.NewMsgServerImpl(s.App.RollappKeeper)
 	_, err = msgServer.UpdateState(ctx, &updateState)
 	return startHeight + numOfBlocks, err
 }
@@ -156,11 +195,11 @@ func (s *KeeperTestHelper) FundModuleAcc(moduleName string, amounts sdk.Coins) {
 }
 
 func (s *KeeperTestHelper) FundForAliasRegistration(msgCreateRollApp rollapptypes.MsgCreateRollapp) {
-	// no-op: alias registration not supported in me-hub
+	// no-op: alias registration not supported in me-hub phase 1
 }
 
 func (s *KeeperTestHelper) FinalizeAllPendingPackets(address string) int {
-	// no-op: MsgFinalizePacket not supported in me-hub
+	// no-op stub for phase 1
 	return 0
 }
 

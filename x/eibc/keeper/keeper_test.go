@@ -8,6 +8,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/eibc/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -17,7 +18,6 @@ import (
 )
 
 const (
-	eibcEventType = "eibc"
 	// valid constants used for testing
 	portid   = "testportid"
 	chanid   = "channel-0"
@@ -33,7 +33,7 @@ var (
 	timeoutHeight      = clienttypes.NewHeight(0, 100)
 	timeoutTimestamp   = uint64(100)
 	transferPacketData = transfertypes.NewFungibleTokenPacketData(
-		"umec",
+		sdk.DefaultBondDenom,
 		"1000",
 		eibcSenderAddr.String(),
 		eibcReceiverAddr.String(),
@@ -41,12 +41,12 @@ var (
 	)
 	packet        = channeltypes.NewPacket(transferPacketData.GetBytes(), 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
 	rollappPacket = &commontypes.RollappPacket{
-		RollappId: "testRollappId",
+		RollappId: "rollapp_1234-1",
 		Status:    commontypes.Status_PENDING,
 		Type:      commontypes.RollappPacket_ON_RECV,
 		Packet:    &packet,
 	}
-	rollappPacketKey = commontypes.RollappPacketKey(rollappPacket)
+	rollappPacketKey = rollappPacket.RollappPacketKey()
 )
 
 type KeeperTestSuite struct {
@@ -62,7 +62,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T())
-	ctx := app.GetBaseApp().NewContext(false)
+	ctx := app.NewContext(false)
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, keeper.NewQuerier(app.EIBCKeeper))
 	queryClient := types.NewQueryClient(queryHelper)

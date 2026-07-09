@@ -5,8 +5,13 @@ package types
 
 import (
 	context "context"
+	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-proto"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
+	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
 	grpc "google.golang.org/grpc"
@@ -28,6 +33,97 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// MsgUpdateParams allows to update module params.
+type MsgUpdateParams struct {
+	// Authority is the address that controls the module.
+	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	// NewParams should be fully populated.
+	NewParams Params `protobuf:"bytes,2,opt,name=new_params,json=newParams,proto3" json:"new_params"`
+}
+
+func (m *MsgUpdateParams) Reset()         { *m = MsgUpdateParams{} }
+func (m *MsgUpdateParams) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateParams) ProtoMessage()    {}
+func (*MsgUpdateParams) Descriptor() ([]byte, []int) {
+	return fileDescriptor_47537f11f512b254, []int{0}
+}
+func (m *MsgUpdateParams) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateParams) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateParams.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateParams) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateParams.Merge(m, src)
+}
+func (m *MsgUpdateParams) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateParams) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateParams.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateParams proto.InternalMessageInfo
+
+func (m *MsgUpdateParams) GetAuthority() string {
+	if m != nil {
+		return m.Authority
+	}
+	return ""
+}
+
+func (m *MsgUpdateParams) GetNewParams() Params {
+	if m != nil {
+		return m.NewParams
+	}
+	return Params{}
+}
+
+type MsgUpdateParamsResponse struct {
+}
+
+func (m *MsgUpdateParamsResponse) Reset()         { *m = MsgUpdateParamsResponse{} }
+func (m *MsgUpdateParamsResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateParamsResponse) ProtoMessage()    {}
+func (*MsgUpdateParamsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_47537f11f512b254, []int{1}
+}
+func (m *MsgUpdateParamsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateParamsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateParamsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateParamsResponse.Merge(m, src)
+}
+func (m *MsgUpdateParamsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateParamsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateParamsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateParamsResponse proto.InternalMessageInfo
+
 // MsgFulfillOrder defines the FulfillOrder request type.
 type MsgFulfillOrder struct {
 	// fulfiller_address is the bech32-encoded address of the account which the
@@ -35,7 +131,8 @@ type MsgFulfillOrder struct {
 	FulfillerAddress string `protobuf:"bytes,1,opt,name=fulfiller_address,json=fulfillerAddress,proto3" json:"fulfiller_address,omitempty"`
 	// order_id is the unique identifier of the order to be fulfilled.
 	OrderId string `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	// expected_fee is the nominal fee set in the order.
+	// expected_fee is the nominal fee set in the order. Fulfiller will generally
+	// make less profit (after deducting bridge fee)
 	ExpectedFee string `protobuf:"bytes,3,opt,name=expected_fee,json=expectedFee,proto3" json:"expected_fee,omitempty"`
 }
 
@@ -43,7 +140,7 @@ func (m *MsgFulfillOrder) Reset()         { *m = MsgFulfillOrder{} }
 func (m *MsgFulfillOrder) String() string { return proto.CompactTextString(m) }
 func (*MsgFulfillOrder) ProtoMessage()    {}
 func (*MsgFulfillOrder) Descriptor() ([]byte, []int) {
-	return fileDescriptor_40898cc9e9de0a43, []int{0}
+	return fileDescriptor_47537f11f512b254, []int{2}
 }
 func (m *MsgFulfillOrder) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -101,7 +198,7 @@ func (m *MsgFulfillOrderResponse) Reset()         { *m = MsgFulfillOrderResponse
 func (m *MsgFulfillOrderResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgFulfillOrderResponse) ProtoMessage()    {}
 func (*MsgFulfillOrderResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_40898cc9e9de0a43, []int{1}
+	return fileDescriptor_47537f11f512b254, []int{3}
 }
 func (m *MsgFulfillOrderResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -130,6 +227,154 @@ func (m *MsgFulfillOrderResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgFulfillOrderResponse proto.InternalMessageInfo
 
+// MsgFulfillOrderAuthorized defines the FulfillOrderAuthorized request type.
+type MsgFulfillOrderAuthorized struct {
+	// order_id is the unique identifier of the order to be fulfilled.
+	OrderId string `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	// rollapp_id is the unique identifier of the rollapp that the order is
+	// associated with.
+	RollappId string `protobuf:"bytes,2,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+	// price is the price of the demand order
+	Price github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=price,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"price"`
+	// amount is the amount of the IBC transfer
+	Amount cosmossdk_io_math.Int `protobuf:"bytes,4,opt,name=amount,proto3,customtype=cosmossdk.io/math.Int,castrepeated=cosmossdk.io/math.Int" json:"amount"`
+	// lp_address is the bech32-encoded address of the account which the
+	// authorization was granted from. This account will receive the price amount
+	// at the finalization phase.
+	LpAddress string `protobuf:"bytes,5,opt,name=lp_address,json=lpAddress,proto3" json:"lp_address,omitempty"`
+	// operator_fee_address is an optional bech32-encoded address of an account
+	// that would collect the operator_fee_part if it's empty, the
+	// operator_fee_part will go to the operator_address
+	OperatorFeeAddress string `protobuf:"bytes,6,opt,name=operator_fee_address,json=operatorFeeAddress,proto3" json:"operator_fee_address,omitempty"`
+	// expected_fee is the nominal fee set in the order.
+	ExpectedFee string `protobuf:"bytes,7,opt,name=expected_fee,json=expectedFee,proto3" json:"expected_fee,omitempty"`
+	// operator_fee_share is the share of the fee earnings that goes to the
+	// operator it will be deduced from the fee of the demand order and paid out
+	// immediately
+	OperatorFeeShare cosmossdk_io_math.LegacyDec `protobuf:"bytes,8,opt,name=operator_fee_share,json=operatorFeeShare,proto3,customtype=cosmossdk.io/math.LegacyDec,castrepeated=cosmossdk.io/math.LegacyDec" json:"operator_fee_share"`
+	// settlement_validated signals if the block behind the demand order needs to
+	// be "settlement validated" or not
+	SettlementValidated bool `protobuf:"varint,9,opt,name=settlement_validated,json=settlementValidated,proto3" json:"settlement_validated,omitempty"`
+}
+
+func (m *MsgFulfillOrderAuthorized) Reset()         { *m = MsgFulfillOrderAuthorized{} }
+func (m *MsgFulfillOrderAuthorized) String() string { return proto.CompactTextString(m) }
+func (*MsgFulfillOrderAuthorized) ProtoMessage()    {}
+func (*MsgFulfillOrderAuthorized) Descriptor() ([]byte, []int) {
+	return fileDescriptor_47537f11f512b254, []int{4}
+}
+func (m *MsgFulfillOrderAuthorized) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgFulfillOrderAuthorized) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgFulfillOrderAuthorized.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgFulfillOrderAuthorized) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgFulfillOrderAuthorized.Merge(m, src)
+}
+func (m *MsgFulfillOrderAuthorized) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgFulfillOrderAuthorized) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgFulfillOrderAuthorized.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgFulfillOrderAuthorized proto.InternalMessageInfo
+
+func (m *MsgFulfillOrderAuthorized) GetOrderId() string {
+	if m != nil {
+		return m.OrderId
+	}
+	return ""
+}
+
+func (m *MsgFulfillOrderAuthorized) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+func (m *MsgFulfillOrderAuthorized) GetPrice() github_com_cosmos_cosmos_sdk_types.Coins {
+	if m != nil {
+		return m.Price
+	}
+	return nil
+}
+
+func (m *MsgFulfillOrderAuthorized) GetLpAddress() string {
+	if m != nil {
+		return m.LpAddress
+	}
+	return ""
+}
+
+func (m *MsgFulfillOrderAuthorized) GetOperatorFeeAddress() string {
+	if m != nil {
+		return m.OperatorFeeAddress
+	}
+	return ""
+}
+
+func (m *MsgFulfillOrderAuthorized) GetExpectedFee() string {
+	if m != nil {
+		return m.ExpectedFee
+	}
+	return ""
+}
+
+func (m *MsgFulfillOrderAuthorized) GetSettlementValidated() bool {
+	if m != nil {
+		return m.SettlementValidated
+	}
+	return false
+}
+
+type MsgFulfillOrderAuthorizedResponse struct {
+}
+
+func (m *MsgFulfillOrderAuthorizedResponse) Reset()         { *m = MsgFulfillOrderAuthorizedResponse{} }
+func (m *MsgFulfillOrderAuthorizedResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgFulfillOrderAuthorizedResponse) ProtoMessage()    {}
+func (*MsgFulfillOrderAuthorizedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_47537f11f512b254, []int{5}
+}
+func (m *MsgFulfillOrderAuthorizedResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgFulfillOrderAuthorizedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgFulfillOrderAuthorizedResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgFulfillOrderAuthorizedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgFulfillOrderAuthorizedResponse.Merge(m, src)
+}
+func (m *MsgFulfillOrderAuthorizedResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgFulfillOrderAuthorizedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgFulfillOrderAuthorizedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgFulfillOrderAuthorizedResponse proto.InternalMessageInfo
+
 type MsgUpdateDemandOrder struct {
 	// owner_address is the bech32-encoded address of the account owns the order.
 	// This is expected to be the address of the order recipient.
@@ -144,7 +389,7 @@ func (m *MsgUpdateDemandOrder) Reset()         { *m = MsgUpdateDemandOrder{} }
 func (m *MsgUpdateDemandOrder) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateDemandOrder) ProtoMessage()    {}
 func (*MsgUpdateDemandOrder) Descriptor() ([]byte, []int) {
-	return fileDescriptor_40898cc9e9de0a43, []int{2}
+	return fileDescriptor_47537f11f512b254, []int{6}
 }
 func (m *MsgUpdateDemandOrder) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -201,7 +446,7 @@ func (m *MsgUpdateDemandOrderResponse) Reset()         { *m = MsgUpdateDemandOrd
 func (m *MsgUpdateDemandOrderResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateDemandOrderResponse) ProtoMessage()    {}
 func (*MsgUpdateDemandOrderResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_40898cc9e9de0a43, []int{3}
+	return fileDescriptor_47537f11f512b254, []int{7}
 }
 func (m *MsgUpdateDemandOrderResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -230,41 +475,375 @@ func (m *MsgUpdateDemandOrderResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateDemandOrderResponse proto.InternalMessageInfo
 
-func init() {
-	proto.RegisterType((*MsgFulfillOrder)(nil), "metaearth.eibc.MsgFulfillOrder")
-	proto.RegisterType((*MsgFulfillOrderResponse)(nil), "metaearth.eibc.MsgFulfillOrderResponse")
-	proto.RegisterType((*MsgUpdateDemandOrder)(nil), "metaearth.eibc.MsgUpdateDemandOrder")
-	proto.RegisterType((*MsgUpdateDemandOrderResponse)(nil), "metaearth.eibc.MsgUpdateDemandOrderResponse")
+// try find an on-demand-fulfiller to fulfill the order immediately
+type MsgTryFulfillOnDemand struct {
+	Signer  string `protobuf:"bytes,2,opt,name=signer,proto3" json:"signer,omitempty"`
+	OrderId string `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	// rng to choose fulfiller from eligible randomly
+	Rng int64 `protobuf:"varint,3,opt,name=rng,proto3" json:"rng,omitempty"`
 }
 
-func init() { proto.RegisterFile("metaearth/eibc/tx.proto", fileDescriptor_40898cc9e9de0a43) }
+func (m *MsgTryFulfillOnDemand) Reset()         { *m = MsgTryFulfillOnDemand{} }
+func (m *MsgTryFulfillOnDemand) String() string { return proto.CompactTextString(m) }
+func (*MsgTryFulfillOnDemand) ProtoMessage()    {}
+func (*MsgTryFulfillOnDemand) Descriptor() ([]byte, []int) {
+	return fileDescriptor_47537f11f512b254, []int{8}
+}
+func (m *MsgTryFulfillOnDemand) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgTryFulfillOnDemand) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgTryFulfillOnDemand.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgTryFulfillOnDemand) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgTryFulfillOnDemand.Merge(m, src)
+}
+func (m *MsgTryFulfillOnDemand) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgTryFulfillOnDemand) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgTryFulfillOnDemand.DiscardUnknown(m)
+}
 
-var fileDescriptor_40898cc9e9de0a43 = []byte{
-	// 379 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xcf, 0x4d, 0x2d, 0x49,
-	0x4c, 0x4d, 0x2c, 0x2a, 0xc9, 0xd0, 0x4f, 0xcd, 0x4c, 0x4a, 0xd6, 0x2f, 0xa9, 0xd0, 0x2b, 0x28,
-	0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x83, 0x4b, 0xe8, 0x81, 0x24, 0xa4, 0xc4, 0x93, 0xf3, 0x8b, 0x73,
-	0xf3, 0x8b, 0xf5, 0x73, 0x8b, 0xd3, 0xf5, 0xcb, 0x0c, 0x41, 0x14, 0x44, 0xa1, 0xd2, 0x14, 0x46,
-	0x2e, 0x7e, 0xdf, 0xe2, 0x74, 0xb7, 0xd2, 0x9c, 0xb4, 0xcc, 0x9c, 0x1c, 0xff, 0xa2, 0x94, 0xd4,
-	0x22, 0x21, 0x6d, 0x2e, 0xc1, 0x34, 0x08, 0x3f, 0xb5, 0x28, 0x3e, 0x31, 0x25, 0xa5, 0x28, 0xb5,
-	0xb8, 0x58, 0x82, 0x51, 0x81, 0x51, 0x83, 0x33, 0x48, 0x00, 0x2e, 0xe1, 0x08, 0x11, 0x17, 0x92,
-	0xe4, 0xe2, 0xc8, 0x07, 0xe9, 0x8a, 0xcf, 0x4c, 0x91, 0x60, 0x02, 0xab, 0x61, 0x07, 0xf3, 0x3d,
-	0x53, 0x84, 0x14, 0xb9, 0x78, 0x52, 0x2b, 0x0a, 0x52, 0x93, 0x4b, 0x52, 0x53, 0xe2, 0xd3, 0x52,
-	0x53, 0x25, 0x98, 0xc1, 0xd2, 0xdc, 0x30, 0x31, 0xb7, 0xd4, 0x54, 0x2b, 0xb1, 0xa6, 0xe7, 0x1b,
-	0xb4, 0x30, 0x6d, 0x53, 0x92, 0xe4, 0x12, 0x47, 0x73, 0x55, 0x50, 0x6a, 0x71, 0x41, 0x7e, 0x5e,
-	0x71, 0xaa, 0x52, 0x33, 0x23, 0x97, 0x88, 0x6f, 0x71, 0x7a, 0x68, 0x41, 0x4a, 0x62, 0x49, 0xaa,
-	0x4b, 0x6a, 0x6e, 0x62, 0x5e, 0x0a, 0xc4, 0xd9, 0xca, 0x5c, 0xbc, 0xf9, 0xe5, 0x79, 0x18, 0x4e,
-	0xe6, 0x01, 0x0b, 0x12, 0xe1, 0x5c, 0x71, 0x2e, 0xf6, 0xbc, 0xd4, 0x72, 0x24, 0x97, 0xb2, 0xe5,
-	0xa5, 0x96, 0x83, 0x1c, 0x29, 0x04, 0x72, 0x24, 0xaa, 0xd9, 0x4a, 0x72, 0x5c, 0x32, 0xd8, 0x1c,
-	0x01, 0x73, 0xa5, 0xd1, 0x65, 0x46, 0x2e, 0x66, 0xdf, 0xe2, 0x74, 0xa1, 0x28, 0x2e, 0x1e, 0x94,
-	0xb0, 0x95, 0xd7, 0x43, 0x8d, 0x19, 0x3d, 0x34, 0x6f, 0x4a, 0xa9, 0x13, 0x50, 0x00, 0x0f, 0x07,
-	0x06, 0xa1, 0x4c, 0x2e, 0x41, 0xcc, 0x50, 0x50, 0xc1, 0xa2, 0x1f, 0x43, 0x95, 0x94, 0x0e, 0x31,
-	0xaa, 0x10, 0x56, 0x49, 0xb1, 0x36, 0x3c, 0xdf, 0xa0, 0xc5, 0xe8, 0xe4, 0x76, 0xe2, 0x91, 0x1c,
-	0xe3, 0x85, 0x47, 0x72, 0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e, 0x78, 0x2c, 0xc7, 0x70, 0xe1, 0xb1,
-	0x1c, 0xc3, 0x8d, 0xc7, 0x72, 0x0c, 0x51, 0x3a, 0xe9, 0x99, 0x25, 0x19, 0xa5, 0x49, 0x7a, 0xc9,
-	0xf9, 0xb9, 0xfa, 0xf9, 0x05, 0xa9, 0x79, 0x88, 0x84, 0x99, 0x9b, 0xaa, 0x9b, 0x51, 0x9a, 0xa4,
-	0x5f, 0x01, 0x4d, 0xa1, 0x95, 0x05, 0xa9, 0xc5, 0x49, 0x6c, 0xe0, 0xc4, 0x67, 0x0c, 0x08, 0x00,
-	0x00, 0xff, 0xff, 0x5d, 0x8e, 0x57, 0x3b, 0xc0, 0x02, 0x00, 0x00,
+var xxx_messageInfo_MsgTryFulfillOnDemand proto.InternalMessageInfo
+
+func (m *MsgTryFulfillOnDemand) GetSigner() string {
+	if m != nil {
+		return m.Signer
+	}
+	return ""
+}
+
+func (m *MsgTryFulfillOnDemand) GetOrderId() string {
+	if m != nil {
+		return m.OrderId
+	}
+	return ""
+}
+
+func (m *MsgTryFulfillOnDemand) GetRng() int64 {
+	if m != nil {
+		return m.Rng
+	}
+	return 0
+}
+
+type MsgTryFulfillOnDemandResponse struct {
+}
+
+func (m *MsgTryFulfillOnDemandResponse) Reset()         { *m = MsgTryFulfillOnDemandResponse{} }
+func (m *MsgTryFulfillOnDemandResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgTryFulfillOnDemandResponse) ProtoMessage()    {}
+func (*MsgTryFulfillOnDemandResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_47537f11f512b254, []int{9}
+}
+func (m *MsgTryFulfillOnDemandResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgTryFulfillOnDemandResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgTryFulfillOnDemandResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgTryFulfillOnDemandResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgTryFulfillOnDemandResponse.Merge(m, src)
+}
+func (m *MsgTryFulfillOnDemandResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgTryFulfillOnDemandResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgTryFulfillOnDemandResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgTryFulfillOnDemandResponse proto.InternalMessageInfo
+
+type MsgCreateOnDemandLP struct {
+	Signer string      `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
+	Lp     *OnDemandLP `protobuf:"bytes,2,opt,name=lp,proto3" json:"lp,omitempty"`
+}
+
+func (m *MsgCreateOnDemandLP) Reset()         { *m = MsgCreateOnDemandLP{} }
+func (m *MsgCreateOnDemandLP) String() string { return proto.CompactTextString(m) }
+func (*MsgCreateOnDemandLP) ProtoMessage()    {}
+func (*MsgCreateOnDemandLP) Descriptor() ([]byte, []int) {
+	return fileDescriptor_47537f11f512b254, []int{10}
+}
+func (m *MsgCreateOnDemandLP) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgCreateOnDemandLP) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgCreateOnDemandLP.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgCreateOnDemandLP) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCreateOnDemandLP.Merge(m, src)
+}
+func (m *MsgCreateOnDemandLP) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgCreateOnDemandLP) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCreateOnDemandLP.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgCreateOnDemandLP proto.InternalMessageInfo
+
+func (m *MsgCreateOnDemandLP) GetSigner() string {
+	if m != nil {
+		return m.Signer
+	}
+	return ""
+}
+
+func (m *MsgCreateOnDemandLP) GetLp() *OnDemandLP {
+	if m != nil {
+		return m.Lp
+	}
+	return nil
+}
+
+type MsgCreateOnDemandLPResponse struct {
+	Id uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (m *MsgCreateOnDemandLPResponse) Reset()         { *m = MsgCreateOnDemandLPResponse{} }
+func (m *MsgCreateOnDemandLPResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgCreateOnDemandLPResponse) ProtoMessage()    {}
+func (*MsgCreateOnDemandLPResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_47537f11f512b254, []int{11}
+}
+func (m *MsgCreateOnDemandLPResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgCreateOnDemandLPResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgCreateOnDemandLPResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgCreateOnDemandLPResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCreateOnDemandLPResponse.Merge(m, src)
+}
+func (m *MsgCreateOnDemandLPResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgCreateOnDemandLPResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCreateOnDemandLPResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgCreateOnDemandLPResponse proto.InternalMessageInfo
+
+func (m *MsgCreateOnDemandLPResponse) GetId() uint64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type MsgDeleteOnDemandLP struct {
+	Signer string   `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
+	Ids    []uint64 `protobuf:"varint,2,rep,packed,name=ids,proto3" json:"ids,omitempty"`
+}
+
+func (m *MsgDeleteOnDemandLP) Reset()         { *m = MsgDeleteOnDemandLP{} }
+func (m *MsgDeleteOnDemandLP) String() string { return proto.CompactTextString(m) }
+func (*MsgDeleteOnDemandLP) ProtoMessage()    {}
+func (*MsgDeleteOnDemandLP) Descriptor() ([]byte, []int) {
+	return fileDescriptor_47537f11f512b254, []int{12}
+}
+func (m *MsgDeleteOnDemandLP) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgDeleteOnDemandLP) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgDeleteOnDemandLP.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgDeleteOnDemandLP) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgDeleteOnDemandLP.Merge(m, src)
+}
+func (m *MsgDeleteOnDemandLP) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgDeleteOnDemandLP) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgDeleteOnDemandLP.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgDeleteOnDemandLP proto.InternalMessageInfo
+
+func (m *MsgDeleteOnDemandLP) GetSigner() string {
+	if m != nil {
+		return m.Signer
+	}
+	return ""
+}
+
+func (m *MsgDeleteOnDemandLP) GetIds() []uint64 {
+	if m != nil {
+		return m.Ids
+	}
+	return nil
+}
+
+type MsgDeleteOnDemandLPResponse struct {
+}
+
+func (m *MsgDeleteOnDemandLPResponse) Reset()         { *m = MsgDeleteOnDemandLPResponse{} }
+func (m *MsgDeleteOnDemandLPResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgDeleteOnDemandLPResponse) ProtoMessage()    {}
+func (*MsgDeleteOnDemandLPResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_47537f11f512b254, []int{13}
+}
+func (m *MsgDeleteOnDemandLPResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgDeleteOnDemandLPResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgDeleteOnDemandLPResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgDeleteOnDemandLPResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgDeleteOnDemandLPResponse.Merge(m, src)
+}
+func (m *MsgDeleteOnDemandLPResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgDeleteOnDemandLPResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgDeleteOnDemandLPResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgDeleteOnDemandLPResponse proto.InternalMessageInfo
+
+func init() {
+	proto.RegisterType((*MsgUpdateParams)(nil), "metaearth.eibc.MsgUpdateParams")
+	proto.RegisterType((*MsgUpdateParamsResponse)(nil), "metaearth.eibc.MsgUpdateParamsResponse")
+	proto.RegisterType((*MsgFulfillOrder)(nil), "metaearth.eibc.MsgFulfillOrder")
+	proto.RegisterType((*MsgFulfillOrderResponse)(nil), "metaearth.eibc.MsgFulfillOrderResponse")
+	proto.RegisterType((*MsgFulfillOrderAuthorized)(nil), "metaearth.eibc.MsgFulfillOrderAuthorized")
+	proto.RegisterType((*MsgFulfillOrderAuthorizedResponse)(nil), "metaearth.eibc.MsgFulfillOrderAuthorizedResponse")
+	proto.RegisterType((*MsgUpdateDemandOrder)(nil), "metaearth.eibc.MsgUpdateDemandOrder")
+	proto.RegisterType((*MsgUpdateDemandOrderResponse)(nil), "metaearth.eibc.MsgUpdateDemandOrderResponse")
+	proto.RegisterType((*MsgTryFulfillOnDemand)(nil), "metaearth.eibc.MsgTryFulfillOnDemand")
+	proto.RegisterType((*MsgTryFulfillOnDemandResponse)(nil), "metaearth.eibc.MsgTryFulfillOnDemandResponse")
+	proto.RegisterType((*MsgCreateOnDemandLP)(nil), "metaearth.eibc.MsgCreateOnDemandLP")
+	proto.RegisterType((*MsgCreateOnDemandLPResponse)(nil), "metaearth.eibc.MsgCreateOnDemandLPResponse")
+	proto.RegisterType((*MsgDeleteOnDemandLP)(nil), "metaearth.eibc.MsgDeleteOnDemandLP")
+	proto.RegisterType((*MsgDeleteOnDemandLPResponse)(nil), "metaearth.eibc.MsgDeleteOnDemandLPResponse")
+}
+
+func init() {
+	proto.RegisterFile("metaearth/eibc/tx.proto", fileDescriptor_47537f11f512b254)
+}
+
+var fileDescriptor_47537f11f512b254 = []byte{
+	// 1015 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x96, 0xcb, 0x6e, 0xdb, 0x46,
+	0x17, 0xc7, 0x45, 0x4b, 0x96, 0xad, 0x63, 0x7f, 0x89, 0xc2, 0x28, 0xb6, 0x24, 0x7f, 0x96, 0x1d,
+	0xb9, 0x40, 0x85, 0xb4, 0x26, 0x2d, 0xa7, 0x48, 0x5b, 0x2d, 0x0a, 0xc4, 0x11, 0x8c, 0x1a, 0xb5,
+	0x51, 0x83, 0x69, 0xbb, 0x28, 0x0a, 0x08, 0x94, 0x78, 0x4c, 0x13, 0xa1, 0x38, 0x04, 0x67, 0x7c,
+	0x51, 0x16, 0x45, 0xd0, 0x00, 0x5d, 0x17, 0x45, 0x1f, 0xa0, 0x40, 0x77, 0x5e, 0x65, 0x91, 0x87,
+	0xc8, 0xaa, 0x08, 0xb2, 0x2a, 0xba, 0x88, 0x0b, 0x7b, 0x91, 0xd7, 0x28, 0x86, 0x1c, 0x51, 0xa4,
+	0xae, 0x51, 0x57, 0xe4, 0xcc, 0xb9, 0xcc, 0xef, 0xcf, 0x39, 0x67, 0x86, 0xf0, 0x81, 0xd1, 0x69,
+	0xa3, 0x43, 0x2d, 0xe2, 0x9c, 0x77, 0x9e, 0xaa, 0xe1, 0x40, 0x45, 0xab, 0xd9, 0x52, 0xd9, 0xb9,
+	0xe2, 0x7a, 0x84, 0x11, 0x79, 0x25, 0xea, 0xa5, 0x84, 0x03, 0x85, 0x7b, 0x15, 0x97, 0x5b, 0x84,
+	0xb6, 0x09, 0x55, 0xdb, 0xd4, 0x54, 0x4f, 0xab, 0xfc, 0x11, 0x44, 0x15, 0x0b, 0x81, 0xa1, 0xe1,
+	0x8f, 0xd4, 0x60, 0x20, 0x4c, 0x39, 0x93, 0x98, 0x24, 0x98, 0xe7, 0x6f, 0x62, 0xb6, 0x24, 0x32,
+	0x35, 0x75, 0x8a, 0xea, 0x69, 0xb5, 0x89, 0x4c, 0xaf, 0xaa, 0x2d, 0x62, 0x39, 0xc2, 0x3e, 0x16,
+	0xd6, 0x76, 0x85, 0x57, 0x65, 0x9c, 0x97, 0xab, 0x7b, 0x7a, 0x5b, 0x50, 0x94, 0xff, 0x90, 0xe0,
+	0xe6, 0x01, 0x35, 0xbf, 0x75, 0x0d, 0x9d, 0xe1, 0xa1, 0x6f, 0x91, 0x1f, 0x40, 0x46, 0x3f, 0x61,
+	0xc7, 0xc4, 0xb3, 0x58, 0x27, 0x2f, 0xad, 0x4b, 0x95, 0xcc, 0x4e, 0xfe, 0xcd, 0xcb, 0xcd, 0x9c,
+	0xc0, 0x7f, 0x68, 0x18, 0x1e, 0x52, 0xfa, 0x98, 0x79, 0x96, 0x63, 0x6a, 0x3d, 0x57, 0xf9, 0x4b,
+	0x00, 0x07, 0xcf, 0x1a, 0x41, 0xfe, 0xfc, 0xcc, 0xba, 0x54, 0x59, 0xd8, 0xde, 0x50, 0xc6, 0x7c,
+	0x37, 0x25, 0x58, 0x70, 0x27, 0xf5, 0xea, 0xed, 0x5a, 0x42, 0xcb, 0x38, 0x78, 0x16, 0x4c, 0xd4,
+	0x6e, 0xfc, 0xf4, 0xee, 0xc5, 0xbd, 0x5e, 0xe6, 0x72, 0x01, 0x96, 0xfb, 0x20, 0x35, 0xa4, 0x2e,
+	0x71, 0x28, 0x96, 0x7f, 0x0b, 0x04, 0xec, 0x9e, 0xd8, 0x47, 0x96, 0x6d, 0x7f, 0xed, 0x19, 0xe8,
+	0xc9, 0x1f, 0xc1, 0xad, 0xa3, 0x60, 0x8c, 0x5e, 0x43, 0x0f, 0x70, 0x03, 0x21, 0x5a, 0x36, 0x34,
+	0x08, 0x19, 0x72, 0x01, 0xe6, 0x09, 0x8f, 0x6a, 0x58, 0x86, 0xcf, 0x9c, 0xd1, 0xe6, 0xfc, 0xf1,
+	0x9e, 0x21, 0xdf, 0x85, 0x45, 0x3c, 0x77, 0xb1, 0xc5, 0xd0, 0x68, 0x1c, 0x21, 0xe6, 0x93, 0xbe,
+	0x79, 0xa1, 0x3b, 0xb7, 0x8b, 0x58, 0x5b, 0xe2, 0xa4, 0x83, 0xab, 0x09, 0xe2, 0x28, 0x55, 0x48,
+	0xfc, 0x67, 0x0a, 0x0a, 0x7d, 0xb6, 0x87, 0x81, 0xd2, 0xa7, 0x68, 0xc4, 0x70, 0xa4, 0x38, 0xce,
+	0x2a, 0x80, 0x47, 0x6c, 0x5b, 0x77, 0xdd, 0x1e, 0x6b, 0x46, 0xcc, 0xec, 0x19, 0xb2, 0x0e, 0xb3,
+	0xae, 0x67, 0xb5, 0x38, 0x66, 0xb2, 0xb2, 0xb0, 0x5d, 0x50, 0xc4, 0x7e, 0xf1, 0x52, 0x52, 0x44,
+	0x29, 0x29, 0x8f, 0x88, 0xe5, 0xec, 0x6c, 0xf1, 0xef, 0x7d, 0x71, 0xb9, 0x56, 0x31, 0x2d, 0x76,
+	0x7c, 0xd2, 0x54, 0x5a, 0xa4, 0x2d, 0x6a, 0x53, 0x3c, 0x36, 0xa9, 0xf1, 0x44, 0x65, 0x1d, 0x17,
+	0xa9, 0x1f, 0x40, 0xb5, 0x20, 0xb3, 0xfc, 0x03, 0xa4, 0xf5, 0x36, 0x39, 0x71, 0x58, 0x3e, 0xe5,
+	0x97, 0x45, 0x9d, 0x27, 0xfa, 0xfb, 0xed, 0xda, 0x9d, 0x20, 0x8c, 0x1a, 0x4f, 0x14, 0x8b, 0xa8,
+	0x6d, 0x9d, 0x1d, 0x2b, 0x7b, 0x0e, 0xbb, 0xb8, 0x1c, 0x61, 0x78, 0xf3, 0x72, 0x13, 0x04, 0xdc,
+	0x9e, 0xc3, 0x34, 0x91, 0x93, 0xeb, 0xb3, 0xdd, 0x70, 0xbf, 0x66, 0x03, 0x7d, 0xb6, 0xdb, 0xdd,
+	0xa8, 0x2d, 0xc8, 0x11, 0x17, 0x3d, 0x9d, 0x11, 0x8f, 0xef, 0x46, 0xe8, 0x98, 0xf6, 0x1d, 0xe5,
+	0xae, 0x6d, 0x17, 0xb1, 0x1b, 0xd1, 0xbf, 0x7f, 0x73, 0x03, 0xfb, 0x27, 0xff, 0x08, 0x72, 0x2c,
+	0x29, 0x3d, 0xd6, 0x3d, 0xcc, 0xcf, 0xfb, 0xea, 0x0e, 0x85, 0xba, 0x95, 0x41, 0x11, 0xfb, 0x68,
+	0xea, 0xad, 0x4e, 0x1d, 0x5b, 0x17, 0x97, 0x63, 0xcd, 0x11, 0xa5, 0x75, 0x6c, 0x69, 0xd9, 0x08,
+	0xe4, 0x63, 0xbe, 0x92, 0x5c, 0x85, 0x1c, 0x45, 0xc6, 0x6c, 0x6c, 0xa3, 0xc3, 0x1a, 0xa7, 0xba,
+	0x6d, 0xf1, 0x1a, 0x37, 0xf2, 0x99, 0x75, 0xa9, 0x32, 0xaf, 0xdd, 0xee, 0xd9, 0xbe, 0xeb, 0x9a,
+	0x6a, 0x37, 0x79, 0xc9, 0x45, 0xbe, 0x54, 0x79, 0x03, 0xee, 0x8e, 0xac, 0xa7, 0xb0, 0xea, 0x9e,
+	0x4b, 0x90, 0x0b, 0x7b, 0xa8, 0x8e, 0x6d, 0xdd, 0x31, 0x82, 0x66, 0xd9, 0x80, 0xff, 0x91, 0x33,
+	0x67, 0xa0, 0x51, 0x16, 0xfd, 0xc9, 0xf7, 0x68, 0x92, 0x65, 0x98, 0xe3, 0x5d, 0xdf, 0xeb, 0x8f,
+	0xb4, 0x83, 0x67, 0xbc, 0x35, 0x64, 0xce, 0x19, 0xcf, 0x5d, 0x2e, 0xc1, 0xff, 0x87, 0x41, 0x84,
+	0x94, 0x16, 0xdc, 0x39, 0xa0, 0xe6, 0x37, 0x5e, 0xa7, 0xab, 0xc6, 0x09, 0xbc, 0xe4, 0x25, 0x48,
+	0x53, 0xcb, 0x74, 0xd0, 0x13, 0xcb, 0x8b, 0xd1, 0xb8, 0x76, 0xc9, 0x42, 0xd2, 0x73, 0x4c, 0x1f,
+	0x2a, 0xa9, 0xf1, 0xd7, 0xda, 0x02, 0x27, 0x12, 0x91, 0xe5, 0x35, 0x58, 0x1d, 0xba, 0x54, 0xc8,
+	0x42, 0xe1, 0xf6, 0x01, 0x35, 0x1f, 0x79, 0xa8, 0x33, 0xec, 0x1a, 0xf7, 0x0f, 0x23, 0x24, 0xc9,
+	0x18, 0xc9, 0xa7, 0x30, 0x63, 0xbb, 0xe2, 0xd4, 0xfb, 0x70, 0xec, 0xa9, 0xd7, 0x4b, 0xa6, 0xcd,
+	0xd8, 0x6e, 0x9c, 0x6a, 0x13, 0x56, 0x86, 0x2c, 0xda, 0x65, 0x92, 0x6f, 0xc0, 0x8c, 0x10, 0x9a,
+	0xd2, 0x66, 0x2c, 0xa3, 0xbc, 0xef, 0x33, 0xd6, 0xd1, 0xc6, 0x11, 0x8c, 0x52, 0x8c, 0x31, 0x0b,
+	0x49, 0xcb, 0xe0, 0x47, 0x73, 0xb2, 0x92, 0xd2, 0xf8, 0x6b, 0x7c, 0xf1, 0x55, 0x7f, 0xf1, 0xfe,
+	0x6c, 0xdd, 0xc5, 0xb7, 0x7f, 0x9f, 0x83, 0xe4, 0x01, 0x35, 0x65, 0x0f, 0x16, 0x63, 0xf7, 0xc5,
+	0xc7, 0x63, 0xd5, 0xf6, 0x1d, 0xdc, 0xc5, 0x4f, 0xa6, 0xf1, 0x0e, 0x85, 0xff, 0x2c, 0x81, 0x3c,
+	0xa4, 0x2c, 0xb6, 0x27, 0x25, 0x1b, 0x8c, 0x29, 0xd6, 0xa6, 0x8f, 0x09, 0x6b, 0x22, 0x21, 0x33,
+	0x58, 0x8c, 0xdd, 0x35, 0x13, 0xc5, 0x47, 0xbd, 0x27, 0x8b, 0x1f, 0x7a, 0x63, 0x24, 0xe4, 0x5f,
+	0x25, 0x58, 0x1a, 0x71, 0x61, 0x3c, 0x98, 0x26, 0x65, 0x2f, 0xae, 0xf8, 0xc5, 0x7f, 0x8b, 0x8b,
+	0x40, 0x3d, 0x97, 0xe0, 0xd6, 0xe0, 0x79, 0x52, 0x7d, 0xbf, 0xfd, 0x8d, 0x84, 0x14, 0x3f, 0x9f,
+	0x3a, 0x24, 0x42, 0xf1, 0x4c, 0x82, 0xec, 0x40, 0x93, 0x6e, 0x4d, 0xca, 0xd8, 0x1f, 0x51, 0xfc,
+	0x6c, 0xda, 0x88, 0x3e, 0x84, 0x81, 0x1e, 0x9c, 0x88, 0xd0, 0x1f, 0x31, 0x19, 0x61, 0x54, 0x67,
+	0x96, 0x13, 0xc5, 0xd9, 0x67, 0xef, 0x5e, 0xdc, 0x93, 0x76, 0xbe, 0x7a, 0x75, 0x55, 0x92, 0x5e,
+	0x5f, 0x95, 0xa4, 0x7f, 0xae, 0x4a, 0xd2, 0x2f, 0xd7, 0xa5, 0xc4, 0xeb, 0xeb, 0x52, 0xe2, 0xaf,
+	0xeb, 0x52, 0xe2, 0xfb, 0x6a, 0xe4, 0xae, 0x1f, 0xf1, 0x77, 0x78, 0x7a, 0x5f, 0x3d, 0x17, 0x7f,
+	0xbd, 0xfc, 0xea, 0x6f, 0xa6, 0xfd, 0x5f, 0xc4, 0xfb, 0xff, 0x06, 0x00, 0x00, 0xff, 0xff, 0x26,
+	0x33, 0xd9, 0xee, 0x21, 0x0b, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -279,8 +858,14 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
+	// UpdateParams is used for updating module params.
+	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
+	TryFulfillOnDemand(ctx context.Context, in *MsgTryFulfillOnDemand, opts ...grpc.CallOption) (*MsgTryFulfillOnDemandResponse, error)
 	FulfillOrder(ctx context.Context, in *MsgFulfillOrder, opts ...grpc.CallOption) (*MsgFulfillOrderResponse, error)
+	FulfillOrderAuthorized(ctx context.Context, in *MsgFulfillOrderAuthorized, opts ...grpc.CallOption) (*MsgFulfillOrderAuthorizedResponse, error)
 	UpdateDemandOrder(ctx context.Context, in *MsgUpdateDemandOrder, opts ...grpc.CallOption) (*MsgUpdateDemandOrderResponse, error)
+	CreateOnDemandLP(ctx context.Context, in *MsgCreateOnDemandLP, opts ...grpc.CallOption) (*MsgCreateOnDemandLPResponse, error)
+	DeleteOnDemandLP(ctx context.Context, in *MsgDeleteOnDemandLP, opts ...grpc.CallOption) (*MsgDeleteOnDemandLPResponse, error)
 }
 
 type msgClient struct {
@@ -291,9 +876,36 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
+func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error) {
+	out := new(MsgUpdateParamsResponse)
+	err := c.cc.Invoke(ctx, "/metaearth.eibc.Msg/UpdateParams", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) TryFulfillOnDemand(ctx context.Context, in *MsgTryFulfillOnDemand, opts ...grpc.CallOption) (*MsgTryFulfillOnDemandResponse, error) {
+	out := new(MsgTryFulfillOnDemandResponse)
+	err := c.cc.Invoke(ctx, "/metaearth.eibc.Msg/TryFulfillOnDemand", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) FulfillOrder(ctx context.Context, in *MsgFulfillOrder, opts ...grpc.CallOption) (*MsgFulfillOrderResponse, error) {
 	out := new(MsgFulfillOrderResponse)
 	err := c.cc.Invoke(ctx, "/metaearth.eibc.Msg/FulfillOrder", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) FulfillOrderAuthorized(ctx context.Context, in *MsgFulfillOrderAuthorized, opts ...grpc.CallOption) (*MsgFulfillOrderAuthorizedResponse, error) {
+	out := new(MsgFulfillOrderAuthorizedResponse)
+	err := c.cc.Invoke(ctx, "/metaearth.eibc.Msg/FulfillOrderAuthorized", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -309,25 +921,100 @@ func (c *msgClient) UpdateDemandOrder(ctx context.Context, in *MsgUpdateDemandOr
 	return out, nil
 }
 
+func (c *msgClient) CreateOnDemandLP(ctx context.Context, in *MsgCreateOnDemandLP, opts ...grpc.CallOption) (*MsgCreateOnDemandLPResponse, error) {
+	out := new(MsgCreateOnDemandLPResponse)
+	err := c.cc.Invoke(ctx, "/metaearth.eibc.Msg/CreateOnDemandLP", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) DeleteOnDemandLP(ctx context.Context, in *MsgDeleteOnDemandLP, opts ...grpc.CallOption) (*MsgDeleteOnDemandLPResponse, error) {
+	out := new(MsgDeleteOnDemandLPResponse)
+	err := c.cc.Invoke(ctx, "/metaearth.eibc.Msg/DeleteOnDemandLP", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
+	// UpdateParams is used for updating module params.
+	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
+	TryFulfillOnDemand(context.Context, *MsgTryFulfillOnDemand) (*MsgTryFulfillOnDemandResponse, error)
 	FulfillOrder(context.Context, *MsgFulfillOrder) (*MsgFulfillOrderResponse, error)
+	FulfillOrderAuthorized(context.Context, *MsgFulfillOrderAuthorized) (*MsgFulfillOrderAuthorizedResponse, error)
 	UpdateDemandOrder(context.Context, *MsgUpdateDemandOrder) (*MsgUpdateDemandOrderResponse, error)
+	CreateOnDemandLP(context.Context, *MsgCreateOnDemandLP) (*MsgCreateOnDemandLPResponse, error)
+	DeleteOnDemandLP(context.Context, *MsgDeleteOnDemandLP) (*MsgDeleteOnDemandLPResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
 type UnimplementedMsgServer struct {
 }
 
+func (*UnimplementedMsgServer) UpdateParams(ctx context.Context, req *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
+}
+func (*UnimplementedMsgServer) TryFulfillOnDemand(ctx context.Context, req *MsgTryFulfillOnDemand) (*MsgTryFulfillOnDemandResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TryFulfillOnDemand not implemented")
+}
 func (*UnimplementedMsgServer) FulfillOrder(ctx context.Context, req *MsgFulfillOrder) (*MsgFulfillOrderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FulfillOrder not implemented")
+}
+func (*UnimplementedMsgServer) FulfillOrderAuthorized(ctx context.Context, req *MsgFulfillOrderAuthorized) (*MsgFulfillOrderAuthorizedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FulfillOrderAuthorized not implemented")
 }
 func (*UnimplementedMsgServer) UpdateDemandOrder(ctx context.Context, req *MsgUpdateDemandOrder) (*MsgUpdateDemandOrderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDemandOrder not implemented")
 }
+func (*UnimplementedMsgServer) CreateOnDemandLP(ctx context.Context, req *MsgCreateOnDemandLP) (*MsgCreateOnDemandLPResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateOnDemandLP not implemented")
+}
+func (*UnimplementedMsgServer) DeleteOnDemandLP(ctx context.Context, req *MsgDeleteOnDemandLP) (*MsgDeleteOnDemandLPResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteOnDemandLP not implemented")
+}
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
+}
+
+func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateParams(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/metaearth.eibc.Msg/UpdateParams",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateParams(ctx, req.(*MsgUpdateParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_TryFulfillOnDemand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgTryFulfillOnDemand)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).TryFulfillOnDemand(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/metaearth.eibc.Msg/TryFulfillOnDemand",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).TryFulfillOnDemand(ctx, req.(*MsgTryFulfillOnDemand))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_FulfillOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -344,6 +1031,24 @@ func _Msg_FulfillOrder_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).FulfillOrder(ctx, req.(*MsgFulfillOrder))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_FulfillOrderAuthorized_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgFulfillOrderAuthorized)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).FulfillOrderAuthorized(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/metaearth.eibc.Msg/FulfillOrderAuthorized",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).FulfillOrderAuthorized(ctx, req.(*MsgFulfillOrderAuthorized))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -366,21 +1071,140 @@ func _Msg_UpdateDemandOrder_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_CreateOnDemandLP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgCreateOnDemandLP)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).CreateOnDemandLP(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/metaearth.eibc.Msg/CreateOnDemandLP",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).CreateOnDemandLP(ctx, req.(*MsgCreateOnDemandLP))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_DeleteOnDemandLP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgDeleteOnDemandLP)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).DeleteOnDemandLP(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/metaearth.eibc.Msg/DeleteOnDemandLP",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).DeleteOnDemandLP(ctx, req.(*MsgDeleteOnDemandLP))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "metaearth.eibc.Msg",
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "UpdateParams",
+			Handler:    _Msg_UpdateParams_Handler,
+		},
+		{
+			MethodName: "TryFulfillOnDemand",
+			Handler:    _Msg_TryFulfillOnDemand_Handler,
+		},
+		{
 			MethodName: "FulfillOrder",
 			Handler:    _Msg_FulfillOrder_Handler,
+		},
+		{
+			MethodName: "FulfillOrderAuthorized",
+			Handler:    _Msg_FulfillOrderAuthorized_Handler,
 		},
 		{
 			MethodName: "UpdateDemandOrder",
 			Handler:    _Msg_UpdateDemandOrder_Handler,
 		},
+		{
+			MethodName: "CreateOnDemandLP",
+			Handler:    _Msg_CreateOnDemandLP_Handler,
+		},
+		{
+			MethodName: "DeleteOnDemandLP",
+			Handler:    _Msg_DeleteOnDemandLP_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "metaearth/eibc/tx.proto",
+}
+
+func (m *MsgUpdateParams) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateParams) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateParams) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.NewParams.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateParamsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateParamsResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
 }
 
 func (m *MsgFulfillOrder) Marshal() (dAtA []byte, err error) {
@@ -443,6 +1267,131 @@ func (m *MsgFulfillOrderResponse) MarshalTo(dAtA []byte) (int, error) {
 }
 
 func (m *MsgFulfillOrderResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgFulfillOrderAuthorized) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgFulfillOrderAuthorized) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgFulfillOrderAuthorized) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.SettlementValidated {
+		i--
+		if m.SettlementValidated {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x48
+	}
+	{
+		size := m.OperatorFeeShare.Size()
+		i -= size
+		if _, err := m.OperatorFeeShare.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x42
+	if len(m.ExpectedFee) > 0 {
+		i -= len(m.ExpectedFee)
+		copy(dAtA[i:], m.ExpectedFee)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ExpectedFee)))
+		i--
+		dAtA[i] = 0x3a
+	}
+	if len(m.OperatorFeeAddress) > 0 {
+		i -= len(m.OperatorFeeAddress)
+		copy(dAtA[i:], m.OperatorFeeAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OperatorFeeAddress)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.LpAddress) > 0 {
+		i -= len(m.LpAddress)
+		copy(dAtA[i:], m.LpAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.LpAddress)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	{
+		size := m.Amount.Size()
+		i -= size
+		if _, err := m.Amount.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if len(m.Price) > 0 {
+		for iNdEx := len(m.Price) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Price[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTx(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.OrderId) > 0 {
+		i -= len(m.OrderId)
+		copy(dAtA[i:], m.OrderId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OrderId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgFulfillOrderAuthorizedResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgFulfillOrderAuthorizedResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgFulfillOrderAuthorizedResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -517,6 +1466,212 @@ func (m *MsgUpdateDemandOrderResponse) MarshalToSizedBuffer(dAtA []byte) (int, e
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgTryFulfillOnDemand) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgTryFulfillOnDemand) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgTryFulfillOnDemand) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Rng != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.Rng))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Signer) > 0 {
+		i -= len(m.Signer)
+		copy(dAtA[i:], m.Signer)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Signer)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.OrderId) > 0 {
+		i -= len(m.OrderId)
+		copy(dAtA[i:], m.OrderId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OrderId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgTryFulfillOnDemandResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgTryFulfillOnDemandResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgTryFulfillOnDemandResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgCreateOnDemandLP) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgCreateOnDemandLP) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgCreateOnDemandLP) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Signer) > 0 {
+		i -= len(m.Signer)
+		copy(dAtA[i:], m.Signer)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Signer)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Lp != nil {
+		{
+			size, err := m.Lp.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgCreateOnDemandLPResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgCreateOnDemandLPResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgCreateOnDemandLPResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Id != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgDeleteOnDemandLP) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgDeleteOnDemandLP) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgDeleteOnDemandLP) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Ids) > 0 {
+		dAtA4 := make([]byte, len(m.Ids)*10)
+		var j3 int
+		for _, num := range m.Ids {
+			for num >= 1<<7 {
+				dAtA4[j3] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j3++
+			}
+			dAtA4[j3] = uint8(num)
+			j3++
+		}
+		i -= j3
+		copy(dAtA[i:], dAtA4[:j3])
+		i = encodeVarintTx(dAtA, i, uint64(j3))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Signer) > 0 {
+		i -= len(m.Signer)
+		copy(dAtA[i:], m.Signer)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Signer)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgDeleteOnDemandLPResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgDeleteOnDemandLPResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgDeleteOnDemandLPResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -528,6 +1683,30 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+func (m *MsgUpdateParams) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.NewParams.Size()
+	n += 1 + l + sovTx(uint64(l))
+	return n
+}
+
+func (m *MsgUpdateParamsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
 func (m *MsgFulfillOrder) Size() (n int) {
 	if m == nil {
 		return 0
@@ -550,6 +1729,57 @@ func (m *MsgFulfillOrder) Size() (n int) {
 }
 
 func (m *MsgFulfillOrderResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgFulfillOrderAuthorized) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.OrderId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.Price) > 0 {
+		for _, e := range m.Price {
+			l = e.Size()
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	l = m.Amount.Size()
+	n += 1 + l + sovTx(uint64(l))
+	l = len(m.LpAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.OperatorFeeAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.ExpectedFee)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.OperatorFeeShare.Size()
+	n += 1 + l + sovTx(uint64(l))
+	if m.SettlementValidated {
+		n += 2
+	}
+	return n
+}
+
+func (m *MsgFulfillOrderAuthorizedResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -588,11 +1818,263 @@ func (m *MsgUpdateDemandOrderResponse) Size() (n int) {
 	return n
 }
 
+func (m *MsgTryFulfillOnDemand) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.OrderId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Signer)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.Rng != 0 {
+		n += 1 + sovTx(uint64(m.Rng))
+	}
+	return n
+}
+
+func (m *MsgTryFulfillOnDemandResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgCreateOnDemandLP) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Lp != nil {
+		l = m.Lp.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Signer)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgCreateOnDemandLPResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Id != 0 {
+		n += 1 + sovTx(uint64(m.Id))
+	}
+	return n
+}
+
+func (m *MsgDeleteOnDemandLP) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Signer)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.Ids) > 0 {
+		l = 0
+		for _, e := range m.Ids {
+			l += sovTx(uint64(e))
+		}
+		n += 1 + sovTx(uint64(l)) + l
+	}
+	return n
+}
+
+func (m *MsgDeleteOnDemandLPResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
 func sovTx(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *MsgUpdateParams) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateParams: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateParams: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NewParams", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.NewParams.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateParamsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateParamsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateParamsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
 }
 func (m *MsgFulfillOrder) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
@@ -790,6 +2272,388 @@ func (m *MsgFulfillOrderResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *MsgFulfillOrderAuthorized) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgFulfillOrderAuthorized: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgFulfillOrderAuthorized: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrderId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OrderId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Price", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Price = append(m.Price, types.Coin{})
+			if err := m.Price[len(m.Price)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LpAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.LpAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OperatorFeeAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OperatorFeeAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExpectedFee", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExpectedFee = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OperatorFeeShare", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.OperatorFeeShare.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 9:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SettlementValidated", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.SettlementValidated = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgFulfillOrderAuthorizedResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgFulfillOrderAuthorizedResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgFulfillOrderAuthorizedResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *MsgUpdateDemandOrder) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -963,6 +2827,584 @@ func (m *MsgUpdateDemandOrderResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgUpdateDemandOrderResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgTryFulfillOnDemand) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgTryFulfillOnDemand: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgTryFulfillOnDemand: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OrderId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OrderId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Signer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rng", wireType)
+			}
+			m.Rng = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Rng |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgTryFulfillOnDemandResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgTryFulfillOnDemandResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgTryFulfillOnDemandResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgCreateOnDemandLP) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgCreateOnDemandLP: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgCreateOnDemandLP: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Lp", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Lp == nil {
+				m.Lp = &OnDemandLP{}
+			}
+			if err := m.Lp.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Signer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgCreateOnDemandLPResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgCreateOnDemandLPResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgCreateOnDemandLPResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Id |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgDeleteOnDemandLP) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgDeleteOnDemandLP: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgDeleteOnDemandLP: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Signer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType == 0 {
+				var v uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowTx
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.Ids = append(m.Ids, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowTx
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthTx
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthTx
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.Ids) == 0 {
+					m.Ids = make([]uint64, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowTx
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.Ids = append(m.Ids, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Ids", wireType)
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgDeleteOnDemandLPResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgDeleteOnDemandLPResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgDeleteOnDemandLPResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

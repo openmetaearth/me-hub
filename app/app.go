@@ -19,6 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/gogoproto/proto"
 	v3_0_0 "github.com/openmetaearth/me-hub/app/upgrades/v3.0.0"
+	v4_0_0 "github.com/openmetaearth/me-hub/app/upgrades/v4.0.0"
 
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -100,6 +101,7 @@ var (
 	// Upgrades contains the upgrade handlers for the application
 	Upgrades = []upgrades.Upgrade{
 		v3_0_0.Upgrade,
+		v4_0_0.Upgrade,
 	}
 )
 
@@ -293,6 +295,7 @@ func New(
 		MaxTxGasWanted:         maxGasWanted,
 		ExtensionOptionChecker: nil, // uses default
 		RollappKeeper:          *app.RollappKeeper,
+		LightClientKeeper:      &app.LightClientKeeper,
 		DaoKeeper:              app.DaoKeeper,
 		StakingKeeper:          app.StakingKeeper,
 		KycKeeper:              app.KycKeeper,

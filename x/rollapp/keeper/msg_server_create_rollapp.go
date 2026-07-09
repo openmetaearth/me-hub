@@ -2,78 +2,46 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/openmetaearth/me-hub/utils/uevent"
+
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRollapp) (*types.MsgCreateRollappResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.RollappsEnabled(ctx) {
-		return nil, types.ErrRollappsDisabled
+	// Already validated chain id in ValidateBasic, so we assume it's valid
+	rollappId := types.MustNewChainID(msg.RollappId)
+
+	// when creating a new Rollapp, the chainID revision number should always be 1
+	// As we manage rollapp revision in the RollappKeeper, we don't allow increasing chainID revision number.
+	// (IBC has it's own concept of revision which we assume is always 1)
+	if rollappId.GetRevisionNumber() != 1 {
+		return nil, errorsmod.Wrapf(types.ErrInvalidRollappID, "revision number should be 1, got: %d", rollappId.GetRevisionNumber())
 	}
 
-	err := k.checkIfRollappExists(ctx, msg.RollappId)
-	if err != nil {
+	if err := k.CheckIfRollappExists(ctx, rollappId); err != nil {
+		return nil, err
+	}
+	if err := k.validMinBond(ctx, msg.MinSequencerBond); err != nil {
 		return nil, err
 	}
 
-	// check to see if there is an active whitelist
-	//if whitelist := k.DeployerWhitelist(ctx); len(whitelist) > 0 {
-	//	if !k.IsAddressInDeployerWhiteList(ctx, msg.Creator) {
-	//		return nil, types.ErrUnauthorizedRollappCreator
-	//	}
-	//}
+	k.SetRollapp(ctx, msg.GetRollapp())
 
-	rollapp := msg.GetRollapp()
-	err = rollapp.ValidateBasic()
-	if err != nil {
-		return nil, err
+	creator := sdk.MustAccAddressFromBech32(msg.Creator)
+
+	if err := k.hooks.RollappCreated(ctx, msg.RollappId, msg.Alias, creator, msg.FeeDenom); err != nil {
+		return nil, fmt.Errorf("rollapp created hook: %w", err)
 	}
 
-	// Write rollapp information to the store
-	k.SetRollapp(ctx, rollapp)
-
-	err = k.hooks.RollappCreated(ctx, rollapp.RollappId)
-	if err != nil {
-		return nil, err
+	if err := uevent.EmitTypedEvent(ctx, msg); err != nil {
+		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
 	return &types.MsgCreateRollappResponse{}, nil
-}
-
-func (k msgServer) checkIfRollappExists(ctx sdk.Context, RawRollappId string) error {
-	rollappId, err := types.NewChainID(RawRollappId)
-	if err != nil {
-		return err
-	}
-	// check to see if the RollappId has been registered before
-	if _, isFound := k.GetRollapp(ctx, rollappId.GetChainID()); isFound {
-		return types.ErrRollappExists
-	}
-	if !rollappId.IsEIP155() {
-		return nil
-	}
-	// check to see if the RollappId has been registered before with same key
-	existingRollapp, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID())
-	// allow replacing EIP155 only when forking (previous rollapp is frozen)
-	if !isFound {
-		return nil
-	}
-	if !existingRollapp.Frozen {
-		return types.ErrRollappExists
-	}
-	existingRollappChainId, _ := types.NewChainID(existingRollapp.RollappId)
-
-	if rollappId.GetName() != existingRollappChainId.GetName() {
-		return errorsmod.Wrapf(types.ErrInvalidRollappID, "rollapp name should be %s", existingRollappChainId.GetName())
-	}
-
-	nextRevisionNumber := existingRollappChainId.GetRevisionNumber() + 1
-	if rollappId.GetRevisionNumber() != nextRevisionNumber {
-		return errorsmod.Wrapf(types.ErrInvalidRollappID, "revision number should be %d", nextRevisionNumber)
-	}
-	return nil
 }
