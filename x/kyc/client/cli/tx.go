@@ -255,7 +255,7 @@ func CmdDeleteSBT() *cobra.Command {
 
 func CmdCreateSubAccount() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-sub-account [account] [sub_account] [sub_account_pubkey]",
+		Use:   "create-sub-account [sub_account] [sub_account_pubkey]",
 		Short: "bind a sub-account address to a KYC DID",
 		Long: `Bind an ethsecp256k1 sub-account address to a KYC DID.
 
@@ -264,20 +264,18 @@ func CmdCreateSubAccount() *cobra.Command {
 
 The chain verifies that the pubkey derives to sub_account and that the key type
 is ethsecp256k1.`,
-		Args: cobra.ExactArgs(3),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			account := args[0]
-			subAccount := args[1]
-			pubkey := args[2]
+			subAccount := args[0]
+			pubkey := args[1]
 
 			msg := types.NewMsgCreateSubAccount(
 				clientCtx.GetFromAddress().String(),
-				account,
 				subAccount,
 				pubkey,
 			)

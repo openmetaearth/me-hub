@@ -82,8 +82,6 @@ func (s *KeeperTestSuite) setupActiveKyc(addr sdk.AccAddress, pubkey, did string
 }
 
 func (s *KeeperTestSuite) TestCreateSubAccount() {
-	daoCreator := s.Dao.GlobalDao
-
 	s.Run("success", func() {
 		const did = "1111111111111"
 		userAddr, userPubkey := s.newSecp256k1UserAccount()
@@ -92,8 +90,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		subAddr, subPubkey := s.newEthSubAccount()
 
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:          daoCreator,
-			Account:          userAddr.String(),
+			Creator:          userAddr.String(),
 			SubAccount:       subAddr.String(),
 			SubAccountPubkey: subPubkey,
 		})
@@ -112,30 +109,12 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		s.Require().NotNil(account.GetPubKey())
 	})
 
-	s.Run("non-dao creator unauthorized", func() {
-		const did = "1000000000001"
-		userAddr, userPubkey := s.newSecp256k1UserAccount()
-		s.setupActiveKyc(userAddr, userPubkey, did)
-
-		subAddr, subPubkey := s.newEthSubAccount()
-		nonDaoAddr, _ := s.newSecp256k1UserAccount()
-
-		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:          nonDaoAddr.String(),
-			Account:          userAddr.String(),
-			SubAccount:       subAddr.String(),
-			SubAccountPubkey: subPubkey,
-		})
-		s.Require().ErrorIs(err, types.ErrUnauthorized)
-	})
-
-	s.Run("account did not found", func() {
+	s.Run("creator did not found", func() {
 		userAddr, _ := s.newSecp256k1UserAccount()
 		subAddr, subPubkey := s.newEthSubAccount()
 
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:          daoCreator,
-			Account:          userAddr.String(),
+			Creator:          userAddr.String(),
 			SubAccount:       subAddr.String(),
 			SubAccountPubkey: subPubkey,
 		})
@@ -155,8 +134,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 		subAddr, subPubkey := s.newEthSubAccount()
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:          daoCreator,
-			Account:          userAddr.String(),
+			Creator:          userAddr.String(),
 			SubAccount:       subAddr.String(),
 			SubAccountPubkey: subPubkey,
 		})
@@ -170,8 +148,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 		subAddr, subPubkey := s.newEthSubAccount()
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:          daoCreator,
-			Account:          userAddr.String(),
+			Creator:          userAddr.String(),
 			SubAccount:       subAddr.String(),
 			SubAccountPubkey: subPubkey,
 		})
@@ -179,8 +156,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 		subAddr2, subPubkey2 := s.newEthSubAccount()
 		_, err = s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:          daoCreator,
-			Account:          userAddr.String(),
+			Creator:          userAddr.String(),
 			SubAccount:       subAddr2.String(),
 			SubAccountPubkey: subPubkey2,
 		})
@@ -194,8 +170,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 		subAddr, subPubkey := s.newEthSubAccount()
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:          daoCreator,
-			Account:          userAddr3.String(),
+			Creator:          userAddr3.String(),
 			SubAccount:       subAddr.String(),
 			SubAccountPubkey: subPubkey,
 		})
@@ -206,8 +181,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		s.setupActiveKyc(userAddr4, userPubkey4, did4)
 
 		_, err = s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:          daoCreator,
-			Account:          userAddr4.String(),
+			Creator:          userAddr4.String(),
 			SubAccount:       subAddr.String(),
 			SubAccountPubkey: subPubkey,
 		})
@@ -221,23 +195,21 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 		subAddr, _ := s.newEthSubAccount()
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:          daoCreator,
-			Account:          userAddr.String(),
+			Creator:          userAddr.String(),
 			SubAccount:       subAddr.String(),
 			SubAccountPubkey: "not-valid-json",
 		})
 		s.Require().ErrorIs(err, sdkerrors.ErrInvalidPubKey)
 	})
 
-	s.Run("account pubkey not set", func() {
+	s.Run("creator pubkey not set", func() {
 		const did8 = "1010101010101"
 		userAddr, userPubkey := s.newAccountWithoutPubKey()
 		s.setupActiveKyc(userAddr, userPubkey, did8)
 
 		subAddr, subPubkey := s.newEthSubAccount()
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:          daoCreator,
-			Account:          userAddr.String(),
+			Creator:          userAddr.String(),
 			SubAccount:       subAddr.String(),
 			SubAccountPubkey: subPubkey,
 		})
@@ -251,8 +223,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 		subAddr, subPubkey := s.newEthSubAccount()
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:          daoCreator,
-			Account:          userAddr.String(),
+			Creator:          userAddr.String(),
 			SubAccount:       subAddr.String(),
 			SubAccountPubkey: subPubkey,
 		})
@@ -270,8 +241,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		s.Require().NoError(err)
 
 		_, err = s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:          daoCreator,
-			Account:          userAddr.String(),
+			Creator:          userAddr.String(),
 			SubAccount:       secpAddr.String(),
 			SubAccountPubkey: string(secpPubkeyJSON),
 		})
@@ -287,8 +257,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		differentAddr, _ := s.newEthSubAccount()
 
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:          daoCreator,
-			Account:          userAddr.String(),
+			Creator:          userAddr.String(),
 			SubAccount:       differentAddr.String(),
 			SubAccountPubkey: subPubkey,
 		})
@@ -305,8 +274,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		s.Keeper().SetDID(s.Ctx, subAddr, subDid)
 
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
-			Creator:          daoCreator,
-			Account:          userAddr.String(),
+			Creator:          userAddr.String(),
 			SubAccount:       subAddr.String(),
 			SubAccountPubkey: subPubkey,
 		})
