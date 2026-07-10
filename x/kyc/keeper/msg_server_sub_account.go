@@ -25,8 +25,12 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 	}
 
 	holderInfo, found := m.GetDidInfo(ctx, did)
-	if !found || holderInfo.Status != didtypes.DID_STATUS_ACTIVE {
+	if !found {
 		return &types.MsgCreateSubAccountResponse{}, didtypes.ErrHolderNotFound
+	}
+
+	if holderInfo.Status != didtypes.DID_STATUS_ACTIVE {
+		return &types.MsgCreateSubAccountResponse{}, didtypes.ErrDidNotActive
 	}
 
 	if !m.HasKYC(ctx, did) {

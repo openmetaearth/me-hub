@@ -56,6 +56,11 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 		return &types.MsgApproveResponse{}, didtypes.ErrDidExists
 	}
 
+	// check sub account
+	if m.didKeeper.HasDidBySubAccount(ctx, msg.Address) {
+		return &types.MsgApproveResponse{}, didtypes.ErrSubAccountAlreadyRegistered
+	}
+
 	// check region
 	if _, found := m.stkKeeper.GetRegion(ctx, msg.RegionId); !found {
 		return &types.MsgApproveResponse{}, stktypes.ErrRegionNotExist
