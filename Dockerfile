@@ -12,7 +12,7 @@ COPY go.mod go.sum ./
 
 # Cosmwasm - Download correct libwasmvm version
 RUN ARCH=$(uname -m) && \
-    WASMVM_VERSION=$(awk '$1 == "github.com/CosmWasm/wasmvm" { print $2; exit }' go.mod) && \
+    WASMVM_VERSION=$(awk '$1 == "github.com/CosmWasm/wasmvm/v2" { print $2; exit }' go.mod) && \
     test -n "$WASMVM_VERSION" && \
     wget https://github.com/CosmWasm/wasmvm/releases/download/$WASMVM_VERSION/libwasmvm_muslc.$ARCH.a \
     -O /lib/libwasmvm_muslc.$ARCH.a && \

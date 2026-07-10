@@ -9,12 +9,16 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/uevent"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	proofheightante "github.com/openmetaearth/me-hub/x/delayedack/ante"
-	"github.com/openmetaearth/me-hub/utils/uevent"
 
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
+
+// ErrDisabled is returned when genesis transfers are attempted after the bridge is enabled.
+var ErrDisabled = errorsmod.Wrap(gerrc.ErrFault, "genesis transfers are disabled")
 
 // IBCModule GenesisBridge is responsible for handling the genesis bridge protocol.
 // (ADR: https://www.notion.so/dymension/ADR-x-Genesis-Bridge-109a4a51f86a80ba8b50db454bee04a7?pvs=4)
