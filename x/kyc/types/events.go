@@ -1,7 +1,10 @@
 package types
 
 import (
+	"fmt"
+
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 )
 
 const (
@@ -26,6 +29,17 @@ const (
 	AttributeKeyDid             = "did"
 	AttributeKeyCreator         = "creator"
 )
+
+func NewKycEvent(address string, did string, level didtypes.KycLevel, action string, seq uint64) sdktypes.Event {
+	attributes := []sdktypes.Attribute{
+		{Key: "sequence", Value: fmt.Sprintf("%d", seq)},
+		{Key: "address", Value: address},
+		{Key: "did", Value: did},
+		{Key: "level", Value: level.String()},
+		{Key: "action", Value: action},
+	}
+	return sdktypes.NewEvent("kyc_event", attributes...)
+}
 
 func NewSbtEvent(eventType, did, uri, hash, regionId, kycLevel, meIdAddress string) sdktypes.Event {
 	attributes := []sdktypes.Attribute{
