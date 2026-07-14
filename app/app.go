@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_15_rc2"
 	"io"
 	"io/fs"
 	"net/http"
@@ -76,6 +77,7 @@ var (
 	Upgrades = []upgrades.Upgrade{
 		v2_0_14.Upgrade,
 		v2_0_15.Upgrade,
+		v2_0_15_rc2.Upgrade,
 	}
 )
 
