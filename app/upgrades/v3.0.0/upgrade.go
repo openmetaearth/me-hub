@@ -23,12 +23,13 @@ import (
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
+	wgovkeeper "github.com/openmetaearth/me-hub/x/wgov/keeper"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v3.0.0.
 //
 // This upgrade:
-//  1. Migrates Cosmos SDK v0.47 → v0.50 (consensus params: x/params → x/consensus).
+//  1. Migrates Cosmos SDK v0.47 → v0.50 (consensus params; gov 4→5 via RunMigrations).
 //  2. Aligns settlement modules with Dymension Hub v4 (params → module store, new schemas).
 //  3. Adds the lightclient module store key and backfills canonical clients.
 func CreateUpgradeHandler(
@@ -50,6 +51,13 @@ func CreateUpgradeHandler(
 			return nil, fmt.Errorf("migrate consensus params: %w", err)
 		}
 		logger.Info("migrated consensus params from x/params to x/consensus")
+
+		// RunMigrations already ran gov Migrate4to5 (adds expedited_* from DefaultParams).
+		// Fix stake denom + expedited period vs chain VotingPeriod.
+		if err := updateGovParams(ctx, keepers.GovKeeper); err != nil {
+			panic(fmt.Sprintf("update gov params: %v", err))
+		}
+		logger.Info("updated gov expedited params after Migrate4to5")
 
 		oldSeqParams := migrateSequencerParams(ctx, keepers)
 		logger.Info("migrated sequencer params to module store",
@@ -232,5 +240,46 @@ func migrateRollappLightClients(
 		lightClientKeeper.SetCanonicalClient(ctx, rollapp.RollappId, connection.GetClientID())
 	}
 
+	return nil
+}
+
+// updateGovParams fixes gov params after SDK v0.47 → v0.50 (gov consensus 4 → 5).
+// Migrate4to5 fills new expedited_* fields from DefaultParams:
+//   - ExpeditedMinDeposit uses denom "stake" → rewrite to chain MinDeposit denom
+//   - ExpeditedVotingPeriod defaults to 1 day, which is invalid when VotingPeriod
+//     is shorter (common on testnets, e.g. 300s) → clamp to VotingPeriod / 2
+func updateGovParams(ctx sdk.Context, k *wgovkeeper.Keeper) error {
+	if k == nil {
+		return fmt.Errorf("nil GovKeeper")
+	}
+
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		return fmt.Errorf("get gov params: %w", err)
+	}
+	if len(params.MinDeposit) == 0 {
+		return fmt.Errorf("gov MinDeposit is empty after migration")
+	}
+
+	// Expedited min deposit = 5 × min deposit (same denom as chain bond denom).
+	params.ExpeditedMinDeposit = sdk.NewCoins(
+		sdk.NewCoin(params.MinDeposit[0].Denom, params.MinDeposit[0].Amount.MulRaw(5)),
+	)
+
+	if params.VotingPeriod != nil {
+		if params.ExpeditedVotingPeriod == nil ||
+			params.ExpeditedVotingPeriod.Seconds() >= params.VotingPeriod.Seconds() {
+			expedited := *params.VotingPeriod / 2
+			params.ExpeditedVotingPeriod = &expedited
+		}
+	}
+
+	if err := params.ValidateBasic(); err != nil {
+		return fmt.Errorf("gov params invalid after migration fix: %w", err)
+	}
+
+	if err := k.Params.Set(ctx, params); err != nil {
+		return fmt.Errorf("set gov params: %w", err)
+	}
 	return nil
 }
