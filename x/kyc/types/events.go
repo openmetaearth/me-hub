@@ -30,7 +30,13 @@ const (
 	AttributeKeyCreator         = "creator"
 )
 
-func NewKycEvent(address string, did string, level didtypes.KycLevel, action string, seq uint64) sdktypes.Event {
+func NewKycEvent(
+	address string,
+	did string,
+	level didtypes.KycLevel,
+	action string,
+	seq uint64,
+) sdktypes.Event {
 	attributes := []sdktypes.Attribute{
 		{Key: "sequence", Value: fmt.Sprintf("%d", seq)},
 		{Key: "address", Value: address},
