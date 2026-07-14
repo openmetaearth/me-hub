@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/openmetaearth/me-hub/app/upgrades"
 	legacydelayedack "github.com/openmetaearth/me-hub/app/upgrades/v3.0.0/types/delayedack"
 	legacyeibc "github.com/openmetaearth/me-hub/app/upgrades/v3.0.0/types/eibc"
@@ -15,6 +18,8 @@ import (
 	legacysequencer "github.com/openmetaearth/me-hub/app/upgrades/v3.0.0/types/sequencer"
 	delayedacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
 	eibctypes "github.com/openmetaearth/me-hub/x/eibc/types"
+	lightclientkeeper "github.com/openmetaearth/me-hub/x/lightclient/keeper"
+	lightclienttypes "github.com/openmetaearth/me-hub/x/lightclient/types"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
@@ -23,9 +28,9 @@ import (
 // CreateUpgradeHandler creates an SDK upgrade handler for v3.0.0.
 //
 // This upgrade:
-//  1. Migrates the chain from Cosmos SDK v0.47 to v0.50 (incl. wstaking validators).
+//  1. Migrates Cosmos SDK v0.47 → v0.50 (consensus params: x/params → x/consensus).
 //  2. Aligns settlement modules with Dymension Hub v4 (params → module store, new schemas).
-//  3. Adds the lightclient module store key.
+//  3. Adds the lightclient module store key and backfills canonical clients.
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
@@ -40,6 +45,11 @@ func CreateUpgradeHandler(
 		if err != nil {
 			return nil, err
 		}
+
+		if err := migrateModuleParams(ctx, keepers); err != nil {
+			return nil, fmt.Errorf("migrate consensus params: %w", err)
+		}
+		logger.Info("migrated consensus params from x/params to x/consensus")
 
 		oldSeqParams := migrateSequencerParams(ctx, keepers)
 		logger.Info("migrated sequencer params to module store",
@@ -62,7 +72,12 @@ func CreateUpgradeHandler(
 		backfillRollappMinSequencerBond(ctx, keepers.RollappKeeper)
 		logger.Info("backfilled rollapp min_sequencer_bond")
 
-		logger.Info("added lightclient store key")
+		if err := migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper); err != nil {
+			return nil, fmt.Errorf("migrate rollapp light clients: %w", err)
+		}
+		logger.Info("migrated rollapp canonical light clients")
+
+		logger.Info("added consensus + lightclient store keys")
 		logger.Info("upgrade finished successfully.")
 		return migrations, nil
 	}
@@ -74,6 +89,21 @@ func legacySubspace(keepers *upgrades.UpgradeKeepers, name string, kt paramstype
 		ss = ss.WithKeyTable(kt)
 	}
 	return ss
+}
+
+// migrateModuleParams moves CometBFT consensus parameters from the legacy
+// x/params "baseapp" subspace into x/consensus. Required for SDK v0.47 → v0.50.
+//
+//nolint:staticcheck // ConsensusParamsKeyTable / Paramspace are intentionally used for upgrade migration.
+func migrateModuleParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) error {
+	if keepers.ConsensusKeeper == nil {
+		return errorsmod.Wrap(fmt.Errorf("nil ConsensusKeeper"), "migrate consensus params")
+	}
+
+	baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).
+		WithKeyTable(paramstypes.ConsensusParamsKeyTable()) //nolint:staticcheck
+
+	return baseapp.MigrateParams(ctx, baseAppLegacySS, keepers.ConsensusKeeper.ParamsStore)
 }
 
 func migrateSequencerParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) legacysequencer.Params {
@@ -168,4 +198,39 @@ func backfillRollappMinSequencerBond(ctx sdk.Context, rk *rollappkeeper.Keeper) 
 			rk.SetRollapp(ctx, ra)
 		}
 	}
+}
+
+// migrateRollappLightClients backfills canonical IBC client IDs for rollapps that
+// already have a ChannelId from me-hub v2 (transfergenesis / canonical channel hack).
+func migrateRollappLightClients(
+	ctx sdk.Context,
+	rk *rollappkeeper.Keeper,
+	lightClientKeeper *lightclientkeeper.Keeper,
+	ibcChannelKeeper lightclienttypes.IBCChannelKeeperExpected,
+) error {
+	if lightClientKeeper == nil || ibcChannelKeeper == nil {
+		return errorsmod.Wrap(fmt.Errorf("nil keeper"), "lightclient migration")
+	}
+
+	for _, rollapp := range rk.GetAllRollapps(ctx) {
+		if rollapp.ChannelId == "" {
+			continue
+		}
+
+		_, connection, err := ibcChannelKeeper.GetChannelConnection(ctx, ibctransfertypes.PortID, rollapp.ChannelId)
+		if err != nil {
+			// Match Dymension: skip if connection cannot be resolved for this channel.
+			ctx.Logger().With("upgrade", UpgradeName).Error(
+				"skip canonical client migration: channel connection not found",
+				"rollapp_id", rollapp.RollappId,
+				"channel_id", rollapp.ChannelId,
+				"err", err,
+			)
+			continue
+		}
+
+		lightClientKeeper.SetCanonicalClient(ctx, rollapp.RollappId, connection.GetClientID())
+	}
+
+	return nil
 }

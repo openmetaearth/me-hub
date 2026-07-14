@@ -132,8 +132,5 @@ validator_address=$(med keys show "$KEY_NAME" -a --keyring-backend test)
 med gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test --region-id me_earth --validator-address "$validator_address"
 med collect-gentxs
 
-set_authorised_deployer_account "$(med keys show "$KEY_NAME" -a --keyring-backend test)"
-set_authorised_deployer_account "$(med keys show "$KEY_NAME_SEQUENCER" -a --keyring-backend test)"
-
 med validate-genesis
 #med start
