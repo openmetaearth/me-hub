@@ -1,4 +1,4 @@
-package v3_0_0
+package v3
 
 import (
 	"context"
@@ -12,26 +12,28 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/openmetaearth/me-hub/app/upgrades"
-	legacydelayedack "github.com/openmetaearth/me-hub/app/upgrades/v3.0.0/types/delayedack"
-	legacyeibc "github.com/openmetaearth/me-hub/app/upgrades/v3.0.0/types/eibc"
-	legacyrollapp "github.com/openmetaearth/me-hub/app/upgrades/v3.0.0/types/rollapp"
-	legacysequencer "github.com/openmetaearth/me-hub/app/upgrades/v3.0.0/types/sequencer"
+	legacydelayedack "github.com/openmetaearth/me-hub/app/upgrades/v3/types/delayedack"
+	legacyeibc "github.com/openmetaearth/me-hub/app/upgrades/v3/types/eibc"
+	legacyrollapp "github.com/openmetaearth/me-hub/app/upgrades/v3/types/rollapp"
+	legacysequencer "github.com/openmetaearth/me-hub/app/upgrades/v3/types/sequencer"
 	delayedacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
 	eibctypes "github.com/openmetaearth/me-hub/x/eibc/types"
 	lightclientkeeper "github.com/openmetaearth/me-hub/x/lightclient/keeper"
 	lightclienttypes "github.com/openmetaearth/me-hub/x/lightclient/types"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
+	sequencerkeeper "github.com/openmetaearth/me-hub/x/sequencer/keeper"
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 	wgovkeeper "github.com/openmetaearth/me-hub/x/wgov/keeper"
 )
 
-// CreateUpgradeHandler creates an SDK upgrade handler for v3.0.0.
+// CreateUpgradeHandler creates an SDK upgrade handler for v3.
 //
 // This upgrade:
 //  1. Migrates Cosmos SDK v0.47 → v0.50 (legacy baseapp consensus params if any; gov 4→5 via RunMigrations).
 //  2. Aligns settlement modules with Dymension Hub v4 (params → module store, new schemas).
 //  3. Adds the lightclient module store key and backfills canonical clients.
+//  4. Backfills sequencer dymint-addr / proposer indexes required by lightclient IBC checks.
 //
 // StoreUpgrades only add lightclient — consensus already existed on med-v2 from genesis.
 func CreateUpgradeHandler(
@@ -81,6 +83,16 @@ func CreateUpgradeHandler(
 		// Existing rollapps need MinSequencerBond filled (moved out of sequencer params).
 		backfillRollappMinSequencerBond(ctx, keepers.RollappKeeper)
 		logger.Info("backfilled rollapp min_sequencer_bond")
+
+		// MUST run before migrateRollappLightClients: canonical clients require
+		// SequencerByDymintAddr so MsgUpdateClient from sequencers is accepted.
+		if err := backfillSequencerIndexes(ctx, keepers.SequencerKeeper); err != nil {
+			return nil, fmt.Errorf("backfill sequencer indexes: %w", err)
+		}
+
+		migrateSequencers(ctx, keepers.SequencerKeeper)
+
+		logger.Info("backfilled sequencer dymint-addr and proposer indexes")
 
 		if err := migrateRollappLightClients(ctx, keepers.RollappKeeper, keepers.LightClientKeeper, keepers.IBCKeeper.ChannelKeeper); err != nil {
 			return nil, fmt.Errorf("migrate rollapp light clients: %w", err)
@@ -208,6 +220,53 @@ func backfillRollappMinSequencerBond(ctx sdk.Context, rk *rollappkeeper.Keeper) 
 			rk.SetRollapp(ctx, ra)
 		}
 	}
+}
+
+// backfillSequencerIndexes fills v3-only indexes that InitGenesis would set for
+// new chains, but which are missing after an in-place upgrade from med-v2:
+//   - dymintProposerAddr → sequencer account (required by lightclient MsgUpdateClient)
+//   - opted_in=true for bonded sequencers (v2 had no opted_in; default false blocks proposers)
+//   - proposer-by-rollapp key (v2 stored proposer as a bool on the sequencer object)
+func backfillSequencerIndexes(ctx sdk.Context, k *sequencerkeeper.Keeper) error {
+	if k == nil {
+		return fmt.Errorf("nil SequencerKeeper")
+	}
+
+	// rollappID → best bonded sequencer to assign as proposer if missing
+	proposers := map[string]sequencertypes.Sequencer{}
+
+	for _, seq := range k.AllSequencers(ctx) {
+		if seq.DymintPubKey != nil {
+			proposerAddr, err := seq.ProposerAddr()
+			if err != nil {
+				return fmt.Errorf("sequencer %s proposer addr: %w", seq.Address, err)
+			}
+			if err := k.SetSequencerByDymintAddr(ctx, proposerAddr, seq.Address); err != nil {
+				return fmt.Errorf("set sequencer by dymint addr %s: %w", seq.Address, err)
+			}
+		}
+
+		if seq.Bonded() && !seq.OptedIn {
+			seq.OptedIn = true
+			k.SetSequencer(ctx, seq)
+		}
+
+		if !seq.Bonded() {
+			continue
+		}
+		cur, ok := proposers[seq.RollappId]
+		if !ok || seq.Tokens.IsAllGT(cur.Tokens) {
+			proposers[seq.RollappId] = seq
+		}
+	}
+
+	for rollappID, seq := range proposers {
+		if k.GetProposer(ctx, rollappID).Sentinel() {
+			k.SetProposer(ctx, rollappID, seq.Address)
+		}
+	}
+
+	return nil
 }
 
 // migrateRollappLightClients backfills canonical IBC client IDs for rollapps that
