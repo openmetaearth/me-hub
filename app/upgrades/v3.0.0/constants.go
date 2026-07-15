@@ -2,7 +2,6 @@ package v3_0_0
 
 import (
 	storetypes "cosmossdk.io/store/types"
-	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/openmetaearth/me-hub/app/upgrades"
 	lightclientmoduletypes "github.com/openmetaearth/me-hub/x/lightclient/types"
 )
@@ -16,7 +15,10 @@ var Upgrade = upgrades.Upgrade{
 	CreateHandler: CreateUpgradeHandler,
 	StoreUpgrades: storetypes.StoreUpgrades{
 		Added: []string{
-			consensusparamtypes.StoreKey, // SDK v0.47 → v0.50: consensus params leave x/params
+			// NOTE: consensus store must NOT be listed here — med-v2 already mounted
+			// consensusparamtypes.StoreKey from genesis (height 1). Marking it Added
+			// sets IAVL initialVersion to upgradeHeight and fails with:
+			// "initial version set to N, but found earlier version 1".
 			lightclientmoduletypes.StoreKey,
 		},
 	},

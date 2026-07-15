@@ -29,9 +29,11 @@ import (
 // CreateUpgradeHandler creates an SDK upgrade handler for v3.0.0.
 //
 // This upgrade:
-//  1. Migrates Cosmos SDK v0.47 → v0.50 (consensus params; gov 4→5 via RunMigrations).
+//  1. Migrates Cosmos SDK v0.47 → v0.50 (legacy baseapp consensus params if any; gov 4→5 via RunMigrations).
 //  2. Aligns settlement modules with Dymension Hub v4 (params → module store, new schemas).
 //  3. Adds the lightclient module store key and backfills canonical clients.
+//
+// StoreUpgrades only add lightclient — consensus already existed on med-v2 from genesis.
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
@@ -85,7 +87,7 @@ func CreateUpgradeHandler(
 		}
 		logger.Info("migrated rollapp canonical light clients")
 
-		logger.Info("added consensus + lightclient store keys")
+		logger.Info("added lightclient store key")
 		logger.Info("upgrade finished successfully.")
 		return migrations, nil
 	}
