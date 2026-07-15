@@ -46,6 +46,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
@@ -114,6 +115,8 @@ func (app *App) SetupModules(
 		upgrade.NewAppModule(app.UpgradeKeeper, app.AccountKeeper.AddressCodec()),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
+		// Register 07-tendermint ClientState/ConsensusState with the interface registry (ibc-go v7+).
+		ibctm.NewAppModule(),
 		params.NewAppModule(app.ParamsKeeper),
 		packetforwardmiddleware.NewAppModule(app.PacketForwardMiddlewareKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(app.TransferKeeper),
