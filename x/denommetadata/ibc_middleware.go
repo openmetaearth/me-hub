@@ -128,7 +128,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	dm := types.ParsePacketMetadata(packetData.Memo)
+dm := types.ParsePacketMetadata(packetData.Memo)
 	if dm == nil {
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
