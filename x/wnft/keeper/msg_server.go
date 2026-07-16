@@ -101,11 +101,11 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 
 	tokenId, err := strconv.ParseUint(msg.TokenId, 10, 64)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id")
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id, token id must be a valid unsigned integer")
 	}
 
 	if tokenId < 1 || tokenId > class.TotalSupply {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id")
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id, token id must be between 1 and the total supply of the NFT type")
 	}
 
 	if k.GetTotalSupply(ctx, msg.ClassId) >= class.TotalSupply {
