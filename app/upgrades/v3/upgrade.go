@@ -81,6 +81,13 @@ func CreateUpgradeHandler(
 		migrateEIBCParams(ctx, keepers)
 		logger.Info("migrated eibc params to module store")
 
+		// MUST run before migrateRollapps: v2 registeredDenoms live on the rollapp
+		// object (field 10), which is dropped when the object is rewritten to v3.
+		if err := migrateRollappRegisteredDenoms(ctx, keepers.RollappKeeper); err != nil {
+			return nil, fmt.Errorf("migrate rollapp registered denoms: %w", err)
+		}
+		logger.Info("migrated rollapp registered denoms to keyset")
+
 		// Convert v2 rollapps → v3 (transfers_enabled → transfer_proof_height, launched, etc).
 		// MUST run before lightclient migration / before any IBC traffic after upgrade.
 		if err := migrateRollapps(ctx, keepers.RollappKeeper); err != nil {

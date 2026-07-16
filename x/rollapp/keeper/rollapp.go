@@ -306,6 +306,20 @@ func (k Keeper) FilterRollapps(ctx sdk.Context, f func(types.Rollapp) bool) []ty
 	return result
 }
 
+// IterateRollappBytes iterates over raw rollapp store values.
+// Used by upgrades that must read legacy fields discarded by the current codec.
+func (k Keeper) IterateRollappBytes(ctx sdk.Context, cb func(value []byte) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		if cb(iterator.Value()) {
+			return
+		}
+	}
+}
+
 func (k Keeper) IsDRSVersionObsolete(ctx sdk.Context, version uint32) bool {
 	ok, err := k.obsoleteDRSVersions.Has(ctx, version)
 	if err != nil {
