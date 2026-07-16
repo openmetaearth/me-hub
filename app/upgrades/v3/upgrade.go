@@ -32,8 +32,9 @@ import (
 // This upgrade:
 //  1. Migrates Cosmos SDK v0.47 → v0.50 (legacy baseapp consensus params if any; gov 4→5 via RunMigrations).
 //  2. Aligns settlement modules with Dymension Hub v4 (params → module store, new schemas).
-//  3. Adds the lightclient module store key and backfills canonical clients.
-//  4. Backfills sequencer dymint-addr / proposer indexes required by lightclient IBC checks.
+//  3. Migrates rollapps (v2 transfers_enabled → transfer_proof_height; launched/genesis info).
+//  4. Adds the lightclient module store key and backfills canonical clients.
+//  5. Backfills sequencer dymint-addr / proposer indexes required by lightclient IBC checks.
 //
 // StoreUpgrades only add lightclient — consensus already existed on med-v2 from genesis.
 func CreateUpgradeHandler(
@@ -80,9 +81,12 @@ func CreateUpgradeHandler(
 		migrateEIBCParams(ctx, keepers)
 		logger.Info("migrated eibc params to module store")
 
-		// Existing rollapps need MinSequencerBond filled (moved out of sequencer params).
-		backfillRollappMinSequencerBond(ctx, keepers.RollappKeeper)
-		logger.Info("backfilled rollapp min_sequencer_bond")
+		// Convert v2 rollapps → v3 (transfers_enabled → transfer_proof_height, launched, etc).
+		// MUST run before lightclient migration / before any IBC traffic after upgrade.
+		if err := migrateRollapps(ctx, keepers.RollappKeeper); err != nil {
+			return nil, fmt.Errorf("migrate rollapps: %w", err)
+		}
+		logger.Info("migrated rollapps to v3 schema")
 
 		// MUST run before migrateRollappLightClients: canonical clients require
 		// SequencerByDymintAddr so MsgUpdateClient from sequencers is accepted.
@@ -210,16 +214,6 @@ func migrateEIBCParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {
 		}
 	}
 	keepers.EIBCKeeper.SetParams(ctx, params)
-}
-
-func backfillRollappMinSequencerBond(ctx sdk.Context, rk *rollappkeeper.Keeper) {
-	minBond := rk.MinSequencerBondGlobal(ctx)
-	for _, ra := range rk.GetAllRollapps(ctx) {
-		if len(ra.MinSequencerBond) == 0 && minBond.IsValid() && !minBond.IsZero() {
-			ra.MinSequencerBond = sdk.NewCoins(minBond)
-			rk.SetRollapp(ctx, ra)
-		}
-	}
 }
 
 // backfillSequencerIndexes fills v3-only indexes that InitGenesis would set for
