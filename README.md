@@ -206,10 +206,6 @@ func (q Querier) Params(goCtx context.Context, req *types.QueryParamsRequest) (*
 
 Open your browser and go to `http://localhost:1318/openmetaearth/me-hub/eibc/params` and you will see debugger stop and print the value at the breakpoint.
 
-## Developer
-
-For support, join our [Discord](http://discord.gg/ME) community and find us in the Developer section.
-
 ### Setup push hooks
 
 To setup push hooks, run the following command:
