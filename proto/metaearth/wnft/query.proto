@@ -22,6 +22,11 @@ service Query {
       body: "*"
     };
   }
+
+  // queries nft class total supply
+  rpc ClassTotalSupply(QueryClassSupplyRequest) returns (QueryClassSupplyResponse) {
+    option (google.api.http).get = "/metaearth/wnft/class_total_supply/{class_id}";
+  }
 }
 
 // QueryClassRequest is the request type for the Query/Class RPC method
@@ -72,4 +77,12 @@ message NftList {
   string uri = 3;
 
   string owner = 4;
+}
+
+message QueryClassSupplyRequest {
+  string class_id = 1;
+}
+
+message QueryClassSupplyResponse {
+  uint64 total_supply = 1;
 }
