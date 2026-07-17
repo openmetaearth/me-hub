@@ -123,3 +123,19 @@ func (k Keeper) NftFilter(goCtx context.Context, r *types.QueryNftFilterRequest)
 	}
 	return nil, nil
 }
+
+func (k Keeper) ClassTotalSupply(goCtx context.Context, r *types.QueryClassSupplyRequest) (*types.QueryClassSupplyResponse, error) {
+	if r == nil {
+		return nil, sdkerrors.ErrInvalidRequest.Wrap("empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	_, ok := k.GetClass(ctx, r.ClassId)
+	if !ok {
+		return nil, sdkerrors.ErrInvalidRequest.Wrapf("class %s does not exist", r.ClassId)
+	}
+
+	return &types.QueryClassSupplyResponse{
+		TotalSupply: k.GetClassTotalSupplyCap(ctx, r.ClassId),
+	}, nil
+}
