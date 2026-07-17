@@ -1,10 +1,14 @@
 syntax = "proto3";
 package metaearth.rollapp;
 
-// this line is used by starport scaffolding # proto/tx/import
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "metaearth/rollapp/block_descriptor.proto";
+import "metaearth/rollapp/genesis_info.proto";
+import "metaearth/rollapp/metadata.proto";
+import "metaearth/rollapp/params.proto";
 import "metaearth/rollapp/rollapp.proto";
 
 option go_package = "github.com/openmetaearth/me-hub/x/rollapp/types";
@@ -12,11 +16,37 @@ option go_package = "github.com/openmetaearth/me-hub/x/rollapp/types";
 // Msg defines the Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
+
+  // UpdateParams is used for updating module params.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
-  rpc SkipDelayRollapp(MsgSkipDelayRollapp) returns (MsgSkipDelayRollappResponse);
+  rpc UpdateRollappInformation(MsgUpdateRollappInformation) returns (MsgUpdateRollappInformationResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
-  rpc UpdateRollapp(MsgUpdateRollapp) returns (MsgUpdateRollappResponse);
+  rpc TransferOwnership(MsgTransferOwnership) returns (MsgTransferOwnershipResponse);
+  rpc AddApp(MsgAddApp) returns (MsgAddAppResponse);
+  rpc UpdateApp(MsgUpdateApp) returns (MsgUpdateAppResponse);
+  rpc RemoveApp(MsgRemoveApp) returns (MsgRemoveAppResponse);
+  rpc MarkObsoleteRollapps(MsgMarkObsoleteRollapps) returns (MsgMarkObsoleteRollappsResponse);
+
+  rpc FastFinalizeWithTEE(MsgFastFinalizeWithTEE) returns (MsgFastFinalizeWithTEEResponse);
+  rpc ToggleTEE(MsgToggleTEE) returns (MsgToggleTEEResponse);
+
+  // SkipDelayRollapp toggles delayed-ack bypass for a rollapp (DAO only).
+  rpc SkipDelayRollapp(MsgSkipDelayRollapp) returns (MsgSkipDelayRollappResponse);
 }
+
+// MsgUpdateParams allows to update module params.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the address that controls the module.
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // NewParams should be fully populated.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+
+message MsgUpdateParamsResponse {}
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.
 message MsgCreateRollapp {
@@ -24,20 +54,55 @@ message MsgCreateRollapp {
   // creator is the bech32-encoded address of the rollapp creator
   string creator = 1;
   // rollappId is the unique identifier of the rollapp chain.
-  // The rollappId follows the same standard as cosmos chain_id
-  string rollappId = 2; // [(gogoproto.customname) = "ChainID"];
-  // maxSequencers is the maximum number of sequencers
-  uint64 maxSequencers = 6;
-  // permissionedAddresses is a bech32-encoded address list of the
-  // sequencers that are allowed to serve this rollappId.
-  // In the case of an empty list, the rollapp is considered permissionless
-  repeated string permissionedAddresses = 7;
-  reserved 8;
-  reserved 9;
-  reserved 10;
+  // The rollapp_id follows the same standard as cosmos chain_id
+  string rollapp_id = 2;
+  reserved 3 to 10;
+  // initial_sequencer takes one or more coma-separated bech32-encoded addresses
+  // of the sequencer(s) that are allowed to initially serve this rollappId.
+  string initial_sequencer = 11;
+  // see Rollapp for more details
+  cosmos.base.v1beta1.Coin min_sequencer_bond = 16 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"min_sequencer_bond\""
+  ];
+  // alias is the chain alias used for display and namespace system
+  string alias = 12;
+  // metadata is the rollapp metadata
+  RollappMetadata metadata = 13;
+  // genesis_info is the genesis information
+  GenesisInfo genesis_info = 14 [(gogoproto.nullable) = true];
+  // vm_type is the type of rollapp machine: EVM or WASM
+  Rollapp.VMType vm_type = 15;
+  // fee_denom is OPTIONAL denom used for paying rollapp registration fees. If
+  // not provided, the default fee denom will be used.
+  string fee_denom = 17;
 }
 
 message MsgCreateRollappResponse {}
+
+// MsgUpdateRollappInformation updates the rollapp information.
+message MsgUpdateRollappInformation {
+  option (cosmos.msg.v1.signer) = "owner";
+  // owner is the bech32-encoded address of the rollapp owner
+  string owner = 1;
+  // rollapp_id is the unique identifier of the rollapp chain.
+  string rollapp_id = 2;
+  // initial_sequencer is one or more bech32-encoded address of the
+  // sequencer that are allowed to initially serve this rollappId.
+  // wildcard '*' means any sequencer is allowed to be the first proposer.
+  string initial_sequencer = 3;
+  // see Rollapp for more details
+  cosmos.base.v1beta1.Coin min_sequencer_bond = 7 [
+    (gogoproto.nullable) = true,
+    (gogoproto.moretags) = "yaml:\"min_sequencer_bond\""
+  ];
+  // metadata is the rollapp metadata
+  RollappMetadata metadata = 5 [(gogoproto.nullable) = true];
+  // genesis_info is the genesis information
+  GenesisInfo genesis_info = 6 [(gogoproto.nullable) = true];
+}
+
+message MsgUpdateRollappInformationResponse {}
 
 // MsgUpdateState updates a rollapp state with a block batch.
 // a block batch is a list of ordered blocks (by height)
@@ -54,32 +119,153 @@ message MsgUpdateState {
   uint64 numBlocks = 4;
   // DAPath is the description of the location on the DA layer
   string DAPath = 5;
-  // version is the version of the rollapp
-  uint64 version = 6;
+
+  reserved 6;
   // BDs is a list of block description objects (one per block)
   // the list must be ordered by height, starting from startHeight to
   // startHeight+numBlocks-1
   BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
+  // last is true if this is the last batch of the sequencer
+  bool last = 8;
+  // rollapp_revision is the revision of the rollapp chain. increases after hard
+  // fork
+  uint64 rollapp_revision = 9;
 }
 
 message MsgUpdateStateResponse {}
 
+// MsgTransferOwnership transfers the ownership of a rollapp chain to a new
+// owner.
+message MsgTransferOwnership {
+  option (cosmos.msg.v1.signer) = "current_owner";
+  // current_owner is the bech32-encoded address of the current owner
+  string current_owner = 1;
+  // new_owner is the bech32-encoded address of the new owner
+  string new_owner = 2;
+  // rollapp_id is the unique identifier of the rollapp chain.
+  string rollapp_id = 3;
+}
+
+message MsgTransferOwnershipResponse {}
+
+// MsgAddApp adds an app to the rollapp.
+message MsgAddApp {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the app creator
+  string creator = 1;
+  // name is the unique App's name
+  string name = 2;
+  // rollapp_id is the id of the Rollapp the App belongs to
+  string rollapp_id = 3;
+  // description is the description of the App
+  string description = 4;
+  // image is the url to the App image
+  string image = 5;
+  // url is the URL to the App's website
+  string url = 6;
+  // order is the order of the App in the Rollapp
+  int32 order = 7;
+}
+
+message MsgAddAppResponse {}
+
+// MsgUpdateApp updates the app information.
+message MsgUpdateApp {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the app owner
+  string creator = 1;
+  // id is the unique App's id in the Rollapp
+  uint64 id = 2;
+  // name is the unique App's name (immutable)
+  string name = 3;
+  // rollapp_id is the id of the Rollapp the App belongs to
+  string rollapp_id = 4;
+  // description is the description of the App
+  string description = 5;
+  // image is the url to the App image
+  string image = 6;
+  // url is the URL to the App's website
+  string url = 7;
+  // order is the order of the App in the Rollapp
+  int32 order = 8;
+}
+
+message MsgUpdateAppResponse {}
+
+// MsgRemoveApp removes an app from the rollapp.
+message MsgRemoveApp {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the app owner
+  string creator = 1;
+  // id is the unique App's id in the Rollapp
+  uint64 id = 2;
+  // rollapp_id is the id of the Rollapp the App belongs to
+  string rollapp_id = 3;
+}
+
+message MsgRemoveAppResponse {}
+
+// MsgMarkObsoleteRollapps marks specified versions as obsolete as well as
+// all corresponding rollapps. Must be called by the governance.
+message MsgMarkObsoleteRollapps {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // Authority is the authority address.
+  string authority = 1;
+  // DrsVersions is a list of DRS versions that will be marked obsolete.
+  repeated uint32 drs_versions = 2;
+}
+
+message MsgMarkObsoleteRollappsResponse {}
+
+// MsgFastFinalizeWithTEE fast-finalizes rollapp state using TEE attestation
+message MsgFastFinalizeWithTEE {
+  option (cosmos.msg.v1.signer) = "creator";
+
+  // creator must be the active sequencer for the rollapp
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // attestation_token is the JWT token from GCP
+  string attestation_token = 4;
+
+  // nonce contains the data that was signed by TEE
+  TEENonce nonce = 5 [(gogoproto.nullable) = false];
+}
+
+// what the verifying full node inside the tee actually attests over
+message TEENonce {
+  string rollapp_id = 1;
+  string hub_chain_id = 2;
+  // an already finalized height the TEE started at
+  uint64 finalized_height = 3;
+  // height TEE recently validated
+  uint64 curr_height = 4;
+  //// stateRoot/appHash is a 32 byte array of the hash of the block
+  bytes state_root = 5;
+}
+
+// MsgFastFinalizeWithTEEResponse is the response for MsgFastFinalizeWithTEE
+message MsgFastFinalizeWithTEEResponse {}
+
+// MsgToggleTEE toggles the TEE feature for a rollapp
+message MsgToggleTEE {
+  option (cosmos.msg.v1.signer) = "owner";
+
+  // owner is the bech32-encoded address of the rollapp owner
+  string owner = 1;
+  string rollapp_id = 2;
+  // enable is true if the TEE feature should be enabled, false otherwise
+  bool enable = 3;
+}
+
+message MsgToggleTEEResponse {}
+
+// MsgSkipDelayRollapp toggles whether a rollapp skips delayed acknowledgement.
 message MsgSkipDelayRollapp {
   option (cosmos.msg.v1.signer) = "creator";
-  string creator = 1;
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string rollappId = 2;
   bool skip = 3;
 }
 
 message MsgSkipDelayRollappResponse {}
-
-message MsgUpdateRollapp {
-  option (cosmos.msg.v1.signer) = "creator";
-  string creator = 1;
-  string rollappId = 2;
-  uint64 maxSequencers = 3;
-  repeated string permissionedAddresses = 4;
-  string channel_id = 5;
-}
-
-message MsgUpdateRollappResponse {}

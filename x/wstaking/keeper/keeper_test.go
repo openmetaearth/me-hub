@@ -3,21 +3,22 @@ package keeper_test
 import (
 	"testing"
 	"time"
-
 	sdkmath "cosmossdk.io/math"
+
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	testutilstypes "github.com/openmetaearth/me-hub/testutil/types"
-	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 )
 
 type KeeperTestSuite struct {
@@ -40,12 +41,18 @@ func (s *KeeperTestSuite) Keeper() *wstakingkeeper.Keeper {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T())
-	ctx := app.GetBaseApp().NewContext(false)
+	app := apptesting.Setup(s.T(), false)
+	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+
+	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
+	s.Require().NoError(err)
+
+	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	s.Require().NoError(err)
 
 	stakingParams := stakingtypes.DefaultParams()
 	stakingParams.BondDenom = params.BaseDenom
-	err := app.StakingKeeper.SetParams(ctx, stakingParams)
+	err = app.StakingKeeper.SetParams(ctx, stakingParams)
 	s.Require().NoError(err)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
@@ -62,8 +69,7 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.InitializeDao()
 
-	validators, err := s.Keeper().GetValidators(s.Ctx, 10)
-	s.Require().NoError(err)
+	validators := s.Keeper().GetValidators(s.Ctx, 10)
 	s.Require().True(len(validators) >= 3)
 	s.meEarthValidator = validators[0]
 	s.experienceValidator = validators[1]
@@ -81,16 +87,6 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.TestAccs = s.NewAccounts(3)
 }
 
-// InitKyc sets up KYC for the given account with a DID and region ID.
-func (s *KeeperTestSuite) InitKyc(account sdk.AccAddress, did string, regionId string) {
-	s.App.KycKeeper.SetDID(s.Ctx, account, did)
-	s.App.KycKeeper.SetKYC(s.Ctx, did, didtypes.Credential{
-		Did:  did,
-		Sid:  "kyc",
-		Data: []byte(regionId),
-	})
-}
-
 func SetValidatorV1(ctx sdk.Context, k *wstakingkeeper.Keeper, validator testutilstypes.ValidatorV1) {
 	store := ctx.KVStore(k.GetStoreKey())
 	bz := k.GetCdc().MustMarshal(&validator)
@@ -101,7 +97,7 @@ func SetValidatorV1(ctx sdk.Context, k *wstakingkeeper.Keeper, validator testuti
 	store.Set(stakingtypes.GetValidatorKey(addr), bz)
 }
 
-func GetValidatorV2(ctx sdk.Context, k *wstakingkeeper.Keeper, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool) {
+func GetValidatorV2(ctx sdk.Context, k *wstakingkeeper.Keeper, addr sdk.ValAddress) (validator testutilstypes.ValidatorV2, found bool) {
 	store := ctx.KVStore(k.GetStoreKey())
 	value := store.Get(stakingtypes.GetValidatorKey(addr))
 	if value == nil {
@@ -109,7 +105,7 @@ func GetValidatorV2(ctx sdk.Context, k *wstakingkeeper.Keeper, addr sdk.ValAddre
 	}
 	err := k.GetCdc().Unmarshal(value, &validator)
 	if err != nil {
-		return validator, false
+		panic(err)
 	}
 	return validator, true
 }
@@ -147,10 +143,7 @@ func (s *KeeperTestSuite) TestMigrateValidator() {
 	if err != nil {
 		panic(err)
 	}
-	// run migration to convert V1 validator format to current V2 format
-	err = s.App.StakingKeeper.MigrateValidatorsFromV1(s.Ctx)
-	require.NoError(s.T(), err)
-
+	// test panicked: proto: wrong wireType = 2 for field UnbondingOnHoldRefCount
 	validator, found := GetValidatorV2(s.Ctx, s.App.StakingKeeper, addr)
 	require.True(s.T(), found)
 

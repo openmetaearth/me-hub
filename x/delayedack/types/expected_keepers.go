@@ -6,28 +6,30 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
-	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
+	eibctypes "github.com/openmetaearth/me-hub/x/eibc/types"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 // ChannelKeeper defines the expected IBC channel keeper
 type ChannelKeeper interface {
 	LookupModuleByChannel(ctx sdk.Context, portID, channelID string) (string, *capabilitytypes.Capability, error)
+	SetPacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64, commitmentHash []byte)
 }
 
 type RollappKeeper interface {
-	GetParams(ctx sdk.Context) rollapptypes.Params
-	GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (val rollapptypes.StateInfo, found bool)
-	MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) rollapptypes.StateInfo
-	GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfoIndex, found bool)
-	GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp)
+	MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) types.StateInfo
+	GetLatestFinalizedHeight(ctx sdk.Context, rollappId string) (uint64, error)
+	IsHeightFinalized(ctx sdk.Context, rollappID string, height uint64) bool
+	GetAllRollapps(ctx sdk.Context) (list []types.Rollapp)
 	GetValidTransfer(
 		ctx sdk.Context,
 		packetData []byte,
 		raPortOnHub, raChanOnHub string,
-	) (data rollapptypes.TransferData, err error)
+	) (data types.TransferData, err error)
 	IsSkipDelayRollapp(ctx sdk.Context, rollappId string) bool
 }
 
 type EIBCKeeper interface {
 	EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error
+	PendingOrderByPacket(ctx sdk.Context, p *commontypes.RollappPacket) (*eibctypes.DemandOrder, error)
 }

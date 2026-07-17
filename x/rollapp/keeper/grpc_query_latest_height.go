@@ -3,10 +3,13 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func (k Keeper) LatestHeight(c context.Context, req *types.QueryGetLatestHeightRequest) (*types.QueryGetLatestHeightResponse, error) {
@@ -29,7 +32,7 @@ func (k Keeper) LatestHeight(c context.Context, req *types.QueryGetLatestHeightR
 		)
 	}
 	if !found {
-		return nil, status.Error(codes.NotFound, "not found")
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "latest index: finalized: %t", req.Finalized)
 	}
 
 	state := k.MustGetStateInfo(ctx, req.RollappId, val.Index)

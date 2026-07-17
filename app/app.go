@@ -18,7 +18,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/gogoproto/proto"
-	v3_0_0 "github.com/openmetaearth/me-hub/app/upgrades/v3.0.0"
+	"github.com/openmetaearth/me-hub/app/upgrades/v3"
 
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -99,7 +99,7 @@ var (
 
 	// Upgrades contains the upgrade handlers for the application
 	Upgrades = []upgrades.Upgrade{
-		v3_0_0.Upgrade,
+		v3.Upgrade,
 	}
 )
 
@@ -293,6 +293,7 @@ func New(
 		MaxTxGasWanted:         maxGasWanted,
 		ExtensionOptionChecker: nil, // uses default
 		RollappKeeper:          *app.RollappKeeper,
+		LightClientKeeper:      &app.LightClientKeeper,
 		DaoKeeper:              app.DaoKeeper,
 		StakingKeeper:          app.StakingKeeper,
 		KycKeeper:              app.KycKeeper,
@@ -493,17 +494,19 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 			app.mm,
 			app.configurator,
 			&upgrades.UpgradeKeepers{
-				AccountKeeper:    &app.AccountKeeper,
-				GovKeeper:        app.GovKeeper,
-				RollappKeeper:    app.RollappKeeper,
-				ParamsKeeper:     &app.ParamsKeeper,
-				DelayedAckKeeper: &app.DelayedAckKeeper,
-				EIBCKeeper:       &app.EIBCKeeper,
-				SequencerKeeper:  app.SequencerKeeper,
-				MintKeeper:       &app.MintKeeper,
-				SlashingKeeper:   &app.SlashingKeeper,
-				ConsensusKeeper:  &app.ConsensusParamsKeeper,
-				StakingKeeper:    app.StakingKeeper,
+				AccountKeeper:     &app.AccountKeeper,
+				GovKeeper:         app.GovKeeper,
+				RollappKeeper:     app.RollappKeeper,
+				ParamsKeeper:      &app.ParamsKeeper,
+				DelayedAckKeeper:  &app.DelayedAckKeeper,
+				EIBCKeeper:        &app.EIBCKeeper,
+				LightClientKeeper: &app.LightClientKeeper,
+				IBCKeeper:         app.IBCKeeper,
+				SequencerKeeper:   app.SequencerKeeper,
+				MintKeeper:        &app.MintKeeper,
+				SlashingKeeper:    &app.SlashingKeeper,
+				ConsensusKeeper:   &app.ConsensusParamsKeeper,
+				StakingKeeper:     app.StakingKeeper,
 			},
 		),
 	)

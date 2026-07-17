@@ -8,8 +8,10 @@ import (
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	delayedackkeeper "github.com/openmetaearth/me-hub/x/delayedack/keeper"
 	eibckeeper "github.com/openmetaearth/me-hub/x/eibc/keeper"
+	lightclientkeeper "github.com/openmetaearth/me-hub/x/lightclient/keeper"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	sequencerkeeper "github.com/openmetaearth/me-hub/x/sequencer/keeper"
 	wgovkeeper "github.com/openmetaearth/me-hub/x/wgov/keeper"
@@ -37,15 +39,17 @@ type Upgrade struct {
 }
 
 type UpgradeKeepers struct {
-	AccountKeeper    *authkeeper.AccountKeeper
-	GovKeeper        *wgovkeeper.Keeper
-	RollappKeeper    *rollappkeeper.Keeper
-	SequencerKeeper  *sequencerkeeper.Keeper
-	ParamsKeeper     *paramskeeper.Keeper
-	DelayedAckKeeper *delayedackkeeper.Keeper
-	EIBCKeeper       *eibckeeper.Keeper
-	MintKeeper       *wmintkeeper.Keeper
-	SlashingKeeper   *slashingkeeper.Keeper
-	ConsensusKeeper  *consensusparamkeeper.Keeper
-	StakingKeeper    *wstakingkeeper.Keeper
+	AccountKeeper     *authkeeper.AccountKeeper
+	GovKeeper         *wgovkeeper.Keeper
+	RollappKeeper     *rollappkeeper.Keeper
+	SequencerKeeper   *sequencerkeeper.Keeper
+	ParamsKeeper      *paramskeeper.Keeper
+	DelayedAckKeeper  *delayedackkeeper.Keeper
+	EIBCKeeper        *eibckeeper.Keeper
+	LightClientKeeper *lightclientkeeper.Keeper
+	IBCKeeper         *ibckeeper.Keeper
+	MintKeeper        *wmintkeeper.Keeper
+	SlashingKeeper    *slashingkeeper.Keeper
+	ConsensusKeeper   *consensusparamkeeper.Keeper
+	StakingKeeper     *wstakingkeeper.Keeper
 }

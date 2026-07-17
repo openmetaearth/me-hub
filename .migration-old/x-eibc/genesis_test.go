@@ -1,0 +1,88 @@
+package eibc_test
+
+import (
+	"testing"
+
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
+	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
+	"github.com/openmetaearth/me-hub/testutil/nullify"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	"github.com/openmetaearth/me-hub/x/eibc"
+	"github.com/openmetaearth/me-hub/x/eibc/types"
+)
+
+func TestInitGenesis(t *testing.T) {
+	genesisState := types.GenesisState{
+		Params: types.DefaultParams(),
+		DemandOrders: []types.DemandOrder{
+			{
+				Id:                   "1",
+				TrackingPacketKey:    "11/22/33",
+				Price:                sdk.Coins{sdk.Coin{Denom: "adym", Amount: sdkmath.NewInt(150)}},
+				Fee:                  sdk.Coins{sdk.Coin{Denom: "adym", Amount: sdkmath.NewInt(50)}},
+				Recipient:            "dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58",
+				TrackingPacketStatus: commontypes.Status_PENDING,
+			},
+			{
+				Id:                   "2",
+				TrackingPacketKey:    "22/33/44",
+				Price:                sdk.Coins{sdk.Coin{Denom: "adym", Amount: sdkmath.NewInt(250)}},
+				Fee:                  sdk.Coins{sdk.Coin{Denom: "adym", Amount: sdkmath.NewInt(150)}},
+				Recipient:            "dym15saxgqw6kvhv6k5sg6r45kmdf4sf88kfw2adcw",
+				FulfillerAddress:     "dym19pas0pqwje540u5ptwnffjxeamdxc9tajmdrfa",
+				TrackingPacketStatus: commontypes.Status_REVERTED,
+			},
+		},
+	}
+
+	k, ctx := keepertest.EibcKeeper(t)
+	eibc.InitGenesis(ctx, *k, genesisState)
+	got := eibc.ExportGenesis(ctx, *k)
+	require.NotNil(t, got)
+	require.ElementsMatch(t, genesisState.DemandOrders, got.DemandOrders)
+
+	nullify.Fill(&genesisState)
+	nullify.Fill(got)
+
+	require.ElementsMatch(t, genesisState.DemandOrders, got.DemandOrders)
+}
+
+func TestExportGenesis(t *testing.T) {
+	k, ctx := keepertest.EibcKeeper(t)
+	params := types.Params{
+		EpochIdentifier: "week",
+		TimeoutFee:      sdkmath.LegacyNewDecWithPrec(4, 1),
+		ErrackFee:       sdkmath.LegacyNewDecWithPrec(4, 1),
+	}
+	// Set some demand orders
+	demandOrders := []types.DemandOrder{
+		{
+			Id:                   "1",
+			TrackingPacketKey:    "key",
+			Price:                sdk.NewCoins(sdk.NewCoin("dym", sdkmath.NewInt(100))),
+			Fee:                  sdk.NewCoins(sdk.NewCoin("dym", sdkmath.NewInt(10))),
+			TrackingPacketStatus: commontypes.Status_PENDING,
+		},
+		{
+			Id:                   "2",
+			TrackingPacketKey:    "key2",
+			Price:                sdk.NewCoins(sdk.NewCoin("dym", sdkmath.NewInt(100))),
+			Fee:                  sdk.NewCoins(sdk.NewCoin("dym", sdkmath.NewInt(10))),
+			TrackingPacketStatus: commontypes.Status_PENDING,
+		},
+	}
+	for _, demandOrder := range demandOrders {
+		demandOrderCopy := demandOrder
+		err := k.SetDemandOrder(ctx, &demandOrderCopy)
+		require.NoError(t, err)
+	}
+	k.SetParams(ctx, params)
+	// Verify the exported genesis
+	got := eibc.ExportGenesis(ctx, *k)
+	require.NotNil(t, got)
+	require.ElementsMatch(t, demandOrders, got.DemandOrders)
+	require.Equal(t, params, got.Params)
+}

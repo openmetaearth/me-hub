@@ -56,28 +56,6 @@ set_EVM_params() {
   jq '.app_state.evm.params.enable_create = true' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
-#Adding a "minute" epoch
-set_epochs_params() {
-    echo "setting epochs params"
-    jq '.app_state.epochs.epochs += [{
-    "identifier": "minute",
-    "start_time": "0001-01-01T00:00:00Z",
-    "duration": "60s",
-    "current_epoch": "0",
-    "current_epoch_start_time": "0001-01-01T00:00:00Z",
-    "epoch_counting_started": false,
-    "current_epoch_start_height": "0"
-    }]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-}
-
-#should be set to days on live net and lockable duration to 2 weeks
-set_incentives_params() {
-  echo "setting incentives params"
-  jq '.app_state.incentives.params.distr_epoch_identifier = "minute"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-  jq '.app_state.incentives.lockable_durations = ["60s"]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-}
-
-
 set_misc_params() {
     echo "setting misc params"
     jq '.app_state.crisis.constant_fee.denom = "umec"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
@@ -111,10 +89,6 @@ set_bank_denom_metadata() {
             "symbol": "MEC"
         }
     ]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-}
-
-set_authorised_deployer_account() {
-  jq --arg address $1 '.app_state.rollapp.params.deployer_whitelist += [{ "address": $address }]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
 enable_monitoring() {

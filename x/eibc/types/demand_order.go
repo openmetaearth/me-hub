@@ -3,21 +3,20 @@ package types
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"strconv"
+	"errors"
 
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 )
 
 // NewDemandOrder creates a new demand order.
 // Price is the cost to a market maker to buy the option, (recipient receives straight away).
 // Fee is what the market maker gets in return.
-func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int, denom, recipient string) *DemandOrder {
-	rollappPacketKey := commontypes.RollappPacketKey(&rollappPacket)
+func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int, denom, recipient string, creationHeight uint64, completionHook *commontypes.CompletionHookCall) *DemandOrder {
+	rollappPacketKey := rollappPacket.RollappPacketKey()
 	return &DemandOrder{
 		Id:                   BuildDemandIDFromPacketKey(string(rollappPacketKey)),
 		TrackingPacketKey:    string(rollappPacketKey),
@@ -27,6 +26,8 @@ func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int
 		TrackingPacketStatus: commontypes.Status_PENDING,
 		RollappId:            rollappPacket.RollappId,
 		Type:                 rollappPacket.Type,
+		CreationHeight:       creationHeight,
+		CompletionHook:       completionHook,
 	}
 }
 
@@ -58,10 +59,12 @@ func (m *DemandOrder) ValidateBasic() error {
 	}
 	_, err := sdk.AccAddressFromBech32(m.Recipient)
 	if err != nil {
-		return ErrInvalidRecipientAddress
+		return errors.Join(ErrInvalidRecipientAddress, err)
 	}
 
-	// Validate the tracking packet key
+	if m.CreationHeight == 0 {
+		return ErrInvalidCreationHeight
+	}
 
 	return nil
 }
@@ -71,25 +74,6 @@ func (m *DemandOrder) Validate() error {
 		return err
 	}
 	return nil
-}
-
-func (m *DemandOrder) GetEvents() []sdk.Attribute {
-	eventAttributes := []sdk.Attribute{
-		sdk.NewAttribute(AttributeKeyId, m.Id),
-		sdk.NewAttribute(AttributeKeyPrice, m.Price.String()),
-		sdk.NewAttribute(AttributeKeyFee, m.Fee.String()),
-		sdk.NewAttribute(AttributeKeyIsFulfilled, strconv.FormatBool(m.IsFulfilled())),
-		sdk.NewAttribute(AttributeKeyPacketStatus, m.TrackingPacketStatus.String()),
-		sdk.NewAttribute(AttributeKeyPacketKey, m.TrackingPacketKey),
-		sdk.NewAttribute(AttributeKeyRollappId, m.RollappId),
-		sdk.NewAttribute(AttributeKeyRecipient, m.Recipient),
-	}
-
-	if m.FulfillerAddress != "" {
-		eventAttributes = append(eventAttributes, sdk.NewAttribute(AttributeKeyFulfillerAddress, m.FulfillerAddress))
-	}
-
-	return eventAttributes
 }
 
 // GetRecipientBech32Address returns the recipient address as a string.
@@ -102,9 +86,18 @@ func (m *DemandOrder) GetRecipientBech32Address() sdk.AccAddress {
 	return recipientBech32
 }
 
+// PriceAmount returns the price amount of the demand order.
+func (m *DemandOrder) PriceAmount() math.Int {
+	return m.Price[0].Amount
+}
+
 // GetFeeAmount returns the fee amount of the demand order.
 func (m *DemandOrder) GetFeeAmount() math.Int {
 	return m.Fee.AmountOf(m.Price[0].Denom)
+}
+
+func (m *DemandOrder) GetFeePercent() math.LegacyDec {
+	return math.LegacyNewDecFromInt(m.GetFeeAmount()).Quo(math.LegacyNewDecFromInt(m.PriceAmount()))
 }
 
 func (m *DemandOrder) ValidateOrderIsOutstanding() error {
@@ -113,14 +106,14 @@ func (m *DemandOrder) ValidateOrderIsOutstanding() error {
 		return ErrDemandAlreadyFulfilled
 	}
 	// Check the underlying packet is still relevant (i.e not expired, rejected, reverted)
-	if m.TrackingPacketStatus != commontypes.Status_PENDING {
+	if m.TrackingPacketStatus != commontypes.Status_PENDING { // TODO:remove, there is only one callsite and it already knows it's pending
 		return ErrDemandOrderInactive
 	}
 	return nil
 }
 
 func (m *DemandOrder) IsFulfilled() bool {
-	return m.FulfillerAddress != ""
+	return m.FulfillerAddress != "" || m.DeprecatedIsFulfilled
 }
 
 // BuildDemandIDFromPacketKey returns a unique demand order id from the packet key.
@@ -131,4 +124,9 @@ func BuildDemandIDFromPacketKey(packetKey string) string {
 	hash := sha256.Sum256([]byte(packetKey))
 	hashString := hex.EncodeToString(hash[:])
 	return hashString
+}
+
+func (m *DemandOrder) Denom() string {
+	// it's guaranteed price/fee are exactly one coin with the same denom
+	return m.Price[0].Denom
 }

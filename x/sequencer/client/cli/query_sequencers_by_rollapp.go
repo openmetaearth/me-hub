@@ -3,28 +3,34 @@ package cli
 import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
 	"github.com/spf13/cobra"
+
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func CmdShowSequencersByRollapp() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show-sequencers-by-rollapp [rollapp-id]",
-		Short: "shows a sequencers_by_rollapp",
+		Short: "shows the sequencers of a specific rollapp",
 		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			clientCtx, err := client.GetClientQueryContext(cmd)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			argRollappId := args[0]
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			queryClient := types.NewQueryClient(clientCtx)
-
-			argRollappId := args[0]
-
 			params := &types.QueryGetSequencersByRollappRequest{
-				RollappId: argRollappId,
+				RollappId:  argRollappId,
+				Pagination: pageReq,
 			}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.SequencersByRollapp(cmd.Context(), params)
 			if err != nil {
@@ -35,31 +41,31 @@ func CmdShowSequencersByRollapp() *cobra.Command {
 		},
 	}
 
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
 
-func CmdShowReplaceProposer() *cobra.Command {
+func CmdGetProposerByRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-replace-proposer [rollapp-id]",
-		Short: "shows -replace-proposer ",
+		Use:   "proposer [rollapp-id]",
+		Short: "Get the current proposer by rollapp ID",
 		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			argRollappId := args[0]
+
+			params := &types.QueryGetProposerByRollappRequest{
+				RollappId: argRollappId,
+			}
+
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
-
 			queryClient := types.NewQueryClient(clientCtx)
 
-			argRollappId := args[0]
-
-			params := &types.QueryReplaceProposerInfoRequest{
-				RollappId: argRollappId,
-			}
-
-			res, err := queryClient.ReplaceProposerInfo(cmd.Context(), params)
+			res, err := queryClient.GetProposerByRollapp(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -69,6 +75,70 @@ func CmdShowReplaceProposer() *cobra.Command {
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
 
+func CmdGetNextProposerByRollapp() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "next-proposer [rollapp-id]",
+		Short: "Get the next proposer by rollapp ID",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			argRollappId := args[0]
+
+			params := &types.QueryGetNextProposerByRollappRequest{
+				RollappId: argRollappId,
+			}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.GetNextProposerByRollapp(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func CmdGetAllProposers() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list-proposer",
+		Short: "List all proposers",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			params := &types.QueryProposersRequest{
+				Pagination: pageReq,
+			}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Proposers(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }

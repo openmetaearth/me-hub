@@ -314,6 +314,8 @@ func (a appCreator) newApp(
 		skipUpgradeHeights[int64(h)] = true
 	}
 
+	baseAppOptions = append(baseAppOptions, baseapp.SetOptimisticExecution())
+
 	baseAppOptions = append(baseAppOptions, func(bapp *baseapp.BaseApp) {
 		bapp.SetMempool(mempool.NoOpMempool{})
 	})

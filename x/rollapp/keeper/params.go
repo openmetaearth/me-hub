@@ -2,46 +2,44 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 // GetParams get all parameters as types.Params
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	return types.NewParams(
-		k.RollappsEnabled(ctx),
-		k.DisputePeriodInBlocks(ctx),
-		k.DeployerWhitelist(ctx),
-	)
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.KeyParams)
+	var params types.Params
+	k.cdc.MustUnmarshal(b, &params)
+	return params
 }
 
 // SetParams set the params
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	k.paramstore.SetParamSet(ctx, &params)
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshal(&params)
+	store.Set(types.KeyParams, b)
 }
 
 // DisputePeriodInBlocks returns the DisputePeriodInBlocks param
 func (k Keeper) DisputePeriodInBlocks(ctx sdk.Context) (res uint64) {
-	k.paramstore.Get(ctx, types.KeyDisputePeriodInBlocks, &res)
-	return
+	return k.GetParams(ctx).DisputePeriodInBlocks
 }
 
-// DeployerWhitelist returns the DeployerWhitelist param
-func (k Keeper) DeployerWhitelist(ctx sdk.Context) (res []types.DeployerParams) {
-	k.paramstore.Get(ctx, types.KeyDeployerWhitelist, &res)
-	return
+func (k Keeper) LivenessSlashBlocks(ctx sdk.Context) (res uint64) {
+	return k.GetParams(ctx).LivenessSlashBlocks
 }
 
-func (k Keeper) RollappsEnabled(ctx sdk.Context) (res bool) {
-	k.paramstore.Get(ctx, types.KeyRollappsEnabled, &res)
-	return
+func (k Keeper) LivenessSlashInterval(ctx sdk.Context) (res uint64) {
+	return k.GetParams(ctx).LivenessSlashInterval
 }
 
-func (k Keeper) IsAddressInDeployerWhiteList(ctx sdk.Context, address string) bool {
-	whitelist := k.DeployerWhitelist(ctx)
-	for _, item := range whitelist {
-		if item.Address == address {
-			return true
-		}
-	}
-	return false
+// AppRegistrationFee returns the cost of adding an app
+func (k Keeper) AppRegistrationFee(ctx sdk.Context) (res sdk.Coin) {
+	return k.GetParams(ctx).AppRegistrationFee
+}
+
+func (k Keeper) MinSequencerBondGlobal(ctx sdk.Context) (res sdk.Coin) {
+	return k.GetParams(ctx).MinSequencerBondGlobal
 }

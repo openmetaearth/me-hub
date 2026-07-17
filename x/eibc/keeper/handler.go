@@ -3,15 +3,16 @@ package keeper
 import (
 	"fmt"
 
-	sdkmath "cosmossdk.io/math"
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	uibc "github.com/openmetaearth/me-hub/utils/uibc"
+	"github.com/openmetaearth/me-hub/utils/uevent"
+
+	denomutils "github.com/openmetaearth/me-hub/utils/denom"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	dacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
-	"github.com/pkg/errors"
 )
 
 // EIBCDemandOrderHandler handles the eibc packet by creating a demand order from the packet data and saving it in the store.
@@ -51,6 +52,11 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 	if err != nil {
 		return fmt.Errorf("set eibc demand order: %w", err)
 	}
+
+	if err = uevent.EmitTypedEvent(ctx, types.GetCreatedEvent(eibcDemandOrder, rollappPacket.ProofHeight, data.Amount)); err != nil {
+		return fmt.Errorf("emit event: %w", err)
+	}
+
 	return nil
 }
 
@@ -61,34 +67,49 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
 	rollappPacket *commontypes.RollappPacket,
 ) (*types.DemandOrder, error) {
-	// zero fee demand order by default
-	eibcMetaData := dacktypes.EIBCMetadata{Fee: "0"}
-
-	if fungibleTokenPacketData.Memo != "" {
-		packetMetaData, err := dacktypes.ParsePacketMetadata(fungibleTokenPacketData.Memo)
-		if err == nil {
-			eibcMetaData = *packetMetaData.EIBC
-		} else if !errors.Is(err, dacktypes.ErrMemoEibcEmpty) {
-			return nil, fmt.Errorf("parse packet metadata: %w", err)
-		}
-	}
-	if err := eibcMetaData.ValidateBasic(); err != nil {
-		return nil, fmt.Errorf("validate eibc metadata: %w", err)
+	memoEIBC, err := GetEIBCMemo(fungibleTokenPacketData.Memo)
+	if err != nil {
+		return nil, fmt.Errorf("unpack fungible packet memo: %w", err)
 	}
 
 	// Calculate the demand order price and validate it,
-	amt, _ := sdkmath.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
-	fee, _ := eibcMetaData.FeeInt()                                    // guaranteed ok by above validation
+	amt, _ := math.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
+	fee, _ := memoEIBC.FeeInt()                                     // guaranteed ok by above validation
 	demandOrderPrice, err := types.CalcPriceWithBridgingFee(amt, fee, k.dack.BridgingFee(ctx))
 	if err != nil {
 		return nil, err
 	}
 
-	demandOrderDenom := k.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
+	demandOrderDenom := denomutils.GetIncomingTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
 	demandOrderRecipient := fungibleTokenPacketData.Receiver // who we tried to send to
+	creationHeight := uint64(ctx.BlockHeight())              //nolint:gosec // block height is always positive
 
-	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
+	onComplete, err := memoEIBC.GetCompletionHook()
+	if err != nil {
+		return nil, fmt.Errorf("get on complete hook: %w", err)
+	}
+	if onComplete != nil {
+		if err := k.dack.ValidateCompletionHook(*onComplete); err != nil {
+			return nil, fmt.Errorf("validate on complete hook: %w", err)
+		}
+	}
+
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, onComplete)
 	return order, nil
+}
+
+func GetEIBCMemo(memoS string) (dacktypes.EIBCMemo, error) {
+	if memoS == "" {
+		return dacktypes.DefaultEIBCMemo(), nil
+	}
+	m, err := dacktypes.ParseMemo(memoS)
+	if err != nil {
+		if errorsmod.IsOf(err, dacktypes.ErrEIBCMemoEmpty) {
+			return dacktypes.DefaultEIBCMemo(), nil
+		}
+		return dacktypes.EIBCMemo{}, fmt.Errorf("parse packet metadata: %w", err)
+	}
+	return *m.EIBC, m.EIBC.ValidateBasic()
 }
 
 // CreateDemandOrderOnErrAckOrTimeout creates a demand order for a timeout or errack packet.
@@ -97,10 +118,10 @@ func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleToke
 	rollappPacket *commontypes.RollappPacket,
 ) (*types.DemandOrder, error) {
 	// Calculate the demand order price and validate it,
-	amt, _ := sdkmath.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
+	amt, _ := math.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
 
 	// Calculate the fee by multiplying the fee by the price
-	var feeMultiplier sdkmath.LegacyDec
+	var feeMultiplier math.LegacyDec
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_TIMEOUT:
 		feeMultiplier = k.TimeoutFee(ctx)
@@ -117,32 +138,10 @@ func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleToke
 	trace := transfertypes.ParseDenomTrace(fungibleTokenPacketData.Denom)
 	demandOrderDenom := trace.IBCDenom()
 	demandOrderRecipient := fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
+	creationHeight := uint64(ctx.BlockHeight())            //nolint:gosec // block height is always positive
 
-	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient, creationHeight, nil)
 	return order, nil
-}
-
-// getEIBCTransferDenom returns the actual denom that will be credited to the eIBC fulfiller.
-// The denom logic follows the transfer middleware's logic and is necessary in order to prefix/non-prefix the denom
-// based on the original chain it was sent from.
-func (k *Keeper) getEIBCTransferDenom(packet channeltypes.Packet, fungibleTokenPacketData transfertypes.FungibleTokenPacketData) string {
-	var denom string
-	if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), fungibleTokenPacketData.Denom) {
-		// remove prefix added by sender chain
-		voucherPrefix := transfertypes.GetDenomPrefix(packet.GetSourcePort(), packet.GetSourceChannel())
-		unprefixedDenom := fungibleTokenPacketData.Denom[len(voucherPrefix):]
-		// coin denomination used in sending from the escrow address
-		denom = unprefixedDenom
-		// The denomination used to send the coins is either the native denom or the hash of the path
-		// if the denomination is not native.
-		denomTrace := transfertypes.ParseDenomTrace(unprefixedDenom)
-		if denomTrace.Path != "" {
-			denom = denomTrace.IBCDenom()
-		}
-	} else {
-		denom = uibc.GetForeignDenomTrace(packet.GetDestChannel(), fungibleTokenPacketData.Denom).IBCDenom()
-	}
-	return denom
 }
 
 func (k Keeper) BlockedAddr(addr string) bool {

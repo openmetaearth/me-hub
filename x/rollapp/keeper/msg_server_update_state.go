@@ -2,23 +2,16 @@ package keeper
 
 import (
 	"context"
-	"slices"
 
-	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState) (*types.MsgUpdateStateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	ctx.Logger().Info("received tx UpdateState", "rollapp-id", msg.RollappId, "start-height", msg.StartHeight, "num-blocks", msg.NumBlocks, "da-path", msg.DAPath, "creator", msg.Creator)
-
-	if !k.RollappsEnabled(ctx) {
-		return nil, types.ErrRollappsDisabled
-	}
 
 	// load rollapp object for stateful validations
 	rollapp, isFound := k.GetRollapp(ctx, msg.RollappId)
@@ -26,27 +19,18 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		return nil, types.ErrUnknownRollappID
 	}
 
-	// check rollapp version
-	if rollapp.Version != msg.Version {
-		return nil, errorsmod.Wrapf(types.ErrVersionMismatch, "rollappId(%s) current version is %d, but got %d", msg.RollappId, rollapp.Version, msg.Version)
-	}
-
 	// call the before-update-state hook
-	err := k.hooks.BeforeUpdateState(ctx, msg.Creator, msg.RollappId)
+	// currently used by `x/sequencer` to validate the proposer
+	err := k.hooks.BeforeUpdateState(ctx, msg.Creator, msg.RollappId, msg.Last)
 	if err != nil {
-		return nil, errors.Wrapf(err, "BeforeUpdateState hook failed for rollappId(%s) from sequencer(%s)", msg.RollappId, msg.Creator)
+		return nil, errorsmod.Wrap(err, "before update state")
 	}
 
-	// Logic Error check - must be done after BeforeUpdateStateRecoverable
-	// check if there are permissionedAddresses.
-	// if the list is not empty, it means that only premissioned sequencers can be added
-	if 0 < len(rollapp.PermissionedAddresses) && !slices.Contains(rollapp.PermissionedAddresses, msg.Creator) {
-		// this is a logic error, as the sequencer modules' BeforeUpdateState hook
-		// should check that the sequencer exists and register for serving this rollapp
-		// so if this check passed, an unpermissioned sequencer is registered
-		return nil, errorsmod.Wrapf(types.ErrLogic,
-			"unpermissioned sequencer (%s) is registered for rollappId(%s)",
-			msg.Creator, msg.RollappId)
+	// validate correct rollapp revision number
+	if rollapp.LatestRevision().Number != msg.RollappRevision {
+		return nil, errorsmod.Wrapf(types.ErrWrongRollappRevision,
+			"expected revision number (%d), but received (%d)",
+			rollapp.LatestRevision().Number, msg.RollappRevision)
 	}
 
 	// retrieve last updating index
@@ -63,6 +47,16 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 				latestStateInfoIndex.Index, msg.RollappId)
 		}
 
+		// if previous block descriptor has timestamp, it means the rollapp is upgraded
+		// therefore all new BDs need to have timestamp
+		lastBD, _ := stateInfo.LastBlockDescriptor()
+		if !lastBD.Timestamp.IsZero() {
+			err := msg.BDs.Validate()
+			if err != nil {
+				return nil, errorsmod.Wrap(err, "block descriptors")
+			}
+		}
+
 		// check to see if received height is the one we expected
 		expectedStartHeight := stateInfo.StartHeight + stateInfo.NumBlocks
 		if expectedStartHeight != msg.StartHeight {
@@ -73,44 +67,108 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 		// bump state index
 		lastIndex = latestStateInfoIndex.Index
+	} else {
+		err := msg.BDs.Validate()
+		if err != nil {
+			return nil, errorsmod.Wrap(err, "block descriptors")
+		}
 	}
 	newIndex = lastIndex + 1
+
+	// if no rotation, next is the same!
+	successor := k.SequencerK.GetProposer(ctx, msg.RollappId)
+	if msg.Last {
+		successor = k.SequencerK.GetSuccessor(ctx, msg.RollappId)
+	}
+
+	creationHeight := uint64(ctx.BlockHeight()) //nolint:gosec
+	blockTime := ctx.BlockTime()
+	stateInfo := types.NewStateInfo(
+		msg.RollappId,
+		newIndex,
+		msg.Creator,
+		msg.StartHeight,
+		msg.NumBlocks,
+		msg.DAPath,
+		creationHeight,
+		msg.BDs,
+		blockTime,
+		successor.Address,
+	)
+
+	// verify the DRS version is not obsolete
+	// check only last block descriptor DRS, since if that last is not obsolete it means the rollapp already upgraded and is not obsolete anymore
+	if k.IsStateUpdateObsolete(ctx, stateInfo) {
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "MsgUpdateState with an obsolete DRS version. rollapp_id: %s, drs_version: %d",
+			msg.RollappId, stateInfo.MustLastBlockDescriptor().DrsVersion)
+	}
 
 	// Write new index information to the store
 	k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
 		RollappId: msg.RollappId,
 		Index:     newIndex,
 	})
-
-	creationHeight := uint64(ctx.BlockHeight())
-	stateInfo := types.NewStateInfo(msg.RollappId, newIndex, msg.Creator, msg.StartHeight, msg.NumBlocks, msg.DAPath, msg.Version, creationHeight, msg.BDs)
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
 	k.SetStateInfo(ctx, *stateInfo)
-	if err := k.hooks.ProcPendingStates(ctx, msg.RollappId, msg.Creator, stateInfo); err != nil {
-		return nil, err
+
+	// call the after-update-state hook
+	// currently used by `x/lightclient` to validate the state update against consensus states
+	// x/sequencer will complete the rotation if needed
+	err = k.hooks.AfterUpdateState(ctx, &types.StateInfoMeta{
+		StateInfo: *stateInfo,
+		Revision:  msg.RollappRevision,
+		Rollapp:   msg.RollappId,
+	})
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "hook: after update state")
 	}
 
 	stateInfoIndex := stateInfo.GetIndex()
 	newFinalizationQueue := []types.StateInfoIndex{stateInfoIndex}
 
-	ctx.Logger().Debug("Adding state to finalization queue at ", creationHeight)
+	k.Logger(ctx).Debug("Adding state to finalization queue at %d", creationHeight)
+
 	// load FinalizationQueue and update
-	blockHeightToFinalizationQueue, found := k.GetBlockHeightToFinalizationQueue(ctx, creationHeight)
+	finalizationQueue, found := k.GetFinalizationQueue(ctx, creationHeight, msg.RollappId)
 	if found {
-		newFinalizationQueue = append(blockHeightToFinalizationQueue.FinalizationQueue, newFinalizationQueue...)
+		newFinalizationQueue = append(finalizationQueue.FinalizationQueue, newFinalizationQueue...)
 	}
 
 	// Write new BlockHeightToFinalizationQueue
-	k.SetBlockHeightToFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
+	err = k.SetFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
 		CreationHeight:    creationHeight,
 		FinalizationQueue: newFinalizationQueue,
+		RollappId:         msg.RollappId,
 	})
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "set finalization queue")
+	}
+
+	// FIXME: only single save can be done with the latest height
+	for _, bd := range msg.BDs.BD {
+		if err := k.SaveSequencerHeight(ctx, stateInfo.Sequencer, bd.Height); err != nil {
+			return nil, errorsmod.Wrap(err, "save sequencer height")
+		}
+	}
+
+	// TODO: enforce `final_state_update_timeout` if sequencer rotation is in progress
+	// https://github.com/metaearth/issues/1085
+	rollapp = k.MustGetRollapp(ctx, msg.RollappId)
+	k.IndicateLiveness(ctx, &rollapp)
+	k.SetRollapp(ctx, rollapp)
+
+	events := stateInfo.GetEvents()
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeStateUpdate,
-			stateInfo.GetEvents()...,
+			events...,
 		),
 	)
 
 	return &types.MsgUpdateStateResponse{}, nil
+}
+
+// IsStateUpdateObsolete checks if the given DRS version is obsolete
+func (k msgServer) IsStateUpdateObsolete(ctx sdk.Context, stateInfo *types.StateInfo) bool {
+	return k.IsDRSVersionObsolete(ctx, stateInfo.MustLastBlockDescriptor().DrsVersion)
 }

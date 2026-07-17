@@ -1,101 +1,83 @@
 package types
 
 import (
-	fmt "fmt"
+	"fmt"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	"github.com/openmetaearth/me-hub/utils/uparam"
 	"gopkg.in/yaml.v2"
 )
 
-var _ paramtypes.ParamSet = (*Params)(nil)
-
 var (
-	// MinBond types.Coin `protobuf:"bytes,1,opt,name=min_bond,json=minBond,proto3" json:"min_bond,omitempty"`
-	// UnbondingTime time.Duration `protobuf:"bytes,2,opt,name=unbonding_time,json=unbondingTime,proto3,stdduration" json:"unbonding_time"`
+	// DefaultNoticePeriod is the time duration for notice period
+	DefaultNoticePeriod = time.Hour * 24 * 7 // 1 week
+	// DefaultLivenessSlashMultiplier gives the amount of tokens to slash if the sequencer is liable for a liveness failure
+	DefaultLivenessSlashMultiplier = math.LegacyMustNewDecFromStr("0.01")
+	// DefaultLivenessSlashMinAbsolute will be slashed if the multiplier amount is too small
+	DefaultLivenessSlashMinAbsolute = commontypes.DYMCoin
 
-	// MinBond is the minimum bond required to be a validator
-	DefaultMinBond uint64 = 0
-	// UnbondingTime is the time duration for unbonding
-	DefaultUnbondingTime time.Duration = time.Hour
-
-	// KeyMinBond is store's key for MinBond Params
-	KeyMinBond = []byte("MinBond")
-	// KeyUnbondingTime is store's key for UnbondingTime Params
-	KeyUnbondingTime = []byte("UnbondingTime")
+	DefaultDishonorStateUpdate   = uint64(1)
+	DefaultDishonorLiveness      = uint64(300)
+	DefaultDishonorKickThreshold = uint64(900)
 )
 
-// ParamKeyTable the param key table for launch module
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
-
 // NewParams creates a new Params instance
-func NewParams(minBond sdk.Coin, unbondingPeriod time.Duration) Params {
+func NewParams(noticePeriod time.Duration, livenessSlashMul math.LegacyDec, livenessSlashAbs sdk.Coin,
+	dishonorStateUpdate uint64,
+	dishonorLiveness uint64,
+	dishonorKickThreshold uint64,
+) Params {
 	return Params{
-		MinBond:       minBond,
-		UnbondingTime: unbondingPeriod,
+		NoticePeriod:               noticePeriod,
+		LivenessSlashMinMultiplier: livenessSlashMul,
+		LivenessSlashMinAbsolute:   livenessSlashAbs,
+		DishonorStateUpdate:        dishonorStateUpdate,
+		DishonorLiveness:           dishonorLiveness,
+		DishonorKickThreshold:      dishonorKickThreshold,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	denom, err := sdk.GetBaseDenom()
-	if err != nil {
-		panic(err)
-	}
-	minBond := sdk.NewCoin(denom, sdkmath.NewIntFromUint64(DefaultMinBond))
-	return NewParams(
-		minBond, DefaultUnbondingTime,
-	)
+	return NewParams(DefaultNoticePeriod, DefaultLivenessSlashMultiplier, DefaultLivenessSlashMinAbsolute, DefaultDishonorStateUpdate, DefaultDishonorLiveness, DefaultDishonorKickThreshold)
 }
 
-// ParamSetPairs get the params.ParamSet
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyMinBond, &p.MinBond, validateMinBond),
-		paramtypes.NewParamSetPair(KeyUnbondingTime, &p.UnbondingTime, validateUnbondingTime),
-	}
-}
-
-func validateUnbondingTime(i interface{}) error {
-	v, ok := i.(time.Duration)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
+func validateTime(v time.Duration) error {
 	if v <= 0 {
-		return fmt.Errorf("unbonding time must be positive: %d", v)
+		return fmt.Errorf("time must be positive: %d", v)
 	}
 
 	return nil
 }
 
-func validateMinBond(i interface{}) error {
-	v, ok := i.(sdk.Coin)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if v.IsNil() || v.IsZero() {
-		return nil
-	}
-
-	if !v.IsValid() {
-		return fmt.Errorf("invalid coin: %s", v)
-	}
-	return nil
+func validateLivenessSlashMultiplier(v math.LegacyDec) error {
+	return uparam.ValidateZeroToOneDec(v)
 }
 
-// Validate validates the set of params
-func (p Params) Validate() error {
-	if err := validateMinBond(p.MinBond); err != nil {
+// ValidateBasic validates the set of params
+func (p Params) ValidateBasic() error {
+	if err := validateTime(p.NoticePeriod); err != nil {
 		return err
 	}
 
-	if err := validateUnbondingTime(p.UnbondingTime); err != nil {
+	if err := validateLivenessSlashMultiplier(p.LivenessSlashMinMultiplier); err != nil {
+		return err
+	}
+
+	if err := uparam.ValidateCoin(p.LivenessSlashMinAbsolute); err != nil {
+		return err
+	}
+
+	if err := uparam.ValidateUint64(p.PenaltyLiveness()); err != nil {
+		return err
+	}
+	if err := uparam.ValidateUint64(p.PenaltyReductionStateUpdate()); err != nil {
+		return err
+	}
+	if err := uparam.ValidateUint64(p.PenaltyKickThreshold()); err != nil {
 		return err
 	}
 
@@ -106,4 +88,28 @@ func (p Params) Validate() error {
 func (p Params) String() string {
 	out, _ := yaml.Marshal(p)
 	return string(out)
+}
+
+func (p Params) PenaltyLiveness() uint64 {
+	return p.DishonorLiveness
+}
+
+func (p Params) PenaltyReductionStateUpdate() uint64 {
+	return p.DishonorStateUpdate
+}
+
+func (p Params) PenaltyKickThreshold() uint64 {
+	return p.DishonorKickThreshold
+}
+
+func (p *Params) SetPenaltyLiveness(x uint64) {
+	p.DishonorLiveness = x
+}
+
+func (p *Params) SetPenaltyReductionStateUpdate(x uint64) {
+	p.DishonorStateUpdate = x
+}
+
+func (p *Params) SetPenaltyKickThreshold(x uint64) {
+	p.DishonorKickThreshold = x
 }

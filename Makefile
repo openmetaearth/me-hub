@@ -20,7 +20,7 @@ DEPS_COSMOS_PROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos
 DEPS_COSMOS_GOGOPROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/gogoproto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_CONFIO_ICS23_VERSION := go/$(shell cat go.sum | grep 'github.com/confio/ics23/go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_WASM_VERSION := $(shell cat go.sum | grep 'github.com/CosmWasm/wasmd' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
-WASMVM_VERSION := $(shell awk '$$1 == "github.com/CosmWasm/wasmvm" { print $$2; exit }' go.mod)
+WASMVM_VERSION := $(shell awk '$$1 == "github.com/CosmWasm/wasmvm/v2" { print $$2; exit }' go.mod)
 
 export GO111MODULE = on
 
@@ -232,7 +232,7 @@ docker-release:
 PACKAGE_NAME := $(shell go list -m)
 GOLANG_CROSS_VERSION  = v1.23
 GOPATH ?= '$(HOME)/go'
-COSMWASM_VERSION := $(shell go list -m github.com/CosmWasm/wasmvm | sed 's/.* //')
+COSMWASM_VERSION := $(shell go list -m github.com/CosmWasm/wasmvm/v2 | sed 's/.* //')
 release-dry-run:
 	docker run --privileged -e CGO_ENABLED=1 \
 		-v /var/run/docker.sock:/var/run/docker.sock \

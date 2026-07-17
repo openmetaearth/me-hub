@@ -64,7 +64,7 @@ func (w IBCModule) logger(
 func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	l := w.logger(ctx, packet, "OnRecvPacket")
 
-	if commontypes.SkipRollappMiddleware(ctx) || !w.delayedAckKeeper.IsRollappsEnabled(ctx) {
+	if commontypes.SkipRollappMiddleware(ctx) {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 

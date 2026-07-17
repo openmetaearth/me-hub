@@ -2,13 +2,9 @@ package cli
 
 import (
 	"fmt"
-	// "strings"
-
-	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	// "github.com/cosmos/cosmos-sdk/client/flags"
-	// sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/spf13/cobra"
 
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
@@ -25,11 +21,14 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdQueryParams())
+	cmd.AddCommand(CmdQueryTeeConfig())
 	cmd.AddCommand(CmdListRollapp())
 	cmd.AddCommand(CmdShowRollapp())
 	cmd.AddCommand(CmdShowStateInfo())
 	cmd.AddCommand(CmdShowLatestHeight())
+	cmd.AddCommand(CmdShowLatestFinalizedHeight())
 	cmd.AddCommand(CmdShowLatestStateIndex())
+	cmd.AddCommand(CmdQueryRegisteredDenoms())
 	cmd.AddCommand(CmdShowSkipDelayRollapp())
 
 	return cmd

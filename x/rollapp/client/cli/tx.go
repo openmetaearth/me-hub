@@ -3,9 +3,9 @@ package cli
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
@@ -20,8 +20,13 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdCreateRollapp())
-	cmd.AddCommand(CmdUpdateState())
-	cmd.AddCommand(CmdSkipDelayRollapp())
 	cmd.AddCommand(CmdUpdateRollapp())
+	cmd.AddCommand(CmdTransferOwnership())
+	cmd.AddCommand(CmdAddApp())
+	cmd.AddCommand(CmdUpdateApp())
+	cmd.AddCommand(CmdRemoveApp())
+	cmd.AddCommand(CmdToggleTEE())
+	cmd.AddCommand(CmdSkipDelayRollapp())
+
 	return cmd
 }

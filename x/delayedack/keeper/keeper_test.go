@@ -3,13 +3,15 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/openmetaearth/me-hub/app/apptesting"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	"github.com/openmetaearth/me-hub/x/delayedack/types"
 )
 
-const (
-	delayedAckEventType = "delayedack"
-)
+const delayedAckEventType = "delayedack"
 
 type DelayedAckTestSuite struct {
 	apptesting.KeeperTestHelper
@@ -19,14 +21,26 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(DelayedAckTestSuite))
 }
 
-func (s *DelayedAckTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T())
-	ctx := app.GetBaseApp().NewContext(false)
+func (suite *DelayedAckTestSuite) SetupTest() {
+	app := apptesting.Setup(suite.T())
+	ctx := app.NewContext(false)
 
-	s.App = app
-	s.Ctx = ctx
+	suite.App = app
+	suite.Ctx = ctx
 }
 
-func (s *DelayedAckTestSuite) CreateRollappWithName(name string) {
-	s.CreateRollappByName(name)
+func (suite *DelayedAckTestSuite) FinalizePacket(ctx sdk.Context, p commontypes.RollappPacket) {
+	suite.T().Helper()
+
+	handler := suite.App.MsgServiceRouter().Handler(new(types.MsgFinalizePacket))
+	resp, err := handler(ctx, &types.MsgFinalizePacket{
+		Sender:            apptesting.CreateRandomAccounts(1)[0].String(),
+		RollappId:         p.RollappId,
+		PacketProofHeight: p.ProofHeight,
+		PacketType:        p.Type,
+		PacketSrcChannel:  p.Packet.SourceChannel,
+		PacketSequence:    p.Packet.Sequence,
+	})
+	suite.Require().NoError(err)
+	suite.Require().NotNil(resp)
 }

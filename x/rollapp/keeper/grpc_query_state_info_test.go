@@ -9,6 +9,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/openmetaearth/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/urand"
+
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/testutil/nullify"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
@@ -74,6 +77,105 @@ func TestStateInfoQuerySingle(t *testing.T) {
 					nullify.Fill(tc.response),
 					nullify.Fill(response),
 				)
+			}
+		})
+	}
+}
+
+func TestFindStateInfoByHeight(t *testing.T) {
+	keeper, ctx := keepertest.RollappKeeper(t)
+	rollappID := urand.RollappID()
+	keeper.SetRollapp(ctx, types.Rollapp{
+		RollappId: rollappID,
+	})
+	keeper.SetStateInfo(ctx, types.StateInfo{
+		StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 1},
+		StartHeight:    1,
+		NumBlocks:      2,
+	})
+	keeper.SetStateInfo(ctx, types.StateInfo{
+		StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 2},
+		StartHeight:    3,
+		NumBlocks:      3,
+	})
+	keeper.SetStateInfo(ctx, types.StateInfo{
+		StateInfoIndex: types.StateInfoIndex{RollappId: rollappID, Index: 3},
+		StartHeight:    6,
+		NumBlocks:      4,
+	})
+	keeper.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
+		RollappId: rollappID,
+		Index:     3,
+	})
+
+	type testInput struct {
+		rollappId string
+		height    uint64
+	}
+
+	testCase := []struct {
+		name           string
+		input          testInput
+		stateInfoIndex uint64
+		err            error
+	}{
+		{
+			name: "Zero height",
+			input: testInput{
+				rollappId: "1",
+				height:    0,
+			},
+			err: types.ErrInvalidHeight,
+		},
+		{
+			name: "Rollapp not found",
+			input: testInput{
+				rollappId: "unknown",
+				height:    1,
+			},
+			err: types.ErrUnknownRollappID,
+		},
+		{
+			name: "First height",
+			input: testInput{
+				rollappId: rollappID,
+				height:    1,
+			},
+			stateInfoIndex: 1,
+		},
+		{
+			name: "Last height",
+			input: testInput{
+				rollappId: rollappID,
+				height:    9,
+			},
+			stateInfoIndex: 3,
+		},
+		{
+			name: "Height in between",
+			input: testInput{
+				rollappId: rollappID,
+				height:    4,
+			},
+			stateInfoIndex: 2,
+		},
+		{
+			name: "Height not found",
+			input: testInput{
+				rollappId: rollappID,
+				height:    10,
+			},
+			err: gerrc.ErrNotFound,
+		},
+	}
+	for _, tc := range testCase {
+		t.Run(tc.name, func(t *testing.T) {
+			response, err := keeper.FindStateInfoByHeight(ctx, tc.input.rollappId, tc.input.height)
+			if tc.err != nil {
+				require.ErrorIs(t, err, tc.err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tc.stateInfoIndex, response.StateInfoIndex.Index)
 			}
 		})
 	}

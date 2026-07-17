@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -51,4 +52,23 @@ func (q Querier) GetPackets(goCtx context.Context, req *types.QueryRollappPacket
 	// TODO: handle pagination
 
 	return res, nil
+}
+
+func (q Querier) GetPendingPacketsByAddress(goCtx context.Context, req *types.QueryPendingPacketsByAddressRequest) (*types.QueryPendingPacketByAddressListResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Get all pending rollapp packets until the latest finalized height
+	p, pageResp, err := q.GetPendingPacketsByAddressPaginated(ctx, req.Address, req.Pagination)
+	if err != nil {
+		return nil, fmt.Errorf("get pending packets by receiver %s: %w", req.Address, err)
+	}
+
+	return &types.QueryPendingPacketByAddressListResponse{
+		RollappPackets: p,
+		Pagination:     pageResp,
+	}, nil
 }

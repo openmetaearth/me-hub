@@ -43,7 +43,7 @@ echo "Verifying critical dependencies..."
 
 CRITICAL_DEPS=(
     "github.com/cosmos/cosmos-sdk"
-    "github.com/CosmWasm/wasmvm"
+    "github.com/CosmWasm/wasmvm/v2"
     "github.com/cometbft/cometbft"
 )
 
