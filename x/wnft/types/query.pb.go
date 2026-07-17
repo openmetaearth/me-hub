@@ -353,7 +353,6 @@ func (m *NftList) GetOwner() string {
 	return ""
 }
 
-// QueryClassSupplyRequest is the request type for the Query/ClassSupply RPC method
 type QueryClassSupplyRequest struct {
 	ClassId string `protobuf:"bytes,1,opt,name=class_id,json=classId,proto3" json:"class_id,omitempty"`
 }
@@ -398,7 +397,6 @@ func (m *QueryClassSupplyRequest) GetClassId() string {
 	return ""
 }
 
-// QueryClassSupplyResponse is the response type for the Query/ClassSupply RPC method
 type QueryClassSupplyResponse struct {
 	TotalSupply uint64 `protobuf:"varint,1,opt,name=total_supply,json=totalSupply,proto3" json:"total_supply,omitempty"`
 }

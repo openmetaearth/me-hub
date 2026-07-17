@@ -79,12 +79,10 @@ message NftList {
   string owner = 4;
 }
 
-// QueryClassSupplyRequest is the request type for the Query/ClassSupply RPC method
 message QueryClassSupplyRequest {
   string class_id = 1;
 }
 
-// QueryClassSupplyResponse is the response type for the Query/ClassSupply RPC method
 message QueryClassSupplyResponse {
   uint64 total_supply = 1;
 }

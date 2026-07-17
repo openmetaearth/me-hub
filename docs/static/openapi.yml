@@ -11110,9 +11110,6 @@ paths:
               total_supply:
                 type: string
                 format: uint64
-            title: >-
-              QueryClassSupplyResponse is the response type for the
-              Query/ClassSupply RPC method
         default:
           description: An unexpected error response.
           schema:
@@ -73753,9 +73750,6 @@ definitions:
       total_supply:
         type: string
         format: uint64
-    title: >-
-      QueryClassSupplyResponse is the response type for the Query/ClassSupply
-      RPC method
   metaearth.wnft.QueryNftFilterRequest:
     type: object
     properties:
