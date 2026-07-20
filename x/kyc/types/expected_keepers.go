@@ -7,6 +7,7 @@ import (
 
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	stktypes "github.com/openmetaearth/me-hub/x/wstaking/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 type StakingKeeper interface {
@@ -16,6 +17,7 @@ type StakingKeeper interface {
 	RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionId string) error
 	TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creator, fromRegionId, toRegionId string) error
 	SendInviteReward(ctx sdk.Context, inviter, invitee, regionId string) error
+	GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, found bool)
 }
 
 type DIDKeeper interface {
