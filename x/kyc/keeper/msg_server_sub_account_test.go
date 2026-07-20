@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
@@ -279,5 +280,28 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 			SubAccountPubkey: subPubkey,
 		})
 		s.Require().ErrorIs(err, types.ErrSubAccountHasDID)
+	})
+
+	s.Run("sub_account already has delegation", func() {
+		const did10 = "1414141414141"
+		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		s.setupActiveKyc(userAddr, userPubkey, did10)
+
+		subAddr, subPubkey := s.newEthSubAccount()
+		s.App.StakingKeeper.SetDelegation(s.Ctx, stakingtypes.Delegation{
+			DelegatorAddress: subAddr.String(),
+			ValidatorAddress: s.meEarthValidator.OperatorAddress,
+		})
+
+		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
+			Creator:          userAddr.String(),
+			SubAccount:       subAddr.String(),
+			SubAccountPubkey: subPubkey,
+		})
+		s.Require().ErrorIs(err, types.ErrSubAccountHasDelegation)
+
+		info, found := s.Keeper().GetDidInfo(s.Ctx, did10)
+		s.Require().True(found)
+		s.Require().Empty(info.SubAccount)
 	})
 }

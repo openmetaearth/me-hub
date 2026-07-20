@@ -84,6 +84,12 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 		return &types.MsgCreateSubAccountResponse{}, types.ErrSubAccountHasDID
 	}
 
+	// check sub_account delegation, if has delegation, return error
+	_, found = m.stkKeeper.GetDelegation(ctx, subAccount, sdk.ValAddress{})
+	if found {
+		return &types.MsgCreateSubAccountResponse{}, types.ErrSubAccountHasDelegation
+	}
+
 	if !m.accountKeeper.HasAccount(ctx, subAccount) {
 		newAccount := m.accountKeeper.NewAccountWithAddress(ctx, subAccount)
 		err = newAccount.SetPubKey(subAccountPubKey)
