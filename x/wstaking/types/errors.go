@@ -101,5 +101,5 @@ var (
 	ErrStakeOnValidatorIsEmpty = sdkerrors.Register(ModuleName, 1304, "stake on validator is empty")
 	ErrProtoProc               = sdkerrors.Register(ModuleName, 1305, "proc proto error.")
 	ErrInterProc               = sdkerrors.Register(ModuleName, 1306, "inter proc error.")
-	ErrSubAccountNotAllowed       = sdkerrors.Register(ModuleName, 1307, "sub account not allowed to delegate")
+	ErrSubAccountNotAllowed    = sdkerrors.Register(ModuleName, 1307, "sub account not allowed to delegate")
 )
