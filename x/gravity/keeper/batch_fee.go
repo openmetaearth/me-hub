@@ -117,8 +117,9 @@ func (k Keeper) AddUnbatchedTxBridgeFee(ctx sdk.Context, txId uint64, sender sdk
 		return err
 	}
 
-	// add bridge fee amount
-	tx.Fee.Amount = tx.Fee.Amount.Add(addBridgeFee.Amount)
+	// Outgoing transaction amounts are stored in external-chain units.
+	externalBridgeFee := types.GetExternalUnlockAmount(addBridgeFee.Amount, k.moduleName, bridgeToken)
+	tx.Fee.Amount = tx.Fee.Amount.Add(externalBridgeFee)
 	if err := k.AddUnbatchedTx(ctx, tx); err != nil {
 		return err
 	}
