@@ -20,7 +20,7 @@ var (
 	ErrVersionMismatch                = errorsmod.Register(ModuleName, 1008, "rollapp version mismatch")
 	ErrWrongBlockHeight               = errorsmod.Register(ModuleName, 1009, "start-height does not match rollapps state")
 	ErrInvalidStateRoot               = errorsmod.Register(ModuleName, 1011, "invalid blocks state root")
-	ErrUnauthorizedRollappCreator     = errorsmod.Register(ModuleName, 1013, "rollapp creator not registered in the whitelist")
+	ErrUnauthorizedRollappUpdator     = errorsmod.Register(ModuleName, 1013, "rollapp updator is not same as rollapp creator")
 	ErrStateNotExists                 = errorsmod.Register(ModuleName, 1017, "state of this height doesn't exist")
 	ErrInvalidHeight                  = errorsmod.Register(ModuleName, 1018, "invalid rollapp height")
 	ErrInvalidRollappID               = errorsmod.Register(ModuleName, 1020, "invalid rollapp-id")

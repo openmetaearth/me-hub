@@ -125,7 +125,7 @@ func (suite *RollappTestSuite) TestUpdateRollappUnauthorizedCreator() {
 	}
 
 	_, err := suite.msgServer.UpdateRollapp(goCtx, &updateMsg)
-	suite.EqualError(err, types.ErrUnauthorizedRollappCreator.Error())
+	suite.EqualError(err, types.ErrUnauthorizedRollappUpdator.Error())
 
 	stored, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, original.RollappId)
 	suite.Require().True(found)
