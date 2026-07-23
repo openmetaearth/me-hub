@@ -75,7 +75,7 @@ func (k Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationR
 	//	return nil, types.ErrRegionNotExist.Wrapf("region not found=%s", regionID)
 	//}
 	// valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
-	//if valErr != nil {
+	// if valErr != nil {
 	//	return nil, valErr
 	//}
 	del := k.Delegation(ctx, delAdr, sdk.ValAddress{})

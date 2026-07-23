@@ -107,17 +107,17 @@ func (s *KeeperTestHelper) FundAcc(acc sdk.AccAddress, amounts sdk.Coins) {
 }
 
 // FundModuleAcc funds target modules with specified amount.
-func (suite *KeeperTestHelper) FundModuleAcc(moduleName string, amounts sdk.Coins) {
-	err := bankutil.FundModuleAccount(suite.App.BankKeeper, suite.Ctx, moduleName, amounts)
-	suite.Require().NoError(err)
+func (s *KeeperTestHelper) FundModuleAcc(moduleName string, amounts sdk.Coins) {
+	err := bankutil.FundModuleAccount(s.App.BankKeeper, s.Ctx, moduleName, amounts)
+	s.Require().NoError(err)
 }
 
 // StateNotAltered validates that app state is not altered. Fails if it is.
-func (suite *KeeperTestHelper) StateNotAltered() {
-	oldState := suite.App.ExportState(suite.Ctx)
-	suite.App.Commit()
-	newState := suite.App.ExportState(suite.Ctx)
-	suite.Require().Equal(oldState, newState)
+func (s *KeeperTestHelper) StateNotAltered() {
+	oldState := s.App.ExportState(s.Ctx)
+	s.App.Commit()
+	newState := s.App.ExportState(s.Ctx)
+	s.Require().Equal(oldState, newState)
 }
 
 func (s *KeeperTestHelper) InitializeDao() {

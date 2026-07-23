@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"context"
 	"encoding/hex"
 	"fmt"
 	"sort"
@@ -10,7 +9,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/openmetaearth/me-hub/app/params"
@@ -851,13 +849,17 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	nonce1RelayerSet := s.Keeper().GetRelayerSet(s.Ctx, 1)
 	gravityId := s.Keeper().GetGravityID(s.Ctx)
 	checkpoint, err := nonce1RelayerSet.GetCheckpoint(gravityId)
+	s.Require().NoError(err)
 	if trontypes.ModuleName == s.chainName {
 		checkpoint, err = trontypes.GetCheckpointRelayerSet(nonce1RelayerSet, gravityId)
+		s.Require().NoError(err)
 	}
 	for i := range s.relayerAddrs {
 		external2Signature, err := types.NewEthereumSignature(checkpoint, s.externalPris[i])
+		s.Require().NoError(err)
 		if trontypes.ModuleName == s.chainName {
 			external2Signature, err = trontypes.NewTronSignature(checkpoint, s.externalPris[i])
+			s.Require().NoError(err)
 		}
 
 		msg := &types.MsgRelayerSetConfirm{
@@ -1007,46 +1009,4 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 			s.Require().Equal(err.Error(), testCase.err.Error())
 		}
 	}
-}
-
-func (s *KeeperTestSuite) addBridgeToken(tokenContract string, md banktypes.Metadata) {
-	relayerLastEventNonce := s.Keeper().GetLastEventNonceByRelayer(s.Ctx, s.relayerAddrs[0])
-	ctx := sdk.WrapSDKContext(s.Ctx.WithEventManager(sdk.NewEventManager()))
-	_, err := s.MsgServer().BridgeTokenClaim(ctx, &types.MsgBridgeTokenClaim{
-		EventNonce:     relayerLastEventNonce + 1,
-		BlockHeight:    uint64(s.Ctx.BlockHeight()),
-		TokenContract:  tokenContract,
-		Name:           md.Name,
-		Symbol:         md.Symbol,
-		Decimals:       18,
-		RelayerAddress: s.relayerAddrs[0].String(),
-		ChainName:      s.chainName,
-	})
-	s.Require().NoError(err)
-
-	s.checkObservationState(ctx, true)
-
-	newRelayerLastEventNonce := s.Keeper().GetLastEventNonceByRelayer(s.Ctx, s.relayerAddrs[0])
-	s.Require().EqualValues(relayerLastEventNonce+1, newRelayerLastEventNonce)
-}
-
-func (s *KeeperTestSuite) checkObservationState(ctx context.Context, expect bool) {
-	foundObservation := false
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	for _, event := range sdkCtx.EventManager().Events() {
-		if event.Type != types.EventTypeContractEvent {
-			continue
-		}
-		s.Require().False(foundObservation, "found multiple observation event")
-		for _, attr := range event.Attributes {
-			if attr.Key != types.AttributeKeyStateSuccess {
-				continue
-			}
-			s.Require().EqualValues(fmt.Sprintf("%v", expect), attr.Value)
-			foundObservation = true
-			break
-		}
-	}
-	s.Require().True(foundObservation, "not found observation event")
-	sdkCtx.WithEventManager(sdk.NewEventManager())
 }

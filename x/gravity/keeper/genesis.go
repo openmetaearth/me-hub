@@ -238,7 +238,6 @@ func (k Keeper) ClearGenesis(ctx sdk.Context) {
 	for _, relayer := range relayers {
 		k.DelLastEventNonceByRelayer(ctx, sdk.MustAccAddressFromBech32(relayer.RelayerAddress))
 	}
-	return
 }
 
 func (k Keeper) ResetGenesis(ctx sdk.Context) {
@@ -263,6 +262,7 @@ func (k Keeper) ResetGenesis(ctx sdk.Context) {
 		}
 	}
 
+	// #nosec G101 -- deterministic bridge-token genesis fixture, not credentials.
 	bridgeTokens := `{
 	"bridge_tokens": [{
 		"contract_address": "0x676E1ba786f36cd8fB06d2C6332Eb0cd3f1737f9",
@@ -367,5 +367,4 @@ func (k Keeper) ResetGenesis(ctx sdk.Context) {
 		}
 		k.SetBridgeToken(ctx, &bridgeToken)
 	}
-	return
 }

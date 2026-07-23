@@ -45,8 +45,8 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 		return nil, errors.Wrap(types.ErrProcData, "can not found group number count in JoinGroup")
 	}
 
-	joined, JoinGroupFound := k.GetMemberJoined(ctx, msg.ApplicantAddress)
-	if JoinGroupFound && joined.GroupId > 0 {
+	joined, joinGroupFound := k.GetMemberJoined(ctx, msg.ApplicantAddress)
+	if joinGroupFound && joined.GroupId > 0 {
 		errLogBytes := fmt.Sprintf("user has joined a group (groupID:%d)", joined.GroupId)
 		return nil, errors.Wrap(types.ErrPermissionDenied, errLogBytes)
 	}
@@ -70,7 +70,7 @@ func (k msgServer) JoinGroup(goCtx context.Context, msg *types.MsgJoinGroup) (*t
 	}
 	k.SetGroupMemberCount(ctx, msg.GroupId, grpNumber+1)
 
-	if !JoinGroupFound { // send rewards if user has not joined group
+	if !joinGroupFound { // send rewards if user has not joined group
 		// get RegionTreasureAddr
 		region, found := k.stakingKeeper.GetRegion(ctx, groupInfo.RegionID)
 		if !found {

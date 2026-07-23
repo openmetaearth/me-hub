@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	distriKeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -18,7 +18,7 @@ import (
 )
 
 type Keeper struct {
-	distriKeeper.Keeper
+	distrkeeper.Keeper
 	cdc           codec.BinaryCodec
 	storeKey      storetypes.StoreKey
 	paramstore    paramtypes.Subspace
@@ -33,7 +33,7 @@ type Keeper struct {
 }
 
 type WrapDistrKeeper struct {
-	*distriKeeper.Keeper
+	*distrkeeper.Keeper
 }
 
 func NewKeeper(
@@ -46,7 +46,7 @@ func NewKeeper(
 	feeCollectorName string,
 	authority string,
 ) *Keeper {
-	distriKeeperImpl := distriKeeper.NewKeeper(
+	distriKeeperImpl := distrkeeper.NewKeeper(
 		cdc,
 		storeKey,
 		accountKeeper,
