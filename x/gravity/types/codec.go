@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,7 +14,11 @@ var (
 	ModuleCdc = codec.NewAminoCodec(Amino)
 )
 
-func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+func init() {
+	RegisterCodec(ModuleCdc.LegacyAmino)
+}
+
+func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterInterface((*ExternalClaim)(nil), nil)
 
 	cdc.RegisterConcrete(&MsgBondedRelayer{}, fmt.Sprintf("%s/%s", ModuleName, "MsgBondedRelayer"), nil)
@@ -36,6 +41,10 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 	cdc.RegisterConcrete(&MsgUpdateParams{}, fmt.Sprintf("%s/%s", ModuleName, "MsgUpdateParams"), nil)
 	cdc.RegisterConcrete(&MsgProposalRelayers{}, fmt.Sprintf("%s/%s", ModuleName, "MsgProposalRelayers"), nil)
+}
+
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	RegisterCodec(cdc)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {

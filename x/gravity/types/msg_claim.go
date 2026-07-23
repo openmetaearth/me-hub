@@ -2,11 +2,19 @@ package types
 
 import (
 	"fmt"
+
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/gogo/protobuf/proto"
+)
+
+const (
+	TypeMsgSendToMeClaim         = "send_to_me_claim"
+	TypeMsgSendToExternalClaim   = "send_to_external_claim"
+	TypeMsgRelayerSetUpdateClaim = "relayer_set_updated_claim"
+	TypeMsgBridgeTokenClaim      = "bridge_token_claim"
 )
 
 // ExternalClaim represents a claim on ethereum state
@@ -80,10 +88,25 @@ func (m *MsgSendToMeClaim) ValidateBasic() (err error) {
 	return nil
 }
 
+// GetSignBytes encodes the message for signing
+func (m *MsgSendToMeClaim) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
 
 func (m *MsgSendToMeClaim) GetClaimer() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.RelayerAddress)
 }
+
+// GetSigners defines whose signature is required
+func (m *MsgSendToMeClaim) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.RelayerAddress)}
+}
+
+// Type should return the action
+func (m *MsgSendToMeClaim) Type() string { return TypeMsgSendToMeClaim }
+
+// Route should return the name of the module
+func (m *MsgSendToMeClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m *MsgSendToMeClaim) ClaimHash() []byte {
@@ -127,11 +150,31 @@ func (m *MsgSendToExternalClaim) ClaimHash() []byte {
 	return tmhash.Sum([]byte(path))
 }
 
+// GetSignBytes encodes the message for signing
+func (m *MsgSendToExternalClaim) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
 func (m *MsgSendToExternalClaim) GetClaimer() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.RelayerAddress)
 }
 
+// GetSigners defines whose signature is required
+func (m *MsgSendToExternalClaim) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.RelayerAddress)}
+}
+
+// Route should return the name of the module
+func (m *MsgSendToExternalClaim) Route() string { return RouterKey }
+
+// Type should return the action
+func (m *MsgSendToExternalClaim) Type() string { return TypeMsgSendToExternalClaim }
+
 // MsgBridgeTokenClaim //
+
+func (m *MsgBridgeTokenClaim) Route() string { return RouterKey }
+
+func (m *MsgBridgeTokenClaim) Type() string { return TypeMsgBridgeTokenClaim }
 
 func (m *MsgBridgeTokenClaim) ValidateBasic() (err error) {
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
@@ -156,6 +199,14 @@ func (m *MsgBridgeTokenClaim) ValidateBasic() (err error) {
 		return errortypes.ErrInvalidRequest.Wrap("zero block height")
 	}
 	return nil
+}
+
+func (m *MsgBridgeTokenClaim) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
+func (m *MsgBridgeTokenClaim) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.RelayerAddress)}
 }
 
 func (m *MsgBridgeTokenClaim) GetClaimer() sdk.AccAddress {
@@ -206,9 +257,25 @@ func (m *MsgRelayerSetUpdateClaim) ValidateBasic() (err error) {
 	return nil
 }
 
+// GetSignBytes encodes the message for signing
+func (m *MsgRelayerSetUpdateClaim) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
+}
+
 func (m *MsgRelayerSetUpdateClaim) GetClaimer() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.RelayerAddress)
 }
+
+// GetSigners defines whose signature is required
+func (m *MsgRelayerSetUpdateClaim) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{sdk.MustAccAddressFromBech32(m.RelayerAddress)}
+}
+
+// Type should return the action
+func (m *MsgRelayerSetUpdateClaim) Type() string { return TypeMsgRelayerSetUpdateClaim }
+
+// Route should return the name of the module
+func (m *MsgRelayerSetUpdateClaim) Route() string { return RouterKey }
 
 // ClaimHash Hash implements BridgeSendToExternal.Hash
 func (m *MsgRelayerSetUpdateClaim) ClaimHash() []byte {

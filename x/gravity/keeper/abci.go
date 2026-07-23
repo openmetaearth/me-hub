@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/x/gravity/types"
@@ -14,7 +15,7 @@ import (
 func (k Keeper) EndBlocker(ctx sdk.Context) {
 	k.cleanupTimedOutBatches(ctx)
 	signedWindow := k.GetSignedWindow(ctx)
-	// k.slashing(ctx, signedWindow)
+	k.slashing(ctx, signedWindow)
 	k.createRelayerSetChangeRequest(ctx)
 	k.pruneRelayerSet(ctx, signedWindow)
 }

@@ -239,7 +239,6 @@ func (k Keeper) ClearGenesis(ctx sdk.Context) {
 	for _, relayer := range relayers {
 		k.DelLastEventNonceByRelayer(ctx, sdk.MustAccAddressFromBech32(relayer.RelayerAddress))
 	}
-	// should clear relayers
 	return
 }
 

@@ -11,6 +11,8 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/testutil/helpers"
@@ -18,10 +20,8 @@ import (
 	"github.com/openmetaearth/me-hub/x/gravity/keeper"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
-	minttypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-	"github.com/stretchr/testify/suite"
 )
 
 type KeeperTestSuite struct {
@@ -52,7 +52,7 @@ func TestGravityKeeperTestSuite(t *testing.T) {
 }
 
 func (s *KeeperTestSuite) MsgServer() types.MsgServer {
-	//if suite.chainName == trontypes.ModuleName {
+	// if suite.chainName == trontypes.ModuleName {
 	//	return tronkeeper.NewMsgServerImpl(suite.app.TronKeeper)
 	//}
 	return keeper.NewMsgServerImpl(s.Keeper())
@@ -133,11 +133,7 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	proposalRelayer := &types.ProposalRelayer{}
 	for i := 0; i < s.relayerNumber; i++ {
-		fundCoins := sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 10000000000)}
-		err = s.App.BankKeeper.MintCoins(s.Ctx, minttypes.ModuleName, fundCoins)
-		s.Require().NoError(err)
-		err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, minttypes.ModuleName, s.relayerAddrs[i], fundCoins)
-		s.Require().NoError(err)
+		apptesting.FundAccount(s.App, s.Ctx, s.relayerAddrs[i], sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 10000000000)})
 		proposalRelayer.Relayers = append(proposalRelayer.Relayers, s.relayerAddrs[i].String())
 	}
 	s.Keeper().SetProposalRelayer(s.Ctx, proposalRelayer)
@@ -155,12 +151,12 @@ func (s *KeeperTestSuite) SignRelayerSetConfirm(external *ecdsa.PrivateKey, rela
 	signature, err := types.NewEthereumSignature(checkpoint, external)
 	s.NoError(err)
 	if trontypes.ModuleName == s.chainName {
-		//externalAddress = tronaddress.PubkeyToAddress(external.PublicKey).String()
+		// externalAddress = tronaddress.PubkeyToAddress(external.PublicKey).String()
 		//
-		//checkpoint, err = trontypes.GetCheckpointRelayerSet(relayerSet, gravityId)
-		//s.Require().NoError(err)
+		// checkpoint, err = trontypes.GetCheckpointRelayerSet(relayerSet, gravityId)
+		// s.Require().NoError(err)
 		//
-		//signature, err = trontypes.NewTronSignature(checkpoint, external)
+		// signature, err = trontypes.NewTronSignature(checkpoint, external)
 		//s.Require().NoError(err)
 	}
 	return externalAddress, signature

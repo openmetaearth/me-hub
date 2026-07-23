@@ -2,6 +2,7 @@ package cli
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
+
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
@@ -236,7 +238,7 @@ func CmdGetRelayerSetRequest(chainName string) *cobra.Command {
 					return err
 				}
 				if len(queryAbciResp.Value) == 0 {
-					return fmt.Errorf("latest relayer-set nonce not found; please provide the nonce explicitly")
+					return errors.New("latest relayer-set nonce not found; please provide the nonce explicitly")
 				}
 				if len(queryAbciResp.Value) != 8 {
 					return fmt.Errorf("unexpected relayer-set nonce encoding (got %d bytes)", len(queryAbciResp.Value))

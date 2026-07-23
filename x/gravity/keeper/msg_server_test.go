@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/crypto"
+
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/testutil/helpers"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
@@ -456,7 +457,7 @@ func (s *KeeperTestSuite) TestClaimWithRelayerOnline() {
 }
 
 func (s *KeeperTestSuite) TestClaimMsgGasConsumed() {
-	gasStatics := func(gasConsumed, maxGas uint64, minGas uint64, avgGas uint64) (uint64, uint64, uint64) {
+	gasStatics := func(gasConsumed, maxGas, minGas, avgGas uint64) (uint64, uint64, uint64) {
 		if gasConsumed > maxGas {
 			maxGas = gasConsumed
 		}

@@ -3,8 +3,8 @@ package keeper_test
 import (
 	"encoding/hex"
 	"fmt"
-	tmrand "github.com/cometbft/cometbft/libs/rand"
 
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"

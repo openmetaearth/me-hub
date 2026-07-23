@@ -17,7 +17,7 @@ import (
 // - burns the voucher for transfer amount and fees
 // - persists an OutgoingTx
 // - adds the TX to the `available` TX pool via a second index
-func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount sdk.Coin, fee sdk.Coin) (uint64, error) {
+func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount, fee sdk.Coin) (uint64, error) {
 	bridgeToken, err := k.GetBridgeTokenByDenom(ctx, amount.Denom)
 	if err != nil {
 		return 0, errorsmod.Wrapf(types.ErrInvalid, "get bridge token: %v", err)
@@ -27,12 +27,6 @@ func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiv
 	if totalInVouchers.Amount.GT(bridgeToken.Supply) {
 		return 0, errorsmod.Wrapf(types.ErrInvalid, "%s exceeds bridge token supply %s in %s chain",
 			totalInVouchers.Amount.String(), bridgeToken.Supply.String(), k.moduleName)
-	}
-
-	totalPending := k.GetOutgoingPendingTxTotal(ctx, k.moduleName, bridgeToken)
-	if totalInVouchers.Amount.Add(totalPending).GT(bridgeToken.Supply) {
-		return 0, errorsmod.Wrapf(types.ErrInvalid, "total pending amount %s plus current amount %s exceeds bridge token supply %s in %s chain",
-			totalPending.String(), totalInVouchers.Amount.String(), bridgeToken.Supply.String(), k.moduleName)
 	}
 
 	sendCoins := sdk.NewCoins(totalInVouchers)
@@ -189,7 +183,7 @@ func (k Keeper) GetUnbatchedTxByFeeAndId(ctx sdk.Context, fee types.ERC20Token, 
 // GetUnbatchedTxById grabs a tx from the pool given only the txID
 // note that due to the way unbatched txs are indexed, the GetUnbatchedTxByFeeAndId method is much faster
 func (k Keeper) GetUnbatchedTxById(ctx sdk.Context, txID uint64) (*types.OutgoingTransferTx, error) {
-	var r *types.OutgoingTransferTx = nil
+	var r *types.OutgoingTransferTx
 	k.IterateUnbatchedTransactions(ctx, "", func(tx *types.OutgoingTransferTx) bool {
 		if tx.Id == txID {
 			r = tx
