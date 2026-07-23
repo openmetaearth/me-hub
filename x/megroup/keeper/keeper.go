@@ -118,45 +118,44 @@ func (k Keeper) procKycRegionChange(sdkCtx sdk.Context, address, preRegionID, no
 	//}
 	joined, joinGroupFound := k.GetMemberJoined(sdkCtx, address)
 	preJoinedGroupID := uint64(0)
-	if joinGroupFound && joined.GroupId > 0 {
-		if newGrpId == joined.GroupId {
-			k.Logger(sdkCtx).Error("newGrpId == joined.GroupId in procKycRegionChange.", "preJoinedGroupId = ",
-				joined.GroupId, "newGroupID = ", newGrpId)
-			return nil
-		}
-		preJoinedGroupID = joined.GroupId
-		preGrpIdByRegion, found := k.GetGroupIdByRegion(sdkCtx, preRegionID)
-		if !found {
-			return errorsmod.Wrapf(types.ErrGroupNotExist, "can not found groupId in previous region.preRegionID = %s."+
-				"but user has been joined group.joinGroupID = %d", preRegionID, joined.GroupId)
-		}
-		if preGrpIdByRegion != joined.GroupId {
-			return errorsmod.Wrapf(types.ErrProcData, "preGrpIdByRegion != joined.GroupId.preGrpIdByRegion = %d."+
-				"but user has been joined group.joinGroupID = %d", preGrpIdByRegion, joined.GroupId)
-		}
-		preGroupInfo, found := k.GetGroupInfo(sdkCtx, joined.GroupId)
-		if !found {
-			return errorsmod.Wrapf(types.ErrGroupNotExist, "can not found joined previous gourp.groupID = %d", joined.GroupId)
-		}
-		// admin can not migrate
-		if address == preGroupInfo.Admin { // admin can not leave group
-			return errorsmod.Wrapf(types.ErrExecute, "admin of group can not leave")
-		}
-
-		preGroupNumber, found := k.GetGroupMemberCount(sdkCtx, joined.GroupId)
-		if !found {
-			return errors.New("can not found preGroup number count while ready to levae preGourp in procKycRegionChange")
-		}
-		if preGroupNumber == 0 {
-			return errors.New("preGroup number is 0 while ready to levae preGourp in procKycRegionChange")
-		}
-		if err := k.deleteMemberFormGroup(sdkCtx, joined.GroupId, address); err != nil {
-			return err
-		}
-		k.SetGroupMemberCount(sdkCtx, joined.GroupId, preGroupNumber-1)
-	} else {
+	if !joinGroupFound || joined.GroupId == 0 {
 		return nil
 	}
+	if newGrpId == joined.GroupId {
+		k.Logger(sdkCtx).Error("newGrpId == joined.GroupId in procKycRegionChange.", "preJoinedGroupId = ",
+			joined.GroupId, "newGroupID = ", newGrpId)
+		return nil
+	}
+	preJoinedGroupID = joined.GroupId
+	preGrpIdByRegion, found := k.GetGroupIdByRegion(sdkCtx, preRegionID)
+	if !found {
+		return errorsmod.Wrapf(types.ErrGroupNotExist, "can not found groupId in previous region.preRegionID = %s."+
+			"but user has been joined group.joinGroupID = %d", preRegionID, joined.GroupId)
+	}
+	if preGrpIdByRegion != joined.GroupId {
+		return errorsmod.Wrapf(types.ErrProcData, "preGrpIdByRegion != joined.GroupId.preGrpIdByRegion = %d."+
+			"but user has been joined group.joinGroupID = %d", preGrpIdByRegion, joined.GroupId)
+	}
+	preGroupInfo, found := k.GetGroupInfo(sdkCtx, joined.GroupId)
+	if !found {
+		return errorsmod.Wrapf(types.ErrGroupNotExist, "can not found joined previous gourp.groupID = %d", joined.GroupId)
+	}
+	// admin can not migrate
+	if address == preGroupInfo.Admin { // admin can not leave group
+		return errorsmod.Wrapf(types.ErrExecute, "admin of group can not leave")
+	}
+
+	preGroupNumber, found := k.GetGroupMemberCount(sdkCtx, joined.GroupId)
+	if !found {
+		return errors.New("can not found preGroup number count while ready to levae preGourp in procKycRegionChange")
+	}
+	if preGroupNumber == 0 {
+		return errors.New("preGroup number is 0 while ready to levae preGourp in procKycRegionChange")
+	}
+	if err := k.deleteMemberFormGroup(sdkCtx, joined.GroupId, address); err != nil {
+		return err
+	}
+	k.SetGroupMemberCount(sdkCtx, joined.GroupId, preGroupNumber-1)
 	if newGrpId == 0 {
 		if preJoinedGroupID > 0 {
 			// set member's join group info
