@@ -19,8 +19,8 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 }
 
 func (k Keeper) createRelayerSetChangeRequest(ctx sdk.Context) {
-	if CurrentRelayerSet, isNeed := k.isNeedRelayerSetChange(ctx); isNeed {
-		k.AddRelayerSetChangeRequest(ctx, CurrentRelayerSet)
+	if currentRelayerSet, isNeeded := k.isNeedRelayerSetChange(ctx); isNeeded {
+		k.AddRelayerSetChangeRequest(ctx, currentRelayerSet)
 	}
 }
 

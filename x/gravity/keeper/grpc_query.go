@@ -160,8 +160,8 @@ func (k QueryServer) LastPendingBatchRequestByAddr(c context.Context, req *types
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
-	RelayerAddress := sdk.MustAccAddressFromBech32(req.RelayerAddress)
-	relayer, ok := k.GetRelayer(ctx, RelayerAddress)
+	relayerAddress := sdk.MustAccAddressFromBech32(req.RelayerAddress)
+	relayer, ok := k.GetRelayer(ctx, relayerAddress)
 	if !ok {
 		return nil, types.ErrNotFoundRelayer
 	}
@@ -171,7 +171,7 @@ func (k QueryServer) LastPendingBatchRequestByAddr(c context.Context, req *types
 		if relayer.StartHeight > int64(batch.Block) {
 			return false
 		}
-		foundConfirm := k.GetBatchConfirm(ctx, batch.TokenContract, batch.BatchNonce, RelayerAddress) != nil
+		foundConfirm := k.GetBatchConfirm(ctx, batch.TokenContract, batch.BatchNonce, relayerAddress) != nil
 		if !foundConfirm {
 			pendingBatchReq = batch
 			return true
@@ -258,12 +258,12 @@ func (k QueryServer) BatchConfirm(c context.Context, req *types.QueryBatchConfir
 		return nil, status.Error(codes.InvalidArgument, "nonce")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
-	RelayerAddress := sdk.MustAccAddressFromBech32(req.RelayerAddress)
-	_, ok := k.GetRelayer(ctx, RelayerAddress)
+	relayerAddress := sdk.MustAccAddressFromBech32(req.RelayerAddress)
+	_, ok := k.GetRelayer(ctx, relayerAddress)
 	if !ok {
 		return nil, types.ErrNotFoundRelayer
 	}
-	confirm := k.GetBatchConfirm(ctx, req.TokenContract, req.Nonce, RelayerAddress)
+	confirm := k.GetBatchConfirm(ctx, req.TokenContract, req.Nonce, relayerAddress)
 	return &types.QueryBatchConfirmResponse{Confirm: confirm}, nil
 }
 

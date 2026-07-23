@@ -214,16 +214,16 @@ func (r *RelayerSet) GetCheckpoint(gravityIDStr string) ([]byte, error) {
 	return hash.Bytes(), nil
 }
 
-func (m *RelayerSet) Equal(o *RelayerSet) (bool, error) {
-	if m.Height != o.Height {
+func (r *RelayerSet) Equal(o *RelayerSet) (bool, error) {
+	if r.Height != o.Height {
 		return false, errorsmod.Wrap(ErrInvalid, "relayer set heights mismatch")
 	}
 
-	if m.Nonce != o.Nonce {
+	if r.Nonce != o.Nonce {
 		return false, errorsmod.Wrap(ErrInvalid, "relayer set nonce mismatch")
 	}
 
-	if !BridgeValidators(m.Members).Equal(o.Members) {
+	if !BridgeValidators(r.Members).Equal(o.Members) {
 		return false, errorsmod.Wrap(ErrInvalid, "relayer set members mismatch")
 	}
 
