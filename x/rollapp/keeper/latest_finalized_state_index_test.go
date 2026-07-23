@@ -18,7 +18,7 @@ import (
 var _ = strconv.IntSize
 
 func createNLatestFinalizedStateIndex(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.StateInfoIndex {
-	var items []types.StateInfoIndex
+	items := make([]types.StateInfoIndex, 0, n)
 	stateInfoList := make([]types.StateInfo, n)
 	for i := range stateInfoList {
 		stateInfoList[i].StateInfoIndex.RollappId = strconv.Itoa(i)
@@ -37,7 +37,6 @@ func TestLatestFinalizedStateIndexGet(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	items := createNLatestFinalizedStateIndex(keeper, ctx, 10)
 	for _, item := range items {
-
 		rst, found := keeper.GetLatestFinalizedStateIndex(ctx,
 			item.RollappId,
 		)

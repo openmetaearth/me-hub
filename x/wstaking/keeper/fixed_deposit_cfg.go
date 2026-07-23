@@ -54,7 +54,6 @@ func (k Keeper) InitFixedDepositCountOfCfg(ctx sdk.Context, regionId string, ter
 		binary.BigEndian.PutUint64(buf, uint64(0))
 		store.Set(byteKey, buf)
 	}
-	return
 }
 
 func (k Keeper) GetFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term int64) uint64 {

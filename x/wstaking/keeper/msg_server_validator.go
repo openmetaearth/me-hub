@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -168,7 +169,7 @@ func (k MsgServer) CreateValidator(
 }
 
 func (k MsgServer) EditValidator(context.Context, *stakingtypes.MsgEditValidator) (*stakingtypes.MsgEditValidatorResponse, error) {
-	return &stakingtypes.MsgEditValidatorResponse{}, fmt.Errorf("not implemented, please use UpdateValidator instead")
+	return &stakingtypes.MsgEditValidatorResponse{}, errors.New("not implemented, please use UpdateValidator instead")
 }
 
 // 1. only perform the node replacement when the target block height is reached.
