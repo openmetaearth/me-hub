@@ -102,12 +102,12 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 			}
 
 			mean := stat.Mean(sizes, nil)
-			min := floats.Min(sizes)
-			max := floats.Max(sizes)
+			minSize := floats.Min(sizes)
+			maxSize := floats.Max(sizes)
 
 			fmt.Printf("Mean: %v\n", humanize.Bytes(uint64(mean)))
-			fmt.Printf("Min: %v\n", humanize.Bytes(uint64(min)))
-			fmt.Printf("Max: %v\n", humanize.Bytes(uint64(max)))
+			fmt.Printf("Min: %v\n", humanize.Bytes(uint64(minSize)))
+			fmt.Printf("Max: %v\n", humanize.Bytes(uint64(maxSize)))
 
 			/* -------------------------- checking size on disk ------------------------- */
 			// Get list of subdirectories

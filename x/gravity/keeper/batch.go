@@ -81,7 +81,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 }
 
 // GetBatchTimeoutHeight This gets the batch timeout height in External blocks.
-func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) (uint64, uint64) {
+func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) (currentHeight, timeoutHeight uint64) {
 	currentMeHeight := ctx.BlockHeight()
 	params := k.GetParams(ctx)
 	if params.AverageExternalBlockTime == 0 {
@@ -230,7 +230,7 @@ func (k Keeper) GetOutgoingTxBatches(ctx sdk.Context) (out []*types.OutgoingTxBa
 
 // GetLastOutgoingBatchByTokenType gets the latest outgoing tx batch by token type
 func (k Keeper) GetLastOutgoingBatchByTokenType(ctx sdk.Context, token string) *types.OutgoingTxBatch {
-	var lastBatch *types.OutgoingTxBatch = nil
+	var lastBatch *types.OutgoingTxBatch
 	lastNonce := uint64(0)
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		if batch.TokenContract == token && batch.BatchNonce > lastNonce {

@@ -524,9 +524,8 @@ func verifyAll(suite *RollappTestSuite, rollappsExpect []*types.RollappSummary, 
 // map of rollappId->rollapp and the number of retrieved rollapps
 func getAll(suite *RollappTestSuite) (map[string]*types.RollappSummary, int) {
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
-	totalChecked := 0
 	totalRes := 0
-	nextKey := []byte{}
+	var nextKey []byte
 	rollappsRes := make(map[string]*types.RollappSummary)
 	for {
 		queryAllResponse, err := suite.queryClient.RollappAll(goCtx,
@@ -549,7 +548,6 @@ func getAll(suite *RollappTestSuite) (map[string]*types.RollappSummary, int) {
 			rollappRes := queryAllResponse.GetRollapp()[i]
 			rollappsRes[rollappRes.GetRollappId()] = &rollappRes
 		}
-		totalChecked += len(queryAllResponse.GetRollapp())
 		nextKey = queryAllResponse.GetPagination().GetNextKey()
 
 		if nextKey == nil {

@@ -185,10 +185,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 	sequencersExpect := []*types.Sequencer{}
 
 	// rollappSequencersExpect is a map from rollappId to a map of sequencer addresses list
-	type rollappSequencersExpectKey struct {
-		rollappId, sequencerAddress string
-	}
-	rollappSequencersExpect := make(map[rollappSequencersExpectKey]string)
+	rollappSequencersExpect := make(map[string]string)
 
 	// for 3 rollapps, test 10 sequencers creations
 	for j := 0; j < 3; j++ {
@@ -253,7 +250,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			verifyAll(suite, sequencersExpect, sequencersRes)
 
 			// add the sequencer to the list of spesific rollapp
-			rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerExpect.SequencerAddress}] = sequencerExpect.SequencerAddress
+			rollappSequencersExpect[sequencerExpect.SequencerAddress] = sequencerExpect.SequencerAddress
 		}
 	}
 
@@ -266,7 +263,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		suite.Require().Nil(err)
 		// verify that all the addresses of the rollapp are found
 		for _, sequencer := range queryAllResponse.Sequencers {
-			suite.Require().EqualValues(rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencer.SequencerAddress}],
+			suite.Require().EqualValues(rollappSequencersExpect[sequencer.SequencerAddress],
 				sequencer.SequencerAddress)
 		}
 		totalFound += len(queryAllResponse.Sequencers)
@@ -574,9 +571,8 @@ func verifyAll(suite *SequencerTestSuite, sequencersExpect []*types.Sequencer, s
 // getAll quires for all existing sequencers and returns a map of sequencerId->sequencer
 func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
-	totalChecked := 0
 	totalRes := 0
-	nextKey := []byte{}
+	var nextKey []byte
 	sequencersRes := make(map[string]*types.Sequencer)
 	for {
 		queryAllResponse, err := suite.queryClient.Sequencers(goCtx,
@@ -599,7 +595,6 @@ func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 			sequencerRes := queryAllResponse.Sequencers[i]
 			sequencersRes[sequencerRes.GetSequencerAddress()] = &sequencerRes
 		}
-		totalChecked += len(queryAllResponse.Sequencers)
 		nextKey = queryAllResponse.GetPagination().GetNextKey()
 
 		if nextKey == nil {

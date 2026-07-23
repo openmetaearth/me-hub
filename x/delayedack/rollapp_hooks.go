@@ -24,10 +24,10 @@ func (w IBCMiddleware) FraudSubmitted(ctx sdk.Context, rollappID string, height 
 }
 
 // RollappCreated implements types.RollappHooks.
-func (im IBCMiddleware) RollappCreated(ctx sdk.Context, rollappID string) error {
+func (w IBCMiddleware) RollappCreated(ctx sdk.Context, rollappID string) error {
 	return nil
 }
 
-func (im IBCMiddleware) ProcPendingStates(ctx sdk.Context, rollappID, creator string, stateInfo *rollapptypes.StateInfo) error {
+func (w IBCMiddleware) ProcPendingStates(ctx sdk.Context, rollappID, creator string, stateInfo *rollapptypes.StateInfo) error {
 	return nil
 }

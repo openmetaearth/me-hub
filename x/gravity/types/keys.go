@@ -134,7 +134,9 @@ func GetAttestationKey(eventNonce uint64, claimHash []byte) []byte {
 }
 
 func GetAttestationKeyByNonce(eventNonce uint64) []byte {
-	return append(RelayerAttestationKey, append(sdk.Uint64ToBigEndian(eventNonce))...)
+	key := make([]byte, 0, len(RelayerAttestationKey)+8)
+	key = append(key, RelayerAttestationKey...)
+	return append(key, sdk.Uint64ToBigEndian(eventNonce)...)
 }
 
 // GetOutgoingTxPoolContractPrefix returns the following key format

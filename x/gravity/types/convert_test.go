@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetExternalUnlockAmount(t *testing.T) {
-	convert := sdk.NewDec(10).Power(6 - 6).TruncateInt()
+	convert := sdk.NewDec(10).Power(0).TruncateInt()
 	require.Equal(t, sdkmath.NewInt(1), convert, "expected convert to be 1 when decimals are equal")
 	tests := []struct {
 		name        string

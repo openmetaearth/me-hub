@@ -524,7 +524,7 @@ func (s *KeeperTestSuite) TestRelayerDelete() {
 	s.Require().NoError(err)
 	relayer, found = s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[0])
 	s.Require().False(found)
-	relayerAddr, found = s.Keeper().GetRelayerByExternalAddress(s.Ctx, externalAddress)
+	_, found = s.Keeper().GetRelayerByExternalAddress(s.Ctx, externalAddress)
 	s.Require().False(found)
 }
 
@@ -606,7 +606,7 @@ func (s *KeeperTestSuite) TestSlashRelayer() {
 		s.Require().True(relayer.Online)
 		s.Require().Equal(int64(0), relayer.SlashTimes)
 
-		s.Keeper().SlashRelayer(s.Ctx, relayer.RelayerAddress)
+		s.Require().NoError(s.Keeper().SlashRelayer(s.Ctx, relayer.RelayerAddress))
 
 		relayer, found = s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[i])
 		s.Require().True(found)
@@ -621,7 +621,7 @@ func (s *KeeperTestSuite) TestSlashRelayer() {
 		s.Require().False(relayer.Online)
 		s.Require().Equal(int64(1), relayer.SlashTimes)
 
-		s.Keeper().SlashRelayer(s.Ctx, relayer.RelayerAddress)
+		s.Require().NoError(s.Keeper().SlashRelayer(s.Ctx, relayer.RelayerAddress))
 
 		relayer, found = s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[i])
 		s.Require().True(found)

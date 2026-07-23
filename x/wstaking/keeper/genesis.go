@@ -36,7 +36,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 		k.SetValidator(ctx, validator)
 
 		// Manually set indices for the first time
-		k.SetValidatorByConsAddr(ctx, validator)
+		_ = k.SetValidatorByConsAddr(ctx, validator)
 		k.SetValidatorByPowerIndex(ctx, validator)
 
 		// Call the creation hook if not exported

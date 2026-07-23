@@ -10,10 +10,11 @@ import (
 )
 
 func TestKeeper_Credential(t *testing.T) {
+	const sid = "test"
+
 	k, ctx := keeper.DidKeeper(t)
 
 	did := "1000000000000001"
-	sid := "test"
 	vc := didtypes.Credential{
 		Did:  did,
 		Sid:  sid,

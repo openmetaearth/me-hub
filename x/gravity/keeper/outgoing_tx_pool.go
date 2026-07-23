@@ -241,7 +241,6 @@ func (k Keeper) ClearAutoIncrementID(ctx sdk.Context) {
 	store.Delete(types.KeyLastTxPoolID)
 	store.Delete(types.LastSlashedBatchBlock)
 	store.Delete(types.LastSlashedRelayerSetNonce)
-	return
 }
 
 // GetOutgoingPendingTxTotal returns the total amount of a given token pending in the outgoing pool and all batches

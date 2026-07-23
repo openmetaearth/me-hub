@@ -51,23 +51,23 @@ func NewMockStakingKeeper(sk *wstaking.Keeper) *MockStakingKeeper {
 	return ms
 }
 
-func (msk MockStakingKeeper) CheckRegionName(name string) (string, error) {
+func (m MockStakingKeeper) CheckRegionName(name string) (string, error) {
 	return "oh yeah", nil
 }
 
-func (msk MockStakingKeeper) GetMeid(ctx sdk.Context, account string) (val MockMeid, found bool) {
-	v, ok := msk.Meid[account]
+func (m MockStakingKeeper) GetMeid(ctx sdk.Context, account string) (val MockMeid, found bool) {
+	v, ok := m.Meid[account]
 	if !ok {
 		return MockMeid{}, false
 	}
 	return *v, ok
 }
 
-func (msk *MockStakingKeeper) SetMeid(ctx sdk.Context, meid MockMeid) {
-	msk.Meid[meid.Account] = &meid
+func (m *MockStakingKeeper) SetMeid(ctx sdk.Context, meid MockMeid) {
+	m.Meid[meid.Account] = &meid
 }
 
-func (msk MockStakingKeeper) GetRegion(ctx sdk.Context, regionId string) (val MockRegion, found bool) {
-	v, ok := msk.Region[regionId]
+func (m MockStakingKeeper) GetRegion(ctx sdk.Context, regionId string) (val MockRegion, found bool) {
+	v, ok := m.Region[regionId]
 	return *v, ok
 }

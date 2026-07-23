@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"crypto/ecdsa"
 	"fmt"
 	"math/big"
 	"testing"
@@ -35,8 +34,6 @@ type KeeperTestSuite struct {
 
 	relayerAddrs  []sdk.AccAddress
 	relayerNumber int
-	externalPris  []*ecdsa.PrivateKey
-	chainName     string
 
 	queryServer gravitytypes.QueryClient
 	msgServer   gravitytypes.MsgServer
@@ -83,8 +80,6 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.relayerNumber = 10
 	s.relayerAddrs = s.NewAccounts(s.relayerNumber)
 	s.Require().EqualValues(s.relayerNumber, len(s.relayerAddrs))
-	s.externalPris = helpers.CreateMultiECDSA(s.relayerNumber)
-
 	err = s.App.TronKeeper.SetParams(s.Ctx, &gravitytypes.Params{
 		GravityId:                          "me-tron-bridge",
 		AverageBlockTime:                   5000,

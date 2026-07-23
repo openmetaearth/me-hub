@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -139,7 +140,9 @@ func (k MsgServer) CreateValidator(
 	validator.OwnerAddress = sdk.AccAddress(valAddr).String()
 
 	k.SetValidator(ctx, validator)
-	k.SetValidatorByConsAddr(ctx, validator)
+	if err := k.SetValidatorByConsAddr(ctx, validator); err != nil {
+		return nil, err
+	}
 	k.SetNewValidatorByPowerIndex(ctx, validator)
 	// call the after-creation hook
 	if err := k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
@@ -166,7 +169,7 @@ func (k MsgServer) CreateValidator(
 }
 
 func (k MsgServer) EditValidator(context.Context, *stakingtypes.MsgEditValidator) (*stakingtypes.MsgEditValidatorResponse, error) {
-	return &stakingtypes.MsgEditValidatorResponse{}, fmt.Errorf("not implemented, please use UpdateValidator instead")
+	return &stakingtypes.MsgEditValidatorResponse{}, errors.New("not implemented, please use UpdateValidator instead")
 }
 
 // 1. only perform the node replacement when the target block height is reached.
