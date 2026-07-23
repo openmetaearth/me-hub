@@ -3,15 +3,13 @@ package types
 import (
 	"fmt"
 	"regexp"
-	"strings"
 	"sync"
 )
 
 const (
-	MainnetV1ChainId  = "mechain"
+	MainnetV1ChainId  = "me-chain"
 	MainnetV2ChainId  = "mechain_2404-1"
 	MainnetEvmChainID = 2404
-	TestnetEvmChainID = 202404
 )
 
 var (
@@ -35,16 +33,13 @@ func ChainIdWithEIP155() string {
 }
 
 // ChainIdWithEIP155From maps a Cosmos chain-id to the EIP-155 format expected by Ethermint.
-// Legacy mainnet chains use the plain "mechain" id; EVM uses chain id 2404 (mechain_2404-1).
+// Legacy mainnet chains use the plain "me-chain" id; EVM uses chain id 2404 (mechain_2404-1).
 func ChainIdWithEIP155From(id string) string {
 	if eip155SuffixReg.MatchString(id) {
 		return id
 	}
 	if id == MainnetV1ChainId {
 		return MainnetV2ChainId
-	}
-	if strings.Contains(id, "testnet") {
-		return fmt.Sprintf("%s_%d-1", id, TestnetEvmChainID)
 	}
 	return fmt.Sprintf("%s_%d-1", id, MainnetEvmChainID)
 }

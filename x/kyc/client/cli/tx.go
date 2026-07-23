@@ -254,7 +254,7 @@ func CmdDeleteSBT() *cobra.Command {
 
 func CmdCreateSubAccount() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-sub-account [sub_account] [pubkey]",
+		Use:   "create-sub-account [sub_account] [sub_account_pubkey]",
 		Short: "bind a sub-account address to a KYC DID",
 		Long: `Bind an ethsecp256k1 sub-account address to a KYC DID.
 

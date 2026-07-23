@@ -59,6 +59,7 @@ type KycKeeper interface {
 type DidKeeper interface {
 	IteratorCredentialsByFilter(ctx sdk.Context, sid string, filter []byte, cb func(delegation didtypes.Credential) (stop bool))
 	GetDidInfo(ctx sdk.Context, did string) (info didtypes.DidInfo, found bool)
+	HasDidBySubAccount(ctx sdk.Context, subAccount string) bool
 }
 
 type GroupKeeper interface {

@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	stktypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -18,6 +19,7 @@ type StakingKeeper interface {
 	RemoveKycReward(ctx sdk.Context, account sdk.AccAddress, regionId string) error
 	TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creator, fromRegionId, toRegionId string) error
 	SendInviteReward(ctx sdk.Context, inviter, invitee, regionId string) error
+	GetDelegation(ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, err error)
 }
 
 type DIDKeeper interface {

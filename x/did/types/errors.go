@@ -29,7 +29,8 @@ var (
 	ErrHolderNotFound  = errors.Register(ModuleName, 141, "holder not found")
 	ErrHolderNotActive = errors.Register(ModuleName, 142, "holder not active")
 
-	ErrCredentialExists   = errors.Register(ModuleName, 150, "credential already exists")
-	ErrCredentialNotFound = errors.Register(ModuleName, 151, "credential not found")
+	ErrCredentialExists   = errors.Register(ModuleName, 150, "kyc credential already exists")
+	ErrCredentialNotFound = errors.Register(ModuleName, 151, "kyc credential not found")
 	ErrUnauthorized       = errors.Register(ModuleName, 152, "unauthorized")
+	ErrSubAccountAlreadyRegistered = errors.Register(ModuleName, 153, "sub account already registered")
 )

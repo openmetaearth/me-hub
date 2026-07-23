@@ -56,6 +56,11 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 		return &types.MsgApproveResponse{}, didtypes.ErrDidExists
 	}
 
+	// check sub account
+	if m.didKeeper.HasDidBySubAccount(ctx, msg.Address) {
+		return &types.MsgApproveResponse{}, didtypes.ErrSubAccountAlreadyRegistered
+	}
+
 	// check region
 	if _, found := m.stkKeeper.GetRegionCache(msg.RegionId); !found {
 		return &types.MsgApproveResponse{}, stktypes.ErrRegionNotExist
@@ -103,6 +108,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 		m.accountKeeper.SetAccount(ctx, m.accountKeeper.NewAccountWithAddress(ctx, address))
 	}
 
+	ctx.EventManager().EmitEvent(types.NewKycEvent(msg.Address, msg.Did, msg.Level, "approve", m.takeSeq(ctx)))
 	return &types.MsgApproveResponse{}, nil
 }
 
@@ -184,6 +190,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 		sdk.NewAttribute(types.AttributeKeyInviter, msg.Inviter),
 	)
 	ctx.EventManager().EmitEvent(event)
+	ctx.EventManager().EmitEvent(types.NewKycEvent(address.String(), msg.Did, msg.Level, "update", m.takeSeq(ctx)))
 
 	// event post-handler
 	err := m.handlerReg.HandleEvent(ctx, types.EventTypeUpdate, event)
@@ -239,7 +246,7 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	if err := m.DeleteApproveReward(ctx, address.String(), string(kyc.Data)); err != nil {
 		return &types.MsgRemoveResponse{}, errors.Wrap(err, "delete reward failed")
 	}
-
+	ctx.EventManager().EmitEvent(types.NewKycEvent(address.String(), msg.Did, didInfo.KycLevel, "remove", m.takeSeq(ctx)))
 	return &types.MsgRemoveResponse{}, nil
 }
 

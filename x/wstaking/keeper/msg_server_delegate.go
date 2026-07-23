@@ -19,6 +19,11 @@ import (
 // Delegate defines a method for performing a delegation of coins from a delegator to a validator
 func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate) (*stakingtypes.MsgDelegateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if k.didKeeper.HasDidBySubAccount(ctx, msg.DelegatorAddress) {
+		return &stakingtypes.MsgDelegateResponse{}, types.ErrSubAccountNotAllowed
+	}
+
 	regionId := k.GetRegionIdByAccount(ctx, sdk.MustAccAddressFromBech32(msg.DelegatorAddress))
 	region, isFound := k.GetRegion(ctx, regionId)
 	if !isFound {

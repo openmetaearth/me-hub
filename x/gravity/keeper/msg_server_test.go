@@ -738,6 +738,84 @@ func (s *KeeperTestSuite) TestMsgBridgeTokenClaim() {
 	}
 }
 
+func (s *KeeperTestSuite) TestMsgSendToExternalIncreaseBridgeFeeAndCancel() {
+	sender := s.relayerAddrs[0]
+	denom := "uusdt"
+	initialSupply := sdk.NewCoin(denom, sdkmath.NewInt(150))
+	amount := sdk.NewCoin(denom, sdkmath.NewInt(40))
+	bridgeFee := sdk.NewCoin(denom, sdkmath.NewInt(10))
+	additionalFee := sdk.NewCoin(denom, sdkmath.NewInt(5))
+	bridgeToken := s.NewBridgeToken(sender, initialSupply)
+	bridgeToken.Symbol = "USDT"
+	bridgeToken.Decimal = 18
+	s.Keeper().SetBridgeToken(s.Ctx, &bridgeToken)
+
+	getBalance := func() sdkmath.Int {
+		return s.App.BankKeeper.GetBalance(s.Ctx, sender, denom).Amount
+	}
+	getSupply := func() sdkmath.Int {
+		return s.App.BankKeeper.GetSupply(s.Ctx, denom).Amount
+	}
+	getBridgeTokenSupply := func() sdkmath.Int {
+		bridgeToken, err := s.Keeper().GetBridgeTokenByDenom(s.Ctx, denom)
+		s.Require().NoError(err)
+		return bridgeToken.Supply
+	}
+	assertBalanceAndSupply := func(expected sdkmath.Int) {
+		s.Require().EqualValues(expected, getBalance())
+		s.Require().EqualValues(expected, getSupply())
+		s.Require().EqualValues(expected, getBridgeTokenSupply())
+	}
+
+	assertBalanceAndSupply(initialSupply.Amount)
+
+	sendResp, err := s.MsgServer().SendToExternal(sdk.WrapSDKContext(s.Ctx), &types.MsgSendToExternal{
+		Sender:    sender.String(),
+		Dest:      helpers.GenExternalAddr(s.chainName),
+		Amount:    amount,
+		BridgeFee: bridgeFee,
+		ChainName: s.chainName,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(sendResp)
+	s.Require().NotZero(sendResp.OutgoingTxId)
+
+	afterSend := initialSupply.Amount.Sub(amount.Amount).Sub(bridgeFee.Amount)
+	assertBalanceAndSupply(afterSend)
+
+	outgoingTx, err := s.Keeper().GetUnbatchedTxById(s.Ctx, sendResp.OutgoingTxId)
+	s.Require().NoError(err)
+	s.Require().EqualValues(types.GetExternalUnlockAmount(amount.Amount, s.chainName, &bridgeToken), outgoingTx.Token.Amount)
+	s.Require().EqualValues(types.GetExternalUnlockAmount(bridgeFee.Amount, s.chainName, &bridgeToken), outgoingTx.Fee.Amount)
+
+	_, err = s.MsgServer().IncreaseBridgeFee(sdk.WrapSDKContext(s.Ctx), &types.MsgIncreaseBridgeFee{
+		ChainName:     s.chainName,
+		TransactionId: sendResp.OutgoingTxId,
+		Sender:        sender.String(),
+		AddBridgeFee:  additionalFee,
+	})
+	s.Require().NoError(err)
+
+	afterIncrease := afterSend.Sub(additionalFee.Amount)
+	assertBalanceAndSupply(afterIncrease)
+
+	outgoingTx, err = s.Keeper().GetUnbatchedTxById(s.Ctx, sendResp.OutgoingTxId)
+	s.Require().NoError(err)
+	expectedExternalFee := types.GetExternalUnlockAmount(bridgeFee.Amount.Add(additionalFee.Amount), s.chainName, &bridgeToken)
+	s.Require().EqualValues(expectedExternalFee, outgoingTx.Fee.Amount)
+
+	_, err = s.MsgServer().CancelSendToExternal(sdk.WrapSDKContext(s.Ctx), &types.MsgCancelSendToExternal{
+		TransactionId: sendResp.OutgoingTxId,
+		Sender:        sender.String(),
+		ChainName:     s.chainName,
+	})
+	s.Require().NoError(err)
+
+	assertBalanceAndSupply(initialSupply.Amount)
+	_, err = s.Keeper().GetUnbatchedTxById(s.Ctx, sendResp.OutgoingTxId)
+	s.Require().Error(err)
+}
+
 func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	// 1. First sets up a valid relayer set
 	totalPower := sdkmath.ZeroInt()

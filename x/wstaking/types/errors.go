@@ -97,8 +97,8 @@ var (
 	ErrHooks                    = errorsmod.Register(ModuleName, 1301, "hooks error")
 	ErrExistingReplaceValidator = errorsmod.Register(ModuleName, 1302, "another validator replacement is already in progress")
 	ErrValidatorNotBonded       = errorsmod.Register(ModuleName, 1303, "only bonded validator can be replaced")
-
-	ErrStakeOnValidatorIsEmpty = errorsmod.Register(ModuleName, 1304, "stake on validator is empty")
-	ErrProtoProc               = errorsmod.Register(ModuleName, 1305, "proc proto error.")
-	ErrInterProc               = errorsmod.Register(ModuleName, 1306, "inter proc error.")
+	ErrStakeOnValidatorIsEmpty  = errorsmod.Register(ModuleName, 1304, "stake on validator is empty")
+	ErrProtoProc                = errorsmod.Register(ModuleName, 1305, "proc proto error.")
+	ErrInterProc                = errorsmod.Register(ModuleName, 1306, "inter proc error.")
+	ErrSubAccountNotAllowed     = errorsmod.Register(ModuleName, 1307, "sub account not allowed to delegate")
 )
