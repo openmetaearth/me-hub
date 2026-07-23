@@ -64,13 +64,13 @@ func (k Keeper) DIDs(goCtx context.Context, req *types.QueryDIDs) (*types.QueryD
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	KYCs, pageRes, err := k.GetKYCsByRegion(ctx, req.RegionId, req.Pagination)
+	kycs, pageRes, err := k.GetKYCsByRegion(ctx, req.RegionId, req.Pagination)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	var infos []didtypes.DidInfo
-	for _, kyc := range KYCs {
+	infos := make([]didtypes.DidInfo, 0, len(kycs))
+	for _, kyc := range kycs {
 		info, found := k.GetDidInfo(ctx, kyc.Did)
 		if !found {
 			return nil, status.Error(codes.Internal, fmt.Sprintf("kyc exist, but did %s is not found", kyc.Did))

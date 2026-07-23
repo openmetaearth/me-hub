@@ -70,7 +70,9 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 			}
 			validator.ConsensusPubkey = anyPk
 			k.SetValidator(ctx, validator)
-			k.SetValidatorByConsAddr(ctx, validator)
+			if err = k.SetValidatorByConsAddr(ctx, validator); err != nil {
+				return nil, err
+			}
 			if err = k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
 				k.Logger(ctx).Info("AfterValidatorCreated hook ", "err", err.Error())
 				return nil, sdkerrors.Wrapf(types.ErrInterProc, "AfterValidatorCreated hook error: %v", err)

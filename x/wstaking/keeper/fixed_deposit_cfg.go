@@ -42,8 +42,7 @@ func (k Keeper) GetAllFixedDepositCfg(ctx sdk.Context, regionId string) (list []
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, val)
 	}
-
-	return
+	return list
 }
 
 func (k Keeper) InitFixedDepositCountOfCfg(ctx sdk.Context, regionId string, term int64) {

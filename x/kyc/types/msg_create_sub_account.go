@@ -10,9 +10,9 @@ const TypeMsgCreateSubAccount = "create_sub_account"
 
 func NewMsgCreateSubAccount(creator, subAccount, subAccountPubkey string) *MsgCreateSubAccount {
 	return &MsgCreateSubAccount{
-		Creator:    creator,
-		SubAccount: subAccount,
-		SubAccountPubkey:     subAccountPubkey,
+		Creator:          creator,
+		SubAccount:       subAccount,
+		SubAccountPubkey: subAccountPubkey,
 	}
 }
 
