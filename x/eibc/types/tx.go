@@ -1,5 +1,7 @@
 package types
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"encoding/hex"
 	"fmt"
@@ -103,7 +105,7 @@ func validateCommon(orderId, address, fee string) error {
 		return err
 	}
 
-	feeInt, ok := sdk.NewIntFromString(fee)
+	feeInt, ok := sdkmath.NewIntFromString(fee)
 	if !ok {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("parse fee: %s", fee))
 	}

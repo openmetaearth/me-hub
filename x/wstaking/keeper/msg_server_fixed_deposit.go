@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -17,7 +17,7 @@ import (
 
 const DayPerYear uint64 = 365
 
-var minDepositAmount = sdk.NewInt(1_000_000) // 0.01mec == 1000000umec
+var minDepositAmount = sdkmath.NewInt(1_000_000) // 0.01mec == 1000000umec
 
 func (k MsgServer) TermToDuration(term int64) (time.Duration, error) {
 	// for formal environment
@@ -34,7 +34,7 @@ func (k MsgServer) GetFixedDepositInterest(cfg *types.FixedDepositCfg, principal
 		return sdk.Coin{}, types.ErrPayInterest.Wrap(err.Error())
 	}
 	principalAmount := principalNormed.AmountOf(params.BaseDenom)
-	interest := cfg.Rate.MulInt(principalAmount).MulInt(math.NewInt(term)).QuoInt(sdk.NewIntFromUint64(DayPerYear))
+	interest := cfg.Rate.MulInt(principalAmount).MulInt(math.NewInt(term)).QuoInt(sdkmath.NewIntFromUint64(DayPerYear))
 
 	return sdk.NewCoin(params.BaseDenom, interest.TruncateInt()), nil
 }
@@ -112,17 +112,17 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 	}
 
 	totalRewardsPerBlockTemp := k.mintKeeper.GetPerBlockMintCoinAmount(ctx)
-	totalRewardsPerBlock := sdk.NewIntFromBigInt(&totalRewardsPerBlockTemp)
-	totalSupply := sdk.NewInt(types.CaclTotalSupply).MulRaw(100000000)
-	initAllocationFunds := sdk.NewInt(minttypes.TotalMintCoinsAmount)
+	totalRewardsPerBlock := sdkmath.NewIntFromBigInt(&totalRewardsPerBlockTemp)
+	totalSupply := sdkmath.NewInt(types.CaclTotalSupply).MulRaw(100000000)
+	initAllocationFunds := sdkmath.NewInt(minttypes.TotalMintCoinsAmount)
 
 	deAmount := region.DelegateAmount
 
-	interestAmountDec := sdk.NewDecFromInt(deAmount).Mul(sdk.NewDecFromInt(region.RegionShare)).Mul(sdk.NewDecFromInt(totalRewardsPerBlock)).
-		Quo(sdk.NewDecFromInt(totalSupply).Mul(sdk.NewDecFromInt(initAllocationFunds)))
+	interestAmountDec := sdkmath.LegacyNewDecFromInt(deAmount).Mul(sdkmath.LegacyNewDecFromInt(region.RegionShare)).Mul(sdkmath.LegacyNewDecFromInt(totalRewardsPerBlock)).
+		Quo(sdkmath.LegacyNewDecFromInt(totalSupply).Mul(sdkmath.LegacyNewDecFromInt(initAllocationFunds)))
 
-	remainingBalance := sdk.NewDecFromInt(k.bankKeeper.GetBalance(ctx, regionBaseAddr, interest.Denom).Amount).Sub(interestAmountDec.Add(region.DelegateInterest))
-	if remainingBalance.Sub(sdk.NewDecFromInt(interest.Amount)).LT(sdk.ZeroDec()) {
+	remainingBalance := sdkmath.LegacyNewDecFromInt(k.bankKeeper.GetBalance(ctx, regionBaseAddr, interest.Denom).Amount).Sub(interestAmountDec.Add(region.DelegateInterest))
+	if remainingBalance.Sub(sdkmath.LegacyNewDecFromInt(interest.Amount)).LT(sdkmath.LegacyZeroDec()) {
 		return nil, sdkerrors.Wrapf(types.ErrDoFixedDeposit,
 			"region account base address %s balance(%s) less interest coin(%s)",
 			regionBaseAddr.String(),

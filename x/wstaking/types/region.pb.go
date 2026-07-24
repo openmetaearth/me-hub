@@ -4,11 +4,11 @@
 package types
 
 import (
+	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
 	_ "github.com/cometbft/cometbft/proto/tendermint/types"
 	_ "github.com/cosmos/cosmos-proto"
 	_ "github.com/cosmos/cosmos-sdk/types"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
@@ -62,10 +62,10 @@ type Region struct {
 	RegionTreasureAddr  string `protobuf:"bytes,6,opt,name=region_treasure_addr,json=regionTreasureAddr,proto3" json:"region_treasure_addr,omitempty"`
 	DepositInterestAddr string `protobuf:"bytes,8,opt,name=deposit_interest_addr,json=depositInterestAddr,proto3" json:"deposit_interest_addr,omitempty"`
 	// tokens define the region tokens share
-	RegionShare        github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,9,opt,name=region_share,json=regionShare,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"region_share"`
-	DelegateInterest   github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,10,opt,name=delegate_interest,json=delegateInterest,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"delegate_interest"`
-	DelegateAmount     github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,11,opt,name=delegate_amount,json=delegateAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"delegate_amount"`
-	FixedDepositAmount github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,12,opt,name=fixed_deposit_amount,json=fixedDepositAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"fixed_deposit_amount"`
+	RegionShare        cosmossdk_io_math.Int       `protobuf:"bytes,9,opt,name=region_share,json=regionShare,proto3,customtype=cosmossdk.io/math.Int" json:"region_share"`
+	DelegateInterest   cosmossdk_io_math.LegacyDec `protobuf:"bytes,10,opt,name=delegate_interest,json=delegateInterest,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"delegate_interest"`
+	DelegateAmount     cosmossdk_io_math.Int       `protobuf:"bytes,11,opt,name=delegate_amount,json=delegateAmount,proto3,customtype=cosmossdk.io/math.Int" json:"delegate_amount"`
+	FixedDepositAmount cosmossdk_io_math.Int       `protobuf:"bytes,12,opt,name=fixed_deposit_amount,json=fixedDepositAmount,proto3,customtype=cosmossdk.io/math.Int" json:"fixed_deposit_amount"`
 }
 
 func (m *Region) Reset()         { *m = Region{} }

@@ -9,14 +9,14 @@ import (
 )
 
 func TestGetExternalUnlockAmount(t *testing.T) {
-	convert := sdk.NewDec(10).Power(0).TruncateInt()
+	convert := sdkmath.LegacyNewDec(10).Power(0).TruncateInt()
 	require.Equal(t, sdkmath.NewInt(1), convert, "expected convert to be 1 when decimals are equal")
 	tests := []struct {
 		name        string
-		amount      sdk.Int
+		amount      sdkmath.Int
 		chainName   string
 		bridgeToken *BridgeToken
-		expected    sdk.Int
+		expected    sdkmath.Int
 	}{
 		{
 			name:      "BSC USDT with 18 decimals: converts 6-decimal amount to 18-decimal",

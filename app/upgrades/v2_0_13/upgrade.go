@@ -58,7 +58,7 @@ func CreateUpgradeHandler(
 		}
 
 		// delegate total amount to module account
-		delegateAmount := sdk.NewInt(1 * 1e8)
+		delegateAmount := sdkmath.NewInt(1 * 1e8)
 		// for _, relayerAddr := range proposalRelayers {
 		// if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), bsctypes.ModuleName,
 		//	sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
@@ -101,7 +101,7 @@ func CreateUpgradeHandler(
 	}
 }
 
-func GenGravityGenesis(height int64, proposalRelayers []string, defaultGenesis *gravitytypes.GenesisState, delegateAmount sdk.Int, moduleName string) *gravitytypes.GenesisState {
+func GenGravityGenesis(height int64, proposalRelayers []string, defaultGenesis *gravitytypes.GenesisState, delegateAmount sdkmath.Int, moduleName string) *gravitytypes.GenesisState {
 	// 1. set proposal relayers
 	defaultGenesis.ProposalRelayer = gravitytypes.ProposalRelayer{
 		Relayers: proposalRelayers,

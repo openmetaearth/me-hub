@@ -1,5 +1,7 @@
 package keeper_test
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"math/big"
 	"strings"
@@ -29,7 +31,7 @@ func (s *KeeperTestSuite) TestStake() {
 	stakePoolBalanceBefore := s.App.BankKeeper.GetBalance(s.Ctx, moduleAddress, params.BaseDenom)
 	s.Require().Equal(stakePoolBalanceBefore.String(), "1000000000000000000umec")
 
-	stakeAmount := sdk.NewCoin(params.BaseDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
+	stakeAmount := sdk.NewCoin(params.BaseDenom, sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
 
 	valAddress, err := sdk.ValAddressFromBech32(s.meEarthValidator.OperatorAddress)
 	s.Require().NoError(err)
@@ -58,7 +60,7 @@ func (s *KeeperTestSuite) TestStake() {
 			name:            "small amount",
 			staker:          s.Dao.GlobalDao,
 			operatorAddress: s.meEarthValidator.OperatorAddress,
-			amount:          sdk.NewCoin(params.BaseDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit-1), nil))),
+			amount:          sdk.NewCoin(params.BaseDenom, sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit-1), nil))),
 			expErr:          sdkerrors.ErrInvalidRequest,
 		}, {
 			name:            "No error",
@@ -84,7 +86,7 @@ func (s *KeeperTestSuite) TestStake() {
 
 			stakeBefore, _ := s.Keeper().GetStake(s.Ctx, sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), valAddress)
 			if stakeBefore.Shares.IsNil() {
-				stakeBefore.Shares = sdk.ZeroDec()
+				stakeBefore.Shares = sdkmath.LegacyZeroDec()
 			}
 
 			_, err := s.msgServer.Stake(s.Ctx, &msg)
@@ -132,7 +134,7 @@ func (s *KeeperTestSuite) TestUnStake() {
 	stakePoolBalanceBefore := s.App.BankKeeper.GetBalance(s.Ctx, moduleAddress, params.BaseDenom)
 	s.Require().Equal("1000000000000000000umec", stakePoolBalanceBefore.String())
 
-	stakeAmount := sdk.NewCoin(params.BaseDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
+	stakeAmount := sdk.NewCoin(params.BaseDenom, sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
 
 	valAddress, err := sdk.ValAddressFromBech32(s.meEarthValidator.OperatorAddress)
 	s.Require().NoError(err)

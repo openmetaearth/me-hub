@@ -1,5 +1,7 @@
 package types
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"testing"
 
@@ -22,7 +24,7 @@ func TestMsgIbcTransferFromRegionTreasure_ValidateBasic(t *testing.T) {
 				SourcePort:    "transfer",
 				SourceChannel: "channel-0",
 				RegionId:      "USA",
-				Token:         sdk.NewCoin("umec", sdk.NewInt(100)),
+				Token:         sdk.NewCoin("umec", sdkmath.NewInt(100)),
 				Creator:       "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
@@ -32,7 +34,7 @@ func TestMsgIbcTransferFromRegionTreasure_ValidateBasic(t *testing.T) {
 				SourcePort:    "transfer",
 				SourceChannel: "channel-0",
 				RegionId:      "USA",
-				Token:         sdk.NewCoin("umec", sdk.NewInt(100)),
+				Token:         sdk.NewCoin("umec", sdkmath.NewInt(100)),
 				Creator:       sample.AccAddress(),
 			},
 		},

@@ -1,5 +1,7 @@
 package cli
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"fmt"
 	"strconv"
@@ -36,7 +38,7 @@ func CmdNewFixedDepositCfg() *cobra.Command {
 				return types.ErrParameter.Wrap("term error")
 			}
 
-			rate, err := sdk.NewDecFromStr(argRate)
+			rate, err := sdkmath.LegacyNewDecFromStr(argRate)
 			if err != nil {
 				return types.ErrParameter.Wrap("rate error")
 			}
@@ -161,7 +163,7 @@ func CmdSetFixedDepositCfgRate() *cobra.Command {
 				return types.ErrParameter.Wrapf("period error: %v", err)
 			}
 
-			rate, err := sdk.NewDecFromStr(argRate)
+			rate, err := sdkmath.LegacyNewDecFromStr(argRate)
 			if err != nil {
 				return types.ErrParameter.Wrap("rate error")
 			}

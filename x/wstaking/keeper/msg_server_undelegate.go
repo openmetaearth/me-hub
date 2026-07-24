@@ -1,5 +1,7 @@
 package keeper
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"context"
 	"fmt"
@@ -57,7 +59,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	}
 
 	// current interest balance * personal withdrawal pledge limit / district total pledge limit
-	// person_dele_inte := region.DelegateInterest.Mul(sdk.NewDecFromInt(msg.Amount.Amount).Quo(sdk.NewDecFromInt(validator.DelegationAmount)))
+	// person_dele_inte := region.DelegateInterest.Mul(sdkmath.LegacyNewDecFromInt(msg.Amount.Amount).Quo(sdkmath.LegacyNewDecFromInt(validator.DelegationAmount)))
 	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, val.GetOperator())
 	if !isOK {
 		return nil, types.ErrEmptyDelegationDistInfo

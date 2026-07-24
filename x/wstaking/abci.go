@@ -1,5 +1,7 @@
 package wstaking
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"time"
 
@@ -15,14 +17,14 @@ import (
 // and prune the oldest entry based on the HistoricalEntries parameter
 func BeginBlock(ctx sdk.Context, k *keeper.Keeper) {
 	totalRewardsPerBlockTemp := k.GetPerBlockMintCoinAmount(ctx)
-	totalRewardsPerBlock := sdk.NewIntFromBigInt(&totalRewardsPerBlockTemp)
+	totalRewardsPerBlock := sdkmath.NewIntFromBigInt(&totalRewardsPerBlockTemp)
 	regions := k.GetAllRegion(ctx)
 
 	for _, region := range regions {
 		if region.DelegateAmount.IsZero() {
 			continue
 		}
-		rewards := k.Calculate(sdk.NewDecFromInt(totalRewardsPerBlock), region.DelegateAmount)
+		rewards := k.Calculate(sdkmath.LegacyNewDecFromInt(totalRewardsPerBlock), region.DelegateAmount)
 		region.DelegateInterest = region.DelegateInterest.Add(rewards)
 		k.SetRegion(ctx, region)
 	}

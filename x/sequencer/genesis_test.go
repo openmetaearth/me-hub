@@ -1,5 +1,7 @@
 package sequencer_test
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"testing"
 
@@ -44,7 +46,7 @@ func TestInitGenesis(t *testing.T) {
 
 func TestExportGenesis(t *testing.T) {
 	params := types.Params{
-		MinBond:       sdk.NewCoin("dym", sdk.NewInt(100)),
+		MinBond:       sdk.NewCoin("dym", sdkmath.NewInt(100)),
 		UnbondingTime: 100,
 	}
 	sequencerList := []types.Sequencer{

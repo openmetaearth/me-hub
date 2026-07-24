@@ -1,10 +1,12 @@
 package types
 
+package types
+
 import (
 	"reflect"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 
 	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 )
@@ -23,12 +25,12 @@ func TestDefaultGenesisState(t *testing.T) {
 					ExternalBatchTimeout:               7 * 24 * 3600 * 1000,
 					AverageExternalBlockTime:           750,
 					SignedWindow:                       30_000,
-					SlashFraction:                      sdk.NewDecWithPrec(8, 1),
-					RelayerSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1),
+					SlashFraction:                      sdkmath.LegacyNewDecWithPrec(8, 1),
+					RelayerSetUpdatePowerChangePercent: sdkmath.LegacyNewDecWithPrec(1, 1),
 					MaxRelayers:                        10,
-					MinDelegate:                        sdk.NewInt(100_000_000),
-					MaxDelegate:                        sdk.NewInt(1_000_000_000),
-					MaxSendToExternalUsdAmount:         sdk.NewInt(10_000_000_000),
+					MinDelegate:                        sdkmath.NewInt(100_000_000),
+					MaxDelegate:                        sdkmath.NewInt(1_000_000_000),
+					MaxSendToExternalUsdAmount:         sdkmath.NewInt(10_000_000_000),
 				},
 			},
 		},

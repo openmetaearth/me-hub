@@ -1,5 +1,7 @@
 package keeper_test
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"fmt"
 
@@ -42,7 +44,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 	}{
 		{
 			name:             "No bond required is rejected",
-			requiredBond:     sdk.NewCoin(bond.Denom, sdk.ZeroInt()),
+			requiredBond:     sdk.NewCoin(bond.Denom, sdkmath.ZeroInt()),
 			bond:             bond,
 			expectedParamErr: true,
 		},
@@ -55,13 +57,13 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		{
 			name:          "Bad denom",
 			requiredBond:  bond,
-			bond:          sdk.NewCoin("invalid", sdk.NewInt(100)),
+			bond:          sdk.NewCoin("invalid", sdkmath.NewInt(100)),
 			expectedError: types.ErrInvalidCoinDenom,
 		},
 		{
 			name:          "Insufficient bond",
 			requiredBond:  bond,
-			bond:          sdk.NewCoin(bond.Denom, bond.Amount.Quo(sdk.NewInt(2))),
+			bond:          sdk.NewCoin(bond.Denom, bond.Amount.Quo(sdkmath.NewInt(2))),
 			expectedError: types.ErrInsufficientBond,
 		},
 	}
@@ -126,7 +128,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerRejectsZeroBond() {
 	sequencerMsg := types.MsgCreateSequencer{
 		Creator:      addr.String(),
 		DymintPubKey: pkAny,
-		Bond:         sdk.NewCoin(bond.Denom, sdk.ZeroInt()),
+		Bond:         sdk.NewCoin(bond.Denom, sdkmath.ZeroInt()),
 		RollappId:    rollappId,
 		Description:  types.Description{},
 	}

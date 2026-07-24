@@ -1,5 +1,7 @@
 package keeper
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"fmt"
 	"sort"
@@ -53,7 +55,7 @@ func (k Keeper) isNeedRelayerSetChange(ctx sdk.Context) (*types.RelayerSet, bool
 
 	// 3. Power diff
 	powerDiff := fmt.Sprintf("%.8f", types.BridgeValidators(currentRelayerSet.Members).PowerDiff(latestRelayerSet.Members))
-	powerDiffDec, err := sdk.NewDecFromStr(powerDiff)
+	powerDiffDec, err := sdkmath.LegacyNewDecFromStr(powerDiff)
 	if err != nil {
 		k.Logger(ctx).Error("failed to convert power diff to decimal, skipping power diff check", "powerDiff", powerDiff, "error", err)
 		return currentRelayerSet, false

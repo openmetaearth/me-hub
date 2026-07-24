@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -204,10 +204,10 @@ $ %s tx staking update-validator %s1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm --own
 			description := stakingtypes.NewDescription(moniker, identity, website, security, details)
 			description.RegionID = regionId
 
-			var newRate *sdk.Dec
+			var newRate *sdkmath.LegacyDec
 			commissionRate, _ := cmd.Flags().GetString(FlagCommissionRate)
 			if commissionRate != "" {
-				rate, err := sdk.NewDecFromStr(commissionRate)
+				rate, err := sdkmath.LegacyNewDecFromStr(commissionRate)
 				if err != nil {
 					return fmt.Errorf("invalid new commission rate: %w", err)
 				}
@@ -569,7 +569,7 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 
 	// get the initial validator min self delegation
 	msbStr := config.MinSelfDelegation
-	minSelfDelegation, ok := sdk.NewIntFromString(msbStr)
+	minSelfDelegation, ok := sdkmath.NewIntFromString(msbStr)
 
 	if !ok {
 		return txBldr, nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")

@@ -1,5 +1,7 @@
 package keeper
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"testing"
 
@@ -116,7 +118,7 @@ func TestGetRewardsByHeight(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			got := k.getRewardsByHeight(tc.fromHeight, tc.toHeight)
-			want := sdk.NewDecFromInt(sdk.NewInt(tc.wantUMEC))
+			want := sdkmath.LegacyNewDecFromInt(sdkmath.NewInt(tc.wantUMEC))
 			require.True(t, want.Equal(got),
 				"fromHeight=%d toHeight=%d: want %s, got %s",
 				tc.fromHeight, tc.toHeight, want, got,

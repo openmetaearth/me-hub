@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -30,7 +30,7 @@ func (e EIBCMetadata) ValidateBasic() error {
 }
 
 func (e EIBCMetadata) FeeInt() (math.Int, error) {
-	i, ok := sdk.NewIntFromString(e.Fee)
+	i, ok := sdkmath.NewIntFromString(e.Fee)
 	if !ok || i.IsNegative() {
 		return math.Int{}, ErrBadEIBCFee
 	}

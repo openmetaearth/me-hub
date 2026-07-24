@@ -1,5 +1,7 @@
 package v2_0_14
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -35,8 +37,8 @@ func CreateUpgradeHandler(
 		}
 
 		feemarketParams := keepers.FeeMarketKeeper.GetParams(ctx)
-		feemarketParams.BaseFee = sdk.NewInt(4700000000)
-		feemarketParams.MinGasPrice = sdk.NewDecFromInt(sdk.NewInt(4700000000))
+		feemarketParams.BaseFee = sdkmath.NewInt(4700000000)
+		feemarketParams.MinGasPrice = sdkmath.LegacyNewDecFromInt(sdkmath.NewInt(4700000000))
 		if err := keepers.FeeMarketKeeper.SetParams(ctx, feemarketParams); err != nil {
 			panic("failed to set FeeMarket params: " + err.Error())
 		}

@@ -1,5 +1,7 @@
 package types
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -21,6 +23,6 @@ type BankKeeper interface {
 
 type DelayedAckKeeper interface {
 	GetRollappPacket(ctx sdk.Context, rollappPacketKey string) (*commontypes.RollappPacket, error)
-	BridgingFeeFromAmt(ctx sdk.Context, amt sdk.Int) (res sdk.Int)
-	BridgingFee(ctx sdk.Context) (res sdk.Dec)
+	BridgingFeeFromAmt(ctx sdk.Context, amt sdkmath.Int) (res sdkmath.Int)
+	BridgingFee(ctx sdk.Context) (res sdkmath.LegacyDec)
 }

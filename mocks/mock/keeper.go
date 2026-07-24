@@ -3,7 +3,7 @@ package mock
 import (
 	"fmt"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -16,8 +16,8 @@ func (m MockStakingKeeper) GetAllRegion(ctx sdk.Context) (list []MockRegion) {
 // 	return region, true
 // }
 
-func (m MockStakingKeeper) CalculateInterest(ctx sdk.Context, totalStaking math.Int, height int64) (rewards sdk.Dec, err error) {
-	return sdk.NewDec(1), nil
+func (m MockStakingKeeper) CalculateInterest(ctx sdk.Context, totalStaking math.Int, height int64) (rewards sdkmath.LegacyDec, err error) {
+	return sdkmath.LegacyNewDec(1), nil
 }
 
 func (m *MockStakingKeeper) SetDelegation(ctx sdk.Context, delegation Delegation) {

@@ -1,5 +1,7 @@
 package keeper_test
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -41,7 +43,7 @@ func (s *KeeperTestSuite) TestDelegate() {
 		{
 			name:             "did delegate",
 			account:          s.Dao.GlobalDao,
-			amount:           sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000)),
+			amount:           sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000000)),
 			height:           5,
 			reward:           0.1981862,
 			validatorAddress: s.meEarthValidator.OperatorAddress,
@@ -50,7 +52,7 @@ func (s *KeeperTestSuite) TestDelegate() {
 		{
 			name:             "un did delegate",
 			account:          s.Dao.AirdropAddress,
-			amount:           sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000)),
+			amount:           sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000000)),
 			height:           5,
 			reward:           0,
 			validatorAddress: s.experienceValidator.OperatorAddress,
@@ -124,7 +126,7 @@ func (s *KeeperTestSuite) TestUnDelegate() {
 		{
 			name:    "un did undelegate",
 			account: s.Dao.AirdropAddress,
-			amount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000)),
+			amount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000000)),
 			height:  5,
 			reward:  0.1981862,
 			expErr:  nil,
@@ -181,7 +183,7 @@ func (s *KeeperTestSuite) TestUnDelegateRejectsAmountExceedingValidatorDelegatio
 	)
 	s.Require().NoError(err)
 
-	delegateAmount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000))
+	delegateAmount := sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000000))
 	_, err = s.msgServer.Delegate(s.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: s.Dao.AirdropAddress,
 		ValidatorAddress: "",
@@ -197,7 +199,7 @@ func (s *KeeperTestSuite) TestUnDelegateRejectsAmountExceedingValidatorDelegatio
 	s.Require().True(found)
 	s.Require().Equal(delegateAmount.Amount.String(), validator.DelegationAmount.String())
 
-	undelegateAmount := sdk.NewCoin(params.BaseDenom, delegateAmount.Amount.Add(sdk.OneInt()))
+	undelegateAmount := sdk.NewCoin(params.BaseDenom, delegateAmount.Amount.Add(sdkmath.OneInt()))
 	_, err = s.msgServer.Undelegate(s.Ctx, &stakingtypes.MsgUndelegate{
 		DelegatorAddress: s.Dao.AirdropAddress,
 		ValidatorAddress: "",

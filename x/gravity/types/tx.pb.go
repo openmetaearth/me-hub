@@ -5,9 +5,9 @@ package types
 
 import (
 	context "context"
+	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
 	_ "github.com/cosmos/gogoproto/gogoproto"
@@ -574,14 +574,14 @@ var xxx_messageInfo_MsgRelayerSetUpdateClaimResponse proto.InternalMessageInfo
 // issued to the Payment address in question
 // -------------
 type MsgSendToMeClaim struct {
-	EventNonce     uint64                                 `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
-	BlockHeight    uint64                                 `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
-	TokenContract  string                                 `protobuf:"bytes,3,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
-	Amount         github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"amount"`
-	Sender         string                                 `protobuf:"bytes,5,opt,name=sender,proto3" json:"sender,omitempty"`
-	Receiver       string                                 `protobuf:"bytes,6,opt,name=receiver,proto3" json:"receiver,omitempty"`
-	RelayerAddress string                                 `protobuf:"bytes,7,opt,name=relayer_address,json=relayerAddress,proto3" json:"relayer_address,omitempty"`
-	ChainName      string                                 `protobuf:"bytes,8,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
+	EventNonce     uint64                `protobuf:"varint,1,opt,name=event_nonce,json=eventNonce,proto3" json:"event_nonce,omitempty"`
+	BlockHeight    uint64                `protobuf:"varint,2,opt,name=block_height,json=blockHeight,proto3" json:"block_height,omitempty"`
+	TokenContract  string                `protobuf:"bytes,3,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
+	Amount         cosmossdk_io_math.Int `protobuf:"bytes,4,opt,name=amount,proto3,customtype=cosmossdk.io/math.Int" json:"amount"`
+	Sender         string                `protobuf:"bytes,5,opt,name=sender,proto3" json:"sender,omitempty"`
+	Receiver       string                `protobuf:"bytes,6,opt,name=receiver,proto3" json:"receiver,omitempty"`
+	RelayerAddress string                `protobuf:"bytes,7,opt,name=relayer_address,json=relayerAddress,proto3" json:"relayer_address,omitempty"`
+	ChainName      string                `protobuf:"bytes,8,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
 }
 
 func (m *MsgSendToMeClaim) Reset()         { *m = MsgSendToMeClaim{} }
@@ -944,12 +944,12 @@ var xxx_messageInfo_MsgCancelSendToExternalResponse proto.InternalMessageInfo
 // -------------
 // feeReceive:
 type MsgRequestBatch struct {
-	Sender     string                                 `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	Denom      string                                 `protobuf:"bytes,2,opt,name=denom,proto3" json:"denom,omitempty"`
-	MinimumFee github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=minimum_fee,json=minimumFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"minimum_fee"`
-	FeeReceive string                                 `protobuf:"bytes,4,opt,name=fee_receive,json=feeReceive,proto3" json:"fee_receive,omitempty"`
-	ChainName  string                                 `protobuf:"bytes,5,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
-	BaseFee    github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,6,opt,name=base_fee,json=baseFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"base_fee"`
+	Sender     string                `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	Denom      string                `protobuf:"bytes,2,opt,name=denom,proto3" json:"denom,omitempty"`
+	MinimumFee cosmossdk_io_math.Int `protobuf:"bytes,3,opt,name=minimum_fee,json=minimumFee,proto3,customtype=cosmossdk.io/math.Int" json:"minimum_fee"`
+	FeeReceive string                `protobuf:"bytes,4,opt,name=fee_receive,json=feeReceive,proto3" json:"fee_receive,omitempty"`
+	ChainName  string                `protobuf:"bytes,5,opt,name=chain_name,json=chainName,proto3" json:"chain_name,omitempty"`
+	BaseFee    cosmossdk_io_math.Int `protobuf:"bytes,6,opt,name=base_fee,json=baseFee,proto3,customtype=cosmossdk.io/math.Int" json:"base_fee"`
 }
 
 func (m *MsgRequestBatch) Reset()         { *m = MsgRequestBatch{} }

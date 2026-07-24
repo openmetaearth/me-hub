@@ -1,5 +1,7 @@
 package types
 
+import sdkmath "cosmossdk.io/math"
+
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
 var _ RegionI = &Region{}
@@ -12,19 +14,19 @@ type RegionI interface {
 	GetNftClassId() string
 	GetRegionTreasureAddr() string
 	GetDepositInterestAddr() string
-	GetRegionShare() sdk.Int
-	GetDelegateInterest() sdk.Dec
-	GetDelegateAmount() sdk.Int
+	GetRegionShare() sdkmath.Int
+	GetDelegateInterest() sdkmath.LegacyDec
+	GetDelegateAmount() sdkmath.Int
 }
 
-func (m *Region) GetRegionShare() sdk.Int {
+func (m *Region) GetRegionShare() sdkmath.Int {
 	return m.RegionShare
 }
 
-func (m *Region) GetDelegateInterest() sdk.Dec {
+func (m *Region) GetDelegateInterest() sdkmath.LegacyDec {
 	return m.DelegateInterest
 }
 
-func (m *Region) GetDelegateAmount() sdk.Int {
+func (m *Region) GetDelegateAmount() sdkmath.Int {
 	return m.DelegateAmount
 }

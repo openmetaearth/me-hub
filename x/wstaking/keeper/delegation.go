@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -52,25 +52,25 @@ func (k Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.
 // Unbond unbonds a particular delegation and perform associated store operations.
 func (k Keeper) Unbond(ctx sdk.Context, delAmount math.Int, isMeid bool, delegation stakingtypes.Delegation) (amount math.Int, err error) {
 	// check if a delegation object exists in the store
-	var overAmount sdk.Int
+	var overAmount sdkmath.Int
 	if isMeid {
-		if delegation.Amount.LTE(sdk.ZeroInt()) {
+		if delegation.Amount.LTE(sdkmath.ZeroInt()) {
 			return amount, types.ErrNotEnoughDelegationAmount
 		}
 		if delAmount.GTE(delegation.Amount) {
 			delAmount = delegation.Amount
-			delegation.Amount = sdk.ZeroInt()
+			delegation.Amount = sdkmath.ZeroInt()
 		} else {
 			delegation.Amount = delegation.Amount.Sub(delAmount)
 		}
 		overAmount = delegation.Amount
 	} else {
-		if delegation.UnMeidAmount.LTE(sdk.ZeroInt()) {
+		if delegation.UnMeidAmount.LTE(sdkmath.ZeroInt()) {
 			return amount, types.ErrNotEnoughDelegationAmount
 		}
 		if delAmount.GTE(delegation.UnMeidAmount) {
 			delAmount = delegation.UnMeidAmount
-			delegation.UnMeidAmount = sdk.ZeroInt()
+			delegation.UnMeidAmount = sdkmath.ZeroInt()
 		} else {
 			delegation.UnMeidAmount = delegation.UnMeidAmount.Sub(delAmount)
 		}
@@ -80,15 +80,15 @@ func (k Keeper) Unbond(ctx sdk.Context, delAmount math.Int, isMeid bool, delegat
 	if err != nil {
 		amount = delAmount.Add(overAmount)
 		if isMeid {
-			delegation.Amount = sdk.ZeroInt()
+			delegation.Amount = sdkmath.ZeroInt()
 		} else {
-			delegation.UnMeidAmount = sdk.ZeroInt()
+			delegation.UnMeidAmount = sdkmath.ZeroInt()
 		}
 	} else {
 		amount = delAmount
 	}
 	delegation.StartHeight = ctx.BlockHeight()
-	if delegation.UnMeidAmount.Add(delegation.Amount).Add(delegation.Unmovable).Equal(sdk.ZeroInt()) {
+	if delegation.UnMeidAmount.Add(delegation.Amount).Add(delegation.Unmovable).Equal(sdkmath.ZeroInt()) {
 		err = k.removeDelegation(ctx, delegation)
 		if err != nil {
 			return amount, err
@@ -112,7 +112,7 @@ func (k Keeper) bondedTokensToNotBonded(ctx sdk.Context, tokens math.Int) {
 func (k Keeper) Delegate(
 	ctx sdk.Context, delAddr sdk.AccAddress, bondAmt math.Int, tokenSrc stakingtypes.BondStatus,
 	validator stakingtypes.Validator, delegation stakingtypes.Delegation, valAddr sdk.ValAddress,
-) (newShares sdk.Dec, err error) {
+) (newShares sdkmath.LegacyDec, err error) {
 	// In some situations, the exchange rate becomes invalid, e.g. if
 	// Validator loses all tokens due to slashing. In this case,
 	// make all future delegations invalid.
@@ -141,7 +141,7 @@ func (k Keeper) Delegate(
 	gage := sdk.NewCoin(k.BondDenom(ctx), bondAmt)
 	coins := sdk.NewCoins(gage)
 	if err = k.bankKeeper.DelegateCoinsFromAccountToModule(ctx, delegatorAddress, pool, coins); err != nil {
-		return sdk.Dec{}, err
+		return sdkmath.LegacyDec{}, err
 	}
 	poolAccI := k.authKeeper.GetModuleAccount(ctx, pool)
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeDelegateTransfer,
@@ -158,7 +158,7 @@ func (k Keeper) Delegate(
 	delegation.StartHeight = ctx.BlockHeight()
 	k.SetDelegation(ctx, delegation)
 
-	return sdk.NewDecFromInt(delegation.Amount), nil
+	return sdkmath.LegacyNewDecFromInt(delegation.Amount), nil
 }
 
 // WithdrawDelegationRewards withdraw rewards from a delegation
@@ -176,7 +176,7 @@ func (k Keeper) WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddres
 		baseDenom, _ := sdk.GetBaseDenom()
 		rewards = sdk.Coins{sdk.Coin{
 			Denom:  baseDenom,
-			Amount: sdk.ZeroInt(),
+			Amount: sdkmath.ZeroInt(),
 		}}
 	}
 	return rewards, nil

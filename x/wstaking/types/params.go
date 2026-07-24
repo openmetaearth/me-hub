@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/app/params"
@@ -17,8 +17,8 @@ const (
 
 func CheckMinDelegate(amount math.Int) error {
 	// if amount.Denom == sdk.BaseMEDenom {
-	delAmount := sdk.NewDecFromInt(amount).Mul(sdk.NewDecWithPrec(1, params.BaseDenomUnit))
-	minAmount, _ := sdk.NewDecFromStr(MinDelegateAmount)
+	delAmount := sdkmath.LegacyNewDecFromInt(amount).Mul(sdkmath.LegacyNewDecWithPrec(1, params.BaseDenomUnit))
+	minAmount, _ := sdkmath.LegacyNewDecFromStr(MinDelegateAmount)
 	if delAmount.LT(minAmount) {
 		errStr := fmt.Sprintf("minimum delegate amount is %s, delegate value is %s",
 			MinDelegateAmount, amount.String())

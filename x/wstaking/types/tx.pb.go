@@ -5,10 +5,10 @@ package types
 
 import (
 	context "context"
+	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	types2 "github.com/cosmos/cosmos-sdk/codec/types"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types1 "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
 	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
@@ -49,10 +49,10 @@ type MsgUpdateValidator struct {
 	// it's not mandatory to update. If not updated, the deserialized rate will be
 	// zero with no way to distinguish if an update was intended.
 	// REF: #2373
-	CommissionRate    *github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=commission_rate,json=commissionRate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"commission_rate,omitempty"`
-	MinSelfDelegation *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=min_self_delegation,json=minSelfDelegation,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"min_self_delegation,omitempty"`
-	OwnerAddress      string                                  `protobuf:"bytes,5,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
-	OperatorAddress   string                                  `protobuf:"bytes,6,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	CommissionRate    *cosmossdk_io_math.LegacyDec `protobuf:"bytes,3,opt,name=commission_rate,json=commissionRate,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"commission_rate,omitempty"`
+	MinSelfDelegation *cosmossdk_io_math.Int       `protobuf:"bytes,4,opt,name=min_self_delegation,json=minSelfDelegation,proto3,customtype=cosmossdk.io/math.Int" json:"min_self_delegation,omitempty"`
+	OwnerAddress      string                       `protobuf:"bytes,5,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
+	OperatorAddress   string                       `protobuf:"bytes,6,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
 }
 
 func (m *MsgUpdateValidator) Reset()         { *m = MsgUpdateValidator{} }
@@ -332,10 +332,10 @@ func (m *MsgUnstakeResponse) GetCompletionTime() time.Time {
 }
 
 type MsgFixedDepositCfg struct {
-	Admin    string                                 `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
-	RegionId string                                 `protobuf:"bytes,2,opt,name=regionId,proto3" json:"regionId,omitempty"`
-	Term     int64                                  `protobuf:"varint,3,opt,name=term,proto3" json:"term,omitempty"`
-	Rate     github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=rate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"rate"`
+	Admin    string                      `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	RegionId string                      `protobuf:"bytes,2,opt,name=regionId,proto3" json:"regionId,omitempty"`
+	Term     int64                       `protobuf:"varint,3,opt,name=term,proto3" json:"term,omitempty"`
+	Rate     cosmossdk_io_math.LegacyDec `protobuf:"bytes,4,opt,name=rate,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"rate"`
 }
 
 func (m *MsgFixedDepositCfg) Reset()         { *m = MsgFixedDepositCfg{} }
@@ -653,10 +653,10 @@ func (m *MsgSetFixedDepositCfgStatusResp) GetRetcode() string {
 }
 
 type MsgSetFixedDepositCfgRate struct {
-	Admin    string                                 `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
-	RegionId string                                 `protobuf:"bytes,2,opt,name=regionId,proto3" json:"regionId,omitempty"`
-	Term     int64                                  `protobuf:"varint,3,opt,name=term,proto3" json:"term,omitempty"`
-	Rate     github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=rate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"rate"`
+	Admin    string                      `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	RegionId string                      `protobuf:"bytes,2,opt,name=regionId,proto3" json:"regionId,omitempty"`
+	Term     int64                       `protobuf:"varint,3,opt,name=term,proto3" json:"term,omitempty"`
+	Rate     cosmossdk_io_math.LegacyDec `protobuf:"bytes,4,opt,name=rate,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"rate"`
 }
 
 func (m *MsgSetFixedDepositCfgRate) Reset()         { *m = MsgSetFixedDepositCfgRate{} }
@@ -1237,10 +1237,10 @@ func (m *MsgWithdrawDelegatorRewardResponse) GetAmount() github_com_cosmos_cosmo
 }
 
 type MsgNewFixedDepositCfg struct {
-	Dao      string                                 `protobuf:"bytes,1,opt,name=dao,proto3" json:"dao,omitempty"`
-	RegionId string                                 `protobuf:"bytes,2,opt,name=regionId,proto3" json:"regionId,omitempty"`
-	Term     int64                                  `protobuf:"varint,3,opt,name=term,proto3" json:"term,omitempty"`
-	Rate     github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=rate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"rate"`
+	Dao      string                      `protobuf:"bytes,1,opt,name=dao,proto3" json:"dao,omitempty"`
+	RegionId string                      `protobuf:"bytes,2,opt,name=regionId,proto3" json:"regionId,omitempty"`
+	Term     int64                       `protobuf:"varint,3,opt,name=term,proto3" json:"term,omitempty"`
+	Rate     cosmossdk_io_math.LegacyDec `protobuf:"bytes,4,opt,name=rate,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"rate"`
 }
 
 func (m *MsgNewFixedDepositCfg) Reset()         { *m = MsgNewFixedDepositCfg{} }
@@ -1498,10 +1498,10 @@ func (m *MsgWithdrawFixedDeposit) GetId() uint64 {
 }
 
 type MsgWithdrawFixedDepositResponse struct {
-	Principal types1.Coin                            `protobuf:"bytes,1,opt,name=principal,proto3" json:"principal"`
-	Interest  types1.Coin                            `protobuf:"bytes,2,opt,name=interest,proto3" json:"interest"`
-	Term      int64                                  `protobuf:"varint,3,opt,name=term,proto3" json:"term,omitempty"`
-	Rate      github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=rate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"rate"`
+	Principal types1.Coin                 `protobuf:"bytes,1,opt,name=principal,proto3" json:"principal"`
+	Interest  types1.Coin                 `protobuf:"bytes,2,opt,name=interest,proto3" json:"interest"`
+	Term      int64                       `protobuf:"varint,3,opt,name=term,proto3" json:"term,omitempty"`
+	Rate      cosmossdk_io_math.LegacyDec `protobuf:"bytes,4,opt,name=rate,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"rate"`
 }
 
 func (m *MsgWithdrawFixedDepositResponse) Reset()         { *m = MsgWithdrawFixedDepositResponse{} }
@@ -6289,7 +6289,7 @@ func (m *MsgUpdateValidator) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			var v github_com_cosmos_cosmos_sdk_types.Dec
+			var v cosmossdk_io_math.LegacyDec
 			m.CommissionRate = &v
 			if err := m.CommissionRate.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -6325,7 +6325,7 @@ func (m *MsgUpdateValidator) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			var v github_com_cosmos_cosmos_sdk_types.Int
+			var v cosmossdk_io_math.Int
 			m.MinSelfDelegation = &v
 			if err := m.MinSelfDelegation.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

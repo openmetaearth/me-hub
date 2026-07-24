@@ -1,5 +1,7 @@
 package wmint
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"fmt"
 	"math/big"
@@ -27,25 +29,25 @@ import (
 )
 
 func TestPrintRewardInfo(t *testing.T) {
-	calcPerBlockUMEC := func(mul int64) sdk.Int {
-		halvingDivisor := sdk.NewDecFromBigInt(new(big.Int).Lsh(big.NewInt(1), uint(mul)))
-		amount := sdk.NewDec(int64(types.InitOneYearMintAmount)).
-			Quo(sdk.NewDec(int64(types.OneYearTotalBlocks))).
+	calcPerBlockUMEC := func(mul int64) sdkmath.Int {
+		halvingDivisor := sdkmath.LegacyNewDecFromBigInt(new(big.Int).Lsh(big.NewInt(1), uint(mul)))
+		amount := sdkmath.LegacyNewDec(int64(types.InitOneYearMintAmount)).
+			Quo(sdkmath.LegacyNewDec(int64(types.OneYearTotalBlocks))).
 			Quo(halvingDivisor)
 		return RoundUpToFourDecimalsDec(amount).MulInt64(100_000_000).TruncateInt()
 	}
 
 	firstUmec := calcPerBlockUMEC(0)
-	firstMec := sdk.NewDecFromInt(firstUmec).QuoInt64(100_000_000)
+	firstMec := sdkmath.LegacyNewDecFromInt(firstUmec).QuoInt64(100_000_000)
 	firstDailyUmec := firstUmec.MulRaw(int64(types.OneDayTotalBlocks))
-	firstDailyMec := sdk.NewDecFromInt(firstDailyUmec).QuoInt64(100_000_000)
+	firstDailyMec := sdkmath.LegacyNewDecFromInt(firstDailyUmec).QuoInt64(100_000_000)
 	fmt.Printf("first year per block reward is :%.4f mec %s umec\n", firstMec.MustFloat64(), firstUmec)
 	fmt.Printf("first year daily reward is :%.4f mec %s umec\n", firstDailyMec.MustFloat64(), firstDailyUmec)
 
 	secondUmec := calcPerBlockUMEC(1)
-	secondMec := sdk.NewDecFromInt(secondUmec).QuoInt64(100_000_000)
+	secondMec := sdkmath.LegacyNewDecFromInt(secondUmec).QuoInt64(100_000_000)
 	secondDailyUmec := secondUmec.MulRaw(int64(types.OneDayTotalBlocks))
-	secondDailyMec := sdk.NewDecFromInt(secondDailyUmec).QuoInt64(100_000_000)
+	secondDailyMec := sdkmath.LegacyNewDecFromInt(secondDailyUmec).QuoInt64(100_000_000)
 	fmt.Printf("second year per block reward is :%.4f mec %s umec\n", secondMec.MustFloat64(), secondUmec)
 	fmt.Printf("second year daily reward is :%.4f mec %s umec\n", secondDailyMec.MustFloat64(), secondDailyUmec)
 }
@@ -166,10 +168,10 @@ func (suite *KeeperTestSuite) newContextWith(height int64) sdk.Context {
 
 func (suite *KeeperTestSuite) setMockBankKeeper(ctx sdk.Context, mintAmount int64) {
 	suite.bankKeeper.EXPECT().
-		MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("umec", sdk.NewInt(mintAmount)))).
+		MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("umec", sdkmath.NewInt(mintAmount)))).
 		Return(nil)
 
 	suite.bankKeeper.EXPECT().
-		SendCoinsFromModuleToModule(ctx, minttypes.ModuleName, "treasury_pool", sdk.NewCoins(sdk.NewCoin("umec", sdk.NewInt(mintAmount)))).
+		SendCoinsFromModuleToModule(ctx, minttypes.ModuleName, "treasury_pool", sdk.NewCoins(sdk.NewCoin("umec", sdkmath.NewInt(mintAmount)))).
 		Return(nil)
 }

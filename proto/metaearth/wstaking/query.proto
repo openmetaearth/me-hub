@@ -135,7 +135,7 @@ message QueryDelegationRewardsResponse {
   repeated cosmos.base.v1beta1.DecCoin rewards = 1 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"
+    (gogoproto.castrepeated) = "cosmossdk.io/math.LegacyDecCoins"
   ];
 }
 

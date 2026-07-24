@@ -5,9 +5,9 @@ package types
 
 import (
 	context "context"
+	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
 	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
@@ -262,7 +262,7 @@ var xxx_messageInfo_QueryDelegationRewardsRequest proto.InternalMessageInfo
 
 type QueryDelegationRewardsResponse struct {
 	// rewards defines the rewards accrued by a delegation.
-	Rewards github_com_cosmos_cosmos_sdk_types.DecCoins `protobuf:"bytes,1,rep,name=rewards,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.DecCoins" json:"rewards"`
+	Rewards cosmossdk_io_math.LegacyDecCoins `protobuf:"bytes,1,rep,name=rewards,proto3,castrepeated=cosmossdk.io/math.LegacyDecCoins" json:"rewards"`
 }
 
 func (m *QueryDelegationRewardsResponse) Reset()         { *m = QueryDelegationRewardsResponse{} }
@@ -298,7 +298,7 @@ func (m *QueryDelegationRewardsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryDelegationRewardsResponse proto.InternalMessageInfo
 
-func (m *QueryDelegationRewardsResponse) GetRewards() github_com_cosmos_cosmos_sdk_types.DecCoins {
+func (m *QueryDelegationRewardsResponse) GetRewards() cosmossdk_io_math.LegacyDecCoins {
 	if m != nil {
 		return m.Rewards
 	}

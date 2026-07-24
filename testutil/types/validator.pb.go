@@ -4,13 +4,13 @@
 package types
 
 import (
+	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
 	_ "github.com/cometbft/cometbft/abci/types"
 	_ "github.com/cometbft/cometbft/proto/tendermint/types"
 	_ "github.com/cosmos/cosmos-proto"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/cosmos-sdk/types"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
 	types1 "github.com/cosmos/cosmos-sdk/x/staking/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
@@ -50,9 +50,9 @@ type ValidatorV1 struct {
 	// status is the validator status (bonded/unbonding/unbonded).
 	Status types1.BondStatus `protobuf:"varint,4,opt,name=status,proto3,enum=cosmos.staking.v1beta1.BondStatus" json:"status,omitempty"`
 	// tokens define the staked tokens (incl. self-stake).
-	Tokens github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=tokens,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"tokens"`
+	Tokens cosmossdk_io_math.Int `protobuf:"bytes,5,opt,name=tokens,proto3,customtype=cosmossdk.io/math.Int" json:"tokens"`
 	// staker_shares defines total shares issued to a validator's stakers.
-	StakerShares github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,6,opt,name=staker_shares,json=stakerShares,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"staker_shares"`
+	StakerShares cosmossdk_io_math.LegacyDec `protobuf:"bytes,6,opt,name=staker_shares,json=stakerShares,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"staker_shares"`
 	// description defines the description terms for the validator.
 	Description types1.Description `protobuf:"bytes,7,opt,name=description,proto3" json:"description"`
 	// unbonding_height defines, if unbonding, the height at which this validator
@@ -66,11 +66,11 @@ type ValidatorV1 struct {
 	// min_self_stake is the validator's self declared minimum self stake.
 	//
 	// Since: cosmos-sdk 0.46
-	MinSelfStake github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,11,opt,name=min_self_stake,json=minSelfStake,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"min_self_stake"`
+	MinSelfStake cosmossdk_io_math.Int `protobuf:"bytes,11,opt,name=min_self_stake,json=minSelfStake,proto3,customtype=cosmossdk.io/math.Int" json:"min_self_stake"`
 	// count delegation amount
-	DelegationAmount github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,12,opt,name=delegation_amount,json=delegationAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"delegation_amount"`
+	DelegationAmount cosmossdk_io_math.Int `protobuf:"bytes,12,opt,name=delegation_amount,json=delegationAmount,proto3,customtype=cosmossdk.io/math.Int" json:"delegation_amount"`
 	// count meid amount
-	MeidAmount github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,13,opt,name=meid_amount,json=meidAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"meid_amount"`
+	MeidAmount cosmossdk_io_math.Int `protobuf:"bytes,13,opt,name=meid_amount,json=meidAmount,proto3,customtype=cosmossdk.io/math.Int" json:"meid_amount"`
 	// owner_address defines the address of distribute gas income
 	OwnerAddress string `protobuf:"bytes,14,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
 	// list of unbonding ids, each uniquely identifing an unbonding of this
@@ -126,9 +126,9 @@ type ValidatorV2Panic struct {
 	// status is the validator status (bonded/unbonding/unbonded).
 	Status types1.BondStatus `protobuf:"varint,4,opt,name=status,proto3,enum=cosmos.staking.v1beta1.BondStatus" json:"status,omitempty"`
 	// tokens define the delegated tokens (incl. self-delegation).
-	Tokens github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=tokens,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"tokens"`
+	Tokens cosmossdk_io_math.Int `protobuf:"bytes,5,opt,name=tokens,proto3,customtype=cosmossdk.io/math.Int" json:"tokens"`
 	// delegator_shares defines total shares issued to a validator's delegators.
-	DelegatorShares github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,6,opt,name=delegator_shares,json=delegatorShares,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"delegator_shares"`
+	DelegatorShares cosmossdk_io_math.LegacyDec `protobuf:"bytes,6,opt,name=delegator_shares,json=delegatorShares,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"delegator_shares"`
 	// description defines the description terms for the validator.
 	Description types1.Description `protobuf:"bytes,7,opt,name=description,proto3" json:"description"`
 	// unbonding_height defines, if unbonding, the height at which this validator
@@ -143,7 +143,7 @@ type ValidatorV2Panic struct {
 	// delegation.
 	//
 	// Since: cosmos-sdk 0.46
-	MinSelfDelegation github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,11,opt,name=min_self_delegation,json=minSelfDelegation,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"min_self_delegation"`
+	MinSelfDelegation cosmossdk_io_math.Int `protobuf:"bytes,11,opt,name=min_self_delegation,json=minSelfDelegation,proto3,customtype=cosmossdk.io/math.Int" json:"min_self_delegation"`
 	// strictly positive if this validator's unbonding has been stopped by
 	// external modules
 	UnbondingOnHoldRefCount int64 `protobuf:"varint,12,opt,name=unbonding_on_hold_ref_count,json=unbondingOnHoldRefCount,proto3" json:"unbonding_on_hold_ref_count,omitempty"`
@@ -151,9 +151,9 @@ type ValidatorV2Panic struct {
 	// validator
 	UnbondingIds []uint64 `protobuf:"varint,13,rep,packed,name=unbonding_ids,json=unbondingIds,proto3" json:"unbonding_ids,omitempty"`
 	// count delegation amount
-	DelegationAmount github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,14,opt,name=delegation_amount,json=delegationAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"delegation_amount"`
+	DelegationAmount cosmossdk_io_math.Int `protobuf:"bytes,14,opt,name=delegation_amount,json=delegationAmount,proto3,customtype=cosmossdk.io/math.Int" json:"delegation_amount"`
 	// count meid amount
-	MeidAmount github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,15,opt,name=meid_amount,json=meidAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"meid_amount"`
+	MeidAmount cosmossdk_io_math.Int `protobuf:"bytes,15,opt,name=meid_amount,json=meidAmount,proto3,customtype=cosmossdk.io/math.Int" json:"meid_amount"`
 	// owner_address defines the address of distribute gas income
 	OwnerAddress string `protobuf:"bytes,16,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
 }
@@ -203,9 +203,9 @@ type ValidatorV2 struct {
 	// status is the validator status (bonded/unbonding/unbonded).
 	Status types1.BondStatus `protobuf:"varint,4,opt,name=status,proto3,enum=cosmos.staking.v1beta1.BondStatus" json:"status,omitempty"`
 	// tokens define the staked tokens (incl. self-stake).
-	Tokens github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=tokens,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"tokens"`
+	Tokens cosmossdk_io_math.Int `protobuf:"bytes,5,opt,name=tokens,proto3,customtype=cosmossdk.io/math.Int" json:"tokens"`
 	// staker_shares defines total shares issued to a validator's stakers.
-	StakerShares github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,6,opt,name=staker_shares,json=stakerShares,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"staker_shares"`
+	StakerShares cosmossdk_io_math.LegacyDec `protobuf:"bytes,6,opt,name=staker_shares,json=stakerShares,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"staker_shares"`
 	// description defines the description terms for the validator.
 	Description types1.Description `protobuf:"bytes,7,opt,name=description,proto3" json:"description"`
 	// unbonding_height defines, if unbonding, the height at which this validator
@@ -219,11 +219,11 @@ type ValidatorV2 struct {
 	// min_self_stake is the validator's self declared minimum self stake.
 	//
 	// Since: cosmos-sdk 0.46
-	MinSelfStake github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,11,opt,name=min_self_stake,json=minSelfStake,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"min_self_stake"`
+	MinSelfStake cosmossdk_io_math.Int `protobuf:"bytes,11,opt,name=min_self_stake,json=minSelfStake,proto3,customtype=cosmossdk.io/math.Int" json:"min_self_stake"`
 	// count delegation amount
-	DelegationAmount github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,12,opt,name=delegation_amount,json=delegationAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"delegation_amount"`
+	DelegationAmount cosmossdk_io_math.Int `protobuf:"bytes,12,opt,name=delegation_amount,json=delegationAmount,proto3,customtype=cosmossdk.io/math.Int" json:"delegation_amount"`
 	// count meid amount
-	MeidAmount github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,13,opt,name=meid_amount,json=meidAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"meid_amount"`
+	MeidAmount cosmossdk_io_math.Int `protobuf:"bytes,13,opt,name=meid_amount,json=meidAmount,proto3,customtype=cosmossdk.io/math.Int" json:"meid_amount"`
 	// owner_address defines the address of distribute gas income
 	OwnerAddress string `protobuf:"bytes,14,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
 	// list of unbonding ids, each uniquely identifing an unbonding of this
@@ -231,9 +231,9 @@ type ValidatorV2 struct {
 	UnbondingIds []uint64 `protobuf:"varint,15,rep,packed,name=unbonding_ids,json=unbondingIds,proto3" json:"unbonding_ids,omitempty"`
 	// strictly positive if this validator's unbonding has been stopped by
 	// external modules
-	UnbondingOnHoldRefCount int64                                  `protobuf:"varint,16,opt,name=unbonding_on_hold_ref_count,json=unbondingOnHoldRefCount,proto3" json:"unbonding_on_hold_ref_count,omitempty"`
-	DelegatorShares         github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,17,opt,name=delegator_shares,json=delegatorShares,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"delegator_shares"`
-	MinSelfDelegation       github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,18,opt,name=min_self_delegation,json=minSelfDelegation,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"min_self_delegation"`
+	UnbondingOnHoldRefCount int64                       `protobuf:"varint,16,opt,name=unbonding_on_hold_ref_count,json=unbondingOnHoldRefCount,proto3" json:"unbonding_on_hold_ref_count,omitempty"`
+	DelegatorShares         cosmossdk_io_math.LegacyDec `protobuf:"bytes,17,opt,name=delegator_shares,json=delegatorShares,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"delegator_shares"`
+	MinSelfDelegation       cosmossdk_io_math.Int       `protobuf:"bytes,18,opt,name=min_self_delegation,json=minSelfDelegation,proto3,customtype=cosmossdk.io/math.Int" json:"min_self_delegation"`
 }
 
 func (m *ValidatorV2) Reset()      { *m = ValidatorV2{} }

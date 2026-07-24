@@ -1,5 +1,7 @@
 package types_test
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"testing"
 
@@ -41,7 +43,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "zero min bond is invalid",
 			genState: &types.GenesisState{
 				Params: types.Params{
-					MinBond:       sdk.NewCoin(params.MinBond.Denom, sdk.ZeroInt()),
+					MinBond:       sdk.NewCoin(params.MinBond.Denom, sdkmath.ZeroInt()),
 					UnbondingTime: params.UnbondingTime,
 				},
 			},
@@ -70,7 +72,7 @@ func TestGenesisState_Validate(t *testing.T) {
 						Status:           types.Unbonding,
 						Tokens: sdk.NewCoins(sdk.NewCoin(
 							params.MinBond.Denom,
-							params.MinBond.Amount.Sub(sdk.OneInt()),
+							params.MinBond.Amount.Sub(sdkmath.OneInt()),
 						)),
 					},
 				},

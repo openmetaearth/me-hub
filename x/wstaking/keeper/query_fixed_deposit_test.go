@@ -1,5 +1,7 @@
 package keeper_test
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"strings"
 
@@ -31,7 +33,7 @@ func (s *KeeperTestSuite) createGlobalRegion() {
 		Dao:      s.Dao.GlobalDao,
 		RegionId: strings.ToLower(types.MeEarthRegionName),
 		Term:     30,
-		Rate:     sdk.MustNewDecFromStr("0.1"),
+		Rate:     sdkmath.LegacyMustNewDecFromStr("0.1"),
 	}
 	_, err = s.msgServer.NewFixedDepositCfg(s.Ctx, &msg)
 	s.Require().NoError(err)
@@ -49,7 +51,7 @@ func (s *KeeperTestSuite) createUsaRegion() {
 		Dao:      s.Dao.GlobalDao,
 		RegionId: "usa",
 		Term:     30,
-		Rate:     sdk.MustNewDecFromStr("0.1"),
+		Rate:     sdkmath.LegacyMustNewDecFromStr("0.1"),
 	}
 	_, err = s.msgServer.NewFixedDepositCfg(s.Ctx, &msg)
 	s.Require().NoError(err)
@@ -60,7 +62,7 @@ func (s *KeeperTestSuite) createFixedDeposits(count int, account string) {
 		// Create a sample FixedDeposit
 		fixedDeposit := types.MsgDoFixedDeposit{
 			Account:   account,
-			Principal: sdk.NewCoin(params.BaseDenom, sdk.NewInt(100000000)),
+			Principal: sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(100000000)),
 			Term:      30,
 		}
 		// Run DoFixedDeposit to set FixedDeposit data

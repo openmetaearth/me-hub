@@ -1,5 +1,7 @@
 package keeper
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"context"
 	"fmt"
@@ -61,7 +63,7 @@ func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 	}
 
 	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, validator.GetOperator())
-	rewards := sdk.ZeroDec()
+	rewards := sdkmath.LegacyZeroDec()
 	var regionTreasureAddr sdk.AccAddress
 	if isOK {
 		rewards, err = k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)

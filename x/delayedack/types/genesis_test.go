@@ -1,5 +1,7 @@
 package types_test
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"testing"
 
@@ -27,7 +29,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					EpochIdentifier: "hour",
-					BridgingFee:     sdk.NewDecWithPrec(1, 1),
+					BridgingFee:     sdkmath.LegacyNewDecWithPrec(1, 1),
 				},
 				RollappPackets: []ctypes.RollappPacket{validRollappPacket},
 			},
@@ -37,7 +39,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					EpochIdentifier: "",
-					BridgingFee:     sdk.Dec{},
+					BridgingFee:     sdkmath.LegacyDec{},
 				},
 			},
 			valid: false,

@@ -1,5 +1,7 @@
 package ibctesting_test
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"bytes"
 	"encoding/json"
@@ -250,7 +252,7 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 	senderPrivKey := secp256k1.GenPrivKey()
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 
-	amount, ok := sdk.NewIntFromString("10000000000000000000")
+	amount, ok := sdkmath.NewIntFromString("10000000000000000000")
 	s.Require().True(ok)
 
 	// add sender account

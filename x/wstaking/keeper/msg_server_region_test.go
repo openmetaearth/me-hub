@@ -1,5 +1,7 @@
 package keeper_test
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"strings"
 
@@ -193,7 +195,7 @@ func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 			withdrawer: s.Dao.GlobalDao,
 			amount: balance.Add(sdk.Coin{
 				Denom:  params.BaseDenom,
-				Amount: sdk.NewInt(1),
+				Amount: sdkmath.NewInt(1),
 			}),
 			expErr: sdkerrors.ErrInsufficientFunds,
 		}, {

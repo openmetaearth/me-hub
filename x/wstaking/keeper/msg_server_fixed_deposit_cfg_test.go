@@ -1,5 +1,7 @@
 package keeper_test
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"strings"
 
@@ -24,7 +26,7 @@ func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
 		creator  string
 		regionId string
 		term     int64
-		rate     sdk.Dec
+		rate     sdkmath.LegacyDec
 		expErr   error
 	}{
 		{
@@ -32,56 +34,56 @@ func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
 			creator:  s.Dao.MeidDao,
 			regionId: strings.ToLower(types.MeEarthRegionName),
 			term:     1,
-			rate:     sdk.MustNewDecFromStr("0.1"),
+			rate:     sdkmath.LegacyMustNewDecFromStr("0.1"),
 			expErr:   types.ErrCheckGlobalDao,
 		}, {
 			name:     "have permission, but wrong region id",
 			creator:  s.Dao.GlobalDao,
 			regionId: types.MeEarthRegionName,
 			term:     1,
-			rate:     sdk.MustNewDecFromStr("0.1"),
+			rate:     sdkmath.LegacyMustNewDecFromStr("0.1"),
 			expErr:   types.ErrRegionName,
 		}, {
 			name:     "invalid term",
 			creator:  s.Dao.GlobalDao,
 			regionId: strings.ToLower(types.MeEarthRegionName),
 			term:     0,
-			rate:     sdk.MustNewDecFromStr("0.1"),
+			rate:     sdkmath.LegacyMustNewDecFromStr("0.1"),
 			expErr:   types.ErrAddFixedDepositConfig,
 		}, {
 			name:     "invalid rate (zero)",
 			creator:  s.Dao.GlobalDao,
 			regionId: strings.ToLower(types.MeEarthRegionName),
 			term:     1,
-			rate:     sdk.MustNewDecFromStr("0"),
+			rate:     sdkmath.LegacyMustNewDecFromStr("0"),
 			expErr:   types.ErrAddFixedDepositConfig,
 		}, {
 			name:     "invalid rate (negative)",
 			creator:  s.Dao.GlobalDao,
 			regionId: strings.ToLower(types.MeEarthRegionName),
 			term:     1,
-			rate:     sdk.MustNewDecFromStr("-0.1"),
+			rate:     sdkmath.LegacyMustNewDecFromStr("-0.1"),
 			expErr:   types.ErrAddFixedDepositConfig,
 		}, {
 			name:     "invalid rate (too small)",
 			creator:  s.Dao.GlobalDao,
 			regionId: strings.ToLower(types.MeEarthRegionName),
 			term:     1,
-			rate:     sdk.MustNewDecFromStr("0.00009"),
+			rate:     sdkmath.LegacyMustNewDecFromStr("0.00009"),
 			expErr:   types.ErrAddFixedDepositConfig,
 		}, {
 			name:     "invalid rate (too large)",
 			creator:  s.Dao.GlobalDao,
 			regionId: strings.ToLower(types.MeEarthRegionName),
 			term:     1,
-			rate:     sdk.MustNewDecFromStr("10000.0001"),
+			rate:     sdkmath.LegacyMustNewDecFromStr("10000.0001"),
 			expErr:   types.ErrAddFixedDepositConfig,
 		}, {
 			name:     "No error",
 			creator:  s.Dao.GlobalDao,
 			regionId: strings.ToLower(types.MeEarthRegionName),
 			term:     1,
-			rate:     sdk.MustNewDecFromStr("0.1"),
+			rate:     sdkmath.LegacyMustNewDecFromStr("0.1"),
 			expErr:   nil,
 		},
 	}
@@ -102,7 +104,7 @@ func (s *KeeperTestSuite) TestNewFixedDepositCfg() {
 				s.Require().Equal(1, len(cfg.RegionFixedDepositCfgs))
 				s.Require().Equal(strings.ToLower(types.MeEarthRegionName), cfg.RegionFixedDepositCfgs[0].RegionId)
 				s.Require().Equal(int64(1), cfg.RegionFixedDepositCfgs[0].RegionFixedDepositCfg[0].Term)
-				s.Require().True(cfg.RegionFixedDepositCfgs[0].RegionFixedDepositCfg[0].Rate.Equal(sdk.MustNewDecFromStr("0.1")))
+				s.Require().True(cfg.RegionFixedDepositCfgs[0].RegionFixedDepositCfg[0].Rate.Equal(sdkmath.LegacyMustNewDecFromStr("0.1")))
 			}
 		})
 	}
@@ -123,30 +125,30 @@ func (s *KeeperTestSuite) TestSetFixedDepositCfgRateRejectsInvalidRates() {
 		Dao:      s.Dao.GlobalDao,
 		RegionId: strings.ToLower(types.MeEarthRegionName),
 		Term:     1,
-		Rate:     sdk.MustNewDecFromStr("0.1"),
+		Rate:     sdkmath.LegacyMustNewDecFromStr("0.1"),
 	}
 	_, err = s.msgServer.NewFixedDepositCfg(s.Ctx, &newCfg)
 	s.Require().NoError(err)
 
 	testCases := []struct {
 		name string
-		rate sdk.Dec
+		rate sdkmath.LegacyDec
 	}{
 		{
 			name: "negative rate",
-			rate: sdk.MustNewDecFromStr("-0.1"),
+			rate: sdkmath.LegacyMustNewDecFromStr("-0.1"),
 		},
 		{
 			name: "zero rate",
-			rate: sdk.ZeroDec(),
+			rate: sdkmath.LegacyZeroDec(),
 		},
 		{
 			name: "too small rate",
-			rate: sdk.MustNewDecFromStr("0.00009"),
+			rate: sdkmath.LegacyMustNewDecFromStr("0.00009"),
 		},
 		{
 			name: "too large rate",
-			rate: sdk.MustNewDecFromStr("10000.0001"),
+			rate: sdkmath.LegacyMustNewDecFromStr("10000.0001"),
 		},
 	}
 
@@ -180,7 +182,7 @@ func (s *KeeperTestSuite) TestSetFixedDepositCfgStatusRejectsUnknownStatus() {
 		Dao:      s.Dao.GlobalDao,
 		RegionId: regionID,
 		Term:     1,
-		Rate:     sdk.MustNewDecFromStr("0.1"),
+		Rate:     sdkmath.LegacyMustNewDecFromStr("0.1"),
 	}
 	_, err = s.msgServer.NewFixedDepositCfg(s.Ctx, &newCfg)
 	s.Require().NoError(err)

@@ -3,8 +3,7 @@ package types
 import (
 	"fmt"
 
-	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 )
 
@@ -27,8 +26,8 @@ func (d TransferData) RollappId() string {
 }
 
 // MustAmountInt returns the int amount. Should call validateBasic first!
-func (d TransferData) MustAmountInt() math.Int {
-	x, ok := sdk.NewIntFromString(d.Amount)
+func (d TransferData) MustAmountInt() sdkmath.Int {
+	x, ok := sdkmath.NewIntFromString(d.Amount)
 	if !ok {
 		panic(fmt.Sprintf("parse transfer amount to Int: %s", d.Amount))
 	}

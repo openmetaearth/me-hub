@@ -1,7 +1,7 @@
 package types
 
 import (
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -14,7 +14,7 @@ var _ sdk.Msg = &MsgUpdateValidator{}
 // NewMsgUpdateValidator creates a new MsgUpdateValidator instance
 //
 //nolint:interfacer
-func NewMsgUpdateValidator(valAddr sdk.ValAddress, description stakingtypes.Description, newRate *sdk.Dec, newMinSelfDelegation *math.Int) *MsgUpdateValidator {
+func NewMsgUpdateValidator(valAddr sdk.ValAddress, description stakingtypes.Description, newRate *sdkmath.LegacyDec, newMinSelfDelegation *math.Int) *MsgUpdateValidator {
 	return &MsgUpdateValidator{
 		Description:       description,
 		CommissionRate:    newRate,

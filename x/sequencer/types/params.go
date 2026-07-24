@@ -45,7 +45,7 @@ func DefaultParams() Params {
 	if err != nil {
 		panic(err)
 	}
-	minBond := sdk.NewCoin(denom, sdk.NewIntFromUint64(DefaultMinBond))
+	minBond := sdk.NewCoin(denom, sdkmath.NewIntFromUint64(DefaultMinBond))
 	return NewParams(
 		minBond, DefaultUnbondingTime,
 	)

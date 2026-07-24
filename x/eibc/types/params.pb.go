@@ -4,8 +4,8 @@
 package types
 
 import (
+	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
 	io "io"
@@ -26,9 +26,9 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters for the module.
 type Params struct {
-	EpochIdentifier string                                 `protobuf:"bytes,1,opt,name=epoch_identifier,json=epochIdentifier,proto3" json:"epoch_identifier,omitempty" yaml:"epoch_identifier"`
-	TimeoutFee      github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=timeout_fee,json=timeoutFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"timeout_fee" yaml:"timeout_fee"`
-	ErrackFee       github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=errack_fee,json=errackFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"errack_fee" yaml:"errack_fee"`
+	EpochIdentifier string                      `protobuf:"bytes,1,opt,name=epoch_identifier,json=epochIdentifier,proto3" json:"epoch_identifier,omitempty" yaml:"epoch_identifier"`
+	TimeoutFee      cosmossdk_io_math.LegacyDec `protobuf:"bytes,2,opt,name=timeout_fee,json=timeoutFee,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"timeout_fee" yaml:"timeout_fee"`
+	ErrackFee       cosmossdk_io_math.LegacyDec `protobuf:"bytes,3,opt,name=errack_fee,json=errackFee,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"errack_fee" yaml:"errack_fee"`
 }
 
 func (m *Params) Reset()      { *m = Params{} }

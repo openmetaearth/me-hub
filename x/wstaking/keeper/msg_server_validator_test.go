@@ -1,5 +1,7 @@
 package keeper_test
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"encoding/hex"
 	"math/big"
@@ -19,7 +21,7 @@ func (s *KeeperTestSuite) newCreateValidatorMsgForTest(operatorAcc sdk.AccAddres
 
 	createAmount := sdk.NewCoin(
 		params.BaseDenom,
-		sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)),
+		sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)),
 	)
 
 	return &stakingtypes.MsgCreateValidator{
@@ -29,10 +31,10 @@ func (s *KeeperTestSuite) newCreateValidatorMsgForTest(operatorAcc sdk.AccAddres
 		},
 		Commission: stakingtypes.NewCommissionRates(
 			s.Keeper().MinCommissionRate(s.Ctx),
-			sdk.OneDec(),
-			sdk.ZeroDec(),
+			sdkmath.LegacyOneDec(),
+			sdkmath.LegacyZeroDec(),
 		),
-		MinSelfDelegation: sdk.OneInt(),
+		MinSelfDelegation: sdkmath.OneInt(),
 		DelegatorAddress:  s.Dao.GlobalDao,
 		ValidatorAddress:  sdk.ValAddress(operatorAcc).String(),
 		Pubkey:            validatorPubKeyAny,

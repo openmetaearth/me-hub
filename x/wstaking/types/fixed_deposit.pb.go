@@ -4,9 +4,9 @@
 package types
 
 import (
+	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
@@ -85,14 +85,14 @@ func (FIXED_DEPOSIT_CFG_STATUS) EnumDescriptor() ([]byte, []int) {
 }
 
 type FixedDeposit struct {
-	Id        uint64                                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Account   string                                 `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
-	Principal types.Coin                             `protobuf:"bytes,3,opt,name=principal,proto3" json:"principal"`
-	Interest  types.Coin                             `protobuf:"bytes,4,opt,name=interest,proto3" json:"interest"`
-	StartTime time.Time                              `protobuf:"bytes,5,opt,name=start_time,json=startTime,proto3,stdtime" json:"start_time"`
-	EndTime   time.Time                              `protobuf:"bytes,6,opt,name=end_time,json=endTime,proto3,stdtime" json:"end_time"`
-	Term      int64                                  `protobuf:"varint,7,opt,name=term,proto3" json:"term,omitempty"`
-	Rate      github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,8,opt,name=rate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"rate"`
+	Id        uint64                      `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Account   string                      `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
+	Principal types.Coin                  `protobuf:"bytes,3,opt,name=principal,proto3" json:"principal"`
+	Interest  types.Coin                  `protobuf:"bytes,4,opt,name=interest,proto3" json:"interest"`
+	StartTime time.Time                   `protobuf:"bytes,5,opt,name=start_time,json=startTime,proto3,stdtime" json:"start_time"`
+	EndTime   time.Time                   `protobuf:"bytes,6,opt,name=end_time,json=endTime,proto3,stdtime" json:"end_time"`
+	Term      int64                       `protobuf:"varint,7,opt,name=term,proto3" json:"term,omitempty"`
+	Rate      cosmossdk_io_math.LegacyDec `protobuf:"bytes,8,opt,name=rate,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"rate"`
 }
 
 func (m *FixedDeposit) Reset()         { *m = FixedDeposit{} }
@@ -222,10 +222,10 @@ func (m *FixedDepositTotal) GetAmount() types.Coin {
 }
 
 type FixedDepositCfg struct {
-	RegionId string                                 `protobuf:"bytes,1,opt,name=regionId,proto3" json:"regionId,omitempty"`
-	Term     int64                                  `protobuf:"varint,2,opt,name=term,proto3" json:"term,omitempty"`
-	Rate     github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=rate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"rate"`
-	Status   FIXED_DEPOSIT_CFG_STATUS               `protobuf:"varint,4,opt,name=status,proto3,enum=metaearth.wstaking.FIXED_DEPOSIT_CFG_STATUS" json:"status,omitempty"`
+	RegionId string                      `protobuf:"bytes,1,opt,name=regionId,proto3" json:"regionId,omitempty"`
+	Term     int64                       `protobuf:"varint,2,opt,name=term,proto3" json:"term,omitempty"`
+	Rate     cosmossdk_io_math.LegacyDec `protobuf:"bytes,3,opt,name=rate,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"rate"`
+	Status   FIXED_DEPOSIT_CFG_STATUS    `protobuf:"varint,4,opt,name=status,proto3,enum=metaearth.wstaking.FIXED_DEPOSIT_CFG_STATUS" json:"status,omitempty"`
 }
 
 func (m *FixedDepositCfg) Reset()         { *m = FixedDepositCfg{} }
@@ -335,9 +335,9 @@ func (m *RegionAllFixedDepositCfg) GetRegionFixedDepositCfg() []RegionFixedDepos
 }
 
 type RegionFixedDepositCfg struct {
-	Term   int64                                  `protobuf:"varint,1,opt,name=term,proto3" json:"term,omitempty"`
-	Rate   github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=rate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"rate"`
-	Status FIXED_DEPOSIT_CFG_STATUS               `protobuf:"varint,3,opt,name=status,proto3,enum=metaearth.wstaking.FIXED_DEPOSIT_CFG_STATUS" json:"status,omitempty"`
+	Term   int64                       `protobuf:"varint,1,opt,name=term,proto3" json:"term,omitempty"`
+	Rate   cosmossdk_io_math.LegacyDec `protobuf:"bytes,2,opt,name=rate,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"rate"`
+	Status FIXED_DEPOSIT_CFG_STATUS    `protobuf:"varint,3,opt,name=status,proto3,enum=metaearth.wstaking.FIXED_DEPOSIT_CFG_STATUS" json:"status,omitempty"`
 }
 
 func (m *RegionFixedDepositCfg) Reset()         { *m = RegionFixedDepositCfg{} }

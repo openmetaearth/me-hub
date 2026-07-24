@@ -1,5 +1,7 @@
 package cmd
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"encoding/json"
 	"errors"
@@ -115,8 +117,8 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 				bankGenState.Balances = append(bankGenState.Balances, bal)
 				bankGenState.Supply = bankGenState.Supply.Add(bal.Coins...)
 			}
-			delegateAmount := sdk.NewInt(1 * 1e8)
-			bondedAmount := delegateAmount.Mul(sdk.NewInt(int64(len(addrs))))
+			delegateAmount := sdkmath.NewInt(1 * 1e8)
+			bondedAmount := delegateAmount.Mul(sdkmath.NewInt(int64(len(addrs))))
 
 			bal1 := banktypes.Balance{
 				Address: authtypes.NewModuleAddress(bsctypes.ModuleName).String(),

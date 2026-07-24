@@ -1,5 +1,7 @@
 package keeper
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"encoding/binary"
 	"fmt"
@@ -250,8 +252,8 @@ func (k Keeper) ClearAutoIncrementID(ctx sdk.Context) {
 }
 
 // GetOutgoingPendingTxTotal returns the total amount of a given token pending in the outgoing pool and all batches
-func (k Keeper) GetOutgoingPendingTxTotal(ctx sdk.Context, chainName string, bridgeToken *types.BridgeToken) sdk.Int {
-	totalPending := sdk.ZeroInt()
+func (k Keeper) GetOutgoingPendingTxTotal(ctx sdk.Context, chainName string, bridgeToken *types.BridgeToken) sdkmath.Int {
+	totalPending := sdkmath.ZeroInt()
 	// Add all unbatched transactions
 	k.IterateUnbatchedTransactions(ctx, bridgeToken.ContractAddress, func(tx *types.OutgoingTransferTx) bool {
 		totalPending = totalPending.Add(types.GetMintAmount(tx.Token.Amount, chainName, bridgeToken))

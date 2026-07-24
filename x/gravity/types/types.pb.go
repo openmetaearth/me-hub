@@ -4,10 +4,10 @@
 package types
 
 import (
+	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/cosmos-sdk/types"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
 	io "io"
@@ -107,9 +107,9 @@ func (m *ProposalRelayer) GetRelayers() []string {
 }
 
 type Relayer struct {
-	RelayerAddress  string                                 `protobuf:"bytes,1,opt,name=relayer_address,json=relayerAddress,proto3" json:"relayer_address,omitempty"`
-	ExternalAddress string                                 `protobuf:"bytes,2,opt,name=external_address,json=externalAddress,proto3" json:"external_address,omitempty"`
-	DelegateAmount  github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=delegate_amount,json=delegateAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"delegate_amount"`
+	RelayerAddress  string                `protobuf:"bytes,1,opt,name=relayer_address,json=relayerAddress,proto3" json:"relayer_address,omitempty"`
+	ExternalAddress string                `protobuf:"bytes,2,opt,name=external_address,json=externalAddress,proto3" json:"external_address,omitempty"`
+	DelegateAmount  cosmossdk_io_math.Int `protobuf:"bytes,3,opt,name=delegate_amount,json=delegateAmount,proto3,customtype=cosmossdk.io/math.Int" json:"delegate_amount"`
 	// start relayer height
 	StartHeight int64 `protobuf:"varint,4,opt,name=start_height,json=startHeight,proto3" json:"start_height,omitempty"`
 	Online      bool  `protobuf:"varint,5,opt,name=online,proto3" json:"online,omitempty"`
@@ -359,12 +359,12 @@ func (m *LastObservedBlockHeight) GetBlockHeight() uint64 {
 
 // BridgeToken
 type BridgeToken struct {
-	ContractAddress string                                 `protobuf:"bytes,1,opt,name=contract_address,json=contractAddress,proto3" json:"contract_address,omitempty"`
-	Denom           string                                 `protobuf:"bytes,2,opt,name=denom,proto3" json:"denom,omitempty"`
-	Name            string                                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Symbol          string                                 `protobuf:"bytes,4,opt,name=symbol,proto3" json:"symbol,omitempty"`
-	Decimal         uint64                                 `protobuf:"varint,5,opt,name=decimal,proto3" json:"decimal,omitempty"`
-	Supply          github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,6,opt,name=supply,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"supply"`
+	ContractAddress string                `protobuf:"bytes,1,opt,name=contract_address,json=contractAddress,proto3" json:"contract_address,omitempty"`
+	Denom           string                `protobuf:"bytes,2,opt,name=denom,proto3" json:"denom,omitempty"`
+	Name            string                `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Symbol          string                `protobuf:"bytes,4,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	Decimal         uint64                `protobuf:"varint,5,opt,name=decimal,proto3" json:"decimal,omitempty"`
+	Supply          cosmossdk_io_math.Int `protobuf:"bytes,6,opt,name=supply,proto3,customtype=cosmossdk.io/math.Int" json:"supply"`
 }
 
 func (m *BridgeToken) Reset()         { *m = BridgeToken{} }
@@ -682,8 +682,8 @@ func (m *OutgoingTransferTx) GetFee() ERC20Token {
 
 // ERC20Token unique identifier for an Ethereum ERC20 token.
 type ERC20Token struct {
-	Contract string                                 `protobuf:"bytes,1,opt,name=contract,proto3" json:"contract,omitempty"`
-	Amount   github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"amount"`
+	Contract string                `protobuf:"bytes,1,opt,name=contract,proto3" json:"contract,omitempty"`
+	Amount   cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=amount,proto3,customtype=cosmossdk.io/math.Int" json:"amount"`
 }
 
 func (m *ERC20Token) Reset()         { *m = ERC20Token{} }
@@ -772,10 +772,10 @@ func (m *IDSet) GetIds() []uint64 {
 }
 
 type BatchFees struct {
-	TokenContract string                                 `protobuf:"bytes,1,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
-	TotalFees     github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=total_fees,json=totalFees,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"total_fees"`
-	TotalTxs      uint64                                 `protobuf:"varint,3,opt,name=total_txs,json=totalTxs,proto3" json:"total_txs,omitempty"`
-	TotalAmount   github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=total_amount,json=totalAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"total_amount"`
+	TokenContract string                `protobuf:"bytes,1,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
+	TotalFees     cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=total_fees,json=totalFees,proto3,customtype=cosmossdk.io/math.Int" json:"total_fees"`
+	TotalTxs      uint64                `protobuf:"varint,3,opt,name=total_txs,json=totalTxs,proto3" json:"total_txs,omitempty"`
+	TotalAmount   cosmossdk_io_math.Int `protobuf:"bytes,4,opt,name=total_amount,json=totalAmount,proto3,customtype=cosmossdk.io/math.Int" json:"total_amount"`
 }
 
 func (m *BatchFees) Reset()         { *m = BatchFees{} }
@@ -826,8 +826,8 @@ func (m *BatchFees) GetTotalTxs() uint64 {
 }
 
 type MinBatchFee struct {
-	TokenContract string                                 `protobuf:"bytes,1,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
-	BaseFee       github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=baseFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"baseFee"`
+	TokenContract string                `protobuf:"bytes,1,opt,name=token_contract,json=tokenContract,proto3" json:"token_contract,omitempty"`
+	BaseFee       cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=baseFee,proto3,customtype=cosmossdk.io/math.Int" json:"baseFee"`
 }
 
 func (m *MinBatchFee) Reset()         { *m = MinBatchFee{} }
@@ -875,18 +875,18 @@ func (m *MinBatchFee) GetTokenContract() string {
 // If power change between validators of CurrentRelayerSet and latest relayer
 // set request is > 10%
 type Params struct {
-	GravityId                          string                                 `protobuf:"bytes,1,opt,name=gravity_id,json=gravityId,proto3" json:"gravity_id,omitempty"`
-	AverageBlockTime                   uint64                                 `protobuf:"varint,2,opt,name=average_block_time,json=averageBlockTime,proto3" json:"average_block_time,omitempty"`
-	ExternalBatchTimeout               uint64                                 `protobuf:"varint,3,opt,name=external_batch_timeout,json=externalBatchTimeout,proto3" json:"external_batch_timeout,omitempty"`
-	AverageExternalBlockTime           uint64                                 `protobuf:"varint,4,opt,name=average_external_block_time,json=averageExternalBlockTime,proto3" json:"average_external_block_time,omitempty"`
-	SignedWindow                       uint64                                 `protobuf:"varint,5,opt,name=signed_window,json=signedWindow,proto3" json:"signed_window,omitempty"`
-	SlashFraction                      github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,6,opt,name=slash_fraction,json=slashFraction,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"slash_fraction"`
-	RelayerSetUpdatePowerChangePercent github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,7,opt,name=relayer_set_update_power_change_percent,json=relayerSetUpdatePowerChangePercent,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"relayer_set_update_power_change_percent"`
-	MaxRelayers                        uint64                                 `protobuf:"varint,8,opt,name=max_relayers,json=maxRelayers,proto3" json:"max_relayers,omitempty"`
-	MinDelegate                        github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,9,opt,name=min_delegate,json=minDelegate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"min_delegate"`
-	MaxDelegate                        github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,10,opt,name=max_delegate,json=maxDelegate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"max_delegate"`
-	MaxSlashTimes                      uint64                                 `protobuf:"varint,11,opt,name=max_slash_times,json=maxSlashTimes,proto3" json:"max_slash_times,omitempty"`
-	MaxSendToExternalUsdAmount         github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,12,opt,name=max_send_to_external_usd_amount,json=maxSendToExternalUsdAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"max_send_to_external_usd_amount"`
+	GravityId                          string                      `protobuf:"bytes,1,opt,name=gravity_id,json=gravityId,proto3" json:"gravity_id,omitempty"`
+	AverageBlockTime                   uint64                      `protobuf:"varint,2,opt,name=average_block_time,json=averageBlockTime,proto3" json:"average_block_time,omitempty"`
+	ExternalBatchTimeout               uint64                      `protobuf:"varint,3,opt,name=external_batch_timeout,json=externalBatchTimeout,proto3" json:"external_batch_timeout,omitempty"`
+	AverageExternalBlockTime           uint64                      `protobuf:"varint,4,opt,name=average_external_block_time,json=averageExternalBlockTime,proto3" json:"average_external_block_time,omitempty"`
+	SignedWindow                       uint64                      `protobuf:"varint,5,opt,name=signed_window,json=signedWindow,proto3" json:"signed_window,omitempty"`
+	SlashFraction                      cosmossdk_io_math.LegacyDec `protobuf:"bytes,6,opt,name=slash_fraction,json=slashFraction,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"slash_fraction"`
+	RelayerSetUpdatePowerChangePercent cosmossdk_io_math.LegacyDec `protobuf:"bytes,7,opt,name=relayer_set_update_power_change_percent,json=relayerSetUpdatePowerChangePercent,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"relayer_set_update_power_change_percent"`
+	MaxRelayers                        uint64                      `protobuf:"varint,8,opt,name=max_relayers,json=maxRelayers,proto3" json:"max_relayers,omitempty"`
+	MinDelegate                        cosmossdk_io_math.Int       `protobuf:"bytes,9,opt,name=min_delegate,json=minDelegate,proto3,customtype=cosmossdk.io/math.Int" json:"min_delegate"`
+	MaxDelegate                        cosmossdk_io_math.Int       `protobuf:"bytes,10,opt,name=max_delegate,json=maxDelegate,proto3,customtype=cosmossdk.io/math.Int" json:"max_delegate"`
+	MaxSlashTimes                      uint64                      `protobuf:"varint,11,opt,name=max_slash_times,json=maxSlashTimes,proto3" json:"max_slash_times,omitempty"`
+	MaxSendToExternalUsdAmount         cosmossdk_io_math.Int       `protobuf:"bytes,12,opt,name=max_send_to_external_usd_amount,json=maxSendToExternalUsdAmount,proto3,customtype=cosmossdk.io/math.Int" json:"max_send_to_external_usd_amount"`
 }
 
 func (m *Params) Reset()         { *m = Params{} }

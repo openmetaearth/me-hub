@@ -1,5 +1,7 @@
 package keeper
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"context"
 	"fmt"
@@ -137,7 +139,7 @@ func (k Querier) Delegation(c context.Context, req *stakingtypes.QueryDelegation
 }
 
 func DelegationToDelegationResponse(ctx sdk.Context, k *Keeper, del stakingtypes.Delegation) (stakingtypes.DelegationResponse, error) {
-	if del.Unmovable.GT(sdk.ZeroInt()) {
+	if del.Unmovable.GT(sdkmath.ZeroInt()) {
 		_, found := k.GetValidator(ctx, del.GetValidatorAddr())
 		if !found {
 			return stakingtypes.DelegationResponse{}, stakingtypes.ErrNoValidatorFound

@@ -1,5 +1,7 @@
 package keeper
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -75,7 +77,7 @@ func (k Keeper) GetAllRegionI(ctx sdk.Context) (list []types.RegionI) {
 	return
 }
 
-func (k Keeper) BondRegion(ctx sdk.Context, validator stakingtypes.Validator, tokens sdk.Int, changeOperator bool) {
+func (k Keeper) BondRegion(ctx sdk.Context, validator stakingtypes.Validator, tokens sdkmath.Int, changeOperator bool) {
 	region, found := k.GetRegion(ctx, validator.Description.RegionID)
 	if !found {
 		return
@@ -93,7 +95,7 @@ func (k Keeper) UnBondRegion(ctx sdk.Context, regionId string) {
 	if !found {
 		return
 	}
-	region.RegionShare = sdk.ZeroInt()
+	region.RegionShare = sdkmath.ZeroInt()
 	region.OperatorAddress = ""
 	k.SetRegion(ctx, region)
 	k.groupKeeper.UpdateGroupAdmin(ctx, regionId, "")

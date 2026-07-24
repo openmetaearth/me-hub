@@ -1,5 +1,7 @@
 package keeper_test
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"encoding/hex"
 	"math/big"
@@ -67,7 +69,7 @@ func (s *KeeperTestSuite) TestBlockValidatorUpdatesDeduplicatesOldConsensusPubKe
 
 	s.Ctx = s.Ctx.WithBlockHeight(updateInfo.UpdateAtHeight)
 
-	stakeAmount := sdk.NewCoin(params.BaseDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
+	stakeAmount := sdk.NewCoin(params.BaseDenom, sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
 	_, err = s.msgServer.Stake(s.Ctx, &wstakingtypes.MsgStake{
 		StakerAddress:    s.Dao.GlobalDao,
 		ValidatorAddress: s.meEarthValidator.OperatorAddress,
@@ -113,14 +115,14 @@ func (s *KeeperTestSuite) TestCreateValidatorRejectsPendingReplacementPubKey() {
 	pubKeyData, err := newEd25519PubKey.Marshal()
 	s.Require().NoError(err)
 
-	createAmount := sdk.NewCoin(params.BaseDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
+	createAmount := sdk.NewCoin(params.BaseDenom, sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
 	_, err = s.msgServer.CreateValidator(s.Ctx, &stakingtypes.MsgCreateValidator{
 		Description: stakingtypes.Description{
 			Moniker:  "replacement-conflict",
 			RegionID: wstakingtypes.MeEarthRegionName,
 		},
-		Commission:        stakingtypes.NewCommissionRates(s.Keeper().MinCommissionRate(s.Ctx), sdk.OneDec(), sdk.ZeroDec()),
-		MinSelfDelegation: sdk.OneInt(),
+		Commission:        stakingtypes.NewCommissionRates(s.Keeper().MinCommissionRate(s.Ctx), sdkmath.LegacyOneDec(), sdkmath.LegacyZeroDec()),
+		MinSelfDelegation: sdkmath.OneInt(),
 		DelegatorAddress:  s.Dao.GlobalDao,
 		ValidatorAddress:  sdk.ValAddress(s.TestAccs[0]).String(),
 		Pubkey:            validatorPubKeyAny,

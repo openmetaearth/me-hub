@@ -85,7 +85,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 			"claimEventNonce", claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
 		return
 	}
-	requiredPower := types.AttestationVotesPowerThreshold.Mul(totalPower).Quo(sdk.NewIntFromUint64(types.PowerBase))
+	requiredPower := types.AttestationVotesPowerThreshold.Mul(totalPower).Quo(sdkmath.NewIntFromUint64(types.PowerBase))
 	attestationPower := sdkmath.NewInt(0)
 
 	for _, relayerStr := range att.Votes {

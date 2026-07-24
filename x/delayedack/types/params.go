@@ -1,5 +1,7 @@
 package types
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"errors"
 	"fmt"
@@ -33,7 +35,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(epochIdentifier string, bridgingFee sdk.Dec, deletePacketsEpochLimit int) Params {
+func NewParams(epochIdentifier string, bridgingFee sdkmath.LegacyDec, deletePacketsEpochLimit int) Params {
 	return Params{
 		EpochIdentifier:         epochIdentifier,
 		BridgingFee:             bridgingFee,
@@ -45,7 +47,7 @@ func NewParams(epochIdentifier string, bridgingFee sdk.Dec, deletePacketsEpochLi
 func DefaultParams() Params {
 	return NewParams(
 		defaultEpochIdentifier,
-		sdk.ZeroDec(),
+		sdkmath.LegacyZeroDec(),
 		defaultDeletePacketsEpochLimit,
 	)
 }
@@ -60,7 +62,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 }
 
 func validateBridgingFee(i interface{}) error {
-	v, ok := i.(sdk.Dec)
+	v, ok := i.(sdkmath.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -71,7 +73,7 @@ func validateBridgingFee(i interface{}) error {
 		return fmt.Errorf("bridging fee must be positive: %s", v)
 	}
 
-	if v.GTE(sdk.OneDec()) {
+	if v.GTE(sdkmath.LegacyOneDec()) {
 		return fmt.Errorf("bridging fee too large: %s", v)
 	}
 

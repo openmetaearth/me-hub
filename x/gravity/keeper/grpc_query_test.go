@@ -1,5 +1,7 @@
 package keeper_test
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"fmt"
 
@@ -15,7 +17,7 @@ func (s *KeeperTestSuite) TestQueryUnbatchedTxs() {
 	ctx := s.Ctx
 
 	initSender := helpers.GenerateAddress().Bytes()
-	initToken := sdk.NewCoin("usdt", sdk.NewInt(1000000))
+	initToken := sdk.NewCoin("usdt", sdkmath.NewInt(1000000))
 	bridgeToken := s.NewBridgeToken(initSender, initToken)
 	queryServer := keeper.NewQueryServerImpl(s.App.BscKeeper)
 
@@ -24,8 +26,8 @@ func (s *KeeperTestSuite) TestQueryUnbatchedTxs() {
 	for i := 0; i < numTxs; i++ {
 		sender := helpers.GenerateAddress().Bytes()
 		dest := fmt.Sprintf("dest%d", i)
-		amount := sdk.NewInt(100 + int64(i))
-		feeAmount := sdk.NewInt(1 + int64(i))
+		amount := sdkmath.NewInt(100 + int64(i))
+		feeAmount := sdkmath.NewInt(1 + int64(i))
 
 		err := s.App.BankKeeper.MintCoins(s.Ctx, s.chainName, sdk.NewCoins(initToken))
 		s.NoError(err)

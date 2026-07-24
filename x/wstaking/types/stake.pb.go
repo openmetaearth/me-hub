@@ -4,11 +4,11 @@
 package types
 
 import (
+	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
 	_ "github.com/cometbft/cometbft/proto/tendermint/types"
 	_ "github.com/cosmos/cosmos-proto"
 	_ "github.com/cosmos/cosmos-sdk/types"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
@@ -41,11 +41,11 @@ type Stake struct {
 	// validator_address is the bech32-encoded address of the validator.
 	ValidatorAddress string `protobuf:"bytes,2,opt,name=validator_address,json=validatorAddress,proto3" json:"validator_address,omitempty"`
 	// shares define the stake shares received.
-	Shares      github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=shares,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"shares"`
-	StartHeight int64                                  `protobuf:"varint,4,opt,name=startHeight,proto3" json:"startHeight,omitempty"`
-	Rewards     github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,5,opt,name=rewards,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"rewards"`
-	Amount      github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,6,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"amount"`
-	Unmovable   github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,7,opt,name=unmovable,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"unmovable"`
+	Shares      cosmossdk_io_math.LegacyDec `protobuf:"bytes,3,opt,name=shares,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"shares"`
+	StartHeight int64                       `protobuf:"varint,4,opt,name=startHeight,proto3" json:"startHeight,omitempty"`
+	Rewards     cosmossdk_io_math.LegacyDec `protobuf:"bytes,5,opt,name=rewards,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"rewards"`
+	Amount      cosmossdk_io_math.Int       `protobuf:"bytes,6,opt,name=amount,proto3,customtype=cosmossdk.io/math.Int" json:"amount"`
+	Unmovable   cosmossdk_io_math.Int       `protobuf:"bytes,7,opt,name=unmovable,proto3,customtype=cosmossdk.io/math.Int" json:"unmovable"`
 }
 
 func (m *Stake) Reset()         { *m = Stake{} }
@@ -133,9 +133,9 @@ type UnbondingStakeEntry struct {
 	CompletionTime time.Time `protobuf:"bytes,2,opt,name=completion_time,json=completionTime,proto3,stdtime" json:"completion_time"`
 	// initial_balance defines the tokens initially scheduled to receive at
 	// completion.
-	InitialBalance github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=initial_balance,json=initialBalance,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"initial_balance"`
+	InitialBalance cosmossdk_io_math.Int `protobuf:"bytes,3,opt,name=initial_balance,json=initialBalance,proto3,customtype=cosmossdk.io/math.Int" json:"initial_balance"`
 	// balance defines the tokens to receive at completion.
-	Balance github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=balance,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"balance"`
+	Balance cosmossdk_io_math.Int `protobuf:"bytes,4,opt,name=balance,proto3,customtype=cosmossdk.io/math.Int" json:"balance"`
 }
 
 func (m *UnbondingStakeEntry) Reset()         { *m = UnbondingStakeEntry{} }

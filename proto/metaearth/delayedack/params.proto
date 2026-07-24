@@ -11,7 +11,7 @@ message Params {
   string epoch_identifier = 1 [(gogoproto.moretags) = "yaml:\"epoch_identifier\""];
 
   string bridging_fee = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.moretags) = "yaml:\"bridging_fee\"",
     (gogoproto.nullable) = false
   ];

@@ -1,5 +1,7 @@
 package keeper
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"fmt"
 
@@ -77,8 +79,8 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	}
 
 	// Calculate the demand order price and validate it,
-	amt, _ := sdk.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
-	fee, _ := eibcMetaData.FeeInt()                                // guaranteed ok by above validation
+	amt, _ := sdkmath.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
+	fee, _ := eibcMetaData.FeeInt()                                    // guaranteed ok by above validation
 	demandOrderPrice, err := types.CalcPriceWithBridgingFee(amt, fee, k.dack.BridgingFee(ctx))
 	if err != nil {
 		return nil, err
@@ -97,10 +99,10 @@ func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleToke
 	rollappPacket *commontypes.RollappPacket,
 ) (*types.DemandOrder, error) {
 	// Calculate the demand order price and validate it,
-	amt, _ := sdk.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
+	amt, _ := sdkmath.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
 
 	// Calculate the fee by multiplying the fee by the price
-	var feeMultiplier sdk.Dec
+	var feeMultiplier sdkmath.LegacyDec
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_TIMEOUT:
 		feeMultiplier = k.TimeoutFee(ctx)

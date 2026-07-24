@@ -4,8 +4,8 @@
 package types
 
 import (
+	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
 	io "io"
@@ -26,8 +26,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters for the module.
 type Params struct {
-	EpochIdentifier string                                 `protobuf:"bytes,1,opt,name=epoch_identifier,json=epochIdentifier,proto3" json:"epoch_identifier,omitempty" yaml:"epoch_identifier"`
-	BridgingFee     github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=bridging_fee,json=bridgingFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"bridging_fee" yaml:"bridging_fee"`
+	EpochIdentifier string                      `protobuf:"bytes,1,opt,name=epoch_identifier,json=epochIdentifier,proto3" json:"epoch_identifier,omitempty" yaml:"epoch_identifier"`
+	BridgingFee     cosmossdk_io_math.LegacyDec `protobuf:"bytes,2,opt,name=bridging_fee,json=bridgingFee,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"bridging_fee" yaml:"bridging_fee"`
 	// `delete_packets_epoch_limit` is the hard limit of the number of finalized
 	// rollapp packets that will be deleted from the store on every epoch end. As
 	// deleting finalized rollapp packets is meant to keep the store from growing,
