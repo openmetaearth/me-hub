@@ -17,6 +17,7 @@ type BankKeeper interface {
 
 type DenomMetadataKeeper interface {
 	CreateDenomMetadata(ctx sdk.Context, metadata types.Metadata) error
+	HasDenomMetadata(ctx sdk.Context, base string) bool
 }
 
 type RollappKeeper interface {
@@ -26,4 +27,7 @@ type RollappKeeper interface {
 		packetData []byte,
 		raPortOnHub, raChanOnHub string,
 	) (data rollapptypes.TransferData, err error)
+	SetRegisteredDenom(ctx sdk.Context, rollappID, denom string) error
+	HasRegisteredDenom(ctx sdk.Context, rollappID, denom string) (bool, error)
+	ClearRegisteredDenoms(ctx sdk.Context, rollappID string) error
 }

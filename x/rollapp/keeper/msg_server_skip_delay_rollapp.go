@@ -14,7 +14,7 @@ import (
 func (k msgServer) SkipDelayRollapp(goCtx context.Context, msg *types.MsgSkipDelayRollapp) (*types.MsgSkipDelayRollappResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.daoKeeper.IsDao(ctx, msg.Creator) {
+	if k.daoKeeper == nil || !k.daoKeeper.IsDao(ctx, msg.Creator) {
 		return nil, types.ErrCheckGlobalDao
 	}
 

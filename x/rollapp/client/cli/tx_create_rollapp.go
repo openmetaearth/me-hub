@@ -1,40 +1,69 @@
 package cli
 
 import (
-	"encoding/json"
-	"strconv"
+	"fmt"
+	"strings"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+
+	"github.com/openmetaearth/me-hub/utils"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
-var _ = strconv.Itoa(0)
-
-// PermissionedAddresses .. TODO: refactor to be flag of []string
-type PermissionedAddresses struct {
-	Addresses []string `json:"addresses"`
-}
-
 func CmdCreateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "create-rollapp [rollapp-id] [max-sequencers] [permissioned-addresses] [metadata.json]",
-		Short:   "Create a new rollapp",
-		Example: "med tx rollapp create-rollapp ROLLAPP_CHAIN_ID 10 '{\"Addresses\":[]}' metadata.json",
-		Args:    cobra.ExactArgs(3),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argRollappId := args[0]
+		Use:   "create-rollapp [rollapp-id] [alias] [vm-type]",
+		Short: "Create a new rollapp",
+		Example: `
+		dymd tx rollapp create-rollapp myrollapp_12345-1 RollappAlias EVM 
+		// optional flags:
+		--init-sequencer '<seq_address1>,<seq_address2>'
+        --min-sequencer-bond 100
+		--genesis-checksum <genesis_checksum>
+		--initial-supply 1000000
+		--native-denom native_denom.json
+		--genesis-accounts '<acc1>:1000000,<acc2>:1000000'
+		--metadata metadata.json
+		`,
+		Args: cobra.MinimumNArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// nolint:gofumpt
+			argRollappId, alias, vmTypeStr := args[0], args[1], args[2]
 
-			argMaxSequencers, err := cast.ToUint64E(args[1])
+			vmType, ok := types.Rollapp_VMType_value[strings.ToUpper(vmTypeStr)]
+			if !ok || vmType == 0 {
+				return types.ErrInvalidVMType
+			}
+
+			initSequencer, err := cmd.Flags().GetString(FlagInitSequencer)
 			if err != nil {
 				return err
 			}
-			var argPermissionedAddresses PermissionedAddresses
-			err = json.Unmarshal([]byte(args[2]), &argPermissionedAddresses)
+
+			minSeqBondS, err := cmd.Flags().GetString(FlagMinSequencerBond)
+			if err != nil {
+				return err
+			}
+			if minSeqBondS == "" {
+				minSeqBondS = types.DefaultMinSequencerBondGlobalCoin.Amount.String()
+			}
+			minSeqBond, ok := math.NewIntFromString(minSeqBondS)
+			if !ok {
+				return fmt.Errorf("invalid min sequencer bond: %s", minSeqBondS)
+			}
+
+			genesisInfo, err := parseGenesisInfo(cmd)
+			if err != nil {
+				return err
+			}
+
+			metadata, err := parseMetadata(cmd)
 			if err != nil {
 				return err
 			}
@@ -44,14 +73,123 @@ func CmdCreateRollapp() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateRollapp(clientCtx.GetFromAddress().String(), argRollappId, argMaxSequencers, argPermissionedAddresses.Addresses)
+			msg := types.NewMsgCreateRollapp(
+				clientCtx.GetFromAddress().String(),
+				argRollappId,
+				initSequencer,
+				commontypes.ADym(minSeqBond),
+				alias,
+				types.Rollapp_VMType(vmType),
+				metadata,
+				genesisInfo,
+				"",
+			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FlagSetCreateRollapp())
+	cmd.Flags().AddFlagSet(FlagSetUpdateRollapp())
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
+}
+
+func parseGenesisInfo(cmd *cobra.Command) (*types.GenesisInfo, error) {
+	var (
+		genesisInfo = &types.GenesisInfo{}
+		err         error
+		ok          bool
+	)
+
+	genesisInfo.GenesisChecksum, err = cmd.Flags().GetString(FlagGenesisChecksum)
+	if err != nil {
+		return nil, err
+	}
+
+	genesisInfo.Bech32Prefix, err = cmd.Flags().GetString(FlagBech32Prefix)
+	if err != nil {
+		return nil, err
+	}
+
+	nativeDenomFlag, err := cmd.Flags().GetString(FlagNativeDenom)
+	if err != nil {
+		return nil, err
+	}
+
+	if nativeDenomFlag != "" {
+		if err = utils.ParseJsonFromFile(nativeDenomFlag, &genesisInfo.NativeDenom); err != nil {
+			return nil, err
+		}
+	}
+
+	initialSupplyFlag, err := cmd.Flags().GetString(FlagInitialSupply)
+	if err != nil {
+		return nil, err
+	}
+
+	if initialSupplyFlag != "" {
+		genesisInfo.InitialSupply, ok = math.NewIntFromString(initialSupplyFlag)
+		if !ok {
+			return nil, fmt.Errorf("invalid initial supply: %s", initialSupplyFlag)
+		}
+	}
+
+	// Parsing genesis accounts
+	genesisAccountsFlag, err := cmd.Flags().GetString(FlagGenesisAccounts)
+	if err != nil {
+		return nil, err
+	}
+
+	if genesisAccountsFlag != "" {
+		accounts := []types.GenesisAccount{}
+		// split the string by comma
+		genesisAccounts := strings.Split(genesisAccountsFlag, ",")
+		for _, acc := range genesisAccounts {
+			// split the account by colon
+			accParts := strings.Split(acc, ":")
+			if len(accParts) != 2 {
+				return nil, fmt.Errorf("invalid genesis account: %s", acc)
+			}
+
+			accAddr, accAmt := accParts[0], accParts[1]
+			amt, ok := math.NewIntFromString(accAmt)
+			if !ok {
+				return nil, fmt.Errorf("invalid genesis account amount: %s", accAmt)
+			}
+
+			accounts = append(accounts, types.GenesisAccount{
+				Address: accAddr,
+				Amount:  amt,
+			})
+		}
+		if len(genesisAccounts) > 0 {
+			genesisInfo.GenesisAccounts = &types.GenesisAccounts{
+				Accounts: accounts,
+			}
+		}
+	}
+
+	if genesisInfo.GenesisChecksum == "" && genesisInfo.GenesisAccounts == nil && genesisInfo.Bech32Prefix == "" &&
+		genesisInfo.InitialSupply.IsNil() && genesisInfo.NativeDenom.Base == "" {
+		return nil, nil
+	}
+
+	return genesisInfo, nil
+}
+
+func parseMetadata(cmd *cobra.Command) (*types.RollappMetadata, error) {
+	metadataFlag, err := cmd.Flags().GetString(FlagMetadata)
+	if err != nil {
+		return nil, err
+	}
+
+	metadata := new(types.RollappMetadata)
+	if metadataFlag != "" {
+		if err = utils.ParseJsonFromFile(metadataFlag, metadata); err != nil {
+			return nil, err
+		}
+	}
+
+	return metadata, nil
 }

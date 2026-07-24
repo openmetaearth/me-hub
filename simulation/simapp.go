@@ -9,7 +9,6 @@ import (
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-
 	"github.com/openmetaearth/me-hub/simulation/types"
 )
 
@@ -43,7 +42,7 @@ func RandomSequencer(r *rand.Rand, sequencerList []types.SimSequencer) (types.Si
 }
 
 // GenAndDeliverMsgWithRandFees generates a transaction with a random fee and expected Error flag (bExpectedError).
-// GenAndDeliverMsgWithRandFees wraps GenAndDeliverTxWithRand Fees and checks whether or not the operation
+// GenAndDeliverMsgWithRandFees wraps GenAndDeliverTxWithRandFees and checks whether or not the operation
 // failed as expected by bExpectedError flag
 func GenAndDeliverMsgWithRandFees(
 	msg sdk.Msg,
@@ -94,7 +93,7 @@ func GenAndDeliverMsgWithRandFees(
 
 // GenAndDeliverTxWithRandFees generates a transaction with a random fee and delivers it.
 // Copied from github.com/cosmos/cosmos-sdk/x/simulation/util because of the need to increase the gas
-// as haedcoded passed in helpers.GenTx
+// as hardcoded passed in helpers.GenTx
 func GenAndDeliverTxWithRandFees(txCtx simulation.OperationInput) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 	account := txCtx.AccountKeeper.GetAccount(txCtx.Context.Context(), txCtx.SimAccount.Address)
 	spendable := txCtx.Bankkeeper.SpendableCoins(txCtx.Context.Context(), account.GetAddress())

@@ -24,14 +24,14 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
-
 	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
 	daotypes "github.com/openmetaearth/me-hub/x/dao/types"
 	delayedacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	eibcmoduletypes "github.com/openmetaearth/me-hub/x/eibc/types"
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
-	grouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
+	lightclientmoduletypes "github.com/openmetaearth/me-hub/x/lightclient/types"
+	gourpTypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	rollappmoduletypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencermoduletypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
@@ -47,7 +47,7 @@ func (a *AppKeepers) GenerateKeys() {
 	a.tkeys = storetypes.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
 
 	// MemKeys are for information that is stored only in RAM.
-	a.memKeys = storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
+	a.memKeys = storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, eibcmoduletypes.MemStoreKey)
 }
 
 // GetSubspace gets existing substore from keeper.
@@ -115,6 +115,7 @@ var KVStoreKeys = storetypes.NewKVStoreKeys(
 	packetforwardtypes.StoreKey,
 	delayedacktypes.StoreKey,
 	eibcmoduletypes.StoreKey,
+	lightclientmoduletypes.StoreKey,
 	// ethermint keys
 	evmtypes.StoreKey,
 	feemarkettypes.StoreKey,
@@ -126,7 +127,7 @@ var KVStoreKeys = storetypes.NewKVStoreKeys(
 	nftkeeper.StoreKey,
 	wasmtypes.StoreKey,
 	// megroup
-	grouptypes.StoreKey,
+	gourpTypes.StoreKey,
 	// gravity bridge
 	bsctypes.StoreKey,
 	trontypes.StoreKey,

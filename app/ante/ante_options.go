@@ -1,35 +1,40 @@
 package ante
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	txsigning "cosmossdk.io/x/tx/signing"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
-
+	lightclientkeeper "github.com/openmetaearth/me-hub/x/lightclient/keeper"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	wbankkeeper "github.com/openmetaearth/me-hub/x/wbank/keeper"
+
+	errorsmod "cosmossdk.io/errors"
+	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+const maxInnerDepth = 6
+
 type HandlerOptions struct {
-	AccountKeeper          *authkeeper.AccountKeeper
-	BankKeeper             wbankkeeper.BaseKeeperWrapper
-	IBCKeeper              *ibckeeper.Keeper
-	FeeMarketKeeper        ethante.FeeMarketKeeper
-	EvmKeeper              ethante.EVMKeeper
-	FeegrantKeeper         ante.FeegrantKeeper
-	SignModeHandler        *txsigning.HandlerMap
+	AccountKeeper   *authkeeper.AccountKeeper
+	BankKeeper      wbankkeeper.BaseKeeperWrapper
+	IBCKeeper       *ibckeeper.Keeper
+	FeeMarketKeeper ethante.FeeMarketKeeper
+	EvmKeeper       ethante.EVMKeeper
+	FeegrantKeeper  ante.FeegrantKeeper
+	SignModeHandler *txsigning.HandlerMap
+
 	MaxTxGasWanted         uint64
 	ExtensionOptionChecker ante.ExtensionOptionChecker
 	RollappKeeper          rollappkeeper.Keeper
+	LightClientKeeper      *lightclientkeeper.Keeper
 
 	DaoKeeper      DaoKeeper
 	StakingKeeper  StakingKeeper
 	KycKeeper      KycKeeper
-	WasmViewKeeper wasmtypes.ViewKeeper
+	WasmViewKeeper wasmTypes.ViewKeeper
 	TxFeeChecker   ante.TxFeeChecker
 }
 
@@ -37,7 +42,7 @@ func (options HandlerOptions) validate() error {
 	if options.AccountKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "account keeper is required for AnteHandler")
 	}
-	// if options.BankKeeper == nil {
+	//if options.BankKeeper == nil {
 	//	return errorsmod.Wrap(errortypes.ErrLogic, "bank keeper is required for AnteHandler")
 	//}
 	if options.SignModeHandler == nil {
@@ -57,6 +62,9 @@ func (options HandlerOptions) validate() error {
 	}
 	if options.WasmViewKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "wasm view keeper is required for AnteHandler")
+	}
+	if options.LightClientKeeper == nil {
+		return errorsmod.Wrap(errortypes.ErrLogic, "light client keeper is required for AnteHandler")
 	}
 	return nil
 }

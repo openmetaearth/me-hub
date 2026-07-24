@@ -5,13 +5,13 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/cosmos/ibc-go/v8/testing/simapp"
-	"github.com/stretchr/testify/suite"
-
-	"github.com/openmetaearth/me-hub/app/apptesting"
 )
 
 type transfersEnabledSuite struct {
@@ -59,17 +59,17 @@ func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 
 		apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.Coins{msg.Token})
 
-		_, err := simapp.SignAndDeliver(
-			s.hubChain(),
+		_, _, err := simapp.SignAndDeliver(
+			s.hubChain().T,
 			s.hubChain().TxConfig,
 			s.hubApp().GetBaseApp(),
+			s.hubCtx().BlockHeader(),
 			[]sdk.Msg{msg},
 			hubChainID(),
 			[]uint64{s.hubChain().SenderAccount.GetAccountNumber()},
 			[]uint64{s.hubChain().SenderAccount.GetSequence()},
+			true,
 			!shouldFail,
-			s.hubCtx().BlockTime(),
-			s.hubCtx().BlockHeader().NextValidatorsHash,
 			s.hubChain().SenderPrivKey,
 		)
 

@@ -1,49 +1,86 @@
 package cli
 
 import (
-	"strings"
+	"fmt"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/spf13/cast"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/openmetaearth/me-hub/utils/uptr"
 	"github.com/spf13/cobra"
+
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func CmdUpdateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "update-rollapp [rollapp-id] [channel-id] [max-sequencers] [permissioned-addresses]",
-		Short:   "update rollapp",
-		Example: "med tx rollapp update-rollapp ROLLAPP_CHAIN_ID CHANNEL_ID MAX_SEQUENCERS ADDR1,ADDR2",
-		Args:    cobra.ExactArgs(4),
+		Use:   "update-rollapp [rollapp-id] [init-sequencer] [min-sequencer-bond] [genesis_checksum] [bech32-prefix] [native-denom] [metadata] ",
+		Short: "Update a new rollapp",
+		Example: `
+		dymd tx rollapp update-rollapp ROLLAPP_CHAIN_ID
+		--init-sequencer '<seq_address1>,<seq_address2>'
+        --min-sequencer-bond 100
+		--genesis-checksum <genesis_checksum>
+		--initial-supply 1000000
+		--native-denom native_denom.json
+		--genesis-accounts '<acc1>:1000000,<acc2>:1000000'
+		--metadata metadata.json`,
+		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]
-			argChannelId := args[1]
-			argMaxSequencers, err := cast.ToUint64E(args[2])
+
+			initSequencer, err := cmd.Flags().GetString(FlagInitSequencer)
+			if err != nil {
+				return
+			}
+
+			minSeqBondS, err := cmd.Flags().GetString(FlagMinSequencerBond)
 			if err != nil {
 				return err
 			}
-			argPermissionedAddresses := strings.Split(args[3], ",")
+
+			var minSeqBondDym *sdk.Coin
+			if minSeqBondS != "" {
+				minSeqBond, ok := math.NewIntFromString(minSeqBondS)
+				if !ok {
+					return fmt.Errorf("invalid min sequencer bond: %s", minSeqBondS)
+				}
+				minSeqBondDym = uptr.To(commontypes.ADym(minSeqBond))
+			}
+
+			genesisInfo, err := parseGenesisInfo(cmd)
+			if err != nil {
+				return
+			}
+
+			metadata, err := parseMetadata(cmd)
+			if err != nil {
+				return
+			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
-				return err
+				return
 			}
 
-			msg := types.NewMsgUpdateRollapp(
+			msg := types.NewMsgUpdateRollappInformation(
 				clientCtx.GetFromAddress().String(),
 				argRollappId,
-				argChannelId,
-				argMaxSequencers,
-				argPermissionedAddresses)
+				initSequencer,
+				minSeqBondDym,
+				metadata,
+				genesisInfo,
+			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FlagSetCreateRollapp())
+	cmd.Flags().AddFlagSet(FlagSetUpdateRollapp())
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

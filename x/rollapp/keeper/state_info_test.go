@@ -25,7 +25,7 @@ func createNStateInfo(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.St
 		keeper.SetStateInfo(ctx, items[i])
 	}
 
-	stateInfoSummaries := make([]types.StateInfoSummary, 0, len(items))
+	var stateInfoSummaries []types.StateInfoSummary
 	for _, item := range items {
 		stateInfoSummary := types.StateInfoSummary{
 			StateInfoIndex: item.StateInfoIndex,
@@ -39,10 +39,10 @@ func createNStateInfo(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.St
 }
 
 func TestStateInfoGet(t *testing.T) {
-	keeper, ctx := keepertest.RollappKeeper(t)
-	items, _ := createNStateInfo(keeper, ctx, 10)
+	k, ctx := keepertest.RollappKeeper(t)
+	items, _ := createNStateInfo(k, ctx, 10)
 	for _, item := range items {
-		rst, found := keeper.GetStateInfo(ctx,
+		rst, found := k.GetStateInfo(ctx,
 			item.StateInfoIndex.RollappId,
 			item.StateInfoIndex.Index,
 		)
@@ -55,14 +55,14 @@ func TestStateInfoGet(t *testing.T) {
 }
 
 func TestStateInfoRemove(t *testing.T) {
-	keeper, ctx := keepertest.RollappKeeper(t)
-	items, _ := createNStateInfo(keeper, ctx, 10)
+	k, ctx := keepertest.RollappKeeper(t)
+	items, _ := createNStateInfo(k, ctx, 10)
 	for _, item := range items {
-		keeper.RemoveStateInfo(ctx,
+		k.RemoveStateInfo(ctx,
 			item.StateInfoIndex.RollappId,
 			item.StateInfoIndex.Index,
 		)
-		_, found := keeper.GetStateInfo(ctx,
+		_, found := k.GetStateInfo(ctx,
 			item.StateInfoIndex.RollappId,
 			item.StateInfoIndex.Index,
 		)
@@ -71,10 +71,10 @@ func TestStateInfoRemove(t *testing.T) {
 }
 
 func TestStateInfoGetAll(t *testing.T) {
-	keeper, ctx := keepertest.RollappKeeper(t)
-	items, _ := createNStateInfo(keeper, ctx, 10)
+	k, ctx := keepertest.RollappKeeper(t)
+	items, _ := createNStateInfo(k, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
-		nullify.Fill(keeper.GetAllStateInfo(ctx)),
+		nullify.Fill(k.GetAllStateInfo(ctx)),
 	)
 }

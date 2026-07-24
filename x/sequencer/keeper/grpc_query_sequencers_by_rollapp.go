@@ -2,110 +2,116 @@ package keeper
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequencersByRollappRequest) (*types.QueryGetSequencersByRollappResponse, error) {
 	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+		return nil, gerrc.ErrInvalidArgument
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	if _, ok := k.rollappKeeper.GetRollapp(ctx, req.RollappId); !ok {
-		return nil, types.ErrUnknownRollappID
+	sequencers, pagResp, err := k.RollappSequencersPaginated(ctx, req.RollappId, req.Pagination)
+	if err != nil {
+		return nil, err
 	}
-
-	sequencers := k.GetSequencersByRollapp(ctx, req.RollappId)
 	return &types.QueryGetSequencersByRollappResponse{
 		Sequencers: sequencers,
+		Pagination: pagResp,
 	}, nil
 }
 
 func (k Keeper) SequencersByRollappByStatus(c context.Context, req *types.QueryGetSequencersByRollappByStatusRequest) (*types.QueryGetSequencersByRollappByStatusResponse, error) {
 	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+		return nil, gerrc.ErrInvalidArgument
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	if _, ok := k.rollappKeeper.GetRollapp(ctx, req.RollappId); !ok {
-		return nil, types.ErrUnknownRollappID
+	sequencers, pagResp, err := k.RollappSequencersByStatusPaginated(ctx, req.RollappId, req.Status, req.Pagination)
+	if err != nil {
+		return nil, err
 	}
-
-	sequencers := k.GetSequencersByRollappByStatus(
-		ctx,
-		req.RollappId,
-		req.Status,
-	)
-
 	return &types.QueryGetSequencersByRollappByStatusResponse{
 		Sequencers: sequencers,
+		Pagination: pagResp,
 	}, nil
 }
 
-func (k Keeper) UnConfirmSequencerAddressByRollappByStatus(goCtx context.Context, req *types.QueryGetUnConfirmSequencersAddrByRollappRequest) (*types.QueryGetUnConfirmSequencersAddrByRollappResponse, error) {
-	/*
-		if req == nil {
-			return nil, status.Error(codes.InvalidArgument, "invalid request")
-		}
-		ctx := sdk.UnwrapSDKContext(goCtx)
+func (k Keeper) GetProposerByRollapp(c context.Context, req *types.QueryGetProposerByRollappRequest) (*types.QueryGetProposerByRollappResponse, error) {
+	if req == nil {
+		return nil, gerrc.ErrInvalidArgument
+	}
+	ctx := sdk.UnwrapSDKContext(c)
 
-		if _, ok := k.rollappKeeper.GetRollapp(ctx, req.RollappId); !ok {
-			return nil, types.ErrUnknownRollappID
-		}
-		replaceProposer, err := k.GetReplaceProposer(ctx, req.RollappId)
+	proposer := k.GetProposer(ctx, req.RollappId)
+	if proposer.Sentinel() {
+		return nil, gerrc.ErrNotFound
+	}
+
+	return &types.QueryGetProposerByRollappResponse{
+		ProposerAddr: proposer.Address,
+	}, nil
+}
+
+func (k Keeper) GetNextProposerByRollapp(c context.Context, req *types.QueryGetNextProposerByRollappRequest) (*types.QueryGetNextProposerByRollappResponse, error) {
+	if req == nil {
+		return nil, gerrc.ErrInvalidArgument
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	successor := k.GetSuccessor(ctx, req.RollappId)
+	inProgress := k.AwaitingLastProposerBlock(ctx, req.RollappId)
+
+	return &types.QueryGetNextProposerByRollappResponse{
+		NextProposerAddr:   successor.Address,
+		RotationInProgress: inProgress,
+	}, nil
+}
+
+func (k Keeper) Proposers(c context.Context, req *types.QueryProposersRequest) (*types.QueryProposersResponse, error) {
+	if req == nil {
+		return nil, gerrc.ErrInvalidArgument
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	var proposers []types.Sequencer
+
+	store := ctx.KVStore(k.storeKey)
+	sequencerStore := prefix.NewStore(store, types.ProposerByRollappKey(""))
+
+	pageRes, err := query.Paginate(sequencerStore, req.Pagination, func(key []byte, value []byte) error {
+		proposer, err := k.RealSequencer(ctx, string(value))
 		if err != nil {
-			return nil, fmt.Errorf("UnConfirmSequencerAddressByRollappByStatus: failed to get replace proposer info, "+
-				"rollappId = %s ,err = %s", req.RollappId, err.Error())
+			// skip sentinel proposers
+			return nil
 		}
-		if replaceProposer == nil {
-			return nil, nil
-		}
-		if (req.BlockHeight >= replaceProposer.BlockHeight) &&
-			(req.BlockHeight < (replaceProposer.BlockHeight + int64(k.replaceSequencerCacheHeight))) {
-			val, found := k.GetSequencer(ctx, replaceProposer.NewProposer)
-			if !found {
-				k.Logger(ctx).Error("UnConfirmSequencerAddressByRollappByStatus: can not found new sequencer address in sequencer store",
-					"rollappId", req.RollappId, " blockHeight", req.BlockHeight, "newSequencerAddr", replaceProposer.NewProposer)
-				return nil, fmt.Errorf("can not found new sequencer address of replaceProposer. address = %s ,rollapp = %s",
-					replaceProposer.NewProposer, req.RollappId)
-			}
+		proposers = append(proposers, proposer)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
 
-			return &types.QueryGetUnConfirmSequencersAddrByRollappResponse{
-				NewSequencer:         val,
-				StartHeight:          replaceProposer.BlockHeight,
-				UnconfirmCacheHeight: int64(k.replaceSequencerCacheHeight),
-			}, nil
-		} else {
-			k.Logger(ctx).Info("UnConfirmSequencerAddressByRollappByStatus: can not found sequencer at this height",
-				"rollappId", req.RollappId, " blockHeight", req.BlockHeight, "replaceProposerHeight", replaceProposer.BlockHeight,
-				"cacheHeight", k.replaceSequencerCacheHeight)
-		}
-	*/
-	return nil, errors.New("unsupport function")
+	return &types.QueryProposersResponse{Proposers: proposers, Pagination: pageRes}, nil
 }
 
-func (k Keeper) ReplaceProposerInfo(goCtx context.Context, req *types.QueryReplaceProposerInfoRequest) (*types.QueryReplaceProposerInfoResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	_, found := k.rollappKeeper.GetRollapp(ctx, req.RollappId)
-	if !found {
-		return nil, types.ErrUnknownRollappID
+func (k Keeper) ReplaceProposerInfo(c context.Context, req *types.QueryReplaceProposerInfoRequest) (*types.QueryReplaceProposerInfoResponse, error) {
+	if req == nil {
+		return nil, gerrc.ErrInvalidArgument
 	}
-	replaceProposer, err := k.GetReplaceProposer(ctx, req.RollappId)
+	ctx := sdk.UnwrapSDKContext(c)
+	info, err := k.GetReplaceProposer(ctx, req.RollappId)
 	if err != nil {
-		return nil, fmt.Errorf("ReplaceProposerInfo: failed to get replace proposer info,rollappID = %s, err = %s",
-			req.RollappId, err.Error())
+		return nil, err
 	}
-	if nil == replaceProposer {
-		return nil, nil
+	if info == nil {
+		return nil, gerrc.ErrNotFound
 	}
-	return &types.QueryReplaceProposerInfoResponse{
-		ReplaceProposer: *replaceProposer,
-	}, nil
+	return &types.QueryReplaceProposerInfoResponse{Info: info}, nil
 }

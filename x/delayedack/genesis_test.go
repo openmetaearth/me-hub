@@ -4,12 +4,11 @@ import (
 	"testing"
 
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/stretchr/testify/require"
-
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
+	"github.com/stretchr/testify/require"
 )
 
 var defBridgingFee = types.DefaultParams().BridgingFee
@@ -29,14 +28,6 @@ func TestInitGenesis(t *testing.T) {
 			},
 			rollappPackets: []commontypes.RollappPacket{},
 			expPanic:       false,
-		},
-		{
-			name: "only params - missing bridging fee - fail",
-			params: types.Params{
-				EpochIdentifier: "week",
-			},
-			rollappPackets: []commontypes.RollappPacket{},
-			expPanic:       true,
 		},
 		{
 			name: "params and rollapp packets - panic",

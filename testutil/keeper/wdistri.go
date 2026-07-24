@@ -7,8 +7,8 @@ import (
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	dbtypes "github.com/cosmos/cosmos-db"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -22,12 +22,10 @@ import (
 
 func WdistriKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKey := storetypes.NewKVStoreKey(distributiontypes.StoreKey)
-	memStoreKey := storetypes.NewMemoryStoreKey("transient")
 
-	db := dbtypes.NewMemDB()
+	db := dbm.NewMemDB()
 	stateStore := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
-	stateStore.MountStoreWithDB(memStoreKey, storetypes.StoreTypeMemory, nil)
 	require.NoError(t, stateStore.LoadLatestVersion())
 
 	registry := codectypes.NewInterfaceRegistry()
@@ -44,7 +42,9 @@ func WdistriKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		"",
 	)
 
-	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())
+	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())
+
+	require.NoError(t, k.Params.Set(ctx, distributiontypes.DefaultParams()))
 
 	return k, ctx
 }

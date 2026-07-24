@@ -1,17 +1,15 @@
 package bridgingfee
 
-import sdkmath "cosmossdk.io/math"
-
 import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	transferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	delayedackkeeper "github.com/openmetaearth/me-hub/x/delayedack/keeper"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
@@ -66,7 +64,7 @@ func (w IBCModule) logger(
 func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	l := w.logger(ctx, packet, "OnRecvPacket")
 
-	if commontypes.SkipRollappMiddleware(ctx) || !w.delayedAckKeeper.IsRollappsEnabled(ctx) {
+	if commontypes.SkipRollappMiddleware(ctx) {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 

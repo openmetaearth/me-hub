@@ -4,11 +4,14 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-
-	"github.com/openmetaearth/me-hub/utils/gerrc"
-	"github.com/openmetaearth/me-hub/utils/uibc"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 )
+
+/*
+TODO: : instead of calling these all the time in every middleware, we could do it once and use
+	context https://github.com/metaearth/issues/914
+*/
 
 // GetValidTransfer takes a packet, ensures it is a (basic) validated fungible token packet, and gets the chain id.
 // If the channel chain id is also a rollapp id, we check that the canonical channel id we have saved for that rollapp
@@ -29,8 +32,8 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 
-	ra, err := k.getRollappByPortChan(ctx, raPortOnHub, raChanOnHub)
-	if errorsmod.IsOf(err, errRollappNotFound) {
+	ra, err := k.GetRollappByPortChan(ctx, raPortOnHub, raChanOnHub)
+	if errorsmod.IsOf(err, types.ErrRollappNotFound) {
 		// no problem, it corresponds to a regular non-rollapp chain
 		err = nil
 		return
@@ -40,41 +43,48 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 
+	// transfers allowed on canonical channel only
+	if !k.IsCanonicalChannel(ctx, ra.RollappId, raPortOnHub, raChanOnHub) {
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "non canonical channel %s for rollapp %s", raChanOnHub, ra.RollappId)
+		return
+	}
+
 	data.Rollapp = ra
 
 	return
 }
 
-var errRollappNotFound = errorsmod.Wrap(gerrc.ErrNotFound, "rollapp")
+// Check if a channel is a canonical channel for a rollapp
+func (k Keeper) IsCanonicalChannel(ctx sdk.Context, rollappId, portID, channelID string) bool {
+	rollapp, ok := k.GetRollapp(ctx, rollappId)
+	if !ok {
+		return false
+	}
+	return rollapp.ChannelId == channelID
+}
 
-// getRollappByPortChan returns the rollapp id that a packet came from, if we are certain
-// that the packet came from that rollapp. That means that the canonical channel
-// has already been set.
-func (k Keeper) getRollappByPortChan(ctx sdk.Context,
+// GetRollappByPortChan gets the rollapp for a transfer based on the port and channel.
+// Checks for any channel of a rollapp, not necessarily the canonical one.
+// It uses the light client ID to find the rollapp, which means the canonical light client
+// must be set for the rollapp.
+// It returns an error if the rollapp is not found or if the channel is over non canonical client.
+func (k Keeper) GetRollappByPortChan(ctx sdk.Context,
 	raPortOnHub, raChanOnHub string,
 ) (*types.Rollapp, error) {
-	/*
-		TODO:
-			There is an open issue of how we go about making sure that the packet really came from the rollapp, and once we know that it came
-			from the rollapp, also how we deal with fraud from the sequencer
-	*/
-	chainID, err := uibc.ChainIDFromPortChannel(ctx, k.channelKeeper, raPortOnHub, raChanOnHub)
+	clientID, _, err := k.channelKeeper.GetChannelClientState(ctx, raPortOnHub, raChanOnHub)
 	if err != nil {
-		return nil, errorsmod.Wrap(err, "chain id from port and channel")
+		return nil, errorsmod.Wrap(err, "get chan client state")
+	}
+	chainID, ok := k.canonicalClientKeeper.GetRollappForClientID(ctx, clientID)
+	if !ok {
+		// non rollapp case. Note, we cannot differentiate the case where the transfer is not from a rollapp, or it is from a rollapp
+		// but that rollapp has (incorrectly) not got a canonical client
+		return nil, errorsmod.Wrapf(types.ErrRollappNotFound, "client id: %s: port: %s: channel: %s", clientID, raPortOnHub, raChanOnHub)
 	}
 	rollapp, ok := k.GetRollapp(ctx, chainID)
 	if !ok {
-		return nil, errorsmod.Wrapf(errRollappNotFound, "chain id: %s: port: %s: channel: %s", chainID, raPortOnHub, raChanOnHub)
-	}
-	if rollapp.ChannelId == "" {
-		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", chainID)
+		return nil, errorsmod.Wrap(gerrc.ErrInternal, "have canonical client id but rollapp not found")
 	}
 
-	if rollapp.ChannelId != raChanOnHub {
-		return nil, errorsmod.Wrapf(
-			gerrc.ErrInvalidArgument,
-			"packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, raChanOnHub,
-		)
-	}
 	return &rollapp, nil
 }

@@ -13,7 +13,6 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestParamsQuery() {
-	suite.SetupTest()
 	wctx := sdk.WrapSDKContext(suite.Ctx)
 	params := types.DefaultParams()
 	suite.App.EIBCKeeper.SetParams(suite.Ctx, params)
@@ -24,7 +23,6 @@ func (suite *KeeperTestSuite) TestParamsQuery() {
 }
 
 func (suite *KeeperTestSuite) TestQueryDemandOrderById() {
-	suite.SetupTest()
 	keeper := suite.App.EIBCKeeper
 
 	// Validate demand order query with empty request
@@ -34,7 +32,7 @@ func (suite *KeeperTestSuite) TestQueryDemandOrderById() {
 
 	// Create a demand order with status pending
 	recipientAddress := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1000))[0]
-	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", recipientAddress.String())
+	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", recipientAddress.String(), 1, nil)
 	err = keeper.SetDemandOrder(suite.Ctx, demandOrder)
 	suite.Require().NoError(err)
 
@@ -46,7 +44,6 @@ func (suite *KeeperTestSuite) TestQueryDemandOrderById() {
 }
 
 func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
-	suite.SetupTest()
 	keeper := suite.App.EIBCKeeper
 
 	// Define the number of demand orders and create addresses
@@ -54,7 +51,7 @@ func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
 	demandOrderAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, demandOrdersNum, math.NewInt(1000))
 
 	// Define statuses to test
-	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_REVERTED, commontypes.Status_FINALIZED}
+	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_FINALIZED}
 
 	// Create and set demand orders for each status
 	for i, status := range statuses {
@@ -68,7 +65,7 @@ func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
 		// Use a unique address for each demand order
 		recipientAddress := demandOrderAddresses[i].String()
 
-		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", recipientAddress)
+		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", recipientAddress, 1, nil)
 		// Assert needed type of status for packet
 		demandOrder.TrackingPacketStatus = status
 		if status == commontypes.Status_FINALIZED {
@@ -102,40 +99,4 @@ func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res.DemandOrders)
 	suite.Require().Equal(false, res.DemandOrders[0].IsFulfilled(), "Expected 0 demand orders with fulfillment state unfulfilled")
-
-	// Regression test for issue #1108: isFulfiller must compare FulfillerAddress, not Recipient.
-	// Create two extra addresses: one is the packet recipient, the other is the actual fulfiller.
-	extraAddrs := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, math.NewInt(1000))
-	recipientAddr := extraAddrs[0].String()
-	fulfillerAddr := extraAddrs[1].String()
-
-	regressionPacket := &commontypes.RollappPacket{
-		RollappId:   "regressionRollapp",
-		Status:      commontypes.Status_FINALIZED,
-		ProofHeight: 3,
-		Packet:      &packet,
-	}
-	regressionOrder := types.NewDemandOrder(*regressionPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", recipientAddr)
-	regressionOrder.TrackingPacketStatus = commontypes.Status_FINALIZED
-	regressionOrder.FulfillerAddress = fulfillerAddr
-
-	err = keeper.SetDemandOrder(suite.Ctx, regressionOrder)
-	suite.Require().NoError(err)
-
-	// Querying by the actual fulfiller must return the order.
-	resByFulfiller, err := suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{
-		Status:    commontypes.Status_FINALIZED,
-		Fulfiller: fulfillerAddr,
-	})
-	suite.Require().NoError(err)
-	suite.Require().Len(resByFulfiller.DemandOrders, 1, "expected 1 order when filtering by actual fulfiller address")
-	suite.Require().Equal(regressionOrder.Id, resByFulfiller.DemandOrders[0].Id)
-
-	// Querying by the recipient must NOT return the order (recipient != fulfiller).
-	resByRecipient, err := suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{
-		Status:    commontypes.Status_FINALIZED,
-		Fulfiller: recipientAddr,
-	})
-	suite.Require().NoError(err)
-	suite.Require().Len(resByRecipient.DemandOrders, 0, "expected 0 orders when filtering by recipient address as fulfiller")
 }

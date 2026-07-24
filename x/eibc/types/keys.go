@@ -28,14 +28,17 @@ const (
 
 // Store Key Prefixes
 var (
+	// ParamsKey is the key for the module parameters
+	ParamsKey = []byte{0x02}
+
 	// AllDemandOrdersKeyPrefix is the prefix for all demand orders
 	AllDemandOrdersKeyPrefix = []byte{0x00}
 	// PendingDemandOrderKeyPrefix is the prefix for pending demand orders
 	PendingDemandOrderKeyPrefix = []byte{0x00, 0x01}
 	// FinalizedDemandOrderKeyPrefix is the prefix for finalized demand orders
 	FinalizedDemandOrderKeyPrefix = []byte{0x00, 0x02}
-	// RevertedDemandOrderKeyPrefix is the prefix for reverted demand orders
-	RevertedDemandOrderKeyPrefix = []byte{0x00, 0x03}
+
+	_ = []byte{0x00, 0x03} // deprecated key
 )
 
 // GetDemandOrderKey constructs a key for a specific DemandOrder.
@@ -47,8 +50,6 @@ func GetDemandOrderKey(packetStatus commontypes.Status, orderId string) ([]byte,
 		prefix = PendingDemandOrderKeyPrefix
 	case commontypes.Status_FINALIZED:
 		prefix = FinalizedDemandOrderKeyPrefix
-	case commontypes.Status_REVERTED:
-		prefix = RevertedDemandOrderKeyPrefix
 	default:
 		return nil, fmt.Errorf("invalid packet status: %s", packetStatus)
 	}

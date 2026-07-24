@@ -99,12 +99,14 @@ type App struct {
 
 	cdc               *codec.LegacyAmino
 	appCodec          codec.Codec
+	txConfig          client.TxConfig
 	interfaceRegistry types.InterfaceRegistry
 
 	// keepers
 	AppKeepers
 	// the module manager
-	mm *module.Manager
+	mm                 *module.Manager
+	BasicModuleManager module.BasicManager
 	// module configurator
 	configurator module.Configurator
 }
@@ -136,6 +138,7 @@ func New(
 		BaseApp:           bApp,
 		cdc:               cdc,
 		appCodec:          appCodec,
+		txConfig:          encodingConfig.TxConfig,
 		interfaceRegistry: interfaceRegistry,
 		AppKeepers:        AppKeepers{},
 	}
@@ -147,13 +150,11 @@ func New(
 		panic(fmt.Errorf("failed to register streaming services: %w", err))
 	}
 
-	tracer := cast.ToString(appOpts.Get(flags.EVMTracer))
-
 	var wasmOpts []wasmkeeper.Option
 	if cast.ToBool(appOpts.Get("telemetry.enabled")) {
 		wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
 	}
-	app.AppKeepers.InitKeepers(appCodec, cdc, bApp, app.ModuleAccountAddrs(), skipUpgradeHeights, invCheckPeriod, tracer, homePath, appOpts, wasmOpts)
+	app.AppKeepers.InitKeepers(appCodec, cdc, bApp, logger, ModuleAccountAddrs(), appOpts, wasmOpts)
 	app.AppKeepers.SetupHooks()
 	app.AppKeepers.InitTransferStack()
 
@@ -166,6 +167,10 @@ func New(
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.mm = module.NewManager(app.SetupModules(appCodec, bApp, encodingConfig, skipGenesisInvariants)...)
+	app.BasicModuleManager = module.NewBasicManagerFromManager(app.mm, nil)
+	app.BasicModuleManager.RegisterLegacyAminoCodec(cdc)
+	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
+	app.mm.SetOrderPreBlockers(PreBlockers...)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
@@ -208,6 +213,7 @@ func New(
 		MaxTxGasWanted:         maxGasWanted,
 		ExtensionOptionChecker: nil, // uses default
 		RollappKeeper:          *app.RollappKeeper,
+		LightClientKeeper:      &app.LightClientKeeper,
 		DaoKeeper:              app.DaoKeeper,
 		StakingKeeper:          app.StakingKeeper,
 		KycKeeper:              app.KycKeeper,
@@ -311,7 +317,7 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register grpc-gateway routes for all modules.
-	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	app.BasicModuleManager.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {

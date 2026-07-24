@@ -8,7 +8,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 )
 
 func IsIBCDenom(denom string) bool {
@@ -17,7 +17,7 @@ func IsIBCDenom(denom string) bool {
 
 const transferPort = "transfer"
 
-func GetForeignDenomTrace(channelId, denom string) transfertypes.DenomTrace {
+func GetForeignDenomTrace(channelId string, denom string) transfertypes.DenomTrace {
 	sourcePrefix := transfertypes.GetDenomPrefix(transferPort, channelId)
 	// NOTE: sourcePrefix contains the trailing "/"
 	prefixedDenom := sourcePrefix + denom

@@ -4,12 +4,9 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/stretchr/testify/suite"
 )
@@ -103,6 +100,12 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	finalBalance := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), recipient)
 	s.Equal(expectedBalance, finalBalance)
 
-	// The txfees module is not integrated with the current SDK version, so its
-	// module-account balance cannot be asserted here.
+	// check fees
+	// TODO: txfees module not yet integrated in v0.50; re-enable when available
+	//if !expectedFee.IsZero() {
+	//	addr := s.hubApp().AccountKeeper.GetModuleAccount(s.hubCtx(), txfees.ModuleName)
+	//	s.Require().NotNil(addr, "txfees module account should exist when bridging fee is non-zero")
+	//	txFeesBalance := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), addr.GetAddress(), denom)
+	//	s.Equal(expectedFee, txFeesBalance.Amount)
+	//}
 }

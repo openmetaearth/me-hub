@@ -4,10 +4,10 @@ package metaearth.sequencer;
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-// this line is used by starport scaffolding # 1
 import "metaearth/sequencer/operating_status.proto";
 import "metaearth/sequencer/params.proto";
 import "metaearth/sequencer/sequencer.proto";
+import "metaearth/sequencer/tx.proto";
 
 option go_package = "github.com/openmetaearth/me-hub/x/sequencer/types";
 
@@ -17,6 +17,7 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/metaearth/sequencer/params";
   }
+
   // Queries a Sequencer by address.
   rpc Sequencer(QueryGetSequencerRequest) returns (QueryGetSequencerResponse) {
     option (google.api.http).get = "/metaearth/sequencer/sequencer/{sequencerAddress}";
@@ -24,7 +25,7 @@ service Query {
 
   // Queries a list of Sequencer items.
   rpc Sequencers(QuerySequencersRequest) returns (QuerySequencersResponse) {
-    option (google.api.http).get = "/metaearth/sequencer/sequencer";
+    option (google.api.http).get = "/metaearth/sequencer/sequencers";
   }
 
   // Queries a SequencersByRollapp by rollappId.
@@ -39,17 +40,25 @@ service Query {
       "sequencers_by_rollapp/{rollappId}/{status}";
   }
 
-  rpc UnConfirmSequencerAddressByRollappByStatus(QueryGetUnConfirmSequencersAddrByRollappRequest) returns (QueryGetUnConfirmSequencersAddrByRollappResponse) {
-    option (google.api.http).get =
-      "/metaearth/sequencer/"
-      "unconfirm_sequencer_address_by_rollapp/{rollappId}/{block_height}";
+  // Queries the current proposer by rollappId.
+  rpc GetProposerByRollapp(QueryGetProposerByRollappRequest) returns (QueryGetProposerByRollappResponse) {
+    option (google.api.http).get = "/metaearth/sequencer/proposers/{rollappId}";
   }
 
+  // Queries the next proposer by rollappId.
+  rpc GetNextProposerByRollapp(QueryGetNextProposerByRollappRequest) returns (QueryGetNextProposerByRollappResponse) {
+    option (google.api.http).get = "/metaearth/sequencer/next_proposer/{rollappId}";
+  }
+
+  // Queries a list of proposers.
+  rpc Proposers(QueryProposersRequest) returns (QueryProposersResponse) {
+    option (google.api.http).get = "/metaearth/sequencer/proposers";
+  }
+
+  // Queries a pending ReplaceProposer request by rollappId.
   rpc ReplaceProposerInfo(QueryReplaceProposerInfoRequest) returns (QueryReplaceProposerInfoResponse) {
-    option (google.api.http).post = "/metaearth/sequencer/replace_proposer_info/{rollappId}";
+    option (google.api.http).get = "/metaearth/sequencer/replace_proposer_info/{rollappId}";
   }
-
-  // this line is used by starport scaffolding # 2
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -80,30 +89,58 @@ message QuerySequencersResponse {
 
 message QueryGetSequencersByRollappRequest {
   string rollappId = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 message QueryGetSequencersByRollappResponse {
   repeated Sequencer sequencers = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryGetSequencersByRollappByStatusRequest {
   string rollappId = 1;
   OperatingStatus status = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
 message QueryGetSequencersByRollappByStatusResponse {
   repeated Sequencer sequencers = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryGetUnConfirmSequencersAddrByRollappRequest {
+// Request type for the GetProposerByRollapp RPC method.
+message QueryGetProposerByRollappRequest {
   string rollappId = 1;
-  int64 block_height = 2;
 }
 
-message QueryGetUnConfirmSequencersAddrByRollappResponse {
-  Sequencer new_sequencer = 1 [(gogoproto.nullable) = false];
-  int64 start_height = 2;
-  int64 unconfirm_cache_height = 3;
+// Response type for the GetProposerByRollapp RPC method.
+message QueryGetProposerByRollappResponse {
+  string proposerAddr = 1;
+}
+
+// Request type for the GetNextProposerByRollapp RPC method.
+message QueryGetNextProposerByRollappRequest {
+  string rollappId = 1;
+}
+
+// Response type for the GetNextProposerByRollapp RPC method.
+message QueryGetNextProposerByRollappResponse {
+  // nextProposerAddr is the address of the next proposer.
+  // can be empty if no sequencer is available to be the next proposer.
+  string nextProposerAddr = 1;
+  // rotationInProgress is true if the proposer rotation is in progress.
+  bool rotationInProgress = 2;
+}
+
+// Request type for the Proposers RPC method.
+message QueryProposersRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// Response type for the Proposers RPC method.
+message QueryProposersResponse {
+  repeated Sequencer proposers = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryReplaceProposerInfoRequest {
@@ -111,7 +148,5 @@ message QueryReplaceProposerInfoRequest {
 }
 
 message QueryReplaceProposerInfoResponse {
-  MsgStoreReplaceProposer replace_proposer = 1 [(gogoproto.nullable) = false];
+  MsgStoreReplaceProposer info = 1;
 }
-
-// this line is used by starport scaffolding # 3

@@ -35,11 +35,8 @@ func MakeEncodingConfig() params.EncodingConfig {
 	RegisterLegacyAminoCodec(encodingConfig.Amino)
 	RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
-	gravitytypes.RegisterCodec(encodingConfig.Amino)
 	gravitytypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
-	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
-	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	return encodingConfig
 }
 
