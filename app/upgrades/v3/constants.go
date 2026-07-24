@@ -11,8 +11,8 @@ const (
 )
 
 var Upgrade = upgrades.Upgrade{
-	Name:            UpgradeName,
-	CreateHandlerV3: CreateUpgradeHandler,
+	Name:          UpgradeName,
+	CreateHandler: CreateUpgradeHandler,
 	StoreUpgrades: storetypes.StoreUpgrades{
 		Added: []string{
 			// NOTE: consensus store must NOT be listed here — med-v2 already mounted

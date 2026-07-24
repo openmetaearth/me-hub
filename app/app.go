@@ -49,10 +49,6 @@ import (
 
 	appparams "github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/app/upgrades" //nolint:revive
-	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_14"
-	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_15"
-	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_16"
-	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_17"
 	v3 "github.com/openmetaearth/me-hub/app/upgrades/v3"
 	"github.com/openmetaearth/me-hub/docs"
 	metypes "github.com/openmetaearth/me-hub/types"
@@ -74,10 +70,6 @@ var (
 
 	// Upgrades contains the upgrade handlers for the application
 	Upgrades = []upgrades.Upgrade{
-		v2_0_14.Upgrade,
-		v2_0_15.Upgrade,
-		v2_0_16.Upgrade,
-		v2_0_17.Upgrade,
 		v3.Upgrade,
 	}
 )
@@ -384,43 +376,25 @@ func (app *App) setupUpgradeHandlers() {
 }
 
 func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
-	var handler upgradetypes.UpgradeHandler
-	if upgrade.CreateHandlerV3 != nil {
-		handler = upgrade.CreateHandlerV3(
-			app.mm,
-			app.configurator,
-			&upgrades.UpgradeKeepers{
-				AccountKeeper:     &app.AccountKeeper,
-				GovKeeper:         app.GovKeeper,
-				RollappKeeper:     app.RollappKeeper,
-				SequencerKeeper:   app.SequencerKeeper,
-				ParamsKeeper:      &app.ParamsKeeper,
-				DelayedAckKeeper:  &app.DelayedAckKeeper,
-				EIBCKeeper:        &app.EIBCKeeper,
-				LightClientKeeper: &app.LightClientKeeper,
-				IBCKeeper:         app.IBCKeeper,
-				MintKeeper:        &app.MintKeeper,
-				SlashingKeeper:    &app.SlashingKeeper,
-				ConsensusKeeper:   &app.ConsensusParamsKeeper,
-				StakingKeeper:     app.StakingKeeper,
-			},
-		)
-	} else {
-		handler = upgrade.CreateHandler(
-			app.mm,
-			app.configurator,
-			app.BaseApp,
-			&upgrades.Keepers{
-				BankKeeper:      app.BankKeeper,
-				GovKeeper:       app.GovKeeper,
-				StakingKeeper:   app.StakingKeeper,
-				EvmKeeper:       app.EvmKeeper,
-				FeeMarketKeeper: app.FeeMarketKeeper,
-				BscKeeper:       app.BscKeeper,
-				TronKeeper:      app.TronKeeper,
-			},
-		)
-	}
+	handler := upgrade.CreateHandler(
+		app.mm,
+		app.configurator,
+		&upgrades.UpgradeKeepers{
+			AccountKeeper:     &app.AccountKeeper,
+			GovKeeper:         app.GovKeeper,
+			RollappKeeper:     app.RollappKeeper,
+			SequencerKeeper:   app.SequencerKeeper,
+			ParamsKeeper:      &app.ParamsKeeper,
+			DelayedAckKeeper:  &app.DelayedAckKeeper,
+			EIBCKeeper:        &app.EIBCKeeper,
+			LightClientKeeper: &app.LightClientKeeper,
+			IBCKeeper:         app.IBCKeeper,
+			MintKeeper:        &app.MintKeeper,
+			SlashingKeeper:    &app.SlashingKeeper,
+			ConsensusKeeper:   &app.ConsensusParamsKeeper,
+			StakingKeeper:     app.StakingKeeper,
+		},
+	)
 
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrade.Name,
