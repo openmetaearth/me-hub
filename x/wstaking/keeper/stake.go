@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -198,7 +199,7 @@ func (k Keeper) UnStakeBond(
 
 	// ensure that we have enough shares to remove
 	if stake.Shares.LT(shares) {
-		return amount, sdkerrors.Wrap(types.ErrNotEnoughStakeShares, stake.Shares.String())
+		return amount, errorsmod.Wrap(types.ErrNotEnoughStakeShares, stake.Shares.String())
 	}
 
 	// get validator
@@ -331,7 +332,7 @@ func (k Keeper) ValidateUnbondAmount(
 
 	staShares := sta.GetShares()
 	if sharesTruncated.GT(staShares) {
-		return shares, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid shares amount")
+		return shares, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "invalid shares amount")
 	}
 
 	// Cap the shares at the stake's shares. Shares being greater could occur
@@ -511,22 +512,22 @@ func (k Keeper) SetUBSQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys 
 func (k Keeper) ParserStakeKey(key []byte) (stakerAddr sdk.AccAddress, valAddr sdk.ValAddress, err error) {
 	totalKeyLen := len(key)
 	if totalKeyLen < 3 {
-		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key length: %d", totalKeyLen)
+		return nil, nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key length: %d", totalKeyLen)
 	}
 	if key[0] != types.StakeKey[0] {
-		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key prefix: %X", key[0])
+		return nil, nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key prefix: %X", key[0])
 	}
 
 	stakeAddrLen := int(key[1])
 	if stakeAddrLen+2 >= totalKeyLen {
-		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key. length: %d,stakerAddrlength:%d",
+		return nil, nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key. length: %d,stakerAddrlength:%d",
 			totalKeyLen, stakeAddrLen)
 	}
 	stakerAddr = key[2 : 2+stakeAddrLen]
 
 	valAddrLen := int(key[2+stakeAddrLen])
 	if 3+stakeAddrLen+valAddrLen != totalKeyLen {
-		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key. length: %d,stakerAddrLen:%d,valAddrLen:%d",
+		return nil, nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "invalid stake key. length: %d,stakerAddrLen:%d,valAddrLen:%d",
 			totalKeyLen, stakeAddrLen, valAddrLen)
 	}
 	valAddr = key[2+stakeAddrLen+1:]

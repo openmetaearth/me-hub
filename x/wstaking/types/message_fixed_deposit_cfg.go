@@ -3,6 +3,7 @@ package types
 import sdkmath "cosmossdk.io/math"
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -44,7 +45,7 @@ func (msg *MsgNewFixedDepositCfg) GetSignBytes() []byte {
 func (msg *MsgNewFixedDepositCfg) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Dao)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
 	return nil
 }
@@ -85,7 +86,7 @@ func (msg *MsgRemoveFixedDepositCfg) GetSignBytes() []byte {
 func (msg *MsgRemoveFixedDepositCfg) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Admin)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
 	return nil
 }
@@ -127,7 +128,7 @@ func (msg *MsgSetFixedDepositCfgRate) GetSignBytes() []byte {
 func (msg *MsgSetFixedDepositCfgRate) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Admin)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
 	return nil
 }
@@ -169,7 +170,7 @@ func (msg *MsgSetFixedDepositCfgStatus) GetSignBytes() []byte {
 func (msg *MsgSetFixedDepositCfgStatus) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Admin)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
 	return nil
 }

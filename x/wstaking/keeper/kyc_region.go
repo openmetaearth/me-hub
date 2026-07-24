@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"strings"
 
 	sdkerrors "cosmossdk.io/errors"
@@ -27,11 +28,11 @@ func (k Keeper) GetRegionIdByAccount(ctx sdk.Context, address sdk.AccAddress) st
 func (k Keeper) MustGetKycRegionIdByAccount(ctx sdk.Context, account string) (string, error) {
 	did, ok := k.kycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(account))
 	if !ok {
-		return "", sdkerrors.Wrapf(types.ErrDidNotExists, "did with account %s not exist", account)
+		return "", errorsmod.Wrapf(types.ErrDidNotExists, "did with account %s not exist", account)
 	}
 	kycData, ok := k.kycKeeper.GetKYC(ctx, did)
 	if !ok {
-		return "", sdkerrors.Wrapf(types.ErrKycNotExists, "kyc with account %s not exist", account)
+		return "", errorsmod.Wrapf(types.ErrKycNotExists, "kyc with account %s not exist", account)
 	}
 	return string(kycData.Data), nil
 }

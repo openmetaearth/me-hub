@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"math/big"
 
 	"cosmossdk.io/log"
@@ -83,7 +84,7 @@ func (k Keeper) GetProposerOwnerAddress(ctx sdk.Context) (string, error) {
 
 	validator, ok := k.GetValidatorByConsAddr(ctx, addr)
 	if !ok {
-		return "", sdkerrors.Wrapf(types.ErrParameter, "proposer not found")
+		return "", errorsmod.Wrapf(types.ErrParameter, "proposer not found")
 	}
 	return validator.OwnerAddress, nil
 }
@@ -103,17 +104,17 @@ func (k Keeper) GetPerBlockMintCoinAmount(ctx sdk.Context) (amount big.Int) {
 func (k Keeper) GetValOwnerAddress(ctx sdk.Context, regionId string) (string, error) {
 	region, ok := k.GetRegion(ctx, regionId)
 	if !ok {
-		return "", sdkerrors.Wrapf(types.ErrRegionNotExist, "region(%s) not found", regionId)
+		return "", errorsmod.Wrapf(types.ErrRegionNotExist, "region(%s) not found", regionId)
 	}
 
 	valAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
 	if err != nil {
-		return "", sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "region bonded validator address(%s) invalid", region.OperatorAddress)
+		return "", errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "region bonded validator address(%s) invalid", region.OperatorAddress)
 	}
 
 	validator, ok := k.GetValidator(ctx, valAddr)
 	if !ok {
-		return "", sdkerrors.Wrapf(stakingtypes.ErrNoValidatorFound, "region bonded validator(%s) not found", valAddr.String())
+		return "", errorsmod.Wrapf(stakingtypes.ErrNoValidatorFound, "region bonded validator(%s) not found", valAddr.String())
 	}
 	return validator.OwnerAddress, nil
 }

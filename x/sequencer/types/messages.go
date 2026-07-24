@@ -166,28 +166,28 @@ func (msg *MsgReplaceProposerRequest) GetSignBytes() []byte {
 func (msg *MsgReplaceProposerRequest) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	if msg.ReplaceProposer == nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "ReplaceProposer can not  be nil")
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "ReplaceProposer can not  be nil")
 	}
 	if msg.ReplaceProposer.RollappId == "" {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "rollapp id cannot be empty")
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "rollapp id cannot be empty")
 	}
 	_, err = sdk.AccAddressFromBech32(msg.ReplaceProposer.OldProposer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid OldProposer address.addr = %s,err = %s",
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid OldProposer address.addr = %s,err = %s",
 			msg.ReplaceProposer.OldProposer, err.Error())
 	}
 
 	_, err = sdk.AccAddressFromBech32(msg.ReplaceProposer.NewProposer)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid NewProposer address.addr = %s,err = %s",
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid NewProposer address.addr = %s,err = %s",
 			msg.ReplaceProposer.NewProposer, err.Error())
 	}
 
 	if msg.ReplaceProposer.BlockHeight < 1 {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid block number (%d)", msg.ReplaceProposer.BlockHeight)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid block number (%d)", msg.ReplaceProposer.BlockHeight)
 	}
 
 	return nil

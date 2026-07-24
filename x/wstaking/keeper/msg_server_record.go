@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"unicode"
 
 	sdkerrors "cosmossdk.io/errors"
@@ -45,7 +46,7 @@ func (k MsgServer) ReviewRecord(goCtx context.Context, msg *types.MsgReviewRecor
 	meidAdmin := k.daoKeeper.GetMeidDao(ctx)
 	if globalAdmin != msg.From && meidAdmin != msg.From {
 		// use a constant format string in Wrapf to avoid non-constant format string vet issue
-		return nil, sdkerrors.Wrapf(types.ErrParameter, "review record account (%s) should  be global admin", msg.From)
+		return nil, errorsmod.Wrapf(types.ErrParameter, "review record account (%s) should  be global admin", msg.From)
 	}
 	_, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"strconv"
 	"strings"
 
@@ -30,7 +31,7 @@ func CmdListFixedDepositCfg() *cobra.Command {
 				for _, regionId := range regionIds {
 					_, err := utils.CheckRegionName(strings.ToUpper(regionId))
 					if err != nil {
-						return sdkerrors.Wrap(types.ErrRegionName, err.Error())
+						return errorsmod.Wrap(types.ErrRegionName, err.Error())
 					}
 				}
 			}

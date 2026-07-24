@@ -4,6 +4,7 @@ import sdkmath "cosmossdk.io/math"
 
 import (
 	"context"
+	errorsmod "cosmossdk.io/errors"
 	"fmt"
 	"time"
 
@@ -57,7 +58,7 @@ func (k MsgServer) Delegate(goCtx context.Context, msg *stakingtypes.MsgDelegate
 
 	bondDenom := k.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
 		)
 	}

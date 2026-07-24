@@ -1,6 +1,7 @@
 package cli
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"errors"
 	"fmt"
 	gomath "math"
@@ -572,7 +573,7 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 	minSelfDelegation, ok := sdkmath.NewIntFromString(msbStr)
 
 	if !ok {
-		return txBldr, nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
+		return txBldr, nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
 	}
 
 	var pkAny *codectypes.Any

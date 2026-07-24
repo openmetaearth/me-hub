@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	errorsmod "cosmossdk.io/errors"
 	"encoding/json"
 
 	sdkerrors "cosmossdk.io/errors"
@@ -39,7 +40,7 @@ func (k msgServer) UpdateDao(goCtx context.Context, msg *types.MsgUpdateDao) (*t
 
 	err := k.kycHook.SetKycIssers(ctx, []string{oldDao.GlobalDao, oldDao.MeidDao}, []string{msg.DaoAddresses.GlobalDao, msg.DaoAddresses.MeidDao})
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrSetKycIssuer, err.Error())
+		return nil, errorsmod.Wrap(types.ErrSetKycIssuer, err.Error())
 	}
 
 	oldByte, _ := json.Marshal(oldDao)
@@ -66,7 +67,7 @@ func (k msgServer) FreeGasAccount(goCtx context.Context, msg *types.MsgFreeGasAc
 		isExist := k.CheckFreeGasAccount(ctx, account.Address)
 		if isExist {
 			if account.IsFree {
-				return nil, sdkerrors.Wrap(types.ErrFreeGasAccountAlreadyExist, account.Address)
+				return nil, errorsmod.Wrap(types.ErrFreeGasAccountAlreadyExist, account.Address)
 			}
 
 			k.RemoveFreeGasAccount(ctx, account.Address)
@@ -74,7 +75,7 @@ func (k msgServer) FreeGasAccount(goCtx context.Context, msg *types.MsgFreeGasAc
 
 		if !isExist {
 			if !account.IsFree {
-				return nil, sdkerrors.Wrap(types.ErrAccountIsNotFree, account.Address)
+				return nil, errorsmod.Wrap(types.ErrAccountIsNotFree, account.Address)
 			}
 
 			k.SetFreeGasAccount(ctx, account.Address)

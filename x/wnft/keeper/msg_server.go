@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	errorsmod "cosmossdk.io/errors"
 	"strconv"
 
 	"cosmossdk.io/x/nft"
@@ -39,12 +40,12 @@ func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.
 
 	_, ok := k.GetClass(ctx, msg.ClassId)
 	if ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "class %s already exists", msg.ClassId)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "class %s already exists", msg.ClassId)
 	}
 
 	// Check if the name occupies the zone name todo
 	if utils.CheckIsRegionName(msg.ClassId) {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid class name %s", msg.ClassId)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid class name %s", msg.ClassId)
 	}
 
 	classMetadata := &types.ClassMetadata{
@@ -53,7 +54,7 @@ func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.
 
 	metadata, err := codectypes.NewAnyWithValue(classMetadata)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "%v", err)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrLogic, "%v", err)
 	}
 
 	class := nft.Class{
@@ -82,38 +83,38 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 
 	// check token id An integer between 1 and the total supply of the NFT type, non-repeating
 	if !k.HasClass(ctx, msg.ClassId) {
-		return nil, sdkerrors.Wrap(nft.ErrClassNotExists, msg.ClassId)
+		return nil, errorsmod.Wrap(nft.ErrClassNotExists, msg.ClassId)
 	}
 
 	class, ok := k.GetClass(ctx, msg.ClassId)
 	if !ok {
-		return nil, sdkerrors.Wrap(nft.ErrClassNotExists, msg.ClassId)
+		return nil, errorsmod.Wrap(nft.ErrClassNotExists, msg.ClassId)
 	}
 
 	var classMetadata types.ClassMetadata
 	if err := k.cdc.Unmarshal(class.Data.GetValue(), &classMetadata); err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "%v", err)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrLogic, "%v", err)
 	}
 
 	if classMetadata.Creator != msg.Creator {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not the creator of class %s", msg.Creator, msg.ClassId)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "%s is not the creator of class %s", msg.Creator, msg.ClassId)
 	}
 
 	tokenId, err := strconv.ParseUint(msg.TokenId, 10, 64)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id, token id must be a valid unsigned integer")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id, token id must be a valid unsigned integer")
 	}
 
 	if tokenId < 1 || tokenId > class.TotalSupply {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id, token id must be between 1 and the total supply of the NFT type")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id, token id must be between 1 and the total supply of the NFT type")
 	}
 
 	if k.GetTotalSupply(ctx, msg.ClassId) >= class.TotalSupply {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "total supply exceeded")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "total supply exceeded")
 	}
 	receiver, err := sdk.AccAddressFromBech32(msg.Receiver)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Receiver)
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidAddress, msg.Receiver)
 	}
 
 	if err = k.Mint(ctx,
@@ -150,12 +151,12 @@ func (k MsgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 	}
 
 	if msg.ClassId == kyctypes.ModuleName {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "SBT is not allowed to be transferred to others")
+		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "SBT is not allowed to be transferred to others")
 	}
 
 	owner := k.GetOwner(ctx, msg.ClassId, msg.Id)
 	if !owner.Equals(sender) {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not the owner of nft %s", sender, msg.Id)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "%s is not the owner of nft %s", sender, msg.Id)
 	}
 
 	receiver, err := sdk.AccAddressFromBech32(msg.Receiver)
@@ -165,12 +166,12 @@ func (k MsgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 
 	class, found := k.GetClass(ctx, msg.ClassId)
 	if !found {
-		return nil, sdkerrors.Wrap(nft.ErrClassNotExists, msg.ClassId)
+		return nil, errorsmod.Wrap(nft.ErrClassNotExists, msg.ClassId)
 	}
 
 	myNFT, found := k.GetNFT(ctx, msg.ClassId, msg.Id)
 	if !found {
-		return nil, sdkerrors.Wrap(nft.ErrNFTNotExists, msg.Id)
+		return nil, errorsmod.Wrap(nft.ErrNFTNotExists, msg.Id)
 	}
 
 	if err := k.Transfer(ctx, msg.ClassId, msg.Id, receiver); err != nil {

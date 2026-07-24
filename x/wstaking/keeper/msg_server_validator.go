@@ -3,6 +3,7 @@ package keeper
 import (
 	"bytes"
 	"context"
+	errorsmod "cosmossdk.io/errors"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -30,7 +31,7 @@ func (k MsgServer) CreateValidator(
 
 	_, err := utils.CheckRegionName(strings.ToUpper(msg.Description.RegionID))
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrRegionName, msg.Description.RegionID)
+		return nil, errorsmod.Wrapf(types.ErrRegionName, msg.Description.RegionID)
 	}
 	msg.Description.RegionID = strings.ToLower(msg.Description.RegionID)
 
@@ -40,7 +41,7 @@ func (k MsgServer) CreateValidator(
 	}
 
 	if msg.Commission.Rate.LT(k.MinCommissionRate(ctx)) {
-		return nil, sdkerrors.Wrapf(stakingtypes.ErrCommissionLTMinRate, "cannot set validator commission to less than minimum rate of %s", k.MinCommissionRate(ctx))
+		return nil, errorsmod.Wrapf(stakingtypes.ErrCommissionLTMinRate, "cannot set validator commission to less than minimum rate of %s", k.MinCommissionRate(ctx))
 	}
 
 	// check to see if the pubkey or sender has been registered before
@@ -50,7 +51,7 @@ func (k MsgServer) CreateValidator(
 
 	pk, ok := msg.Pubkey.GetCachedValue().(cryptotypes.PubKey)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", msg.Pubkey.GetCachedValue())
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", msg.Pubkey.GetCachedValue())
 	}
 
 	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
@@ -78,10 +79,10 @@ func (k MsgServer) CreateValidator(
 		} else {
 			newPubKeyData, err := newValidatorPubKey.Marshal()
 			if err != nil {
-				return nil, sdkerrors.Wrapf(types.ErrInterProc, "marshal pubkey of validator error: %v", err)
+				return nil, errorsmod.Wrapf(types.ErrInterProc, "marshal pubkey of validator error: %v", err)
 			}
 			if bytes.Equal(newPubKeyData, updatePubKeyInfo.PubKey) {
-				return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "pubkey of new validator is equal to the new pubkey of replaceConsensusPubkeyInfo,"+
+				return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "pubkey of new validator is equal to the new pubkey of replaceConsensusPubkeyInfo,"+
 					"new pubKey is %s", hex.EncodeToString(updatePubKeyInfo.PubKey))
 			}
 		}
@@ -89,7 +90,7 @@ func (k MsgServer) CreateValidator(
 
 	bondDenom := k.BondDenom(ctx)
 	if msg.Value.Denom != bondDenom {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Value.Denom, bondDenom,
 		)
 	}
@@ -109,7 +110,7 @@ func (k MsgServer) CreateValidator(
 			}
 		}
 		if !hasKeyType {
-			return nil, sdkerrors.Wrapf(
+			return nil, errorsmod.Wrapf(
 				stakingtypes.ErrValidatorPubKeyTypeNotSupported,
 				"got: %s, expected: %s", pk.Type(), cp.Validator.PubKeyTypes,
 			)
@@ -204,7 +205,7 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 
 	pk, ok := req.ReplacePubKey.PubKey.GetCachedValue().(*ed25519.PubKey)
 	if !ok {
-		return nil, sdkerrors.Wrapf(stakingtypes.ErrValidatorPubKeyTypeNotSupported, "Expecting ed25519.PubKey, got %T", req.ReplacePubKey.PubKey.GetCachedValue())
+		return nil, errorsmod.Wrapf(stakingtypes.ErrValidatorPubKeyTypeNotSupported, "Expecting ed25519.PubKey, got %T", req.ReplacePubKey.PubKey.GetCachedValue())
 	}
 
 	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
@@ -213,11 +214,11 @@ func (k MsgServer) ReplaceConsensusPubKey(goCtx context.Context, req *types.MsgR
 
 	pubKeyData, err := pk.Marshal()
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrProtoProc, "marshal pubkey error: %v", err)
+		return nil, errorsmod.Wrapf(types.ErrProtoProc, "marshal pubkey error: %v", err)
 	}
 	needReplaceConsAddr, err := validator.GetConsAddr()
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrInterProc, "GetConsAddr from validator error: %v", err)
+		return nil, errorsmod.Wrapf(types.ErrInterProc, "GetConsAddr from validator error: %v", err)
 	}
 
 	update := &types.UpdatePubKeyInfo{

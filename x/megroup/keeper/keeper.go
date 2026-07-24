@@ -271,7 +271,7 @@ func (k Keeper) CreateGroupByRegion(sdkCtx sdk.Context, regionInfo stakingtypes.
 
 	operValAddr, err := sdk.ValAddressFromBech32(regionInfo.OperatorAddress)
 	if err != nil {
-		return 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, fmt.Sprintf("OperatorAddress can not convert to ValAddress."+
+		return 0, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, fmt.Sprintf("OperatorAddress can not convert to ValAddress."+
 			"err = %s, OperatorAddress = %s", err.Error(), regionInfo.OperatorAddress))
 	}
 	accAddr := sdk.AccAddress(operValAddr.Bytes())
