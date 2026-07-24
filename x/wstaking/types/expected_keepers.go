@@ -3,9 +3,9 @@ package types
 import (
 	"math/big"
 
+	"cosmossdk.io/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/cosmos-sdk/x/nft"
 
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/wbank/keeper"

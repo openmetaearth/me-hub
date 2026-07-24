@@ -3,11 +3,11 @@ package keeper_test
 import (
 	"testing"
 
+	"cosmossdk.io/x/nft"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/cosmos-sdk/x/nft"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 

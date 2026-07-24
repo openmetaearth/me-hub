@@ -3,12 +3,12 @@ package cli
 import (
 	"fmt"
 
+	"cosmossdk.io/x/nft"
+	nftcli "cosmossdk.io/x/nft/client/cli"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/nft"
-	nftcli "github.com/cosmos/cosmos-sdk/x/nft/client/cli"
 	"github.com/spf13/cobra"
 
 	"github.com/openmetaearth/me-hub/x/wnft/types"

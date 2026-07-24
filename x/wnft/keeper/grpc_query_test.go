@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"cosmossdk.io/x/nft"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/cosmos/cosmos-sdk/x/nft"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
