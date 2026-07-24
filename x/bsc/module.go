@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	appmodule "cosmossdk.io/core/appmodule"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -23,9 +24,9 @@ import (
 
 // type check to ensure the interface is properly implemented
 var (
-	_ module.AppModule         = AppModule{}
-	_ module.AppModuleBasic    = AppModuleBasic{}
-	_ module.EndBlockAppModule = AppModule{}
+	_ module.AppModule        = AppModule{}
+	_ module.AppModuleBasic   = AppModuleBasic{}
+	_ appmodule.HasEndBlocker = AppModule{}
 )
 
 // ----------------------------------------------------------------------------
@@ -66,9 +67,7 @@ func (AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	if err := gravitytypes.RegisterQueryHandlerClient(context.Background(), mux, gravitytypes.NewQueryClient(clientCtx)); err != nil {
-		panic(err)
-	}
+	gravitytypes.RegisterQueryHandlerClient(context.Background(), mux, gravitytypes.NewQueryClient(clientCtx))
 }
 
 // GetQueryCmd implements app module basic
@@ -102,6 +101,12 @@ func NewAppModule(keeper gravitykeeper.Keeper) AppModule {
 	}
 }
 
+// IsAppModule implements module.AppModule.
+func (am AppModule) IsAppModule() {}
+
+// IsOnePerModuleType implements module.AppModule.
+func (am AppModule) IsOnePerModuleType() {}
+
 // RegisterInvariants implements app module
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
@@ -133,11 +138,8 @@ func (am AppModule) ConsensusVersion() uint64 {
 	return 1
 }
 
-// BeginBlock contains the logic that is automatically triggered at the beginning of each block
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
-
 // EndBlock implements app module
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	am.keeper.EndBlocker(ctx)
-	return []abci.ValidatorUpdate{}
+func (am AppModule) EndBlock(ctx context.Context) error {
+	am.keeper.EndBlocker(sdk.UnwrapSDKContext(ctx))
+	return nil
 }

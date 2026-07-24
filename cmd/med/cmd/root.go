@@ -6,18 +6,16 @@ import (
 	"os"
 
 	"cosmossdk.io/log"
-	dbm "github.com/cometbft/cometbft-db"
 	cometbftcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cometbftcfg "github.com/cometbft/cometbft/config"
 	cometbftcli "github.com/cometbft/cometbft/libs/cli"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
-	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -136,8 +134,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		ethermintclient.ValidateChainID(
 			genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
 		),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, app.GenTxMessageValidator),
-		genutilcli.MigrateGenesisCmd(),
+		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, app.GenTxMessageValidator, nil),
 		GenTxCmd(
 			app.ModuleBasics,
 			encodingConfig.TxConfig,
@@ -149,8 +146,6 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		GenRelayersCmd(app.DefaultNodeHome),
 		cometbftcli.NewCompletionCmd(rootCmd, true),
 		debug.Cmd(),
-		config.Cmd(),
-		pruning.PruningCmd(a.newApp),
 		AddGenesisStakePoolAccountCmd(app.DefaultNodeHome),
 		AddGenesisModuleAccountsCmd(app.DefaultNodeHome),
 		SetDAOCmd(),
@@ -164,24 +159,16 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		addModuleInitFlags,
 	)
 
-	for _, command := range rootCmd.Commands() {
-		if command.Use == "start" {
-			rootCmd.RemoveCommand(command)
-			rootCmd.AddCommand(StartCmd(ethermintserver.NewDefaultStartOptions(a.newApp, app.DefaultNodeHome)))
-		}
-	}
-
 	rootCmd.AddCommand(InspectCmd(a.appExport, a.newApp, app.DefaultNodeHome))
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
-		rpc.StatusCommand(),
+		sdkserver.StatusCommand(),
 		queryCommand(),
 		txCommand(),
 		ethermintclient.KeyCommands(app.DefaultNodeHome),
 	)
 	rootCmd.AddCommand(mecli.Debug())
-	rootCmd.AddCommand(snapshot.Cmd(a.newApp))
 }
 
 // queryCommand returns the sub-command to send queries to the app
@@ -196,10 +183,13 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
+		rpc.QueryEventForTxCmd(),
+		sdkserver.QueryBlockCmd(),
 		rpc.ValidatorCommand(),
-		rpc.BlockCommand(),
+		sdkserver.QueryBlocksCmd(),
 		authcmd.QueryTxsByEventsCmd(),
 		authcmd.QueryTxCmd(),
+		sdkserver.QueryBlockResultsCmd(),
 	)
 
 	app.ModuleBasics.AddQueryCommands(cmd)
@@ -230,7 +220,7 @@ func txCommand() *cobra.Command {
 		GetEncodeToRawTxCommand(),
 		GetDecodeRawTxCommand(),
 		authcmd.GetDecodeCommand(),
-		authcmd.GetAuxToFeeCommand(),
+		authcmd.GetSimulateCmd(),
 	)
 
 	app.ModuleBasics.AddTxCommands(cmd)

@@ -1,11 +1,9 @@
 package cli
 
-import sdkmath "cosmossdk.io/math"
-
 import (
 	"errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 

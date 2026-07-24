@@ -5,7 +5,6 @@ import sdkmath "cosmossdk.io/math"
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
 	minttypes "github.com/openmetaearth/me-hub/x/wmint/types"

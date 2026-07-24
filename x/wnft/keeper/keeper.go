@@ -1,8 +1,8 @@
 package keeper
 
 import (
+	corestoretypes "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/nft"
 	nftkeeper "cosmossdk.io/x/nft/keeper"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -11,18 +11,20 @@ import (
 
 type Keeper struct {
 	nftkeeper.Keeper
-	cdc codec.BinaryCodec
+	cdc          codec.BinaryCodec
+	storeService corestoretypes.KVStoreService
 }
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey storetypes.StoreKey,
+	storeService corestoretypes.KVStoreService,
 	ak nft.AccountKeeper,
 	bk nft.BankKeeper,
 ) *Keeper {
 	return &Keeper{
-		Keeper: nftkeeper.NewKeeper(storeKey, cdc, ak, bk),
-		cdc:    cdc,
+		Keeper:       nftkeeper.NewKeeper(storeService, cdc, ak, bk),
+		cdc:          cdc,
+		storeService: storeService,
 	}
 }
 

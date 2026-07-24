@@ -1,6 +1,7 @@
 package v2_0_15 //nolint:revive
 
 import (
+	"context"
 	"time"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -19,17 +20,21 @@ func CreateUpgradeHandler(
 	_ upgrades.BaseAppParamManager,
 	keepers *appkeepers.AppKeepers,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+	return func(goCtx context.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		ctx := sdk.UnwrapSDKContext(goCtx)
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 		logger.Info("upgrade starting...")
 
-		stakingParams := keepers.StakingKeeper.GetParams(ctx)
+		stakingParams, err := keepers.StakingKeeper.GetParams(ctx)
+		if err != nil {
+			return nil, err
+		}
 		stakingParams.UnbondingTime = time.Hour * 24 * 7 * 3 // 3 weeks
 		if err := keepers.StakingKeeper.SetParams(ctx, stakingParams); err != nil {
 			panic("failed to set Staking params: " + err.Error())
 		}
 
 		logger.Info("upgrade finished successfully.")
-		return mm.RunMigrations(ctx, configurator, fromVM)
+		return mm.RunMigrations(goCtx, configurator, fromVM)
 	}
 }

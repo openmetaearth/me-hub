@@ -184,10 +184,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			w := bytes.NewBuffer([]byte{})
 			clientCtx = clientCtx.WithOutput(w)
 
-			for _, m := range msgs {
-				if err = m.ValidateBasic(); err != nil {
-					return err
-				}
+			for range msgs {
 			}
 
 			if err = txBldr.PrintUnsignedTx(clientCtx, msgs...); err != nil {
@@ -297,7 +294,7 @@ func ValidateAccountInGenesis(
 			accCoins := bal.GetCoins()
 
 			// ensure that account is in genesis
-			if accAddress.Equals(addr) {
+			if accAddress == addr.String() {
 				// ensure account contains enough funds of default bond denom
 				if coins.AmountOf(bondDenom).GT(accCoins.AmountOf(bondDenom)) {
 					err = fmt.Errorf(

@@ -89,7 +89,7 @@ func (a *AppKeepers) SetupModules(
 ) []module.AppModule {
 	return []module.AppModule{
 		genutil.NewAppModule(
-			a.AccountKeeper, a.StakingKeeper, bApp.DeliverTx,
+			a.AccountKeeper, a.StakingKeeper, bApp,
 			encodingConfig.TxConfig,
 		),
 		auth.NewAppModule(appCodec, a.AccountKeeper, nil, a.GetSubspace(authtypes.ModuleName)),
@@ -102,10 +102,10 @@ func (a *AppKeepers) SetupModules(
 		consensus.NewAppModule(appCodec, a.ConsensusParamsKeeper),
 		wgov.NewAppModule(appCodec, a.GovKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(govtypes.ModuleName)),
 		wmint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil, a.GetSubspace(minttypes.ModuleName)),
-		slashing.NewAppModule(appCodec, a.SlashingKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(slashingtypes.ModuleName)),
+		slashing.NewAppModule(appCodec, a.SlashingKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(slashingtypes.ModuleName), encodingConfig.InterfaceRegistry),
 		wdistr.NewAppModule(appCodec, *a.DistrKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(distrtypes.ModuleName)),
 		wstaking.NewAppModule(appCodec, a.StakingKeeper, a.TransferKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
-		upgrade.NewAppModule(a.UpgradeKeeper),
+		upgrade.NewAppModule(a.UpgradeKeeper, a.AccountKeeper.AddressCodec()),
 		evidence.NewAppModule(a.EvidenceKeeper),
 		ibc.NewAppModule(a.IBCKeeper),
 		params.NewAppModule(a.ParamsKeeper),

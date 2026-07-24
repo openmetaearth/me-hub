@@ -46,7 +46,7 @@ func (k Keeper) ClassAddress(goCtx context.Context, r *types.QueryClassAddressRe
 
 	return &types.QueryClassAddressResponse{
 		Exists:      true,
-		TotalSupply: class.TotalSupply,
+		TotalSupply: k.GetClassTotalSupplyCap(ctx, class.Id),
 		Nfts:        tokenIds,
 		Pagination:  nftResp.Pagination,
 	}, nil

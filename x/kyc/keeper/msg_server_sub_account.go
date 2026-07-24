@@ -3,6 +3,7 @@ package keeper
 import (
 	"bytes"
 	"context"
+
 	errorsmod "cosmossdk.io/errors"
 
 	cosmossecp256k1 "github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -102,8 +103,8 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 	}
 
 	// check sub_account delegation, if has delegation, return error
-	_, found = m.stkKeeper.GetDelegation(ctx, subAccount, sdk.ValAddress{})
-	if found {
+	_, err = m.stkKeeper.GetDelegation(ctx, subAccount, sdk.ValAddress{})
+	if err == nil {
 		return &types.MsgCreateSubAccountResponse{}, types.ErrSubAccountHasDelegation
 	}
 

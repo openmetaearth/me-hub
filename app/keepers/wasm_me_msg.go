@@ -16,13 +16,13 @@ type MeMsg struct {
 }
 
 type MultiSend struct {
-	Amount wasmvmtypes.Coins `json:"amount,omitempty"`
-	Output []Output          `json:"output,omitempty"`
+	Amount []wasmvmtypes.Coin `json:"amount,omitempty"`
+	Output []Output           `json:"output,omitempty"`
 }
 
 type Output struct {
-	Address string            `json:"address,omitempty"`
-	Amount  wasmvmtypes.Coins `json:"amount,omitempty"`
+	Address string             `json:"address,omitempty"`
+	Amount  []wasmvmtypes.Coin `json:"amount,omitempty"`
 }
 
 func EncodeMeMsg(sender sdk.AccAddress, msg *MeMsg) ([]sdk.Msg, error) {

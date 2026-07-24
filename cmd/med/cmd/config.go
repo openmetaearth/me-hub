@@ -2,12 +2,17 @@ package cmd
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ethcmd "github.com/evmos/ethermint/cmd/config"
+	ethermint "github.com/evmos/ethermint/types"
+
+	"github.com/openmetaearth/me-hub/app/params"
 )
 
 func initSDKConfig() {
 	// Set additional config. prefix and denoms registered on app init
 	config := sdk.GetConfig()
-	ethcmd.SetBip44CoinType(config)
+	params.SetAddressPrefixes()
+	config.SetCoinType(ethermint.Bip44CoinType)
+	config.SetPurpose(sdk.Purpose)
 	config.Seal()
+	params.RegisterDenoms()
 }

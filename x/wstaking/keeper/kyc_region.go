@@ -1,18 +1,17 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
+	"fmt"
 	"strings"
 
-	sdkerrors "cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-func (k Keeper) GetRegionIdByAccount(ctx sdk.Context, address sdk.AccAddress) string {
+func (k *Keeper) GetRegionIdByAccount(ctx sdk.Context, address sdk.AccAddress) string {
 	regionId := strings.ToLower(types.ExperienceRegionName)
 	did, ok := k.kycKeeper.GetDID(ctx, address)
 	if !ok {
@@ -25,7 +24,7 @@ func (k Keeper) GetRegionIdByAccount(ctx sdk.Context, address sdk.AccAddress) st
 	return string(kycData.Data)
 }
 
-func (k Keeper) MustGetKycRegionIdByAccount(ctx sdk.Context, account string) (string, error) {
+func (k *Keeper) MustGetKycRegionIdByAccount(ctx sdk.Context, account string) (string, error) {
 	did, ok := k.kycKeeper.GetDID(ctx, sdk.MustAccAddressFromBech32(account))
 	if !ok {
 		return "", errorsmod.Wrapf(types.ErrDidNotExists, "did with account %s not exist", account)
@@ -37,7 +36,7 @@ func (k Keeper) MustGetKycRegionIdByAccount(ctx sdk.Context, account string) (st
 	return string(kycData.Data), nil
 }
 
-func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creator, fromRegionId, toRegionId string) error {
+func (k *Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creator, fromRegionId, toRegionId string) error {
 	fromRegion, found := k.GetRegion(ctx, fromRegionId)
 	if !found {
 		return types.ErrRegionNotExist
@@ -58,20 +57,20 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 		return valErr
 	}
 
-	validator, found := k.GetValidator(ctx, valAddr)
-	if !found {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return stakingtypes.ErrNoValidatorFound
 	}
 
-	delegation, found := k.GetDelegation(ctx, address, fromValAddr)
-	if !found {
+	delegation, err := k.GetDelegation(ctx, address, fromValAddr)
+	if err != nil {
 		return types.ErrNoDelegatorForAddress
 	}
 	delegation.ValidatorAddress = toRegion.OperatorAddress
 	k.SetDelegation(ctx, delegation)
 
 	// Handling fixed deposits
-	err := k.transferDeposit(ctx, &fromRegion, &toRegion, address.String())
+	err = k.transferDeposit(ctx, &fromRegion, &toRegion, address.String())
 	if err != nil {
 		return types.ErrTransferRegion.Wrap(err.Error())
 	}
@@ -82,7 +81,7 @@ func (k Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, creat
 		return types.ErrNodeLimitExceeded
 	}
 	if validator.MeidAmount.Add(types.Bonus).GT(validator.Tokens) {
-		return types.ErrTransferRegion.Wrap("meid bonded validator can not hold this meid user, reach meid limit")
+		return types.ErrTransferRegion.Wrap(fmt.Sprintf("meid bonded validator can not hold this meid user, reach meid limit"))
 	}
 	validator.MeidAmount = validator.MeidAmount.Add(types.Bonus)
 	k.SetValidator(ctx, validator)

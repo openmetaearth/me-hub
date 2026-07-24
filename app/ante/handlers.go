@@ -75,7 +75,7 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, ethante.DefaultSigVerificationGasConsumer),
 		// Note: signature verification uses EIP instead of the cosmos signature validator
-		NewLegacyEip712SigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
+		NewLegacyEip712SigVerificationDecorator(options.AccountKeeper),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
 		delayedack.NewIBCProofHeightDecorator(),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),

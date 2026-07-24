@@ -2,8 +2,9 @@ package keeper
 
 import (
 	"context"
-	errorsmod "cosmossdk.io/errors"
 	"strconv"
+
+	errorsmod "cosmossdk.io/errors"
 
 	"cosmossdk.io/x/nft"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -64,12 +65,14 @@ func (k Keeper) NewClass(goCtx context.Context, msg *types.MsgNewClass) (*types.
 		Description: msg.Description,
 		Uri:         msg.Uri,
 		UriHash:     msg.UriHash,
-		TotalSupply: msg.TotalSupply,
 		Data:        metadata,
 	}
 
 	err = k.SaveClass(ctx, class)
 	if err != nil {
+		return &types.MsgNewClassResponse{}, err
+	}
+	if err = k.SetClassTotalSupplyCap(ctx, msg.ClassId, msg.TotalSupply); err != nil {
 		return &types.MsgNewClassResponse{}, err
 	}
 	if err := ctx.EventManager().EmitTypedEvent(&class); err != nil {
@@ -105,11 +108,11 @@ func (k Keeper) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.Ms
 		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id, token id must be a valid unsigned integer")
 	}
 
-	if tokenId < 1 || tokenId > class.TotalSupply {
+	if tokenId < 1 || tokenId > k.GetClassTotalSupplyCap(ctx, msg.ClassId) {
 		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "invalid token id, token id must be between 1 and the total supply of the NFT type")
 	}
 
-	if k.GetTotalSupply(ctx, msg.ClassId) >= class.TotalSupply {
+	if k.GetTotalSupply(ctx, msg.ClassId) >= k.GetClassTotalSupplyCap(ctx, msg.ClassId) {
 		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "total supply exceeded")
 	}
 	receiver, err := sdk.AccAddressFromBech32(msg.Receiver)

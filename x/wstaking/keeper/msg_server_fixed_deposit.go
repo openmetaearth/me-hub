@@ -2,23 +2,20 @@ package keeper
 
 import (
 	"context"
-	errorsmod "cosmossdk.io/errors"
 	"fmt"
 	"strconv"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"github.com/openmetaearth/me-hub/app/params"
 	minttypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
+
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const DayPerYear uint64 = 365
-
-var minDepositAmount = sdkmath.NewInt(1_000_000) // 0.01mec == 1000000umec
 
 func (k MsgServer) TermToDuration(term int64) (time.Duration, error) {
 	// for formal environment
@@ -35,7 +32,7 @@ func (k MsgServer) GetFixedDepositInterest(cfg *types.FixedDepositCfg, principal
 		return sdk.Coin{}, types.ErrPayInterest.Wrap(err.Error())
 	}
 	principalAmount := principalNormed.AmountOf(params.BaseDenom)
-	interest := cfg.Rate.MulInt(principalAmount).MulInt(math.NewInt(term)).QuoInt(sdkmath.NewIntFromUint64(DayPerYear))
+	interest := cfg.Rate.MulInt(principalAmount).MulInt(sdkmath.NewInt(term)).QuoInt(sdkmath.NewIntFromUint64(DayPerYear))
 
 	return sdk.NewCoin(params.BaseDenom, interest.TruncateInt()), nil
 }
@@ -50,16 +47,12 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 	if !msg.Principal.Amount.IsPositive() {
 		return nil, types.ErrDoFixedDeposit.Wrapf("fixed deposit amount error (%s)", types.ErrAmountNotPositive)
 	}
-
-	bondDenom := k.BondDenom(ctx)
-	if msg.Principal.Denom != bondDenom {
-		return nil, errorsmod.Wrapf(
-			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Principal.Denom, bondDenom,
-		)
+	amountNormed, err := sdk.ParseCoinsNormalized(msg.Principal.String())
+	if err != nil {
+		return nil, types.ErrDoFixedDeposit.Wrapf("fixed deposit amount error (%s)", err)
 	}
-
 	// minimum amount 0.01mec == 1000000umec
-	if msg.Principal.Amount.LT(minDepositAmount) {
+	if amountNormed.AmountOf(params.BaseDenom).LT(sdkmath.NewInt(1000000)) {
 		return nil, types.ErrDoFixedDeposit.Wrapf("fixed deposit amount error (%s)", types.ErrAmountLessThanMin)
 	}
 
@@ -105,7 +98,7 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 
 	principalAddr := k.authKeeper.GetModuleAddress(types.FixedDepositPrincipalPool)
 	if principalAddr == nil {
-		return nil, errorsmod.Wrapf(types.ErrDoFixedDeposit, fmt.Sprintf("%s module account has not been set", types.FixedDepositPrincipalPool))
+		return nil, errorsmod.Wrapf(types.ErrDoFixedDeposit, "%s module account has not been set", types.FixedDepositPrincipalPool)
 	}
 
 	if coin := k.bankKeeper.GetBalance(ctx, accAddr, msg.Principal.Denom); coin.IsLT(msg.Principal) {
@@ -171,7 +164,7 @@ func (k MsgServer) DoFixedDeposit(goCtx context.Context, msg *types.MsgDoFixedDe
 	err = k.Keeper.IncreaseFixedDepositCountOfCfg(ctx, region.RegionId, msg.Term)
 	if err != nil {
 		return nil, errorsmod.Wrapf(types.ErrDoFixedDeposit,
-			"increase fixed deposit count under the current config error, region(%s) term (%s) error(%s)",
+			"increase fixed deposit count under the current config error, region(%s) term (%d) error(%s)",
 			region.RegionId, msg.Term, err)
 	}
 
@@ -209,7 +202,7 @@ func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWit
 
 	regionId, err := k.MustGetKycRegionIdByAccount(ctx, msg.Account)
 	if err != nil {
-		return nil, errorsmod.Wrapf(types.ErrDoFixedWithDraw, err.Error())
+		return nil, errorsmod.Wrap(types.ErrDoFixedWithDraw, err.Error())
 	}
 
 	fixedDeposit, isFound := k.GetFixedDeposit(ctx, msg.Id)
@@ -239,7 +232,7 @@ func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWit
 	}
 	principalAddr := k.authKeeper.GetModuleAddress(types.FixedDepositPrincipalPool)
 	if principalAddr == nil {
-		return nil, errorsmod.Wrapf(types.ErrDoFixedWithDraw, fmt.Sprintf("%s module account has not been set", types.FixedDepositPrincipalPool))
+		return nil, errorsmod.Wrapf(types.ErrDoFixedWithDraw, "%s module account has not been set", types.FixedDepositPrincipalPool)
 	}
 
 	if coin := k.bankKeeper.GetBalance(ctx, principalAddr, fixedDeposit.Principal.Denom); coin.IsLT(fixedDeposit.Principal) {
@@ -303,11 +296,10 @@ func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWit
 		err = k.Keeper.DecreaseFixedDepositCountOfCfg(ctx, region.RegionId, fixedDeposit.Term)
 		if err != nil {
 			return nil, errorsmod.Wrapf(types.ErrDoFixedWithDraw,
-				"decrease fixed deposit count under the current config error, region(%s) term (%s) error(%s)",
+				"decrease fixed deposit count under the current config error, region(%s) term (%d) error(%s)",
 				region.RegionId, fixedDeposit.Term, err)
 		}
-	}
-	if !expired {
+	} else {
 		return nil, types.ErrDoFixedWithDraw.Wrapf("withdraw fixed deposit error (%s)", types.ErrFixedDepositNotExpired)
 	}
 
@@ -320,7 +312,7 @@ func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWit
 
 	region.FixedDepositAmount = region.FixedDepositAmount.Sub(fixedDeposit.Principal.Amount)
 	if region.FixedDepositAmount.IsNegative() {
-		return nil, errorsmod.Wrapf(types.ErrDoFixedWithDraw, "region fixed deposit amount(%s) less than zero", region.FixedDepositAmount.String())
+		return &types.MsgWithdrawFixedDepositResponse{}, errorsmod.Wrapf(types.ErrDoFixedWithDraw, "region fixed deposit amount(%s) less than zero", region.FixedDepositAmount.String())
 	}
 	k.SetRegion(ctx, region)
 

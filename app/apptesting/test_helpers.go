@@ -2,25 +2,22 @@ package apptesting
 
 import (
 	"bytes"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"math/big"
-	"math/rand"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
-	errorsmod "cosmossdk.io/errors"
+	coreheader "cosmossdk.io/core/header"
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
-	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cometbfttypes "github.com/cometbft/cometbft/types"
+	dbm "github.com/cosmos/cosmos-db"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -28,9 +25,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/testutil/mock"
-	simapp "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -135,7 +130,7 @@ type IBCTestApp struct {
 	*app.App
 }
 
-func (a *IBCTestApp) InitChain(req abci.RequestInitChain) abci.ResponseInitChain {
+func (a *IBCTestApp) InitChain(req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
 	req.AppStateBytes = fixBondedPoolGenesis(req.AppStateBytes)
 	return a.App.InitChain(req)
 }
@@ -314,14 +309,15 @@ func SetupWithGenesisValSet(t *testing.T, valSet *cometbfttypes.ValidatorSet, ge
 	require.NoError(t, err)
 
 	// init chain will set the validator set and initialize the genesis accounts
-	_ = app.InitChain(
-		abci.RequestInitChain{
+	_, err = app.InitChain(
+		&abci.RequestInitChain{
 			ChainId:         TestChainID,
 			Validators:      []abci.ValidatorUpdate{},
 			ConsensusParams: DefaultConsensusParams,
 			AppStateBytes:   stateBytes,
 		},
 	)
+	require.NoError(t, err)
 
 	return app
 }
@@ -378,8 +374,12 @@ func createIncrementalAccounts(accNum int) []sdk.AccAddress {
 }
 
 // AddTestAddrsFromPubKeys adds the addresses into the SimApp providing only the public keys.
-func AddTestAddrsFromPubKeys(app *app.App, ctx sdk.Context, pubKeys []cryptotypes.PubKey, accAmt math.Int) {
-	initCoins := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), accAmt))
+func AddTestAddrsFromPubKeys(app *app.App, ctx sdk.Context, pubKeys []cryptotypes.PubKey, accAmt sdkmath.Int) {
+	denom, err := app.StakingKeeper.BondDenom(ctx)
+	if err != nil {
+		panic(err)
+	}
+	initCoins := sdk.NewCoins(sdk.NewCoin(denom, accAmt))
 
 	for _, pk := range pubKeys {
 		FundAccount(app, ctx, sdk.AccAddress(pk.Address()), initCoins)
@@ -388,20 +388,24 @@ func AddTestAddrsFromPubKeys(app *app.App, ctx sdk.Context, pubKeys []cryptotype
 
 // AddTestAddrs constructs and returns accNum amount of accounts with an
 // initial balance of accAmt in random order
-func AddTestAddrs(app *app.App, ctx sdk.Context, accNum int, accAmt math.Int) []sdk.AccAddress {
+func AddTestAddrs(app *app.App, ctx sdk.Context, accNum int, accAmt sdkmath.Int) []sdk.AccAddress {
 	return addTestAddrs(app, ctx, accNum, accAmt, CreateRandomAccounts)
 }
 
 // AddTestAddrsIncremental constructs and returns accNum amount of accounts with an
 // initial balance of accAmt in random order
-func AddTestAddrsIncremental(app *app.App, ctx sdk.Context, accNum int, accAmt math.Int) []sdk.AccAddress {
+func AddTestAddrsIncremental(app *app.App, ctx sdk.Context, accNum int, accAmt sdkmath.Int) []sdk.AccAddress {
 	return addTestAddrs(app, ctx, accNum, accAmt, createIncrementalAccounts)
 }
 
-func addTestAddrs(app *app.App, ctx sdk.Context, accNum int, accAmt math.Int, strategy GenerateAccountStrategy) []sdk.AccAddress {
+func addTestAddrs(app *app.App, ctx sdk.Context, accNum int, accAmt sdkmath.Int, strategy GenerateAccountStrategy) []sdk.AccAddress {
 	testAddrs := strategy(accNum)
 
-	initCoins := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), accAmt))
+	denom, err := app.StakingKeeper.BondDenom(ctx)
+	if err != nil {
+		panic(err)
+	}
+	initCoins := sdk.NewCoins(sdk.NewCoin(denom, accAmt))
 
 	for _, addr := range testAddrs {
 		FundAccount(app, ctx, addr, initCoins)
@@ -454,128 +458,6 @@ func TestAddr(addr, bech string) (sdk.AccAddress, error) {
 	return res, nil
 }
 
-// CheckBalance checks the balance of an account.
-func CheckBalance(t *testing.T, app *app.App, addr sdk.AccAddress, balances sdk.Coins) {
-	ctxCheck := app.BaseApp.NewContext(true, cometbftproto.Header{})
-	require.True(t, balances.IsEqual(app.BankKeeper.GetAllBalances(ctxCheck, addr)))
-}
-
-// SignCheckDeliver checks a generated signed transaction and simulates a
-// block commitment with the given transaction. A test assertion is made using
-// the parameter 'expPass' against the result. A corresponding result is
-// returned.
-func SignCheckDeliver(
-	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header cometbftproto.Header, msgs []sdk.Msg,
-	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
-) (sdk.GasInfo, *sdk.Result, error) {
-	tx, err := simapp.GenSignedMockTx(
-		//nolint: errcheck, gosec
-		rand.New(rand.NewSource(time.Now().UnixNano())),
-		txCfg,
-		msgs,
-		sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, 0)},
-		simapp.DefaultGenTxGas,
-		chainID,
-		accNums,
-		accSeqs,
-		priv...,
-	)
-	require.NoError(t, err)
-	txBytes, err := txCfg.TxEncoder()(tx)
-	require.Nil(t, err)
-
-	// Must simulate now as CheckTx doesn't run Msgs anymore
-	_, res, err := app.Simulate(txBytes)
-
-	if expSimPass {
-		require.NoError(t, err)
-		require.NotNil(t, res)
-	} else {
-		require.Error(t, err)
-		require.Nil(t, res)
-	}
-
-	// Simulate a sending a transaction and committing a block
-	app.BeginBlock(abci.RequestBeginBlock{Header: header})
-	gInfo, res, err := app.SimDeliver(txCfg.TxEncoder(), tx)
-
-	if expPass {
-		require.NoError(t, err)
-		require.NotNil(t, res)
-	} else {
-		require.Error(t, err)
-		require.Nil(t, res)
-	}
-
-	app.EndBlock(abci.RequestEndBlock{})
-	app.Commit()
-
-	return gInfo, res, err
-}
-
-// GenSequenceOfTxs generates a set of signed transactions of messages, such
-// that they differ only by having the sequence numbers incremented between
-// every transaction.
-func GenSequenceOfTxs(txGen client.TxConfig, msgs []sdk.Msg, accNums, initSeqNums []uint64, numToGenerate int, priv ...cryptotypes.PrivKey) ([]sdk.Tx, error) {
-	txs := make([]sdk.Tx, numToGenerate)
-	var err error
-	for i := 0; i < numToGenerate; i++ {
-		txs[i], err = simapp.GenSignedMockTx(
-			//nolint: gosec
-			rand.New(rand.NewSource(time.Now().UnixNano())),
-			txGen,
-			msgs,
-			sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, 0)},
-			simapp.DefaultGenTxGas,
-			"",
-			accNums,
-			initSeqNums,
-			priv...,
-		)
-		if err != nil {
-			break
-		}
-		incrementAllSequenceNumbers(initSeqNums)
-	}
-
-	return txs, err
-}
-
-func incrementAllSequenceNumbers(initSeqNums []uint64) {
-	for i := 0; i < len(initSeqNums); i++ {
-		initSeqNums[i]++
-	}
-}
-
-// CreateTestPubKeys returns a total of numPubKeys public keys in ascending order.
-func CreateTestPubKeys(numPubKeys int) []cryptotypes.PubKey {
-	var publicKeys []cryptotypes.PubKey
-	var buffer bytes.Buffer
-
-	// start at 10 to avoid changing 1 to 01, 2 to 02, etc
-	for i := 100; i < (numPubKeys + 100); i++ {
-		numString := strconv.Itoa(i)
-		_, _ = buffer.WriteString("0B485CFC0EECC619440448436F8FC9DF40566F2369E72400281454CB552AF") // base pubkey string
-		_, _ = buffer.WriteString(numString)                                                       // adding on final two digits to make pubkeys unique
-		publicKeys = append(publicKeys, NewPubKeyFromHex(buffer.String()))
-		buffer.Reset()
-	}
-
-	return publicKeys
-}
-
-// NewPubKeyFromHex returns a PubKey from a hex string.
-func NewPubKeyFromHex(pk string) (res cryptotypes.PubKey) {
-	pkBytes, err := hex.DecodeString(pk)
-	if err != nil {
-		panic(err)
-	}
-	if len(pkBytes) != ed25519.PubKeySize {
-		panic(errorsmod.Wrap(sdkerrors.ErrInvalidPubKey, "invalid pubkey size"))
-	}
-	return &ed25519.PubKey{Key: pkBytes}
-}
-
 // EmptyAppOptions is a stub implementing AppOptions
 type EmptyAppOptions struct{}
 
@@ -585,20 +467,24 @@ func (ao EmptyAppOptions) Get(o string) interface{} {
 }
 
 func MintBlock(myApp *app.App, ctx sdk.Context, block ...int64) sdk.Context {
-	nextHeight := ctx.BlockHeight() + 1
-	if len(block) > 0 {
-		nextHeight = ctx.BlockHeight() + block[0]
+	numBlocks := int64(1)
+	if len(block) > 0 && block[0] > 0 {
+		numBlocks = block[0]
 	}
-	for i := ctx.BlockHeight(); i < nextHeight; {
-		myApp.EndBlock(abci.RequestEndBlock{Height: i})
-		myApp.Commit()
-		i++
+	for i := int64(0); i < numBlocks; i++ {
+		if _, err := myApp.FinalizeBlock(&abci.RequestFinalizeBlock{Height: ctx.BlockHeight(), Time: ctx.BlockTime()}); err != nil {
+			panic(err)
+		}
+		if _, err := myApp.Commit(); err != nil {
+			panic(err)
+		}
 		header := ctx.BlockHeader()
-		header.Height = i
-		myApp.BeginBlock(abci.RequestBeginBlock{
-			Header: header,
+		header.Height++
+		header.Time = ctx.BlockTime().Add(time.Second)
+		ctx = myApp.BaseApp.NewUncachedContext(false, header).WithHeaderInfo(coreheader.Info{
+			Height: header.Height,
+			Time:   header.Time,
 		})
-		ctx = myApp.NewContext(false, header)
 	}
 	return ctx
 }

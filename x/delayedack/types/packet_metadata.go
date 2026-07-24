@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type PacketMetadata struct {
@@ -29,10 +28,10 @@ func (e EIBCMetadata) ValidateBasic() error {
 	return nil
 }
 
-func (e EIBCMetadata) FeeInt() (math.Int, error) {
+func (e EIBCMetadata) FeeInt() (sdkmath.Int, error) {
 	i, ok := sdkmath.NewIntFromString(e.Fee)
 	if !ok || i.IsNegative() {
-		return math.Int{}, ErrBadEIBCFee
+		return sdkmath.Int{}, ErrBadEIBCFee
 	}
 	return i, nil
 }

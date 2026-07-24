@@ -5,7 +5,6 @@ import (
 
 	"github.com/cometbft/cometbft/libs/rand"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -62,7 +61,7 @@ func (s *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId str
 	s.Require().Nil(err)
 
 	// fund account
-	err = bankutil.FundAccount(s.App.BankKeeper, ctx, addr1, sdk.NewCoins(bond))
+	err = bankutil.FundAccount(ctx, s.App.BankKeeper, addr1, sdk.NewCoins(bond))
 	s.Require().Nil(err)
 
 	sequencerMsg1 := sequencertypes.MsgCreateSequencer{
@@ -102,13 +101,13 @@ func (s *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr s
 
 // FundAcc funds target address with specified amount.
 func (s *KeeperTestHelper) FundAcc(acc sdk.AccAddress, amounts sdk.Coins) {
-	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, acc, amounts)
+	err := bankutil.FundAccount(s.Ctx, s.App.BankKeeper, acc, amounts)
 	s.Require().NoError(err)
 }
 
 // FundModuleAcc funds target modules with specified amount.
 func (s *KeeperTestHelper) FundModuleAcc(moduleName string, amounts sdk.Coins) {
-	err := bankutil.FundModuleAccount(s.App.BankKeeper, s.Ctx, moduleName, amounts)
+	err := bankutil.FundModuleAccount(s.Ctx, s.App.BankKeeper, moduleName, amounts)
 	s.Require().NoError(err)
 }
 
@@ -184,8 +183,9 @@ func (s *KeeperTestHelper) InitKyc(address sdk.AccAddress, did, regionId string)
 func (s *KeeperTestHelper) NewAccount() (sdk.AccAddress, string) {
 	globalDaoPrivKey, _ := ethsecp256k1.GenerateKey()
 	globalDaoAddress := sdk.AccAddress(globalDaoPrivKey.PubKey().Address().Bytes())
-	globalOutput, _ := keyring.NewKeyOutput("global_dao", keyring.TypeLocal, globalDaoAddress, globalDaoPrivKey.PubKey())
-	return globalDaoAddress, globalOutput.PubKey
+	pubKeyJSON, err := s.App.AppCodec().MarshalInterfaceJSON(globalDaoPrivKey.PubKey())
+	s.Require().NoError(err)
+	return globalDaoAddress, string(pubKeyJSON)
 }
 
 func (s *KeeperTestHelper) NewAccounts(count int) []sdk.AccAddress {

@@ -1,11 +1,11 @@
 package cli
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"strconv"
 	"strings"
 
-	sdkerrors "cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"

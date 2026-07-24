@@ -12,18 +12,16 @@ import (
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"cosmossdk.io/log"
-	simappparams "cosmossdk.io/simapp/params"
-	"cosmossdk.io/store/streaming"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	cometbftjson "github.com/cometbft/cometbft/libs/json"
 	cometbftos "github.com/cometbft/cometbft/libs/os"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	tmservice "github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -42,7 +40,6 @@ import (
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/evmos/ethermint/ethereum/eip712"
 	"github.com/evmos/ethermint/server/flags"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
@@ -129,13 +126,6 @@ func New(
 	cdc := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 
-	eip712.SetEncodingConfig(simappparams.EncodingConfig{
-		InterfaceRegistry: interfaceRegistry,
-		Codec:             appCodec,
-		TxConfig:          encodingConfig.TxConfig,
-		Amino:             encodingConfig.Amino,
-	})
-
 	bApp := baseapp.NewBaseApp(appparams.Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
@@ -153,8 +143,8 @@ func New(
 	app.GenerateKeys()
 
 	// load state streaming if enabled
-	if _, _, err := streaming.LoadStreamingServices(bApp, appOpts, appCodec, logger, keepers.KVStoreKeys); err != nil {
-		panic("failed to load state streaming services: " + err.Error())
+	if err := bApp.RegisterStreamingServices(appOpts, keepers.KVStoreKeys); err != nil {
+		panic(fmt.Errorf("failed to register streaming services: %w", err))
 	}
 
 	tracer := cast.ToString(appOpts.Get(flags.EVMTracer))
@@ -261,17 +251,17 @@ func (app *App) Name() string { return app.BaseApp.Name() }
 func (app App) GetBaseApp() *baseapp.BaseApp { return app.BaseApp }
 
 // BeginBlocker application updates every begin block
-func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	return app.mm.BeginBlock(ctx, req)
+func (app *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
+	return app.mm.BeginBlock(ctx)
 }
 
 // EndBlocker application updates every end block
-func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	return app.mm.EndBlock(ctx, req)
+func (app *App) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
+	return app.mm.EndBlock(ctx)
 }
 
 // InitChainer application update at chain initialization
-func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+func (app *App) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
 	metypes.SetChainId(ctx.ChainID())
 	var genesisState GenesisState
 	if err := cometbftjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
@@ -346,8 +336,8 @@ func (app *App) RegisterTendermintService(clientCtx client.Context) {
 	)
 }
 
-func (app *App) RegisterNodeService(clientCtx client.Context) {
-	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter())
+func (app *App) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
+	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
@@ -372,7 +362,11 @@ func (app *App) GetTxConfig() client.TxConfig {
 }
 
 func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
-	return app.mm.ExportGenesis(ctx, app.AppCodec())
+	state, err := app.mm.ExportGenesis(ctx, app.AppCodec())
+	if err != nil {
+		panic(err)
+	}
+	return state
 }
 
 func (app *App) setupUpgradeHandlers() {

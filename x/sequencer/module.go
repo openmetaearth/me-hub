@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/core/appmodule"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -21,8 +22,10 @@ import (
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModule          = AppModule{}
+	_ module.AppModuleBasic     = AppModuleBasic{}
+	_ appmodule.AppModule       = AppModule{}
+	_ appmodule.HasBeginBlocker = (*AppModule)(nil)
 )
 
 // ----------------------------------------------------------------------------
@@ -117,6 +120,10 @@ func NewAppModule(
 	}
 }
 
+func (AppModule) IsAppModule() {}
+
+func (AppModule) IsOnePerModuleType() {}
+
 // Name returns the capability module's name.
 func (am AppModule) Name() string {
 	return am.AppModuleBasic.Name()
@@ -155,12 +162,9 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 // ConsensusVersion implements ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 2 }
 
-// BeginBlock executes all ABCI BeginBlock logic respective to the capability module.
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
-
-// EndBlock executes all ABCI EndBlock logic respective to the capability module. It
-// returns no validator updates.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+// BeginBlock executes all begin-block lifecycle logic.
+func (am AppModule) BeginBlock(goCtx context.Context) error {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	am.keeper.UnbondAllMatureSequencers(ctx, ctx.BlockHeader().Time)
-	return []abci.ValidatorUpdate{}
+	return nil
 }

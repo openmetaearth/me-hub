@@ -1,9 +1,12 @@
 package v2_0_14
 
-import sdkmath "cosmossdk.io/math"
-
 import (
+	"context"
+
+	sdkmath "cosmossdk.io/math"
+
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
@@ -19,7 +22,8 @@ func CreateUpgradeHandler(
 	_ upgrades.BaseAppParamManager,
 	keepers *appkeepers.AppKeepers,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+	return func(goCtx context.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		ctx := sdk.UnwrapSDKContext(goCtx)
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 		logger.Info("upgrade starting...")
 
@@ -44,6 +48,6 @@ func CreateUpgradeHandler(
 		}
 
 		logger.Info("upgrade finished successfully.")
-		return mm.RunMigrations(ctx, configurator, fromVM)
+		return mm.RunMigrations(goCtx, configurator, fromVM)
 	}
 }

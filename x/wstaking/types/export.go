@@ -2,8 +2,6 @@ package types
 
 import sdkmath "cosmossdk.io/math"
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
-
 var _ RegionI = &Region{}
 
 type RegionI interface {

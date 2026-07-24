@@ -1,12 +1,13 @@
 package cli
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"errors"
 	"fmt"
 	gomath "math"
 	"os"
 	"strings"
+
+	errorsmod "cosmossdk.io/errors"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -281,7 +282,7 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		return txf, nil, err
 	}
 
-	minSelfDelegation := math.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
+	minSelfDelegation := sdkmath.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
 
 	var pkAny *codectypes.Any
 	if pk != nil {
@@ -305,9 +306,6 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		Value:             amount,
 		Commission:        commissionRates,
 		MinSelfDelegation: minSelfDelegation,
-	}
-	if err := msg.ValidateBasic(); err != nil {
-		return txf, nil, err
 	}
 
 	genOnly, _ := fs.GetBool(flags.FlagGenerateOnly)
@@ -592,9 +590,6 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 		Value:             amount,
 		Commission:        commissionRates,
 		MinSelfDelegation: minSelfDelegation,
-	}
-	if err := msg.ValidateBasic(); err != nil {
-		return txBldr, nil, err
 	}
 
 	if generateOnly {

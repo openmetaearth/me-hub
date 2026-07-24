@@ -6,7 +6,6 @@ import (
 	"cosmossdk.io/x/evidence"
 	feegrantmodule "cosmossdk.io/x/feegrant/module"
 	"cosmossdk.io/x/upgrade"
-	upgradeclient "cosmossdk.io/x/upgrade/client"
 	"github.com/CosmWasm/wasmd/x/wasm"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -25,7 +24,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/capability"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
-	ibcclientclient "github.com/cosmos/ibc-go/v8/modules/core/02-client/client"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	"github.com/evmos/ethermint/x/evm"
 	evmclient "github.com/evmos/ethermint/x/evm/client"
@@ -67,10 +65,6 @@ var ModuleBasics = module.NewBasicManager(
 	wdistri.AppModuleBasic{},
 	wgov.NewAppModuleBasic([]client.ProposalHandler{
 		paramsclient.ProposalHandler,
-		upgradeclient.LegacyProposalHandler,
-		upgradeclient.LegacyCancelProposalHandler,
-		ibcclientclient.UpdateClientProposalHandler,
-		ibcclientclient.UpgradeProposalHandler,
 		rollappmoduleclient.SubmitFraudHandler,
 		denommetadatamoduleclient.CreateDenomMetadataHandler,
 		denommetadatamoduleclient.UpdateDenomMetadataHandler,

@@ -1,23 +1,32 @@
 package ante
 
-import sdkmath "cosmossdk.io/math"
-
 import (
-	errorsmod "cosmossdk.io/errors"
+	"bytes"
 	"fmt"
 	"math"
 
+	sdkmath "cosmossdk.io/math"
+
+	errorsmod "cosmossdk.io/errors"
+
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/openmetaearth/me-hub/app/params"
+
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+
 	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
+
 	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
+
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -138,8 +147,8 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	feePayer := feeTx.FeePayer()
 	feeGranter := feeTx.FeeGranter()
 
-	isDao := dfd.daoKeeper.IsDao(ctx, feePayer.String())
-	isFreeGasAccount := dfd.daoKeeper.CheckFreeGasAccount(ctx, feePayer.String())
+	isDao := dfd.daoKeeper.IsDao(ctx, sdk.AccAddress(feePayer).String())
+	isFreeGasAccount := dfd.daoKeeper.CheckFreeGasAccount(ctx, sdk.AccAddress(feePayer).String())
 	freeGas := isFreeGasAccount || isDao
 
 	// freeGas for MsgJoinGroup only when ALL messages in the tx are MsgJoinGroup.
@@ -173,7 +182,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		if feeGranter != nil {
 			if dfd.daoKeeper == nil {
 				return ctx, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "fee grants are not enabled")
-			} else if !feeGranter.Equals(feePayer) {
+			} else if !bytes.Equal(feeGranter, feePayer) {
 				err := dfd.feegrantKeeper.UseGrantedFees(ctx, feeGranter, feePayer, fee, tx.GetMsgs())
 				if err != nil {
 					return ctx, errorsmod.Wrapf(err, "%s not allowed to pay fees from %s", feeGranter, feePayer)
@@ -182,7 +191,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			deductFeesFrom = feeGranter
 		}
 
-		err = dfd.CheckFunds(ctx, tx, deductFeesFrom.String(), fee)
+		err = dfd.CheckFunds(ctx, tx, sdk.AccAddress(deductFeesFrom).String(), fee)
 		if err != nil && !fee.IsZero() {
 			return ctx, err
 		}
@@ -213,7 +222,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			}
 			inputs := []banktypes.Input{
 				{
-					Address: deductFeesFrom.String(),
+					Address: sdk.AccAddress(deductFeesFrom).String(),
 					Coins:   fee,
 				},
 			}
@@ -237,7 +246,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			if isKyc {
 				fee20Address, err = dfd.stakingKeeper.GetValOwnerAddress(ctx, string(kyc.Data))
 				if err != nil {
-					return ctx, fmt.Errorf("couldn't get validator from kyc address: %s", deductFeesFrom.String())
+					return ctx, fmt.Errorf("couldn't get validator from kyc address: %s", sdk.AccAddress(deductFeesFrom).String())
 				}
 			} else {
 				fee20Address, err = dfd.stakingKeeper.GetProposerOwnerAddress(ctx)

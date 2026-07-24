@@ -1,6 +1,7 @@
 package v2_0_13
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -27,7 +28,8 @@ func CreateUpgradeHandler(
 	_ upgrades.BaseAppParamManager,
 	keepers *appkeepers.AppKeepers,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+	return func(goCtx context.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		ctx := sdk.UnwrapSDKContext(goCtx)
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 		logger.Info("upgrade starting...")
 
@@ -38,12 +40,15 @@ func CreateUpgradeHandler(
 			}
 		}
 
-		params := keepers.GovKeeper.GetParams(ctx)
+		params, err := keepers.GovKeeper.Params.Get(ctx)
+		if err != nil {
+			return nil, err
+		}
 		maxDepositPeriod := 30 * time.Minute
 		params.MaxDepositPeriod = &maxDepositPeriod
 		votingPeriod := 30 * time.Minute
 		params.VotingPeriod = &votingPeriod
-		if err := keepers.GovKeeper.SetParams(ctx, params); err != nil {
+		if err := keepers.GovKeeper.Params.Set(ctx, params); err != nil {
 			panic(fmt.Sprintf("failed to set gov module params during upgrade: %s", err.Error()))
 		}
 
@@ -97,7 +102,7 @@ func CreateUpgradeHandler(
 			URIHash: "",
 		})
 		logger.Info("upgrade finished successfully.")
-		return mm.RunMigrations(ctx, configurator, fromVM)
+		return mm.RunMigrations(goCtx, configurator, fromVM)
 	}
 }
 

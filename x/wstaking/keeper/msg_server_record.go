@@ -1,14 +1,13 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
+	"fmt"
 	"unicode"
 
-	sdkerrors "cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"golang.org/x/net/context"
-
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
+	"golang.org/x/net/context"
 )
 
 func (k MsgServer) NewRecord(goCtx context.Context, msg *types.MsgNewRecord) (*types.MsgNewRecordResponse, error) {
@@ -45,8 +44,8 @@ func (k MsgServer) ReviewRecord(goCtx context.Context, msg *types.MsgReviewRecor
 	globalAdmin := k.daoKeeper.GetGlobalDao(ctx)
 	meidAdmin := k.daoKeeper.GetMeidDao(ctx)
 	if globalAdmin != msg.From && meidAdmin != msg.From {
-		// use a constant format string in Wrapf to avoid non-constant format string vet issue
-		return nil, errorsmod.Wrapf(types.ErrParameter, "review record account (%s) should  be global admin", msg.From)
+		errLogBytes := fmt.Sprintf("review record account (%s) should  be global admin", msg.From)
+		return nil, errorsmod.Wrap(types.ErrParameter, errLogBytes)
 	}
 	_, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {

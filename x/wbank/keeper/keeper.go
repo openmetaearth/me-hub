@@ -1,10 +1,11 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"fmt"
 
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/core/store"
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,14 +26,15 @@ type BaseKeeperWrapper struct {
 // NewKeeper returns a new BaseKeeperWrapper instance.
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey storetypes.StoreKey,
+	storeService store.KVStoreService,
 	ak banktypes.AccountKeeper,
 	dk types.DaoKeeper,
 	blockedAddrs map[string]bool,
 	authority string,
+	logger log.Logger,
 ) BaseKeeperWrapper {
 	return BaseKeeperWrapper{
-		BaseKeeper: bankkeeper.NewBaseKeeper(cdc, storeKey, ak, blockedAddrs, authority),
+		BaseKeeper: bankkeeper.NewBaseKeeper(cdc, storeService, ak, blockedAddrs, authority, logger),
 		ak:         ak,
 	}
 }
@@ -103,7 +105,7 @@ func (k BaseKeeperWrapper) FeeToReceivers(ctx sdk.Context, inputs []banktypes.In
 		)
 	}
 
-	err := k.InputOutputCoins(ctx, inputs, outputs)
+	err := k.InputOutputCoins(ctx, inputs[0], outputs)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to process input-output coins")
 	}

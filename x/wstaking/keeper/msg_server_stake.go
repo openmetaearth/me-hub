@@ -2,17 +2,16 @@ package keeper
 
 import (
 	"context"
-	errorsmod "cosmossdk.io/errors"
 	gomath "math"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
+	"github.com/hashicorp/go-metrics"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -30,12 +29,12 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 		return nil, valErr
 	}
 
-	validator, found := k.GetValidator(ctx, valAddr)
-	if !found {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return nil, stakingtypes.ErrNoValidatorFound
 	}
 
-	bondDenom := k.BondDenom(ctx)
+	bondDenom, _ := k.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
 		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
@@ -45,20 +44,13 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 	minSelfStake := math.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
 	if msg.Amount.Amount.Mod(minSelfStake).Int64() != 0 {
 		return nil, errorsmod.Wrapf(
-			sdkerrors.ErrInvalidRequest, "invalid coin amount: got %s, expected %s integer multiple", msg.Amount.Amount.Int64(), int64(gomath.Pow10(params.BaseDenomUnit)),
+			sdkerrors.ErrInvalidRequest, "invalid coin amount: got %d, expected %d integer multiple", msg.Amount.Amount.Int64(), int64(gomath.Pow10(params.BaseDenomUnit)),
 		)
 	}
 	// should before modified region shared
-	err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, valAddr)
+	err = k.WstakingHooks().BeforeValidatorStakingModified(ctx, valAddr)
 	if err != nil {
 		return nil, errorsmod.Wrapf(types.ErrHooks, "before stake:%+v", err)
-	}
-
-	region, found := k.Keeper.GetRegion(ctx, validator.Description.RegionID)
-	if found {
-		region.RegionShare = region.RegionShare.Add(msg.Amount.Amount)
-		k.Keeper.SetRegion(ctx, region)
-		// return nil, types.ErrValidatorRegion.Wrapf("%s not found", validator.Description.RegionID)
 	}
 
 	// NOTE: source funds are always unbonded
@@ -67,11 +59,18 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 		return nil, err
 	}
 
+	// Update RegionShare after successful stake (must be after Stake to avoid BondRegion overwrite)
+	region, found := k.Keeper.GetRegion(ctx, validator.Description.RegionID)
+	if found {
+		region.RegionShare = region.RegionShare.Add(msg.Amount.Amount)
+		k.Keeper.SetRegion(ctx, region)
+	}
+
 	if msg.Amount.Amount.IsInt64() {
 		defer func() {
 			telemetry.IncrCounter(1, types.ModuleName, "stake")
 			telemetry.SetGaugeWithLabels(
-				[]string{"tx", "msg", msg.Type()},
+				[]string{"tx", "msg", sdk.MsgTypeURL(msg)},
 				float32(msg.Amount.Amount.Int64()),
 				[]metrics.Label{telemetry.NewLabel("denom", msg.Amount.Denom)},
 			)
@@ -112,7 +111,7 @@ func (k MsgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 		return nil, err
 	}
 
-	bondDenom := k.BondDenom(ctx)
+	bondDenom, _ := k.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
 		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
@@ -122,6 +121,20 @@ func (k MsgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 	if err != nil {
 		return nil, errorsmod.Wrapf(types.ErrHooks, "before unStake :error :%+v", err)
 	}
+
+	// Update RegionShare before unstake completes
+	unstakeValidator, valErr := k.GetValidator(ctx, addr)
+	if valErr == nil {
+		if unstakeRegion, foundRegion := k.Keeper.GetRegion(ctx, unstakeValidator.Description.RegionID); foundRegion {
+			if unstakeRegion.RegionShare.GTE(msg.Amount.Amount) {
+				unstakeRegion.RegionShare = unstakeRegion.RegionShare.Sub(msg.Amount.Amount)
+			} else {
+				unstakeRegion.RegionShare = math.ZeroInt()
+			}
+			k.Keeper.SetRegion(ctx, unstakeRegion)
+		}
+	}
+
 	completionTime, err := k.Keeper.Unstake(ctx, stakerAddress, addr, shares)
 	if err != nil {
 		return nil, err
@@ -131,7 +144,7 @@ func (k MsgServer) Unstake(goCtx context.Context, msg *types.MsgUnstake) (*types
 		defer func() {
 			telemetry.IncrCounter(1, types.ModuleName, "unstake")
 			telemetry.SetGaugeWithLabels(
-				[]string{"tx", "msg", msg.Type()},
+				[]string{"tx", "msg", sdk.MsgTypeURL(msg)},
 				float32(msg.Amount.Amount.Int64()),
 				[]metrics.Label{telemetry.NewLabel("denom", msg.Amount.Denom)},
 			)

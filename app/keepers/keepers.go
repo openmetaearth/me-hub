@@ -3,7 +3,6 @@ package keepers
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	storetypes "cosmossdk.io/store/types"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
@@ -12,7 +11,6 @@ import (
 	feegrantkeeper "cosmossdk.io/x/feegrant/keeper"
 	"cosmossdk.io/x/nft"
 	nftkeeper "cosmossdk.io/x/nft/keeper"
-	"cosmossdk.io/x/upgrade"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	wasmapp "github.com/CosmWasm/wasmd/app"
@@ -23,6 +21,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
+	authcodec "github.com/cosmos/cosmos-sdk/codec/address"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -69,6 +69,7 @@ import (
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	"github.com/spf13/cast"
 
+	appparams "github.com/openmetaearth/me-hub/app/params"
 	metypes "github.com/openmetaearth/me-hub/types"
 	"github.com/openmetaearth/me-hub/x/bridgingfee"
 	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
@@ -186,8 +187,8 @@ func (a *AppKeepers) InitKeepers(
 
 	a.ParamsKeeper = initParamsKeeper(appCodec, cdc, a.keys[paramstypes.StoreKey], a.tkeys[paramstypes.TStoreKey])
 	// set the BaseApp's parameter store
-	a.ConsensusParamsKeeper = consensusparamkeeper.NewKeeper(appCodec, a.keys[consensusparamtypes.StoreKey], govModuleAddress)
-	bApp.SetParamStore(&a.ConsensusParamsKeeper)
+	a.ConsensusParamsKeeper = consensusparamkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(a.keys[consensusparamtypes.StoreKey]), govModuleAddress, runtime.EventService{})
+	bApp.SetParamStore(a.ConsensusParamsKeeper.ParamsStore)
 
 	// add capability keeper and ScopeToModule for ibc module
 	a.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, a.keys[capabilitytypes.StoreKey], a.memKeys[capabilitytypes.MemStoreKey])
@@ -201,7 +202,7 @@ func (a *AppKeepers) InitKeepers(
 
 	a.UpgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights,
-		a.keys[upgradetypes.StoreKey],
+		runtime.NewKVStoreService(a.keys[upgradetypes.StoreKey]),
 		appCodec,
 		homePath,
 		bApp,
@@ -210,15 +211,16 @@ func (a *AppKeepers) InitKeepers(
 
 	a.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec,
-		a.keys[authtypes.StoreKey],
+		runtime.NewKVStoreService(a.keys[authtypes.StoreKey]),
 		authtypes.ProtoBaseAccount,
 		MaccPerms,
-		sdk.GetConfig().GetBech32AccountAddrPrefix(),
+		authcodec.NewBech32Codec(appparams.AccountAddressPrefix),
+		appparams.AccountAddressPrefix,
 		govModuleAddress,
 	)
 
 	a.AuthzKeeper = authzkeeper.NewKeeper(
-		a.keys[authz.ModuleName],
+		runtime.NewKVStoreService(a.keys[authz.ModuleName]),
 		appCodec,
 		bApp.MsgServiceRouter(),
 		a.AccountKeeper,
@@ -232,20 +234,21 @@ func (a *AppKeepers) InitKeepers(
 
 	a.BankKeeper = wbankkeeper.NewKeeper(
 		appCodec,
-		a.keys[banktypes.StoreKey],
+		runtime.NewKVStoreService(a.keys[banktypes.StoreKey]),
 		a.AccountKeeper,
 		a.DaoKeeper,
 		moduleAccountAddrs,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		bApp.Logger(),
 	)
 
 	a.CrisisKeeper = crisiskeeper.NewKeeper(
-		appCodec, a.keys[crisistypes.StoreKey], invCheckPeriod, a.BankKeeper, authtypes.FeeCollectorName, govModuleAddress,
+		appCodec, runtime.NewKVStoreService(a.keys[crisistypes.StoreKey]), invCheckPeriod, a.BankKeeper, authtypes.FeeCollectorName, govModuleAddress, a.AccountKeeper.AddressCodec(),
 	)
 
 	a.WNFTKeeper = wnftkeeper.NewKeeper(
 		appCodec,
-		a.keys[nftkeeper.StoreKey],
+		runtime.NewKVStoreService(a.keys[nftkeeper.StoreKey]),
 		a.AccountKeeper,
 		a.BankKeeper,
 	)
@@ -253,16 +256,19 @@ func (a *AppKeepers) InitKeepers(
 	a.StakingKeeper = wstakingkeeper.NewKeeper(
 		appCodec,
 		a.keys[stakingtypes.StoreKey],
+		runtime.NewKVStoreService(a.keys[stakingtypes.StoreKey]),
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.DaoKeeper,
 		a.WNFTKeeper,
 		govModuleAddress,
+		authcodec.NewBech32Codec(appparams.AccountAddressPrefix+"valoper"),
+		authcodec.NewBech32Codec(appparams.AccountAddressPrefix+"valcons"),
 	)
 
 	a.MintKeeper = wmintkeeper.NewKeeper(
 		appCodec,
-		a.keys[minttypes.StoreKey],
+		runtime.NewKVStoreService(a.keys[minttypes.StoreKey]),
 		a.StakingKeeper,
 		a.AccountKeeper,
 		a.BankKeeper,
@@ -273,10 +279,10 @@ func (a *AppKeepers) InitKeepers(
 
 	a.DistrKeeper = wdistrkeeper.NewKeeper(
 		appCodec,
-		a.keys[distrtypes.StoreKey],
-		a.GetSubspace(distrtypes.ModuleName),
+		runtime.NewKVStoreService(a.keys[distrtypes.StoreKey]),
 		a.AccountKeeper,
 		a.BankKeeper,
+		a.StakingKeeper,
 		a.StakingKeeper,
 		wbanktypes.TreasuryPoolName,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
@@ -285,7 +291,7 @@ func (a *AppKeepers) InitKeepers(
 	a.SlashingKeeper = slashingkeeper.NewKeeper(
 		appCodec,
 		cdc,
-		a.keys[slashingtypes.StoreKey],
+		runtime.NewKVStoreService(a.keys[slashingtypes.StoreKey]),
 		a.StakingKeeper,
 		govModuleAddress,
 	)
@@ -293,7 +299,7 @@ func (a *AppKeepers) InitKeepers(
 
 	a.FeeGrantKeeper = feegrantkeeper.NewKeeper(
 		appCodec,
-		a.keys[feegrant.StoreKey],
+		runtime.NewKVStoreService(a.keys[feegrant.StoreKey]),
 		a.AccountKeeper,
 	)
 
@@ -335,6 +341,7 @@ func (a *AppKeepers) InitKeepers(
 		a.StakingKeeper,
 		a.UpgradeKeeper,
 		a.ScopedIBCKeeper,
+		govModuleAddress,
 	)
 
 	a.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
@@ -376,10 +383,11 @@ func (a *AppKeepers) InitKeepers(
 		a.GetSubspace(ibctransfertypes.ModuleName),
 		denommetadatamodule.NewICS4Wrapper(a.IBCKeeper.ChannelKeeper, a.RollappKeeper, a.BankKeeper),
 		a.IBCKeeper.ChannelKeeper,
-		&a.IBCKeeper.PortKeeper,
+		a.IBCKeeper.PortKeeper,
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.ScopedTransferKeeper,
+		govModuleAddress,
 	)
 
 	a.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
@@ -404,24 +412,23 @@ func (a *AppKeepers) InitKeepers(
 
 	// The last arguments can contain custom message handlers, and custom query handlers,
 	// if we want to allow any custom callbacks
-	availableCapabilities := strings.Join(wasmapp.AllCapabilities(), ",")
 	a.WasmKeeper = wasmkeeper.NewKeeper(
 		appCodec,
-		a.keys[wasmtypes.StoreKey],
+		runtime.NewKVStoreService(a.keys[wasmtypes.StoreKey]),
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.StakingKeeper,
 		distrkeeper.NewQuerier(a.DistrKeeper.Keeper),
 		a.ICS4Wrapper, // ISC4 Wrapper: fee IBC middleware
 		a.IBCKeeper.ChannelKeeper,
-		&a.IBCKeeper.PortKeeper,
+		a.IBCKeeper.PortKeeper,
 		scopedWasmKeeper,
 		a.TransferKeeper,
 		bApp.MsgServiceRouter(),
 		bApp.GRPCQueryRouter(),
 		wasmDir,
 		wasmConfig,
-		availableCapabilities,
+		wasmapp.AllCapabilities(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		allWasmOpts...,
 	)
@@ -492,7 +499,6 @@ func (a *AppKeepers) InitKeepers(
 	govRouter := govv1beta1.NewRouter()
 	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(a.ParamsKeeper)).
-		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(a.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(a.IBCKeeper.ClientKeeper)).
 		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(a.RollappKeeper)).
 		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(a.DenomMetadataKeeper)).
@@ -501,13 +507,14 @@ func (a *AppKeepers) InitKeepers(
 	// Create evidence Keeper for to register the IBC light client misbehavior evidence route
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	a.EvidenceKeeper = *evidencekeeper.NewKeeper(
-		appCodec, a.keys[evidencetypes.StoreKey], a.StakingKeeper, a.SlashingKeeper,
+		appCodec, runtime.NewKVStoreService(a.keys[evidencetypes.StoreKey]), a.StakingKeeper, a.SlashingKeeper,
+		a.AccountKeeper.AddressCodec(), runtime.ProvideCometInfoService(),
 	)
 
 	govConfig := govtypes.DefaultConfig()
 	a.GovKeeper = wgovkeeper.NewKeeper(
-		appCodec, a.keys[govtypes.StoreKey], a.AccountKeeper, a.BankKeeper,
-		a.StakingKeeper, bApp.MsgServiceRouter(), govConfig, govModuleAddress,
+		appCodec, runtime.NewKVStoreService(a.keys[govtypes.StoreKey]), a.AccountKeeper, a.BankKeeper,
+		a.StakingKeeper, a.DistrKeeper, bApp.MsgServiceRouter(), govConfig, govModuleAddress,
 	)
 	a.GovKeeper.SetLegacyRouter(govRouter)
 
@@ -515,7 +522,6 @@ func (a *AppKeepers) InitKeepers(
 		appCodec, a.keys[packetforwardtypes.StoreKey],
 		a.TransferKeeper,
 		a.IBCKeeper.ChannelKeeper,
-		a.DistrKeeper,
 		a.BankKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		govModuleAddress,
@@ -536,7 +542,6 @@ func (a *AppKeepers) InitTransferStack() {
 		a.PacketForwardMiddlewareKeeper,
 		0,
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
-		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
 	)
 
 	a.TransferStack = denommetadatamodule.NewIBCModule(a.TransferStack, a.DenomMetadataKeeper, a.RollappKeeper)
@@ -617,7 +622,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName)
-	paramsKeeper.Subspace(packetforwardtypes.ModuleName).WithKeyTable(packetforwardtypes.ParamKeyTable())
+	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibcexported.ModuleName)
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)

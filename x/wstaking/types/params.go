@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/app/params"
 )
@@ -15,7 +14,7 @@ const (
 	GlobalRegion      = "ME_EARTH"
 )
 
-func CheckMinDelegate(amount math.Int) error {
+func CheckMinDelegate(amount sdkmath.Int) error {
 	// if amount.Denom == sdk.BaseMEDenom {
 	delAmount := sdkmath.LegacyNewDecFromInt(amount).Mul(sdkmath.LegacyNewDecWithPrec(1, params.BaseDenomUnit))
 	minAmount, _ := sdkmath.LegacyNewDecFromStr(MinDelegateAmount)

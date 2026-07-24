@@ -2,17 +2,17 @@ package keeper
 
 import (
 	"context"
-	errorsmod "cosmossdk.io/errors"
 	"fmt"
 	"strings"
 
-	"cosmossdk.io/x/nft"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
+
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"github.com/openmetaearth/me-hub/utils"
-	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -21,7 +21,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 
 	_, err := utils.CheckRegionName(msg.Name)
 	if err != nil {
-		return nil, errorsmod.Wrapf(types.ErrRegionName, err.Error())
+		return nil, errorsmod.Wrap(types.ErrRegionName, err.Error())
 	}
 
 	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
@@ -39,11 +39,11 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "region bonded validator no found")
 	}
 
-	validator, ok := k.GetValidator(ctx, valAddr)
-	if !ok {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return nil, types.ErrRegionValidatorNotExist
 	}
-	if !strings.EqualFold(validator.Description.RegionID, regionId) {
+	if strings.ToLower(validator.Description.RegionID) != strings.ToLower(regionId) {
 		return nil, types.ErrRegion.Wrapf("only the validator with region id %s can be bound, not bound %s region", validator.Description.RegionID, regionId)
 	}
 
@@ -75,7 +75,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 		Symbol:      types.GetClassSymbol(msg.Name),
 		Description: types.GetClassDescription(regionId),
 		Uri:         uri,
-		UriHash:     utils.CalculateURIHash(uri),
+		UriHash:     utils.CalculateUriHash(uri),
 		Data:        metadata,
 	}
 
@@ -117,28 +117,28 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 }
 
 func (k MsgServer) RemoveRegion(goCtx context.Context, msg *types.MsgRemoveRegion) (*types.MsgRemoveRegionResponse, error) {
-	// ctx := sdk.UnwrapSDKContext(goCtx)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
-	// 	return nil, types.ErrCheckGlobalDao
-	// }
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
+		return nil, types.ErrCheckGlobalDao
+	}
 
-	// _, found := k.GetRegion(ctx, msg.RegionId)
-	// if !found {
-	// 	return nil, types.ErrRegionNotExist
-	// }
+	_, found := k.GetRegion(ctx, msg.RegionId)
+	if !found {
+		return nil, types.ErrRegionNotExist
+	}
 
-	// err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, sdk.ValAddress{})
-	// if err != nil {
-	// 	return nil, errorsmod.Wrapf(types.ErrHooks, "before remove region :error :%+v", err)
-	// }
-	// k.Keeper.RemoveRegion(ctx, msg.RegionId)
-	// ctx.EventManager().EmitEvent(
-	// 	sdk.NewEvent(
-	// 		types.EventTypeRemoveRegion,
-	// 		sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
-	// 	),
-	// )
+	err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, sdk.ValAddress{})
+	if err != nil {
+		return nil, errorsmod.Wrapf(types.ErrHooks, "before remove region :error :%+v", err)
+	}
+	k.Keeper.RemoveRegion(ctx, msg.RegionId)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeRemoveRegion,
+			sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
+		),
+	)
 	return &types.MsgRemoveRegionResponse{}, nil
 }
 
@@ -166,9 +166,6 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 	if err != nil {
 		return nil, errorsmod.Wrapf(types.ErrUnknownAccount, "receiver account %s format error %s", msg.Receiver, err)
 	}
-	if k.bankKeeper.Extend().BlockedAddr(toAddr) {
-		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive region treasury withdrawals", toAddr)
-	}
 
 	err = k.bankKeeper.Extend().SendCoinsWithTag(
 		ctx,
@@ -178,7 +175,7 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 		fmt.Sprintf("WithdrawFromRegionTreasure_%s", region.RegionId),
 	)
 	if err != nil {
-		return nil, errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "region treasure %s does not have enough balance", region.RegionTreasureAddr)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "region %s have enough balance", region.RegionTreasureAddr)
 	}
 
 	ctx.EventManager().EmitEvent(

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"cosmossdk.io/x/nft"
-	nftcli "cosmossdk.io/x/nft/client/cli"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -33,13 +32,6 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	nftQueryCmd.AddCommand(
-		nftcli.GetCmdQueryClass(),
-		nftcli.GetCmdQueryClasses(),
-		nftcli.GetCmdQueryNFT(),
-		nftcli.GetCmdQueryNFTs(),
-		nftcli.GetCmdQueryOwner(),
-		nftcli.GetCmdQueryBalance(),
-		nftcli.GetCmdQuerySupply(),
 		GetCmdQueryClassAddress(),
 		GetCmdQueryNftFilter(),
 	)
