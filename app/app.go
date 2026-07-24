@@ -181,7 +181,7 @@ func New(
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
 	// NOTE: staking module is required if HistoricalEntries param > 0
-	// TODO: use "github.com/osmosis-labs/osmosis/osmoutils/partialord" to order modules
+	// TODO: use a local partial-order utility to order modules.
 	app.mm.SetOrderBeginBlockers(keepers.BeginBlockers...)
 	app.mm.SetOrderEndBlockers(keepers.EndBlockers...)
 

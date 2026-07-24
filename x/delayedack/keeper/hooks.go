@@ -2,8 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
+	"github.com/openmetaearth/me-hub/utils/osmoutils"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
@@ -45,13 +44,12 @@ func (k eibcHooks) AfterDemandOrderFulfilled(ctx sdk.Context, demandOrder *eibct
 /* -------------------------------------------------------------------------- */
 /*                                 epoch hooks                                */
 /* -------------------------------------------------------------------------- */
-var _ epochstypes.EpochHooks = epochHooks{}
 
 type epochHooks struct {
 	Keeper
 }
 
-func (k Keeper) GetEpochHooks() epochstypes.EpochHooks {
+func (k Keeper) GetEpochHooks() epochHooks {
 	return epochHooks{
 		Keeper: k,
 	}

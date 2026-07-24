@@ -9,7 +9,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	coretypes "github.com/cosmos/ibc-go/v8/modules/core/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	"github.com/openmetaearth/me-hub/utils/osmoutils"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
