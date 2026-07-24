@@ -27,7 +27,7 @@ var Alice = "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u"
 
 func init() {
 	config := sdk.GetConfig()
-	params.SetAddressPrefixes(config)
+	params.SetAddressPrefixes()
 	config.Seal()
 }
 

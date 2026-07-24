@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -35,8 +36,14 @@ func (s *KeeperTestSuite) Keeper() *keeper.Keeper {
 	return s.App.KycKeeper
 }
 
+func (s *KeeperTestSuite) pubkeyJSON(privKey *ed25519.PrivKey) string {
+	bz, err := s.App.AppCodec().MarshalInterfaceJSON(privKey.PubKey())
+	s.Require().NoError(err)
+	return string(bz)
+}
+
 func (s *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
+	app := apptesting.Setup(s.T())
 	ctx := app.GetBaseApp().NewContext(false)
 
 	err := app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())

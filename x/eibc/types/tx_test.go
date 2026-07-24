@@ -12,7 +12,7 @@ import (
 
 func TestMsgFulfillOrderAuthorized_ValidateBasic(t *testing.T) {
 	config := sdk.GetConfig()
-	appparams.SetAddressPrefixes(config)
+	appparams.SetAddressPrefixes()
 	config.Seal()
 
 	validOrderID := "8f833734cf6b3890c386b8f7d0dc2c9ef077e8b1f3a8cf03874d37a316eb1308"

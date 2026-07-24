@@ -7,7 +7,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/openmetaearth/me-hub/x/rollapp/genesisbridge"
-	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/app/apptesting"
@@ -69,8 +68,8 @@ func (s *transferGenesisSuite) TestHappyPath() {
 		err = s.path.RelayPacket(packet)
 		s.Require().NoError(err)
 
-		transfersEnabled := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
-		s.Require().False(transfersEnabled, "transfers enabled check")
+		transferProofHeight := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransferProofHeight
+		s.Require().Zero(transferProofHeight, "transfers enabled check")
 	}
 
 	for _, denom := range denoms {
@@ -150,11 +149,9 @@ func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string, isGenesis
 		"",
 	)
 
-	if isGenesis {
-		msg.Memo = rollapptypes.GenesisTransferMemo{
-			Denom: meta,
-		}.Namespaced().MustString()
-	}
+	// The v3 genesis bridge no longer uses the legacy transfer memo. Genesis
+	// packets are carried by GenesisBridgeData during channel initialization.
+	_ = isGenesis
 
 	return msg
 }

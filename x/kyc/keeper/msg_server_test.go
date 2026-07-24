@@ -1,20 +1,22 @@
 package keeper_test
 
-import sdkmath "cosmossdk.io/math"
-
 import (
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
+
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/openmetaearth/me-hub/x/wdistri"
 	"github.com/openmetaearth/me-hub/x/wmint"
+
 	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/openmetaearth/me-hub/x/wstaking"
+
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -31,7 +33,7 @@ func (s *KeeperTestSuite) TestApprove() {
 		Did:      did,
 		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
 		Address:  kycAccount.String(),
-		Pubkey:   newUserPubkey,
+		Pubkey:   s.pubkeyJSON(newUserPubkey),
 		Uri:      "http://127.0.0.1/8001",
 		Hash:     "aaaa",
 		Inviter:  inviter.String(),
@@ -143,7 +145,7 @@ func (s *KeeperTestSuite) TestCreateSBTRejectsDuplicateDid() {
 		Did:      did,
 		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
 		Address:  kycAccount.String(),
-		Pubkey:   newUserPubkey,
+		Pubkey:   s.pubkeyJSON(newUserPubkey),
 		Uri:      "http://127.0.0.1/8001",
 		Hash:     "aaaa",
 		Inviter:  inviter.String(),
@@ -191,7 +193,7 @@ func (s *KeeperTestSuite) TestRemove() {
 		Did:      did,
 		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
 		Address:  kycAccount.String(),
-		Pubkey:   newUserPubkey,
+		Pubkey:   s.pubkeyJSON(newUserPubkey),
 		Uri:      "http://127.0.0.1/8001",
 		Hash:     "aaaa",
 		Inviter:  inviter.String(),
@@ -245,7 +247,7 @@ func (s *KeeperTestSuite) TestUpdate() {
 		Did:      did,
 		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
 		Address:  kycAccount.String(),
-		Pubkey:   newUserPubkey,
+		Pubkey:   s.pubkeyJSON(newUserPubkey),
 		Uri:      "http://127.0.0.1/8001",
 		Hash:     "aaaa",
 		Inviter:  inviter.String(),

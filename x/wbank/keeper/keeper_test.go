@@ -16,7 +16,7 @@ import (
 )
 
 func TestFeeToReceiversRejectsReceiverTypeMismatchBeforeTransfer(t *testing.T) {
-	meApp := apptesting.Setup(t, false)
+	meApp := apptesting.Setup(t)
 	ctx := meApp.BaseApp.NewContext(false).WithBlockHeight(1)
 
 	sender := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())

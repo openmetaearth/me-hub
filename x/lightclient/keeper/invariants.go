@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	"github.com/openmetaearth/me-hub/utils/uinv"
 	"github.com/openmetaearth/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/uinv"
 
 	"github.com/openmetaearth/me-hub/x/lightclient/types"
 )

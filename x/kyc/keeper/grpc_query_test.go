@@ -45,7 +45,7 @@ func (s *KeeperTestSuite) TestDID() {
 		Did:      did,
 		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
 		Address:  kycAccount.String(),
-		Pubkey:   newUserPubkey,
+		Pubkey:   s.pubkeyJSON(newUserPubkey),
 		Uri:      "http://127.0.0.1/8001",
 		Hash:     "aaaa",
 		Inviter:  inviter.String(),
@@ -61,7 +61,7 @@ func (s *KeeperTestSuite) TestDID() {
 
 	s.Require().Equal(res.Info.Did, did)
 	s.Require().Equal(res.Info.Address, kycAccount.String())
-	s.Require().Equal(res.Info.Pubkey, newUserPubkey)
+	s.Require().Equal(res.Info.Pubkey, s.pubkeyJSON(newUserPubkey))
 	s.Require().Equal(res.Info.Status, didtypes.DID_STATUS_ACTIVE)
 }
 
@@ -80,7 +80,7 @@ func (s *KeeperTestSuite) TestDIDs() {
 		Did:      did,
 		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
 		Address:  kycAccount.String(),
-		Pubkey:   newUserPubkey,
+		Pubkey:   s.pubkeyJSON(newUserPubkey),
 		Uri:      "http://127.0.0.1/8001",
 		Hash:     "aaaa",
 		Inviter:  inviter.String(),
@@ -98,7 +98,7 @@ func (s *KeeperTestSuite) TestDIDs() {
 	info := res.Infos[1]
 	s.Require().Equal(info.Did, did)
 	s.Require().Equal(info.Address, kycAccount.String())
-	s.Require().Equal(info.Pubkey, newUserPubkey)
+	s.Require().Equal(info.Pubkey, s.pubkeyJSON(newUserPubkey))
 	s.Require().Equal(info.Status, didtypes.DID_STATUS_ACTIVE)
 }
 
@@ -117,7 +117,7 @@ func (s *KeeperTestSuite) TestKYC() {
 		Did:      did,
 		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
 		Address:  kycAccount.String(),
-		Pubkey:   newUserPubkey,
+		Pubkey:   s.pubkeyJSON(newUserPubkey),
 		Uri:      "http://127.0.0.1/8001",
 		Hash:     "aaaa",
 		Inviter:  inviter.String(),
@@ -153,7 +153,7 @@ func (s *KeeperTestSuite) TestKYCs() {
 		Did:      did,
 		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
 		Address:  kycAccount.String(),
-		Pubkey:   newUserPubkey,
+		Pubkey:   s.pubkeyJSON(newUserPubkey),
 		Uri:      "http://127.0.0.1/8001",
 		Hash:     "aaaa",
 		Inviter:  inviter.String(),

@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"cosmossdk.io/store"
-	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/store/metrics"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,8 +13,8 @@ import (
 	"github.com/openmetaearth/me-hub/x/did/types"
 
 	"cosmossdk.io/log"
-	dbm "github.com/cosmos/cosmos-db"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/require"
 )
 

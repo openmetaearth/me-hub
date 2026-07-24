@@ -18,7 +18,7 @@ import (
 func setupMsgServer(t *testing.T) (*apptesting.KeeperTestHelper, types.MsgServer) {
 	t.Helper()
 
-	app := apptesting.Setup(t, false)
+	app := apptesting.Setup(t)
 	ctx := app.GetBaseApp().NewContext(false)
 
 	err := app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())

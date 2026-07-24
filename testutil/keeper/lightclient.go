@@ -12,38 +12,32 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/openmetaearth/me-hub/x/sequencer/keeper"
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
 	"github.com/stretchr/testify/require"
+
+	lightclientkeeper "github.com/openmetaearth/me-hub/x/lightclient/keeper"
+	lightclienttypes "github.com/openmetaearth/me-hub/x/lightclient/types"
+	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
-func SequencerKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
-	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+const (
+	DefaultRollapp = "rollapp_1234-1"
+	CanonClientID  = "07-tendermint-0"
+)
 
+var Alice = sequencertypes.Sequencer{
+	Address:   "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u",
+	RollappId: DefaultRollapp,
+}
+
+func LightClientKeeper(t testing.TB) (*lightclientkeeper.Keeper, sdk.Context) {
+	storeKey := storetypes.NewKVStoreKey(lightclienttypes.StoreKey)
 	db := dbm.NewMemDB()
 	stateStore := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
 	require.NoError(t, stateStore.LoadLatestVersion())
 
-	registry := codectypes.NewInterfaceRegistry()
-	cdc := codec.NewProtoCodec(registry)
-
-	authority := authtypes.NewModuleAddress(govtypes.ModuleName).String()
-	k := keeper.NewKeeper(
-		cdc,
-		storeKey,
-		nil,
-		nil,
-		nil,
-		authority,
-	)
-
+	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+	k := lightclientkeeper.NewKeeper(cdc, storeKey, nil, nil, nil, nil, nil)
 	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())
-
-	// Initialize params
-	k.SetParams(ctx, types.DefaultParams())
-
 	return k, ctx
 }

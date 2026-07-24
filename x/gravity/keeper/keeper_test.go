@@ -75,7 +75,7 @@ func (s *KeeperTestSuite) Keeper() keeper.Keeper {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
+	app := apptesting.Setup(s.T())
 	s.Ctx = app.NewContext(false).WithBlockHeight(0).WithChainID(apptesting.TestChainID)
 	s.App = app
 

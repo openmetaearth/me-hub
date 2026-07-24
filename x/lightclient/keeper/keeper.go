@@ -12,8 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/openmetaearth/me-hub/utils/gerrc"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 
 	"github.com/openmetaearth/me-hub/internal/collcompat"
 	"github.com/openmetaearth/me-hub/x/lightclient/types"

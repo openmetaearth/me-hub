@@ -19,7 +19,7 @@ const _ = appparams.BaseDenom
 
 func TestGenesisState_Validate(t *testing.T) {
 	config := sdk.GetConfig()
-	appparams.SetAddressPrefixes(config)
+	appparams.SetAddressPrefixes()
 	config.Seal()
 
 	for _, tc := range []struct {

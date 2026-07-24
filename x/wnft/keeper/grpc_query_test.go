@@ -22,7 +22,7 @@ func TestWnftKeeperTestSuite(t *testing.T) {
 }
 
 func (s *WnftKeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
+	app := apptesting.Setup(s.T())
 	ctx := app.GetBaseApp().NewContext(false)
 
 	s.App = app

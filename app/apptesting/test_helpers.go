@@ -1,6 +1,7 @@
 package apptesting
 
 import (
+	"bytes"
 	"encoding/json"
 	"testing"
 	"time"
@@ -58,10 +59,20 @@ type SetupOptions struct {
 var InvariantCheckInterval = uint(0) // disabled
 
 func SetupTestingApp() (*app.App, app.GenesisState) {
-	// Register base denom before creating app to ensure DefaultGenesis() has proper params
-	params.RegisterDenomsIfNeeded()
-
-	newApp := app.New(log.NewNopLogger(), dbm.NewMemDB(), nil, true, usim.AppOptionsMap{"skip-wasm-init": true}, bam.SetChainID(TestChainID))
+	encConfig := app.MakeEncodingConfig()
+	appOpts := usim.AppOptionsMap{"skip-wasm-init": true}
+	newApp := app.New(
+		log.NewNopLogger(),
+		dbm.NewMemDB(),
+		nil,
+		true,
+		map[int64]bool{},
+		app.DefaultNodeHome,
+		InvariantCheckInterval,
+		encConfig,
+		appOpts,
+		bam.SetChainID(TestChainID),
+	)
 	encCdc := newApp.AppCodec()
 	// Use BasicModuleManager to get default genesis for all modules so that
 	// module params (e.g. EVM EvmDenom, gravity MinDelegate, etc.) are initialized.
@@ -83,6 +94,32 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 	defaultGenesisState[evmtypes.ModuleName] = encCdc.MustMarshalJSON(&evmGenesisState)
 
 	return newApp, defaultGenesisState
+}
+
+// IBCTestApp adapts App genesis to the module account names used by ibc-go's
+// generic test-chain builder.
+type IBCTestApp struct{ *app.App }
+
+func (a *IBCTestApp) InitChain(req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
+	req.AppStateBytes = fixBondedPoolGenesis(req.AppStateBytes)
+	return a.App.InitChain(req)
+}
+
+func fixBondedPoolGenesis(appStateBytes []byte) []byte {
+	bondedPoolAddr := authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String()
+	bondedStakePoolAddr := authtypes.NewModuleAddress(wstakingtypes.BondedStakePoolName).String()
+	var genesisState map[string]json.RawMessage
+	if json.Unmarshal(appStateBytes, &genesisState) != nil {
+		return appStateBytes
+	}
+	if bankGenesis, ok := genesisState[banktypes.ModuleName]; ok {
+		genesisState[banktypes.ModuleName] = bytes.ReplaceAll(bankGenesis, []byte(bondedPoolAddr), []byte(bondedStakePoolAddr))
+	}
+	result, err := json.Marshal(genesisState)
+	if err != nil {
+		return appStateBytes
+	}
+	return result
 }
 
 // Setup initializes a new SimApp with a validator set and genesis accounts
@@ -271,6 +308,11 @@ func CreateRandomAccounts(accNum int) []sdk.AccAddress {
 // initial balance of accAmt in random order
 func AddTestAddrs(app *app.App, ctx sdk.Context, accNum int, accAmt math.Int) []sdk.AccAddress {
 	return addTestAddrs(app, ctx, accNum, accAmt, CreateRandomAccounts)
+}
+
+// AddTestAddr funds an existing test account with the supplied coins.
+func AddTestAddr(app *app.App, ctx sdk.Context, addr sdk.AccAddress, coins sdk.Coins) {
+	FundAccount(app, ctx, addr, coins)
 }
 
 func addTestAddrs(app *app.App, ctx sdk.Context, accNum int, accAmt math.Int, strategy GenerateAccountStrategy) []sdk.AccAddress {

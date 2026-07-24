@@ -3,7 +3,12 @@ package network
 import (
 	"testing"
 
+	"cosmossdk.io/store/pruning/types"
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/stretchr/testify/require"
 
 	"github.com/openmetaearth/me-hub/app"
@@ -36,7 +41,23 @@ func New(t *testing.T, configs ...network.Config) *network.Network {
 // DefaultConfig will initialize config for the network with custom application,
 // genesis and single validator. All other parameters are inherited from cosmos-sdk/testutil/network.DefaultConfig
 func DefaultConfig() network.Config {
-	cfg := network.DefaultConfig(app.NewTestNetworkFixture)
+	encoding := app.MakeEncodingConfig()
+	cfg := network.DefaultConfig(func() network.TestFixture {
+		return network.TestFixture{
+			EncodingConfig: moduletestutil.TestEncodingConfig{
+				InterfaceRegistry: encoding.InterfaceRegistry,
+				Codec:             encoding.Codec, TxConfig: encoding.TxConfig, Amino: encoding.Amino,
+			},
+			GenesisState: app.NewDefaultGenesisState(encoding.Codec),
+			AppConstructor: func(val network.ValidatorI) servertypes.Application {
+				return app.New(val.GetCtx().Logger, dbm.NewMemDB(), nil, true, map[int64]bool{},
+					app.DefaultNodeHome, 0, encoding, val.GetCtx().Viper,
+					baseapp.SetPruning(types.NewPruningOptionsFromString(val.GetAppConfig().Pruning)),
+					baseapp.SetMinGasPrices(val.GetAppConfig().MinGasPrices),
+					baseapp.SetChainID("me_1000-1"))
+			},
+		}
+	})
 	cfg.ChainID = "me_1000-1"
 	cfg.NumValidators = 1
 	return cfg

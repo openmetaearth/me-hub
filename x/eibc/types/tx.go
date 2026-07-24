@@ -225,7 +225,7 @@ func (m MsgUpdateParams) ValidateBasic() error {
 		)
 	}
 
-	err = m.NewParams.ValidateBasic()
+	err = m.NewParams.Validate()
 	if err != nil {
 		return errors.Join(
 			sdkerrors.ErrInvalidRequest,

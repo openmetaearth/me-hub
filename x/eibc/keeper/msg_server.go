@@ -36,7 +36,7 @@ func (m msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "only the gov module can update params")
 	}
 
-	err := req.NewParams.ValidateBasic()
+	err := req.NewParams.Validate()
 	if err != nil {
 		return nil, err
 	}

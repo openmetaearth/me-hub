@@ -321,7 +321,7 @@ func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
 			rollappPacket, err := delayedAckKeeper.GetRollappPacket(s.hubCtx(), lastDemandOrder.TrackingPacketKey)
 			s.Require().NoError(err)
 			var data transfertypes.FungibleTokenPacketData
-			err = eibctypes.ModuleCdc.UnmarshalJSON(rollappPacket.Packet.GetData(), &data)
+			err = transfertypes.ModuleCdc.UnmarshalJSON(rollappPacket.Packet.GetData(), &data)
 			s.Require().NoError(err)
 			s.Require().Equal(msgFulfillDemandOrder.FulfillerAddress, data.Receiver)
 

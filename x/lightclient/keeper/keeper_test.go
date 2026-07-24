@@ -5,9 +5,9 @@ import (
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
+	"github.com/openmetaearth/me-hub/utils/utest"
 	"github.com/openmetaearth/me-hub/x/lightclient/keeper"
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
-	"github.com/openmetaearth/me-hub/utils/utest"
 	"github.com/stretchr/testify/suite"
 )
 
