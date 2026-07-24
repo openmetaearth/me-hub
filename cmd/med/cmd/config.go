@@ -8,11 +8,10 @@ import (
 )
 
 func initSDKConfig() {
-	// Set additional config. prefix and denoms registered on app init
+	// Denoms are registered by params.init when the package is loaded.
 	config := sdk.GetConfig()
 	params.SetAddressPrefixes()
 	config.SetCoinType(ethermint.Bip44CoinType)
 	config.SetPurpose(sdk.Purpose)
 	config.Seal()
-	params.RegisterDenoms()
 }
