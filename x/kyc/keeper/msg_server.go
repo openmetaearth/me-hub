@@ -2,10 +2,11 @@ package keeper
 
 import (
 	"context"
-	errorsmod "cosmossdk.io/errors"
 	"encoding/hex"
 	"slices"
 	"strings"
+
+	errorsmod "cosmossdk.io/errors"
 
 	"cosmossdk.io/errors"
 	"cosmossdk.io/x/nft"

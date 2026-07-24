@@ -1,10 +1,9 @@
 package keeper
 
-import sdkmath "cosmossdk.io/math"
-
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 
 	minttypes "github.com/openmetaearth/me-hub/x/wmint/types"

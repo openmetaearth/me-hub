@@ -3,8 +3,9 @@ package types
 // DONTCOVER
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	"encoding/json"
+
+	errorsmod "cosmossdk.io/errors"
 )
 
 // x/megroup module sentinel errors
