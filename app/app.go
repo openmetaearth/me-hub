@@ -46,7 +46,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/openmetaearth/me-hub/app/ante"
-	"github.com/openmetaearth/me-hub/app/keepers"
+
 	appparams "github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/app/upgrades" //nolint:revive
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_14"
@@ -102,7 +102,7 @@ type App struct {
 	interfaceRegistry types.InterfaceRegistry
 
 	// keepers
-	keepers.AppKeepers
+	AppKeepers
 	// the module manager
 	mm *module.Manager
 	// module configurator
@@ -137,13 +137,13 @@ func New(
 		cdc:               cdc,
 		appCodec:          appCodec,
 		interfaceRegistry: interfaceRegistry,
-		AppKeepers:        keepers.AppKeepers{},
+		AppKeepers:        AppKeepers{},
 	}
 
 	app.GenerateKeys()
 
 	// load state streaming if enabled
-	if err := bApp.RegisterStreamingServices(appOpts, keepers.KVStoreKeys); err != nil {
+	if err := bApp.RegisterStreamingServices(appOpts, KVStoreKeys); err != nil {
 		panic(fmt.Errorf("failed to register streaming services: %w", err))
 	}
 
@@ -172,15 +172,15 @@ func New(
 	// CanWithdrawInvariant invariant.
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	// TODO: use a local partial-order utility to order modules.
-	app.mm.SetOrderBeginBlockers(keepers.BeginBlockers...)
-	app.mm.SetOrderEndBlockers(keepers.EndBlockers...)
+	app.mm.SetOrderBeginBlockers(BeginBlockers...)
+	app.mm.SetOrderEndBlockers(EndBlockers...)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
 	// NOTE: Capability module must occur first so that it can initialize any capabilities
 	// so that other modules that want to create or claim capabilities afterwards in InitChain
 	// can do so safely.
-	app.mm.SetOrderInitGenesis(keepers.InitGenesis...)
+	app.mm.SetOrderInitGenesis(InitGenesis...)
 	app.mm.RegisterInvariants(app.CrisisKeeper)
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
@@ -188,7 +188,7 @@ func New(
 	app.RegisterServices(app.configurator)
 
 	// initialize stores
-	app.MountKVStores(keepers.KVStoreKeys)
+	app.MountKVStores(KVStoreKeys)
 	app.MountTransientStores(app.GetTransientStoreKey())
 	app.MountMemoryStores(app.GetMemoryStoreKey())
 
@@ -382,7 +382,15 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 			app.mm,
 			app.configurator,
 			app.BaseApp,
-			&app.AppKeepers,
+			&upgrades.Keepers{
+				BankKeeper:      app.BankKeeper,
+				GovKeeper:       app.GovKeeper,
+				StakingKeeper:   app.StakingKeeper,
+				EvmKeeper:       app.EvmKeeper,
+				FeeMarketKeeper: app.FeeMarketKeeper,
+				BscKeeper:       app.BscKeeper,
+				TronKeeper:      app.TronKeeper,
+			},
 		),
 	)
 

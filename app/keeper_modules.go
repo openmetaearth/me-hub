@@ -1,4 +1,4 @@
-package keepers
+package app
 
 import (
 	"cosmossdk.io/x/evidence"

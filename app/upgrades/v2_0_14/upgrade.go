@@ -10,7 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	appkeepers "github.com/openmetaearth/me-hub/app/keepers"
 	"github.com/openmetaearth/me-hub/app/upgrades"
 )
 
@@ -20,7 +19,7 @@ func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
 	_ upgrades.BaseAppParamManager,
-	keepers *appkeepers.AppKeepers,
+	keepers *upgrades.Keepers,
 ) upgradetypes.UpgradeHandler {
 	return func(goCtx context.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		ctx := sdk.UnwrapSDKContext(goCtx)
