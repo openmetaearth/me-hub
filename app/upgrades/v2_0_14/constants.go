@@ -1,7 +1,7 @@
 package v2_0_14
 
 import (
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/openmetaearth/me-hub/app/upgrades"
 )

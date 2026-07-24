@@ -26,6 +26,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	pruningtypes "cosmossdk.io/store/pruning/types"
 	"cosmossdk.io/tools/rosetta"
 	crgserver "cosmossdk.io/tools/rosetta/lib/server"
 	dbm "github.com/cometbft/cometbft-db"
@@ -47,7 +48,6 @@ import (
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servergrpc "github.com/cosmos/cosmos-sdk/server/grpc"
 	"github.com/cosmos/cosmos-sdk/server/types"
-	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ethmetricsexp "github.com/ethereum/go-ethereum/metrics/exp"

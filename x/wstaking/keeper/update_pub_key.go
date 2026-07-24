@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
+	"cosmossdk.io/store/prefix"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"

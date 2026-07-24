@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	"cosmossdk.io/simapp"
+	pruningtypes "cosmossdk.io/store/pruning/types"
 	cometbftdb "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
