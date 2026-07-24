@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )

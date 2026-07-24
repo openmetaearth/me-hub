@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
 
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"

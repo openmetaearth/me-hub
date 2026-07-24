@@ -3,7 +3,7 @@ package delayedack_test
 import (
 	"testing"
 
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
 
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"

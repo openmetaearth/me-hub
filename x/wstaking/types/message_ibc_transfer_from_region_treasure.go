@@ -6,7 +6,7 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
 
 	"github.com/openmetaearth/me-hub/utils"
 )

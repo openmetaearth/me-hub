@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
+	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
 	ethante "github.com/evmos/ethermint/app/ante"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 

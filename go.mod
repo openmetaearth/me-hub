@@ -12,6 +12,7 @@ require (
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/log v1.4.1
 	cosmossdk.io/math v1.4.0
+	cosmossdk.io/simapp v0.0.0-20230925170603-467d2f71845d
 	cosmossdk.io/store v1.1.1
 	cosmossdk.io/x/evidence v0.1.1
 	cosmossdk.io/x/feegrant v0.1.1
@@ -73,10 +74,13 @@ require (
 
 require (
 	cloud.google.com/go v0.115.0 // indirect
+	cloud.google.com/go/auth v0.6.0 // indirect
+	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect
 	cloud.google.com/go/iam v1.1.9 // indirect
 	cloud.google.com/go/storage v1.41.0 // indirect
 	cosmossdk.io/depinject v1.1.0 // indirect
+	cosmossdk.io/x/circuit v0.1.1 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
@@ -92,6 +96,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
+	github.com/bits-and-blooms/bitset v1.8.0 // indirect
 	github.com/btcsuite/btcd v0.24.2 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.4 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.6 // indirect
@@ -115,6 +120,7 @@ require (
 	github.com/containerd/typeurl v1.0.2 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
+	github.com/cosmos/ibc-go/modules/apps/callbacks v0.2.1-0.20231113120333-342c00b0f8bd // indirect
 	github.com/cosmos/ledger-cosmos-go v0.14.0 // indirect
 	github.com/cosmos/rosetta-sdk-go v0.10.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
@@ -127,6 +133,7 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.4 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
+	github.com/distribution/reference v0.5.0 // indirect
 	github.com/dlclark/regexp2 v1.7.0 // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/docker/docker v20.10.19+incompatible // indirect
@@ -247,6 +254,7 @@ require (
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.5 // indirect
+	github.com/shamaton/msgpack/v2 v2.2.0 // indirect
 	github.com/shengdoushi/base58 v1.0.0 // indirect
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect

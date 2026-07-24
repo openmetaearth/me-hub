@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"

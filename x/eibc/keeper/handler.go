@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/pkg/errors"
 
 	"github.com/openmetaearth/me-hub/utils/uibc"
