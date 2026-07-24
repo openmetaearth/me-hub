@@ -53,6 +53,7 @@ import (
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_15"
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_16"
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_17"
+	v3 "github.com/openmetaearth/me-hub/app/upgrades/v3"
 	"github.com/openmetaearth/me-hub/docs"
 	metypes "github.com/openmetaearth/me-hub/types"
 	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
@@ -77,6 +78,7 @@ var (
 		v2_0_15.Upgrade,
 		v2_0_16.Upgrade,
 		v2_0_17.Upgrade,
+		v3.Upgrade,
 	}
 )
 
@@ -382,9 +384,29 @@ func (app *App) setupUpgradeHandlers() {
 }
 
 func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrade.Name,
-		upgrade.CreateHandler(
+	var handler upgradetypes.UpgradeHandler
+	if upgrade.CreateHandlerV3 != nil {
+		handler = upgrade.CreateHandlerV3(
+			app.mm,
+			app.configurator,
+			&upgrades.UpgradeKeepers{
+				AccountKeeper:     &app.AccountKeeper,
+				GovKeeper:         app.GovKeeper,
+				RollappKeeper:     app.RollappKeeper,
+				SequencerKeeper:   app.SequencerKeeper,
+				ParamsKeeper:      &app.ParamsKeeper,
+				DelayedAckKeeper:  &app.DelayedAckKeeper,
+				EIBCKeeper:        &app.EIBCKeeper,
+				LightClientKeeper: &app.LightClientKeeper,
+				IBCKeeper:         app.IBCKeeper,
+				MintKeeper:        &app.MintKeeper,
+				SlashingKeeper:    &app.SlashingKeeper,
+				ConsensusKeeper:   &app.ConsensusParamsKeeper,
+				StakingKeeper:     app.StakingKeeper,
+			},
+		)
+	} else {
+		handler = upgrade.CreateHandler(
 			app.mm,
 			app.configurator,
 			app.BaseApp,
@@ -397,7 +419,12 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 				BscKeeper:       app.BscKeeper,
 				TronKeeper:      app.TronKeeper,
 			},
-		),
+		)
+	}
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgrade.Name,
+		handler,
 	)
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
