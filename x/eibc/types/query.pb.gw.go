@@ -558,15 +558,15 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "eibc", "params"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "eibc", "params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_DemandOrderById_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "eibc", "demand_order", "id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_DemandOrderById_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "eibc", "demand_order", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_DemandOrdersByStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "eibc", "demand_orders", "status"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_DemandOrdersByStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "eibc", "demand_orders", "status"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_OnDemandLPs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "eibc", "on_demand_lps", "ids"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_OnDemandLPs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "eibc", "on_demand_lps", "ids"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_OnDemandLPsByByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "eibc", "on_demand_lps_addr", "addr"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_OnDemandLPsByByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "eibc", "on_demand_lps_addr", "addr"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
