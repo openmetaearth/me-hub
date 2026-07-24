@@ -1,6 +1,7 @@
 package denommetadata_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -647,9 +648,9 @@ type mockBankKeeper struct {
 	returnMetadata banktypes.Metadata
 }
 
-func (m mockBankKeeper) SetDenomMetaData(ctx sdk.Context, denomMetaData banktypes.Metadata) {
+func (m mockBankKeeper) SetDenomMetaData(ctx context.Context, denomMetaData banktypes.Metadata) {
 }
 
-func (m mockBankKeeper) GetDenomMetaData(sdk.Context, string) (banktypes.Metadata, bool) {
+func (m mockBankKeeper) GetDenomMetaData(context.Context, string) (banktypes.Metadata, bool) {
 	return m.returnMetadata, m.returnMetadata.Base != ""
 }

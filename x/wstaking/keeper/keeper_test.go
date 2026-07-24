@@ -1,24 +1,26 @@
 package keeper_test
 
-import sdkmath "cosmossdk.io/math"
-
 import (
 	"testing"
 	"time"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/openmetaearth/me-hub/app/apptesting"
-	"github.com/openmetaearth/me-hub/app/params"
 	testutilstypes "github.com/openmetaearth/me-hub/testutil/types"
+
 	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -44,12 +46,9 @@ func (s *KeeperTestSuite) Keeper() *wstakingkeeper.Keeper {
 
 func (s *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false)
 
-	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	s.Require().NoError(err)
-
-	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	err := app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
 	s.Require().NoError(err)
 
 	stakingParams := stakingtypes.DefaultParams()
@@ -71,7 +70,8 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.InitializeDao()
 
-	validators := s.Keeper().GetValidators(s.Ctx, 10)
+	validators, err := s.Keeper().GetValidators(s.Ctx, 10)
+	s.Require().NoError(err)
 	s.Require().True(len(validators) >= 3)
 	s.meEarthValidator = validators[0]
 	s.experienceValidator = validators[1]
@@ -149,7 +149,8 @@ func (s *KeeperTestSuite) TestMigrateValidator() {
 	validator, found := GetValidatorV2(s.Ctx, s.App.StakingKeeper, addr)
 	require.True(s.T(), found)
 
-	validators := s.App.StakingKeeper.GetAllValidators(s.Ctx)
+	validators, err := s.App.StakingKeeper.GetAllValidators(s.Ctx)
+	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(validators), 4)
 	for _, v := range validators {
 		if v.OperatorAddress == validator.OperatorAddress {

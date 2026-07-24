@@ -240,7 +240,8 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 			// End block and check if finalized
 			be := tt.fields.blockEnd
 			suite.Ctx = suite.Ctx.WithBlockHeight(be.blockHeight())
-			response := suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+			response, err := suite.App.EndBlocker(suite.Ctx)
+			suite.Require().NoError(err)
 
 			heightQueue := suite.App.RollappKeeper.GetAllBlockHeightToFinalizationQueue(*ctx)
 			suite.Require().Len(heightQueue, len(be.wantQueue))
@@ -278,19 +279,22 @@ func (suite *RollappTestSuite) TestFinalize() {
 	suite.Require().Nil(err)
 
 	// Finalize pending queues and check
-	response := suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+	response, err := suite.App.EndBlocker(suite.Ctx)
+	suite.Require().NoError(err)
 	suite.Require().Len(k.GetAllBlockHeightToFinalizationQueue(*ctx), 2)
 	suite.False(findEvent(response, types.EventTypeStatusChange))
 
 	// Finalize pending queues and check
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx)))
-	response = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+	response, err = suite.App.EndBlocker(suite.Ctx)
+	suite.Require().NoError(err)
 	suite.Require().Len(k.GetAllBlockHeightToFinalizationQueue(*ctx), 1)
 	suite.True(findEvent(response, types.EventTypeStatusChange))
 
 	// Finalize pending queues and check
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx) + 1))
-	response = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+	response, err = suite.App.EndBlocker(suite.Ctx)
+	suite.Require().NoError(err)
 	suite.Require().Len(k.GetAllBlockHeightToFinalizationQueue(*ctx), 0)
 	suite.True(findEvent(response, types.EventTypeStatusChange))
 }
@@ -305,7 +309,7 @@ func createNBlockHeightToFinalizationQueue(keeper *keeper.Keeper, ctx sdk.Contex
 	return items
 }
 
-func countFinalized(response abci.ResponseEndBlock) int {
+func countFinalized(response sdk.EndBlock) int {
 	count := 0
 	for _, event := range response.Events {
 		if event.Type == types.EventTypeStatusChange {
@@ -315,7 +319,7 @@ func countFinalized(response abci.ResponseEndBlock) int {
 	return count
 }
 
-func findEvent(response abci.ResponseEndBlock, eventType string) bool {
+func findEvent(response sdk.EndBlock, eventType string) bool {
 	return slices.ContainsFunc(response.Events, func(e abci.Event) bool { return e.Type == eventType })
 }
 

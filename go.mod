@@ -54,7 +54,6 @@ require (
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
-	github.com/tendermint/tendermint v0.34.29
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	golang.org/x/net v0.45.0
 	golang.org/x/tools v0.37.0
@@ -299,7 +298,5 @@ replace (
 	github.com/ipfs/go-log/v2 => github.com/st-chain/go-log/v2 v2.7.0
 	//  broken goleveldb
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
-	// use cometbft
-	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.29
 	golang.org/x/exp => golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63
 )

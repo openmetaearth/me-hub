@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 )
@@ -36,7 +37,7 @@ func (s Signer) AccAddress() sdk.AccAddress {
 }
 
 // Sign signs the message using the underlying private key
-func (s Signer) Sign(_ string, msg []byte) ([]byte, cryptotypes.PubKey, error) {
+func (s Signer) Sign(_ string, msg []byte, _ signing.SignMode) ([]byte, cryptotypes.PubKey, error) {
 	if s.privKey.Type() != ethsecp256k1.KeyType {
 		return nil, nil, fmt.Errorf(
 			"invalid private key type for signing ethereum tx; expected %s, got %s",
@@ -54,11 +55,11 @@ func (s Signer) Sign(_ string, msg []byte) ([]byte, cryptotypes.PubKey, error) {
 }
 
 // SignByAddress sign byte messages with a user key providing the address.
-func (s Signer) SignByAddress(address sdk.Address, msg []byte) ([]byte, cryptotypes.PubKey, error) {
+func (s Signer) SignByAddress(address sdk.Address, msg []byte, signMode signing.SignMode) ([]byte, cryptotypes.PubKey, error) {
 	signer := sdk.AccAddress(s.privKey.PubKey().Address())
 	if !signer.Equals(address) {
 		return nil, nil, fmt.Errorf("address mismatch: signer %s ≠ given address %s", signer, address)
 	}
 
-	return s.Sign("", msg)
+	return s.Sign("", msg, signMode)
 }

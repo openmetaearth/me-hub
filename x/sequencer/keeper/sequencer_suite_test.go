@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/cometbft/cometbft/libs/rand"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -30,7 +29,7 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 
 func (suite *SequencerTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.SequencerKeeper)
@@ -64,7 +63,7 @@ func (suite *SequencerTestSuite) CreateSequencerWithBond(ctx sdk.Context, rollap
 	suite.Require().Nil(err)
 
 	// fund account
-	err = bankutil.FundAccount(suite.App.BankKeeper, ctx, addr1, sdk.NewCoins(bond))
+	err = bankutil.FundAccount(ctx, suite.App.BankKeeper, addr1, sdk.NewCoins(bond))
 	suite.Require().Nil(err)
 
 	sequencerMsg1 := types.MsgCreateSequencer{

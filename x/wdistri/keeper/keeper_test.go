@@ -6,10 +6,10 @@ import (
 
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
@@ -54,7 +54,7 @@ func (s *KeeperTestSuite) Keeper() *keeper.Keeper {
 
 func (s *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	nativeQuerier := distrkeeper.Querier{Keeper: app.DistrKeeper.Keeper}
@@ -74,10 +74,10 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.App.DistrKeeper = keeper.NewKeeper(
 		s.App.AppCodec(),
-		s.App.GetKey(distrtypes.StoreKey),
-		s.App.GetSubspace(distrtypes.ModuleName),
-		s.authKeeper,
-		s.bankKeeper,
+		runtime.NewKVStoreService(s.App.GetKey(distrtypes.StoreKey)),
+		s.App.AccountKeeper,
+		s.App.BankKeeper,
+		s.App.StakingKeeper,
 		s.stakingKeeper,
 		wbanktypes.TreasuryPoolName,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
@@ -223,7 +223,7 @@ func (s *KeeperTestSuite) TestEndBlocker() {
 		}
 		s.setMockSendCoinsFromModuleToAccountExpect(ctx, wantReward...)
 
-		err := s.App.DistrKeeper.AllocateBlockRewardEveryday(ctx, abci.RequestEndBlock{Height: ctx.BlockHeight()})
+		err := s.App.DistrKeeper.AllocateBlockRewardEveryday(ctx)
 		events := ctx.EventManager().ABCIEvents()
 		s.Require().NoError(err, "case %d: %s", index, testcase.name)
 		assert.Equal(s.T(), len(addrs), len(events))

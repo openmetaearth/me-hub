@@ -5,6 +5,7 @@
 package mock
 
 import (
+	context "context"
 	reflect "reflect"
 
 	types "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -146,7 +147,7 @@ func (mr *MockBankKeeperMockRecorder) FeeToReceivers(ctx, inputs, outputs, recei
 }
 
 // GetAllBalances mocks base method.
-func (m *MockBankKeeper) GetAllBalances(ctx types0.Context, addr types0.AccAddress) types0.Coins {
+func (m *MockBankKeeper) GetAllBalances(ctx context.Context, addr types0.AccAddress) types0.Coins {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllBalances", ctx, addr)
 	ret0, _ := ret[0].(types0.Coins)
@@ -289,7 +290,7 @@ func (m *MockWasmKeeper) EXPECT() *MockWasmKeeperMockRecorder {
 }
 
 // GetContractInfo mocks base method.
-func (m *MockWasmKeeper) GetContractInfo(ctx types0.Context, contractAddress types0.AccAddress) *types.ContractInfo {
+func (m *MockWasmKeeper) GetContractInfo(ctx context.Context, contractAddress types0.AccAddress) *types.ContractInfo {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContractInfo", ctx, contractAddress)
 	ret0, _ := ret[0].(*types.ContractInfo)
@@ -303,7 +304,7 @@ func (mr *MockWasmKeeperMockRecorder) GetContractInfo(ctx, contractAddress inter
 }
 
 // HasContractInfo mocks base method.
-func (m *MockWasmKeeper) HasContractInfo(ctx types0.Context, contractAddress types0.AccAddress) bool {
+func (m *MockWasmKeeper) HasContractInfo(ctx context.Context, contractAddress types0.AccAddress) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HasContractInfo", ctx, contractAddress)
 	ret0, _ := ret[0].(bool)

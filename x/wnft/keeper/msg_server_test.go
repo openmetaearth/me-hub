@@ -4,9 +4,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/x/nft"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
@@ -21,12 +19,9 @@ func setupMsgServer(t *testing.T) (*apptesting.KeeperTestHelper, types.MsgServer
 	t.Helper()
 
 	app := apptesting.Setup(t, false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false)
 
-	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	require.NoError(t, err)
-
-	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	err := app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
 	require.NoError(t, err)
 
 	stakingParams := stakingtypes.DefaultParams()

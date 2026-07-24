@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/x/nft"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/stretchr/testify/suite"
@@ -24,7 +23,7 @@ func TestWnftKeeperTestSuite(t *testing.T) {
 
 func (s *WnftKeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false)
 
 	s.App = app
 	s.Ctx = ctx
@@ -37,12 +36,12 @@ func (s *WnftKeeperTestSuite) TestClassAddressPagination() {
 
 	classID := "testclass"
 	err := k.SaveClass(ctx, nft.Class{
-		Id:          classID,
-		Name:        "Test Class",
-		Symbol:      "TC",
-		TotalSupply: 10,
+		Id:     classID,
+		Name:   "Test Class",
+		Symbol: "TC",
 	})
 	s.Require().NoError(err)
+	s.Require().NoError(k.SetClassTotalSupplyCap(ctx, classID, 10))
 
 	owner := s.NewAccounts(1)[0]
 	for i := 1; i <= 5; i++ {
@@ -104,10 +103,12 @@ func (s *WnftKeeperTestSuite) TestNftFilterPagination() {
 	classID1 := "testclass1"
 	classID2 := "testclass2"
 
-	err := k.SaveClass(ctx, nft.Class{Id: classID1, Name: "Test Class 1", TotalSupply: 10})
+	err := k.SaveClass(ctx, nft.Class{Id: classID1, Name: "Test Class 1"})
 	s.Require().NoError(err)
-	err = k.SaveClass(ctx, nft.Class{Id: classID2, Name: "Test Class 2", TotalSupply: 10})
+	s.Require().NoError(k.SetClassTotalSupplyCap(ctx, classID1, 10))
+	err = k.SaveClass(ctx, nft.Class{Id: classID2, Name: "Test Class 2"})
 	s.Require().NoError(err)
+	s.Require().NoError(k.SetClassTotalSupplyCap(ctx, classID2, 10))
 
 	owner := s.NewAccounts(1)[0]
 	for i := 1; i <= 3; i++ {

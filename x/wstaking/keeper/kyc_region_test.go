@@ -3,8 +3,6 @@ package keeper_test
 import (
 	"strings"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
@@ -36,9 +34,9 @@ func (s *KeeperTestSuite) TestTransferKycRegion() {
 	_, err = s.msgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
 	inviter := accounts[0]
@@ -54,12 +52,12 @@ func (s *KeeperTestSuite) TestTransferKycRegion() {
 	s.Require().True(found)
 	s.Require().Equal(region.DelegateAmount.String(), types.Bonus.String())
 
-	delegation, f := s.Keeper().GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
-	s.Require().True(f)
+	delegation, err := s.Keeper().GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
+	s.Require().NoError(err)
 	s.Require().Equal(delegation.Unmovable.String(), types.Bonus.String())
 	s.Require().Equal(delegation.ValidatorAddress, s.meEarthValidator.OperatorAddress)
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks + 1).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wmintTypes.OneDayTotalBlocks + 1).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wstaking.BeginBlock(s.Ctx, s.Keeper())
 
@@ -67,8 +65,8 @@ func (s *KeeperTestSuite) TestTransferKycRegion() {
 	err = s.Keeper().TransferKycRegion(s.Ctx, kycAccount, s.Dao.GlobalDao, s.meEarthValidator.Description.RegionID, s.usaValidator.Description.RegionID)
 	s.Require().NoError(err)
 
-	delegation, f = s.Keeper().GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
-	s.Require().True(f)
+	delegation, err = s.Keeper().GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
+	s.Require().NoError(err)
 	s.Require().Equal(delegation.Unmovable.String(), types.Bonus.String())
 	s.Require().Equal(delegation.ValidatorAddress, s.usaValidator.OperatorAddress)
 	s.Require().EqualValues(delegation.StartHeight, wmintTypes.OneDayTotalBlocks+1)

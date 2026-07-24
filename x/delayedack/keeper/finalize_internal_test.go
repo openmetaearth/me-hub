@@ -6,9 +6,10 @@ import (
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
+	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	tmdb "github.com/cometbft/cometbft-db"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	dbtypes "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
@@ -127,9 +128,9 @@ func (m *mockRecvIBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Pa
 func newReplayTestContext(t *testing.T) (sdk.Context, *storetypes.KVStoreKey) {
 	t.Helper()
 
-	storeKey := sdk.NewKVStoreKey("replay-test")
-	db := tmdb.NewMemDB()
-	stateStore := store.NewCommitMultiStore(db)
+	storeKey := storetypes.NewKVStoreKey("replay-test")
+	db := dbtypes.NewMemDB()
+	stateStore := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
 	require.NoError(t, stateStore.LoadLatestVersion())
 

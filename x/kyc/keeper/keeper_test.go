@@ -3,9 +3,7 @@ package keeper_test
 import (
 	"testing"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -39,12 +37,9 @@ func (s *KeeperTestSuite) Keeper() *keeper.Keeper {
 
 func (s *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(s.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false)
 
-	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	s.Require().NoError(err)
-
-	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	err := app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
 	s.Require().NoError(err)
 
 	stakingParams := stakingtypes.DefaultParams()
@@ -68,7 +63,8 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.InitializeDao()
 
-	validators := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
+	validators, err := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
+	s.Require().NoError(err)
 	s.Require().True(len(validators) >= 3)
 	s.meEarthValidator = validators[0]
 	s.experienceValidator = validators[1]

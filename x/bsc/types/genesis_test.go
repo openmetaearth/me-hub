@@ -1,7 +1,5 @@
 package types
 
-package types
-
 import (
 	"reflect"
 	"testing"

@@ -1,17 +1,19 @@
 package keeper_test
 
-import sdkmath "cosmossdk.io/math"
-
 import (
 	"encoding/hex"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/openmetaearth/me-hub/app/params"
+
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -24,13 +26,16 @@ func (s *KeeperTestSuite) newCreateValidatorMsgForTest(operatorAcc sdk.AccAddres
 		sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)),
 	)
 
+	minCommissionRate, err := s.Keeper().MinCommissionRate(s.Ctx)
+	s.Require().NoError(err)
+
 	return &stakingtypes.MsgCreateValidator{
 		Description: stakingtypes.Description{
 			Moniker:  "replacement-conflict",
 			RegionID: wstakingtypes.MeEarthRegionName,
 		},
 		Commission: stakingtypes.NewCommissionRates(
-			s.Keeper().MinCommissionRate(s.Ctx),
+			minCommissionRate,
 			sdkmath.LegacyOneDec(),
 			sdkmath.LegacyZeroDec(),
 		),
@@ -93,10 +98,10 @@ func (s *KeeperTestSuite) TestMsgServerCreateValidatorAllowsDifferentPendingRepl
 	s.Require().NoError(err)
 
 	validatorAddr := sdk.ValAddress(s.TestAccs[1])
-	validator, found := s.Keeper().GetValidator(s.Ctx, validatorAddr)
-	s.Require().True(found)
+	validator, err := s.Keeper().GetValidator(s.Ctx, validatorAddr)
+	s.Require().NoError(err)
 
 	validatorConsAddr, err := validator.GetConsAddr()
 	s.Require().NoError(err)
-	s.Require().Equal(sdk.GetConsAddress(createPubKey).String(), validatorConsAddr.String())
+	s.Require().Equal(sdk.GetConsAddress(createPubKey).String(), sdk.ConsAddress(validatorConsAddr).String())
 }

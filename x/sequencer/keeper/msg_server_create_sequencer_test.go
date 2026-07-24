@@ -1,17 +1,19 @@
 package keeper_test
 
-import sdkmath "cosmossdk.io/math"
-
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
+	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/openmetaearth/me-hub/testutil/sample"
+
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
@@ -88,7 +90,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		suite.Require().Nil(err)
 
 		// fund account
-		err = bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr1, sdk.NewCoins(tc.bond))
+		err = bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr1, sdk.NewCoins(tc.bond))
 		suite.Require().Nil(err)
 
 		sequencerMsg1 := types.MsgCreateSequencer{
@@ -119,7 +121,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerRejectsZeroBond() {
 
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 	suite.Require().NoError(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
@@ -149,7 +151,7 @@ func (suite *SequencerTestSuite) TestDefaultMinBondCreatesCollateralizedProposer
 
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 	suite.Require().NoError(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
@@ -205,7 +207,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		for i := 0; i < 10; i++ {
 			pubkey := secp256k1.GenPrivKey().PubKey()
 			addr := sdk.AccAddress(pubkey.Address())
-			err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+			err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 			suite.Require().NoError(err)
 			pkAny, err := codectypes.NewAnyWithValue(pubkey)
 			suite.Require().Nil(err)
@@ -282,7 +284,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 	suite.Require().NoError(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
@@ -307,7 +309,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 	suite.Require().NoError(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
@@ -331,7 +333,7 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 	sequencerAddress := addr.String()
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 	suite.Require().NoError(err)
 
 	rollapp := rollapptypes.Rollapp{
@@ -394,7 +396,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 	// TODO: cahnge with common func
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 	suite.Require().NoError(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
@@ -428,7 +430,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersZero() {
 
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 	suite.Require().Nil(err)
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)
@@ -463,7 +465,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 	for i := 0; i < maxSequencers; i++ {
 		pubkey := secp256k1.GenPrivKey().PubKey()
 		addr := sdk.AccAddress(pubkey.Address())
-		err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+		err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 		suite.Require().Nil(err)
 
 		pkAny, err := codectypes.NewAnyWithValue(pubkey)
@@ -483,7 +485,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 	for i := 0; i < 2; i++ {
 		pubkey := secp256k1.GenPrivKey().PubKey()
 		addr := sdk.AccAddress(pubkey.Address())
-		err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+		err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 		suite.Require().Nil(err)
 		pkAny, err := codectypes.NewAnyWithValue(pubkey)
 		suite.Require().Nil(err)
@@ -516,7 +518,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersNotSet() {
 	for i := 0; i < 10; i++ {
 		pubkey := secp256k1.GenPrivKey().PubKey()
 		addr := sdk.AccAddress(pubkey.Address())
-		err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+		err := bankutil.FundAccount(suite.Ctx, suite.App.BankKeeper, addr, sdk.NewCoins(bond))
 		suite.Require().Nil(err)
 
 		pkAny, err := codectypes.NewAnyWithValue(pubkey)
@@ -634,7 +636,7 @@ func CompareSequencers(s1, s2 *types.Sequencer) bool {
 		return false
 	}
 
-	if !s1.Tokens.IsEqual(s2.Tokens) {
+	if !s1.Tokens.Equal(s2.Tokens) {
 		return false
 	}
 

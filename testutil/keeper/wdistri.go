@@ -5,14 +5,15 @@ import (
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
+	"cosmossdk.io/store/metrics"
 	storetypes "cosmossdk.io/store/types"
-	tmdb "github.com/cometbft/cometbft-db"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	dbtypes "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/require"
 
 	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
@@ -20,11 +21,11 @@ import (
 )
 
 func WdistriKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
-	storeKey := sdk.NewKVStoreKey(distributiontypes.StoreKey)
+	storeKey := storetypes.NewKVStoreKey(distributiontypes.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey("transient")
 
-	db := tmdb.NewMemDB()
-	stateStore := store.NewCommitMultiStore(db)
+	db := dbtypes.NewMemDB()
+	stateStore := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(memStoreKey, storetypes.StoreTypeMemory, nil)
 	require.NoError(t, stateStore.LoadLatestVersion())
@@ -32,16 +33,10 @@ func WdistriKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
 
-	paramsSubspace := typesparams.NewSubspace(cdc,
-		distributiontypes.ModuleCdc.LegacyAmino,
-		storeKey,
-		memStoreKey,
-		"WdistriParams",
-	)
 	k := keeper.NewKeeper(
 		cdc,
-		storeKey,
-		paramsSubspace,
+		runtime.NewKVStoreService(storeKey),
+		nil,
 		nil,
 		nil,
 		nil,
@@ -50,9 +45,6 @@ func WdistriKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())
-
-	// Initialize params
-	require.NoError(t, k.SetParams(ctx, distributiontypes.DefaultParams()))
 
 	return k, ctx
 }

@@ -6,8 +6,6 @@ import (
 	"strings"
 	"time"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
@@ -40,7 +38,7 @@ func (s *KeeperTestSuite) TestFixedDeposit() {
 	s.Require().NoError(err)
 
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	amount := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10000000)))
 	_, err = s.msgServer.WithdrawFromRegion(s.Ctx, &types.MsgWithdrawFromRegion{
@@ -214,7 +212,7 @@ func (s *KeeperTestSuite) TestWithdrawFixedDeposit() {
 	interestBalance := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(regionInterestAddr.String()), params.BaseDenom)
 	s.T().Logf("interestBalance balance: %s", interestBalance.String())
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneYearTotalBlocks).WithChainID(apptesting.TestChainID).WithBlockTime(s.Ctx.BlockTime().Add(7760 * time.Hour))
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wmintTypes.OneYearTotalBlocks).WithChainID(apptesting.TestChainID).WithBlockTime(s.Ctx.BlockTime().Add(7760 * time.Hour))
 	_, err = s.msgServer.WithdrawFixedDeposit(s.Ctx, &types.MsgWithdrawFixedDeposit{
 		Account: s.Dao.GlobalDao,
 		Id:      fixDeposit.Id,

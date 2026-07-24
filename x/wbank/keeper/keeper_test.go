@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -18,7 +17,7 @@ import (
 
 func TestFeeToReceiversRejectsReceiverTypeMismatchBeforeTransfer(t *testing.T) {
 	meApp := apptesting.Setup(t, false)
-	ctx := meApp.BaseApp.NewContext(false, cometbftproto.Header{}).WithBlockHeight(1)
+	ctx := meApp.BaseApp.NewContext(false).WithBlockHeight(1)
 
 	sender := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
 	receiverA := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
@@ -28,7 +27,7 @@ func TestFeeToReceiversRejectsReceiverTypeMismatchBeforeTransfer(t *testing.T) {
 	outputCoinsA := sdk.NewCoins(sdk.NewInt64Coin(params.BaseDenom, 40))
 	outputCoinsB := sdk.NewCoins(sdk.NewInt64Coin(params.BaseDenom, 60))
 
-	err := bankutil.FundAccount(meApp.BankKeeper, ctx, sender, inputCoins)
+	err := bankutil.FundAccount(ctx, meApp.BankKeeper.BaseKeeper, sender, inputCoins)
 	require.NoError(t, err)
 
 	inputs := []banktypes.Input{{
@@ -49,7 +48,7 @@ func TestFeeToReceiversRejectsReceiverTypeMismatchBeforeTransfer(t *testing.T) {
 	require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
 	require.ErrorContains(t, err, "fee receiver types and outputs are not equal")
 
-	require.True(t, senderBefore.IsEqual(meApp.BankKeeper.GetAllBalances(ctx, sender)))
-	require.True(t, receiverABefore.IsEqual(meApp.BankKeeper.GetAllBalances(ctx, receiverA)))
-	require.True(t, receiverBBefore.IsEqual(meApp.BankKeeper.GetAllBalances(ctx, receiverB)))
+	require.True(t, senderBefore.Equal(meApp.BankKeeper.GetAllBalances(ctx, sender)))
+	require.True(t, receiverABefore.Equal(meApp.BankKeeper.GetAllBalances(ctx, receiverA)))
+	require.True(t, receiverBBefore.Equal(meApp.BankKeeper.GetAllBalances(ctx, receiverB)))
 }

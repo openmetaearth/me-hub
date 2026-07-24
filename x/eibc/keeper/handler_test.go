@@ -1,9 +1,8 @@
 package keeper_test
 
-import sdkmath "cosmossdk.io/math"
-
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
+
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 
 	dacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"

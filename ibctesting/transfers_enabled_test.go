@@ -59,17 +59,17 @@ func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 
 		apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.Coins{msg.Token})
 
-		_, _, err := simapp.SignAndDeliver(
-			s.hubChain().T,
+		_, err := simapp.SignAndDeliver(
+			s.hubChain(),
 			s.hubChain().TxConfig,
 			s.hubApp().GetBaseApp(),
-			s.hubCtx().BlockHeader(),
 			[]sdk.Msg{msg},
 			hubChainID(),
 			[]uint64{s.hubChain().SenderAccount.GetAccountNumber()},
 			[]uint64{s.hubChain().SenderAccount.GetSequence()},
-			true,
 			!shouldFail,
+			s.hubCtx().BlockTime(),
+			s.hubCtx().BlockHeader().NextValidatorsHash,
 			s.hubChain().SenderPrivKey,
 		)
 

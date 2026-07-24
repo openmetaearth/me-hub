@@ -1,16 +1,18 @@
 package keeper_test
 
-import sdkmath "cosmossdk.io/math"
-
 import (
 	"math/big"
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	sdkmath "cosmossdk.io/math"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wstaking"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
@@ -81,15 +83,15 @@ func (s *KeeperTestSuite) TestStake() {
 			_, found := s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))
 			s.Require().True(found)
 
-			validatorBefore, found := s.Keeper().GetValidator(s.Ctx, valAddress)
-			s.Require().True(found)
+			validatorBefore, err := s.Keeper().GetValidator(s.Ctx, valAddress)
+			s.Require().NoError(err)
 
 			stakeBefore, _ := s.Keeper().GetStake(s.Ctx, sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), valAddress)
 			if stakeBefore.Shares.IsNil() {
 				stakeBefore.Shares = sdkmath.LegacyZeroDec()
 			}
 
-			_, err := s.msgServer.Stake(s.Ctx, &msg)
+			_, err = s.msgServer.Stake(s.Ctx, &msg)
 			s.Require().ErrorIs(err, test.expErr)
 
 			if test.expErr == nil {
@@ -98,8 +100,8 @@ func (s *KeeperTestSuite) TestStake() {
 				s.Require().Equal(stakePoolBalanceAfter.Amount.String(), stakePoolBalanceBefore.Sub(stakeAmount).Amount.String())
 
 				// check validator
-				validatorAfter, found := s.Keeper().GetValidator(s.Ctx, valAddress)
-				s.Require().True(found)
+				validatorAfter, err := s.Keeper().GetValidator(s.Ctx, valAddress)
+				s.Require().NoError(err)
 				s.Require().Equal(validatorAfter.Tokens.String(), validatorBefore.Tokens.Add(stakeAmount.Amount).String())
 				shares, err := validatorBefore.SharesFromTokens(stakeAmount.Amount)
 				s.Require().NoError(err)
@@ -188,10 +190,10 @@ func (s *KeeperTestSuite) TestUnStake() {
 			s.Require().True(found)
 			_ = regionBefore
 
-			validatorBefore, found := s.Keeper().GetValidator(s.Ctx, valAddress)
-			s.Require().True(found)
+			validatorBefore, err := s.Keeper().GetValidator(s.Ctx, valAddress)
+			s.Require().NoError(err)
 
-			_, err := s.msgServer.Unstake(s.Ctx, &msg)
+			_, err = s.msgServer.Unstake(s.Ctx, &msg)
 			s.Require().ErrorIs(err, test.expErr)
 
 			// call endblock for complete unstake
@@ -207,8 +209,8 @@ func (s *KeeperTestSuite) TestUnStake() {
 				s.Require().Equal("0", regionAfter.RegionShare.String())
 
 				// check validator
-				validatorAfter, found := s.Keeper().GetValidator(s.Ctx, valAddress)
-				s.Require().True(found)
+				validatorAfter, err := s.Keeper().GetValidator(s.Ctx, valAddress)
+				s.Require().NoError(err)
 				s.Require().Equal(validatorBefore.Tokens.Sub(stakeAmount.Amount).String(), validatorAfter.Tokens.String())
 
 				shares, err := validatorBefore.SharesFromTokens(stakeAmount.Amount)

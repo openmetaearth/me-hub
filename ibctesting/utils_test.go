@@ -1,33 +1,46 @@
 package ibctesting_test
 
-import sdkmath "cosmossdk.io/math"
-
 import (
 	"bytes"
 	"encoding/json"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
+
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
 	cometbfttypes "github.com/cometbft/cometbft/types"
+
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 	"github.com/cosmos/ibc-go/v8/testing/mock"
+	"github.com/openmetaearth/me-hub/app"
+	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/openmetaearth/me-hub/app"
-	"github.com/openmetaearth/me-hub/app/apptesting"
 	common "github.com/openmetaearth/me-hub/x/common/types"
+
 	eibctypes "github.com/openmetaearth/me-hub/x/eibc/types"
+
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
+
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
+
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
@@ -48,7 +61,7 @@ func convertToApp(chain *ibctesting.TestChain) *app.App {
 		return wrapper.App
 	}
 	a, ok := chain.App.(*app.App)
-	require.True(chain.T, ok)
+	require.True(chain, ok)
 
 	return a
 }
@@ -135,7 +148,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 func (s *utilSuite) registerSequencer() {
 	bond := sequencertypes.DefaultParams().MinBond
 	// fund account
-	err := bankutil.FundAccount(s.hubApp().BankKeeper, s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(bond))
+	err := bankutil.FundAccount(s.hubCtx(), s.hubApp().BankKeeper, s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(bond))
 	s.Require().Nil(err)
 
 	// using validator pubkey as the dymint pubkey
@@ -292,7 +305,7 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 
 	// create an account to send transactions from
 	chain := &ibctesting.TestChain{
-		T:              t,
+		TB:             t,
 		Coordinator:    coord,
 		ChainID:        chainID,
 		App:            app,

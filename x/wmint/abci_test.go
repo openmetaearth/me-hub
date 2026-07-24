@@ -1,22 +1,33 @@
 package wmint
 
-import sdkmath "cosmossdk.io/math"
-
 import (
+	"context"
 	"fmt"
 	"math/big"
 	"testing"
 
 	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store"
+	"cosmossdk.io/store/metrics"
+
 	storetypes "cosmossdk.io/store/types"
-	tmdb "github.com/cometbft/cometbft-db"
+
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
 	tmtime "github.com/cometbft/cometbft/types/time"
+
+	db "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/runtime"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -61,17 +72,55 @@ type KeeperTestSuite struct {
 	stakingKeeper *mock_types.MockStakingKeeper
 }
 
+type stakingKeeperAdapter struct{ mock *mock_types.MockStakingKeeper }
+
+func (a stakingKeeperAdapter) BondedRatio(ctx context.Context) (sdkmath.LegacyDec, error) {
+	return a.mock.BondedRatio(sdk.UnwrapSDKContext(ctx)), nil
+}
+
+func (a stakingKeeperAdapter) StakingTokenSupply(ctx context.Context) (sdkmath.Int, error) {
+	return a.mock.StakingTokenSupply(sdk.UnwrapSDKContext(ctx)), nil
+}
+
+type accountKeeperAdapter struct{ mock *mock_types.MockAccountKeeper }
+
+func (a accountKeeperAdapter) GetModuleAddress(name string) sdk.AccAddress {
+	return a.mock.GetModuleAddress(name)
+}
+
+func (a accountKeeperAdapter) GetModuleAccount(ctx context.Context, name string) sdk.ModuleAccountI {
+	return a.mock.GetModuleAccount(sdk.UnwrapSDKContext(ctx), name)
+}
+
+func (a accountKeeperAdapter) SetModuleAccount(ctx context.Context, account sdk.ModuleAccountI) {
+	a.mock.SetModuleAccount(sdk.UnwrapSDKContext(ctx), account)
+}
+
+type bankKeeperAdapter struct{ mock *mock_types.MockBankKeeper }
+
+func (a bankKeeperAdapter) MintCoins(ctx context.Context, name string, amount sdk.Coins) error {
+	return a.mock.MintCoins(sdk.UnwrapSDKContext(ctx), name, amount)
+}
+
+func (a bankKeeperAdapter) SendCoinsFromModuleToAccount(ctx context.Context, sender string, recipient sdk.AccAddress, amount sdk.Coins) error {
+	return a.mock.SendCoinsFromModuleToAccount(sdk.UnwrapSDKContext(ctx), sender, recipient, amount)
+}
+
+func (a bankKeeperAdapter) SendCoinsFromModuleToModule(ctx context.Context, sender, recipient string, amount sdk.Coins) error {
+	return a.mock.SendCoinsFromModuleToModule(sdk.UnwrapSDKContext(ctx), sender, recipient, amount)
+}
+
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
 	t := suite.T()
-	storeKey := sdk.NewKVStoreKey(types.StoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey("test_key")
-	db := tmdb.NewMemDB()
-	stateStore := store.NewCommitMultiStore(db)
-	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
+	database := db.NewMemDB()
+	stateStore := store.NewCommitMultiStore(database, log.NewNopLogger(), metrics.NewNoOpMetrics())
+	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, database)
 	stateStore.MountStoreWithDB(memStoreKey, storetypes.StoreTypeMemory, nil)
 	require.NoError(t, stateStore.LoadLatestVersion())
 
@@ -88,7 +137,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.bankKeeper = bankKeeper
 	suite.stakingKeeper = stakingKeeper
 	suite.accKeeper = accKeeper
-	suite.wmintKeeper = keeper.NewKeeper(encCfg.Codec, storeKey, suite.stakingKeeper, suite.accKeeper, suite.bankKeeper, wbanktypes.TreasuryPoolName, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	suite.wmintKeeper = keeper.NewKeeper(encCfg.Codec, runtime.NewKVStoreService(storeKey), stakingKeeperAdapter{suite.stakingKeeper}, accountKeeperAdapter{suite.accKeeper}, bankKeeperAdapter{suite.bankKeeper}, wbanktypes.TreasuryPoolName, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 }
 
 func (suite *KeeperTestSuite) TestBeginBlocker() {

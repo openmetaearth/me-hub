@@ -5,8 +5,6 @@ import sdkmath "cosmossdk.io/math"
 import (
 	"strings"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -75,9 +73,9 @@ func (s *KeeperTestSuite) TestFixedDepositByRegionPagination() {
 	s.SetupTest()
 	s.createGlobalRegion()
 	s.createUsaRegion()
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	accounts := s.NewAccounts(3)
 	for _, account := range accounts {
@@ -169,9 +167,9 @@ func (s *KeeperTestSuite) TestFixedDepositByRegionPagination() {
 func (s *KeeperTestSuite) TestFixedDepositByRegionNilPagination() {
 	s.SetupTest()
 	s.createGlobalRegion()
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	accounts := s.NewAccounts(1)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)

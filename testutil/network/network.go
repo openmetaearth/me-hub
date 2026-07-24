@@ -5,7 +5,7 @@ import (
 
 	"cosmossdk.io/simapp"
 	pruningtypes "cosmossdk.io/store/pruning/types"
-	cometbftdb "github.com/cometbft/cometbft-db"
+	dbtypes "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
@@ -50,7 +50,7 @@ func DefaultConfig() network.Config {
 	cfg.ChainID = "me_1000-1"
 	cfg.AppConstructor = func(val network.ValidatorI) servertypes.Application {
 		return app.New(
-			val.GetCtx().Logger, cometbftdb.NewMemDB(), nil, true, map[int64]bool{}, val.GetCtx().Config.RootDir, 0,
+			val.GetCtx().Logger, dbtypes.NewMemDB(), nil, true, map[int64]bool{}, val.GetCtx().Config.RootDir, 0,
 			encoding,
 			sims.EmptyAppOptions{},
 			baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.GetAppConfig().Pruning)),

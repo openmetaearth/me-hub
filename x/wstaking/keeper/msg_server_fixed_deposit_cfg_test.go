@@ -1,12 +1,9 @@
 package keeper_test
 
-import sdkmath "cosmossdk.io/math"
-
 import (
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	sdkmath "cosmossdk.io/math"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
