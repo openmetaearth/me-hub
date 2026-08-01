@@ -24,15 +24,15 @@ func CreateUpgradeHandler(
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 		logger.Info("upgrade starting...")
 
-		MaxSendToExternalUsdAmount := sdkmath.NewInt(10_000_000_000)
+		maxSendToExternalUsdAmount := sdkmath.NewInt(10_000_000_000)
 		bscParams := keepers.BscKeeper.GetParams(ctx)
-		bscParams.MaxSendToExternalUsdAmount = MaxSendToExternalUsdAmount
+		bscParams.MaxSendToExternalUsdAmount = maxSendToExternalUsdAmount
 		if err := keepers.BscKeeper.SetParams(ctx, &bscParams); err != nil {
 			return nil, fmt.Errorf("failed to set BSC max send to external amount: %w", err)
 		}
 
 		tronParams := keepers.TronKeeper.GetParams(ctx)
-		tronParams.MaxSendToExternalUsdAmount = MaxSendToExternalUsdAmount
+		tronParams.MaxSendToExternalUsdAmount = maxSendToExternalUsdAmount
 		if err := keepers.TronKeeper.SetParams(ctx, &tronParams); err != nil {
 			return nil, fmt.Errorf("failed to set Tron max send to external amount: %w", err)
 		}
