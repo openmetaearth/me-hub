@@ -823,7 +823,7 @@ func (s *KeeperTestSuite) TestMsgSendToExternalAmountLimit() {
 	s.Keeper().SetBridgeToken(s.Ctx, &bridgeToken)
 
 	gravityParams := s.Keeper().GetParams(s.Ctx)
-	gravityParams.MaxSendToExternalUSDAmount = sdkmath.NewInt(100)
+	gravityParams.MaxSendToExternalUsdAmount = sdkmath.NewInt(100)
 	s.Require().NoError(s.Keeper().SetParams(s.Ctx, &gravityParams))
 
 	send := func(amount int64) (*types.MsgSendToExternalResponse, error) {

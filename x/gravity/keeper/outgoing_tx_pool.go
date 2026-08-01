@@ -16,7 +16,7 @@ import (
 // - persists an OutgoingTx
 // - adds the TX to the `available` TX pool via a second index
 func (k Keeper) AddToOutgoingPool(ctx sdk.Context, sender sdk.AccAddress, receiver string, amount, fee sdk.Coin) (uint64, error) {
-	maxAmount := k.GetMaxSendToExternalUSDAmount(ctx)
+	maxAmount := k.GetMaxSendToExternalUsdAmount(ctx)
 	if amount.Amount.GT(maxAmount) {
 		return 0, errorsmod.Wrapf(types.ErrSendToExternalAmountAboveMaximum,
 			"send amount %s exceeds maximum %s", amount.Amount, maxAmount)
