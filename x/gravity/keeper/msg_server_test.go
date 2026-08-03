@@ -814,6 +814,45 @@ func (s *KeeperTestSuite) TestMsgSendToExternalIncreaseBridgeFeeAndCancel() {
 	s.Require().Error(err)
 }
 
+func (s *KeeperTestSuite) TestMsgSendToExternalAmountLimit() {
+	sender := s.relayerAddrs[0]
+	denom := "uusdt"
+	initialSupply := sdk.NewCoin(denom, sdkmath.NewInt(1_000))
+	bridgeToken := s.NewBridgeToken(sender, initialSupply)
+	bridgeToken.Symbol = "USDT"
+	s.Keeper().SetBridgeToken(s.Ctx, &bridgeToken)
+
+	gravityParams := s.Keeper().GetParams(s.Ctx)
+	gravityParams.MaxSendToExternalUsdAmount = sdkmath.NewInt(100)
+	s.Require().NoError(s.Keeper().SetParams(s.Ctx, &gravityParams))
+
+	send := func(amount int64) (*types.MsgSendToExternalResponse, error) {
+		return s.MsgServer().SendToExternal(sdk.WrapSDKContext(s.Ctx), &types.MsgSendToExternal{
+			Sender:    sender.String(),
+			Dest:      helpers.GenExternalAddr(s.chainName),
+			Amount:    sdk.NewInt64Coin(denom, amount),
+			BridgeFee: sdk.NewInt64Coin(denom, 1),
+			ChainName: s.chainName,
+		})
+	}
+
+	response, err := send(100)
+	s.Require().NoError(err)
+	s.Require().NotZero(response.OutgoingTxId)
+
+	balanceBeforeRejectedSend := s.App.BankKeeper.GetBalance(s.Ctx, sender, denom)
+	bridgeTokenBeforeRejectedSend, err := s.Keeper().GetBridgeTokenByDenom(s.Ctx, denom)
+	s.Require().NoError(err)
+
+	response, err = send(101)
+	s.Require().ErrorIs(err, types.ErrSendToExternalAmountAboveMaximum)
+	s.Require().Nil(response)
+	s.Require().Equal(balanceBeforeRejectedSend, s.App.BankKeeper.GetBalance(s.Ctx, sender, denom))
+	bridgeTokenAfterRejectedSend, getErr := s.Keeper().GetBridgeTokenByDenom(s.Ctx, denom)
+	s.Require().NoError(getErr)
+	s.Require().Equal(bridgeTokenBeforeRejectedSend.Supply, bridgeTokenAfterRejectedSend.Supply)
+}
+
 func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	// 1. First sets up a valid relayer set
 	totalPower := sdk.ZeroInt()

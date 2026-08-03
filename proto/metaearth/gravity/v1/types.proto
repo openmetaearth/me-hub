@@ -221,4 +221,8 @@ message Params {
     (gogoproto.nullable) = false
   ];
   uint64 max_slash_times = 11;
+  string max_send_to_external_usd_amount = 12 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }

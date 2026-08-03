@@ -36,6 +36,7 @@ func DefaultParams() Params {
 		MaxRelayers:                        10,
 		MinDelegate:                        sdkmath.NewInt(100_000_000),
 		MaxDelegate:                        sdkmath.NewInt(10_000_000_000),
+		MaxSendToExternalUsdAmount:         sdkmath.NewInt(10_000_000_000),
 	}
 }
 
@@ -86,6 +87,9 @@ func (m *Params) ValidateBasic() error {
 	}
 	if m.MaxDelegate.LT(m.MinDelegate) {
 		return errors.New("max delegate threshold must be >= min delegate threshold")
+	}
+	if !m.MaxSendToExternalUsdAmount.IsPositive() {
+		return errors.New("max send to external USD amount must be positive")
 	}
 	return nil
 }
