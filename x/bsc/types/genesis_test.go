@@ -28,6 +28,7 @@ func TestDefaultGenesisState(t *testing.T) {
 					MaxRelayers:                        10,
 					MinDelegate:                        sdk.NewInt(100_000_000),
 					MaxDelegate:                        sdk.NewInt(10_000_000_000),
+					MaxSendToExternalUsdAmount:         sdk.NewInt(10_000_000_000),
 				},
 			},
 		},

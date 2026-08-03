@@ -91,6 +91,7 @@ func (s *KeeperTestSuite) SetupTest() {
 		MaxRelayers:                        10,
 		MinDelegate:                        sdk.NewInt(1000000000),
 		MaxDelegate:                        sdk.NewInt(100000000000),
+		MaxSendToExternalUsdAmount:         sdk.NewInt(10_000_000_000),
 	})
 	s.Require().NoError(err)
 
