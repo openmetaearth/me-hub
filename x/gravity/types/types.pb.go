@@ -5,23 +5,20 @@ package types
 
 import (
 	fmt "fmt"
-	io "io"
-	math "math"
-	math_bits "math/bits"
-
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/cosmos-sdk/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
+	io "io"
+	math "math"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
-var (
-	_ = proto.Marshal
-	_ = fmt.Errorf
-	_ = math.Inf
-)
+var _ = proto.Marshal
+var _ = fmt.Errorf
+var _ = math.Inf
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -75,11 +72,9 @@ func (*ProposalRelayer) ProtoMessage()    {}
 func (*ProposalRelayer) Descriptor() ([]byte, []int) {
 	return fileDescriptor_aff911f9498d4e0d, []int{0}
 }
-
 func (m *ProposalRelayer) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *ProposalRelayer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_ProposalRelayer.Marshal(b, m, deterministic)
@@ -92,15 +87,12 @@ func (m *ProposalRelayer) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-
 func (m *ProposalRelayer) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_ProposalRelayer.Merge(m, src)
 }
-
 func (m *ProposalRelayer) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *ProposalRelayer) XXX_DiscardUnknown() {
 	xxx_messageInfo_ProposalRelayer.DiscardUnknown(m)
 }
@@ -130,11 +122,9 @@ func (*Relayer) ProtoMessage()    {}
 func (*Relayer) Descriptor() ([]byte, []int) {
 	return fileDescriptor_aff911f9498d4e0d, []int{1}
 }
-
 func (m *Relayer) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *Relayer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_Relayer.Marshal(b, m, deterministic)
@@ -147,15 +137,12 @@ func (m *Relayer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-
 func (m *Relayer) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Relayer.Merge(m, src)
 }
-
 func (m *Relayer) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *Relayer) XXX_DiscardUnknown() {
 	xxx_messageInfo_Relayer.DiscardUnknown(m)
 }
@@ -209,11 +196,9 @@ func (*BridgeValidator) ProtoMessage()    {}
 func (*BridgeValidator) Descriptor() ([]byte, []int) {
 	return fileDescriptor_aff911f9498d4e0d, []int{2}
 }
-
 func (m *BridgeValidator) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *BridgeValidator) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_BridgeValidator.Marshal(b, m, deterministic)
@@ -226,15 +211,12 @@ func (m *BridgeValidator) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-
 func (m *BridgeValidator) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_BridgeValidator.Merge(m, src)
 }
-
 func (m *BridgeValidator) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *BridgeValidator) XXX_DiscardUnknown() {
 	xxx_messageInfo_BridgeValidator.DiscardUnknown(m)
 }
@@ -270,11 +252,9 @@ func (*RelayerSet) ProtoMessage()    {}
 func (*RelayerSet) Descriptor() ([]byte, []int) {
 	return fileDescriptor_aff911f9498d4e0d, []int{3}
 }
-
 func (m *RelayerSet) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *RelayerSet) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_RelayerSet.Marshal(b, m, deterministic)
@@ -287,15 +267,12 @@ func (m *RelayerSet) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-
 func (m *RelayerSet) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_RelayerSet.Merge(m, src)
 }
-
 func (m *RelayerSet) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *RelayerSet) XXX_DiscardUnknown() {
 	xxx_messageInfo_RelayerSet.DiscardUnknown(m)
 }
@@ -339,11 +316,9 @@ func (*LastObservedBlockHeight) ProtoMessage()    {}
 func (*LastObservedBlockHeight) Descriptor() ([]byte, []int) {
 	return fileDescriptor_aff911f9498d4e0d, []int{4}
 }
-
 func (m *LastObservedBlockHeight) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *LastObservedBlockHeight) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_LastObservedBlockHeight.Marshal(b, m, deterministic)
@@ -356,15 +331,12 @@ func (m *LastObservedBlockHeight) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
-
 func (m *LastObservedBlockHeight) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_LastObservedBlockHeight.Merge(m, src)
 }
-
 func (m *LastObservedBlockHeight) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *LastObservedBlockHeight) XXX_DiscardUnknown() {
 	xxx_messageInfo_LastObservedBlockHeight.DiscardUnknown(m)
 }
@@ -401,11 +373,9 @@ func (*BridgeToken) ProtoMessage()    {}
 func (*BridgeToken) Descriptor() ([]byte, []int) {
 	return fileDescriptor_aff911f9498d4e0d, []int{5}
 }
-
 func (m *BridgeToken) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *BridgeToken) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_BridgeToken.Marshal(b, m, deterministic)
@@ -418,15 +388,12 @@ func (m *BridgeToken) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return b[:n], nil
 	}
 }
-
 func (m *BridgeToken) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_BridgeToken.Merge(m, src)
 }
-
 func (m *BridgeToken) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *BridgeToken) XXX_DiscardUnknown() {
 	xxx_messageInfo_BridgeToken.DiscardUnknown(m)
 }
@@ -496,11 +463,9 @@ func (*Attestation) ProtoMessage()    {}
 func (*Attestation) Descriptor() ([]byte, []int) {
 	return fileDescriptor_aff911f9498d4e0d, []int{6}
 }
-
 func (m *Attestation) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *Attestation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_Attestation.Marshal(b, m, deterministic)
@@ -513,15 +478,12 @@ func (m *Attestation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return b[:n], nil
 	}
 }
-
 func (m *Attestation) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Attestation.Merge(m, src)
 }
-
 func (m *Attestation) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *Attestation) XXX_DiscardUnknown() {
 	xxx_messageInfo_Attestation.DiscardUnknown(m)
 }
@@ -572,11 +534,9 @@ func (*OutgoingTxBatch) ProtoMessage()    {}
 func (*OutgoingTxBatch) Descriptor() ([]byte, []int) {
 	return fileDescriptor_aff911f9498d4e0d, []int{7}
 }
-
 func (m *OutgoingTxBatch) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *OutgoingTxBatch) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_OutgoingTxBatch.Marshal(b, m, deterministic)
@@ -589,15 +549,12 @@ func (m *OutgoingTxBatch) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-
 func (m *OutgoingTxBatch) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_OutgoingTxBatch.Merge(m, src)
 }
-
 func (m *OutgoingTxBatch) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *OutgoingTxBatch) XXX_DiscardUnknown() {
 	xxx_messageInfo_OutgoingTxBatch.DiscardUnknown(m)
 }
@@ -661,11 +618,9 @@ func (*OutgoingTransferTx) ProtoMessage()    {}
 func (*OutgoingTransferTx) Descriptor() ([]byte, []int) {
 	return fileDescriptor_aff911f9498d4e0d, []int{8}
 }
-
 func (m *OutgoingTransferTx) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *OutgoingTransferTx) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_OutgoingTransferTx.Marshal(b, m, deterministic)
@@ -678,15 +633,12 @@ func (m *OutgoingTransferTx) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-
 func (m *OutgoingTransferTx) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_OutgoingTransferTx.Merge(m, src)
 }
-
 func (m *OutgoingTransferTx) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *OutgoingTransferTx) XXX_DiscardUnknown() {
 	xxx_messageInfo_OutgoingTransferTx.DiscardUnknown(m)
 }
@@ -740,11 +692,9 @@ func (*ERC20Token) ProtoMessage()    {}
 func (*ERC20Token) Descriptor() ([]byte, []int) {
 	return fileDescriptor_aff911f9498d4e0d, []int{9}
 }
-
 func (m *ERC20Token) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *ERC20Token) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_ERC20Token.Marshal(b, m, deterministic)
@@ -757,15 +707,12 @@ func (m *ERC20Token) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-
 func (m *ERC20Token) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_ERC20Token.Merge(m, src)
 }
-
 func (m *ERC20Token) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *ERC20Token) XXX_DiscardUnknown() {
 	xxx_messageInfo_ERC20Token.DiscardUnknown(m)
 }
@@ -790,11 +737,9 @@ func (*IDSet) ProtoMessage()    {}
 func (*IDSet) Descriptor() ([]byte, []int) {
 	return fileDescriptor_aff911f9498d4e0d, []int{10}
 }
-
 func (m *IDSet) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *IDSet) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_IDSet.Marshal(b, m, deterministic)
@@ -807,15 +752,12 @@ func (m *IDSet) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-
 func (m *IDSet) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_IDSet.Merge(m, src)
 }
-
 func (m *IDSet) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *IDSet) XXX_DiscardUnknown() {
 	xxx_messageInfo_IDSet.DiscardUnknown(m)
 }
@@ -842,11 +784,9 @@ func (*BatchFees) ProtoMessage()    {}
 func (*BatchFees) Descriptor() ([]byte, []int) {
 	return fileDescriptor_aff911f9498d4e0d, []int{11}
 }
-
 func (m *BatchFees) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *BatchFees) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_BatchFees.Marshal(b, m, deterministic)
@@ -859,15 +799,12 @@ func (m *BatchFees) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-
 func (m *BatchFees) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_BatchFees.Merge(m, src)
 }
-
 func (m *BatchFees) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *BatchFees) XXX_DiscardUnknown() {
 	xxx_messageInfo_BatchFees.DiscardUnknown(m)
 }
@@ -899,11 +836,9 @@ func (*MinBatchFee) ProtoMessage()    {}
 func (*MinBatchFee) Descriptor() ([]byte, []int) {
 	return fileDescriptor_aff911f9498d4e0d, []int{12}
 }
-
 func (m *MinBatchFee) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *MinBatchFee) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MinBatchFee.Marshal(b, m, deterministic)
@@ -916,15 +851,12 @@ func (m *MinBatchFee) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return b[:n], nil
 	}
 }
-
 func (m *MinBatchFee) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MinBatchFee.Merge(m, src)
 }
-
 func (m *MinBatchFee) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *MinBatchFee) XXX_DiscardUnknown() {
 	xxx_messageInfo_MinBatchFee.DiscardUnknown(m)
 }
@@ -954,7 +886,7 @@ type Params struct {
 	MinDelegate                        github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,9,opt,name=min_delegate,json=minDelegate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"min_delegate"`
 	MaxDelegate                        github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,10,opt,name=max_delegate,json=maxDelegate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"max_delegate"`
 	MaxSlashTimes                      uint64                                 `protobuf:"varint,11,opt,name=max_slash_times,json=maxSlashTimes,proto3" json:"max_slash_times,omitempty"`
-	MaxSendToExternalUsdAmount         github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,12,opt,name=max_send_to_external_usd_amount,json=MaxSendToExternalUsdAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"max_send_to_external_usd_amount"`
+	MaxSendToExternalUsdAmount         github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,12,opt,name=max_send_to_external_usd_amount,json=maxSendToExternalUsdAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"max_send_to_external_usd_amount"`
 }
 
 func (m *Params) Reset()         { *m = Params{} }
@@ -963,11 +895,9 @@ func (*Params) ProtoMessage()    {}
 func (*Params) Descriptor() ([]byte, []int) {
 	return fileDescriptor_aff911f9498d4e0d, []int{13}
 }
-
 func (m *Params) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-
 func (m *Params) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_Params.Marshal(b, m, deterministic)
@@ -980,15 +910,12 @@ func (m *Params) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-
 func (m *Params) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_Params.Merge(m, src)
 }
-
 func (m *Params) XXX_Size() int {
 	return m.Size()
 }
-
 func (m *Params) XXX_DiscardUnknown() {
 	xxx_messageInfo_Params.DiscardUnknown(m)
 }
@@ -1919,7 +1846,6 @@ func encodeVarintTypes(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-
 func (m *ProposalRelayer) Size() (n int) {
 	if m == nil {
 		return 0
@@ -2236,11 +2162,9 @@ func (m *Params) Size() (n int) {
 func sovTypes(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
-
 func sozTypes(x uint64) (n int) {
 	return sovTypes(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-
 func (m *ProposalRelayer) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2323,7 +2247,6 @@ func (m *ProposalRelayer) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func (m *Relayer) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2530,7 +2453,6 @@ func (m *Relayer) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func (m *BridgeValidator) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2632,7 +2554,6 @@ func (m *BridgeValidator) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func (m *RelayerSet) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2755,7 +2676,6 @@ func (m *RelayerSet) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func (m *LastObservedBlockHeight) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2844,7 +2764,6 @@ func (m *LastObservedBlockHeight) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func (m *BridgeToken) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -3076,7 +2995,6 @@ func (m *BridgeToken) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func (m *Attestation) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -3234,7 +3152,6 @@ func (m *Attestation) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func (m *OutgoingTxBatch) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -3440,7 +3357,6 @@ func (m *OutgoingTxBatch) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func (m *OutgoingTransferTx) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -3640,7 +3556,6 @@ func (m *OutgoingTransferTx) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func (m *ERC20Token) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -3757,7 +3672,6 @@ func (m *ERC20Token) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func (m *IDSet) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -3884,7 +3798,6 @@ func (m *IDSet) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func (m *BatchFees) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -4054,7 +3967,6 @@ func (m *BatchFees) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func (m *MinBatchFee) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -4171,7 +4083,6 @@ func (m *MinBatchFee) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func (m *Params) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -4538,7 +4449,6 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-
 func skipTypes(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
