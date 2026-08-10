@@ -57,8 +57,8 @@ func (k msgServer) UpdateDao(goCtx context.Context, msg *types.MsgUpdateDao) (*t
 func (k msgServer) FreeGasAccount(goCtx context.Context, msg *types.MsgFreeGasAccount) (*types.MsgFreeGasAccountResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	isGlobalDao := k.IsGlobalDao(ctx, msg.Creator)
-	if !isGlobalDao {
+	isDao := k.IsDao(ctx, msg.Creator)
+	if !isDao {
 		return nil, types.ErrCreatorNotDao
 	}
 
