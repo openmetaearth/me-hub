@@ -1,21 +1,22 @@
 package v2_0_13
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"fmt"
+	"time"
+
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	appkeepers "github.com/openmetaearth/me-hub/app/keepers"
 	"github.com/openmetaearth/me-hub/app/upgrades"
 	"github.com/openmetaearth/me-hub/utils"
 	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
 	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
-	"github.com/openmetaearth/me-hub/x/gravity/types"
 	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
-	"time"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v2.0.13
@@ -58,12 +59,12 @@ func CreateUpgradeHandler(
 
 		// delegate total amount to module account
 		delegateAmount := sdk.NewInt(1 * 1e8)
-		//for _, relayerAddr := range proposalRelayers {
-		//if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), bsctypes.ModuleName,
+		// for _, relayerAddr := range proposalRelayers {
+		// if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), bsctypes.ModuleName,
 		//	sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
 		//	panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
 		//}
-		//if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), trontypes.ModuleName,
+		// if err := keepers.BankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromBech32(relayerAddr), trontypes.ModuleName,
 		//	sdk.NewCoins(sdk.NewCoin(params.BaseDenom, delegateAmount))); err != nil {
 		//	panic(fmt.Sprintf("failed to delegate coins to relayer %s: %s", relayerAddr, err.Error()))
 		//}
@@ -102,7 +103,7 @@ func CreateUpgradeHandler(
 
 func GenGravityGenesis(height int64, proposalRelayers []string, defaultGenesis *gravitytypes.GenesisState, delegateAmount sdk.Int, moduleName string) *gravitytypes.GenesisState {
 	// 1. set proposal relayers
-	defaultGenesis.ProposalRelayer = types.ProposalRelayer{
+	defaultGenesis.ProposalRelayer = gravitytypes.ProposalRelayer{
 		Relayers: proposalRelayers,
 	}
 
@@ -122,7 +123,7 @@ func GenGravityGenesis(height int64, proposalRelayers []string, defaultGenesis *
 			}
 		}
 
-		relayer := types.Relayer{
+		relayer := gravitytypes.Relayer{
 			RelayerAddress:  relayerAddr,
 			ExternalAddress: externalAddress,
 			DelegateAmount:  delegateAmount,
@@ -135,10 +136,10 @@ func GenGravityGenesis(height int64, proposalRelayers []string, defaultGenesis *
 
 	// 3.relayer set
 	var totalPower uint64
-	relayerSet := types.RelayerSet{
+	relayerSet := gravitytypes.RelayerSet{
 		Nonce:   0,
 		Height:  uint64(height),
-		Members: []types.BridgeValidator{},
+		Members: []gravitytypes.BridgeValidator{},
 	}
 	for _, relayer := range defaultGenesis.Relayers {
 		power := relayer.GetPower()
@@ -146,7 +147,7 @@ func GenGravityGenesis(height int64, proposalRelayers []string, defaultGenesis *
 			continue
 		}
 		totalPower += power.Uint64()
-		bridgeVal := types.BridgeValidator{
+		bridgeVal := gravitytypes.BridgeValidator{
 			Power:           power.Uint64(),
 			ExternalAddress: relayer.ExternalAddress,
 		}
@@ -155,11 +156,11 @@ func GenGravityGenesis(height int64, proposalRelayers []string, defaultGenesis *
 	for i := range relayerSet.Members {
 		relayerSet.Members[i].Power = sdkmath.NewUint(relayerSet.Members[i].Power).MulUint64(gravitytypes.PowerBase).QuoUint64(totalPower).Uint64()
 	}
-	defaultGenesis.RelayerSets = []types.RelayerSet{relayerSet}
+	defaultGenesis.RelayerSets = []gravitytypes.RelayerSet{relayerSet}
 	return defaultGenesis
 }
 
-//func setNewModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
+// func setNewModuleParams(ctx sdk.Context, keepers *appkeepers.AppKeepers) {
 //	bscState := bsctypes.DefaultGenesisState()
 //	if err := keepers.BscKeeper.SetParams(ctx, &bscState.Params); err != nil {
 //		panic(fmt.Sprintf("failed to set bsc module params during upgrade: %s", err.Error()))

@@ -7,7 +7,7 @@ import (
 
 var (
 	ErrParameter        = errors.Register(sdkerrors.RootCodespace, 100, "parameter error")
-	ErrApiInactive      = errors.Register(ModuleName, 101, "api is inactive")
+	ErrAPIInactive      = errors.Register(ModuleName, 101, "api is inactive")
 	ErrPermissionDenial = errors.Register(ModuleName, 102, "permission denial")
 
 	ErrDidExists     = errors.Register(ModuleName, 110, "DID already exists")
@@ -29,6 +29,8 @@ var (
 	ErrHolderNotFound  = errors.Register(ModuleName, 141, "holder not found")
 	ErrHolderNotActive = errors.Register(ModuleName, 142, "holder not active")
 
-	ErrCredentialExists   = errors.Register(ModuleName, 150, "credential already exists")
-	ErrCredentialNotFound = errors.Register(ModuleName, 151, "credential not found")
+	ErrCredentialExists            = errors.Register(ModuleName, 150, "kyc credential already exists")
+	ErrCredentialNotFound          = errors.Register(ModuleName, 151, "kyc credential not found")
+	ErrUnauthorized                = errors.Register(ModuleName, 152, "unauthorized")
+	ErrSubAccountAlreadyRegistered = errors.Register(ModuleName, 153, "sub account already registered")
 )

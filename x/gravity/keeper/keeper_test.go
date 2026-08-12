@@ -1,9 +1,11 @@
 package keeper_test
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"crypto/ecdsa"
 	"fmt"
+	"testing"
+
+	sdkmath "cosmossdk.io/math"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,25 +14,22 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/testutil/helpers"
 	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
 	"github.com/openmetaearth/me-hub/x/gravity/keeper"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
-	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 	minttypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type KeeperTestSuite struct {
 	apptesting.KeeperTestHelper
 
-	msgServer           types.MsgServer
-	queryClient         types.QueryClient
 	meEarthValidator    stakingtypes.Validator
 	experienceValidator stakingtypes.Validator
 	usaValidator        stakingtypes.Validator
@@ -44,7 +43,7 @@ type KeeperTestSuite struct {
 func TestGravityKeeperTestSuite(t *testing.T) {
 	subModules := []string{
 		bsctypes.ModuleName,
-		//trontypes.ModuleName,
+		// trontypes.ModuleName,
 	}
 	for _, moduleName := range subModules {
 		suite.Run(t, &KeeperTestSuite{
@@ -54,7 +53,7 @@ func TestGravityKeeperTestSuite(t *testing.T) {
 }
 
 func (s *KeeperTestSuite) MsgServer() types.MsgServer {
-	//if suite.chainName == trontypes.ModuleName {
+	// if suite.chainName == trontypes.ModuleName {
 	//	return tronkeeper.NewMsgServerImpl(suite.app.TronKeeper)
 	//}
 	return keeper.NewMsgServerImpl(s.Keeper())
@@ -70,7 +69,7 @@ func (s *KeeperTestSuite) Keeper() keeper.Keeper {
 	switch s.chainName {
 	case bsctypes.ModuleName:
 		return s.App.BscKeeper
-	//case trontypes.ModuleName:
+	// case trontypes.ModuleName:
 	//	return s.App.TronKeeper.Keeper
 	default:
 		panic(fmt.Sprintf("invalid chain name:%s", s.chainName))
@@ -78,7 +77,6 @@ func (s *KeeperTestSuite) Keeper() keeper.Keeper {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-
 	app := apptesting.Setup(s.T(), false)
 	s.Ctx = app.NewContext(false, cometbftproto.Header{Height: 0, ChainID: apptesting.TestChainID})
 	s.App = app
@@ -93,11 +91,6 @@ func (s *KeeperTestSuite) SetupTest() {
 	stakingParams.BondDenom = params.BaseDenom
 	err = app.StakingKeeper.SetParams(s.Ctx, stakingParams)
 	s.Require().NoError(err)
-
-	queryHelper := baseapp.NewQueryServerTestHelper(s.Ctx, app.InterfaceRegistry())
-	queryClient := types.NewQueryClient(queryHelper)
-
-	s.queryClient = queryClient
 
 	stakingKeeperMsgSrv := stakingkeeper.NewMsgServerImpl(app.StakingKeeper.Keeper)
 	stakingMsgServer := wstakingkeeper.NewMsgServerImpl(app.StakingKeeper, app.TransferKeeper, stakingKeeperMsgSrv)
@@ -159,24 +152,12 @@ func (s *KeeperTestSuite) SignRelayerSetConfirm(external *ecdsa.PrivateKey, rela
 	s.NoError(err)
 	signature, err := types.NewEthereumSignature(checkpoint, external)
 	s.NoError(err)
-	if trontypes.ModuleName == s.chainName {
-		//externalAddress = tronaddress.PubkeyToAddress(external.PublicKey).String()
-		//
-		//checkpoint, err = trontypes.GetCheckpointRelayerSet(relayerSet, gravityId)
-		//s.Require().NoError(err)
-		//
-		//signature, err = trontypes.NewTronSignature(checkpoint, external)
-		//s.Require().NoError(err)
-	}
 	return externalAddress, signature
 }
 
 func (s *KeeperTestSuite) SendClaim(externalClaim types.ExternalClaim) {
-	var err error
-	switch claim := externalClaim.(type) {
-	case *types.MsgSendToMeClaim:
-		_, err = s.MsgServer().SendToMeClaim(s.Ctx, claim)
-		s.NoError(err)
+	if claim, ok := externalClaim.(*types.MsgSendToMeClaim); ok {
+		_, err := s.MsgServer().SendToMeClaim(s.Ctx, claim)
 		s.Require().NoError(err)
 	}
 }
@@ -186,8 +167,8 @@ func (s *KeeperTestSuite) PubKeyToExternalAddr(publicKey ecdsa.PublicKey) string
 	return types.ExternalAddrToStr(s.chainName, address.Bytes())
 }
 
-func (suite *KeeperTestSuite) Commit(block ...int64) {
-	suite.Ctx = apptesting.MintBlock(suite.App, suite.Ctx, block...)
+func (s *KeeperTestSuite) Commit(block ...int64) { //nolint:stylecheck // Existing suite tests use both conventional receiver names.
+	s.Ctx = apptesting.MintBlock(s.App, s.Ctx, block...)
 }
 
 func (s *KeeperTestSuite) NewBridgeToken(receiver sdk.AccAddress, initAmount sdk.Coin) (bridgeToken types.BridgeToken) {

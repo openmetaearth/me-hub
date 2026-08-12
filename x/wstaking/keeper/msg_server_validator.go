@@ -1,16 +1,19 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strings"
 
-	ed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/openmetaearth/me-hub/utils"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -52,6 +55,36 @@ func (k MsgServer) CreateValidator(
 
 	if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
 		return nil, stakingtypes.ErrValidatorPubKeyExists
+	}
+	// check if the pubkey of validator is equal to the pubkey of validator replacing its consensus public key
+	updatePubKeyInfo, errP := k.GetReplaceConsensusPubKeyInfo(ctx)
+	if errP != nil {
+		return nil, errP
+	}
+	if updatePubKeyInfo != nil {
+		newValidatorPubKey, ok := msg.Pubkey.GetCachedValue().(*ed25519.PubKey)
+		if !ok {
+			// if the pubkey of new validator is not ed25519.PubKey, then it is unexpected,but only record the event and log the error, do not return error to avoid affecting the creation of new validator
+			k.Logger(ctx).Error("pubkey of new validator is not ed25519.PubKey", "pubkey is", msg.Pubkey.GetCachedValue())
+			ctx.EventManager().EmitEvents(sdk.Events{
+				sdk.NewEvent(
+					types.EventPubKeyUnexpected,
+					sdk.NewAttribute(types.AttributeKeyOperatorAddress, msg.ValidatorAddress),
+					sdk.NewAttribute(types.AttributeKeyPubKey, msg.Pubkey.String()),
+					sdk.NewAttribute(types.AttributeKeyOperatorType, "CreateValidator"),
+					sdk.NewAttribute(types.AttributeKeyUpdateAtHeight, fmt.Sprintf("%d", ctx.BlockHeight())),
+				),
+			})
+		} else {
+			newPubKeyData, err := newValidatorPubKey.Marshal()
+			if err != nil {
+				return nil, sdkerrors.Wrapf(types.ErrInterProc, "marshal pubkey of validator error: %v", err)
+			}
+			if bytes.Equal(newPubKeyData, updatePubKeyInfo.PubKey) {
+				return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "pubkey of new validator is equal to the new pubkey of replaceConsensusPubkeyInfo,"+
+					"new pubKey is %s", hex.EncodeToString(updatePubKeyInfo.PubKey))
+			}
+		}
 	}
 
 	bondDenom := k.BondDenom(ctx)
@@ -107,7 +140,9 @@ func (k MsgServer) CreateValidator(
 	validator.OwnerAddress = sdk.AccAddress(valAddr).String()
 
 	k.SetValidator(ctx, validator)
-	k.SetValidatorByConsAddr(ctx, validator)
+	if err := k.SetValidatorByConsAddr(ctx, validator); err != nil {
+		return nil, err
+	}
 	k.SetNewValidatorByPowerIndex(ctx, validator)
 	// call the after-creation hook
 	if err := k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
@@ -134,7 +169,7 @@ func (k MsgServer) CreateValidator(
 }
 
 func (k MsgServer) EditValidator(context.Context, *stakingtypes.MsgEditValidator) (*stakingtypes.MsgEditValidatorResponse, error) {
-	return &stakingtypes.MsgEditValidatorResponse{}, fmt.Errorf("not implemented, please use UpdateValidator instead")
+	return &stakingtypes.MsgEditValidatorResponse{}, errors.New("not implemented, please use UpdateValidator instead")
 }
 
 // 1. only perform the node replacement when the target block height is reached.

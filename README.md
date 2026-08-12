@@ -67,7 +67,7 @@ export PATH=$PATH:$(go env GOPATH)/bin
   First, set the following environment variables:
 
   ```sh
-  export CHAIN_ID="mechain_202404-1"
+  export CHAIN_ID="mechain_2404-1"
   export KEY_NAME="hub-user"
   export MONIKER_NAME="local"
   ```
@@ -205,10 +205,6 @@ func (q Querier) Params(goCtx context.Context, req *types.QueryParamsRequest) (*
 ```
 
 Open your browser and go to `http://localhost:1318/openmetaearth/me-hub/eibc/params` and you will see debugger stop and print the value at the breakpoint.
-
-## Developer
-
-For support, join our [Discord](http://discord.gg/ME) community and find us in the Developer section.
 
 ### Setup push hooks
 

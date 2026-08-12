@@ -1,11 +1,13 @@
 package keeper_test
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"encoding/hex"
 	"fmt"
+
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/testutil/helpers"
 	"github.com/openmetaearth/me-hub/utils"
@@ -378,6 +380,81 @@ func (s *KeeperTestSuite) TestAttestationAfterRelayerUpdate() {
 	}
 }
 
+func (s *KeeperTestSuite) TestAttestationIgnoresOfflineRelayerStaleVotes() {
+	s.Require().GreaterOrEqual(s.relayerNumber, 7)
+
+	for i := 0; i < s.relayerNumber; i++ {
+		msgBondedRelayer := &types.MsgBondedRelayer{
+			RelayerAddress:  s.relayerAddrs[i].String(),
+			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+			ChainName:       s.chainName,
+		}
+		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msgBondedRelayer)
+		s.Require().NoError(err)
+	}
+	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
+
+	bridgeTokenClaim := &types.MsgBridgeTokenClaim{
+		EventNonce:    1,
+		BlockHeight:   1000,
+		TokenContract: helpers.GenExternalAddr(s.chainName),
+		Name:          "Stale Vote Token",
+		Symbol:        "SVT",
+		Decimals:      18,
+		ChainName:     s.chainName,
+	}
+
+	// Relayer 0 votes while online, then leaves the active relayer set before the
+	// attestation reaches quorum. Its old vote must remain non-counting power.
+	bridgeTokenClaim.RelayerAddress = s.relayerAddrs[0].String()
+	_, err := s.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(s.Ctx), bridgeTokenClaim)
+	s.Require().NoError(err)
+
+	newRelayerList := make([]string, 0, s.relayerNumber-1)
+	for i := 1; i < s.relayerNumber; i++ {
+		newRelayerList = append(newRelayerList, s.relayerAddrs[i].String())
+	}
+	_, err = s.MsgServer().ProposalRelayers(sdk.WrapSDKContext(s.Ctx), &types.MsgProposalRelayers{
+		Relayers:  newRelayerList,
+		Authority: s.Dao.GlobalDao,
+		ChainName: s.chainName,
+	})
+	s.Require().NoError(err)
+	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
+
+	removedRelayer, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[0])
+	s.Require().True(found)
+	s.Require().False(removedRelayer.Online)
+	expectedTotalPower := sdkmath.NewInt(10 * 1e8).Mul(sdkmath.NewInt(int64(s.relayerNumber - 1))).Quo(sdk.DefaultPowerReduction)
+	s.Require().True(expectedTotalPower.Equal(s.Keeper().GetLastTotalPower(s.Ctx)))
+
+	for i := 1; i <= 5; i++ {
+		bridgeTokenClaim.RelayerAddress = s.relayerAddrs[i].String()
+		_, err = s.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(s.Ctx), bridgeTokenClaim)
+		s.Require().NoError(err)
+
+		attestation := s.Keeper().GetAttestation(s.Ctx, bridgeTokenClaim.EventNonce, bridgeTokenClaim.ClaimHash())
+		s.Require().NotNil(attestation)
+		s.Require().False(attestation.Observed)
+	}
+
+	attestation := s.Keeper().GetAttestation(s.Ctx, bridgeTokenClaim.EventNonce, bridgeTokenClaim.ClaimHash())
+	s.Require().NotNil(attestation)
+	s.Require().EqualValues(6, len(attestation.Votes))
+	s.Require().False(attestation.Observed)
+
+	bridgeTokenClaim.RelayerAddress = s.relayerAddrs[6].String()
+	_, err = s.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(s.Ctx), bridgeTokenClaim)
+	s.Require().NoError(err)
+
+	attestation = s.Keeper().GetAttestation(s.Ctx, bridgeTokenClaim.EventNonce, bridgeTokenClaim.ClaimHash())
+	s.Require().NotNil(attestation)
+	s.Require().True(attestation.Observed)
+}
+
 func (s *KeeperTestSuite) TestRelayerDelete() {
 	proposalRelayers, found := s.Keeper().GetProposalRelayer(s.Ctx)
 	s.Require().True(found)
@@ -447,7 +524,7 @@ func (s *KeeperTestSuite) TestRelayerDelete() {
 	s.Require().NoError(err)
 	relayer, found = s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[0])
 	s.Require().False(found)
-	relayerAddr, found = s.Keeper().GetRelayerByExternalAddress(s.Ctx, externalAddress)
+	_, found = s.Keeper().GetRelayerByExternalAddress(s.Ctx, externalAddress)
 	s.Require().False(found)
 }
 
@@ -529,7 +606,7 @@ func (s *KeeperTestSuite) TestSlashRelayer() {
 		s.Require().True(relayer.Online)
 		s.Require().Equal(int64(0), relayer.SlashTimes)
 
-		s.Keeper().SlashRelayer(s.Ctx, relayer.RelayerAddress)
+		s.Require().NoError(s.Keeper().SlashRelayer(s.Ctx, relayer.RelayerAddress))
 
 		relayer, found = s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[i])
 		s.Require().True(found)
@@ -544,7 +621,7 @@ func (s *KeeperTestSuite) TestSlashRelayer() {
 		s.Require().False(relayer.Online)
 		s.Require().Equal(int64(1), relayer.SlashTimes)
 
-		s.Keeper().SlashRelayer(s.Ctx, relayer.RelayerAddress)
+		s.Require().NoError(s.Keeper().SlashRelayer(s.Ctx, relayer.RelayerAddress))
 
 		relayer, found = s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[i])
 		s.Require().True(found)

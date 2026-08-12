@@ -5,11 +5,12 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/testutil/nullify"
 	"github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
-	"github.com/stretchr/testify/require"
 )
 
 // Prevent strconv unused error
@@ -24,7 +25,7 @@ func createNStateInfo(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.St
 		keeper.SetStateInfo(ctx, items[i])
 	}
 
-	var stateInfoSummaries []types.StateInfoSummary
+	stateInfoSummaries := make([]types.StateInfoSummary, 0, len(items))
 	for _, item := range items {
 		stateInfoSummary := types.StateInfoSummary{
 			StateInfoIndex: item.StateInfoIndex,
@@ -41,7 +42,6 @@ func TestStateInfoGet(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	items, _ := createNStateInfo(keeper, ctx, 10)
 	for _, item := range items {
-		item := item
 		rst, found := keeper.GetStateInfo(ctx,
 			item.StateInfoIndex.RollappId,
 			item.StateInfoIndex.Index,

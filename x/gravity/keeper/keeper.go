@@ -8,6 +8,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
@@ -15,12 +16,11 @@ import (
 type Keeper struct {
 	moduleName string
 
-	cdc           codec.Codec
-	storeKey      storetypes.StoreKey
-	bankKeeper    types.BankKeeper
-	accountKeeper authkeeper.AccountKeeper
-	daoKeeper     types.DaoKeeper
-	authority     string
+	cdc        codec.Codec
+	storeKey   storetypes.StoreKey
+	bankKeeper types.BankKeeper
+	daoKeeper  types.DaoKeeper
+	authority  string
 }
 
 func NewKeeper(
@@ -33,13 +33,12 @@ func NewKeeper(
 	authority string,
 ) Keeper {
 	return Keeper{
-		moduleName:    moduleName,
-		cdc:           cdc,
-		storeKey:      storeKey,
-		bankKeeper:    bankKeeper,
-		accountKeeper: accountKeeper,
-		daoKeeper:     daoKeeper,
-		authority:     authority,
+		moduleName: moduleName,
+		cdc:        cdc,
+		storeKey:   storeKey,
+		bankKeeper: bankKeeper,
+		daoKeeper:  daoKeeper,
+		authority:  authority,
 	}
 }
 

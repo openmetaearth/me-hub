@@ -5,10 +5,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
-
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func (k MsgServer) IbcTransferFromRegionTreasure(goCtx context.Context, msg *types.MsgIbcTransferFromRegionTreasure) (*types.MsgIbcTransferFromRegionTreasureResponse, error) {
@@ -25,7 +25,7 @@ func (k MsgServer) IbcTransferFromRegionTreasure(goCtx context.Context, msg *typ
 
 	treasureAddress := region.RegionTreasureAddr
 
-	_, err := k.IbcTransferKeeper.Transfer(ctx, ibctransfertypes.NewMsgTransfer(
+	_, err := k.ibcTransferKeeper.Transfer(ctx, ibctransfertypes.NewMsgTransfer(
 		msg.SourcePort,
 		msg.SourceChannel,
 		msg.Token,

@@ -47,7 +47,9 @@ service Query {
 
   // Queries a list of FixedDepositByRegion items.
   rpc FixedDepositByRegion(QueryFixedDepositByRegionRequest) returns (QueryFixedDepositByRegionResponse) {
-    option (google.api.http).get = "/cosmos/staking/v1beta1/fixed_deposit_by_region/{region_id}";
+    option (google.api.http).get =
+      "/cosmos/staking/v1beta1/fixed_deposit_by_region/{region_id}/"
+      "{query_type}";
   }
 
   // Queries a list of FixedDeposit items.
@@ -94,7 +96,8 @@ service Query {
     option (google.api.http).get = "/metaearth/wstaking/review_record/{action_number}";
   }
 
-  // QueryRegionWithdraw queries which address is granted withdraw for the given region.
+  // QueryRegionWithdraw queries which address is granted withdraw for the given
+  // region.
   rpc RegionWithdrawer(QueryRegionWithdrawerRequest) returns (QueryRegionWithdrawerResponse) {
     option (google.api.http).get = "/metaearth/wstaking/region_withdrawer/{region_id}";
   }

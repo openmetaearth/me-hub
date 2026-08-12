@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
-	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
 	"slices"
 	"strings"
 
@@ -12,8 +11,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
+
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
+	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
 	stktypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -53,6 +54,11 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 	holderInfo, found := m.GetDidInfo(ctx, msg.Did)
 	if found && holderInfo.Status == didtypes.DID_STATUS_ACTIVE {
 		return &types.MsgApproveResponse{}, didtypes.ErrDidExists
+	}
+
+	// check sub account
+	if m.didKeeper.HasDidBySubAccount(ctx, msg.Address) {
+		return &types.MsgApproveResponse{}, didtypes.ErrSubAccountAlreadyRegistered
 	}
 
 	// check region
@@ -102,6 +108,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 		m.accountKeeper.SetAccount(ctx, m.accountKeeper.NewAccountWithAddress(ctx, address))
 	}
 
+	ctx.EventManager().EmitEvent(types.NewKycEvent(msg.Address, msg.Did, msg.Level, "approve", m.takeSeq(ctx)))
 	return &types.MsgApproveResponse{}, nil
 }
 
@@ -147,7 +154,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 	}
 
 	// update KYC level
-	//if msg.Level == didtypes.KYC_LEVEL_NONE {
+	// if msg.Level == didtypes.KYC_LEVEL_NONE {
 	//	return &types.MsgUpdateResponse{}, errors.Wrap(didtypes.ErrParameter, "KYC level must be greater than 0")
 	//}
 
@@ -184,6 +191,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 		sdk.NewAttribute(types.AttributeKeyInviter, msg.Inviter),
 	)
 	ctx.EventManager().EmitEvent(event)
+	ctx.EventManager().EmitEvent(types.NewKycEvent(address.String(), msg.Did, msg.Level, "update", m.takeSeq(ctx)))
 
 	// event post-handler
 	err := m.handlerReg.HandleEvent(ctx, types.EventTypeUpdate, event)
@@ -240,7 +248,7 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	if err := m.DeleteApproveReward(ctx, address.String(), string(kyc.Data)); err != nil {
 		return &types.MsgRemoveResponse{}, errors.Wrap(err, "delete reward failed")
 	}
-
+	ctx.EventManager().EmitEvent(types.NewKycEvent(address.String(), msg.Did, didInfo.KycLevel, "remove", m.takeSeq(ctx)))
 	return &types.MsgRemoveResponse{}, nil
 }
 
@@ -271,6 +279,9 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 	}
 	if !m.HasKYC(ctx, msg.Did) {
 		return &types.MsgCreateSBTResponse{}, didtypes.ErrCredentialNotFound //
+	}
+	if m.HasSBT(ctx, msg.Did) {
+		return &types.MsgCreateSBTResponse{}, types.ErrSbtExists
 	}
 
 	// mint SBT to KYC module address

@@ -1,14 +1,13 @@
 package keeper_test
 
 import (
-	"github.com/openmetaearth/me-hub/testutil/helpers"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/openmetaearth/me-hub/testutil/helpers"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
-	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 )
 
@@ -62,7 +61,7 @@ func (s *KeeperTestSuite) TestQuery_BatchFees() {
 					},
 				}
 				for i := uint64(1); i <= 3; i++ {
-					err := s.App.TronKeeper.AttestationHandler(s.Ctx, &gravitytypes.MsgSendToMeClaim{
+					err := s.App.TronKeeper.AttestationHandler(s.Ctx, &types.MsgSendToMeClaim{
 						TokenContract:  bridgeTokens[0].ContractAddress,
 						RelayerAddress: s.signer.AccAddress().String(),
 						Amount:         sdk.NewInt(1e8),
@@ -118,14 +117,14 @@ func (s *KeeperTestSuite) TestQuery_BatchFees() {
 						BaseFee:       sdk.NewInt(1e10),
 					},
 				}
-				err := s.App.TronKeeper.AttestationHandler(s.Ctx, &gravitytypes.MsgSendToMeClaim{
+				err := s.App.TronKeeper.AttestationHandler(s.Ctx, &types.MsgSendToMeClaim{
 					TokenContract:  bridgeTokens[0].ContractAddress,
 					RelayerAddress: s.signer.AccAddress().String(),
 					Amount:         sdk.NewInt(1e18),
 					Receiver:       s.signer.AccAddress().String(),
 				})
 				s.Require().NoError(err)
-				err = s.App.TronKeeper.AttestationHandler(s.Ctx, &gravitytypes.MsgSendToMeClaim{
+				err = s.App.TronKeeper.AttestationHandler(s.Ctx, &types.MsgSendToMeClaim{
 					TokenContract:  bridgeTokens[1].ContractAddress,
 					RelayerAddress: s.signer.AccAddress().String(),
 					Amount:         sdk.NewInt(1e18),
@@ -369,7 +368,7 @@ func (s *KeeperTestSuite) TestQuery_BatchConfirms() {
 		{
 			"set correct batch confirm",
 			func() {
-				relayer, externalKey := s.NewRelayer()
+				relayer, externalKey := s.NewRelayer(true)
 				bridgeTokens := s.NewBridgeToken(helpers.GenHexAddress().Bytes())
 				request = &types.QueryBatchConfirmsRequest{
 					ChainName:     trontypes.ModuleName,
@@ -509,7 +508,7 @@ func (s *KeeperTestSuite) TestQuery_GetRelayerByExternalAddr() {
 		{
 			name: "normal external address",
 			malleate: func() {
-				bridger, externalKey := s.NewRelayer()
+				bridger, externalKey := s.NewRelayer(true)
 				request = &types.QueryRelayerRequest{
 					ChainName:       trontypes.ModuleName,
 					ExternalAddress: helpers.HexAddrToTronAddr(externalKey.PubKey().Address().String()),

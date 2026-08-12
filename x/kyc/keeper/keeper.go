@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/cometbft/cometbft/libs/log"
@@ -9,6 +10,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+
 	"github.com/openmetaearth/me-hub/x/kyc/handler"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
@@ -21,8 +23,7 @@ type Keeper struct {
 	accountKeeper authkeeper.AccountKeeper
 	didKeeper     types.DIDKeeper
 	nftKeeper     types.NFTKeeper
-
-	handlerReg *handler.HandlerRegistry
+	handlerReg    *handler.HandlerRegistry
 }
 
 func NewKeeper(
@@ -40,8 +41,7 @@ func NewKeeper(
 		accountKeeper: accountKeeper,
 		didKeeper:     didKeeper,
 		nftKeeper:     nftKeeper,
-
-		handlerReg: handler.NewEventRegistry(),
+		handlerReg:    handler.NewEventRegistry(),
 	}
 }
 
@@ -62,7 +62,7 @@ func (k *Keeper) MustAccAddressFromPubkeyString(s string) (sdk.AccAddress, error
 		}
 		return sdk.AccAddress(pk.Address()), nil
 	}
-	return sdk.AccAddress{}, fmt.Errorf("pubkey is empty")
+	return sdk.AccAddress{}, errors.New("pubkey is empty")
 }
 
 func (k *Keeper) RegisterEventHandler(eventType string, priority int, module string, handler handler.HandlerFunc) {

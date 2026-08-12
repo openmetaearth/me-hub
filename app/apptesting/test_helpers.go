@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"math/big"
 	"math/rand"
 	"strconv"
@@ -12,21 +12,13 @@ import (
 	"testing"
 	"time"
 
-	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
-	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-
 	errorsmod "cosmossdk.io/errors"
-
 	"cosmossdk.io/math"
-
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cometbfttypes "github.com/cometbft/cometbft/types"
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/stretchr/testify/require"
-
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -38,13 +30,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/mock"
 	simapp "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	app "github.com/openmetaearth/me-hub/app"
+	"github.com/stretchr/testify/require"
+
+	"github.com/openmetaearth/me-hub/app"
+	"github.com/openmetaearth/me-hub/app/params"
+	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
@@ -66,7 +63,7 @@ var DefaultConsensusParams = &cometbftproto.ConsensusParams{
 	},
 }
 
-var TestChainID = "mechain_202404-1"
+var TestChainID = "mechain_2404-1"
 
 // SetupOptions defines arguments that are passed into `Simapp` constructor.
 type SetupOptions struct {
@@ -97,7 +94,101 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 		defaultGenesisState[evmtypes.ModuleName] = encCdc.Codec.MustMarshalJSON(&evmGenesisState)
 	}
 
+	// Strip wstaking-specific fields from staking genesis for ibc-go compatibility.
+	// ibc-go testing framework unmarshals genesisState["staking"] into cosmos SDK's
+	// staking.GenesisState which panics on unknown fields.
+	if stakingGenesisJson, found := defaultGenesisState[stakingtypes.ModuleName]; found {
+		var rawGenesis map[string]json.RawMessage
+		if err := json.Unmarshal(stakingGenesisJson, &rawGenesis); err == nil {
+			delete(rawGenesis, "stakes")
+			delete(rawGenesis, "unbonding_stakes")
+			delete(rawGenesis, "unbondingStakes")
+			delete(rawGenesis, "regions")
+			delete(rawGenesis, "fixedDepositList")
+			delete(rawGenesis, "fixedDepositCount")
+			delete(rawGenesis, "exported")
+			// Fix bond denom and unbonding time in params for ibc-go compatibility
+			if paramsJson, ok := rawGenesis["params"]; ok {
+				var rawParams map[string]json.RawMessage
+				if err := json.Unmarshal(paramsJson, &rawParams); err == nil {
+					rawParams["bond_denom"], _ = json.Marshal(params.BaseDenom)
+					// Match ibc-go testing UnbondingPeriod (504h = 21 days)
+					rawParams["unbonding_time"], _ = json.Marshal("1814400s")
+					if newParams, err := json.Marshal(rawParams); err == nil {
+						rawGenesis["params"] = newParams
+					}
+				}
+			}
+			if cleanedJson, err := json.Marshal(rawGenesis); err == nil {
+				defaultGenesisState[stakingtypes.ModuleName] = cleanedJson
+			}
+		}
+	}
+
 	return newApp, defaultGenesisState
+}
+
+// IBCTestApp wraps *app.App to intercept InitChain and fix the bonded pool
+// address mismatch between ibc-go testing (which uses BondedPoolName) and
+// wstaking (which uses BondedStakePoolName).
+type IBCTestApp struct {
+	*app.App
+}
+
+func (a *IBCTestApp) InitChain(req abci.RequestInitChain) abci.ResponseInitChain {
+	req.AppStateBytes = fixBondedPoolGenesis(req.AppStateBytes)
+	return a.App.InitChain(req)
+}
+
+// fixBondedPoolGenesis replaces BondedPoolName module address with
+// BondedStakePoolName module address in bank genesis balances, and removes
+// delegations from staking genesis (ibc-go creates delegations which trigger
+// distribution invariant failures without corresponding distribution info).
+// Also zeros out DelegatorShares on validators to keep staking invariants consistent.
+func fixBondedPoolGenesis(appStateBytes []byte) []byte {
+	bondedPoolAddr := authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String()
+	bondedStakePoolAddr := authtypes.NewModuleAddress(wstakingtypes.BondedStakePoolName).String()
+
+	var genesisState map[string]json.RawMessage
+	if err := json.Unmarshal(appStateBytes, &genesisState); err != nil {
+		return appStateBytes
+	}
+
+	// Fix bank genesis: rename bonded pool address
+	if bankGenBytes, ok := genesisState[banktypes.ModuleName]; ok {
+		fixed := bytes.ReplaceAll(bankGenBytes, []byte(bondedPoolAddr), []byte(bondedStakePoolAddr))
+		genesisState[banktypes.ModuleName] = fixed
+	}
+
+	// Fix staking genesis: remove delegations and zero DelegatorShares
+	if stakingGenBytes, ok := genesisState[stakingtypes.ModuleName]; ok {
+		var rawStaking map[string]json.RawMessage
+		if err := json.Unmarshal(stakingGenBytes, &rawStaking); err == nil {
+			// Remove delegations to avoid distribution invariant panic
+			rawStaking["delegations"], _ = json.Marshal([]interface{}{})
+
+			// Zero out DelegatorShares on validators to keep staking shares invariant consistent
+			if validatorsBytes, ok := rawStaking["validators"]; ok {
+				var validators []map[string]json.RawMessage
+				if err := json.Unmarshal(validatorsBytes, &validators); err == nil {
+					for i := range validators {
+						validators[i]["delegator_shares"], _ = json.Marshal("0.000000000000000000")
+					}
+					rawStaking["validators"], _ = json.Marshal(validators)
+				}
+			}
+
+			if fixed, err := json.Marshal(rawStaking); err == nil {
+				genesisState[stakingtypes.ModuleName] = fixed
+			}
+		}
+	}
+
+	result, err := json.Marshal(genesisState)
+	if err != nil {
+		return appStateBytes
+	}
+	return result
 }
 
 func NewValidatorSet(t *testing.T, n int) *cometbfttypes.ValidatorSet {
@@ -126,7 +217,7 @@ func Setup(t *testing.T, isCheckTx bool) *app.App {
 	moduleAddress := authtypes.NewModuleAddress(wstakingtypes.StakePoolName)
 	stakePoolBalances := banktypes.Balance{Address: moduleAddress.String(), Coins: coins.Sort()}
 
-	//balance := banktypes.Balance{
+	// balance := banktypes.Balance{
 	//	Address: acc.GetAddress().String(),
 	//	Coins:   sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000000000000000))),
 	//}
@@ -272,9 +363,9 @@ func createIncrementalAccounts(accNum int) []sdk.AccAddress {
 	// start at 100 so we can make up to 999 test addresses with valid test addresses
 	for i := 100; i < (accNum + 100); i++ {
 		numString := strconv.Itoa(i)
-		buffer.WriteString("A58856F0FD53BF058B4909A21AEC019107BA6") // base address string
+		_, _ = buffer.WriteString("A58856F0FD53BF058B4909A21AEC019107BA6") // base address string
 
-		buffer.WriteString(numString) // adding on final two digits to make addresses unique
+		_, _ = buffer.WriteString(numString) // adding on final two digits to make addresses unique
 		res, _ := sdk.AccAddressFromHexUnsafe(buffer.String())
 		bech := res.String()
 		addr, _ := TestAddr(buffer.String(), bech)
@@ -342,14 +433,14 @@ func ConvertAddrsToValAddrs(addrs []sdk.AccAddress) []sdk.ValAddress {
 	return valAddrs
 }
 
-func TestAddr(addr string, bech string) (sdk.AccAddress, error) {
+func TestAddr(addr, bech string) (sdk.AccAddress, error) {
 	res, err := sdk.AccAddressFromHexUnsafe(addr)
 	if err != nil {
 		return nil, err
 	}
 	bechexpected := res.String()
 	if bech != bechexpected {
-		return nil, fmt.Errorf("bech encoding doesn't match reference")
+		return nil, errors.New("bech encoding doesn't match reference")
 	}
 
 	bechres, err := sdk.AccAddressFromBech32(bech)
@@ -425,7 +516,7 @@ func SignCheckDeliver(
 // GenSequenceOfTxs generates a set of signed transactions of messages, such
 // that they differ only by having the sequence numbers incremented between
 // every transaction.
-func GenSequenceOfTxs(txGen client.TxConfig, msgs []sdk.Msg, accNums []uint64, initSeqNums []uint64, numToGenerate int, priv ...cryptotypes.PrivKey) ([]sdk.Tx, error) {
+func GenSequenceOfTxs(txGen client.TxConfig, msgs []sdk.Msg, accNums, initSeqNums []uint64, numToGenerate int, priv ...cryptotypes.PrivKey) ([]sdk.Tx, error) {
 	txs := make([]sdk.Tx, numToGenerate)
 	var err error
 	for i := 0; i < numToGenerate; i++ {
@@ -464,8 +555,8 @@ func CreateTestPubKeys(numPubKeys int) []cryptotypes.PubKey {
 	// start at 10 to avoid changing 1 to 01, 2 to 02, etc
 	for i := 100; i < (numPubKeys + 100); i++ {
 		numString := strconv.Itoa(i)
-		buffer.WriteString("0B485CFC0EECC619440448436F8FC9DF40566F2369E72400281454CB552AF") // base pubkey string
-		buffer.WriteString(numString)                                                       // adding on final two digits to make pubkeys unique
+		_, _ = buffer.WriteString("0B485CFC0EECC619440448436F8FC9DF40566F2369E72400281454CB552AF") // base pubkey string
+		_, _ = buffer.WriteString(numString)                                                       // adding on final two digits to make pubkeys unique
 		publicKeys = append(publicKeys, NewPubKeyFromHex(buffer.String()))
 		buffer.Reset()
 	}
@@ -480,7 +571,7 @@ func NewPubKeyFromHex(pk string) (res cryptotypes.PubKey) {
 		panic(err)
 	}
 	if len(pkBytes) != ed25519.PubKeySize {
-		panic(errorsmod.Wrap(errors.ErrInvalidPubKey, "invalid pubkey size"))
+		panic(errorsmod.Wrap(sdkerrors.ErrInvalidPubKey, "invalid pubkey size"))
 	}
 	return &ed25519.PubKey{Key: pkBytes}
 }

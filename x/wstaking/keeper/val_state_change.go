@@ -9,6 +9,7 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -46,36 +47,40 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 
 		k.Logger(ctx).Error("failed to replace validator pubkey", "error", err.Error(),
 			"block height", ctx.BlockHeight())
-	} else {
-		if replacePubKey != nil {
-			newPubkey, errP := cryptocodec.ToTmProtoPublicKey(replacePubKey.NewPubKey)
-			if errP != nil {
-				panic(errP)
-			}
-			oldPubkey, errP := cryptocodec.ToTmProtoPublicKey(replacePubKey.OldPubKey)
-			if errP != nil {
-				panic(errP)
-			}
-			validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
-				PubKey: oldPubkey,
-				Power:  0,
-			})
-			valAddr, errP := sdk.ValAddressFromBech32(replacePubKey.OperatorAddress)
-			if errP != nil {
-				panic(fmt.Sprintf("invalid validator address %s,err = %s", replacePubKey.OperatorAddress, errP.Error()))
-			}
-			validator, found := k.GetValidator(ctx, valAddr)
-			if !found {
-				panic(fmt.Sprintf("validator not found for address %s", replacePubKey.OperatorAddress))
-			}
-			power := validator.ConsensusPower(k.PowerReduction(ctx))
-			validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
-				PubKey: newPubkey,
-				Power:  power,
-			})
-			// Log the removal
-			k.Logger(ctx).Info("completed pubb key replaced in validatorUpdates ", "validator", valAddr.String(), "block height", ctx.BlockHeight())
+	} else if replacePubKey != nil {
+		newPubkey, errP := cryptocodec.ToTmProtoPublicKey(replacePubKey.NewPubKey)
+		if errP != nil {
+			panic(errP)
 		}
+		oldPubkey, errP := cryptocodec.ToTmProtoPublicKey(replacePubKey.OldPubKey)
+		if errP != nil {
+			panic(errP)
+		}
+		// If ApplyAndReturnValidatorSetUpdates already emitted an update for the old
+		// consensus key in this block (the validator's power changed at the same
+		// height the pubkey replacement takes effect), merge with it by forcing its
+		// power to 0 instead of appending a second entry for the same consensus
+		// address. CometBFT rejects a changeset with duplicate validator addresses.
+		validatorUpdates = upsertValidatorUpdate(validatorUpdates, abci.ValidatorUpdate{
+			PubKey: oldPubkey,
+			Power:  0,
+		})
+
+		valAddr, errP := sdk.ValAddressFromBech32(replacePubKey.OperatorAddress)
+		if errP != nil {
+			panic(fmt.Sprintf("invalid validator address %s,err = %s", replacePubKey.OperatorAddress, errP.Error()))
+		}
+		validator, found := k.GetValidator(ctx, valAddr)
+		if !found {
+			panic(fmt.Sprintf("validator not found for address %s", replacePubKey.OperatorAddress))
+		}
+		power := validator.ConsensusPower(k.PowerReduction(ctx))
+		validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
+			PubKey: newPubkey,
+			Power:  power,
+		})
+		// Log the removal
+		k.Logger(ctx).Info("completed pubb key replaced in validatorUpdates ", "validator", valAddr.String(), "block height", ctx.BlockHeight())
 	}
 
 	// unbond all mature validators from the unbonding queue
@@ -164,4 +169,14 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 	}
 
 	return validatorUpdates
+}
+
+func upsertValidatorUpdate(updates []abci.ValidatorUpdate, update abci.ValidatorUpdate) []abci.ValidatorUpdate {
+	for i := range updates {
+		if updates[i].PubKey.Equal(update.PubKey) {
+			updates[i].Power = update.Power
+			return updates
+		}
+	}
+	return append(updates, update)
 }

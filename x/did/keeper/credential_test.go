@@ -1,17 +1,20 @@
 package keeper_test
 
 import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
 	"github.com/openmetaearth/me-hub/testutil/keeper"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
-	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestKeeper_Credential(t *testing.T) {
+	const sid = "test"
+
 	k, ctx := keeper.DidKeeper(t)
 
 	did := "1000000000000001"
-	sid := "test"
 	vc := didtypes.Credential{
 		Did:  did,
 		Sid:  sid,
@@ -28,7 +31,7 @@ func TestKeeper_Credential(t *testing.T) {
 	value, found := k.GetCredential(ctx, did, sid)
 	assert.True(t, found)
 	assert.Equal(t, vc, value)
-	//gets
+	// gets
 	values := k.GetCredentials(ctx)
 	assert.Equal(t, 1, len(values))
 	// gets by did

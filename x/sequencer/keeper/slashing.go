@@ -3,10 +3,11 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
-// Slashing slashes the sequencer for misbehaviour
+// Slashing slashes the sequencer for misbehavior
 // Slashing can occur on both Bonded and Unbonding sequencers
 func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	seq, found := k.GetSequencer(ctx, seqAddr)

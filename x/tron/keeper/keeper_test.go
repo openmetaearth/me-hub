@@ -1,20 +1,7 @@
 package keeper_test
 
 import (
-	"crypto/ecdsa"
 	"fmt"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/openmetaearth/me-hub/app/apptesting"
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/testutil/helpers"
-	"github.com/openmetaearth/me-hub/utils"
-	"github.com/openmetaearth/me-hub/x/gravity/keeper"
-	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
-	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-	"github.com/stretchr/testify/suite"
 	"math/big"
 	"testing"
 
@@ -24,7 +11,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/suite"
+
+	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/testutil/helpers"
+	"github.com/openmetaearth/me-hub/utils"
+	"github.com/openmetaearth/me-hub/x/gravity/keeper"
 	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
+	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 type KeeperTestSuite struct {
@@ -34,8 +34,6 @@ type KeeperTestSuite struct {
 
 	relayerAddrs  []sdk.AccAddress
 	relayerNumber int
-	externalPris  []*ecdsa.PrivateKey
-	chainName     string
 
 	queryServer gravitytypes.QueryClient
 	msgServer   gravitytypes.MsgServer
@@ -82,8 +80,6 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.relayerNumber = 10
 	s.relayerAddrs = s.NewAccounts(s.relayerNumber)
 	s.Require().EqualValues(s.relayerNumber, len(s.relayerAddrs))
-	s.externalPris = helpers.CreateMultiECDSA(s.relayerNumber)
-
 	err = s.App.TronKeeper.SetParams(s.Ctx, &gravitytypes.Params{
 		GravityId:                          "me-tron-bridge",
 		AverageBlockTime:                   5000,
@@ -95,6 +91,7 @@ func (s *KeeperTestSuite) SetupTest() {
 		MaxRelayers:                        10,
 		MinDelegate:                        sdk.NewInt(1000000000),
 		MaxDelegate:                        sdk.NewInt(100000000000),
+		MaxSendToExternalUsdAmount:         sdk.NewInt(10_000_000_000),
 	})
 	s.Require().NoError(err)
 
@@ -135,13 +132,14 @@ func (s *KeeperTestSuite) NewOutgoingTxBatch() *gravitytypes.OutgoingTxBatch {
 	return newOutgoingTx
 }
 
-func (s *KeeperTestSuite) NewRelayer() (sdk.AccAddress, cryptotypes.PrivKey) {
+func (s *KeeperTestSuite) NewRelayer(online bool) (sdk.AccAddress, cryptotypes.PrivKey) {
 	relayer := helpers.GenAccAddress()
 	externalKey := helpers.NewEthPrivKey()
 	externalAddress := helpers.HexAddrToTronAddr(externalKey.PubKey().Address().String())
 	newRelayer := gravitytypes.Relayer{
 		RelayerAddress:  relayer.String(),
 		ExternalAddress: externalAddress,
+		Online:          online,
 	}
 	s.App.TronKeeper.SetRelayer(s.Ctx, relayer, newRelayer)
 	s.App.TronKeeper.SetRelayerByExternalAddress(s.Ctx, externalAddress, relayer)

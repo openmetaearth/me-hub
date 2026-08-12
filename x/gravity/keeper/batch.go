@@ -81,7 +81,7 @@ func (k Keeper) BuildOutgoingTxBatch(ctx sdk.Context, contractAddress, feeReceiv
 }
 
 // GetBatchTimeoutHeight This gets the batch timeout height in External blocks.
-func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) (uint64, uint64) {
+func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) (currentHeight, timeoutHeight uint64) {
 	currentMeHeight := ctx.BlockHeight()
 	params := k.GetParams(ctx)
 	if params.AverageExternalBlockTime == 0 {
@@ -132,16 +132,13 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, contractAddress string,
 func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetOutgoingTxBatchKey(batch.TokenContract, batch.BatchNonce)
+	store.Set(key, k.cdc.MustMarshal(batch))
 
-	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block)
-	// Note: Only one OutgoingTxBatch can be submitted in a block
+	blockKey := types.GetOutgoingTxBatchBlockKey(batch.Block, batch.BatchNonce)
 	if store.Has(blockKey) {
 		return errorsmod.Wrap(types.ErrInvalid, fmt.Sprintf("block:[%v] has batch request", batch.Block))
 	}
-
-	value := k.cdc.MustMarshal(batch)
-	store.Set(key, value)
-	store.Set(blockKey, value)
+	store.Set(blockKey, k.cdc.MustMarshal(batch))
 	return nil
 }
 
@@ -149,7 +146,7 @@ func (k Keeper) StoreBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) error 
 func (k Keeper) DeleteBatch(ctx sdk.Context, batch *types.OutgoingTxBatch) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetOutgoingTxBatchKey(batch.TokenContract, batch.BatchNonce))
-	store.Delete(types.GetOutgoingTxBatchBlockKey(batch.Block))
+	store.Delete(types.GetOutgoingTxBatchBlockKey(batch.Block, batch.BatchNonce))
 }
 
 // pickUnBatchedTx find Tx in pool and remove from "available" second index
@@ -234,7 +231,7 @@ func (k Keeper) GetOutgoingTxBatches(ctx sdk.Context) (out []*types.OutgoingTxBa
 
 // GetLastOutgoingBatchByTokenType gets the latest outgoing tx batch by token type
 func (k Keeper) GetLastOutgoingBatchByTokenType(ctx sdk.Context, token string) *types.OutgoingTxBatch {
-	var lastBatch *types.OutgoingTxBatch = nil
+	var lastBatch *types.OutgoingTxBatch
 	lastNonce := uint64(0)
 	k.IterateOutgoingTxBatches(ctx, func(batch *types.OutgoingTxBatch) bool {
 		if batch.TokenContract == token && batch.BatchNonce > lastNonce {
@@ -247,7 +244,7 @@ func (k Keeper) GetLastOutgoingBatchByTokenType(ctx sdk.Context, token string) *
 }
 
 // IterateBatchByBlockHeight iterates through all Batch by block in the half-open interval [start,end)
-func (k Keeper) IterateBatchByBlockHeight(ctx sdk.Context, start uint64, end uint64, cb func(*types.OutgoingTxBatch) bool) {
+func (k Keeper) IterateBatchByBlockHeight(ctx sdk.Context, start, end uint64, cb func(*types.OutgoingTxBatch) bool) {
 	store := ctx.KVStore(k.storeKey)
 	startKey := append(types.OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(start)...)
 	endKey := append(types.OutgoingTxBatchBlockKey, sdk.Uint64ToBigEndian(end)...)

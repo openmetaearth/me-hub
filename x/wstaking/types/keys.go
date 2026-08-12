@@ -57,6 +57,7 @@ const (
 	EventTypeStartReplacePubKey     = "start_replace_pubkey"
 	EventTypeDelayRemoveOldConsAddr = "delay_remove_old_cons_addr"
 	EventTypeReplacePubKeyFailed    = "replace_pubkey_failed"
+	EventPubKeyUnexpected           = "pubkey_unexpected"
 
 	AttributeKeyOperatorAddress = "operator_address"
 	AttributeKeyPubKey          = "pub_key"
@@ -64,6 +65,8 @@ const (
 	AttributeKeyNowConsAddr     = "now_cons_addr"
 	AttributeKeyUpdateAtHeight  = "update_at_height"
 	AttributeKeyFailedReason    = "failed_reason"
+
+	AttributeKeyOperatorType = "operator_type"
 )
 
 var (
@@ -72,7 +75,7 @@ var (
 	UnbondingStakeByValIndexKey = []byte{0x73} // prefix for each key for an unbonding-stake, by validator operator
 	UnbondingStakeQueueKey      = []byte{0x74} // prefix for the timestamps in unbonding stake queue
 
-	NewRecordKey                 = []byte{0x88} //key for new record
+	NewRecordKey                 = []byte{0x88} // key for new record
 	ReviewRecordKey              = []byte{0x89} // key for new review record
 	InviteKey                    = []byte{0x90}
 	ChangeDelegationValidatorKey = []byte{0x91}
@@ -164,7 +167,7 @@ func MeidNFTKey(umeid string) []byte {
 }
 
 func FixedDepositCfgKey(term int64) []byte {
-	var key = make([]byte, 8)
+	key := make([]byte, 8)
 	binary.BigEndian.PutUint64(key, uint64(term))
 	key = append(key, []byte("/")...)
 

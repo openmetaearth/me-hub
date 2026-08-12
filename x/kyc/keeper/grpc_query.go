@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	didtypes "github.com/openmetaearth/me-hub/x/did/types"
-	"github.com/openmetaearth/me-hub/x/kyc/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	"github.com/openmetaearth/me-hub/x/kyc/types"
+	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
 )
 
 type Querier struct {
@@ -63,13 +64,13 @@ func (k Keeper) DIDs(goCtx context.Context, req *types.QueryDIDs) (*types.QueryD
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	KYCs, pageRes, err := k.GetKYCsByRegion(ctx, req.RegionId, req.Pagination)
+	kycs, pageRes, err := k.GetKYCsByRegion(ctx, req.RegionId, req.Pagination)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	var infos []didtypes.DidInfo
-	for _, kyc := range KYCs {
+	infos := make([]didtypes.DidInfo, 0, len(kycs))
+	for _, kyc := range kycs {
 		info, found := k.GetDidInfo(ctx, kyc.Did)
 		if !found {
 			return nil, status.Error(codes.Internal, fmt.Sprintf("kyc exist, but did %s is not found", kyc.Did))
@@ -134,4 +135,23 @@ func (k Keeper) SBT(goCtx context.Context, req *types.QuerySBT) (*types.QuerySBT
 	}
 
 	return &types.QuerySBTResponse{Sbt: sbt}, nil
+}
+
+func (k Keeper) SubAccountDid(goCtx context.Context, req *types.QuerySubAccountDid) (*types.QuerySubAccountDidResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	did, ok := k.GetSubAccountDidMap(ctx, req.SubAccount)
+	if !ok {
+		return nil, status.Error(codes.Internal, "failed to get DID by sub-account")
+	}
+
+	info, found := k.GetDidInfo(ctx, did)
+	if !found {
+		return nil, status.Error(codes.Internal, "failed to get DID info by sub-account")
+	}
+
+	return &types.QuerySubAccountDidResponse{Info: info}, nil
 }

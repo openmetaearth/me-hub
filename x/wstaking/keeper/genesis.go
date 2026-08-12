@@ -1,11 +1,13 @@
 package keeper
 
 import (
-	"cosmossdk.io/math"
 	"fmt"
+
+	"cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -34,7 +36,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 		k.SetValidator(ctx, validator)
 
 		// Manually set indices for the first time
-		k.SetValidatorByConsAddr(ctx, validator)
+		_ = k.SetValidatorByConsAddr(ctx, validator)
 		k.SetValidatorByPowerIndex(ctx, validator)
 
 		// Call the creation hook if not exported

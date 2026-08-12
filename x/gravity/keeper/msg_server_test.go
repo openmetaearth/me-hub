@@ -1,20 +1,20 @@
 package keeper_test
 
 import (
-	"context"
-	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
 	"encoding/hex"
 	"fmt"
+	"sort"
+
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/crypto"
+
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/testutil/helpers"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
-	"sort"
 )
 
 func (s *KeeperTestSuite) TestMsgBondedRelayer() {
@@ -39,7 +39,7 @@ func (s *KeeperTestSuite) TestMsgBondedRelayer() {
 				s.Keeper().SetRelayer(s.Ctx, sdk.MustAccAddressFromBech32(msg.RelayerAddress), types.Relayer{RelayerAddress: msg.RelayerAddress})
 			},
 			pass: false,
-			err:  "relayer existed bridger address: invalid",
+			err:  "relayer already bonded: invalid",
 		},
 		{
 			name: "error - external address is bound",
@@ -47,7 +47,7 @@ func (s *KeeperTestSuite) TestMsgBondedRelayer() {
 				s.Keeper().SetRelayerByExternalAddress(s.Ctx, msg.ExternalAddress, sdk.MustAccAddressFromBech32(msg.RelayerAddress))
 			},
 			pass: false,
-			err:  "external address is bound to relayer: invalid",
+			err:  "external already bonded: invalid",
 		},
 		{
 			name: "error - stake denom not match chain params stake denom",
@@ -454,7 +454,7 @@ func (s *KeeperTestSuite) TestClaimWithRelayerOnline() {
 }
 
 func (s *KeeperTestSuite) TestClaimMsgGasConsumed() {
-	gasStatics := func(gasConsumed, maxGas uint64, minGas uint64, avgGas uint64) (uint64, uint64, uint64) {
+	gasStatics := func(gasConsumed, maxGas, minGas, avgGas uint64) (uint64, uint64, uint64) {
 		if gasConsumed > maxGas {
 			maxGas = gasConsumed
 		}
@@ -736,6 +736,123 @@ func (s *KeeperTestSuite) TestMsgBridgeTokenClaim() {
 	}
 }
 
+func (s *KeeperTestSuite) TestMsgSendToExternalIncreaseBridgeFeeAndCancel() {
+	sender := s.relayerAddrs[0]
+	denom := "uusdt"
+	initialSupply := sdk.NewCoin(denom, sdkmath.NewInt(150))
+	amount := sdk.NewCoin(denom, sdkmath.NewInt(40))
+	bridgeFee := sdk.NewCoin(denom, sdkmath.NewInt(10))
+	additionalFee := sdk.NewCoin(denom, sdkmath.NewInt(5))
+	bridgeToken := s.NewBridgeToken(sender, initialSupply)
+	bridgeToken.Symbol = "USDT"
+	bridgeToken.Decimal = 18
+	s.Keeper().SetBridgeToken(s.Ctx, &bridgeToken)
+
+	getBalance := func() sdkmath.Int {
+		return s.App.BankKeeper.GetBalance(s.Ctx, sender, denom).Amount
+	}
+	getSupply := func() sdkmath.Int {
+		return s.App.BankKeeper.GetSupply(s.Ctx, denom).Amount
+	}
+	getBridgeTokenSupply := func() sdkmath.Int {
+		bridgeToken, err := s.Keeper().GetBridgeTokenByDenom(s.Ctx, denom)
+		s.Require().NoError(err)
+		return bridgeToken.Supply
+	}
+	assertBalanceAndSupply := func(expected sdkmath.Int) {
+		s.Require().EqualValues(expected, getBalance())
+		s.Require().EqualValues(expected, getSupply())
+		s.Require().EqualValues(expected, getBridgeTokenSupply())
+	}
+
+	assertBalanceAndSupply(initialSupply.Amount)
+
+	sendResp, err := s.MsgServer().SendToExternal(sdk.WrapSDKContext(s.Ctx), &types.MsgSendToExternal{
+		Sender:    sender.String(),
+		Dest:      helpers.GenExternalAddr(s.chainName),
+		Amount:    amount,
+		BridgeFee: bridgeFee,
+		ChainName: s.chainName,
+	})
+	s.Require().NoError(err)
+	s.Require().NotNil(sendResp)
+	s.Require().NotZero(sendResp.OutgoingTxId)
+
+	afterSend := initialSupply.Amount.Sub(amount.Amount).Sub(bridgeFee.Amount)
+	assertBalanceAndSupply(afterSend)
+
+	outgoingTx, err := s.Keeper().GetUnbatchedTxById(s.Ctx, sendResp.OutgoingTxId)
+	s.Require().NoError(err)
+	s.Require().EqualValues(types.GetExternalUnlockAmount(amount.Amount, s.chainName, &bridgeToken), outgoingTx.Token.Amount)
+	s.Require().EqualValues(types.GetExternalUnlockAmount(bridgeFee.Amount, s.chainName, &bridgeToken), outgoingTx.Fee.Amount)
+
+	_, err = s.MsgServer().IncreaseBridgeFee(sdk.WrapSDKContext(s.Ctx), &types.MsgIncreaseBridgeFee{
+		ChainName:     s.chainName,
+		TransactionId: sendResp.OutgoingTxId,
+		Sender:        sender.String(),
+		AddBridgeFee:  additionalFee,
+	})
+	s.Require().NoError(err)
+
+	afterIncrease := afterSend.Sub(additionalFee.Amount)
+	assertBalanceAndSupply(afterIncrease)
+
+	outgoingTx, err = s.Keeper().GetUnbatchedTxById(s.Ctx, sendResp.OutgoingTxId)
+	s.Require().NoError(err)
+	expectedExternalFee := types.GetExternalUnlockAmount(bridgeFee.Amount.Add(additionalFee.Amount), s.chainName, &bridgeToken)
+	s.Require().EqualValues(expectedExternalFee, outgoingTx.Fee.Amount)
+
+	_, err = s.MsgServer().CancelSendToExternal(sdk.WrapSDKContext(s.Ctx), &types.MsgCancelSendToExternal{
+		TransactionId: sendResp.OutgoingTxId,
+		Sender:        sender.String(),
+		ChainName:     s.chainName,
+	})
+	s.Require().NoError(err)
+
+	assertBalanceAndSupply(initialSupply.Amount)
+	_, err = s.Keeper().GetUnbatchedTxById(s.Ctx, sendResp.OutgoingTxId)
+	s.Require().Error(err)
+}
+
+func (s *KeeperTestSuite) TestMsgSendToExternalAmountLimit() {
+	sender := s.relayerAddrs[0]
+	denom := "uusdt"
+	initialSupply := sdk.NewCoin(denom, sdkmath.NewInt(1_000))
+	bridgeToken := s.NewBridgeToken(sender, initialSupply)
+	bridgeToken.Symbol = "USDT"
+	s.Keeper().SetBridgeToken(s.Ctx, &bridgeToken)
+
+	gravityParams := s.Keeper().GetParams(s.Ctx)
+	gravityParams.MaxSendToExternalUsdAmount = sdkmath.NewInt(100)
+	s.Require().NoError(s.Keeper().SetParams(s.Ctx, &gravityParams))
+
+	send := func(amount int64) (*types.MsgSendToExternalResponse, error) {
+		return s.MsgServer().SendToExternal(sdk.WrapSDKContext(s.Ctx), &types.MsgSendToExternal{
+			Sender:    sender.String(),
+			Dest:      helpers.GenExternalAddr(s.chainName),
+			Amount:    sdk.NewInt64Coin(denom, amount),
+			BridgeFee: sdk.NewInt64Coin(denom, 1),
+			ChainName: s.chainName,
+		})
+	}
+
+	response, err := send(100)
+	s.Require().NoError(err)
+	s.Require().NotZero(response.OutgoingTxId)
+
+	balanceBeforeRejectedSend := s.App.BankKeeper.GetBalance(s.Ctx, sender, denom)
+	bridgeTokenBeforeRejectedSend, err := s.Keeper().GetBridgeTokenByDenom(s.Ctx, denom)
+	s.Require().NoError(err)
+
+	response, err = send(101)
+	s.Require().ErrorIs(err, types.ErrSendToExternalAmountAboveMaximum)
+	s.Require().Nil(response)
+	s.Require().Equal(balanceBeforeRejectedSend, s.App.BankKeeper.GetBalance(s.Ctx, sender, denom))
+	bridgeTokenAfterRejectedSend, getErr := s.Keeper().GetBridgeTokenByDenom(s.Ctx, denom)
+	s.Require().NoError(getErr)
+	s.Require().Equal(bridgeTokenBeforeRejectedSend.Supply, bridgeTokenAfterRejectedSend.Supply)
+}
+
 func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	// 1. First sets up a valid relayer set
 	totalPower := sdk.ZeroInt()
@@ -771,13 +888,17 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 	nonce1RelayerSet := s.Keeper().GetRelayerSet(s.Ctx, 1)
 	gravityId := s.Keeper().GetGravityID(s.Ctx)
 	checkpoint, err := nonce1RelayerSet.GetCheckpoint(gravityId)
+	s.Require().NoError(err)
 	if trontypes.ModuleName == s.chainName {
 		checkpoint, err = trontypes.GetCheckpointRelayerSet(nonce1RelayerSet, gravityId)
+		s.Require().NoError(err)
 	}
 	for i := range s.relayerAddrs {
 		external2Signature, err := types.NewEthereumSignature(checkpoint, s.externalPris[i])
+		s.Require().NoError(err)
 		if trontypes.ModuleName == s.chainName {
 			external2Signature, err = trontypes.NewTronSignature(checkpoint, s.externalPris[i])
+			s.Require().NoError(err)
 		}
 
 		msg := &types.MsgRelayerSetConfirm{
@@ -927,46 +1048,4 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 			s.Require().Equal(err.Error(), testCase.err.Error())
 		}
 	}
-}
-
-func (s *KeeperTestSuite) addBridgeToken(tokenContract string, md banktypes.Metadata) {
-	relayerLastEventNonce := s.Keeper().GetLastEventNonceByRelayer(s.Ctx, s.relayerAddrs[0])
-	ctx := sdk.WrapSDKContext(s.Ctx.WithEventManager(sdk.NewEventManager()))
-	_, err := s.MsgServer().BridgeTokenClaim(ctx, &types.MsgBridgeTokenClaim{
-		EventNonce:     relayerLastEventNonce + 1,
-		BlockHeight:    uint64(s.Ctx.BlockHeight()),
-		TokenContract:  tokenContract,
-		Name:           md.Name,
-		Symbol:         md.Symbol,
-		Decimals:       18,
-		RelayerAddress: s.relayerAddrs[0].String(),
-		ChainName:      s.chainName,
-	})
-	s.Require().NoError(err)
-
-	s.checkObservationState(ctx, true)
-
-	newRelayerLastEventNonce := s.Keeper().GetLastEventNonceByRelayer(s.Ctx, s.relayerAddrs[0])
-	s.Require().EqualValues(relayerLastEventNonce+1, newRelayerLastEventNonce)
-}
-
-func (s *KeeperTestSuite) checkObservationState(ctx context.Context, expect bool) {
-	foundObservation := false
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	for _, event := range sdkCtx.EventManager().Events() {
-		if event.Type != types.EventTypeContractEvent {
-			continue
-		}
-		s.Require().False(foundObservation, "found multiple observation event")
-		for _, attr := range event.Attributes {
-			if attr.Key != types.AttributeKeyStateSuccess {
-				continue
-			}
-			s.Require().EqualValues(fmt.Sprintf("%v", expect), attr.Value)
-			foundObservation = true
-			break
-		}
-	}
-	s.Require().True(foundObservation, "not found observation event")
-	sdkCtx.WithEventManager(sdk.NewEventManager())
 }

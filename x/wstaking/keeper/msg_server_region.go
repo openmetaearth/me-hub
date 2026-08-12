@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/nft"
+
 	"github.com/openmetaearth/me-hub/utils"
+	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -42,7 +42,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	if !ok {
 		return nil, types.ErrRegionValidatorNotExist
 	}
-	if strings.ToLower(validator.Description.RegionID) != strings.ToLower(regionId) {
+	if !strings.EqualFold(validator.Description.RegionID, regionId) {
 		return nil, types.ErrRegion.Wrapf("only the validator with region id %s can be bound, not bound %s region", validator.Description.RegionID, regionId)
 	}
 
@@ -74,7 +74,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 		Symbol:      types.GetClassSymbol(msg.Name),
 		Description: types.GetClassDescription(regionId),
 		Uri:         uri,
-		UriHash:     utils.CalculateUriHash(uri),
+		UriHash:     utils.CalculateURIHash(uri),
 		Data:        metadata,
 	}
 
@@ -102,7 +102,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 
 	event4Nft := utils.GenEventCompactAttrWithBytes(types.EventNewNftClass, k.cdc.MustMarshal(&nftClass))
 	k.SetRegion(ctx, region)
-	//create megroup
+	// create megroup
 	if regionId != strings.ToLower(types.ExperienceRegionName) {
 		if _, err := k.groupKeeper.CreateGroupByRegion(ctx, region); err != nil {
 			return nil, err
@@ -164,6 +164,9 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 	toAddr, err := sdk.AccAddressFromBech32(msg.Receiver)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(types.ErrUnknownAccount, "receiver account %s format error %s", msg.Receiver, err)
+	}
+	if k.bankKeeper.Extend().BlockedAddr(toAddr) {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive region treasury withdrawals", toAddr)
 	}
 
 	err = k.bankKeeper.Extend().SendCoinsWithTag(

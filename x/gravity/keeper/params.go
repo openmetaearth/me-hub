@@ -50,6 +50,10 @@ func (k Keeper) GetGravityMaxDelegate(ctx sdk.Context) sdk.Int {
 	return k.GetParams(ctx).MaxDelegate
 }
 
+func (k Keeper) GetMaxSendToExternalUsdAmount(ctx sdk.Context) sdk.Int {
+	return k.GetParams(ctx).MaxSendToExternalUsdAmount
+}
+
 func (k Keeper) GetSlashFraction(ctx sdk.Context) sdk.Dec {
 	return k.GetParams(ctx).SlashFraction
 }

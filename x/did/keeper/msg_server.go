@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/did/types"
 )
 
@@ -22,9 +23,8 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 var _ types.MsgServer = msgServer{}
 
 func (m msgServer) CreateDid(goCtx context.Context, msg *types.MsgCreateDid) (*types.MsgCreateDidResponse, error) {
-
 	// API inactive
-	return &types.MsgCreateDidResponse{}, errors.Wrap(types.ErrApiInactive, "use the Approve method of the KYC module to create a DID")
+	return &types.MsgCreateDidResponse{}, errors.Wrap(types.ErrAPIInactive, "use the Approve method of the KYC module to create a DID")
 }
 
 func (m msgServer) UpdateDidStatus(goCtx context.Context, msg *types.MsgUpdateDidStatus) (*types.MsgUpdateDidStatusResponse, error) {
@@ -49,7 +49,7 @@ func (m msgServer) UpdateDidStatus(goCtx context.Context, msg *types.MsgUpdateDi
 	return &types.MsgUpdateDidStatusResponse{}, nil
 }
 
-//func (k msgServer) RemoveDid(goCtx context.Context, msg *types.MsgRemoveDid) (*types.MsgRemoveDidResponse, error) {
+// func (k msgServer) RemoveDid(goCtx context.Context, msg *types.MsgRemoveDid) (*types.MsgRemoveDidResponse, error) {
 //	ctx := sdk.UnwrapSDKContext(goCtx)
 //
 //	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
@@ -115,7 +115,7 @@ func (m msgServer) UpdateServiceStatus(goCtx context.Context, msg *types.MsgUpda
 	return &types.MsgUpdateServiceStatusResponse{}, nil
 }
 
-//func (k msgServer) RemoveService(goCtx context.Context, msg *types.MsgRemoveService) (*types.MsgRemoveServiceResponse, error) {
+// func (k msgServer) RemoveService(goCtx context.Context, msg *types.MsgRemoveService) (*types.MsgRemoveServiceResponse, error) {
 //	ctx := sdk.UnwrapSDKContext(goCtx)
 //
 //	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
@@ -218,6 +218,12 @@ func (m msgServer) RemoveVC(goCtx context.Context, msg *types.MsgRemoveVC) (*typ
 	svc, found := m.GetService(ctx, msg.Sid)
 	if !found || svc.Status != types.SERVICE_STATUS_ACTIVE {
 		return &types.MsgRemoveVCResponse{}, types.ErrServiceNotActive
+	}
+
+	// check user credential
+	found = m.HasCredential(ctx, msg.Did, msg.Sid)
+	if !found {
+		return &types.MsgRemoveVCResponse{}, types.ErrCredentialNotFound
 	}
 
 	// check issuer did

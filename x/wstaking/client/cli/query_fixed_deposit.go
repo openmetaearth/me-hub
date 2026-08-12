@@ -6,8 +6,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"github.com/spf13/cobra"
+
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func CmdListFixedDeposit() *cobra.Command {
@@ -142,7 +143,7 @@ func CmdFixedDepositByRegion() *cobra.Command {
 				return types.ErrParameter.Wrap("query type invalid")
 			}
 
-			clientCtx, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}

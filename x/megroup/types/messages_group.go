@@ -50,7 +50,7 @@ func (msg *MsgCreateGroup) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid Group Admin address (%s)", err)
 	}
-	if "" == msg.GroupInfo.RegionID {
+	if msg.GroupInfo.RegionID == "" {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "RegionID can not be empty")
 	}
 	return nil
@@ -103,6 +103,7 @@ func NewMsgDeleteGroup(creator string, id uint64) *MsgDeleteGroup {
 		Creator: creator,
 	}
 }
+
 func (msg *MsgDeleteGroup) Route() string {
 	return RouterKey
 }

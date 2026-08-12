@@ -9,7 +9,7 @@ import (
 
 // Tally iterates over the votes and updates the tally of a proposal based on the voting power of the
 // voters
-func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes bool, burnDeposits bool, tallyResults v1.TallyResult) {
+func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes, burnDeposits bool, tallyResults v1.TallyResult) {
 	results := make(map[v1.VoteOption]sdk.Dec)
 	results[v1.OptionYes] = math.LegacyZeroDec()
 	results[v1.OptionAbstain] = math.LegacyZeroDec()
@@ -43,7 +43,7 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes bool, 
 		}
 
 		// iterate over all delegations from voter, deduct from any delegated-to validators
-		//keeper.stakingKeeper.IterateStakes(ctx, voter, func(index int64, stake wstakingtypes.Stake) (stop bool) {
+		// keeper.stakingKeeper.IterateStakes(ctx, voter, func(index int64, stake wstakingtypes.Stake) (stop bool) {
 		//	valAddrStr := stake.GetValidatorAddr().String()
 		//
 		//	if val, ok := currValidators[valAddrStr]; ok {
@@ -64,7 +64,7 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes bool, 
 		//	}
 		//
 		//	return false
-		//})
+		// })
 
 		keeper.DeleteVote(ctx, vote.ProposalId, voter)
 		return false
@@ -76,8 +76,8 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes bool, 
 			continue
 		}
 
-		//sharesAfterDeductions := val.DelegatorShares.Sub(val.DelegatorDeductions)
-		//votingPower := sharesAfterDeductions.MulInt(val.BondedTokens).Quo(val.DelegatorShares)
+		// sharesAfterDeductions := val.DelegatorShares.Sub(val.DelegatorDeductions)
+		// votingPower := sharesAfterDeductions.MulInt(val.BondedTokens).Quo(val.DelegatorShares)
 		votingPower := sdk.NewDec(1)
 
 		for _, option := range val.Vote {
@@ -93,13 +93,13 @@ func (keeper Keeper) Tally(ctx sdk.Context, proposal v1.Proposal) (passes bool, 
 
 	// TODO: Upgrade the spec to cover all of these cases & remove pseudocode.
 	// If there is no staked coins, the proposal fails
-	//if keeper.stakingKeeper.TotalBondedStakePool(ctx).IsZero() {
+	// if keeper.stakingKeeper.TotalBondedStakePool(ctx).IsZero() {
 	//	return false, false, tallyResults
 	//}
 	totalValidatorNumber := len(currValidators)
 
 	// If there is not enough quorum of votes, the proposal fails
-	//percentVoting := totalVotingPower.Quo(sdk.NewDecFromInt(keeper.stakingKeeper.TotalBondedStakePool(ctx)))
+	// percentVoting := totalVotingPower.Quo(sdk.NewDecFromInt(keeper.stakingKeeper.TotalBondedStakePool(ctx)))
 	percentVoting := totalVotingPower.Quo(sdk.NewDecFromInt(sdk.NewInt(int64(totalValidatorNumber))))
 	quorum, _ := sdk.NewDecFromStr(params.Quorum)
 	if percentVoting.LT(quorum) {

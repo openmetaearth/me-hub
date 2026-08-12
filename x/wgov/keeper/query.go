@@ -2,11 +2,13 @@ package keeper
 
 import (
 	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	"github.com/openmetaearth/me-hub/x/wgov/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/openmetaearth/me-hub/x/wgov/types"
 )
 
 type Querier struct {
@@ -15,7 +17,7 @@ type Querier struct {
 
 var _ types.QueryServer = Querier{}
 
-func (q Keeper) MeTallyResult(c context.Context, req *types.QueryMeTallyResultRequest) (*types.QueryMeTallyResultResponse, error) {
+func (keeper Keeper) MeTallyResult(c context.Context, req *types.QueryMeTallyResultRequest) (*types.QueryMeTallyResultResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -26,7 +28,7 @@ func (q Keeper) MeTallyResult(c context.Context, req *types.QueryMeTallyResultRe
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	proposal, ok := q.GetProposal(ctx, req.ProposalId)
+	proposal, ok := keeper.GetProposal(ctx, req.ProposalId)
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "proposal %d doesn't exist", req.ProposalId)
 	}
@@ -42,7 +44,7 @@ func (q Keeper) MeTallyResult(c context.Context, req *types.QueryMeTallyResultRe
 
 	default:
 		// proposal is in voting period
-		_, _, tallyResult = q.Tally(ctx, proposal)
+		_, _, tallyResult = keeper.Tally(ctx, proposal)
 	}
 
 	return &types.QueryMeTallyResultResponse{Tally: &tallyResult}, nil
