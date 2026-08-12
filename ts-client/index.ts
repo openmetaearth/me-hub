@@ -20,10 +20,6 @@ import { Module as CosmosTxV1Beta1, msgTypes as CosmosTxV1Beta1MsgTypes } from '
 import { Module as CosmosUpgradeV1Beta1, msgTypes as CosmosUpgradeV1Beta1MsgTypes } from './cosmos.upgrade.v1beta1'
 import { Module as CosmosVestingV1Beta1, msgTypes as CosmosVestingV1Beta1MsgTypes } from './cosmos.vesting.v1beta1'
 import { Module as CosmwasmWasmV1, msgTypes as CosmwasmWasmV1MsgTypes } from './cosmwasm.wasm.v1'
-import { Module as DymensionxyzDymensionDelayedack, msgTypes as DymensionxyzDymensionDelayedackMsgTypes } from './dymensionxyz.dymension.delayedack'
-import { Module as DymensionxyzDymensionEibc, msgTypes as DymensionxyzDymensionEibcMsgTypes } from './dymensionxyz.dymension.eibc'
-import { Module as DymensionxyzDymensionRollapp, msgTypes as DymensionxyzDymensionRollappMsgTypes } from './dymensionxyz.dymension.rollapp'
-import { Module as DymensionxyzDymensionSequencer, msgTypes as DymensionxyzDymensionSequencerMsgTypes } from './dymensionxyz.dymension.sequencer'
 import { Module as EthermintEvmV1, msgTypes as EthermintEvmV1MsgTypes } from './ethermint.evm.v1'
 import { Module as EthermintFeemarketV1, msgTypes as EthermintFeemarketV1MsgTypes } from './ethermint.feemarket.v1'
 import { Module as IbcApplicationsInterchainAccountsHostV1, msgTypes as IbcApplicationsInterchainAccountsHostV1MsgTypes } from './ibc.applications.interchain_accounts.host.v1'
@@ -32,9 +28,13 @@ import { Module as IbcCoreChannelV1, msgTypes as IbcCoreChannelV1MsgTypes } from
 import { Module as IbcCoreClientV1, msgTypes as IbcCoreClientV1MsgTypes } from './ibc.core.client.v1'
 import { Module as IbcCoreConnectionV1, msgTypes as IbcCoreConnectionV1MsgTypes } from './ibc.core.connection.v1'
 import { Module as MetaearthDao, msgTypes as MetaearthDaoMsgTypes } from './metaearth.dao'
+import { Module as MetaearthDelayedack, msgTypes as MetaearthDelayedackMsgTypes } from './metaearth.delayedack'
 import { Module as MetaearthDid, msgTypes as MetaearthDidMsgTypes } from './metaearth.did'
+import { Module as MetaearthEibc, msgTypes as MetaearthEibcMsgTypes } from './metaearth.eibc'
 import { Module as MetaearthKyc, msgTypes as MetaearthKycMsgTypes } from './metaearth.kyc'
 import { Module as MetaearthMegroup, msgTypes as MetaearthMegroupMsgTypes } from './metaearth.megroup'
+import { Module as MetaearthRollapp, msgTypes as MetaearthRollappMsgTypes } from './metaearth.rollapp'
+import { Module as MetaearthSequencer, msgTypes as MetaearthSequencerMsgTypes } from './metaearth.sequencer'
 import { Module as MetaearthStreamer, msgTypes as MetaearthStreamerMsgTypes } from './metaearth.streamer'
 import { Module as MetaearthWdistri, msgTypes as MetaearthWdistriMsgTypes } from './metaearth.wdistri'
 import { Module as MetaearthWnft, msgTypes as MetaearthWnftMsgTypes } from './metaearth.wnft'
@@ -43,7 +43,7 @@ import { Module as PacketforwardV1, msgTypes as PacketforwardV1MsgTypes } from '
 
 
 const Client = IgniteClient.plugin([
-    CosmosAuthV1Beta1, CosmosAuthzV1Beta1, CosmosBankV1Beta1, CosmosBaseNodeV1Beta1, CosmosBaseTendermintV1Beta1, CosmosConsensusV1, CosmosCrisisV1Beta1, CosmosEvidenceV1Beta1, CosmosFeegrantV1Beta1, CosmosGovV1, CosmosGovV1Beta1, CosmosMintV1Beta1, CosmosParamsV1Beta1, CosmosSlashingV1Beta1, CosmosTxV1Beta1, CosmosUpgradeV1Beta1, CosmosVestingV1Beta1, CosmwasmWasmV1, DymensionxyzDymensionDelayedack, DymensionxyzDymensionEibc, DymensionxyzDymensionRollapp, DymensionxyzDymensionSequencer, EthermintEvmV1, EthermintFeemarketV1, IbcApplicationsInterchainAccountsHostV1, IbcApplicationsTransferV1, IbcCoreChannelV1, IbcCoreClientV1, IbcCoreConnectionV1, MetaearthDao, MetaearthDid, MetaearthKyc, MetaearthMegroup, MetaearthStreamer, MetaearthWdistri, MetaearthWnft, MetaearthWstaking, PacketforwardV1
+    CosmosAuthV1Beta1, CosmosAuthzV1Beta1, CosmosBankV1Beta1, CosmosBaseNodeV1Beta1, CosmosBaseTendermintV1Beta1, CosmosConsensusV1, CosmosCrisisV1Beta1, CosmosEvidenceV1Beta1, CosmosFeegrantV1Beta1, CosmosGovV1, CosmosGovV1Beta1, CosmosMintV1Beta1, CosmosParamsV1Beta1, CosmosSlashingV1Beta1, CosmosTxV1Beta1, CosmosUpgradeV1Beta1, CosmosVestingV1Beta1, CosmwasmWasmV1, EthermintEvmV1, EthermintFeemarketV1, IbcApplicationsInterchainAccountsHostV1, IbcApplicationsTransferV1, IbcCoreChannelV1, IbcCoreClientV1, IbcCoreConnectionV1, MetaearthDao, MetaearthDelayedack, MetaearthDid, MetaearthEibc, MetaearthKyc, MetaearthMegroup, MetaearthRollapp, MetaearthSequencer, MetaearthStreamer, MetaearthWdistri, MetaearthWnft, MetaearthWstaking, PacketforwardV1
 ]);
 
 const registry = new Registry([
@@ -65,10 +65,6 @@ const registry = new Registry([
   ...CosmosUpgradeV1Beta1MsgTypes,
   ...CosmosVestingV1Beta1MsgTypes,
   ...CosmwasmWasmV1MsgTypes,
-  ...DymensionxyzDymensionDelayedackMsgTypes,
-  ...DymensionxyzDymensionEibcMsgTypes,
-  ...DymensionxyzDymensionRollappMsgTypes,
-  ...DymensionxyzDymensionSequencerMsgTypes,
   ...EthermintEvmV1MsgTypes,
   ...EthermintFeemarketV1MsgTypes,
   ...IbcApplicationsInterchainAccountsHostV1MsgTypes,
@@ -77,9 +73,13 @@ const registry = new Registry([
   ...IbcCoreClientV1MsgTypes,
   ...IbcCoreConnectionV1MsgTypes,
   ...MetaearthDaoMsgTypes,
+  ...MetaearthDelayedackMsgTypes,
   ...MetaearthDidMsgTypes,
+  ...MetaearthEibcMsgTypes,
   ...MetaearthKycMsgTypes,
   ...MetaearthMegroupMsgTypes,
+  ...MetaearthRollappMsgTypes,
+  ...MetaearthSequencerMsgTypes,
   ...MetaearthStreamerMsgTypes,
   ...MetaearthWdistriMsgTypes,
   ...MetaearthWnftMsgTypes,
