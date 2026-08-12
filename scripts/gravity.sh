@@ -1,12 +1,11 @@
 #!/bin/bash
 
-RelayerMnemonic="also dune road lumber jeans tiny float pulse escape must wheel gauge"
+RelayerMnemonic=${RelayerMnemonic:-""}
 #CHAIN_ID=${CHAIN_ID:-"me-chain"}
 CHAIN_ID=${CHAIN_ID:-"mechain_900-1"}
 KEY_NAME=${KEY_NAME:-"global_dao"}
 KEYRING="test"
 CHAIN=${CHAIN:-"bsc"}
-#NodeUrl=${NodeUrl:-"http://192.168.0.150:26657/"}
 NodeUrl=${NodeUrl:-"http://118.175.0.244:26657/"}
 
 
@@ -37,7 +36,7 @@ init_account() {
   for i in 1 2 3 4 5; do
     eval "addr=\$r${i}_address"
 #    med tx bank send global_dao $addr 1000000000umec --from "$KEY_NAME" --keyring-backend=$KEYRING -y --output json --fees=100000umec --gas=300000 --node "$NodeUrl" --chain-id "$CHAIN_ID"
-    med tx bank send $addr me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t 10umec --from  r${i} --keyring-backend=$KEYRING -y --output json --fees=100000umec --gas=300000 --node "$NodeUrl" --chain-id "$CHAIN_ID"
+    # med tx bank send $addr me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t 10umec --from  r${i} --keyring-backend=$KEYRING -y --output json --fees=100000umec --gas=300000 --node "$NodeUrl" --chain-id "$CHAIN_ID"
 #    sleep 5
   done
 }

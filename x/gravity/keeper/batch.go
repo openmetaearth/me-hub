@@ -105,10 +105,15 @@ func (k Keeper) GetBatchTimeoutHeight(ctx sdk.Context) (currentHeight, timeoutHe
 
 // OutgoingTxBatchExecuted is run when the Cosmos chain detects that a batch has been executed on Ethereum
 // It frees all the transactions in the batch, then cancels all earlier batches
-func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, contractAddress string, batchNonce uint64) {
+func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, contractAddress string, batchNonce uint64) error {
 	batch := k.GetOutgoingTxBatch(ctx, contractAddress, batchNonce)
 	if batch == nil {
-		panic(fmt.Sprintf("unknown batch nonce for outgoing tx batch %s %d", contractAddress, batchNonce))
+		// Do not panic: a missing batch must not halt the chain. Returning an
+		// error leaves the attestation unobserved so operators can skip the
+		// nonce via upgrade migration if the external event was fraudulent.
+		k.Logger(ctx).Error("unknown batch nonce for outgoing tx batch",
+			"token_contract", contractAddress, "batch_nonce", batchNonce)
+		return errorsmod.Wrapf(types.ErrNotFound, "unknown batch nonce for outgoing tx batch %s %d", contractAddress, batchNonce)
 	}
 
 	// Iterate through remaining batches
@@ -125,6 +130,7 @@ func (k Keeper) OutgoingTxBatchExecuted(ctx sdk.Context, contractAddress string,
 	// Delete batch since it is finished
 	k.DeleteBatch(ctx, batch)
 	k.DeleteBatchConfirm(ctx, batch.BatchNonce, batch.TokenContract)
+	return nil
 }
 
 // StoreBatch stores a transaction batch

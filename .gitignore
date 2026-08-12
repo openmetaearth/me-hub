@@ -21,3 +21,4 @@ vendor
 *.test
 .claude
 .pr-close-list.txtaudit-report.md
+.env*
