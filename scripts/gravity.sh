@@ -6,7 +6,7 @@ CHAIN_ID=${CHAIN_ID:-"mechain_900-1"}
 KEY_NAME=${KEY_NAME:-"global_dao"}
 KEYRING="test"
 CHAIN=${CHAIN:-"bsc"}
-NodeUrl=${NodeUrl:-"http://118.175.0.244:26657/"}
+NodeUrl=${NodeUrl:-""}
 
 
 if [ -z "$CHAIN" ]; then
