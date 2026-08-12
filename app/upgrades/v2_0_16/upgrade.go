@@ -1,4 +1,4 @@
-package v2_0_15_rc3 //nolint:revive
+package v2_0_16 //nolint:revive
 
 import (
 	"fmt"
