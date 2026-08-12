@@ -110,7 +110,7 @@ func (suite *KeeperTestSuite) TestKeeper_DeleteBatchConfirm() {
 		msgConfirmBatch.ExternalAddress = crypto.PubkeyToAddress(suite.externalPris[i].PublicKey).String()
 		suite.Keeper().SetBatchConfirm(suite.Ctx, relayer, msgConfirmBatch)
 	}
-	suite.Keeper().OutgoingTxBatchExecuted(suite.Ctx, batch.TokenContract, batch.BatchNonce)
+	suite.Require().NoError(suite.Keeper().OutgoingTxBatchExecuted(suite.Ctx, batch.TokenContract, batch.BatchNonce))
 
 	for _, relayer := range suite.relayerAddrs {
 		suite.Nil(suite.Keeper().GetBatchConfirm(suite.Ctx, batch.TokenContract, batch.BatchNonce, relayer))
