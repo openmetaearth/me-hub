@@ -377,37 +377,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Query
-   * @name QueryGroupByMember
-   * @request GET:/me-hub/megroup/group/{address}
-   */
-  queryGroupByMember = (address: string, params: RequestParams = {}) =>
-    this.request<MegroupQueryGetGroupResponse, RpcStatus>({
-      path: `/me-hub/megroup/group/${address}`,
-      method: "GET",
-      format: "json",
-      ...params,
-    });
-
-  /**
-   * No description
-   *
-   * @tags Query
-   * @name QueryGroup
-   * @summary Queries a list of Group items.
-   * @request GET:/me-hub/megroup/group/{id}
-   */
-  queryGroup = (id: string, params: RequestParams = {}) =>
-    this.request<MegroupQueryGetGroupResponse, RpcStatus>({
-      path: `/me-hub/megroup/group/${id}`,
-      method: "GET",
-      format: "json",
-      ...params,
-    });
-
-  /**
-   * No description
-   *
-   * @tags Query
    * @name QueryGroupMemberAll
    * @request GET:/me-hub/megroup/group_all_member/{groupID}
    */
@@ -426,6 +395,37 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       path: `/me-hub/megroup/group_all_member/${groupId}`,
       method: "GET",
       query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryGroupByMember
+   * @request GET:/me-hub/megroup/group_by_address/{address}
+   */
+  queryGroupByMember = (address: string, params: RequestParams = {}) =>
+    this.request<MegroupQueryGetGroupResponse, RpcStatus>({
+      path: `/me-hub/megroup/group_by_address/${address}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryGroup
+   * @summary Queries a list of Group items.
+   * @request GET:/me-hub/megroup/group_by_id/{id}
+   */
+  queryGroup = (id: string, params: RequestParams = {}) =>
+    this.request<MegroupQueryGetGroupResponse, RpcStatus>({
+      path: `/me-hub/megroup/group_by_id/${id}`,
+      method: "GET",
       format: "json",
       ...params,
     });

@@ -71,6 +71,15 @@ export interface MsgDeleteSBT {
 export interface MsgDeleteSBTResponse {
 }
 
+export interface MsgCreateSubAccount {
+  creator: string;
+  subAccount: string;
+  subAccountPubkey: string;
+}
+
+export interface MsgCreateSubAccountResponse {
+}
+
 function createBaseMsgApprove(): MsgApprove {
   return { issuer: "", did: "", regionId: "", address: "", pubkey: "", level: 0, uri: "", hash: "", inviter: "" };
 }
@@ -817,6 +826,112 @@ export const MsgDeleteSBTResponse = {
   },
 };
 
+function createBaseMsgCreateSubAccount(): MsgCreateSubAccount {
+  return { creator: "", subAccount: "", subAccountPubkey: "" };
+}
+
+export const MsgCreateSubAccount = {
+  encode(message: MsgCreateSubAccount, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.creator !== "") {
+      writer.uint32(10).string(message.creator);
+    }
+    if (message.subAccount !== "") {
+      writer.uint32(18).string(message.subAccount);
+    }
+    if (message.subAccountPubkey !== "") {
+      writer.uint32(26).string(message.subAccountPubkey);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgCreateSubAccount {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgCreateSubAccount();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.creator = reader.string();
+          break;
+        case 2:
+          message.subAccount = reader.string();
+          break;
+        case 3:
+          message.subAccountPubkey = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgCreateSubAccount {
+    return {
+      creator: isSet(object.creator) ? String(object.creator) : "",
+      subAccount: isSet(object.subAccount) ? String(object.subAccount) : "",
+      subAccountPubkey: isSet(object.subAccountPubkey) ? String(object.subAccountPubkey) : "",
+    };
+  },
+
+  toJSON(message: MsgCreateSubAccount): unknown {
+    const obj: any = {};
+    message.creator !== undefined && (obj.creator = message.creator);
+    message.subAccount !== undefined && (obj.subAccount = message.subAccount);
+    message.subAccountPubkey !== undefined && (obj.subAccountPubkey = message.subAccountPubkey);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgCreateSubAccount>, I>>(object: I): MsgCreateSubAccount {
+    const message = createBaseMsgCreateSubAccount();
+    message.creator = object.creator ?? "";
+    message.subAccount = object.subAccount ?? "";
+    message.subAccountPubkey = object.subAccountPubkey ?? "";
+    return message;
+  },
+};
+
+function createBaseMsgCreateSubAccountResponse(): MsgCreateSubAccountResponse {
+  return {};
+}
+
+export const MsgCreateSubAccountResponse = {
+  encode(_: MsgCreateSubAccountResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgCreateSubAccountResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgCreateSubAccountResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgCreateSubAccountResponse {
+    return {};
+  },
+
+  toJSON(_: MsgCreateSubAccountResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgCreateSubAccountResponse>, I>>(_: I): MsgCreateSubAccountResponse {
+    const message = createBaseMsgCreateSubAccountResponse();
+    return message;
+  },
+};
+
 /** Msg defines the Msg service. */
 export interface Msg {
   Approve(request: MsgApprove): Promise<MsgApproveResponse>;
@@ -825,6 +940,7 @@ export interface Msg {
   CreateSBT(request: MsgCreateSBT): Promise<MsgCreateSBTResponse>;
   UpdateSBT(request: MsgUpdateSBT): Promise<MsgUpdateSBTResponse>;
   DeleteSBT(request: MsgDeleteSBT): Promise<MsgDeleteSBTResponse>;
+  CreateSubAccount(request: MsgCreateSubAccount): Promise<MsgCreateSubAccountResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -837,6 +953,7 @@ export class MsgClientImpl implements Msg {
     this.CreateSBT = this.CreateSBT.bind(this);
     this.UpdateSBT = this.UpdateSBT.bind(this);
     this.DeleteSBT = this.DeleteSBT.bind(this);
+    this.CreateSubAccount = this.CreateSubAccount.bind(this);
   }
   Approve(request: MsgApprove): Promise<MsgApproveResponse> {
     const data = MsgApprove.encode(request).finish();
@@ -872,6 +989,12 @@ export class MsgClientImpl implements Msg {
     const data = MsgDeleteSBT.encode(request).finish();
     const promise = this.rpc.request("metaearth.kyc.Msg", "DeleteSBT", data);
     return promise.then((data) => MsgDeleteSBTResponse.decode(new _m0.Reader(data)));
+  }
+
+  CreateSubAccount(request: MsgCreateSubAccount): Promise<MsgCreateSubAccountResponse> {
+    const data = MsgCreateSubAccount.encode(request).finish();
+    const promise = this.rpc.request("metaearth.kyc.Msg", "CreateSubAccount", data);
+    return promise.then((data) => MsgCreateSubAccountResponse.decode(new _m0.Reader(data)));
   }
 }
 

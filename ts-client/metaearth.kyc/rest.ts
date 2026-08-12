@@ -28,8 +28,6 @@ export interface DidDidInfo {
    * MEIDNFT.umeid
    */
   did?: string;
-
-  /** MEID.account */
   address?: string;
 
   /**
@@ -43,6 +41,7 @@ export interface DidDidInfo {
   /** unused! */
   regionId?: string;
   kycLevel?: DidKycLevel;
+  sub_account?: string;
 }
 
 export enum DidDidStatus {
@@ -75,6 +74,8 @@ export enum DidServiceStatus {
 export type KycMsgApproveResponse = object;
 
 export type KycMsgCreateSBTResponse = object;
+
+export type KycMsgCreateSubAccountResponse = object;
 
 export type KycMsgDeleteSBTResponse = object;
 
@@ -129,6 +130,10 @@ export interface KycQueryProtocolResponse {
 export interface KycQuerySBTResponse {
   /** NFT defines the NFT. */
   sbt?: V1Beta1NFT;
+}
+
+export interface KycQuerySubAccountDidResponse {
+  info?: DidDidInfo;
 }
 
 export interface KycRegion {
@@ -616,6 +621,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   ) =>
     this.request<KycQueryKYCsResponse, RpcStatus>({
       path: `/metaearth/kyc/KYCs`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QuerySubAccountDid
+   * @request GET:/metaearth/kyc/QuerySubAccountDidResponse
+   */
+  querySubAccountDid = (query?: { sub_account?: string }, params: RequestParams = {}) =>
+    this.request<KycQuerySubAccountDidResponse, RpcStatus>({
+      path: `/metaearth/kyc/QuerySubAccountDidResponse`,
       method: "GET",
       query: query,
       format: "json",

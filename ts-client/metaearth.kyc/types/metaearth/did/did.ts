@@ -99,7 +99,6 @@ export function didStatusToJSON(object: DidStatus): string {
 export interface DidInfo {
   /** same as the MEID */
   did: string;
-  /** MEID.account */
   address: string;
   /**
    * public_key is mapped to the user address
@@ -111,6 +110,7 @@ export interface DidInfo {
   /** unused! */
   regionId: string;
   kycLevel: KycLevel;
+  subAccount: string;
 }
 
 /** did document */
@@ -120,7 +120,7 @@ export interface DidDocument {
 }
 
 function createBaseDidInfo(): DidInfo {
-  return { did: "", address: "", pubkey: "", status: 0, regionId: "", kycLevel: 0 };
+  return { did: "", address: "", pubkey: "", status: 0, regionId: "", kycLevel: 0, subAccount: "" };
 }
 
 export const DidInfo = {
@@ -142,6 +142,9 @@ export const DidInfo = {
     }
     if (message.kycLevel !== 0) {
       writer.uint32(48).int32(message.kycLevel);
+    }
+    if (message.subAccount !== "") {
+      writer.uint32(58).string(message.subAccount);
     }
     return writer;
   },
@@ -171,6 +174,9 @@ export const DidInfo = {
         case 6:
           message.kycLevel = reader.int32() as any;
           break;
+        case 7:
+          message.subAccount = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -187,6 +193,7 @@ export const DidInfo = {
       status: isSet(object.status) ? didStatusFromJSON(object.status) : 0,
       regionId: isSet(object.regionId) ? String(object.regionId) : "",
       kycLevel: isSet(object.kycLevel) ? kycLevelFromJSON(object.kycLevel) : 0,
+      subAccount: isSet(object.subAccount) ? String(object.subAccount) : "",
     };
   },
 
@@ -198,6 +205,7 @@ export const DidInfo = {
     message.status !== undefined && (obj.status = didStatusToJSON(message.status));
     message.regionId !== undefined && (obj.regionId = message.regionId);
     message.kycLevel !== undefined && (obj.kycLevel = kycLevelToJSON(message.kycLevel));
+    message.subAccount !== undefined && (obj.subAccount = message.subAccount);
     return obj;
   },
 
@@ -209,6 +217,7 @@ export const DidInfo = {
     message.status = object.status ?? 0;
     message.regionId = object.regionId ?? "";
     message.kycLevel = object.kycLevel ?? 0;
+    message.subAccount = object.subAccount ?? "";
     return message;
   },
 };

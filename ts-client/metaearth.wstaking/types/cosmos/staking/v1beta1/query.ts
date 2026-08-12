@@ -3,6 +3,7 @@ import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { PageRequest, PageResponse } from "../../base/query/v1beta1/pagination";
 import {
+  Delegation,
   DelegationResponse,
   HistoricalInfo,
   Params,
@@ -58,7 +59,7 @@ export interface QueryValidatorDelegationsRequest {
  * Query/ValidatorDelegations RPC method
  */
 export interface QueryValidatorDelegationsResponse {
-  delegationResponses: DelegationResponse[];
+  delegationResponses: Delegation[];
   /** pagination defines the pagination in the response. */
   pagination: PageResponse | undefined;
 }
@@ -559,7 +560,7 @@ function createBaseQueryValidatorDelegationsResponse(): QueryValidatorDelegation
 export const QueryValidatorDelegationsResponse = {
   encode(message: QueryValidatorDelegationsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.delegationResponses) {
-      DelegationResponse.encode(v!, writer.uint32(10).fork()).ldelim();
+      Delegation.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     if (message.pagination !== undefined) {
       PageResponse.encode(message.pagination, writer.uint32(18).fork()).ldelim();
@@ -575,7 +576,7 @@ export const QueryValidatorDelegationsResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.delegationResponses.push(DelegationResponse.decode(reader, reader.uint32()));
+          message.delegationResponses.push(Delegation.decode(reader, reader.uint32()));
           break;
         case 2:
           message.pagination = PageResponse.decode(reader, reader.uint32());
@@ -591,7 +592,7 @@ export const QueryValidatorDelegationsResponse = {
   fromJSON(object: any): QueryValidatorDelegationsResponse {
     return {
       delegationResponses: Array.isArray(object?.delegationResponses)
-        ? object.delegationResponses.map((e: any) => DelegationResponse.fromJSON(e))
+        ? object.delegationResponses.map((e: any) => Delegation.fromJSON(e))
         : [],
       pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
     };
@@ -600,7 +601,7 @@ export const QueryValidatorDelegationsResponse = {
   toJSON(message: QueryValidatorDelegationsResponse): unknown {
     const obj: any = {};
     if (message.delegationResponses) {
-      obj.delegationResponses = message.delegationResponses.map((e) => e ? DelegationResponse.toJSON(e) : undefined);
+      obj.delegationResponses = message.delegationResponses.map((e) => e ? Delegation.toJSON(e) : undefined);
     } else {
       obj.delegationResponses = [];
     }
@@ -613,7 +614,7 @@ export const QueryValidatorDelegationsResponse = {
     object: I,
   ): QueryValidatorDelegationsResponse {
     const message = createBaseQueryValidatorDelegationsResponse();
-    message.delegationResponses = object.delegationResponses?.map((e) => DelegationResponse.fromPartial(e)) || [];
+    message.delegationResponses = object.delegationResponses?.map((e) => Delegation.fromPartial(e)) || [];
     message.pagination = (object.pagination !== undefined && object.pagination !== null)
       ? PageResponse.fromPartial(object.pagination)
       : undefined;

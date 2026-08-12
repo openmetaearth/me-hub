@@ -12,6 +12,19 @@ export interface MsgUpdateDao {
 export interface MsgUpdateDaoResponse {
 }
 
+export interface MsgFreeGasAccount {
+  creator: string;
+  accounts: FreeGasAccount[];
+}
+
+export interface FreeGasAccount {
+  address: string;
+  isFree: boolean;
+}
+
+export interface MsgFreeGasAccountResponse {
+}
+
 function createBaseMsgUpdateDao(): MsgUpdateDao {
   return { creator: "", daoAddresses: undefined };
 }
@@ -112,9 +125,169 @@ export const MsgUpdateDaoResponse = {
   },
 };
 
+function createBaseMsgFreeGasAccount(): MsgFreeGasAccount {
+  return { creator: "", accounts: [] };
+}
+
+export const MsgFreeGasAccount = {
+  encode(message: MsgFreeGasAccount, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.creator !== "") {
+      writer.uint32(10).string(message.creator);
+    }
+    for (const v of message.accounts) {
+      FreeGasAccount.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgFreeGasAccount {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgFreeGasAccount();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.creator = reader.string();
+          break;
+        case 2:
+          message.accounts.push(FreeGasAccount.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgFreeGasAccount {
+    return {
+      creator: isSet(object.creator) ? String(object.creator) : "",
+      accounts: Array.isArray(object?.accounts) ? object.accounts.map((e: any) => FreeGasAccount.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: MsgFreeGasAccount): unknown {
+    const obj: any = {};
+    message.creator !== undefined && (obj.creator = message.creator);
+    if (message.accounts) {
+      obj.accounts = message.accounts.map((e) => e ? FreeGasAccount.toJSON(e) : undefined);
+    } else {
+      obj.accounts = [];
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgFreeGasAccount>, I>>(object: I): MsgFreeGasAccount {
+    const message = createBaseMsgFreeGasAccount();
+    message.creator = object.creator ?? "";
+    message.accounts = object.accounts?.map((e) => FreeGasAccount.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseFreeGasAccount(): FreeGasAccount {
+  return { address: "", isFree: false };
+}
+
+export const FreeGasAccount = {
+  encode(message: FreeGasAccount, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    if (message.isFree === true) {
+      writer.uint32(16).bool(message.isFree);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): FreeGasAccount {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFreeGasAccount();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.address = reader.string();
+          break;
+        case 2:
+          message.isFree = reader.bool();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FreeGasAccount {
+    return {
+      address: isSet(object.address) ? String(object.address) : "",
+      isFree: isSet(object.isFree) ? Boolean(object.isFree) : false,
+    };
+  },
+
+  toJSON(message: FreeGasAccount): unknown {
+    const obj: any = {};
+    message.address !== undefined && (obj.address = message.address);
+    message.isFree !== undefined && (obj.isFree = message.isFree);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<FreeGasAccount>, I>>(object: I): FreeGasAccount {
+    const message = createBaseFreeGasAccount();
+    message.address = object.address ?? "";
+    message.isFree = object.isFree ?? false;
+    return message;
+  },
+};
+
+function createBaseMsgFreeGasAccountResponse(): MsgFreeGasAccountResponse {
+  return {};
+}
+
+export const MsgFreeGasAccountResponse = {
+  encode(_: MsgFreeGasAccountResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgFreeGasAccountResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgFreeGasAccountResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgFreeGasAccountResponse {
+    return {};
+  },
+
+  toJSON(_: MsgFreeGasAccountResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgFreeGasAccountResponse>, I>>(_: I): MsgFreeGasAccountResponse {
+    const message = createBaseMsgFreeGasAccountResponse();
+    return message;
+  },
+};
+
 /** Msg defines the Msg service. */
 export interface Msg {
   UpdateDao(request: MsgUpdateDao): Promise<MsgUpdateDaoResponse>;
+  FreeGasAccount(request: MsgFreeGasAccount): Promise<MsgFreeGasAccountResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -122,11 +295,18 @@ export class MsgClientImpl implements Msg {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.UpdateDao = this.UpdateDao.bind(this);
+    this.FreeGasAccount = this.FreeGasAccount.bind(this);
   }
   UpdateDao(request: MsgUpdateDao): Promise<MsgUpdateDaoResponse> {
     const data = MsgUpdateDao.encode(request).finish();
     const promise = this.rpc.request("metaearth.dao.Msg", "UpdateDao", data);
     return promise.then((data) => MsgUpdateDaoResponse.decode(new _m0.Reader(data)));
+  }
+
+  FreeGasAccount(request: MsgFreeGasAccount): Promise<MsgFreeGasAccountResponse> {
+    const data = MsgFreeGasAccount.encode(request).finish();
+    const promise = this.rpc.request("metaearth.dao.Msg", "FreeGasAccount", data);
+    return promise.then((data) => MsgFreeGasAccountResponse.decode(new _m0.Reader(data)));
   }
 }
 

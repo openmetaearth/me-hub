@@ -5,7 +5,6 @@ import { RegionAllFixedDepositCfg } from "./types/metaearth/wstaking/fixed_depos
 import { RegionFixedDepositCfg } from "./types/metaearth/wstaking/fixed_deposit"
 import { LastValidatorPower } from "./types/metaearth/wstaking/genesis"
 import { Meid } from "./types/metaearth/wstaking/meid"
-import { MeidNFT } from "./types/metaearth/wstaking/meid"
 import { Record } from "./types/metaearth/wstaking/record"
 import { ReviewRecord } from "./types/metaearth/wstaking/record"
 import { Region } from "./types/metaearth/wstaking/region"
@@ -17,6 +16,7 @@ import { SVPairs } from "./types/metaearth/wstaking/stake"
 import { MsgFixedDepositCfg } from "./types/metaearth/wstaking/tx"
 import { MsgFixedDepositCfgResp } from "./types/metaearth/wstaking/tx"
 import { Height } from "./types/metaearth/wstaking/tx"
+import { MsgReplaceConsensusPubKey } from "./types/metaearth/wstaking/tx"
 
 
 export {     
@@ -27,7 +27,6 @@ export {
     RegionFixedDepositCfg,
     LastValidatorPower,
     Meid,
-    MeidNFT,
     Record,
     ReviewRecord,
     Region,
@@ -39,5 +38,6 @@ export {
     MsgFixedDepositCfg,
     MsgFixedDepositCfgResp,
     Height,
+    MsgReplaceConsensusPubKey,
     
  }

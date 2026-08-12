@@ -40,7 +40,7 @@ export interface MsgMintNFT {
   uri: string;
   /** uri_hash is a hash of the document pointed by uri */
   uriHash: string;
-  /** sender is the address of the owner of nft */
+  /** creator is the address of the owner of nft class. */
   creator: string;
   receiver: string;
 }

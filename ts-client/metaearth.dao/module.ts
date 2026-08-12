@@ -8,10 +8,12 @@ import { IgniteClient } from "../client"
 import { MissingWalletError } from "../helpers"
 import { Api } from "./rest";
 import { MsgUpdateDao } from "./types/metaearth/dao/tx";
+import { MsgFreeGasAccount } from "./types/metaearth/dao/tx";
 
 import { DaoAddresses as typeDaoAddresses} from "./types"
+import { FreeGasAccount as typeFreeGasAccount} from "./types"
 
-export { MsgUpdateDao };
+export { MsgUpdateDao, MsgFreeGasAccount };
 
 type sendMsgUpdateDaoParams = {
   value: MsgUpdateDao,
@@ -19,9 +21,19 @@ type sendMsgUpdateDaoParams = {
   memo?: string
 };
 
+type sendMsgFreeGasAccountParams = {
+  value: MsgFreeGasAccount,
+  fee?: StdFee,
+  memo?: string
+};
+
 
 type msgUpdateDaoParams = {
   value: MsgUpdateDao,
+};
+
+type msgFreeGasAccountParams = {
+  value: MsgFreeGasAccount,
 };
 
 
@@ -68,12 +80,34 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
+		async sendMsgFreeGasAccount({ value, fee, memo }: sendMsgFreeGasAccountParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgFreeGasAccount: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgFreeGasAccount({ value: MsgFreeGasAccount.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+			} catch (e: any) {
+				throw new Error('TxClient:sendMsgFreeGasAccount: Could not broadcast Tx: '+ e.message)
+			}
+		},
+		
 		
 		msgUpdateDao({ value }: msgUpdateDaoParams): EncodeObject {
 			try {
 				return { typeUrl: "/metaearth.dao.MsgUpdateDao", value: MsgUpdateDao.fromPartial( value ) }  
 			} catch (e: any) {
 				throw new Error('TxClient:MsgUpdateDao: Could not create message: ' + e.message)
+			}
+		},
+		
+		msgFreeGasAccount({ value }: msgFreeGasAccountParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.dao.MsgFreeGasAccount", value: MsgFreeGasAccount.fromPartial( value ) }  
+			} catch (e: any) {
+				throw new Error('TxClient:MsgFreeGasAccount: Could not create message: ' + e.message)
 			}
 		},
 		
@@ -100,6 +134,7 @@ class SDKModule {
 		this.updateTX(client);
 		this.structure =  {
 						DaoAddresses: getStructure(typeDaoAddresses.fromPartial({})),
+						FreeGasAccount: getStructure(typeFreeGasAccount.fromPartial({})),
 						
 		};
 		client.on('signer-changed',(signer) => {			

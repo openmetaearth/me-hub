@@ -1,5 +1,6 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
+import { PageRequest, PageResponse } from "../../cosmos/base/query/v1beta1/pagination";
 import { DaoAddresses } from "./dao";
 
 export const protobufPackage = "metaearth.dao";
@@ -16,6 +17,23 @@ export interface QueryGlobalDaoFeePoolReq {
 
 export interface QueryGlobalDaoFeePoolResp {
   globalDaoFeePool: string;
+}
+
+export interface QueryFreeGasAccountsReq {
+  pagination: PageRequest | undefined;
+}
+
+export interface QueryFreeGasAccountsResp {
+  addresses: string[];
+  pagination: PageResponse | undefined;
+}
+
+export interface QueryIsFreeGasAccountReq {
+  address: string;
+}
+
+export interface QueryIsFreeGasAccountResp {
+  isFree: boolean;
 }
 
 function createBaseQueryGlobalDaoRequest(): QueryGlobalDaoRequest {
@@ -193,11 +211,222 @@ export const QueryGlobalDaoFeePoolResp = {
   },
 };
 
+function createBaseQueryFreeGasAccountsReq(): QueryFreeGasAccountsReq {
+  return { pagination: undefined };
+}
+
+export const QueryFreeGasAccountsReq = {
+  encode(message: QueryFreeGasAccountsReq, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryFreeGasAccountsReq {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryFreeGasAccountsReq();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 2:
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryFreeGasAccountsReq {
+    return { pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined };
+  },
+
+  toJSON(message: QueryFreeGasAccountsReq): unknown {
+    const obj: any = {};
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageRequest.toJSON(message.pagination) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryFreeGasAccountsReq>, I>>(object: I): QueryFreeGasAccountsReq {
+    const message = createBaseQueryFreeGasAccountsReq();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseQueryFreeGasAccountsResp(): QueryFreeGasAccountsResp {
+  return { addresses: [], pagination: undefined };
+}
+
+export const QueryFreeGasAccountsResp = {
+  encode(message: QueryFreeGasAccountsResp, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.addresses) {
+      writer.uint32(10).string(v!);
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryFreeGasAccountsResp {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryFreeGasAccountsResp();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.addresses.push(reader.string());
+          break;
+        case 2:
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryFreeGasAccountsResp {
+    return {
+      addresses: Array.isArray(object?.addresses) ? object.addresses.map((e: any) => String(e)) : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+    };
+  },
+
+  toJSON(message: QueryFreeGasAccountsResp): unknown {
+    const obj: any = {};
+    if (message.addresses) {
+      obj.addresses = message.addresses.map((e) => e);
+    } else {
+      obj.addresses = [];
+    }
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageResponse.toJSON(message.pagination) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryFreeGasAccountsResp>, I>>(object: I): QueryFreeGasAccountsResp {
+    const message = createBaseQueryFreeGasAccountsResp();
+    message.addresses = object.addresses?.map((e) => e) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseQueryIsFreeGasAccountReq(): QueryIsFreeGasAccountReq {
+  return { address: "" };
+}
+
+export const QueryIsFreeGasAccountReq = {
+  encode(message: QueryIsFreeGasAccountReq, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryIsFreeGasAccountReq {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryIsFreeGasAccountReq();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.address = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryIsFreeGasAccountReq {
+    return { address: isSet(object.address) ? String(object.address) : "" };
+  },
+
+  toJSON(message: QueryIsFreeGasAccountReq): unknown {
+    const obj: any = {};
+    message.address !== undefined && (obj.address = message.address);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryIsFreeGasAccountReq>, I>>(object: I): QueryIsFreeGasAccountReq {
+    const message = createBaseQueryIsFreeGasAccountReq();
+    message.address = object.address ?? "";
+    return message;
+  },
+};
+
+function createBaseQueryIsFreeGasAccountResp(): QueryIsFreeGasAccountResp {
+  return { isFree: false };
+}
+
+export const QueryIsFreeGasAccountResp = {
+  encode(message: QueryIsFreeGasAccountResp, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.isFree === true) {
+      writer.uint32(8).bool(message.isFree);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryIsFreeGasAccountResp {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryIsFreeGasAccountResp();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.isFree = reader.bool();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryIsFreeGasAccountResp {
+    return { isFree: isSet(object.isFree) ? Boolean(object.isFree) : false };
+  },
+
+  toJSON(message: QueryIsFreeGasAccountResp): unknown {
+    const obj: any = {};
+    message.isFree !== undefined && (obj.isFree = message.isFree);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryIsFreeGasAccountResp>, I>>(object: I): QueryIsFreeGasAccountResp {
+    const message = createBaseQueryIsFreeGasAccountResp();
+    message.isFree = object.isFree ?? false;
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Queries a list of admin items. */
   GlobalDao(request: QueryGlobalDaoRequest): Promise<QueryGlobalDaoResponse>;
   GlobalDaoFeePool(request: QueryGlobalDaoFeePoolReq): Promise<QueryGlobalDaoFeePoolResp>;
+  FreeGasAccounts(request: QueryFreeGasAccountsReq): Promise<QueryFreeGasAccountsResp>;
+  IsFreeGasAccount(request: QueryIsFreeGasAccountReq): Promise<QueryIsFreeGasAccountResp>;
 }
 
 export class QueryClientImpl implements Query {
@@ -206,6 +435,8 @@ export class QueryClientImpl implements Query {
     this.rpc = rpc;
     this.GlobalDao = this.GlobalDao.bind(this);
     this.GlobalDaoFeePool = this.GlobalDaoFeePool.bind(this);
+    this.FreeGasAccounts = this.FreeGasAccounts.bind(this);
+    this.IsFreeGasAccount = this.IsFreeGasAccount.bind(this);
   }
   GlobalDao(request: QueryGlobalDaoRequest): Promise<QueryGlobalDaoResponse> {
     const data = QueryGlobalDaoRequest.encode(request).finish();
@@ -217,6 +448,18 @@ export class QueryClientImpl implements Query {
     const data = QueryGlobalDaoFeePoolReq.encode(request).finish();
     const promise = this.rpc.request("metaearth.dao.Query", "GlobalDaoFeePool", data);
     return promise.then((data) => QueryGlobalDaoFeePoolResp.decode(new _m0.Reader(data)));
+  }
+
+  FreeGasAccounts(request: QueryFreeGasAccountsReq): Promise<QueryFreeGasAccountsResp> {
+    const data = QueryFreeGasAccountsReq.encode(request).finish();
+    const promise = this.rpc.request("metaearth.dao.Query", "FreeGasAccounts", data);
+    return promise.then((data) => QueryFreeGasAccountsResp.decode(new _m0.Reader(data)));
+  }
+
+  IsFreeGasAccount(request: QueryIsFreeGasAccountReq): Promise<QueryIsFreeGasAccountResp> {
+    const data = QueryIsFreeGasAccountReq.encode(request).finish();
+    const promise = this.rpc.request("metaearth.dao.Query", "IsFreeGasAccount", data);
+    return promise.then((data) => QueryIsFreeGasAccountResp.decode(new _m0.Reader(data)));
   }
 }
 

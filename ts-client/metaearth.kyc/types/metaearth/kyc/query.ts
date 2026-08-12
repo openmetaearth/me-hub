@@ -59,6 +59,14 @@ export interface QuerySBTResponse {
   sbt: NFT | undefined;
 }
 
+export interface QuerySubAccountDid {
+  subAccount: string;
+}
+
+export interface QuerySubAccountDidResponse {
+  info: DidInfo | undefined;
+}
+
 function createBaseQueryProtocol(): QueryProtocol {
   return {};
 }
@@ -681,6 +689,100 @@ export const QuerySBTResponse = {
   },
 };
 
+function createBaseQuerySubAccountDid(): QuerySubAccountDid {
+  return { subAccount: "" };
+}
+
+export const QuerySubAccountDid = {
+  encode(message: QuerySubAccountDid, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.subAccount !== "") {
+      writer.uint32(10).string(message.subAccount);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QuerySubAccountDid {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQuerySubAccountDid();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.subAccount = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QuerySubAccountDid {
+    return { subAccount: isSet(object.subAccount) ? String(object.subAccount) : "" };
+  },
+
+  toJSON(message: QuerySubAccountDid): unknown {
+    const obj: any = {};
+    message.subAccount !== undefined && (obj.subAccount = message.subAccount);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QuerySubAccountDid>, I>>(object: I): QuerySubAccountDid {
+    const message = createBaseQuerySubAccountDid();
+    message.subAccount = object.subAccount ?? "";
+    return message;
+  },
+};
+
+function createBaseQuerySubAccountDidResponse(): QuerySubAccountDidResponse {
+  return { info: undefined };
+}
+
+export const QuerySubAccountDidResponse = {
+  encode(message: QuerySubAccountDidResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.info !== undefined) {
+      DidInfo.encode(message.info, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QuerySubAccountDidResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQuerySubAccountDidResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.info = DidInfo.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QuerySubAccountDidResponse {
+    return { info: isSet(object.info) ? DidInfo.fromJSON(object.info) : undefined };
+  },
+
+  toJSON(message: QuerySubAccountDidResponse): unknown {
+    const obj: any = {};
+    message.info !== undefined && (obj.info = message.info ? DidInfo.toJSON(message.info) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QuerySubAccountDidResponse>, I>>(object: I): QuerySubAccountDidResponse {
+    const message = createBaseQuerySubAccountDidResponse();
+    message.info = (object.info !== undefined && object.info !== null) ? DidInfo.fromPartial(object.info) : undefined;
+    return message;
+  },
+};
+
 export interface Query {
   /** query protocol */
   Protocol(request: QueryProtocol): Promise<QueryProtocolResponse>;
@@ -689,6 +791,7 @@ export interface Query {
   KYC(request: QueryKYC): Promise<QueryKYCResponse>;
   KYCs(request: QueryKYCs): Promise<QueryKYCsResponse>;
   SBT(request: QuerySBT): Promise<QuerySBTResponse>;
+  SubAccountDid(request: QuerySubAccountDid): Promise<QuerySubAccountDidResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -701,6 +804,7 @@ export class QueryClientImpl implements Query {
     this.KYC = this.KYC.bind(this);
     this.KYCs = this.KYCs.bind(this);
     this.SBT = this.SBT.bind(this);
+    this.SubAccountDid = this.SubAccountDid.bind(this);
   }
   Protocol(request: QueryProtocol): Promise<QueryProtocolResponse> {
     const data = QueryProtocol.encode(request).finish();
@@ -736,6 +840,12 @@ export class QueryClientImpl implements Query {
     const data = QuerySBT.encode(request).finish();
     const promise = this.rpc.request("metaearth.kyc.Query", "SBT", data);
     return promise.then((data) => QuerySBTResponse.decode(new _m0.Reader(data)));
+  }
+
+  SubAccountDid(request: QuerySubAccountDid): Promise<QuerySubAccountDidResponse> {
+    const data = QuerySubAccountDid.encode(request).finish();
+    const promise = this.rpc.request("metaearth.kyc.Query", "SubAccountDid", data);
+    return promise.then((data) => QuerySubAccountDidResponse.decode(new _m0.Reader(data)));
   }
 }
 

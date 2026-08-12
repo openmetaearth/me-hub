@@ -1,6 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import _m0 from "protobufjs/minimal";
+import { PageRequest, PageResponse } from "../../cosmos/base/query/v1beta1/pagination";
 
 export const protobufPackage = "metaearth.wnft";
 
@@ -9,6 +10,7 @@ export interface QueryClassAddressRequest {
   /** class_id associated with the nft */
   classId: string;
   address: string;
+  pagination: PageRequest | undefined;
 }
 
 /** QueryClassesResponse is the response type for the Query/Classes RPC method */
@@ -16,6 +18,7 @@ export interface QueryClassAddressResponse {
   exists: boolean;
   totalSupply: number;
   nfts: string[];
+  pagination: PageResponse | undefined;
 }
 
 /** QueryNftFilterResponse is the request type for the Query/NftFilter RPC method */
@@ -23,6 +26,7 @@ export interface QueryNftFilterRequest {
   owner: string;
   classId: string;
   tokenId: string;
+  pagination: PageRequest | undefined;
 }
 
 /**
@@ -31,6 +35,7 @@ export interface QueryNftFilterRequest {
  */
 export interface QueryNftFilterResponse {
   nfts: NftList[];
+  pagination: PageResponse | undefined;
 }
 
 export interface NftList {
@@ -41,7 +46,7 @@ export interface NftList {
 }
 
 function createBaseQueryClassAddressRequest(): QueryClassAddressRequest {
-  return { classId: "", address: "" };
+  return { classId: "", address: "", pagination: undefined };
 }
 
 export const QueryClassAddressRequest = {
@@ -51,6 +56,9 @@ export const QueryClassAddressRequest = {
     }
     if (message.address !== "") {
       writer.uint32(18).string(message.address);
+    }
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -68,6 +76,9 @@ export const QueryClassAddressRequest = {
         case 2:
           message.address = reader.string();
           break;
+        case 3:
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -80,6 +91,7 @@ export const QueryClassAddressRequest = {
     return {
       classId: isSet(object.classId) ? String(object.classId) : "",
       address: isSet(object.address) ? String(object.address) : "",
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
     };
   },
 
@@ -87,6 +99,8 @@ export const QueryClassAddressRequest = {
     const obj: any = {};
     message.classId !== undefined && (obj.classId = message.classId);
     message.address !== undefined && (obj.address = message.address);
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageRequest.toJSON(message.pagination) : undefined);
     return obj;
   },
 
@@ -94,12 +108,15 @@ export const QueryClassAddressRequest = {
     const message = createBaseQueryClassAddressRequest();
     message.classId = object.classId ?? "";
     message.address = object.address ?? "";
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
 
 function createBaseQueryClassAddressResponse(): QueryClassAddressResponse {
-  return { exists: false, totalSupply: 0, nfts: [] };
+  return { exists: false, totalSupply: 0, nfts: [], pagination: undefined };
 }
 
 export const QueryClassAddressResponse = {
@@ -112,6 +129,9 @@ export const QueryClassAddressResponse = {
     }
     for (const v of message.nfts) {
       writer.uint32(26).string(v!);
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(34).fork()).ldelim();
     }
     return writer;
   },
@@ -132,6 +152,9 @@ export const QueryClassAddressResponse = {
         case 3:
           message.nfts.push(reader.string());
           break;
+        case 4:
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -145,6 +168,7 @@ export const QueryClassAddressResponse = {
       exists: isSet(object.exists) ? Boolean(object.exists) : false,
       totalSupply: isSet(object.totalSupply) ? Number(object.totalSupply) : 0,
       nfts: Array.isArray(object?.nfts) ? object.nfts.map((e: any) => String(e)) : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
     };
   },
 
@@ -157,6 +181,8 @@ export const QueryClassAddressResponse = {
     } else {
       obj.nfts = [];
     }
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageResponse.toJSON(message.pagination) : undefined);
     return obj;
   },
 
@@ -165,12 +191,15 @@ export const QueryClassAddressResponse = {
     message.exists = object.exists ?? false;
     message.totalSupply = object.totalSupply ?? 0;
     message.nfts = object.nfts?.map((e) => e) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
 
 function createBaseQueryNftFilterRequest(): QueryNftFilterRequest {
-  return { owner: "", classId: "", tokenId: "" };
+  return { owner: "", classId: "", tokenId: "", pagination: undefined };
 }
 
 export const QueryNftFilterRequest = {
@@ -183,6 +212,9 @@ export const QueryNftFilterRequest = {
     }
     if (message.tokenId !== "") {
       writer.uint32(26).string(message.tokenId);
+    }
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(34).fork()).ldelim();
     }
     return writer;
   },
@@ -203,6 +235,9 @@ export const QueryNftFilterRequest = {
         case 3:
           message.tokenId = reader.string();
           break;
+        case 4:
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -216,6 +251,7 @@ export const QueryNftFilterRequest = {
       owner: isSet(object.owner) ? String(object.owner) : "",
       classId: isSet(object.classId) ? String(object.classId) : "",
       tokenId: isSet(object.tokenId) ? String(object.tokenId) : "",
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
     };
   },
 
@@ -224,6 +260,8 @@ export const QueryNftFilterRequest = {
     message.owner !== undefined && (obj.owner = message.owner);
     message.classId !== undefined && (obj.classId = message.classId);
     message.tokenId !== undefined && (obj.tokenId = message.tokenId);
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageRequest.toJSON(message.pagination) : undefined);
     return obj;
   },
 
@@ -232,18 +270,24 @@ export const QueryNftFilterRequest = {
     message.owner = object.owner ?? "";
     message.classId = object.classId ?? "";
     message.tokenId = object.tokenId ?? "";
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
 
 function createBaseQueryNftFilterResponse(): QueryNftFilterResponse {
-  return { nfts: [] };
+  return { nfts: [], pagination: undefined };
 }
 
 export const QueryNftFilterResponse = {
   encode(message: QueryNftFilterResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.nfts) {
       NftList.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -258,6 +302,9 @@ export const QueryNftFilterResponse = {
         case 1:
           message.nfts.push(NftList.decode(reader, reader.uint32()));
           break;
+        case 2:
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -267,7 +314,10 @@ export const QueryNftFilterResponse = {
   },
 
   fromJSON(object: any): QueryNftFilterResponse {
-    return { nfts: Array.isArray(object?.nfts) ? object.nfts.map((e: any) => NftList.fromJSON(e)) : [] };
+    return {
+      nfts: Array.isArray(object?.nfts) ? object.nfts.map((e: any) => NftList.fromJSON(e)) : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+    };
   },
 
   toJSON(message: QueryNftFilterResponse): unknown {
@@ -277,12 +327,17 @@ export const QueryNftFilterResponse = {
     } else {
       obj.nfts = [];
     }
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageResponse.toJSON(message.pagination) : undefined);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<QueryNftFilterResponse>, I>>(object: I): QueryNftFilterResponse {
     const message = createBaseQueryNftFilterResponse();
     message.nfts = object.nfts?.map((e) => NftList.fromPartial(e)) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };

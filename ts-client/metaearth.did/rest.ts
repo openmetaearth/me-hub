@@ -9,29 +9,6 @@
  * ---------------------------------------------------------------
  */
 
-export interface DidDidInfo {
-  /**
-   * same as the MEID
-   * MEIDNFT.umeid
-   */
-  did?: string;
-
-  /** MEID.account */
-  address?: string;
-
-  /**
-   * public_key is mapped to the user address
-   * the issuer will use public_key to encrypt the user's certificate to ensure
-   * the privacy of the off-chain certificate
-   */
-  pubkey?: string;
-  status?: DidDidStatus;
-
-  /** unused! */
-  regionId?: string;
-  kycLevel?: DidKycLevel;
-}
-
 export enum DidDidStatus {
   DID_STATUS_INACTIVE = "DID_STATUS_INACTIVE",
   DID_STATUS_ACTIVE = "DID_STATUS_ACTIVE",
@@ -83,8 +60,12 @@ export interface DidQueryDidDocumentResponse {
   doc?: MetaearthdidDidDocument;
 }
 
+export interface DidQueryDidInfoResponse {
+  info?: MetaearthdidDidInfo;
+}
+
 export interface DidQueryDidInfosResponse {
-  infos?: DidDidInfo[];
+  infos?: MetaearthdidDidInfo[];
 
   /**
    * PageResponse is to be embedded in gRPC response messages where the
@@ -99,11 +80,26 @@ export interface DidQueryDidInfosResponse {
 }
 
 export interface DidQueryDidResponse {
-  info?: DidDidInfo;
+  info?: MetaearthdidDidInfo;
 }
 
 export interface DidQueryServiceResponse {
   service?: MetaearthdidService;
+}
+
+export interface DidQueryServicesResponse {
+  services?: MetaearthdidService[];
+
+  /**
+   * PageResponse is to be embedded in gRPC response messages where the
+   * corresponding request message has used PageRequest.
+   *
+   *  message SomeResponse {
+   *          repeated Bar results = 1;
+   *          PageResponse page = 2;
+   *  }
+   */
+  pagination?: V1Beta1PageResponse;
 }
 
 export enum DidServiceStatus {
@@ -125,8 +121,30 @@ export interface MetaearthdidCredential {
 }
 
 export interface MetaearthdidDidDocument {
-  info?: DidDidInfo;
+  info?: MetaearthdidDidInfo;
   vcs?: MetaearthdidCredential[];
+}
+
+export interface MetaearthdidDidInfo {
+  /**
+   * same as the MEID
+   * MEIDNFT.umeid
+   */
+  did?: string;
+  address?: string;
+
+  /**
+   * public_key is mapped to the user address
+   * the issuer will use public_key to encrypt the user's certificate to ensure
+   * the privacy of the off-chain certificate
+   */
+  pubkey?: string;
+  status?: DidDidStatus;
+
+  /** unused! */
+  regionId?: string;
+  kycLevel?: DidKycLevel;
+  sub_account?: string;
 }
 
 export interface MetaearthdidService {
@@ -425,8 +443,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Query
+   * @name QueryDidInfo
+   * @request GET:/metaearth/did/didInfo
+   */
+  queryDidInfo = (query?: { did?: string }, params: RequestParams = {}) =>
+    this.request<DidQueryDidInfoResponse, RpcStatus>({
+      path: `/metaearth/did/didInfo`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
    * @name QueryDidInfos
-   * @summary Queries a list of DidInfos items.
    * @request GET:/metaearth/did/did_infos
    */
   queryDidInfos = (
@@ -457,6 +490,31 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   queryService = (query?: { sid?: string }, params: RequestParams = {}) =>
     this.request<DidQueryServiceResponse, RpcStatus>({
       path: `/metaearth/did/service`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryServices
+   * @request GET:/metaearth/did/services
+   */
+  queryServices = (
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+      "pagination.reverse"?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<DidQueryServicesResponse, RpcStatus>({
+      path: `/metaearth/did/services`,
       method: "GET",
       query: query,
       format: "json",

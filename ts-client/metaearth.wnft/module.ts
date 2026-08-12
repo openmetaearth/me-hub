@@ -7,16 +7,22 @@ import { msgTypes } from './registry';
 import { IgniteClient } from "../client"
 import { MissingWalletError } from "../helpers"
 import { Api } from "./rest";
+import { MsgNewClass } from "./types/metaearth/wnft/tx";
 import { MsgMintNFT } from "./types/metaearth/wnft/tx";
 import { MsgSend } from "./types/metaearth/wnft/tx";
-import { MsgNewClass } from "./types/metaearth/wnft/tx";
 
 import { Extension as typeExtension} from "./types"
 import { ClassMetadata as typeClassMetadata} from "./types"
 import { EventNewClass as typeEventNewClass} from "./types"
 import { NftList as typeNftList} from "./types"
 
-export { MsgMintNFT, MsgSend, MsgNewClass };
+export { MsgNewClass, MsgMintNFT, MsgSend };
+
+type sendMsgNewClassParams = {
+  value: MsgNewClass,
+  fee?: StdFee,
+  memo?: string
+};
 
 type sendMsgMintNFTParams = {
   value: MsgMintNFT,
@@ -30,12 +36,10 @@ type sendMsgSendParams = {
   memo?: string
 };
 
-type sendMsgNewClassParams = {
-  value: MsgNewClass,
-  fee?: StdFee,
-  memo?: string
-};
 
+type msgNewClassParams = {
+  value: MsgNewClass,
+};
 
 type msgMintNFTParams = {
   value: MsgMintNFT,
@@ -43,10 +47,6 @@ type msgMintNFTParams = {
 
 type msgSendParams = {
   value: MsgSend,
-};
-
-type msgNewClassParams = {
-  value: MsgNewClass,
 };
 
 
@@ -79,6 +79,20 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 
   return {
 		
+		async sendMsgNewClass({ value, fee, memo }: sendMsgNewClassParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgNewClass: Unable to sign Tx. Signer is not present.')
+			}
+			try {			
+				const { address } = (await signer.getAccounts())[0]; 
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgNewClass({ value: MsgNewClass.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+			} catch (e: any) {
+				throw new Error('TxClient:sendMsgNewClass: Could not broadcast Tx: '+ e.message)
+			}
+		},
+		
 		async sendMsgMintNFT({ value, fee, memo }: sendMsgMintNFTParams): Promise<DeliverTxResponse> {
 			if (!signer) {
 					throw new Error('TxClient:sendMsgMintNFT: Unable to sign Tx. Signer is not present.')
@@ -107,20 +121,14 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
-		async sendMsgNewClass({ value, fee, memo }: sendMsgNewClassParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgNewClass: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgNewClass({ value: MsgNewClass.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+		
+		msgNewClass({ value }: msgNewClassParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.wnft.MsgNewClass", value: MsgNewClass.fromPartial( value ) }  
 			} catch (e: any) {
-				throw new Error('TxClient:sendMsgNewClass: Could not broadcast Tx: '+ e.message)
+				throw new Error('TxClient:MsgNewClass: Could not create message: ' + e.message)
 			}
 		},
-		
 		
 		msgMintNFT({ value }: msgMintNFTParams): EncodeObject {
 			try {
@@ -135,14 +143,6 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 				return { typeUrl: "/metaearth.wnft.MsgSend", value: MsgSend.fromPartial( value ) }  
 			} catch (e: any) {
 				throw new Error('TxClient:MsgSend: Could not create message: ' + e.message)
-			}
-		},
-		
-		msgNewClass({ value }: msgNewClassParams): EncodeObject {
-			try {
-				return { typeUrl: "/metaearth.wnft.MsgNewClass", value: MsgNewClass.fromPartial( value ) }  
-			} catch (e: any) {
-				throw new Error('TxClient:MsgNewClass: Could not create message: ' + e.message)
 			}
 		},
 		

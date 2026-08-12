@@ -296,6 +296,27 @@ export interface V1Beta1DelegationResponse {
 }
 
 /**
+ * Description defines a validator description.
+ */
+export interface V1Beta1Description {
+  /** moniker defines a human-readable name for the validator. */
+  moniker?: string;
+
+  /** identity defines an optional identity signature (ex. UPort or Keybase). */
+  identity?: string;
+
+  /** website defines an optional website link. */
+  website?: string;
+
+  /** security_contact defines an optional email for security contact. */
+  security_contact?: string;
+
+  /** details define other optional details. */
+  details?: string;
+  regionID?: string;
+}
+
+/**
 * message SomeRequest {
          Foo some_parameter = 1;
          PageRequest pagination = 2;
@@ -391,6 +412,8 @@ export interface WstakingMsgDoFixedDepositResponse {
   id?: string;
 }
 
+export type WstakingMsgGrantRegionWithdrawResponse = object;
+
 export type WstakingMsgIbcTransferFromRegionTreasureResponse = object;
 
 export interface WstakingMsgNewFixedDepositCfgResp {
@@ -411,7 +434,80 @@ export interface WstakingMsgRemoveRegionResponse {
   retcode?: string;
 }
 
+export interface WstakingMsgReplaceConsensusPubKey {
+  operator_address?: string;
+
+  /**
+   * `Any` contains an arbitrary serialized protocol buffer message along with a
+   * URL that describes the type of the serialized message.
+   *
+   * Protobuf library provides support to pack/unpack Any values in the form
+   * of utility functions or additional generated methods of the Any type.
+   * Example 1: Pack and unpack a message in C++.
+   *     Foo foo = ...;
+   *     Any any;
+   *     any.PackFrom(foo);
+   *     ...
+   *     if (any.UnpackTo(&foo)) {
+   *       ...
+   *     }
+   * Example 2: Pack and unpack a message in Java.
+   *     Any any = Any.pack(foo);
+   *     if (any.is(Foo.class)) {
+   *       foo = any.unpack(Foo.class);
+   *  Example 3: Pack and unpack a message in Python.
+   *     foo = Foo(...)
+   *     any = Any()
+   *     any.Pack(foo)
+   *     if any.Is(Foo.DESCRIPTOR):
+   *       any.Unpack(foo)
+   *  Example 4: Pack and unpack a message in Go
+   *      foo := &pb.Foo{...}
+   *      any, err := anypb.New(foo)
+   *      if err != nil {
+   *        ...
+   *      }
+   *      ...
+   *      foo := &pb.Foo{}
+   *      if err := any.UnmarshalTo(foo); err != nil {
+   * The pack methods provided by protobuf library will by default use
+   * 'type.googleapis.com/full.type.name' as the type URL and the unpack
+   * methods only use the fully qualified type name after the last '/'
+   * in the type URL, for example "foo.bar.com/x/y.z" will yield type
+   * name "y.z".
+   * JSON
+   * ====
+   * The JSON representation of an `Any` value uses the regular
+   * representation of the deserialized, embedded message, with an
+   * additional field `@type` which contains the type URL. Example:
+   *     package google.profile;
+   *     message Person {
+   *       string first_name = 1;
+   *       string last_name = 2;
+   *     {
+   *       "@type": "type.googleapis.com/google.profile.Person",
+   *       "firstName": <string>,
+   *       "lastName": <string>
+   * If the embedded message type is well-known and has a custom JSON
+   * representation, that representation will be embedded adding a field
+   * `value` which holds the custom JSON in addition to the `@type`
+   * field. Example (for message [google.protobuf.Duration][]):
+   *       "@type": "type.googleapis.com/google.protobuf.Duration",
+   *       "value": "1.212s"
+   */
+  pub_key?: ProtobufAny;
+
+  /** @format int64 */
+  block_number?: string;
+}
+
+export type WstakingMsgReplaceConsensusPubKeyResponse = object;
+
 export type WstakingMsgReviewRecordResponse = object;
+
+export type WstakingMsgRevokeRegionWithdrawResponse = object;
+
+export type WstakingMsgSendToModuleResponse = object;
 
 export interface WstakingMsgSetFixedDepositCfgRateResp {
   retcode?: string;
@@ -435,6 +531,11 @@ export interface WstakingMsgUnstakeResponse {
   /** @format date-time */
   completion_time?: string;
 }
+
+/**
+ * MsgUpdateValidatorResponse defines the Msg/UpdateValidator response type.
+ */
+export type WstakingMsgUpdateValidatorResponse = object;
 
 /**
 * MsgWithdrawDelegatorRewardResponse defines the Msg/WithdrawDelegatorReward
@@ -595,6 +696,14 @@ export interface WstakingQueryRecordsByAddressResponse {
 
 export interface WstakingQueryRegionResponse {
   region?: MetaearthwstakingRegion;
+}
+
+export interface WstakingQueryRegionWithdrawerResponse {
+  /** region_id is the queried region. */
+  region_id?: string;
+
+  /** the withdrawer of this region; empty string means this region is not set. */
+  address?: string;
 }
 
 export interface WstakingQueryReviewRecordByNumberResponse {
@@ -766,22 +875,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * @tags Query
    * @name QueryFixedDepositByRegion
    * @summary Queries a list of FixedDepositByRegion items.
-   * @request GET:/cosmos/staking/v1beta1/fixed_deposit_by_region/{region_id}
+   * @request GET:/cosmos/staking/v1beta1/fixed_deposit_by_region/{region_id}/{query_type}
    */
   queryFixedDepositByRegion = (
     regionId: string,
+    queryType: "ALL_STATE" | "NOT_EXPIRED" | "EXPIRED",
     query?: {
       "pagination.key"?: string;
       "pagination.offset"?: string;
       "pagination.limit"?: string;
       "pagination.count_total"?: boolean;
       "pagination.reverse"?: boolean;
-      query_type?: "ALL_STATE" | "NOT_EXPIRED" | "EXPIRED";
     },
     params: RequestParams = {},
   ) =>
     this.request<WstakingQueryFixedDepositByRegionResponse, RpcStatus>({
-      path: `/cosmos/staking/v1beta1/fixed_deposit_by_region/${regionId}`,
+      path: `/cosmos/staking/v1beta1/fixed_deposit_by_region/${regionId}/${queryType}`,
       method: "GET",
       query: query,
       format: "json",
@@ -1051,6 +1160,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   queryRegion = (regionId: string, params: RequestParams = {}) =>
     this.request<WstakingQueryRegionResponse, RpcStatus>({
       path: `/metaearth/wstaking/region/${regionId}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+ * No description
+ * 
+ * @tags Query
+ * @name QueryRegionWithdrawer
+ * @summary QueryRegionWithdraw queries which address is granted withdraw for the given
+region.
+ * @request GET:/metaearth/wstaking/region_withdrawer/{region_id}
+ */
+  queryRegionWithdrawer = (regionId: string, params: RequestParams = {}) =>
+    this.request<WstakingQueryRegionWithdrawerResponse, RpcStatus>({
+      path: `/metaearth/wstaking/region_withdrawer/${regionId}`,
       method: "GET",
       format: "json",
       ...params,

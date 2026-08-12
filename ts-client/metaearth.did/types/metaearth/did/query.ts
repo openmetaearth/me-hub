@@ -15,6 +15,23 @@ export interface QueryDidResponse {
   info: DidInfo | undefined;
 }
 
+export interface QueryDidInfo {
+  did: string;
+}
+
+export interface QueryDidInfoResponse {
+  info: DidInfo | undefined;
+}
+
+export interface QueryDidInfos {
+  pagination: PageRequest | undefined;
+}
+
+export interface QueryDidInfosResponse {
+  infos: DidInfo[];
+  pagination: PageResponse | undefined;
+}
+
 export interface QueryDidDocument {
   did: string;
 }
@@ -29,6 +46,15 @@ export interface QueryService {
 
 export interface QueryServiceResponse {
   service: Service | undefined;
+}
+
+export interface QueryServices {
+  pagination: PageRequest | undefined;
+}
+
+export interface QueryServicesResponse {
+  services: Service[];
+  pagination: PageResponse | undefined;
 }
 
 export interface QueryCredential {
@@ -48,15 +74,6 @@ export interface QueryCredentials {
 
 export interface QueryCredentialsResponse {
   credentials: Credential[];
-  pagination: PageResponse | undefined;
-}
-
-export interface QueryDidInfosRequest {
-  pagination: PageRequest | undefined;
-}
-
-export interface QueryDidInfosResponse {
-  infos: DidInfo[];
   pagination: PageResponse | undefined;
 }
 
@@ -150,6 +167,215 @@ export const QueryDidResponse = {
   fromPartial<I extends Exact<DeepPartial<QueryDidResponse>, I>>(object: I): QueryDidResponse {
     const message = createBaseQueryDidResponse();
     message.info = (object.info !== undefined && object.info !== null) ? DidInfo.fromPartial(object.info) : undefined;
+    return message;
+  },
+};
+
+function createBaseQueryDidInfo(): QueryDidInfo {
+  return { did: "" };
+}
+
+export const QueryDidInfo = {
+  encode(message: QueryDidInfo, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.did !== "") {
+      writer.uint32(10).string(message.did);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryDidInfo {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryDidInfo();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.did = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryDidInfo {
+    return { did: isSet(object.did) ? String(object.did) : "" };
+  },
+
+  toJSON(message: QueryDidInfo): unknown {
+    const obj: any = {};
+    message.did !== undefined && (obj.did = message.did);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryDidInfo>, I>>(object: I): QueryDidInfo {
+    const message = createBaseQueryDidInfo();
+    message.did = object.did ?? "";
+    return message;
+  },
+};
+
+function createBaseQueryDidInfoResponse(): QueryDidInfoResponse {
+  return { info: undefined };
+}
+
+export const QueryDidInfoResponse = {
+  encode(message: QueryDidInfoResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.info !== undefined) {
+      DidInfo.encode(message.info, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryDidInfoResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryDidInfoResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.info = DidInfo.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryDidInfoResponse {
+    return { info: isSet(object.info) ? DidInfo.fromJSON(object.info) : undefined };
+  },
+
+  toJSON(message: QueryDidInfoResponse): unknown {
+    const obj: any = {};
+    message.info !== undefined && (obj.info = message.info ? DidInfo.toJSON(message.info) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryDidInfoResponse>, I>>(object: I): QueryDidInfoResponse {
+    const message = createBaseQueryDidInfoResponse();
+    message.info = (object.info !== undefined && object.info !== null) ? DidInfo.fromPartial(object.info) : undefined;
+    return message;
+  },
+};
+
+function createBaseQueryDidInfos(): QueryDidInfos {
+  return { pagination: undefined };
+}
+
+export const QueryDidInfos = {
+  encode(message: QueryDidInfos, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryDidInfos {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryDidInfos();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryDidInfos {
+    return { pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined };
+  },
+
+  toJSON(message: QueryDidInfos): unknown {
+    const obj: any = {};
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageRequest.toJSON(message.pagination) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryDidInfos>, I>>(object: I): QueryDidInfos {
+    const message = createBaseQueryDidInfos();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseQueryDidInfosResponse(): QueryDidInfosResponse {
+  return { infos: [], pagination: undefined };
+}
+
+export const QueryDidInfosResponse = {
+  encode(message: QueryDidInfosResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.infos) {
+      DidInfo.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryDidInfosResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryDidInfosResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.infos.push(DidInfo.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryDidInfosResponse {
+    return {
+      infos: Array.isArray(object?.infos) ? object.infos.map((e: any) => DidInfo.fromJSON(e)) : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+    };
+  },
+
+  toJSON(message: QueryDidInfosResponse): unknown {
+    const obj: any = {};
+    if (message.infos) {
+      obj.infos = message.infos.map((e) => e ? DidInfo.toJSON(e) : undefined);
+    } else {
+      obj.infos = [];
+    }
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageResponse.toJSON(message.pagination) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryDidInfosResponse>, I>>(object: I): QueryDidInfosResponse {
+    const message = createBaseQueryDidInfosResponse();
+    message.infos = object.infos?.map((e) => DidInfo.fromPartial(e)) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
@@ -339,6 +565,121 @@ export const QueryServiceResponse = {
     const message = createBaseQueryServiceResponse();
     message.service = (object.service !== undefined && object.service !== null)
       ? Service.fromPartial(object.service)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseQueryServices(): QueryServices {
+  return { pagination: undefined };
+}
+
+export const QueryServices = {
+  encode(message: QueryServices, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryServices {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryServices();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryServices {
+    return { pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined };
+  },
+
+  toJSON(message: QueryServices): unknown {
+    const obj: any = {};
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageRequest.toJSON(message.pagination) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryServices>, I>>(object: I): QueryServices {
+    const message = createBaseQueryServices();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseQueryServicesResponse(): QueryServicesResponse {
+  return { services: [], pagination: undefined };
+}
+
+export const QueryServicesResponse = {
+  encode(message: QueryServicesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.services) {
+      Service.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryServicesResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryServicesResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.services.push(Service.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryServicesResponse {
+    return {
+      services: Array.isArray(object?.services) ? object.services.map((e: any) => Service.fromJSON(e)) : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+    };
+  },
+
+  toJSON(message: QueryServicesResponse): unknown {
+    const obj: any = {};
+    if (message.services) {
+      obj.services = message.services.map((e) => e ? Service.toJSON(e) : undefined);
+    } else {
+      obj.services = [];
+    }
+    message.pagination !== undefined
+      && (obj.pagination = message.pagination ? PageResponse.toJSON(message.pagination) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryServicesResponse>, I>>(object: I): QueryServicesResponse {
+    const message = createBaseQueryServicesResponse();
+    message.services = object.services?.map((e) => Service.fromPartial(e)) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
       : undefined;
     return message;
   },
@@ -585,130 +926,16 @@ export const QueryCredentialsResponse = {
   },
 };
 
-function createBaseQueryDidInfosRequest(): QueryDidInfosRequest {
-  return { pagination: undefined };
-}
-
-export const QueryDidInfosRequest = {
-  encode(message: QueryDidInfosRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.pagination !== undefined) {
-      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryDidInfosRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseQueryDidInfosRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.pagination = PageRequest.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): QueryDidInfosRequest {
-    return { pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined };
-  },
-
-  toJSON(message: QueryDidInfosRequest): unknown {
-    const obj: any = {};
-    message.pagination !== undefined
-      && (obj.pagination = message.pagination ? PageRequest.toJSON(message.pagination) : undefined);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<QueryDidInfosRequest>, I>>(object: I): QueryDidInfosRequest {
-    const message = createBaseQueryDidInfosRequest();
-    message.pagination = (object.pagination !== undefined && object.pagination !== null)
-      ? PageRequest.fromPartial(object.pagination)
-      : undefined;
-    return message;
-  },
-};
-
-function createBaseQueryDidInfosResponse(): QueryDidInfosResponse {
-  return { infos: [], pagination: undefined };
-}
-
-export const QueryDidInfosResponse = {
-  encode(message: QueryDidInfosResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.infos) {
-      DidInfo.encode(v!, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.pagination !== undefined) {
-      PageResponse.encode(message.pagination, writer.uint32(18).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryDidInfosResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseQueryDidInfosResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.infos.push(DidInfo.decode(reader, reader.uint32()));
-          break;
-        case 2:
-          message.pagination = PageResponse.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): QueryDidInfosResponse {
-    return {
-      infos: Array.isArray(object?.infos) ? object.infos.map((e: any) => DidInfo.fromJSON(e)) : [],
-      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
-    };
-  },
-
-  toJSON(message: QueryDidInfosResponse): unknown {
-    const obj: any = {};
-    if (message.infos) {
-      obj.infos = message.infos.map((e) => e ? DidInfo.toJSON(e) : undefined);
-    } else {
-      obj.infos = [];
-    }
-    message.pagination !== undefined
-      && (obj.pagination = message.pagination ? PageResponse.toJSON(message.pagination) : undefined);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<QueryDidInfosResponse>, I>>(object: I): QueryDidInfosResponse {
-    const message = createBaseQueryDidInfosResponse();
-    message.infos = object.infos?.map((e) => DidInfo.fromPartial(e)) || [];
-    message.pagination = (object.pagination !== undefined && object.pagination !== null)
-      ? PageResponse.fromPartial(object.pagination)
-      : undefined;
-    return message;
-  },
-};
-
 export interface Query {
   /** query user did doc */
   Did(request: QueryDid): Promise<QueryDidResponse>;
+  DidInfo(request: QueryDidInfo): Promise<QueryDidInfoResponse>;
+  DidInfos(request: QueryDidInfos): Promise<QueryDidInfosResponse>;
   DidDocument(request: QueryDidDocument): Promise<QueryDidDocumentResponse>;
   Service(request: QueryService): Promise<QueryServiceResponse>;
+  Services(request: QueryServices): Promise<QueryServicesResponse>;
   Credential(request: QueryCredential): Promise<QueryCredentialResponse>;
   Credentials(request: QueryCredentials): Promise<QueryCredentialsResponse>;
-  /** Queries a list of DidInfos items. */
-  DidInfos(request: QueryDidInfosRequest): Promise<QueryDidInfosResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -716,16 +943,30 @@ export class QueryClientImpl implements Query {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.Did = this.Did.bind(this);
+    this.DidInfo = this.DidInfo.bind(this);
+    this.DidInfos = this.DidInfos.bind(this);
     this.DidDocument = this.DidDocument.bind(this);
     this.Service = this.Service.bind(this);
+    this.Services = this.Services.bind(this);
     this.Credential = this.Credential.bind(this);
     this.Credentials = this.Credentials.bind(this);
-    this.DidInfos = this.DidInfos.bind(this);
   }
   Did(request: QueryDid): Promise<QueryDidResponse> {
     const data = QueryDid.encode(request).finish();
     const promise = this.rpc.request("metaearth.did.Query", "Did", data);
     return promise.then((data) => QueryDidResponse.decode(new _m0.Reader(data)));
+  }
+
+  DidInfo(request: QueryDidInfo): Promise<QueryDidInfoResponse> {
+    const data = QueryDidInfo.encode(request).finish();
+    const promise = this.rpc.request("metaearth.did.Query", "DidInfo", data);
+    return promise.then((data) => QueryDidInfoResponse.decode(new _m0.Reader(data)));
+  }
+
+  DidInfos(request: QueryDidInfos): Promise<QueryDidInfosResponse> {
+    const data = QueryDidInfos.encode(request).finish();
+    const promise = this.rpc.request("metaearth.did.Query", "DidInfos", data);
+    return promise.then((data) => QueryDidInfosResponse.decode(new _m0.Reader(data)));
   }
 
   DidDocument(request: QueryDidDocument): Promise<QueryDidDocumentResponse> {
@@ -740,6 +981,12 @@ export class QueryClientImpl implements Query {
     return promise.then((data) => QueryServiceResponse.decode(new _m0.Reader(data)));
   }
 
+  Services(request: QueryServices): Promise<QueryServicesResponse> {
+    const data = QueryServices.encode(request).finish();
+    const promise = this.rpc.request("metaearth.did.Query", "Services", data);
+    return promise.then((data) => QueryServicesResponse.decode(new _m0.Reader(data)));
+  }
+
   Credential(request: QueryCredential): Promise<QueryCredentialResponse> {
     const data = QueryCredential.encode(request).finish();
     const promise = this.rpc.request("metaearth.did.Query", "Credential", data);
@@ -750,12 +997,6 @@ export class QueryClientImpl implements Query {
     const data = QueryCredentials.encode(request).finish();
     const promise = this.rpc.request("metaearth.did.Query", "Credentials", data);
     return promise.then((data) => QueryCredentialsResponse.decode(new _m0.Reader(data)));
-  }
-
-  DidInfos(request: QueryDidInfosRequest): Promise<QueryDidInfosResponse> {
-    const data = QueryDidInfosRequest.encode(request).finish();
-    const promise = this.rpc.request("metaearth.did.Query", "DidInfos", data);
-    return promise.then((data) => QueryDidInfosResponse.decode(new _m0.Reader(data)));
   }
 }
 

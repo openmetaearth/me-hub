@@ -2,10 +2,32 @@
 import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Coin } from "../../cosmos/base/v1beta1/coin";
+import { Description } from "../../cosmos/staking/v1beta1/staking";
+import { Any } from "../../google/protobuf/any";
 import { Timestamp } from "../../google/protobuf/timestamp";
 import { fixedDepositCfgStatus, fixedDepositCfgStatusFromJSON, fixedDepositCfgStatusToJSON } from "./fixed_deposit";
 
 export const protobufPackage = "metaearth.wstaking";
+
+/** MsgUpdateValidator defines a SDK message for editing an existing validator. */
+export interface MsgUpdateValidator {
+  description: Description | undefined;
+  stakerAddress: string;
+  /**
+   * We pass a reference to the new commission rate and min self delegation as
+   * it's not mandatory to update. If not updated, the deserialized rate will be
+   * zero with no way to distinguish if an update was intended.
+   * REF: #2373
+   */
+  commissionRate: string;
+  minSelfDelegation: string;
+  ownerAddress: string;
+  operatorAddress: string;
+}
+
+/** MsgUpdateValidatorResponse defines the Msg/UpdateValidator response type. */
+export interface MsgUpdateValidatorResponse {
+}
 
 /**
  * MsgStake defines a SDK message for performing a stake of coins
@@ -236,6 +258,201 @@ export interface Height {
 
 export interface MsgIbcTransferFromRegionTreasureResponse {
 }
+
+export interface MsgReplaceConsensusPubKey {
+  operatorAddress: string;
+  pubKey: Any | undefined;
+  blockNumber: number;
+}
+
+export interface MsgReplaceConsensusPubKeyRequest {
+  creator: string;
+  replacePubKey: MsgReplaceConsensusPubKey | undefined;
+}
+
+export interface MsgReplaceConsensusPubKeyResponse {
+}
+
+export interface MsgSendToModule {
+  sender: string;
+  receiver: string;
+  amount: Coin[];
+}
+
+export interface MsgSendToModuleResponse {
+}
+
+/**
+ * MsgGrantRegionWithdraw grants (or updates) an address to withdraw
+ * from a specific region's treasury. Only GlobalDao can call this.
+ * Calling again with a different address overwrites the previous grant.
+ */
+export interface MsgGrantRegionWithdraw {
+  /** creator must be the GlobalDao address */
+  creator: string;
+  regionId: string;
+  /** address that is granted withdraw permission */
+  address: string;
+}
+
+export interface MsgGrantRegionWithdrawResponse {
+}
+
+/**
+ * MsgRevokeRegionWithdraw revokes the withdrawer for a region.
+ * Only GlobalDao can call this.
+ */
+export interface MsgRevokeRegionWithdraw {
+  /** creator must be the GlobalDao address */
+  creator: string;
+  regionId: string;
+}
+
+export interface MsgRevokeRegionWithdrawResponse {
+}
+
+function createBaseMsgUpdateValidator(): MsgUpdateValidator {
+  return {
+    description: undefined,
+    stakerAddress: "",
+    commissionRate: "",
+    minSelfDelegation: "",
+    ownerAddress: "",
+    operatorAddress: "",
+  };
+}
+
+export const MsgUpdateValidator = {
+  encode(message: MsgUpdateValidator, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.description !== undefined) {
+      Description.encode(message.description, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.stakerAddress !== "") {
+      writer.uint32(18).string(message.stakerAddress);
+    }
+    if (message.commissionRate !== "") {
+      writer.uint32(26).string(message.commissionRate);
+    }
+    if (message.minSelfDelegation !== "") {
+      writer.uint32(34).string(message.minSelfDelegation);
+    }
+    if (message.ownerAddress !== "") {
+      writer.uint32(42).string(message.ownerAddress);
+    }
+    if (message.operatorAddress !== "") {
+      writer.uint32(50).string(message.operatorAddress);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpdateValidator {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgUpdateValidator();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.description = Description.decode(reader, reader.uint32());
+          break;
+        case 2:
+          message.stakerAddress = reader.string();
+          break;
+        case 3:
+          message.commissionRate = reader.string();
+          break;
+        case 4:
+          message.minSelfDelegation = reader.string();
+          break;
+        case 5:
+          message.ownerAddress = reader.string();
+          break;
+        case 6:
+          message.operatorAddress = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgUpdateValidator {
+    return {
+      description: isSet(object.description) ? Description.fromJSON(object.description) : undefined,
+      stakerAddress: isSet(object.stakerAddress) ? String(object.stakerAddress) : "",
+      commissionRate: isSet(object.commissionRate) ? String(object.commissionRate) : "",
+      minSelfDelegation: isSet(object.minSelfDelegation) ? String(object.minSelfDelegation) : "",
+      ownerAddress: isSet(object.ownerAddress) ? String(object.ownerAddress) : "",
+      operatorAddress: isSet(object.operatorAddress) ? String(object.operatorAddress) : "",
+    };
+  },
+
+  toJSON(message: MsgUpdateValidator): unknown {
+    const obj: any = {};
+    message.description !== undefined
+      && (obj.description = message.description ? Description.toJSON(message.description) : undefined);
+    message.stakerAddress !== undefined && (obj.stakerAddress = message.stakerAddress);
+    message.commissionRate !== undefined && (obj.commissionRate = message.commissionRate);
+    message.minSelfDelegation !== undefined && (obj.minSelfDelegation = message.minSelfDelegation);
+    message.ownerAddress !== undefined && (obj.ownerAddress = message.ownerAddress);
+    message.operatorAddress !== undefined && (obj.operatorAddress = message.operatorAddress);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgUpdateValidator>, I>>(object: I): MsgUpdateValidator {
+    const message = createBaseMsgUpdateValidator();
+    message.description = (object.description !== undefined && object.description !== null)
+      ? Description.fromPartial(object.description)
+      : undefined;
+    message.stakerAddress = object.stakerAddress ?? "";
+    message.commissionRate = object.commissionRate ?? "";
+    message.minSelfDelegation = object.minSelfDelegation ?? "";
+    message.ownerAddress = object.ownerAddress ?? "";
+    message.operatorAddress = object.operatorAddress ?? "";
+    return message;
+  },
+};
+
+function createBaseMsgUpdateValidatorResponse(): MsgUpdateValidatorResponse {
+  return {};
+}
+
+export const MsgUpdateValidatorResponse = {
+  encode(_: MsgUpdateValidatorResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpdateValidatorResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgUpdateValidatorResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgUpdateValidatorResponse {
+    return {};
+  },
+
+  toJSON(_: MsgUpdateValidatorResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgUpdateValidatorResponse>, I>>(_: I): MsgUpdateValidatorResponse {
+    const message = createBaseMsgUpdateValidatorResponse();
+    return message;
+  },
+};
 
 function createBaseMsgStake(): MsgStake {
   return { stakerAddress: "", validatorAddress: "", amount: undefined };
@@ -2455,10 +2672,498 @@ export const MsgIbcTransferFromRegionTreasureResponse = {
   },
 };
 
+function createBaseMsgReplaceConsensusPubKey(): MsgReplaceConsensusPubKey {
+  return { operatorAddress: "", pubKey: undefined, blockNumber: 0 };
+}
+
+export const MsgReplaceConsensusPubKey = {
+  encode(message: MsgReplaceConsensusPubKey, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.operatorAddress !== "") {
+      writer.uint32(10).string(message.operatorAddress);
+    }
+    if (message.pubKey !== undefined) {
+      Any.encode(message.pubKey, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.blockNumber !== 0) {
+      writer.uint32(24).int64(message.blockNumber);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgReplaceConsensusPubKey {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgReplaceConsensusPubKey();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.operatorAddress = reader.string();
+          break;
+        case 2:
+          message.pubKey = Any.decode(reader, reader.uint32());
+          break;
+        case 3:
+          message.blockNumber = longToNumber(reader.int64() as Long);
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgReplaceConsensusPubKey {
+    return {
+      operatorAddress: isSet(object.operatorAddress) ? String(object.operatorAddress) : "",
+      pubKey: isSet(object.pubKey) ? Any.fromJSON(object.pubKey) : undefined,
+      blockNumber: isSet(object.blockNumber) ? Number(object.blockNumber) : 0,
+    };
+  },
+
+  toJSON(message: MsgReplaceConsensusPubKey): unknown {
+    const obj: any = {};
+    message.operatorAddress !== undefined && (obj.operatorAddress = message.operatorAddress);
+    message.pubKey !== undefined && (obj.pubKey = message.pubKey ? Any.toJSON(message.pubKey) : undefined);
+    message.blockNumber !== undefined && (obj.blockNumber = Math.round(message.blockNumber));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgReplaceConsensusPubKey>, I>>(object: I): MsgReplaceConsensusPubKey {
+    const message = createBaseMsgReplaceConsensusPubKey();
+    message.operatorAddress = object.operatorAddress ?? "";
+    message.pubKey = (object.pubKey !== undefined && object.pubKey !== null)
+      ? Any.fromPartial(object.pubKey)
+      : undefined;
+    message.blockNumber = object.blockNumber ?? 0;
+    return message;
+  },
+};
+
+function createBaseMsgReplaceConsensusPubKeyRequest(): MsgReplaceConsensusPubKeyRequest {
+  return { creator: "", replacePubKey: undefined };
+}
+
+export const MsgReplaceConsensusPubKeyRequest = {
+  encode(message: MsgReplaceConsensusPubKeyRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.creator !== "") {
+      writer.uint32(10).string(message.creator);
+    }
+    if (message.replacePubKey !== undefined) {
+      MsgReplaceConsensusPubKey.encode(message.replacePubKey, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgReplaceConsensusPubKeyRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgReplaceConsensusPubKeyRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.creator = reader.string();
+          break;
+        case 2:
+          message.replacePubKey = MsgReplaceConsensusPubKey.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgReplaceConsensusPubKeyRequest {
+    return {
+      creator: isSet(object.creator) ? String(object.creator) : "",
+      replacePubKey: isSet(object.replacePubKey) ? MsgReplaceConsensusPubKey.fromJSON(object.replacePubKey) : undefined,
+    };
+  },
+
+  toJSON(message: MsgReplaceConsensusPubKeyRequest): unknown {
+    const obj: any = {};
+    message.creator !== undefined && (obj.creator = message.creator);
+    message.replacePubKey !== undefined && (obj.replacePubKey = message.replacePubKey
+      ? MsgReplaceConsensusPubKey.toJSON(message.replacePubKey)
+      : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgReplaceConsensusPubKeyRequest>, I>>(
+    object: I,
+  ): MsgReplaceConsensusPubKeyRequest {
+    const message = createBaseMsgReplaceConsensusPubKeyRequest();
+    message.creator = object.creator ?? "";
+    message.replacePubKey = (object.replacePubKey !== undefined && object.replacePubKey !== null)
+      ? MsgReplaceConsensusPubKey.fromPartial(object.replacePubKey)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseMsgReplaceConsensusPubKeyResponse(): MsgReplaceConsensusPubKeyResponse {
+  return {};
+}
+
+export const MsgReplaceConsensusPubKeyResponse = {
+  encode(_: MsgReplaceConsensusPubKeyResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgReplaceConsensusPubKeyResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgReplaceConsensusPubKeyResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgReplaceConsensusPubKeyResponse {
+    return {};
+  },
+
+  toJSON(_: MsgReplaceConsensusPubKeyResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgReplaceConsensusPubKeyResponse>, I>>(
+    _: I,
+  ): MsgReplaceConsensusPubKeyResponse {
+    const message = createBaseMsgReplaceConsensusPubKeyResponse();
+    return message;
+  },
+};
+
+function createBaseMsgSendToModule(): MsgSendToModule {
+  return { sender: "", receiver: "", amount: [] };
+}
+
+export const MsgSendToModule = {
+  encode(message: MsgSendToModule, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.sender !== "") {
+      writer.uint32(10).string(message.sender);
+    }
+    if (message.receiver !== "") {
+      writer.uint32(18).string(message.receiver);
+    }
+    for (const v of message.amount) {
+      Coin.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSendToModule {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgSendToModule();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.sender = reader.string();
+          break;
+        case 2:
+          message.receiver = reader.string();
+          break;
+        case 3:
+          message.amount.push(Coin.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgSendToModule {
+    return {
+      sender: isSet(object.sender) ? String(object.sender) : "",
+      receiver: isSet(object.receiver) ? String(object.receiver) : "",
+      amount: Array.isArray(object?.amount) ? object.amount.map((e: any) => Coin.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: MsgSendToModule): unknown {
+    const obj: any = {};
+    message.sender !== undefined && (obj.sender = message.sender);
+    message.receiver !== undefined && (obj.receiver = message.receiver);
+    if (message.amount) {
+      obj.amount = message.amount.map((e) => e ? Coin.toJSON(e) : undefined);
+    } else {
+      obj.amount = [];
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgSendToModule>, I>>(object: I): MsgSendToModule {
+    const message = createBaseMsgSendToModule();
+    message.sender = object.sender ?? "";
+    message.receiver = object.receiver ?? "";
+    message.amount = object.amount?.map((e) => Coin.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseMsgSendToModuleResponse(): MsgSendToModuleResponse {
+  return {};
+}
+
+export const MsgSendToModuleResponse = {
+  encode(_: MsgSendToModuleResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSendToModuleResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgSendToModuleResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgSendToModuleResponse {
+    return {};
+  },
+
+  toJSON(_: MsgSendToModuleResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgSendToModuleResponse>, I>>(_: I): MsgSendToModuleResponse {
+    const message = createBaseMsgSendToModuleResponse();
+    return message;
+  },
+};
+
+function createBaseMsgGrantRegionWithdraw(): MsgGrantRegionWithdraw {
+  return { creator: "", regionId: "", address: "" };
+}
+
+export const MsgGrantRegionWithdraw = {
+  encode(message: MsgGrantRegionWithdraw, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.creator !== "") {
+      writer.uint32(10).string(message.creator);
+    }
+    if (message.regionId !== "") {
+      writer.uint32(18).string(message.regionId);
+    }
+    if (message.address !== "") {
+      writer.uint32(26).string(message.address);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgGrantRegionWithdraw {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgGrantRegionWithdraw();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.creator = reader.string();
+          break;
+        case 2:
+          message.regionId = reader.string();
+          break;
+        case 3:
+          message.address = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgGrantRegionWithdraw {
+    return {
+      creator: isSet(object.creator) ? String(object.creator) : "",
+      regionId: isSet(object.regionId) ? String(object.regionId) : "",
+      address: isSet(object.address) ? String(object.address) : "",
+    };
+  },
+
+  toJSON(message: MsgGrantRegionWithdraw): unknown {
+    const obj: any = {};
+    message.creator !== undefined && (obj.creator = message.creator);
+    message.regionId !== undefined && (obj.regionId = message.regionId);
+    message.address !== undefined && (obj.address = message.address);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgGrantRegionWithdraw>, I>>(object: I): MsgGrantRegionWithdraw {
+    const message = createBaseMsgGrantRegionWithdraw();
+    message.creator = object.creator ?? "";
+    message.regionId = object.regionId ?? "";
+    message.address = object.address ?? "";
+    return message;
+  },
+};
+
+function createBaseMsgGrantRegionWithdrawResponse(): MsgGrantRegionWithdrawResponse {
+  return {};
+}
+
+export const MsgGrantRegionWithdrawResponse = {
+  encode(_: MsgGrantRegionWithdrawResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgGrantRegionWithdrawResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgGrantRegionWithdrawResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgGrantRegionWithdrawResponse {
+    return {};
+  },
+
+  toJSON(_: MsgGrantRegionWithdrawResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgGrantRegionWithdrawResponse>, I>>(_: I): MsgGrantRegionWithdrawResponse {
+    const message = createBaseMsgGrantRegionWithdrawResponse();
+    return message;
+  },
+};
+
+function createBaseMsgRevokeRegionWithdraw(): MsgRevokeRegionWithdraw {
+  return { creator: "", regionId: "" };
+}
+
+export const MsgRevokeRegionWithdraw = {
+  encode(message: MsgRevokeRegionWithdraw, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.creator !== "") {
+      writer.uint32(10).string(message.creator);
+    }
+    if (message.regionId !== "") {
+      writer.uint32(18).string(message.regionId);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgRevokeRegionWithdraw {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgRevokeRegionWithdraw();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.creator = reader.string();
+          break;
+        case 2:
+          message.regionId = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgRevokeRegionWithdraw {
+    return {
+      creator: isSet(object.creator) ? String(object.creator) : "",
+      regionId: isSet(object.regionId) ? String(object.regionId) : "",
+    };
+  },
+
+  toJSON(message: MsgRevokeRegionWithdraw): unknown {
+    const obj: any = {};
+    message.creator !== undefined && (obj.creator = message.creator);
+    message.regionId !== undefined && (obj.regionId = message.regionId);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgRevokeRegionWithdraw>, I>>(object: I): MsgRevokeRegionWithdraw {
+    const message = createBaseMsgRevokeRegionWithdraw();
+    message.creator = object.creator ?? "";
+    message.regionId = object.regionId ?? "";
+    return message;
+  },
+};
+
+function createBaseMsgRevokeRegionWithdrawResponse(): MsgRevokeRegionWithdrawResponse {
+  return {};
+}
+
+export const MsgRevokeRegionWithdrawResponse = {
+  encode(_: MsgRevokeRegionWithdrawResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgRevokeRegionWithdrawResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgRevokeRegionWithdrawResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgRevokeRegionWithdrawResponse {
+    return {};
+  },
+
+  toJSON(_: MsgRevokeRegionWithdrawResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MsgRevokeRegionWithdrawResponse>, I>>(_: I): MsgRevokeRegionWithdrawResponse {
+    const message = createBaseMsgRevokeRegionWithdrawResponse();
+    return message;
+  },
+};
+
 /** Msg defines the staking Msg service. */
 export interface Msg {
   Stake(request: MsgStake): Promise<MsgStakeResponse>;
   Unstake(request: MsgUnstake): Promise<MsgUnstakeResponse>;
+  UpdateValidator(request: MsgUpdateValidator): Promise<MsgUpdateValidatorResponse>;
   NewRegion(request: MsgNewRegion): Promise<MsgNewRegionResponse>;
   RemoveRegion(request: MsgRemoveRegion): Promise<MsgRemoveRegionResponse>;
   /**
@@ -2488,6 +3193,10 @@ export interface Msg {
   IbcTransferFromRegionTreasure(
     request: MsgIbcTransferFromRegionTreasure,
   ): Promise<MsgIbcTransferFromRegionTreasureResponse>;
+  ReplaceConsensusPubKey(request: MsgReplaceConsensusPubKeyRequest): Promise<MsgReplaceConsensusPubKeyResponse>;
+  SendToModule(request: MsgSendToModule): Promise<MsgSendToModuleResponse>;
+  GrantRegionWithdraw(request: MsgGrantRegionWithdraw): Promise<MsgGrantRegionWithdrawResponse>;
+  RevokeRegionWithdraw(request: MsgRevokeRegionWithdraw): Promise<MsgRevokeRegionWithdrawResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -2496,6 +3205,7 @@ export class MsgClientImpl implements Msg {
     this.rpc = rpc;
     this.Stake = this.Stake.bind(this);
     this.Unstake = this.Unstake.bind(this);
+    this.UpdateValidator = this.UpdateValidator.bind(this);
     this.NewRegion = this.NewRegion.bind(this);
     this.RemoveRegion = this.RemoveRegion.bind(this);
     this.WithdrawDelegatorReward = this.WithdrawDelegatorReward.bind(this);
@@ -2511,6 +3221,10 @@ export class MsgClientImpl implements Msg {
     this.ReviewRecord = this.ReviewRecord.bind(this);
     this.TransferRegion = this.TransferRegion.bind(this);
     this.IbcTransferFromRegionTreasure = this.IbcTransferFromRegionTreasure.bind(this);
+    this.ReplaceConsensusPubKey = this.ReplaceConsensusPubKey.bind(this);
+    this.SendToModule = this.SendToModule.bind(this);
+    this.GrantRegionWithdraw = this.GrantRegionWithdraw.bind(this);
+    this.RevokeRegionWithdraw = this.RevokeRegionWithdraw.bind(this);
   }
   Stake(request: MsgStake): Promise<MsgStakeResponse> {
     const data = MsgStake.encode(request).finish();
@@ -2522,6 +3236,12 @@ export class MsgClientImpl implements Msg {
     const data = MsgUnstake.encode(request).finish();
     const promise = this.rpc.request("metaearth.wstaking.Msg", "Unstake", data);
     return promise.then((data) => MsgUnstakeResponse.decode(new _m0.Reader(data)));
+  }
+
+  UpdateValidator(request: MsgUpdateValidator): Promise<MsgUpdateValidatorResponse> {
+    const data = MsgUpdateValidator.encode(request).finish();
+    const promise = this.rpc.request("metaearth.wstaking.Msg", "UpdateValidator", data);
+    return promise.then((data) => MsgUpdateValidatorResponse.decode(new _m0.Reader(data)));
   }
 
   NewRegion(request: MsgNewRegion): Promise<MsgNewRegionResponse> {
@@ -2614,6 +3334,30 @@ export class MsgClientImpl implements Msg {
     const data = MsgIbcTransferFromRegionTreasure.encode(request).finish();
     const promise = this.rpc.request("metaearth.wstaking.Msg", "IbcTransferFromRegionTreasure", data);
     return promise.then((data) => MsgIbcTransferFromRegionTreasureResponse.decode(new _m0.Reader(data)));
+  }
+
+  ReplaceConsensusPubKey(request: MsgReplaceConsensusPubKeyRequest): Promise<MsgReplaceConsensusPubKeyResponse> {
+    const data = MsgReplaceConsensusPubKeyRequest.encode(request).finish();
+    const promise = this.rpc.request("metaearth.wstaking.Msg", "ReplaceConsensusPubKey", data);
+    return promise.then((data) => MsgReplaceConsensusPubKeyResponse.decode(new _m0.Reader(data)));
+  }
+
+  SendToModule(request: MsgSendToModule): Promise<MsgSendToModuleResponse> {
+    const data = MsgSendToModule.encode(request).finish();
+    const promise = this.rpc.request("metaearth.wstaking.Msg", "SendToModule", data);
+    return promise.then((data) => MsgSendToModuleResponse.decode(new _m0.Reader(data)));
+  }
+
+  GrantRegionWithdraw(request: MsgGrantRegionWithdraw): Promise<MsgGrantRegionWithdrawResponse> {
+    const data = MsgGrantRegionWithdraw.encode(request).finish();
+    const promise = this.rpc.request("metaearth.wstaking.Msg", "GrantRegionWithdraw", data);
+    return promise.then((data) => MsgGrantRegionWithdrawResponse.decode(new _m0.Reader(data)));
+  }
+
+  RevokeRegionWithdraw(request: MsgRevokeRegionWithdraw): Promise<MsgRevokeRegionWithdrawResponse> {
+    const data = MsgRevokeRegionWithdraw.encode(request).finish();
+    const promise = this.rpc.request("metaearth.wstaking.Msg", "RevokeRegionWithdraw", data);
+    return promise.then((data) => MsgRevokeRegionWithdrawResponse.decode(new _m0.Reader(data)));
   }
 }
 

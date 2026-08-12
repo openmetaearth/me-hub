@@ -328,6 +328,32 @@ export interface V1MsgStoreAndInstantiateContractResponse {
 }
 
 /**
+* MsgStoreAndMigrateContractResponse defines the response structure
+for executing a MsgStoreAndMigrateContract message.
+
+Since: 0.42
+*/
+export interface V1MsgStoreAndMigrateContractResponse {
+  /**
+   * CodeID is the reference to the stored WASM code
+   * @format uint64
+   */
+  code_id?: string;
+
+  /**
+   * Checksum is the sha256 hash of the stored code
+   * @format byte
+   */
+  checksum?: string;
+
+  /**
+   * Data contains bytes to returned from the contract
+   * @format byte
+   */
+  data?: string;
+}
+
+/**
  * MsgStoreCodeResponse returns store result data.
  */
 export interface V1MsgStoreCodeResponse {
@@ -367,6 +393,8 @@ Since: 0.40
 export type V1MsgUnpinCodesResponse = object;
 
 export type V1MsgUpdateAdminResponse = object;
+
+export type V1MsgUpdateContractLabelResponse = object;
 
 export type V1MsgUpdateInstantiateConfigResponse = object;
 

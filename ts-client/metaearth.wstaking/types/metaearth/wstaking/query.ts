@@ -165,6 +165,17 @@ export interface QueryReviewRecordByNumberResponse {
   reviewRecord: ReviewRecord | undefined;
 }
 
+export interface QueryRegionWithdrawerRequest {
+  regionId: string;
+}
+
+export interface QueryRegionWithdrawerResponse {
+  /** region_id is the queried region. */
+  regionId: string;
+  /** the withdrawer of this region; empty string means this region is not set. */
+  address: string;
+}
+
 function createBaseQueryRegionRequest(): QueryRegionRequest {
   return { regionId: "" };
 }
@@ -1931,6 +1942,113 @@ export const QueryReviewRecordByNumberResponse = {
   },
 };
 
+function createBaseQueryRegionWithdrawerRequest(): QueryRegionWithdrawerRequest {
+  return { regionId: "" };
+}
+
+export const QueryRegionWithdrawerRequest = {
+  encode(message: QueryRegionWithdrawerRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.regionId !== "") {
+      writer.uint32(10).string(message.regionId);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryRegionWithdrawerRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryRegionWithdrawerRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.regionId = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryRegionWithdrawerRequest {
+    return { regionId: isSet(object.regionId) ? String(object.regionId) : "" };
+  },
+
+  toJSON(message: QueryRegionWithdrawerRequest): unknown {
+    const obj: any = {};
+    message.regionId !== undefined && (obj.regionId = message.regionId);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryRegionWithdrawerRequest>, I>>(object: I): QueryRegionWithdrawerRequest {
+    const message = createBaseQueryRegionWithdrawerRequest();
+    message.regionId = object.regionId ?? "";
+    return message;
+  },
+};
+
+function createBaseQueryRegionWithdrawerResponse(): QueryRegionWithdrawerResponse {
+  return { regionId: "", address: "" };
+}
+
+export const QueryRegionWithdrawerResponse = {
+  encode(message: QueryRegionWithdrawerResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.regionId !== "") {
+      writer.uint32(10).string(message.regionId);
+    }
+    if (message.address !== "") {
+      writer.uint32(18).string(message.address);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryRegionWithdrawerResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryRegionWithdrawerResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.regionId = reader.string();
+          break;
+        case 2:
+          message.address = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryRegionWithdrawerResponse {
+    return {
+      regionId: isSet(object.regionId) ? String(object.regionId) : "",
+      address: isSet(object.address) ? String(object.address) : "",
+    };
+  },
+
+  toJSON(message: QueryRegionWithdrawerResponse): unknown {
+    const obj: any = {};
+    message.regionId !== undefined && (obj.regionId = message.regionId);
+    message.address !== undefined && (obj.address = message.address);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<QueryRegionWithdrawerResponse>, I>>(
+    object: I,
+  ): QueryRegionWithdrawerResponse {
+    const message = createBaseQueryRegionWithdrawerResponse();
+    message.regionId = object.regionId ?? "";
+    message.address = object.address ?? "";
+    return message;
+  },
+};
+
 export interface Query {
   /** Queries a list of Region items. */
   Region(request: QueryRegionRequest): Promise<QueryRegionResponse>;
@@ -1957,6 +2075,11 @@ export interface Query {
   QueryAllRecord(request: QueryAllRecords): Promise<QueryAllRecordsResponse>;
   QueryRecordByAddress(request: QueryRecordsByAddress): Promise<QueryRecordsByAddressResponse>;
   QueryReviewRecordByID(request: QueryReviewRecordByNumber): Promise<QueryReviewRecordByNumberResponse>;
+  /**
+   * QueryRegionWithdraw queries which address is granted withdraw for the given
+   * region.
+   */
+  RegionWithdrawer(request: QueryRegionWithdrawerRequest): Promise<QueryRegionWithdrawerResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -1980,6 +2103,7 @@ export class QueryClientImpl implements Query {
     this.QueryAllRecord = this.QueryAllRecord.bind(this);
     this.QueryRecordByAddress = this.QueryRecordByAddress.bind(this);
     this.QueryReviewRecordByID = this.QueryReviewRecordByID.bind(this);
+    this.RegionWithdrawer = this.RegionWithdrawer.bind(this);
   }
   Region(request: QueryRegionRequest): Promise<QueryRegionResponse> {
     const data = QueryRegionRequest.encode(request).finish();
@@ -2083,6 +2207,12 @@ export class QueryClientImpl implements Query {
     const data = QueryReviewRecordByNumber.encode(request).finish();
     const promise = this.rpc.request("metaearth.wstaking.Query", "QueryReviewRecordByID", data);
     return promise.then((data) => QueryReviewRecordByNumberResponse.decode(new _m0.Reader(data)));
+  }
+
+  RegionWithdrawer(request: QueryRegionWithdrawerRequest): Promise<QueryRegionWithdrawerResponse> {
+    const data = QueryRegionWithdrawerRequest.encode(request).finish();
+    const promise = this.rpc.request("metaearth.wstaking.Query", "RegionWithdrawer", data);
+    return promise.then((data) => QueryRegionWithdrawerResponse.decode(new _m0.Reader(data)));
   }
 }
 
