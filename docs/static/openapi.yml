@@ -5573,6 +5573,8 @@ paths:
                   max_slash_times:
                     type: string
                     format: uint64
+                  max_send_to_external_usd_amount:
+                    type: string
                 description: >-
                   If power change between validators of CurrentRelayerSet and
                   latest relayer
@@ -70769,6 +70771,8 @@ definitions:
       max_slash_times:
         type: string
         format: uint64
+      max_send_to_external_usd_amount:
+        type: string
     description: |-
       If power change between validators of CurrentRelayerSet and latest relayer
       set request is > 10%
@@ -71628,6 +71632,8 @@ definitions:
           max_slash_times:
             type: string
             format: uint64
+          max_send_to_external_usd_amount:
+            type: string
         description: >-
           If power change between validators of CurrentRelayerSet and latest
           relayer

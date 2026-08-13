@@ -220,13 +220,8 @@ func (s MsgServer) RelayerSetUpdateClaim(c context.Context, msg *types.MsgRelaye
 		return nil, err
 	}
 
-	for _, member := range msg.Members {
-		if _, found := s.GetRelayerByExternalAddress(ctx, member.ExternalAddress); !found {
-			return nil, errorsmod.Wrapf(types.ErrInvalid, "external address not exist %s", member.ExternalAddress)
-		}
-	}
-
-	// Add the claim to the store
+	// Members need not still be bonded: RelayerSet is a historical snapshot, and
+	// AttestationHandler already verifies claim.Members against the stored set.
 	if _, err := s.Attest(ctx, relayerAddress, msg); err != nil {
 		return nil, err
 	}
