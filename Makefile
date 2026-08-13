@@ -275,9 +275,15 @@ proto-gen:
 	@echo "Generating Protobuf files"
 	@$(protoCosmosImage) sh ./scripts/protocgen.sh
 
+# Generate ts-client TypeScript types via local buf (not Docker).
+# Requires: buf on PATH, network to buf.build. Example: make proto-gen-ts ARGS="dao rollapp"
+proto-gen-ts:
+	@echo "Generating TypeScript client types"
+	@bash ./scripts/protocgen-ts.sh $(ARGS)
+
 proto-swagger-gen:
 	@echo "Downloading Protobuf dependencies"
-	@#make proto-download-deps
+	@make proto-download-deps
 	@echo "Generating Protobuf Swagger"
 	@$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
 
@@ -350,7 +356,7 @@ proto-download-deps:
 	curl -sSL "https://raw.githubusercontent.com/cosmos/ics23/refs/heads/master/proto/cosmos/ics23/v1/proofs.proto" > "$(THIRD_PARTY_DIR)/cosmos/ics23/v1/proofs.proto"
 
 
-.PHONY: proto-gen proto-swagger-gen proto-format proto-lint proto-download-deps
+.PHONY: proto-gen proto-gen-ts proto-swagger-gen proto-format proto-lint proto-download-deps
 
 ###############################################################################
 ###                                Linting                                  ###

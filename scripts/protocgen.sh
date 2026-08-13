@@ -17,9 +17,9 @@ for dir in $proto_dirs; do
     done
 done
 
-# Generate TypeScript client code
-# echo "Generating TypeScript client code"
-# buf generate --template buf.gen.ts.yaml
+# TypeScript client types (ts-client/metaearth.*/types) — use dedicated script:
+#   ./scripts/protocgen-ts.sh
+#   make proto-gen-ts
 
 # move proto files to the right places
 # Note: Proto files are suffixed with the current binary version.
