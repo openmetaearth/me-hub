@@ -43,6 +43,9 @@ func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer)
 	if _, found := s.GetRelayerByExternalAddress(ctx, msg.ExternalAddress); found {
 		return nil, errorsmod.Wrap(types.ErrInvalid, "external already bonded")
 	}
+	if err := s.ensureOnlineRelayersWithinMax(ctx); err != nil {
+		return nil, err
+	}
 	minThreshold := s.GetGravityMinDelegate(ctx)
 	relayer := types.Relayer{
 		RelayerAddress:  msg.RelayerAddress,
@@ -118,6 +121,9 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 	}
 
 	if !relayer.Online {
+		if err := s.ensureOnlineRelayersWithinMax(ctx); err != nil {
+			return nil, err
+		}
 		relayer.Online = true
 		relayer.StartHeight = ctx.BlockHeight()
 	}
