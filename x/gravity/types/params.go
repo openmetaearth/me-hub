@@ -35,7 +35,7 @@ func DefaultParams() Params {
 		RelayerSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1),
 		MaxRelayers:                        10,
 		MinDelegate:                        sdkmath.NewInt(100_000_000),
-		MaxDelegate:                        sdkmath.NewInt(10_000_000_000),
+		MaxDelegate:                        sdkmath.NewInt(1_000_000_000),
 		MaxSendToExternalUsdAmount:         sdkmath.NewInt(10_000_000_000),
 	}
 }

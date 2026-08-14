@@ -32,6 +32,8 @@ func CreateUpgradeHandler(
 
 		maxSendToExternalUsdAmount := sdkmath.NewInt(10_000_000_000)
 		bscParams := keepers.BscKeeper.GetParams(ctx)
+		bscParams.MaxDelegate = sdkmath.NewInt(500_000_000)
+		bscParams.MaxRelayers = 5
 		bscParams.MaxSlashTimes = 100
 		bscParams.MaxSendToExternalUsdAmount = maxSendToExternalUsdAmount
 		bscParams.SlashFraction = sdk.MustNewDecFromStr("0.01")
@@ -40,6 +42,8 @@ func CreateUpgradeHandler(
 		}
 
 		tronParams := keepers.TronKeeper.GetParams(ctx)
+		tronParams.MaxDelegate = sdkmath.NewInt(500_000_000)
+		tronParams.MaxRelayers = 5
 		tronParams.MaxSlashTimes = 100
 		tronParams.MaxSendToExternalUsdAmount = maxSendToExternalUsdAmount
 		tronParams.SlashFraction = sdk.MustNewDecFromStr("0.01")
@@ -48,9 +52,7 @@ func CreateUpgradeHandler(
 		}
 
 		skipBscFraudulentBatchEvents(ctx, keepers.BscKeeper)
-
 		logger.Info("upgrade finished successfully.")
-
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}
 }
