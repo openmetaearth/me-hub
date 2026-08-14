@@ -9,11 +9,6 @@ import (
 )
 
 func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error {
-	maxRelayers := k.GetMaxRelayers(ctx)
-	if len(relayers) > int(maxRelayers) {
-		return errorsmod.Wrapf(types.ErrInvalid, "relayer length must be less than or equal: %d", maxRelayers)
-	}
-
 	newRelayerMap := make(map[string]bool, len(relayers))
 	for _, relayer := range relayers {
 		newRelayerMap[relayer] = true
@@ -21,6 +16,7 @@ func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error
 
 	var unbondedRelayerList []types.Relayer
 	totalPower, deleteTotalPower := sdkmath.ZeroInt(), sdkmath.ZeroInt()
+	remainingOnline := 0
 
 	allRelayers := k.GetAllRelayers(ctx, false)
 	proposalRelayer, _ := k.GetProposalRelayer(ctx)
@@ -35,6 +31,9 @@ func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error
 		}
 		// relayer in new proposal
 		if _, ok := newRelayerMap[relayer.RelayerAddress]; ok {
+			if relayer.Online {
+				remainingOnline++
+			}
 			continue
 		}
 		// relayer not in new proposal and relayer in old proposal
@@ -44,6 +43,11 @@ func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error
 				deleteTotalPower = deleteTotalPower.Add(relayer.GetPower())
 			}
 		}
+	}
+
+	maxRelayers := k.GetMaxRelayers(ctx)
+	if remainingOnline > int(maxRelayers) {
+		return errorsmod.Wrapf(types.ErrInvalid, "online relayers must be less than or equal: %d", maxRelayers)
 	}
 
 	maxChangePowerThreshold := types.AttestationProposalRelayerChangePowerThreshold.Mul(totalPower).Quo(sdkmath.NewInt(int64(types.PowerBase)))
@@ -58,6 +62,14 @@ func (k Keeper) UpdateProposalRelayers(ctx sdk.Context, relayers []string) error
 		if err := k.UnbondedRelayerFromProposal(ctx, unbondedRelayer); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (k Keeper) ensureOnlineRelayersWithinMax(ctx sdk.Context) error {
+	maxRelayers := k.GetMaxRelayers(ctx)
+	if len(k.GetAllRelayers(ctx, true)) >= int(maxRelayers) {
+		return errorsmod.Wrapf(types.ErrInvalid, "online relayers must be less than or equal: %d", maxRelayers)
 	}
 	return nil
 }

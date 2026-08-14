@@ -27,7 +27,7 @@ func TestDefaultGenesisState(t *testing.T) {
 					RelayerSetUpdatePowerChangePercent: sdk.NewDecWithPrec(1, 1),
 					MaxRelayers:                        10,
 					MinDelegate:                        sdk.NewInt(100_000_000),
-					MaxDelegate:                        sdk.NewInt(10_000_000_000),
+					MaxDelegate:                        sdk.NewInt(1_000_000_000),
 					MaxSendToExternalUsdAmount:         sdk.NewInt(10_000_000_000),
 				},
 			},
