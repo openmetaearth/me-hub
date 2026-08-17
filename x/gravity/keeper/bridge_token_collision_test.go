@@ -70,8 +70,12 @@ func (suite *KeeperTestSuite) TestBridgeTokenSymbolNonNativeAllowed() {
 
 	tokenContract := helpers.GenerateAddress().Hex()
 
-	// All relayers submit the same claim (same event nonce) to reach quorum
+	// All relayers that are not yet past nonce 1 submit the same claim to reach quorum.
+	// Relayers joining after lastObserved has advanced skip this nonce.
 	for _, relayer := range relayers {
+		if suite.nextEventNonce(relayer) != 1 {
+			continue
+		}
 		claim := &types.MsgBridgeTokenClaim{
 			EventNonce:     1,
 			TokenContract:  tokenContract,
