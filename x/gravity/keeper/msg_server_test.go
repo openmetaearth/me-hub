@@ -912,8 +912,12 @@ func (s *KeeperTestSuite) TestRequestBatchBaseFee() {
 		s.Require().NoError(err)
 	}
 
-	// after RelayerSetConfirm, external members should send to ethereum, then we send to me MsgRelayerSetUpdateClaim
+	// after RelayerSetConfirm, external members should send to ethereum, then we send to me MsgRelayerSetUpdateClaim.
+	// Once the event is observed, remaining relayers are already at lastObserved and must not re-claim nonce 1.
 	for i := range s.relayerAddrs {
+		if s.nextEventNonce(s.relayerAddrs[i]) != 1 {
+			continue
+		}
 		msg := &types.MsgRelayerSetUpdateClaim{
 			EventNonce:      1,
 			BlockHeight:     1,

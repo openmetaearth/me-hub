@@ -281,16 +281,12 @@ func (k Keeper) GetLastEventNonceByRelayer(ctx sdk.Context, relayerAddr sdk.AccA
 	bytes := store.Get(types.GetLastEventNonceByRelayerKey(relayerAddr))
 
 	if len(bytes) == 0 {
-		// in the case that we have no existing value this is the first
-		// time a relayerAddr is submitting a claim. Since we don't want to force
-		// them to replay the entire history of all events ever we can't start
-		// at zero
-		lastEventNonce := k.GetLastObservedEventNonce(ctx)
-		if lastEventNonce >= 1 {
-			return lastEventNonce - 1
-		} else {
-			return 0
-		}
+		// First claim from this relayer. Treat them as already caught up to
+		// the globally observed tip so Attest expects lastObserved+1.
+		// Returning lastObserved-1 (Gravity's original) forced a re-claim of
+		// the already-observed event, which fails when that event is a
+		// RelayerSetUpdate whose members have since unbonded.
+		return k.GetLastObservedEventNonce(ctx)
 	}
 	return sdk.BigEndianToUint64(bytes)
 }

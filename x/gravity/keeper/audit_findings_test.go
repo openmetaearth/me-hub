@@ -309,6 +309,9 @@ func (s *KeeperTestSuite) setupBondedRelayerSetForAuditTest() {
 	}
 
 	for i := range s.relayerAddrs {
+		if s.nextEventNonce(s.relayerAddrs[i]) != 1 {
+			continue
+		}
 		msg := &types.MsgRelayerSetUpdateClaim{
 			EventNonce:      1,
 			BlockHeight:     1,

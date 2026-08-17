@@ -167,6 +167,12 @@ func (s *KeeperTestSuite) PubKeyToExternalAddr(publicKey ecdsa.PublicKey) string
 	return types.ExternalAddrToStr(s.chainName, address.Bytes())
 }
 
+// nextEventNonce is the nonce Attest will accept from this relayer.
+// New relayers with no personal nonce are treated as caught up to lastObserved.
+func (s *KeeperTestSuite) nextEventNonce(relayer sdk.AccAddress) uint64 {
+	return s.Keeper().GetLastEventNonceByRelayer(s.Ctx, relayer) + 1
+}
+
 func (s *KeeperTestSuite) Commit(block ...int64) { //nolint:stylecheck // Existing suite tests use both conventional receiver names.
 	s.Ctx = apptesting.MintBlock(s.App, s.Ctx, block...)
 }
