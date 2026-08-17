@@ -96,8 +96,13 @@ func InitGenesis(ctx sdk.Context, k Keeper, state *types.GenesisState) {
 		}
 		// reconstruct the latest event nonce for every validator
 		// if somehow this genesis state is saved when all attestations
-		// have been cleaned up GetLastEventNonceByRelayer returns lastObserved
-		// (new relayers start at lastObserved+1 and do not re-claim the tip)
+		// have been cleaned up GetLastEventNonceByRelayer handles that case
+		//
+		// if we where to save and load the last event nonce for every validator
+		// then we would need to carry that state forever across all chain restarts
+		// but since we've already had to handle the edge case of new validators joining
+		// while all attestations have already been cleaned up we can do this instead and
+		// not carry around every validators event nonce counter forever.
 		for _, vote := range att.Votes {
 			relayer := sdk.MustAccAddressFromBech32(vote)
 			last := k.GetLastEventNonceByRelayer(ctx, relayer)
