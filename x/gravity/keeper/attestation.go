@@ -284,13 +284,18 @@ func (k Keeper) GetLastEventNonceByRelayer(ctx sdk.Context, relayerAddr sdk.AccA
 		// in the case that we have no existing value this is the first
 		// time a relayerAddr is submitting a claim. Since we don't want to force
 		// them to replay the entire history of all events ever we can't start
-		// at zero
+		// at zero.
+		//
+		// Return lastObserved-1 so the first expected claim is lastObserved.
+		// That lets a new or late relayer still vote on the already-observed tip
+		// (needed for the signed window) without replaying history. Returning
+		// lastObserved would make Attest expect lastObserved+1 and reject the
+		// remaining votes once quorum is reached.
 		lastEventNonce := k.GetLastObservedEventNonce(ctx)
 		if lastEventNonce >= 1 {
 			return lastEventNonce - 1
-		} else {
-			return 0
 		}
+		return 0
 	}
 	return sdk.BigEndianToUint64(bytes)
 }
