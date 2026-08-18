@@ -51,7 +51,7 @@ func CreateUpgradeHandler(
 			return nil, fmt.Errorf("failed to set Tron max send to external amount: %w", err)
 		}
 
-		skipBscFraudulentBatchEvents(ctx, keepers.BscKeeper)
+		// skipBscFraudulentBatchEvents(ctx, keepers.BscKeeper)
 		logger.Info("upgrade finished successfully.")
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}
