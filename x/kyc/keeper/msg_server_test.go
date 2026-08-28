@@ -98,10 +98,10 @@ func (s *KeeperTestSuite) TestApproveRejectsSubAccountAddress() {
 
 	s.Run("address bound via create sub account", func() {
 		const parentDid = "3333333333333333"
-		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		userAddr, userPubkey, userPrivKey := s.newSecp256k1UserAccount()
 		s.setupActiveKyc(userAddr, userPubkey, parentDid)
 
-		subAddr, subPubkey := s.newEthSubAccount()
+		subAddr, subPubkey := s.newEthSubAccountFromPrivKey(userPrivKey)
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:          userAddr.String(),
 			SubAccount:       subAddr.String(),

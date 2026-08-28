@@ -17,4 +17,5 @@ var (
 	ErrMainAccountPubkeyNotSet     = errors.Register(ModuleName, 109, "main account pubkey is not set")
 	ErrSubAccountHasDID            = errors.Register(ModuleName, 110, "sub account already has a DID")
 	ErrSubAccountHasDelegation     = errors.Register(ModuleName, 111, "sub account already has delegation")
+	ErrMainAccountPubKeyErr        = errors.Register(ModuleName, 112, "main account must be an cosmos account")
 )
