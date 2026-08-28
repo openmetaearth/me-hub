@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"context"
 
+	cosmossecp256k1 "github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-
-	cosmossecp256k1 "github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
@@ -55,14 +54,13 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 	}
 
 	mainPubKey, ok := pk.(*cosmossecp256k1.PubKey)
-	if !ok{
+	if !ok {
 		return &types.MsgCreateSubAccountResponse{}, types.ErrMainAccountPubKeyErr
 	}
-    
-	if !creatorAccount.Equals(sdk.AccAddress(mainPubKey.Address())){
+
+	if !creatorAccount.Equals(sdk.AccAddress(mainPubKey.Address())) {
 		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "main account pubkey does not match creator address")
 	}
-	
 
 	if holderInfo.SubAccount != "" {
 		return &types.MsgCreateSubAccountResponse{}, types.ErrSubAccountAlreadyExists
@@ -93,7 +91,7 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "pubkey does not match sub_account address")
 	}
 
-	if !bytes.Equal(mainPubKey.Key,ethSubPubKey.Key){
+	if !bytes.Equal(mainPubKey.Key, ethSubPubKey.Key) {
 		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "main account and sub account are not derived from the same private key")
 	}
 
