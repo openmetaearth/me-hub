@@ -32,7 +32,20 @@ func (k Keeper) isNeedRelayerSetChange(ctx sdk.Context) (*types.RelayerSet, bool
 		return currentRelayerSet, true
 	}
 
-	// 2. Relayer slash
+	// Same addresses and normalized powers as the last snapshot: a new nonce is a
+	// no-op for the external contract. Slash increments SlashTimes but does not
+	// change membership or power until the relayer is taken offline.
+	if types.BridgeValidators(currentRelayerSet.Members).Equal(latestRelayerSet.Members) {
+		if k.GetLastRelayerSlashBlockHeight(ctx) == uint64(ctx.BlockHeight()) {
+			k.Logger(ctx).Info("skip relayer set change",
+				"reason", "members and powers unchanged after slash",
+				"nonce", latestRelayerSet.Nonce,
+				"height", ctx.BlockHeight())
+		}
+		return currentRelayerSet, false
+	}
+
+	// 2. Relayer slash (membership or power actually changed)
 	if k.GetLastRelayerSlashBlockHeight(ctx) == uint64(ctx.BlockHeight()) {
 		k.Logger(ctx).Info("relayer set change", "has relayer slash in block", ctx.BlockHeight())
 		return currentRelayerSet, true

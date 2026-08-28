@@ -68,6 +68,9 @@ func (s MsgServer) BondedRelayer(c context.Context, msg *types.MsgBondedRelayer)
 	s.SetRelayer(ctx, relayerAddress, relayer)
 	s.SetRelayerByExternalAddress(ctx, msg.ExternalAddress, relayerAddress)
 	s.SetLastTotalPower(ctx)
+	// New relayers must not re-claim already-observed events. Persist the
+	// global tip so LastEventNonceByAddr / Attest both expect lastObserved+1.
+	s.SetLastEventNonceByRelayer(ctx, relayerAddress, s.GetLastObservedEventNonce(ctx))
 
 	ctx.EventManager().EmitEvent(sdk.NewEvent(
 		types.EventTypeBondedRelayer,
@@ -126,6 +129,10 @@ func (s MsgServer) AddDelegate(c context.Context, msg *types.MsgAddDelegate) (*t
 		}
 		relayer.Online = true
 		relayer.StartHeight = ctx.BlockHeight()
+		lastObserved := s.GetLastObservedEventNonce(ctx)
+		if s.GetLastEventNonceByRelayer(ctx, relayerAddress) < lastObserved {
+			s.SetLastEventNonceByRelayer(ctx, relayerAddress, lastObserved)
+		}
 	}
 
 	relayer.SlashTimes = 0

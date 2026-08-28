@@ -582,6 +582,52 @@ func (s *KeeperTestSuite) TestRelayerSetSlash() {
 	s.Require().True(found)
 	s.Require().False(relayer.Online)
 	s.Require().Equal(int64(1), relayer.SlashTimes)
+
+	// Taking a relayer offline changes membership, so a new snapshot is required.
+	relayerSets = s.Keeper().GetRelayerSets(s.Ctx)
+	s.Require().EqualValues(2, len(relayerSets))
+	s.Require().EqualValues(uint64(2), relayerSets[1].Nonce)
+	s.Require().EqualValues(len(s.relayerAddrs)-1, len(relayerSets[1].Members))
+}
+
+func (s *KeeperTestSuite) TestRelayerSetNotCreatedWhenSlashDoesNotChangeMembers() {
+	gravityParams := s.Keeper().GetParams(s.Ctx)
+	gravityParams.MaxSlashTimes = 100
+	s.Require().NoError(s.Keeper().SetParams(s.Ctx, &gravityParams))
+
+	for i := 0; i < len(s.relayerAddrs); i++ {
+		msgBondedRelayer := &types.MsgBondedRelayer{
+			RelayerAddress:  s.relayerAddrs[i].String(),
+			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+			ChainName:       s.chainName,
+		}
+		s.Require().NoError(msgBondedRelayer.ValidateBasic())
+		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msgBondedRelayer)
+		s.Require().NoError(err)
+	}
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
+	s.Keeper().EndBlocker(s.Ctx)
+
+	relayerSets := s.Keeper().GetRelayerSets(s.Ctx)
+	s.Require().EqualValues(1, len(relayerSets))
+	firstNonce := relayerSets[0].Nonce
+	firstMembers := append([]types.BridgeValidator(nil), relayerSets[0].Members...)
+
+	// SlashTimes increases but the relayer stays online with the same power.
+	s.Require().NoError(s.Keeper().SlashRelayer(s.Ctx, s.relayerAddrs[0].String()))
+	relayer, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[0])
+	s.Require().True(found)
+	s.Require().True(relayer.Online)
+	s.Require().Equal(int64(1), relayer.SlashTimes)
+	s.Require().Equal(uint64(s.Ctx.BlockHeight()), s.Keeper().GetLastRelayerSlashBlockHeight(s.Ctx))
+
+	s.Keeper().EndBlocker(s.Ctx)
+
+	relayerSets = s.Keeper().GetRelayerSets(s.Ctx)
+	s.Require().EqualValues(1, len(relayerSets))
+	s.Require().EqualValues(firstNonce, relayerSets[0].Nonce)
+	s.Require().True(types.BridgeValidators(firstMembers).Equal(relayerSets[0].Members))
 }
 
 func (s *KeeperTestSuite) TestSlashRelayer() {
