@@ -12,7 +12,7 @@ import (
 )
 
 // newSecp256k1UserAccount creates a user account with secp256k1 pubkey on chain.
-func (s *KeeperTestSuite) newSecp256k1UserAccount() (sdk.AccAddress, string) {
+func (s *KeeperTestSuite) newSecp256k1UserAccount() (sdk.AccAddress, string, *secp256k1.PrivKey) {
 	privKey := secp256k1.GenPrivKey()
 	addr := sdk.AccAddress(privKey.PubKey().Address())
 	pubkeyJSON, err := s.App.AppCodec().MarshalInterfaceJSON(privKey.PubKey())
@@ -23,7 +23,7 @@ func (s *KeeperTestSuite) newSecp256k1UserAccount() (sdk.AccAddress, string) {
 	s.Require().NoError(err)
 	s.App.AccountKeeper.SetAccount(s.Ctx, acc)
 
-	return addr, string(pubkeyJSON)
+	return addr, string(pubkeyJSON), privKey
 }
 
 // newEthUserAccount creates a user account with ethsecp256k1 pubkey on chain.
@@ -43,7 +43,7 @@ func (s *KeeperTestSuite) newEthUserAccount() (sdk.AccAddress, string) {
 }
 
 // newAccountWithoutPubKey creates an on-chain account without a pubkey set.
-func (s *KeeperTestSuite) newAccountWithoutPubKey() (sdk.AccAddress, string) {
+func (s *KeeperTestSuite) newAccountWithoutPubKey() (sdk.AccAddress, string, *secp256k1.PrivKey) {
 	privKey := secp256k1.GenPrivKey()
 	addr := sdk.AccAddress(privKey.PubKey().Address())
 	pubkeyJSON, err := s.App.AppCodec().MarshalInterfaceJSON(privKey.PubKey())
@@ -52,7 +52,7 @@ func (s *KeeperTestSuite) newAccountWithoutPubKey() (sdk.AccAddress, string) {
 	acc := s.App.AccountKeeper.NewAccountWithAddress(s.Ctx, addr)
 	s.App.AccountKeeper.SetAccount(s.Ctx, acc)
 
-	return addr, string(pubkeyJSON)
+	return addr, string(pubkeyJSON), privKey
 }
 
 // newEthSubAccount generates a fresh ethsecp256k1 keypair and returns the
@@ -63,6 +63,15 @@ func (s *KeeperTestSuite) newEthSubAccount() (sdk.AccAddress, string) {
 	s.Require().NoError(err)
 	addr := sdk.AccAddress(privKey.PubKey().Address())
 	pubkeyJSON, err := s.App.AppCodec().MarshalInterfaceJSON(privKey.PubKey())
+	s.Require().NoError(err)
+	return addr, string(pubkeyJSON)
+}
+
+// newEthSubAccountFromPrivKey generates an ethsecp256k1 sub-account derived from the given secp256k1 private key.
+func (s *KeeperTestSuite) newEthSubAccountFromPrivKey(privKey *secp256k1.PrivKey) (sdk.AccAddress, string) {
+	ethPrivKey := &ethsecp256k1.PrivKey{Key: privKey.Key}
+	addr := sdk.AccAddress(ethPrivKey.PubKey().Address())
+	pubkeyJSON, err := s.App.AppCodec().MarshalInterfaceJSON(ethPrivKey.PubKey())
 	s.Require().NoError(err)
 	return addr, string(pubkeyJSON)
 }
@@ -85,10 +94,10 @@ func (s *KeeperTestSuite) setupActiveKyc(addr sdk.AccAddress, pubkey, did string
 func (s *KeeperTestSuite) TestCreateSubAccount() {
 	s.Run("success", func() {
 		const did = "1111111111111"
-		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		userAddr, userPubkey, userPrivKey := s.newSecp256k1UserAccount()
 		s.setupActiveKyc(userAddr, userPubkey, did)
 
-		subAddr, subPubkey := s.newEthSubAccount()
+		subAddr, subPubkey := s.newEthSubAccountFromPrivKey(userPrivKey)
 
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:          userAddr.String(),
@@ -111,8 +120,8 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 	})
 
 	s.Run("creator did not found", func() {
-		userAddr, _ := s.newSecp256k1UserAccount()
-		subAddr, subPubkey := s.newEthSubAccount()
+		userAddr, _, userPrivKey := s.newSecp256k1UserAccount()
+		subAddr, subPubkey := s.newEthSubAccountFromPrivKey(userPrivKey)
 
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:          userAddr.String(),
@@ -124,7 +133,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 	s.Run("no kyc credential", func() {
 		const didNoKyc = "2222222222222"
-		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		userAddr, userPubkey, userPrivKey := s.newSecp256k1UserAccount()
 		s.Keeper().SetDID(s.Ctx, userAddr, didNoKyc)
 		s.Keeper().SetDidInfo(s.Ctx, didNoKyc, didtypes.DidInfo{
 			Did:     didNoKyc,
@@ -133,7 +142,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 			Status:  didtypes.DID_STATUS_ACTIVE,
 		})
 
-		subAddr, subPubkey := s.newEthSubAccount()
+		subAddr, subPubkey := s.newEthSubAccountFromPrivKey(userPrivKey)
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:          userAddr.String(),
 			SubAccount:       subAddr.String(),
@@ -144,10 +153,10 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 	s.Run("sub_account already set on did", func() {
 		const did2 = "3333333333333"
-		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		userAddr, userPubkey, userPrivKey := s.newSecp256k1UserAccount()
 		s.setupActiveKyc(userAddr, userPubkey, did2)
 
-		subAddr, subPubkey := s.newEthSubAccount()
+		subAddr, subPubkey := s.newEthSubAccountFromPrivKey(userPrivKey)
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:          userAddr.String(),
 			SubAccount:       subAddr.String(),
@@ -155,7 +164,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		})
 		s.Require().NoError(err)
 
-		subAddr2, subPubkey2 := s.newEthSubAccount()
+		subAddr2, subPubkey2 := s.newEthSubAccountFromPrivKey(userPrivKey)
 		_, err = s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:          userAddr.String(),
 			SubAccount:       subAddr2.String(),
@@ -166,10 +175,10 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 	s.Run("sub_account already registered by another did", func() {
 		const did3 = "4444444444444"
-		userAddr3, userPubkey3 := s.newSecp256k1UserAccount()
+		userAddr3, userPubkey3, userPrivKey3 := s.newSecp256k1UserAccount()
 		s.setupActiveKyc(userAddr3, userPubkey3, did3)
 
-		subAddr, subPubkey := s.newEthSubAccount()
+		subAddr, subPubkey := s.newEthSubAccountFromPrivKey(userPrivKey3)
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:          userAddr3.String(),
 			SubAccount:       subAddr.String(),
@@ -178,7 +187,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		s.Require().NoError(err)
 
 		const did4 = "5555555555555"
-		userAddr4, userPubkey4 := s.newSecp256k1UserAccount()
+		userAddr4, userPubkey4, _ := s.newSecp256k1UserAccount()
 		s.setupActiveKyc(userAddr4, userPubkey4, did4)
 
 		_, err = s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
@@ -191,10 +200,10 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 	s.Run("invalid sub_account pubkey string", func() {
 		const did5 = "6666666666666"
-		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		userAddr, userPubkey, userPrivKey := s.newSecp256k1UserAccount()
 		s.setupActiveKyc(userAddr, userPubkey, did5)
 
-		subAddr, _ := s.newEthSubAccount()
+		subAddr, _ := s.newEthSubAccountFromPrivKey(userPrivKey)
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:          userAddr.String(),
 			SubAccount:       subAddr.String(),
@@ -205,10 +214,10 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 	s.Run("creator pubkey not set", func() {
 		const did8 = "1010101010101"
-		userAddr, userPubkey := s.newAccountWithoutPubKey()
+		userAddr, userPubkey, userPrivKey := s.newAccountWithoutPubKey()
 		s.setupActiveKyc(userAddr, userPubkey, did8)
 
-		subAddr, subPubkey := s.newEthSubAccount()
+		subAddr, subPubkey := s.newEthSubAccountFromPrivKey(userPrivKey)
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
 			Creator:          userAddr.String(),
 			SubAccount:       subAddr.String(),
@@ -233,7 +242,7 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 	s.Run("sub_account pubkey must be ethsecp256k1", func() {
 		const did6 = "7777777777777"
-		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		userAddr, userPubkey, _ := s.newSecp256k1UserAccount()
 		s.setupActiveKyc(userAddr, userPubkey, did6)
 
 		secpPrivKey := secp256k1.GenPrivKey()
@@ -251,10 +260,10 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 	s.Run("sub_account pubkey does not match sub_account address", func() {
 		const did7 = "8888888888888"
-		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		userAddr, userPubkey, userPrivKey := s.newSecp256k1UserAccount()
 		s.setupActiveKyc(userAddr, userPubkey, did7)
 
-		_, subPubkey := s.newEthSubAccount()
+		_, subPubkey := s.newEthSubAccountFromPrivKey(userPrivKey)
 		differentAddr, _ := s.newEthSubAccount()
 
 		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
@@ -265,12 +274,49 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 		s.Require().ErrorIs(err, sdkerrors.ErrInvalidPubKey)
 	})
 
-	s.Run("sub_account already has did", func() {
-		const did9 = "1212121212121"
-		userAddr, userPubkey := s.newSecp256k1UserAccount()
-		s.setupActiveKyc(userAddr, userPubkey, did9)
+	s.Run("main account and sub account not derived from same private key", func() {
+		const didNotSame = "8888888888889"
+		userAddr, userPubkey, _ := s.newSecp256k1UserAccount()
+		s.setupActiveKyc(userAddr, userPubkey, didNotSame)
 
 		subAddr, subPubkey := s.newEthSubAccount()
+
+		_, err := s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
+			Creator:          userAddr.String(),
+			SubAccount:       subAddr.String(),
+			SubAccountPubkey: subPubkey,
+		})
+		s.Require().ErrorIs(err, sdkerrors.ErrInvalidPubKey)
+		s.Require().Contains(err.Error(), "main account and sub account are not derived from the same private key")
+	})
+
+	s.Run("main account pubkey does not match creator address", func() {
+		const didMismatch = "1112131415161"
+		userAddr, userPubkey, _ := s.newSecp256k1UserAccount()
+		s.setupActiveKyc(userAddr, userPubkey, didMismatch)
+
+		otherPrivKey := secp256k1.GenPrivKey()
+		acc := s.App.AccountKeeper.GetAccount(s.Ctx, userAddr)
+		err := acc.SetPubKey(otherPrivKey.PubKey())
+		s.Require().NoError(err)
+		s.App.AccountKeeper.SetAccount(s.Ctx, acc)
+
+		subAddr, subPubkey := s.newEthSubAccountFromPrivKey(otherPrivKey)
+		_, err = s.msgServer.CreateSubAccount(s.Ctx, &types.MsgCreateSubAccount{
+			Creator:          userAddr.String(),
+			SubAccount:       subAddr.String(),
+			SubAccountPubkey: subPubkey,
+		})
+		s.Require().ErrorIs(err, sdkerrors.ErrInvalidPubKey)
+		s.Require().Contains(err.Error(), "main account pubkey does not match creator address")
+	})
+
+	s.Run("sub_account already has did", func() {
+		const did9 = "1212121212121"
+		userAddr, userPubkey, userPrivKey := s.newSecp256k1UserAccount()
+		s.setupActiveKyc(userAddr, userPubkey, did9)
+
+		subAddr, subPubkey := s.newEthSubAccountFromPrivKey(userPrivKey)
 		const subDid = "1313131313131"
 		s.Keeper().SetDID(s.Ctx, subAddr, subDid)
 
@@ -284,10 +330,10 @@ func (s *KeeperTestSuite) TestCreateSubAccount() {
 
 	s.Run("sub_account already has delegation", func() {
 		const did10 = "1414141414141"
-		userAddr, userPubkey := s.newSecp256k1UserAccount()
+		userAddr, userPubkey, userPrivKey := s.newSecp256k1UserAccount()
 		s.setupActiveKyc(userAddr, userPubkey, did10)
 
-		subAddr, subPubkey := s.newEthSubAccount()
+		subAddr, subPubkey := s.newEthSubAccountFromPrivKey(userPrivKey)
 		s.App.StakingKeeper.SetDelegation(s.Ctx, stakingtypes.Delegation{
 			DelegatorAddress: subAddr.String(),
 			ValidatorAddress: s.meEarthValidator.OperatorAddress,
