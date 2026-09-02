@@ -54,8 +54,8 @@ import (
 	"github.com/openmetaearth/me-hub/app/upgrades" //nolint:revive
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_14"
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_15"
-	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_15_rc3"
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_16"
+	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_17"
 	"github.com/openmetaearth/me-hub/docs"
 	metypes "github.com/openmetaearth/me-hub/types"
 	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
@@ -78,8 +78,8 @@ var (
 	Upgrades = []upgrades.Upgrade{
 		v2_0_14.Upgrade,
 		v2_0_15.Upgrade,
-		v2_0_15_rc3.Upgrade,
 		v2_0_16.Upgrade,
+		v2_0_17.Upgrade,
 	}
 )
 

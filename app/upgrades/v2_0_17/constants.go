@@ -1,4 +1,4 @@
-package v2_0_15_rc3 //nolint:revive
+package v2_0_17 //nolint:revive
 
 import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	UpgradeName = "v2.0.15.rc3"
+	UpgradeName = "v2.0.17"
 )
 
 var Upgrade = upgrades.Upgrade{
