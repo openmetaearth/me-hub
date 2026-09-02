@@ -27,19 +27,20 @@ func CreateUpgradeHandler(
 		stakingParams := keepers.StakingKeeper.GetParams(ctx)
 		stakingParams.UnbondingTime = time.Hour * 24 * 7 * 3 // 3 weeks
 		if err := keepers.StakingKeeper.SetParams(ctx, stakingParams); err != nil {
-			panic("failed to set Staking params: " + err.Error())
+			return nil, fmt.Errorf("failed to set Staking params: %w", err)
 		}
 
+		maxDelegate := sdkmath.NewInt(200_000_000)
 		bscParams := keepers.BscKeeper.GetParams(ctx)
-		bscParams.MaxDelegate = sdkmath.NewInt(200_000_000)
+		bscParams.MaxDelegate = maxDelegate
 		if err := keepers.BscKeeper.SetParams(ctx, &bscParams); err != nil {
-			return nil, fmt.Errorf("failed to set BSC max send to external amount: %w", err)
+			return nil, fmt.Errorf("failed to set BSC max delegate: %w", err)
 		}
 
 		tronParams := keepers.TronKeeper.GetParams(ctx)
-		tronParams.MaxDelegate = sdkmath.NewInt(200_000_000)
+		tronParams.MaxDelegate = maxDelegate
 		if err := keepers.TronKeeper.SetParams(ctx, &tronParams); err != nil {
-			return nil, fmt.Errorf("failed to set Tron max send to external amount: %w", err)
+			return nil, fmt.Errorf("failed to set Tron max delegate: %w", err)
 		}
 
 		logger.Info("upgrade finished successfully.")
