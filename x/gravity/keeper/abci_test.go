@@ -598,7 +598,7 @@ func (s *KeeperTestSuite) TestRelayerSetNotCreatedWhenSlashDoesNotChangeMembers(
 		msgBondedRelayer := &types.MsgBondedRelayer{
 			RelayerAddress:  s.relayerAddrs[i].String(),
 			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10*1e8)),
 			ChainName:       s.chainName,
 		}
 		s.Require().NoError(msgBondedRelayer.ValidateBasic())
