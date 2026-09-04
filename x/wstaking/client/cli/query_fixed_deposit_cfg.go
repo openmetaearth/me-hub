@@ -4,7 +4,8 @@ import (
 	"strconv"
 	"strings"
 
-	sdkerrors "cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -30,7 +31,7 @@ func CmdListFixedDepositCfg() *cobra.Command {
 				for _, regionId := range regionIds {
 					_, err := utils.CheckRegionName(strings.ToUpper(regionId))
 					if err != nil {
-						return sdkerrors.Wrap(types.ErrRegionName, err.Error())
+						return errorsmod.Wrap(types.ErrRegionName, err.Error())
 					}
 				}
 			}

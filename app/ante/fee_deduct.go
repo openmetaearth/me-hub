@@ -1,20 +1,32 @@
 package ante
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 
+	sdkmath "cosmossdk.io/math"
+
+	errorsmod "cosmossdk.io/errors"
+
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/openmetaearth/me-hub/app/params"
+
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+
 	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
+
 	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
+
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -24,7 +36,7 @@ const (
 	msgLimits                       = 1000
 )
 
-var minimumFee = sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(10000)))
+var minimumFee = sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10000)))
 
 // DeductFeeDecorator deducts fees from the first signer of the tx
 // If the first signer does not have the funds to pay for the fees, return with InsufficientFunds error
@@ -115,11 +127,11 @@ func (dfd DeductFeeDecorator) ParseWasmMsgContractCreator(ctx sdk.Context, tx sd
 func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	feeTx, ok := tx.(sdk.FeeTx)
 	if !ok {
-		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
+		return ctx, errorsmod.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
 	}
 
 	if len(feeTx.GetMsgs()) > msgLimits {
-		return ctx, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "messages should not exceed %d", msgLimits)
+		return ctx, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "messages should not exceed %d", msgLimits)
 	}
 
 	if simulate {
@@ -135,8 +147,8 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 	feePayer := feeTx.FeePayer()
 	feeGranter := feeTx.FeeGranter()
 
-	isDao := dfd.daoKeeper.IsDao(ctx, feePayer.String())
-	isFreeGasAccount := dfd.daoKeeper.CheckFreeGasAccount(ctx, feePayer.String())
+	isDao := dfd.daoKeeper.IsDao(ctx, sdk.AccAddress(feePayer).String())
+	isFreeGasAccount := dfd.daoKeeper.CheckFreeGasAccount(ctx, sdk.AccAddress(feePayer).String())
 	freeGas := isFreeGasAccount || isDao
 
 	// freeGas for MsgJoinGroup only when ALL messages in the tx are MsgJoinGroup.
@@ -160,7 +172,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		}
 		fee, err := sdk.ParseCoinsNormalized(feePending.String())
 		if err != nil {
-			return ctx, sdkerrors.Wrap(err, "")
+			return ctx, errorsmod.Wrap(err, "")
 		}
 
 		deductFeesFrom := feePayer
@@ -169,17 +181,17 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		// this works with only when fee grant enabled.
 		if feeGranter != nil {
 			if dfd.daoKeeper == nil {
-				return ctx, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "fee grants are not enabled")
-			} else if !feeGranter.Equals(feePayer) {
+				return ctx, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "fee grants are not enabled")
+			} else if !bytes.Equal(feeGranter, feePayer) {
 				err := dfd.feegrantKeeper.UseGrantedFees(ctx, feeGranter, feePayer, fee, tx.GetMsgs())
 				if err != nil {
-					return ctx, sdkerrors.Wrapf(err, "%s not allowed to pay fees from %s", feeGranter, feePayer)
+					return ctx, errorsmod.Wrapf(err, "%s not allowed to pay fees from %s", feeGranter, feePayer)
 				}
 			}
 			deductFeesFrom = feeGranter
 		}
 
-		err = dfd.CheckFunds(ctx, tx, deductFeesFrom.String(), fee)
+		err = dfd.CheckFunds(ctx, tx, sdk.AccAddress(deductFeesFrom).String(), fee)
 		if err != nil && !fee.IsZero() {
 			return ctx, err
 		}
@@ -187,7 +199,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 		if !fee.IsZero() {
 			// DeductFees deducts fees from the given account.
 			if !fee.IsValid() {
-				return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "invalid fee amount: %s", fee)
+				return ctx, errorsmod.Wrapf(sdkerrors.ErrInsufficientFee, "invalid fee amount: %s", fee)
 			}
 
 			fee10 := make(sdk.Coins, len(fee))
@@ -195,13 +207,13 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			fee30 := make(sdk.Coins, len(fee))
 			fee40 := make(sdk.Coins, len(fee))
 
-			rate10 := sdk.MustNewDecFromStr("0.1")
-			rate20 := sdk.MustNewDecFromStr("0.2")
-			rate30 := sdk.MustNewDecFromStr("0.3")
+			rate10 := sdkmath.LegacyMustNewDecFromStr("0.1")
+			rate20 := sdkmath.LegacyMustNewDecFromStr("0.2")
+			rate30 := sdkmath.LegacyMustNewDecFromStr("0.3")
 
 			for i, f := range fee {
-				if f.Amount.LT(sdk.NewInt(10)) {
-					return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "fee must greater than 10: %s", fee)
+				if f.Amount.LT(sdkmath.NewInt(10)) {
+					return ctx, errorsmod.Wrapf(sdkerrors.ErrInsufficientFee, "fee must greater than 10: %s", fee)
 				}
 				fee10[i] = sdk.NewCoin(f.Denom, rate10.MulInt(f.Amount).TruncateInt())
 				fee20[i] = sdk.NewCoin(f.Denom, rate20.MulInt(f.Amount).TruncateInt())
@@ -210,7 +222,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			}
 			inputs := []banktypes.Input{
 				{
-					Address: deductFeesFrom.String(),
+					Address: sdk.AccAddress(deductFeesFrom).String(),
 					Coins:   fee,
 				},
 			}
@@ -234,7 +246,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			if isKyc {
 				fee20Address, err = dfd.stakingKeeper.GetValOwnerAddress(ctx, string(kyc.Data))
 				if err != nil {
-					return ctx, fmt.Errorf("couldn't get validator from kyc address: %s", deductFeesFrom.String())
+					return ctx, fmt.Errorf("couldn't get validator from kyc address: %s", sdk.AccAddress(deductFeesFrom).String())
 				}
 			} else {
 				fee20Address, err = dfd.stakingKeeper.GetProposerOwnerAddress(ctx)
@@ -285,7 +297,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 
 func (dfd DeductFeeDecorator) CheckFunds(ctx sdk.Context, tx sdk.Tx, feePayer string, fees sdk.Coins) error {
 	if len(fees.Denoms()) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "denom is empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, "denom is empty")
 	}
 
 	userSendAmount := make(map[string]sdk.Coins)
@@ -296,7 +308,7 @@ func (dfd DeductFeeDecorator) CheckFunds(ctx sdk.Context, tx sdk.Tx, feePayer st
 			userSendAmount[txMsg.FromAddress] = sendAmount.Add(txMsg.Amount...)
 		case *banktypes.MsgMultiSend:
 			if len(txMsg.Inputs) == 0 {
-				return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "no input coins provided")
+				return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "no input coins provided")
 			}
 			for _, input := range txMsg.Inputs {
 				sendAmount := userSendAmount[input.Address]
@@ -321,7 +333,7 @@ func (dfd DeductFeeDecorator) CheckFunds(ctx sdk.Context, tx sdk.Tx, feePayer st
 	for address, sendAmount := range userSendAmount {
 		balance := dfd.BankKeeper.GetAllBalances(ctx, sdk.MustAccAddressFromBech32(address))
 		if !balance.IsAllGTE(sendAmount) {
-			return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "check funds for %s; got: %s required: %s",
+			return errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "check funds for %s; got: %s required: %s",
 				address, balance, sendAmount)
 		}
 	}
@@ -333,7 +345,7 @@ func (dfd DeductFeeDecorator) CheckFunds(ctx sdk.Context, tx sdk.Tx, feePayer st
 func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
 	feeTx, ok := tx.(sdk.FeeTx)
 	if !ok {
-		return nil, 0, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
+		return nil, 0, errorsmod.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
 	}
 
 	feeCoins := feeTx.GetFee()
@@ -344,7 +356,7 @@ func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 	// is only ran on check tx.
 	if ctx.IsCheckTx() {
 		if !feeCoins.IsAllGTE(minimumFee) {
-			return sdk.Coins{}, 0, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "fee must greater than or equal %s: got %s", minimumFee.String(), feeCoins.String())
+			return sdk.Coins{}, 0, errorsmod.Wrapf(sdkerrors.ErrInsufficientFee, "fee must greater than or equal %s: got %s", minimumFee.String(), feeCoins.String())
 		}
 		minGasPrices := ctx.MinGasPrices()
 		if !minGasPrices.IsZero() {
@@ -352,14 +364,14 @@ func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 
 			// Determine the required fees by multiplying each required minimum gas
 			// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
-			glDec := sdk.NewDec(int64(gas))
+			glDec := sdkmath.LegacyNewDec(int64(gas))
 			for i, gp := range minGasPrices {
 				fee := gp.Amount.Mul(glDec)
 				requiredFees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())
 			}
 
 			if !feeCoins.IsAllGTE(requiredFees) {
-				return nil, 0, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeCoins, requiredFees)
+				return nil, 0, errorsmod.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeCoins, requiredFees)
 			}
 		}
 	}

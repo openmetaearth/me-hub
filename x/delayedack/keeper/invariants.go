@@ -1,113 +1,69 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	"github.com/openmetaearth/me-hub/utils/uinv"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
 	rtypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
-const (
-	routeFinalizedPacket = "rollapp-finalized-packet"
-	routeRevertedPacket  = "rollapp-reverted-packet"
-)
-
-// RegisterInvariants registers the delayedack module invariants
-func (k Keeper) RegisterInvariants(ir sdk.InvariantRegistry) {
-	ir.RegisterRoute(types.ModuleName, routeFinalizedPacket, k.PacketsFinalizationCorrespondsToFinalizationHeight)
-	ir.RegisterRoute(types.ModuleName, routeRevertedPacket, k.PacketsFromRevertedHeightsAreReverted)
+var invs = uinv.NamedFuncsList[Keeper]{
+	{Name: "proof-height", Func: InvariantProofHeight},
 }
 
-// PacketsFinalizationCorrespondsToFinalizationHeight checks that all rollapp packets stored are set to
-// finalized status for all heights up to the latest height.
-// Skip the check if the rollapp is frozen
-func (k Keeper) PacketsFinalizationCorrespondsToFinalizationHeight(ctx sdk.Context) (string, bool) {
-	return k.packetsCorrespondsToStatusHeight(checkFinalizedPackets, false)(ctx)
+func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
+	invs.RegisterInvariants(types.ModuleName, ir, k)
 }
 
-// PacketsFromRevertedHeightsAreReverted checks that all rollapp packets stored are set to
-// reverted status for all heights up to the latest height
-// Check if the rollapp is frozen
-func (k Keeper) PacketsFromRevertedHeightsAreReverted(ctx sdk.Context) (string, bool) {
-	return k.packetsCorrespondsToStatusHeight(checkRevertedPackets, true)(ctx)
+// DO NOT DELETE
+func AllInvariants(k Keeper) sdk.Invariant {
+	return invs.All(types.ModuleName, k)
 }
 
-type checkPacketsFn func(packets []commontypes.RollappPacket, latestFinalizedHeight uint64) string
-
-// packetsCorrespondsToStatusHeight checks that all rollapp packets stored are set to adequate status for all heights up to the latest height
-func (k Keeper) packetsCorrespondsToStatusHeight(checkPackets checkPacketsFn, checkRollappFrozen bool) sdk.Invariant {
-	return func(ctx sdk.Context) (msg string, stop bool) {
-		for _, rollapp := range k.rollappKeeper.GetAllRollapps(ctx) {
-			msg = k.checkRollapp(ctx, rollapp, checkPackets, checkRollappFrozen)
-			if stop = msg != ""; stop {
-				break
-			}
+// ensures packet not finalized before proof height is finalized
+func InvariantProofHeight(k Keeper) uinv.Func {
+	return uinv.AnyErrorIsBreaking(func(ctx sdk.Context) error {
+		var errs []error
+		for _, ra := range k.rollappKeeper.GetAllRollapps(ctx) {
+			err := k.checkRollapp(ctx, ra)
+			err = errorsmod.Wrapf(err, "rollapp: %s", ra.RollappId)
+			errs = append(errs, err)
 		}
-
-		return
-	}
+		return errors.Join(errs...)
+	})
 }
 
-func (k Keeper) checkRollapp(ctx sdk.Context, rollapp rtypes.Rollapp, checkPackets checkPacketsFn, checkFrozen bool) (msg string) {
-	if checkFrozen && !rollapp.Frozen {
-		return
-	}
-
-	// will stay 0 if no state is found
+func (k Keeper) checkRollapp(ctx sdk.Context, ra rtypes.Rollapp) error {
+	// will stay 0 if no state is ok
 	// but will still check packets
 	var latestFinalizedHeight uint64
 
-	defer func() {
-		if msg == "" {
-			packets := k.ListRollappPackets(ctx, types.ByRollappID(rollapp.RollappId))
-			msg = checkPackets(packets, latestFinalizedHeight)
-		}
-	}()
-
-	latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
-	if !found {
-		return
+	latestFinalizedHeight, err := k.rollappKeeper.GetLatestFinalizedHeight(ctx, ra.RollappId)
+	if err != nil {
+		return nil
 	}
 
-	latestFinalizedStateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollapp.RollappId, latestFinalizedStateIndex.Index)
-	if !found {
-		msg = fmt.Sprintf("latest finalized state info not found for rollapp: %s", rollapp.RollappId)
-		return
+	packets := k.ListRollappPackets(ctx, types.ByRollappID(ra.RollappId))
+	var errs []error
+	for _, p := range packets {
+		err := k.checkPacket(p, latestFinalizedHeight)
+		err = errorsmod.Wrapf(err, "packet: %s", p.RollappId)
+		errs = append(errs, err)
 	}
-
-	latestFinalizedHeight = latestFinalizedStateInfo.GetLatestHeight()
-
-	return
+	return errors.Join(errs...)
 }
 
-// checkFinalizedPackets checks that all rollapp packets stored are set to finalized status for all heights up to the latest height
-func checkFinalizedPackets(packets []commontypes.RollappPacket, latestFinalizedHeight uint64) (_ string) {
-	for _, packet := range packets {
-		if packet.ProofHeight > latestFinalizedHeight && packet.Status == commontypes.Status_FINALIZED {
-			return fmt.Sprintf("rollapp packet for the height should not be in finalized status. height=%d, rollapp=%s, status=%s\n",
-				packet.ProofHeight, packet.RollappId, packet.Status)
-		}
-
-		if packet.ProofHeight <= latestFinalizedHeight && packet.Status != commontypes.Status_FINALIZED {
-			return fmt.Sprintf("rollapp packet for the height should be in finalized status. height=%d, rollapp=%s, status=%s\n",
-				packet.ProofHeight, packet.RollappId, packet.Status)
-		}
+func (k Keeper) checkPacket(p commontypes.RollappPacket, latestFinalizedHeight uint64) error {
+	finalizedTooEarly := latestFinalizedHeight < p.ProofHeight && p.Status == commontypes.Status_FINALIZED
+	if finalizedTooEarly {
+		return fmt.Errorf("finalized too early height=%d, rollapp=%s, status=%s",
+			p.ProofHeight, p.RollappId, p.Status,
+		)
 	}
-
-	return
-}
-
-// checkRevertedPackets checks that all rollapp packets stored are set to reverted status for all heights up to the latest height
-func checkRevertedPackets(packets []commontypes.RollappPacket, latestFinalizedHeight uint64) (_ string) {
-	for _, packet := range packets {
-		if packet.ProofHeight > latestFinalizedHeight && packet.Status != commontypes.Status_REVERTED {
-			return fmt.Sprintf("packet should be reverted: rollapp: %s: height: %d: status: %s",
-				packet.RollappId, packet.ProofHeight, packet.Status)
-		}
-	}
-
-	return
+	return nil
 }

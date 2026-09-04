@@ -1,0 +1,14 @@
+syntax = "proto3";
+package metaearth.denommetadata;
+
+import "cosmos/msg/v1/msg.proto";
+
+option go_package = "github.com/openmetaearth/me-hub/x/denommetadata/types";
+
+// Msg defines the Msg service.
+// ME Hub does not support Hyperlane token registration (Dymension's
+// MsgRegisterHLTokenDenomMetadata); denom metadata is managed via gov
+// proposals.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+}

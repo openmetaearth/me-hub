@@ -3,13 +3,12 @@ package keeper
 import (
 	"context"
 
-	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
-
+	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
+	"github.com/hashicorp/go-metrics"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -18,7 +17,7 @@ type MsgServer struct {
 	stakingtypes.MsgServer
 
 	*Keeper
-	ibcTransferKeeper ibctransferkeeper.Keeper
+	IbcTransferKeeper ibctransferkeeper.Keeper
 }
 
 var _ types.MsgServer = MsgServer{}
@@ -26,12 +25,12 @@ var _ types.MsgServer = MsgServer{}
 // NewMsgServerImpl returns an implementation of the staking wrapped MsgServer.
 func NewMsgServerImpl(
 	keeper *Keeper,
-	ibcTransferKeeper ibctransferkeeper.Keeper,
+	IbcTransferKeeper ibctransferkeeper.Keeper,
 	stakingMsgSrv stakingtypes.MsgServer,
 ) MsgServer {
 	return MsgServer{
 		Keeper:            keeper,
-		ibcTransferKeeper: ibcTransferKeeper,
+		IbcTransferKeeper: IbcTransferKeeper,
 		MsgServer:         stakingMsgSrv,
 	}
 }

@@ -1,69 +1,124 @@
 package types
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/uparam"
+	opastorage "github.com/open-policy-agent/opa/v1/storage"
+	"github.com/open-policy-agent/opa/v1/storage/inmem"
+	"github.com/open-policy-agent/opa/v1/util"
 	"gopkg.in/yaml.v2"
 )
 
-var _ paramtypes.ParamSet = (*Params)(nil)
-
 var (
-	// KeyRollappsEnabled is store's key for RollappsEnabled Params
-	KeyRollappsEnabled = []byte("RollappsEnabled")
-	// KeyDeployerWhitelist is store's key for DeployerWhitelist Params
-	KeyDeployerWhitelist = []byte("DeployerWhitelist")
-	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
-	KeyDisputePeriodInBlocks            = []byte("DisputePeriodInBlocks")
+	DefaultAppRegistrationFee         = commontypes.Dym(math.NewInt(1))
+	DefaultMinSequencerBondGlobalCoin = commontypes.Dym(math.NewInt(100))
+)
+
+const (
 	DefaultDisputePeriodInBlocks uint64 = 3
 	// MinDisputePeriodInBlocks is the minimum number of blocks for dispute period
 	MinDisputePeriodInBlocks uint64 = 1
+
+	DefaultLivenessSlashBlocks   = uint64(7200) // 12 hours worth of blocks at 1 block per 6 seconds
+	DefaultLivenessSlashInterval = uint64(600)  // 1 hour worth of blocks at 1 block per 6 seconds
 )
 
-// ParamKeyTable the param key table for launch module
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
+var DefaultTeeConfig = TEEConfig{
+	Enabled:         true,
+	Verify:          false, // testing only
+	PolicyValues:    "",
+	PolicyQuery:     "",
+	PolicyStructure: "",
 }
 
 // NewParams creates a new Params instance
 func NewParams(
-	enabled bool,
 	disputePeriodInBlocks uint64,
-	deployerWhitelist []DeployerParams,
+	livenessSlashBlocks uint64,
+	livenessSlashInterval uint64,
+	appRegistrationFee sdk.Coin,
+	minSequencerBondGlobal sdk.Coin,
+	teeConfig TEEConfig,
 ) Params {
 	return Params{
-		DisputePeriodInBlocks: disputePeriodInBlocks,
-		DeployerWhitelist:     deployerWhitelist,
-		RollappsEnabled:       enabled,
+		DisputePeriodInBlocks:  disputePeriodInBlocks,
+		LivenessSlashBlocks:    livenessSlashBlocks,
+		LivenessSlashInterval:  livenessSlashInterval,
+		AppRegistrationFee:     appRegistrationFee,
+		MinSequencerBondGlobal: minSequencerBondGlobal,
+		TeeConfig:              teeConfig,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return NewParams(
-		true, DefaultDisputePeriodInBlocks, []DeployerParams{},
+		DefaultDisputePeriodInBlocks,
+		DefaultLivenessSlashBlocks,
+		DefaultLivenessSlashInterval,
+		DefaultAppRegistrationFee,
+		DefaultMinSequencerBondGlobalCoin,
+		DefaultTeeConfig,
 	)
 }
 
-// ParamSetPairs get the params.ParamSet
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyDisputePeriodInBlocks, &p.DisputePeriodInBlocks, validateDisputePeriodInBlocks),
-		paramtypes.NewParamSetPair(KeyDeployerWhitelist, &p.DeployerWhitelist, validateDeployerWhitelist),
-		paramtypes.NewParamSetPair(KeyRollappsEnabled, &p.RollappsEnabled, func(_ interface{}) error { return nil }),
-	}
+func (p Params) WithDisputePeriodInBlocks(x uint64) Params {
+	p.DisputePeriodInBlocks = x
+	return p
+}
+
+func (p Params) WithLivenessSlashBlocks(x uint64) Params {
+	p.LivenessSlashBlocks = x
+	return p
+}
+
+func (p Params) WithLivenessSlashInterval(x uint64) Params {
+	p.LivenessSlashInterval = x
+	return p
+}
+
+func (p Params) WithTeeConfig(x TEEConfig) Params {
+	p.TeeConfig = x
+	return p
 }
 
 // Validate validates the set of params
-func (p Params) Validate() error {
+func (p Params) ValidateBasic() error {
 	if err := validateDisputePeriodInBlocks(p.DisputePeriodInBlocks); err != nil {
-		return err
+		return errorsmod.Wrap(err, "dispute period")
 	}
 
-	return validateDeployerWhitelist(p.DeployerWhitelist)
+	if err := validateLivenessSlashBlocks(p.LivenessSlashBlocks); err != nil {
+		return errorsmod.Wrap(err, "liveness slash blocks")
+	}
+	if err := validateLivenessSlashInterval(p.LivenessSlashInterval); err != nil {
+		return errorsmod.Wrap(err, "liveness slash interval")
+	}
+
+	if err := validateAppRegistrationFee(p.AppRegistrationFee); err != nil {
+		return errorsmod.Wrap(err, "app registration fee")
+	}
+	if err := uparam.ValidateCoin(p.MinSequencerBondGlobal); err != nil {
+		return errorsmod.Wrap(err, "min sequencer bond")
+	}
+	if err := validateTeeConfig(p.TeeConfig); err != nil {
+		return errorsmod.Wrap(err, "tee config")
+	}
+	return nil
+}
+
+// Validate implements the ParamSet interface
+func (p Params) Validate() error {
+	return p.ValidateBasic()
 }
 
 // String implements the Stringer interface.
@@ -72,13 +127,16 @@ func (p Params) String() string {
 	return string(out)
 }
 
-// validateDisputePeriodInBlocks validates the DisputePeriodInBlocks param
-func validateDisputePeriodInBlocks(v interface{}) error {
-	disputePeriodInBlocks, ok := v.(uint64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", v)
-	}
+func validateLivenessSlashBlocks(v uint64) error {
+	return uparam.ValidatePositiveUint64(v)
+}
 
+func validateLivenessSlashInterval(v uint64) error {
+	return uparam.ValidatePositiveUint64(v)
+}
+
+// validateDisputePeriodInBlocks validates the DisputePeriodInBlocks param
+func validateDisputePeriodInBlocks(disputePeriodInBlocks uint64) error {
 	if disputePeriodInBlocks < MinDisputePeriodInBlocks {
 		return errors.New("dispute period cannot be lower than 1 block")
 	}
@@ -86,28 +144,45 @@ func validateDisputePeriodInBlocks(v interface{}) error {
 	return nil
 }
 
-// validateDeployerWhitelist validates the DeployerWhitelist param
-func validateDeployerWhitelist(v interface{}) error {
-	deployerWhitelist, ok := v.([]DeployerParams)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", v)
+func validateAppRegistrationFee(v sdk.Coin) error {
+	if !v.IsValid() {
+		return fmt.Errorf("invalid app creation cost: %s", v)
 	}
 
-	// Check for duplicated index in deployer address
-	rollappDeployerIndexMap := make(map[string]struct{})
+	return nil
+}
 
-	for i, item := range deployerWhitelist {
-		// check Bech32 format
-		if _, err := sdk.AccAddressFromBech32(item.Address); err != nil {
-			return fmt.Errorf("deployerWhitelist[%d] format error: %s", i, err.Error())
-		}
-
-		// check duplicate
-		if _, ok := rollappDeployerIndexMap[item.Address]; ok {
-			return errors.New("duplicated deployer address in deployerWhitelist")
-		}
-		rollappDeployerIndexMap[item.Address] = struct{}{}
+func (v TEEConfig) PemCert() (*x509.Certificate, error) {
+	block, _ := pem.Decode([]byte(v.GcpRootCertPem))
+	if block == nil {
+		return nil, gerrc.ErrInvalidArgument.Wrap("parse pem block")
 	}
+	return x509.ParseCertificate(block.Bytes)
+}
 
+func (v TEEConfig) PolicyValuesStore() (opastorage.Store, error) {
+	var json map[string]any
+	err := util.UnmarshalJSON([]byte(v.PolicyValues), &json)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "unmarshal json")
+	}
+	return inmem.NewFromObject(json), nil
+}
+
+func validateTeeConfig(v TEEConfig) error {
+	if v.Verify {
+		if _, err := v.PemCert(); err != nil {
+			return errorsmod.Wrap(err, "pem cert")
+		}
+		if _, err := v.PolicyValuesStore(); err != nil {
+			return errorsmod.Wrap(err, "policy values store")
+		}
+		if v.PolicyQuery == "" {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "policy query empty")
+		}
+		if v.PolicyStructure == "" {
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "policy structure empty")
+		}
+	}
 	return nil
 }

@@ -4,30 +4,35 @@ import (
 	"fmt"
 	"testing"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
+
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/ethereum/eip712"
 	"github.com/evmos/ethermint/testutil"
+
 	ethermint "github.com/evmos/ethermint/types"
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/openmetaearth/me-hub/app"
 	"github.com/openmetaearth/me-hub/app/ante"
 	"github.com/openmetaearth/me-hub/app/ante/mock"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/stretchr/testify/suite"
 )
 
 type AnteTestSuite struct {
@@ -48,8 +53,8 @@ func TestAnteTestSuite(t *testing.T) {
 
 // SetupTest setups a new test, with new app, context, and anteHandler.
 func (s *AnteTestSuite) SetupTest(isCheckTx bool) {
-	s.app = apptesting.Setup(s.T(), isCheckTx)
-	s.ctx = s.app.BaseApp.NewContext(isCheckTx, cometbftproto.Header{}).WithBlockHeight(1).WithChainID(apptesting.TestChainID)
+	s.app = apptesting.Setup(s.T())
+	s.ctx = s.app.BaseApp.NewContext(isCheckTx).WithBlockHeight(1).WithChainID(apptesting.TestChainID)
 
 	txConfig := s.app.GetTxConfig()
 	s.clientCtx = client.Context{}.
@@ -95,7 +100,7 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	suite.mockDaoKeeper.EXPECT().GetGlobalDaoFeePoolAddr(gomock.Any()).Return(devOperator.GetAddress())
 	suite.mockDaoKeeper.EXPECT().CheckFreeGasAccount(gomock.Any(), addr.Address).Return(false)
 
-	amt := sdk.NewInt(100)
+	amt := sdkmath.NewInt(100)
 	err := testutil.FundAccount(
 		suite.app.BankKeeper,
 		suite.ctx,
@@ -109,7 +114,7 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 	recipient := NewAccount()
-	msgSend := banktypes.NewMsgSend(acc.GetAddress(), recipient.GetAddress(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(1))))
+	msgSend := banktypes.NewMsgSend(acc.GetAddress(), recipient.GetAddress(), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1))))
 
 	txBuilder := suite.CreateTestEIP712CosmosTxBuilder(privKey, []sdk.Msg{msgSend})
 	_, err = suite.anteHandler(suite.ctx, txBuilder.GetTx(), false)
@@ -121,7 +126,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	priv cryptotypes.PrivKey, msgs []sdk.Msg,
 ) client.TxBuilder {
 	txConfig := suite.clientCtx.TxConfig
-	coinAmount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(20))
+	coinAmount := sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(20))
 	fees := sdk.NewCoins(coinAmount)
 
 	pc, err := ethermint.ParseChainID(suite.ctx.ChainID())
@@ -152,7 +157,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 			Amount: fees,
 			Gas:    200000,
 		},
-		msgs, "", nil,
+		msgs, "",
 	)
 
 	feeDelegation := &eip712.FeeDelegationOptions{
@@ -171,7 +176,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	suite.Require().NoError(err)
 
 	keyringSigner := NewSigner(priv)
-	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash)
+	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash, signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON)
 	suite.Require().NoError(err)
 
 	signature[crypto.RecoveryIDOffset] += 27
@@ -210,7 +215,7 @@ func NewSigner(sk cryptotypes.PrivKey) keyring.Signer {
 }
 
 // Sign signs the message using the underlying private key
-func (s Signer) Sign(_ string, msg []byte) ([]byte, cryptotypes.PubKey, error) {
+func (s Signer) Sign(_ string, msg []byte, _ signing.SignMode) ([]byte, cryptotypes.PubKey, error) {
 	if s.privKey.Type() != ethsecp256k1.KeyType {
 		return nil, nil, fmt.Errorf(
 			"invalid private key type for signing ethereum tx; expected %s, got %s",
@@ -228,11 +233,11 @@ func (s Signer) Sign(_ string, msg []byte) ([]byte, cryptotypes.PubKey, error) {
 }
 
 // SignByAddress sign byte messages with a user key providing the address.
-func (s Signer) SignByAddress(address sdk.Address, msg []byte) ([]byte, cryptotypes.PubKey, error) {
+func (s Signer) SignByAddress(address sdk.Address, msg []byte, signMode signing.SignMode) ([]byte, cryptotypes.PubKey, error) {
 	signer := sdk.AccAddress(s.privKey.PubKey().Address())
 	if !signer.Equals(address) {
 		return nil, nil, fmt.Errorf("address mismatch: signer %s ≠ given address %s", signer, address)
 	}
 
-	return s.Sign("", msg)
+	return s.Sign("", msg, signMode)
 }

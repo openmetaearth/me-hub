@@ -1,7 +1,8 @@
 package keeper_test
 
+import sdkmath "cosmossdk.io/math"
+
 import (
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -41,7 +42,7 @@ func (s *KeeperTestSuite) TestDelegate() {
 		{
 			name:             "did delegate",
 			account:          s.Dao.GlobalDao,
-			amount:           sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000)),
+			amount:           sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000000)),
 			height:           5,
 			reward:           0.1981862,
 			validatorAddress: s.meEarthValidator.OperatorAddress,
@@ -50,7 +51,7 @@ func (s *KeeperTestSuite) TestDelegate() {
 		{
 			name:             "un did delegate",
 			account:          s.Dao.AirdropAddress,
-			amount:           sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000)),
+			amount:           sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000000)),
 			height:           5,
 			reward:           0,
 			validatorAddress: s.experienceValidator.OperatorAddress,
@@ -74,7 +75,7 @@ func (s *KeeperTestSuite) TestDelegate() {
 					ValidatorAddress: test.validatorAddress,
 				}
 
-				s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(test.height).WithChainID(apptesting.TestChainID)
+				s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(test.height).WithChainID(apptesting.TestChainID)
 				for i := 0; i < int(test.height); i++ {
 					wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 					wstaking.BeginBlock(s.Ctx, s.App.StakingKeeper)
@@ -124,7 +125,7 @@ func (s *KeeperTestSuite) TestUnDelegate() {
 		{
 			name:    "un did undelegate",
 			account: s.Dao.AirdropAddress,
-			amount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000)),
+			amount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000000)),
 			height:  5,
 			reward:  0.1981862,
 			expErr:  nil,
@@ -148,7 +149,7 @@ func (s *KeeperTestSuite) TestUnDelegate() {
 					Amount:           test.amount,
 				}
 
-				s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(test.height).WithChainID(apptesting.TestChainID)
+				s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(test.height).WithChainID(apptesting.TestChainID)
 				for i := 0; i < int(test.height); i++ {
 					wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 					wstaking.BeginBlock(s.Ctx, s.App.StakingKeeper)
@@ -181,7 +182,7 @@ func (s *KeeperTestSuite) TestUnDelegateRejectsAmountExceedingValidatorDelegatio
 	)
 	s.Require().NoError(err)
 
-	delegateAmount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(1000000))
+	delegateAmount := sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1000000))
 	_, err = s.msgServer.Delegate(s.Ctx, &stakingtypes.MsgDelegate{
 		DelegatorAddress: s.Dao.AirdropAddress,
 		ValidatorAddress: "",
@@ -190,14 +191,14 @@ func (s *KeeperTestSuite) TestUnDelegateRejectsAmountExceedingValidatorDelegatio
 	s.Require().NoError(err)
 
 	region, found = s.App.StakingKeeper.GetRegion(s.Ctx, types.ExperienceRegionId)
-	s.Require().True(found)
+	s.Require().NoError(err)
 	valAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
 	s.Require().NoError(err)
-	validator, found := s.App.StakingKeeper.GetValidator(s.Ctx, valAddr)
-	s.Require().True(found)
+	validator, err := s.App.StakingKeeper.GetValidator(s.Ctx, valAddr)
+	s.Require().NoError(err)
 	s.Require().Equal(delegateAmount.Amount.String(), validator.DelegationAmount.String())
 
-	undelegateAmount := sdk.NewCoin(params.BaseDenom, delegateAmount.Amount.Add(sdk.OneInt()))
+	undelegateAmount := sdk.NewCoin(params.BaseDenom, delegateAmount.Amount.Add(sdkmath.OneInt()))
 	_, err = s.msgServer.Undelegate(s.Ctx, &stakingtypes.MsgUndelegate{
 		DelegatorAddress: s.Dao.AirdropAddress,
 		ValidatorAddress: "",
@@ -205,10 +206,10 @@ func (s *KeeperTestSuite) TestUnDelegateRejectsAmountExceedingValidatorDelegatio
 	})
 	s.Require().ErrorIs(err, types.ErrValidatorDelegationAmount)
 
-	validator, found = s.App.StakingKeeper.GetValidator(s.Ctx, valAddr)
-	s.Require().True(found)
+	validator, err = s.App.StakingKeeper.GetValidator(s.Ctx, valAddr)
+	s.Require().NoError(err)
 	s.Require().Equal(delegateAmount.Amount.String(), validator.DelegationAmount.String())
 	region, found = s.App.StakingKeeper.GetRegion(s.Ctx, types.ExperienceRegionId)
-	s.Require().True(found)
+	s.Require().NoError(err)
 	s.Require().Equal(delegateAmount.Amount.String(), region.DelegateAmount.String())
 }

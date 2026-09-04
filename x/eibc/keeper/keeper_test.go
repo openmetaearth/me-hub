@@ -3,22 +3,21 @@ package keeper_test
 import (
 	"testing"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/openmetaearth/me-hub/app/apptesting"
-	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/eibc/keeper"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
+
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/stretchr/testify/suite"
+
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 )
 
 const (
-	eibcEventType = "eibc"
 	// valid constants used for testing
 	portid   = "testportid"
 	chanid   = "channel-0"
@@ -42,12 +41,12 @@ var (
 	)
 	packet        = channeltypes.NewPacket(transferPacketData.GetBytes(), 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
 	rollappPacket = &commontypes.RollappPacket{
-		RollappId: "testRollappId",
+		RollappId: "rollapp_1234-1",
 		Status:    commontypes.Status_PENDING,
 		Type:      commontypes.RollappPacket_ON_RECV,
 		Packet:    &packet,
 	}
-	rollappPacketKey = commontypes.RollappPacketKey(rollappPacket)
+	rollappPacketKey = rollappPacket.RollappPacketKey()
 )
 
 type KeeperTestSuite struct {
@@ -62,8 +61,8 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(suite.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	app := apptesting.Setup(suite.T())
+	ctx := app.NewContext(false)
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, keeper.NewQuerier(app.EIBCKeeper))
 	queryClient := types.NewQueryClient(queryHelper)

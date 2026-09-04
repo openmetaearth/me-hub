@@ -5,6 +5,7 @@ package types
 
 import (
 	fmt "fmt"
+	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
 	io "io"
@@ -23,69 +24,30 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type DeployerParams struct {
-	// address is a bech32-encoded address of the
-	// accounts that are allowed to create a rollapp.
-	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty" yaml:"address"`
-}
-
-func (m *DeployerParams) Reset()         { *m = DeployerParams{} }
-func (m *DeployerParams) String() string { return proto.CompactTextString(m) }
-func (*DeployerParams) ProtoMessage()    {}
-func (*DeployerParams) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9140c1cfa025ceba, []int{0}
-}
-func (m *DeployerParams) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *DeployerParams) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_DeployerParams.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *DeployerParams) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeployerParams.Merge(m, src)
-}
-func (m *DeployerParams) XXX_Size() int {
-	return m.Size()
-}
-func (m *DeployerParams) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeployerParams.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DeployerParams proto.InternalMessageInfo
-
-func (m *DeployerParams) GetAddress() string {
-	if m != nil {
-		return m.Address
-	}
-	return ""
-}
-
 // Params defines the parameters for the module.
 type Params struct {
 	// dispute_period_in_blocks the number of blocks it takes
 	// to change a status of a state from received to finalized.
 	// during that period, any user could submit fraud proof
 	DisputePeriodInBlocks uint64 `protobuf:"varint,1,opt,name=dispute_period_in_blocks,json=disputePeriodInBlocks,proto3" json:"dispute_period_in_blocks,omitempty" yaml:"dispute_period_in_blocks"`
-	// deployer_whitelist is a list of the
-	// accounts that are allowed to create a rollapp and maximum number of
-	// rollapps. In the case of an empty list, there are no restrictions
-	DeployerWhitelist []DeployerParams `protobuf:"bytes,2,rep,name=deployer_whitelist,json=deployerWhitelist,proto3" json:"deployer_whitelist" yaml:"deployer_whitelist"`
-	RollappsEnabled   bool             `protobuf:"varint,3,opt,name=rollapps_enabled,json=rollappsEnabled,proto3" json:"rollapps_enabled,omitempty" yaml:"rollapps_enabled"`
+	// The time (num hub blocks) a sequencer has to post a block, before he will
+	// be slashed
+	LivenessSlashBlocks uint64 `protobuf:"varint,4,opt,name=liveness_slash_blocks,json=livenessSlashBlocks,proto3" json:"liveness_slash_blocks,omitempty" yaml:"liveness_slash_blocks"`
+	// The min gap (num hub blocks) between a sequence of slashes if the sequencer
+	// continues to be down
+	LivenessSlashInterval uint64 `protobuf:"varint,5,opt,name=liveness_slash_interval,json=livenessSlashInterval,proto3" json:"liveness_slash_interval,omitempty" yaml:"liveness_slash_interval"`
+	// app_registration_fee is the fee for registering an App
+	AppRegistrationFee types.Coin `protobuf:"bytes,7,opt,name=app_registration_fee,json=appRegistrationFee,proto3" json:"app_registration_fee" yaml:"app_registration_fee"`
+	// no rollapp can have a minimum less than this (in dym)
+	MinSequencerBondGlobal types.Coin `protobuf:"bytes,8,opt,name=min_sequencer_bond_global,json=minSequencerBondGlobal,proto3" json:"min_sequencer_bond_global" yaml:"min_sequencer_bond_global"`
+	// tee_config contains TEE-specific configuration
+	TeeConfig TEEConfig `protobuf:"bytes,9,opt,name=tee_config,json=teeConfig,proto3" json:"tee_config" yaml:"tee_config"`
 }
 
 func (m *Params) Reset()      { *m = Params{} }
 func (*Params) ProtoMessage() {}
 func (*Params) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9140c1cfa025ceba, []int{1}
+	return fileDescriptor_9140c1cfa025ceba, []int{0}
 }
 func (m *Params) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -121,81 +83,182 @@ func (m *Params) GetDisputePeriodInBlocks() uint64 {
 	return 0
 }
 
-func (m *Params) GetDeployerWhitelist() []DeployerParams {
+func (m *Params) GetLivenessSlashBlocks() uint64 {
 	if m != nil {
-		return m.DeployerWhitelist
+		return m.LivenessSlashBlocks
 	}
-	return nil
+	return 0
 }
 
-func (m *Params) GetRollappsEnabled() bool {
+func (m *Params) GetLivenessSlashInterval() uint64 {
 	if m != nil {
-		return m.RollappsEnabled
+		return m.LivenessSlashInterval
+	}
+	return 0
+}
+
+func (m *Params) GetAppRegistrationFee() types.Coin {
+	if m != nil {
+		return m.AppRegistrationFee
+	}
+	return types.Coin{}
+}
+
+func (m *Params) GetMinSequencerBondGlobal() types.Coin {
+	if m != nil {
+		return m.MinSequencerBondGlobal
+	}
+	return types.Coin{}
+}
+
+func (m *Params) GetTeeConfig() TEEConfig {
+	if m != nil {
+		return m.TeeConfig
+	}
+	return TEEConfig{}
+}
+
+// TEEConfig defines TEE-specific configuration parameters
+type TEEConfig struct {
+	// enabled controls whether TEE fast finalization is enabled
+	Enabled bool `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	// if false, do NOT verify attestation (useful for testing)
+	Verify bool `protobuf:"varint,6,opt,name=verify,proto3" json:"verify,omitempty"`
+	// see dymension/x/rollapp/keeper/testdata/tee/policy_values.json
+	PolicyValues string `protobuf:"bytes,2,opt,name=policy_values,json=policyValues,proto3" json:"policy_values,omitempty" yaml:"policy_json_values"`
+	// see dymension/x/rollapp/keeper/testdata/tee/query.rego
+	PolicyQuery string `protobuf:"bytes,4,opt,name=policy_query,json=policyQuery,proto3" json:"policy_query,omitempty" yaml:"policy_rego_query"`
+	// see dymension/x/rollapp/keeper/testdata/tee/policy.rego
+	PolicyStructure string `protobuf:"bytes,5,opt,name=policy_structure,json=policyStructure,proto3" json:"policy_structure,omitempty" yaml:"policy_rego_structure"`
+	// gcp_root_cert_pem is the GCP root certificate in PEM format
+	GcpRootCertPem string `protobuf:"bytes,3,opt,name=gcp_root_cert_pem,json=gcpRootCertPem,proto3" json:"gcp_root_cert_pem,omitempty" yaml:"gcp_root_cert_pem"`
+}
+
+func (m *TEEConfig) Reset()         { *m = TEEConfig{} }
+func (m *TEEConfig) String() string { return proto.CompactTextString(m) }
+func (*TEEConfig) ProtoMessage()    {}
+func (*TEEConfig) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9140c1cfa025ceba, []int{1}
+}
+func (m *TEEConfig) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *TEEConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_TEEConfig.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *TEEConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TEEConfig.Merge(m, src)
+}
+func (m *TEEConfig) XXX_Size() int {
+	return m.Size()
+}
+func (m *TEEConfig) XXX_DiscardUnknown() {
+	xxx_messageInfo_TEEConfig.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TEEConfig proto.InternalMessageInfo
+
+func (m *TEEConfig) GetEnabled() bool {
+	if m != nil {
+		return m.Enabled
 	}
 	return false
 }
 
+func (m *TEEConfig) GetVerify() bool {
+	if m != nil {
+		return m.Verify
+	}
+	return false
+}
+
+func (m *TEEConfig) GetPolicyValues() string {
+	if m != nil {
+		return m.PolicyValues
+	}
+	return ""
+}
+
+func (m *TEEConfig) GetPolicyQuery() string {
+	if m != nil {
+		return m.PolicyQuery
+	}
+	return ""
+}
+
+func (m *TEEConfig) GetPolicyStructure() string {
+	if m != nil {
+		return m.PolicyStructure
+	}
+	return ""
+}
+
+func (m *TEEConfig) GetGcpRootCertPem() string {
+	if m != nil {
+		return m.GcpRootCertPem
+	}
+	return ""
+}
+
 func init() {
-	proto.RegisterType((*DeployerParams)(nil), "metaearth.rollapp.DeployerParams")
 	proto.RegisterType((*Params)(nil), "metaearth.rollapp.Params")
+	proto.RegisterType((*TEEConfig)(nil), "metaearth.rollapp.TEEConfig")
 }
 
 func init() { proto.RegisterFile("metaearth/rollapp/params.proto", fileDescriptor_9140c1cfa025ceba) }
 
 var fileDescriptor_9140c1cfa025ceba = []byte{
-	// 352 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x91, 0xc1, 0x4a, 0xe3, 0x40,
-	0x18, 0xc7, 0x93, 0xb6, 0x74, 0x77, 0xb3, 0xd0, 0xdd, 0x06, 0xc5, 0xa8, 0x90, 0x69, 0xc7, 0x4b,
-	0x0f, 0x9a, 0x80, 0xde, 0x7a, 0xf0, 0x10, 0x54, 0xe8, 0xad, 0xe4, 0x22, 0x88, 0x10, 0x26, 0xcd,
-	0xd0, 0x04, 0x27, 0x99, 0x61, 0x66, 0x8a, 0xf6, 0x2d, 0x3c, 0x7a, 0xf4, 0xea, 0x9b, 0xf4, 0xd8,
-	0xa3, 0xa7, 0x20, 0xed, 0x1b, 0xe4, 0x09, 0xc4, 0x64, 0x52, 0xd1, 0xe2, 0x6d, 0xf8, 0xff, 0xfe,
-	0xf3, 0x9b, 0xf9, 0xf8, 0x0c, 0x3b, 0xc5, 0x12, 0x61, 0xc4, 0x65, 0xec, 0x72, 0x4a, 0x08, 0x62,
-	0xcc, 0x65, 0x88, 0xa3, 0x54, 0x38, 0x8c, 0x53, 0x49, 0xcd, 0xee, 0x86, 0x3b, 0x8a, 0x1f, 0xec,
-	0x4c, 0xe9, 0x94, 0x96, 0xd4, 0xfd, 0x38, 0x55, 0x45, 0x78, 0x6e, 0x74, 0x2e, 0x30, 0x23, 0x74,
-	0x8e, 0xf9, 0xb8, 0x14, 0x98, 0xc7, 0xc6, 0x2f, 0x14, 0x45, 0x1c, 0x0b, 0x61, 0xe9, 0x3d, 0x7d,
-	0xf0, 0xc7, 0x33, 0x8b, 0x1c, 0x74, 0xe6, 0x28, 0x25, 0x43, 0xa8, 0x00, 0xf4, 0xeb, 0x0a, 0x7c,
-	0x69, 0x18, 0x6d, 0x75, 0xf1, 0xd6, 0xb0, 0xa2, 0x44, 0xb0, 0x99, 0xc4, 0x01, 0xc3, 0x3c, 0xa1,
-	0x51, 0x90, 0x64, 0x41, 0x48, 0xe8, 0xe4, 0xae, 0x32, 0xb5, 0xbc, 0xa3, 0x22, 0x07, 0xa0, 0x32,
-	0xfd, 0xd4, 0x84, 0xfe, 0xae, 0x42, 0xe3, 0x92, 0x8c, 0x32, 0xaf, 0xcc, 0x4d, 0x61, 0x98, 0x91,
-	0xfa, 0x68, 0x70, 0x1f, 0x27, 0x12, 0x93, 0x44, 0x48, 0xab, 0xd1, 0x6b, 0x0e, 0xfe, 0x9e, 0xf6,
-	0x9d, 0xad, 0x71, 0x9d, 0xaf, 0x53, 0x79, 0xfd, 0x45, 0x0e, 0xb4, 0x22, 0x07, 0xfb, 0xea, 0xf9,
-	0x2d, 0x15, 0xf4, 0xbb, 0x75, 0x78, 0x5d, 0x67, 0xe6, 0x95, 0xf1, 0x5f, 0xf9, 0x44, 0x80, 0x33,
-	0x14, 0x12, 0x1c, 0x59, 0xcd, 0x9e, 0x3e, 0xf8, 0xed, 0x1d, 0x16, 0x39, 0xd8, 0xab, 0x5c, 0xdf,
-	0x1b, 0xd0, 0xff, 0x57, 0x47, 0x97, 0x55, 0x32, 0x6c, 0x3d, 0x3d, 0x03, 0xcd, 0x1b, 0x2d, 0x56,
-	0xb6, 0xbe, 0x5c, 0xd9, 0xfa, 0xdb, 0xca, 0xd6, 0x1f, 0xd7, 0xb6, 0xb6, 0x5c, 0xdb, 0xda, 0xeb,
-	0xda, 0xd6, 0x6e, 0xdc, 0x69, 0x22, 0xe3, 0x59, 0xe8, 0x4c, 0x68, 0xea, 0x52, 0x86, 0xb3, 0xcf,
-	0xed, 0xa6, 0xf8, 0x24, 0x9e, 0x85, 0xee, 0xc3, 0x66, 0xcd, 0x72, 0xce, 0xb0, 0x08, 0xdb, 0xe5,
-	0xf6, 0xce, 0xde, 0x03, 0x00, 0x00, 0xff, 0xff, 0x49, 0x2c, 0xc8, 0x41, 0x08, 0x02, 0x00, 0x00,
-}
-
-func (m *DeployerParams) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *DeployerParams) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *DeployerParams) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Address) > 0 {
-		i -= len(m.Address)
-		copy(dAtA[i:], m.Address)
-		i = encodeVarintParams(dAtA, i, uint64(len(m.Address)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
+	// 655 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x94, 0x4f, 0x4f, 0xdb, 0x48,
+	0x18, 0xc6, 0x13, 0xf0, 0x86, 0x64, 0xd8, 0x3f, 0xc1, 0x0b, 0xac, 0xc3, 0xb2, 0x76, 0x64, 0x2e,
+	0xb9, 0xac, 0x2d, 0x76, 0x6f, 0x5c, 0x2a, 0x19, 0x51, 0x04, 0xbd, 0x50, 0x83, 0x38, 0xa0, 0x4a,
+	0xd6, 0xd8, 0x79, 0x71, 0xa6, 0xb5, 0x67, 0x86, 0x99, 0x71, 0xd4, 0x5c, 0xfa, 0x19, 0x7a, 0xec,
+	0xb1, 0x1f, 0x87, 0x23, 0x47, 0x4e, 0x51, 0x05, 0xdf, 0x20, 0xc7, 0x9e, 0xaa, 0x8c, 0x9d, 0xf0,
+	0x5f, 0xbd, 0xf9, 0x7d, 0x9e, 0xc7, 0xbf, 0x67, 0x34, 0x7a, 0x35, 0xc8, 0xce, 0x41, 0x61, 0xc0,
+	0x42, 0x0d, 0x7c, 0xc1, 0xb2, 0x0c, 0x73, 0xee, 0x73, 0x2c, 0x70, 0x2e, 0x3d, 0x2e, 0x98, 0x62,
+	0xe6, 0xca, 0xdc, 0xf7, 0x2a, 0x7f, 0xc3, 0x4e, 0x98, 0xcc, 0x99, 0xf4, 0x63, 0x2c, 0xc1, 0x1f,
+	0x6e, 0xc7, 0xa0, 0xf0, 0xb6, 0x9f, 0x30, 0x42, 0xcb, 0x5f, 0x36, 0x56, 0x53, 0x96, 0x32, 0xfd,
+	0xe9, 0x4f, 0xbf, 0x4a, 0xd5, 0xfd, 0x6e, 0xa0, 0xc6, 0x91, 0x26, 0x9b, 0xef, 0x90, 0xd5, 0x27,
+	0x92, 0x17, 0x0a, 0x22, 0x0e, 0x82, 0xb0, 0x7e, 0x44, 0x68, 0x14, 0x67, 0x2c, 0xf9, 0x20, 0xad,
+	0x7a, 0xb7, 0xde, 0x33, 0x82, 0xad, 0xc9, 0xd8, 0x71, 0x46, 0x38, 0xcf, 0x76, 0xdc, 0x97, 0x92,
+	0x6e, 0xb8, 0x56, 0x59, 0x47, 0xda, 0x39, 0xa0, 0x81, 0xd6, 0xcd, 0x13, 0xb4, 0x96, 0x91, 0x21,
+	0x50, 0x90, 0x32, 0x92, 0x19, 0x96, 0x83, 0x19, 0xda, 0xd0, 0xe8, 0xee, 0x64, 0xec, 0x6c, 0x96,
+	0xe8, 0x67, 0x63, 0x6e, 0xf8, 0xe7, 0x4c, 0x3f, 0x9e, 0xca, 0x15, 0xf5, 0x0c, 0xfd, 0xf5, 0x28,
+	0x4e, 0xa8, 0x02, 0x31, 0xc4, 0x99, 0xf5, 0x8b, 0xe6, 0xba, 0x93, 0xb1, 0x63, 0x3f, 0xcb, 0x9d,
+	0x05, 0xdd, 0x70, 0xed, 0x01, 0xf9, 0xa0, 0xd2, 0x4d, 0x8e, 0x56, 0x31, 0xe7, 0x91, 0x80, 0x94,
+	0x48, 0x25, 0xb0, 0x22, 0x8c, 0x46, 0xe7, 0x00, 0xd6, 0x52, 0xb7, 0xde, 0x5b, 0xfe, 0xaf, 0xe3,
+	0x95, 0xf7, 0xed, 0x4d, 0xef, 0xdb, 0xab, 0xee, 0xdb, 0xdb, 0x65, 0x84, 0x06, 0x5b, 0x97, 0x63,
+	0xa7, 0x36, 0x19, 0x3b, 0x7f, 0x97, 0xbd, 0xcf, 0x41, 0xdc, 0xd0, 0xc4, 0x9c, 0x87, 0xf7, 0xd4,
+	0xd7, 0x00, 0xe6, 0x27, 0xd4, 0xc9, 0x09, 0x8d, 0x24, 0x5c, 0x14, 0x40, 0x13, 0x10, 0x51, 0xcc,
+	0x68, 0x3f, 0x4a, 0x33, 0x16, 0xe3, 0xcc, 0x6a, 0xfe, 0xac, 0xb6, 0x57, 0xd5, 0x76, 0xcb, 0xda,
+	0x17, 0x49, 0x6e, 0xb8, 0x9e, 0x13, 0x7a, 0x3c, 0xb3, 0x02, 0x46, 0xfb, 0xfb, 0xda, 0x30, 0x4f,
+	0x11, 0x52, 0x00, 0x51, 0xc2, 0xe8, 0x39, 0x49, 0xad, 0x96, 0x2e, 0xdc, 0xf4, 0x9e, 0xac, 0x9a,
+	0x77, 0xb2, 0xb7, 0xb7, 0xab, 0x33, 0x41, 0xa7, 0xea, 0x5c, 0x29, 0x3b, 0xef, 0xfe, 0x76, 0xc3,
+	0x96, 0x02, 0x28, 0x53, 0x3b, 0xc6, 0x97, 0xaf, 0x4e, 0xed, 0xd0, 0x68, 0x2e, 0xb4, 0x17, 0x0f,
+	0x8d, 0xe6, 0x62, 0xdb, 0x38, 0x34, 0x9a, 0x8d, 0xf6, 0x92, 0x7b, 0xbd, 0x80, 0x5a, 0x73, 0x96,
+	0x69, 0xa1, 0x25, 0xa0, 0x38, 0xce, 0xa0, 0xaf, 0xd7, 0xad, 0x19, 0xce, 0x46, 0x73, 0x1d, 0x35,
+	0x86, 0x20, 0xc8, 0xf9, 0xc8, 0x6a, 0x68, 0xa3, 0x9a, 0xcc, 0x00, 0xfd, 0xc6, 0x59, 0x46, 0x92,
+	0x51, 0x34, 0xc4, 0x59, 0x01, 0xd2, 0x5a, 0xe8, 0xd6, 0x7b, 0xad, 0xe0, 0x9f, 0xc9, 0xd8, 0xe9,
+	0x94, 0x07, 0xaa, 0xec, 0xf7, 0x92, 0xd1, 0x2a, 0xe3, 0x86, 0xbf, 0x96, 0xe2, 0xa9, 0x1e, 0xcd,
+	0x57, 0xa8, 0x9a, 0xa3, 0x8b, 0x02, 0xc4, 0x48, 0xaf, 0x63, 0x2b, 0xd8, 0x9c, 0x8c, 0x1d, 0xeb,
+	0x01, 0x42, 0x40, 0xca, 0xca, 0x88, 0x1b, 0x2e, 0x97, 0xda, 0xdb, 0xe9, 0x64, 0xbe, 0x41, 0xed,
+	0x2a, 0x22, 0x95, 0x28, 0x12, 0x55, 0x08, 0xd0, 0xbb, 0xd7, 0xba, 0xbf, 0xd3, 0xf7, 0x21, 0xf3,
+	0x98, 0x1b, 0xfe, 0x51, 0xea, 0xc7, 0x33, 0xc5, 0xdc, 0x47, 0x2b, 0x69, 0xc2, 0x23, 0xc1, 0x98,
+	0x8a, 0x12, 0x10, 0x2a, 0xe2, 0x90, 0x5b, 0x8b, 0x8f, 0x8f, 0xf4, 0x24, 0xe2, 0x86, 0xbf, 0xa7,
+	0x09, 0x0f, 0x19, 0x53, 0xbb, 0x20, 0xd4, 0x11, 0xe4, 0xc1, 0xc1, 0xe5, 0x8d, 0x5d, 0xbf, 0xba,
+	0xb1, 0xeb, 0xdf, 0x6e, 0xec, 0xfa, 0xe7, 0x5b, 0xbb, 0x76, 0x75, 0x6b, 0xd7, 0xae, 0x6f, 0xed,
+	0xda, 0x99, 0x9f, 0x12, 0x35, 0x28, 0x62, 0x2f, 0x61, 0xb9, 0xcf, 0x38, 0xd0, 0xbb, 0x97, 0x26,
+	0x87, 0x7f, 0x07, 0x45, 0xec, 0x7f, 0x9c, 0x3f, 0x39, 0x6a, 0xc4, 0x41, 0xc6, 0x0d, 0xfd, 0x52,
+	0xfc, 0xff, 0x23, 0x00, 0x00, 0xff, 0xff, 0x50, 0x4b, 0x05, 0x00, 0x94, 0x04, 0x00, 0x00,
 }
 
 func (m *Params) Marshal() (dAtA []byte, err error) {
@@ -218,32 +281,119 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.RollappsEnabled {
+	{
+		size, err := m.TeeConfig.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintParams(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x4a
+	{
+		size, err := m.MinSequencerBondGlobal.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintParams(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x42
+	{
+		size, err := m.AppRegistrationFee.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintParams(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x3a
+	if m.LivenessSlashInterval != 0 {
+		i = encodeVarintParams(dAtA, i, uint64(m.LivenessSlashInterval))
 		i--
-		if m.RollappsEnabled {
+		dAtA[i] = 0x28
+	}
+	if m.LivenessSlashBlocks != 0 {
+		i = encodeVarintParams(dAtA, i, uint64(m.LivenessSlashBlocks))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.DisputePeriodInBlocks != 0 {
+		i = encodeVarintParams(dAtA, i, uint64(m.DisputePeriodInBlocks))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *TEEConfig) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TEEConfig) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TEEConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Verify {
+		i--
+		if m.Verify {
 			dAtA[i] = 1
 		} else {
 			dAtA[i] = 0
 		}
 		i--
-		dAtA[i] = 0x18
+		dAtA[i] = 0x30
 	}
-	if len(m.DeployerWhitelist) > 0 {
-		for iNdEx := len(m.DeployerWhitelist) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.DeployerWhitelist[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintParams(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x12
+	if len(m.PolicyStructure) > 0 {
+		i -= len(m.PolicyStructure)
+		copy(dAtA[i:], m.PolicyStructure)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.PolicyStructure)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.PolicyQuery) > 0 {
+		i -= len(m.PolicyQuery)
+		copy(dAtA[i:], m.PolicyQuery)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.PolicyQuery)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.GcpRootCertPem) > 0 {
+		i -= len(m.GcpRootCertPem)
+		copy(dAtA[i:], m.GcpRootCertPem)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.GcpRootCertPem)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.PolicyValues) > 0 {
+		i -= len(m.PolicyValues)
+		copy(dAtA[i:], m.PolicyValues)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.PolicyValues)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Enabled {
+		i--
+		if m.Enabled {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
 		}
-	}
-	if m.DisputePeriodInBlocks != 0 {
-		i = encodeVarintParams(dAtA, i, uint64(m.DisputePeriodInBlocks))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -261,19 +411,6 @@ func encodeVarintParams(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *DeployerParams) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Address)
-	if l > 0 {
-		n += 1 + l + sovParams(uint64(l))
-	}
-	return n
-}
-
 func (m *Params) Size() (n int) {
 	if m == nil {
 		return 0
@@ -283,13 +420,47 @@ func (m *Params) Size() (n int) {
 	if m.DisputePeriodInBlocks != 0 {
 		n += 1 + sovParams(uint64(m.DisputePeriodInBlocks))
 	}
-	if len(m.DeployerWhitelist) > 0 {
-		for _, e := range m.DeployerWhitelist {
-			l = e.Size()
-			n += 1 + l + sovParams(uint64(l))
-		}
+	if m.LivenessSlashBlocks != 0 {
+		n += 1 + sovParams(uint64(m.LivenessSlashBlocks))
 	}
-	if m.RollappsEnabled {
+	if m.LivenessSlashInterval != 0 {
+		n += 1 + sovParams(uint64(m.LivenessSlashInterval))
+	}
+	l = m.AppRegistrationFee.Size()
+	n += 1 + l + sovParams(uint64(l))
+	l = m.MinSequencerBondGlobal.Size()
+	n += 1 + l + sovParams(uint64(l))
+	l = m.TeeConfig.Size()
+	n += 1 + l + sovParams(uint64(l))
+	return n
+}
+
+func (m *TEEConfig) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Enabled {
+		n += 2
+	}
+	l = len(m.PolicyValues)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	l = len(m.GcpRootCertPem)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	l = len(m.PolicyQuery)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	l = len(m.PolicyStructure)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	if m.Verify {
 		n += 2
 	}
 	return n
@@ -300,88 +471,6 @@ func sovParams(x uint64) (n int) {
 }
 func sozParams(x uint64) (n int) {
 	return sovParams(uint64((x << 1) ^ uint64((int64(x) >> 63))))
-}
-func (m *DeployerParams) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowParams
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: DeployerParams: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: DeployerParams: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowParams
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthParams
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthParams
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Address = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipParams(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthParams
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
 }
 func (m *Params) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
@@ -431,9 +520,47 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 2:
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LivenessSlashBlocks", wireType)
+			}
+			m.LivenessSlashBlocks = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.LivenessSlashBlocks |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LivenessSlashInterval", wireType)
+			}
+			m.LivenessSlashInterval = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.LivenessSlashInterval |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 7:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DeployerWhitelist", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field AppRegistrationFee", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -460,14 +587,129 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.DeployerWhitelist = append(m.DeployerWhitelist, DeployerParams{})
-			if err := m.DeployerWhitelist[len(m.DeployerWhitelist)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.AppRegistrationFee.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
-		case 3:
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinSequencerBondGlobal", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MinSequencerBondGlobal.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TeeConfig", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.TeeConfig.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipParams(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthParams
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *TEEConfig) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowParams
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TEEConfig: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TEEConfig: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RollappsEnabled", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Enabled", wireType)
 			}
 			var v int
 			for shift := uint(0); ; shift += 7 {
@@ -484,7 +726,155 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-			m.RollappsEnabled = bool(v != 0)
+			m.Enabled = bool(v != 0)
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PolicyValues", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PolicyValues = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GcpRootCertPem", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.GcpRootCertPem = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PolicyQuery", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PolicyQuery = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PolicyStructure", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PolicyStructure = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Verify", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Verify = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipParams(dAtA[iNdEx:])

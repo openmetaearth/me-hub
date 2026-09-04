@@ -1,6 +1,7 @@
 package eibc_test
 
 import (
+	"encoding/base64"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -33,12 +34,12 @@ func TestInitGenesis(t *testing.T) {
 				Fee:                  sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(150)}},
 				Recipient:            "dym15saxgqw6kvhv6k5sg6r45kmdf4sf88kfw2adcw",
 				FulfillerAddress:     "dym19pas0pqwje540u5ptwnffjxeamdxc9tajmdrfa",
-				TrackingPacketStatus: commontypes.Status_REVERTED,
+				TrackingPacketStatus: commontypes.Status_FINALIZED,
 			},
 		},
 	}
 
-	k, ctx := keepertest.EibcKeeper(t)
+	k, ctx := keepertest.EIBCKeeper(t)
 	eibc.InitGenesis(ctx, *k, genesisState)
 	got := eibc.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
@@ -51,38 +52,51 @@ func TestInitGenesis(t *testing.T) {
 }
 
 func TestExportGenesis(t *testing.T) {
-	k, ctx := keepertest.EibcKeeper(t)
+	k, ctx := keepertest.EIBCKeeper(t)
 	params := types.Params{
 		EpochIdentifier: "week",
-		TimeoutFee:      sdk.NewDecWithPrec(4, 1),
-		ErrackFee:       sdk.NewDecWithPrec(4, 1),
+		TimeoutFee:      math.LegacyNewDecWithPrec(4, 1),
+		ErrackFee:       math.LegacyNewDecWithPrec(4, 1),
 	}
 	// Set some demand orders
 	demandOrders := []types.DemandOrder{
 		{
 			Id:                   "1",
 			TrackingPacketKey:    "key",
-			Price:                sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(100))),
-			Fee:                  sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(10))),
+			Price:                sdk.NewCoins(sdk.NewCoin("dym", math.NewInt(100))),
+			Fee:                  sdk.NewCoins(sdk.NewCoin("dym", math.NewInt(10))),
 			TrackingPacketStatus: commontypes.Status_PENDING,
 		},
 		{
 			Id:                   "2",
 			TrackingPacketKey:    "key2",
-			Price:                sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(100))),
-			Fee:                  sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(10))),
+			Price:                sdk.NewCoins(sdk.NewCoin("dym", math.NewInt(100))),
+			Fee:                  sdk.NewCoins(sdk.NewCoin("dym", math.NewInt(10))),
 			TrackingPacketStatus: commontypes.Status_PENDING,
 		},
 	}
+
 	for _, demandOrder := range demandOrders {
 		demandOrderCopy := demandOrder
 		err := k.SetDemandOrder(ctx, &demandOrderCopy)
 		require.NoError(t, err)
 	}
+
 	k.SetParams(ctx, params)
 	// Verify the exported genesis
 	got := eibc.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.ElementsMatch(t, demandOrders, got.DemandOrders)
-	require.Equal(t, params, got.Params)
+
+	require.NotNil(t, got, "ExportGenesis should not return nil")
+
+	require.Equal(t, params, got.Params, "Params should match the set params")
+
+	expectedDemandOrders := make([]types.DemandOrder, len(demandOrders))
+	for i, order := range demandOrders {
+		orderCopy := order
+		encodedKey := base64.StdEncoding.EncodeToString([]byte(order.TrackingPacketKey))
+		orderCopy.TrackingPacketKey = encodedKey
+		expectedDemandOrders[i] = orderCopy
+	}
+
+	require.ElementsMatch(t, expectedDemandOrders, got.DemandOrders, "DemandOrders should match after encoding TrackingPacketKey")
 }

@@ -1,8 +1,9 @@
 package keeper_test
 
 import (
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 
+	"github.com/openmetaearth/me-hub/app/apptesting"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
 )
@@ -52,11 +53,11 @@ func (suite *DelayedAckTestSuite) TestAfterEpochEnd() {
 						SourceChannel:      "testSourceChannel",
 						DestinationPort:    "testDestinationPort",
 						DestinationChannel: "testDestinationChannel",
-						Data:               []byte("testData"),
-						Sequence:           uint64(i),
+						Data:               apptesting.GenerateTestPacketData(suite.T()),
+						Sequence:           uint64(i), //nolint:gosec
 					},
 					Status:      commontypes.Status_PENDING,
-					ProofHeight: uint64(i * 2),
+					ProofHeight: uint64(i * 2), //nolint:gosec
 				}
 				keeper.SetRollappPacket(ctx, *rollappPacket)
 			}
@@ -65,7 +66,7 @@ func (suite *DelayedAckTestSuite) TestAfterEpochEnd() {
 			suite.Require().Equal(tc.pendingPacketsNum, len(rollappPackets))
 
 			for _, rollappPacket := range rollappPackets[:tc.finalizePacketsNum] {
-				_, err := keeper.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
+				_, err := keeper.UpdateRollappPacketAfterFinalization(ctx, rollappPacket)
 				suite.Require().NoError(err)
 			}
 			finalizedRollappPackets := keeper.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappID, commontypes.Status_FINALIZED))

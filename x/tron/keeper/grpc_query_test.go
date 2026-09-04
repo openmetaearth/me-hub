@@ -57,14 +57,14 @@ func (s *KeeperTestSuite) TestQuery_BatchFees() {
 				minBatchFee := []types.MinBatchFee{
 					{
 						TokenContract: bridgeTokens[0].ContractAddress,
-						BaseFee:       sdk.NewInt(1e7),
+						BaseFee:       sdkmath.NewInt(1e7),
 					},
 				}
 				for i := uint64(1); i <= 3; i++ {
 					err := s.App.TronKeeper.AttestationHandler(s.Ctx, &types.MsgSendToMeClaim{
 						TokenContract:  bridgeTokens[0].ContractAddress,
 						RelayerAddress: s.signer.AccAddress().String(),
-						Amount:         sdk.NewInt(1e8),
+						Amount:         sdkmath.NewInt(1e8),
 						Receiver:       s.signer.AccAddress().String(),
 					})
 					s.Require().NoError(err)
@@ -73,8 +73,8 @@ func (s *KeeperTestSuite) TestQuery_BatchFees() {
 						s.Ctx,
 						s.signer.AccAddress(),
 						helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
-						sdk.NewCoin(bridgeTokens[0].Denom, sdk.NewInt(1e7)),
-						sdk.NewCoin(bridgeTokens[0].Denom, sdk.NewInt(1e7)),
+						sdk.NewCoin(bridgeTokens[0].Denom, sdkmath.NewInt(1e7)),
+						sdk.NewCoin(bridgeTokens[0].Denom, sdkmath.NewInt(1e7)),
 					)
 					s.Require().NoError(err)
 				}
@@ -83,8 +83,8 @@ func (s *KeeperTestSuite) TestQuery_BatchFees() {
 						s.Ctx,
 						s.signer.AccAddress(),
 						helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
-						sdk.NewCoin(bridgeTokens[0].Denom, sdk.NewInt(1e7)),
-						sdk.NewCoin(bridgeTokens[0].Denom, sdk.NewInt(1e2)),
+						sdk.NewCoin(bridgeTokens[0].Denom, sdkmath.NewInt(1e7)),
+						sdk.NewCoin(bridgeTokens[0].Denom, sdkmath.NewInt(1e2)),
 					)
 					s.Require().NoError(err)
 				}
@@ -95,9 +95,9 @@ func (s *KeeperTestSuite) TestQuery_BatchFees() {
 				response = &types.QueryBatchFeeResponse{BatchFees: []*types.BatchFees{
 					{
 						TokenContract: bridgeTokens[0].ContractAddress,
-						TotalFees:     sdk.NewInt(1e7 * 3),
+						TotalFees:     sdkmath.NewInt(1e7 * 3),
 						TotalTxs:      3,
-						TotalAmount:   sdk.NewInt(1e7 * 3),
+						TotalAmount:   sdkmath.NewInt(1e7 * 3),
 					},
 				}}
 			},
@@ -110,24 +110,24 @@ func (s *KeeperTestSuite) TestQuery_BatchFees() {
 				minBatchFee := []types.MinBatchFee{
 					{
 						TokenContract: bridgeTokens[0].ContractAddress,
-						BaseFee:       sdk.NewInt(1e6),
+						BaseFee:       sdkmath.NewInt(1e6),
 					},
 					{
 						TokenContract: bridgeTokens[1].ContractAddress,
-						BaseFee:       sdk.NewInt(1e10),
+						BaseFee:       sdkmath.NewInt(1e10),
 					},
 				}
 				err := s.App.TronKeeper.AttestationHandler(s.Ctx, &types.MsgSendToMeClaim{
 					TokenContract:  bridgeTokens[0].ContractAddress,
 					RelayerAddress: s.signer.AccAddress().String(),
-					Amount:         sdk.NewInt(1e18),
+					Amount:         sdkmath.NewInt(1e18),
 					Receiver:       s.signer.AccAddress().String(),
 				})
 				s.Require().NoError(err)
 				err = s.App.TronKeeper.AttestationHandler(s.Ctx, &types.MsgSendToMeClaim{
 					TokenContract:  bridgeTokens[1].ContractAddress,
 					RelayerAddress: s.signer.AccAddress().String(),
-					Amount:         sdk.NewInt(1e18),
+					Amount:         sdkmath.NewInt(1e18),
 					Receiver:       s.signer.AccAddress().String(),
 				})
 				s.Require().NoError(err)
@@ -136,16 +136,16 @@ func (s *KeeperTestSuite) TestQuery_BatchFees() {
 						s.Ctx,
 						s.signer.AccAddress(),
 						helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
-						sdk.NewCoin(bridgeTokens[0].Denom, sdk.NewInt(1e6)),
-						sdk.NewCoin(bridgeTokens[0].Denom, sdk.NewInt(1e5)))
+						sdk.NewCoin(bridgeTokens[0].Denom, sdkmath.NewInt(1e6)),
+						sdk.NewCoin(bridgeTokens[0].Denom, sdkmath.NewInt(1e5)))
 					s.Require().NoError(err)
 				}
 				_, err = s.App.TronKeeper.AddToOutgoingPool(
 					s.Ctx,
 					s.signer.AccAddress(),
 					helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
-					sdk.NewCoin(bridgeTokens[0].Denom, sdk.NewInt(1e6)),
-					sdk.NewCoin(bridgeTokens[0].Denom, sdk.NewInt(1e6)))
+					sdk.NewCoin(bridgeTokens[0].Denom, sdkmath.NewInt(1e6)),
+					sdk.NewCoin(bridgeTokens[0].Denom, sdkmath.NewInt(1e6)))
 				s.Require().NoError(err)
 
 				for i := 1; i <= 3; i++ {
@@ -153,8 +153,8 @@ func (s *KeeperTestSuite) TestQuery_BatchFees() {
 						s.Ctx,
 						s.signer.AccAddress(),
 						helpers.HexAddrToTronAddr(helpers.GenHexAddress().Hex()),
-						sdk.NewCoin(bridgeTokens[1].Denom, sdk.NewInt(1e10)),
-						sdk.NewCoin(bridgeTokens[1].Denom, sdk.NewInt(1e10)))
+						sdk.NewCoin(bridgeTokens[1].Denom, sdkmath.NewInt(1e10)),
+						sdk.NewCoin(bridgeTokens[1].Denom, sdkmath.NewInt(1e10)))
 					s.Require().NoError(err)
 				}
 				request = &types.QueryBatchFeeRequest{
@@ -164,15 +164,15 @@ func (s *KeeperTestSuite) TestQuery_BatchFees() {
 				response = &types.QueryBatchFeeResponse{BatchFees: []*types.BatchFees{
 					{
 						TokenContract: bridgeTokens[0].ContractAddress,
-						TotalFees:     sdk.NewInt(1e6),
+						TotalFees:     sdkmath.NewInt(1e6),
 						TotalTxs:      1,
-						TotalAmount:   sdk.NewInt(1e6),
+						TotalAmount:   sdkmath.NewInt(1e6),
 					},
 					{
 						TokenContract: bridgeTokens[1].ContractAddress,
-						TotalFees:     sdk.NewInt(1e10 * 3),
+						TotalFees:     sdkmath.NewInt(1e10 * 3),
 						TotalTxs:      3,
-						TotalAmount:   sdk.NewInt(1e10 * 3),
+						TotalAmount:   sdkmath.NewInt(1e10 * 3),
 					},
 				}}
 			},
@@ -448,7 +448,7 @@ func (s *KeeperTestSuite) TestQuery_BridgeToken() {
 				}
 				response = types.QueryBridgeTokenResponse{
 					BridgeToken: &bridgeTokens[0],
-					TotalSupply: sdk.NewCoin(bridgeTokens[0].Denom, sdk.NewInt(0)),
+					TotalSupply: sdk.NewCoin(bridgeTokens[0].Denom, sdkmath.NewInt(0)),
 				}
 			},
 			expPass: true,

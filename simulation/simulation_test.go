@@ -8,9 +8,8 @@ import (
 	simulationtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	simcli "github.com/cosmos/cosmos-sdk/x/simulation/client/cli"
-	"github.com/stretchr/testify/require"
-
 	"github.com/openmetaearth/me-hub/app"
+	"github.com/stretchr/testify/require"
 )
 
 func init() {
@@ -38,8 +37,6 @@ func BenchmarkSimulation(b *testing.B) {
 		require.NoError(b, err)
 	})
 
-	encoding := app.MakeEncodingConfig()
-
 	medApp := app.New(
 		logger,
 		db,
@@ -48,7 +45,7 @@ func BenchmarkSimulation(b *testing.B) {
 		map[int64]bool{},
 		app.DefaultNodeHome,
 		0,
-		encoding,
+		app.MakeEncodingConfig(),
 		simapp.EmptyAppOptions{},
 	)
 
@@ -60,7 +57,7 @@ func BenchmarkSimulation(b *testing.B) {
 		simapp.AppStateFn(medApp.AppCodec(), medApp.SimulationManager(), app.NewDefaultGenesisState(medApp.AppCodec())),
 		simulationtypes.RandomAccounts,
 		simapp.SimulationOperations(medApp, medApp.AppCodec(), config),
-		medApp.ModuleAccountAddrs(),
+		app.ModuleAccountAddrs(),
 		config,
 		medApp.AppCodec(),
 	)

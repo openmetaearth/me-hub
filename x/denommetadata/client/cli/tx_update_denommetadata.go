@@ -17,7 +17,7 @@ func NewCmdSubmitUpdateDenomMetadataProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-denom-metadata-proposal denom_metadata.json [flags]",
 		Short:   "proposal to update new denom metadata for a specific token",
-		Example: `med tx gov submit-legacy-proposal update-denom-metadata-proposal denom_metadata.json`,
+		Example: `dymd tx gov submit-legacy-proposal update-denom-metadata-proposal denom_metadata.json`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -33,7 +33,7 @@ func NewCmdSubmitUpdateDenomMetadataProposal() *cobra.Command {
 			path := args[0]
 
 			var metadatas []banktypes.Metadata
-			metadatas, err = utils.ParseJsonFromFile[banktypes.Metadata](path)
+			err = utils.ParseJsonFromFile(path, &metadatas)
 			if err != nil {
 				return err
 			}

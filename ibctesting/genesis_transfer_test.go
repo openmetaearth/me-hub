@@ -4,17 +4,17 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/openmetaearth/me-hub/x/rollapp/genesisbridge"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/openmetaearth/me-hub/app/apptesting"
-	"github.com/openmetaearth/me-hub/x/rollapp/transfergenesis"
-	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
 )
 
 type transferGenesisSuite struct {
@@ -68,8 +68,8 @@ func (s *transferGenesisSuite) TestHappyPath() {
 		err = s.path.RelayPacket(packet)
 		s.Require().NoError(err)
 
-		transfersEnabled := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
-		s.Require().False(transfersEnabled, "transfers enabled check")
+		transferProofHeight := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransferProofHeight
+		s.Require().Zero(transferProofHeight, "transfers enabled check")
 	}
 
 	for _, denom := range denoms {
@@ -106,7 +106,7 @@ func (s *transferGenesisSuite) TestCannotDoGenesisTransferAfterBridgeEnabled() {
 
 		if i == 2 {
 
-			expect := channeltypes.NewErrorAcknowledgement(transfergenesis.ErrDisabled)
+			expect := channeltypes.NewErrorAcknowledgement(genesisbridge.ErrDisabled)
 			bz, _ := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			s.Require().Equal(channeltypes.CommitAcknowledgement(expect.Acknowledgement()), bz)
 		}
@@ -149,11 +149,9 @@ func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string, isGenesis
 		"",
 	)
 
-	if isGenesis {
-		msg.Memo = rollapptypes.GenesisTransferMemo{
-			Denom: meta,
-		}.Namespaced().MustString()
-	}
+	// The v3 genesis bridge no longer uses the legacy transfer memo. Genesis
+	// packets are carried by GenesisBridgeData during channel initialization.
+	_ = isGenesis
 
 	return msg
 }

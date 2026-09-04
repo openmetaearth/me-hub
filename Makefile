@@ -14,7 +14,6 @@ BUILDDIR ?= $(CURDIR)/build
 # Dependencies version
 DEPS_COSMOS_SDK_VERSION := $(shell cat go.sum | grep 'github.com/openmetaearth/cosmos-sdk' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_ETHERMINT_VERSION := $(shell cat go.sum | grep 'github.com/openmetaearth/ethermint' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
-DEPS_OSMOSIS_VERSION := $(shell cat go.sum | grep 'github.com/openmetaearth/osmosis' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_IBC_GO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/ibc-go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_COSMOS_PROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos-proto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_COSMOS_GOGOPROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/gogoproto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')

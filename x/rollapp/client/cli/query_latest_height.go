@@ -13,12 +13,11 @@ func CmdShowLatestHeight() *cobra.Command {
 		Use:   "latest-height [rollapp-id]",
 		Short: "Query the last height of the last UpdateState associated with the specified rollapp-id.",
 		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
-
 			queryClient := types.NewQueryClient(clientCtx)
 
 			argRollappId := args[0]

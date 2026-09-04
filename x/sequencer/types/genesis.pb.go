@@ -25,8 +25,15 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState defines the sequencer module's genesis state.
 type GenesisState struct {
-	Params        Params      `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
+	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
+	// sequencerList is a list of all defined sequencers
 	SequencerList []Sequencer `protobuf:"bytes,2,rep,name=sequencerList,proto3" json:"sequencerList"`
+	// genesisProposers is a list of the defined genesis proposers
+	GenesisProposers []GenesisProposer `protobuf:"bytes,3,rep,name=genesisProposers,proto3" json:"genesisProposers"`
+	// genesisSuccessor is a list of the defined genesis proposers
+	GenesisSuccessors []GenesisProposer `protobuf:"bytes,5,rep,name=genesisSuccessors,proto3" json:"genesisSuccessors"`
+	// list of sequencers in the notice queue
+	NoticeQueue []string `protobuf:"bytes,4,rep,name=noticeQueue,proto3" json:"noticeQueue,omitempty"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -76,29 +83,110 @@ func (m *GenesisState) GetSequencerList() []Sequencer {
 	return nil
 }
 
+func (m *GenesisState) GetGenesisProposers() []GenesisProposer {
+	if m != nil {
+		return m.GenesisProposers
+	}
+	return nil
+}
+
+func (m *GenesisState) GetGenesisSuccessors() []GenesisProposer {
+	if m != nil {
+		return m.GenesisSuccessors
+	}
+	return nil
+}
+
+func (m *GenesisState) GetNoticeQueue() []string {
+	if m != nil {
+		return m.NoticeQueue
+	}
+	return nil
+}
+
+type GenesisProposer struct {
+	Address   string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	RollappId string `protobuf:"bytes,2,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+}
+
+func (m *GenesisProposer) Reset()         { *m = GenesisProposer{} }
+func (m *GenesisProposer) String() string { return proto.CompactTextString(m) }
+func (*GenesisProposer) ProtoMessage()    {}
+func (*GenesisProposer) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4df130ec76758d9e, []int{1}
+}
+func (m *GenesisProposer) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GenesisProposer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GenesisProposer.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GenesisProposer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GenesisProposer.Merge(m, src)
+}
+func (m *GenesisProposer) XXX_Size() int {
+	return m.Size()
+}
+func (m *GenesisProposer) XXX_DiscardUnknown() {
+	xxx_messageInfo_GenesisProposer.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GenesisProposer proto.InternalMessageInfo
+
+func (m *GenesisProposer) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
+func (m *GenesisProposer) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*GenesisState)(nil), "metaearth.sequencer.GenesisState")
+	proto.RegisterType((*GenesisProposer)(nil), "metaearth.sequencer.GenesisProposer")
 }
 
 func init() { proto.RegisterFile("metaearth/sequencer/genesis.proto", fileDescriptor_4df130ec76758d9e) }
 
 var fileDescriptor_4df130ec76758d9e = []byte{
-	// 237 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0xcc, 0x4d, 0x2d, 0x49,
-	0x4c, 0x4d, 0x2c, 0x2a, 0xc9, 0xd0, 0x2f, 0x4e, 0x2d, 0x2c, 0x4d, 0xcd, 0x4b, 0x4e, 0x2d, 0xd2,
-	0x4f, 0x4f, 0xcd, 0x4b, 0x2d, 0xce, 0x2c, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0x86,
-	0x2b, 0xd1, 0x83, 0x2b, 0x91, 0x12, 0x49, 0xcf, 0x4f, 0xcf, 0x07, 0xcb, 0xeb, 0x83, 0x58, 0x10,
-	0xa5, 0x52, 0x0a, 0xd8, 0x4c, 0x2b, 0x48, 0x2c, 0x4a, 0xcc, 0x85, 0x1a, 0x26, 0xa5, 0x8c, 0x4d,
-	0x05, 0x9c, 0x05, 0x51, 0xa4, 0x34, 0x95, 0x91, 0x8b, 0xc7, 0x1d, 0xe2, 0x86, 0xe0, 0x92, 0xc4,
-	0x92, 0x54, 0x21, 0x4b, 0x2e, 0x36, 0x88, 0x29, 0x12, 0x8c, 0x0a, 0x8c, 0x1a, 0xdc, 0x46, 0xd2,
-	0x7a, 0x58, 0xdc, 0xa4, 0x17, 0x00, 0x56, 0xe2, 0xc4, 0x72, 0xe2, 0x9e, 0x3c, 0x43, 0x10, 0x54,
-	0x83, 0x90, 0x17, 0x17, 0x2f, 0x5c, 0x85, 0x4f, 0x66, 0x71, 0x89, 0x04, 0x93, 0x02, 0xb3, 0x06,
-	0xb7, 0x91, 0x1c, 0x56, 0x13, 0x82, 0x61, 0x2c, 0xa8, 0x21, 0xa8, 0x5a, 0x9d, 0xbc, 0x4f, 0x3c,
-	0x92, 0x63, 0xbc, 0xf0, 0x48, 0x8e, 0xf1, 0xc1, 0x23, 0x39, 0xc6, 0x09, 0x8f, 0xe5, 0x18, 0x2e,
-	0x3c, 0x96, 0x63, 0xb8, 0xf1, 0x58, 0x8e, 0x21, 0xca, 0x30, 0x3d, 0xb3, 0x24, 0xa3, 0x34, 0x49,
-	0x2f, 0x39, 0x3f, 0x57, 0x3f, 0xbf, 0x20, 0x35, 0x0f, 0xe1, 0xcb, 0xdc, 0x54, 0xdd, 0x8c, 0xd2,
-	0x24, 0xfd, 0x0a, 0x24, 0xef, 0x96, 0x54, 0x16, 0xa4, 0x16, 0x27, 0xb1, 0x81, 0xfd, 0x6a, 0x0c,
-	0x08, 0x00, 0x00, 0xff, 0xff, 0xe8, 0xd7, 0xa4, 0xac, 0x82, 0x01, 0x00, 0x00,
+	// 347 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x92, 0x31, 0x4f, 0xc2, 0x40,
+	0x14, 0xc7, 0x5b, 0x40, 0x0c, 0x87, 0x46, 0x3d, 0x1d, 0x2e, 0x68, 0xce, 0x8a, 0x0e, 0x2c, 0xb6,
+	0x11, 0x27, 0x57, 0x16, 0x82, 0x3a, 0x20, 0x24, 0xc6, 0xb8, 0x1d, 0xe5, 0xa5, 0x34, 0xa1, 0xbd,
+	0xf3, 0xee, 0x9a, 0xe8, 0xb7, 0xf0, 0x63, 0x31, 0x32, 0x3a, 0x19, 0x03, 0x93, 0xdf, 0xc2, 0xd8,
+	0x96, 0x02, 0xd2, 0xc5, 0xed, 0xdd, 0xbb, 0xdf, 0xfb, 0xe5, 0xe5, 0xe5, 0x8f, 0xce, 0x02, 0xd0,
+	0x0c, 0x98, 0xd4, 0x23, 0x47, 0xc1, 0x4b, 0x04, 0xa1, 0x0b, 0xd2, 0xf1, 0x20, 0x04, 0xe5, 0x2b,
+	0x5b, 0x48, 0xae, 0x39, 0x3e, 0xcc, 0x10, 0x3b, 0x43, 0x6a, 0x47, 0x1e, 0xf7, 0x78, 0xfc, 0xef,
+	0xfc, 0x56, 0x09, 0x5a, 0xb3, 0xf2, 0x6c, 0x82, 0x49, 0x16, 0xa4, 0xb2, 0xda, 0x79, 0x1e, 0x91,
+	0x55, 0x09, 0x54, 0xff, 0x2e, 0xa0, 0x9d, 0x76, 0xb2, 0x43, 0x5f, 0x33, 0x0d, 0xf8, 0x06, 0x95,
+	0x13, 0x0b, 0x31, 0x2d, 0xb3, 0x51, 0x6d, 0x1e, 0xdb, 0x39, 0x3b, 0xd9, 0xdd, 0x18, 0x69, 0x95,
+	0x26, 0x9f, 0xa7, 0x46, 0x2f, 0x1d, 0xc0, 0xb7, 0x68, 0x37, 0x23, 0xee, 0x7d, 0xa5, 0x49, 0xc1,
+	0x2a, 0x36, 0xaa, 0x4d, 0x9a, 0x6b, 0xe8, 0x2f, 0xaa, 0x54, 0xb2, 0x3e, 0x8a, 0x1f, 0xd1, 0x7e,
+	0x7a, 0x9a, 0xae, 0xe4, 0x82, 0x2b, 0x90, 0x8a, 0x14, 0x63, 0xdd, 0x45, 0xae, 0xae, 0xbd, 0x0e,
+	0xa7, 0xd2, 0x0d, 0x07, 0x7e, 0x42, 0x07, 0x69, 0xaf, 0x1f, 0xb9, 0x2e, 0x28, 0xc5, 0xa5, 0x22,
+	0x5b, 0xff, 0x16, 0x6f, 0x4a, 0xb0, 0x85, 0xaa, 0x21, 0xd7, 0xbe, 0x0b, 0x0f, 0x11, 0x44, 0x40,
+	0x4a, 0x56, 0xb1, 0x51, 0xe9, 0xad, 0xb6, 0xea, 0x1d, 0xb4, 0xf7, 0xc7, 0x86, 0x09, 0xda, 0x66,
+	0xc3, 0xa1, 0x04, 0x95, 0x9c, 0xbb, 0xd2, 0x5b, 0x3c, 0xf1, 0x09, 0xaa, 0x48, 0x3e, 0x1e, 0x33,
+	0x21, 0x3a, 0x43, 0x52, 0x88, 0xff, 0x96, 0x8d, 0xd6, 0xdd, 0x64, 0x46, 0xcd, 0xe9, 0x8c, 0x9a,
+	0x5f, 0x33, 0x6a, 0xbe, 0xcf, 0xa9, 0x31, 0x9d, 0x53, 0xe3, 0x63, 0x4e, 0x8d, 0xe7, 0x2b, 0xcf,
+	0xd7, 0xa3, 0x68, 0x60, 0xbb, 0x3c, 0x70, 0xb8, 0x80, 0x70, 0x19, 0x82, 0x00, 0x2e, 0x47, 0xd1,
+	0xc0, 0x79, 0x5d, 0x49, 0x83, 0x7e, 0x13, 0xa0, 0x06, 0xe5, 0x38, 0x0a, 0xd7, 0x3f, 0x01, 0x00,
+	0x00, 0xff, 0xff, 0xbb, 0x23, 0xda, 0x85, 0xa1, 0x02, 0x00, 0x00,
 }
 
 func (m *GenesisState) Marshal() (dAtA []byte, err error) {
@@ -121,6 +209,43 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.GenesisSuccessors) > 0 {
+		for iNdEx := len(m.GenesisSuccessors) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.GenesisSuccessors[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if len(m.NoticeQueue) > 0 {
+		for iNdEx := len(m.NoticeQueue) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.NoticeQueue[iNdEx])
+			copy(dAtA[i:], m.NoticeQueue[iNdEx])
+			i = encodeVarintGenesis(dAtA, i, uint64(len(m.NoticeQueue[iNdEx])))
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if len(m.GenesisProposers) > 0 {
+		for iNdEx := len(m.GenesisProposers) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.GenesisProposers[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
 	if len(m.SequencerList) > 0 {
 		for iNdEx := len(m.SequencerList) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -148,6 +273,43 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *GenesisProposer) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GenesisProposer) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *GenesisProposer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Address) > 0 {
+		i -= len(m.Address)
+		copy(dAtA[i:], m.Address)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.Address)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintGenesis(dAtA []byte, offset int, v uint64) int {
 	offset -= sovGenesis(v)
 	base := offset
@@ -172,6 +334,41 @@ func (m *GenesisState) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovGenesis(uint64(l))
 		}
+	}
+	if len(m.GenesisProposers) > 0 {
+		for _, e := range m.GenesisProposers {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	if len(m.NoticeQueue) > 0 {
+		for _, s := range m.NoticeQueue {
+			l = len(s)
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	if len(m.GenesisSuccessors) > 0 {
+		for _, e := range m.GenesisSuccessors {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *GenesisProposer) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
 	}
 	return n
 }
@@ -277,6 +474,220 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			if err := m.SequencerList[len(m.SequencerList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GenesisProposers", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.GenesisProposers = append(m.GenesisProposers, GenesisProposer{})
+			if err := m.GenesisProposers[len(m.GenesisProposers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NoticeQueue", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NoticeQueue = append(m.NoticeQueue, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GenesisSuccessors", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.GenesisSuccessors = append(m.GenesisSuccessors, GenesisProposer{})
+			if err := m.GenesisSuccessors[len(m.GenesisSuccessors)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGenesis(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GenesisProposer) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGenesis
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GenesisProposer: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GenesisProposer: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

@@ -1,10 +1,10 @@
 package keeper_test
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"strings"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -31,7 +31,7 @@ func (s *KeeperTestSuite) createGlobalRegion() {
 		Dao:      s.Dao.GlobalDao,
 		RegionId: strings.ToLower(types.MeEarthRegionName),
 		Term:     30,
-		Rate:     sdk.MustNewDecFromStr("0.1"),
+		Rate:     sdkmath.LegacyMustNewDecFromStr("0.1"),
 	}
 	_, err = s.msgServer.NewFixedDepositCfg(s.Ctx, &msg)
 	s.Require().NoError(err)
@@ -49,7 +49,7 @@ func (s *KeeperTestSuite) createUsaRegion() {
 		Dao:      s.Dao.GlobalDao,
 		RegionId: "usa",
 		Term:     30,
-		Rate:     sdk.MustNewDecFromStr("0.1"),
+		Rate:     sdkmath.LegacyMustNewDecFromStr("0.1"),
 	}
 	_, err = s.msgServer.NewFixedDepositCfg(s.Ctx, &msg)
 	s.Require().NoError(err)
@@ -60,7 +60,7 @@ func (s *KeeperTestSuite) createFixedDeposits(count int, account string) {
 		// Create a sample FixedDeposit
 		fixedDeposit := types.MsgDoFixedDeposit{
 			Account:   account,
-			Principal: sdk.NewCoin(params.BaseDenom, sdk.NewInt(100000000)),
+			Principal: sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(100000000)),
 			Term:      30,
 		}
 		// Run DoFixedDeposit to set FixedDeposit data
@@ -73,9 +73,9 @@ func (s *KeeperTestSuite) TestFixedDepositByRegionPagination() {
 	s.SetupTest()
 	s.createGlobalRegion()
 	s.createUsaRegion()
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	accounts := s.NewAccounts(3)
 	for _, account := range accounts {
@@ -167,9 +167,9 @@ func (s *KeeperTestSuite) TestFixedDepositByRegionPagination() {
 func (s *KeeperTestSuite) TestFixedDepositByRegionNilPagination() {
 	s.SetupTest()
 	s.createGlobalRegion()
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wmintTypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	accounts := s.NewAccounts(1)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)

@@ -3,119 +3,78 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	coretypes "github.com/cosmos/ibc-go/v7/modules/core/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/openmetaearth/me-hub/utils/osmoutils"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
-	"github.com/openmetaearth/me-hub/x/delayedack/types"
 )
 
-// FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is
-// the end height of the latest finalized state
-func (k Keeper) FinalizeRollappPackets(ctx sdk.Context, ibc porttypes.IBCModule, rollappID string, stateEndHeight uint64) error {
-	rollappPendingPackets := k.ListRollappPackets(ctx, types.PendingByRollappIDByMaxHeight(rollappID, stateEndHeight))
-	if len(rollappPendingPackets) == 0 {
-		return nil
+func (k Keeper) FinalizeRollappPacket(ctx sdk.Context, ibc porttypes.IBCModule, rollappPacketKey string) (*commontypes.RollappPacket, error) {
+	packet, err := k.GetRollappPacket(ctx, rollappPacketKey)
+	if err != nil {
+		return nil, fmt.Errorf("get rollapp packet: %s: %w", rollappPacketKey, err)
 	}
-	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
-	// Get the packets for the rollapp until height
-	logger.Debug("finalizing IBC rollapp packets",
-		"rollappID", rollappID,
-		"state end height", stateEndHeight,
-		"num packets", len(rollappPendingPackets))
-	for _, rollappPacket := range rollappPendingPackets {
-		if err := k.finalizeRollappPacket(ctx, ibc, rollappID, logger, rollappPacket); err != nil {
-			return fmt.Errorf("finalize rollapp packet: %w", err)
-		}
+
+	if !k.rollappKeeper.IsHeightFinalized(ctx, packet.RollappId, packet.ProofHeight) {
+		return packet, fmt.Errorf("packet height is not finalized yet, verify height")
 	}
-	return nil
+
+	err = k.finalizeRollappPacket(ctx, ibc, packet.RollappId, *packet)
+	if err != nil {
+		return packet, fmt.Errorf("finalize rollapp packet: %w", err)
+	}
+
+	return packet, nil
 }
 
+// used with osmo helper
 type wrappedFunc func(ctx sdk.Context) error
 
+// ibc = the next IBC module in the stack, to 'resume' the rest of the transfer flow
 func (k Keeper) finalizeRollappPacket(
 	ctx sdk.Context,
 	ibc porttypes.IBCModule,
 	rollappID string,
-	logger log.Logger,
 	rollappPacket commontypes.RollappPacket,
 ) error {
-	logContext := []interface{}{
+	logger := k.Logger(ctx).With(
 		"rollappID", rollappID,
 		"sequence", rollappPacket.Packet.Sequence,
 		"source channel", rollappPacket.Packet.SourceChannel,
 		"destination channel", rollappPacket.Packet.DestinationChannel,
 		"type", rollappPacket.Type,
-	}
+	)
 
 	var packetErr error
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
-		ack := replayRecvPacket(ctx, ibc, rollappPacket)
-		if ack != nil {
-			packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
-		}
+		packetErr = k.finalizeOnRecv(ctx, ibc, &rollappPacket)
 	case commontypes.RollappPacket_ON_ACK:
 		packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.onAckPacket(rollappPacket, ibc))
 	case commontypes.RollappPacket_ON_TIMEOUT:
 		packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.onTimeoutPacket(rollappPacket, ibc))
 	default:
-		logger.Error("Unknown rollapp packet type", logContext...)
+		logger.Error("Unknown rollapp packet type")
 	}
-	// Update the packet with the error
 	if packetErr != nil {
+		// NOTE (timeout,ack): in regular (non dymension) IBC, timeout and ack errors are actually supposed
+		//  to cause the delivery transaction to be rejected.
+		//  Here, we already accepted the original msg delivery transaction, we can't retroactively reject it.
 		rollappPacket.Error = packetErr.Error()
 	}
+
 	// Update status to finalized
-	_, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
+	_, err := k.UpdateRollappPacketAfterFinalization(ctx, rollappPacket)
 	if err != nil {
-		// If we failed finalizing the packet we return an error to abort the end blocker otherwise it's
-		// invariant breaking
-		return err
+		return fmt.Errorf("update rollapp packet: %w", err)
 	}
 
-	logger.Debug("finalized IBC rollapp packet", logContext...)
+	logger.Debug("finalized IBC rollapp packet")
+
 	return nil
-}
-
-func replayRecvPacket(
-	ctx sdk.Context,
-	ibc porttypes.IBCModule,
-	rollappPacket commontypes.RollappPacket,
-) exported.Acknowledgement {
-	cacheCtx, writeFn := ctx.CacheContext()
-	ack := ibc.OnRecvPacket(cacheCtx, *rollappPacket.Packet, rollappPacket.Relayer)
-
-	if ack == nil || ack.Success() {
-		writeFn()
-	} else {
-		ctx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
-	}
-
-	return ack
-}
-
-func convertToErrorEvents(events sdk.Events) sdk.Events {
-	if events == nil {
-		return nil
-	}
-
-	newEvents := make(sdk.Events, len(events))
-	for i, event := range events {
-		newAttributes := make([]sdk.Attribute, len(event.Attributes))
-		for j, attribute := range event.Attributes {
-			newAttributes[j] = sdk.NewAttribute(coretypes.ErrorAttributeKeyPrefix+attribute.Key, attribute.Value)
-		}
-
-		newEvents[i] = sdk.NewEvent(coretypes.ErrorAttributeKeyPrefix+event.Type, newAttributes...)
-	}
-
-	return newEvents
 }
 
 func (k Keeper) writeRecvAck(rollappPacket commontypes.RollappPacket, ack exported.Acknowledgement) wrappedFunc {
@@ -133,6 +92,7 @@ func (k Keeper) writeRecvAck(rollappPacket commontypes.RollappPacket, ack export
 			Here, we do the inverse of what we did when we updated the packet transfer address, when we fulfilled the order
 			to ensure the ack matches what the rollapp expects.
 		*/
+		// TODO: makes more sense to modify the packet when calling the handler, instead storing in db "wrong" packet (big change)
 		rollappPacket = rollappPacket.RestoreOriginalTransferTarget()
 		return k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
 	}

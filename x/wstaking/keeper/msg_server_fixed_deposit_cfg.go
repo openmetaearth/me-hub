@@ -1,5 +1,7 @@
 package keeper
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"context"
 
@@ -8,13 +10,13 @@ import (
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-func validateFixedDepositCfgRate(rate sdk.Dec) error {
+func validateFixedDepositCfgRate(rate sdkmath.LegacyDec) error {
 	if !rate.IsPositive() {
 		return types.ErrFixedDepositConfigRateInvalid.Wrapf("rate must be > 0 (%s)", rate.String())
 	}
 
-	minRate := sdk.MustNewDecFromStr("0.0001")
-	maxRate := sdk.MustNewDecFromStr("10000")
+	minRate := sdkmath.LegacyMustNewDecFromStr("0.0001")
+	maxRate := sdkmath.LegacyMustNewDecFromStr("10000")
 	if rate.LT(minRate) || rate.GT(maxRate) {
 		return types.ErrFixedDepositConfigRateInvalid.Wrapf("rate(%s) out of range [0.0001, 10000]", rate.String())
 	}

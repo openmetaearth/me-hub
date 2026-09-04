@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cometbfttypes "github.com/cometbft/cometbft/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -13,17 +14,16 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/mock"
+	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/openmetaearth/me-hub/app"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	common "github.com/openmetaearth/me-hub/x/common/types"
-	eibctypes "github.com/openmetaearth/me-hub/x/eibc/types"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
@@ -46,7 +46,7 @@ func convertToApp(chain *ibctesting.TestChain) *app.App {
 		return wrapper.App
 	}
 	a, ok := chain.App.(*app.App)
-	require.True(chain.T, ok)
+	require.True(chain.Coordinator.T, ok)
 
 	return a
 }
@@ -102,7 +102,7 @@ func (s *utilSuite) rollappCtx() sdk.Context {
 }
 
 func (s *utilSuite) rollappMsgServer() rollapptypes.MsgServer {
-	return rollappkeeper.NewMsgServerImpl(*s.hubApp().RollappKeeper)
+	return rollappkeeper.NewMsgServerImpl(s.hubApp().RollappKeeper)
 }
 
 // SetupTest creates a coordinator with 2 test chains.
@@ -118,22 +118,26 @@ func (s *utilSuite) createRollappWithFinishedGenesis(canonicalChannelID string) 
 }
 
 func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
-	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(s.hubChain().SenderAccount.GetAddress().String(), rollappChainID(), 10, []string{})
+	creator := s.hubChain().SenderAccount.GetAddress().String()
+	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(creator, rollappChainID(), creator,
+		rollapptypes.DefaultMinSequencerBondGlobalCoin, "", rollapptypes.Rollapp_EVM, nil, nil, sdk.DefaultBondDenom)
 	_, err := s.hubChain().SendMsgs(msgCreateRollapp)
 	s.Require().NoError(err) // message committed
 	if channelID != nil {
 		a := s.hubApp()
 		ra := a.RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 		ra.ChannelId = *channelID
-		ra.GenesisState.TransfersEnabled = transfersEnabled
+		if transfersEnabled {
+			ra.GenesisState.TransferProofHeight = uint64(s.hubCtx().BlockHeight())
+		}
 		a.RollappKeeper.SetRollapp(s.hubCtx(), ra)
 	}
 }
 
 func (s *utilSuite) registerSequencer() {
-	bond := sequencertypes.DefaultParams().MinBond
+	bond := rollapptypes.DefaultMinSequencerBondGlobalCoin
 	// fund account
-	err := bankutil.FundAccount(s.hubApp().BankKeeper, s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(bond))
+	err := bankutil.FundAccount(s.hubCtx(), s.hubApp().BankKeeper, s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(bond))
 	s.Require().Nil(err)
 
 	// using validator pubkey as the dymint pubkey
@@ -144,8 +148,10 @@ func (s *utilSuite) registerSequencer() {
 		s.hubChain().SenderAccount.GetAddress().String(),
 		pk,
 		rollappChainID(),
-		&sequencertypes.Description{},
+		&sequencertypes.SequencerMetadata{},
 		bond,
+		s.hubChain().SenderAccount.GetAddress().String(),
+		nil,
 	)
 	s.Require().NoError(err) // message committed
 	_, err = s.hubChain().SendMsgs(msgCreateSequencer)
@@ -174,9 +180,9 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	msgUpdateState := rollapptypes.NewMsgUpdateState(
 		s.hubChain().SenderAccount.GetAddress().String(),
 		rollappChainID(),
+		"mock-da-path",
 		startHeight,
 		endHeight-startHeight+1, // numBlocks
-		"mock-da-path",
 		0,
 		blockDescriptors,
 	)
@@ -221,7 +227,7 @@ func (s *utilSuite) newTransferPath(chainA, chainB *ibctesting.TestChain) *ibcte
 
 func (s *utilSuite) getRollappToHubIBCDenomFromPacket(packet channeltypes.Packet) string {
 	var data transfertypes.FungibleTokenPacketData
-	err := eibctypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data)
+	err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data)
 	s.Require().NoError(err)
 	return s.getIBCDenomForChannel(packet.GetDestChannel(), data.Denom)
 }
@@ -250,7 +256,7 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 	senderPrivKey := secp256k1.GenPrivKey()
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 
-	amount, ok := sdk.NewIntFromString("10000000000000000000")
+	amount, ok := sdkmath.NewIntFromString("10000000000000000000")
 	s.Require().True(ok)
 
 	// add sender account
@@ -290,7 +296,6 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 
 	// create an account to send transactions from
 	chain := &ibctesting.TestChain{
-		T:              t,
 		Coordinator:    coord,
 		ChainID:        chainID,
 		App:            app,

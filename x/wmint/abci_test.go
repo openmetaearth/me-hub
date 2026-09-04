@@ -1,20 +1,33 @@
 package wmint
 
 import (
+	"context"
 	"fmt"
 	"math/big"
 	"testing"
 
-	tmdb "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/store"
+	"cosmossdk.io/store/metrics"
+
+	storetypes "cosmossdk.io/store/types"
+
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
 	tmtime "github.com/cometbft/cometbft/types/time"
-	"github.com/cosmos/cosmos-sdk/store"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+
+	db "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/runtime"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,25 +40,25 @@ import (
 )
 
 func TestPrintRewardInfo(t *testing.T) {
-	calcPerBlockUMEC := func(mul int64) sdk.Int {
-		halvingDivisor := sdk.NewDecFromBigInt(new(big.Int).Lsh(big.NewInt(1), uint(mul)))
-		amount := sdk.NewDec(int64(types.InitOneYearMintAmount)).
-			Quo(sdk.NewDec(int64(types.OneYearTotalBlocks))).
+	calcPerBlockUMEC := func(mul int64) sdkmath.Int {
+		halvingDivisor := sdkmath.LegacyNewDecFromBigInt(new(big.Int).Lsh(big.NewInt(1), uint(mul)))
+		amount := sdkmath.LegacyNewDec(int64(types.InitOneYearMintAmount)).
+			Quo(sdkmath.LegacyNewDec(int64(types.OneYearTotalBlocks))).
 			Quo(halvingDivisor)
 		return RoundUpToFourDecimalsDec(amount).MulInt64(100_000_000).TruncateInt()
 	}
 
 	firstUmec := calcPerBlockUMEC(0)
-	firstMec := sdk.NewDecFromInt(firstUmec).QuoInt64(100_000_000)
+	firstMec := sdkmath.LegacyNewDecFromInt(firstUmec).QuoInt64(100_000_000)
 	firstDailyUmec := firstUmec.MulRaw(int64(types.OneDayTotalBlocks))
-	firstDailyMec := sdk.NewDecFromInt(firstDailyUmec).QuoInt64(100_000_000)
+	firstDailyMec := sdkmath.LegacyNewDecFromInt(firstDailyUmec).QuoInt64(100_000_000)
 	fmt.Printf("first year per block reward is :%.4f mec %s umec\n", firstMec.MustFloat64(), firstUmec)
 	fmt.Printf("first year daily reward is :%.4f mec %s umec\n", firstDailyMec.MustFloat64(), firstDailyUmec)
 
 	secondUmec := calcPerBlockUMEC(1)
-	secondMec := sdk.NewDecFromInt(secondUmec).QuoInt64(100_000_000)
+	secondMec := sdkmath.LegacyNewDecFromInt(secondUmec).QuoInt64(100_000_000)
 	secondDailyUmec := secondUmec.MulRaw(int64(types.OneDayTotalBlocks))
-	secondDailyMec := sdk.NewDecFromInt(secondDailyUmec).QuoInt64(100_000_000)
+	secondDailyMec := sdkmath.LegacyNewDecFromInt(secondDailyUmec).QuoInt64(100_000_000)
 	fmt.Printf("second year per block reward is :%.4f mec %s umec\n", secondMec.MustFloat64(), secondUmec)
 	fmt.Printf("second year daily reward is :%.4f mec %s umec\n", secondDailyMec.MustFloat64(), secondDailyUmec)
 }
@@ -59,17 +72,55 @@ type KeeperTestSuite struct {
 	stakingKeeper *mock_types.MockStakingKeeper
 }
 
+type stakingKeeperAdapter struct{ mock *mock_types.MockStakingKeeper }
+
+func (a stakingKeeperAdapter) BondedRatio(ctx context.Context) (sdkmath.LegacyDec, error) {
+	return a.mock.BondedRatio(sdk.UnwrapSDKContext(ctx)), nil
+}
+
+func (a stakingKeeperAdapter) StakingTokenSupply(ctx context.Context) (sdkmath.Int, error) {
+	return a.mock.StakingTokenSupply(sdk.UnwrapSDKContext(ctx)), nil
+}
+
+type accountKeeperAdapter struct{ mock *mock_types.MockAccountKeeper }
+
+func (a accountKeeperAdapter) GetModuleAddress(name string) sdk.AccAddress {
+	return a.mock.GetModuleAddress(name)
+}
+
+func (a accountKeeperAdapter) GetModuleAccount(ctx context.Context, name string) sdk.ModuleAccountI {
+	return a.mock.GetModuleAccount(sdk.UnwrapSDKContext(ctx), name)
+}
+
+func (a accountKeeperAdapter) SetModuleAccount(ctx context.Context, account sdk.ModuleAccountI) {
+	a.mock.SetModuleAccount(sdk.UnwrapSDKContext(ctx), account)
+}
+
+type bankKeeperAdapter struct{ mock *mock_types.MockBankKeeper }
+
+func (a bankKeeperAdapter) MintCoins(ctx context.Context, name string, amount sdk.Coins) error {
+	return a.mock.MintCoins(sdk.UnwrapSDKContext(ctx), name, amount)
+}
+
+func (a bankKeeperAdapter) SendCoinsFromModuleToAccount(ctx context.Context, sender string, recipient sdk.AccAddress, amount sdk.Coins) error {
+	return a.mock.SendCoinsFromModuleToAccount(sdk.UnwrapSDKContext(ctx), sender, recipient, amount)
+}
+
+func (a bankKeeperAdapter) SendCoinsFromModuleToModule(ctx context.Context, sender, recipient string, amount sdk.Coins) error {
+	return a.mock.SendCoinsFromModuleToModule(sdk.UnwrapSDKContext(ctx), sender, recipient, amount)
+}
+
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
 	t := suite.T()
-	storeKey := sdk.NewKVStoreKey(types.StoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey("test_key")
-	db := tmdb.NewMemDB()
-	stateStore := store.NewCommitMultiStore(db)
-	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
+	database := db.NewMemDB()
+	stateStore := store.NewCommitMultiStore(database, log.NewNopLogger(), metrics.NewNoOpMetrics())
+	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, database)
 	stateStore.MountStoreWithDB(memStoreKey, storetypes.StoreTypeMemory, nil)
 	require.NoError(t, stateStore.LoadLatestVersion())
 
@@ -86,7 +137,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.bankKeeper = bankKeeper
 	suite.stakingKeeper = stakingKeeper
 	suite.accKeeper = accKeeper
-	suite.wmintKeeper = keeper.NewKeeper(encCfg.Codec, storeKey, suite.stakingKeeper, suite.accKeeper, suite.bankKeeper, wbanktypes.TreasuryPoolName, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	suite.wmintKeeper = keeper.NewKeeper(encCfg.Codec, runtime.NewKVStoreService(storeKey), stakingKeeperAdapter{suite.stakingKeeper}, accountKeeperAdapter{suite.accKeeper}, bankKeeperAdapter{suite.bankKeeper}, wbanktypes.TreasuryPoolName, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 }
 
 func (suite *KeeperTestSuite) TestBeginBlocker() {
@@ -166,10 +217,10 @@ func (suite *KeeperTestSuite) newContextWith(height int64) sdk.Context {
 
 func (suite *KeeperTestSuite) setMockBankKeeper(ctx sdk.Context, mintAmount int64) {
 	suite.bankKeeper.EXPECT().
-		MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("umec", sdk.NewInt(mintAmount)))).
+		MintCoins(ctx, minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin("umec", sdkmath.NewInt(mintAmount)))).
 		Return(nil)
 
 	suite.bankKeeper.EXPECT().
-		SendCoinsFromModuleToModule(ctx, minttypes.ModuleName, "treasury_pool", sdk.NewCoins(sdk.NewCoin("umec", sdk.NewInt(mintAmount)))).
+		SendCoinsFromModuleToModule(ctx, minttypes.ModuleName, "treasury_pool", sdk.NewCoins(sdk.NewCoin("umec", sdkmath.NewInt(mintAmount)))).
 		Return(nil)
 }

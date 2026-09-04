@@ -1,5 +1,7 @@
 package keeper
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"encoding/json"
 	"sort"
@@ -356,7 +358,7 @@ func (k Keeper) ResetGenesis(ctx sdk.Context) {
 			Decimal:         bt.Decimal,
 		}
 		ok := false
-		bridgeToken.Supply, ok = sdk.NewIntFromString(bt.Supply)
+		bridgeToken.Supply, ok = sdkmath.NewIntFromString(bt.Supply)
 		if !ok {
 			panic("invalid supply")
 		}

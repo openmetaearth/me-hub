@@ -10,7 +10,7 @@ import (
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group sequencer queries under a subcommand
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -24,8 +24,10 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdListSequencer())
 	cmd.AddCommand(CmdShowSequencer())
 	cmd.AddCommand(CmdShowSequencersByRollapp())
-	cmd.AddCommand(CmdShowReplaceProposer())
-	// this line is used by starport scaffolding # 1
+	cmd.AddCommand(CmdGetProposerByRollapp())
+	cmd.AddCommand(CmdGetNextProposerByRollapp())
+	cmd.AddCommand(CmdGetAllProposers())
+	cmd.AddCommand(CmdReplaceProposerInfo())
 
 	return cmd
 }

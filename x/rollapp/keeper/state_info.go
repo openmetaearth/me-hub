@@ -3,7 +3,9 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "cosmossdk.io/store/types"
+
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
@@ -37,11 +39,20 @@ func (k Keeper) GetStateInfo(
 	return val, true
 }
 
-// GetLatestStateInfo is utility
 func (k Keeper) GetLatestStateInfo(ctx sdk.Context,
 	rollappId string,
 ) (types.StateInfo, bool) {
 	ix, ok := k.GetLatestStateInfoIndex(ctx, rollappId)
+	if !ok {
+		return types.StateInfo{}, false
+	}
+	return k.GetStateInfo(ctx, rollappId, ix.GetIndex())
+}
+
+func (k Keeper) GetLatestFinalizedStateInfo(ctx sdk.Context,
+	rollappId string,
+) (types.StateInfo, bool) {
+	ix, ok := k.GetLatestFinalizedStateIndex(ctx, rollappId)
 	if !ok {
 		return types.StateInfo{}, false
 	}
@@ -74,7 +85,7 @@ func (k Keeper) RemoveStateInfo(
 // GetAllStateInfo returns all stateInfo
 func (k Keeper) GetAllStateInfo(ctx sdk.Context) (list []types.StateInfo) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateInfoKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close() // nolint: errcheck
 
@@ -85,4 +96,12 @@ func (k Keeper) GetAllStateInfo(ctx sdk.Context) (list []types.StateInfo) {
 	}
 
 	return
+}
+
+func (k Keeper) IsFinalizedIndex(ctx sdk.Context, rollappId string, index uint64) bool {
+	info, found := k.GetLatestFinalizedStateInfo(ctx, rollappId)
+	if !found {
+		return false
+	}
+	return info.GetIndex().Index >= index
 }

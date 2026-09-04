@@ -3,9 +3,8 @@ package keeper_test
 import (
 	"testing"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -37,14 +36,17 @@ func (s *KeeperTestSuite) Keeper() *keeper.Keeper {
 	return s.App.KycKeeper
 }
 
-func (s *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
-
-	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
+func (s *KeeperTestSuite) pubkeyJSON(privKey *ed25519.PrivKey) string {
+	bz, err := s.App.AppCodec().MarshalInterfaceJSON(privKey.PubKey())
 	s.Require().NoError(err)
+	return string(bz)
+}
 
-	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
+func (s *KeeperTestSuite) SetupTest() {
+	app := apptesting.Setup(s.T())
+	ctx := app.GetBaseApp().NewContext(false)
+
+	err := app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
 	s.Require().NoError(err)
 
 	stakingParams := stakingtypes.DefaultParams()
@@ -68,7 +70,8 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.InitializeDao()
 
-	validators := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
+	validators, err := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
+	s.Require().NoError(err)
 	s.Require().True(len(validators) >= 3)
 	s.meEarthValidator = validators[0]
 	s.experienceValidator = validators[1]

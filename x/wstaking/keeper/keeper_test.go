@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -17,6 +17,7 @@ import (
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	testutilstypes "github.com/openmetaearth/me-hub/testutil/types"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -41,13 +42,10 @@ func (s *KeeperTestSuite) Keeper() *wstakingkeeper.Keeper {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
+	app := apptesting.Setup(s.T())
+	ctx := app.GetBaseApp().NewContext(false)
 
-	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	s.Require().NoError(err)
-
-	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	err := app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
 	s.Require().NoError(err)
 
 	stakingParams := stakingtypes.DefaultParams()
@@ -69,7 +67,8 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.InitializeDao()
 
-	validators := s.Keeper().GetValidators(s.Ctx, 10)
+	validators, err := s.Keeper().GetValidators(s.Ctx, 10)
+	s.Require().NoError(err)
 	s.Require().True(len(validators) >= 3)
 	s.meEarthValidator = validators[0]
 	s.experienceValidator = validators[1]
@@ -85,6 +84,17 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.Require().NoError(err)
 
 	s.TestAccs = s.NewAccounts(3)
+}
+
+func (s *KeeperTestSuite) InitKyc(addr sdk.AccAddress, did, regionID string) {
+	s.App.KycKeeper.SetDID(s.Ctx, addr, did)
+	s.App.KycKeeper.SetDidInfo(s.Ctx, did, didtypes.DidInfo{
+		Did: did, Address: addr.String(), RegionId: regionID,
+		KycLevel: 2, Status: didtypes.DID_STATUS_ACTIVE,
+	})
+	credential := didtypes.Credential{Did: did, Data: []byte(regionID)}
+	s.App.KycKeeper.SetKYC(s.Ctx, did, credential)
+	s.App.KycKeeper.AddFilters(s.Ctx, did, [][]byte{[]byte(regionID)}, credential)
 }
 
 func SetValidatorV1(ctx sdk.Context, k *wstakingkeeper.Keeper, validator testutilstypes.ValidatorV1) {
@@ -116,8 +126,8 @@ func (s *KeeperTestSuite) TestMigrateValidator() {
 		ConsensusPubkey: nil,
 		Jailed:          false,
 		Status:          stakingtypes.Bonded,
-		Tokens:          sdk.NewInt(100),
-		StakerShares:    sdk.NewDec(100),
+		Tokens:          sdkmath.NewInt(100),
+		StakerShares:    sdkmath.LegacyNewDec(100),
 		Description: stakingtypes.Description{
 			Moniker:         "node1",
 			Identity:        "",
@@ -129,9 +139,9 @@ func (s *KeeperTestSuite) TestMigrateValidator() {
 		UnbondingHeight:         0,
 		UnbondingTime:           time.Time{},
 		Commission:              stakingtypes.Commission{},
-		MinSelfStake:            sdk.Int{},
-		DelegationAmount:        sdk.Int{},
-		MeidAmount:              sdk.Int{},
+		MinSelfStake:            sdkmath.Int{},
+		DelegationAmount:        sdkmath.Int{},
+		MeidAmount:              sdkmath.Int{},
 		OwnerAddress:            "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u",
 		UnbondingIds:            nil,
 		UnbondingOnHoldRefCount: 0,
@@ -147,7 +157,8 @@ func (s *KeeperTestSuite) TestMigrateValidator() {
 	validator, found := GetValidatorV2(s.Ctx, s.App.StakingKeeper, addr)
 	require.True(s.T(), found)
 
-	validators := s.App.StakingKeeper.GetAllValidators(s.Ctx)
+	validators, err := s.App.StakingKeeper.GetAllValidators(s.Ctx)
+	require.NoError(s.T(), err)
 	require.Equal(s.T(), len(validators), 4)
 	for _, v := range validators {
 		if v.OperatorAddress == validator.OperatorAddress {

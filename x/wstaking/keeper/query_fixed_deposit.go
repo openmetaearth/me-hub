@@ -1,9 +1,11 @@
 package keeper
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"context"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
@@ -155,7 +157,7 @@ func (k Keeper) FixedDepositAmountByMeid(goCtx context.Context, req *types.Query
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	totalAmount := sdk.NewCoin(params.BaseDenom, sdk.NewInt(0))
+	totalAmount := sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(0))
 	for _, v := range tmpList {
 		totalAmount = totalAmount.Add(v.Principal)
 	}

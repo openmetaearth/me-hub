@@ -6,20 +6,28 @@ import (
 	"fmt"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/evmos/ethermint/crypto/hd"
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/utils"
 	"github.com/spf13/cobra"
 
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_13"
 	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
+
+	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
+
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 )
 
@@ -115,8 +123,8 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 				bankGenState.Balances = append(bankGenState.Balances, bal)
 				bankGenState.Supply = bankGenState.Supply.Add(bal.Coins...)
 			}
-			delegateAmount := sdk.NewInt(1 * 1e8)
-			bondedAmount := delegateAmount.Mul(sdk.NewInt(int64(len(addrs))))
+			delegateAmount := sdkmath.NewInt(1 * 1e8)
+			bondedAmount := delegateAmount.Mul(sdkmath.NewInt(int64(len(addrs))))
 
 			bal1 := banktypes.Balance{
 				Address: authtypes.NewModuleAddress(bsctypes.ModuleName).String(),
@@ -141,7 +149,7 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 			appState[banktypes.ModuleName] = bankBz
 
 			{
-				bscGenState := v2_0_13.GenGravityGenesis(0, proposalRelayers, bsctypes.DefaultGenesisState(), delegateAmount, bsctypes.ModuleName)
+				bscGenState := genGravityGenesis(0, proposalRelayers, bsctypes.DefaultGenesisState(), delegateAmount, bsctypes.ModuleName)
 				bscGenStateBz, err := cdc.MarshalJSON(bscGenState)
 				if err != nil {
 					return fmt.Errorf("marshal bsc genesis: %w", err)
@@ -150,7 +158,7 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 			}
 
 			{
-				tronGenState := v2_0_13.GenGravityGenesis(0, proposalRelayers, trontypes.DefaultGenesisState(), delegateAmount, trontypes.ModuleName)
+				tronGenState := genGravityGenesis(0, proposalRelayers, trontypes.DefaultGenesisState(), delegateAmount, trontypes.ModuleName)
 				tronGenStateBz, err := cdc.MarshalJSON(tronGenState)
 				if err != nil {
 					return fmt.Errorf("marshal tron genesis: %w", err)
@@ -170,4 +178,48 @@ func GenRelayersCmd(defaultNodeHome string) *cobra.Command {
 	cmd.Flags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
+}
+
+func genGravityGenesis(height int64, proposalRelayers []string, genesis *gravitytypes.GenesisState, delegateAmount sdkmath.Int, moduleName string) *gravitytypes.GenesisState {
+	genesis.ProposalRelayer = gravitytypes.ProposalRelayer{Relayers: proposalRelayers}
+
+	for _, relayerAddr := range proposalRelayers {
+		var externalAddress string
+		var err error
+		switch moduleName {
+		case bsctypes.ModuleName:
+			externalAddress, err = utils.MeBech32ToEth(relayerAddr)
+		case trontypes.ModuleName:
+			externalAddress, err = utils.MeBech32ToTron(relayerAddr)
+		}
+		if err != nil {
+			panic(err)
+		}
+
+		genesis.Relayers = append(genesis.Relayers, gravitytypes.Relayer{
+			RelayerAddress:  relayerAddr,
+			ExternalAddress: externalAddress,
+			DelegateAmount:  delegateAmount,
+			StartHeight:     height,
+			Online:          true,
+		})
+	}
+
+	var totalPower uint64
+	relayerSet := gravitytypes.RelayerSet{Height: uint64(height)}
+	for _, relayer := range genesis.Relayers {
+		power := relayer.GetPower()
+		if power.IsPositive() {
+			totalPower += power.Uint64()
+			relayerSet.Members = append(relayerSet.Members, gravitytypes.BridgeValidator{
+				Power:           power.Uint64(),
+				ExternalAddress: relayer.ExternalAddress,
+			})
+		}
+	}
+	for i := range relayerSet.Members {
+		relayerSet.Members[i].Power = sdkmath.NewUint(relayerSet.Members[i].Power).MulUint64(gravitytypes.PowerBase).QuoUint64(totalPower).Uint64()
+	}
+	genesis.RelayerSets = []gravitytypes.RelayerSet{relayerSet}
+	return genesis
 }

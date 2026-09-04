@@ -7,10 +7,10 @@ import (
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
 	"cosmossdk.io/math"
-	"github.com/cometbft/cometbft/libs/log"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -271,8 +271,7 @@ func (k Keeper) CreateGroupByRegion(sdkCtx sdk.Context, regionInfo stakingtypes.
 
 	operValAddr, err := sdk.ValAddressFromBech32(regionInfo.OperatorAddress)
 	if err != nil {
-		return 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, fmt.Sprintf("OperatorAddress can not convert to ValAddress."+
-			"err = %s, OperatorAddress = %s", err.Error(), regionInfo.OperatorAddress))
+		return 0, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "OperatorAddress can not convert to ValAddress.err = %s, OperatorAddress = %s", err.Error(), regionInfo.OperatorAddress)
 	}
 	accAddr := sdk.AccAddress(operValAddr.Bytes())
 

@@ -7,7 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"cosmossdk.io/math"
+	errorsmod "cosmossdk.io/errors"
+
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -204,10 +206,10 @@ $ %s tx staking update-validator %s1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm --own
 			description := stakingtypes.NewDescription(moniker, identity, website, security, details)
 			description.RegionID = regionId
 
-			var newRate *sdk.Dec
+			var newRate *sdkmath.LegacyDec
 			commissionRate, _ := cmd.Flags().GetString(FlagCommissionRate)
 			if commissionRate != "" {
-				rate, err := sdk.NewDecFromStr(commissionRate)
+				rate, err := sdkmath.LegacyNewDecFromStr(commissionRate)
 				if err != nil {
 					return fmt.Errorf("invalid new commission rate: %w", err)
 				}
@@ -280,7 +282,7 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		return txf, nil, err
 	}
 
-	minSelfDelegation := math.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
+	minSelfDelegation := sdkmath.NewInt(int64(gomath.Pow10(params.BaseDenomUnit)))
 
 	var pkAny *codectypes.Any
 	if pk != nil {
@@ -304,9 +306,6 @@ func newBuildCreateValidatorMsg(clientCtx client.Context, txf tx.Factory, fs *fl
 		Value:             amount,
 		Commission:        commissionRates,
 		MinSelfDelegation: minSelfDelegation,
-	}
-	if err := msg.ValidateBasic(); err != nil {
-		return txf, nil, err
 	}
 
 	genOnly, _ := fs.GetBool(flags.FlagGenerateOnly)
@@ -569,10 +568,10 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 
 	// get the initial validator min self delegation
 	msbStr := config.MinSelfDelegation
-	minSelfDelegation, ok := sdk.NewIntFromString(msbStr)
+	minSelfDelegation, ok := sdkmath.NewIntFromString(msbStr)
 
 	if !ok {
-		return txBldr, nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
+		return txBldr, nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "minimum self delegation must be a positive integer")
 	}
 
 	var pkAny *codectypes.Any
@@ -591,9 +590,6 @@ func BuildCreateValidatorMsg(clientCtx client.Context, config TxCreateValidatorC
 		Value:             amount,
 		Commission:        commissionRates,
 		MinSelfDelegation: minSelfDelegation,
-	}
-	if err := msg.ValidateBasic(); err != nil {
-		return txBldr, nil, err
 	}
 
 	if generateOnly {

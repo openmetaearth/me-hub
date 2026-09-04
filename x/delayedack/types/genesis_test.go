@@ -3,16 +3,25 @@ package types_test
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	chantypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	chantypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
 
+	appparams "github.com/openmetaearth/me-hub/app/params"
 	ctypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
 )
 
+// this is needed to register the correct BECH32 prefix
+const _ = appparams.BaseDenom
+
 func TestGenesisState_Validate(t *testing.T) {
+	config := sdk.GetConfig()
+	appparams.SetAddressPrefixes()
+	config.Seal()
+
 	for _, tc := range []struct {
 		desc     string
 		genState *types.GenesisState
@@ -27,7 +36,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					EpochIdentifier: "hour",
-					BridgingFee:     sdk.NewDecWithPrec(1, 1),
+					BridgingFee:     math.LegacyNewDecWithPrec(1, 1),
 				},
 				RollappPackets: []ctypes.RollappPacket{validRollappPacket},
 			},
@@ -37,7 +46,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					EpochIdentifier: "",
-					BridgingFee:     sdk.Dec{},
+					BridgingFee:     math.LegacyDec{},
 				},
 			},
 			valid: false,
@@ -83,5 +92,5 @@ var validRollappPacket = ctypes.RollappPacket{
 	Relayer:                []byte("cosmos1"),
 	Type:                   ctypes.RollappPacket_ON_RECV,
 	Error:                  "error",
-	OriginalTransferTarget: "cosmos18wvvwfmq77a6d8tza4h5sfuy2yj3jj88yqg82a",
+	OriginalTransferTarget: "dym1hpnekcl344ckklw07j7qcfs2x3j03zn6rppt2r",
 }

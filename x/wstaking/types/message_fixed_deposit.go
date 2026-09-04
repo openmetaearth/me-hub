@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -41,7 +42,7 @@ func (msg *MsgDoFixedDeposit) GetSignBytes() []byte {
 func (msg *MsgDoFixedDeposit) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Account)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid account address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid account address (%s)", err)
 	}
 	return nil
 }
@@ -81,7 +82,7 @@ func (msg *MsgWithdrawFixedDeposit) GetSignBytes() []byte {
 func (msg *MsgWithdrawFixedDeposit) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Account)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid account address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid account address (%s)", err)
 	}
 	return nil
 }

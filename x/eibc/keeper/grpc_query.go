@@ -2,13 +2,17 @@ package keeper
 
 import (
 	"context"
+	"slices"
 
+	"cosmossdk.io/collections"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var _ types.QueryServer = Querier{}
@@ -40,7 +44,7 @@ func (q Querier) DemandOrderById(goCtx context.Context, req *types.QueryGetDeman
 	// Get the demand order by its ID and search for it in all statuses
 	var demandOrder *types.DemandOrder
 	var err error
-	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_FINALIZED, commontypes.Status_REVERTED}
+	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_FINALIZED}
 	for _, status := range statuses {
 		demandOrder, err = q.GetDemandOrder(ctx, status, req.Id)
 		if err == nil && demandOrder != nil {
@@ -55,12 +59,15 @@ func (q Querier) DemandOrdersByStatus(goCtx context.Context, req *types.QueryDem
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	// Get the demand orders by status, with optional filters
-	demandOrders, err := q.ListDemandOrdersByStatus(sdk.UnwrapSDKContext(goCtx), req.Status, int(req.Limit), filterOpts(req)...)
+	demandOrders, pageResp, err := q.ListDemandOrdersByStatusPaginated(sdk.UnwrapSDKContext(goCtx), req.Status, req.Pagination, filterOpts(req)...)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	// Construct the response
-	return &types.QueryDemandOrdersByStatusResponse{DemandOrders: demandOrders}, nil
+	return &types.QueryDemandOrdersByStatusResponse{
+		DemandOrders: demandOrders,
+		Pagination:   pageResp,
+	}, nil
 }
 
 func filterOpts(req *types.QueryDemandOrdersByStatusRequest) []filterOption {
@@ -96,18 +103,13 @@ func isRollappId(rollappId string) filterOption {
 
 func isOrderType(orderType ...commontypes.RollappPacket_Type) filterOption {
 	return func(order types.DemandOrder) bool {
-		for _, ot := range orderType {
-			if order.Type == ot {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(orderType, order.Type)
 	}
 }
 
 func isFulfiller(fulfiller string) filterOption {
 	return func(order types.DemandOrder) bool {
-		return order.FulfillerAddress == fulfiller
+		return order.Recipient == fulfiller
 	}
 }
 
@@ -127,4 +129,45 @@ func isRecipient(recipient string) filterOption {
 	return func(order types.DemandOrder) bool {
 		return order.Recipient == recipient
 	}
+}
+
+func (q Querier) OnDemandLPs(gctx context.Context, r *types.QueryOnDemandLPsRequest) (*types.QueryOnDemandLPsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(gctx)
+
+	ret := &types.QueryOnDemandLPsResponse{}
+
+	if len(r.Ids) == 0 {
+		lps, err := q.LPs.GetAll(ctx)
+		if err != nil {
+			return nil, err
+		}
+		ret.Lps = lps
+		return ret, nil
+	}
+
+	for _, id := range r.Ids {
+		lp, err := q.LPs.Get(ctx, id)
+		if errorsmod.IsOf(err, collections.ErrNotFound) {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		ret.Lps = append(ret.Lps, lp)
+	}
+
+	return ret, nil
+}
+
+func (q Querier) OnDemandLPsByByAddr(gctx context.Context, r *types.QueryOnDemandLPsByAddrRequest) (*types.QueryOnDemandLPsByAddrResponse, error) {
+	ctx := sdk.UnwrapSDKContext(gctx)
+	acc, err := sdk.AccAddressFromBech32(r.Addr)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "acc address from bech32")
+	}
+	lps, err := q.LPs.GetByAddr(ctx, acc)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "get by addr")
+	}
+	return &types.QueryOnDemandLPsByAddrResponse{Lps: lps}, nil
 }

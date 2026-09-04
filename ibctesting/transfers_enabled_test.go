@@ -5,13 +5,13 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v7/testing"
-	"github.com/cosmos/ibc-go/v7/testing/simapp"
+	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v8/testing/simapp"
 )
 
 type transfersEnabledSuite struct {
@@ -31,7 +31,7 @@ func (s *transfersEnabledSuite) SetupTest() {
 	s.createRollapp(false, nil)
 	s.registerSequencer()
 	s.path = path
-	s.Require().False(s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled)
+	s.Require().Zero(s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransferProofHeight)
 }
 
 // Regular (non genesis) transfers (RA->Hub) and Hub->RA should both be blocked when the bridge is not open
@@ -59,17 +59,17 @@ func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 
 		apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.Coins{msg.Token})
 
-		_, _, err := simapp.SignAndDeliver(
-			s.hubChain().T,
+		_, err := simapp.SignAndDeliver(
+			s.T(),
 			s.hubChain().TxConfig,
 			s.hubApp().GetBaseApp(),
-			s.hubCtx().BlockHeader(),
 			[]sdk.Msg{msg},
 			hubChainID(),
 			[]uint64{s.hubChain().SenderAccount.GetAccountNumber()},
 			[]uint64{s.hubChain().SenderAccount.GetSequence()},
-			true,
 			!shouldFail,
+			s.hubCtx().BlockTime(),
+			s.hubChain().NextVals.Hash(),
 			s.hubChain().SenderPrivKey,
 		)
 
@@ -78,7 +78,8 @@ func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 			ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 			ra.ChannelId = s.path.EndpointA.ChannelID
 			s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)
-			s.hubApp().RollappKeeper.EnableTransfers(s.hubCtx(), ra.RollappId)
+			ra.GenesisState.TransferProofHeight = uint64(s.hubCtx().BlockHeight())
+			s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)
 		} else {
 			s.Require().NoError(err)
 		}

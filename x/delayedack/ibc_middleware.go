@@ -1,17 +1,21 @@
 package delayedack
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/openmetaearth/me-hub/utils/uevent"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/delayedack/keeper"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}
@@ -19,7 +23,12 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 type IBCMiddleware struct {
 	porttypes.IBCModule
 	keeper.Keeper // keeper is an ics4 wrapper
-	raKeeper      rollappkeeper.Keeper
+	rollapptypes.StubRollappCreatedHooks
+	raKeeper rollappkeeper.Keeper
+}
+
+func (w IBCMiddleware) NextIBCMiddleware() porttypes.IBCModule {
+	return w.IBCModule
 }
 
 type option func(*IBCMiddleware)
@@ -79,34 +88,39 @@ func (w IBCMiddleware) OnRecvPacket(
 ) exported.Acknowledgement {
 	l := w.logger(ctx, packet, "OnRecvPacket")
 
-	if !w.Keeper.IsRollappsEnabled(ctx) {
-		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
-	}
-
-	if commontypes.SkipRollappMiddleware(ctx) {
-		l.Debug("Skipping because of skip delay ctx.")
-		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
-	}
-
 	transfer, err := w.GetValidTransferWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {
 		l.Error("Get valid rollapp and transfer.", "err", err)
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "delayed ack: get valid transfer with finalization info"))
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "delayed ack: get valid transfer with finalization info"))
 	}
 
 	if !transfer.IsRollapp() || transfer.Finalized {
+		ctx = commontypes.WithWasNotDelayed(ctx)
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	if w.Keeper.IsSkipDelayRollapp(ctx, transfer.RollappId()) {
+	if w.Keeper.IsSkipDelayRollapp(ctx, transfer.Rollapp.RollappId) {
+		ctx = commontypes.WithWasNotDelayed(ctx)
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	// Run the underlying app's OnRecvPacket callback
+	// with cache context to avoid state changes and report the receipt result.
+	// Only save the packet if the underlying app's callback succeeds.
+	cacheCtx, _ := ctx.CacheContext()
+	ack := w.IBCModule.OnRecvPacket(cacheCtx, packet, relayer)
+	if ack == nil {
+		return uevent.NewErrorAcknowledgement(ctx, errors.New("delayed ack is not supported by the underlying IBC module"))
+	}
+	if !ack.Success() {
+		return ack
 	}
 
 	rollappPacket := w.savePacket(ctx, packet, transfer, relayer, commontypes.RollappPacket_ON_RECV, nil)
 
 	err = w.EIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
 	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "delayed ack"))
+		return uevent.NewErrorAcknowledgement(ctx, errorsmod.Wrap(err, "EIBC demand order handler"))
 	}
 
 	return nil
@@ -121,14 +135,10 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 ) error {
 	l := w.logger(ctx, packet, "OnAcknowledgementPacket")
 
-	if !w.Keeper.IsRollappsEnabled(ctx) {
-		return w.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
-	}
-
 	var ack channeltypes.Acknowledgement
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+	if err := w.Keeper.Cdc().UnmarshalJSON(acknowledgement, &ack); err != nil {
 		l.Error("Unmarshal acknowledgement.", "err", err)
-		return errorsmod.Wrapf(types.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+		return errorsmod.Wrapf(types.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err.Error())
 	}
 
 	transfer, err := w.GetValidTransferWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_ACK)
@@ -144,6 +154,7 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 	// Run the underlying app's OnAcknowledgementPacket callback
 	// with cache context to avoid state changes and report the acknowledgement result.
 	// Only save the packet if the underlying app's callback succeeds.
+	// NOTE: this is not an absolute guarantee that it will succeed when the packet is finalized
 	cacheCtx, _ := ctx.CacheContext()
 	err = w.IBCModule.OnAcknowledgementPacket(cacheCtx, packet, acknowledgement, relayer)
 	if err != nil {
@@ -169,10 +180,6 @@ func (w IBCMiddleware) OnTimeoutPacket(
 ) error {
 	l := w.logger(ctx, packet, "OnTimeoutPacket")
 
-	if !w.Keeper.IsRollappsEnabled(ctx) {
-		return w.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
-	}
-
 	transfer, err := w.GetValidTransferWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_TIMEOUT)
 	if err != nil {
 		l.Error("Get valid rollapp and transfer.", "err", err)
@@ -186,6 +193,7 @@ func (w IBCMiddleware) OnTimeoutPacket(
 	// Run the underlying app's OnTimeoutPacket callback
 	// with cache context to avoid state changes and report the timeout result.
 	// Only save the packet if the underlying app's callback succeeds.
+	// NOTE: this is not an absolute guarantee that it will succeed when the packet is finalized
 	cacheCtx, _ := ctx.CacheContext()
 	err = w.IBCModule.OnTimeoutPacket(cacheCtx, packet, relayer)
 	if err != nil {
@@ -209,7 +217,16 @@ func (w IBCMiddleware) savePacket(ctx sdk.Context, packet channeltypes.Packet, t
 		Type:            packetType,
 	}
 
-	w.Keeper.SetRollappPacket(ctx, p)
+	// Add the packet to the pending packet index
+	switch packetType {
+	case commontypes.RollappPacket_ON_RECV:
+		w.MustSetPendingPacketByAddress(ctx, transfer.Receiver, p.RollappPacketKey())
+	case commontypes.RollappPacket_ON_ACK, commontypes.RollappPacket_ON_TIMEOUT:
+		w.MustSetPendingPacketByAddress(ctx, transfer.Sender, p.RollappPacketKey())
+	}
+
+	// Save the rollapp packet
+	w.SetRollappPacket(ctx, p)
 
 	return p
 }

@@ -6,19 +6,19 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/store/prefix"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	ed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey, error) {
+func (k *Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey, error) {
 	updateInfo, err := k.GetReplaceConsensusPubKeyInfo(ctx)
 	if err != nil {
 		panic(fmt.Sprintf("GetReplaceConsensusPubKeyInfo error,err = %s ", err.Error()))
@@ -35,7 +35,7 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 				"pub_key", hex.EncodeToString(updateInfo.PubKey), "height", ctx.BlockHeight())
 			pk := new(ed25519.PubKey)
 			if err = pk.Unmarshal(updateInfo.PubKey); err != nil {
-				// return nil, sdkerrors.Wrapf(types.ErrProtoProc, "unmarshal pubkey error: %v,inputKey = %s",
+				// return nil, errorsmod.Wrapf(types.ErrProtoProc, "unmarshal pubkey error: %v,inputKey = %s",
 				//	err, hex.EncodeToString(updateInfo.PubKey))
 				panic(fmt.Sprintf("unmarshal pubkey error: %s ,inputKey = %s", err.Error(), hex.EncodeToString(updateInfo.PubKey)))
 			}
@@ -43,8 +43,8 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 			if err != nil {
 				return nil, err
 			}
-			validator, found := k.GetValidator(ctx, valAddr)
-			if !found {
+			validator, err := k.GetValidator(ctx, valAddr)
+			if err != nil {
 				return nil, stakingtypes.ErrNoValidatorFound
 			}
 
@@ -55,7 +55,7 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 				return nil, types.ErrValidatorNotBonded
 			}
 
-			if _, found := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); found {
+			if _, err := k.GetValidatorByConsAddr(ctx, sdk.GetConsAddress(pk)); err == nil {
 				return nil, stakingtypes.ErrValidatorPubKeyExists
 			}
 
@@ -70,12 +70,10 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 			}
 			validator.ConsensusPubkey = anyPk
 			k.SetValidator(ctx, validator)
-			if err = k.SetValidatorByConsAddr(ctx, validator); err != nil {
-				return nil, err
-			}
-			if err = k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
+			k.SetValidatorByConsAddr(ctx, validator)
+			if err = k.Hooks().AfterValidatorCreated(ctx, valAddr); err != nil {
 				k.Logger(ctx).Info("AfterValidatorCreated hook ", "err", err.Error())
-				return nil, sdkerrors.Wrapf(types.ErrInterProc, "AfterValidatorCreated hook error: %v", err)
+				return nil, errorsmod.Wrapf(types.ErrInterProc, "AfterValidatorCreated hook error: %v", err)
 			}
 			// directly set new signing info for new cons addr
 			newConsAddr := sdk.GetConsAddress(pk)
@@ -101,6 +99,7 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 				OldPubKey:       oldPubKey,
 				NewPubKey:       pk,
 			}, nil
+
 		} else if ctx.BlockHeight() == (updateInfo.UpdateAtHeight + 2) { // delay remove old cons addr because of distribution rewards delayed by one block
 			k.RemoveValidatorByConsAddr(ctx, sdk.ConsAddress(updateInfo.OldConsAddress))
 			k.DeleteReplaceConsensusPubKey(ctx)
@@ -114,20 +113,21 @@ func (k Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey
 			k.Logger(ctx).Info("completed delayed removed old cons addr from index", "old_cons_addr",
 				sdk.ConsAddress(updateInfo.OldConsAddress).String(), "height", ctx.BlockHeight())
 			return nil, nil
+
 		} else if ctx.BlockHeight() == (updateInfo.UpdateAtHeight + 1) {
 			// do nothing, wait for next block to remove old cons addr
 			return nil, nil
 		} else {
-			return nil, sdkerrors.Wrapf(types.ErrInterProc, "ReplaceConsensusPubKeyInfo is still exist when block height greater than update_at_height. now height = %d, update at height = %d",
+			return nil, errorsmod.Wrapf(types.ErrInterProc, "RepalceConsensusPubKeyInfo is still exist when block height greater than update_at_height. now height = %d, update at height = %d",
 				ctx.BlockHeight(), updateInfo.UpdateAtHeight)
 		}
 	}
 }
 
-func (k Keeper) SetReplacePubKeyInfo(ctx sdk.Context, data *types.UpdatePubKeyInfo) error {
+func (k *Keeper) SetReplacePubKeyInfo(ctx sdk.Context, data *types.UpdatePubKeyInfo) error {
 	bz, err := json.Marshal(data)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrJSONMarshal, "marshal replace pubkey info error: %v", err)
+		return errorsmod.Wrapf(sdkerrors.ErrJSONMarshal, "marshal repalce pubkey info error: %v", err)
 	}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	store.Set(types.KeyPrefix(types.ReplaceConsensusPubKey), bz)
@@ -135,7 +135,7 @@ func (k Keeper) SetReplacePubKeyInfo(ctx sdk.Context, data *types.UpdatePubKeyIn
 }
 
 // GetGroup returns a group from its id
-func (k Keeper) GetReplaceConsensusPubKeyInfo(ctx sdk.Context) (*types.UpdatePubKeyInfo, error) {
+func (k *Keeper) GetReplaceConsensusPubKeyInfo(ctx sdk.Context) (*types.UpdatePubKeyInfo, error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	data := store.Get(types.KeyPrefix(types.ReplaceConsensusPubKey))
 	if data == nil {
@@ -144,40 +144,41 @@ func (k Keeper) GetReplaceConsensusPubKeyInfo(ctx sdk.Context) (*types.UpdatePub
 	val := types.UpdatePubKeyInfo{}
 	err := json.Unmarshal(data, &val)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "unmarshal replace pubkey info error: %v", err)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrJSONUnmarshal, "unmarshal repalce pubkey info error: %v", err)
 	}
 	return &val, nil
 }
 
-func (k Keeper) DeleteReplaceConsensusPubKey(ctx sdk.Context) {
+func (k *Keeper) DeleteReplaceConsensusPubKey(ctx sdk.Context) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	store.Delete(types.KeyPrefix(types.ReplaceConsensusPubKey))
 }
 
-func (k Keeper) IsHasReplaceConsensusPubKey(ctx sdk.Context) bool {
+func (k *Keeper) IsHasReplaceConsensusPubKey(ctx sdk.Context) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	data := store.Get(types.KeyPrefix(types.ReplaceConsensusPubKey))
-	return data != nil
+	if data == nil {
+		return false
+	}
+	return true
 }
 
-func (k Keeper) RemoveValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) {
+func (k *Keeper) RemoveValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(stakingtypes.GetValidatorByConsAddrKey(consAddr))
 }
 
-func (k Keeper) MoveStakesToAnotherVal(ctx sdk.Context, fromValAddr, toValAddr sdk.ValAddress) error {
+func (k *Keeper) MoveStakesToAnotherVal(ctx sdk.Context, fromValAddr, toValAddr sdk.ValAddress) error {
 	stakes, err := k.GetStakesByValidator(ctx, fromValAddr)
 	if err != nil {
 		return err
 	}
-	if len(stakes) == 0 {
-		return sdkerrors.Wrapf(types.ErrStakeOnValidatorIsEmpty, "old validatorAddr =%s", fromValAddr.String())
+	if 0 == len(stakes) {
+		return errorsmod.Wrapf(types.ErrStakeOnValidatorIsEmpty, "old validatorAddr =%s", fromValAddr.String())
 	}
 	for _, stake := range stakes {
 		// remove old stake record
-		if err := k.RemoveStake(ctx, *stake); err != nil {
-			return err
-		}
+		k.RemoveStake(ctx, *stake)
 		// create new stake record
 		stake.ValidatorAddress = toValAddr.String()
 		stake.StartHeight = ctx.BlockHeight()

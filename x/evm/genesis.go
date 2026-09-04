@@ -23,7 +23,6 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -155,7 +154,7 @@ func InitGenesis(
 // ExportGenesis exports genesis state of the EVM module
 func ExportGenesis(ctx sdk.Context, k *keeper.Keeper, ak types.AccountKeeper) *types.GenesisState {
 	var ethGenAccounts []types.GenesisAccount
-	ak.IterateAccounts(ctx, func(account authtypes.AccountI) bool {
+	ak.IterateAccounts(ctx, func(account sdk.AccountI) bool {
 		ethAccount, ok := account.(ethermint.EthAccountI)
 		if !ok {
 			// ignore non EthAccounts

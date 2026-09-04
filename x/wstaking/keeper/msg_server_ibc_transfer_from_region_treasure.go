@@ -3,12 +3,13 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
+
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 )
 
 func (k MsgServer) IbcTransferFromRegionTreasure(goCtx context.Context, msg *types.MsgIbcTransferFromRegionTreasure) (*types.MsgIbcTransferFromRegionTreasureResponse, error) {
@@ -16,16 +17,16 @@ func (k MsgServer) IbcTransferFromRegionTreasure(goCtx context.Context, msg *typ
 
 	dao := k.daoKeeper.GetGlobalDao(ctx)
 	if msg.Creator != dao {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "sender is not the dao")
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "sender is not the dao")
 	}
-	region, found := k.GetRegion(ctx, msg.RegionId)
+	region, found := k.GetRegionCache(msg.RegionId)
 	if !found {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrKeyNotFound, "region not found")
+		return nil, errorsmod.Wrap(sdkerrors.ErrKeyNotFound, "region not found")
 	}
 
 	treasureAddress := region.RegionTreasureAddr
 
-	_, err := k.ibcTransferKeeper.Transfer(ctx, ibctransfertypes.NewMsgTransfer(
+	_, err := k.IbcTransferKeeper.Transfer(ctx, ibctransfertypes.NewMsgTransfer(
 		msg.SourcePort,
 		msg.SourceChannel,
 		msg.Token,

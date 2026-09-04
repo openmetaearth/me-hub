@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/openmetaearth/me-hub/utils/uevent"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	delayeacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
@@ -32,21 +33,18 @@ func (k Keeper) GetDelayedAckHooks() delayeacktypes.DelayedAckHooks {
 // 1. The packet status can change only once hence the oldPacketKey should always represent the order ID as it was created from it.
 // 2. The packet status can only change from PENDING
 func (d delayedAckHooks) AfterPacketStatusUpdated(ctx sdk.Context, packet *commontypes.RollappPacket,
-	oldPacketKey, newPacketKey string,
+	oldPacketKey string, newPacketKey string,
 ) error {
-	// Get the demand order from the old packet key
 	demandOrderID := types.BuildDemandIDFromPacketKey(oldPacketKey)
 	demandOrder, err := d.GetDemandOrder(ctx, commontypes.Status_PENDING, demandOrderID)
 	if err != nil {
-		// If demand order does not exist, then we don't need to do anything
+		// If demand order does not exist, then we don't need to do anything // TODO: why
 		if errors.Is(err, types.ErrDemandOrderDoesNotExist) {
 			return nil
 		}
 		return err
 	}
-	// Update the demand order tracking packet key
 	demandOrder.TrackingPacketKey = newPacketKey
-	// Update the demand order status according to the underlying packet status
 	_, err = d.UpdateDemandOrderWithStatus(ctx, demandOrder, packet.Status)
 	if err != nil {
 		return err
@@ -58,30 +56,25 @@ func (d delayedAckHooks) AfterPacketStatusUpdated(ctx sdk.Context, packet *commo
 // AfterPacketDeleted is called every time the underlying IBC packet is deleted.
 // We only want to delete the demand order when the underlying packet is deleted to not
 // break the invariant that the demand order is always in sync with the underlying packet.
-func (d delayedAckHooks) AfterPacketDeleted(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error {
+func (d delayedAckHooks) AfterPacketDeleted(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) {
 	// Get the demand order from the packet key. The initial demand order was built when
 	// the packet was created, hence with PENDING status.
 	rollappPacket.Status = commontypes.Status_PENDING
-	packetKey := commontypes.RollappPacketKey(rollappPacket)
+	packetKey := rollappPacket.RollappPacketKey()
 	demandOrderID := types.BuildDemandIDFromPacketKey(string(packetKey))
 
-	// Check for demand order in both FINALIZED and REVERTED statuses
-	statuses := []commontypes.Status{commontypes.Status_FINALIZED, commontypes.Status_REVERTED}
+	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_FINALIZED}
 	for _, status := range statuses {
-		demandOrder, err := d.GetDemandOrder(ctx, status, demandOrderID)
-		if err != nil {
-			if errors.Is(err, types.ErrDemandOrderDoesNotExist) {
-				continue
-			}
-			return err
-		}
+		d.deleteDemandOrder(ctx, status, demandOrderID)
 
-		// Delete the demand order if found
-		if err := d.deleteDemandOrder(ctx, demandOrder); err != nil {
-			return err
+		if err := uevent.EmitTypedEvent(ctx, &types.EventDemandOrderDeleted{
+			OrderId:      demandOrderID,
+			PacketKey:    string(packetKey),
+			PacketStatus: status.String(),
+			RollappId:    rollappPacket.RollappId,
+			PacketType:   rollappPacket.Type.String(),
+		}); err != nil {
+			d.Logger(ctx).Error("emit event", "error", err)
 		}
-		break // Exit the loop if the demand order is successfully handled
 	}
-
-	return nil
 }

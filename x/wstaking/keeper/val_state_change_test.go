@@ -4,15 +4,21 @@ import (
 	"encoding/hex"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
+
 	abci "github.com/cometbft/cometbft/abci/types"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wstaking"
+
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -43,8 +49,8 @@ func (s *KeeperTestSuite) TestBlockValidatorUpdatesDeduplicatesOldConsensusPubKe
 	validatorAddr, err := sdk.ValAddressFromBech32(s.meEarthValidator.OperatorAddress)
 	s.Require().NoError(err)
 
-	validatorBefore, found := s.Keeper().GetValidator(s.Ctx, validatorAddr)
-	s.Require().True(found)
+	validatorBefore, err := s.Keeper().GetValidator(s.Ctx, validatorAddr)
+	s.Require().NoError(err)
 
 	oldConsAddr, err := validatorBefore.GetConsAddr()
 	s.Require().NoError(err)
@@ -67,7 +73,7 @@ func (s *KeeperTestSuite) TestBlockValidatorUpdatesDeduplicatesOldConsensusPubKe
 
 	s.Ctx = s.Ctx.WithBlockHeight(updateInfo.UpdateAtHeight)
 
-	stakeAmount := sdk.NewCoin(params.BaseDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
+	stakeAmount := sdk.NewCoin(params.BaseDenom, sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
 	_, err = s.msgServer.Stake(s.Ctx, &wstakingtypes.MsgStake{
 		StakerAddress:    s.Dao.GlobalDao,
 		ValidatorAddress: s.meEarthValidator.OperatorAddress,
@@ -78,14 +84,14 @@ func (s *KeeperTestSuite) TestBlockValidatorUpdatesDeduplicatesOldConsensusPubKe
 	updates := wstaking.EndBlock(s.Ctx, s.Keeper())
 	powersByAddr := validatorUpdatePowersByConsAddr(s, updates)
 
-	s.Require().Len(powersByAddr[oldConsAddr.String()], 1)
-	s.Require().EqualValues(0, powersByAddr[oldConsAddr.String()][0])
+	s.Require().Len(powersByAddr[sdk.ConsAddress(oldConsAddr).String()], 1)
+	s.Require().EqualValues(0, powersByAddr[sdk.ConsAddress(oldConsAddr).String()][0])
 
 	newConsAddr := sdk.GetConsAddress(newPubKey).String()
 	s.Require().Len(powersByAddr[newConsAddr], 1)
 
-	validatorAfter, found := s.Keeper().GetValidator(s.Ctx, validatorAddr)
-	s.Require().True(found)
+	validatorAfter, err := s.Keeper().GetValidator(s.Ctx, validatorAddr)
+	s.Require().NoError(err)
 	s.Require().Equal(validatorAfter.ConsensusPower(s.Keeper().PowerReduction(s.Ctx)), powersByAddr[newConsAddr][0])
 }
 
@@ -113,14 +119,16 @@ func (s *KeeperTestSuite) TestCreateValidatorRejectsPendingReplacementPubKey() {
 	pubKeyData, err := newEd25519PubKey.Marshal()
 	s.Require().NoError(err)
 
-	createAmount := sdk.NewCoin(params.BaseDenom, sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
+	createAmount := sdk.NewCoin(params.BaseDenom, sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)))
+	minCommissionRate, err := s.Keeper().MinCommissionRate(s.Ctx)
+	s.Require().NoError(err)
 	_, err = s.msgServer.CreateValidator(s.Ctx, &stakingtypes.MsgCreateValidator{
 		Description: stakingtypes.Description{
 			Moniker:  "replacement-conflict",
 			RegionID: wstakingtypes.MeEarthRegionName,
 		},
-		Commission:        stakingtypes.NewCommissionRates(s.Keeper().MinCommissionRate(s.Ctx), sdk.OneDec(), sdk.ZeroDec()),
-		MinSelfDelegation: sdk.OneInt(),
+		Commission:        stakingtypes.NewCommissionRates(minCommissionRate, sdkmath.LegacyOneDec(), sdkmath.LegacyZeroDec()),
+		MinSelfDelegation: sdkmath.OneInt(),
 		DelegatorAddress:  s.Dao.GlobalDao,
 		ValidatorAddress:  sdk.ValAddress(s.TestAccs[0]).String(),
 		Pubkey:            validatorPubKeyAny,

@@ -1,10 +1,12 @@
 package keeper
 
 import (
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 )
 
 // LatestFinalizedStateIndex defines the rollapps' current (latest) index of the latest StateInfo that was finalized
@@ -47,10 +49,10 @@ func (k Keeper) RemoveLatestFinalizedStateIndex(
 	))
 }
 
-// GetAllLatestFinalizedStateIndex returns all latestFinalizedStateIndex
+// GetAllLatestFinalizedStateIndex returns latestFinalizedStateIndex for all rollapps
 func (k Keeper) GetAllLatestFinalizedStateIndex(ctx sdk.Context) (list []types.StateInfoIndex) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LatestFinalizedStateIndexKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close() // nolint: errcheck
 
@@ -61,4 +63,29 @@ func (k Keeper) GetAllLatestFinalizedStateIndex(ctx sdk.Context) (list []types.S
 	}
 
 	return
+}
+
+func (k Keeper) GetLatestFinalizedHeight(ctx sdk.Context, rollappID string) (uint64, error) {
+	latestIndex, found := k.GetLatestFinalizedStateIndex(ctx, rollappID)
+	if !found {
+		return 0, gerrc.ErrNotFound.Wrapf("latest finalized state index is not found")
+	}
+	stateInfo := k.MustGetStateInfo(ctx, rollappID, latestIndex.Index)
+	return stateInfo.GetLatestHeight(), nil
+}
+
+func (k Keeper) IsIndexFinalized(ctx sdk.Context, rollappID string, index uint64) bool {
+	ixFinalized, ok := k.GetLatestFinalizedStateIndex(ctx, rollappID)
+	if !ok {
+		return false
+	}
+	return index <= ixFinalized.Index
+}
+
+func (k Keeper) IsHeightFinalized(ctx sdk.Context, rollappID string, height uint64) bool {
+	latestFinalizedHeight, err := k.GetLatestFinalizedHeight(ctx, rollappID)
+	if err != nil {
+		return false
+	}
+	return height <= latestFinalizedHeight
 }

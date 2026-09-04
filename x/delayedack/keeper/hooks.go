@@ -1,12 +1,13 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
+	"github.com/openmetaearth/me-hub/x/delayedack/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
+	epochstypes "github.com/openmetaearth/me-hub/x/epochs/types"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
-	"github.com/openmetaearth/me-hub/x/delayedack/types"
 	eibctypes "github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
@@ -34,8 +35,15 @@ func (k Keeper) GetEIBCHooks() eibctypes.EIBCHooks {
 
 // AfterDemandOrderFulfilled is called every time a demand order is fulfilled.
 // Once it is fulfilled the underlying packet recipient should be updated to the fulfiller.
-func (k eibcHooks) AfterDemandOrderFulfilled(ctx sdk.Context, demandOrder *eibctypes.DemandOrder, fulfillerAddress string) error {
-	err := k.UpdateRollappPacketTransferAddress(ctx, demandOrder.TrackingPacketKey, fulfillerAddress)
+func (k eibcHooks) AfterDemandOrderFulfilled(ctx sdk.Context, o *eibctypes.DemandOrder, receiverAddr string) error {
+	if o.CompletionHook != nil {
+		err := k.RunOrderCompletionHook(ctx, o, o.PriceAmount())
+		if err != nil {
+			return errorsmod.Wrap(err, "run completion hook")
+		}
+	}
+
+	err := k.UpdateRollappPacketTransferAddress(ctx, o.TrackingPacketKey, receiverAddr)
 	if err != nil {
 		return err
 	}
@@ -71,7 +79,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 		return nil
 	}
 
-	listFilter := types.ByStatus(commontypes.Status_FINALIZED, commontypes.Status_REVERTED).Take(int(deletePacketsBatchSize))
+	listFilter := types.ByStatus(commontypes.Status_FINALIZED).Take(int(deletePacketsBatchSize))
 	count := 0
 
 	// Get batch of rollapp packets with status != PENDING and delete them
@@ -81,17 +89,11 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 		count += len(toDeletePackets)
 
 		for _, packet := range toDeletePackets {
-			err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-				return e.deleteRollappPacket(ctx, &packet)
-			})
-			if err != nil {
-				e.Logger(ctx).Error("Failed to delete rollapp packet",
-					"packet", commontypes.RollappPacketKey(&packet), "error", err)
-			}
+			e.DeleteRollappPacket(ctx, &packet)
 		}
 
 		// if the total number of deleted packets reaches the hard limit for the epoch, stop deleting packets
-		if int32(count) >= params.DeletePacketsEpochLimit {
+		if count >= int(params.DeletePacketsEpochLimit) {
 			break
 		}
 	}

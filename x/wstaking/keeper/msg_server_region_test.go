@@ -3,16 +3,18 @@ package keeper_test
 import (
 	"strings"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	sdkmath "cosmossdk.io/math"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wdistri"
 	"github.com/openmetaearth/me-hub/x/wmint"
+
 	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -162,9 +164,9 @@ func (s *KeeperTestSuite) TestRemoveRegionThenCreateRegion() {
 func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	regionResp, err := s.queryClient.Region(s.Ctx, &types.QueryRegionRequest{RegionId: strings.ToLower(types.ExperienceRegionName)})
 	s.Require().NoError(err)
@@ -193,7 +195,7 @@ func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 			withdrawer: s.Dao.GlobalDao,
 			amount: balance.Add(sdk.Coin{
 				Denom:  params.BaseDenom,
-				Amount: sdk.NewInt(1),
+				Amount: sdkmath.NewInt(1),
 			}),
 			expErr: sdkerrors.ErrInsufficientFunds,
 		}, {
@@ -397,9 +399,9 @@ func (s *KeeperTestSuite) TestRevokeRegionWithdraw() {
 func (s *KeeperTestSuite) TestWithdrawFromRegionRejectsBlockedModuleReceiver() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	regionResp, err := s.queryClient.Region(s.Ctx, &types.QueryRegionRequest{RegionId: types.ExperienceRegionId})
 	s.Require().NoError(err)

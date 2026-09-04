@@ -1,5 +1,7 @@
 package wmint
 
+import sdkmath "cosmossdk.io/math"
+
 import (
 	"math/big"
 	"time"
@@ -23,9 +25,9 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic mintypes.InflationCalcula
 	mul := (blockHeight - 1) / types.OneYearTotalBlocks
 
 	// amount (MEC) = InitOneYearMintAmount / OneYearTotalBlocks / 2^mul
-	halvingDivisor := sdk.NewDecFromBigInt(new(big.Int).Lsh(big.NewInt(1), uint(mul)))
-	amount := sdk.NewDec(int64(types.InitOneYearMintAmount)).
-		Quo(sdk.NewDec(int64(types.OneYearTotalBlocks))).
+	halvingDivisor := sdkmath.LegacyNewDecFromBigInt(new(big.Int).Lsh(big.NewInt(1), uint(mul)))
+	amount := sdkmath.LegacyNewDec(int64(types.InitOneYearMintAmount)).
+		Quo(sdkmath.LegacyNewDec(int64(types.OneYearTotalBlocks))).
 		Quo(halvingDivisor)
 
 	// RoundUpToFourDecimals: Ceil(amount * 10000) / 10000
@@ -42,14 +44,14 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic mintypes.InflationCalcula
 		// only mint the remaining amount to avoid over-issuance.
 		if newMinted.Cmp(totalCap) > 0 {
 			remaining := new(big.Int).Sub(totalCap, &mintedAmount)
-			mintingUMECAmount = sdk.NewIntFromBigInt(remaining)
+			mintingUMECAmount = sdkmath.NewIntFromBigInt(remaining)
 			mintedAmount.Set(totalCap)
 		} else {
 			mintedAmount.Set(newMinted)
 		}
 		k.SetMintedCoinAmount(ctx, mintedAmount)
 	default:
-		mintingUMECAmount = sdk.ZeroInt()
+		mintingUMECAmount = sdkmath.ZeroInt()
 	}
 
 	k.SetPerBlockMintCoinAmount(ctx, *mintingUMECAmount.BigInt())
@@ -85,7 +87,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic mintypes.InflationCalcula
 	)
 }
 
-// RoundUpToFourDecimalsDec rounds x up to 4 decimal places using sdk.Dec arithmetic.
-func RoundUpToFourDecimalsDec(x sdk.Dec) sdk.Dec {
+// RoundUpToFourDecimalsDec rounds x up to 4 decimal places using sdkmath.LegacyDec arithmetic.
+func RoundUpToFourDecimalsDec(x sdkmath.LegacyDec) sdkmath.LegacyDec {
 	return x.MulInt64(10000).Ceil().QuoInt64(10000)
 }

@@ -6,12 +6,13 @@ import (
 	"strings"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
+
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/nft"
-
 	"github.com/openmetaearth/me-hub/utils"
-	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -20,7 +21,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 
 	_, err := utils.CheckRegionName(msg.Name)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrRegionName, err.Error())
+		return nil, errorsmod.Wrap(types.ErrRegionName, err.Error())
 	}
 
 	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
@@ -30,34 +31,34 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	regionId := strings.ToLower(msg.Name)
 	_, found := k.GetRegion(ctx, regionId)
 	if found {
-		return nil, sdkerrors.Wrapf(types.ErrRegionAlreadyExist, "region already exist")
+		return nil, errorsmod.Wrapf(types.ErrRegionAlreadyExist, "region already exist")
 	}
 
 	valAddr, err := sdk.ValAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "region bonded validator no found")
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "region bonded validator no found")
 	}
 
-	validator, ok := k.GetValidator(ctx, valAddr)
-	if !ok {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return nil, types.ErrRegionValidatorNotExist
 	}
-	if !strings.EqualFold(validator.Description.RegionID, regionId) {
+	if strings.ToLower(validator.Description.RegionID) != strings.ToLower(regionId) {
 		return nil, types.ErrRegion.Wrapf("only the validator with region id %s can be bound, not bound %s region", validator.Description.RegionID, regionId)
 	}
 
 	allRegions := k.Keeper.GetAllRegion(ctx)
 	for _, reg := range allRegions {
 		if reg.OperatorAddress == msg.OperatorAddress {
-			return nil, sdkerrors.Wrapf(types.ErrRegionValidatorDuplicate, "meid region bonded validator duplicates")
+			return nil, errorsmod.Wrapf(types.ErrRegionValidatorDuplicate, "meid region bonded validator duplicates")
 		}
 		if reg.RegionId == regionId {
-			return nil, sdkerrors.Wrapf(types.ErrRegionNameDuplicate, "meid region name duplicates")
+			return nil, errorsmod.Wrapf(types.ErrRegionNameDuplicate, "meid region name duplicates")
 		}
 	}
 	err = k.WstakingHooks().BeforeValidatorStakingModified(ctx, valAddr)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrHooks, "before create new region :error :%+v", err)
+		return nil, errorsmod.Wrapf(types.ErrHooks, "before create new region :error :%+v", err)
 	}
 
 	uri := ""
@@ -66,7 +67,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	}
 	metadata, err := codectypes.NewAnyWithValue(classMetadata)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "%v", err)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrLogic, "%v", err)
 	}
 	nftClass := nft.Class{
 		Id:          types.GetClassId(msg.Name),
@@ -74,7 +75,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 		Symbol:      types.GetClassSymbol(msg.Name),
 		Description: types.GetClassDescription(regionId),
 		Uri:         uri,
-		UriHash:     utils.CalculateURIHash(uri),
+		UriHash:     utils.CalculateUriHash(uri),
 		Data:        metadata,
 	}
 
@@ -82,7 +83,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	if !nftClassFound {
 		err = k.nftKeeper.SaveClass(ctx, nftClass)
 		if err != nil {
-			return nil, sdkerrors.Wrapf(types.ErrRegionAlreadyExist, "save nft class: %v", err)
+			return nil, errorsmod.Wrapf(types.ErrRegionAlreadyExist, "save nft class: %v", err)
 		}
 	}
 
@@ -116,28 +117,28 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 }
 
 func (k MsgServer) RemoveRegion(goCtx context.Context, msg *types.MsgRemoveRegion) (*types.MsgRemoveRegionResponse, error) {
-	// ctx := sdk.UnwrapSDKContext(goCtx)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
-	// 	return nil, types.ErrCheckGlobalDao
-	// }
+	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
+		return nil, types.ErrCheckGlobalDao
+	}
 
-	// _, found := k.GetRegion(ctx, msg.RegionId)
-	// if !found {
-	// 	return nil, types.ErrRegionNotExist
-	// }
+	_, found := k.GetRegion(ctx, msg.RegionId)
+	if !found {
+		return nil, types.ErrRegionNotExist
+	}
 
-	// err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, sdk.ValAddress{})
-	// if err != nil {
-	// 	return nil, sdkerrors.Wrapf(types.ErrHooks, "before remove region :error :%+v", err)
-	// }
-	// k.Keeper.RemoveRegion(ctx, msg.RegionId)
-	// ctx.EventManager().EmitEvent(
-	// 	sdk.NewEvent(
-	// 		types.EventTypeRemoveRegion,
-	// 		sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
-	// 	),
-	// )
+	err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, sdk.ValAddress{})
+	if err != nil {
+		return nil, errorsmod.Wrapf(types.ErrHooks, "before remove region :error :%+v", err)
+	}
+	k.Keeper.RemoveRegion(ctx, msg.RegionId)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeRemoveRegion,
+			sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
+		),
+	)
 	return &types.MsgRemoveRegionResponse{}, nil
 }
 
@@ -147,26 +148,23 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 	isDao := k.daoKeeper.IsGlobalDao(ctx, msg.Withdrawer)
 	isGranted := k.CanRegionWithdraw(ctx, msg.Withdrawer, msg.RegionId)
 	if !isDao && !isGranted {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized,
+		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized,
 			"address %s can not withdraw for region %s", msg.Withdrawer, msg.RegionId)
 	}
 
 	region, found := k.GetRegion(ctx, msg.RegionId)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrRegionNotExist, "region not exist")
+		return nil, errorsmod.Wrapf(types.ErrRegionNotExist, "region not exist")
 	}
 
 	fromAddr, err := sdk.AccAddressFromBech32(region.RegionTreasureAddr)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrUnknownAccount, "region account %s format error %s", region.RegionTreasureAddr, err)
+		return nil, errorsmod.Wrapf(types.ErrUnknownAccount, "region account %s format error %s", region.RegionTreasureAddr, err)
 	}
 
 	toAddr, err := sdk.AccAddressFromBech32(msg.Receiver)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrUnknownAccount, "receiver account %s format error %s", msg.Receiver, err)
-	}
-	if k.bankKeeper.Extend().BlockedAddr(toAddr) {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive region treasury withdrawals", toAddr)
+		return nil, errorsmod.Wrapf(types.ErrUnknownAccount, "receiver account %s format error %s", msg.Receiver, err)
 	}
 
 	err = k.bankKeeper.Extend().SendCoinsWithTag(
@@ -177,7 +175,7 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 		fmt.Sprintf("WithdrawFromRegionTreasure_%s", region.RegionId),
 	)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "region treasure %s does not have enough balance", region.RegionTreasureAddr)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "region %s have enough balance", region.RegionTreasureAddr)
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -205,11 +203,11 @@ func (k MsgServer) GrantRegionWithdraw(goCtx context.Context, msg *types.MsgGran
 	}
 
 	if _, found := k.GetRegion(ctx, msg.RegionId); !found {
-		return nil, sdkerrors.Wrapf(types.ErrRegionNotExist, "region %s not found", msg.RegionId)
+		return nil, errorsmod.Wrapf(types.ErrRegionNotExist, "region %s not found", msg.RegionId)
 	}
 
 	if _, err := sdk.AccAddressFromBech32(msg.Address); err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address: %s", err)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address: %s", err)
 	}
 
 	k.SetRegionWithdraw(ctx, msg.RegionId, msg.Address)
@@ -233,11 +231,11 @@ func (k MsgServer) RevokeRegionWithdraw(goCtx context.Context, msg *types.MsgRev
 	}
 
 	if _, found := k.GetRegion(ctx, msg.RegionId); !found {
-		return nil, sdkerrors.Wrapf(types.ErrRegionNotExist, "region %s not found", msg.RegionId)
+		return nil, errorsmod.Wrapf(types.ErrRegionNotExist, "region %s not found", msg.RegionId)
 	}
 
 	if _, found := k.GetRegionWithdraw(ctx, msg.RegionId); !found {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrKeyNotFound,
+		return nil, errorsmod.Wrapf(sdkerrors.ErrKeyNotFound,
 			"no withdraw address found for region %s", msg.RegionId)
 	}
 

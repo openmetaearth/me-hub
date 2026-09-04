@@ -5,7 +5,7 @@ import (
 	"runtime/debug"
 
 	errorsmod "cosmossdk.io/errors"
-	cometbftlog "github.com/cometbft/cometbft/libs/log"
+	cometbftlog "cosmossdk.io/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -38,7 +38,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 					anteHandler = newEthAnteHandler(options)
 				case "/ethermint.types.v1.ExtensionOptionsWeb3Tx":
 					// handle as normal Cosmos SDK tx, except signature is checked for EIP712 representation
-					anteHandler = newLegacyCosmosAnteHandlerEip712(options)
+					anteHandler = newCosmosAnteHandler(options)
 				default:
 					return ctx, errorsmod.Wrapf(
 						errortypes.ErrUnknownExtensionOptions,

@@ -3,21 +3,23 @@ package keeper
 import (
 	"testing"
 
-	cometbftdb "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	"cosmossdk.io/store"
+	"cosmossdk.io/store/metrics"
+	storetypes "cosmossdk.io/store/types"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/store"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
-	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibctypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	"github.com/stretchr/testify/require"
 
 	"github.com/openmetaearth/me-hub/x/delayedack/keeper"
@@ -40,9 +42,12 @@ func (ChannelKeeperStub) GetChannelClientState(ctx sdk.Context, portID, channelI
 	return "", &ibctypes.ClientState{}, nil
 }
 
+func (ChannelKeeperStub) SetPacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64, commitmentHash []byte) {
+}
+
 type ICS4WrapperStub struct{}
 
-func (ICS4WrapperStub) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, sourcePort, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (sequence uint64, err error) {
+func (ICS4WrapperStub) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, sourcePort string, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (sequence uint64, err error) {
 	return 0, nil
 }
 
@@ -97,6 +102,14 @@ func (RollappKeeperStub) GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId
 	return rollapptypes.StateInfoIndex{}, false
 }
 
+func (RollappKeeperStub) GetLatestFinalizedHeight(ctx sdk.Context, rollappId string) (uint64, error) {
+	return 0, nil
+}
+
+func (RollappKeeperStub) IsHeightFinalized(ctx sdk.Context, rollappID string, height uint64) bool {
+	return false
+}
+
 func (RollappKeeperStub) GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp) {
 	return []rollapptypes.Rollapp{}
 }
@@ -116,28 +129,22 @@ func (SequencerKeeperStub) GetSequencer(ctx sdk.Context, sequencerAddress string
 }
 
 func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
-	storeKey := sdk.NewKVStoreKey(types.StoreKey)
-	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	channelStoreKey := storetypes.NewKVStoreKey("ibc_channel_test")
 
-	db := cometbftdb.NewMemDB()
-	stateStore := store.NewCommitMultiStore(db)
+	db := dbm.NewMemDB()
+	stateStore := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
-	stateStore.MountStoreWithDB(memStoreKey, storetypes.StoreTypeMemory, nil)
+	stateStore.MountStoreWithDB(channelStoreKey, storetypes.StoreTypeIAVL, db)
 	require.NoError(t, stateStore.LoadLatestVersion())
 
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
 
-	paramsSubspace := typesparams.NewSubspace(cdc,
-		types.Amino,
-		storeKey,
-		memStoreKey,
-		"DelayedackParams",
-	)
-
 	k := keeper.NewKeeper(cdc,
 		storeKey,
-		paramsSubspace,
+		channelStoreKey,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		RollappKeeperStub{},
 		ICS4WrapperStub{},
 		ChannelKeeperStub{},

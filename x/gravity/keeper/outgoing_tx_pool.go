@@ -4,9 +4,13 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 
+	errorsmod "cosmossdk.io/errors"
+
+	storetypes "cosmossdk.io/store/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/openmetaearth/me-hub/x/gravity/types"
 )
 
@@ -217,7 +221,7 @@ func (k Keeper) GetUnbatchedTransactions(ctx sdk.Context) []*types.OutgoingTrans
 func (k Keeper) IterateUnbatchedTransactions(ctx sdk.Context, tokenContract string, cb func(tx *types.OutgoingTransferTx) bool) {
 	store := ctx.KVStore(k.storeKey)
 	prefixKey := types.GetOutgoingTxPoolContractPrefix(tokenContract)
-	iter := sdk.KVStoreReversePrefixIterator(store, prefixKey)
+	iter := storetypes.KVStoreReversePrefixIterator(store, prefixKey)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		var transact types.OutgoingTransferTx
@@ -250,8 +254,8 @@ func (k Keeper) ClearAutoIncrementID(ctx sdk.Context) {
 }
 
 // GetOutgoingPendingTxTotal returns the total amount of a given token pending in the outgoing pool and all batches
-func (k Keeper) GetOutgoingPendingTxTotal(ctx sdk.Context, chainName string, bridgeToken *types.BridgeToken) sdk.Int {
-	totalPending := sdk.ZeroInt()
+func (k Keeper) GetOutgoingPendingTxTotal(ctx sdk.Context, chainName string, bridgeToken *types.BridgeToken) sdkmath.Int {
+	totalPending := sdkmath.ZeroInt()
 	// Add all unbatched transactions
 	k.IterateUnbatchedTransactions(ctx, bridgeToken.ContractAddress, func(tx *types.OutgoingTransferTx) bool {
 		totalPending = totalPending.Add(types.GetMintAmount(tx.Token.Amount, chainName, bridgeToken))

@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"testing"
 
+	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
@@ -53,8 +53,8 @@ func (s *KeeperTestSuite) Keeper() *keeper.Keeper {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
+	app := apptesting.Setup(s.T())
+	ctx := app.GetBaseApp().NewContext(false)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	nativeQuerier := distrkeeper.Querier{Keeper: app.DistrKeeper.Keeper}
@@ -74,10 +74,10 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.App.DistrKeeper = keeper.NewKeeper(
 		s.App.AppCodec(),
-		s.App.GetKey(distrtypes.StoreKey),
-		s.App.GetSubspace(distrtypes.ModuleName),
-		s.authKeeper,
-		s.bankKeeper,
+		runtime.NewKVStoreService(s.App.GetKey(distrtypes.StoreKey)),
+		s.App.AccountKeeper,
+		s.App.BankKeeper,
+		s.App.StakingKeeper,
 		s.stakingKeeper,
 		wbanktypes.TreasuryPoolName,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
@@ -219,11 +219,11 @@ func (s *KeeperTestSuite) TestEndBlocker() {
 			totalWantReward += testcase.regionWantGetReward[i]
 		}
 		if totalWantReward != 0 {
-			s.SetMockGetBalance(ctx, sdk.NewInt(int64(totalWantReward)))
+			s.SetMockGetBalance(ctx, sdkmath.NewInt(int64(totalWantReward)))
 		}
 		s.setMockSendCoinsFromModuleToAccountExpect(ctx, wantReward...)
 
-		err := s.App.DistrKeeper.AllocateBlockRewardEveryday(ctx, abci.RequestEndBlock{Height: ctx.BlockHeight()})
+		err := s.App.DistrKeeper.AllocateBlockRewardEveryday(ctx)
 		events := ctx.EventManager().ABCIEvents()
 		s.Require().NoError(err, "case %d: %s", index, testcase.name)
 		assert.Equal(s.T(), len(addrs), len(events))
@@ -243,7 +243,7 @@ func (s *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int) []
 	regions := make([]wstakingtypes.RegionI, 0, len(regionShare))
 	for i, share := range regionShare {
 		region := mocks.NewMockRegionI(s.T())
-		region.EXPECT().GetRegionShare().Return(sdk.NewInt(int64(share)))
+		region.EXPECT().GetRegionShare().Return(sdkmath.NewInt(int64(share)))
 		addr := authtypes.NewModuleAddress(fmt.Sprintf("region_%d", i)).String()
 		addrs = append(addrs, addr)
 		region.EXPECT().GetRegionTreasureAddr().Return(addr)
@@ -277,7 +277,7 @@ func (s *KeeperTestSuite) setMockSendCoinsFromModuleToAccountExpect(ctx sdk.Cont
 				ctx,
 				s.App.DistrKeeper.GetTreasuryModuleAccount(),
 				sdk.MustAccAddressFromBech32(w.addr),
-				sdk.NewCoins(sdk.NewCoin(baseDenom, sdk.NewInt(w.num))),
+				sdk.NewCoins(sdk.NewCoin(baseDenom, sdkmath.NewInt(w.num))),
 			).Return(nil)
 	}
 }

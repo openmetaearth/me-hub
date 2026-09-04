@@ -9,13 +9,12 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // BlockValidatorUpdates calculates the ValidatorUpdates for the current block
 // Called in each EndBlock
-func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
+func (k *Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 	// Calculate validator set changes.
 	//
 	// NOTE: ApplyAndReturnValidatorSetUpdates has to come before
@@ -47,40 +46,36 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 
 		k.Logger(ctx).Error("failed to replace validator pubkey", "error", err.Error(),
 			"block height", ctx.BlockHeight())
-	} else if replacePubKey != nil {
-		newPubkey, errP := cryptocodec.ToTmProtoPublicKey(replacePubKey.NewPubKey)
-		if errP != nil {
-			panic(errP)
+	} else {
+		if replacePubKey != nil {
+			newPubkey, errP := cryptocodec.ToTmProtoPublicKey(replacePubKey.NewPubKey)
+			if errP != nil {
+				panic(errP)
+			}
+			oldPubkey, errP := cryptocodec.ToTmProtoPublicKey(replacePubKey.OldPubKey)
+			if errP != nil {
+				panic(errP)
+			}
+			validatorUpdates = upsertValidatorUpdate(validatorUpdates, abci.ValidatorUpdate{
+				PubKey: oldPubkey,
+				Power:  0,
+			})
+			valAddr, errP := sdk.ValAddressFromBech32(replacePubKey.OperatorAddress)
+			if errP != nil {
+				panic(fmt.Sprintf("invalid validator address %s,err = %s", replacePubKey.OperatorAddress, errP.Error()))
+			}
+			validator, err := k.GetValidator(ctx, valAddr)
+			if err != nil {
+				panic(fmt.Sprintf("validator not found for address %s", replacePubKey.OperatorAddress))
+			}
+			power := validator.ConsensusPower(k.PowerReduction(ctx))
+			validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
+				PubKey: newPubkey,
+				Power:  power,
+			})
+			// Log the removal
+			k.Logger(ctx).Info("completed pubb key replaced in validatorUpdates ", "validator", valAddr.String(), "block height", ctx.BlockHeight())
 		}
-		oldPubkey, errP := cryptocodec.ToTmProtoPublicKey(replacePubKey.OldPubKey)
-		if errP != nil {
-			panic(errP)
-		}
-		// If ApplyAndReturnValidatorSetUpdates already emitted an update for the old
-		// consensus key in this block (the validator's power changed at the same
-		// height the pubkey replacement takes effect), merge with it by forcing its
-		// power to 0 instead of appending a second entry for the same consensus
-		// address. CometBFT rejects a changeset with duplicate validator addresses.
-		validatorUpdates = upsertValidatorUpdate(validatorUpdates, abci.ValidatorUpdate{
-			PubKey: oldPubkey,
-			Power:  0,
-		})
-
-		valAddr, errP := sdk.ValAddressFromBech32(replacePubKey.OperatorAddress)
-		if errP != nil {
-			panic(fmt.Sprintf("invalid validator address %s,err = %s", replacePubKey.OperatorAddress, errP.Error()))
-		}
-		validator, found := k.GetValidator(ctx, valAddr)
-		if !found {
-			panic(fmt.Sprintf("validator not found for address %s", replacePubKey.OperatorAddress))
-		}
-		power := validator.ConsensusPower(k.PowerReduction(ctx))
-		validatorUpdates = append(validatorUpdates, abci.ValidatorUpdate{
-			PubKey: newPubkey,
-			Power:  power,
-		})
-		// Log the removal
-		k.Logger(ctx).Info("completed pubb key replaced in validatorUpdates ", "validator", valAddr.String(), "block height", ctx.BlockHeight())
 	}
 
 	// unbond all mature validators from the unbonding queue
@@ -112,7 +107,7 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 	}
 
 	// Remove all mature unbonding delegations from the ubd queue.
-	matureDelUnbonds := k.DequeueAllMatureUBDQueue(ctx, ctx.BlockHeader().Time)
+	matureDelUnbonds, _ := k.DequeueAllMatureUBDQueue(ctx, ctx.BlockHeader().Time)
 	for _, dvPair := range matureDelUnbonds {
 		addr, err := sdk.ValAddressFromBech32(dvPair.ValidatorAddress)
 		if err != nil {
@@ -135,7 +130,7 @@ func (k Keeper) BlockValidatorUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 	}
 
 	// Remove all mature redelegations from the red queue.
-	matureRedelegations := k.DequeueAllMatureRedelegationQueue(ctx, ctx.BlockHeader().Time)
+	matureRedelegations, _ := k.DequeueAllMatureRedelegationQueue(ctx, ctx.BlockHeader().Time)
 	for _, dvvTriplet := range matureRedelegations {
 		valSrcAddr, err := sdk.ValAddressFromBech32(dvvTriplet.ValidatorSrcAddress)
 		if err != nil {

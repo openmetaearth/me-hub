@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
+
 	cosmossecp256k1 "github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -18,7 +20,7 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 
 	creatorAccount, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return &types.MsgCreateSubAccountResponse{}, errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	did, ok := m.GetDID(ctx, creatorAccount)
@@ -41,7 +43,7 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 
 	account := m.accountKeeper.GetAccount(ctx, creatorAccount)
 	if account == nil {
-		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "account not found")
+		return &types.MsgCreateSubAccountResponse{}, errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "account not found")
 	}
 
 	pk := account.GetPubKey()
@@ -59,7 +61,7 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 	}
 
 	if !creatorAccount.Equals(sdk.AccAddress(mainPubKey.Address())) {
-		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "main account pubkey does not match creator address")
+		return &types.MsgCreateSubAccountResponse{}, errorsmod.Wrap(sdkerrors.ErrInvalidPubKey, "main account pubkey does not match creator address")
 	}
 
 	if holderInfo.SubAccount != "" {
@@ -73,26 +75,26 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 	// validate that sub_account is an ethsecp256k1 address derived from the provided pubkey
 	subAccountPubKey, err := m.PubKeyFromString(msg.SubAccountPubkey)
 	if err != nil {
-		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, err.Error())
+		return &types.MsgCreateSubAccountResponse{}, errorsmod.Wrap(sdkerrors.ErrInvalidPubKey, err.Error())
 	}
 
 	ethSubPubKey, ok := subAccountPubKey.(*ethsecp256k1.PubKey)
 	if !ok {
-		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "sub_account must be an ethsecp256k1 address")
+		return &types.MsgCreateSubAccountResponse{}, errorsmod.Wrap(sdkerrors.ErrInvalidPubKey, "sub_account must be an ethsecp256k1 address")
 	}
 
 	derivedAddr := sdk.AccAddress(subAccountPubKey.Address())
 
 	subAccount, err := sdk.AccAddressFromBech32(msg.SubAccount)
 	if err != nil {
-		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return &types.MsgCreateSubAccountResponse{}, errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if !derivedAddr.Equals(subAccount) {
-		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "pubkey does not match sub_account address")
+		return &types.MsgCreateSubAccountResponse{}, errorsmod.Wrap(sdkerrors.ErrInvalidPubKey, "pubkey does not match sub_account address")
 	}
 
 	if !bytes.Equal(mainPubKey.Key, ethSubPubKey.Key) {
-		return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "main account and sub account are not derived from the same private key")
+		return &types.MsgCreateSubAccountResponse{}, errorsmod.Wrap(sdkerrors.ErrInvalidPubKey, "main account and sub account are not derived from the same private key")
 	}
 
 	_, ok = m.GetDID(ctx, subAccount)
@@ -101,8 +103,8 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 	}
 
 	// check sub_account delegation, if has delegation, return error
-	_, found = m.stkKeeper.GetDelegation(ctx, subAccount, sdk.ValAddress{})
-	if found {
+	_, err = m.stkKeeper.GetDelegation(ctx, subAccount, sdk.ValAddress{})
+	if err == nil {
 		return &types.MsgCreateSubAccountResponse{}, types.ErrSubAccountHasDelegation
 	}
 
@@ -110,7 +112,7 @@ func (m msgServer) CreateSubAccount(goCtx context.Context, msg *types.MsgCreateS
 		newAccount := m.accountKeeper.NewAccountWithAddress(ctx, subAccount)
 		err = newAccount.SetPubKey(subAccountPubKey)
 		if err != nil {
-			return &types.MsgCreateSubAccountResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, err.Error())
+			return &types.MsgCreateSubAccountResponse{}, errorsmod.Wrap(sdkerrors.ErrInvalidPubKey, err.Error())
 		}
 		m.accountKeeper.SetAccount(ctx, newAccount)
 	}
