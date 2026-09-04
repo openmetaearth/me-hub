@@ -72,6 +72,24 @@ func (a AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {
 	stakingtypes.RegisterInterfaces(reg)
 }
 
+// RegisterInterfaces is on AppModule so NewBasicManagerFromManager (which wraps
+// the AppModule, not AppModuleBasic) still registers wstaking msg types.
+func (am AppModule) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {
+	AppModuleBasic{}.RegisterInterfaces(reg)
+}
+
+func (am AppModule) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	AppModuleBasic{}.RegisterLegacyAminoCodec(cdc)
+}
+
+func (am AppModule) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+	return AppModuleBasic{}.DefaultGenesis(cdc)
+}
+
+func (am AppModule) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
+	return AppModuleBasic{}.ValidateGenesis(cdc, config, bz)
+}
+
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the staking module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *gwruntime.ServeMux) {
 	if err := stakingtypes.RegisterQueryHandlerClient(context.Background(), mux, stakingtypes.NewQueryClient(clientCtx)); err != nil {

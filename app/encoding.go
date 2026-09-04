@@ -1,11 +1,14 @@
 package app
 
 import (
+	"cosmossdk.io/x/tx/signing"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	"github.com/cosmos/gogoproto/proto"
 	cryptocodec "github.com/evmos/ethermint/crypto/codec"
 	ethermint "github.com/evmos/ethermint/types"
 
@@ -16,13 +19,22 @@ import (
 // makeEncodingConfig creates an EncodingConfig for an amino based test configuration.
 func makeEncodingConfig() params.EncodingConfig {
 	amino := codec.NewLegacyAmino()
-	interfaceRegistry := codectypes.NewInterfaceRegistry()
-	codec := codec.NewProtoCodec(interfaceRegistry)
-	txCfg := tx.NewTxConfig(codec, tx.DefaultSignModes)
+	interfaceRegistry, err := codectypes.NewInterfaceRegistryWithOptions(codectypes.InterfaceRegistryOptions{
+		ProtoFiles: proto.HybridResolver,
+		SigningOptions: signing.Options{
+			AddressCodec:          address.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
+			ValidatorAddressCodec: address.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
+		},
+	})
+	if err != nil {
+		panic(err)
+	}
+	cdc := codec.NewProtoCodec(interfaceRegistry)
+	txCfg := tx.NewTxConfig(cdc, tx.DefaultSignModes)
 
 	return params.EncodingConfig{
 		InterfaceRegistry: interfaceRegistry,
-		Codec:             codec,
+		Codec:             cdc,
 		TxConfig:          txCfg,
 		Amino:             amino,
 	}
