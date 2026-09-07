@@ -143,7 +143,9 @@ func (k MsgServer) CreateValidator(
 	validator.OwnerAddress = sdk.AccAddress(valAddr).String()
 
 	k.SetValidator(ctx, validator)
-	k.SetValidatorByConsAddr(ctx, validator)
+	if err := k.SetValidatorByConsAddr(ctx, validator); err != nil {
+		return nil, err
+	}
 	k.SetNewValidatorByPowerIndex(ctx, validator)
 	// call the after-creation hook
 	if err := k.Hooks().AfterValidatorCreated(ctx, valAddr); err != nil {
