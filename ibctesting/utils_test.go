@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"testing"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometbftversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	cometbfttypes "github.com/cometbft/cometbft/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -24,6 +26,7 @@ import (
 	"github.com/openmetaearth/me-hub/app"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	common "github.com/openmetaearth/me-hub/x/common/types"
+	delayedacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
@@ -66,7 +69,9 @@ func cosmosChainID() string {
 }
 
 func rollappChainID() string {
-	return ibctesting.GetChainID(3)
+	// CreateRollapp requires revision number 1 (EIP-155 form: name_eip155-revision).
+	// ibctesting.GetChainID(3) yields evmos_9000-3, which is rejected as revision 3.
+	return "rollapp_1234-1"
 }
 
 func (s *utilSuite) hubChain() *ibctesting.TestChain {
@@ -109,6 +114,10 @@ func (s *utilSuite) rollappMsgServer() rollapptypes.MsgServer {
 func (s *utilSuite) SetupTest() {
 	s.coordinator = ibctesting.NewCoordinator(s.T(), 2) // initializes test chains
 	s.coordinator.Chains[rollappChainID()] = s.newTestChainWithSingleValidator(s.T(), s.coordinator, rollappChainID())
+	// ibc-go test headers do not match rollapp block descriptors. Canonical-client
+	// mapping is still set in tests; skip lightclient header verification here.
+	s.hubApp().LightClientKeeper.SetEnabled(false)
+	s.rollappApp().LightClientKeeper.SetEnabled(false)
 }
 
 // CreateRollappWithFinishedGenesis creates a rollapp whose 'genesis' protocol is complete:
@@ -119,19 +128,35 @@ func (s *utilSuite) createRollappWithFinishedGenesis(canonicalChannelID string) 
 
 func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 	creator := s.hubChain().SenderAccount.GetAddress().String()
-	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(creator, rollappChainID(), creator,
-		rollapptypes.DefaultMinSequencerBondGlobalCoin, "", rollapptypes.Rollapp_EVM, nil, nil, sdk.DefaultBondDenom)
+	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
+		creator,
+		rollappChainID(),
+		creator,
+		rollapptypes.DefaultMinSequencerBondGlobalCoin,
+		"rollapp",
+		rollapptypes.Rollapp_EVM,
+		nil,
+		&rollapptypes.GenesisInfo{
+			Bech32Prefix:    "eth",
+			GenesisChecksum: "checksum",
+			NativeDenom:     rollapptypes.DenomMetadata{Display: "DEN", Base: "aden", Exponent: 18},
+			InitialSupply:   sdkmath.NewInt(1000),
+		},
+		"",
+	)
 	_, err := s.hubChain().SendMsgs(msgCreateRollapp)
 	s.Require().NoError(err) // message committed
+	a := s.hubApp()
+	ra := a.RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	// ibc-go test headers hardcode tendermint Version.App=2.
+	ra.Revisions = []rollapptypes.Revision{{Number: 2, StartHeight: 0}}
 	if channelID != nil {
-		a := s.hubApp()
-		ra := a.RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 		ra.ChannelId = *channelID
 		if transfersEnabled {
 			ra.GenesisState.TransferProofHeight = uint64(s.hubCtx().BlockHeight())
 		}
-		a.RollappKeeper.SetRollapp(s.hubCtx(), ra)
 	}
+	a.RollappKeeper.SetRollapp(s.hubCtx(), ra)
 }
 
 func (s *utilSuite) registerSequencer() {
@@ -148,7 +173,11 @@ func (s *utilSuite) registerSequencer() {
 		s.hubChain().SenderAccount.GetAddress().String(),
 		pk,
 		rollappChainID(),
-		&sequencertypes.SequencerMetadata{},
+		&sequencertypes.SequencerMetadata{
+			Rpcs:        []string{"https://rpc.rollapp.example.xyz:443"},
+			EvmRpcs:     []string{"https://rpc.evm.rollapp.example.xyz:443"},
+			RestApiUrls: []string{"https://api.rollapp.example.xyz:443"},
+		},
 		bond,
 		s.hubChain().SenderAccount.GetAddress().String(),
 		nil,
@@ -172,8 +201,10 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	blockDescriptors := &rollapptypes.BlockDescriptors{BD: make([]rollapptypes.BlockDescriptor, numBlocks)}
 	for i := 0; i < int(numBlocks); i++ {
 		blockDescriptors.BD[i] = rollapptypes.BlockDescriptor{
-			Height:    startHeight + uint64(i),
-			StateRoot: bytes.Repeat([]byte{byte(startHeight) + byte(i)}, 32),
+			Height:     startHeight + uint64(i),
+			StateRoot:  bytes.Repeat([]byte{byte(startHeight) + byte(i)}, 32),
+			Timestamp:  time.Now().UTC(),
+			DrsVersion: 1,
 		}
 	}
 	// Update the state
@@ -183,13 +214,24 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 		"mock-da-path",
 		startHeight,
 		endHeight-startHeight+1, // numBlocks
-		0,
+		2,
 		blockDescriptors,
 	)
 	err := msgUpdateState.ValidateBasic()
 	s.Require().NoError(err)
 	_, err = s.rollappMsgServer().UpdateState(s.hubCtx(), msgUpdateState)
 	s.Require().NoError(err)
+	s.setCanonicalClient()
+}
+
+func (s *utilSuite) setCanonicalClient() {
+	ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+	if ra.ChannelId == "" {
+		return
+	}
+	clientID, _, err := s.hubApp().IBCKeeper.ChannelKeeper.GetChannelClientState(s.hubCtx(), ibctesting.TransferPort, ra.ChannelId)
+	s.Require().NoError(err)
+	s.hubApp().LightClientKeeper.SetCanonicalClient(s.hubCtx(), rollappChainID(), clientID)
 }
 
 func (s *utilSuite) finalizeRollappState(index, endHeight uint64) (sdk.Events, error) {
@@ -201,6 +243,11 @@ func (s *utilSuite) finalizeRollappState(index, endHeight uint64) (sdk.Events, e
 	s.Require().True(found)
 	stateInfo.NumBlocks = endHeight - stateInfo.StartHeight + 1
 	stateInfo.Status = common.Status_FINALIZED
+	for uint64(len(stateInfo.BDs.BD)) < stateInfo.NumBlocks {
+		prev := stateInfo.BDs.BD[len(stateInfo.BDs.BD)-1]
+		prev.Height++
+		stateInfo.BDs.BD = append(stateInfo.BDs.BD, prev)
+	}
 	// update the status of the stateInfo
 	rollappKeeper.SetStateInfo(ctx, stateInfo)
 	// update the LatestStateInfoIndex of the rollapp
@@ -210,8 +257,29 @@ func (s *utilSuite) finalizeRollappState(index, endHeight uint64) (sdk.Events, e
 		rollappChainID(),
 		&stateInfo,
 	)
+	if err != nil {
+		return ctx.EventManager().Events(), err
+	}
 
-	return ctx.EventManager().Events(), err
+	// v3 finalizes delayedack packets via MsgFinalizePacket, not AfterStateFinalized.
+	packets := s.hubApp().DelayedAckKeeper.ListRollappPackets(ctx, delayedacktypes.PendingByRollappIDByMaxHeight(rollappChainID(), endHeight))
+	handler := s.hubApp().MsgServiceRouter().Handler(new(delayedacktypes.MsgFinalizePacket))
+	s.Require().NotNil(handler)
+	for _, p := range packets {
+		_, err = handler(ctx, &delayedacktypes.MsgFinalizePacket{
+			Sender:            s.hubChain().SenderAccount.GetAddress().String(),
+			RollappId:         p.RollappId,
+			PacketProofHeight: p.ProofHeight,
+			PacketType:        p.Type,
+			PacketSrcChannel:  p.Packet.SourceChannel,
+			PacketSequence:    p.Packet.Sequence,
+		})
+		if err != nil {
+			return ctx.EventManager().Events(), err
+		}
+	}
+
+	return ctx.EventManager().Events(), nil
 }
 
 func (s *utilSuite) newTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
@@ -290,12 +358,14 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 		ChainID: chainID,
 		Height:  1,
 		Time:    coord.CurrentTime.UTC(),
+		Version: cometbftversion.Consensus{Block: 11, App: 0},
 	}
 
 	txConfig := app.GetTxConfig()
 
 	// create an account to send transactions from
 	chain := &ibctesting.TestChain{
+		TB:             t,
 		Coordinator:    coord,
 		ChainID:        chainID,
 		App:            app,

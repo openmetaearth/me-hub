@@ -40,12 +40,13 @@ func (s *KeeperTestSuite) TestTransferKycRegion() {
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
 	inviter := accounts[0]
+	inviterBalBefore := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
 	err = s.Keeper().KycReward(s.Ctx, kycAccount, s.meEarthValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address - inviter reward logic was removed
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), "0")
+	s.Require().Equal(inviterBalBefore.Amount.String(), balance.Amount.String())
 
 	// check region DelegateAmount
 	region, found := s.Keeper().GetRegion(s.Ctx, strings.ToLower(types.MeEarthRegionName))

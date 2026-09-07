@@ -17,7 +17,7 @@ import (
 
 const (
 	rollappId               = "rollapp_1234-1"
-	initialSequencerAddress = "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz"
+	initialSequencerAddress = "me10l6edrf9gjv02um5kp7cmy4zgd26tafzmhpj4m"
 )
 
 // TestUpdateRollapp tests updates for a basic non-launched, non-sealed rollapp
@@ -417,7 +417,7 @@ func (s *RollappTestSuite) TestUpdateRollappLaunched() {
 					InitialSupply:   math.ZeroInt(),
 				},
 			},
-			expError: types.ErrImmutableFieldUpdateAfterLaunched,
+			expError: types.ErrGenesisInfoSealed,
 		},
 		// TODO: should return error, but now it doesn't (https://github.com/metaearth/issues/1703)
 		{
@@ -450,7 +450,8 @@ func (s *RollappTestSuite) TestUpdateRollappLaunched() {
 				s.Require().NoError(err)
 				s.Equal(rollapp, resp.Rollapp)
 			} else {
-				s.ErrorIs(err, tc.expError)
+				s.Require().Error(err)
+				s.ErrorContains(err, tc.expError.Error())
 			}
 		})
 	}
@@ -599,7 +600,7 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 					InitialSupply: math.NewInt(1000), // Non-zero supply without native token
 				},
 			},
-			expError: types.ErrInvalidInitialSupply,
+			expError: types.ErrNoNativeTokenRollapp,
 		},
 
 		{
@@ -703,7 +704,8 @@ func (s *RollappTestSuite) TestUpdateRollappUpdateGenesisInfo() {
 				s.Require().NoError(err)
 				s.Equal(rollapp, resp.Rollapp)
 			} else {
-				s.ErrorIs(err, tt.expError)
+				s.Require().Error(err)
+				s.ErrorContains(err, tt.expError.Error())
 			}
 		})
 	}

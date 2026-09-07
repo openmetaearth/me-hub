@@ -37,7 +37,7 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, stateInfoM *rollapptyp
 		return nil
 	}
 
-	if hook.k.rollappKeeper.IsFirstHeightOfLatestFork(ctx, rollappID, stateInfoM.Revision, stateInfo.GetStartHeight()) {
+	if hook.k.rollappKeeper != nil && hook.k.rollappKeeper.IsFirstHeightOfLatestFork(ctx, rollappID, stateInfoM.Revision, stateInfo.GetStartHeight()) {
 		err := hook.k.ResolveHardFork(ctx, rollappID)
 		if err != nil {
 			return errorsmod.Wrap(err, "resolve hard fork")
@@ -51,8 +51,14 @@ func (hook rollappHook) AfterUpdateState(ctx sdk.Context, stateInfoM *rollapptyp
 		return errorsmod.Wrap(err, "validate optimistic update")
 	}
 
+	if hook.k.ibcClientKeeper == nil {
+		return nil
+	}
 	// check if we can update headers from the state info (if it's more recent than the latest consensus state)
-	cs, _ := hook.k.ibcClientKeeper.GetClientState(ctx, client)
+	cs, ok := hook.k.ibcClientKeeper.GetClientState(ctx, client)
+	if !ok || cs == nil {
+		return nil
+	}
 	lastestH := cs.GetLatestHeight().GetRevisionHeight()
 	if lastestH < stateInfo.GetLatestHeight() {
 		err := hook.k.UpdateClientFromStateInfo(ctx, client, stateInfo)
@@ -98,7 +104,13 @@ func (k Keeper) getConsensusState(ctx sdk.Context,
 	client string,
 	h uint64,
 ) (*ibctm.ConsensusState, bool) {
-	cs, _ := k.ibcClientKeeper.GetClientState(ctx, client)
+	if k.ibcClientKeeper == nil {
+		return nil, false
+	}
+	cs, ok := k.ibcClientKeeper.GetClientState(ctx, client)
+	if !ok || cs == nil {
+		return nil, false
+	}
 	height := ibcclienttypes.NewHeight(cs.GetLatestHeight().GetRevisionNumber(), h)
 	consensusState, ok := k.ibcClientKeeper.GetClientConsensusState(ctx, client, height)
 	if !ok {

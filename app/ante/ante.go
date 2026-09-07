@@ -6,10 +6,25 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	cometbftlog "cosmossdk.io/log"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 )
+
+// AllowedExtensionOption accepts Ethermint EIP-712 and dynamic-fee extension options.
+func AllowedExtensionOption(opt *codectypes.Any) bool {
+	if opt == nil {
+		return false
+	}
+	switch opt.GetTypeUrl() {
+	case "/ethermint.types.v1.ExtensionOptionsWeb3Tx",
+		"/ethermint.types.v1.ExtensionOptionDynamicFeeTx":
+		return true
+	default:
+		return false
+	}
+}
 
 // NewAnteHandler returns an ante handler responsible for attempting to route an
 // Ethereum or SDK transaction to an internal ante handler for performing
@@ -38,7 +53,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 					anteHandler = newEthAnteHandler(options)
 				case "/ethermint.types.v1.ExtensionOptionsWeb3Tx":
 					// handle as normal Cosmos SDK tx, except signature is checked for EIP712 representation
-					anteHandler = newCosmosAnteHandler(options)
+					anteHandler = newLegacyCosmosAnteHandlerEip712(options)
 				default:
 					return ctx, errorsmod.Wrapf(
 						errortypes.ErrUnknownExtensionOptions,

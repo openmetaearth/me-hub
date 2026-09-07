@@ -11,12 +11,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/openmetaearth/me-hub/app"
 	"github.com/openmetaearth/me-hub/app/params"
 	daotypes "github.com/openmetaearth/me-hub/x/dao/types"
+	delayedacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencerkeeper "github.com/openmetaearth/me-hub/x/sequencer/keeper"
@@ -81,7 +84,13 @@ func (s *KeeperTestHelper) CreateDefaultRollappAndProposer() (string, string) {
 }
 
 func (s *KeeperTestHelper) CreateDefaultRollapp() string {
-	rollappId := fmt.Sprintf("testrollapp%d_1-1", rand.Int63()) //nolint:gosec // this is for a test
+	const letters = "abcdefghijklmnopqrstuvwxyz"
+	name := make([]byte, 8)
+	for i := range name {
+		name[i] = letters[rand.Intn(len(letters))] //nolint:gosec // this is for a test
+	}
+	eip155 := rand.Int63()%900_000 + 100_000 //nolint:gosec // this is for a test
+	rollappId := fmt.Sprintf("%s_%d-1", string(name), eip155)
 	s.CreateRollappByName(rollappId)
 	return rollappId
 }
@@ -95,7 +104,7 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 		Alias:            strings.ToLower(rand.Str(7)),
 		VmType:           rollapptypes.Rollapp_EVM,
 		GenesisInfo: &rollapptypes.GenesisInfo{
-			Bech32Prefix:    strings.ToLower(rand.Str(3)),
+			Bech32Prefix:    "eth",
 			GenesisChecksum: "1234567890abcdefg",
 			InitialSupply:   math.NewInt(1000),
 			NativeDenom: rollapptypes.DenomMetadata{
@@ -114,6 +123,7 @@ func (s *KeeperTestHelper) CreateRollappByName(name string) {
 	}
 
 	s.FundForAliasRegistration(msgCreateRollapp)
+	FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(Alice), sdk.NewCoins(sdk.NewCoin(params.BaseDenom, math.NewInt(1_000_000_000_000))))
 
 	msgServer := rollappkeeper.NewMsgServerImpl(s.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(s.Ctx, &msgCreateRollapp)
@@ -140,8 +150,9 @@ func (s *KeeperTestHelper) CreateSequencerByPubkey(ctx sdk.Context, rollappId st
 		Bond:         rollapptypes.DefaultMinSequencerBondGlobalCoin,
 		RollappId:    rollappId,
 		Metadata: sequencertypes.SequencerMetadata{
-			Rpcs:    []string{"https://rpc.wpd.evm.rollapp.example.xyz:443"},
-			EvmRpcs: []string{"https://rpc.evm.rollapp.example.xyz:443"},
+			Rpcs:        []string{"https://rpc.wpd.evm.rollapp.example.xyz:443"},
+			EvmRpcs:     []string{"https://rpc.evm.rollapp.example.xyz:443"},
+			RestApiUrls: []string{"https://api.rollapp.example.xyz:443"},
 		},
 	}
 
@@ -199,8 +210,23 @@ func (s *KeeperTestHelper) FundForAliasRegistration(msgCreateRollApp rollapptype
 }
 
 func (s *KeeperTestHelper) FinalizeAllPendingPackets(address string) int {
-	// no-op stub for phase 1
-	return 0
+	s.T().Helper()
+	packets, err := s.App.DelayedAckKeeper.GetPendingPacketsByAddress(s.Ctx, address)
+	s.Require().NoError(err)
+	for _, packet := range packets {
+		handler := s.App.MsgServiceRouter().Handler(new(delayedacktypes.MsgFinalizePacket))
+		resp, err := handler(s.Ctx, &delayedacktypes.MsgFinalizePacket{
+			Sender:            authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			RollappId:         packet.RollappId,
+			PacketProofHeight: packet.ProofHeight,
+			PacketType:        packet.Type,
+			PacketSrcChannel:  packet.Packet.SourceChannel,
+			PacketSequence:    packet.Packet.Sequence,
+		})
+		s.Require().NoError(err)
+		s.Require().NotNil(resp)
+	}
+	return len(packets)
 }
 
 func (s *KeeperTestHelper) StateNotAltered() {

@@ -189,7 +189,7 @@ var MaccPerms = map[string][]string{
 	govtypes.ModuleName:                                {authtypes.Burner},
 	ibctransfertypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},
 	sequencermoduletypes.ModuleName:                    {authtypes.Minter, authtypes.Burner, authtypes.Staking},
-	rollappmoduletypes.ModuleName:                      {},
+	rollappmoduletypes.ModuleName:                      {authtypes.Burner},
 	evmtypes.ModuleName:                                {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account.
 	evmtypes.ModuleVirtualFrontierContractDeployerName: nil,                                  // used for deploying virtual frontier bank contract.
 	wstakingtypes.FixedDepositPrincipalPool:            nil,

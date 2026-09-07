@@ -336,11 +336,14 @@ func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
 
 			// Finalize rollapp and check fulfiller balance was updated with fee
 			currentRollappBlockHeight = uint64(s.rollappCtx().BlockHeight())
-			evts, err := s.finalizeRollappState(rollappStateIndex, currentRollappBlockHeight)
+			_, err = s.finalizeRollappState(rollappStateIndex, currentRollappBlockHeight)
 			s.Require().NoError(err)
-
-			ack, err := ibctesting.ParseAckFromEvents(evts.ToABCIEvents())
-			s.Require().NoError(err)
+			s.Require().True(s.hubApp().IBCKeeper.ChannelKeeper.HasPacketAcknowledgement(
+				s.hubCtx(),
+				rollappPacket.Packet.GetDestPort(),
+				rollappPacket.Packet.GetDestChannel(),
+				rollappPacket.Packet.GetSequence(),
+			))
 
 			fulfillerAccountBalanceAfterFinalization := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), fulfiller)
 			s.Require().True(fulfillerAccountBalanceAfterFinalization.Equal(preFulfillmentAccountBalance.Add(sdk.NewCoin(IBCDenom, sdkmath.NewInt(eibcTransferFeeInt)))))
@@ -361,6 +364,7 @@ func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
 
 			s.path.EndpointA.Chain.NextBlock()
 			_ = s.path.EndpointB.UpdateClient()
+			ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
 			err = s.path.EndpointB.AcknowledgePacket(packet, ack)
 			s.Require().NoError(err)
 		})

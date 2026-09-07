@@ -3,15 +3,19 @@ package keeper_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	"github.com/openmetaearth/me-hub/x/kyc/keeper"
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 	wstakingkeeper "github.com/openmetaearth/me-hub/x/wstaking/keeper"
@@ -70,6 +74,27 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.InitializeDao()
 
+	mintSupply := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1_000_000_000_000_000_000)))
+	s.Require().NoError(s.App.BankKeeper.MintCoins(s.Ctx, mintypes.ModuleName, mintSupply))
+	daoCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1_000_000_000_000)))
+	s.FundAcc(sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), daoCoins)
+	s.FundAcc(sdk.MustAccAddressFromBech32(s.Dao.MeidDao), daoCoins)
+	s.FundAcc(sdk.MustAccAddressFromBech32(s.Dao.AirdropAddress), daoCoins)
+	s.FundAcc(sdk.MustAccAddressFromBech32(s.Dao.DevOperator), daoCoins)
+
+	issuerAddr := sdk.MustAccAddressFromBech32(s.Dao.GlobalDao)
+	const issuerDid = "1000000000001"
+	s.App.KycKeeper.SetDID(s.Ctx, issuerAddr, issuerDid)
+	s.App.KycKeeper.SetDidInfo(s.Ctx, issuerDid, didtypes.DidInfo{
+		Did:     issuerDid,
+		Address: s.Dao.GlobalDao,
+		Status:  didtypes.DID_STATUS_ACTIVE,
+	})
+	svc, found := s.App.KycKeeper.GetService(s.Ctx)
+	s.Require().True(found)
+	svc.Issuers = append(svc.Issuers, issuerDid)
+	s.App.KycKeeper.SetService(s.Ctx, svc)
+
 	validators, err := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
 	s.Require().NoError(err)
 	s.Require().True(len(validators) >= 3)
@@ -100,6 +125,16 @@ func (s *KeeperTestSuite) SetupTest() {
 	}
 	_, err = stakingMsgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
+
+	s.fundRegionTreasuries()
+}
+
+func (s *KeeperTestSuite) fundRegionTreasuries() {
+	regions := s.App.StakingKeeper.GetAllRegion(s.Ctx)
+	treasureCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1_000_000_000_000)))
+	for _, region := range regions {
+		s.FundAcc(sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), treasureCoins)
+	}
 }
 
 func (s *KeeperTestSuite) TestPubKeyFromString() {

@@ -68,17 +68,20 @@ func (s *AnteTestSuite) SetupTest(isCheckTx bool) {
 
 	anteHandler, err := ante.NewAnteHandler(
 		ante.HandlerOptions{
-			AccountKeeper:   &s.app.AccountKeeper,
-			BankKeeper:      s.app.BankKeeper,
-			IBCKeeper:       s.app.IBCKeeper,
-			EvmKeeper:       s.app.EvmKeeper,
-			FeeMarketKeeper: s.app.FeeMarketKeeper,
-			FeegrantKeeper:  s.app.FeeGrantKeeper,
-			SignModeHandler: txConfig.SignModeHandler(),
-			DaoKeeper:       mockDaoKeeper,
-			StakingKeeper:   mockStakingKeeper,
-			KycKeeper:       s.app.KycKeeper,
-			WasmViewKeeper:  s.app.WasmKeeper,
+			AccountKeeper:     &s.app.AccountKeeper,
+			BankKeeper:        s.app.BankKeeper,
+			IBCKeeper:         s.app.IBCKeeper,
+			EvmKeeper:         s.app.EvmKeeper,
+			FeeMarketKeeper:   s.app.FeeMarketKeeper,
+			FeegrantKeeper:    s.app.FeeGrantKeeper,
+			SignModeHandler:   txConfig.SignModeHandler(),
+			DaoKeeper:         mockDaoKeeper,
+			StakingKeeper:     mockStakingKeeper,
+			KycKeeper:         s.app.KycKeeper,
+			WasmViewKeeper:    s.app.WasmKeeper,
+			LightClientKeeper: &s.app.LightClientKeeper,
+			RollappKeeper:     *s.app.RollappKeeper,
+			ExtensionOptionChecker: ante.AllowedExtensionOption,
 		},
 	)
 
@@ -98,7 +101,7 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	suite.mockDaoKeeper.EXPECT().GetDevOperator(gomock.Any()).Return(devOperator.Address)
 	suite.mockDaoKeeper.EXPECT().IsDao(gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 	suite.mockDaoKeeper.EXPECT().GetGlobalDaoFeePoolAddr(gomock.Any()).Return(devOperator.GetAddress())
-	suite.mockDaoKeeper.EXPECT().CheckFreeGasAccount(gomock.Any(), addr.Address).Return(false)
+	suite.mockDaoKeeper.EXPECT().CheckFreeGasAccount(gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 
 	amt := sdkmath.NewInt(100)
 	err := testutil.FundAccount(
@@ -143,6 +146,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	builder, ok := suite.txBuilder.(authtx.ExtensionOptionsTxBuilder)
 	suite.Require().True(ok, "txBuilder could not be casted to authtx.ExtensionOptionsTxBuilder type")
 	builder.SetFeeAmount(fees)
+	builder.SetFeePayer(from)
 	builder.SetGasLimit(200000)
 
 	err = builder.SetMsgs(msgs...)

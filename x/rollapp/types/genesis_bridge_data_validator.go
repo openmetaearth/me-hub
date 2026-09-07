@@ -9,7 +9,7 @@ import (
 )
 
 // HubRecipient is the address of `x/rollapp` module's account on the rollapp chain.
-const HubRecipient = "dym1mk7pw34ypusacm29m92zshgxee3yreums8avur"
+const HubRecipient = "me1mk7pw34ypusacm29m92zshgxee3yreum3furm6"
 
 type GenesisBridgeValidator struct {
 	rollapp GenesisBridgeData // what the rollapp sent over IBC

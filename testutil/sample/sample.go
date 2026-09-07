@@ -21,7 +21,7 @@ func Acc() sdk.AccAddress {
 // AccAddressFromSecret returns a deterministic account address for a secret.
 func AccAddressFromSecret(secret string) string {
 	seed := sha256.Sum256([]byte(secret))
-	pk := &ed25519.PrivKey{Key: seed[:]}
+	pk := ed25519.GenPrivKeyFromSecret(seed[:])
 	return sdk.AccAddress(pk.PubKey().Address()).String()
 }
 

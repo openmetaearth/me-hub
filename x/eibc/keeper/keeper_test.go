@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/eibc/keeper"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
@@ -33,7 +33,7 @@ var (
 	timeoutHeight      = clienttypes.NewHeight(0, 100)
 	timeoutTimestamp   = uint64(100)
 	transferPacketData = transfertypes.NewFungibleTokenPacketData(
-		sdk.DefaultBondDenom,
+		params.BaseDenom,
 		"1000",
 		eibcSenderAddr.String(),
 		eibcReceiverAddr.String(),

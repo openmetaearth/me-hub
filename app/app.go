@@ -33,7 +33,6 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/version"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
@@ -208,7 +207,7 @@ func New(
 		FeegrantKeeper:         app.FeeGrantKeeper,
 		SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
 		MaxTxGasWanted:         maxGasWanted,
-		ExtensionOptionChecker: nil, // uses default
+		ExtensionOptionChecker: ante.AllowedExtensionOption,
 		RollappKeeper:          *app.RollappKeeper,
 		LightClientKeeper:      &app.LightClientKeeper,
 		DaoKeeper:              app.DaoKeeper,
@@ -380,7 +379,7 @@ func (app *App) SimulationManager() *module.SimulationManager {
 
 // GetTxConfig implements ibctesting.TestingApp
 func (app *App) GetTxConfig() client.TxConfig {
-	return moduletestutil.MakeTestEncodingConfig().TxConfig
+	return app.txConfig
 }
 
 func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {

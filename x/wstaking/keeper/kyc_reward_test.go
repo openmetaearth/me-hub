@@ -67,6 +67,7 @@ func (s *KeeperTestSuite) TestKycReward_WithDelegation() {
 
 	// do kyc reward
 	inviter, _ := s.NewAccount()
+	inviterBalBefore := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
 	err = s.Keeper().KycReward(s.Ctx, userAccount, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 	err = s.Keeper().SendInviteReward(s.Ctx, inviter.String(), userAccount.String(), s.usaValidator.Description.RegionID)
@@ -74,7 +75,7 @@ func (s *KeeperTestSuite) TestKycReward_WithDelegation() {
 
 	// check invite address
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(inviter.String()), params.BaseDenom)
-	s.Require().Equal(types.InviteReward.String(), balance.Amount.String())
+	s.Require().Equal(types.InviteReward.String(), balance.Amount.Sub(inviterBalBefore.Amount).String())
 
 	// after kyc reward
 	// check experience region DelegateAmount
@@ -122,12 +123,13 @@ func (s *KeeperTestSuite) TestKycReward_WithoutDelegation() {
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
 	inviter, _ := s.NewAccount()
+	inviterBalBefore := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
 	err = s.Keeper().KycReward(s.Ctx, kycAccount, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address - inviter reward logic was removed
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), "0")
+	s.Require().Equal(inviterBalBefore.Amount.String(), balance.Amount.String())
 
 	// check region DelegateAmount
 	region, found := s.Keeper().GetRegion(s.Ctx, "usa")
@@ -156,12 +158,13 @@ func (s *KeeperTestSuite) TestRemoveKycReward() {
 
 	kycAccount := sdk.MustAccAddressFromBech32(s.Dao.DevOperator)
 	inviter, _ := s.NewAccount()
+	inviterBalBefore := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
 	err = s.Keeper().KycReward(s.Ctx, kycAccount, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address - inviter reward logic was removed
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), "0")
+	s.Require().Equal(inviterBalBefore.Amount.String(), balance.Amount.String())
 
 	// remove kyc
 	err = s.Keeper().RemoveKycReward(s.Ctx, kycAccount, s.usaValidator.Description.RegionID)
@@ -207,12 +210,13 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithDelegation() {
 	})
 
 	inviter, _ := s.NewAccount()
+	inviterBalBefore := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
 	err = s.Keeper().KycReward(s.Ctx, userAccount, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address - inviter reward logic was removed
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), "0")
+	s.Require().Equal(inviterBalBefore.Amount.String(), balance.Amount.String())
 
 	// check delegation after kyc
 	del, err := s.Keeper().GetDelegation(s.Ctx, userAccount, sdk.ValAddress{})
@@ -278,12 +282,13 @@ func (s *KeeperTestSuite) TestRemoveKycReward_WithFixedDeposit() {
 	})
 
 	inviter, _ := s.NewAccount()
+	inviterBalBefore := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
 	err = s.Keeper().KycReward(s.Ctx, userAccount, s.usaValidator.Description.RegionID, s.Dao.GlobalDao)
 	s.Require().NoError(err)
 
 	// check invite address - inviter reward logic was removed
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), "0")
+	s.Require().Equal(inviterBalBefore.Amount.String(), balance.Amount.String())
 
 	// check delegation after kyc
 	del, err := s.Keeper().GetDelegation(s.Ctx, userAccount, sdk.ValAddress{})

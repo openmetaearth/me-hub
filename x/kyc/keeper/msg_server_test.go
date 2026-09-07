@@ -28,6 +28,7 @@ func (s *KeeperTestSuite) TestApprove() {
 	did := "1111111111111111"
 	kycAccount, newUserPubkey := s.NewAccount()
 	inviter, _ := s.NewAccount()
+	inviterBalBefore := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
 	msg := &types.MsgApprove{
 		Issuer:   s.Dao.GlobalDao,
 		Did:      did,
@@ -44,7 +45,7 @@ func (s *KeeperTestSuite) TestApprove() {
 
 	// check invite address
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), wstakingtypes.InviteReward.String())
+	s.Require().Equal(wstakingtypes.InviteReward.String(), balance.Amount.Sub(inviterBalBefore.Amount).String())
 
 	// check region DelegateAmount
 	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, strings.ToLower(wstakingtypes.MeEarthRegionName))
@@ -188,6 +189,7 @@ func (s *KeeperTestSuite) TestRemove() {
 	kycAccount, newUserPubkey := s.NewAccount()
 	did := "1111111111111111"
 	inviter, _ := s.NewAccount()
+	inviterBalBefore := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
 	msg := &types.MsgApprove{
 		Issuer:   s.Dao.GlobalDao,
 		Did:      did,
@@ -204,7 +206,7 @@ func (s *KeeperTestSuite) TestRemove() {
 
 	// check invite address
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), wstakingtypes.InviteReward.String())
+	s.Require().Equal(wstakingtypes.InviteReward.String(), balance.Amount.Sub(inviterBalBefore.Amount).String())
 
 	// check kyc
 	kyc, f := s.Keeper().GetKYC(s.Ctx, did)
@@ -242,6 +244,7 @@ func (s *KeeperTestSuite) TestUpdate() {
 	kycAccount, newUserPubkey := s.NewAccount()
 	did := "1111111111111111"
 	inviter, _ := s.NewAccount()
+	inviterBalBefore := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
 	_, err := s.msgServer.Approve(s.Ctx, &types.MsgApprove{
 		Issuer:   s.Dao.GlobalDao,
 		Did:      did,
@@ -257,14 +260,16 @@ func (s *KeeperTestSuite) TestUpdate() {
 
 	// check invite address
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), wstakingtypes.InviteReward.String())
+	s.Require().Equal(wstakingtypes.InviteReward.String(), balance.Amount.Sub(inviterBalBefore.Amount).String())
 
 	// check region DelegateAmount
 	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, strings.ToLower(wstakingtypes.MeEarthRegionName))
 	s.Require().True(found)
 	s.Require().Equal(region.DelegateAmount.String(), wstakingtypes.Bonus.String())
 
-	delegation, err := s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, sdk.ValAddress(sdk.MustAccAddressFromBech32(s.meEarthValidator.OperatorAddress)))
+	valAddr, err := sdk.ValAddressFromBech32(s.meEarthValidator.OperatorAddress)
+	s.Require().NoError(err)
+	delegation, err := s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, valAddr)
 	s.Require().NoError(err)
 	s.Require().Equal(delegation.Unmovable.String(), wstakingtypes.Bonus.String())
 	s.Require().Equal(delegation.ValidatorAddress, s.meEarthValidator.OperatorAddress)
@@ -282,7 +287,9 @@ func (s *KeeperTestSuite) TestUpdate() {
 	})
 	s.Require().NoError(err)
 
-	delegation, err = s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, sdk.ValAddress(sdk.MustAccAddressFromBech32(s.usaValidator.OperatorAddress)))
+	usaValAddr, err := sdk.ValAddressFromBech32(s.usaValidator.OperatorAddress)
+	s.Require().NoError(err)
+	delegation, err = s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, usaValAddr)
 	s.Require().NoError(err)
 	s.Require().Equal(delegation.Unmovable.String(), wstakingtypes.Bonus.String())
 	s.Require().Equal(s.usaValidator.OperatorAddress, delegation.ValidatorAddress)

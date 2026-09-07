@@ -30,7 +30,7 @@ func TestMsgFulfillOrderAuthorized_ValidateBasic(t *testing.T) {
 	negFeeShare := math.LegacyNewDec(-1)             // negative dec
 	gtOneFeeShare := math.LegacyNewDec(2)            // >1
 
-	validBech32 := "dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58"
+	validBech32 := "me17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftgswmrn7"
 	invalidBech32 := "notanaddress"
 
 	tests := []struct {

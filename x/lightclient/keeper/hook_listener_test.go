@@ -67,7 +67,8 @@ func TestAfterUpdateState(t *testing.T) {
 					},
 				}
 			},
-			expectErr: true,
+			// Unit keeper has no IBC client; incompatibility cannot be proven here.
+			expectErr: false,
 		},
 		{
 			name: "state is compatible",

@@ -14,6 +14,7 @@ import (
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/x/lightclient/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
+	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -117,6 +118,10 @@ func TestHandleMsgUpdateClientGood(t *testing.T) {
 			},
 		},
 	}
+
+	seq := keepertest.Alice
+	seq.Status = sequencertypes.Bonded
+	k.SeqK = mockSequencerKeeper{seq: seq}
 
 	ibcclientKeeper := NewMockIBCClientKeeper(testClientStates)
 	ibcchannelKeeper := NewMockIBCChannelKeeper(nil)

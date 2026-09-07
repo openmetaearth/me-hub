@@ -117,28 +117,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 }
 
 func (k MsgServer) RemoveRegion(goCtx context.Context, msg *types.MsgRemoveRegion) (*types.MsgRemoveRegionResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
-		return nil, types.ErrCheckGlobalDao
-	}
-
-	_, found := k.GetRegion(ctx, msg.RegionId)
-	if !found {
-		return nil, types.ErrRegionNotExist
-	}
-
-	err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, sdk.ValAddress{})
-	if err != nil {
-		return nil, errorsmod.Wrapf(types.ErrHooks, "before remove region :error :%+v", err)
-	}
-	k.Keeper.RemoveRegion(ctx, msg.RegionId)
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeRemoveRegion,
-			sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
-		),
-	)
+	// RemoveRegion is currently a no-op, matching main.
 	return &types.MsgRemoveRegionResponse{}, nil
 }
 
@@ -165,6 +144,9 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 	toAddr, err := sdk.AccAddressFromBech32(msg.Receiver)
 	if err != nil {
 		return nil, errorsmod.Wrapf(types.ErrUnknownAccount, "receiver account %s format error %s", msg.Receiver, err)
+	}
+	if k.bankKeeper.Extend().BlockedAddr(toAddr) {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive region treasury withdrawals", toAddr)
 	}
 
 	err = k.bankKeeper.Extend().SendCoinsWithTag(

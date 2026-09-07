@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
+	"github.com/openmetaearth/me-hub/app/params"
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/testutil/nullify"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
@@ -16,6 +17,7 @@ import (
 )
 
 func TestInitGenesis(t *testing.T) {
+	params.SetAddressPrefixes()
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
 		DemandOrders: []types.DemandOrder{
@@ -24,7 +26,7 @@ func TestInitGenesis(t *testing.T) {
 				TrackingPacketKey:    "11/22/33",
 				Price:                sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(150)}},
 				Fee:                  sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(50)}},
-				Recipient:            "dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58",
+				Recipient:            "me17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftgswmrn7",
 				TrackingPacketStatus: commontypes.Status_PENDING,
 			},
 			{
@@ -32,8 +34,8 @@ func TestInitGenesis(t *testing.T) {
 				TrackingPacketKey:    "22/33/44",
 				Price:                sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(250)}},
 				Fee:                  sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(150)}},
-				Recipient:            "dym15saxgqw6kvhv6k5sg6r45kmdf4sf88kfw2adcw",
-				FulfillerAddress:     "dym19pas0pqwje540u5ptwnffjxeamdxc9tajmdrfa",
+				Recipient:            "me15saxgqw6kvhv6k5sg6r45kmdf4sf88kf0yuzlh",
+				FulfillerAddress:     "me19pas0pqwje540u5ptwnffjxeamdxc9tan4vvwy",
 				TrackingPacketStatus: commontypes.Status_FINALIZED,
 			},
 		},

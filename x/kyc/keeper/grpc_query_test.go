@@ -93,9 +93,9 @@ func (s *KeeperTestSuite) TestDIDs() {
 	}
 	res, err := s.queryClient.DIDs(s.Ctx, query)
 	s.Require().NoError(err)
-	s.Require().Equal(len(res.Infos), 2)
+	s.Require().Equal(1, len(res.Infos))
 
-	info := res.Infos[1]
+	info := res.Infos[0]
 	s.Require().Equal(info.Did, did)
 	s.Require().Equal(info.Address, kycAccount.String())
 	s.Require().Equal(info.Pubkey, s.pubkeyJSON(newUserPubkey))
@@ -166,9 +166,9 @@ func (s *KeeperTestSuite) TestKYCs() {
 	}
 	res, err := s.queryClient.KYCs(s.Ctx, query)
 	s.Require().NoError(err)
-	s.Require().Equal(len(res.KYCs), 2)
+	s.Require().Equal(1, len(res.KYCs))
 
-	kyc := res.KYCs[1]
+	kyc := res.KYCs[0]
 	s.Require().Equal(kyc.Did, did)
 	s.Require().Equal(kyc.Sid, types.ModuleName)
 	s.Require().Equal(kyc.Hash, "aaaa")

@@ -19,9 +19,9 @@ import (
 )
 
 const (
-	alice           = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
-	bob             = "dym1d0wlmz987qlurs6e3kc6zd25z6wsdmnwx8tafy"
-	registrationFee = "1000000000000000000adym"
+	alice           = "me1wg8p6j0pxpnsvhkwfu54ql62cnrumf0vml55wj"
+	bob             = "me1d0wlmz987qlurs6e3kc6zd25z6wsdmnw8f2jwa"
+	registrationFee = "1000000000000000000umec"
 	hubChainID      = "dymension_100-1"
 )
 

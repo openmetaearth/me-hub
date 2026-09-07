@@ -24,6 +24,7 @@ func (s *KeeperTestSuite) TestDelegate() {
 	}
 	_, err := s.msgServer.NewRegion(s.Ctx, &newMeEarthRegion)
 	s.Require().NoError(err)
+	s.InitKyc(sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), "did:test:global-dao", types.MeEarthRegionId)
 
 	region, _ := s.App.StakingKeeper.GetRegion(s.Ctx, types.MeEarthRegionId)
 
@@ -108,6 +109,7 @@ func (s *KeeperTestSuite) TestUnDelegate() {
 	}
 	_, err := s.msgServer.NewRegion(s.Ctx, &newMeEarthRegion)
 	s.Require().NoError(err)
+	s.InitKyc(sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), "did:test:global-dao", types.MeEarthRegionId)
 
 	region, _ := s.App.StakingKeeper.GetRegion(s.Ctx, types.MeEarthRegionId)
 

@@ -20,6 +20,7 @@ import (
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -93,7 +94,36 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 	evmGenesisState.Params.EnableCreate = false
 	defaultGenesisState[evmtypes.ModuleName] = encCdc.MustMarshalJSON(&evmGenesisState)
 
+	// ibc-go SetupWithGenesisValSet unmarshals staking genesis as cosmos-sdk
+	// stakingtypes.GenesisState, which rejects wstaking-only JSON fields.
+	defaultGenesisState[stakingtypes.ModuleName] = sdkStakingGenesisJSON(encCdc, defaultGenesisState[stakingtypes.ModuleName])
+
 	return newApp, defaultGenesisState
+}
+
+// sdkStakingGenesisJSON converts wstaking genesis JSON into cosmos-sdk staking
+// genesis JSON so ibc-go's generic test-chain builder can unmarshal it.
+func sdkStakingGenesisJSON(cdc codec.JSONCodec, bz json.RawMessage) json.RawMessage {
+	if len(bz) == 0 {
+		return bz
+	}
+	var ws wstakingtypes.GenesisState
+	cdc.MustUnmarshalJSON(bz, &ws)
+	ws.Params.BondDenom = params.BaseDenom
+	sdkGen := stakingtypes.GenesisState{
+		Params:               ws.Params,
+		LastTotalPower:       ws.LastTotalPower,
+		Validators:           ws.Validators,
+		Delegations:          ws.Delegations,
+		UnbondingDelegations: ws.UnbondingDelegations,
+		Redelegations:        ws.Redelegations,
+		Exported:             ws.Exported,
+	}
+	sdkGen.LastValidatorPowers = make([]stakingtypes.LastValidatorPower, len(ws.LastValidatorPowers))
+	for i, p := range ws.LastValidatorPowers {
+		sdkGen.LastValidatorPowers[i] = stakingtypes.LastValidatorPower{Address: p.Address, Power: p.Power}
+	}
+	return cdc.MustMarshalJSON(&sdkGen)
 }
 
 // IBCTestApp adapts App genesis to the module account names used by ibc-go's
@@ -234,7 +264,7 @@ func genesisStateWithValSet(t *testing.T,
 			Jailed:            false,
 			Status:            stakingtypes.Bonded,
 			Tokens:            bondAmt,
-			DelegatorShares:   math.LegacyOneDec(),
+			DelegatorShares:   math.LegacyNewDecFromInt(bondAmt),
 			Description:       stakingtypes.Description{RegionID: regionID},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
@@ -242,7 +272,7 @@ func genesisStateWithValSet(t *testing.T,
 			MinSelfDelegation: math.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress().String(), sdk.ValAddress(val.Address).String(), math.LegacyOneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress().String(), sdk.ValAddress(val.Address).String(), math.LegacyNewDecFromInt(bondAmt)))
 
 	}
 	// set validators and delegations

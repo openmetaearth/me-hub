@@ -174,8 +174,8 @@ func TestGenesisBridgeData_ValidateBasic(t *testing.T) {
 					},
 					InitialSupply: math.NewInt(1000),
 					GenesisAccounts: []types.GenesisAccount{
-						{Address: "dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58"},
-						{Address: "dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58"}, // duplicate account
+						{Address: "me17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftgswmrn7"},
+						{Address: "me17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftgswmrn7"}, // duplicate account
 					},
 				},
 				NativeDenom: validMetadata,

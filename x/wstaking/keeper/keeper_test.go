@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
@@ -66,6 +67,15 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.msgServer = wstakingkeeper.NewMsgServerImpl(app.StakingKeeper, app.TransferKeeper, stakingKeeperMsgSrv)
 
 	s.InitializeDao()
+
+	mintSupply := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1_000_000_000_000_000_000)))
+	s.Require().NoError(s.App.BankKeeper.MintCoins(s.Ctx, mintypes.ModuleName, mintSupply))
+	daoCoins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1_000_000_000_000)))
+	s.FundAcc(sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), daoCoins)
+	s.FundAcc(sdk.MustAccAddressFromBech32(s.Dao.MeidDao), daoCoins)
+	s.FundAcc(sdk.MustAccAddressFromBech32(s.Dao.AirdropAddress), daoCoins)
+	s.FundAcc(sdk.MustAccAddressFromBech32(s.Dao.DevOperator), daoCoins)
+	s.InitKyc(sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), "did:test:global-dao", types.ExperienceRegionId)
 
 	validators, err := s.Keeper().GetValidators(s.Ctx, 10)
 	s.Require().NoError(err)
@@ -159,11 +169,20 @@ func (s *KeeperTestSuite) TestMigrateValidator() {
 
 	validators, err := s.App.StakingKeeper.GetAllValidators(s.Ctx)
 	require.NoError(s.T(), err)
-	require.Equal(s.T(), len(validators), 4)
+	require.Equal(s.T(), 4, len(validators))
+	foundInAll := false
 	for _, v := range validators {
 		if v.OperatorAddress == validator.OperatorAddress {
 			s.T().Log(validator.String())
-			require.Equal(s.T(), validator.String(), v.String())
+			s.T().Log(v.String())
+			require.Equal(s.T(), validator.OperatorAddress, v.OperatorAddress)
+			require.Equal(s.T(), validator.Status, v.Status)
+			require.True(s.T(), validator.Tokens.Equal(v.Tokens))
+			require.Equal(s.T(), validator.Description.Moniker, v.Description.Moniker)
+			require.Equal(s.T(), validator.Description.RegionID, v.Description.RegionID)
+			require.Equal(s.T(), validator.OwnerAddress, v.OwnerAddress)
+			foundInAll = true
 		}
 	}
+	require.True(s.T(), foundInAll)
 }

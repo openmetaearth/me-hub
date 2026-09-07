@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
@@ -101,7 +102,7 @@ func (suite *KeeperTestSuite) TestDebug() {
 	var err error
 	k := suite.App.EIBCKeeper
 	ctx := suite.Ctx
-	denom := sdk.DefaultBondDenom
+	denom := params.BaseDenom
 	rol := "foo_224126-1"
 	_, err = k.LPs.Create(ctx, &types.OnDemandLP{
 		Rollapp:    rol, // wrong rollup
@@ -156,8 +157,8 @@ func (suite *KeeperTestSuite) TestLPQueriesByAddr() {
 	k := suite.App.EIBCKeeper
 	ctx := suite.Ctx
 	addrs := []string{
-		"dym1ra6le06p8lle3q6gnsmwz769t2kqld9pmden5k",
-		"dym10j59k4whfvtu5flc3lypsjmcyx3fn57ygw78du",
+		"me1ra6le06p8lle3q6gnsmwz769t2kqld9p6rcun0",
+		"me10j59k4whfvtu5flc3lypsjmcyx3fn57yfqlg29",
 	}
 	for i := range 6 {
 		_, err = k.LPs.Create(ctx, &types.OnDemandLP{

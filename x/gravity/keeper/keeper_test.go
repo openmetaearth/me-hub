@@ -128,6 +128,9 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.Require().EqualValues(s.relayerNumber, len(s.relayerAddrs))
 	s.externalPris = helpers.CreateMultiECDSA(s.relayerNumber)
 
+	mintSupply := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(1_000_000_000_000_000)))
+	s.Require().NoError(s.App.BankKeeper.MintCoins(s.Ctx, minttypes.ModuleName, mintSupply))
+
 	proposalRelayer := &types.ProposalRelayer{}
 	for i := 0; i < s.relayerNumber; i++ {
 		err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, minttypes.ModuleName, s.relayerAddrs[i], sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 10000000000)})

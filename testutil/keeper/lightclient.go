@@ -11,6 +11,7 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -27,6 +28,14 @@ const (
 var Alice = sequencertypes.Sequencer{
 	Address:   "me139mq752delxv78jvtmwxhasyrycufsvr0mue6u",
 	RollappId: DefaultRollapp,
+}
+
+func init() {
+	pkAny, err := codectypes.NewAnyWithValue(ed25519.GenPrivKey().PubKey())
+	if err != nil {
+		panic(err)
+	}
+	Alice.DymintPubKey = pkAny
 }
 
 func LightClientKeeper(t testing.TB) (*lightclientkeeper.Keeper, sdk.Context) {

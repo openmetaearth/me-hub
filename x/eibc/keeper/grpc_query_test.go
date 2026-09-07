@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
+	appparams "github.com/openmetaearth/me-hub/app/params"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
 )
@@ -32,7 +33,7 @@ func (suite *KeeperTestSuite) TestQueryDemandOrderById() {
 
 	// Create a demand order with status pending
 	recipientAddress := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1000))[0]
-	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", recipientAddress.String(), 1, nil)
+	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), appparams.BaseDenom, recipientAddress.String(), 1, nil)
 	err = keeper.SetDemandOrder(suite.Ctx, demandOrder)
 	suite.Require().NoError(err)
 
@@ -65,7 +66,7 @@ func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
 		// Use a unique address for each demand order
 		recipientAddress := demandOrderAddresses[i].String()
 
-		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", recipientAddress, 1, nil)
+		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), appparams.BaseDenom, recipientAddress, 1, nil)
 		// Assert needed type of status for packet
 		demandOrder.TrackingPacketStatus = status
 		if status == commontypes.Status_FINALIZED {

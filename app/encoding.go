@@ -7,9 +7,11 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/cosmos/gogoproto/proto"
 	cryptocodec "github.com/evmos/ethermint/crypto/codec"
+	"github.com/evmos/ethermint/ethereum/eip712"
 	ethermint "github.com/evmos/ethermint/types"
 
 	"github.com/openmetaearth/me-hub/app/params"
@@ -48,6 +50,11 @@ func MakeEncodingConfig() params.EncodingConfig {
 	RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
 	gravitytypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+
+	// EIP-712 still uses the deprecated legacytx.StdSignBytes helper, which
+	// panics unless this codec is set. Keep it in sync with the app amino.
+	legacytx.RegressionTestingAminoCodec = encodingConfig.Amino
+	eip712.SetEncodingConfig(encodingConfig.Amino, encodingConfig.InterfaceRegistry)
 
 	return encodingConfig
 }

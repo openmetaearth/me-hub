@@ -13,9 +13,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/utils/urand"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
-	"github.com/openmetaearth/me-hub/utils/urand"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/openmetaearth/me-hub/x/sequencer/keeper"
@@ -170,8 +170,9 @@ func createSequencerMsg(rollapp string, pkCosmos, pkDymint cryptotypes.PubKey) t
 		// Bond not included
 		RollappId: rollapp,
 		Metadata: types.SequencerMetadata{
-			Rpcs:    []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
-			EvmRpcs: []string{"https://rpc.evm.rollapp.noisnemyd.xyz:443"},
+			Rpcs:        []string{"https://rpc.wpd.evm.rollapp.noisnemyd.xyz:443"},
+			EvmRpcs:     []string{"https://rpc.evm.rollapp.noisnemyd.xyz:443"},
+			RestApiUrls: []string{"https://api.rollapp.noisnemyd.xyz:443"},
 		},
 	}
 }

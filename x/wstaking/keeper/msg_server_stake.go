@@ -59,12 +59,7 @@ func (k MsgServer) Stake(goCtx context.Context, msg *types.MsgStake) (*types.Msg
 		return nil, err
 	}
 
-	// Update RegionShare after successful stake (must be after Stake to avoid BondRegion overwrite)
-	region, found := k.Keeper.GetRegion(ctx, validator.Description.RegionID)
-	if found {
-		region.RegionShare = region.RegionShare.Add(msg.Amount.Amount)
-		k.Keeper.SetRegion(ctx, region)
-	}
+	// Update RegionShare is handled by BondRegion inside Stake.
 
 	if msg.Amount.Amount.IsInt64() {
 		defer func() {

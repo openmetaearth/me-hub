@@ -3,11 +3,18 @@ package types
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 )
 
-var ModuleCdc = codec.NewProtoCodec(cdctypes.NewInterfaceRegistry())
+var ModuleCdc codec.Codec
+
+func init() {
+	registry := cdctypes.NewInterfaceRegistry()
+	cryptocodec.RegisterInterfaces(registry)
+	ModuleCdc = codec.NewProtoCodec(registry)
+}
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateSequencer{}, "sequencer/CreateSequencer", nil)

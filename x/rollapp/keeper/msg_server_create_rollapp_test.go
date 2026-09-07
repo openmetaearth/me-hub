@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"cosmossdk.io/math"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,7 +20,8 @@ func (s *RollappTestSuite) TestCreateRollapp() {
 
 func (s *RollappTestSuite) TestCreateRollappUnauthorizedRollappCreator() {
 	s.SetupTest()
-	s.createRollappWithCreatorAndVerify(sdkerrors.ErrInsufficientFunds, bob, false) // bob is broke
+	// CreateRollapp no longer charges an alias registration fee, so an unfunded creator succeeds.
+	s.createRollappWithCreatorAndVerify(nil, bob, false)
 }
 
 func (s *RollappTestSuite) TestCreateRollappWithBechGenesisSum() {

@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/testutil/sample"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	dacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
@@ -129,15 +130,15 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			eibcSupplyAddr := testAddresses[0]
 			eibcDemandAddr := testAddresses[1]
 			// Get balances
-			eibcSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, sdk.DefaultBondDenom)
-			eibcDemandAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, sdk.DefaultBondDenom)
+			eibcSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, params.BaseDenom)
+			eibcDemandAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, params.BaseDenom)
 			// Set the rollapp packet
 			rPacket := *rollappPacket
 			rPacket.ProofHeight = tc.proofHeight
 			suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, rPacket)
 			// Create new demand order
 			if tc.demandOrderDenom == "" {
-				tc.demandOrderDenom = sdk.DefaultBondDenom
+				tc.demandOrderDenom = params.BaseDenom
 			}
 
 			if tc.latestFinalizedStateIndex != 0 {
@@ -186,10 +187,10 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			suite.Assert().Equal(tc.expectedDemandOrdefFulfillmentStatus, demandOrder.IsFulfilled(), tc.name)
 			// Check balances updates in case of success
 			if tc.expectedFulfillmentError == nil {
-				afterFulfillmentSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, sdk.DefaultBondDenom)
-				afterFulfillmentDemandAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, sdk.DefaultBondDenom)
-				suite.Require().Equal(eibcSupplyAddrBalance.Add(sdk.NewCoin(sdk.DefaultBondDenom, math.NewIntFromUint64(tc.demandOrderPrice))), afterFulfillmentSupplyAddrBalance)
-				suite.Require().Equal(eibcDemandAddrBalance.Sub(sdk.NewCoin(sdk.DefaultBondDenom, math.NewIntFromUint64(tc.demandOrderPrice))), afterFulfillmentDemandAddrBalance)
+				afterFulfillmentSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, params.BaseDenom)
+				afterFulfillmentDemandAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, params.BaseDenom)
+				suite.Require().Equal(eibcSupplyAddrBalance.Add(sdk.NewCoin(params.BaseDenom, math.NewIntFromUint64(tc.demandOrderPrice))), afterFulfillmentSupplyAddrBalance)
+				suite.Require().Equal(eibcDemandAddrBalance.Sub(sdk.NewCoin(params.BaseDenom, math.NewIntFromUint64(tc.demandOrderPrice))), afterFulfillmentDemandAddrBalance)
 			}
 		})
 	}
@@ -541,7 +542,7 @@ func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
 	// Set the rollapp packet
 	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 	// Create new demand order
-	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(200), math.NewIntFromUint64(50), sdk.DefaultBondDenom, eibcSupplyAddr.String(), 1, nil)
+	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(200), math.NewIntFromUint64(50), params.BaseDenom, eibcSupplyAddr.String(), 1, nil)
 	err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
 	suite.Require().NoError(err)
 
@@ -556,8 +557,8 @@ func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
 			expectedPostFulfillmentEventsCount: 1,
 			expectedPostFulfillmentEvent: &types.EventDemandOrderFulfilled{
 				OrderId:      types.BuildDemandIDFromPacketKey(string(rollappPacketKey)),
-				Price:        "200" + sdk.DefaultBondDenom,
-				Fee:          "50" + sdk.DefaultBondDenom,
+				Price:        "200" + params.BaseDenom,
+				Fee:          "50" + params.BaseDenom,
 				IsFulfilled:  true,
 				PacketStatus: commontypes.Status_PENDING.String(),
 				Fulfiller:    eibcDemandAddr.String(),
@@ -724,7 +725,7 @@ func (suite *KeeperTestSuite) TestUpdateDemandOrderOnAckOrTimeout() {
 // create an order, create and lp, try to use it, query and delete
 func (suite *KeeperTestSuite) TestMsgOnDemandLPFlow() {
 	largeBalance := math.NewInt(10_000_000)
-	denom := sdk.DefaultBondDenom
+	denom := params.BaseDenom
 	rol := "rollapp_1234-1"
 	k := suite.App.EIBCKeeper
 	type Test struct {
@@ -766,8 +767,8 @@ func (suite *KeeperTestSuite) TestMsgOnDemandLPFlow() {
 			err := k.SetDemandOrder(suite.Ctx, order)
 			suite.Require().NoError(err)
 
-			orderBalBefore := suite.App.BankKeeper.GetBalance(suite.Ctx, orderAddr, sdk.DefaultBondDenom).Amount
-			fulfillerBalBefore := suite.App.BankKeeper.GetBalance(suite.Ctx, fulfillerAddr, sdk.DefaultBondDenom).Amount
+			orderBalBefore := suite.App.BankKeeper.GetBalance(suite.Ctx, orderAddr, params.BaseDenom).Amount
+			fulfillerBalBefore := suite.App.BankKeeper.GetBalance(suite.Ctx, fulfillerAddr, params.BaseDenom).Amount
 
 			msgC := types.MsgCreateOnDemandLP{
 				Lp: &types.OnDemandLP{
@@ -801,8 +802,8 @@ func (suite *KeeperTestSuite) TestMsgOnDemandLPFlow() {
 				Rng:     0,
 			}
 			_, err = suite.msgServer.TryFulfillOnDemand(suite.Ctx, msgF)
-			orderBalAft := suite.App.BankKeeper.GetBalance(suite.Ctx, orderAddr, sdk.DefaultBondDenom).Amount
-			fulfillerBalAft := suite.App.BankKeeper.GetBalance(suite.Ctx, fulfillerAddr, sdk.DefaultBondDenom).Amount
+			orderBalAft := suite.App.BankKeeper.GetBalance(suite.Ctx, orderAddr, params.BaseDenom).Amount
+			fulfillerBalAft := suite.App.BankKeeper.GetBalance(suite.Ctx, fulfillerAddr, params.BaseDenom).Amount
 			if tc.err == nil {
 				suite.Require().NoError(err)
 				suite.Require().True(orderBalBefore.Add(tc.orderPrice).Equal(orderBalAft),

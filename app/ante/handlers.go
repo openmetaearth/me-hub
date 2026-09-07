@@ -31,6 +31,46 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	)
 }
 
+// newLegacyCosmosAnteHandlerEip712 creates an AnteHandler to process legacy EIP-712
+// transactions, as defined by the presence of an ExtensionOptionsWeb3Tx extension.
+func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
+	deductFeeDecorator := NewDeductFeeDecorator(
+		options.AccountKeeper,
+		options.BankKeeper,
+		options.FeegrantKeeper,
+		options.DaoKeeper,
+		options.StakingKeeper,
+		options.KycKeeper,
+		options.TxFeeChecker,
+		options.WasmViewKeeper,
+	)
+	return sdk.ChainAnteDecorators(
+		ante.NewSetUpContextDecorator(),
+		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
+		NewRejectMessagesDecorator().
+			WithPredicate(BlockTypeUrls(
+				0,
+				sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
+				sdk.MsgTypeURL(&ibcclienttypes.MsgSubmitMisbehaviour{}))),
+		deductFeeDecorator,
+		ante.NewValidateBasicDecorator(),
+		ante.NewTxTimeoutHeightDecorator(),
+		ante.NewValidateMemoDecorator(options.AccountKeeper),
+		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
+		ante.NewSetPubKeyDecorator(options.AccountKeeper),
+		ante.NewValidateSigCountDecorator(options.AccountKeeper),
+		ante.NewSigGasConsumeDecorator(options.AccountKeeper, ethante.DefaultSigVerificationGasConsumer),
+		NewLegacyEip712SigVerificationDecorator(options.AccountKeeper),
+		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
+		NewInnerDecorator(
+			proofheightante.NewIBCProofHeightDecorator().InnerCallback,
+			lightclientkeeper.NewIBCMessagesDecorator(*options.LightClientKeeper, options.IBCKeeper.ClientKeeper, options.IBCKeeper.ChannelKeeper, options.RollappKeeper).InnerCallback,
+		),
+		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
+		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
+	)
+}
+
 func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	deductFeeDecorator := NewDeductFeeDecorator(
 		options.AccountKeeper,

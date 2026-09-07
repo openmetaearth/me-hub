@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"cosmossdk.io/store/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -11,6 +12,7 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
+	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 type MockRollappKeeper struct {
@@ -133,4 +135,16 @@ func (m *MockIBCChannelKeeper) GetChannelConnection(ctx sdk.Context, portID, cha
 		return "", m.channelConnections[channelID], nil
 	}
 	return "", nil, nil
+}
+
+type mockSequencerKeeper struct {
+	seq sequencertypes.Sequencer
+}
+
+func (m mockSequencerKeeper) SequencerByDymintAddr(ctx sdk.Context, addr cryptotypes.Address) (sequencertypes.Sequencer, error) {
+	return m.seq, nil
+}
+
+func (m mockSequencerKeeper) RealSequencer(ctx sdk.Context, addr string) (sequencertypes.Sequencer, error) {
+	return m.seq, nil
 }

@@ -68,7 +68,8 @@ func (s *KeeperTestSuite) SetupTest() {
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 	s.authKeeper = mock.NewMockAccountKeeper(ctrl)
-	s.authKeeper.EXPECT().GetModuleAddress(distrtypes.ModuleName).Return(authtypes.NewModuleAddress(distrtypes.ModuleName))
+	s.authKeeper.EXPECT().GetModuleAddress(distrtypes.ModuleName).Return(authtypes.NewModuleAddress(distrtypes.ModuleName)).AnyTimes()
+	s.authKeeper.EXPECT().GetModuleAddress(wbanktypes.TreasuryPoolName).Return(authtypes.NewModuleAddress(wbanktypes.TreasuryPoolName)).AnyTimes()
 	s.bankKeeper = mock.NewMockBankKeeper(ctrl)
 	s.stakingKeeper = mock.NewMockStakingKeeper(ctrl)
 
@@ -209,24 +210,24 @@ func (s *KeeperTestSuite) TestEndBlocker() {
 		testcase := testsCases[index]
 		ctx := s.HelperNewContextWith(int64(testcase.height))
 		addrs := s.mockGetRegionI(ctx, testcase.regionShares...)
-		var wantReward []coinAndAddr
 		totalWantReward := 0
-		for i, addr := range addrs {
-			wantReward = append(wantReward, coinAndAddr{
-				num:  int64(testcase.regionWantGetReward[i]),
-				addr: addr,
-			})
+		for i := range addrs {
 			totalWantReward += testcase.regionWantGetReward[i]
 		}
 		if totalWantReward != 0 {
-			s.SetMockGetBalance(ctx, sdkmath.NewInt(int64(totalWantReward)))
+			s.FundModuleAcc(wbanktypes.TreasuryPoolName, sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(int64(totalWantReward)))))
 		}
-		s.setMockSendCoinsFromModuleToAccountExpect(ctx, wantReward...)
 
 		err := s.App.DistrKeeper.AllocateBlockRewardEveryday(ctx)
 		events := ctx.EventManager().ABCIEvents()
 		s.Require().NoError(err, "case %d: %s", index, testcase.name)
-		assert.Equal(s.T(), len(addrs), len(events))
+		rewardEvents := 0
+		for _, ev := range events {
+			if ev.Type == types.EventTypeRegionTreasuryReward {
+				rewardEvents++
+			}
+		}
+		assert.Equal(s.T(), len(addrs), rewardEvents)
 	}
 	for i := range testsCases {
 		s.Run(testsCases[i].name, func() {
@@ -244,6 +245,7 @@ func (s *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int) []
 	for i, share := range regionShare {
 		region := mocks.NewMockRegionI(s.T())
 		region.EXPECT().GetRegionShare().Return(sdkmath.NewInt(int64(share)))
+		region.EXPECT().GetRegionShare().Return(sdkmath.NewInt(int64(share)))
 		addr := authtypes.NewModuleAddress(fmt.Sprintf("region_%d", i)).String()
 		addrs = append(addrs, addr)
 		region.EXPECT().GetRegionTreasureAddr().Return(addr)
@@ -256,7 +258,6 @@ func (s *KeeperTestSuite) mockGetRegionI(ctx sdk.Context, regionShare ...int) []
 
 func (s *KeeperTestSuite) SetMockGetBalance(ctx sdk.Context, amount sdkmath.Int) {
 	acc := authtypes.NewModuleAddress(s.App.DistrKeeper.GetTreasuryModuleAccount())
-	s.authKeeper.EXPECT().GetModuleAddress(s.App.DistrKeeper.GetTreasuryModuleAccount()).Return(acc)
 	s.bankKeeper.EXPECT().GetAllBalances(ctx, acc).Return(sdk.NewCoins(sdk.NewCoin(params.BaseDenom, amount)))
 }
 

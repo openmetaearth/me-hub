@@ -27,6 +27,7 @@ func (s *KeeperTestSuite) TestFixedDeposit() {
 	}
 	_, err := s.msgServer.NewRegion(s.Ctx, &newRegion)
 	s.Require().NoError(err)
+	s.InitKyc(sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), "did:test:global-dao", types.MeEarthRegionId)
 
 	msg := types.MsgNewFixedDepositCfg{
 		Dao:      s.Dao.GlobalDao,
@@ -176,6 +177,7 @@ func (s *KeeperTestSuite) TestWithdrawFixedDeposit() {
 	_, err := s.msgServer.NewRegion(s.Ctx, &newMeEarthRegion)
 
 	s.Require().NoError(err)
+	s.InitKyc(sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), "did:test:global-dao", types.MeEarthRegionId)
 
 	err = s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, s.App.StakingKeeper.GetRegionAccount(s.Ctx, types.RegionAccountTypeBase, types.MeEarthRegionId).GetAddress(), sdk.Coins{sdk.NewInt64Coin(params.BaseDenom, 1000000000000)})
 	s.Require().NoError(err)
