@@ -19,7 +19,7 @@ DEPS_COSMOS_PROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos
 DEPS_COSMOS_GOGOPROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/gogoproto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_CONFIO_ICS23_VERSION := go/$(shell cat go.sum | grep 'github.com/confio/ics23/go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_WASM_VERSION := $(shell cat go.sum | grep 'github.com/CosmWasm/wasmd' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
-WASMVM_VERSION := $(shell awk '$$1 == "github.com/CosmWasm/wasmvm" { print $$2; exit }' go.mod)
+WASMVM_VERSION := $(shell awk '$$1 == "github.com/CosmWasm/wasmvm/v2" { print $$2; exit }' go.mod)
 
 export GO111MODULE = on
 
@@ -231,7 +231,7 @@ docker-release:
 PACKAGE_NAME := $(shell go list -m)
 GOLANG_CROSS_VERSION  = v1.23
 GOPATH ?= '$(HOME)/go'
-COSMWASM_VERSION := $(shell go list -m github.com/CosmWasm/wasmvm | sed 's/.* //')
+COSMWASM_VERSION := $(shell go list -m github.com/CosmWasm/wasmvm/v2 | sed 's/.* //')
 release-dry-run:
 	docker run --privileged -e CGO_ENABLED=1 \
 		-v /var/run/docker.sock:/var/run/docker.sock \
@@ -266,7 +266,10 @@ release:
 ###############################################################################
 protoCosmosVer=0.14.0
 protoCosmosName=ghcr.io/cosmos/proto-builder:$(protoCosmosVer)
-protoCosmosImage=docker run --rm -v $(CURDIR):/workspace --user root --workdir /workspace $(protoCosmosName)
+# Clash/fake-ip host DNS (198.18.x.x) is not reachable inside Docker.
+# Override: make proto-gen PROTO_DOCKER_ARGS=
+PROTO_DOCKER_ARGS ?= --dns 8.8.8.8 --dns 1.1.1.1
+protoCosmosImage=docker run --rm $(PROTO_DOCKER_ARGS) -v $(CURDIR):/workspace --user root --workdir /workspace $(protoCosmosName)
 
 proto-all: proto-format proto-gen
 
@@ -290,7 +293,7 @@ proto-format:
 	@$(protoCosmosImage) find ./ -name "*.proto" -exec clang-format -i {} \;
 
 proto-lint:
-	@$(protoCosmosImage) buf lint --error-format=json
+	@$(protoCosmosImage) sh -c 'cd proto && buf lint --error-format=json'
 
 SWAGGER_DIR=./swagger-proto
 THIRD_PARTY_DIR=$(SWAGGER_DIR)/third_party

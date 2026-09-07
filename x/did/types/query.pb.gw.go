@@ -716,21 +716,21 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Did_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 1}, []string{"metaearth", "did"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Did_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 1}, []string{"metaearth", "did"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_DidInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "did", "didInfo"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_DidInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "did", "didInfo"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_DidInfos_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "did", "did_infos"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_DidInfos_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "did", "did_infos"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_DidDocument_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "did", "didDocument"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_DidDocument_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "did", "didDocument"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Service_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "did", "service"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Service_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "did", "service"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Services_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "did", "services"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Services_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "did", "services"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Credential_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "did", "credential"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Credential_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "did", "credential"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Credentials_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "did", "credentials"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Credentials_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "did", "credentials"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
