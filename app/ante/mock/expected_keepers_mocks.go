@@ -81,20 +81,6 @@ func (mr *MockDaoKeeperMockRecorder) GetDevOperator(ctx interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDevOperator", reflect.TypeOf((*MockDaoKeeper)(nil).GetDevOperator), ctx)
 }
 
-// IsDao mocks base method.
-func (m *MockDaoKeeper) IsDao(ctx types0.Context, addr string) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsDao", ctx, addr)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// IsDao indicates an expected call of IsDao.
-func (mr *MockDaoKeeperMockRecorder) IsDao(ctx, addr interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsDao", reflect.TypeOf((*MockDaoKeeper)(nil).IsDao), ctx, addr)
-}
-
 // GetGlobalDaoFeePoolAddr mocks base method.
 func (m *MockDaoKeeper) GetGlobalDaoFeePoolAddr(ctx types0.Context) types0.AccAddress {
 	m.ctrl.T.Helper()
@@ -107,6 +93,20 @@ func (m *MockDaoKeeper) GetGlobalDaoFeePoolAddr(ctx types0.Context) types0.AccAd
 func (mr *MockDaoKeeperMockRecorder) GetGlobalDaoFeePoolAddr(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGlobalDaoFeePoolAddr", reflect.TypeOf((*MockDaoKeeper)(nil).GetGlobalDaoFeePoolAddr), ctx)
+}
+
+// IsDao mocks base method.
+func (m *MockDaoKeeper) IsDao(ctx types0.Context, addr string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsDao", ctx, addr)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsDao indicates an expected call of IsDao.
+func (mr *MockDaoKeeperMockRecorder) IsDao(ctx, addr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsDao", reflect.TypeOf((*MockDaoKeeper)(nil).IsDao), ctx, addr)
 }
 
 // MockBankKeeper is a mock of BankKeeper interface.

@@ -17,7 +17,7 @@ DEPS_ETHERMINT_VERSION := $(shell cat go.sum | grep 'github.com/openmetaearth/et
 DEPS_IBC_GO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/ibc-go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_COSMOS_PROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos-proto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_COSMOS_GOGOPROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/gogoproto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
-DEPS_CONFIO_ICS23_VERSION := go/$(shell cat go.sum | grep 'github.com/confio/ics23/go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_COSMOS_ICS23_VERSION := go/$(shell cat go.sum | grep 'github.com/cosmos/ics23/go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 DEPS_WASM_VERSION := $(shell cat go.sum | grep 'github.com/CosmWasm/wasmd' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
 WASMVM_VERSION := $(shell awk '$$1 == "github.com/CosmWasm/wasmvm/v2" { print $$2; exit }' go.mod)
 
@@ -299,23 +299,31 @@ SWAGGER_DIR=./swagger-proto
 THIRD_PARTY_DIR=$(SWAGGER_DIR)/third_party
 
 proto-download-deps:
+	rm -rf "$(THIRD_PARTY_DIR)/cosmos" "$(THIRD_PARTY_DIR)/amino" \
+		"$(THIRD_PARTY_DIR)/tendermint" "$(THIRD_PARTY_DIR)/ethermint" \
+		"$(THIRD_PARTY_DIR)/cosmwasm" "$(THIRD_PARTY_DIR)/ibc" \
+		"$(THIRD_PARTY_DIR)/capability" "$(THIRD_PARTY_DIR)/ics23" \
+		"$(THIRD_PARTY_DIR)/cosmos_proto" "$(THIRD_PARTY_DIR)/gogoproto" \
+		"$(THIRD_PARTY_DIR)/google" "$(THIRD_PARTY_DIR)/confio" \
+		"$(THIRD_PARTY_DIR)/proofs.proto"
+
 	mkdir -p "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
-	git clone -b me-hub/v0.47.13 --single-branch --depth 1 https://github.com/openmetaearth/cosmos-sdk.git && \
+	git clone -b me-hub/v0.50.14 --single-branch --depth 1 https://github.com/openmetaearth/cosmos-sdk.git && \
 	rm -f ./cosmos-sdk/proto/buf.* && \
 	mv ./cosmos-sdk/proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/cosmos_tmp"
 
 	mkdir -p "$(THIRD_PARTY_DIR)/ethermint_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/ethermint_tmp" && \
-	git clone -b dev --single-branch --depth 1 https://github.com/openmetaearth/ethermint.git && \
+	git clone -b v0.22.0-me-v2.0.0-rc2 --single-branch --depth 1 https://github.com/st-chain/ethermint.git && \
 	rm -f ./ethermint/proto/buf.* && \
 	mv ./ethermint/proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/ethermint_tmp"
 
 	mkdir -p "$(THIRD_PARTY_DIR)/wasm_tmp" && \
 	cd "$(THIRD_PARTY_DIR)/wasm_tmp" && \
-	git clone --branch v0.43.0 --single-branch --depth 1 https://github.com/CosmWasm/wasmd.git && \
+	git clone --branch v0.53.3 --single-branch --depth 1 https://github.com/CosmWasm/wasmd.git && \
 	rm -f ./wasmd/proto/buf.* && \
 	mv ./wasmd/proto/* ..
 	rm -rf "$(THIRD_PARTY_DIR)/wasm_tmp"
@@ -351,11 +359,8 @@ proto-download-deps:
 	curl -sSL https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto > "$(THIRD_PARTY_DIR)/google/api/annotations.proto"
 	curl -sSL https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto > "$(THIRD_PARTY_DIR)/google/api/http.proto"
 
-	mkdir -p "$(THIRD_PARTY_DIR)/confio/ics23" && \
-	curl -sSL https://raw.githubusercontent.com/confio/ics23/$(DEPS_CONFIO_ICS23_VERSION)/proofs.proto > "$(THIRD_PARTY_DIR)/proofs.proto"
-
 	mkdir -p "$(THIRD_PARTY_DIR)/cosmos/ics23/v1" && \
-	curl -sSL "https://raw.githubusercontent.com/cosmos/ics23/refs/heads/master/proto/cosmos/ics23/v1/proofs.proto" > "$(THIRD_PARTY_DIR)/cosmos/ics23/v1/proofs.proto"
+	curl -sSL "https://raw.githubusercontent.com/cosmos/ics23/$(DEPS_COSMOS_ICS23_VERSION)/proto/cosmos/ics23/v1/proofs.proto" > "$(THIRD_PARTY_DIR)/cosmos/ics23/v1/proofs.proto"
 
 
 .PHONY: proto-gen proto-gen-ts proto-swagger-gen proto-format proto-lint proto-download-deps
@@ -426,7 +431,7 @@ mocks:
 mocks:
 	@go install github.com/golang/mock/gomock
 	@go install github.com/golang/mock/mockgen
-	#mockgen -source=x/wdistri/types/expected_keepers.go -package mock -destination x/wdistri/types/mock/expected_keepers_mock.go
+	mockgen -source=x/wdistri/types/expected_keepers.go -package mock -destination x/wdistri/types/mock/expected_keepers_mock.go
 	mockgen -source=app/ante/expected_keepers.go -package mock -destination app/ante/mock/expected_keepers_mocks.go
 
 .PHONY: test test-count test-nightly mocks
