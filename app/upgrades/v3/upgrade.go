@@ -117,7 +117,10 @@ func CreateUpgradeHandler(
 }
 
 func legacySubspace(keepers *upgrades.UpgradeKeepers, name string, kt paramstypes.KeyTable) paramstypes.Subspace {
-	ss := keepers.ParamsKeeper.Subspace(name)
+	ss, ok := keepers.ParamsKeeper.GetSubspace(name)
+	if !ok {
+		ss = keepers.ParamsKeeper.Subspace(name)
+	}
 	if !ss.HasKeyTable() {
 		ss = ss.WithKeyTable(kt)
 	}
@@ -133,10 +136,21 @@ func migrateModuleParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) erro
 		return errorsmod.Wrap(fmt.Errorf("nil ConsensusKeeper"), "migrate consensus params")
 	}
 
-	baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).
-		WithKeyTable(paramstypes.ConsensusParamsKeyTable()) //nolint:staticcheck
+	ss, ok := keepers.ParamsKeeper.GetSubspace(baseapp.Paramspace)
+	if !ok {
+		ss = keepers.ParamsKeeper.Subspace(baseapp.Paramspace)
+	}
+	if !ss.HasKeyTable() {
+		ss = ss.WithKeyTable(paramstypes.ConsensusParamsKeyTable()) //nolint:staticcheck
+	}
 
-	return baseapp.MigrateParams(ctx, baseAppLegacySS, keepers.ConsensusKeeper.ParamsStore)
+	// Fresh v0.50 genesis (and re-runs) have no legacy baseapp subspace. Skip so
+	// we do not overwrite x/consensus with zero params.
+	if !ss.Has(ctx, []byte("BlockParams")) {
+		return nil
+	}
+
+	return baseapp.MigrateParams(ctx, ss, keepers.ConsensusKeeper.ParamsStore)
 }
 
 func migrateSequencerParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) legacysequencer.Params {

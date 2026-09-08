@@ -252,6 +252,12 @@ func (app *App) Name() string { return app.BaseApp.Name() }
 // GetBaseApp returns the base app of the application
 func (app App) GetBaseApp() *baseapp.BaseApp { return app.BaseApp }
 
+// ModuleManager returns the app module manager. Used by upgrade tests.
+func (app *App) ModuleManager() *module.Manager { return app.mm }
+
+// Configurator returns the app module configurator. Used by upgrade tests.
+func (app *App) Configurator() module.Configurator { return app.configurator }
+
 // BeginBlocker application updates every begin block
 func (app *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
 	return app.mm.BeginBlock(ctx)
