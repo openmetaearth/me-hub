@@ -7,8 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
 
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	common "github.com/openmetaearth/me-hub/x/common/types"
 )
 

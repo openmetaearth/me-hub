@@ -9,9 +9,8 @@ import (
 	"cosmossdk.io/core/store"
 	storetypes "cosmossdk.io/store"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/gogo/protobuf/proto"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/gogo/protobuf/proto"
 )
 
 func NewKVStoreService(storeKey storetypes.Key) store.KVStoreService {

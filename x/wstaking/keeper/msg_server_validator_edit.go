@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/openmetaearth/me-hub/utils"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -61,13 +62,13 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 		}
 	}
 
-	//region, f := k.GetRegion(ctx, validator.Description.RegionID)
-	//if !f {
+	// region, f := k.GetRegion(ctx, validator.Description.RegionID)
+	// if !f {
 	//	return nil, errorsmod.Wrapf(types.ErrRegionNotExist, "please set region first")
-	//}
-	//if region.OperatorAddress != validator.OperatorAddress {
+	// }
+	// if region.OperatorAddress != validator.OperatorAddress {
 	//	return nil, fmt.Errorf("region id already bound to another validator(%s), please set region first", region.OperatorAddress)
-	//}
+	// }
 
 	if msg.CommissionRate != nil {
 		commission, err := k.UpdateValidatorCommission(ctx, validator, *msg.CommissionRate)
@@ -108,7 +109,7 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 	return &types.MsgUpdateValidatorResponse{}, nil
 }
 
-func (k *Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.AccAddress, validator stakingtypes.Validator) error {
+func (k *Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.AccAddress, validator stakingtypes.Validator) error { //nolint:gocyclo // validator reset touches several optional edits
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	oldValOperator := validator.GetOperator()
 	oldValOpAddr, err := sdk.ValAddressFromBech32(oldValOperator)

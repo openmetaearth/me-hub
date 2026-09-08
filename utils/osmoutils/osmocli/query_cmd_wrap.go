@@ -110,7 +110,7 @@ func BuildQueryCli[reqP proto.Message, querier any](desc *QueryDescriptor, newQu
 // It detects that the querier function name is the same as the ProtoMessage name,
 // with just the "Query" and "Request" args chopped off.
 // It expects all proto fields to appear as arguments, in order.
-func SimpleQueryCmd[reqP proto.Message, querier any](use string, short string, long string,
+func SimpleQueryCmd[reqP proto.Message, querier any](use, short, long string,
 	moduleName string, newQueryClientFn func(grpc1.ClientConn) querier,
 ) *cobra.Command {
 	desc := QueryDescriptor{

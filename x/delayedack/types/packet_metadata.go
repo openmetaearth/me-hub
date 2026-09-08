@@ -6,8 +6,8 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
 
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 )
 

@@ -4,14 +4,13 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
-	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
-
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+
+	"github.com/openmetaearth/me-hub/utils/gerrc"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 func (hook rollappHook) OnHardFork(ctx sdk.Context, rollappId string, lastValidHeight uint64) error {

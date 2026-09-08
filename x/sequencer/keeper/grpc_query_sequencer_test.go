@@ -6,12 +6,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/testutil/nullify"
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/utils/utest"
-	"github.com/stretchr/testify/require"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func TestSequencerQuerySingle(t *testing.T) {

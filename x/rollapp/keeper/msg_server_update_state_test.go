@@ -5,11 +5,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
 	"github.com/openmetaearth/me-hub/testutil/sample"
+	"github.com/openmetaearth/me-hub/utils/urand"
 	common "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
-	"github.com/openmetaearth/me-hub/utils/urand"
 )
 
 func (s *RollappTestSuite) TestFirstUpdateState() {

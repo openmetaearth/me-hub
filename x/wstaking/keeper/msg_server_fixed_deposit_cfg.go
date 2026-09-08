@@ -1,10 +1,9 @@
 package keeper
 
-import sdkmath "cosmossdk.io/math"
-
 import (
 	"context"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/x/wstaking/types"

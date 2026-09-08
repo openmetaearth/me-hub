@@ -7,10 +7,11 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	commontypes "github.com/openmetaearth/me-hub/x/common/types"
-	eibctypes "github.com/openmetaearth/me-hub/x/eibc/types"
+
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/utils/osmoutils"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
+	eibctypes "github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 type CompletionHookInstance interface {

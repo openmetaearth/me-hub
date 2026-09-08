@@ -8,15 +8,15 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/openmetaearth/me-hub/x/eibc/keeper"
-	"github.com/openmetaearth/me-hub/utils/uevent"
 	"github.com/stretchr/testify/require"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/testutil/sample"
+	"github.com/openmetaearth/me-hub/utils/uevent"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	dacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
+	"github.com/openmetaearth/me-hub/x/eibc/keeper"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )

@@ -5,9 +5,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
+
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/utils/uevent"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBond) (*types.MsgIncreaseBondResponse, error) {
@@ -61,7 +62,7 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 		return nil, err
 	}
 
-	// not allowed to unbond immediately, need to serve a notice to allow the rollapp community to organise
+	// not allowed to unbond immediately, need to serve a notice to allow the rollapp community to organize
 	// Also, if they already requested to unbond, we don't want to start another notice period, regardless
 	// of if their notice already elapsed or not.
 	if k.AwaitingLastProposerBlock(ctx, seq.RollappId) && (k.IsProposer(ctx, seq) || k.IsSuccessor(ctx, seq)) {

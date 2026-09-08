@@ -5,10 +5,11 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	lightClientKeeper "github.com/openmetaearth/me-hub/x/lightclient/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestAfterUpdateState(t *testing.T) {

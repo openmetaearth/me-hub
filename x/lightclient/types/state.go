@@ -6,10 +6,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
 
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
+	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 // CheckCompatibility checks if the IBC state and Rollapp state are compatible

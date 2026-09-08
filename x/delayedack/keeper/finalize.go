@@ -7,8 +7,8 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/openmetaearth/me-hub/utils/osmoutils"
 
+	"github.com/openmetaearth/me-hub/utils/osmoutils"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 )
 

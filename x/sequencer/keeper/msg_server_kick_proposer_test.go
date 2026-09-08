@@ -1,9 +1,9 @@
 package keeper_test
 
 import (
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/utils/utest"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func (s *SequencerTestSuite) TestKickProposerBasicFlow() {

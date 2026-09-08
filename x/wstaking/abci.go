@@ -3,13 +3,13 @@ package wstaking
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
-
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/openmetaearth/me-hub/x/wstaking/keeper"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // BeginBlocker will persist the current header and validator set as a historical entry

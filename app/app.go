@@ -48,10 +48,9 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/openmetaearth/me-hub/app/ante"
-
 	appparams "github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/app/upgrades" //nolint:revive
-	v3 "github.com/openmetaearth/me-hub/app/upgrades/v3"
+	"github.com/openmetaearth/me-hub/app/upgrades/v3"
 	"github.com/openmetaearth/me-hub/docs"
 	metypes "github.com/openmetaearth/me-hub/types"
 	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"

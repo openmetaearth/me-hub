@@ -7,11 +7,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 

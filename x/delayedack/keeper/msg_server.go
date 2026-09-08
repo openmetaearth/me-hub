@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	"github.com/openmetaearth/me-hub/utils/uevent"
 
+	"github.com/openmetaearth/me-hub/utils/uevent"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
 )
 

@@ -4,9 +4,10 @@ import (
 	"testing"
 
 	_ "github.com/cosmos/cosmos-sdk/crypto/codec"
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/testutil/nullify"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSequencerGet(t *testing.T) {

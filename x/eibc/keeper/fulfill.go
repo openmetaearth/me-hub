@@ -5,8 +5,9 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/x/eibc/types"
+
 	"github.com/openmetaearth/me-hub/utils/uevent"
+	"github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 // basic i.e. not authorized

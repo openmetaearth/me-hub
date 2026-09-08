@@ -6,8 +6,8 @@ import (
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
 
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
@@ -85,7 +85,7 @@ func (k Keeper) Proposers(c context.Context, req *types.QueryProposersRequest) (
 	store := ctx.KVStore(k.storeKey)
 	sequencerStore := prefix.NewStore(store, types.ProposerByRollappKey(""))
 
-	pageRes, err := query.Paginate(sequencerStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(sequencerStore, req.Pagination, func(key, value []byte) error {
 		proposer, err := k.RealSequencer(ctx, string(value))
 		if err != nil {
 			// skip sentinel proposers

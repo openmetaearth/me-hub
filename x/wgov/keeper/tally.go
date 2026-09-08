@@ -5,7 +5,6 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -15,7 +14,7 @@ import (
 
 // Tally iterates over the votes and updates the tally of a proposal based on the voting power of the
 // voters
-func (keeper Keeper) Tally(ctx context.Context, proposal v1.Proposal) (passes, burnDeposits bool, tallyResults v1.TallyResult, err error) {
+func (keeper Keeper) Tally(ctx context.Context, proposal v1.Proposal) (passes, burnDeposits bool, tallyResults v1.TallyResult, err error) { //nolint:gocyclo // tally aggregates several optional voter groups
 	results := make(map[v1.VoteOption]math.LegacyDec)
 	results[v1.OptionYes] = math.LegacyZeroDec()
 	results[v1.OptionAbstain] = math.LegacyZeroDec()
@@ -63,7 +62,7 @@ func (keeper Keeper) Tally(ctx context.Context, proposal v1.Proposal) (passes, b
 		}
 
 		// iterate over all delegations from voter, deduct from any delegated-to validators
-		//err = keeper.sk.IterateDelegations(ctx, voter, func(index int64, delegation stakingtypes.DelegationI) (stop bool) {
+		// err = keeper.sk.IterateDelegations(ctx, voter, func(index int64, delegation stakingtypes.DelegationI) (stop bool) {
 		//	valAddrStr := delegation.GetValidatorAddr()
 		//
 		//	if val, ok := currValidators[valAddrStr]; ok {
@@ -84,14 +83,13 @@ func (keeper Keeper) Tally(ctx context.Context, proposal v1.Proposal) (passes, b
 		//	}
 		//
 		//	return false
-		//})
-		//if err != nil {
+		// })
+		// if err != nil {
 		//	return false, err
-		//}
+		// }
 
 		return false, keeper.Votes.Remove(ctx, collections.Join(vote.ProposalId, sdk.AccAddress(voter)))
 	})
-
 	if err != nil {
 		return false, false, tallyResults, err
 	}
@@ -102,8 +100,8 @@ func (keeper Keeper) Tally(ctx context.Context, proposal v1.Proposal) (passes, b
 			continue
 		}
 
-		//sharesAfterDeductions := val.DelegatorShares.Sub(val.DelegatorDeductions)
-		//votingPower := sharesAfterDeductions.MulInt(val.BondedTokens).Quo(val.DelegatorShares)
+		// sharesAfterDeductions := val.DelegatorShares.Sub(val.DelegatorDeductions)
+		// votingPower := sharesAfterDeductions.MulInt(val.BondedTokens).Quo(val.DelegatorShares)
 		votingPower := math.LegacyNewDec(1)
 
 		for _, option := range val.Vote {
@@ -122,14 +120,14 @@ func (keeper Keeper) Tally(ctx context.Context, proposal v1.Proposal) (passes, b
 
 	// TODO: Upgrade the spec to cover all of these cases & remove pseudocode.
 	// If there is no staked coins, the proposal fails
-	//totalBonded, err := keeper.stakingKeeper.TotalBondedStakePool(ctx)
-	//if err != nil {
+	// totalBonded, err := keeper.stakingKeeper.TotalBondedStakePool(ctx)
+	// if err != nil {
 	//	return false, false, tallyResults, err
-	//}
+	// }
 
-	//if totalBonded.IsZero() {
+	// if totalBonded.IsZero() {
 	//	return false, false, tallyResults, nil
-	//}
+	// }
 
 	// If there is not enough quorum of votes, the proposal fails
 	percentVoting := totalVotingPower.Quo(math.LegacyNewDecFromInt(math.NewInt(int64(len(currValidators)))))

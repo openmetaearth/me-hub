@@ -31,12 +31,12 @@ func TypedEventToEvent(tev proto.Message) (ev sdk.Event, err error) {
 	var evtJSON []byte
 	evtJSON, err = codec.ProtoMarshalJSON(tev, nil)
 	if err != nil {
-		return
+		return ev, err
 	}
 
 	var attrMap map[string]json.RawMessage
 	if err = json.Unmarshal(evtJSON, &attrMap); err != nil {
-		return
+		return ev, err
 	}
 
 	// sort the keys to ensure the order is always the same
@@ -56,7 +56,7 @@ func TypedEventToEvent(tev proto.Message) (ev sdk.Event, err error) {
 		Type:       evtType,
 		Attributes: attrs,
 	}
-	return
+	return ev, err
 }
 
 func removeSurroundingQuotes(bz []byte) string {

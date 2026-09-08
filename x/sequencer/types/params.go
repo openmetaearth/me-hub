@@ -6,9 +6,10 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/openmetaearth/me-hub/x/common/types"
-	"github.com/openmetaearth/me-hub/utils/uparam"
 	"gopkg.in/yaml.v2"
+
+	"github.com/openmetaearth/me-hub/utils/uparam"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 )
 
 var (

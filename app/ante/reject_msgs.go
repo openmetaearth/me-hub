@@ -3,7 +3,6 @@ package ante
 import (
 	"errors"
 	"fmt"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,6 +11,8 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/cosmos/cosmos-sdk/x/group"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 )
 
 var _ sdk.AnteDecorator = RejectMessagesDecorator{}

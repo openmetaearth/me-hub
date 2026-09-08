@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 )
 
@@ -67,7 +68,7 @@ func validateAgainstHub(rollapp GenesisBridgeInfo, hub GenesisInfo) error {
 	return nil
 }
 
-func compareGenesisAccounts(raCommitted []GenesisAccount, gbData []GenesisAccount) error {
+func compareGenesisAccounts(raCommitted, gbData []GenesisAccount) error {
 	if len(raCommitted) != len(gbData) {
 		return fmt.Errorf("genesis accounts length mismatch: expected %d, got %d", len(raCommitted), len(gbData))
 	}

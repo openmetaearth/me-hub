@@ -8,7 +8,7 @@ const TypeMsgSkipDelayRollapp = "skip_delay_rollapp"
 
 var _ sdk.Msg = &MsgSkipDelayRollapp{}
 
-func NewMsgSkipDelayRollapp(creator string, rollappId string, skip bool) *MsgSkipDelayRollapp {
+func NewMsgSkipDelayRollapp(creator, rollappId string, skip bool) *MsgSkipDelayRollapp {
 	return &MsgSkipDelayRollapp{
 		Creator:   creator,
 		RollappId: rollappId,

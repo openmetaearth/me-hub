@@ -2,6 +2,7 @@ package v3
 
 import (
 	storetypes "cosmossdk.io/store/types"
+
 	"github.com/openmetaearth/me-hub/app/upgrades"
 	lightclientmoduletypes "github.com/openmetaearth/me-hub/x/lightclient/types"
 )

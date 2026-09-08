@@ -1,9 +1,9 @@
 package types
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	gomath "math"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"

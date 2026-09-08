@@ -9,11 +9,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/openmetaearth/me-hub/utils/gerrc"
-	"github.com/openmetaearth/me-hub/utils/urand"
-
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/testutil/nullify"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/urand"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 

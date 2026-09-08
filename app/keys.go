@@ -31,7 +31,7 @@ import (
 	eibcmoduletypes "github.com/openmetaearth/me-hub/x/eibc/types"
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 	lightclientmoduletypes "github.com/openmetaearth/me-hub/x/lightclient/types"
-	gourpTypes "github.com/openmetaearth/me-hub/x/megroup/types"
+	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	rollappmoduletypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencermoduletypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
@@ -127,7 +127,7 @@ var KVStoreKeys = storetypes.NewKVStoreKeys(
 	nftkeeper.StoreKey,
 	wasmtypes.StoreKey,
 	// megroup
-	gourpTypes.StoreKey,
+	megrouptypes.StoreKey,
 	// gravity bridge
 	bsctypes.StoreKey,
 	trontypes.StoreKey,

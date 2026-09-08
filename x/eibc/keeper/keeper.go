@@ -6,17 +6,15 @@ import (
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
-
 	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
 	"github.com/openmetaearth/me-hub/internal/collcompat"
 	"github.com/openmetaearth/me-hub/utils/uevent"
-
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
-
 	"github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
@@ -231,7 +229,7 @@ func (k Keeper) ListDemandOrdersByStatusPaginated(
 		statusPrefix = types.FinalizedDemandOrderKeyPrefix
 	default:
 		err = fmt.Errorf("invalid demand order status: %s", status)
-		return
+		return list, pageResp, err
 	}
 
 	prefixStore := prefix.NewStore(store, statusPrefix)
@@ -240,7 +238,7 @@ func (k Keeper) ListDemandOrdersByStatusPaginated(
 		pageReq = &query.PageRequest{}
 	}
 
-	pageResp, err = query.Paginate(prefixStore, pageReq, func(key []byte, value []byte) error {
+	pageResp, err = query.Paginate(prefixStore, pageReq, func(key, value []byte) error {
 		var val types.DemandOrder
 		if err := k.cdc.Unmarshal(value, &val); err != nil {
 			return err
@@ -254,7 +252,7 @@ func (k Keeper) ListDemandOrdersByStatusPaginated(
 		return nil
 	})
 
-	return
+	return list, pageResp, err
 }
 
 func (k Keeper) ensureAccount(ctx sdk.Context, address sdk.AccAddress) error {

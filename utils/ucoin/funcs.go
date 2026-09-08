@@ -21,7 +21,7 @@ func SimpleMul(c sdk.Coin, x int64) sdk.Coin {
 }
 
 // SimpleMin returns the coin whos amt is less, a if equal
-func SimpleMin(a sdk.Coin, b sdk.Coin) sdk.Coin {
+func SimpleMin(a, b sdk.Coin) sdk.Coin {
 	if a.Amount.LTE(b.Amount) {
 		return a
 	}
@@ -29,7 +29,7 @@ func SimpleMin(a sdk.Coin, b sdk.Coin) sdk.Coin {
 }
 
 // SimpleMax returns the coin whos amt is greater, a if equal
-func SimpleMax(a sdk.Coin, b sdk.Coin) sdk.Coin {
+func SimpleMax(a, b sdk.Coin) sdk.Coin {
 	if a.Amount.GTE(b.Amount) {
 		return a
 	}

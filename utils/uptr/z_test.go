@@ -14,7 +14,7 @@ func TestTo(t *testing.T) {
 
 		x := X{42}
 
-		require.Equal(t, x.x, (*To(x)).x)
+		require.Equal(t, x.x, To(x).x)
 	})
 	t.Run("r value", func(t *testing.T) {
 		x := 42

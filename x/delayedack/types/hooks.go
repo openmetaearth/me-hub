@@ -7,7 +7,7 @@ import (
 )
 
 type DelayedAckHooks interface {
-	AfterPacketStatusUpdated(ctx sdk.Context, packet *commontypes.RollappPacket, oldPacketKey string, newPacketKey string) error
+	AfterPacketStatusUpdated(ctx sdk.Context, packet *commontypes.RollappPacket, oldPacketKey, newPacketKey string) error
 	AfterPacketDeleted(ctx sdk.Context, rollappPacket *commontypes.RollappPacket)
 }
 
@@ -19,7 +19,7 @@ func NewMultiDelayedAckHooks(hooks ...DelayedAckHooks) MultiDelayedAckHooks {
 	return hooks
 }
 
-func (h MultiDelayedAckHooks) AfterPacketStatusUpdated(ctx sdk.Context, packet *commontypes.RollappPacket, oldPacketKey string, newPacketKey string) error {
+func (h MultiDelayedAckHooks) AfterPacketStatusUpdated(ctx sdk.Context, packet *commontypes.RollappPacket, oldPacketKey, newPacketKey string) error {
 	for i := range h {
 		err := h[i].AfterPacketStatusUpdated(ctx, packet, oldPacketKey, newPacketKey)
 		if err != nil {
@@ -39,7 +39,7 @@ type BaseDelayedAckHook struct{}
 
 var _ DelayedAckHooks = BaseDelayedAckHook{}
 
-func (b BaseDelayedAckHook) AfterPacketStatusUpdated(ctx sdk.Context, packet *commontypes.RollappPacket, oldPacketKey string, newPacketKey string) error {
+func (b BaseDelayedAckHook) AfterPacketStatusUpdated(ctx sdk.Context, packet *commontypes.RollappPacket, oldPacketKey, newPacketKey string) error {
 	return nil
 }
 

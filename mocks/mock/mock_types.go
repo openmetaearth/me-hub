@@ -12,7 +12,7 @@ type Delegation struct {
 	// delegator_address is the bech32-encoded address of the delegator.
 	stakingtypes.Delegation
 	StartHeight  int64
-	Amount       sdkmath.Int `protobuf:"bytes,5,opt,name=amount,proto3,customtype=cosmossdk.io/math.Int" json:"amount"`
-	Unmovable    sdkmath.Int `protobuf:"bytes,6,opt,name=unmovable,proto3,customtype=cosmossdk.io/math.Int" json:"unmovable"`
-	UnMeidAmount sdkmath.Int `protobuf:"bytes,7,opt,name=unMeidAmount,proto3,customtype=cosmossdk.io/math.Int" json:"unMeidAmount"`
+	Amount       sdkmath.Int `protobuf:"bytes,5,opt,name=amount,proto3,customtype=cosmossdk.io/math.Int" json:"amount"`             //nolint:revive // gogoproto customtype tag is not recognized by revive
+	Unmovable    sdkmath.Int `protobuf:"bytes,6,opt,name=unmovable,proto3,customtype=cosmossdk.io/math.Int" json:"unmovable"`       //nolint:revive // gogoproto customtype tag is not recognized by revive
+	UnMeidAmount sdkmath.Int `protobuf:"bytes,7,opt,name=unMeidAmount,proto3,customtype=cosmossdk.io/math.Int" json:"unMeidAmount"` //nolint:revive // gogoproto customtype tag is not recognized by revive
 }

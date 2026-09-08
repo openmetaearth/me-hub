@@ -14,9 +14,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/stretchr/testify/require"
+
 	"github.com/openmetaearth/me-hub/x/eibc/keeper"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
-	"github.com/stretchr/testify/require"
 )
 
 func EIBCKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
@@ -49,9 +50,4 @@ func EIBCKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	k.SetParams(ctx, types.DefaultParams())
 
 	return k, ctx
-}
-
-// EibcKeeper is retained for callers using the previous mixed-case name.
-func EibcKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
-	return EIBCKeeper(t)
 }

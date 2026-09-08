@@ -77,10 +77,10 @@ func (s *KeeperTestHelper) NewAccount() (sdk.AccAddress, *ed25519.PrivKey) {
 	return addr, privKey
 }
 
-func (s *KeeperTestHelper) CreateDefaultRollappAndProposer() (string, string) {
-	rollappId := s.CreateDefaultRollapp()
-	proposer := s.CreateDefaultSequencer(s.Ctx, rollappId)
-	return rollappId, proposer
+func (s *KeeperTestHelper) CreateDefaultRollappAndProposer() (rollappID, proposer string) {
+	rollappID = s.CreateDefaultRollapp()
+	proposer = s.CreateDefaultSequencer(s.Ctx, rollappID)
+	return rollappID, proposer
 }
 
 func (s *KeeperTestHelper) CreateDefaultRollapp() string {

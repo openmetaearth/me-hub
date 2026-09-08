@@ -1,10 +1,10 @@
 package keeper_test
 
 import (
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/utils/ucoin"
 	"github.com/openmetaearth/me-hub/utils/utest"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 // Normal flow where there are two sequencers A, B and everything is graceful

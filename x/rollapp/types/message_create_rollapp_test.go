@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/stretchr/testify/require"
 
 	"github.com/openmetaearth/me-hub/testutil/sample"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 )
 
 const bech32Prefix = "eth"

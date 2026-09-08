@@ -2,6 +2,7 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 )
 

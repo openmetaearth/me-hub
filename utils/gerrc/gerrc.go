@@ -23,7 +23,7 @@ var (
 		Google errors
 	*/
 
-	// ErrCancelled : The operation was cancelled, typically by the caller.
+	// ErrCancelled : The operation was canceled, typically by the caller.
 	ErrCancelled = registerAndWrap(0, gerr.ErrCancelled)
 	// ErrUnknown : Unknown error.  For example, this error may be returned when
 	// a `Status` value received from another address space belongs to

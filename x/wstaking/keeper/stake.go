@@ -3,19 +3,21 @@ package keeper
 import (
 	"time"
 
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
-
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 // Stake performs a stake, set/update everything necessary within the store.
 // tokenSrc indicates the bond status of the incoming funds.
+//
+//nolint:gocyclo // token bonding path handles multi-state validator transitions
 func (k *Keeper) Stake(ctx sdk.Context, staker sdk.AccAddress, bondAmt sdkmath.Int,
 	tokenSrc stakingtypes.BondStatus, validator stakingtypes.Validator, subtractAccount bool, tag string,
 ) (newShares sdkmath.LegacyDec, err error) {
@@ -252,7 +254,9 @@ func (k *Keeper) UnStakeBond(
 
 	if validator.DelegatorShares.IsZero() && validator.IsUnbonded() {
 		// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
-		k.RemoveValidator(ctx, valAddr)
+		if err := k.RemoveValidator(ctx, valAddr); err != nil {
+			return amount, err
+		}
 		k.RemoveRegion(ctx, validator.Description.RegionID)
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -271,7 +275,7 @@ func (k *Keeper) RemoveStake(ctx sdk.Context, stake types.Stake) error {
 	stakerAddress := sdk.MustAccAddressFromBech32(stake.StakerAddress)
 
 	// TODO: Consider calling hooks outside of the store wrapper functions, it's unobvious.
-	//if err := k.BeforeDelegationRemoved(ctx, stakerAddress, stake.GetValidatorAddr()); err != nil {
+	// if err := k.BeforeDelegationRemoved(ctx, stakerAddress, stake.GetValidatorAddr()); err != nil {
 	//	return err
 	//}
 
@@ -307,7 +311,7 @@ func (k *Keeper) ValidateUnbondAmount(
 		return shares, stakingtypes.ErrNoValidatorFound
 	}
 
-	valTokens := sdkmath.ZeroInt()
+	var valTokens sdkmath.Int
 
 	// ensure validator's tokens can not less than meid amount or delegate amount
 	if validator.MeidAmount.GTE(validator.DelegationAmount) {

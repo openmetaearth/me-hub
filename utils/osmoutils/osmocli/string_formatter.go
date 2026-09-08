@@ -44,6 +44,6 @@ func FormatLongDesc(longString string, meta *LongMetadata) string {
 	return strings.TrimSpace(bld.String())
 }
 
-func FormatLongDescDirect(longString string, moduleName string) string {
+func FormatLongDescDirect(longString, moduleName string) string {
 	return FormatLongDesc(longString, NewLongMetadata(moduleName))
 }

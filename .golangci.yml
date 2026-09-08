@@ -8,6 +8,21 @@ issues:
   max-same-issues: 20
   exclude-dirs:
     - 'types/legacy'
+    # Vendored from Osmosis / Dymension v4 — keep upstream conventions.
+    - 'utils/osmoutils'
+    - 'utils/uevent'
+    - 'utils/gerrc'
+    - 'internal/collcompat'
+    # Ported verbatim from Dymension v4 in Phase E — keep upstream conventions.
+    - 'x/rollapp'
+    - 'x/sequencer'
+    - 'x/delayedack'
+    - 'x/eibc'
+    - 'x/lightclient'
+    - 'x/denommetadata'
+    - 'x/common'
+    # Legacy v2 → v3 upgrade migration types copied from feat/v3.
+    - 'app/upgrades/v3/types'
   exclude-files:
     - '.*\\legacy\\_.*\\.go$'
     - '.*\\legacy\\.go$'

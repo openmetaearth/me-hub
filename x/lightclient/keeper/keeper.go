@@ -12,11 +12,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
-	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 
 	"github.com/openmetaearth/me-hub/internal/collcompat"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/x/lightclient/types"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
@@ -125,14 +125,14 @@ func (k Keeper) GetSigner(ctx sdk.Context, client string, h uint64) (string, err
 	return k.clientHeightToSigner.Get(ctx, collections.Join(client, h))
 }
 
-func (k Keeper) SaveSigner(ctx sdk.Context, seqAddr string, client string, h uint64) error {
+func (k Keeper) SaveSigner(ctx sdk.Context, seqAddr, client string, h uint64) error {
 	return errors.Join(
 		k.headerSigners.Set(ctx, collections.Join3(seqAddr, client, h)),
 		k.clientHeightToSigner.Set(ctx, collections.Join(client, h), seqAddr),
 	)
 }
 
-func (k Keeper) RemoveSigner(ctx sdk.Context, seqAddr string, client string, h uint64) error {
+func (k Keeper) RemoveSigner(ctx sdk.Context, seqAddr, client string, h uint64) error {
 	return errors.Join(
 		k.headerSigners.Remove(ctx, collections.Join3(seqAddr, client, h)),
 		k.clientHeightToSigner.Remove(ctx, collections.Join(client, h)),

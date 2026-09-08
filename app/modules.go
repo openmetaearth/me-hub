@@ -50,15 +50,32 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+
+	appparams "github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/bsc"
 	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
 	"github.com/openmetaearth/me-hub/x/dao"
 	daotypes "github.com/openmetaearth/me-hub/x/dao/types"
+	delayedackmodule "github.com/openmetaearth/me-hub/x/delayedack"
+	delayedacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
+	denommetadatamodule "github.com/openmetaearth/me-hub/x/denommetadata"
+	denommetadatamoduletypes "github.com/openmetaearth/me-hub/x/denommetadata/types"
 	"github.com/openmetaearth/me-hub/x/did"
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	eibcmodule "github.com/openmetaearth/me-hub/x/eibc"
+	eibcmoduletypes "github.com/openmetaearth/me-hub/x/eibc/types"
+	meevm "github.com/openmetaearth/me-hub/x/evm"
 	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
 	"github.com/openmetaearth/me-hub/x/kyc"
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
+	lightclientmodule "github.com/openmetaearth/me-hub/x/lightclient"
+	lightclientmoduletypes "github.com/openmetaearth/me-hub/x/lightclient/types"
+	groupmodule "github.com/openmetaearth/me-hub/x/megroup"
+	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
+	rollappmodule "github.com/openmetaearth/me-hub/x/rollapp"
+	rollappmoduletypes "github.com/openmetaearth/me-hub/x/rollapp/types"
+	sequencermodule "github.com/openmetaearth/me-hub/x/sequencer"
+	sequencermoduletypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 	"github.com/openmetaearth/me-hub/x/tron"
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 	"github.com/openmetaearth/me-hub/x/wbank"
@@ -69,24 +86,6 @@ import (
 	"github.com/openmetaearth/me-hub/x/wnft"
 	"github.com/openmetaearth/me-hub/x/wstaking"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
-
-	appparams "github.com/openmetaearth/me-hub/app/params"
-	delayedackmodule "github.com/openmetaearth/me-hub/x/delayedack"
-	denommetadatamodule "github.com/openmetaearth/me-hub/x/denommetadata"
-	eibcmodule "github.com/openmetaearth/me-hub/x/eibc"
-	lightclientmodule "github.com/openmetaearth/me-hub/x/lightclient"
-	groupmodule "github.com/openmetaearth/me-hub/x/megroup"
-	groupTypes "github.com/openmetaearth/me-hub/x/megroup/types"
-	rollappmodule "github.com/openmetaearth/me-hub/x/rollapp"
-	sequencermodule "github.com/openmetaearth/me-hub/x/sequencer"
-
-	delayedacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
-	denommetadatamoduletypes "github.com/openmetaearth/me-hub/x/denommetadata/types"
-	eibcmoduletypes "github.com/openmetaearth/me-hub/x/eibc/types"
-	meevm "github.com/openmetaearth/me-hub/x/evm"
-	lightclientmoduletypes "github.com/openmetaearth/me-hub/x/lightclient/types"
-	rollappmoduletypes "github.com/openmetaearth/me-hub/x/rollapp/types"
-	sequencermoduletypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 // ModuleBasics provides module codec and CLI registration before an App
@@ -195,7 +194,7 @@ var MaccPerms = map[string][]string{
 	wstakingtypes.FixedDepositPrincipalPool:            nil,
 	wstakingtypes.BridgeFeePool:                        nil,
 	wasmtypes.ModuleName:                               {authtypes.Burner},
-	groupTypes.ModuleName:                              {authtypes.Minter, authtypes.Burner},
+	megrouptypes.ModuleName:                            {authtypes.Minter, authtypes.Burner},
 	nft.ModuleName:                                     nil,
 	bsctypes.ModuleName:                                {authtypes.Minter, authtypes.Burner},
 	trontypes.ModuleName:                               {authtypes.Minter, authtypes.Burner},
@@ -240,7 +239,7 @@ var BeginBlockers = []string{
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
 	nft.ModuleName,
-	groupTypes.ModuleName,
+	megrouptypes.ModuleName,
 	bsctypes.ModuleName,
 	trontypes.ModuleName,
 }
@@ -279,7 +278,7 @@ var EndBlockers = []string{
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
 	nft.ModuleName,
-	groupTypes.ModuleName,
+	megrouptypes.ModuleName,
 	bsctypes.ModuleName,
 	trontypes.ModuleName,
 }
@@ -318,7 +317,7 @@ var InitGenesis = []string{
 	didtypes.ModuleName,
 	kyctypes.ModuleName,
 	nft.ModuleName,
-	groupTypes.ModuleName,
+	megrouptypes.ModuleName,
 	bsctypes.ModuleName,
 	trontypes.ModuleName,
 }

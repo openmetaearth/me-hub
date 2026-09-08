@@ -10,10 +10,11 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/x/rollapp/types"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/open-policy-agent/opa/v1/rego"
+
+	"github.com/openmetaearth/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 /*
@@ -46,7 +47,7 @@ func (k Keeper) validateAttestationIntegrity(ctx sdk.Context, token jwt.Token, n
 		return errorsmod.Wrap(err, "evaluate opa policy")
 	}
 	if !authorized {
-		return gerrc.ErrFailedPrecondition.Wrap("tee policy OPA validation returned not authorised")
+		return gerrc.ErrFailedPrecondition.Wrap("tee policy OPA validation returned not authorized")
 	}
 	return nil
 }
@@ -130,7 +131,7 @@ func isCertificateLifetimeValid(certificate *x509.Certificate, now time.Time) bo
 }
 
 // compareCertificates compares two certificate fingerprints.
-func compareCertificates(cert1 x509.Certificate, cert2 x509.Certificate) error {
+func compareCertificates(cert1, cert2 x509.Certificate) error {
 	fingerprint1 := sha256.Sum256(cert1.Raw)
 	fingerprint2 := sha256.Sum256(cert2.Raw)
 	if fingerprint1 != fingerprint2 {

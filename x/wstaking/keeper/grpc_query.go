@@ -9,10 +9,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/openmetaearth/me-hub/x/wstaking/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 type Querier struct {
@@ -37,7 +38,7 @@ func (k *Keeper) AllRegion(goCtx context.Context, req *types.QueryAllRegionReque
 	store := ctx.KVStore(k.storeKey)
 	regionStore := prefix.NewStore(store, types.KeyPrefix(types.RegionKeyPrefix))
 
-	pageRes, err := query.Paginate(regionStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(regionStore, req.Pagination, func(key, value []byte) error {
 		var region types.Region
 		if err := k.cdc.Unmarshal(value, &region); err != nil {
 			return err
@@ -136,6 +137,9 @@ func DelegationToDelegationResponse(ctx sdk.Context, k *Keeper, del stakingtypes
 	}
 	amount := del.Amount.Add(del.UnMeidAmount).Add(del.Unmovable)
 	bondDenom, err := k.BondDenom(ctx)
+	if err != nil {
+		return stakingtypes.DelegationResponse{}, err
+	}
 	return NewDelegationResp(del, sdk.NewCoin(bondDenom, amount)), nil
 }
 
@@ -152,7 +156,7 @@ func (k *Keeper) QueryAllRecord(goCtx context.Context, req *types.QueryAllRecord
 	store := ctx.KVStore(k.storeKey)
 	meidStore := prefix.NewStore(store, types.NewRecordKey)
 
-	pageRes, err := query.Paginate(meidStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(meidStore, req.Pagination, func(key, value []byte) error {
 		var record types.Record
 		if err := k.cdc.Unmarshal(value, &record); err != nil {
 			return err
@@ -181,7 +185,7 @@ func (k Querier) QueryRecordByAddress(goCtx context.Context, req *types.QueryRec
 func (k Querier) QueryReviewRecordByID(goCtx context.Context, req *types.QueryReviewRecordByNumber) (*types.QueryReviewRecordByNumberResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if req.ActionNumber == "" {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("ActionNumber is empty"))
+		return nil, status.Error(codes.InvalidArgument, "ActionNumber is empty")
 	}
 	rr := k.GetReviewRecordByID(ctx, req.ActionNumber)
 	return &types.QueryReviewRecordByNumberResponse{ReviewRecord: rr}, nil
@@ -195,7 +199,7 @@ func (k Querier) AllDelegations(c context.Context, req *types.QueryAllDelegation
 	queryStore := prefix.NewStore(store, stakingtypes.DelegationKey)
 
 	delegations := []stakingtypes.Delegation{}
-	pageRes, err := query.Paginate(queryStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(queryStore, req.Pagination, func(key, value []byte) error {
 		delegation := types.MustUnmarshalDelegation(k.cdc, value)
 		delegations = append(delegations, delegation)
 		return nil

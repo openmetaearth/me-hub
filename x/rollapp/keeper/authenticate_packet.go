@@ -4,8 +4,9 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	"github.com/openmetaearth/me-hub/x/rollapp/types"
+
 	"github.com/openmetaearth/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 /*
@@ -46,7 +47,7 @@ func (k Keeper) GetValidTransfer(
 	// transfers allowed on canonical channel only
 	if !k.IsCanonicalChannel(ctx, ra.RollappId, raPortOnHub, raChanOnHub) {
 		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "non canonical channel %s for rollapp %s", raChanOnHub, ra.RollappId)
-		return
+		return data, err
 	}
 
 	data.Rollapp = ra

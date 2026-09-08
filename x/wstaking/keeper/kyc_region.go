@@ -1,12 +1,12 @@
 package keeper
 
 import (
-	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -81,7 +81,7 @@ func (k *Keeper) TransferKycRegion(ctx sdk.Context, address sdk.AccAddress, crea
 		return types.ErrNodeLimitExceeded
 	}
 	if validator.MeidAmount.Add(types.Bonus).GT(validator.Tokens) {
-		return types.ErrTransferRegion.Wrap(fmt.Sprintf("meid bonded validator can not hold this meid user, reach meid limit"))
+		return types.ErrTransferRegion.Wrap("meid bonded validator can not hold this meid user, reach meid limit")
 	}
 	validator.MeidAmount = validator.MeidAmount.Add(types.Bonus)
 	k.SetValidator(ctx, validator)

@@ -5,9 +5,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
 )
 
 var _ rollapptypes.RollappHooks = rollappHook{}

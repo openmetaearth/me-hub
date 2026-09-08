@@ -5,9 +5,10 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/openmetaearth/me-hub/utils/ucoin"
 	"github.com/openmetaearth/me-hub/x/sequencer/keeper"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
-	"github.com/openmetaearth/me-hub/utils/ucoin"
 )
 
 func Test_proposerChoiceAlgo(t *testing.T) {

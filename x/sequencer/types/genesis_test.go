@@ -3,9 +3,10 @@ package types_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	_ "github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGenesisState_Validate(t *testing.T) {

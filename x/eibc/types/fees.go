@@ -7,7 +7,7 @@ import (
 )
 
 // calculate the new price: transferTotal - fee - bridgingFee. Ensures fulfiller does not lose due to bridge fee
-func CalcPriceWithBridgingFee(amt math.Int, eibcFee math.Int, bridgeFeeMul math.LegacyDec) (math.Int, error) {
+func CalcPriceWithBridgingFee(amt, eibcFee math.Int, bridgeFeeMul math.LegacyDec) (math.Int, error) {
 	bridgingFee := bridgeFeeMul.MulInt(amt).TruncateInt()
 	price := amt.Sub(eibcFee).Sub(bridgingFee)
 	// Check that the price is positive
@@ -21,7 +21,7 @@ func CalcPriceWithBridgingFee(amt math.Int, eibcFee math.Int, bridgeFeeMul math.
 // note that in the finalize without fulfillment case, the eibc fee is not applied, so the recipient will get approx target + eibcFee
 // WARNING: not intended for on-chain code
 // note: closed form solution impossible
-func CalcTargetPriceAmt(target math.Int, eibcFee math.Int, bridgeFeeMul math.LegacyDec) math.Int {
+func CalcTargetPriceAmt(target, eibcFee math.Int, bridgeFeeMul math.LegacyDec) math.Int {
 	var ret math.Int
 
 	l := target

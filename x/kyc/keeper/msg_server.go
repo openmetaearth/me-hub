@@ -7,8 +7,6 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-
-	"cosmossdk.io/errors"
 	"cosmossdk.io/x/nft"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -95,7 +93,7 @@ func (m msgServer) Approve(goCtx context.Context, msg *types.MsgApprove) (*types
 
 	// add reward to KYC holder and inviter
 	if err := m.stkKeeper.KycReward(ctx, address, msg.RegionId, issuer); err != nil {
-		return &types.MsgApproveResponse{}, errors.Wrap(err, "set reward failed")
+		return &types.MsgApproveResponse{}, errorsmod.Wrap(err, "set reward failed")
 	}
 
 	if msg.Level >= didtypes.KYC_LEVEL_TWO {
@@ -156,7 +154,7 @@ func (m msgServer) Update(goCtx context.Context, msg *types.MsgUpdate) (*types.M
 
 	// update KYC level
 	// if msg.Level == didtypes.KYC_LEVEL_NONE {
-	//	return &types.MsgUpdateResponse{}, errors.Wrap(didtypes.ErrParameter, "KYC level must be greater than 0")
+	//	return &types.MsgUpdateResponse{}, errorsmod.Wrap(didtypes.ErrParameter, "KYC level must be greater than 0")
 	//}
 
 	holderInfo.RegionId = msg.RegionId
@@ -247,7 +245,7 @@ func (m msgServer) Remove(goCtx context.Context, msg *types.MsgRemove) (*types.M
 	// cancel reward
 	address := sdk.MustAccAddressFromBech32(didInfo.Address)
 	if err := m.DeleteApproveReward(ctx, address.String(), string(kyc.Data)); err != nil {
-		return &types.MsgRemoveResponse{}, errors.Wrap(err, "delete reward failed")
+		return &types.MsgRemoveResponse{}, errorsmod.Wrap(err, "delete reward failed")
 	}
 	ctx.EventManager().EmitEvent(types.NewKycEvent(address.String(), msg.Did, didInfo.KycLevel, "remove", m.takeSeq(ctx)))
 	return &types.MsgRemoveResponse{}, nil
@@ -299,7 +297,7 @@ func (m msgServer) CreateSBT(goCtx context.Context, msg *types.MsgCreateSBT) (*t
 	}
 
 	if err := m.SetSBT(ctx, sbt, sdk.MustAccAddressFromBech32(holderInfo.Address)); err != nil {
-		return &types.MsgCreateSBTResponse{}, errors.Wrap(err, "mint SBT failed")
+		return &types.MsgCreateSBTResponse{}, errorsmod.Wrap(err, "mint SBT failed")
 	}
 
 	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeCreateSBT, msg.Did, msg.Uri, msg.UriHash, holderInfo.RegionId, holderInfo.KycLevel.String(), holderInfo.Address))
@@ -351,7 +349,7 @@ func (m msgServer) UpdateSBT(goCtx context.Context, msg *types.MsgUpdateSBT) (*t
 	sbt.Data = nftData
 
 	if err := m.nftKeeper.Update(ctx, sbt); err != nil {
-		return &types.MsgUpdateSBTResponse{}, errors.Wrap(err, "update SBT failed")
+		return &types.MsgUpdateSBTResponse{}, errorsmod.Wrap(err, "update SBT failed")
 	}
 
 	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeUpdateSBT, msg.Did, msg.Uri, msg.UriHash, holderInfo.RegionId, holderInfo.KycLevel.String(), holderInfo.Address))
@@ -385,7 +383,7 @@ func (m msgServer) DeleteSBT(goCtx context.Context, msg *types.MsgDeleteSBT) (*t
 
 	// remove SBT
 	if err := m.RemoveSBT(ctx, msg.Did); err != nil {
-		return &types.MsgDeleteSBTResponse{}, errors.Wrap(err, "burn SBT failed")
+		return &types.MsgDeleteSBTResponse{}, errorsmod.Wrap(err, "burn SBT failed")
 	}
 
 	ctx.EventManager().EmitEvent(types.NewSbtEvent(types.EventTypeDeleteSBT, msg.Did, "", "", holderInfo.RegionId, holderInfo.KycLevel.String(), holderInfo.Address))

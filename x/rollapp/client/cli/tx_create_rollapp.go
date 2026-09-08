@@ -10,9 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
-	commontypes "github.com/openmetaearth/me-hub/x/common/types"
-
 	"github.com/openmetaearth/me-hub/utils"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 

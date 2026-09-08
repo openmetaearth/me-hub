@@ -32,7 +32,7 @@ func ConditionalError(t *testing.T, expectError bool, err error) {
 // DecApproxEq is a helper function to compare two decimals.
 // It validates the two decimal are within a certain tolerance.
 // If not, it fails with a message.
-func DecApproxEq(t *testing.T, d1 math.LegacyDec, d2 math.LegacyDec, tol math.LegacyDec, msgAndArgs ...interface{}) {
+func DecApproxEq(t *testing.T, d1, d2, tol math.LegacyDec, msgAndArgs ...interface{}) {
 	diff := d1.Sub(d2).Abs()
 	msg := messageFromMsgAndArgs(msgAndArgs...)
 	require.True(t, diff.LTE(tol), "expected |d1 - d2| <:\t%s\ngot |d1 - d2| = \t\t%s\nd1: %s, d2: %s\n%s", tol, diff, d1, d2, msg)

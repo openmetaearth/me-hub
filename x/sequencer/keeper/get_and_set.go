@@ -10,8 +10,8 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
 
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
@@ -110,7 +110,7 @@ func (k Keeper) prefixSequencersPaginated(ctx sdk.Context, prefixKey []byte, pag
 
 	var sequencers []types.Sequencer
 
-	pageRes, err := query.Paginate(store, pageReq, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(store, pageReq, func(key, value []byte) error {
 		var val types.Sequencer
 		if err := k.cdc.Unmarshal(value, &val); err != nil {
 			return err

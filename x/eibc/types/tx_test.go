@@ -6,8 +6,9 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	appparams "github.com/openmetaearth/me-hub/app/params"
 	"github.com/stretchr/testify/require"
+
+	appparams "github.com/openmetaearth/me-hub/app/params"
 )
 
 func TestMsgFulfillOrderAuthorized_ValidateBasic(t *testing.T) {

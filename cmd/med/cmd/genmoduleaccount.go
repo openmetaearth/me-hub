@@ -8,21 +8,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/openmetaearth/me-hub/app"
-	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/spf13/cobra"
 
+	"github.com/openmetaearth/me-hub/app"
+	"github.com/openmetaearth/me-hub/app/params"
 	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
-
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 

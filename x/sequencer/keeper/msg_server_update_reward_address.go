@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/utils/uevent"
 
+	"github.com/openmetaearth/me-hub/utils/uevent"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 

@@ -66,7 +66,7 @@ func ExpectedCanonicalClientParams(rollappUnbondingPeriod time.Duration) ibctm.C
 }
 
 // IsCanonicalClientParamsValid checks if the given IBC tendermint client state has the expected canonical client parameters
-func IsCanonicalClientParamsValid(got *ibctm.ClientState, expect *ibctm.ClientState) error {
+func IsCanonicalClientParamsValid(got, expect *ibctm.ClientState) error {
 	if got.TrustLevel != expect.TrustLevel {
 		return errors.New("trust level")
 	}

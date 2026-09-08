@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
 	"github.com/openmetaearth/me-hub/utils/ucoin"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 // Can eventually get below kickable threshold

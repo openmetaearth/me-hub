@@ -1,12 +1,11 @@
 package ante_test
 
-import sdkmath "cosmossdk.io/math"
-
 import (
 	"regexp"
 	"strconv"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"

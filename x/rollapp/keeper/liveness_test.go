@@ -8,13 +8,12 @@ import (
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/utils/urand"
 	"github.com/stretchr/testify/require"
 	"pgregory.net/rapid"
 
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
+	"github.com/openmetaearth/me-hub/utils/urand"
 	"github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )

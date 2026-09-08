@@ -7,9 +7,9 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	"github.com/openmetaearth/me-hub/utils/uevent"
 
 	denomutils "github.com/openmetaearth/me-hub/utils/denom"
+	"github.com/openmetaearth/me-hub/utils/uevent"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	dacktypes "github.com/openmetaearth/me-hub/x/delayedack/types"
 	"github.com/openmetaearth/me-hub/x/eibc/types"

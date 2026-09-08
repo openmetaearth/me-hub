@@ -102,7 +102,7 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 
 	// check fees
 	// TODO: txfees module not yet integrated in v0.50; re-enable when available
-	//if !expectedFee.IsZero() {
+	// if !expectedFee.IsZero() {
 	//	addr := s.hubApp().AccountKeeper.GetModuleAccount(s.hubCtx(), txfees.ModuleName)
 	//	s.Require().NotNil(addr, "txfees module account should exist when bridging fee is non-zero")
 	//	txFeesBalance := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), addr.GetAddress(), denom)

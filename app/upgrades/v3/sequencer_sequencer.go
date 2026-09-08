@@ -2,6 +2,7 @@ package v3
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	sequencerkeeper "github.com/openmetaearth/me-hub/x/sequencer/keeper"
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 )

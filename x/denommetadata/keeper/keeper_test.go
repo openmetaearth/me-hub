@@ -1,17 +1,16 @@
 package keeper_test
 
 import (
+	_ "embed"
 	"encoding/json"
 	"testing"
 
 	errorsmod "cosmossdk.io/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/stretchr/testify/suite"
 
-	_ "embed"
-
 	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 )
 
 //go:embed testdata/denom_kas.json

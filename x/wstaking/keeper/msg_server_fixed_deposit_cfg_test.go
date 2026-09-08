@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 

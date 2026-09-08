@@ -17,7 +17,7 @@ import (
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/app/upgrades"
-	v3 "github.com/openmetaearth/me-hub/app/upgrades/v3"
+	"github.com/openmetaearth/me-hub/app/upgrades/v3"
 	legacydelayedack "github.com/openmetaearth/me-hub/app/upgrades/v3/types/delayedack"
 	legacyeibc "github.com/openmetaearth/me-hub/app/upgrades/v3/types/eibc"
 	legacyrollapp "github.com/openmetaearth/me-hub/app/upgrades/v3/types/rollapp"

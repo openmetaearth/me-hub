@@ -5,15 +5,12 @@ import (
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/openmetaearth/me-hub/app/params"
 
+	"github.com/openmetaearth/me-hub/app/params"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 

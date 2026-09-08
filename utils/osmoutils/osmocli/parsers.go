@@ -275,7 +275,7 @@ func ParseFieldFromArg(fVal reflect.Value, fType reflect.StructField, arg string
 	return nil
 }
 
-func ParseUint(arg string, fieldName string) (uint64, error) {
+func ParseUint(arg, fieldName string) (uint64, error) {
 	v, err := strconv.ParseUint(arg, 10, 64)
 	if err != nil {
 		return 0, fmt.Errorf("could not parse %s as uint for field %s: %w", arg, fieldName, err)
@@ -283,7 +283,7 @@ func ParseUint(arg string, fieldName string) (uint64, error) {
 	return v, nil
 }
 
-func ParseFloat(arg string, fieldName string) (float64, error) {
+func ParseFloat(arg, fieldName string) (float64, error) {
 	v, err := strconv.ParseFloat(arg, 64)
 	if err != nil {
 		return 0, fmt.Errorf("could not parse %s as float for field %s: %w", arg, fieldName, err)
@@ -291,7 +291,7 @@ func ParseFloat(arg string, fieldName string) (float64, error) {
 	return v, nil
 }
 
-func ParseInt(arg string, fieldName string) (int64, error) {
+func ParseInt(arg, fieldName string) (int64, error) {
 	v, err := strconv.ParseInt(arg, 10, 64)
 	if err != nil {
 		return 0, fmt.Errorf("could not parse %s as int for field %s: %w", arg, fieldName, err)
@@ -299,7 +299,7 @@ func ParseInt(arg string, fieldName string) (int64, error) {
 	return v, nil
 }
 
-func ParseUnixTime(arg string, fieldName string) (time.Time, error) {
+func ParseUnixTime(arg, fieldName string) (time.Time, error) {
 	timeUnix, err := strconv.ParseInt(arg, 10, 64)
 	if err != nil {
 		parsedTime, err := time.Parse(sdk.SortableTimeFormat, arg)
@@ -313,12 +313,12 @@ func ParseUnixTime(arg string, fieldName string) (time.Time, error) {
 	return startTime, nil
 }
 
-func ParseDenom(arg string, fieldName string) (string, error) {
+func ParseDenom(arg, fieldName string) (string, error) {
 	return strings.TrimSpace(arg), nil
 }
 
 // TODO: Make this able to read from some local alias file for denoms.
-func ParseCoin(arg string, fieldName string) (sdk.Coin, error) {
+func ParseCoin(arg, fieldName string) (sdk.Coin, error) {
 	coin, err := sdk.ParseCoinNormalized(arg)
 	if err != nil {
 		return sdk.Coin{}, fmt.Errorf("could not parse %s as sdk.Coin for field %s: %w", arg, fieldName, err)
@@ -327,7 +327,7 @@ func ParseCoin(arg string, fieldName string) (sdk.Coin, error) {
 }
 
 // TODO: Make this able to read from some local alias file for denoms.
-func ParseCoins(arg string, fieldName string) (sdk.Coins, error) {
+func ParseCoins(arg, fieldName string) (sdk.Coins, error) {
 	coins, err := sdk.ParseCoinsNormalized(arg)
 	if err != nil {
 		return sdk.Coins{}, fmt.Errorf("could not parse %s as sdk.Coins for field %s: %w", arg, fieldName, err)
@@ -336,7 +336,7 @@ func ParseCoins(arg string, fieldName string) (sdk.Coins, error) {
 }
 
 // TODO: This really shouldn't be getting used in the CLI, its misdesign on the CLI ux
-func ParseSdkInt(arg string, fieldName string) (math.Int, error) {
+func ParseSdkInt(arg, fieldName string) (math.Int, error) {
 	i, ok := math.NewIntFromString(arg)
 	if !ok {
 		return math.Int{}, fmt.Errorf("could not parse %s as math.Int for field %s", arg, fieldName)

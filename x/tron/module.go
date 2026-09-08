@@ -2,11 +2,10 @@ package tron
 
 import (
 	"context"
-
 	"encoding/json"
 	"fmt"
 
-	appmodule "cosmossdk.io/core/appmodule"
+	"cosmossdk.io/core/appmodule"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"

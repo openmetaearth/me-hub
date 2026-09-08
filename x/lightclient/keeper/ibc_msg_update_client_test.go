@@ -11,11 +11,12 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/x/lightclient/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
-	"github.com/stretchr/testify/require"
 )
 
 func ConvertValidator(src comettypes.Validator) *cmtproto.Validator {

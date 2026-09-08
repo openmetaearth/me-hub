@@ -10,24 +10,15 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
-
 	storetypes "cosmossdk.io/store/types"
-
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	tmtime "github.com/cometbft/cometbft/types/time"
-
 	db "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/runtime"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

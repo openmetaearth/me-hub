@@ -4,12 +4,11 @@ import (
 	"strings"
 
 	"cosmossdk.io/math"
-
 	"github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/utils/urand"
 
 	"github.com/openmetaearth/me-hub/testutil/sample"
+	"github.com/openmetaearth/me-hub/utils/urand"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 

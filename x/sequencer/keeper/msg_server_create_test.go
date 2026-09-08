@@ -6,12 +6,13 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
+
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/utils/uptr"
 	"github.com/openmetaearth/me-hub/utils/urand"
 	"github.com/openmetaearth/me-hub/utils/utest"
+	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 // On success, we should get back an object with all the right info

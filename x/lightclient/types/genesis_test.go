@@ -3,8 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/openmetaearth/me-hub/x/lightclient/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/openmetaearth/me-hub/x/lightclient/types"
 )
 
 func TestGenesisValidate(t *testing.T) {

@@ -7,14 +7,11 @@ import (
 	"cosmossdk.io/log"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var (
-	// HistoricalInfoKey is inherited from Cosmos SDK staking module
-	HistoricalInfoKey = []byte{0x50} // prefix for the historical info
-)
+// HistoricalInfoKey is inherited from Cosmos SDK staking module
+var HistoricalInfoKey = []byte{0x50} // prefix for the historical info
 
 // Migrator is a struct for handling in-place store migrations.
 type Migrator struct {
@@ -52,7 +49,7 @@ func migrateHistoricalInfoKeys(store storetypes.KVStore, logger log.Logger) erro
 
 		intHeight, err := strconv.ParseInt(string(strHeight), 10, 64)
 		if err != nil {
-			return fmt.Errorf("can't parse height from key %q to int64: %v", strHeight, err)
+			return fmt.Errorf("can't parse height from key %q to int64: %w", strHeight, err)
 		}
 
 		newStoreKey := GetHistoricalInfoKey(intHeight)

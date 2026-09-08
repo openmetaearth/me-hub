@@ -5,12 +5,11 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/log"
-	"github.com/openmetaearth/me-hub/internal/collcompat"
-
 	storetypes "cosmossdk.io/store"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/openmetaearth/me-hub/internal/collcompat"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 

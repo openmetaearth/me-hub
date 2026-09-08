@@ -9,13 +9,14 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/openmetaearth/me-hub/x/common/types"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
-	"github.com/openmetaearth/me-hub/utils/uparam"
 	opastorage "github.com/open-policy-agent/opa/v1/storage"
 	"github.com/open-policy-agent/opa/v1/storage/inmem"
 	"github.com/open-policy-agent/opa/v1/util"
 	"gopkg.in/yaml.v2"
+
+	"github.com/openmetaearth/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/uparam"
+	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 )
 
 var (

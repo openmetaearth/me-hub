@@ -9,16 +9,17 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	ed25519 "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-func (k *Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey, error) {
+func (k *Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKey, error) { //nolint:gocyclo // pubkey rotation has multi-phase timeline branches
 	updateInfo, err := k.GetReplaceConsensusPubKeyInfo(ctx)
 	if err != nil {
 		panic(fmt.Sprintf("GetReplaceConsensusPubKeyInfo error,err = %s ", err.Error()))
@@ -70,7 +71,9 @@ func (k *Keeper) UpdateValidatorPubKey(ctx sdk.Context) (*types.ReplaceNodePubKe
 			}
 			validator.ConsensusPubkey = anyPk
 			k.SetValidator(ctx, validator)
-			k.SetValidatorByConsAddr(ctx, validator)
+			if err := k.SetValidatorByConsAddr(ctx, validator); err != nil {
+				return nil, errorsmod.Wrapf(types.ErrInterProc, "SetValidatorByConsAddr error: %v", err)
+			}
 			if err = k.Hooks().AfterValidatorCreated(ctx, valAddr); err != nil {
 				k.Logger(ctx).Info("AfterValidatorCreated hook ", "err", err.Error())
 				return nil, errorsmod.Wrapf(types.ErrInterProc, "AfterValidatorCreated hook error: %v", err)
@@ -157,10 +160,7 @@ func (k *Keeper) DeleteReplaceConsensusPubKey(ctx sdk.Context) {
 func (k *Keeper) IsHasReplaceConsensusPubKey(ctx sdk.Context) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	data := store.Get(types.KeyPrefix(types.ReplaceConsensusPubKey))
-	if data == nil {
-		return false
-	}
-	return true
+	return data != nil
 }
 
 func (k *Keeper) RemoveValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) {
@@ -173,12 +173,14 @@ func (k *Keeper) MoveStakesToAnotherVal(ctx sdk.Context, fromValAddr, toValAddr 
 	if err != nil {
 		return err
 	}
-	if 0 == len(stakes) {
+	if len(stakes) == 0 {
 		return errorsmod.Wrapf(types.ErrStakeOnValidatorIsEmpty, "old validatorAddr =%s", fromValAddr.String())
 	}
 	for _, stake := range stakes {
 		// remove old stake record
-		k.RemoveStake(ctx, *stake)
+		if err := k.RemoveStake(ctx, *stake); err != nil {
+			return err
+		}
 		// create new stake record
 		stake.ValidatorAddress = toValAddr.String()
 		stake.StartHeight = ctx.BlockHeight()

@@ -2,6 +2,7 @@ package v3
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -11,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+
 	"github.com/openmetaearth/me-hub/app/upgrades"
 	legacydelayedack "github.com/openmetaearth/me-hub/app/upgrades/v3/types/delayedack"
 	legacyeibc "github.com/openmetaearth/me-hub/app/upgrades/v3/types/eibc"
@@ -133,7 +135,7 @@ func legacySubspace(keepers *upgrades.UpgradeKeepers, name string, kt paramstype
 //nolint:staticcheck // ConsensusParamsKeyTable / Paramspace are intentionally used for upgrade migration.
 func migrateModuleParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) error {
 	if keepers.ConsensusKeeper == nil {
-		return errorsmod.Wrap(fmt.Errorf("nil ConsensusKeeper"), "migrate consensus params")
+		return errorsmod.Wrap(errors.New("nil ConsensusKeeper"), "migrate consensus params")
 	}
 
 	ss, ok := keepers.ParamsKeeper.GetSubspace(baseapp.Paramspace)
@@ -244,7 +246,7 @@ func migrateEIBCParams(ctx sdk.Context, keepers *upgrades.UpgradeKeepers) {
 //   - proposer-by-rollapp key (v2 stored proposer as a bool on the sequencer object)
 func backfillSequencerIndexes(ctx sdk.Context, k *sequencerkeeper.Keeper) error {
 	if k == nil {
-		return fmt.Errorf("nil SequencerKeeper")
+		return errors.New("nil SequencerKeeper")
 	}
 
 	// rollappID → best bonded sequencer to assign as proposer if missing
@@ -293,7 +295,7 @@ func migrateRollappLightClients(
 	ibcChannelKeeper lightclienttypes.IBCChannelKeeperExpected,
 ) error {
 	if lightClientKeeper == nil || ibcChannelKeeper == nil {
-		return errorsmod.Wrap(fmt.Errorf("nil keeper"), "lightclient migration")
+		return errorsmod.Wrap(errors.New("nil keeper"), "lightclient migration")
 	}
 
 	for _, rollapp := range rk.GetAllRollapps(ctx) {
@@ -326,7 +328,7 @@ func migrateRollappLightClients(
 //     is shorter (common on testnets, e.g. 300s) → clamp to VotingPeriod / 2
 func updateGovParams(ctx sdk.Context, k *wgovkeeper.Keeper) error {
 	if k == nil {
-		return fmt.Errorf("nil GovKeeper")
+		return errors.New("nil GovKeeper")
 	}
 
 	params, err := k.Params.Get(ctx)
@@ -334,7 +336,7 @@ func updateGovParams(ctx sdk.Context, k *wgovkeeper.Keeper) error {
 		return fmt.Errorf("get gov params: %w", err)
 	}
 	if len(params.MinDeposit) == 0 {
-		return fmt.Errorf("gov MinDeposit is empty after migration")
+		return errors.New("gov MinDeposit is empty after migration")
 	}
 
 	// Expedited min deposit = 5 × min deposit (same denom as chain bond denom).

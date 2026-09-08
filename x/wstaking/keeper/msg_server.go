@@ -9,6 +9,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	"github.com/hashicorp/go-metrics"
+
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -25,12 +26,12 @@ var _ types.MsgServer = MsgServer{}
 // NewMsgServerImpl returns an implementation of the staking wrapped MsgServer.
 func NewMsgServerImpl(
 	keeper *Keeper,
-	IbcTransferKeeper ibctransferkeeper.Keeper,
+	ibcTransferKeeper ibctransferkeeper.Keeper,
 	stakingMsgSrv stakingtypes.MsgServer,
 ) MsgServer {
 	return MsgServer{
 		Keeper:            keeper,
-		IbcTransferKeeper: IbcTransferKeeper,
+		IbcTransferKeeper: ibcTransferKeeper,
 		MsgServer:         stakingMsgSrv,
 	}
 }

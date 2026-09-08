@@ -3,12 +3,11 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/openmetaearth/me-hub/utils/utest"
 	"github.com/stretchr/testify/require"
 
-	"github.com/openmetaearth/me-hub/utils/gerrc"
-
 	"github.com/openmetaearth/me-hub/testutil/nullify"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/utest"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 

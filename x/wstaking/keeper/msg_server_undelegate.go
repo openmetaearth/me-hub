@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -14,6 +13,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/hashicorp/go-metrics"
+
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
@@ -71,12 +71,12 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	if region.DelegateInterest.GTE(rewards) {
 		region.DelegateInterest = region.DelegateInterest.Sub(rewards)
 	} else {
-		return nil, errors.New(fmt.Sprintf("undelegate err,region(%s) total interest not enough.need pay %s,only have %s",
-			region.RegionId, rewards.String(), region.DelegateInterest.String()))
+		return nil, fmt.Errorf("undelegate err,region(%s) total interest not enough.need pay %s,only have %s",
+			region.RegionId, rewards.String(), region.DelegateInterest.String())
 	}
 
 	isMeid := true
-	if strings.ToLower(val.Description.RegionID) == strings.ToLower(types.ExperienceRegionName) {
+	if strings.EqualFold(val.Description.RegionID, types.ExperienceRegionName) {
 		isMeid = false
 	}
 

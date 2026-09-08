@@ -8,19 +8,18 @@ import (
 	"cosmossdk.io/x/nft"
 	nftkeeper "cosmossdk.io/x/nft/keeper"
 	nftmodule "cosmossdk.io/x/nft/module"
-	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"google.golang.org/grpc"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 
-	cli "github.com/openmetaearth/me-hub/x/wnft/client/cli"
-	keeper "github.com/openmetaearth/me-hub/x/wnft/keeper"
-	types "github.com/openmetaearth/me-hub/x/wnft/types"
+	"github.com/openmetaearth/me-hub/x/wnft/client/cli"
+	"github.com/openmetaearth/me-hub/x/wnft/keeper"
+	"github.com/openmetaearth/me-hub/x/wnft/types"
 )
 
 var (
@@ -45,10 +44,7 @@ func NewAppModuleBasic(cdc codec.Codec, basic nftmodule.AppModuleBasic) AppModul
 // AppModule implements an application module for the wnft module.
 type AppModule struct {
 	AppModuleBasic
-	keeper        *keeper.Keeper
-	accountKeeper nft.AccountKeeper
-	bankKeeper    nft.BankKeeper
-	registry      codectypes.InterfaceRegistry
+	keeper *keeper.Keeper
 }
 
 // NewAppModule creates a new wnft AppModule object.
@@ -63,9 +59,6 @@ func NewAppModule(
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc, nftModule.AppModuleBasic),
 		keeper:         &k,
-		accountKeeper:  ak,
-		bankKeeper:     bk,
-		registry:       registry,
 	}
 }
 

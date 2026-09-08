@@ -8,11 +8,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/utils/uptr"
 	"github.com/spf13/cobra"
 
+	"github.com/openmetaearth/me-hub/utils/uptr"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
-
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
@@ -35,7 +34,7 @@ func CmdUpdateRollapp() *cobra.Command {
 
 			initSequencer, err := cmd.Flags().GetString(FlagInitSequencer)
 			if err != nil {
-				return
+				return err
 			}
 
 			minSeqBondS, err := cmd.Flags().GetString(FlagMinSequencerBond)
@@ -54,17 +53,17 @@ func CmdUpdateRollapp() *cobra.Command {
 
 			genesisInfo, err := parseGenesisInfo(cmd)
 			if err != nil {
-				return
+				return err
 			}
 
 			metadata, err := parseMetadata(cmd)
 			if err != nil {
-				return
+				return err
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
-				return
+				return err
 			}
 
 			msg := types.NewMsgUpdateRollappInformation(

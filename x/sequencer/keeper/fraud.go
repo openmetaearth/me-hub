@@ -4,10 +4,11 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
+
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/utils/ucoin"
 	"github.com/openmetaearth/me-hub/utils/uevent"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 // TryKickProposer tries to remove the incumbent proposer. It requires the incumbent

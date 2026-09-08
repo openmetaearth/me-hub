@@ -7,11 +7,10 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/cosmos/gogoproto/proto"
-
 	"cosmossdk.io/math"
 	store "cosmossdk.io/store"
 	stypes "cosmossdk.io/store/types"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 // Tree is an augmented B+ tree implementation.
@@ -208,7 +207,7 @@ func (t Tree) ReverseIterator(begin, end []byte) store.Iterator {
 // exact: leaf with key = provided key
 // right: all leaves under nodePointer with key > provided key
 // Note that the equalities here are _exclusive_.
-func (ptr *ptr) accumulationSplit(key []byte) (left math.Int, exact math.Int, right math.Int) {
+func (ptr *ptr) accumulationSplit(key []byte) (left, exact, right math.Int) {
 	left, exact, right = math.ZeroInt(), math.ZeroInt(), math.ZeroInt()
 	if ptr.isLeaf() {
 		var leaf Leaf
@@ -256,7 +255,7 @@ func (t Tree) PrefixSum(key []byte) math.Int {
 // between start and end (inclusive of both ends)
 // if start is nil, it is the beginning of the tree.
 // if end is nil, it is the end of the tree.
-func (t Tree) SubsetAccumulation(start []byte, end []byte) math.Int {
+func (t Tree) SubsetAccumulation(start, end []byte) math.Int {
 	if start == nil {
 		left, exact, _ := t.root().accumulationSplit(end)
 		return left.Add(exact)

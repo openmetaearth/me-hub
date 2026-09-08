@@ -6,10 +6,10 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
-	"github.com/openmetaearth/me-hub/utils/uslice"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/uslice"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 

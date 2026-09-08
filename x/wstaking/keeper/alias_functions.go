@@ -7,8 +7,9 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
-	mintTypes "github.com/openmetaearth/me-hub/x/wmint/types"
+	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -21,16 +22,16 @@ func (k *Keeper) CalculateInterest(ctx sdk.Context, totalStaking sdkmath.Int, he
 }
 
 // getRewardsByHeight Get coins through the block height range
-func (k *Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdkmath.LegacyDec) {
+func (k *Keeper) getRewardsByHeight(fromHeight, toHeight int64) (coin sdkmath.LegacyDec) {
 	var totalCoins int64
 
-	lowMul := (fromHeight - 1) / mintTypes.OneYearTotalBlocks
-	lowAmount := mintTypes.InitOneYearMintAmount / mintTypes.OneYearTotalBlocks / math.Exp2(float64(lowMul))
+	lowMul := (fromHeight - 1) / wminttypes.OneYearTotalBlocks
+	lowAmount := wminttypes.InitOneYearMintAmount / wminttypes.OneYearTotalBlocks / math.Exp2(float64(lowMul))
 	lowMintMEAmount := RoundUpToFourDecimals(lowAmount)
 	lowMintUMEAmount := lowMintMEAmount * math.Pow(10, params.BaseDenomUnit)
 
-	highMul := (toHeight - 1) / mintTypes.OneYearTotalBlocks
-	highAmount := mintTypes.InitOneYearMintAmount / mintTypes.OneYearTotalBlocks / math.Exp2(float64(highMul))
+	highMul := (toHeight - 1) / wminttypes.OneYearTotalBlocks
+	highAmount := wminttypes.InitOneYearMintAmount / wminttypes.OneYearTotalBlocks / math.Exp2(float64(highMul))
 	highMintMEAmount := RoundUpToFourDecimals(highAmount)
 	highMintUMEAmount := highMintMEAmount * math.Pow(10, params.BaseDenomUnit)
 
@@ -41,25 +42,25 @@ func (k *Keeper) getRewardsByHeight(fromHeight int64, toHeight int64) (coin sdkm
 			continue
 			// Calculate the number of tokens between from and its first cut height
 		} else if i == lowMul {
-			totalCoins = totalCoins + (mintTypes.OneYearTotalBlocks*(lowMul+1)-fromHeight+1)*int64(lowMintUMEAmount)
+			totalCoins = totalCoins + (wminttypes.OneYearTotalBlocks*(lowMul+1)-fromHeight+1)*int64(lowMintUMEAmount)
 			continue
 			// Calculate the number of tokens between the last production reduction height and to
 		} else if i == highMul {
-			totalCoins = totalCoins + (toHeight-mintTypes.OneYearTotalBlocks*(i)-1)*int64(highMintUMEAmount)
+			totalCoins = totalCoins + (toHeight-wminttypes.OneYearTotalBlocks*(i)-1)*int64(highMintUMEAmount)
 			continue
 		}
 
 		// Calculate the number of tokens for each full cut interval
-		mintAmount := mintTypes.InitOneYearMintAmount / mintTypes.OneYearTotalBlocks / math.Exp2(float64(i))
+		mintAmount := wminttypes.InitOneYearMintAmount / wminttypes.OneYearTotalBlocks / math.Exp2(float64(i))
 		mintMEAmount := RoundUpToFourDecimals(mintAmount)
 		mintUMEAmount := mintMEAmount * math.Pow(10, params.BaseDenomUnit)
-		totalCoins = totalCoins + mintTypes.OneYearTotalBlocks*int64(mintUMEAmount)
+		totalCoins = totalCoins + wminttypes.OneYearTotalBlocks*int64(mintUMEAmount)
 	}
 
 	mintedUMECoin := sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(totalCoins))
 	coin = sdkmath.LegacyNewDecFromInt(mintedUMECoin.Amount)
 
-	return
+	return coin
 }
 
 func (k *Keeper) Calculate(ctx sdk.Context, blockRewards sdkmath.LegacyDec, totalStaking sdkmath.Int) (rewards sdkmath.LegacyDec, err error) {

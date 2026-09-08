@@ -6,22 +6,6 @@ import (
 	"path/filepath"
 
 	"cosmossdk.io/log"
-	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
-	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/runtime"
-	"github.com/cosmos/cosmos-sdk/server"
-	ethflags "github.com/evmos/ethermint/server/flags"
-	appparams "github.com/openmetaearth/me-hub/app/params"
-	"github.com/spf13/cast"
-
-	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
-	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
-
-	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
-	groupTypes "github.com/openmetaearth/me-hub/x/megroup/types"
-
 	storetypes "cosmossdk.io/store/types"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
 	evidencetypes "cosmossdk.io/x/evidence/types"
@@ -36,9 +20,13 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
@@ -68,18 +56,23 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	ibcporttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
+	ethflags "github.com/evmos/ethermint/server/flags"
 	"github.com/evmos/ethermint/x/evm"
 	ethermintevmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/evm/vm/geth"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+	"github.com/spf13/cast"
 
+	appparams "github.com/openmetaearth/me-hub/app/params"
 	metypes "github.com/openmetaearth/me-hub/types"
+	bsctypes "github.com/openmetaearth/me-hub/x/bsc/types"
 	daokeeper "github.com/openmetaearth/me-hub/x/dao/keeper"
 	daotypes "github.com/openmetaearth/me-hub/x/dao/types"
 	delayedackmodule "github.com/openmetaearth/me-hub/x/delayedack"
@@ -93,16 +86,19 @@ import (
 	eibckeeper "github.com/openmetaearth/me-hub/x/eibc/keeper"
 	eibcmoduletypes "github.com/openmetaearth/me-hub/x/eibc/types"
 	evmkeeper "github.com/openmetaearth/me-hub/x/evm/keeper"
+	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
 	kyckeeper "github.com/openmetaearth/me-hub/x/kyc/keeper"
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 	lightclientmodulekeeper "github.com/openmetaearth/me-hub/x/lightclient/keeper"
 	lightclientmoduletypes "github.com/openmetaearth/me-hub/x/lightclient/types"
 	groupkeeper "github.com/openmetaearth/me-hub/x/megroup/keeper"
+	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
 	"github.com/openmetaearth/me-hub/x/rollapp/genesisbridge"
 	rollappmodulekeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollappmoduletypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencermodulekeeper "github.com/openmetaearth/me-hub/x/sequencer/keeper"
 	sequencermoduletypes "github.com/openmetaearth/me-hub/x/sequencer/types"
+	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
 	vfchooks "github.com/openmetaearth/me-hub/x/vfc/hooks"
 	wbankkeeper "github.com/openmetaearth/me-hub/x/wbank/keeper"
 	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
@@ -489,8 +485,8 @@ func (a *AppKeepers) InitKeepers(
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
 	a.GroupKeeper = groupkeeper.NewKeeper(
 		appCodec,
-		a.keys[groupTypes.StoreKey],
-		a.GetSubspace(groupTypes.ModuleName),
+		a.keys[megrouptypes.StoreKey],
+		a.GetSubspace(megrouptypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.StakingKeeper,
@@ -640,7 +636,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
 
 	// Register subspaces for custom modules that still use x/params
-	paramsKeeper.Subspace(groupTypes.ModuleName)
+	paramsKeeper.Subspace(megrouptypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
 
 	return paramsKeeper

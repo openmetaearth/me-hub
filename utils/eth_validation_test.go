@@ -4,12 +4,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/openmetaearth/me-hub/utils"
-
-	"github.com/openmetaearth/me-hub/testutil/helpers"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
+
+	"github.com/openmetaearth/me-hub/testutil/helpers"
+	"github.com/openmetaearth/me-hub/utils"
 )
 
 func TestIsEmptyHash(t *testing.T) {

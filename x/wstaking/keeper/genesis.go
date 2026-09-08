@@ -15,7 +15,7 @@ import (
 // setting the indexes. In addition, it also sets any delegations found in
 // data. Finally, it updates the bonded validators.
 // Returns final validator set after applying all declaration and delegations
-func (k *Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (res []abci.ValidatorUpdate) {
+func (k *Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (res []abci.ValidatorUpdate) { //nolint:gocyclo // genesis wiring covers many optional collections
 	bondedTokens := math.ZeroInt()
 	notBondedTokens := math.ZeroInt()
 

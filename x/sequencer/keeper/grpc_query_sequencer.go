@@ -6,8 +6,9 @@ import (
 	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
+
 	"github.com/openmetaearth/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func (k Keeper) Sequencers(c context.Context, req *types.QuerySequencersRequest) (*types.QuerySequencersResponse, error) {
@@ -21,7 +22,7 @@ func (k Keeper) Sequencers(c context.Context, req *types.QuerySequencersRequest)
 	store := ctx.KVStore(k.storeKey)
 	sequencerStore := prefix.NewStore(store, types.SequencersKey())
 
-	pageRes, err := query.Paginate(sequencerStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(sequencerStore, req.Pagination, func(key, value []byte) error {
 		var sequencer types.Sequencer
 		if err := k.cdc.Unmarshal(value, &sequencer); err != nil {
 			return err

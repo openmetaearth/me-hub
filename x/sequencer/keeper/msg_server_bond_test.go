@@ -3,10 +3,11 @@ package keeper_test
 import (
 	"cosmossdk.io/math"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/openmetaearth/me-hub/x/sequencer/types"
+
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/utils/ucoin"
 	"github.com/openmetaearth/me-hub/utils/utest"
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func (s *SequencerTestSuite) TestIncreaseBondBasic() {

@@ -4,16 +4,13 @@ import (
 	"errors"
 	"fmt"
 
-	db "github.com/cosmos/cosmos-db"
-
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store/types"
+	db "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
 )
 
-var (
-	ErrNoValuesInRange = errors.New("No values in range")
-)
+var ErrNoValuesInRange = errors.New("No values in range")
 
 func GatherAllKeysFromStore(storeObj storetypes.KVStore) []string {
 	iterator := storeObj.Iterator(nil, nil)
@@ -26,7 +23,7 @@ func GatherAllKeysFromStore(storeObj storetypes.KVStore) []string {
 	return keys
 }
 
-func GatherValuesFromStore[T any](storeObj storetypes.KVStore, keyStart []byte, keyEnd []byte, parseValue func([]byte) (T, error)) ([]T, error) {
+func GatherValuesFromStore[T any](storeObj storetypes.KVStore, keyStart, keyEnd []byte, parseValue func([]byte) (T, error)) ([]T, error) {
 	iterator := storeObj.Iterator(keyStart, keyEnd)
 	defer iterator.Close()
 	return gatherValuesFromIterator(iterator, parseValue, noStopFn)
@@ -37,7 +34,7 @@ func GatherValuesFromStore[T any](storeObj storetypes.KVStore, keyStart []byte, 
 func GatherValuesFromStorePrefix[T any](storeObj storetypes.KVStore, prefix []byte, parseValue func([]byte) (T, error)) ([]T, error) {
 	// Replace a callback with the one that takes both key and value
 	// but ignores the key.
-	parseOnlyValue := func(_ []byte, value []byte) (T, error) {
+	parseOnlyValue := func(_, value []byte) (T, error) {
 		return parseValue(value)
 	}
 	return GatherValuesFromStorePrefixWithKeyParser(storeObj, prefix, parseOnlyValue)
@@ -48,7 +45,7 @@ func GatherValuesFromStorePrefix[T any](storeObj storetypes.KVStore, prefix []by
 // Returns error if:
 // - the parse function returns an error.
 // - internal database error
-func GatherValuesFromStorePrefixWithKeyParser[T any](storeObj storetypes.KVStore, prefix []byte, parse func(key []byte, value []byte) (T, error)) ([]T, error) {
+func GatherValuesFromStorePrefixWithKeyParser[T any](storeObj storetypes.KVStore, prefix []byte, parse func(key, value []byte) (T, error)) ([]T, error) {
 	iterator := storetypes.KVStorePrefixIterator(storeObj, prefix)
 	defer iterator.Close()
 	return gatherValuesFromIteratorWithKeyParser(iterator, parse, noStopFn)
@@ -62,7 +59,7 @@ func GetValuesUntilDerivedStop[T any](storeObj storetypes.KVStore, keyStart []by
 	return GetIterValuesWithStop(storeObj, keyStart, keyEnd, false, stopFn, parseValue)
 }
 
-func makeIterator(storeObj storetypes.KVStore, keyStart []byte, keyEnd []byte, reverse bool) store.Iterator {
+func makeIterator(storeObj storetypes.KVStore, keyStart, keyEnd []byte, reverse bool) store.Iterator {
 	if reverse {
 		return storeObj.ReverseIterator(keyStart, keyEnd)
 	}
@@ -90,7 +87,7 @@ func GetFirstValueAfterPrefixInclusive[T any](storeObj storetypes.KVStore, keySt
 	return GetFirstValueInRange(storeObj, keyStart, []byte{0xff}, false, parseValue)
 }
 
-func GetFirstValueInRange[T any](storeObj storetypes.KVStore, keyStart []byte, keyEnd []byte, reverseIterate bool, parseValue func([]byte) (T, error)) (T, error) {
+func GetFirstValueInRange[T any](storeObj storetypes.KVStore, keyStart, keyEnd []byte, reverseIterate bool, parseValue func([]byte) (T, error)) (T, error) {
 	iterator := makeIterator(storeObj, keyStart, keyEnd, reverseIterate)
 	defer iterator.Close()
 
@@ -105,13 +102,13 @@ func GetFirstValueInRange[T any](storeObj storetypes.KVStore, keyStart []byte, k
 func gatherValuesFromIterator[T any](iterator db.Iterator, parseValue func([]byte) (T, error), stopFn func([]byte) bool) ([]T, error) {
 	// Replace a callback with the one that takes both key and value
 	// but ignores the key.
-	parseKeyValue := func(_ []byte, value []byte) (T, error) {
+	parseKeyValue := func(_, value []byte) (T, error) {
 		return parseValue(value)
 	}
 	return gatherValuesFromIteratorWithKeyParser(iterator, parseKeyValue, stopFn)
 }
 
-func gatherValuesFromIteratorWithKeyParser[T any](iterator db.Iterator, parse func(key []byte, value []byte) (T, error), stopFn func([]byte) bool) ([]T, error) {
+func gatherValuesFromIteratorWithKeyParser[T any](iterator db.Iterator, parse func(key, value []byte) (T, error), stopFn func([]byte) bool) ([]T, error) {
 	values := []T{}
 	for ; iterator.Valid(); iterator.Next() {
 		if stopFn(iterator.Key()) {

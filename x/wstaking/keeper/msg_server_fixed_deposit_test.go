@@ -1,11 +1,10 @@
 package keeper_test
 
-import sdkmath "cosmossdk.io/math"
-
 import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 

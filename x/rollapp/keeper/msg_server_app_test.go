@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
-	"github.com/openmetaearth/me-hub/utils/urand"
 
 	"github.com/openmetaearth/me-hub/testutil/sample"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/utils/urand"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
@@ -619,7 +619,7 @@ func (s *RollappTestSuite) Test_msgServer_RemoveApp() {
 	}
 }
 
-func (s *RollappTestSuite) createRollappWithIDAndCreator(rollappId string, creator string) {
+func (s *RollappTestSuite) createRollappWithIDAndCreator(rollappId, creator string) {
 	rollapp := types.MsgCreateRollapp{
 		Creator:          creator,
 		RollappId:        rollappId,

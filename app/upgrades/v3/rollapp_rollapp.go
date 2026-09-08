@@ -3,10 +3,12 @@ package v3
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
@@ -21,7 +23,7 @@ import (
 // "missing fields in genesis bridge info".
 func migrateRollapps(ctx sdk.Context, rk *rollappkeeper.Keeper) error {
 	if rk == nil {
-		return fmt.Errorf("nil RollappKeeper")
+		return errors.New("nil RollappKeeper")
 	}
 
 	defaultMinBond := rk.MinSequencerBondGlobal(ctx)

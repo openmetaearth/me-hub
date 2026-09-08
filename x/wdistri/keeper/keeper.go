@@ -17,7 +17,6 @@ type Keeper struct {
 	cdc           codec.BinaryCodec
 	authKeeper    distributiontypes.AccountKeeper
 	bankKeeper    distributiontypes.BankKeeper
-	stakingKeeper distributiontypes.StakingKeeper
 	regionStaking types.StakingKeeper
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
@@ -54,7 +53,6 @@ func NewKeeper(
 		cdc:              cdc,
 		authKeeper:       accountKeeper,
 		bankKeeper:       bankKeeper,
-		stakingKeeper:    stakingKeeper,
 		regionStaking:    regionStaking,
 		authority:        authority,
 		feeCollectorName: feeCollectorName,

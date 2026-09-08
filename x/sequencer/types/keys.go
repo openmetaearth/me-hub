@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"cosmossdk.io/collections"
+
 	"github.com/openmetaearth/me-hub/utils"
 )
 

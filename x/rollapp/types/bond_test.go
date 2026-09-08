@@ -5,9 +5,9 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/utils/uptr"
 	"github.com/stretchr/testify/require"
 
+	"github.com/openmetaearth/me-hub/utils/uptr"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 )
 

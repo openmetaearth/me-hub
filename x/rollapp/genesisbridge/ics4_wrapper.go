@@ -7,8 +7,9 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/openmetaearth/me-hub/x/rollapp/types"
+
 	"github.com/openmetaearth/me-hub/utils/gerrc"
+	"github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 type ChannelKeeper interface {
@@ -56,7 +57,7 @@ func (w *ICS4Wrapper) SendPacket(
 	)
 }
 
-func (w *ICS4Wrapper) transferAllowed(ctx sdk.Context, sourcePort string, sourceChannel string) error {
+func (w *ICS4Wrapper) transferAllowed(ctx sdk.Context, sourcePort, sourceChannel string) error {
 	ra, err := w.rollappK.GetRollappByPortChan(ctx, sourcePort, sourceChannel)
 	if err != nil {
 		if errorsmod.IsOf(err, types.ErrRollappNotFound) {

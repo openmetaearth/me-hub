@@ -17,9 +17,9 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/stretchr/testify/require"
 
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/x/denommetadata"
 	"github.com/openmetaearth/me-hub/x/denommetadata/types"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
@@ -683,7 +683,7 @@ type mockICS4Wrapper struct {
 func (m *mockICS4Wrapper) SendPacket(
 	_ sdk.Context,
 	_ *capabilitytypes.Capability,
-	_ string, _ string,
+	_, _ string,
 	_ clienttypes.Height,
 	_ uint64,
 	data []byte,

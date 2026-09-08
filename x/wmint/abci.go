@@ -1,11 +1,10 @@
 package wmint
 
-import sdkmath "cosmossdk.io/math"
-
 import (
 	"math/big"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"

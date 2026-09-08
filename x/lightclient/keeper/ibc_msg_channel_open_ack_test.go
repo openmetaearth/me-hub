@@ -5,11 +5,12 @@ import (
 
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 	lightclientkeeper "github.com/openmetaearth/me-hub/x/lightclient/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestHandleMsgChannelOpenAck(t *testing.T) {

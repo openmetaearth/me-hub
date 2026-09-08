@@ -7,15 +7,12 @@ import (
 	"testing"
 
 	"cosmossdk.io/log"
-	"github.com/stretchr/testify/suite"
-
-	"cosmossdk.io/store/wrapper"
-	"github.com/cosmos/iavl"
-
-	dbm "github.com/cosmos/cosmos-db"
-
 	"cosmossdk.io/math"
 	iavlstore "cosmossdk.io/store/iavl"
+	"cosmossdk.io/store/wrapper"
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/iavl"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/openmetaearth/me-hub/utils/osmoutils/sumtree"
 )

@@ -7,9 +7,9 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+
 	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/utils/uevent"
-
 	"github.com/openmetaearth/me-hub/x/lightclient/types"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
@@ -71,7 +71,7 @@ func (k Keeper) GetCanonicalClient(ctx sdk.Context, rollappId string) (string, b
 	return string(bz), true
 }
 
-func (k Keeper) SetCanonicalClient(ctx sdk.Context, rollappId string, clientID string) {
+func (k Keeper) SetCanonicalClient(ctx sdk.Context, rollappId, clientID string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetRollappClientKey(rollappId), []byte(clientID))
 	store.Set(types.CanonicalClientKey(clientID), []byte(rollappId))

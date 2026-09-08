@@ -10,10 +10,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/openmetaearth/me-hub/utils/ucli"
 	"github.com/spf13/cobra"
 
 	"github.com/openmetaearth/me-hub/utils"
+	"github.com/openmetaearth/me-hub/utils/ucli"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
@@ -63,7 +63,7 @@ Whitelisted relayers is an optional flag-arg. It expects a comma-separated list 
 			var metadata types.SequencerMetadata
 			if len(args) == 4 {
 				if err = utils.ParseJsonFromFile(args[3], &metadata); err != nil {
-					return
+					return err
 				}
 			}
 

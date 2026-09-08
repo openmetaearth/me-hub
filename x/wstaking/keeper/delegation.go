@@ -2,11 +2,9 @@ package keeper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
-
-	didtypes "github.com/openmetaearth/me-hub/x/did/types"
-	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -15,7 +13,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/openmetaearth/me-hub/app/params"
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
+	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -61,7 +62,7 @@ func (k *Keeper) Undelegate(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk
 // Unbond unbonds a particular delegation and perform associated store operations.
 func (k *Keeper) Unbond(ctx sdk.Context, delAmount sdkmath.Int, isMeid bool, delegation stakingtypes.Delegation) (amount sdkmath.Int, err error) {
 	// check if a delegation object exists in the store
-	overAmount := sdkmath.ZeroInt()
+	var overAmount sdkmath.Int
 	if isMeid {
 		if delegation.Amount.LTE(sdkmath.ZeroInt()) {
 			return amount, types.ErrNotEnoughDelegationAmount
@@ -196,14 +197,14 @@ func (k *Keeper) WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddre
 }
 
 func (k *Keeper) internalWithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, region types.Region) (sdk.Coins, error) {
-	//valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
-	//if valErr != nil {
+	// valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
+	// if valErr != nil {
 	//	k.Logger(ctx).Error("internalWithdrawDelegationRewards err=", valErr.Error())
 	//	return nil, valErr
-	//}
+	// }
 	delegation, err := k.GetDelegation(ctx, delAddr, sdk.ValAddress{})
 	if err != nil {
-		return nil, fmt.Errorf("delegation not exist")
+		return nil, errors.New("delegation not exist")
 	}
 	rewards, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
 	if err != nil {

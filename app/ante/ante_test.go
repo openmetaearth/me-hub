@@ -6,33 +6,28 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
-
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/ethereum/eip712"
 	"github.com/evmos/ethermint/testutil"
-
 	ethermint "github.com/evmos/ethermint/types"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/openmetaearth/me-hub/app"
 	"github.com/openmetaearth/me-hub/app/ante"
 	"github.com/openmetaearth/me-hub/app/ante/mock"
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/stretchr/testify/suite"
 )
 
 type AnteTestSuite struct {
@@ -68,19 +63,19 @@ func (s *AnteTestSuite) SetupTest(isCheckTx bool) {
 
 	anteHandler, err := ante.NewAnteHandler(
 		ante.HandlerOptions{
-			AccountKeeper:     &s.app.AccountKeeper,
-			BankKeeper:        s.app.BankKeeper,
-			IBCKeeper:         s.app.IBCKeeper,
-			EvmKeeper:         s.app.EvmKeeper,
-			FeeMarketKeeper:   s.app.FeeMarketKeeper,
-			FeegrantKeeper:    s.app.FeeGrantKeeper,
-			SignModeHandler:   txConfig.SignModeHandler(),
-			DaoKeeper:         mockDaoKeeper,
-			StakingKeeper:     mockStakingKeeper,
-			KycKeeper:         s.app.KycKeeper,
-			WasmViewKeeper:    s.app.WasmKeeper,
-			LightClientKeeper: &s.app.LightClientKeeper,
-			RollappKeeper:     *s.app.RollappKeeper,
+			AccountKeeper:          &s.app.AccountKeeper,
+			BankKeeper:             s.app.BankKeeper,
+			IBCKeeper:              s.app.IBCKeeper,
+			EvmKeeper:              s.app.EvmKeeper,
+			FeeMarketKeeper:        s.app.FeeMarketKeeper,
+			FeegrantKeeper:         s.app.FeeGrantKeeper,
+			SignModeHandler:        txConfig.SignModeHandler(),
+			DaoKeeper:              mockDaoKeeper,
+			StakingKeeper:          mockStakingKeeper,
+			KycKeeper:              s.app.KycKeeper,
+			WasmViewKeeper:         s.app.WasmKeeper,
+			LightClientKeeper:      &s.app.LightClientKeeper,
+			RollappKeeper:          *s.app.RollappKeeper,
 			ExtensionOptionChecker: ante.AllowedExtensionOption,
 		},
 	)

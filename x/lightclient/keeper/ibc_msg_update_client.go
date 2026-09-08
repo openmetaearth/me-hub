@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	"github.com/openmetaearth/me-hub/utils/gerrc"
 
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
@@ -111,7 +111,7 @@ func getHeader(msg *ibcclienttypes.MsgUpdateClient) (*ibctm.Header, error) {
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "unpack client message")
 	}
-	_, ok := clientMessage.(*ibctm.Misbehaviour)
+	_, ok := clientMessage.(*ibctm.Misbehaviour) //nolint:misspell // IBC keeps British spelling
 	if ok {
 		return nil, errIsMisbehaviour
 	}

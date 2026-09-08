@@ -9,20 +9,19 @@ import (
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/openmetaearth/me-hub/utils/urand"
 	rollappkeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/openmetaearth/me-hub/x/sequencer/keeper"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
-
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	"github.com/openmetaearth/me-hub/testutil/sample"
 )
 
 var (
@@ -191,7 +190,7 @@ func (s *SequencerTestSuite) createSequencerWithBond(ctx sdk.Context, rollapp st
 	return s.k().GetSequencer(ctx, pkAddr(pk))
 }
 
-func (s *SequencerTestSuite) equalSequencers(s1 *types.Sequencer, s2 *types.Sequencer) {
+func (s *SequencerTestSuite) equalSequencers(s1, s2 *types.Sequencer) {
 	eq := equalSequencers(s1, s2)
 	s.Require().True(eq, "expected: %+v\nfound: %+v", *s1, *s2)
 }

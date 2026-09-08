@@ -5,8 +5,9 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
+
 	"github.com/openmetaearth/me-hub/utils/gerrc"
+	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 type msgServer struct {

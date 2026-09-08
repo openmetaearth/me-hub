@@ -7,18 +7,13 @@ import (
 	"time"
 
 	coreheader "cosmossdk.io/core/header"
-	"cosmossdk.io/math"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	usim "github.com/cosmos/cosmos-sdk/testutil/sims"
-
 	"cosmossdk.io/log"
+	"cosmossdk.io/math"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	abci "github.com/cometbft/cometbft/abci/types"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cometbfttypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/openmetaearth/me-hub/app/params"
-	"github.com/stretchr/testify/require"
-
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -27,13 +22,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/testutil/mock"
+	usim "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	app "github.com/openmetaearth/me-hub/app"
+	"github.com/stretchr/testify/require"
+
+	app "github.com/openmetaearth/me-hub/app" //nolint:revive // package name is 'app'; alias makes intent explicit here
+	"github.com/openmetaearth/me-hub/app/params"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
