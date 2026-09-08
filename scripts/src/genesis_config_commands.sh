@@ -41,12 +41,10 @@ set_hub_params() {
 }
 
 set_consenus_params() {
-    # cometbft's updated values
-	# 	MaxBytes: 4194304,  // four megabytes
-	# 	MaxGas:   10000000, // ten million
+    # SDK v0.50 AppGenesis stores consensus under .consensus.params
     echo "setting consensus params"
-    jq '.consensus_params["block"]["max_bytes"] = "4194304"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-    jq '.consensus_params["block"]["max_gas"] = "300000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.consensus.params.block.max_bytes = "4194304"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.consensus.params.block.max_gas = "300000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
 set_EVM_params() {

@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -87,14 +86,9 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 				}
 			}
 
-			genDoc, err := tmtypes.GenesisDocFromFile(config.GenesisFile())
+			genesisState, appGenesis, err := types.GenesisStateFromGenFile(config.GenesisFile())
 			if err != nil {
-				return errors.Wrapf(err, "failed to read genesis doc file %s", config.GenesisFile())
-			}
-
-			var genesisState map[string]json.RawMessage
-			if err = json.Unmarshal(genDoc.AppState, &genesisState); err != nil {
-				return errors.Wrap(err, "failed to unmarshal genesis state")
+				return errors.Wrapf(err, "failed to read genesis file %s", config.GenesisFile())
 			}
 
 			if err = mbm.ValidateGenesis(cdc, txEncCfg, genesisState); err != nil {
@@ -115,7 +109,7 @@ $ %s gentx my-key-name 1000000stake --home=/path/to/home/dir --keyring-backend=o
 			}
 
 			// set flags for creating a gentx
-			createValCfg, err := cli.PrepareConfigForTxCreateValidator(cmd.Flags(), moniker, nodeID, genDoc.ChainID, valPubKey)
+			createValCfg, err := cli.PrepareConfigForTxCreateValidator(cmd.Flags(), moniker, nodeID, appGenesis.ChainID, valPubKey)
 			if err != nil {
 				return errors.Wrap(err, "error creating configuration to create validator msg")
 			}

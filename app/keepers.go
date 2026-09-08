@@ -18,7 +18,6 @@ import (
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -37,6 +36,7 @@ import (
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -649,9 +649,9 @@ func initGlobalChainID(homePath string, appOpts servertypes.AppOptions) {
 	}
 
 	genesisFile := filepath.Join(homePath, "config", "genesis.json")
-	genDoc, err := tmtypes.GenesisDocFromFile(genesisFile)
-	if err == nil && genDoc.ChainID != "" {
-		metypes.SetChainId(genDoc.ChainID)
+	appGenesis, err := genutiltypes.AppGenesisFromFile(genesisFile)
+	if err == nil && appGenesis.ChainID != "" {
+		metypes.SetChainId(appGenesis.ChainID)
 	}
 }
 

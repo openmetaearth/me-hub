@@ -38,6 +38,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
@@ -162,8 +164,11 @@ func New(
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.mm = module.NewManager(app.SetupModules(appCodec, bApp, encodingConfig, skipGenesisInvariants)...)
-	app.BasicModuleManager = module.NewBasicManagerFromManager(app.mm, nil)
-	app.BasicModuleManager.RegisterLegacyAminoCodec(cdc)
+	app.BasicModuleManager = module.NewBasicManagerFromManager(app.mm, map[string]module.AppModuleBasic{
+		genutiltypes.ModuleName: genutil.NewAppModuleBasic(GenTxMessageValidator),
+	})
+	// Amino types are registered once in MakeEncodingConfig. Re-registering here
+	// would panic (duplicate names / proto.Message prefix collisions).
 	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
 	app.mm.SetOrderPreBlockers(PreBlockers...)
 
@@ -194,6 +199,10 @@ func New(
 
 	// initialize BaseApp
 	app.SetInitChainer(app.InitChainer)
+	// SDK 0.50 runs x/upgrade in PreBlock, not BeginBlock. Without this,
+	// in-place upgrades never execute the handler and later BeginBlockers
+	// (e.g. IBC v8 client params) panic on unmigrated state.
+	app.SetPreBlocker(app.PreBlocker)
 	app.SetBeginBlocker(app.BeginBlocker)
 
 	maxGasWanted := cast.ToUint64(appOpts.Get(flags.EVMMaxTxGasWanted))
@@ -256,6 +265,12 @@ func (app *App) ModuleManager() *module.Manager { return app.mm }
 
 // Configurator returns the app module configurator. Used by upgrade tests.
 func (app *App) Configurator() module.Configurator { return app.configurator }
+
+// PreBlocker runs before BeginBlocker. Required so x/upgrade handlers execute
+// at the upgrade height (SDK 0.50 moved them out of BeginBlock).
+func (app *App) PreBlocker(ctx sdk.Context, _ *abci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
+	return app.mm.PreBlock(ctx)
+}
 
 // BeginBlocker application updates every begin block
 func (app *App) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {

@@ -53,6 +53,7 @@ type DIDKeeper interface {
 type NFTKeeper interface {
 	GetNFT(ctx context.Context, classID, nftID string) (nft.NFT, bool)
 	HasNFT(ctx context.Context, classID, id string) bool
+	HasClass(ctx context.Context, classID string) bool
 	GetOwner(ctx context.Context, classID, nftID string) sdk.AccAddress
 	Mint(ctx context.Context, token nft.NFT, receiver sdk.AccAddress) error
 	Update(ctx context.Context, token nft.NFT) error

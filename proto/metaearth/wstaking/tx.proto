@@ -140,6 +140,8 @@ message MsgFixedDepositCfgResp {
 }
 
 message MsgRemoveFixedDepositCfg {
+  option (cosmos.msg.v1.signer) = "admin";
+
   string admin = 1;
   string regionId = 2;
   int64 term = 3;
@@ -149,6 +151,8 @@ message MsgRemoveFixedDepositCfgResp {
 }
 
 message MsgSetFixedDepositCfgStatus {
+  option (cosmos.msg.v1.signer) = "admin";
+
   string admin = 1;
   string regionId = 2;
   int64 term = 3;
@@ -159,6 +163,8 @@ message MsgSetFixedDepositCfgStatusResp {
 }
 
 message MsgSetFixedDepositCfgRate {
+  option (cosmos.msg.v1.signer) = "admin";
+
   string admin = 1;
   string regionId = 2;
   int64 term = 3;
@@ -172,7 +178,9 @@ message MsgSetFixedDepositCfgRateResp {
 }
 
 message MsgNewRegion {
-  string creator = 1;
+  option (cosmos.msg.v1.signer) = "creator";
+
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string name = 2;
   string operator_address = 3;
 }
@@ -182,7 +190,9 @@ message MsgNewRegionResponse {
 }
 
 message MsgRemoveRegion {
-  string creator = 1;
+  option (cosmos.msg.v1.signer) = "creator";
+
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string region_id = 2;
 }
 
@@ -191,6 +201,8 @@ message MsgRemoveRegionResponse {
 }
 
 message MsgWithdrawFromRegion {
+  option (cosmos.msg.v1.signer) = "withdrawer";
+
   string withdrawer = 1;
   string region_id = 2;
   string receiver = 3;
@@ -204,6 +216,8 @@ message MsgWithdrawFromRegion {
 message MsgWithdrawFromRegionResp {}
 
 message MsgWithdrawFromGlobalDaoFeePool {
+  option (cosmos.msg.v1.signer) = "withdrawer";
+
   string withdrawer = 1;
   repeated cosmos.base.v1beta1.Coin amount = 2 [
     (gogoproto.nullable) = false,
@@ -239,6 +253,8 @@ message MsgWithdrawDelegatorRewardResponse {
 }
 
 message MsgNewFixedDepositCfg {
+  option (cosmos.msg.v1.signer) = "dao";
+
   string dao = 1;
   string regionId = 2;
   int64 term = 3;
@@ -253,6 +269,8 @@ message MsgNewFixedDepositCfgResp {
 }
 
 message MsgDoFixedDeposit {
+  option (cosmos.msg.v1.signer) = "account";
+
   string account = 1;
   cosmos.base.v1beta1.Coin principal = 2 [(gogoproto.nullable) = false];
   int64 term = 4;
@@ -263,6 +281,8 @@ message MsgDoFixedDepositResponse {
 }
 
 message MsgWithdrawFixedDeposit {
+  option (cosmos.msg.v1.signer) = "account";
+
   string account = 1;
   uint64 id = 2;
 }
@@ -278,6 +298,8 @@ message MsgWithdrawFixedDepositResponse {
 }
 
 message MsgNewRecord {
+  option (cosmos.msg.v1.signer) = "from";
+
   string actionNumber = 1;
   string actionUrl = 2;
   string from = 3;
@@ -286,6 +308,8 @@ message MsgNewRecord {
 message MsgNewRecordResponse {}
 
 message MsgReviewRecord {
+  option (cosmos.msg.v1.signer) = "from";
+
   string recordHash = 1;
   string reviewResult = 2;
   string from = 3;
@@ -296,6 +320,8 @@ message MsgReviewRecord {
 message MsgReviewRecordResponse {}
 
 message MsgTransferRegion {
+  option (cosmos.msg.v1.signer) = "creator";
+
   string fromRegion = 1;
   string toRegion = 2;
   repeated string address = 3;
@@ -304,6 +330,7 @@ message MsgTransferRegion {
 message MsgTransferRegionResponse {}
 
 message MsgIbcTransferFromRegionTreasure {
+  option (cosmos.msg.v1.signer) = "creator";
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -348,6 +375,8 @@ message MsgReplaceConsensusPubKey {
 }
 
 message MsgReplaceConsensusPubKeyRequest {
+  option (cosmos.msg.v1.signer) = "creator";
+
   string creator = 1;
   MsgReplaceConsensusPubKey replace_pub_key = 2;
 }
@@ -355,6 +384,8 @@ message MsgReplaceConsensusPubKeyRequest {
 message MsgReplaceConsensusPubKeyResponse {}
 
 message MsgSendToModule {
+  option (cosmos.msg.v1.signer) = "sender";
+
   string sender = 1;
   string receiver = 2;
   repeated cosmos.base.v1beta1.Coin amount = 3 [

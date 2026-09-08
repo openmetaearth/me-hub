@@ -21,12 +21,16 @@ import (
 // makeEncodingConfig creates an EncodingConfig for an amino based test configuration.
 func makeEncodingConfig() params.EncodingConfig {
 	amino := codec.NewLegacyAmino()
+	addrCodec := address.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
+	signingOpts := signing.Options{
+		AddressCodec:          addrCodec,
+		ValidatorAddressCodec: address.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
+	}
+	registerWstakingCustomGetSigners(&signingOpts, addrCodec)
+
 	interfaceRegistry, err := codectypes.NewInterfaceRegistryWithOptions(codectypes.InterfaceRegistryOptions{
-		ProtoFiles: proto.HybridResolver,
-		SigningOptions: signing.Options{
-			AddressCodec:          address.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
-			ValidatorAddressCodec: address.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
-		},
+		ProtoFiles:     proto.HybridResolver,
+		SigningOptions: signingOpts,
 	})
 	if err != nil {
 		panic(err)
@@ -47,6 +51,11 @@ func MakeEncodingConfig() params.EncodingConfig {
 	encodingConfig := makeEncodingConfig()
 
 	RegisterLegacyAminoCodec(encodingConfig.Amino)
+	// In SDK 0.50, sdk.Msg is an alias of proto.Message. Registering that
+	// interface on amino makes every proto concrete an implementer and panics
+	// on 4-byte name collisions (e.g. feegrant.MsgGrantAllowance). Register
+	// module amino types without the Msg interface.
+	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
 	gravitytypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
@@ -61,7 +70,6 @@ func MakeEncodingConfig() params.EncodingConfig {
 
 // RegisterLegacyAminoCodec registers Interfaces from types, crypto, and SDK std.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	sdk.RegisterLegacyAminoCodec(cdc)
 	cryptocodec.RegisterCrypto(cdc)
 	codec.RegisterEvidences(cdc)
 }
