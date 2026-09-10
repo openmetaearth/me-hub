@@ -22184,15 +22184,15 @@ paths:
                         type: string
                         title: >-
                           see
-                          dymension/x/rollapp/keeper/testdata/tee/policy_values.json
+                          x/rollapp/keeper/testdata/tee/policy_values.json
                       policy_query:
                         type: string
-                        title: see dymension/x/rollapp/keeper/testdata/tee/query.rego
+                        title: see x/rollapp/keeper/testdata/tee/query.rego
                       policy_structure:
                         type: string
                         title: >-
                           see
-                          dymension/x/rollapp/keeper/testdata/tee/policy.rego
+                          x/rollapp/keeper/testdata/tee/policy.rego
                       gcp_root_cert_pem:
                         type: string
                         title: >-
@@ -82881,13 +82881,13 @@ definitions:
             title: if false, do NOT verify attestation (useful for testing)
           policy_values:
             type: string
-            title: see dymension/x/rollapp/keeper/testdata/tee/policy_values.json
+            title: see x/rollapp/keeper/testdata/tee/policy_values.json
           policy_query:
             type: string
-            title: see dymension/x/rollapp/keeper/testdata/tee/query.rego
+            title: see x/rollapp/keeper/testdata/tee/query.rego
           policy_structure:
             type: string
-            title: see dymension/x/rollapp/keeper/testdata/tee/policy.rego
+            title: see x/rollapp/keeper/testdata/tee/policy.rego
           gcp_root_cert_pem:
             type: string
             title: gcp_root_cert_pem is the GCP root certificate in PEM format
@@ -83955,13 +83955,13 @@ definitions:
                 title: if false, do NOT verify attestation (useful for testing)
               policy_values:
                 type: string
-                title: see dymension/x/rollapp/keeper/testdata/tee/policy_values.json
+                title: see x/rollapp/keeper/testdata/tee/policy_values.json
               policy_query:
                 type: string
-                title: see dymension/x/rollapp/keeper/testdata/tee/query.rego
+                title: see x/rollapp/keeper/testdata/tee/query.rego
               policy_structure:
                 type: string
-                title: see dymension/x/rollapp/keeper/testdata/tee/policy.rego
+                title: see x/rollapp/keeper/testdata/tee/policy.rego
               gcp_root_cert_pem:
                 type: string
                 title: gcp_root_cert_pem is the GCP root certificate in PEM format
@@ -84602,13 +84602,13 @@ definitions:
         title: if false, do NOT verify attestation (useful for testing)
       policy_values:
         type: string
-        title: see dymension/x/rollapp/keeper/testdata/tee/policy_values.json
+        title: see x/rollapp/keeper/testdata/tee/policy_values.json
       policy_query:
         type: string
-        title: see dymension/x/rollapp/keeper/testdata/tee/query.rego
+        title: see x/rollapp/keeper/testdata/tee/query.rego
       policy_structure:
         type: string
-        title: see dymension/x/rollapp/keeper/testdata/tee/policy.rego
+        title: see x/rollapp/keeper/testdata/tee/policy.rego
       gcp_root_cert_pem:
         type: string
         title: gcp_root_cert_pem is the GCP root certificate in PEM format

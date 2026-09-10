@@ -856,9 +856,9 @@ func (s *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		ExplorerUrl: "http://localhost:8000",
 		GenesisUrls: []string{"http://localhost:26657"},
 		ContactDetails: &sequencertypes.ContactDetails{
-			Website:  "https://dymension.xyz",
+			Website:  "https://metaearth.xyz",
 			Telegram: "https://t.me/rolly",
-			X:        "https://x.dymension.xyz",
+			X:        "https://x.metaearth.xyz",
 		},
 		ExtraData: []byte("extra"),
 		Snapshots: []*sequencertypes.SnapshotInfo{

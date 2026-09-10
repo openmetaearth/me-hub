@@ -13,7 +13,7 @@ func CmdTransferOwnership() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "transfer-ownership [rollapp-id] [new-owner]",
 		Short:   "Transfer ownership of a rollapp to a new owner",
-		Example: "dymd tx rollapp transfer-ownership ROLLAPP_CHAIN_ID <new_owner_address>",
+		Example: "med tx rollapp transfer-ownership ROLLAPP_CHAIN_ID <new_owner_address>",
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// nolint:gofumpt

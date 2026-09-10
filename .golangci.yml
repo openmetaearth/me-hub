@@ -8,12 +8,12 @@ issues:
   max-same-issues: 20
   exclude-dirs:
     - 'types/legacy'
-    # Vendored from Osmosis / Dymension v4 — keep upstream conventions.
+    # Vendored from Osmosis — keep upstream conventions.
     - 'utils/osmoutils'
     - 'utils/uevent'
     - 'utils/gerrc'
     - 'internal/collcompat'
-    # Ported verbatim from Dymension v4 in Phase E — keep upstream conventions.
+    # Ported settlement modules — keep existing conventions.
     - 'x/rollapp'
     - 'x/sequencer'
     - 'x/delayedack'

@@ -37,7 +37,7 @@ func NewCmdGrantAuthorization() *cobra.Command {
 			fmt.Sprintf(`create a new grant authorization to an address to execute a transaction on your behalf:
 
 Examples:
- $ %s tx %s grant dym1skjw.. --spend-limit=1000stake... --from=dym1skl..`, version.AppName, authz.ModuleName),
+ $ %s tx %s grant me1skjw.. --spend-limit=1000stake... --from=me1skl..`, version.AppName, authz.ModuleName),
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

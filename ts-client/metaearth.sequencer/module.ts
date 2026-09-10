@@ -127,7 +127,7 @@ class SDKModule {
 const Module = (test: IgniteClient) => {
 	return {
 		module: {
-			DymensionxyzDymensionSequencer: new SDKModule(test)
+			MetaearthSequencer: new SDKModule(test)
 		},
 		registry: msgTypes
   }

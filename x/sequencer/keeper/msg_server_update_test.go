@@ -38,9 +38,9 @@ func (s *SequencerTestSuite) TestUpdateSequencer() {
 					GenesisUrls: []string{"genesis1", "genesis2"},
 					ExplorerUrl: "explorer",
 					ContactDetails: &types.ContactDetails{
-						Website:  "https://dymension.xyz",
+						Website:  "https://metaearth.xyz",
 						Telegram: "https://t.me/rolly",
-						X:        "https://x.dymension.xyz",
+						X:        "https://x.metaearth.xyz",
 					},
 					ExtraData: []byte("extra"),
 					Snapshots: []*types.SnapshotInfo{
@@ -68,9 +68,9 @@ func (s *SequencerTestSuite) TestUpdateSequencer() {
 					GenesisUrls: []string{"genesis1", "genesis2"},
 					ExplorerUrl: "explorer",
 					ContactDetails: &types.ContactDetails{
-						Website:  "https://dymension.xyz",
+						Website:  "https://metaearth.xyz",
 						Telegram: "https://t.me/rolly",
-						X:        "https://x.dymension.xyz",
+						X:        "https://x.metaearth.xyz",
 					},
 					ExtraData: []byte("extra"),
 					Snapshots: []*types.SnapshotInfo{

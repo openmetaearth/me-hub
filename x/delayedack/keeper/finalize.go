@@ -60,7 +60,7 @@ func (k Keeper) finalizeRollappPacket(
 		logger.Error("Unknown rollapp packet type")
 	}
 	if packetErr != nil {
-		// NOTE (timeout,ack): in regular (non dymension) IBC, timeout and ack errors are actually supposed
+		// NOTE (timeout,ack): in regular (vanilla) IBC, timeout and ack errors are actually supposed
 		//  to cause the delivery transaction to be rejected.
 		//  Here, we already accepted the original msg delivery transaction, we can't retroactively reject it.
 		rollappPacket.Error = packetErr.Error()

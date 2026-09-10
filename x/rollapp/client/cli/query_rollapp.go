@@ -60,7 +60,7 @@ func CmdShowRollapp() *cobra.Command {
 		Use:     "show [rollapp-id]",
 		Short:   "Query the rollapp associated with the specified rollapp-id",
 		Args:    cobra.ExactArgs(1),
-		Example: "dymd query rollapp show ROLLAPP_CHAIN_ID",
+		Example: "med query rollapp show ROLLAPP_CHAIN_ID",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			omitApps, err := cmd.Flags().GetBool(FlagOmitApps)
 			if err != nil {

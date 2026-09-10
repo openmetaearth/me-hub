@@ -15,7 +15,7 @@ func CmdAddApp() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "add-app [name] [rollapp-id] [description] [logo] [url] [order]",
 		Short:   "Add a new app",
-		Example: "dymd tx app create-app 'app1' 'rollapp_1234-1' 1 'A description' '/logos/apps/app1.jpeg' 'https://app1.com/'",
+		Example: "med tx app create-app 'app1' 'rollapp_1234-1' 1 'A description' '/logos/apps/app1.jpeg' 'https://app1.com/'",
 		Args:    cobra.MinimumNArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			var (

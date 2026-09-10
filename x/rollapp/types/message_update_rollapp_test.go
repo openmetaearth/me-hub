@@ -42,11 +42,11 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				InitialSequencer: sample.AccAddress(),
 				GenesisInfo:      &gInfo,
 				Metadata: &RollappMetadata{
-					Website:     "https://dymension.xyz",
+					Website:     "https://metaearth.xyz",
 					Description: "Sample description",
-					LogoUrl:     "https://dymension.xyz/logo.png",
+					LogoUrl:     "https://metaearth.xyz/logo.png",
 					Telegram:    "https://t.me/rolly",
-					X:           "https://x.dymension.xyz",
+					X:           "https://x.metaearth.xyz",
 				},
 			},
 			err: nil,
@@ -87,7 +87,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				GenesisInfo:      &gInfo,
 				Metadata: &RollappMetadata{
-					Website:     "https://dymension.xyz",
+					Website:     "https://metaearth.xyz",
 					Description: "Sample description",
 					LogoUrl:     string(rune(0x7f)),
 				},
@@ -102,7 +102,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				GenesisInfo:      &gInfo,
 				Metadata: &RollappMetadata{
-					Website:     "https://dymension.xyz",
+					Website:     "https://metaearth.xyz",
 					Description: "Sample description",
 					Tags:        []string{"tag1", "tag2", "tag3", "tag4"},
 				},
@@ -117,7 +117,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				GenesisInfo:      &gInfo,
 				Metadata: &RollappMetadata{
-					Website:     "https://dymension.xyz",
+					Website:     "https://metaearth.xyz",
 					Description: "Sample description",
 					Tags:        []string{"invalid"},
 				},
@@ -132,7 +132,7 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				RollappId:        "dym_100-1",
 				GenesisInfo:      &gInfo,
 				Metadata: &RollappMetadata{
-					Website:     "https://dymension.xyz",
+					Website:     "https://metaearth.xyz",
 					Description: "Sample description",
 					Tags:        []string{"AI", "DeFi", "AI"},
 				},

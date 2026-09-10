@@ -12,7 +12,7 @@
 /**
  * Params defines the parameters for the module.
  */
-export interface DymensionsequencerParams {
+export interface MetaearthsequencerParams {
   /**
    * Coin defines a token with a denomination and an amount.
    *
@@ -29,7 +29,7 @@ export interface DymensionsequencerParams {
 * Sequencer defines a sequencer identified by its' address (sequencerAddress).
 The sequencer could be attached to only one rollapp (rollappId).
 */
-export interface DymensionsequencerSequencer {
+export interface MetaearthsequencerSequencer {
   /**
    * sequencerAddress is the bech32-encoded address of the sequencer account
    * which is the account that the message was sent from.
@@ -247,15 +247,15 @@ export interface SequencerQueryGetSequencerResponse {
    * Sequencer defines a sequencer identified by its' address (sequencerAddress).
    * The sequencer could be attached to only one rollapp (rollappId).
    */
-  sequencer?: DymensionsequencerSequencer;
+  sequencer?: MetaearthsequencerSequencer;
 }
 
 export interface SequencerQueryGetSequencersByRollappByStatusResponse {
-  sequencers?: DymensionsequencerSequencer[];
+  sequencers?: MetaearthsequencerSequencer[];
 }
 
 export interface SequencerQueryGetSequencersByRollappResponse {
-  sequencers?: DymensionsequencerSequencer[];
+  sequencers?: MetaearthsequencerSequencer[];
 }
 
 /**
@@ -263,11 +263,11 @@ export interface SequencerQueryGetSequencersByRollappResponse {
  */
 export interface SequencerQueryParamsResponse {
   /** params holds all the parameters of this module. */
-  params?: DymensionsequencerParams;
+  params?: MetaearthsequencerParams;
 }
 
 export interface SequencerQuerySequencersResponse {
-  sequencers?: DymensionsequencerSequencer[];
+  sequencers?: MetaearthsequencerSequencer[];
 
   /**
    * PageResponse is to be embedded in gRPC response messages where the

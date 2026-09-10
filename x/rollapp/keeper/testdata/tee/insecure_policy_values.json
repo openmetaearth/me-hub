@@ -6,7 +6,7 @@
     "GCP_INTEL_TDX"
   ],
   "allowed_aud": [
-    "dymension"
+    "metaearth"
   ],
   "allowed_issuer": [
     "https://confidentialcomputing.googleapis.com"

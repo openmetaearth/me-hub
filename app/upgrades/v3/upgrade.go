@@ -33,7 +33,7 @@ import (
 //
 // This upgrade:
 //  1. Migrates Cosmos SDK v0.47 → v0.50 (legacy baseapp consensus params if any; gov 4→5 via RunMigrations).
-//  2. Aligns settlement modules with Dymension Hub v4 (params → module store, new schemas).
+//  2. Aligns settlement modules with Hub v3 schemas (params → module store, new schemas).
 //  3. Migrates rollapps (v2 transfers_enabled → transfer_proof_height; launched/genesis info).
 //  4. Adds the lightclient module store key and backfills canonical clients.
 //  5. Backfills sequencer dymint-addr / proposer indexes required by lightclient IBC checks.
@@ -305,7 +305,7 @@ func migrateRollappLightClients(
 
 		_, connection, err := ibcChannelKeeper.GetChannelConnection(ctx, ibctransfertypes.PortID, rollapp.ChannelId)
 		if err != nil {
-			// Match Dymension: skip if connection cannot be resolved for this channel.
+			// Skip if connection cannot be resolved for this channel.
 			ctx.Logger().With("upgrade", UpgradeName).Error(
 				"skip canonical client migration: channel connection not found",
 				"rollapp_id", rollapp.RollappId,

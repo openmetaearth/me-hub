@@ -30,7 +30,7 @@ func NewSetCanonicalClientTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "set-canonical-client [client-id]",
 		Short:   "Try and set the canonical client for a rollapp",
-		Example: "dymd tx lightclient set-canonical-client <client-id>",
+		Example: "med tx lightclient set-canonical-client <client-id>",
 		Long:    `Try and set the canonical client for a rollapp.`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {

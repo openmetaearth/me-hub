@@ -31,7 +31,7 @@ func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
 					ContactDetails: &ContactDetails{
 						Website:  "https://website.com",
 						Telegram: "https://t.me/rolly",
-						X:        "https://x.dymension.xyz",
+						X:        "https://x.metaearth.xyz",
 					},
 					ExtraData: []byte(strings.Repeat("a", MaxExtraDataLength)),
 					Snapshots: []*SnapshotInfo{

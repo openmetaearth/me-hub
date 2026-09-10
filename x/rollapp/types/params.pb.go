@@ -124,11 +124,11 @@ type TEEConfig struct {
 	Enabled bool `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	// if false, do NOT verify attestation (useful for testing)
 	Verify bool `protobuf:"varint,6,opt,name=verify,proto3" json:"verify,omitempty"`
-	// see dymension/x/rollapp/keeper/testdata/tee/policy_values.json
+	// see x/rollapp/keeper/testdata/tee/policy_values.json
 	PolicyValues string `protobuf:"bytes,2,opt,name=policy_values,json=policyValues,proto3" json:"policy_values,omitempty" yaml:"policy_json_values"`
-	// see dymension/x/rollapp/keeper/testdata/tee/query.rego
+	// see x/rollapp/keeper/testdata/tee/query.rego
 	PolicyQuery string `protobuf:"bytes,4,opt,name=policy_query,json=policyQuery,proto3" json:"policy_query,omitempty" yaml:"policy_rego_query"`
-	// see dymension/x/rollapp/keeper/testdata/tee/policy.rego
+	// see x/rollapp/keeper/testdata/tee/policy.rego
 	PolicyStructure string `protobuf:"bytes,5,opt,name=policy_structure,json=policyStructure,proto3" json:"policy_structure,omitempty" yaml:"policy_rego_structure"`
 	// gcp_root_cert_pem is the GCP root certificate in PEM format
 	GcpRootCertPem string `protobuf:"bytes,3,opt,name=gcp_root_cert_pem,json=gcpRootCertPem,proto3" json:"gcp_root_cert_pem,omitempty" yaml:"gcp_root_cert_pem"`

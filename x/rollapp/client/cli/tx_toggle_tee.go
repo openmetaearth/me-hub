@@ -15,7 +15,7 @@ func CmdToggleTEE() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "toggle-tee [rollapp-id] [enable]",
 		Short:   "Toggle the TEE feature for a rollapp",
-		Example: "dymd tx rollapp toggle-tee ROLLAPP_CHAIN_ID true",
+		Example: "med tx rollapp toggle-tee ROLLAPP_CHAIN_ID true",
 		Args:    cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			argRollappId := args[0]

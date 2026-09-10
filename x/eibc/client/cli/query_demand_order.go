@@ -16,7 +16,7 @@ func CmdGetDemandOrderById() *cobra.Command {
 The command searches for the order across all statuses (pending, finalized).
 
 Example:
-  dymd query eibc demand-order 0d784ae938d0e00c2a047429da5968b4c3437ac8cfa8130204914df4d3430628`,
+  med query eibc demand-order 0d784ae938d0e00c2a047429da5968b4c3437ac8cfa8130204914df4d3430628`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)

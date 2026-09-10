@@ -32,22 +32,22 @@ Optional filters (use flags):
   --fulfiller  Filter by fulfiller address
   --limit      Maximum number of orders to return`,
 		Example: `# List all pending eIBC orders
-dymd query eibc list-demand-orders pending
+med query eibc list-demand-orders pending
 
 # List pending orders for a specific RollApp
-dymd query eibc list-demand-orders pending --rollapp rollapp_1234-1
+med query eibc list-demand-orders pending --rollapp rollapp_1234-1
 
 # List finalized orders that were fulfilled
-dymd query eibc list-demand-orders finalized --fulfilled fulfilled
+med query eibc list-demand-orders finalized --fulfilled fulfilled
 
 # List pending orders for a specific recipient with limit
-dymd query eibc list-demand-orders pending --recipient dym1abc... --limit 10
+med query eibc list-demand-orders pending --recipient me1abc... --limit 10
 
 # List pending orders for specific packet type and denom
-dymd query eibc list-demand-orders pending --type recv --denom adym
+med query eibc list-demand-orders pending --type recv --denom adym
 
 # List orders fulfilled by a specific address
-dymd query eibc list-demand-orders finalized --fulfiller dym1xyz...`,
+med query eibc list-demand-orders finalized --fulfiller me1xyz...`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			status, ok := commontypes.Status_value[strings.ToUpper(args[0])]
@@ -158,11 +158,11 @@ dymd query eibc list-demand-orders finalized --fulfiller dym1xyz...`,
 	}
 
 	cmd.Flags().StringP("rollapp", "r", "", "Filter by RollApp ID (e.g., rollapp_1234-1)")
-	cmd.Flags().StringP("recipient", "c", "", "Filter by recipient address (e.g., dym1abc...)")
+	cmd.Flags().StringP("recipient", "c", "", "Filter by recipient address (e.g., me1abc...)")
 	cmd.Flags().StringP("type", "t", "", "Filter by packet type: recv, timeout, or ack (can omit 'ON_' prefix)")
 	cmd.Flags().StringP("denom", "d", "", "Filter by token denomination (e.g., adym, ibc/...)")
 	cmd.Flags().StringP("fulfilled", "f", "", "Filter by fulfillment state: 'fulfilled' or 'unfulfilled'")
-	cmd.Flags().StringP("fulfiller", "a", "", "Filter by fulfiller address (e.g., dym1xyz...)")
+	cmd.Flags().StringP("fulfiller", "a", "", "Filter by fulfiller address (e.g., me1xyz...)")
 	cmd.Flags().Int32P("limit", "l", 0, "Maximum number of orders to return (0 for no limit)")
 	flags.AddQueryFlagsToCmd(cmd)
 

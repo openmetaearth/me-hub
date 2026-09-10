@@ -59,7 +59,7 @@ if [ -f "$GENESIS_FILE" ]; then
   fi
 fi
 
-# Create and init dymension chain
+# Create and init metaearth chain
 med init "$MONIKER_NAME" --chain-id="$CHAIN_ID"
 
 # ---------------------------------------------------------------------------- #

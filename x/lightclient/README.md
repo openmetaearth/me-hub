@@ -20,9 +20,9 @@ To summarize, the order of steps is
 2. Wait for another state update to arrive on the Hub from the Rollapp sequencer
 3. Create IBC transfer channel
 
-The Dymension relayer supports this flow out of the box.
+The Hub relayer supports this flow out of the box.
 
-Moreover, it is important to create the light client for the Rollapp on the Hub with the right parameters. The correct parameters can be seen with `dymd q lightclient expected`, and relevant parameters are the trust level, trusting period, unbonding period and max clock drift. The Dymension relayer ensures these parameters have the correct values. If in doubt, compare the output of `dymd q ibc client state 07-tendermint-x` for your light client with the expected values from the Hub.
+Moreover, it is important to create the light client for the Rollapp on the Hub with the right parameters. The correct parameters can be seen with `med q lightclient expected`, and relevant parameters are the trust level, trusting period, unbonding period and max clock drift. The relayer ensures these parameters have the correct values. If in doubt, compare the output of `med q ibc client state 07-tendermint-x` for your light client with the expected values from the Hub.
 
 When combined, this flow implies a few relationships between parameters
 
@@ -45,7 +45,7 @@ and additionally, before creating the channel it is wise also set `dymint max ba
 
 #### Verifying the result
 
-Check if the light client is canonical with `dymd q lightclient light-client $ROLLAPP_CHAIN_ID`.
+Check if the light client is canonical with `med q lightclient light-client $ROLLAPP_CHAIN_ID`.
 
 #### Small trusting period
 

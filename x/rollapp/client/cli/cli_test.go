@@ -16,12 +16,12 @@ import (
 var (
 	metadata = `
 	{
-		"website": "https://dymension.xyz/",
+		"website": "https://metaearth.xyz/",
 		"description": "This is a description of the Rollapp.",
 		"logo_data_uri": "data:image/jpeg;base64,/000",
 		"token_logo_uri": "data:image/jpeg;base64,/000",
 		"telegram": "https://t.me/example",
-		"x": "https://x.com/dymension"
+		"x": "https://x.com/metaearth"
 	}
 	`
 

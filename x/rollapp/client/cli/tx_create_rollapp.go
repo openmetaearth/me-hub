@@ -20,7 +20,7 @@ func CmdCreateRollapp() *cobra.Command {
 		Use:   "create-rollapp [rollapp-id] [alias] [vm-type]",
 		Short: "Create a new rollapp",
 		Example: `
-		dymd tx rollapp create-rollapp myrollapp_12345-1 RollappAlias EVM 
+		med tx rollapp create-rollapp myrollapp_12345-1 RollappAlias EVM 
 		// optional flags:
 		--init-sequencer '<seq_address1>,<seq_address2>'
         --min-sequencer-bond 100

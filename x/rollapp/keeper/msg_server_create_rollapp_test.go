@@ -239,11 +239,11 @@ func (s *RollappTestSuite) createRollappWithCreatorAndVerify(
 }
 
 var mockRollappMetadata = types.RollappMetadata{
-	Website:     "https://dymension.xyz",
+	Website:     "https://metaearth.xyz",
 	Description: "Sample description",
-	LogoUrl:     "https://dymension.xyz/logo.png",
+	LogoUrl:     "https://metaearth.xyz/logo.png",
 	Telegram:    "https://t.me/rolly",
-	X:           "https://x.dymension.xyz",
+	X:           "https://x.metaearth.xyz",
 	Tags:        []string{"AI", "DeFi", "NFT"},
 }
 

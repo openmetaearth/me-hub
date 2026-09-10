@@ -41,11 +41,6 @@ func InitGenesis(
 	bankKeeper types.BankKeeper,
 	data types.GenesisState,
 ) []abci.ValidatorUpdate {
-	// Enable evm Create code
-	if utils.IsOneOfDymensionChains(ctx) && data.Params.EnableCreate {
-		panic(errors.New("enable create is not allowed on mechain chains"))
-	}
-
 	k.SetChainIDFromCosmos(ctx.ChainID())
 
 	err := k.SetParams(ctx, data.Params)

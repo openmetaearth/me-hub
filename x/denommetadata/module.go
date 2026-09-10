@@ -75,8 +75,8 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 }
 
 func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
-	// ME Hub: This module has no Msg service (only governance proposals)
-	// Dymension v3 has a Msg service for Hyperlane token registration, which ME Hub does not support
+	// ME Hub: This module has no Msg service (only governance proposals).
+	// Hyperlane token registration is not supported.
 	return nil
 }
 

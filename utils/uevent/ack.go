@@ -32,7 +32,7 @@ const (
   type: ibccallbackerror-error
 */
 // Example query to get the error event:
-// dymd q txs --events ibccallbackerror-error.ibccallbackerror-height=439
+// med q txs --events ibccallbackerror-error.ibccallbackerror-height=439
 func EmitErrorEvent(ctx sdk.Context, err error) {
 	if err == nil {
 		return

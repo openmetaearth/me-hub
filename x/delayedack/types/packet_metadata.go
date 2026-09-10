@@ -84,7 +84,7 @@ func (e EIBCMemo) FeeInt() (math.Int, error) {
 
 const (
 	memoObjectKeyEIBC = "eibc"
-	memoObjectKeyPFM  = "forward" // not to be confused with dymension/x/forward
+	memoObjectKeyPFM  = "forward" // not to be confused with x/forward
 )
 
 var (

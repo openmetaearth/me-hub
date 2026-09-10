@@ -15,7 +15,7 @@ export interface CommonRollappPacket {
 
   /** @format byte */
   acknowledgement?: string;
-  status?: DymensioncommonStatus;
+  status?: MetaearthcommonStatus;
 
   /** @format uint64 */
   ProofHeight?: string;
@@ -46,7 +46,7 @@ export enum CommonRollappPacketType {
  */
 export interface DelayedackQueryParamsResponse {
   /** params holds all the parameters of this module. */
-  params?: DymensiondelayedackParams;
+  params?: MetaearthdelayedackParams;
 }
 
 export interface DelayedackQueryRollappPacketListResponse {
@@ -64,7 +64,7 @@ export interface DelayedackQueryRollappPacketListResponse {
   pagination?: V1Beta1PageResponse;
 }
 
-export enum DymensioncommonStatus {
+export enum MetaearthcommonStatus {
   PENDING = "PENDING",
   FINALIZED = "FINALIZED",
   REVERTED = "REVERTED",
@@ -73,7 +73,7 @@ export enum DymensioncommonStatus {
 /**
  * Params defines the parameters for the module.
  */
-export interface DymensiondelayedackParams {
+export interface MetaearthdelayedackParams {
   epoch_identifier?: string;
   bridging_fee?: string;
 

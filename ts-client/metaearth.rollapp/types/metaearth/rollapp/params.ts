@@ -46,11 +46,11 @@ export interface TEEConfig {
   enabled: boolean;
   /** if false, do NOT verify attestation (useful for testing) */
   verify: boolean;
-  /** see dymension/x/rollapp/keeper/testdata/tee/policy_values.json */
+  /** see x/rollapp/keeper/testdata/tee/policy_values.json */
   policyValues: string;
-  /** see dymension/x/rollapp/keeper/testdata/tee/query.rego */
+  /** see x/rollapp/keeper/testdata/tee/query.rego */
   policyQuery: string;
-  /** see dymension/x/rollapp/keeper/testdata/tee/policy.rego */
+  /** see x/rollapp/keeper/testdata/tee/policy.rego */
   policyStructure: string;
   /** gcp_root_cert_pem is the GCP root certificate in PEM format */
   gcpRootCertPem: string;

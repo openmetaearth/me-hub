@@ -38,7 +38,7 @@ func NewFulfillOrderTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "fulfill-order [order-id] [expected-fee-amount]",
 		Short:   "Fulfill a new eibc order",
-		Example: "dymd tx eibc fulfill-order <order-id> <expected-fee-amount>",
+		Example: "med tx eibc fulfill-order <order-id> <expected-fee-amount>",
 		Long: `Fulfill a new eibc order by providing the order ID and the expected fee amount.
 		The expected fee amount is the amount of fee that the user expects to pay for fulfilling the order.
 		`,
@@ -80,7 +80,7 @@ func NewFulfillOrderAuthorizedTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "fulfill-order-authorized [order-id] [expected-fee-amount]",
 		Short:   "Fulfill a new eibc order with authorization",
-		Example: "dymd tx eibc fulfill-order-authorized <order-id> <expected-fee-amount>",
+		Example: "med tx eibc fulfill-order-authorized <order-id> <expected-fee-amount>",
 		Long: `Fulfill a new eibc order by providing the order ID and the expected fee amount.
 		The expected fee amount is the amount of fee that the user expects to pay for fulfilling the order.
 		`,
@@ -173,7 +173,7 @@ func NewUpdateDemandOrderTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-demand-order [order-id] [new-fee-amount]",
 		Short:   "Update a demand order",
-		Example: "dymd tx eibc update-demand-order <order-id> <new-fee-amount>",
+		Example: "med tx eibc update-demand-order <order-id> <new-fee-amount>",
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -248,7 +248,7 @@ func NewCmdCreateOnDemandLP() *cobra.Command {
 		Use:     "create-demand-lp [rollapp] [denom] [max-price] [min-fee] [spend-limit] [order-min-age-blocks]",
 		Short:   short,
 		Long:    long,
-		Example: "dymd tx eibc create-demand-lp rollapp1 foo 1000 0.005 500 100",
+		Example: "med tx eibc create-demand-lp rollapp1 foo 1000 0.005 500 100",
 
 		Args: cobra.ExactArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {

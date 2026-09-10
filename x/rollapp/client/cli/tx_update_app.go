@@ -15,7 +15,7 @@ func CmdUpdateApp() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-app [id] [name] [rollapp-id] [description] [logo] [url] [order]",
 		Short:   "Update an app",
-		Example: "dymd tx rollapp update-app 1 'app1' 'rollapp_1234-1' 'A description' '/logos/apps/app1.jpeg' 'https://app1.com/' 3",
+		Example: "med tx rollapp update-app 1 'app1' 'rollapp_1234-1' 'A description' '/logos/apps/app1.jpeg' 'https://app1.com/' 3",
 		Args:    cobra.MinimumNArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			var (

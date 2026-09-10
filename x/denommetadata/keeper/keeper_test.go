@@ -87,7 +87,7 @@ func (suite *KeeperTestSuite) TestUpdateMissingDenom() {
 
 func (suite *KeeperTestSuite) getDymMetadata() banktypes.Metadata {
 	return banktypes.Metadata{
-		Name:        "Dymension Hub token",
+		Name:        "Metaearth Hub token",
 		Symbol:      "DYM",
 		Description: "Denom metadata for DYM.",
 		DenomUnits: []*banktypes.DenomUnit{
@@ -101,7 +101,7 @@ func (suite *KeeperTestSuite) getDymMetadata() banktypes.Metadata {
 
 func (suite *KeeperTestSuite) getDymUpdateMetadata() banktypes.Metadata {
 	return banktypes.Metadata{
-		Name:        "Dymension Hub token",
+		Name:        "Metaearth Hub token",
 		Symbol:      "DYM",
 		Description: "Denom metadata for DYM.",
 		DenomUnits: []*banktypes.DenomUnit{
