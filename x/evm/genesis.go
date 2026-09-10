@@ -17,7 +17,6 @@ package evm
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"strings"
 
