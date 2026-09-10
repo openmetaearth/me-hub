@@ -1,8 +1,8 @@
 package keeper
 
 import (
+	"cosmossdk.io/x/nft"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/nft"
 
 	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
@@ -33,6 +33,10 @@ func (k *Keeper) RemoveSBT(ctx sdk.Context, did string) error {
 }
 
 func (k *Keeper) SetSbtClass(ctx sdk.Context) error {
+	if k.nftKeeper.HasClass(ctx, types.ModuleName) {
+		return nil
+	}
+
 	class := nft.Class{
 		Id:   types.ModuleName,
 		Name: types.ModuleName,

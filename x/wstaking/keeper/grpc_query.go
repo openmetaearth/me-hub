@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -21,7 +22,7 @@ type Querier struct {
 
 var _ types.QueryServer = Querier{}
 
-func (k Keeper) Region(goCtx context.Context, req *types.QueryRegionRequest) (*types.QueryRegionResponse, error) {
+func (k *Keeper) Region(goCtx context.Context, req *types.QueryRegionRequest) (*types.QueryRegionResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	region, found := k.GetRegion(ctx, req.RegionId)
 	if !found {
@@ -30,7 +31,7 @@ func (k Keeper) Region(goCtx context.Context, req *types.QueryRegionRequest) (*t
 	return &types.QueryRegionResponse{Region: region}, nil
 }
 
-func (k Keeper) AllRegion(goCtx context.Context, req *types.QueryAllRegionRequest) (*types.QueryAllRegionResponse, error) {
+func (k *Keeper) AllRegion(goCtx context.Context, req *types.QueryAllRegionRequest) (*types.QueryAllRegionResponse, error) {
 	var regions []types.Region
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -52,7 +53,7 @@ func (k Keeper) AllRegion(goCtx context.Context, req *types.QueryAllRegionReques
 	return &types.QueryAllRegionResponse{Region: regions, Pagination: pageRes}, nil
 }
 
-func (k Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationRewardsRequest) (*types.QueryDelegationRewardsResponse, error) {
+func (k *Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationRewardsRequest) (*types.QueryDelegationRewardsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -65,36 +66,19 @@ func (k Keeper) DelegationRewards(c context.Context, req *types.QueryDelegationR
 	if err != nil {
 		return nil, err
 	}
-	//regionID := strings.ToLower(types.ExperienceRegionName)
-	// meid, found := k.GetMeid(ctx, req.DelegatorAddress)
-	// if found {
-	//	regionID = meid.RegionId
-	//}
-	//region, isFound := k.GetRegion(ctx, regionID)
-	// if !isFound {
-	//	return nil, types.ErrRegionNotExist.Wrapf("region not found=%s", regionID)
-	//}
-	// valAddr, valErr := sdk.ValAddressFromBech32(region.OperatorAddress)
-	// if valErr != nil {
-	//	return nil, valErr
-	//}
-	del := k.Delegation(ctx, delAdr, sdk.ValAddress{})
-	if del == nil {
+
+	delegation, err := k.GetDelegation(ctx, delAdr, sdk.ValAddress{})
+	if err != nil {
 		return nil, status.Error(codes.NotFound, "delegator not found, address="+delAdr.String())
 	}
-	delegation, ok := del.(stakingtypes.Delegation)
-	if !ok {
-		return nil, types.ErrAssertDelegation
-	}
+
 	interest, err := k.CalculateInterest(ctx, delegation.Amount.Add(delegation.UnMeidAmount).Add(delegation.Unmovable), delegation.StartHeight)
 	if err != nil {
 		return nil, err
 	}
-	// endingPeriod := k.IncrementValidatorPeriod(ctx, val)
-	// rewards := k.CalculateDelegationRewards(ctx, val, del, endingPeriod)
+
 	rewards := sdk.NewDecCoins(sdk.NewDecCoinFromDec(params.BaseDenom, interest))
 	return &types.QueryDelegationRewardsResponse{Rewards: rewards}, nil
-	// return &types.QueryDelegationRewardsResponse{Rewards: sdk.NewDecCoinsFromCoins(sdk.NewCoin(sdk.BaseMEDenom, interest.TruncateInt()))}, nil
 }
 
 // Delegation queries delegate info for given validator delegator pair
@@ -113,7 +97,7 @@ func (k Querier) Delegation(c context.Context, req *stakingtypes.QueryDelegation
 	}
 
 	regionId := k.GetRegionIdByAccount(ctx, delAddr)
-	region, isFound := k.GetRegion(ctx, regionId)
+	region, isFound := k.GetRegionCache(regionId)
 	if !isFound {
 		return nil, types.ErrRegionNotExist.Wrapf("region not found=%s", regionId)
 	}
@@ -121,8 +105,8 @@ func (k Querier) Delegation(c context.Context, req *stakingtypes.QueryDelegation
 	if valErr != nil {
 		return nil, valErr
 	}
-	delegation, found := k.GetDelegation(ctx, delAddr, valAddr)
-	if !found {
+	delegation, err := k.GetDelegation(ctx, delAddr, valAddr)
+	if err != nil {
 		return nil, status.Errorf(
 			codes.NotFound,
 			"delegation with delegator %s not found for validator",
@@ -137,28 +121,35 @@ func (k Querier) Delegation(c context.Context, req *stakingtypes.QueryDelegation
 }
 
 func DelegationToDelegationResponse(ctx sdk.Context, k *Keeper, del stakingtypes.Delegation) (stakingtypes.DelegationResponse, error) {
-	if del.Unmovable.GT(sdk.ZeroInt()) {
-		_, found := k.GetValidator(ctx, del.GetValidatorAddr())
-		if !found {
+	if del.Unmovable.GT(sdkmath.ZeroInt()) {
+		valAddr, err := sdk.ValAddressFromBech32(del.GetValidatorAddr())
+		if err != nil {
+			return stakingtypes.DelegationResponse{}, err
+		}
+		_, err = k.GetValidator(ctx, valAddr)
+		if err != nil {
 			return stakingtypes.DelegationResponse{}, stakingtypes.ErrNoValidatorFound
 		}
 	}
-
 	_, err := sdk.AccAddressFromBech32(del.DelegatorAddress)
 	if err != nil {
 		return stakingtypes.DelegationResponse{}, err
 	}
 	amount := del.Amount.Add(del.UnMeidAmount).Add(del.Unmovable)
-	return NewDelegationResp(del, sdk.NewCoin(k.BondDenom(ctx), amount)), nil
+	bondDenom, err := k.BondDenom(ctx)
+	if err != nil {
+		return stakingtypes.DelegationResponse{}, err
+	}
+	return NewDelegationResp(del, sdk.NewCoin(bondDenom, amount)), nil
 }
 
-func (k Keeper) Stakes(goCtx context.Context, req *types.QueryStakesRequest) (*types.QueryStakesResponse, error) {
+func (k *Keeper) Stakes(goCtx context.Context, req *types.QueryStakesRequest) (*types.QueryStakesResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	stakes := k.GetAllStakes(ctx)
 	return &types.QueryStakesResponse{Stakes: stakes}, nil
 }
 
-func (k Keeper) QueryAllRecord(goCtx context.Context, req *types.QueryAllRecords) (*types.QueryAllRecordsResponse, error) {
+func (k *Keeper) QueryAllRecord(goCtx context.Context, req *types.QueryAllRecords) (*types.QueryAllRecordsResponse, error) {
 	var records []types.Record
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

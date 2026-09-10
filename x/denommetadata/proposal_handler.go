@@ -4,7 +4,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 
 	"github.com/openmetaearth/me-hub/x/denommetadata/keeper"
 	"github.com/openmetaearth/me-hub/x/denommetadata/types"

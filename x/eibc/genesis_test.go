@@ -1,12 +1,14 @@
 package eibc_test
 
 import (
+	"encoding/base64"
 	"testing"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
+	"github.com/openmetaearth/me-hub/app/params"
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/testutil/nullify"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
@@ -15,6 +17,7 @@ import (
 )
 
 func TestInitGenesis(t *testing.T) {
+	params.SetAddressPrefixes()
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
 		DemandOrders: []types.DemandOrder{
@@ -23,7 +26,7 @@ func TestInitGenesis(t *testing.T) {
 				TrackingPacketKey:    "11/22/33",
 				Price:                sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(150)}},
 				Fee:                  sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(50)}},
-				Recipient:            "dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58",
+				Recipient:            "me17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftgswmrn7",
 				TrackingPacketStatus: commontypes.Status_PENDING,
 			},
 			{
@@ -31,14 +34,14 @@ func TestInitGenesis(t *testing.T) {
 				TrackingPacketKey:    "22/33/44",
 				Price:                sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(250)}},
 				Fee:                  sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(150)}},
-				Recipient:            "dym15saxgqw6kvhv6k5sg6r45kmdf4sf88kfw2adcw",
-				FulfillerAddress:     "dym19pas0pqwje540u5ptwnffjxeamdxc9tajmdrfa",
-				TrackingPacketStatus: commontypes.Status_REVERTED,
+				Recipient:            "me15saxgqw6kvhv6k5sg6r45kmdf4sf88kf0yuzlh",
+				FulfillerAddress:     "me19pas0pqwje540u5ptwnffjxeamdxc9tan4vvwy",
+				TrackingPacketStatus: commontypes.Status_FINALIZED,
 			},
 		},
 	}
 
-	k, ctx := keepertest.EibcKeeper(t)
+	k, ctx := keepertest.EIBCKeeper(t)
 	eibc.InitGenesis(ctx, *k, genesisState)
 	got := eibc.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
@@ -51,38 +54,51 @@ func TestInitGenesis(t *testing.T) {
 }
 
 func TestExportGenesis(t *testing.T) {
-	k, ctx := keepertest.EibcKeeper(t)
+	k, ctx := keepertest.EIBCKeeper(t)
 	params := types.Params{
 		EpochIdentifier: "week",
-		TimeoutFee:      sdk.NewDecWithPrec(4, 1),
-		ErrackFee:       sdk.NewDecWithPrec(4, 1),
+		TimeoutFee:      math.LegacyNewDecWithPrec(4, 1),
+		ErrackFee:       math.LegacyNewDecWithPrec(4, 1),
 	}
 	// Set some demand orders
 	demandOrders := []types.DemandOrder{
 		{
 			Id:                   "1",
 			TrackingPacketKey:    "key",
-			Price:                sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(100))),
-			Fee:                  sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(10))),
+			Price:                sdk.NewCoins(sdk.NewCoin("dym", math.NewInt(100))),
+			Fee:                  sdk.NewCoins(sdk.NewCoin("dym", math.NewInt(10))),
 			TrackingPacketStatus: commontypes.Status_PENDING,
 		},
 		{
 			Id:                   "2",
 			TrackingPacketKey:    "key2",
-			Price:                sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(100))),
-			Fee:                  sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(10))),
+			Price:                sdk.NewCoins(sdk.NewCoin("dym", math.NewInt(100))),
+			Fee:                  sdk.NewCoins(sdk.NewCoin("dym", math.NewInt(10))),
 			TrackingPacketStatus: commontypes.Status_PENDING,
 		},
 	}
+
 	for _, demandOrder := range demandOrders {
 		demandOrderCopy := demandOrder
 		err := k.SetDemandOrder(ctx, &demandOrderCopy)
 		require.NoError(t, err)
 	}
+
 	k.SetParams(ctx, params)
 	// Verify the exported genesis
 	got := eibc.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.ElementsMatch(t, demandOrders, got.DemandOrders)
-	require.Equal(t, params, got.Params)
+
+	require.NotNil(t, got, "ExportGenesis should not return nil")
+
+	require.Equal(t, params, got.Params, "Params should match the set params")
+
+	expectedDemandOrders := make([]types.DemandOrder, len(demandOrders))
+	for i, order := range demandOrders {
+		orderCopy := order
+		encodedKey := base64.StdEncoding.EncodeToString([]byte(order.TrackingPacketKey))
+		orderCopy.TrackingPacketKey = encodedKey
+		expectedDemandOrders[i] = orderCopy
+	}
+
+	require.ElementsMatch(t, expectedDemandOrders, got.DemandOrders, "DemandOrders should match after encoding TrackingPacketKey")
 }

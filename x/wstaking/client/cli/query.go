@@ -2,7 +2,6 @@ package cli
 
 import (
 	"github.com/cosmos/cosmos-sdk/client"
-	stakingcli "github.com/cosmos/cosmos-sdk/x/staking/client/cli"
 	"github.com/spf13/cobra"
 
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
@@ -19,18 +18,12 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	stakingQueryCmd.AddCommand(
-		// stakingcli.GetCmdQueryDelegations(),
-		stakingcli.GetCmdQueryUnbondingDelegations(),
-		// stakingcli.GetCmdQueryRedelegation(),
-		// stakingcli.GetCmdQueryRedelegations(),
-		stakingcli.GetCmdQueryValidator(),
-		stakingcli.GetCmdQueryValidators(),
-		// stakingcli.GetCmdQueryValidatorDelegations(),
-		stakingcli.GetCmdQueryValidatorUnbondingDelegations(),
-		// stakingcli.GetCmdQueryValidatorRedelegations(),
-		stakingcli.GetCmdQueryHistoricalInfo(),
-		stakingcli.GetCmdQueryParams(),
-		// stakingcli.GetCmdQueryPool(),
+	// stakingcli.GetCmdQueryDelegations(),
+	// stakingcli.GetCmdQueryRedelegation(),
+	// stakingcli.GetCmdQueryRedelegations(),
+	// stakingcli.GetCmdQueryValidatorDelegations(),
+	// stakingcli.GetCmdQueryValidatorRedelegations(),
+	// stakingcli.GetCmdQueryPool(),
 	)
 
 	stakingQueryCmd.AddCommand(

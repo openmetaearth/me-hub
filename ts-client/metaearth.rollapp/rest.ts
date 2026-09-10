@@ -9,7 +9,7 @@
  * ---------------------------------------------------------------
  */
 
-export enum DymensioncommonStatus {
+export enum MetaearthcommonStatus {
   PENDING = "PENDING",
   FINALIZED = "FINALIZED",
   REVERTED = "REVERTED",
@@ -18,7 +18,7 @@ export enum DymensioncommonStatus {
 /**
  * Params defines the parameters for the module.
  */
-export interface DymensionrollappParams {
+export interface MetaearthrollappParams {
   /**
    * dispute_period_in_blocks the number of blocks it takes
    * to change a status of a state from received to finalized.
@@ -36,7 +36,7 @@ export interface DymensionrollappParams {
   rollapps_enabled?: boolean;
 }
 
-export interface DymensionrollappRollapp {
+export interface MetaearthrollappRollapp {
   /**
    * The unique identifier of the rollapp chain.
    * The rollappId follows the same standard as cosmos chain_id.
@@ -85,7 +85,7 @@ export interface DymensionrollappRollapp {
 /**
  * StateInfo defines a rollapps' state.
  */
-export interface DymensionrollappStateInfo {
+export interface MetaearthrollappStateInfo {
   /**
    * stateInfoIndex defines what rollapp the state belongs to
    * and in which index it can be referenced
@@ -123,7 +123,7 @@ export interface DymensionrollappStateInfo {
   creationHeight?: string;
 
   /** status is the status of the state update */
-  status?: DymensioncommonStatus;
+  status?: MetaearthcommonStatus;
 
   /**
    * BDs is a list of block description objects (one per block)
@@ -209,7 +209,7 @@ export interface RollappQueryGetLatestStateIndexResponse {
 }
 
 export interface RollappQueryGetRollappResponse {
-  rollapp?: DymensionrollappRollapp;
+  rollapp?: MetaearthrollappRollapp;
 
   /** Defines the index of the last rollapp UpdateState. */
   latestStateIndex?: RollappStateInfoIndex;
@@ -226,7 +226,7 @@ export interface RollappQueryGetRollappResponse {
 
 export interface RollappQueryGetStateInfoResponse {
   /** StateInfo defines a rollapps' state. */
-  stateInfo?: DymensionrollappStateInfo;
+  stateInfo?: MetaearthrollappStateInfo;
 }
 
 /**
@@ -234,7 +234,7 @@ export interface RollappQueryGetStateInfoResponse {
  */
 export interface RollappQueryParamsResponse {
   /** params holds all the parameters of this module. */
-  params?: DymensionrollappParams;
+  params?: MetaearthrollappParams;
 }
 
 export interface RollappQuerySkipDelayRollappResponse {

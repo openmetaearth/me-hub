@@ -1,0 +1,30 @@
+package keeper
+
+import (
+	"context"
+
+	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/openmetaearth/me-hub/x/sequencer/types"
+)
+
+func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, err
+	}
+
+	if k.authority != msg.Authority {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
+	}
+
+	if err := k.ValidateParams(ctx, msg.Params); err != nil {
+		return nil, err
+	}
+
+	k.SetParams(ctx, msg.Params)
+	return &types.MsgUpdateParamsResponse{}, nil
+}

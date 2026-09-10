@@ -1,8 +1,9 @@
 package apptesting
 
 import (
+	"slices"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"golang.org/x/exp/slices"
 )
 
 // AssertEventEmitted asserts that ctx's event manager has emitted the given number of events
@@ -17,6 +18,12 @@ func (s *KeeperTestHelper) AssertEventEmitted(ctx sdk.Context, eventTypeExpected
 		}
 	}
 	s.Require().Equal(numEventsExpected, len(actualEvents))
+}
+
+// AssertEventNotEmitted asserts that ctx's event manager has not emitted aby event
+// of the given type.
+func (s *KeeperTestHelper) AssertEventNotEmitted(ctx sdk.Context, eventTypeExpected string) {
+	s.AssertEventEmitted(ctx, eventTypeExpected, 0)
 }
 
 func (s *KeeperTestHelper) FindEvent(events []sdk.Event, name string) sdk.Event {

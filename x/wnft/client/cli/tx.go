@@ -5,11 +5,11 @@ import (
 	"strconv"
 	"strings"
 
+	"cosmossdk.io/x/nft"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/nft"
 	"github.com/spf13/cobra"
 
 	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"

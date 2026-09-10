@@ -2,7 +2,7 @@ package types
 
 import (
 	"cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/x/nft"
+	"cosmossdk.io/x/nft"
 )
 
 // x/nft module sentinel errors
