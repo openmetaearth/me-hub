@@ -4,6 +4,7 @@ go 1.24.11
 
 require (
 	cosmossdk.io/api v0.7.6
+	cosmossdk.io/client/v2 v2.0.0-beta.8
 	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v0.11.1
 	cosmossdk.io/errors v1.0.1
@@ -77,7 +78,6 @@ require (
 	cloud.google.com/go/iam v1.4.2 // indirect
 	cloud.google.com/go/monitoring v1.24.0 // indirect
 	cloud.google.com/go/storage v1.50.0 // indirect
-	cosmossdk.io/client/v2 v2.0.0-beta.8 // indirect
 	cosmossdk.io/depinject v1.2.1 // indirect
 	cosmossdk.io/simapp v0.0.0-20230925170603-467d2f71845d // indirect
 	cosmossdk.io/x/circuit v0.1.1 // indirect
@@ -328,7 +328,7 @@ require (
 
 replace (
 	github.com/cosmos/cosmos-sdk => github.com/openmetaearth/cosmos-sdk v0.0.0-20260706023401-5ff072ee3aeb
-	github.com/evmos/ethermint => github.com/st-chain/ethermint v0.22.0-me-v2.0.0-rc2
+	github.com/evmos/ethermint => github.com/openmetaearth/ethermint v0.22.0-me-v2.0.0-rc3
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/ipfs/go-log/v2 => github.com/st-chain/go-log/v2 v2.7.0
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
