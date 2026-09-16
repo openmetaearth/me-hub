@@ -18,12 +18,12 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	stakingQueryCmd.AddCommand(
-	// stakingcli.GetCmdQueryDelegations(),
-	// stakingcli.GetCmdQueryRedelegation(),
-	// stakingcli.GetCmdQueryRedelegations(),
-	// stakingcli.GetCmdQueryValidatorDelegations(),
-	// stakingcli.GetCmdQueryValidatorRedelegations(),
-	// stakingcli.GetCmdQueryPool(),
+		GetCmdQueryUnbondingDelegations(),
+		GetCmdQueryValidator(),
+		GetCmdQueryValidators(),
+		GetCmdQueryValidatorUnbondingDelegations(),
+		GetCmdQueryHistoricalInfo(),
+		GetCmdQueryParams(),
 	)
 
 	stakingQueryCmd.AddCommand(
