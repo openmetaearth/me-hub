@@ -1,7 +1,9 @@
 package types
 
 import (
+	"encoding/hex"
 	"fmt"
+	"strconv"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 )
@@ -14,6 +16,8 @@ const (
 	EventTypeCreateVC            = "create_vc"
 	EventTypeUpdateVC            = "update_vc"
 	EventTypeRemoveVC            = "remove_vc"
+	EventTypeBondZkCoreID        = "bond_zk_core_id"
+	EventTypeSetZkContract       = "set_zk_contract_address"
 )
 
 func NewDidEvent(eventType, did, address, status string) sdktypes.Event {
@@ -43,4 +47,23 @@ func NewVcEvent(eventType, sid, did, hash, uri string) sdktypes.Event {
 		{Key: "uri", Value: uri},
 	}
 	return sdktypes.NewEvent(eventType, attributes...)
+}
+
+func NewBondZkCoreIDEvent(did, creator string, coreID []byte,blockHeight int64) sdktypes.Event {
+	return sdktypes.NewEvent(
+		EventTypeBondZkCoreID,
+		sdktypes.NewAttribute("did", did),
+		sdktypes.NewAttribute("creator", creator),
+		sdktypes.NewAttribute("core_id", hex.EncodeToString(coreID)),
+		sdktypes.NewAttribute("block_height", strconv.FormatInt(blockHeight,10)),
+	)
+}
+
+func NewSetZkContractAddressEvent(info ZkContractAddressInfo,blockHeight int64) sdktypes.Event {
+	return sdktypes.NewEvent(
+		EventTypeSetZkContract,
+		sdktypes.NewAttribute("contract_type", info.Type.String()),
+		sdktypes.NewAttribute("contract_address", info.ContractAddress),
+		sdktypes.NewAttribute("block_height", strconv.FormatInt(blockHeight,10)),
+	)
 }

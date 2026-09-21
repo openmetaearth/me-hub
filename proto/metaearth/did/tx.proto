@@ -7,6 +7,7 @@ import "gogoproto/gogo.proto";
 import "metaearth/did/did.proto";
 import "metaearth/did/filter.proto";
 import "metaearth/did/issuer.proto";
+import "metaearth/did/zkinfo.proto";
 
 option go_package = "github.com/openmetaearth/me-hub/x/did/types";
 
@@ -25,6 +26,9 @@ service Msg {
   rpc CreateVC(MsgCreateVC) returns (MsgCreateVCResponse);
   rpc UpdateVC(MsgUpdateVC) returns (MsgUpdateVCResponse);
   rpc RemoveVC(MsgRemoveVC) returns (MsgRemoveVCResponse);
+  //
+  rpc BondZkCoreID(MsgBondZkCoreIDRequest) returns (MsgBondZkCoreIDResponse);
+  rpc SetZkContractAddress(MsgSetZkContractAddressRequest) returns (MsgSetZkContractAddressResponse);
 }
 
 message MsgCreateDid {
@@ -107,3 +111,17 @@ message MsgRemoveVC {
 }
 
 message MsgRemoveVCResponse {}
+
+message MsgBondZkCoreIDRequest {
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  ZkAuthClaimCoreIdInfo core_info = 2;
+}
+
+message MsgBondZkCoreIDResponse {}
+
+message MsgSetZkContractAddressRequest {
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  ZkContractAddressInfo contract_info = 2;
+}
+
+message MsgSetZkContractAddressResponse {}

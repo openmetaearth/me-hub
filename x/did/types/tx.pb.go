@@ -966,6 +966,182 @@ func (m *MsgRemoveVCResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRemoveVCResponse proto.InternalMessageInfo
 
+type MsgBondZkCoreIDRequest struct {
+	Creator  string                 `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	CoreInfo *ZkAuthClaimCoreIdInfo `protobuf:"bytes,2,opt,name=core_info,json=coreInfo,proto3" json:"core_info,omitempty"`
+}
+
+func (m *MsgBondZkCoreIDRequest) Reset()         { *m = MsgBondZkCoreIDRequest{} }
+func (m *MsgBondZkCoreIDRequest) String() string { return proto.CompactTextString(m) }
+func (*MsgBondZkCoreIDRequest) ProtoMessage()    {}
+func (*MsgBondZkCoreIDRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7a65939ce77ee099, []int{18}
+}
+func (m *MsgBondZkCoreIDRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgBondZkCoreIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgBondZkCoreIDRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgBondZkCoreIDRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgBondZkCoreIDRequest.Merge(m, src)
+}
+func (m *MsgBondZkCoreIDRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgBondZkCoreIDRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgBondZkCoreIDRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgBondZkCoreIDRequest proto.InternalMessageInfo
+
+func (m *MsgBondZkCoreIDRequest) GetCreator() string {
+	if m != nil {
+		return m.Creator
+	}
+	return ""
+}
+
+func (m *MsgBondZkCoreIDRequest) GetCoreInfo() *ZkAuthClaimCoreIdInfo {
+	if m != nil {
+		return m.CoreInfo
+	}
+	return nil
+}
+
+type MsgBondZkCoreIDResponse struct {
+}
+
+func (m *MsgBondZkCoreIDResponse) Reset()         { *m = MsgBondZkCoreIDResponse{} }
+func (m *MsgBondZkCoreIDResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgBondZkCoreIDResponse) ProtoMessage()    {}
+func (*MsgBondZkCoreIDResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7a65939ce77ee099, []int{19}
+}
+func (m *MsgBondZkCoreIDResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgBondZkCoreIDResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgBondZkCoreIDResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgBondZkCoreIDResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgBondZkCoreIDResponse.Merge(m, src)
+}
+func (m *MsgBondZkCoreIDResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgBondZkCoreIDResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgBondZkCoreIDResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgBondZkCoreIDResponse proto.InternalMessageInfo
+
+type MsgSetZkContractAddressRequest struct {
+	Creator      string                 `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	ContractInfo *ZkContractAddressInfo `protobuf:"bytes,2,opt,name=contract_info,json=contractInfo,proto3" json:"contract_info,omitempty"`
+}
+
+func (m *MsgSetZkContractAddressRequest) Reset()         { *m = MsgSetZkContractAddressRequest{} }
+func (m *MsgSetZkContractAddressRequest) String() string { return proto.CompactTextString(m) }
+func (*MsgSetZkContractAddressRequest) ProtoMessage()    {}
+func (*MsgSetZkContractAddressRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7a65939ce77ee099, []int{20}
+}
+func (m *MsgSetZkContractAddressRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSetZkContractAddressRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSetZkContractAddressRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSetZkContractAddressRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSetZkContractAddressRequest.Merge(m, src)
+}
+func (m *MsgSetZkContractAddressRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSetZkContractAddressRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSetZkContractAddressRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSetZkContractAddressRequest proto.InternalMessageInfo
+
+func (m *MsgSetZkContractAddressRequest) GetCreator() string {
+	if m != nil {
+		return m.Creator
+	}
+	return ""
+}
+
+func (m *MsgSetZkContractAddressRequest) GetContractInfo() *ZkContractAddressInfo {
+	if m != nil {
+		return m.ContractInfo
+	}
+	return nil
+}
+
+type MsgSetZkContractAddressResponse struct {
+}
+
+func (m *MsgSetZkContractAddressResponse) Reset()         { *m = MsgSetZkContractAddressResponse{} }
+func (m *MsgSetZkContractAddressResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgSetZkContractAddressResponse) ProtoMessage()    {}
+func (*MsgSetZkContractAddressResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7a65939ce77ee099, []int{21}
+}
+func (m *MsgSetZkContractAddressResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSetZkContractAddressResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSetZkContractAddressResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSetZkContractAddressResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSetZkContractAddressResponse.Merge(m, src)
+}
+func (m *MsgSetZkContractAddressResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSetZkContractAddressResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSetZkContractAddressResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSetZkContractAddressResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgCreateDid)(nil), "metaearth.did.MsgCreateDid")
 	proto.RegisterType((*MsgCreateDidResponse)(nil), "metaearth.did.MsgCreateDidResponse")
@@ -985,55 +1161,70 @@ func init() {
 	proto.RegisterType((*MsgUpdateVCResponse)(nil), "metaearth.did.MsgUpdateVCResponse")
 	proto.RegisterType((*MsgRemoveVC)(nil), "metaearth.did.MsgRemoveVC")
 	proto.RegisterType((*MsgRemoveVCResponse)(nil), "metaearth.did.MsgRemoveVCResponse")
+	proto.RegisterType((*MsgBondZkCoreIDRequest)(nil), "metaearth.did.MsgBondZkCoreIDRequest")
+	proto.RegisterType((*MsgBondZkCoreIDResponse)(nil), "metaearth.did.MsgBondZkCoreIDResponse")
+	proto.RegisterType((*MsgSetZkContractAddressRequest)(nil), "metaearth.did.MsgSetZkContractAddressRequest")
+	proto.RegisterType((*MsgSetZkContractAddressResponse)(nil), "metaearth.did.MsgSetZkContractAddressResponse")
 }
 
 func init() { proto.RegisterFile("metaearth/did/tx.proto", fileDescriptor_7a65939ce77ee099) }
 
 var fileDescriptor_7a65939ce77ee099 = []byte{
-	// 675 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x56, 0xcf, 0x6e, 0xd3, 0x4e,
-	0x10, 0xae, 0x7f, 0x6e, 0xd3, 0x5f, 0xb7, 0x2d, 0x54, 0x6e, 0x49, 0xcd, 0x52, 0x19, 0x63, 0x84,
-	0x28, 0xa0, 0xc6, 0x50, 0x38, 0x71, 0xe0, 0x40, 0xe1, 0x00, 0x52, 0x2e, 0xae, 0xa8, 0x04, 0x97,
-	0xca, 0xc9, 0x2e, 0xce, 0xaa, 0x75, 0xd6, 0xf2, 0xda, 0x51, 0xcb, 0x89, 0x27, 0x40, 0xbc, 0x00,
-	0xef, 0xc0, 0x63, 0x70, 0xec, 0x91, 0x23, 0x4a, 0x0e, 0xf0, 0x18, 0x68, 0xff, 0x78, 0x13, 0xbb,
-	0x4e, 0xff, 0xc0, 0x85, 0x53, 0x76, 0x66, 0xbe, 0xfd, 0xe6, 0xdb, 0x99, 0xd9, 0x75, 0x40, 0x33,
-	0xc6, 0x59, 0x88, 0xc3, 0x34, 0xeb, 0xf9, 0x88, 0x20, 0x3f, 0x3b, 0x6a, 0x25, 0x29, 0xcd, 0xa8,
-	0xb5, 0xac, 0xfd, 0x2d, 0x44, 0x10, 0x5c, 0xef, 0x52, 0x16, 0x53, 0xe6, 0xc7, 0x2c, 0xf2, 0x07,
-	0x8f, 0xf8, 0x8f, 0xc4, 0xc1, 0xeb, 0x32, 0xb0, 0x2f, 0x2c, 0x5f, 0x1a, 0x2a, 0xb4, 0x16, 0xd1,
-	0x88, 0x4a, 0x3f, 0x5f, 0x29, 0xef, 0x7a, 0x39, 0x21, 0x22, 0x48, 0x05, 0x60, 0x39, 0xf0, 0x9e,
-	0x1c, 0x66, 0x38, 0xad, 0x8f, 0x11, 0xc6, 0xf2, 0x22, 0xe6, 0x1d, 0x82, 0xa5, 0x36, 0x8b, 0x76,
-	0x52, 0x1c, 0x66, 0xf8, 0x05, 0x41, 0x96, 0x0d, 0xe6, 0xbb, 0xdc, 0xa0, 0xa9, 0x6d, 0xb8, 0xc6,
-	0xe6, 0x42, 0x50, 0x98, 0xd6, 0x0a, 0x30, 0x11, 0x41, 0xf6, 0x7f, 0xc2, 0xcb, 0x97, 0x1c, 0x1b,
-	0x22, 0x94, 0x62, 0xc6, 0x6c, 0x53, 0x62, 0x95, 0x69, 0x35, 0x41, 0x23, 0xc9, 0x3b, 0x07, 0xf8,
-	0xd8, 0x9e, 0x15, 0x01, 0x65, 0x79, 0x4d, 0xb0, 0x36, 0x99, 0x2d, 0xc0, 0x2c, 0xa1, 0x7d, 0x86,
-	0xbd, 0x14, 0x58, 0x6d, 0x16, 0xbd, 0x49, 0x90, 0xf4, 0xef, 0x66, 0x61, 0x96, 0xb3, 0x4b, 0x69,
-	0x79, 0x08, 0x1a, 0x4c, 0xec, 0x12, 0x52, 0xae, 0x6c, 0xdb, 0xad, 0x52, 0x0b, 0x5a, 0x9a, 0x35,
-	0x50, 0x38, 0x6f, 0x03, 0xc0, 0xd3, 0x39, 0xb5, 0xa2, 0xa7, 0xa2, 0x2e, 0x01, 0x8e, 0xe9, 0xe0,
-	0xb2, 0x75, 0x51, 0xa7, 0xd4, 0x7b, 0x35, 0xe7, 0x27, 0x03, 0xac, 0xe8, 0xe3, 0xef, 0xe2, 0x74,
-	0x40, 0xba, 0xf8, 0x6c, 0x62, 0x36, 0x26, 0x66, 0x04, 0x59, 0x16, 0x98, 0xed, 0x87, 0x31, 0x56,
-	0xd5, 0x16, 0x6b, 0xcb, 0x05, 0x8b, 0x08, 0xb3, 0x6e, 0x4a, 0x92, 0x8c, 0xd0, 0xbe, 0xaa, 0xf7,
-	0xa4, 0x8b, 0x67, 0x90, 0x2d, 0x67, 0xf6, 0x9c, 0x6b, 0xf2, 0x0c, 0xca, 0xf4, 0x20, 0xb0, 0xab,
-	0x7a, 0xb4, 0xd8, 0x0f, 0xa0, 0xa9, 0xcb, 0xa3, 0x62, 0x17, 0x69, 0x4b, 0x45, 0xf1, 0x93, 0x4a,
-	0x5b, 0x36, 0x2a, 0x6d, 0x29, 0x31, 0xeb, 0xd6, 0xb8, 0xc0, 0xa9, 0xcf, 0xad, 0xd5, 0x3d, 0x13,
-	0x95, 0x94, 0x25, 0xfe, 0x83, 0x4a, 0xaa, 0x93, 0x97, 0xf6, 0x6b, 0xee, 0x2f, 0x06, 0x58, 0xd4,
-	0x65, 0xd9, 0xdb, 0xe1, 0xc3, 0x2c, 0x0b, 0xa6, 0x68, 0x95, 0x55, 0x33, 0x84, 0x2a, 0x8f, 0x59,
-	0xea, 0x58, 0x2f, 0x64, 0x3d, 0xd5, 0x16, 0xb1, 0xe6, 0xa8, 0x3c, 0x25, 0xf6, 0x9c, 0x44, 0xe5,
-	0x29, 0xe1, 0x28, 0x14, 0x66, 0xa1, 0xdd, 0x70, 0x8d, 0xcd, 0xa5, 0x40, 0xac, 0xf9, 0x69, 0xe4,
-	0x25, 0x66, 0xf6, 0xbc, 0x6b, 0x6e, 0x2e, 0x05, 0x85, 0xe9, 0x5d, 0x03, 0xab, 0x13, 0xf2, 0xaa,
-	0xb2, 0x65, 0xd5, 0xfe, 0x59, 0xd9, 0x85, 0x3c, 0x2d, 0xfb, 0x95, 0x50, 0x2d, 0x3b, 0xf1, 0x77,
-	0xaa, 0x55, 0x86, 0x82, 0xaa, 0xc8, 0xb0, 0xfd, 0x6b, 0x16, 0x98, 0x6d, 0x16, 0x59, 0x6d, 0xb0,
-	0x30, 0x7e, 0xe7, 0x6e, 0x54, 0x06, 0x71, 0xf2, 0x59, 0x82, 0xb7, 0xcf, 0x08, 0x16, 0xb4, 0xd6,
-	0x3e, 0xb8, 0x5a, 0x7d, 0xb0, 0x6e, 0x9d, 0xde, 0x57, 0x81, 0xc0, 0x7b, 0xe7, 0x42, 0x74, 0x82,
-	0xb7, 0x60, 0xb9, 0xfc, 0x54, 0xdc, 0x9c, 0x26, 0x4b, 0x01, 0xe0, 0xdd, 0x73, 0x00, 0x9a, 0xfa,
-	0x00, 0xac, 0xd6, 0xdd, 0xec, 0x3b, 0xd3, 0xc4, 0x95, 0x60, 0x70, 0xeb, 0x42, 0x30, 0x9d, 0xec,
-	0x35, 0xf8, 0x5f, 0xdf, 0x25, 0x38, 0x4d, 0xe1, 0xde, 0x0e, 0xf4, 0xa6, 0xc7, 0x26, 0xb9, 0xf4,
-	0x80, 0xc3, 0x69, 0x32, 0xea, 0xb9, 0xaa, 0x93, 0xc7, 0xb9, 0xf4, 0xd8, 0xd5, 0x70, 0x15, 0xb1,
-	0x3a, 0xae, 0xea, 0x8c, 0xc1, 0xb9, 0x8f, 0x3f, 0xbf, 0xde, 0x37, 0x9e, 0xbf, 0xfc, 0x36, 0x74,
-	0x8c, 0x93, 0xa1, 0x63, 0xfc, 0x18, 0x3a, 0xc6, 0xe7, 0x91, 0x33, 0x73, 0x32, 0x72, 0x66, 0xbe,
-	0x8f, 0x9c, 0x99, 0x77, 0x0f, 0x22, 0x92, 0xf5, 0xf2, 0x4e, 0xab, 0x4b, 0x63, 0x9f, 0x26, 0xb8,
-	0x3f, 0xfe, 0x24, 0xc7, 0x78, 0xab, 0x97, 0x77, 0xfc, 0x23, 0xf9, 0x0f, 0xe2, 0x38, 0xc1, 0xac,
-	0xd3, 0x10, 0xdf, 0xe6, 0xc7, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0xac, 0xef, 0xb7, 0x11, 0x5f,
-	0x08, 0x00, 0x00,
+	// 849 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x56, 0x4f, 0x4f, 0xe3, 0x46,
+	0x14, 0xc7, 0x0d, 0x04, 0x18, 0x42, 0x8b, 0x4c, 0x1a, 0x8c, 0x8b, 0x42, 0x70, 0xff, 0xd1, 0x56,
+	0x24, 0x6d, 0xda, 0x53, 0x0f, 0x95, 0x20, 0xf4, 0x90, 0x4a, 0xb9, 0x38, 0x2a, 0x52, 0x91, 0x2a,
+	0xe4, 0x78, 0x06, 0x67, 0x14, 0xec, 0x49, 0x3d, 0x63, 0x04, 0x9c, 0xfa, 0x09, 0xda, 0x7e, 0x81,
+	0xaa, 0x5f, 0xa1, 0x87, 0x3d, 0xef, 0x79, 0x8f, 0x68, 0x4f, 0x7b, 0x5c, 0xc1, 0x61, 0xbf, 0xc6,
+	0x6a, 0xfe, 0x64, 0x12, 0x1b, 0x27, 0xc0, 0x72, 0xd9, 0x53, 0xe6, 0xcd, 0x7b, 0xf3, 0xfb, 0xfd,
+	0xe6, 0xbd, 0x37, 0x2f, 0x06, 0x95, 0x10, 0x31, 0x0f, 0x79, 0x31, 0xeb, 0x37, 0x20, 0x86, 0x0d,
+	0x76, 0x51, 0x1f, 0xc6, 0x84, 0x11, 0x73, 0x55, 0xef, 0xd7, 0x21, 0x86, 0xf6, 0x86, 0x4f, 0x68,
+	0x48, 0x68, 0x23, 0xa4, 0x41, 0xe3, 0xfc, 0x3b, 0xfe, 0x23, 0xe3, 0xec, 0x4d, 0xe9, 0x38, 0x11,
+	0x56, 0x43, 0x1a, 0xca, 0x55, 0x0e, 0x48, 0x40, 0xe4, 0x3e, 0x5f, 0xa9, 0xdd, 0x8d, 0x34, 0x21,
+	0xc4, 0x50, 0x39, 0xec, 0xb4, 0xe3, 0x14, 0x9f, 0x31, 0x14, 0xe7, 0xfb, 0x30, 0xa5, 0xc9, 0x34,
+	0xdf, 0xd5, 0x00, 0x47, 0xa7, 0x8a, 0xcc, 0x39, 0x03, 0xa5, 0x0e, 0x0d, 0x5a, 0x31, 0xf2, 0x18,
+	0x3a, 0xc4, 0xd0, 0xb4, 0xc0, 0xa2, 0xcf, 0x0d, 0x12, 0x5b, 0x46, 0xcd, 0xd8, 0x5d, 0x76, 0x47,
+	0xa6, 0xb9, 0x06, 0x0a, 0x10, 0x43, 0xeb, 0x03, 0xb1, 0xcb, 0x97, 0x3c, 0xd6, 0x83, 0x30, 0x46,
+	0x94, 0x5a, 0x05, 0x19, 0xab, 0x4c, 0xb3, 0x02, 0x8a, 0xc3, 0xa4, 0x37, 0x40, 0x97, 0xd6, 0xbc,
+	0x70, 0x28, 0xcb, 0xa9, 0x80, 0xf2, 0x24, 0x9b, 0x8b, 0xe8, 0x90, 0x44, 0x14, 0x39, 0x31, 0x30,
+	0x3b, 0x34, 0xf8, 0x75, 0x08, 0xe5, 0x7e, 0x97, 0x79, 0x2c, 0xa1, 0x8f, 0xd2, 0xf2, 0x2d, 0x28,
+	0x52, 0x71, 0x4a, 0x48, 0xf9, 0xb0, 0x69, 0xd5, 0x53, 0xe5, 0xa9, 0x6b, 0x54, 0x57, 0xc5, 0x39,
+	0x5b, 0xc0, 0xbe, 0xcb, 0xa9, 0x15, 0xfd, 0x28, 0xf2, 0xe2, 0xa2, 0x90, 0x9c, 0x3f, 0x36, 0x2f,
+	0xea, 0x96, 0xfa, 0xac, 0xc6, 0xfc, 0xcb, 0x00, 0x6b, 0xfa, 0xfa, 0x5d, 0x14, 0x9f, 0x63, 0x1f,
+	0xcd, 0x06, 0xa6, 0x63, 0x60, 0x8a, 0xa1, 0x69, 0x82, 0xf9, 0xc8, 0x0b, 0x91, 0xca, 0xb6, 0x58,
+	0x9b, 0x35, 0xb0, 0x02, 0x11, 0xf5, 0x63, 0x3c, 0x64, 0x98, 0x44, 0x2a, 0xdf, 0x93, 0x5b, 0x9c,
+	0x41, 0xb6, 0x03, 0xb5, 0x16, 0x6a, 0x05, 0xce, 0xa0, 0x4c, 0xc7, 0x06, 0x56, 0x56, 0x8f, 0x16,
+	0x7b, 0x05, 0x2a, 0x3a, 0x3d, 0xca, 0xf7, 0x90, 0xb2, 0x64, 0x14, 0xff, 0x90, 0x29, 0xcb, 0x56,
+	0xa6, 0x2c, 0x29, 0x64, 0x5d, 0x9a, 0x1a, 0xa8, 0xe6, 0x73, 0x6b, 0x75, 0x3f, 0x89, 0x4c, 0xca,
+	0x14, 0xbf, 0x43, 0x26, 0xd5, 0xcd, 0x53, 0xe7, 0x35, 0xf6, 0xbf, 0x06, 0x58, 0xd1, 0x69, 0x39,
+	0x6a, 0xf1, 0x66, 0x96, 0x09, 0x53, 0xb0, 0xca, 0xca, 0x69, 0x42, 0xc5, 0x53, 0x48, 0x55, 0xac,
+	0xef, 0xd1, 0xbe, 0x2a, 0x8b, 0x58, 0xf3, 0xa8, 0x24, 0xc6, 0xd6, 0x82, 0x8c, 0x4a, 0x62, 0xcc,
+	0xa3, 0xa0, 0xc7, 0x3c, 0xab, 0x58, 0x33, 0x76, 0x4b, 0xae, 0x58, 0xf3, 0xdb, 0xc8, 0x07, 0x4e,
+	0xad, 0xc5, 0x5a, 0x61, 0xb7, 0xe4, 0x8e, 0x4c, 0xe7, 0x63, 0xb0, 0x3e, 0x21, 0x2f, 0x2b, 0x5b,
+	0x66, 0xed, 0xbd, 0x95, 0x3d, 0x92, 0xa7, 0x65, 0xb7, 0x85, 0x6a, 0x59, 0x89, 0xa7, 0xa9, 0x56,
+	0x0c, 0x23, 0x28, 0xcd, 0xf0, 0xb7, 0x21, 0x5a, 0xf9, 0x80, 0x44, 0xf0, 0x78, 0xd0, 0x22, 0x31,
+	0x6a, 0x1f, 0xba, 0xe8, 0x8f, 0x04, 0x51, 0x66, 0x36, 0x33, 0x2d, 0x73, 0x60, 0xbd, 0x7c, 0xb6,
+	0x57, 0x56, 0x33, 0x7a, 0x5f, 0x0e, 0xb3, 0x2e, 0x8b, 0x71, 0x14, 0x8c, 0x9b, 0x69, 0x1f, 0x2c,
+	0xfb, 0x24, 0x46, 0x27, 0x7c, 0x88, 0x0a, 0x3d, 0x2b, 0xcd, 0xcf, 0x32, 0x5d, 0x7d, 0x3c, 0xd8,
+	0x4f, 0x58, 0xbf, 0x75, 0xe6, 0xe1, 0x50, 0xf0, 0xc1, 0x76, 0x74, 0x4a, 0xdc, 0x25, 0x7e, 0x8c,
+	0xaf, 0x9c, 0x4d, 0xb0, 0x71, 0x47, 0x90, 0x12, 0xfb, 0x9f, 0x21, 0x7a, 0xbf, 0x8b, 0x18, 0x77,
+	0x45, 0x2c, 0xf6, 0x7c, 0xa6, 0x84, 0x3c, 0x45, 0x74, 0x1b, 0xac, 0xfa, 0x0a, 0x6d, 0xb6, 0xf0,
+	0x0c, 0xa7, 0x10, 0x5e, 0x1a, 0x1d, 0x15, 0xe2, 0x77, 0xc0, 0xf6, 0x54, 0x81, 0xf2, 0x12, 0xcd,
+	0xe7, 0x45, 0x50, 0xe8, 0xd0, 0xc0, 0xec, 0x80, 0xe5, 0xf1, 0x3f, 0xcb, 0x27, 0x19, 0xae, 0xc9,
+	0x3f, 0x02, 0xfb, 0xd3, 0x19, 0xce, 0x11, 0xac, 0x79, 0x02, 0x3e, 0xca, 0xfe, 0x45, 0xec, 0xdc,
+	0x3d, 0x97, 0x09, 0xb1, 0xbf, 0xba, 0x37, 0x44, 0x13, 0xfc, 0x06, 0x56, 0xd3, 0xc3, 0x79, 0x7b,
+	0x9a, 0x2c, 0x15, 0x60, 0x7f, 0x79, 0x4f, 0x80, 0x86, 0x1e, 0x80, 0xf5, 0xbc, 0x59, 0xfa, 0xf9,
+	0x34, 0x71, 0xa9, 0x30, 0x7b, 0xef, 0x41, 0x61, 0x9a, 0xec, 0x17, 0xb0, 0xa4, 0xa7, 0x97, 0x3d,
+	0x4d, 0xe1, 0x51, 0xcb, 0x76, 0xa6, 0xfb, 0x26, 0xb1, 0xf4, 0x48, 0xb1, 0xa7, 0xc9, 0xc8, 0xc7,
+	0xca, 0xbe, 0x75, 0x8e, 0xa5, 0x1f, 0x7a, 0x0e, 0xd6, 0xc8, 0x97, 0x87, 0x95, 0x7d, 0xd5, 0xe6,
+	0xef, 0xa0, 0x34, 0xf9, 0x80, 0xf2, 0x32, 0x99, 0xf3, 0xe2, 0xed, 0x2f, 0xee, 0x0b, 0x53, 0xf0,
+	0x09, 0x28, 0xe7, 0xb5, 0xb8, 0x99, 0x53, 0x89, 0x19, 0x6f, 0xd5, 0xae, 0x3f, 0x34, 0x5c, 0xd2,
+	0xda, 0x0b, 0x7f, 0xbe, 0xf9, 0xff, 0x6b, 0xe3, 0xe0, 0xe7, 0x17, 0x37, 0x55, 0xe3, 0xfa, 0xa6,
+	0x6a, 0xbc, 0xbe, 0xa9, 0x1a, 0xff, 0xdc, 0x56, 0xe7, 0xae, 0x6f, 0xab, 0x73, 0xaf, 0x6e, 0xab,
+	0x73, 0xc7, 0xdf, 0x04, 0x98, 0xf5, 0x93, 0x5e, 0xdd, 0x27, 0x61, 0x83, 0x0c, 0x51, 0x34, 0xfe,
+	0xb4, 0x0b, 0xd1, 0x5e, 0x3f, 0xe9, 0x35, 0x2e, 0xe4, 0x57, 0xea, 0xe5, 0x10, 0xd1, 0x5e, 0x51,
+	0x7c, 0xe3, 0x7d, 0xff, 0x36, 0x00, 0x00, 0xff, 0xff, 0xb1, 0x01, 0x78, 0x7d, 0xc3, 0x0a, 0x00,
+	0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1055,6 +1246,8 @@ type MsgClient interface {
 	CreateVC(ctx context.Context, in *MsgCreateVC, opts ...grpc.CallOption) (*MsgCreateVCResponse, error)
 	UpdateVC(ctx context.Context, in *MsgUpdateVC, opts ...grpc.CallOption) (*MsgUpdateVCResponse, error)
 	RemoveVC(ctx context.Context, in *MsgRemoveVC, opts ...grpc.CallOption) (*MsgRemoveVCResponse, error)
+	BondZkCoreID(ctx context.Context, in *MsgBondZkCoreIDRequest, opts ...grpc.CallOption) (*MsgBondZkCoreIDResponse, error)
+	SetZkContractAddress(ctx context.Context, in *MsgSetZkContractAddressRequest, opts ...grpc.CallOption) (*MsgSetZkContractAddressResponse, error)
 }
 
 type msgClient struct {
@@ -1128,6 +1321,24 @@ func (c *msgClient) RemoveVC(ctx context.Context, in *MsgRemoveVC, opts ...grpc.
 	return out, nil
 }
 
+func (c *msgClient) BondZkCoreID(ctx context.Context, in *MsgBondZkCoreIDRequest, opts ...grpc.CallOption) (*MsgBondZkCoreIDResponse, error) {
+	out := new(MsgBondZkCoreIDResponse)
+	err := c.cc.Invoke(ctx, "/metaearth.did.Msg/BondZkCoreID", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) SetZkContractAddress(ctx context.Context, in *MsgSetZkContractAddressRequest, opts ...grpc.CallOption) (*MsgSetZkContractAddressResponse, error) {
+	out := new(MsgSetZkContractAddressResponse)
+	err := c.cc.Invoke(ctx, "/metaearth.did.Msg/SetZkContractAddress", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	CreateDid(context.Context, *MsgCreateDid) (*MsgCreateDidResponse, error)
@@ -1137,6 +1348,8 @@ type MsgServer interface {
 	CreateVC(context.Context, *MsgCreateVC) (*MsgCreateVCResponse, error)
 	UpdateVC(context.Context, *MsgUpdateVC) (*MsgUpdateVCResponse, error)
 	RemoveVC(context.Context, *MsgRemoveVC) (*MsgRemoveVCResponse, error)
+	BondZkCoreID(context.Context, *MsgBondZkCoreIDRequest) (*MsgBondZkCoreIDResponse, error)
+	SetZkContractAddress(context.Context, *MsgSetZkContractAddressRequest) (*MsgSetZkContractAddressResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -1163,6 +1376,12 @@ func (*UnimplementedMsgServer) UpdateVC(ctx context.Context, req *MsgUpdateVC) (
 }
 func (*UnimplementedMsgServer) RemoveVC(ctx context.Context, req *MsgRemoveVC) (*MsgRemoveVCResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveVC not implemented")
+}
+func (*UnimplementedMsgServer) BondZkCoreID(ctx context.Context, req *MsgBondZkCoreIDRequest) (*MsgBondZkCoreIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BondZkCoreID not implemented")
+}
+func (*UnimplementedMsgServer) SetZkContractAddress(ctx context.Context, req *MsgSetZkContractAddressRequest) (*MsgSetZkContractAddressResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetZkContractAddress not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -1295,6 +1514,42 @@ func _Msg_RemoveVC_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_BondZkCoreID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgBondZkCoreIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).BondZkCoreID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/metaearth.did.Msg/BondZkCoreID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).BondZkCoreID(ctx, req.(*MsgBondZkCoreIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_SetZkContractAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgSetZkContractAddressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).SetZkContractAddress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/metaearth.did.Msg/SetZkContractAddress",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).SetZkContractAddress(ctx, req.(*MsgSetZkContractAddressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "metaearth.did.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -1326,6 +1581,14 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveVC",
 			Handler:    _Msg_RemoveVC_Handler,
+		},
+		{
+			MethodName: "BondZkCoreID",
+			Handler:    _Msg_BondZkCoreID_Handler,
+		},
+		{
+			MethodName: "SetZkContractAddress",
+			Handler:    _Msg_SetZkContractAddress_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -2000,6 +2263,136 @@ func (m *MsgRemoveVCResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgBondZkCoreIDRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgBondZkCoreIDRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgBondZkCoreIDRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.CoreInfo != nil {
+		{
+			size, err := m.CoreInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Creator) > 0 {
+		i -= len(m.Creator)
+		copy(dAtA[i:], m.Creator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgBondZkCoreIDResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgBondZkCoreIDResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgBondZkCoreIDResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgSetZkContractAddressRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSetZkContractAddressRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSetZkContractAddressRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.ContractInfo != nil {
+		{
+			size, err := m.ContractInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Creator) > 0 {
+		i -= len(m.Creator)
+		copy(dAtA[i:], m.Creator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgSetZkContractAddressResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSetZkContractAddressResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSetZkContractAddressResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -2313,6 +2706,58 @@ func (m *MsgRemoveVC) Size() (n int) {
 }
 
 func (m *MsgRemoveVCResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgBondZkCoreIDRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Creator)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.CoreInfo != nil {
+		l = m.CoreInfo.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgBondZkCoreIDResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgSetZkContractAddressRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Creator)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.ContractInfo != nil {
+		l = m.ContractInfo.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgSetZkContractAddressResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4334,6 +4779,342 @@ func (m *MsgRemoveVCResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgRemoveVCResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgBondZkCoreIDRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgBondZkCoreIDRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgBondZkCoreIDRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Creator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CoreInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.CoreInfo == nil {
+				m.CoreInfo = &ZkAuthClaimCoreIdInfo{}
+			}
+			if err := m.CoreInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgBondZkCoreIDResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgBondZkCoreIDResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgBondZkCoreIDResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSetZkContractAddressRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSetZkContractAddressRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSetZkContractAddressRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Creator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ContractInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.ContractInfo == nil {
+				m.ContractInfo = &ZkContractAddressInfo{}
+			}
+			if err := m.ContractInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSetZkContractAddressResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSetZkContractAddressResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSetZkContractAddressResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

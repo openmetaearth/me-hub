@@ -1,0 +1,29 @@
+syntax = "proto3";
+package metaearth.did;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/openmetaearth/me-hub/x/did/types";
+
+//AuthV3Validator,state,IdentityTreeStore
+enum ZkContractAddressType {
+  option (gogoproto.goproto_enum_stringer) = true;
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  PROXY_AUTH_V3_VALIDATOR = 0 [(gogoproto.enumvalue_customname) = "PROXY_AUTH_V3_VALIDATOR"];
+  PROXY_STATE = 1 [(gogoproto.enumvalue_customname) = "PROXY_STATE"];
+  PROXY_IDENTITY_TREE_STORE = 2 [(gogoproto.enumvalue_customname) = "PROXY_IDENTITY_TREE_STORE"];
+}
+
+message ZkAuthClaimCoreIdInfo {
+  bytes core_id = 1;
+  bytes auth_proof = 2;
+  uint64 nonce = 3;
+  int64 expires_at = 4;
+}
+
+message ZkContractAddressInfo {
+  string contract_address = 1;
+  ZkContractAddressType type = 2;
+}

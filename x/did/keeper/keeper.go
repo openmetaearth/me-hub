@@ -13,20 +13,26 @@ import (
 )
 
 type Keeper struct {
-	cdc       codec.Codec
-	storeKey  storetypes.StoreKey
-	daoKeeper types.DaoKeeper
+	cdc           codec.Codec
+	storeKey      storetypes.StoreKey
+	daoKeeper     types.DaoKeeper
+	evmKeeper     types.EVMKeeper
+	accountKeeper types.AccountKeeper
 }
 
 func NewKeeper(
 	cdc codec.Codec,
 	storeKey storetypes.StoreKey,
 	daoKeeper types.DaoKeeper,
+	evmKeeper types.EVMKeeper,
+	accountKeeper types.AccountKeeper,
 ) *Keeper {
 	return &Keeper{
-		cdc:       cdc,
-		storeKey:  storeKey,
-		daoKeeper: daoKeeper,
+		cdc:           cdc,
+		storeKey:      storeKey,
+		daoKeeper:     daoKeeper,
+		evmKeeper:     evmKeeper,
+		accountKeeper: accountKeeper,
 	}
 }
 

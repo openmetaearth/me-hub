@@ -431,6 +431,8 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[didtypes.StoreKey],
 		a.DaoKeeper,
+		a.EvmKeeper,
+		a.AccountKeeper,
 	)
 
 	a.KycKeeper = kyckeeper.NewKeeper(

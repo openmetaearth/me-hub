@@ -30,7 +30,7 @@ func DidKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
 
-	k := keeper.NewKeeper(cdc, storeKey, nil)
+	k := keeper.NewKeeper(cdc, storeKey, nil, nil, nil)
 	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())
 
 	return k, ctx

@@ -31,6 +31,9 @@ var (
 	FilterLoggerPrefix = []byte{0x50}
 	FilterPrefix       = []byte{0x51}
 	SubAccountPrefix   = []byte{0x52}
+	ZkCoreIDInfoPrefix = []byte{0x53}
+	ZkCoreIDDidPrefix  = []byte{0x54}
+	ZkContractPrefix   = []byte{0x55}
 )
 
 func GetDIDKey(addr sdk.AccAddress) []byte {
@@ -75,4 +78,16 @@ func GetFilterKey(sid, did string, filter []byte) []byte {
 
 func GetSubAccountKey(addr string) []byte {
 	return append(SubAccountPrefix, []byte(addr)...)
+}
+
+func GetZkCoreIDInfoKey(did string) []byte {
+	return append(ZkCoreIDInfoPrefix, []byte(did)...)
+}
+
+func GetZkCoreIDDidKey(coreID []byte) []byte {
+	return append(ZkCoreIDDidPrefix, coreID...)
+}
+
+func GetZkContractAddressKey(contractType ZkContractAddressType) []byte {
+	return append(ZkContractPrefix, byte(contractType))
 }
