@@ -221,6 +221,7 @@ func New(
 		DaoKeeper:              app.DaoKeeper,
 		StakingKeeper:          app.StakingKeeper,
 		KycKeeper:              app.KycKeeper,
+		DidKeeper:              app.DidKeeper,
 		WasmViewKeeper:         app.WasmKeeper,
 	})
 	if err != nil {

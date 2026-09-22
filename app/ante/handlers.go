@@ -22,6 +22,7 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 
 		ethante.NewEthValidateBasicDecorator(options.EvmKeeper),
 		ethante.NewEthSigVerificationDecorator(options.EvmKeeper),
+		NewZkContractDIDDecorator(options.DidKeeper),
 		ethante.NewEthAccountVerificationDecorator(options.AccountKeeper, options.EvmKeeper),
 		ethante.NewCanTransferDecorator(options.EvmKeeper),
 		ethante.NewEthGasConsumeDecorator(options.EvmKeeper, options.MaxTxGasWanted),

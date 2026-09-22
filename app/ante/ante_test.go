@@ -73,6 +73,7 @@ func (s *AnteTestSuite) SetupTest(isCheckTx bool) {
 			DaoKeeper:       mockDaoKeeper,
 			StakingKeeper:   mockStakingKeeper,
 			KycKeeper:       s.app.KycKeeper,
+			DidKeeper:       s.app.DidKeeper,
 			WasmViewKeeper:  s.app.WasmKeeper,
 		},
 	)

@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-
 	"github.com/openmetaearth/me-hub/x/did/types"
 )
 
@@ -114,3 +113,24 @@ func (k Keeper) verifyZkAuthProof(ctx sdk.Context, caller common.Address, authPr
 	return nil, nil, errors.Wrap(types.ErrInvalidZkProof, "missing challenge response field")
 }
 
+func (k Keeper) IsAllowToUseZkContractVerify(ctx sdk.Context, callerAddr sdk.AccAddress) (bool, error) {
+	did, found := k.GetDID(ctx, callerAddr)
+	if !found {
+		did, found = k.GetSubAccountDidMap(ctx, callerAddr.String())
+		if !found {
+			return false, errors.Wrap(types.ErrDidNotFound, "did not found for address")
+		}
+	}
+
+	didInfo, found := k.GetDidInfo(ctx, did)
+	if !found {
+		return false, errors.Wrapf(types.ErrDidNotFound, "did-info not found,did = %s", did)
+	}
+	if didInfo.Status != types.DID_STATUS_ACTIVE {
+		return false, types.ErrDidNotActive
+	}
+	if didInfo.KycLevel < types.KYC_LEVEL_TWO {
+		return false, errors.Wrap(types.ErrUnauthorized, "kyc level is not enough")
+	}
+	return true, nil
+}

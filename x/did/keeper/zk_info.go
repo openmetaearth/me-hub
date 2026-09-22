@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/openmetaearth/me-hub/x/did/types"
 )
@@ -46,4 +47,21 @@ func (k Keeper) GetZkContractAddress(ctx sdk.Context, contractType types.ZkContr
 	var info types.ZkContractAddressInfo
 	k.cdc.MustUnmarshal(bz, &info)
 	return &info
+}
+
+// IsZkContractAddress reports whether address is one of the proxy addresses
+// configured through SetZkContractAddress.
+func (k Keeper) IsZkContractAddress(ctx sdk.Context, address common.Address) bool {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ZkContractPrefix)
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var info types.ZkContractAddressInfo
+		k.cdc.MustUnmarshal(iterator.Value(), &info)
+		if common.IsHexAddress(info.ContractAddress) && common.HexToAddress(info.ContractAddress) == address {
+			return true
+		}
+	}
+	return false
 }

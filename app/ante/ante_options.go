@@ -29,6 +29,7 @@ type HandlerOptions struct {
 	DaoKeeper      DaoKeeper
 	StakingKeeper  StakingKeeper
 	KycKeeper      KycKeeper
+	DidKeeper      DidKeeper
 	WasmViewKeeper wasmtypes.ViewKeeper
 	TxFeeChecker   ante.TxFeeChecker
 }
@@ -51,6 +52,9 @@ func (options HandlerOptions) validate() error {
 	}
 	if options.DaoKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "dao keeper is required for AnteHandler")
+	}
+	if options.DidKeeper == nil {
+		return errorsmod.Wrap(errortypes.ErrLogic, "did keeper is required for AnteHandler")
 	}
 	if options.StakingKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "staking keeper is required for AnteHandler")

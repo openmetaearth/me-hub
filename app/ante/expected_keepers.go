@@ -4,6 +4,7 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	wbanktypes "github.com/openmetaearth/me-hub/x/wbank/types"
@@ -30,6 +31,13 @@ type StakingKeeper interface {
 type KycKeeper interface {
 	GetDID(ctx sdk.Context, addr sdk.AccAddress) (string, bool)
 	GetKYC(ctx sdk.Context, did string) (kyc didtypes.Credential, found bool)
+}
+
+type DidKeeper interface {
+	IsZkContractAddress(ctx sdk.Context, address common.Address) bool
+	IsAllowToUseZkContractVerify(ctx sdk.Context, callerAddr sdk.AccAddress) (bool, error)
+	GetDID(ctx sdk.Context, addr sdk.AccAddress) (string, bool)
+	GetDidInfo(ctx sdk.Context, did string) (didtypes.DidInfo, bool)
 }
 
 type WasmKeeper interface {
