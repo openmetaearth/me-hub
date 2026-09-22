@@ -214,6 +214,11 @@ USER_ADDR_ROLLAPP_SYNC=                                                  # 84
 # Docker 运行时镜像（创世/keys 仍用宿主机 ${BIN_DIR} 二进制）
 MED_IMAGE="${MED_IMAGE:-ghcr.io/openmetaearth/med:v2.0.17}"
 ROLLAPP_IMAGE="${ROLLAPP_IMAGE:-harbor.starex.xyz/rollapp/rollappd:v1.0.21}"
+# hub / rollapp 镜像都以 root 跑，容器内 home 固定这两个路径（DA/rly 仍用 ubuntu:24.04）
+HUB_CONTAINER_HOME="${HUB_CONTAINER_HOME:-/root/.mechain}"
+ROLLAPP_CONTAINER_HOME="${ROLLAPP_CONTAINER_HOME:-/root/.rollapp}"
+HUB_MIN_GAS_PRICES="${HUB_MIN_GAS_PRICES:-0.02umec}"
+ROLLAPP_MIN_GAS_PRICES="${ROLLAPP_MIN_GAS_PRICES:-0.001umec}"
 
 # ME Hub 目录
 ME_NODES_HOME="${BASE_DIR}/nodes/hub-nodes"
@@ -346,8 +351,11 @@ then
     DISTR_EPOCH_IDENTIFIER="day"
     # 激励模块参数，生产环境应该使用2周"14d"，测试环境使用“60s”，控制代币激励的锁定时间
     LOCKABLE_DURATIONS="60s"
-    # voting_period和max_deposit_period：测试环境 600s，正式环境 2 天
+    # max_deposit_period：测试环境 600s，正式环境 2 天
     MAX_DEPOSIT_PERIOD="600s"
+    # voting_period：测试环境 3 分钟；expedited 必须严格小于 voting_period
+    VOTING_PERIOD="180s"
+    EXPEDITED_VOTING_PERIOD="90s"
     # 出块速度。测试环境 500ms，正式环境目前生产为 5s。1330 块大约 11 分钟
     ME_TIMEOUT_COMMIT="500ms"
 else
@@ -355,6 +363,8 @@ else
     DISTR_EPOCH_IDENTIFIER="day"
     LOCKABLE_DURATIONS="14d"
     MAX_DEPOSIT_PERIOD="172800s"
+    VOTING_PERIOD="172800s"
+    EXPEDITED_VOTING_PERIOD="300s"
     ME_TIMEOUT_COMMIT="5s"
 fi
 REGION_HIGHT_WAIT="17280"
@@ -430,6 +440,8 @@ rollapp_user_dev_operator_TOKEN_AMOUNT="0$DENOM"
 BATCH_SUBMIT_MAX_TIME="60s"
 #最大排序器数量
 MAX_SEQUENCERS=10
+# Hub 上只注册 node1。node2/node3 是全节点，不 create-sequencer。
+# 三个节点同等 bond 时，v3 upgrade backfill 可能把 proposer 指到 node2。
 SEQUENCER_MONIKER_NAME1="sequencer1"
 SEQUENCER_MONIKER_NAME2="sequencer2"
 SEQUENCER_MONIKER_NAME3="sequencer3"
@@ -911,77 +923,52 @@ echo ""
 watch_addr_balance_type med ibc ${USER_ADDR_ME_IBC_ROLLAPP} "--home ${ME_NODE1_HOME}"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#              Creat RollApp Node2-Node3                                       #"
+echo "#              初始化 RollApp Node2/Node3 为 full node（不出块）                  #"
 echo "# ---------------------------------------------------------------------------- #"
 echo "检查静态配置："
 echo "dym_account_name: $(grep '^dym_account_name' ${RAPP_NODES_HOME}/node1/config/dymint.toml)"
 echo "keyring_home_dir: $(grep '^keyring_home_dir' ${RAPP_NODES_HOME}/node1/config/dymint.toml)"
 echo "da_config: $(grep '^da_config' ${RAPP_NODES_HOME}/node1/config/dymint.toml)"
 echo "settlement_node_address: $(grep '^settlement_node_address' ${RAPP_NODES_HOME}/node1/config/dymint.toml)"
-rollapp_init_sync_node() {
+# full node：复制 node1 的 genesis/dymint，保留本机 priv_validator_key（不在 Hub 注册）。
+# 不改 dym_account_name，继续用 sequencer 只做 settlement 查询，不会出块。
+rollapp_init_full_node() {
     local NODE_NAME=$1
     local NODE_HOME="${RAPP_NODES_HOME}/${NODE_NAME}"
     local NODE_IP=$2
-    local SEQ_NAME=$3
 
     local CONFIG_DIRECTORY="$NODE_HOME/config"
     local TENDERMINT_CONF="$CONFIG_DIRECTORY/config.toml"
-    local ROLLAPP_APP_CONFIG_FILE="$CONFIG_DIRECTORY/app.toml"
     local CLIENT_CONFIG_FILE="$CONFIG_DIRECTORY/client.toml"
     local DYMINT_CONFIG_FILE="$CONFIG_DIRECTORY/dymint.toml"
 
     echo "========================================"
-    echo "init node: ${NODE_NAME} - ${NODE_HOME}"
-
+    echo "init full node: ${NODE_NAME} - ${NODE_HOME}"
 
     rollappd init ${NODE_NAME} --chain-id="${ROLLAPP_CHAIN_ID}" --home ${NODE_HOME}
-    # 显示sequencer信息
-    rollappd dymint show-sequencer --home ${NODE_HOME} > ${NODE_HOME}/sequencer.info
-    # 复制配置文件
     cp -rf ${RAPP_NODE1_HOME}/config/app.toml ${CONFIG_DIRECTORY}/
     cp -rf ${RAPP_NODE1_HOME}/config/client.toml ${CONFIG_DIRECTORY}/
     cp -rf ${RAPP_NODE1_HOME}/config/config.toml ${CONFIG_DIRECTORY}/
     cp -rf ${RAPP_NODE1_HOME}/config/dymint.toml ${CONFIG_DIRECTORY}/
-    # 复制genesis和gentx
     cp -rf ${RAPP_NODE1_HOME}/config/genesis.json ${CONFIG_DIRECTORY}/
     cp -rf ${RAPP_NODE1_HOME}/config/gentx ${CONFIG_DIRECTORY}/
-    # 修改配置文件
+    mkdir -p "${NODE_HOME}/sequencer_keys"
+    cp -rf ${RAPP_NODE1_HOME}/sequencer_keys/. "${NODE_HOME}/sequencer_keys/"
     sed -i "s|^moniker = .*$|moniker = \"${NODE_NAME}\"|" "${TENDERMINT_CONF}"
     sed -i "s|^node = .*$|node = \"tcp://${NODE_IP}:26657\"|" "${CLIENT_CONFIG_FILE}"
-    sed -i "s|^dym_account_name = .*$|dym_account_name = \"${SEQ_NAME}\"|" "${DYMINT_CONFIG_FILE}"
-    # 验证配置
     echo "检查静态配置："
     echo "dym_account_name: $(grep '^dym_account_name' ${DYMINT_CONFIG_FILE})"
     echo "keyring_home_dir: $(grep '^keyring_home_dir' ${DYMINT_CONFIG_FILE})"
     echo "da_config: $(grep '^da_config' ${DYMINT_CONFIG_FILE})"
     echo "settlement_node_address: $(grep '^settlement_node_address' ${DYMINT_CONFIG_FILE})"
 }
-rollapp_init_sync_node node2 ${RAPP_NODE2_IP} sequencer2
-rollapp_init_sync_node node3 ${RAPP_NODE3_IP} sequencer3
+rollapp_init_full_node node2 ${RAPP_NODE2_IP}
+rollapp_init_full_node node3 ${RAPP_NODE3_IP}
 
-
-# rollapp node2 恢复 seq2 用户
-if [ -z "${USER_ADDR_ROLLAPP_SEQUENCER2}" ]; then
-    echo "恢复 sequencer2 账户..."
-    mkdir -p "${RAPP_NODES_HOME}"/node2/sequencer_keys/keyring-${KEYRING_BACKEND_NAME}
-    rollapp_seq2=$(add_key  "rollappd"  "sequencer2" ${USER_SEQ_ME_SEQUENCER2} "--home "${RAPP_NODES_HOME}"/node2/sequencer_keys")
-    echo "sequencer2 账户恢复完成"
-fi
-# rollapp node3 恢复 seq3 用户
-if [ -z "${USER_ADDR_ROLLAPP_SEQUENCER3}" ]; then
-    echo "恢复 sequencer3 账户..."
-    mkdir -p "${RAPP_NODES_HOME}"/node3/sequencer_keys/keyring-${KEYRING_BACKEND_NAME}
-    rollapp_seq3=$(add_key  "rollappd"  "sequencer3" ${USER_SEQ_ME_SEQUENCER3} "--home "${RAPP_NODES_HOME}"/node3/sequencer_keys")
-    echo "sequencer3 账户恢复完成"
-fi
 echo "# ---------------------------------------------------------------------------- #"
-echo "#      创建rollapp Node2-Node3 排序器。                                          #"
+echo "#      Node2/Node3 是 full node，不在 Hub 上 create-sequencer、不参与出块。        #"
 echo "# ---------------------------------------------------------------------------- #"
-
-create_sequencer ${SEQUENCER_MONIKER_NAME2} node2 sequencer2
-create_sequencer ${SEQUENCER_MONIKER_NAME3} node3 sequencer3
-
-echo "检查排序器状态shell:med q sequencer list-sequencer --home ${ME_NODE1_HOME}"
+echo "检查排序器状态（应只有 node1/sequencer）: med q sequencer list-sequencer --home ${ME_NODE1_HOME}"
 med q sequencer list-sequencer --home ${ME_NODE1_HOME}
 
 echo "# ---------------------------------------------------------------------------- #"
@@ -994,14 +981,14 @@ cat >>docker-compose.yml<<EOF
       ${Docker_Network_Name}:
         ipv4_address: ${RAPP_NODE2_IP}
     volumes:
-      - ${RAPP_NODES_HOME}/node2:/root/.rollapp
+      - ${RAPP_NODES_HOME}/node2:${ROLLAPP_CONTAINER_HOME}
   rollapp-node3:
     <<: *rollapp-template
     networks:
       ${Docker_Network_Name}:
         ipv4_address: ${RAPP_NODE3_IP}
     volumes:
-      - ${RAPP_NODES_HOME}/node3:/root/.rollapp
+      - ${RAPP_NODES_HOME}/node3:${ROLLAPP_CONTAINER_HOME}
 EOF
 echo "# ---------------------------------------------------------------------------- #"
 echo "#                              RollApp读取Node ID                               #"
@@ -1259,7 +1246,7 @@ sed -i'' -e "/\[json-rpc\]/,+9 s/^ws-address *= .*/ws-address = \"0.0.0.0:8546\"
 sed -i 's/127.0.0.1:6065/0.0.0.0:6065/' "${ME_NODE1_HOME}/config/app.toml"
 
 #节点接受交易的最低 gas 价格。交易费用 = gas 价格 × gas 使用量。可以通过治理提案调整，不同验证人可以设置不同的值。
-sed -i'' -e 's/^minimum-gas-prices *= .*/minimum-gas-prices = "0.02umec"/' "${ME_NODE1_HOME}/config/app.toml"
+sed -i'' -e 's/^minimum-gas-prices *= .*/minimum-gas-prices = "'"${HUB_MIN_GAS_PRICES}"'"/' "${ME_NODE1_HOME}/config/app.toml"
 # default: the last 362880 states are kept, pruning at 10 block intervals
 # nothing: all historic states will be saved, nothing will be deleted (i.e. archiving node)
 # everything: 2 latest states will be kept; pruning at 10 block intervals.
@@ -1288,16 +1275,16 @@ set_gov_params() {
     echo "# ---------------------------------------------------------------------------- #"
     jq '.app_state.gov.deposit_params.min_deposit[0].denom = "umec"' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
     jq --arg amount "$ME_MIN_DEPOSIT_AMOUNT" '.app_state.gov.deposit_params.min_deposit[0].amount = $amount' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
-    jq --arg period "${MAX_DEPOSIT_PERIOD}" '.app_state.gov.voting_params.voting_period = $period' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
+    jq --arg period "${VOTING_PERIOD}" '.app_state.gov.voting_params.voting_period = $period' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
     jq --arg period "${MAX_DEPOSIT_PERIOD}" '.app_state.gov.deposit_params.max_deposit_period = $period' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
     jq '.app_state.gov.params.min_deposit[0].denom = "umec"' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
     jq --arg amount "$ME_MIN_DEPOSIT_AMOUNT" '.app_state.gov.params.min_deposit[0].amount = $amount' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
     #flase为不销毁，用于控制否决（veto）投票的押金处理方式：当设置为 true 时：用于否决投票的代币将被销毁（永久从流通中移除），当设置为 false 时：用于否决投票的代币将退还给投票者
     jq '.app_state.gov.params.burn_vote_veto = false' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
-    jq --arg period "${MAX_DEPOSIT_PERIOD}" '.app_state.gov.params.voting_period = $period' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
+    jq --arg period "${VOTING_PERIOD}" '.app_state.gov.params.voting_period = $period' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
     jq --arg period "${MAX_DEPOSIT_PERIOD}" '.app_state.gov.params.max_deposit_period = $period' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
     # expedited_voting_period 必须小于 voting_period，否则 genesis validate 失败
-    jq --arg period "300s" 'if .app_state.gov.params.expedited_voting_period then .app_state.gov.params.expedited_voting_period = $period else . end' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
+    jq --arg period "${EXPEDITED_VOTING_PERIOD}" 'if .app_state.gov.params.expedited_voting_period then .app_state.gov.params.expedited_voting_period = $period else . end' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
 }
 
 set_hub_params() {
@@ -1697,9 +1684,9 @@ x-me-template: &me-template
   command:
     - start
     - --home
-    - /root/.mechain
+    - ${HUB_CONTAINER_HOME}
     - --minimum-gas-prices
-    - "0.02umec"
+    - "${HUB_MIN_GAS_PRICES}"
 
 x-rollapp-template: &rollapp-template
   restart: unless-stopped
@@ -1714,7 +1701,9 @@ x-rollapp-template: &rollapp-template
   command:
     - start
     - --home
-    - /root/.rollapp
+    - ${ROLLAPP_CONTAINER_HOME}
+    - --minimum-gas-prices
+    - "${ROLLAPP_MIN_GAS_PRICES}"
 
 networks:
   ${Docker_Network_Name}:
@@ -1733,7 +1722,7 @@ services:
       - 1317:1317
       - 8545:8545
     volumes:
-      - ${ME_NODES_HOME}/node1:/root/.mechain
+      - ${ME_NODES_HOME}/node1:${HUB_CONTAINER_HOME}
 
   hub-node2:
     <<: *me-template
@@ -1741,7 +1730,7 @@ services:
       ${Docker_Network_Name}:
         ipv4_address: ${ME_NODE2_IP}
     volumes:
-      - ${ME_NODES_HOME}/node2:/root/.mechain
+      - ${ME_NODES_HOME}/node2:${HUB_CONTAINER_HOME}
 
   hub-node3:
     <<: *me-template
@@ -1749,7 +1738,7 @@ services:
       ${Docker_Network_Name}:
         ipv4_address: ${ME_NODE3_IP}
     volumes:
-      - ${ME_NODES_HOME}/node3:/root/.mechain
+      - ${ME_NODES_HOME}/node3:${HUB_CONTAINER_HOME}
 
   hub-node4:
     <<: *me-template
@@ -1757,7 +1746,7 @@ services:
       ${Docker_Network_Name}:
         ipv4_address: ${ME_NODE4_IP}
     volumes:
-      - ${ME_NODES_HOME}/node4:/root/.mechain
+      - ${ME_NODES_HOME}/node4:${HUB_CONTAINER_HOME}
 EOF
 docker compose up -d hub-node1
 echo "等待5s服务完全启动"
@@ -3186,9 +3175,9 @@ jq --arg denom ${DENOM} '.app_state.gov.deposit_params.min_deposit[0].denom = $d
 jq --arg amount ${ROLLAPP_MIN_DEPOSIT_AMOUNT} '.app_state.gov.deposit_params.min_deposit[0].amount = $amount' "${ROLLAPP_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ROLLAPP_GENESIS_FILE}"
 # rollapp 使用 cosmos-sdk v0.46，gov GenesisState 只有 deposit_params/voting_params，没有 params
 jq --arg period "${MAX_DEPOSIT_PERIOD}" '.app_state.gov.deposit_params.max_deposit_period = $period' "${ROLLAPP_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ROLLAPP_GENESIS_FILE}"
-jq --arg period "${MAX_DEPOSIT_PERIOD}" '.app_state.gov.voting_params.voting_period = $period' "${ROLLAPP_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ROLLAPP_GENESIS_FILE}"
+jq --arg period "${VOTING_PERIOD}" '.app_state.gov.voting_params.voting_period = $period' "${ROLLAPP_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ROLLAPP_GENESIS_FILE}"
 jq 'del(.app_state.gov.params)' "${ROLLAPP_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ROLLAPP_GENESIS_FILE}"
-echo "已更新 gov 参数 voting_period/max_deposit_period=${MAX_DEPOSIT_PERIOD} (sdk v0.46 fields only)"
+echo "已更新 gov 参数 voting_period=${VOTING_PERIOD} max_deposit_period=${MAX_DEPOSIT_PERIOD} (sdk v0.46 fields only)"
 
 echo "创世文件genesis配置完成"
 
@@ -3317,8 +3306,10 @@ sed -i "/^da_config/s/TOKEN123/${light_token}/" ${ROLLAPP_DYMINT_FILE}
 echo "------------------------"
 sed -n '/^keyring_home_dir/p' ${ROLLAPP_DYMINT_FILE}
 echo "绑定容器内地址非物理机地址"
-sed -i '/^keyring_home_dir/s#=.*#= "/root/.rollapp/sequencer_keys"#' ${ROLLAPP_DYMINT_FILE}
+sed -i '/^keyring_home_dir/s#=.*#= "'"${ROLLAPP_CONTAINER_HOME}"'/sequencer_keys"#' ${ROLLAPP_DYMINT_FILE}
+sed -i 's|^dym_account_name = .*$|dym_account_name = "sequencer"|' ${ROLLAPP_DYMINT_FILE}
 sed -n '/^keyring_home_dir/p' ${ROLLAPP_DYMINT_FILE}
+sed -n '/^dym_account_name/p' ${ROLLAPP_DYMINT_FILE}
 #===================================================================
 
 echo "设置DAO和devOperator地址"
@@ -3335,7 +3326,7 @@ sed -i '/^laddr/s/127.0.0.1/0.0.0.0/' "${ROLLAPP_TENDERMINT_CONFIG_FILE}"
 echo "gas费 0.001 umec"
 # sed -i'' -e "s/^minimum-gas-prices *= .*/minimum-gas-prices = \"0$DENOM\"/" "$APP_CONFIG_FILE"
 # sed -i '/^minimum-gas-prices/s/=.*/= "0.001urax,0.001umec"/' "$APP_CONFIG_FILE"
-sed -i '/^minimum-gas-prices/s/=.*/= "0.001umec"/' "${ROLLAPP_CONFIG_FILE}"
+sed -i '/^minimum-gas-prices/s/=.*/= "'"${ROLLAPP_MIN_GAS_PRICES}"'"/' "${ROLLAPP_CONFIG_FILE}"
 
 
 echo "设置API端口"
@@ -3365,7 +3356,7 @@ cat >>docker-compose.yml<<EOF
       - 9290:9090
       - 3317:1317
     volumes:
-      - ${RAPP_NODE1_HOME}:/root/.rollapp
+      - ${RAPP_NODE1_HOME}:${ROLLAPP_CONTAINER_HOME}
 EOF
 
 echo "# ---------------------------------------------------------------------------- #"
@@ -3378,48 +3369,30 @@ then
     check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
     echo "med q rollapp list --home ${ME_NODE1_HOME}"
     med q rollapp list --home ${ME_NODE1_HOME}
-    echo "从${ME_STAKING_AMOUNT_NODE1_REGION}提取SEQUENCER所需额度${ME_SEND_SEQUENCER1_AMOUNT}"
+    echo "从${ME_STAKING_AMOUNT_NODE1_REGION}提取 node1 sequencer 额度${ME_SEND_SEQUENCER1_AMOUNT}"
     echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_SEQUENCER}   ${ME_SEND_SEQUENCER1_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
     txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_SEQUENCER}   ${ME_SEND_SEQUENCER1_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
     echo "查询hash是否上链: ${txhash}"
     check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
-    echo "从${ME_STAKING_AMOUNT_NODE1_REGION}提取SEQUENCER2所需额度${ME_SEND_SEQUENCER2_AMOUNT}"
-    echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_SEQUENCER2}   ${ME_SEND_SEQUENCER2_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
-    txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_SEQUENCER2}   ${ME_SEND_SEQUENCER2_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-    echo "查询hash是否上链: ${txhash}"
-    check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
-    echo "从${ME_STAKING_AMOUNT_NODE1_REGION}提取SEQUENCER3所需额度${ME_SEND_SEQUENCER3_AMOUNT}"
-    echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_SEQUENCER3}   ${ME_SEND_SEQUENCER3_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
-    txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_SEQUENCER3}   ${ME_SEND_SEQUENCER3_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-    echo "查询hash是否上链: ${txhash}"
-    check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
 else
-    echo "提交资管以下参数"
+    echo "提交资管以下参数（只给 node1 sequencer 打 bond）"
     echo "所属Rollapp:${ROLLAPP_CHAIN_ID}"
     echo "最大排数:${MAX_SEQUENCERS}"
-    echo "sequence地址:${USER_ADDR_ME_SEQUENCER}、${USER_ADDR_ME_SEQUENCER2}、${USER_ADDR_ME_SEQUENCER3}"
+    echo "sequence地址:${USER_ADDR_ME_SEQUENCER}"
     read -rp "等候资管执行rollapp create-rollapp后回车" 
     med q rollapp list --home ${ME_NODE1_HOME}
     read -rp "排序器列表是否一致,一致则回车,否则请资管重新执行rollapp create-rollapp"
     echo "${USER_ADDR_ME_SEQUENCER}账户信息如下"
-    med query bank balances ${USER_ADDR_ME_SEQUENCER} --home ${ME_NODE1_HOME}-o json
-    echo "${USER_ADDR_ME_SEQUENCER}账户信息如下"
-    med query bank balances ${USER_ADDR_ME_SEQUENCER2} --home ${ME_NODE1_HOME}-o json
-    echo "${USER_ADDR_ME_SEQUENCER}账户信息如下"
-    med query bank balances ${USER_ADDR_ME_SEQUENCER3} --home ${ME_NODE1_HOME}-o json
+    med query bank balances ${USER_ADDR_ME_SEQUENCER} --home ${ME_NODE1_HOME} -o json
     read -rp "请确认上面是否存在足够的余额,否则需要资管转账到对应账户,金额应该大于${SEQUENCER_AMOUNT},回车继续,余额不足请确认转账后按N" REPLY
     if [[ $REPLY =~ ^[Nn]$ ]]
     then
         echo "${USER_ADDR_ME_SEQUENCER}账户信息如下"
-        med query bank balances ${USER_ADDR_ME_SEQUENCER} --home ${ME_NODE1_HOME}-o json
-        echo "${USER_ADDR_ME_SEQUENCER2}账户信息如下"
-        med query bank balances ${USER_ADDR_ME_SEQUENCER2} --home ${ME_NODE1_HOME}-o json
-        echo "${USER_ADDR_ME_SEQUENCER3}账户信息如下"
-        med query bank balances ${USER_ADDR_ME_SEQUENCER3} --home ${ME_NODE1_HOME}-o json
+        med query bank balances ${USER_ADDR_ME_SEQUENCER} --home ${ME_NODE1_HOME} -o json
     fi
     read -rp "请确认上面是否存在足够的余额" 
 fi
-echo "me 绑定排序器bind sequencer"
+echo "me 绑定排序器 bind sequencer（仅 node1）"
 echo "获取Node1排序器公钥"
 echo "sequencer.info 内容:"
 cat ${RAPP_NODE1_HOME}/sequencer.info
