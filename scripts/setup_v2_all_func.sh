@@ -27,7 +27,7 @@ HUB_IBC_FEES="${HUB_IBC_FEES:-100000umec}"
 ROLLAPP_IBC_FEES="${ROLLAPP_IBC_FEES:-2000urax}"
 IBC_WAIT_SECONDS="${IBC_WAIT_SECONDS:-180}"
 UPGRADE_NAME="${UPGRADE_NAME:-v3.0.0}"
-HALT_OFFSET="${HALT_OFFSET:-100}"
+HALT_OFFSET="${HALT_OFFSET:-50}"
 GOV_DEPOSIT="${GOV_DEPOSIT:-100000000umec}"
 GOV_FEES="${GOV_FEES:-200000umec}"
 VOTE_FEES="${VOTE_FEES:-10000umec}"
@@ -333,8 +333,6 @@ proposal() {
     med q gov proposal "${proposal_id}" --home "${ME_NODE1_HOME}"
     echo "votes:"
     med q gov votes "${proposal_id}" --home "${ME_NODE1_HOME}" || true
-    echo "upgrade plan:"
-    med q upgrade plan --home "${ME_NODE1_HOME}" || true
 }
 
 rollapp_upgrade_info_name() {
@@ -404,11 +402,11 @@ require_rollapp_halted() {
 # 由 global_dao 提交 software-upgrade 到 v3.0.0，然后查询提案。
 propose() {
     need_base_dir
-    require_rollapp_halted
+    # require_rollapp_halted # 暂时注释掉，因为rollapp提案后，进程停了，查询不到，人工感知。
     local height halt txhash proposal_id
     height="$(hub_height)"
     height="${height//\"/}"
-    halt="${HALT_HEIGHT:-$((height + HALT_OFFSET + 20))}"
+    halt="${HALT_HEIGHT:-$((height + HALT_OFFSET))}"
     echo "# ---------------------------------------------------------------------------- #"
     echo "#  提交 software-upgrade ${UPGRADE_NAME}  height=${height} halt=${halt}        #"
     echo "# ---------------------------------------------------------------------------- #"
@@ -596,14 +594,13 @@ hub_upgrade() {
     echo "# ---------------------------------------------------------------------------- #"
     echo "#  Phase B Hub 升级  image=${MED_V3_IMAGE}  home=${HUB_CONTAINER_HOME}          #"
     echo "# ---------------------------------------------------------------------------- #"
-    require_rollapp_halted
+    # require_rollapp_halted # 暂时注释掉，因为rollapp提案后，进程停了，查询不到，人工感知。
     wait_hub_halt
     echo "停 hub + rollapp（halt 期间不要让 rollapp 继续堆 batch）"
     docker compose stop rly-rollapp "${ROLLAPP_SERVICES[@]}" "${HUB_SERVICES[@]}" || true
-    echo "pull ${MED_V3_IMAGE}"
-    docker pull "${MED_V3_IMAGE}"
+    ensure_local_image "${MED_V3_IMAGE}"
     set_compose_hub_image "${MED_V3_IMAGE}"
-    docker compose up -d "${HUB_SERVICES[@]}"
+    docker compose up -d --pull never "${HUB_SERVICES[@]}"
     docker compose stop rly-rollapp "${ROLLAPP_SERVICES[@]}" || true
     docker compose ps "${HUB_SERVICES[@]}"
     wait_hub_block
@@ -662,8 +659,6 @@ rollapp_proposal() {
     rollappd q gov proposal "${proposal_id}" --home "${RAPP_NODE1_HOME}"
     echo "votes:"
     rollappd q gov votes "${proposal_id}" --home "${RAPP_NODE1_HOME}" || true
-    echo "upgrade plan:"
-    rollappd q upgrade plan --home "${RAPP_NODE1_HOME}" || true
 }
 
 # 由 roluser 提交 rollapp software-upgrade v3.0.0（submit-legacy-proposal + --no-validate）。
@@ -673,7 +668,7 @@ rollapp_propose() {
     local height halt txhash proposal_id
     height="$(rollapp_height)"
     height="${height//\"/}"
-    halt="${ROLLAPP_HALT_HEIGHT:-$((height + ROLLAPP_HALT_OFFSET + 50))}"
+    halt="${ROLLAPP_HALT_HEIGHT:-$((height + ROLLAPP_HALT_OFFSET))}"
     echo "# ---------------------------------------------------------------------------- #"
     echo "#  rollapp software-upgrade ${UPGRADE_NAME}  height=${height} halt=${halt}     #"
     echo "#  新增模块: hubgenesis store + rollappparams (DA=${ROLLAPP_DA_LAYER})         #"
@@ -778,6 +773,17 @@ need_rollapp_v3_image() {
     fi
 }
 
+# 本地已有同名 tag 就不再 pull。Harbor 未登录时 docker pull 会 unauthorized，但镜像往往已经在机器上。
+ensure_local_image() {
+    local image="$1"
+    if docker image inspect "${image}" >/dev/null 2>&1; then
+        echo "本地已有 ${image}，跳过 pull"
+        return 0
+    fi
+    echo "pull ${image}"
+    docker pull "${image}"
+}
+
 backup_rollapp_home() {
     local home="$1"
     local bak="${home}.bak-$(date +%Y%m%d%H%M%S)"
@@ -797,7 +803,7 @@ run_3d_migration() {
             echo "error: 宿主机 rollappd 没有 run-3d-migration，请设置 ROLLAPP_V3_IMAGE 用 v3 镜像跑" >&2
             exit 1
         fi
-        out=$(docker run --rm \
+        out=$(docker run --rm --pull never \
             -v "${home}:${ROLLAPP_CONTAINER_HOME}" \
             --entrypoint rollappd \
             "${ROLLAPP_V3_IMAGE}" \
@@ -934,7 +940,7 @@ merge_dymint_toml() {
         cp -a "${old}" "${old}.pre-v3"
     fi
     tmp=$(mktemp -d)
-    if ! docker run --rm \
+    if ! docker run --rm --pull never \
         -v "${tmp}:${ROLLAPP_CONTAINER_HOME}" \
         --entrypoint rollappd \
         "${ROLLAPP_V3_IMAGE}" \
@@ -1105,8 +1111,7 @@ rollapp_upgrade() {
     echo "停 rollapp + rly-rollapp（避免 settlement 断开后继续堆 batch）"
     docker compose stop rly-rollapp "${ROLLAPP_SERVICES[@]}" || true
 
-    echo "pull ${ROLLAPP_V3_IMAGE}"
-    docker pull "${ROLLAPP_V3_IMAGE}"
+    ensure_local_image "${ROLLAPP_V3_IMAGE}"
 
     for node in "${ROLLAPP_NODE_HOMES[@]}"; do
         home="${RAPP_NODES_HOME}/${node}"
@@ -1122,11 +1127,11 @@ rollapp_upgrade() {
     done
 
     set_compose_rollapp_image
-    docker compose up -d "${ROLLAPP_SERVICES[@]}"
+    docker compose up -d --pull never "${ROLLAPP_SERVICES[@]}"
     docker compose ps "${ROLLAPP_SERVICES[@]}"
     wait_rollapp_block
     echo "Hub latest-state-info:"
-    med q rollapp latest-state-info "${ROLLAPP_CHAIN_ID}" --home "${ME_NODE1_HOME}" || true
+    med-v3 q rollapp latest-state-index "${ROLLAPP_CHAIN_ID}" --home "${ME_NODE1_HOME}" 
     echo "Phase C 完成。relayer 请另启：docker compose up -d rly-rollapp"
 }
 

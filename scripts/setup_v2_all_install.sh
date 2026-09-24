@@ -1698,6 +1698,7 @@ x-rollapp-template: &rollapp-template
     HUB_RPC_ADDR: ${ME_NODE1_IP}:26657
     DA_RPC_ADDR: ${DA_LIGHT_IP}:26658
     RE_INDEX_START: 1
+    OTEL_SDK_DISABLED: true
   command:
     - start
     - --home
