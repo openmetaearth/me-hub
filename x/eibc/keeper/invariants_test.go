@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/math"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/params"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	eibckeeper "github.com/openmetaearth/me-hub/x/eibc/keeper"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
@@ -19,12 +20,10 @@ func (suite *KeeperTestSuite) TestInvariants() {
 	// Create and set some demand orders with status pending
 	for i := 0; i < demandOrdersNum; i++ {
 		var status commontypes.Status
-		switch i % 3 {
+		switch i % 2 {
 		case 0:
 			status = commontypes.Status_PENDING
 		case 1:
-			status = commontypes.Status_REVERTED
-		case 2:
 			status = commontypes.Status_FINALIZED
 		}
 		rollappPacket := &commontypes.RollappPacket{
@@ -34,14 +33,13 @@ func (suite *KeeperTestSuite) TestInvariants() {
 			Packet:      &packet,
 		}
 		suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
-		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", demandOrderAddresses[i].String())
+		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), params.BaseDenom, demandOrderAddresses[i].String(), 1, nil)
 		err := keeper.SetDemandOrder(ctx, demandOrder)
 		suite.Require().NoError(err)
 	}
 
-	// check invariant
 	suite.Require().NotPanics(func() {
-		eibckeeper.DemandOrderCountInvariant(suite.App.EIBCKeeper)(ctx)
-		eibckeeper.UnderlyingPacketExistInvariant(suite.App.EIBCKeeper)(ctx)
+		_, broken := eibckeeper.AllInvariants(suite.App.EIBCKeeper)(ctx)
+		suite.False(broken)
 	})
 }

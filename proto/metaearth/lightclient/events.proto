@@ -1,0 +1,12 @@
+syntax = "proto3";
+package metaearth.lightclient;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/openmetaearth/me-hub/x/lightclient/types";
+
+// When the canonical client of the rollapp is set
+message EventSetCanonicalClient {
+  string rollapp_id = 1;
+  string client_id = 2;
+}

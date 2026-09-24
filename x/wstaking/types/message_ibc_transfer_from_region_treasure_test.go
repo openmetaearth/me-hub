@@ -3,6 +3,7 @@ package types
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
@@ -22,7 +23,7 @@ func TestMsgIbcTransferFromRegionTreasure_ValidateBasic(t *testing.T) {
 				SourcePort:    "transfer",
 				SourceChannel: "channel-0",
 				RegionId:      "USA",
-				Token:         sdk.NewCoin("umec", sdk.NewInt(100)),
+				Token:         sdk.NewCoin("umec", sdkmath.NewInt(100)),
 				Creator:       "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
@@ -32,7 +33,7 @@ func TestMsgIbcTransferFromRegionTreasure_ValidateBasic(t *testing.T) {
 				SourcePort:    "transfer",
 				SourceChannel: "channel-0",
 				RegionId:      "USA",
-				Token:         sdk.NewCoin("umec", sdk.NewInt(100)),
+				Token:         sdk.NewCoin("umec", sdkmath.NewInt(100)),
 				Creator:       sample.AccAddress(),
 			},
 		},

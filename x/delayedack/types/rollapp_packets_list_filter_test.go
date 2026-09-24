@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
@@ -29,8 +29,6 @@ func TestByRollappID(t *testing.T) {
 					Start: []uint8{0x00, 0x01, 0x2f, 0x74, 0x65, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x6c, 0x61, 0x70, 0x70, 0x49, 0x44, 0x31, 0x2f},
 				}, {
 					Start: []uint8{0x00, 0x02, 0x2f, 0x74, 0x65, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x6c, 0x61, 0x70, 0x70, 0x49, 0x44, 0x31, 0x2f},
-				}, {
-					Start: []uint8{0x00, 0x03, 0x2f, 0x74, 0x65, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x6c, 0x61, 0x70, 0x70, 0x49, 0x44, 0x31, 0x2f},
 				},
 			},
 		}, {
@@ -43,8 +41,6 @@ func TestByRollappID(t *testing.T) {
 					Start: []uint8{0x00, 0x01, 0x2f, 0x2f},
 				}, {
 					Start: []uint8{0x00, 0x02, 0x2f, 0x2f},
-				}, {
-					Start: []uint8{0x00, 0x03, 0x2f, 0x2f},
 				},
 			},
 		},
@@ -87,17 +83,6 @@ func TestByRollappIDByStatus(t *testing.T) {
 			want: []types.Prefix{
 				{
 					Start: []uint8{0x00, 0x02, 0x2f, 0x74, 0x65, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x6c, 0x61, 0x70, 0x70, 0x49, 0x44, 0x31, 0x2f},
-				},
-			},
-		}, {
-			name: "Test with rollappID 1 and status REVERTED",
-			args: args{
-				rollappID: "testRollappID1",
-				status:    []commontypes.Status{commontypes.Status_REVERTED},
-			},
-			want: []types.Prefix{
-				{
-					Start: []uint8{0x00, 0x03, 0x2f, 0x74, 0x65, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x6c, 0x61, 0x70, 0x70, 0x49, 0x44, 0x31, 0x2f},
 				},
 			},
 		}, {
@@ -161,16 +146,6 @@ func TestByStatus(t *testing.T) {
 			want: []types.Prefix{
 				{
 					Start: []uint8{0x00, 0x02, 0x2f},
-				},
-			},
-		}, {
-			name: "Test with status REVERTED",
-			args: args{
-				status: []commontypes.Status{commontypes.Status_REVERTED},
-			},
-			want: []types.Prefix{
-				{
-					Start: []uint8{0x00, 0x03, 0x2f},
 				},
 			},
 		},
@@ -282,6 +257,64 @@ func TestByType(t *testing.T) {
 	}
 }
 
+func TestPendingByRollappIDFromHeight(t *testing.T) {
+	type args struct {
+		rollappID  string
+		fromHeight uint64
+	}
+	tests := []struct {
+		name string
+		args args
+		want []types.Prefix
+	}{
+		{
+			name: "Test with rollappID 1 and fromHeight 100",
+			args: args{
+				rollappID:  "testRollappID1",
+				fromHeight: 100,
+			},
+			want: []types.Prefix{
+				{
+					Start: []uint8{0x00, 0x01, 0x2f, 0x74, 0x65, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x6c, 0x61, 0x70, 0x70, 0x49, 0x44, 0x31, 0x2f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x64},
+					End:   []uint8{0x00, 0x01, 0x2f, 0x74, 0x65, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x6c, 0x61, 0x70, 0x70, 0x49, 0x44, 0x31, 0x2f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
+				},
+			},
+		},
+		{
+			name: "Test with empty rollappID and fromHeight 50",
+			args: args{
+				rollappID:  "",
+				fromHeight: 50,
+			},
+			want: []types.Prefix{
+				{
+					Start: []uint8{0x0, 0x1, 0x2f, 0x2f, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x32},
+					End:   []uint8{0x0, 0x1, 0x2f, 0x2f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
+				},
+			},
+		},
+		{
+			name: "Test with rollappID 2 and fromHeight 0",
+			args: args{
+				rollappID:  "testRollappID2",
+				fromHeight: 0,
+			},
+			want: []types.Prefix{
+				{
+					Start: []uint8{0x0, 0x1, 0x2f, 0x74, 0x65, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x6c, 0x61, 0x70, 0x70, 0x49, 0x44, 0x32, 0x2f, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
+					End:   []uint8{0x0, 0x1, 0x2f, 0x74, 0x65, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x6c, 0x61, 0x70, 0x70, 0x49, 0x44, 0x32, 0x2f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			filter := types.PendingByRollappIDFromHeight(tt.args.rollappID, tt.args.fromHeight)
+			require.Equal(t, tt.want, filter.Prefixes)
+		})
+	}
+}
+
 var testRollappPackets = []commontypes.RollappPacket{
 	{
 		RollappId: "rollapp-id-1",
@@ -300,34 +333,4 @@ var testRollappPackets = []commontypes.RollappPacket{
 		Packet:    &channeltypes.Packet{},
 		Type:      commontypes.RollappPacket_ON_TIMEOUT,
 	},
-}
-
-func TestByRollappIDByStatusFiltersExactRollappID(t *testing.T) {
-	filter := types.ByRollappIDByStatus("parent", commontypes.Status_PENDING)
-
-	require.True(t, filter.FilterFunc(rollappPacketForFilter("parent", commontypes.RollappPacket_ON_RECV)))
-	require.False(t, filter.FilterFunc(rollappPacketForFilter("parent/child", commontypes.RollappPacket_ON_RECV)))
-}
-
-func TestPendingByRollappIDByMaxHeightFiltersExactRollappID(t *testing.T) {
-	filter := types.PendingByRollappIDByMaxHeight("parent", 10)
-
-	require.True(t, filter.FilterFunc(rollappPacketForFilter("parent", commontypes.RollappPacket_ON_RECV)))
-	require.False(t, filter.FilterFunc(rollappPacketForFilter("parent/child", commontypes.RollappPacket_ON_RECV)))
-}
-
-func TestByRollappIDByTypeByStatusFiltersExactRollappIDAndType(t *testing.T) {
-	filter := types.ByRollappIDByTypeByStatus("parent", commontypes.RollappPacket_ON_ACK, commontypes.Status_PENDING)
-
-	require.True(t, filter.FilterFunc(rollappPacketForFilter("parent", commontypes.RollappPacket_ON_ACK)))
-	require.False(t, filter.FilterFunc(rollappPacketForFilter("parent", commontypes.RollappPacket_ON_RECV)))
-	require.False(t, filter.FilterFunc(rollappPacketForFilter("parent/child", commontypes.RollappPacket_ON_ACK)))
-}
-
-func rollappPacketForFilter(rollappID string, packetType commontypes.RollappPacket_Type) commontypes.RollappPacket {
-	return commontypes.RollappPacket{
-		RollappId: rollappID,
-		Type:      packetType,
-		Status:    commontypes.Status_PENDING,
-	}
 }

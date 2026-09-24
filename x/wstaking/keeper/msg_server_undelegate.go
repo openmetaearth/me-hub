@@ -7,11 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/armon/go-metrics"
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/hashicorp/go-metrics"
 
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
@@ -39,27 +40,26 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 	if err != nil {
 		return nil, err
 	}
-	bondDenom := k.BondDenom(ctx)
+	bondDenom, _ := k.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
 		)
 	}
 
-	val, isFound := k.GetValidator(ctx, valAddr)
-	if isFound {
+	val, err := k.GetValidator(ctx, valAddr)
+	if err == nil {
 		if val.DelegationAmount.LT(msg.Amount.Amount) {
 			return nil, types.ErrValidatorDelegationAmount.Wrapf("validator amount: %s, requested value: %s",
 				val.DelegationAmount.String(), msg.Amount.Amount.String())
 		}
-	} else {
-		return nil, stakingtypes.ErrNoValidatorFound
 	}
 
 	// current interest balance * personal withdrawal pledge limit / district total pledge limit
-	// person_dele_inte := region.DelegateInterest.Mul(sdk.NewDecFromInt(msg.Amount.Amount).Quo(sdk.NewDecFromInt(validator.DelegationAmount)))
-	delegation, isOK := k.GetDelegation(ctx, delegatorAddress, val.GetOperator())
-	if !isOK {
+	// person_dele_inte := region.DelegateInterest.Mul(sdkmath.LegacyNewDecFromInt(msg.Amount.Amount).Quo(sdkmath.LegacyNewDecFromInt(validator.DelegationAmount)))
+	valOpAddr, _ := sdk.ValAddressFromBech32(val.GetOperator())
+	delegation, err := k.GetDelegation(ctx, delegatorAddress, valOpAddr)
+	if err != nil {
 		return nil, types.ErrEmptyDelegationDistInfo
 	}
 
@@ -99,7 +99,7 @@ func (k MsgServer) Undelegate(goCtx context.Context, msg *stakingtypes.MsgUndele
 		defer func() {
 			telemetry.IncrCounter(1, stakingtypes.ModuleName, "undelegate")
 			telemetry.SetGaugeWithLabels(
-				[]string{"tx", "msg", msg.Type()},
+				[]string{"tx", "msg", sdk.MsgTypeURL(msg)},
 				float32(returnAmount.Int64()),
 				[]metrics.Label{telemetry.NewLabel("denom", msg.Amount.Denom)},
 			)

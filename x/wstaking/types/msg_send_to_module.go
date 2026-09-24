@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -41,13 +42,13 @@ func (msg *MsgSendToModule) GetSignBytes() []byte {
 func (msg *MsgSendToModule) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid account address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid account address (%s)", err)
 	}
 	if msg.Receiver == "" {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
 	}
 	if !msg.Amount.IsAllPositive() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "amount must be positive")
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "amount must be positive")
 	}
 	return nil
 }

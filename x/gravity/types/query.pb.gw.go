@@ -2199,59 +2199,59 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "params"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_CurrentRelayerSet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "current_relayer_set"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_CurrentRelayerSet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "current_relayer_set"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_RelayerSetRequest_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "relayer_set_request"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_RelayerSetRequest_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "relayer_set_request"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_RelayerSetConfirm_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "relayer_set_confirm"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_RelayerSetConfirm_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "relayer_set_confirm"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_RelayerSetConfirmsByNonce_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "relayer_set_confirms_by_nonce"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_RelayerSetConfirmsByNonce_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "relayer_set_confirms_by_nonce"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_LastRelayerSetRequests_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "last_relayer_set_requests"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_LastRelayerSetRequests_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "last_relayer_set_requests"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_LastPendingRelayerSetRequestByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "last_pending_relayer_set_request_by_addr"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_LastPendingRelayerSetRequestByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "last_pending_relayer_set_request_by_addr"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_LastPendingBatchRequestByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "last_pending_batch_request_by_addr"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_LastPendingBatchRequestByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "last_pending_batch_request_by_addr"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_LastEventNonceByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "last_event_nonce_by_addr"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_LastEventNonceByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "last_event_nonce_by_addr"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_LastEventBlockHeightByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "last_event_block_height_by_addr"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_LastEventBlockHeightByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "last_event_block_height_by_addr"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_LastObservedBlockHeight_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "last_observed_block_height"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_LastObservedBlockHeight_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "last_observed_block_height"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_OutgoingTxBatches_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "outgoing_tx_batches"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_OutgoingTxBatches_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "outgoing_tx_batches"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BatchFees_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "batch_fees"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_BatchFees_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "batch_fees"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BatchRequestByNonce_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "batch_request_by_nonce"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_BatchRequestByNonce_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "batch_request_by_nonce"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BatchConfirm_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "batch_confirm"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_BatchConfirm_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "batch_confirm"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BatchConfirms_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "batch_confirms"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_BatchConfirms_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "batch_confirms"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Relayer_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "relayer"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Relayer_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "relayer"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Relayers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "relayers"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Relayers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "relayers"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_ProposalRelayers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "proposal_relayers"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ProposalRelayers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "proposal_relayers"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_PendingOutgoingTxByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "pending_outgoing_tx_by_addr"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PendingOutgoingTxByAddr_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "pending_outgoing_tx_by_addr"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_UnbatchedTxs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "unbatched_txs"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_UnbatchedTxs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "unbatched_txs"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_ProjectedBatchTimeoutHeight_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "projected_batch_timeout_height"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ProjectedBatchTimeoutHeight_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "projected_batch_timeout_height"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BridgeTokens_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "bridge_tokens"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_BridgeTokens_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "bridge_tokens"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BridgeToken_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "bridge_token"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_BridgeToken_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "bridge_token"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BridgeChainList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "bridge_chain_list"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_BridgeChainList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "bridge_chain_list"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_ClaimsByEventNonce_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "claims_by_event_nonce"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ClaimsByEventNonce_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "claims_by_event_nonce"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_LastObservedRelayer_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "last_observed_relayer"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_LastObservedRelayer_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"gravity", "v1", "last_observed_relayer"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

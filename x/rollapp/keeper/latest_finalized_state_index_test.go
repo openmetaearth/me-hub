@@ -18,7 +18,7 @@ import (
 var _ = strconv.IntSize
 
 func createNLatestFinalizedStateIndex(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.StateInfoIndex {
-	items := make([]types.StateInfoIndex, 0, n)
+	var items []types.StateInfoIndex
 	stateInfoList := make([]types.StateInfo, n)
 	for i := range stateInfoList {
 		stateInfoList[i].StateInfoIndex.RollappId = strconv.Itoa(i)

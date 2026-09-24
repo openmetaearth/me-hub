@@ -34,13 +34,13 @@ message ValidatorV1 {
   // tokens define the staked tokens (incl. self-stake).
   string tokens = 5 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // staker_shares defines total shares issued to a validator's stakers.
   string staker_shares = 6 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   // description defines the description terms for the validator.
@@ -68,20 +68,20 @@ message ValidatorV1 {
   // Since: cosmos-sdk 0.46
   string min_self_stake = 11 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 
   // count delegation amount
   string delegation_amount = 12 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // count meid amount
   string meid_amount = 13 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // owner_address defines the address of distribute gas income
@@ -115,13 +115,13 @@ message ValidatorV2Panic {
   // tokens define the delegated tokens (incl. self-delegation).
   string tokens = 5 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // delegator_shares defines total shares issued to a validator's delegators.
   string delegator_shares = 6 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   // description defines the description terms for the validator.
@@ -150,7 +150,7 @@ message ValidatorV2Panic {
   // Since: cosmos-sdk 0.46
   string min_self_delegation = 11 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // strictly positive if this validator's unbonding has been stopped by
@@ -164,13 +164,13 @@ message ValidatorV2Panic {
   // count delegation amount
   string delegation_amount = 14 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // count meid amount
   string meid_amount = 15 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // owner_address defines the address of distribute gas income
@@ -196,13 +196,13 @@ message ValidatorV2 {
   // tokens define the staked tokens (incl. self-stake).
   string tokens = 5 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // staker_shares defines total shares issued to a validator's stakers.
   string staker_shares = 6 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   // description defines the description terms for the validator.
@@ -230,20 +230,20 @@ message ValidatorV2 {
   // Since: cosmos-sdk 0.46
   string min_self_stake = 11 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 
   // count delegation amount
   string delegation_amount = 12 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // count meid amount
   string meid_amount = 13 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // owner_address defines the address of distribute gas income
@@ -258,12 +258,12 @@ message ValidatorV2 {
   int64 unbonding_on_hold_ref_count = 16;
   string delegator_shares = 17 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   string min_self_delegation = 18 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }

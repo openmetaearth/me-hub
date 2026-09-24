@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	cmlog "github.com/cometbft/cometbft/libs/log"
+	cmlog "cosmossdk.io/log"
 	ipfslog "github.com/ipfs/go-log/v2"
 )
 
@@ -24,8 +24,16 @@ func (l MeLogger) Info(msg string, keyvals ...interface{}) {
 	l.Logger.Infow(msg, append(l.context, keyvals...)...)
 }
 
+func (l MeLogger) Warn(msg string, keyvals ...interface{}) {
+	l.Logger.Warnw(msg, append(l.context, keyvals...)...)
+}
+
 func (l MeLogger) Error(msg string, keyvals ...interface{}) {
 	l.Logger.Errorw(msg, append(l.context, keyvals...)...)
+}
+
+func (l MeLogger) Impl() any {
+	return l.Logger
 }
 
 func (l MeLogger) With(keyvals ...interface{}) cmlog.Logger {
@@ -33,6 +41,7 @@ func (l MeLogger) With(keyvals ...interface{}) cmlog.Logger {
 		keyvals = append(keyvals, ErrMissingValue)
 	}
 	return MeLogger{
+		name:    l.name,
 		Logger:  l.Logger,
 		context: append(l.context, keyvals...),
 	}
@@ -40,6 +49,7 @@ func (l MeLogger) With(keyvals ...interface{}) cmlog.Logger {
 
 func (l MeLogger) WithStacktrace(traceLevel ipfslog.LogLevel) MeLogger {
 	return MeLogger{
+		name:    l.name,
 		Logger:  ipfslog.WithStacktrace(l.Logger, traceLevel),
 		context: l.context,
 	}

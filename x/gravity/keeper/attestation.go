@@ -6,6 +6,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -37,7 +38,7 @@ func (k Keeper) Attest(ctx sdk.Context, relayerAddr sdk.AccAddress, claim types.
 	}
 
 	gasMeter := ctx.GasMeter()
-	ctx = ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 
 	// Tries to get an attestation with the same eventNonce and claim as the claim that was submitted.
 	att := k.GetAttestation(ctx, claim.GetEventNonce(), claim.ClaimHash())
@@ -85,7 +86,7 @@ func (k Keeper) TryAttestation(ctx sdk.Context, att *types.Attestation, claim ty
 			"claimEventNonce", claim.GetEventNonce(), "claimType", claim.GetType(), "claimHeight", claim.GetBlockHeight())
 		return
 	}
-	requiredPower := types.AttestationVotesPowerThreshold.Mul(totalPower).Quo(sdk.NewIntFromUint64(types.PowerBase))
+	requiredPower := types.AttestationVotesPowerThreshold.Mul(totalPower).Quo(sdkmath.NewIntFromUint64(types.PowerBase))
 	attestationPower := sdkmath.NewInt(0)
 
 	for _, relayerStr := range att.Votes {
@@ -183,7 +184,7 @@ func (k Keeper) DeleteAttestation(ctx sdk.Context, claim types.ExternalClaim) {
 // IterateAttestationAndClaim iterates through all attestations
 func (k Keeper) IterateAttestationAndClaim(ctx sdk.Context, cb func(*types.Attestation, types.ExternalClaim) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.RelayerAttestationKey)
+	iter := storetypes.KVStorePrefixIterator(store, types.RelayerAttestationKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
@@ -204,7 +205,7 @@ func (k Keeper) IterateAttestationAndClaim(ctx sdk.Context, cb func(*types.Attes
 // IterateAttestations iterates through all attestations
 func (k Keeper) IterateAttestationsByNonce(ctx sdk.Context, nonce uint64, cb func(*types.Attestation) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetAttestationKeyByNonce(nonce))
+	iter := storetypes.KVStorePrefixIterator(store, types.GetAttestationKeyByNonce(nonce))
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
@@ -220,7 +221,7 @@ func (k Keeper) IterateAttestationsByNonce(ctx sdk.Context, nonce uint64, cb fun
 // IterateAttestations iterates through all attestations
 func (k Keeper) IterateAttestations(ctx sdk.Context, cb func(*types.Attestation) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.RelayerAttestationKey)
+	iter := storetypes.KVStorePrefixIterator(store, types.RelayerAttestationKey)
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {

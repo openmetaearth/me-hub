@@ -5,51 +5,52 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 	"github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
 func (k msgServer) ReplaceProposer(goCtx context.Context, msg *types.MsgReplaceProposerRequest) (*types.MsgReplaceProposerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// check to see if the rollapp has been registered before
+	if msg.ReplaceProposer == nil {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "replace proposer is nil")
+	}
+
 	rollapp, found := k.rollappKeeper.GetRollapp(ctx, msg.ReplaceProposer.RollappId)
 	if !found {
 		return nil, types.ErrUnknownRollappID
 	}
-	if rollapp.Frozen {
-		return nil, types.ErrRollappJailed
-	}
-	if msg.Creator != rollapp.Creator {
-		return nil, errorsmod.Wrapf(types.ErrUnauthorized, "only rollapp creator %s can replace proposer, but got %s", rollapp.Creator, msg.Creator)
+	if msg.Creator != rollapp.Owner {
+		return nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied, "only rollapp owner %s can replace proposer, but got %s", rollapp.Owner, msg.Creator)
 	}
 
-	if found := k.IsHasReplaceProposer(ctx, msg.ReplaceProposer.RollappId); found {
-		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "there is already a pending replace proposer request")
+	if k.IsHasReplaceProposer(ctx, msg.ReplaceProposer.RollappId) {
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "there is already a pending replace proposer request")
 	}
 
-	oldSequencer, found := k.GetSequencer(ctx, msg.ReplaceProposer.OldProposer)
-	if !found {
-		return nil, errorsmod.Wrapf(types.ErrUnknownSequencer, "old proposer %s not found", msg.ReplaceProposer.OldProposer)
-	}
-	if !oldSequencer.Proposer {
-		return nil, errorsmod.Wrapf(types.ErrInvalidSequencerStatus, "old proposer %s is not a proposer", msg.ReplaceProposer.OldProposer)
+	oldSequencer, err := k.RealSequencer(ctx, msg.ReplaceProposer.OldProposer)
+	if err != nil {
+		return nil, errorsmod.Wrapf(types.ErrSequencerNotFound, "old proposer %s not found", msg.ReplaceProposer.OldProposer)
 	}
 	if oldSequencer.RollappId != msg.ReplaceProposer.RollappId {
-		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "old proposer %s belongs to rollapp %s, not %s",
-			msg.ReplaceProposer.OldProposer, oldSequencer.RollappId, msg.ReplaceProposer.RollappId)
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "old proposer %s belongs to different rollapp", msg.ReplaceProposer.OldProposer)
 	}
-	newSequencer, found := k.GetSequencer(ctx, msg.ReplaceProposer.NewProposer)
-	if !found {
-		return nil, errorsmod.Wrapf(types.ErrUnknownSequencer, "new proposer %s not found", msg.ReplaceProposer.NewProposer)
+	proposer := k.GetProposer(ctx, msg.ReplaceProposer.RollappId)
+	if proposer.Address != msg.ReplaceProposer.OldProposer {
+		return nil, errorsmod.Wrapf(types.ErrNotProposer, "old proposer %s is not a proposer", msg.ReplaceProposer.OldProposer)
 	}
-	if !newSequencer.IsBonded() {
-		return nil, errorsmod.Wrapf(types.ErrInvalidSequencerStatus, "new proposer %s is not bonded", msg.ReplaceProposer.NewProposer)
+
+	newSequencer, err := k.RealSequencer(ctx, msg.ReplaceProposer.NewProposer)
+	if err != nil {
+		return nil, errorsmod.Wrapf(types.ErrSequencerNotFound, "new proposer %s not found", msg.ReplaceProposer.NewProposer)
 	}
 	if newSequencer.RollappId != msg.ReplaceProposer.RollappId {
-		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "new proposer %s belongs to rollapp %s, not %s",
-			msg.ReplaceProposer.NewProposer, newSequencer.RollappId, msg.ReplaceProposer.RollappId)
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "new proposer %s belongs to different rollapp", msg.ReplaceProposer.NewProposer)
 	}
+	if !newSequencer.Bonded() {
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "new proposer %s is not bonded", msg.ReplaceProposer.NewProposer)
+	}
+
 	stateInfoIndex, found := k.rollappKeeper.GetLatestStateInfoIndex(ctx, msg.ReplaceProposer.RollappId)
 	if !found {
 		return nil, errorsmod.Wrapf(types.ErrUnknownRequest, "no state info index found for rollapp %s", msg.ReplaceProposer.RollappId)
@@ -59,7 +60,7 @@ func (k msgServer) ReplaceProposer(goCtx context.Context, msg *types.MsgReplaceP
 		return nil, errorsmod.Wrapf(types.ErrUnknownRequest, "no state info found for rollapp %s at index %d", msg.ReplaceProposer.RollappId, stateInfoIndex.Index)
 	}
 	if msg.ReplaceProposer.BlockHeight <= int64(stateInfo.StartHeight+stateInfo.NumBlocks) {
-		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "replace proposer block height %d must be greater than last state info end height %d", msg.ReplaceProposer.BlockHeight, stateInfo.StartHeight+stateInfo.NumBlocks)
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "replace proposer block height %d must be greater than last state info end height %d", msg.ReplaceProposer.BlockHeight, stateInfo.StartHeight+stateInfo.NumBlocks)
 	}
 
 	if err := k.SetReplaceProposer(ctx, msg.ReplaceProposer); err != nil {

@@ -9,11 +9,13 @@ import (
 	"fmt"
 	"strings"
 
+	txsigning "cosmossdk.io/x/tx/signing"
 	"github.com/btcsuite/btcutil/base58"
 	tmcli "github.com/cometbft/cometbft/libs/cli"
 	"github.com/cometbft/cometbft/privval"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/debug"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -22,7 +24,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32" // nolint:staticcheck
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/gogoproto/proto"
@@ -30,6 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/openmetaearth/me-hub/utils"
 )
@@ -132,6 +134,8 @@ func VerifyTxCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			addrCdc := clientCtx.TxConfig.SigningContext().AddressCodec()
+			signModeHandler := clientCtx.TxConfig.SignModeHandler()
 
 			txBytes, err := base64.StdEncoding.DecodeString(args[0])
 			if err != nil {
@@ -141,12 +145,6 @@ func VerifyTxCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			builder, err := clientCtx.TxConfig.WrapTxBuilder(sdkTx)
-			if err != nil {
-				return err
-			}
-			stdTx := builder.GetTx()
 
 			sigTx, ok := sdkTx.(authsigning.SigVerifiableTx)
 			if !ok {
@@ -158,7 +156,10 @@ func VerifyTxCmd() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("get signature error %s", err.Error())
 			}
-			signerAddrs := sigTx.GetSigners()
+			signerAddrs, err := sigTx.GetSigners()
+			if err != nil {
+				return err
+			}
 
 			// check that signer length and signature length are the same
 			if len(sigs) != len(signerAddrs) {
@@ -171,7 +172,11 @@ func VerifyTxCmd() *cobra.Command {
 			chainId := status.NodeInfo.Network
 			queryClient := authtypes.NewQueryClient(clientCtx)
 			for i, sig := range sigs {
-				accountResponse, err := queryClient.Account(cmd.Context(), &authtypes.QueryAccountRequest{Address: signerAddrs[i].String()})
+				signerStr, err := addrCdc.BytesToString(signerAddrs[i])
+				if err != nil {
+					return err
+				}
+				accountResponse, err := queryClient.Account(cmd.Context(), &authtypes.QueryAccountRequest{Address: signerStr})
 				if err != nil {
 					return err
 				}
@@ -182,23 +187,32 @@ func VerifyTxCmd() *cobra.Command {
 				}
 				// retrieve pubkey
 				pubKey := acc.GetPubKey()
-				sequence := sig.Sequence
 				signerData := authsigning.SignerData{
+					Address:       signerStr,
 					ChainID:       chainId,
 					AccountNumber: acc.GetAccountNumber(),
-					Sequence:      sequence,
+					Sequence:      acc.GetSequence(),
+					PubKey:        pubKey,
 				}
-
-				bz := legacytx.StdSignBytes(
-					chainId, acc.GetAccountNumber(), sequence, stdTx.GetTimeoutHeight(),
-					legacytx.StdFee{Amount: stdTx.GetFee(), Gas: stdTx.GetGas()},
-					sdkTx.GetMsgs(), stdTx.GetMemo(), nil,
-				)
-				if err = clientCtx.PrintString(string(bz) + "\n"); err != nil {
+				anyPk, err := codectypes.NewAnyWithValue(pubKey)
+				if err != nil {
 					return err
 				}
-
-				if err = authsigning.VerifySignature(pubKey, signerData, sig.Data, clientCtx.TxConfig.SignModeHandler(), sdkTx); err != nil {
+				txSignerData := txsigning.SignerData{
+					ChainID:       signerData.ChainID,
+					AccountNumber: signerData.AccountNumber,
+					Sequence:      signerData.Sequence,
+					Address:       signerData.Address,
+					PubKey: &anypb.Any{
+						TypeUrl: anyPk.TypeUrl,
+						Value:   anyPk.Value,
+					},
+				}
+				adaptableTx, ok := sdkTx.(authsigning.V2AdaptableTx)
+				if !ok {
+					return fmt.Errorf("expected V2AdaptableTx, got %T", sdkTx)
+				}
+				if err = authsigning.VerifySignature(cmd.Context(), pubKey, txSignerData, sig.Data, signModeHandler, adaptableTx.GetSigningTxData()); err != nil {
 					return err
 				}
 			}

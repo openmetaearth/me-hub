@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -14,7 +15,7 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/spf13/cobra"
 
-	"github.com/openmetaearth/me-hub/app/keepers"
+	"github.com/openmetaearth/me-hub/app"
 	"github.com/openmetaearth/me-hub/app/params"
 	wminttypes "github.com/openmetaearth/me-hub/x/wmint/types"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
@@ -40,7 +41,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 
 			config.SetRoot(clientCtx.HomeDir)
 
-			coins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(wminttypes.TotalBaseCoinsAmount)))
+			coins := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(wminttypes.TotalBaseCoinsAmount)))
 
 			moduleAddress := authtypes.NewModuleAddress(wstakingtypes.StakePoolName)
 			moduleBaseAccount := authtypes.NewBaseAccount(moduleAddress, nil, 0, 0)
@@ -150,7 +151,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				return fmt.Errorf("failed to get accounts from any: %w", err)
 			}
 
-			for macc, perm := range keepers.MaccPerms {
+			for macc, perm := range app.MaccPerms {
 				moduleAddress := authtypes.NewModuleAddress(macc)
 				moduleBaseAccount := authtypes.NewBaseAccount(moduleAddress, nil, 0, 0)
 

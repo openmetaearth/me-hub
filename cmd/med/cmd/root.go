@@ -5,23 +5,23 @@ import (
 	"io"
 	"os"
 
-	dbm "github.com/cometbft/cometbft-db"
+	"cosmossdk.io/log"
 	cometbftcmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
 	cometbftcfg "github.com/cometbft/cometbft/config"
 	cometbftcli "github.com/cometbft/cometbft/libs/cli"
-	"github.com/cometbft/cometbft/libs/log"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
-	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -43,6 +43,9 @@ import (
 
 // NewRootCmd creates a new root command for me hub
 func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
+	// Seal bech32 prefixes / coin type before constructing codecs or the temp app.
+	initSDKConfig()
+
 	encodingConfig := app.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Codec).
@@ -54,6 +57,30 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 		WithKeyringOptions(hd.EthSecp256k1Option()).
 		WithHomeDir(app.DefaultNodeHome).
 		WithViper("")
+
+	// SDK 0.50 AppModuleBasic for distribution/bank/authz holds an unexported codec.
+	// Package-level ModuleBasics uses zero-value structs, so GetTxCmd panics.
+	// Construct a throwaway app to get a BasicManager (and AutoCLI) from real modules.
+	tempDir, err := os.MkdirTemp("", "med-cli-")
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	tempApp := app.New(
+		log.NewNopLogger(),
+		dbm.NewMemDB(),
+		nil,
+		false,
+		map[int64]bool{},
+		tempDir,
+		0,
+		encodingConfig,
+		sims.AppOptionsMap{
+			flags.FlagHome:   tempDir,
+			"skip-wasm-init": true,
+		},
+	)
 
 	rootCmd := &cobra.Command{
 		Use: "med",
@@ -98,7 +125,13 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 		},
 	}
 	rootCmd.PersistentFlags().Bool("enable_me_hub_logger", false, "use me-hub logger instead of cosmos lib logger")
-	initRootCmd(rootCmd, encodingConfig)
+	initRootCmd(rootCmd, encodingConfig, tempApp.BasicModuleManager)
+
+	autoCliOpts := tempApp.AutoCliOpts()
+	autoCliOpts.ClientCtx = initClientCtx
+	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
+		panic(err)
+	}
 
 	rootCmd.AddCommand(cometbftcmd.RootCmd)
 	return rootCmd, encodingConfig
@@ -128,29 +161,24 @@ func initAppConfig() (string, interface{}) {
 	return customAppTemplate, customAppConfig
 }
 
-func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig) {
-	initSDKConfig()
-
+func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig, basicManager module.BasicManager) {
 	a := appCreator{encodingConfig}
 	rootCmd.AddCommand(
 		ethermintclient.ValidateChainID(
-			genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
+			genutilcli.InitCmd(basicManager, app.DefaultNodeHome),
 		),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, app.GenTxMessageValidator),
-		genutilcli.MigrateGenesisCmd(),
+		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, app.GenTxMessageValidator, nil),
 		GenTxCmd(
-			app.ModuleBasics,
+			basicManager,
 			encodingConfig.TxConfig,
 			banktypes.GenesisBalancesIterator{},
 			app.DefaultNodeHome,
 		),
-		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
+		genutilcli.ValidateGenesisCmd(basicManager),
 		AddGenesisAccountCmd(app.DefaultNodeHome),
 		GenRelayersCmd(app.DefaultNodeHome),
 		cometbftcli.NewCompletionCmd(rootCmd, true),
 		debug.Cmd(),
-		config.Cmd(),
-		pruning.PruningCmd(a.newApp),
 		AddGenesisStakePoolAccountCmd(app.DefaultNodeHome),
 		AddGenesisModuleAccountsCmd(app.DefaultNodeHome),
 		SetDAOCmd(),
@@ -164,28 +192,20 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		addModuleInitFlags,
 	)
 
-	for _, command := range rootCmd.Commands() {
-		if command.Use == "start" {
-			rootCmd.RemoveCommand(command)
-			rootCmd.AddCommand(StartCmd(ethermintserver.NewDefaultStartOptions(a.newApp, app.DefaultNodeHome)))
-		}
-	}
-
 	rootCmd.AddCommand(InspectCmd(a.appExport, a.newApp, app.DefaultNodeHome))
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
-		rpc.StatusCommand(),
-		queryCommand(),
-		txCommand(),
+		sdkserver.StatusCommand(),
+		queryCommand(basicManager),
+		txCommand(basicManager),
 		ethermintclient.KeyCommands(app.DefaultNodeHome),
 	)
 	rootCmd.AddCommand(mecli.Debug())
-	rootCmd.AddCommand(snapshot.Cmd(a.newApp))
 }
 
 // queryCommand returns the sub-command to send queries to the app
-func queryCommand() *cobra.Command {
+func queryCommand(basicManager module.BasicManager) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "query",
 		Aliases:                    []string{"q"},
@@ -196,20 +216,23 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
+		rpc.QueryEventForTxCmd(),
+		sdkserver.QueryBlockCmd(),
 		rpc.ValidatorCommand(),
-		rpc.BlockCommand(),
+		sdkserver.QueryBlocksCmd(),
 		authcmd.QueryTxsByEventsCmd(),
 		authcmd.QueryTxCmd(),
+		sdkserver.QueryBlockResultsCmd(),
 	)
 
-	app.ModuleBasics.AddQueryCommands(cmd)
+	basicManager.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
 }
 
 // txCommand returns the sub-command to send transactions to the app
-func txCommand() *cobra.Command {
+func txCommand(basicManager module.BasicManager) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "tx",
 		Short:                      "Transactions subcommands",
@@ -230,10 +253,10 @@ func txCommand() *cobra.Command {
 		GetEncodeToRawTxCommand(),
 		GetDecodeRawTxCommand(),
 		authcmd.GetDecodeCommand(),
-		authcmd.GetAuxToFeeCommand(),
+		authcmd.GetSimulateCmd(),
 	)
 
-	app.ModuleBasics.AddTxCommands(cmd)
+	basicManager.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd

@@ -3,51 +3,70 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/collections"
+	collcodec "cosmossdk.io/collections/codec"
+	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 
+	"github.com/openmetaearth/me-hub/internal/collcompat"
 	"github.com/openmetaearth/me-hub/x/delayedack/types"
 	rollapptypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 )
 
 type Keeper struct {
-	cdc        codec.BinaryCodec
-	storeKey   storetypes.StoreKey
-	hooks      types.MultiDelayedAckHooks
-	paramstore paramtypes.Subspace
+	rollapptypes.StubRollappCreatedHooks
+
+	cdc                   codec.Codec
+	storeKey              storetypes.Key
+	channelKeeperStoreKey storetypes.Key // we need direct access to the IBC channel store
+	hooks                 types.MultiDelayedAckHooks
+	authority             string
+
+	// pendingPacketsByAddress is an index of all pending packets associated with a Hub address.
+	// In case of ON_RECV packet (Rollapp -> Hub), the address is the packet receiver.
+	// In case of ON_ACK/ON_TIMEOUT packet (Hub -> Rollapp), the address is the packet sender.
+	// Index key: receiver address + packet key.
+	pendingPacketsByAddress collections.KeySet[collections.Pair[string, []byte]]
 
 	rollappKeeper types.RollappKeeper
 	porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	types.EIBCKeeper
+
+	// TODO: refac https://github.com/metaearth/issues/1849
+	completionHooks map[string]CompletionHookInstance
 }
 
 func NewKeeper(
-	cdc codec.BinaryCodec,
-	storeKey storetypes.StoreKey,
-	ps paramtypes.Subspace,
+	cdc codec.Codec,
+	storeKey storetypes.Key,
+	channelKeeperStoreKey storetypes.Key,
+	authority string,
 	rollappKeeper types.RollappKeeper,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	eibcKeeper types.EIBCKeeper,
 ) *Keeper {
-	// set KeyTable if it has not already been set
-	if !ps.HasKeyTable() {
-		ps = ps.WithKeyTable(types.ParamKeyTable())
-	}
 	return &Keeper{
-		cdc:           cdc,
-		storeKey:      storeKey,
-		paramstore:    ps,
-		rollappKeeper: rollappKeeper,
-		ICS4Wrapper:   ics4Wrapper,
-		channelKeeper: channelKeeper,
-		EIBCKeeper:    eibcKeeper,
+		cdc:                   cdc,
+		storeKey:              storeKey,
+		channelKeeperStoreKey: channelKeeperStoreKey,
+		authority:             authority,
+		pendingPacketsByAddress: collections.NewKeySet(
+			collections.NewSchemaBuilder(collcompat.NewKVStoreService(storeKey)),
+			collections.NewPrefix(types.PendingPacketsByAddressKeyPrefix),
+			"pending_packets_by_receiver",
+			collections.PairKeyCodec(collections.StringKey, collcodec.NewBytesKey[[]byte]()),
+		),
+		rollappKeeper:   rollappKeeper,
+		ICS4Wrapper:     ics4Wrapper,
+		channelKeeper:   channelKeeper,
+		EIBCKeeper:      eibcKeeper,
+		completionHooks: make(map[string]CompletionHookInstance),
 	}
 }
 
@@ -55,23 +74,13 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) IsRollappsEnabled(ctx sdk.Context) bool {
-	return k.rollappKeeper.GetParams(ctx).RollappsEnabled
+// expose codec to be used by the delayedack middleware
+func (k Keeper) Cdc() codec.Codec {
+	return k.cdc
 }
 
 func (k Keeper) IsSkipDelayRollapp(ctx sdk.Context, rollappID string) bool {
 	return k.rollappKeeper.IsSkipDelayRollapp(ctx, rollappID)
-}
-
-func (k Keeper) getRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint64, error) {
-	// GetLatestFinalizedStateIndex
-	latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, chainID)
-	if !found {
-		return 0, rollapptypes.ErrNoFinalizedStateYetForRollapp
-	}
-
-	stateInfo := k.rollappKeeper.MustGetStateInfo(ctx, chainID, latestFinalizedStateIndex.Index)
-	return stateInfo.StartHeight + stateInfo.NumBlocks - 1, nil
 }
 
 /* -------------------------------------------------------------------------- */

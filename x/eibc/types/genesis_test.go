@@ -3,13 +3,29 @@ package types_test
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
+	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
 )
 
 func TestGenesisState_Validate(t *testing.T) {
+	validDemandOrder := types.DemandOrder{
+		Id:             "1",
+		Price:          sdk.Coins{sdk.NewInt64Coin("denom", 2)},
+		Fee:            sdk.Coins{sdk.NewInt64Coin("denom", 1)},
+		Recipient:      sample.AccAddress(),
+		CreationHeight: 1,
+	}
+
+	validParams := types.Params{
+		EpochIdentifier: "hour",
+		TimeoutFee:      math.LegacyNewDecWithPrec(1, 1),
+		ErrackFee:       math.LegacyNewDecWithPrec(1, 1),
+	}
+
 	for _, tc := range []struct {
 		desc     string
 		genState *types.GenesisState
@@ -30,8 +46,8 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "invalid params",
 			genState: &types.GenesisState{
 				Params: types.Params{
-					TimeoutFee: sdk.NewDec(-1),
-					ErrackFee:  sdk.NewDec(-1),
+					TimeoutFee: math.LegacyNewDec(-1),
+					ErrackFee:  math.LegacyNewDec(-1),
 				},
 			},
 			valid: false,
@@ -57,17 +73,4 @@ func TestGenesisState_Validate(t *testing.T) {
 			}
 		})
 	}
-}
-
-var validDemandOrder = types.DemandOrder{
-	Id:        "1",
-	Price:     sdk.Coins{sdk.NewInt64Coin("denom", 2)},
-	Fee:       sdk.Coins{sdk.NewInt64Coin("denom", 1)},
-	Recipient: "cosmos18wvvwfmq77a6d8tza4h5sfuy2yj3jj88yqg82a",
-}
-
-var validParams = types.Params{
-	EpochIdentifier: "hour",
-	TimeoutFee:      sdk.NewDecWithPrec(1, 1),
-	ErrackFee:       sdk.NewDecWithPrec(1, 1),
 }

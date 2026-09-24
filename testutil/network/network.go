@@ -3,14 +3,12 @@ package network
 import (
 	"testing"
 
-	"cosmossdk.io/simapp"
-	cometbftdb "github.com/cometbft/cometbft-db"
+	"cosmossdk.io/store/pruning/types"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
-	"github.com/cosmos/cosmos-sdk/testutil/sims"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/stretchr/testify/require"
 
 	"github.com/openmetaearth/me-hub/app"
@@ -43,31 +41,24 @@ func New(t *testing.T, configs ...network.Config) *network.Network {
 // DefaultConfig will initialize config for the network with custom application,
 // genesis and single validator. All other parameters are inherited from cosmos-sdk/testutil/network.DefaultConfig
 func DefaultConfig() network.Config {
-	cfg := network.DefaultConfig(simapp.NewTestNetworkFixture)
 	encoding := app.MakeEncodingConfig()
-
-	// FIXME: add rand tmrand.Uint64() to chainID
+	cfg := network.DefaultConfig(func() network.TestFixture {
+		return network.TestFixture{
+			EncodingConfig: moduletestutil.TestEncodingConfig{
+				InterfaceRegistry: encoding.InterfaceRegistry,
+				Codec:             encoding.Codec, TxConfig: encoding.TxConfig, Amino: encoding.Amino,
+			},
+			GenesisState: app.NewDefaultGenesisState(encoding.Codec),
+			AppConstructor: func(val network.ValidatorI) servertypes.Application {
+				return app.New(val.GetCtx().Logger, dbm.NewMemDB(), nil, true, map[int64]bool{},
+					app.DefaultNodeHome, 0, encoding, val.GetCtx().Viper,
+					baseapp.SetPruning(types.NewPruningOptionsFromString(val.GetAppConfig().Pruning)),
+					baseapp.SetMinGasPrices(val.GetAppConfig().MinGasPrices),
+					baseapp.SetChainID("me_1000-1"))
+			},
+		}
+	})
 	cfg.ChainID = "me_1000-1"
-	cfg.AppConstructor = func(val network.ValidatorI) servertypes.Application {
-		return app.New(
-			val.GetCtx().Logger, cometbftdb.NewMemDB(), nil, true, map[int64]bool{}, val.GetCtx().Config.RootDir, 0,
-			encoding,
-			sims.EmptyAppOptions{},
-			baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.GetAppConfig().Pruning)),
-			baseapp.SetMinGasPrices(val.GetAppConfig().MinGasPrices),
-		)
-	}
-
-	cfg.GenesisState = app.ModuleBasics.DefaultGenesis(encoding.Codec)
-	if evmGenesisStateJson, found := cfg.GenesisState[evmtypes.ModuleName]; found {
-		// force disable Enable Create of x/evm
-		var evmGenesisState evmtypes.GenesisState
-		encoding.Codec.MustUnmarshalJSON(evmGenesisStateJson, &evmGenesisState)
-		evmGenesisState.Params.EnableCreate = false
-		cfg.GenesisState[evmtypes.ModuleName] = encoding.Codec.MustMarshalJSON(&evmGenesisState)
-	}
-
 	cfg.NumValidators = 1
-
 	return cfg
 }

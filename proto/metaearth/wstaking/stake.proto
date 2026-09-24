@@ -24,23 +24,23 @@ message Stake {
   // shares define the stake shares received.
   string shares = 3 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   int64 startHeight = 4;
   string rewards = 5 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   string amount = 6 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   string unmovable = 7 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }
@@ -74,13 +74,13 @@ message UnbondingStakeEntry {
   // completion.
   string initial_balance = 3 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // balance defines the tokens to receive at completion.
   string balance = 4 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }

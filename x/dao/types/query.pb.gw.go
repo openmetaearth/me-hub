@@ -364,13 +364,13 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_GlobalDao_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "dao", "global_dao"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_GlobalDao_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "dao", "global_dao"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_GlobalDaoFeePool_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "dao", "global_dao_fee_pool"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_GlobalDaoFeePool_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "dao", "global_dao_fee_pool"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_FreeGasAccounts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "dao", "free_gas_accounts"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_FreeGasAccounts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "dao", "free_gas_accounts"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_IsFreeGasAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "dao", "is_free_gas_account"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_IsFreeGasAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "dao", "is_free_gas_account"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
