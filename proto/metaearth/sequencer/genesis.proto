@@ -4,13 +4,23 @@ package metaearth.sequencer;
 import "gogoproto/gogo.proto";
 import "metaearth/sequencer/params.proto";
 import "metaearth/sequencer/sequencer.proto";
-// this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/openmetaearth/me-hub/x/sequencer/types";
 
 // GenesisState defines the sequencer module's genesis state.
 message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
+  // sequencerList is a list of all defined sequencers
   repeated Sequencer sequencerList = 2 [(gogoproto.nullable) = false];
-  // this line is used by starport scaffolding # genesis/proto/state
+  // genesisProposers is a list of the defined genesis proposers
+  repeated GenesisProposer genesisProposers = 3 [(gogoproto.nullable) = false];
+  // genesisSuccessor is a list of the defined genesis proposers
+  repeated GenesisProposer genesisSuccessors = 5 [(gogoproto.nullable) = false];
+  // list of sequencers in the notice queue
+  repeated string noticeQueue = 4;
+}
+
+message GenesisProposer {
+  string address = 1;
+  string rollappId = 2;
 }

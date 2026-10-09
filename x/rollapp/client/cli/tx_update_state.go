@@ -49,9 +49,9 @@ func CmdUpdateState() *cobra.Command {
 			msg := types.NewMsgUpdateState(
 				clientCtx.GetFromAddress().String(),
 				argRollappId,
+				argDAPath,
 				argStartHeight,
 				argNumBlocks,
-				argDAPath,
 				argVersion,
 				argBDs,
 			)

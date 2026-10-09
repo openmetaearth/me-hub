@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/math"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
+	"github.com/openmetaearth/me-hub/app/params"
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/eibc/types"
 )
@@ -23,7 +24,7 @@ func (suite *KeeperTestSuite) TestListDemandOrdersByStatus() {
 			ProofHeight: 2,
 			Packet:      &packet,
 		}
-		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", demandOrderAddresses[i].String())
+		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), params.BaseDenom, demandOrderAddresses[i].String(), 1, nil)
 		err := keeper.SetDemandOrder(ctx, demandOrder)
 		suite.Require().NoError(err)
 	}

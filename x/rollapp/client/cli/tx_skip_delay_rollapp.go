@@ -18,7 +18,6 @@ func CmdSkipDelayRollapp() *cobra.Command {
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]
-
 			argIsSkip := cast.ToBool(args[1])
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -26,13 +25,10 @@ func CmdSkipDelayRollapp() *cobra.Command {
 			}
 
 			msg := types.NewMsgSkipDelayRollapp(clientCtx.GetFromAddress().String(), argRollappId, argIsSkip)
-
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FlagSetCreateRollapp())
 	flags.AddTxFlagsToCmd(cmd)
-
 	return cmd
 }

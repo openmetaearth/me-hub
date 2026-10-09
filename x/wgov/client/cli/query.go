@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
-	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/spf13/cobra"
 
@@ -24,19 +23,6 @@ func GetQueryCmd() *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-
-	govQueryCmd.AddCommand(
-		govcli.GetCmdQueryProposal(),
-		govcli.GetCmdQueryProposals(),
-		govcli.GetCmdQueryVote(),
-		govcli.GetCmdQueryVotes(),
-		govcli.GetCmdQueryParams(),
-		govcli.GetCmdQueryParam(),
-		govcli.GetCmdQueryProposer(),
-		govcli.GetCmdQueryDeposit(),
-		govcli.GetCmdQueryDeposits(),
-		GetCmdQueryMeTally(),
-	)
 
 	return govQueryCmd
 }

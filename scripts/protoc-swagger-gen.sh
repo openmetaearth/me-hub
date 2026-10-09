@@ -8,7 +8,7 @@ if [ ! -d "$SWAGGER_DIR/proto" ]; then
 fi
 
 printf "version: v1\ndirectories:\n  - proto\n  - third_party" > "$SWAGGER_DIR/buf.work.yaml"
-printf "version: v1\nname: buf.build/dymensionxyz/dymension\n" > "$SWAGGER_DIR/proto/buf.yaml"
+printf "version: v1\nname: buf.build/openmetaearth/me-hub\n" > "$SWAGGER_DIR/proto/buf.yaml"
 cp ./proto/buf.gen.swagger.yaml "$SWAGGER_DIR/proto/buf.gen.swagger.yaml"
 
 # copy existing proto files

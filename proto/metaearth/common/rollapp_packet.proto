@@ -1,7 +1,6 @@
 syntax = "proto3";
 package metaearth.common;
 
-import "gogoproto/gogo.proto";
 import "ibc/core/channel/v1/channel.proto";
 import "metaearth/common/status.proto";
 

@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/app/params"
@@ -17,7 +18,7 @@ func (suite *KeeperTestSuite) bondAllRelayers() {
 		msg := &types.MsgBondedRelayer{
 			RelayerAddress:  relayer.String(),
 			ExternalAddress: suite.PubKeyToExternalAddr(suite.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10*1e8)),
 			ChainName:       suite.chainName,
 		}
 		_, err := suite.MsgServer().BondedRelayer(sdk.WrapSDKContext(suite.Ctx), msg)

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -17,6 +18,24 @@ const (
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "demand-order-count", DemandOrderCountInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "underlying-packet-exist", UnderlyingPacketExistInvariant(k))
+	ir.RegisterRoute(types.ModuleName, "coins", CoinsInvariant(k))
+}
+
+// DO NOT DELETE
+func AllInvariants(k Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		for _, inv := range []sdk.Invariant{
+			DemandOrderCountInvariant(k),
+			UnderlyingPacketExistInvariant(k),
+			CoinsInvariant(k),
+		} {
+			res, stop := inv(ctx)
+			if stop {
+				return res, stop
+			}
+		}
+		return "", false
+	}
 }
 
 func DemandOrderCountInvariant(k Keeper) sdk.Invariant {
@@ -35,20 +54,15 @@ func DemandOrderCountInvariant(k Keeper) sdk.Invariant {
 			msg += fmt.Sprintf("list pending demand orders failed: %v\n", err)
 			broken = true
 		}
-		revertedDemandOrders, err := k.ListDemandOrdersByStatus(ctx, commontypes.Status_REVERTED, 0)
-		if err != nil {
-			msg += fmt.Sprintf("list reverted demand orders failed: %v\n", err)
-			broken = true
-		}
 		finalizedDemandOrders, err := k.ListDemandOrdersByStatus(ctx, commontypes.Status_FINALIZED, 0)
 		if err != nil {
 			msg += fmt.Sprintf("list finalized demand orders failed: %v\n", err)
 			broken = true
 		}
 		// Validate the count of demand orders is equal to the sum of demand orders in all statuses
-		if len(allDemandOrders) != len(pendingDemandOrders)+len(revertedDemandOrders)+len(finalizedDemandOrders) {
-			msg += fmt.Sprintf("demand orders count mismatch: all(%d) != pending(%d) + reverted(%d) + finalized(%d)\n",
-				len(allDemandOrders), len(pendingDemandOrders), len(revertedDemandOrders), len(finalizedDemandOrders))
+		if len(allDemandOrders) != len(pendingDemandOrders)+len(finalizedDemandOrders) {
+			msg += fmt.Sprintf("demand orders count mismatch: all(%d) != pending(%d)  + finalized(%d)\n",
+				len(allDemandOrders), len(pendingDemandOrders), len(finalizedDemandOrders))
 			broken = true
 		}
 		return sdk.FormatInvariant(types.ModuleName, demandOrderCountInvariantName, msg), broken
@@ -59,22 +73,54 @@ func UnderlyingPacketExistInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
 			broken bool
-			msg    string
+			msg    strings.Builder
 		)
 		allDemandOrders, err := k.ListAllDemandOrders(ctx)
 		if err != nil {
-			msg += fmt.Sprintf("list all demand orders failed: %v\n", err)
+			msg.WriteString(fmt.Sprintf("list all demand orders failed: %v\n", err))
 			broken = true
 		}
 		for _, demandOrder := range allDemandOrders {
 			// Get the underlying packet for the demand order
 			_, err := k.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
 			if err != nil {
-				msg += fmt.Sprintf("underlying packet for demand order %s not found: %v\n", demandOrder.Id, err)
+				msg.WriteString(fmt.Sprintf("underlying packet for demand order %s not found: %v\n", demandOrder.Id, err))
 				broken = true
-				break
 			}
 		}
-		return sdk.FormatInvariant(types.ModuleName, "underlying-packet-exist", msg), broken
+		return sdk.FormatInvariant(types.ModuleName, "underlying-packet-exist", msg.String()), broken
+	}
+}
+
+// coins (price,fee) are sensible
+func CoinsInvariant(k Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		var (
+			broken bool
+			msg    strings.Builder
+		)
+		allDemandOrders, err := k.ListAllDemandOrders(ctx)
+		if err != nil {
+			msg.WriteString(fmt.Sprintf("list all demand orders failed: %v\n", err))
+			broken = true
+		}
+		for _, do := range allDemandOrders {
+			for _, coins := range []sdk.Coins{do.Price, do.Fee} {
+				if len(coins) == 0 {
+					// This is OK, since coins will erase the zero coin and zero price/fee is allowed
+					continue
+				}
+				if len(coins) > 1 {
+					msg.WriteString(fmt.Sprintf("multiple coins: %s\n", coins))
+					broken = true
+					continue
+				}
+				if coins[0].IsNegative() {
+					msg.WriteString(fmt.Sprintf("negative coins: %s\n", coins))
+					broken = true
+				}
+			}
+		}
+		return sdk.FormatInvariant(types.ModuleName, "coins", msg.String()), broken
 	}
 }

@@ -7,11 +7,9 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
-	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -45,14 +43,11 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
-	s.Ctx = app.NewContext(false, cometbftproto.Header{Height: 0, ChainID: apptesting.TestChainID})
+	app := apptesting.Setup(s.T())
+	s.Ctx = app.NewContext(false).WithBlockHeight(0).WithChainID(apptesting.TestChainID)
 	s.App = app
 
-	err := app.AccountKeeper.SetParams(s.Ctx, authtypes.DefaultParams())
-	s.Require().NoError(err)
-
-	err = app.BankKeeper.SetParams(s.Ctx, banktypes.DefaultParams())
+	err := app.BankKeeper.SetParams(s.Ctx, banktypes.DefaultParams())
 	s.Require().NoError(err)
 
 	stakingParams := stakingtypes.DefaultParams()
@@ -65,7 +60,8 @@ func (s *KeeperTestSuite) SetupTest() {
 
 	s.InitializeDao()
 
-	validators := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
+	validators, err := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
+	s.Require().NoError(err)
 	s.Require().True(len(validators) >= 3)
 	s.meEarthValidator = validators[0]
 
@@ -86,12 +82,12 @@ func (s *KeeperTestSuite) SetupTest() {
 		ExternalBatchTimeout:               24 * 3600 * 1000, // 24 hours
 		AverageExternalBlockTime:           3000,
 		SignedWindow:                       30_000,
-		SlashFraction:                      sdk.NewDec(1).Quo(sdk.NewDec(1000)),
-		RelayerSetUpdatePowerChangePercent: sdk.MustNewDecFromStr("0.2"),
+		SlashFraction:                      sdkmath.LegacyNewDec(1).Quo(sdkmath.LegacyNewDec(1000)),
+		RelayerSetUpdatePowerChangePercent: sdkmath.LegacyMustNewDecFromStr("0.2"),
 		MaxRelayers:                        10,
-		MinDelegate:                        sdk.NewInt(1000000000),
-		MaxDelegate:                        sdk.NewInt(100000000000),
-		MaxSendToExternalUsdAmount:         sdk.NewInt(10_000_000_000),
+		MinDelegate:                        sdkmath.NewInt(1000000000),
+		MaxDelegate:                        sdkmath.NewInt(100000000000),
+		MaxSendToExternalUsdAmount:         sdkmath.NewInt(10_000_000_000),
 	})
 	s.Require().NoError(err)
 
@@ -166,7 +162,7 @@ func (s *KeeperTestSuite) NewBridgeToken(bridger sdk.AccAddress) []gravitytypes.
 			Name:            "",
 			Symbol:          fmt.Sprintf("test%d", i),
 			Decimal:         0,
-			Supply:          sdk.NewInt(0),
+			Supply:          sdkmath.NewInt(0),
 		}
 		err := s.App.TronKeeper.AttestationHandler(s.Ctx, &gravitytypes.MsgBridgeTokenClaim{
 			TokenContract:  bt.ContractAddress,

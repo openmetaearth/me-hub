@@ -4,19 +4,26 @@ const (
 	EventTypeStateUpdate  = "state_update"
 	EventTypeStatusChange = "status_change"
 
-	AttributeKeyRollappId      = "rollapp_id"
-	AttributeKeyStateInfoIndex = "state_info_index"
-	AttributeKeyStartHeight    = "start_height"
-	AttributeKeyNumBlocks      = "num_blocks"
-	AttributeKeyDAPath         = "da_path"
-	AttributeKeyStatus         = "status"
+	AttributeKeyRollappId          = "rollapp_id"
+	AttributeRollappIBCdenom       = "ibc_denom"
+	AttributeKeyStateInfoIndex     = "state_info_index"
+	AttributeKeyStartHeight        = "start_height"
+	AttributeKeyNumBlocks          = "num_blocks"
+	AttributeKeyDAPath             = "da_path"
+	AttributeKeyStatus             = "status"
+	AttributeKeyCanonicalChannelId = "canonical_channel_id"
 
-	// EventTypeFraud is emitted when a fraud evidence is submitted
-	EventTypeFraud             = "fraud_proposal"
-	AttributeKeyFraudHeight    = "fraud_height"
-	AttributeKeyFraudSequencer = "fraud_sequencer"
-	AttributeKeyClientID       = "client_id"
+	// EventTypeHardFork is emitted when a fraud evidence is submitted
+	EventTypeHardFork             = "hard_fork"
+	AttributeKeyNewRevisionHeight = "new_revision_height"
+	AttributeKeyClientID          = "client_id"
 
-	// EventTypeTransferGenesisTransfersEnabled is when the bridge is enabled
-	EventTypeTransferGenesisTransfersEnabled = "transfer_genesis_transfers_enabled"
+	// EventTypeTransfersEnabled is when the bridge is enabled
+	EventTypeTransfersEnabled = "transfers_enabled"
+
+	// EventTypeTEEFastFinalization is emitted when TEE attestation fast finalizes states
+	EventTypeTEEFastFinalization = "tee_fast_finalization"
+	EventTypeStateFinalized      = "state_finalized"
+	AttributeKeyStateIndex       = "state_index"
+	AttributeKeyStatesFinalized  = "states_finalized"
 )

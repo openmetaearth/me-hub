@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -44,13 +45,13 @@ func (msg *MsgGrantRegionWithdraw) GetSignBytes() []byte {
 
 func (msg *MsgGrantRegionWithdraw) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Creator); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address: %s", err)
 	}
 	if _, err := sdk.AccAddressFromBech32(msg.Address); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid granted address: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid granted address: %s", err)
 	}
 	if msg.RegionId == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "region_id cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "region_id cannot be empty")
 	}
 	return nil
 }
@@ -83,10 +84,10 @@ func (msg *MsgRevokeRegionWithdraw) GetSignBytes() []byte {
 
 func (msg *MsgRevokeRegionWithdraw) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Creator); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address: %s", err)
 	}
 	if msg.RegionId == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "region_id cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "region_id cannot be empty")
 	}
 	return nil
 }

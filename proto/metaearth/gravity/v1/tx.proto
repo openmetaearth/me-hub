@@ -106,7 +106,7 @@ message MsgSendToMeClaim {
   uint64 block_height = 2;
   string token_contract = 3;
   string amount = 4 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   string sender = 5;
@@ -166,13 +166,13 @@ message MsgRequestBatch {
   string sender = 1;
   string denom = 2;
   string minimum_fee = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   string fee_receive = 4;
   string chain_name = 5;
   string base_fee = 6 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }

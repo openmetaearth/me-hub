@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -48,6 +49,18 @@ func ValidateGenesis(data *GenesisState) error {
 	}
 
 	return data.Params.Validate()
+}
+
+// UnpackInterfaces unpacks validator pubkeys nested in genesis JSON.
+// Without this, ProtoCodec.UnmarshalJSON leaves ConsensusPubkey cached values nil
+// and InitGenesis panics on SetValidatorByConsAddr.
+func (m GenesisState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	for i := range m.Validators {
+		if err := m.Validators[i].UnpackInterfaces(unpacker); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func validateGenesisStateValidators(validators []stakingtypes.Validator) error {

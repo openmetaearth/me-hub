@@ -213,7 +213,7 @@ class SDKModule {
 const Module = (test: IgniteClient) => {
 	return {
 		module: {
-			DymensionxyzDymensionRollapp: new SDKModule(test)
+			MetaearthRollapp: new SDKModule(test)
 		},
 		registry: msgTypes
   }

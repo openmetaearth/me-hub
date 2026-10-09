@@ -5,10 +5,10 @@ package types
 
 import (
 	context "context"
+	nft "cosmossdk.io/x/nft"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	query "github.com/cosmos/cosmos-sdk/types/query"
-	nft "github.com/cosmos/cosmos-sdk/x/nft"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"

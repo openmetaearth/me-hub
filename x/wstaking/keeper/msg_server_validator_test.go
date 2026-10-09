@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,8 +20,11 @@ func (s *KeeperTestSuite) newCreateValidatorMsgForTest(operatorAcc sdk.AccAddres
 
 	createAmount := sdk.NewCoin(
 		params.BaseDenom,
-		sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)),
+		sdkmath.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(params.BaseDenomUnit), nil)),
 	)
+
+	minCommissionRate, err := s.Keeper().MinCommissionRate(s.Ctx)
+	s.Require().NoError(err)
 
 	return &stakingtypes.MsgCreateValidator{
 		Description: stakingtypes.Description{
@@ -28,11 +32,11 @@ func (s *KeeperTestSuite) newCreateValidatorMsgForTest(operatorAcc sdk.AccAddres
 			RegionID: wstakingtypes.MeEarthRegionName,
 		},
 		Commission: stakingtypes.NewCommissionRates(
-			s.Keeper().MinCommissionRate(s.Ctx),
-			sdk.OneDec(),
-			sdk.ZeroDec(),
+			minCommissionRate,
+			sdkmath.LegacyOneDec(),
+			sdkmath.LegacyZeroDec(),
 		),
-		MinSelfDelegation: sdk.OneInt(),
+		MinSelfDelegation: sdkmath.OneInt(),
 		DelegatorAddress:  s.Dao.GlobalDao,
 		ValidatorAddress:  sdk.ValAddress(operatorAcc).String(),
 		Pubkey:            validatorPubKeyAny,
@@ -91,10 +95,10 @@ func (s *KeeperTestSuite) TestMsgServerCreateValidatorAllowsDifferentPendingRepl
 	s.Require().NoError(err)
 
 	validatorAddr := sdk.ValAddress(s.TestAccs[1])
-	validator, found := s.Keeper().GetValidator(s.Ctx, validatorAddr)
-	s.Require().True(found)
+	validator, err := s.Keeper().GetValidator(s.Ctx, validatorAddr)
+	s.Require().NoError(err)
 
 	validatorConsAddr, err := validator.GetConsAddr()
 	s.Require().NoError(err)
-	s.Require().Equal(sdk.GetConsAddress(createPubKey).String(), validatorConsAddr.String())
+	s.Require().Equal(sdk.GetConsAddress(createPubKey).String(), sdk.ConsAddress(validatorConsAddr).String())
 }
