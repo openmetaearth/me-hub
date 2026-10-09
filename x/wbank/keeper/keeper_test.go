@@ -52,3 +52,37 @@ func TestFeeToReceiversRejectsReceiverTypeMismatchBeforeTransfer(t *testing.T) {
 	require.True(t, receiverABefore.Equal(meApp.BankKeeper.GetAllBalances(ctx, receiverA)))
 	require.True(t, receiverBBefore.Equal(meApp.BankKeeper.GetAllBalances(ctx, receiverB)))
 }
+
+func TestRegisteredBankTransferMessages(t *testing.T) {
+	meApp := apptesting.Setup(t)
+	ctx := meApp.BaseApp.NewContext(false).WithBlockHeight(1)
+
+	for _, kind := range []string{"send", "multi_send"} {
+		t.Run(kind, func(t *testing.T) {
+			sender := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
+			receiver := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
+			funds := sdk.NewCoins(sdk.NewInt64Coin(params.BaseDenom, 100))
+			amount := sdk.NewCoins(sdk.NewInt64Coin(params.BaseDenom, 40))
+			require.NoError(t, bankutil.FundAccount(ctx, meApp.BankKeeper.BaseKeeper, sender, funds))
+
+			var msg sdk.Msg
+			if kind == "send" {
+				msg = &banktypes.MsgSend{
+					FromAddress: sender.String(), ToAddress: receiver.String(), Amount: amount,
+				}
+			} else {
+				msg = &banktypes.MsgMultiSend{
+					Inputs:  []banktypes.Input{{Address: sender.String(), Coins: amount}},
+					Outputs: []banktypes.Output{{Address: receiver.String(), Coins: amount}},
+				}
+			}
+
+			handler := meApp.MsgServiceRouter().Handler(msg)
+			require.NotNil(t, handler)
+			_, err := handler(ctx, msg)
+			require.NoError(t, err)
+			require.True(t, funds.Sub(amount...).Equal(meApp.BankKeeper.GetAllBalances(ctx, sender)))
+			require.True(t, amount.Equal(meApp.BankKeeper.GetAllBalances(ctx, receiver)))
+		})
+	}
+}
