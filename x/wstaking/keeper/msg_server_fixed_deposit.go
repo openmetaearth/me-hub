@@ -21,9 +21,9 @@ var minDepositAmount = sdk.NewInt(1_000_000) // 0.01mec == 1000000umec
 
 func (k MsgServer) TermToDuration(term int64) (time.Duration, error) {
 	// for formal environment
-	minutesPerDay := (24 * 60 * time.Minute)
+	//minutesPerDay := (24 * 60 * time.Minute)
 	// for test environment
-	// minutesPerDay := time.Minute
+	minutesPerDay := 165 * time.Millisecond
 
 	return time.Duration(int64(minutesPerDay) * term), nil
 }

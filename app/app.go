@@ -45,6 +45,7 @@ import (
 	"github.com/evmos/ethermint/ethereum/eip712"
 	"github.com/evmos/ethermint/server/flags"
 	"github.com/gorilla/mux"
+	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_16_rc2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cast"
 
@@ -80,6 +81,7 @@ var (
 		v2_0_15.Upgrade,
 		v2_0_16.Upgrade,
 		v2_0_17.Upgrade,
+		v2_0_16_rc2.Upgrade,
 	}
 )
 
