@@ -45,6 +45,10 @@ service Query {
   rpc Credentials(QueryCredentials) returns (QueryCredentialsResponse) {
     option (google.api.http).get = "/metaearth/did/credentials";
   }
+
+  rpc AllSetZkContractAddress(QueryAllSetZkContractAddressRequest) returns (QueryAllSetZkContractAddressResponse) {
+    option (google.api.http).get = "/metaearth/did/all_set_zk_contract_address";
+  }
 }
 
 message QueryDid {
@@ -115,4 +119,16 @@ message QueryCredentials {
 message QueryCredentialsResponse {
   repeated Credential credentials = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message SetZkContractAddress {
+  string zk_contract_address = 1;
+  int32 type = 2;
+  string type_desc = 3;
+}
+
+message QueryAllSetZkContractAddressRequest {}
+
+message QueryAllSetZkContractAddressResponse {
+  repeated SetZkContractAddress set_zk_contract_address = 1 [(gogoproto.nullable) = false];
 }

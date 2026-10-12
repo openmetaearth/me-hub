@@ -28,6 +28,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdQueryService())
 	cmd.AddCommand(CmdQueryServices())
 	cmd.AddCommand(CmdQueryCredential())
+	cmd.AddCommand(CmdQueryAllSetZkContractAddress())
 
 	return cmd
 }
@@ -211,6 +212,31 @@ func CmdQueryCredential() *cobra.Command {
 			did := args[0]
 			sid := args[1]
 			res, err := queryClient.Credential(cmd.Context(), &types.QueryCredential{Did: did, Sid: sid})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func CmdQueryAllSetZkContractAddress() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "all-set-zk-contract-address ",
+		Short: "query all set zk contract address",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.AllSetZkContractAddress(cmd.Context(), &types.QueryAllSetZkContractAddressRequest{})
 			if err != nil {
 				return err
 			}

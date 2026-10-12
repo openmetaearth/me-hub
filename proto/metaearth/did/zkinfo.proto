@@ -14,6 +14,12 @@ enum ZkContractAddressType {
   PROXY_AUTH_V3_VALIDATOR = 0 [(gogoproto.enumvalue_customname) = "PROXY_AUTH_V3_VALIDATOR"];
   PROXY_STATE = 1 [(gogoproto.enumvalue_customname) = "PROXY_STATE"];
   PROXY_IDENTITY_TREE_STORE = 2 [(gogoproto.enumvalue_customname) = "PROXY_IDENTITY_TREE_STORE"];
+  PROXY_CREDENTIAL_ATOMIC_QUERY_V3_VALIDATOR = 3 [(gogoproto.enumvalue_customname) = "PROXY_CREDENTIAL_ATOMIC_QUERY_V3_VALIDATOR"];
+  PROXY_CREDENTIAL_ATOMIC_QUERY_SIG_V2_VALIDATOR = 4 [(gogoproto.enumvalue_customname) = "PROXY_CREDENTIAL_ATOMIC_QUERY_SIG_V2_VALIDATOR"];
+  PROXY_CREDENTIAL_ATOMIC_QUERY_MTP_V2_VALIDATOR = 5 [(gogoproto.enumvalue_customname) = "PROXY_CREDENTIAL_ATOMIC_QUERY_MTP_V2_VALIDATOR"];
+  PROXY_LINKED_MULTI_QUERY_VALIDATOR = 6 [(gogoproto.enumvalue_customname) = "PROXY_LINKED_MULTI_QUERY_VALIDATOR"];
+  PROXY_AUTH_V2_VALIDATOR = 7 [(gogoproto.enumvalue_customname) = "PROXY_AUTH_V2_VALIDATOR"];
+  PROXY_UNIVERSAL_VERIFIER = 8 [(gogoproto.enumvalue_customname) = "PROXY_UNIVERSAL_VERIFIER"];
 }
 
 message ZkAuthClaimCoreIdInfo {

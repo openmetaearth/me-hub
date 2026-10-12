@@ -177,3 +177,23 @@ func (k Keeper) Credentials(goCtx context.Context, req *types.QueryCredentials) 
 
 	return &types.QueryCredentialsResponse{Credentials: vcs, Pagination: pageRes}, nil
 }
+
+func (k Keeper) AllSetZkContractAddress(goCtx context.Context, req *types.QueryAllSetZkContractAddressRequest) (*types.QueryAllSetZkContractAddressResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	var setZkContractAddresses []types.SetZkContractAddress
+
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ZkContractPrefix)
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var info types.ZkContractAddressInfo
+		k.cdc.MustUnmarshal(iterator.Value(), &info)
+		setZkContractAddresses = append(setZkContractAddresses, types.SetZkContractAddress{
+			ZkContractAddress: info.ContractAddress,
+			Type:            int32(info.Type),
+			TypeDesc: types.ZkContractAddressType_name[int32(info.Type)]})
+	}
+
+	return &types.QueryAllSetZkContractAddressResponse{SetZkContractAddress: setZkContractAddresses}, nil
+}

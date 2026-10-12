@@ -37,6 +37,8 @@ func GetTxCmd() *cobra.Command {
 		CmdCreateVc(),
 		CmdUpdateVc(),
 		CmdRemoveVc(),
+		CmdBondCoreID(),
+		CmdSetZkContractAddress(),
 	)
 	return cmd
 }
@@ -306,6 +308,77 @@ func CmdRemoveVc() *cobra.Command {
 			holder := args[0]
 			sid := args[1]
 			msg := types.NewMsgRemoveVC(clientCtx.GetFromAddress().String(), holder, sid)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+func CmdBondCoreID() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bond-core-id [core-id] [auth-proof] [nounce] []expires-at]",
+		Short: "bond core ID",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			coreID := args[0]
+			authProof := args[1]
+			nounce, err := strconv.ParseUint(args[2], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid nounce: %w", err)
+			}
+			expiresAt, err := strconv.ParseInt(args[3], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid expires-at: %w", err)
+			}
+			msg := types.NewMsgBondZkCoreID(clientCtx.GetFromAddress().String(),  &types.ZkAuthClaimCoreIdInfo{
+				CoreId:    []byte(coreID),
+				AuthProof: []byte(authProof),
+				Nonce:     nounce,
+				ExpiresAt: expiresAt})
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+
+
+func CmdSetZkContractAddress() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set-zk-contract-address [zk-contract-address] [type]",
+		Short: "set zk contract address",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			zkContractAddress := args[0]
+			iType, err := strconv.Atoi(args[1])
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgSetZkContractAddress(clientCtx.GetFromAddress().String(), &types.ZkContractAddressInfo{
+				ContractAddress: zkContractAddress,
+				Type:            types.ZkContractAddressType(iType)})
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
