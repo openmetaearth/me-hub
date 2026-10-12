@@ -1,9 +1,9 @@
 #!/bin/bash
-# 对 setup_v2_all_install.sh 部署好的环境做日常操作。
-# 可直接执行：
+# Day-to-day operations on an environment deployed by setup_v2_all_install.sh.
+# Run it directly:
 #   PROJECT_ENV=beta ./scripts/setup_v2_all_func.sh restart
 #   ./scripts/setup_v2_all_func.sh keyslist
-# 也可 source 后调用函数：
+# Or source it and call the functions:
 #   source ./scripts/setup_v2_all_func.sh
 #   restart
 #   keyslist
@@ -39,10 +39,10 @@ HUB_NODE_HOMES=(node1 node2 node3 node4)
 ROLLAPP_SERVICES=(rollapp-node1 rollapp-node2 rollapp-node3)
 ROLLAPP_NODE_HOMES=(node1 node2 node3)
 ROLLAPP_DA_LAYER="${ROLLAPP_DA_LAYER:-me-da}"
-# Phase B 换 Hub 镜像；Phase C 新 rollappd 镜像必须显式指定
+# Phase B switches the Hub image. The Phase C rollappd image must be set explicitly.
 MED_V3_IMAGE="${MED_V3_IMAGE:-ghcr.io/openmetaearth/med:v3.0.0}"
 ROLLAPP_V3_IMAGE="${ROLLAPP_V3_IMAGE:-}"
-# hub / rollapp 镜像都以 root 跑，容器内 home 固定这两个路径
+# Hub and rollapp images run as root. In-container home is fixed to these paths.
 HUB_CONTAINER_HOME="${HUB_CONTAINER_HOME:-/root/.mechain}"
 ROLLAPP_CONTAINER_HOME="${ROLLAPP_CONTAINER_HOME:-/root/.rollapp}"
 HUB_MIN_GAS_PRICES="${HUB_MIN_GAS_PRICES:-0.02umec}"
@@ -57,30 +57,30 @@ usage() {
 Usage: $0 <command>
 
 Commands:
-  restart                 停掉 4 个 hub(med) 节点，把 timeout_commit 改成 ${TIMEOUT_COMMIT}，再启动
+  restart                 Stop the 4 hub(med) nodes, set timeout_commit to ${TIMEOUT_COMMIT}, then start them
   keyslist                med keys list --keyring-backend ${KEYRING_BACKEND_NAME} --home node1
   ibc-hub-to-rollapp      hub(global_dao) --ibc--> rollapp(ibc)
-  ibc-rollapp-to-hub      rollapp(roluser) --ibc--> hub(ibc-rollapp 收款地址)
-  ibc                     先 rollapp->hub，再 hub->rollapp
-  rollapp-propose         RollApp 提交 ${UPGRADE_NAME} software-upgrade（必须在 Hub 仍是 v2 出块时）
-  rollapp-proposal [id]   查询 rollapp 提案
-  rollapp-vote [id]       roluser 投票，并等到 rollapp halt
-  propose                 Hub 提交 ${UPGRADE_NAME}（拒绝：若 rollapp 还没 halt）
-  proposal [id]           查询 Hub 提案
-  vote [id]               四个 validator 对 Hub 提案投 ${VOTE_OPTION}
-  hub-upgrade             Hub halt 后换 ${MED_V3_IMAGE}（拒绝：若 rollapp 还没 halt；不要启动旧 rollappd）
-  run-3d-migration        停 rollapp，对 node1/2/3 跑 rollappd run-3d-migration（DA=me-da）
-  rollapp-upgrade         Hub v3 之后：备份、3D migration、换新 rollappd 启动
+  ibc-rollapp-to-hub      rollapp(roluser) --ibc--> hub(ibc-rollapp receive address)
+  ibc                     rollapp->hub, then hub->rollapp
+  rollapp-propose         RollApp submits the ${UPGRADE_NAME} software-upgrade (Hub must still be producing v2 blocks)
+  rollapp-proposal [id]   Query a rollapp proposal
+  rollapp-vote [id]       roluser votes, then wait until the rollapp halts
+  propose                 Hub submits ${UPGRADE_NAME} (refuses if the rollapp has not halted)
+  proposal [id]           Query a Hub proposal
+  vote [id]               Four validators vote ${VOTE_OPTION} on the Hub proposal
+  hub-upgrade             After the Hub halt, switch to ${MED_V3_IMAGE} (refuses if the rollapp has not halted; do not start the old rollappd)
+  run-3d-migration        Stop rollapp and run rollappd run-3d-migration on node1/2/3 (DA=me-da)
+  rollapp-upgrade         After Hub v3: backup, 3D migration, switch to the new rollappd and start it
 
-  顺序（提案 ≠ 换镜像，不能颠倒）：
-    1. rollapp-propose → rollapp-vote（旧 rollappd 出块，等 upgrade-info.json）
-    2. propose → vote → hub-upgrade（这时才换 med:v3）
+  Order (proposal is not the same as switching the image; do not reverse these):
+    1. rollapp-propose -> rollapp-vote (old rollappd produces blocks, wait for upgrade-info.json)
+    2. propose -> vote -> hub-upgrade (this is when med:v3 is switched in)
     3. ROLLAPP_V3_IMAGE=... rollapp-upgrade
-  Hub halt 后再 rollapp-propose 会失败：halt 后 Hub 节点 panic，RPC 没了。
-  旧 rollappd 也不能在 hub-upgrade 之后启动（GetProposer nil panic）。
+  rollapp-propose after the Hub halt fails: halted Hub nodes panic and RPC is gone.
+  The old rollappd also must not be started after hub-upgrade (GetProposer nil panic).
 
-  fix-da-config           把 dymint.toml 的 da_layer/da_config 改成 v3 数组格式后重启 rollapp（不重跑 migration）
-  help                    显示本说明
+  fix-da-config           Rewrite dymint.toml da_layer/da_config as v3 arrays, then restart rollapp (does not re-run migration)
+  help                    Show this help
 
 Env:
   PROJECT_ENV=${PROJECT_ENV}
@@ -133,7 +133,7 @@ set_timeout_commit() {
 restart() {
     need_base_dir
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#  停掉 hub-node1..4，timeout_commit=${TIMEOUT_COMMIT}，再启动                   #"
+    echo "#  Stop hub-node1..4, set timeout_commit=${TIMEOUT_COMMIT}, then start         #"
     echo "# ---------------------------------------------------------------------------- #"
     docker compose stop "${HUB_SERVICES[@]}"
     set_timeout_commit "${TIMEOUT_COMMIT}"
@@ -191,15 +191,15 @@ watch_ibc_balance() {
     local waited=0
     while [ "${waited}" -lt "${IBC_WAIT_SECONDS}" ]; do
         if $binary query bank balances "${user_addr}" ${extra_args} -o json | jq -e '.balances[]? | select(.denom | test("ibc"))' >/dev/null 2>&1; then
-            echo "addr ${user_addr} 已收到 ibc 代币"
+            echo "addr ${user_addr} received ibc tokens"
             $binary query bank balances "${user_addr}" ${extra_args}
             return 0
         fi
-        echo "addr ${user_addr} 尚未收到 ibc 代币, sleep 5s (${waited}/${IBC_WAIT_SECONDS})"
+        echo "addr ${user_addr} has not received ibc tokens yet, sleep 5s (${waited}/${IBC_WAIT_SECONDS})"
         sleep 5
         waited=$((waited + 5))
     done
-    echo "error: ${IBC_WAIT_SECONDS}s 内未收到 ibc 代币: ${user_addr}" >&2
+    echo "error: no ibc tokens for ${user_addr} within ${IBC_WAIT_SECONDS}s" >&2
     $binary query bank balances "${user_addr}" ${extra_args} || true
     exit 1
 }
@@ -216,7 +216,7 @@ load_ibc_context() {
         USER_ADDR_ME_IBC_ROLLAPP=$(rly keys show "${ME_CHAIN_ID}" me_user_ibc_rollapp_name --home "${RLY_RAPP_NODE_HOME}" 2>/dev/null | grep -Eo 'me1[0-9a-z]+' | head -1 || true)
     fi
     if [ -z "${USER_ADDR_ME_IBC_ROLLAPP:-}" ]; then
-        echo "error: 无法得到 hub 侧 ibc 收款地址，请设置 USER_ADDR_ME_IBC_ROLLAPP" >&2
+        echo "error: could not resolve the hub-side ibc receive address; set USER_ADDR_ME_IBC_ROLLAPP" >&2
         exit 1
     fi
 
@@ -225,7 +225,7 @@ load_ibc_context() {
         RAPP_CHANNEL_ID="${RAPP_CHANNEL_ID:-$(rly q channels "${ROLLAPP_CHAIN_ID}" --home "${RLY_RAPP_NODE_HOME}" 2>/dev/null | jq --arg chain_id "${ME_CHAIN_ID}" -r 'select(.counterparty.chain_id == $chain_id and .state == "STATE_OPEN") | .channel_id' | head -1)}"
     fi
     if [ -z "${ME_CHANNEL_ID:-}" ] || [ -z "${RAPP_CHANNEL_ID:-}" ]; then
-        echo "error: 找不到 hub-rollapp 通道，请确认 rly-rollapp 已 link。ME_CHANNEL_ID=${ME_CHANNEL_ID:-} RAPP_CHANNEL_ID=${RAPP_CHANNEL_ID:-}" >&2
+        echo "error: hub-rollapp channel not found; confirm rly-rollapp is linked. ME_CHANNEL_ID=${ME_CHANNEL_ID:-} RAPP_CHANNEL_ID=${RAPP_CHANNEL_ID:-}" >&2
         exit 1
     fi
 
@@ -240,7 +240,7 @@ load_ibc_context() {
 print_ibc_balances() {
     echo "hub global_dao:"
     med query bank balances "${USER_ADDR_ME_GLOBAL_DAO}" --home "${ME_NODE1_HOME}"
-    echo "hub ibc-rollapp 收款地址:"
+    echo "hub ibc-rollapp receive address:"
     med query bank balances "${USER_ADDR_ME_IBC_ROLLAPP}" --home "${ME_NODE1_HOME}"
     echo "rollapp roluser:"
     rollappd query bank balances "${USER_ADDR_ROLLAPP_ADMIN}" --home "${RAPP_NODE1_HOME}"
@@ -248,7 +248,7 @@ print_ibc_balances() {
     rollappd query bank balances "${USER_ADDR_ROLLAPP_IBC}" --home "${RAPP_NODE1_HOME}"
 }
 
-# hub(global_dao/umec) -> rollapp(ibc 地址)
+# hub(global_dao/umec) -> rollapp(ibc address)
 ibc_hub_to_rollapp() {
     load_ibc_context
     local amount="${1:-}"
@@ -266,7 +266,7 @@ ibc_hub_to_rollapp() {
     watch_ibc_balance rollappd "${USER_ADDR_ROLLAPP_IBC}" "--home ${RAPP_NODE1_HOME}"
 }
 
-# rollapp(roluser/urax) -> hub(ibc-rollapp 收款地址)
+# rollapp(roluser/urax) -> hub(ibc-rollapp receive address)
 ibc_rollapp_to_hub() {
     load_ibc_context
     local amount="${1:-}"
@@ -306,14 +306,14 @@ latest_proposal_id() {
     '
 }
 
-# 查询提案。不传 id 则查最新一条，并列出全部提案摘要。
+# Query a proposal. With no id, query the latest one and list every proposal summary.
 proposal() {
     need_base_dir
     local proposal_id="${1:-}"
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#  查询 gov 提案                                                                #"
+    echo "#  Query gov proposals                                                         #"
     echo "# ---------------------------------------------------------------------------- #"
-    echo "全部提案:"
+    echo "All proposals:"
     med q gov proposals --home "${ME_NODE1_HOME}" -o json | jq -r '
         (.proposals // [])
         | if length == 0 then "  (none)"
@@ -324,7 +324,7 @@ proposal() {
         proposal_id="$(latest_proposal_id || true)"
     fi
     if [ -z "${proposal_id}" ] || [ "${proposal_id}" = "null" ]; then
-        echo "没有可查询的提案"
+        echo "No proposal to query"
         return 0
     fi
     echo "# ---------------------------------------------------------------------------- #"
@@ -344,11 +344,11 @@ rollapp_upgrade_info_name() {
 
 wait_rollapp_halt() {
     local halt height waited=0 name
-    echo "等待 RollApp 到达 software-upgrade halt 高度"
+    echo "Waiting for the RollApp to reach the software-upgrade halt height"
     while [ "${waited}" -lt 1800 ]; do
         name="$(rollapp_upgrade_info_name)"
         if [[ -n "${name}" ]]; then
-            echo "rollapp 已 halt: ${RAPP_NODE1_HOME}/data/upgrade-info.json name=${name}"
+            echo "rollapp halted: ${RAPP_NODE1_HOME}/data/upgrade-info.json name=${name}"
             return 0
         fi
         halt=$(rollappd q upgrade plan --home "${RAPP_NODE1_HOME}" -o json 2>/dev/null | jq -r '.plan.height // .height // empty')
@@ -356,59 +356,59 @@ wait_rollapp_halt() {
         height="$(rollapp_height 2>/dev/null || true)"
         height=${height//\"/}
         if [[ -n "${halt}" && "${halt}" != "null" && -n "${height}" && "${height}" != "null" ]] && [ "${height}" -ge "${halt}" ] 2>/dev/null; then
-            echo "已到 rollapp halt height=${halt} current=${height}"
+            echo "Reached rollapp halt height=${halt} current=${height}"
             return 0
         fi
         if [[ -z "${height}" || "${height}" == "null" ]]; then
-            echo "error: rollapp RPC 不可用且没有 upgrade-info.json。" >&2
-            echo "这通常是旧 rollappd 连了 v3 Hub 后 panic，不是正常 software-upgrade halt。" >&2
+            echo "error: rollapp RPC is down and upgrade-info.json is missing." >&2
+            echo "This usually means the old rollappd panicked after connecting to a v3 Hub, not a normal software-upgrade halt." >&2
             exit 1
         fi
-        echo "等待 rollapp halt: height=${height} plan=${halt:-?} (${waited}/1800)"
+        echo "Waiting for rollapp halt: height=${height} plan=${halt:-?} (${waited}/1800)"
         sleep 5
         waited=$((waited + 5))
     done
-    echo "error: 1800s 内 rollapp 未到达 halt 高度" >&2
+    echo "error: rollapp did not reach the halt height within 1800s" >&2
     rollappd q upgrade plan --home "${RAPP_NODE1_HOME}" || true
     exit 1
 }
 
-# Hub 提案/换镜像之前，rollapp 必须已经在 v2 Hub 上 halt。
-# 不能等到 Hub halt 再 rollapp-propose：Hub halt 后节点 panic，settlement RPC 没了。
+# Before a Hub proposal or image switch, the rollapp must already have halted on a v2 Hub.
+# Do not wait for the Hub halt and then rollapp-propose: halted Hub nodes panic and settlement RPC is gone.
 require_rollapp_halted() {
     local name plan
     if [ "${SKIP_ROLLAPP_GOV_CHECK:-}" = "1" ]; then
-        echo "SKIP_ROLLAPP_GOV_CHECK=1，跳过 rollapp halt 检查"
+        echo "SKIP_ROLLAPP_GOV_CHECK=1, skipping the rollapp halt check"
         return 0
     fi
     name="$(rollapp_upgrade_info_name)"
     if [[ -n "${name}" ]]; then
-        echo "rollapp 已 halt: upgrade-info name=${name}"
+        echo "rollapp halted: upgrade-info name=${name}"
         return 0
     fi
     plan=$(rollappd q upgrade plan --home "${RAPP_NODE1_HOME}" -o json 2>/dev/null | jq -r '.plan.name // .name // empty' || true)
     if [[ -n "${plan}" && "${plan}" != "null" ]]; then
-        echo "rollapp 已有 upgrade plan=${plan}，等待 halt（必须在 Hub 仍出块时完成）"
+        echo "rollapp already has upgrade plan=${plan}, waiting for halt (must finish while the Hub is still producing blocks)"
         wait_rollapp_halt
         return 0
     fi
-    echo "error: 先让 rollapp 在 v2 Hub 上完成 software-upgrade 并 halt，再动 Hub。" >&2
-    echo "顺序: rollapp-propose → rollapp-vote → propose → vote → hub-upgrade → rollapp-upgrade" >&2
-    echo "Hub halt 后再提案没用：halt 后 RPC 挂了；hub-upgrade 后再起 v1.0.21 会 GetProposer panic。" >&2
-    echo "这条环境若已经 Hub v3 且 rollapp 没提案，只能重置。强制跳过: SKIP_ROLLAPP_GOV_CHECK=1" >&2
+    echo "error: finish the rollapp software-upgrade and halt on a v2 Hub before touching the Hub." >&2
+    echo "Order: rollapp-propose -> rollapp-vote -> propose -> vote -> hub-upgrade -> rollapp-upgrade" >&2
+    echo "A proposal after the Hub halt does nothing: RPC is down after the halt, and starting v1.0.21 after hub-upgrade hits a GetProposer panic." >&2
+    echo "If this env is already Hub v3 and the rollapp has no proposal, reset it. Force skip: SKIP_ROLLAPP_GOV_CHECK=1" >&2
     exit 1
 }
 
-# 由 global_dao 提交 software-upgrade 到 v3.0.0，然后查询提案。
+# global_dao submits the software-upgrade to v3.0.0, then queries the proposal.
 propose() {
     need_base_dir
-    # require_rollapp_halted # 暂时注释掉，因为rollapp提案后，进程停了，查询不到，人工感知。
+    # require_rollapp_halted # Temporarily disabled: after the rollapp proposal the process stops and cannot be queried; the operator checks by hand.
     local height halt txhash proposal_id
     height="$(hub_height)"
     height="${height//\"/}"
     halt="${HALT_HEIGHT:-$((height + HALT_OFFSET))}"
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#  提交 software-upgrade ${UPGRADE_NAME}  height=${height} halt=${halt}        #"
+    echo "#  Submit software-upgrade ${UPGRADE_NAME}  height=${height} halt=${halt}       #"
     echo "# ---------------------------------------------------------------------------- #"
     echo "med tx gov submit-legacy-proposal software-upgrade ${UPGRADE_NAME} --upgrade-height ${halt} --from global_dao --deposit ${GOV_DEPOSIT}"
     txhash=$(med tx gov submit-legacy-proposal software-upgrade "${UPGRADE_NAME}" \
@@ -457,7 +457,7 @@ fund_val_if_needed() {
         echo "${key} ${addr} umec=${amount}"
         return 0
     fi
-    echo "${key} ${addr} umec=${amount}, 从 global_dao 转入 ${VAL_FUND_AMOUNT} 作手续费"
+    echo "${key} ${addr} umec=${amount}, sending ${VAL_FUND_AMOUNT} from global_dao for fees"
     txhash=$(med tx bank send global_dao "${addr}" "${VAL_FUND_AMOUNT}" \
         --from global_dao \
         --keyring-backend "${KEYRING_BACKEND_NAME}" \
@@ -468,7 +468,7 @@ fund_val_if_needed() {
     check_tx_status med "${txhash}" "--home ${ME_NODE1_HOME}"
 }
 
-# 四个 validator 在同一个函数里投票。不传 id 则投最新提案。
+# All four validators vote in this function. With no id, vote on the latest proposal.
 vote() {
     need_base_dir
     local proposal_id="${1:-}"
@@ -477,11 +477,11 @@ vote() {
         proposal_id="$(latest_proposal_id || true)"
     fi
     if [ -z "${proposal_id}" ] || [ "${proposal_id}" = "null" ]; then
-        echo "error: 没有可投票的提案，请先 propose 或传入 proposal id" >&2
+        echo "error: no proposal to vote on; run propose first or pass a proposal id" >&2
         exit 1
     fi
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#  val1-val4 对提案 ${proposal_id} 投 ${VOTE_OPTION}                           #"
+    echo "#  val1-val4 vote ${VOTE_OPTION} on proposal ${proposal_id}                    #"
     echo "# ---------------------------------------------------------------------------- #"
     for key in "${HUB_VAL_KEYS[@]}"; do
         fund_val_if_needed "${key}"
@@ -497,7 +497,7 @@ vote() {
     done
     proposal "${proposal_id}"
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#  Hub 已投票。等 halt 后执行 hub-upgrade（换镜像）。不要现在起旧 rollappd。     #"
+    echo "#  Hub has voted. After the halt, run hub-upgrade (image switch). Do not start the old rollappd now. #"
     echo "# ---------------------------------------------------------------------------- #"
 }
 
@@ -517,14 +517,14 @@ text = path.read_text()
 needle = "x-me-template:"
 idx = text.find(needle)
 if idx < 0:
-    raise SystemExit("docker-compose.yml 里没有 x-me-template")
+    raise SystemExit("docker-compose.yml has no x-me-template")
 rest = text[idx + len(needle):]
 m = re.search(r"(?m)^(x-|networks:|services:)", rest)
 end = idx + len(needle) + (m.start() if m else len(rest))
 block = text[idx:end]
 block, n = re.subn(r"(?m)^  image: .+$", f"  image: {image}", block, count=1)
 if n != 1:
-    raise SystemExit("未能替换 x-me-template 的 image")
+    raise SystemExit("failed to replace the x-me-template image")
 cmd = (
     "  command:\n"
     "    - start\n"
@@ -535,7 +535,7 @@ cmd = (
 )
 block, n = re.subn(r"(?ms)^  command:\n(?:    - .+\n)+", cmd, block, count=1)
 if n != 1:
-    raise SystemExit("未能替换 x-me-template 的 command")
+    raise SystemExit("failed to replace the x-me-template command")
 block = re.sub(r"(?m)^  user: .+\n", "", block)
 path.write_text(text[:idx] + block + text[end:])
 print(f"compose hub image -> {image}")
@@ -545,25 +545,25 @@ PY
 
 wait_hub_halt() {
     local halt height waited=0
-    echo "等待 Hub 到达 software-upgrade halt 高度"
+    echo "Waiting for the Hub to reach the software-upgrade halt height"
     while [ "${waited}" -lt 1800 ]; do
         halt=$(med q upgrade plan --home "${ME_NODE1_HOME}" -o json 2>/dev/null | jq -r '.plan.height // .height // empty')
         halt=${halt//\"/}
         height="$(hub_height 2>/dev/null || true)"
         height=${height//\"/}
         if [[ -n "${halt}" && "${halt}" != "null" && -n "${height}" && "${height}" != "null" ]] && [ "${height}" -ge "${halt}" ] 2>/dev/null; then
-            echo "已到 halt height=${halt} current=${height}"
+            echo "Reached halt height=${halt} current=${height}"
             return 0
         fi
         if [[ -z "${height}" || "${height}" == "null" ]]; then
-            echo "hub RPC 不可用（可能已 halt），继续换 ${MED_V3_IMAGE}"
+            echo "hub RPC is down (it may already have halted); continuing with ${MED_V3_IMAGE}"
             return 0
         fi
-        echo "等待 halt: height=${height} plan=${halt:-?} (${waited}/1800)"
+        echo "Waiting for halt: height=${height} plan=${halt:-?} (${waited}/1800)"
         sleep 5
         waited=$((waited + 5))
     done
-    echo "error: 1800s 内未到达 halt 高度" >&2
+    echo "error: halt height not reached within 1800s" >&2
     med q upgrade plan --home "${ME_NODE1_HOME}" || true
     exit 1
 }
@@ -574,29 +574,29 @@ wait_hub_block() {
         height="$(hub_height 2>/dev/null || true)"
         height=${height//\"/}
         if [[ -n "${height}" && "${height}" != "null" && "${height}" -ge 1 ]] 2>/dev/null; then
-            echo "hub 已出块, height=${height}"
+            echo "hub is producing blocks, height=${height}"
             return 0
         fi
-        echo "等待 hub 出块, sleep 5s (${waited}/180)"
+        echo "Waiting for a hub block, sleep 5s (${waited}/180)"
         sleep 5
         waited=$((waited + 5))
     done
-    echo "error: 新 med 180s 内未出块" >&2
+    echo "error: new med produced no block within 180s" >&2
     docker compose logs --tail 80 hub-node1 || true
     exit 1
 }
 
-# Phase B：halt 后把 compose 的 Hub 镜像换成 med:v3.0.0 并启动。
-# 旧 rollappd v1.0.21 连 v3 Hub 会在 IsSequencerVerify 对 GetProposer() 空指针 panic，必须保持停止。
-# 换镜像 ≠ 提案：rollapp 的 gov/halt 必须在这之前、Hub 还是 v2 时完成。
+# Phase B: after the halt, switch the compose Hub image to med:v3.0.0 and start it.
+# Old rollappd v1.0.21 panics on a nil GetProposer() inside IsSequencerVerify when it talks to a v3 Hub, so it must stay stopped.
+# Switching the image is not the proposal: rollapp gov/halt must finish before this, while the Hub is still v2.
 hub_upgrade() {
     need_base_dir
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#  Phase B Hub 升级  image=${MED_V3_IMAGE}  home=${HUB_CONTAINER_HOME}          #"
+    echo "#  Phase B Hub upgrade  image=${MED_V3_IMAGE}  home=${HUB_CONTAINER_HOME}       #"
     echo "# ---------------------------------------------------------------------------- #"
-    # require_rollapp_halted # 暂时注释掉，因为rollapp提案后，进程停了，查询不到，人工感知。
+    # require_rollapp_halted # Temporarily disabled: after the rollapp proposal the process stops and cannot be queried; the operator checks by hand.
     wait_hub_halt
-    echo "停 hub + rollapp（halt 期间不要让 rollapp 继续堆 batch）"
+    echo "Stop hub + rollapp (do not let rollapp keep batching during the halt)"
     docker compose stop rly-rollapp "${ROLLAPP_SERVICES[@]}" "${HUB_SERVICES[@]}" || true
     ensure_local_image "${MED_V3_IMAGE}"
     set_compose_hub_image "${MED_V3_IMAGE}"
@@ -607,8 +607,8 @@ hub_upgrade() {
     echo "upgrade applied:"
     med q upgrade applied "${UPGRADE_NAME}" --home "${ME_NODE1_HOME}" || true
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#  Hub v3 已起来。不要 docker compose up rollapp-node*（仍是 v1.0.21，会 panic） #"
-    echo "#  下一步：ROLLAPP_V3_IMAGE=... ./scripts/setup_v2_all_func.sh rollapp-upgrade     #"
+    echo "#  Hub v3 is up. Do not docker compose up rollapp-node* (still v1.0.21, it will panic) #"
+    echo "#  Next: ROLLAPP_V3_IMAGE=... ./scripts/setup_v2_all_func.sh rollapp-upgrade          #"
     echo "# ---------------------------------------------------------------------------- #"
 }
 
@@ -625,12 +625,12 @@ rollapp_latest_proposal_id() {
     '
 }
 
-# 查询 rollapp gov 提案。不传 id 则查最新一条。
+# Query a rollapp gov proposal. With no id, query the latest one.
 rollapp_proposal() {
     need_base_dir
     local proposal_id="${1:-}"
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#  查询 rollapp gov 提案                                                       #"
+    echo "#  Query rollapp gov proposals                                                #"
     echo "# ---------------------------------------------------------------------------- #"
     echo "validators:"
     rollappd q staking validators --home "${RAPP_NODE1_HOME}" -o json | jq -r '
@@ -639,7 +639,7 @@ rollapp_proposal() {
           else .[] | "  moniker=\(.description.moniker) status=\(.status) tokens=\(.tokens)"
           end
     '
-    echo "全部提案:"
+    echo "All proposals:"
     rollappd q gov proposals --home "${RAPP_NODE1_HOME}" -o json | jq -r '
         (.proposals // [])
         | if length == 0 then "  (none)"
@@ -650,7 +650,7 @@ rollapp_proposal() {
         proposal_id="$(rollapp_latest_proposal_id || true)"
     fi
     if [ -z "${proposal_id}" ] || [ "${proposal_id}" = "null" ]; then
-        echo "没有可查询的 rollapp 提案"
+        echo "No rollapp proposal to query"
         return 0
     fi
     echo "# ---------------------------------------------------------------------------- #"
@@ -661,8 +661,8 @@ rollapp_proposal() {
     rollappd q gov votes "${proposal_id}" --home "${RAPP_NODE1_HOME}" || true
 }
 
-# 由 roluser 提交 rollapp software-upgrade v3.0.0（submit-legacy-proposal + --no-validate）。
-# handler 会新增 hubgenesis store，并 InitGenesis rollappparams（DA=me-da）。
+# roluser submits the rollapp software-upgrade v3.0.0 (submit-legacy-proposal + --no-validate).
+# The handler adds the hubgenesis store and InitGenesis rollappparams (DA=me-da).
 rollapp_propose() {
     need_base_dir
     local height halt txhash proposal_id
@@ -671,7 +671,7 @@ rollapp_propose() {
     halt="${ROLLAPP_HALT_HEIGHT:-$((height + ROLLAPP_HALT_OFFSET))}"
     echo "# ---------------------------------------------------------------------------- #"
     echo "#  rollapp software-upgrade ${UPGRADE_NAME}  height=${height} halt=${halt}     #"
-    echo "#  新增模块: hubgenesis store + rollappparams (DA=${ROLLAPP_DA_LAYER})         #"
+    echo "#  New modules: hubgenesis store + rollappparams (DA=${ROLLAPP_DA_LAYER})      #"
     echo "# ---------------------------------------------------------------------------- #"
     echo "rollappd tx gov submit-legacy-proposal software-upgrade ${UPGRADE_NAME} --upgrade-height ${halt} --from roluser --deposit ${ROLLAPP_GOV_DEPOSIT}"
     txhash=$(rollappd tx gov submit-legacy-proposal software-upgrade "${UPGRADE_NAME}" \
@@ -705,7 +705,7 @@ rollapp_propose() {
     rollapp_proposal "${proposal_id}"
 }
 
-# 创世 gentx 只有 roluser 一个 staking 验证人；对链上每个 bonded validator 若本地有同名 key 则投票。
+# Genesis gentx has only roluser as a staking validator. Vote with each local key whose name matches a bonded validator.
 rollapp_vote() {
     need_base_dir
     local proposal_id="${1:-}"
@@ -714,11 +714,11 @@ rollapp_vote() {
         proposal_id="$(rollapp_latest_proposal_id || true)"
     fi
     if [ -z "${proposal_id}" ] || [ "${proposal_id}" = "null" ]; then
-        echo "error: 没有可投票的 rollapp 提案，请先 rollapp-propose 或传入 proposal id" >&2
+        echo "error: no rollapp proposal to vote on; run rollapp-propose first or pass a proposal id" >&2
         exit 1
     fi
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#  rollapp 验证人对提案 ${proposal_id} 投 ${VOTE_OPTION}                       #"
+    echo "#  rollapp validators vote ${VOTE_OPTION} on proposal ${proposal_id}          #"
     echo "# ---------------------------------------------------------------------------- #"
     rollappd q staking validators --home "${RAPP_NODE1_HOME}"
     for key in "${ROLLAPP_VAL_KEYS[@]}"; do
@@ -734,11 +734,11 @@ rollapp_vote() {
     done
     rollapp_proposal "${proposal_id}"
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#  投票完成。下一步等 rollapp halt，再 Hub propose（不要先 hub-upgrade）。       #"
+    echo "#  Vote done. Next, wait for the rollapp halt, then Hub propose (do not hub-upgrade first). #"
     echo "# ---------------------------------------------------------------------------- #"
     wait_rollapp_halt
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#  rollapp 已 halt。现在可以: propose → vote → hub-upgrade → rollapp-upgrade     #"
+    echo "#  rollapp has halted. Next: propose -> vote -> hub-upgrade -> rollapp-upgrade   #"
     echo "# ---------------------------------------------------------------------------- #"
 }
 
@@ -757,7 +757,7 @@ toml_put_line() {
             $0 ~ re { print line; next }
             { print }
         ' "${file}" > "${tmp}"
-        # 不用 mv：有的环境 alias 成 mv -i，且 docker 写出的目标文件可能是 root
+        # Do not use mv: some envs alias it to mv -i, and docker may have written the target as root
         command cp "${tmp}" "${file}"
         rm -f "${tmp}"
     else
@@ -768,16 +768,16 @@ toml_put_line() {
 
 need_rollapp_v3_image() {
     if [ -z "${ROLLAPP_V3_IMAGE}" ]; then
-        echo "error: 请设置 ROLLAPP_V3_IMAGE，例如 harbor.starex.xyz/rollapp/rollappd:<new-tag>" >&2
+        echo "error: set ROLLAPP_V3_IMAGE, for example harbor.starex.xyz/rollapp/rollappd:<new-tag>" >&2
         exit 1
     fi
 }
 
-# 本地已有同名 tag 就不再 pull。Harbor 未登录时 docker pull 会 unauthorized，但镜像往往已经在机器上。
+# Skip pull when the tag is already local. An unauthenticated Harbor docker pull returns unauthorized even when the image is already on the machine.
 ensure_local_image() {
     local image="$1"
     if docker image inspect "${image}" >/dev/null 2>&1; then
-        echo "本地已有 ${image}，跳过 pull"
+        echo "Local image ${image} already present, skipping pull"
         return 0
     fi
     echo "pull ${image}"
@@ -787,7 +787,7 @@ ensure_local_image() {
 backup_rollapp_home() {
     local home="$1"
     local bak="${home}.bak-$(date +%Y%m%d%H%M%S)"
-    echo "备份 ${home} -> ${bak}"
+    echo "Backup ${home} -> ${bak}"
     cp -a "${home}" "${bak}"
 }
 
@@ -795,12 +795,12 @@ run_3d_migration() {
     local home="$1"
     local out rc=0
     echo "rollappd run-3d-migration --home ${home} --rollapp-param-da ${ROLLAPP_DA_LAYER}"
-    # mehub_v3：命令挂在 rollappd 上。宿主机若仍是旧二进制，改用 v3 镜像。
+    # mehub_v3: the command lives on rollappd. If the host binary is still old, use the v3 image.
     if rollappd run-3d-migration --help >/dev/null 2>&1; then
         out=$(rollappd run-3d-migration --home "${home}" --rollapp-param-da "${ROLLAPP_DA_LAYER}" 2>&1) || rc=$?
     else
         if [ -z "${ROLLAPP_V3_IMAGE}" ]; then
-            echo "error: 宿主机 rollappd 没有 run-3d-migration，请设置 ROLLAPP_V3_IMAGE 用 v3 镜像跑" >&2
+            echo "error: host rollappd has no run-3d-migration; set ROLLAPP_V3_IMAGE and run it from the v3 image" >&2
             exit 1
         fi
         out=$(docker run --rm --pull never \
@@ -813,11 +813,11 @@ run_3d_migration() {
     if echo "${out}" | grep -qE '3D dymint store migration successful|3D migration is not needed'; then
         return 0
     fi
-    echo "error: 3D migration 失败 (exit ${rc})" >&2
+    echo "error: 3D migration failed (exit ${rc})" >&2
     exit 1
 }
 
-# 离线对三个 rollapp 节点执行 3D store 迁移。必须先停进程。
+# Run the 3D store migration offline on the three rollapp nodes. Stop the processes first.
 run-3d-migration() {
     need_base_dir
     local node home
@@ -828,17 +828,17 @@ run-3d-migration() {
     for node in "${ROLLAPP_NODE_HOMES[@]}"; do
         home="${RAPP_NODES_HOME}/${node}"
         if [ ! -d "${home}/data" ] && [ ! -f "${home}/config/genesis.json" ]; then
-            echo "跳过不存在的 ${home}"
+            echo "Skipping missing ${home}"
             continue
         fi
         backup_rollapp_home "${home}"
         run_3d_migration "${home}"
     done
-    echo "3D migration 完成。节点保持停止，换 v3 镜像后再 docker compose up -d ${ROLLAPP_SERVICES[*]}"
+    echo "3D migration done. Nodes stay stopped; switch to the v3 image before docker compose up -d ${ROLLAPP_SERVICES[*]}"
 }
 
-# v3 dymint：da_layer / da_config 必须是等长数组。
-# 旧格式 da_layer = "me-da"、da_config = '{json}' 不能再用 awk -v 拷贝（JSON 引号会被截断成空串）。
+# v3 dymint: da_layer / da_config must be arrays of equal length.
+# The old scalar form da_layer = "me-da", da_config = '{json}' cannot be copied with awk -v (JSON quotes get truncated to an empty string).
 normalize_v3_da_config() {
     local cfg="$1"
     local home
@@ -901,11 +901,11 @@ for path in paths:
             best, source, best_score = obj, str(path), score
 
 if best is None:
-    raise SystemExit(f"error: 找不到可用的 da_config JSON（查过 {cfg} / .pre-v3 / bak-*）")
+    raise SystemExit(f"error: no usable da_config JSON (checked {cfg} / .pre-v3 / bak-*)")
 
 json_str = json.dumps(best, separators=(",", ":"))
 if "'" in json_str:
-    raise SystemExit("error: da_config JSON 含单引号，无法写入 TOML 单引号字符串")
+    raise SystemExit("error: da_config JSON contains a single quote and cannot be written as a TOML single-quoted string")
 
 layer_line = f'da_layer = ["{da_layer}"]'
 cfg_line = f"da_config = ['{json_str}']"
@@ -926,8 +926,8 @@ print(f"da_config base_url={best.get('base_url')} auth_token_len={len(token)}")
 PY
 }
 
-# 用新 rollappd 的默认 dymint.toml，再把旧文件里的 settlement / keyring 抄回去。
-# DA 单独按 v3 数组格式从 .pre-v3 / bak 还原，不要用 awk 拷贝旧标量。
+# Start from the new rollappd default dymint.toml, then copy settlement / keyring back from the old file.
+# Restore DA on its own as v3 arrays from .pre-v3 / bak. Do not awk-copy the old scalars.
 merge_dymint_toml() {
     local home="$1"
     local old="${home}/config/dymint.toml"
@@ -945,16 +945,16 @@ merge_dymint_toml() {
         --entrypoint rollappd \
         "${ROLLAPP_V3_IMAGE}" \
         init tmpnode --chain-id "${ROLLAPP_CHAIN_ID}" --home "${ROLLAPP_CONTAINER_HOME}" >/dev/null 2>&1; then
-        echo "新 rollappd init 失败，保留原 dymint.toml 并只核对 DA/settlement"
+        echo "New rollappd init failed; keeping the original dymint.toml and only checking DA/settlement"
         rm -rf "${tmp}"
         return 0
     fi
     if [ ! -f "${tmp}/config/dymint.toml" ]; then
-        echo "新镜像未生成 dymint.toml，保留原文件"
+        echo "New image did not write dymint.toml; keeping the original file"
         rm -rf "${tmp}"
         return 0
     fi
-    # docker 以 root 写 tmp，拷到当前用户文件再改，避免 mv Permission denied
+    # docker writes tmp as root; copy onto a user-owned file before editing to avoid mv Permission denied
     new_toml=$(mktemp)
     command cp "${tmp}/config/dymint.toml" "${new_toml}"
     chmod u+w "${new_toml}"
@@ -983,18 +983,18 @@ fix_dymint_runtime_keys() {
     grep -E '^(settlement_layer|settlement_node_address|da_layer|keyring_home_dir|dym_account_name)[[:space:]]*=' "${cfg}" || true
 }
 
-# 现网已经迁完 3D、只差 v3 DA 数组时用这个，不要再跑 rollapp-upgrade。
+# Use this when 3D migration is already done and only the v3 DA arrays are missing. Do not run rollapp-upgrade again.
 fix_da_config() {
     need_base_dir
     local node home
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#  修复 v3 dymint DA 配置  da=${ROLLAPP_DA_LAYER}                              #"
+    echo "#  Fix v3 dymint DA config  da=${ROLLAPP_DA_LAYER}                             #"
     echo "# ---------------------------------------------------------------------------- #"
     docker compose stop "${ROLLAPP_SERVICES[@]}" || true
     for node in "${ROLLAPP_NODE_HOMES[@]}"; do
         home="${RAPP_NODES_HOME}/${node}"
         if [ ! -f "${home}/config/dymint.toml" ]; then
-            echo "跳过不存在的 ${home}"
+            echo "Skipping missing ${home}"
             continue
         fi
         fix_dymint_runtime_keys "${home}"
@@ -1002,7 +1002,7 @@ fix_da_config() {
     set_compose_container_homes
     docker compose up -d "${ROLLAPP_SERVICES[@]}"
     docker compose ps "${ROLLAPP_SERVICES[@]}"
-    echo "看 rollapp-node1 日志确认 DA 已起来："
+    echo "Check rollapp-node1 logs to confirm DA is up:"
     docker compose logs --tail 40 rollapp-node1 || true
 }
 
@@ -1042,7 +1042,7 @@ text = text.replace(":/home/ubuntu/.rollapp", f":{rapp_home}")
 def patch_template(text, needle, home, min_gas, image=""):
     idx = text.find(needle)
     if idx < 0:
-        raise SystemExit(f"docker-compose.yml 里没有 {needle}")
+        raise SystemExit(f"docker-compose.yml has no {needle}")
     rest = text[idx + len(needle):]
     m = re.search(r"(?m)^(x-|networks:|services:)", rest)
     end = idx + len(needle) + (m.start() if m else len(rest))
@@ -1050,7 +1050,7 @@ def patch_template(text, needle, home, min_gas, image=""):
     if image:
         block, n = re.subn(r"(?m)^  image: .+$", f"  image: {image}", block, count=1)
         if n != 1:
-            raise SystemExit(f"未能替换 {needle} 的 image")
+            raise SystemExit(f"failed to replace the image for {needle}")
     cmd = (
         "  command:\n"
         "    - start\n"
@@ -1061,7 +1061,7 @@ def patch_template(text, needle, home, min_gas, image=""):
     )
     block, n = re.subn(r"(?ms)^  command:\n(?:    - .+\n)+", cmd, block, count=1)
     if n != 1:
-        raise SystemExit(f"未能替换 {needle} 的 command")
+        raise SystemExit(f"failed to replace the command for {needle}")
     block = re.sub(r"(?m)^  user: .+\n", "", block)
     return text[:idx] + block + text[end:]
 
@@ -1086,29 +1086,29 @@ wait_rollapp_block() {
         height=$(rollappd status --home "${RAPP_NODE1_HOME}" 2>/dev/null | jq -r '.SyncInfo.latest_block_height // .sync_info.latest_block_height // empty')
         height=${height//\"/}
         if [[ -n "${height}" && "${height}" -ge 1 ]] 2>/dev/null; then
-            echo "rollapp 已出块, height=${height}"
+            echo "rollapp is producing blocks, height=${height}"
             return 0
         fi
-        echo "等待 rollapp 出块, sleep 5s (${waited}/120)"
+        echo "Waiting for a rollapp block, sleep 5s (${waited}/120)"
         sleep 5
         waited=$((waited + 5))
     done
-    echo "error: 新 rollappd 120s 内未出块" >&2
+    echo "error: new rollappd produced no block within 120s" >&2
     docker compose logs --tail 80 rollapp-node1 || true
     exit 1
 }
 
-# Phase C：Hub 已是 v3 之后，升级 RollApp / dymint（备份 + 3D migration + 换镜像）。
+# Phase C: after the Hub is v3, upgrade RollApp / dymint (backup + 3D migration + image switch).
 rollapp_upgrade() {
     need_base_dir
     need_rollapp_v3_image
     local node home
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#  Phase C RollApp 升级  image=${ROLLAPP_V3_IMAGE}  da=${ROLLAPP_DA_LAYER}     #"
+    echo "#  Phase C RollApp upgrade  image=${ROLLAPP_V3_IMAGE}  da=${ROLLAPP_DA_LAYER}  #"
     echo "# ---------------------------------------------------------------------------- #"
     echo "Hub upgrade applied:"
     med q upgrade applied "${UPGRADE_NAME}" --home "${ME_NODE1_HOME}" || true
-    echo "停 rollapp + rly-rollapp（避免 settlement 断开后继续堆 batch）"
+    echo "Stop rollapp + rly-rollapp (do not keep batching after settlement drops)"
     docker compose stop rly-rollapp "${ROLLAPP_SERVICES[@]}" || true
 
     ensure_local_image "${ROLLAPP_V3_IMAGE}"
@@ -1116,7 +1116,7 @@ rollapp_upgrade() {
     for node in "${ROLLAPP_NODE_HOMES[@]}"; do
         home="${RAPP_NODES_HOME}/${node}"
         if [ ! -d "${home}/data" ] && [ ! -f "${home}/config/dymint.toml" ]; then
-            echo "跳过不存在的 ${home}"
+            echo "Skipping missing ${home}"
             continue
         fi
         backup_rollapp_home "${home}"
@@ -1132,7 +1132,7 @@ rollapp_upgrade() {
     wait_rollapp_block
     echo "Hub latest-state-info:"
     med-v3 q rollapp latest-state-index "${ROLLAPP_CHAIN_ID}" --home "${ME_NODE1_HOME}" 
-    echo "Phase C 完成。relayer 请另启：docker compose up -d rly-rollapp"
+    echo "Phase C done. Start the relayer separately: docker compose up -d rly-rollapp"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

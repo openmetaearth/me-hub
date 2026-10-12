@@ -4,15 +4,15 @@ tmp=$(mktemp)
 
 set_gov_params() {
     echo "setting gov params"
-    # SDK v0.50: 移除旧的 deposit_params 和 voting_params 路径，只使用 params
+    # SDK v0.50: drop the old deposit_params and voting_params paths; use params only
     jq '.app_state.gov.params.min_deposit[0].denom = "umec"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state.gov.params.min_deposit[0].amount = "100000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state.gov.params.burn_vote_veto = false' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state.gov.params.voting_period = "300s"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state.gov.params.max_deposit_period = "300s"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-    # SDK v0.50 新增：expedited_voting_period 必须小于 voting_period
+    # SDK v0.50: expedited_voting_period must be shorter than voting_period
     jq '.app_state.gov.params.expedited_voting_period = "150s"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-    # SDK v0.50 新增：其他参数
+    # SDK v0.50: other params
     jq '.app_state.gov.params.min_deposit_ratio = "0.01"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state.gov.params.expedited_min_deposit[0].denom = "umec"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state.gov.params.expedited_min_deposit[0].amount = "500000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"

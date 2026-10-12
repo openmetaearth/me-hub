@@ -2,8 +2,8 @@
 #======================================================================================
 #config start
 #======================================================================================
-echo "因为存在服务需要后台运行,所以请使用screen -S install创建独立后台运行本脚本"
-echo "请确认无误后再回车"
+echo "Services must keep running in the background, so start this script in its own session: screen -S install"
+echo "Press Enter after you confirm the settings"
 read -p "Do you want to continue?"
 
 read -rp "Please enter PROJECT_ENV[beta]: " PROJECT_ENV
@@ -64,7 +64,7 @@ read -rp "Randomly generate mnemonic words?[N]: " Randomly_Generate_Mnemonic_Wor
 Randomly_Generate_Mnemonic_Words=${Randomly_Generate_Mnemonic_Words:-"N"}
 echo "randomly generate mnemonic words is set to: $Randomly_Generate_Mnemonic_Words"
 
-#快速安装模式提取质押额直接为从me_earth上提取，以便快速搭建测试环境；关闭快速安装，则按照生产实际各区提取
+#Quick-install mode withdraws stake from me_earth so a test env can be stood up quickly. Turn it off to withdraw from each production region
 read -rp "Quick install for test?[Y]: " INSTALL_TYPE
 INSTALL_TYPE=${INSTALL_TYPE:-"Y"}
 echo "Quick install for test is set to: $INSTALL_TYPE"
@@ -77,8 +77,8 @@ read -rp "link bin to system?[N]: " LINK_BIN_ACTION
 LINK_BIN_ACTION=${LINK_BIN_ACTION:-"N"}
 echo "link bin to system is set to: $LINK_BIN_ACTION"
 
-# all=全量安装; rollapp_after=从 rollapp IBC 起续跑（不重建 hub/da/rollapp-node1）
-# 也可事先 export RUN_STAGE=rollapp_after，回车即沿用
+# all=all = full install; rollapp_after = resume from rollapp IBC (do not rebuild hub/da/rollapp-node1)
+# Or export RUN_STAGE=rollapp_after beforehand; pressing Enter keeps that value
 read -rp "Please enter RUN_STAGE[all/rollapp_after] (default ${RUN_STAGE:-all}): " RUN_STAGE_INPUT
 RUN_STAGE=${RUN_STAGE_INPUT:-${RUN_STAGE:-all}}
 echo "RUN_STAGE is set to: $RUN_STAGE"
@@ -101,7 +101,7 @@ cd "${BASE_DIR}" || { echo "error: BASE_DIR not found: ${BASE_DIR}"; exit 1; }
 export PATH="${BIN_DIR}:${PATH}"
 export LD_LIBRARY_PATH="${BASE_DIR}/lib:${LD_LIBRARY_PATH}"
 #======================================================================================
-# 助记词
+# mnemonic
 if [[ ! $Randomly_Generate_Mnemonic_Words =~ ^[Yy]$ ]]
 then
     global_dict="sign wise lyrics find brass grass already urge invite vibrant arrow grow dune theme trust mix napkin ball pause sponsor bacon capable flip people"
@@ -109,24 +109,24 @@ else
     global_dict=$(meda-appd keys mnemonic)
 fi
 #======================================================================================
-# 助记词序号
-USER_SEQ_ME_GLOBAL_DAO=1                                                # me超管 global_dao
-USER_SEQ_ME_MEID_DAO=2                                                  # meid 地址
-USER_SEQ_ME_DEV_OPERATOR=3                                              # 协会地址
-USER_SEQ_ME_AIRDROP=4                                                   # 空投地址
-USER_SEQ_ME_USER=5                                                      # 普通用户
+# mnemonic index
+USER_SEQ_ME_GLOBAL_DAO=1                                                # ME super-admin global_dao
+USER_SEQ_ME_MEID_DAO=2                                                  # meid  address
+USER_SEQ_ME_DEV_OPERATOR=3                                              # association address
+USER_SEQ_ME_AIRDROP=4                                                   # airdrop address
+USER_SEQ_ME_USER=5                                                      # regular user
 
-USER_SEQ_ME_VAL1=11                                                     # 节点验证人 node1
-USER_SEQ_ME_VAL2=12                                                     # 节点验证人 node2
-USER_SEQ_ME_VAL3=13                                                     # 节点验证人 node3
-USER_SEQ_ME_VAL4=14                                                     # 节点验证人 node4
+USER_SEQ_ME_VAL1=11                                                     # validator node1
+USER_SEQ_ME_VAL2=12                                                     # validator node2
+USER_SEQ_ME_VAL3=13                                                     # validator node3
+USER_SEQ_ME_VAL4=14                                                     # validator node4
 
-USER_SEQ_ME_SEQUENCER=20                                                # rollapp 绑定在 hub 上的账户
+USER_SEQ_ME_SEQUENCER=20                                                # rollapp account bound on the hub 
 USER_SEQ_ME_IBC_DA=21                                                   # ibc -> da
 USER_SEQ_ME_IBC_ROLLAPP=22                                              # ibc -> rollapp
 
-USER_SEQ_ME_SEQUENCER2=30                                               # rollapp 绑定在 hub 上的账户2
-USER_SEQ_ME_SEQUENCER3=31                                               # rollapp 绑定在 hub 上的账户3
+USER_SEQ_ME_SEQUENCER2=30                                               # rollapp account bound on the hub 2
+USER_SEQ_ME_SEQUENCER3=31                                               # rollapp account bound on the hub 3
 da_user_index_val0=50
 da_user_index_val1=51
 da_user_index_val2=52
@@ -140,13 +140,13 @@ da_user_index_bridge=60
 da_user_index_full=61
 da_user_index_light=62
 
-rollapp_user_index_roluser=80                                            # rollapp 用户
+rollapp_user_index_roluser=80                                            # rollapp rollapp user
 rollapp_user_index_dao=81                                                # rollapp dao
-rollapp_user_index_dev_operator=82                                       # devOperator 协会地址
+rollapp_user_index_dev_operator=82                                       # devOperator devOperator association address
 rollapp_user_index_ibc=83                                                # rollapp ibc
-rollapp_user_index_sync_user=84                                          # rollapp 同步用户
+rollapp_user_index_sync_user=84                                          # rollapp rollapp sync user
 #======================================================================================
-#此处为各用户地址，为空时将由助记词+序号推导产生，如需要外部地址如资管模式，则需要填入对应地址
+#User addresses. Empty means derive from mnemonic + index. Fill in an external address for custody mode
 USER_ADDR_ME_GLOBAL_DAO=                                                 # 1
 USER_ADDR_ME_MEID_DAO=                                                   # 2
 USER_ADDR_ME_DEV_OPERATOR=                                               # 3
@@ -177,7 +177,7 @@ USER_ADDR_ROLLAPP_OPERATOR=                                              # 82
 USER_ADDR_ROLLAPP_IBC=                                                   # 83
 USER_ADDR_ROLLAPP_SYNC=                                                  # 84
 #======================================================================================
-#非随机下助记词（Randomly_Generate_Mnemonic_Words=N）将实际产生如下地址,此处仅为记录非修改项目：
+#With Randomly_Generate_Mnemonic_Words=N the mnemonic produces the addresses below. Record only; do not edit
 #USER_ADDR_ME_GLOBAL_DAO=me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t       # 1
 #USER_ADDR_ME_MEID_DAO=me1mhhv44t0yyrm6rfgck2kl43ep7g2c4tj0hnqcf         # 2
 #USER_ADDR_ME_DEV_OPERATOR=me1ega32ph9s9ahq5redwzaag05pd58m6xj37lfkw     # 3
@@ -211,18 +211,18 @@ USER_ADDR_ROLLAPP_SYNC=                                                  # 84
 #======================================================================================
 # Public Setting
 #======================================================================================
-# Docker 运行时镜像（创世/keys 仍用宿主机 ${BIN_DIR} 二进制）
+# Docker runtime images (genesis/keys still use the host ${BIN_DIR} binary)
 MED_IMAGE="${MED_IMAGE:-ghcr.io/openmetaearth/med:v2.0.17}"
 ROLLAPP_IMAGE="${ROLLAPP_IMAGE:-harbor.starex.xyz/rollapp/rollappd:v1.0.21}"
-# hub / rollapp 镜像都以 root 跑，容器内 home 固定这两个路径（DA/rly 仍用 ubuntu:24.04）
+# hub / rollapp images run as root. In-container home is fixed to these paths (DA/rly still use ubuntu:24.04)
 HUB_CONTAINER_HOME="${HUB_CONTAINER_HOME:-/root/.mechain}"
 ROLLAPP_CONTAINER_HOME="${ROLLAPP_CONTAINER_HOME:-/root/.rollapp}"
 HUB_MIN_GAS_PRICES="${HUB_MIN_GAS_PRICES:-0.02umec}"
 ROLLAPP_MIN_GAS_PRICES="${ROLLAPP_MIN_GAS_PRICES:-0.001umec}"
 
-# ME Hub 目录
+# ME Hub directory
 ME_NODES_HOME="${BASE_DIR}/nodes/hub-nodes"
-# 节点目录
+# node directory
 ME_NODE1_HOME="${ME_NODES_HOME}/${NODE_NAME}"
 
 ME_NODE1_IP="${DOCKER_NETWORK_PREFIX}.10"
@@ -238,22 +238,22 @@ ME_APP_CONFIG_FILE="${ME_NODE1_HOME}/config/app.toml"
 ME_GENESIS_FILE="${ME_NODE1_HOME}/config/genesis.json"
 
 
-#创建治理提案时质押的最小代币数量,单位为方便处理统一已经配置为umec(配置项：app_state.gov.deposit_params.min_deposit[0].denom )"failed to validate genesis state: invalid minimum deposit: 0umec"
+#Minimum deposit when creating a governance proposal. The denom is umec so amounts stay uniform (config:app_state.gov.deposit_params.min_deposit[0].denom )"failed to validate genesis state: invalid minimum deposit: 0umec"
 ME_MIN_DEPOSIT_AMOUNT="100000000"
-#ME创世质押金额
-#模块化额度有100亿MEC也就是 1000000000000000000umec 。
-TOTAL_SUPPLY="1000000000000000000umec"  # 100亿 MEC
-#最小质押额度，单位udmec
+#ME genesis stake amount
+#Modular supply is 10 billion MEC, i.e. 1000000000000000000umec.
+TOTAL_SUPPLY="1000000000000000000umec"  # 100 billion MEC
+#minimum stake, unit udmec
 DA_MIN_DEPOSIT_AMOUNT="1000000000000"
 MIN_TREASURY_BALANCE="100000000"  # 1E umec minimum to keep
-dao_TIA_AMOUNT="0udmec" # da dao自身的钱
-# ME DA 节点目录
+dao_TIA_AMOUNT="0udmec" # da dao own balance
+# ME DA node directory
 DA_NODES_HOME="${BASE_DIR}/nodes/da-nodes"
 
-# 节点1 名称
+# node1 name
 DA_NODE1_NAME=${NODE_NAME}
 
-# node1 节点目录
+# node1 node directory
 DA_NODE1_HOME="${DA_NODES_HOME}/${DA_NODE1_NAME}"
 DA_BRIDGE_HOME="${DA_NODES_HOME}/bridge"
 DA_FULL_HOME="${DA_NODES_HOME}/full"
@@ -267,14 +267,14 @@ DA_LIGHT_IP="${DOCKER_NETWORK_PREFIX}.191"
 DA_FULL_IP="${DOCKER_NETWORK_PREFIX}.192"
 CHAIN_RPC_ADDR_DA="http://${DA_NODE1_IP}:26657"
 CHAIN_RPC_ADDR_DA_BRIDGE="http://${DA_BRIDGE_IP}:26658"
-# 轻节点
+# light node
 DA_RPC_ADDR="${DA_LIGHT_IP}:26658"
 DA_TENDERMINT_CONFIG_FILE="${DA_NODE1_HOME}/config/config.toml"
 DA_APP_CONFIG_FILE="${DA_NODE1_HOME}/config/app.toml"
 DA_GENESIS_FILE="${DA_NODE1_HOME}/config/genesis.json"
 
 
-# ROLLAPP 节点目录
+# ROLLAPP node directory
 RAPP_NODE1_NAME=${NODE_NAME}
 RAPP_NODES_HOME="${BASE_DIR}/nodes/rollapp-nodes"
 RAPP_NODE1_HOME="${RAPP_NODES_HOME}/${RAPP_NODE1_NAME}"
@@ -283,27 +283,27 @@ RAPP_NODE2_IP="${DOCKER_NETWORK_PREFIX}.131"
 RAPP_NODE3_IP="${DOCKER_NETWORK_PREFIX}.132"
 CHAIN_RPC_ADDR_RAPP="http://${RAPP_NODE1_IP}:26657"
 
-# 货币名字, 默认是 stake
+# denom name, default is stake
 DENOM="urax"
-#最小质押额度，单位urax
+#minimum stake, unit urax
 ROLLAPP_MIN_DEPOSIT_AMOUNT="1000000"
 
-# rly 节点目录
+# rly node directory
 IBC_PORT=transfer
 IBC_VERSION=ics20-1
 RLY_CONFIG_FILE="${RLY_PATH}/config/config.yaml"
 HUB_IBC_CONF_FILE="${RLY_PATH}/hub.json"
 DA_IBC_CONF_FILE="${RLY_PATH}/da.json"
 #======================================================================================
-# rly-da 节点目录
+# rly-da node directory
 RLY_DA_NODE_HOME="${BASE_DIR}/nodes/rly-da"
-# rly-rapp 节点目录
+# rly-rapp node directory
 RLY_RAPP_NODE_HOME="${BASE_DIR}/nodes/rly-rapp"
 
 calculate() {
     echo "$1" | bc
 }
-# 把 timeout_commit (1s / 0.5s / 500ms) 转成秒，供 sleep 计算。bash $(( )) 不能处理小数
+# Convert timeout_commit (1s / 0.5s / 500ms) to seconds for sleep. bash $(( )) cannot handle decimals
 timeout_commit_seconds() {
     local d="$1"
     case "$d" in
@@ -325,38 +325,38 @@ umec_to_udmec() {
 
 TOTAL_AMOUNT=${TOTAL_SUPPLY%umec}
 
-#experience_region:ME_VAL2 -experience，占比stake_tokens_pool的10%
+#experience_region:ME_VAL2 -experience, share of stake_tokens_pool 10%
 ME_STAKING_AMOUNT_NODE2="$(calculate "${TOTAL_AMOUNT} * 10 / 100")umec"   # 10% = 100,000,000 MEC = 100000000000000000umec
 ME_STAKING_AMOUNT_NODE2_REGION="experience_region"
-#usa:ME_VAL3 -ind，占比stake_tokens_pool的17.76%
+#usa:ME_VAL3 -ind, share of stake_tokens_pool 17.76%
 ME_STAKING_AMOUNT_NODE3="$(calculate "${TOTAL_AMOUNT} * 1776 / 10000")umec"  # 17.76% = 177,600,000 MEC = 177600000000000000umec
 ME_STAKING_AMOUNT_NODE3_REGION="ind"
-#rus:ME_VAL4 -chn，占比stake_tokens_pool的17.72%
+#rus:ME_VAL4 -chn, share of stake_tokens_pool 17.72%
 ME_STAKING_AMOUNT_NODE4="$(calculate "${TOTAL_AMOUNT} * 1772 / 10000")umec"   # 17.72% = 177,200,000 MEC = 177200000000000000umec
 ME_STAKING_AMOUNT_NODE4_REGION="chn"
 
-#me_earth:ME_VAL1，100亿去掉上面3个国家区后全部质押给me_earth  
+#me_earth:ME_VAL1. After the three regions above, the rest of the 10 billion is staked to me_earth  
 STAKING_AMOUNT="$(calculate "${TOTAL_AMOUNT} - ${ME_STAKING_AMOUNT_NODE2%umec} - ${ME_STAKING_AMOUNT_NODE3%umec} - ${ME_STAKING_AMOUNT_NODE4%umec}")umec"  # 54.52% = 545,200,000 MEC =545200000000000000umec
 ME_STAKING_AMOUNT_NODE1_REGION="me_earth"
-# staking 模块参数 质押的代币需要被锁定的时间， 604800s/7天，18000s/5小时,3024000s/28天，21600s/6小时.
-# sequencer 模块参数 For Cosmos SDK-based chains, trust_period should usually be about 2/3 of the unbonding time (~2
+# staking module param: tokens must stay locked for 604800s/7 days, 18000s/5 hours, 3024000s/28 days, 21600s/6 hours.
+# sequencer module param For Cosmos SDK-based chains, trust_period should usually be about 2/3 of the unbonding time (~2
 # weeks) during which they can be financially punished (slashed) for misbehavior.trust_period is configured in the config.toml.
 ME_UNBONDING_TIME="3024000s"
 
 if [[ $INSTALL_TYPE =~ ^[Yy]$ ]]
 then
-    #区块争议期间,只有超过争议期的才被视为最终确定
+    #Dispute period. A block is final only after the dispute window
     ME_DISPUTE_PERIOD_IN_BLOCKS="5"
-    # 激励模块参数，生产环境应该使用“day”，测试环境使用“minute”，控制代币激励的释放频率。实际写死为day，准确是每17280高度释放一次。创建新区，region_share变动，区块高度17280的整数倍，三个条件都会分发区块奖励。
+    # Incentive params. Production should use "day" and test should use "minute" to control release frequency. The code is hard-coded to day, which releases once every 17280 blocks. Creating a region, a region_share change, or a height that is a multiple of 17280 all distribute block rewards.
     DISTR_EPOCH_IDENTIFIER="day"
-    # 激励模块参数，生产环境应该使用2周"14d"，测试环境使用“60s”，控制代币激励的锁定时间
+    # Incentive params. Production should use 2 weeks "14d"; test uses "60s" to control the lock time
     LOCKABLE_DURATIONS="60s"
-    # max_deposit_period：测试环境 600s，正式环境 2 天
+    # max_deposit_period: test uses 600s, production uses 2 days
     MAX_DEPOSIT_PERIOD="600s"
-    # voting_period：测试环境 3 分钟；expedited 必须严格小于 voting_period
+    # voting_period: test uses 3 minutes; expedited must be strictly shorter than voting_period
     VOTING_PERIOD="180s"
     EXPEDITED_VOTING_PERIOD="90s"
-    # 出块速度。测试环境 500ms，正式环境目前生产为 5s。1330 块大约 11 分钟
+    # Block time. Test uses 500ms; production currently uses 5s. 1330 blocks is about 11 minutes
     ME_TIMEOUT_COMMIT="500ms"
 else
     ME_DISPUTE_PERIOD_IN_BLOCKS="50"
@@ -372,14 +372,14 @@ REGION_HIGHT_WAIT="17280"
 # ME-DA
 #======================================================================================
 
-val0_STAKING_AMOUNT="1100000000000udmec"   # da node1进行创世质押的钱
-val0_TIA_AMOUNT="2000000000000udmec"     # da val0自身的钱,da的钱到期后会自动销毁
-#DA Node新增验证者 创世质押金额
-#生产模式下
-#‒ 创建4个节点，需要资管签名发送MsgCreateValdator交易 @Lee。
-#‒ 资金来源：从 ME-Hub 主网 前四大区金库（IND, CHN, ME_EARTH, EXPERIENCE）提取资金，实际生产region应该有4个以上国家金库故可排除体验区EXPERIENCE以确保稳定性。
-#‒ 提取比例：按各区金库质押额的 0.01%（万分之一）动态计算ME_SEND_DA_AMOUNT，实时跨链至 ME-DA 网络。
-#当前由global_dao账户转账，故下面四总和不能超过TARGET_BALANCE。
+val0_STAKING_AMOUNT="1100000000000udmec"   # da node1 genesis stake for this node
+val0_TIA_AMOUNT="2000000000000udmec"     # da val0 own balance; DA coins are burned at expiry
+#DA Node genesis stake for new validators
+#Production mode
+#- Create 4 nodes. Custody must sign and send MsgCreateValidator. @Lee.
+#- Source of funds: withdraw from the top four ME-Hub mainnet region treasuries (IND, CHN, ME_EARTH, EXPERIENCE). Production should have more than four national treasuries, so exclude the EXPERIENCE region for stability.
+#- Withdrawal ratio: 0.01% (1/10000) of each region's staked amount, computed dynamically as ME_SEND_DA_AMOUNT and IBC-transferred to the ME-DA network.
+#Currently funded by the global_dao account, so the four amounts below must not exceed TARGET_BALANCE.
 ME_SEND_DA_AMOUNT_VAL1="$(calculate "${STAKING_AMOUNT%umec} / 10000")umec"
 ME_SEND_DA_AMOUNT_VAL2="$(calculate "${ME_STAKING_AMOUNT_NODE2%umec} / 10000")umec"
 ME_SEND_DA_AMOUNT_VAL3="$(calculate "${ME_STAKING_AMOUNT_NODE3%umec} / 10000")umec"
@@ -388,12 +388,12 @@ ME_SEND_IBC_AMOUNT="10000000umec"
 ME_SEND_SEQUENCER1_AMOUNT="1000000000000umec"
 ME_SEND_SEQUENCER2_AMOUNT="1000000000000umec"
 ME_SEND_SEQUENCER3_AMOUNT="1000000000000umec"
-#预留MEC，以便其他用途
+#MEC reserved for other uses
 ME_RESERVE_AMOUNT="200000000umec"
 TARGET_BALANCE="$(calculate "${ME_SEND_DA_AMOUNT_VAL1%umec} + ${ME_SEND_DA_AMOUNT_VAL2%umec} + ${ME_SEND_DA_AMOUNT_VAL3%umec} + ${ME_SEND_DA_AMOUNT_VAL4%umec} + ${ME_SEND_IBC_AMOUNT%umec} + ${ME_RESERVE_AMOUNT%umec} + ${ME_SEND_SEQUENCER1_AMOUNT%umec} + ${ME_SEND_SEQUENCER2_AMOUNT%umec} + ${ME_SEND_SEQUENCER3_AMOUNT%umec}")"
-# ME hub 等待块高高度才创建region,每块奖励792mec，也就是79200000000umec，那么预估需要高度，30为随意添加的预留额度数字，仅只是为了保证极端数值下不把金库抽空，一般等待高度在非精确sleep时间中都会超额
+# ME hub Wait until this hub height before creating a region. Each block rewards 792 MEC, i.e. 79200000000umec, which is how the height is estimated. The spare 30 is only so the treasury is not drained in the extreme case. Imprecise sleeps usually overshoot
 ME_CREAT_REGION_HEIGHT="$(calculate "(${TARGET_BALANCE} / 79200000000) + 30")"
-#DA_STAKING_AMOUNT应大于 1000000000000udmec 且总和小于ME_SEND_DA_AMOUNT数值*100000000(相等的情况下虽然不收手续费但已经会存在失败)
+#DA_STAKING_AMOUNT must be greater than 1000000000000udmec and the sum must be less than ME_SEND_DA_AMOUNT * 100000000 (equality can still fail even with zero fees)
 DA_STAKING_AMOUNT_VAL1=$(umec_to_udmec "${ME_SEND_DA_AMOUNT_VAL1}")
 DA_STAKING_AMOUNT_NODE1_REGION="me_earth"
 DA_STAKING_AMOUNT_VAL2=$(umec_to_udmec "${ME_SEND_DA_AMOUNT_VAL2}")
@@ -403,14 +403,14 @@ DA_STAKING_AMOUNT_NODE3_REGION="ind"
 DA_STAKING_AMOUNT_VAL4=$(umec_to_udmec "${ME_SEND_DA_AMOUNT_VAL4}")
 DA_STAKING_AMOUNT_NODE4_REGION="chn"
 
-# staking 模块参数 质押的代币需要被锁定的时间， 604800s/7天，18000s/5小时.For Cosmos SDK-based chains, trust_period should usually be about 2/3 of the unbonding time (~2
-# weeks) during which they can be financially punished (slashed) for misbehavior.实际为数值减少100倍再乘与85，属于跨链信任时间。（med q ibc client state 07-tendermint-0）。3024000s预估trust_period为28天
+# staking module param: tokens must stay locked for 604800s/7 days, 18000s/5 hours.For Cosmos SDK-based chains, trust_period should usually be about 2/3 of the unbonding time (~2
+# weeks) during which they can be financially punished (slashed) for misbehavior.The value is divided by 100 and multiplied by 85. That is the IBC trusting period (med q ibc client state 07-tendermint-0). 3024000s estimates trust_period at 28 days
 # trusting_period=UnbondingTime / 100 * 85 // TODO: replace with percentage
-# 需要注意与RLY_TIME_THRESHOLD的关系
+# Watch the relationship with RLY_TIME_THRESHOLD
 DA_UNBONDING_TIME=${ME_UNBONDING_TIME}
-# staking 模块参数 最大验证者数量
+# staking module param: max validators
 MAX_VALIDATORS="4"
-#区块争议期间,只有超过争议期的才被视为最终确定,推荐50
+#Dispute period. A block is final only after the dispute window. Recommended 50
 
 if [[ $INSTALL_TYPE =~ ^[Yy]$  ]]
 then
@@ -423,7 +423,7 @@ fi
 #======================================================================================
 
 
-# 初始化余额rollapp_user_roluser_TOKEN_AMOUNT应该大于等于rollapp_user_roluser_NODE_STAKING_AMOUNT与rollapp_transfer_ibc_amount的总和
+# Initial balance rollapp_user_roluser_TOKEN_AMOUNT must be >= rollapp_user_roluser_NODE_STAKING_AMOUNT + rollapp_transfer_ibc_amount
 if [[ $INSTALL_TYPE =~ ^[Yy]$  ]]
 then
     rollapp_user_roluser_TOKEN_AMOUNT="600000000000$DENOM"
@@ -435,27 +435,27 @@ rollapp_transfer_ibc_amount="500000$DENOM"
 
 rollapp_user_dao_TOKEN_AMOUNT="0$DENOM"
 rollapp_user_dev_operator_TOKEN_AMOUNT="0$DENOM"
-#rollapp跨链到hub的时间取决于状态提交速度，所以dymint配置提交状态的参数batch_submit_max_time测试时使用60秒，正式环境也配置batch_submit_max_time为60秒；
-#从rollapp跨链到hub，如果10分钟提交一次，那么至少15分钟才能到账；
+#rollapp Time to reach the hub depends on state submission, so dymint batch_submit_max_time is 60s in test and also 60s in production;
+#From rollapp to hub, a submit every 10 minutes means funds arrive in at least 15 minutes;
 BATCH_SUBMIT_MAX_TIME="60s"
-#最大排序器数量
+#max sequencers
 MAX_SEQUENCERS=10
-# Hub 上只注册 node1。node2/node3 是全节点，不 create-sequencer。
-# 三个节点同等 bond 时，v3 upgrade backfill 可能把 proposer 指到 node2。
+# Hub Register only node1. node2/node3 are full nodes and do not create-sequencer.
+# Equal bond on three nodes can make v3 upgrade backfill point the proposer at node2.
 SEQUENCER_MONIKER_NAME1="sequencer1"
 SEQUENCER_MONIKER_NAME2="sequencer2"
 SEQUENCER_MONIKER_NAME3="sequencer3"
-# 链上 min bond 为 100000000umec（create-sequencer 用 100umec 会报 code 1011 insufficient bond）
-# 须小于已打到 sequencer 账户的 ME_SEND_SEQUENCER*_AMOUNT
+# On-chain min bond is 100000000umec (create-sequencer with 100umec returns code 1011 insufficient bond)
+# Must be less than the amount already sent to the sequencer account, ME_SEND_SEQUENCER*_AMOUNT
 SEQUENCER_AMOUNT="100000000umec"
 #======================================================================================
 # ME-Rly
 #======================================================================================
 
 
-# 中继服务更新间隔,需要小于 (UnbondingTime / 100 * 85),链认证者短期出现大于1/3变动时（初始化4节点时，每新增1个认证者时间），间隔时间间隔需要大于该值，以避免出现信任周期内数值校验不通过而无法续期
+# Relayer update interval must be less than (UnbondingTime / 100 * 85). When more than 1/3 of validators change in a short window (adding one validator while bootstrapping 4 nodes), the interval must be larger than that so the trusting period still validates and the client can be refreshed
 DA_UNBONDING_SECONDS=${DA_UNBONDING_TIME%s}
-#docker不指定更新周期时，代码默认更新周期的计算方式
+#docker Default update-period formula when docker does not set one
 #RLY_TIME_THRESHOLD="$(( ((DA_UNBONDING_SECONDS /100 ) *85 )/ 3))s"
 RLY_TIME_THRESHOLD="3600s"
 SLEEP_RLY_TIME=${RLY_TIME_THRESHOLD%s}
@@ -467,12 +467,12 @@ CLIENT_TP="$(( ( (DA_UNBONDING_SECONDS / 100) *85 )/ 3600 ))h"
 #======================================================================================
 # ME-DA
 #======================================================================================
-# da ibc代币生效块高,注意事项：创世时需要在创世文件中设置 ibc_deadline_block_height ，如果设置为1000(一个半小时)，那么hub需要在1000个区块内跨链到DA做质押，否则da链会报错。在1000个区块之前，只能白名单和DAO地址可以发交易，默认值100。
+# da ibc token activation height. Set ibc_deadline_block_height in genesis. At 1000 (about 1.5 hours) the hub must IBC-stake on DA within 1000 blocks or the DA chain errors. Before that height only the whitelist and the DAO address can send txs. Default 100.
 IBC_DEADLINE_BLOCK_HEIGHT=300
 
 
 #======================================================================================
-# 自定义修改区：请修改以上配置
+# Edit the settings above
 #======================================================================================
 
 #======================================================================================
@@ -492,7 +492,7 @@ add_key() {
                 --key-type secp256k1 \
                 --recover $extra_args --coin-type 118 2>&1); then
 
-                # 如果上面失败则走无须确认的y的确认项目
+                # If the above fails, fall through to the no-prompt y confirmation
                 echo -e "${mnemonics}\n" | ${action} keys add "$key_name" \
                         --keyring-backend ${KEYRING_BACKEND_NAME} \
                         --key-type secp256k1 \
@@ -506,7 +506,7 @@ add_key() {
                 --hd-path "m/44'/118'/0'/0/0/${user_seq}" \
                 --recover $extra_args --coin-type 118 2>&1); then
 
-                # 如果上面失败则走无须确认的y的确认项目
+                # If the above fails, fall through to the no-prompt y confirmation
                 echo -e "${mnemonics}\n" | ${action} keys add "$key_name" \
                         --keyring-backend ${KEYRING_BACKEND_NAME} \
                         --hd-path "m/44'/118'/0'/0/0/${user_seq}" \
@@ -518,14 +518,14 @@ add_key() {
 }
 
 
-# 检查hash是否上链, 最多等待60s
+# Check whether the tx hash is on chain. Wait at most 60s
 check_tx_status() {
     local cosmosapp=$1
     local txhash=$2
     local extra_args=$3
     sleepTime=120
 
-    # 检查参数是否为空
+    # Check that the argument is non-empty
     if [ -z "$txhash" ]; then
         echo "Error: cosmosapp or txhash cannot be empty."
         echo "Usage: check_cosmos_tx_status <txhash>"
@@ -542,7 +542,7 @@ check_tx_status() {
             if [ $sleepTime -eq 0 ]; then  
                 echo "shell:$cosmosapp query tx ${txhash} $extra_args -o json"
                 echo "Tx failed, not found in chain, txhash: ${txhash}"
-                echo "当前结果:"
+                echo "Current result:"
                 $cosmosapp query tx ${txhash} $extra_args
                 exit 1
             fi
@@ -570,17 +570,17 @@ create_sequencer(){
     local NODE_NAME=$2
     local SEQ_NAME=$3
     SEQUENCER_PUBLIC_KEY=$(cat ${RAPP_NODES_HOME}/${NODE_NAME}/sequencer.info)
-    echo "使用质押金额创建排序器"
+    echo "Create sequencer with the stake amount"
     local sequencer_metadata=$(jq -n --arg moniker "${SEQUENCER_MONIKER_NAME}" \
         '{Moniker: $moniker, Identity: "", Website: "", SecurityContact: "", Details: ""}')
     
-    echo "创建排序器，元数据: ${sequencer_metadata}"
+    echo "Create sequencer, metadata: ${sequencer_metadata}"
     
     txhash=$(med tx sequencer create-sequencer ${SEQUENCER_PUBLIC_KEY} ${ROLLAPP_CHAIN_ID} "${sequencer_metadata}" ${SEQUENCER_AMOUNT} \
         --from ${SEQ_NAME} --chain-id ${ME_CHAIN_ID} \
         --fees 40000umec --gas 2000000 --keyring-backend ${KEYRING_BACKEND_NAME} --home ${ME_NODE1_HOME} --yes -o json | jq -r .txhash)
     
-    echo "排序器创建交易哈希: ${txhash}"
+    echo "Sequencer create tx hash: ${txhash}"
 
     check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
 }
@@ -588,7 +588,7 @@ create_sequencer(){
 
 load_existing_addrs() {
     local kb=(--keyring-backend "${KEYRING_BACKEND_NAME}")
-    echo "# 从现有 keyring 读取地址，供 rollapp_after 续跑"
+    echo "# Read addresses from the existing keyring for a rollapp_after resume"
     USER_ADDR_ME_GLOBAL_DAO=$(med keys show global_dao -a "${kb[@]}" --home "${ME_NODE1_HOME}")
     USER_ADDR_ME_SEQUENCER=$(med keys show sequencer -a "${kb[@]}" --home "${ME_NODE1_HOME}" 2>/dev/null || true)
     USER_ADDR_ME_SEQUENCER2=$(med keys show sequencer2 -a "${kb[@]}" --home "${ME_NODE1_HOME}" 2>/dev/null || true)
@@ -600,7 +600,7 @@ load_existing_addrs() {
     USER_ADDR_DA_VAL2=$(meda-appd keys show val2 -a "${kb[@]}" --home "${DA_NODE1_HOME}" 2>/dev/null || true)
     USER_ADDR_DA_VAL3=$(meda-appd keys show val3 -a "${kb[@]}" --home "${DA_NODE1_HOME}" 2>/dev/null || true)
     USER_ADDR_DA_VAL4=$(meda-appd keys show val4 -a "${kb[@]}" --home "${DA_NODE1_HOME}" 2>/dev/null || true)
-    # hub->rollapp ibc 收款地址与助记词序号 22 相同，不一定在 hub keyring 里
+    # hub->rollapp ibc receive address matches mnemonic index 22 and may not be in the hub keyring
     if [ -z "${USER_ADDR_ME_IBC_ROLLAPP}" ]; then
         local tmp_home
         tmp_home=$(mktemp -d)
@@ -617,26 +617,26 @@ load_existing_addrs() {
 
 setup_after_rollapp_node1() {
 echo "# ---------------------------------------------------------------------------- #"
-echo "#       等待 rollapp RPC 可用并开始出块（IBC client 由后面 rly tx link 创建）      #"
+echo "#       Wait until rollapp RPC is up and producing blocks (the IBC client is created later by rly tx link)      #"
 echo "# ---------------------------------------------------------------------------- #"
 while true; do
     height=$(rollappd status --home ${RAPP_NODE1_HOME} 2>/dev/null | jq -r '.SyncInfo.latest_block_height // .sync_info.latest_block_height // empty')
     height=${height//\"/}
     if [[ -n "${height}" && "${height}" -ge 1 ]] 2>/dev/null; then
-        echo "rollapp 已出块, height=${height}"
+        echo "rollapp is producing blocks, height=${height}"
         break
     fi
-    echo "rollapp 尚未出块或 RPC 未就绪, sleep 5s"
+    echo "rollapp is not producing blocks yet, or RPC is not ready, sleep 5s"
     sleep 5
 done
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#      部署rly-rollapp                                                          #"
+echo "#      Deploy rly-rollapp                                                          #"
 echo "# ---------------------------------------------------------------------------- #"
-echo "设置通道信息"
-echo "初始化 rly 配置文件:rly config init --home ${RLY_RAPP_NODE_HOME}"
+echo "Set channel info"
+echo "Initialize the rly config file:rly config init --home ${RLY_RAPP_NODE_HOME}"
 rly config init --home ${RLY_RAPP_NODE_HOME}
-echo 导入配置
+echo Import config
 cat > ${RLY_RAPP_NODE_HOME}/config/config.yaml <<EOF
 global:
     api-listen-addr: :5183
@@ -709,12 +709,12 @@ paths:
 EOF
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#      是否导入me_user_ibc_rollapp_name、rollapp_user_ibc_me_name秘钥            #"
+echo "#      Whether to import me_user_ibc_rollapp_name and rollapp_user_ibc_me_name keys            #"
 echo "# ---------------------------------------------------------------------------- #"
 if [[ "${Sync_Key}" == [Yy] ]]; then
     mkdir -p ${RLY_RAPP_NODE_HOME}/keys/${ME_CHAIN_ID}/keyring-${KEYRING_BACKEND_NAME}/
     mkdir -p ${RLY_RAPP_NODE_HOME}/keys/${ROLLAPP_CHAIN_ID}/keyring-${KEYRING_BACKEND_NAME}/
-    echo "处理me_user_ibc_rollapp_name等价于USER_ADDR_ME_IBC_ROLLAPP"
+    echo "Handle me_user_ibc_rollapp_name, same as USER_ADDR_ME_IBC_ROLLAPP"
     me_user_ibc_rollapp_name=$(add_key "meda-appd" "me_user_ibc_rollapp_name" ${USER_SEQ_ME_IBC_ROLLAPP} "--home ./tmpxx10")
     echo "${me_user_ibc_rollapp_name}"
     USER_ME_IBC_DA_NAME=$(echo "${me_user_ibc_rollapp_name}" | grep -oP 'address: \K[^\s]+')
@@ -722,7 +722,7 @@ if [[ "${Sync_Key}" == [Yy] ]]; then
     cp -rf ./tmpxx10/keyring-${KEYRING_BACKEND_NAME}/*  ${RLY_RAPP_NODE_HOME}/keys/${ME_CHAIN_ID}/keyring-${KEYRING_BACKEND_NAME}/
     rm -rf ./tmpxx10
 
-    echo "处理rollapp_user_ibc_me_name等价DA上的USER_ADDR_ROLLAPP_IBC-ibc"
+    echo "Handle rollapp_user_ibc_me_name, same as the DA-side USER_ADDR_ROLLAPP_IBC-ibc"
     rollapp_user_ibc_me_name=$(add_key "meda-appd" "rollapp_user_ibc_me_name" ${rollapp_user_index_ibc} "--home ./tmpxx10")
     echo "$rollapp_user_ibc_me_name"
     USER_ROLLAPP_IBC_ME_NAME=$(echo "$rollapp_user_ibc_me_name" | grep -oP 'address: \K[^\s]+')
@@ -732,53 +732,53 @@ if [[ "${Sync_Key}" == [Yy] ]]; then
 fi
 
 
-echo "# 避免 07-tendermint-0: light client not found 错误, 等待10s"
+echo "# Avoid the 07-tendermint-0: light client not found error. Wait 10s"
 sleep 10
 
 echo "create link hub-rollapp:rly tx link hub-rollapp --src-port transfer --dst-port transfer --version ics20-1 --home ${RLY_RAPP_NODE_HOME}"
 
 rly tx link hub-rollapp --src-port transfer --dst-port transfer --version ics20-1 --home ${RLY_RAPP_NODE_HOME}
 
-# 检查上一个命令的退出状态
+# Check the previous command's exit status
 if [ $? -ne 0 ]; then
-    echo "creat命令执行失败, 退出脚本"
+    echo "creat command failed, exiting"
     exit 1
 fi
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#      rly-rollapp验证                                                          #"
+echo "#      rly-rollapp check                                                          #"
 echo "# ---------------------------------------------------------------------------- #"
-echo 检查${ME_CHAIN_ID} 客户端状态
+echo Check ${ME_CHAIN_ID} client status
 rly q clients ${ME_CHAIN_ID} --home ${RLY_RAPP_NODE_HOME}
-echo 检查${ROLLAPP_CHAIN_ID}客户端状态
+echo Check ${ROLLAPP_CHAIN_ID} client status
 rly q clients ${ROLLAPP_CHAIN_ID} --home ${RLY_RAPP_NODE_HOME}
 
-echo 检查连接状态
+echo Check connection status
 rly q connections ${ME_CHAIN_ID} --home ${RLY_RAPP_NODE_HOME}
 
 
 
-echo "查询链上的上通道信息"
+echo "Query on-chain channel info"
 rly q channels ${ME_CHAIN_ID} --home ${RLY_RAPP_NODE_HOME}
 echo "-------------------------------------------------------------------------------"
 rly q channels ${ROLLAPP_CHAIN_ID} --home ${RLY_RAPP_NODE_HOME}
 
-echo "获取通道ID"
-echo "查询ME_CHANNEL_ID:rly q channels "${ME_CHAIN_ID}" --home "${RLY_RAPP_NODE_HOME}" 2>/dev/null | jq --arg chain_id "${ROLLAPP_CHAIN_ID}" -r 'select(.counterparty.chain_id == $chain_id and .state == "STATE_OPEN") | .channel_id'"
+echo "Get channel ID"
+echo "Query ME_CHANNEL_ID:rly q channels "${ME_CHAIN_ID}" --home "${RLY_RAPP_NODE_HOME}" 2>/dev/null | jq --arg chain_id "${ROLLAPP_CHAIN_ID}" -r 'select(.counterparty.chain_id == $chain_id and .state == "STATE_OPEN") | .channel_id'"
 ME_CHANNEL_ID=$(rly q channels "${ME_CHAIN_ID}" --home "${RLY_RAPP_NODE_HOME}" 2>/dev/null | jq --arg chain_id "${ROLLAPP_CHAIN_ID}" -r 'select(.counterparty.chain_id == $chain_id and .state == "STATE_OPEN") | .channel_id')
 
-echo "查询RAPP_CHANNEL_ID:rly q channels "${ROLLAPP_CHAIN_ID}" --home "${RLY_RAPP_NODE_HOME}" 2>/dev/null | jq --arg chain_id "${ME_CHAIN_ID}" -r 'select(.counterparty.chain_id == $chain_id and .state == "STATE_OPEN") | .channel_id'"
+echo "Query RAPP_CHANNEL_ID:rly q channels "${ROLLAPP_CHAIN_ID}" --home "${RLY_RAPP_NODE_HOME}" 2>/dev/null | jq --arg chain_id "${ME_CHAIN_ID}" -r 'select(.counterparty.chain_id == $chain_id and .state == "STATE_OPEN") | .channel_id'"
 RAPP_CHANNEL_ID=$(rly q channels "${ROLLAPP_CHAIN_ID}" --home "${RLY_RAPP_NODE_HOME}" 2>/dev/null | jq --arg chain_id "${ME_CHAIN_ID}" -r 'select(.counterparty.chain_id == $chain_id and .state == "STATE_OPEN") | .channel_id')
 
 echo "me -> rapp, channel_id: ${ME_CHANNEL_ID}"
 echo "rapp -> me, channel_id: ${RAPP_CHANNEL_ID}"
 
 
-echo "设定通道时间"
+echo "Set channel timeout"
 rly transact client ${ME_CHAIN_ID} ${ROLLAPP_CHAIN_ID} hub-rollapp --client-tp ${CLIENT_TP} --home ${RLY_RAPP_NODE_HOME}
 
 
-echo "添加relayer到docker-compose.yml"
+echo "Add relayer to docker-compose.yml"
 cat >>docker-compose.yml<<EOF
   rly-rollapp:
     restart: unless-stopped
@@ -808,10 +808,10 @@ echo "# ------------------------------------------------------------------------
 if [[ $Interactive_Mode =~ ^[Nn]$ ]]
 then
     echo "ibc: rollapp to me-hub"
-    echo "查询 me-hub 链上 ibc-rollapp 地址${USER_ADDR_ME_IBC_ROLLAPP}余额:"
+    echo "Query me-hub ibc-rollapp address ${USER_ADDR_ME_IBC_ROLLAPP} balance:"
     med query bank balances ${USER_ADDR_ME_IBC_ROLLAPP} --home ${ME_NODE1_HOME}
 
-    echo "rollapp 原生代币持有者发起一笔 ibc 转账交易,金额为${rollapp_transfer_ibc_amount}"
+    echo "rollapp native-token holder sends an IBC transfer of amount ${rollapp_transfer_ibc_amount}"
     echo "rollappd tx ibc-transfer transfer transfer ${RAPP_CHANNEL_ID} ${USER_ADDR_ME_IBC_ROLLAPP} ${rollapp_transfer_ibc_amount} --from ${USER_ADDR_ROLLAPP_ADMIN} --fees=2000urax --chain-id ${ROLLAPP_CHAIN_ID} --keyring-backend ${KEYRING_BACKEND_NAME} --home ${RAPP_NODE1_HOME} -y"
 
     txhash=$(rollappd tx ibc-transfer transfer transfer ${RAPP_CHANNEL_ID} ${USER_ADDR_ME_IBC_ROLLAPP} ${rollapp_transfer_ibc_amount} --from ${USER_ADDR_ROLLAPP_ADMIN} --fees=2000urax --chain-id ${ROLLAPP_CHAIN_ID} --keyring-backend ${KEYRING_BACKEND_NAME} --home ${RAPP_NODE1_HOME} -y --output json | jq -r '.txhash')
@@ -819,24 +819,24 @@ then
     check_tx_status rollappd ${txhash} "--home $RAPP_NODE1_HOME"
 else
     echo "# -------------------------------------------------------------------------------- #"
-    echo "#      资管转账模式                                                                  #"
+    echo "#      Custody transfer mode                                                                  #"
     echo "# -------------------------------------------------------------------------------- #"
     echo "ibc: rollapp to me-hub"
-    echo "查询 me-hub 链上 ibc-rollapp 地址${USER_ADDR_ME_IBC_ROLLAPP}余额:"
+    echo "Query me-hub ibc-rollapp address ${USER_ADDR_ME_IBC_ROLLAPP} balance:"
     echo  "med query bank balances ${USER_ADDR_ME_IBC_ROLLAPP} --home ${ME_NODE1_HOME}"
-    echo "无误请确认回车"
+    echo "Press Enter if this looks correct"
     read -p "Do you want to continue? (Y/n)"
 fi
 
-echo  "查看是否激活 rollapp, 激活后开启快速到账"
-echo "执行shell: med q rollapp show ${ROLLAPP_CHAIN_ID}  --home \"${ME_NODE1_HOME}\" -o json | jq .rollapp.genesis_state.transfers_enabled"
+echo  "Check whether the rollapp is active. Fast finality starts after activation"
+echo "Run shell: med q rollapp show ${ROLLAPP_CHAIN_ID}  --home \"${ME_NODE1_HOME}\" -o json | jq .rollapp.genesis_state.transfers_enabled"
 while true; do
   rollapp_status=$(med q rollapp show ${ROLLAPP_CHAIN_ID}  --home "${ME_NODE1_HOME}" -o json | jq .rollapp.genesis_state.transfers_enabled)
   if [[ ${rollapp_status} == "true" ]];then
-      echo "rollapp 激活成功"
+      echo "rollapp activated"
       break
   else
-      echo "rollapp 未激活, sleep 1s"
+      echo "rollapp not active, sleep 1s"
       sleep 1
       continue
   fi
@@ -846,7 +846,7 @@ done
 if [[ $Interactive_Mode =~ ^[Nn]$ ]]
 then
     echo "ibc: rollapp to me-hub"
-    echo "执行shell: med tx rollapp skip-delay-rollapp ${ROLLAPP_CHAIN_ID} true --from ${USER_ADDR_ME_GLOBAL_DAO} --gas 500000 --chain-id ${ME_CHAIN_ID} --keyring-backend=${KEYRING_BACKEND_NAME} --home  $ME_NODE1_HOME  -y --output json | jq -r '.txhash'"
+    echo "Run shell: med tx rollapp skip-delay-rollapp ${ROLLAPP_CHAIN_ID} true --from ${USER_ADDR_ME_GLOBAL_DAO} --gas 500000 --chain-id ${ME_CHAIN_ID} --keyring-backend=${KEYRING_BACKEND_NAME} --home  $ME_NODE1_HOME  -y --output json | jq -r '.txhash'"
     txhash=$(med tx rollapp skip-delay-rollapp ${ROLLAPP_CHAIN_ID} true --from ${USER_ADDR_ME_GLOBAL_DAO} --gas 500000 --chain-id ${ME_CHAIN_ID} --keyring-backend=${KEYRING_BACKEND_NAME} --home  $ME_NODE1_HOME  -y --output json | jq -r '.txhash')
     check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
     echo "set skip-delay-rollapp success"
@@ -859,32 +859,32 @@ then
     echo "ibc: me-hub to rollapp"
     echo ""
 
-    echo "查询ibc余额shell: rollappd query bank balances ${USER_ADDR_ROLLAPP_IBC} --home ${RAPP_NODE1_HOME}"
+    echo "Query IBC balance shell: rollappd query bank balances ${USER_ADDR_ROLLAPP_IBC} --home ${RAPP_NODE1_HOME}"
     rollappd query bank balances ${USER_ADDR_ROLLAPP_IBC} --home ${RAPP_NODE1_HOME}
 
-    echo "ME的user转账10mec到rollapp的ibc地址shell: med tx ibc-transfer transfer transfer ${ME_CHANNEL_ID} ${USER_ADDR_ROLLAPP_IBC}  ${ME_SEND_IBC_AMOUNT} --from ${USER_ADDR_ME_GLOBAL_DAO} --fees=100000umec  --chain-id ${ME_CHAIN_ID} --home ${ME_NODE1_HOME} --keyring-backend ${KEYRING_BACKEND_NAME}  -y"
+    echo "ME user transfers 10mec to the rollapp ibc address shell: med tx ibc-transfer transfer transfer ${ME_CHANNEL_ID} ${USER_ADDR_ROLLAPP_IBC}  ${ME_SEND_IBC_AMOUNT} --from ${USER_ADDR_ME_GLOBAL_DAO} --fees=100000umec  --chain-id ${ME_CHAIN_ID} --home ${ME_NODE1_HOME} --keyring-backend ${KEYRING_BACKEND_NAME}  -y"
     txhash=$(med tx ibc-transfer transfer transfer ${ME_CHANNEL_ID} ${USER_ADDR_ROLLAPP_IBC} ${ME_SEND_IBC_AMOUNT} --from ${USER_ADDR_ME_GLOBAL_DAO} --fees=100000umec  --chain-id ${ME_CHAIN_ID} --home ${ME_NODE1_HOME} --keyring-backend ${KEYRING_BACKEND_NAME}  -y --output json | jq -r '.txhash')
     check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
 
     #===================================================================
 else
     echo "# -------------------------------------------------------------------------------- #"
-    echo "#      资管转账模式                                                                  #"
+    echo "#      Custody transfer mode                                                                  #"
     echo "# -------------------------------------------------------------------------------- #"
     echo "ibc: rollapp to me-hub"
-    echo "查询 me-hub 链上 ibc-rollapp 地址${USER_ADDR_ROLLAPP_IBC}余额:"
+    echo "Query me-hub ibc-rollapp address ${USER_ADDR_ROLLAPP_IBC} balance:"
     echo  "rollappd query bank balances ${USER_ADDR_ROLLAPP_IBC} --home ${RAPP_NODE1_HOME}"
-    echo "无误请确认回车"
+    echo "Press Enter if this looks correct"
     read -p "Do you want to continue? (Y/n)"
 fi
 echo "========================="
-# 持续检查地址是否拥有指定代币
+# Keep checking whether the address holds the given denom
 watch_addr_balance_type() {
   local binary="$1"
-  local token_prefix="$2"   # 指定的代币前缀
-  local user_addr="$3"      # 用户地址
-  local extra_args="$4"     # 额外参数
-  local check_status=0      # 检测状态
+  local token_prefix="$2"   # denom prefix
+  local user_addr="$3"      # user address
+  local extra_args="$4"     # extra args
+  local check_status=0      # check status
 
   while [ $check_status -eq 0 ]; do
     token_prefix='ibc'
@@ -923,15 +923,15 @@ echo ""
 watch_addr_balance_type med ibc ${USER_ADDR_ME_IBC_ROLLAPP} "--home ${ME_NODE1_HOME}"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#              初始化 RollApp Node2/Node3 为 full node（不出块）                  #"
+echo "#              Initialize RollApp Node2/Node3 as full nodes (they do not produce blocks)                  #"
 echo "# ---------------------------------------------------------------------------- #"
-echo "检查静态配置："
+echo "Check static config:"
 echo "dym_account_name: $(grep '^dym_account_name' ${RAPP_NODES_HOME}/node1/config/dymint.toml)"
 echo "keyring_home_dir: $(grep '^keyring_home_dir' ${RAPP_NODES_HOME}/node1/config/dymint.toml)"
 echo "da_config: $(grep '^da_config' ${RAPP_NODES_HOME}/node1/config/dymint.toml)"
 echo "settlement_node_address: $(grep '^settlement_node_address' ${RAPP_NODES_HOME}/node1/config/dymint.toml)"
-# full node：复制 node1 的 genesis/dymint，保留本机 priv_validator_key（不在 Hub 注册）。
-# 不改 dym_account_name，继续用 sequencer 只做 settlement 查询，不会出块。
+# full node: copy node1 genesis/dymint and keep this machine's priv_validator_key (not registered on the Hub).
+# Do not change dym_account_name. Keep using sequencer only for settlement queries; it will not produce blocks.
 rollapp_init_full_node() {
     local NODE_NAME=$1
     local NODE_HOME="${RAPP_NODES_HOME}/${NODE_NAME}"
@@ -956,7 +956,7 @@ rollapp_init_full_node() {
     cp -rf ${RAPP_NODE1_HOME}/sequencer_keys/. "${NODE_HOME}/sequencer_keys/"
     sed -i "s|^moniker = .*$|moniker = \"${NODE_NAME}\"|" "${TENDERMINT_CONF}"
     sed -i "s|^node = .*$|node = \"tcp://${NODE_IP}:26657\"|" "${CLIENT_CONFIG_FILE}"
-    echo "检查静态配置："
+    echo "Check static config:"
     echo "dym_account_name: $(grep '^dym_account_name' ${DYMINT_CONFIG_FILE})"
     echo "keyring_home_dir: $(grep '^keyring_home_dir' ${DYMINT_CONFIG_FILE})"
     echo "da_config: $(grep '^da_config' ${DYMINT_CONFIG_FILE})"
@@ -966,13 +966,13 @@ rollapp_init_full_node node2 ${RAPP_NODE2_IP}
 rollapp_init_full_node node3 ${RAPP_NODE3_IP}
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#      Node2/Node3 是 full node，不在 Hub 上 create-sequencer、不参与出块。        #"
+echo "#      Node2/Node3 are full nodes. They do not create-sequencer on the Hub and do not produce blocks.        #"
 echo "# ---------------------------------------------------------------------------- #"
-echo "检查排序器状态（应只有 node1/sequencer）: med q sequencer list-sequencer --home ${ME_NODE1_HOME}"
+echo "Check sequencer status (expect only node1/sequencer): med q sequencer list-sequencer --home ${ME_NODE1_HOME}"
 med q sequencer list-sequencer --home ${ME_NODE1_HOME}
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#      创建rollapp Node2-Node3 Docker Compose。                                 #"
+echo "#      Create rollapp Node2-Node3 Docker Compose.                                 #"
 echo "# ---------------------------------------------------------------------------- #"
 cat >>docker-compose.yml<<EOF
   rollapp-node2:
@@ -991,7 +991,7 @@ cat >>docker-compose.yml<<EOF
       - ${RAPP_NODES_HOME}/node3:${ROLLAPP_CONTAINER_HOME}
 EOF
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                              RollApp读取Node ID                               #"
+echo "#                              RollApp Read Node ID                               #"
 echo "# ---------------------------------------------------------------------------- #"
 RAPP_NODEID_NODE1=$(rollappd dymint show-node-id --home ${RAPP_NODES_HOME}/node1  2>&1 | tail -n 1)
 RAPP_NODEID_NODE2=$(rollappd dymint show-node-id --home ${RAPP_NODES_HOME}/node2 2>/dev/null | tail -n 1)
@@ -1000,7 +1000,7 @@ echo Rapp_Node1_ID:${RAPP_NODEID_NODE1}
 echo Rapp_Node2_ID:${RAPP_NODEID_NODE2}
 echo Rapp_Node3_ID:${RAPP_NODEID_NODE3}
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                         修改Node2-Node5的persistent_peers地址                #"
+echo "#                         Edit Node2-Node5 persistent_peers                #"
 echo "# ---------------------------------------------------------------------------- #"
 RAPP_NodeID_Node1_DYMINT_P2P="/ip4/${RAPP_NODE2_IP}/tcp/26656/p2p/${RAPP_NODEID_NODE2},/ip4/${RAPP_NODE3_IP}/tcp/28656/p2p/${RAPP_NODEID_NODE3}"
 RAPP_NodeID_Node1_CONFIG_P2P="${RAPP_NODEID_NODE2}@${RAPP_NODE2_IP}:26656,${RAPP_NODEID_NODE3}@${RAPP_NODE3_IP}:28656"
@@ -1023,19 +1023,19 @@ sed -i 's|^p2p_persistent_nodes = .*$|p2p_persistent_nodes = "'"${RAPP_NodeID_No
 sed -i 's|^persistent_peers = .*$|persistent_peers = "'"${RAPP_NodeID_Node3_CONFIG_P2P}"'"|' ${RAPP_NODES_HOME}/node3/config/config.toml
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                  启动rollapp  Node2 Node3                                     #"
+echo "#                  Start rollapp  Node2 Node3                                     #"
 echo "# --------------------- -------------------------------------------------------#"
 
 docker compose up -d rollapp-node2
-echo "等待5s服务完全启动"
+echo "Wait 5s for services to finish starting"
 sleep 5
 rly  tx update-clients hub-rollapp --home ${RLY_RAPP_NODE_HOME}
 docker compose up -d rollapp-node3
-echo "等待5s服务完全启动"
+echo "Wait 5s for services to finish starting"
 sleep 5
 rly  tx update-clients hub-rollapp --home ${RLY_RAPP_NODE_HOME}
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                  修改node1 persistent_peers地址                              #"
+echo "#                  Edit node1 persistent_peers                              #"
 echo "# --------------------- ------------------------------------------------------- #"
 docker compose  down rollapp-node1
 sed -i 's|^p2p_persistent_nodes = .*$|p2p_persistent_nodes = "'"${RAPP_NodeID_Node1_DYMINT_P2P}"'"|' ${RAPP_NODES_HOME}/node1/config/dymint.toml
@@ -1054,59 +1054,59 @@ fi
 if [[ $ENABLE_WASM_CONTRACT =~ ^[Yy]$ ]]
 then
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#      部署合约                                                                 #"
+    echo "#      Deploy contract                                                                 #"
     echo "# ---------------------------------------------------------------------------- #"
-    #上传合约
+    #upload contract
     #med tx wasm store contract/matching_contract.wasm --from global_dao --gas auto --gas-adjustment 1.3 --chain-id ${ME_CHAIN_ID} --home ${ME_NODE1_HOME} -y
     #txhash=$(med tx wasm store contract/matching_contract.wasm --from global_dao --gas auto --gas-adjustment 1.3 --chain-id mechain_400-1 --home ${ME_NODE1_HOME} -y --output json | jq -r '.txhash')
     #check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
-    #实例化合约
+    #instantiate contract
     #med tx wasm instantiate <CODE_ID> '{"global_dao":"<admin_address>","fee_collector":"<fee_collector_address>"}' --from global_dao --label "matching-v1" --global_dao <admin_address> --chain-id mechain_400-1 --home ${ME_NODE1_HOME} -y
     #txhash=$(med tx wasm instantiate <CODE_ID> '{"admin":"<admin_address>","fee_collector":"<fee_collector_address>"}' --from global_dao --label "matching-v1" --global_dao <admin_address> --chain-id mechain_400-1 --home ${ME_NODE1_HOME} -y --output json | jq -r '.txhash')
     #check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
-    #记录合约地址 CONTRACT_ADDR
+    #record contract address CONTRACT_ADDR
 fi
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#      部署状态                                                                 #"
+echo "#      Deploy status                                                                 #"
 echo "# ---------------------------------------------------------------------------- #"
-echo "当前HUB状态"
+echo "Current HUB status"
 med status --node tcp://${ME_NODE1_IP}:26657
-echo "当前DA状态"
+echo "Current DA status"
 meda-appd status --node tcp://${DA_NODE1_IP}:26657
-echo "当前rollapp状态"
+echo "Current rollapp status"
 rollappd status --node tcp://${RAPP_NODE1_IP}:26657
-echo "当前跨链状态"
+echo "Current IBC status"
 med  q ibc client state 07-tendermint-0 --home ${ME_NODE1_HOME} -o json
-echo "当前ME global_dao 余额"
+echo "Current ME global_dao balance"
 med query bank balances ${USER_ADDR_ME_GLOBAL_DAO} --home ${ME_NODE1_HOME}  -o json
-echo "当前DA val0 余额(若DA尚未到达块hight ${IBC_DEADLINE_BLOCK_HEIGHT}存在余额属于正常)"
+echo "Current DA val0 balance (a balance before DA reaches height ${IBC_DEADLINE_BLOCK_HEIGHT} is normal)"
 meda-appd query bank balances ${USER_ADDR_DA_VAL0} --home ${DA_NODE1_HOME}  -o json
-echo "当前DA val1 余额"
+echo "Current DA val1 balance"
 meda-appd query bank balances ${USER_ADDR_DA_VAL1} --home ${DA_NODE1_HOME}  -o json
-echo "当前DA val2 余额"
+echo "Current DA val2 balance"
 meda-appd query bank balances ${USER_ADDR_DA_VAL2} --home ${DA_NODE1_HOME}  -o json
-echo "当前DA val3 余额"
+echo "Current DA val3 balance"
 meda-appd query bank balances ${USER_ADDR_DA_VAL3} --home ${DA_NODE1_HOME}  -o json
-echo "当前DA val4 余额"
+echo "Current DA val4 balance"
 meda-appd query bank balances ${USER_ADDR_DA_VAL4} --home ${DA_NODE1_HOME}  -o json
-echo "当前rollapp roluser余额"
+echo "Current rollapp roluser balance"
 rollappd query bank balances ${USER_ADDR_ROLLAPP_ADMIN} --home ${RAPP_NODE1_HOME}  -o json
-echo "当前rollapp ibc 余额"
+echo "Current rollapp ibc balance"
 rollappd query bank balances ${USER_ADDR_ROLLAPP_IBC} --home ${RAPP_NODE1_HOME}  -o json
 echo "hub REGION_ID"
 med query staking validators --home ${ME_NODE1_HOME} -o json | jq -r '.validators[] | [.description.regionID, .tokens, .status] | @tsv' | column -t -s $'\t' -N "REGION_ID,TOKENS,STATUS"
 echo "hub MONIKER"
 meda-appd query staking validators --home ${DA_NODE1_HOME} -o json | jq -r '.validators[] | [.description.moniker, .tokens, .status] | @tsv' | column -t -s $'\t' -N "MONIKER,TOKENS,STATUS"
-echo "跨链信任周期"
+echo "IBC trusting period"
 rly query clients-expiration hub-rollapp --home ${RLY_RAPP_NODE_HOME}
 rly query clients-expiration hub-meda   --home  ${RLY_DA_NODE_HOME}
 
 end_time=$(date +%s)
 duration=$((end_time - start_time))
 echo "-----------------------------------"
-echo "脚本执行完成！"
-echo "总耗时: $duration 秒"
+echo "Script finished"
+echo "Elapsed: $duration seconds"
 }
 
 start_time=$(date +%s)
@@ -1145,7 +1145,7 @@ fi
 
 if [[ "${RUN_STAGE}" == "rollapp_after" ]]; then
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#     续跑模式 RUN_STAGE=rollapp_after：跳过创世，从 rollapp IBC 继续              #"
+    echo "#     Resume mode RUN_STAGE=rollapp_after: skip genesis and continue from rollapp IBC              #"
     echo "# ---------------------------------------------------------------------------- #"
     docker compose up -d hub-node1 hub-node2 hub-node3 hub-node4 \
         da-node1 da-node2 da-node3 da-node4 da-bridge da-full da-light \
@@ -1157,21 +1157,21 @@ if [[ "${RUN_STAGE}" == "rollapp_after" ]]; then
 fi
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                       创建docker compose网络                                  #"
+echo "#                       Create the docker compose network                                  #"
 echo "# ---------------------------------------------------------------------------- #"
 
 if docker network inspect "$Docker_Network_Name" >/dev/null 2>&1; then
     echo "Error: Docker network '$Docker_Network_Name' already exists." >&2
-    echo "请确认是否删除$Docker_Network_Name网络!!!!!!!!!!? (Y/n) "
+    echo "Confirm deletion of network $Docker_Network_Name!!!!!!!!!!? (Y/n) "
     read -r del_network
     del_network=${del_network:-N}
     if [ ! "$del_network" != "${del_network#[Yy]}" ] ;then
-        echo "你选择不删除网络，那请重新提供新的网络名"
-        echo "当前已经存在如下网络:"
+        echo "You chose not to delete the network. Enter a new network name"
+        echo "Existing networks:"
         docker network ls --format '{{.Name}}'
         while true; do
             read -rp "Please enter a new unique Docker_Network_Name: " Docker_Network_Name
-            # 检查网络名是否存在
+            # Check whether the network name exists
             if ! docker network inspect "${Docker_Network_Name}" >/dev/null 2>&1; then
                 break
             fi
@@ -1179,26 +1179,26 @@ if docker network inspect "$Docker_Network_Name" >/dev/null 2>&1; then
         done
         echo "Docker_Network_Name is set to: ${Docker_Network_Name}"
     else
-        echo "正在删除网络..."
+        echo "Deleting network..."
         docker network rm ${Docker_Network_Name}
         if [ $? -ne 0 ]; then
-            echo "删除网络失败，退出脚本"
+            echo "Failed to delete the network, exiting"
             exit 1
         fi
     fi
 fi
 
 verify_return_code() {
-    # 验证返回值
+    # Check the return value
     if [ $? -eq 0 ]; then
-        echo "网络创建成功"
+        echo "Network created"
     else
-        echo "可能存在相同的网络段，请重新提供网络段"
+        echo "That subnet may already exist. Enter a different subnet"
         exit 1
     fi
 }
 docker network create ${Docker_Network_Name} --subnet ${Docker_ADDR_RANGE} --ip-range ${Docker_ADDR_RANGE}
-# 如果创建这个网络失败就退出
+# Exit if creating this network fails
 verify_return_code
 
 
@@ -1214,23 +1214,23 @@ med init ${NODE_NAME} --chain-id="${ME_CHAIN_ID}" --home ${ME_NODE1_HOME}
 echo "# ---------------------------------------------------------------------------- #"
 echo "#                              Set configurations                               #"
 echo "# ---------------------------------------------------------------------------- #"
-echo "修改/config/config.toml"
+echo "Edit/config/config.toml"
 # Mempool version to use:
 #   1) "v0" - (default) FIFO mempool.
 #   2) "v1" - prioritized mempool (deprecated; will be removed in the next release).
 #sed -i'' -e "/\[mempool\]/,+8 s/v0/v1/" "$TENDERMINT_CONFIG_FILE"
-#允许单机器多服务不同端口
+#Allow multiple services on one machine on different ports
 sed -i '/^allow_duplicate_ip/s/false/true/' "${ME_NODE1_HOME}"/config/config.toml
-#是否启用地址簿的严格性检查。设置为 false 的影响：允许使用非路由地址（如私有 IP 地址）作为对等节点；允许使用非全局单播地址；
+#Address-book strictness. false allows non-routable addresses (such as private IPs) as peers and non-global unicast addresses.
 sed -i '/^addr_book_strict/s/true/false/' "${ME_NODE1_HOME}"/config/config.toml
 sed -i 's/0.0.0.0:26656/0.0.0.0:26656/' "${ME_NODE1_HOME}"/config/config.toml
 sed -i 's/127.0.0.1:26657/0.0.0.0:26657/' "${ME_NODE1_HOME}"/config/config.toml
-# 修改出块时间
+# Block time
 sed -i 's/^timeout_commit = .*/timeout_commit = "'${ME_TIMEOUT_COMMIT}'"/' "${ME_NODE1_HOME}"/config/config.toml
-#允许跨域
+#CORS
 sed -i 's/cors_allowed_origins.*$/cors_allowed_origins = ["*"]/' "${ME_NODE1_HOME}"/config/config.toml
 sed -i 's/localhost:6060/0.0.0.0:6060/' "${ME_NODE1_HOME}"/config/config.toml
-echo "修改/config/app.toml"
+echo "Edit/config/app.toml"
 sed -i'' -e '/\[api\]/,+3 s/enable *= .*/enable = true/' "${ME_NODE1_HOME}/config/app.toml"
 sed -i 's/swagger = false/swagger = true/'   "${ME_NODE1_HOME}/config/app.toml"
 sed -i'' -e "/\[api\]/,+9 s/address *= .*/address = \"tcp:\/\/0.0.0.0:1317\"/" "${ME_NODE1_HOME}/config/app.toml"
@@ -1245,7 +1245,7 @@ sed -i'' -e "/\[json-rpc\]/,+6 s/address *= .*/address = \"0.0.0.0:8545\"/" "${M
 sed -i'' -e "/\[json-rpc\]/,+9 s/^ws-address *= .*/ws-address = \"0.0.0.0:8546\"/" "${ME_NODE1_HOME}/config/app.toml"
 sed -i 's/127.0.0.1:6065/0.0.0.0:6065/' "${ME_NODE1_HOME}/config/app.toml"
 
-#节点接受交易的最低 gas 价格。交易费用 = gas 价格 × gas 使用量。可以通过治理提案调整，不同验证人可以设置不同的值。
+#Minimum gas price a node accepts. Fee = gas price times gas used. Governance can change it; validators may set different values.
 sed -i'' -e 's/^minimum-gas-prices *= .*/minimum-gas-prices = "'"${HUB_MIN_GAS_PRICES}"'"/' "${ME_NODE1_HOME}/config/app.toml"
 # default: the last 362880 states are kept, pruning at 10 block intervals
 # nothing: all historic states will be saved, nothing will be deleted (i.e. archiving node)
@@ -1255,10 +1255,10 @@ sed -i'' -e 's/^pruning *= .*/pruning = "nothing"/' "${ME_NODE1_HOME}/config/app
 
 sed -i'' -e 's/^max-recv-msg-size *= .*/max-recv-msg-size = "1048576000"/' "${ME_NODE1_HOME}/config/app.toml"
 
-echo "修改/config/client.toml"
+echo "Edit/config/client.toml"
 sed -i "s/localhost:26657/${ME_NODE1_IP}:26657/" "${ME_NODE1_HOME}"/config/client.toml
 # The keyring's backend, where the keys are stored (os|file|kwallet|pass|test|memory)
-echo "替换钱包存储方式，当前为：${KEYRING_BACKEND_NAME}"
+echo "Keyring backend is now:${KEYRING_BACKEND_NAME}"
 sed -i'' -e "s/^keyring-backend *= .*/keyring-backend = \"${KEYRING_BACKEND_NAME}\"/" "${ME_NODE1_HOME}"/config/client.toml
 
 med config chain-id ${ME_CHAIN_ID} --home ${ME_NODE1_HOME}
@@ -1279,11 +1279,11 @@ set_gov_params() {
     jq --arg period "${MAX_DEPOSIT_PERIOD}" '.app_state.gov.deposit_params.max_deposit_period = $period' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
     jq '.app_state.gov.params.min_deposit[0].denom = "umec"' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
     jq --arg amount "$ME_MIN_DEPOSIT_AMOUNT" '.app_state.gov.params.min_deposit[0].amount = $amount' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
-    #flase为不销毁，用于控制否决（veto）投票的押金处理方式：当设置为 true 时：用于否决投票的代币将被销毁（永久从流通中移除），当设置为 false 时：用于否决投票的代币将退还给投票者
+    #flase means do not burn. Controls the veto deposit: true burns veto-vote tokens (removed from circulation forever); false refunds them to the voter
     jq '.app_state.gov.params.burn_vote_veto = false' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
     jq --arg period "${VOTING_PERIOD}" '.app_state.gov.params.voting_period = $period' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
     jq --arg period "${MAX_DEPOSIT_PERIOD}" '.app_state.gov.params.max_deposit_period = $period' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
-    # expedited_voting_period 必须小于 voting_period，否则 genesis validate 失败
+    # expedited_voting_period must be shorter than voting_period, or genesis validate fails
     jq --arg period "${EXPEDITED_VOTING_PERIOD}" 'if .app_state.gov.params.expedited_voting_period then .app_state.gov.params.expedited_voting_period = $period else . end' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
 }
 
@@ -1295,12 +1295,12 @@ set_hub_params() {
     sed -i'' -e 's/mint_denom": ".*"/mint_denom": "umec"/' "${ME_GENESIS_FILE}"
 
     jq ".app_state.rollapp.params.dispute_period_in_blocks = \"$ME_DISPUTE_PERIOD_IN_BLOCKS\"" "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
-    #bridging_fee 是跨链桥接功能中的一个参数，用于设置跨链交易的手续费，费用通常以原生代币支付
+    #bridging_fee is a bridge param that sets the cross-chain fee, usually paid in the native denom
     jq ".app_state.delayedack.params.bridging_fee = \"0\"" "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
-    #epoch_identifier 是跨链桥接功能中的一个参数，用于设置跨链交易的周期，周期可以是 week、month、year 等
+    #epoch_identifier is a bridge param that sets the cross-chain epoch, for example week, month, or year
     jq ".app_state.delayedack.params.epoch_identifier = \"week\"" "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
     jq ".app_state.eibc.params.epoch_identifier = \"week\"" "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
-    #每个周期删除的IBC包数量，设置为1000000；
+    #IBC packets removed per epoch, set to 1000000;
     jq ".app_state.delayedack.params.delete_packets_epoch_limit = \"1000000\"" "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
 
 
@@ -1354,7 +1354,7 @@ set_epochs_params() {
 #should be set to days on live net and lockable duration to 2 weeks
 set_incentives_params() {
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#                        setting incentives params(激励)                        #"
+    echo "#                        setting incentives params(incentives)                        #"
     echo "# ---------------------------------------------------------------------------- #"
     jq --arg time "$DISTR_EPOCH_IDENTIFIER" '.app_state.incentives.params.distr_epoch_identifier = $time' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
     jq --arg time "$LOCKABLE_DURATIONS" '.app_state.incentives.lockable_durations = ["$time"]' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
@@ -1364,7 +1364,7 @@ set_incentives_params() {
 
 set_misc_params() {
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#  setting misc params(设置危机交易（crisis transaction）的固定费用代币单位)         #"
+    echo "#  setting misc params(crisis-tx constant fee denom)         #"
     echo "# ---------------------------------------------------------------------------- #"
     jq '.app_state.crisis.constant_fee.denom = "umec"' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
     jq -r '.app_state.gamm.params.pool_creation_fee[0].denom = "umec"' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
@@ -1402,7 +1402,7 @@ set_bank_denom_metadata() {
 }
 
 set_authorised_deployer_account() {
-  #rollapp的创建权限地址
+  #rollapp creation authority address
   jq --arg address $1 '.app_state.rollapp.params.deployer_whitelist += [{ "address": $address }]' "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
 }
 
@@ -1423,7 +1423,7 @@ if [[ "$ENABLE_MONITPORING" == [Yy] ]] ;then
 fi
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "# 判断(global_dao、meid_dao、dev_operator、airdrop、val1、user、sequencer)是否需要恢复add #"
+echo "# Decide whether (global_dao, meid_dao, dev_operator, airdrop, val1, user, sequencer) need to be recovered and add #"
 echo "# -------------------------------------------------------------------------------------#"
 if [ -z "${USER_ADDR_ME_GLOBAL_DAO}" ]; then
     echo "add global_dao"
@@ -1489,8 +1489,8 @@ fi
 
 echo "-----------------------------------------------------------------------------------------"
 echo "# ---------------------------------------------------------------------------------------#"
-echo "# 初始化余额 add-genesis-account global_dao-"0umec"                                       #"
-echo "# (meid_dao、dev_operator、airdrop、val1)-"0umec"                                        #"                            
+echo "# Initialize balances add-genesis-account global_dao-"0umec"                                       #"
+echo "# (meid_dao, dev_operator, airdrop,val1)-"0umec"                                        #"                            
 echo "# --------------------------------------------------------------------------------------#"
 med add-genesis-account global_dao   "0umec" --home ${ME_NODE1_HOME}
 med add-genesis-account meid_dao     "0umec" --home ${ME_NODE1_HOME}
@@ -1499,19 +1499,19 @@ med add-genesis-account airdrop      "0umec" --home ${ME_NODE1_HOME}
 med add-genesis-account val1         "0umec" --home ${ME_NODE1_HOME}
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                              设定质押池                                       #"
+echo "#                              Set the stake pool                                       #"
 echo "# ---------------------------------------------------------------------------- #"
 
 med add-genesis-stake-pool  --home ${ME_NODE1_HOME}
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                         创世初始化地址: 内部模块地址                           #"
+echo "#                         Genesis module accounts: internal module addresses                           #"
 echo "# ---------------------------------------------------------------------------- #"
 
 med add-genesis-m-accounts --home ${ME_NODE1_HOME}
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#   Set dao_addresses(global_dao、meid_dao、dev_operator、airdrop_address)      #"
+echo "#   Set dao_addresses(global_dao, meid_dao, dev_operator,airdrop_address)      #"
 echo "# ---------------------------------------------------------------------------- #"
 jq --arg addr "${USER_ADDR_ME_GLOBAL_DAO}" \
   '.app_state.dao.dao_addresses.global_dao = $addr' \
@@ -1533,7 +1533,7 @@ jq --arg unbonding_time "${ME_UNBONDING_TIME}" '.app_state["sequencer"]["params"
 jq --arg unbonding_time "${ME_UNBONDING_TIME}" '.app_state["staking"]["params"]["unbonding_time"] = $unbonding_time'  "${ME_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ME_GENESIS_FILE}"
 set_kyc_issuers() {
     echo "# ----------------------------------------------------------------------------------------------- #"
-    echo "#  setting issuer:USER_ADDR_ME_GLOBAL_DAO、USER_ADDR_ME_MEID_DAO(定义哪些地址有权限颁发或验证 KYC 认证) #"
+    echo "#  setting issuer:USER_ADDR_ME_GLOBAL_DAO, USER_ADDR_ME_MEID_DAO (addresses allowed to issue or verify KYC) #"
     echo "# ----------------------------------------------------------------------------------------------- #"
     jq --arg addr1 "${USER_ADDR_ME_GLOBAL_DAO}" \
        --arg pubkey1 "${USER_ADDR_ME_GLOBAL_DAO_PUBKEY}" \
@@ -1559,56 +1559,56 @@ set_kyc_issuers() {
 
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                创世质押(生产模式使用的是内置账户stake_tokens_pool提供质押额度)       #"
+echo "#                Genesis stake (production uses the built-in stake_tokens_pool account for the stake)       #"
 echo "# ---------------------------------------------------------------------------- #"
 
-#global_dao # 发送交易的账户名称
-#STAKING_AMOUNT # 质押金额
-#--chain-id 区块链网络ID
-#--keyring-backend # 密钥存储后端（如test或file）
-#--region-id. # 验证人所在地区ID（地球区）
-#--validator-address  # 验证人操作地址
+#global_dao # account name that sends the tx
+#STAKING_AMOUNT # stake amount
+#--chain-id chain ID
+#--keyring-backend # keyring backend (test or file)
+#--region-id. # validator region id (earth region)
+#--validator-address  # validator operator address
 
 
-# 检查模块账户
+# Check module account
 jq '.app_state.auth.accounts[] | select(.name=="stake_tokens_pool")' $ME_NODE1_HOME/config/genesis.json
 
-# 检查余额
+# Check balance
 jq '.app_state.bank.balances[] | select(.address | contains("me1gmpxkchcdgfq995zye5efwzfw86zfa4vcxms9l"))' $ME_NODE1_HOME/config/genesis.json
-# 检查模块账户余额
+# Check module-account balance
 #med q bank balances $(med q auth module-account stake_tokens_pool -o json --home $ME_NODE1_HOME | jq -r '.base_account.address') --home $ME_NODE1_HOME
 
 
-#质押
+#stake
 echo "med gentx global_dao "${STAKING_AMOUNT}" --chain-id "${ME_CHAIN_ID}" --keyring-backend ${KEYRING_BACKEND_NAME} --region-id ${ME_STAKING_AMOUNT_NODE1_REGION} --validator-address "${USER_ADDR_ME_VAL1}" --home "${ME_NODE1_HOME}""
 med gentx global_dao "${STAKING_AMOUNT}" --chain-id "${ME_CHAIN_ID}" --keyring-backend ${KEYRING_BACKEND_NAME} --region-id ${ME_STAKING_AMOUNT_NODE1_REGION}  --validator-address "${USER_ADDR_ME_VAL1}" --home "${ME_NODE1_HOME}"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                              收集创世交易                                     #"
+echo "#                              Collect genesis txs                                     #"
 echo "# ---------------------------------------------------------------------------- #"
 
 med collect-gentxs --home "${ME_NODE1_HOME}"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#   设定可添加白名单的用户-超管(global_dao、sequencer、sequencer2、sequencer3)    #"
+echo "#   Users allowed to edit the whitelist, super-admin (global_dao, sequencer, sequencer2,sequencer3)    #"
 echo "# ---------------------------------------------------------------------------- #"
 
 set_authorised_deployer_account "${USER_ADDR_ME_GLOBAL_DAO}"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                配置 kyc issuers                                               #"
+echo "#                Configure kyc issuers                                               #"
 echo "# ---------------------------------------------------------------------------- #"
 
 set_kyc_issuers
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                              校验创世交易                                     #"
+echo "#                              Validate genesis txs                                     #"
 echo "# ---------------------------------------------------------------------------- #"
 
 med validate-genesis --home "${ME_NODE1_HOME}"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                              ME同步节点配置                                   #"
+echo "#                              ME sync node config                                   #"
 echo "# ---------------------------------------------------------------------------- #"
 me_init_sync_node() {
     local NODE_NAME=$1
@@ -1641,7 +1641,7 @@ me_init_sync_node node3 ${ME_NODE3_IP}
 me_init_sync_node node4 ${ME_NODE4_IP}
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                              ME读取Node ID                                     #"
+echo "#                              ME Read Node ID                                     #"
 echo "# ---------------------------------------------------------------------------- #"
 NODEID_NODE1=$(med tendermint show-node-id --home ${ME_NODES_HOME}/node1)
 NODEID_NODE2=$(med tendermint show-node-id --home ${ME_NODES_HOME}/node2)
@@ -1653,7 +1653,7 @@ echo Node3_ID:${NODEID_NODE3}
 echo Node4_ID:${NODEID_NODE4}
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                         修改Node2-Node5的persistent_peers地址                #"
+echo "#                         Edit Node2-Node5 persistent_peers                #"
 echo "# ---------------------------------------------------------------------------- #"
 NodeID_Node1_P2P="${NODEID_NODE2}@${ME_NODE2_IP}:26656,${NODEID_NODE3}@${ME_NODE3_IP}:26656,${NODEID_NODE4}@${ME_NODE4_IP}:26656"
 
@@ -1672,7 +1672,7 @@ sed -i 's/persistent_peers = ""/persistent_peers = "'"${NodeID_Node3_P2P}"'"/' $
 sed -i 's/persistent_peers = ""/persistent_peers = "'"${NodeID_Node4_P2P}"'"/' ${ME_NODES_HOME}/node4/config/config.toml
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                          生成 docker-compose 文件                            #"
+echo "#                          Generate docker-compose file                            #"
 echo "# ---------------------------------------------------------------------------- #"
 cat >docker-compose.yml<<EOF
 x-me-template: &me-template
@@ -1750,34 +1750,34 @@ services:
       - ${ME_NODES_HOME}/node4:${HUB_CONTAINER_HOME}
 EOF
 docker compose up -d hub-node1
-echo "等待5s服务完全启动"
+echo "Wait 5s for services to finish starting"
 sleep 5
 docker compose up -d hub-node2
-echo "等待5s服务完全启动"
+echo "Wait 5s for services to finish starting"
 sleep 5
 docker compose up -d hub-node3
-echo "等待5s服务完全启动"
+echo "Wait 5s for services to finish starting"
 sleep 5
 docker compose up -d hub-node4
-echo "等待5s服务完全启动"
+echo "Wait 5s for services to finish starting"
 sleep 5
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                  修改node1 persistent_peers地址                              #"
+echo "#                  Edit node1 persistent_peers                              #"
 echo "# --------------------- ------------------------------------------------------- #"
 docker compose  down hub-node1
 sed -i 's/persistent_peers = ""/persistent_peers = "'"${NodeID_Node1_P2P}"'"/' ${ME_NODES_HOME}/node1/config/config.toml
 echo NodeID_Node1_P2P:${NodeID_Node1_P2P}
 docker compose  up -d hub-node1
-echo "等待5s服务完全启动"
+echo "Wait 5s for services to finish starting"
 sleep 5
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                  当前容器状态                                              #"
+echo "#                  Current container status                                              #"
 echo "# ---------------------------------------------------------------------------- #"
 docker compose  ps
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               判断val2、val3、val4是否需要add                                  #"
+echo "#               Decide whether val2, val3, val4 need to be add                                  #"
 echo "# ---------------------------------------------------------------------------- #"
 if [ -z "${USER_ADDR_ME_VAL2}" ]; then
     val2=$(add_key  "med"  "val2" ${USER_SEQ_ME_VAL2}  "--home $ME_NODE1_HOME")
@@ -1801,7 +1801,7 @@ if [ -z "${USER_ADDR_ME_VAL4}" ]; then
 fi
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                  等待ME出创世区块块 - 获取区块 hash                              #"
+echo "#                  Wait for the ME genesis block and get the block hash                              #"
 echo "# ---------------------------------------------------------------------------- #"
 wait_genesis_block_hash() {
     app_name=$1
@@ -1825,52 +1825,52 @@ wait_genesis_block_hash med "--home ${ME_NODE1_HOME}"
 
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                  获取ME的Node2、Node3、Node4公钥                                   #"
+echo "#                  Get ME Node2, Node3, Node4 pubkeys                                   #"
 echo "# ---------------------------------------------------------------------------- #"
 ME_Node1_Pubkey=$(med tendermint show-validator --home ${ME_NODES_HOME}/node1)
 ME_Node2_Pubkey=$(med tendermint show-validator --home ${ME_NODES_HOME}/node2)
 ME_Node3_Pubkey=$(med tendermint show-validator --home ${ME_NODES_HOME}/node3)
 ME_Node4_Pubkey=$(med tendermint show-validator --home ${ME_NODES_HOME}/node4)
-echo Node1公钥:${ME_Node1_Pubkey}
-echo Node2公钥:${ME_Node2_Pubkey}
-echo Node3公钥:${ME_Node3_Pubkey}
-echo Node4公钥:${ME_Node4_Pubkey}
+echo Node1 pubkey:${ME_Node1_Pubkey}
+echo Node2 pubkey:${ME_Node2_Pubkey}
+echo Node3 pubkey:${ME_Node3_Pubkey}
+echo Node4 pubkey:${ME_Node4_Pubkey}
 
-# 离线交易
-# 因为正常的在线交易1个区块只能发送一笔交易, 必须等交易上链后才能发送下一笔交易
-# 在需要连续发送交易的场景时，可以使用离线交易
-# 离线交易的关键在于自己维护和设定 发送交易的序号
-#-a $account_number   # 当前地址在链上的地址账户编号id
-#--sequence ${seqID}  # 当前地址在链上的交易序号, 每次交易需要+1，防止重放攻击
-#--offline 离线模式签名
-#--fees交易费用
-#--gas设置gas限制
+# offline tx
+# A normal online tx can send only one tx per block, so the next tx waits until the previous one is on chain
+# Use an offline tx when several txs must be sent back to back
+# An offline tx works by tracking and setting the send sequence yourself
+#-a $account_number   # on-chain account number of this address id
+#--sequence ${seqID}  # on-chain sequence of this address. Increment by 1 on every tx to prevent replay
+#--offline offline signing
+#--fees tx fee
+#--gas set the gas limit
 
 #staking create-validator
-##用于创建新的验证人节点
-##需要质押代币作为保证金
-##节点会参与网络共识和区块生产
-##需要满足最低质押要求
-##可以获得出块奖励和交易费用
+##Create a new validator
+##Stake tokens as the bond
+##The node joins consensus and produces blocks
+##Must meet the minimum stake
+##Earns block rewards and tx fees
 #staking new-region
-##用于在现有验证人节点上添加新的区域/地区
-##不需要额外的质押
-##主要目的是提高网络的去中心化程度
-##通常用于在不同地理位置部署节点
-##继承主验证人的质押和奖励
-##简单来说,create-validator是创建全新的验证人,而new-region是在现有验证人基础上扩展节点到新的地理位置。
+##Add a new region on an existing validator
+##No extra stake
+##Main goal is to improve decentralization
+##Usually used to run nodes in different places
+##Inherits the primary validator's stake and rewards
+##In short, create-validator creates a brand-new validator, while new-region extends an existing validator into a new location.
 
 if [[ $Interactive_Mode =~ ^[Yy]$ ]]
 then
     echo "# -------------------------------------------------------------------------------- #"
-    echo "#      资管创建验证者模式                                                            #"
+    echo "#      Custody create-validator mode                                                            #"
     echo "# -------------------------------------------------------------------------------- #"
-    echo "请提交ME的Node1、Node2、Node3、Node4公钥给资管"
-    echo "资管操作后请确认回车"
+    echo "Send the ME Node1, Node2, Node3, and Node4 pubkeys to custody"
+    echo "Press Enter after custody finishes"
     read -p "Do you want to continue? (Y/n)"
 else
     echo "# -------------------------------------------------------------------------------- #"
-    echo "#      自动创建验证者模式                                                            #"
+    echo "#      Automatic create-validator mode                                                            #"
     echo "# -------------------------------------------------------------------------------- #"
     seqID=$(med q auth account ${USER_ADDR_ME_GLOBAL_DAO} -o json --home $ME_NODE1_HOME | jq -r .base_account.sequence)
     account_number=$(med q auth account ${USER_ADDR_ME_GLOBAL_DAO} -o json --home $ME_NODE1_HOME | jq -r .base_account.account_number)
@@ -1928,23 +1928,23 @@ else
 fi
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               查询验证者节点列表 regionID                                    #"
+echo "#               Query the validator list regionID                                    #"
 echo "# ---------------------------------------------------------------------------- #"
 while [ $(med query staking validators --home ${ME_NODE1_HOME} | grep -c "regionID") -ne 4 ]; do
-    echo "4个验证节点regionID未就绪,等待5秒再循环查询"
+    echo "4 validators' region IDs are not ready. Wait 5s and query again"
     sleep 5
-    echo "等待创建4个regionID完成... 目前已经存在的验证者节点:"
+    echo "Waiting for 4 region IDs... validators that already exist:"
     med query staking validators --home ${ME_NODE1_HOME} --output json | jq -r '.validators[] | .description.regionID'
 done
-echo "4验证节点已经就绪!"
+echo "4 validators are ready!"
 med query staking validators --home ${ME_NODE1_HOME} --output json | jq -r '.validators[] | .description.regionID'
 
 if [[ $Interactive_Mode =~ ^[Nn]$ ]]
 then
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#            自建模式等待块高到${ME_CREAT_REGION_HEIGHT},以便创建区时分到足够代币     #"
+    echo "#            Self-hosted mode waits for height ${ME_CREAT_REGION_HEIGHT} so region creation receives enough tokens     #"
     echo "# ---------------------------------------------------------------------------- #"
-    echo "Need about 指定高度${ME_CREAT_REGION_HEIGHT}*出块速度${ME_TIMEOUT_COMMIT} seconds"
+    echo "Need about target height ${ME_CREAT_REGION_HEIGHT} times block time ${ME_TIMEOUT_COMMIT} seconds"
     while true; do
         CURRENT_HEIGHT=$(med status --home ${ME_NODE1_HOME} 2>/dev/null | jq -r '.SyncInfo.latest_block_height' 2>/dev/null)
         CURRENT_HEIGHT=${CURRENT_HEIGHT//\"/}
@@ -1962,37 +1962,37 @@ then
     done
 
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#               创建区new-region zone                                           #"
+    echo "#               Create region new-region zone                                           #"
     echo "# ---------------------------------------------------------------------------- #"
     seqID=$(med q auth account ${USER_ADDR_ME_GLOBAL_DAO}   --home ${ME_NODE1_HOME} --output json | jq -r .base_account.sequence)
     validator_count=$(med query staking validators --home ${ME_NODE1_HOME} --output json | jq '.validators | length')
-    echo 当前sequence:$seqID
+    echo Current sequence:$seqID
     for ((i=0; i<validator_count; i++)); do
         operator_address=$(med query staking validators  --home ${ME_NODE1_HOME} --output json  | jq -r .validators[$i].operator_address)
         regionID=$(med query staking validators   --home ${ME_NODE1_HOME} --output json | jq -r .validators[$i].description.regionID)
-        # 检查区域是否已存在
+        # Check whether the region already exists
         if med q staking regions --home ${ME_NODE1_HOME} --output json | jq -e ".region[] | select(.regionId == \"$regionID\")" > /dev/null; then
             echo "Region $regionID already exists, skipping..."
             continue
         fi
-        # 创建区
+        # Create region
         echo "==============================================="
         echo "create new-region: ${regionID}"
         echo "shell:med tx staking new-region ${regionID} ${operator_address} --from global_dao  --chain-id ${ME_CHAIN_ID} --fees=10000umec --gas 500000 -a $account_number --sequence ${seqID} --offline -y -o json --home $ME_NODE1_HOME| jq -r .txhash"
         txhash=$(med tx staking new-region ${regionID} ${operator_address} --from global_dao  --chain-id ${ME_CHAIN_ID} --fees=10000umec --gas 500000 -a $account_number --sequence ${seqID} --offline -y -o json --home ${ME_NODE1_HOME}| jq -r .txhash)
-        echo "查询hash是否上链: ${txhash}"
+        echo "Check whether the tx hash is on chain: ${txhash}"
         check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
         seqID=$((seqID+1))
     done
 fi
 echo "# ---------------------------------------------------------------------- ------ #"
-echo "#               查询region当前金额                                                 #"
+echo "#               Query the region's current balance                                                 #"
 echo "# ---------------------------------------------------------------------------- #"
 region_data=$(med query staking regions --home ${ME_NODE1_HOME} -o json)
 echo "${region_data}" | jq -r '.region[] | [.regionId, .region_treasure_addr] | @tsv' | while IFS=$'\t' read -r region_id treasure_addr; do
     balance_json=$(med query bank balances "${treasure_addr}" --home ${ME_NODE1_HOME} -o json 2>/dev/null)
     balance=$(echo "${balance_json}" | jq -r '.balances[] | select(.denom=="umec") | .amount // "0"')
-    echo "$region_id 当前余额为 ${balance:-0} umec"
+    echo "$region_id current balance is ${balance:-0} umec"
 
 done
 
@@ -2002,11 +2002,11 @@ then
     if [[ $INSTALL_TYPE =~ ^[Yy]$ ]]
     then
         echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${TARGET_BALANCE}umec --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
-        echo "快速提取模式直接从${ME_STAKING_AMOUNT_NODE1_REGION}提取Send DA所需额度${TARGET_BALANCE}"
+        echo "Quick-withdraw mode takes the Send DA amount from ${ME_STAKING_AMOUNT_NODE1_REGION}${TARGET_BALANCE}"
         txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${TARGET_BALANCE}umec --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
     else
         echo "# ---------------------------------------------------------------------------- #"
-        echo "# 自建模式生产参数需等待块高到${REGION_HIGHT_WAIT},以便所有区有足够代币各自提取(或特定高度创建第5个验证者) #"
+        echo "# Self-hosted production params wait for height ${REGION_HIGHT_WAIT} so every region has enough to withdraw (or create a 5th validator at a chosen height) #"
         echo "# ---------------------------------------------------------------------------- #"
         while true; do
             CURRENT_HEIGHT=$(med status --home ${ME_NODE1_HOME} 2>/dev/null | jq -r '.SyncInfo.latest_block_height' 2>/dev/null)
@@ -2023,54 +2023,54 @@ then
             echo "Waiting for block height to reach ${REGION_HIGHT_WAIT} (next check in ${sleepTime} seconds)..."
             sleep "$sleepTime"
         done
-        echo "从${ME_STAKING_AMOUNT_NODE1_REGION}提取Send DA val1所需额度${ME_SEND_DA_AMOUNT_VAL1}"
+        echo "Withdraw the Send DA val1 amount from ${ME_STAKING_AMOUNT_NODE1_REGION}${ME_SEND_DA_AMOUNT_VAL1}"
         echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO}   ${ME_SEND_DA_AMOUNT_VAL1} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
         txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO}   ${ME_SEND_DA_AMOUNT_VAL1} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-        echo "查询hash是否上链: ${txhash}"
+        echo "Check whether the tx hash is on chain: ${txhash}"
         check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
         
-        echo "从${ME_STAKING_AMOUNT_NODE1_REGION}提取Send IBC所需额度${ME_SEND_IBC_AMOUNT}"
+        echo "Withdraw the Send IBC amount from ${ME_STAKING_AMOUNT_NODE1_REGION}${ME_SEND_IBC_AMOUNT}"
         echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO}   ${ME_SEND_IBC_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
         txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO}   ${ME_SEND_IBC_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-        echo "查询hash是否上链: ${txhash}"
+        echo "Check whether the tx hash is on chain: ${txhash}"
         check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
 
-        echo "从${ME_STAKING_AMOUNT_NODE1_REGION}提取预留额度${ME_RESERVE_AMOUNT}"
+        echo "Withdraw the reserved amount from ${ME_STAKING_AMOUNT_NODE1_REGION}${ME_RESERVE_AMOUNT}"
         echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO}   ${ME_RESERVE_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
         txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO}   ${ME_RESERVE_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-        echo "查询hash是否上链: ${txhash}"
+        echo "Check whether the tx hash is on chain: ${txhash}"
         check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
 
-        echo "从${ME_STAKING_AMOUNT_NODE2_REGION}提取Send DA val2所需额度${ME_SEND_DA_AMOUNT_VAL2}"
+        echo "Withdraw the Send DA val2 amount from ${ME_STAKING_AMOUNT_NODE2_REGION}${ME_SEND_DA_AMOUNT_VAL2}"
         echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE2_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${ME_SEND_DA_AMOUNT_VAL2} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
         txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE2_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${ME_SEND_DA_AMOUNT_VAL2} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-        echo "查询hash是否上链: ${txhash}"
+        echo "Check whether the tx hash is on chain: ${txhash}"
         check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
         
-        echo "从${ME_STAKING_AMOUNT_NODE3_REGION}提取Send DA val3所需额度${ME_SEND_DA_AMOUNT_VAL3}"
+        echo "Withdraw the Send DA val3 amount from ${ME_STAKING_AMOUNT_NODE3_REGION}${ME_SEND_DA_AMOUNT_VAL3}"
         echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE3_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${ME_SEND_DA_AMOUNT_VAL3} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
         txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE3_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${ME_SEND_DA_AMOUNT_VAL3} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-        echo "查询hash是否上链: ${txhash}"
+        echo "Check whether the tx hash is on chain: ${txhash}"
         check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
 
-        echo "从${ME_STAKING_AMOUNT_NODE4_REGION}提取Send DA val4所需额度${ME_SEND_DA_AMOUNT_VAL4}"
+        echo "Withdraw the Send DA val4 amount from ${ME_STAKING_AMOUNT_NODE4_REGION}${ME_SEND_DA_AMOUNT_VAL4}"
         echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE4_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${ME_SEND_DA_AMOUNT_VAL4} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
         txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE4_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${ME_SEND_DA_AMOUNT_VAL4} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-        echo "查询hash是否上链: ${txhash}"
+        echo "Check whether the tx hash is on chain: ${txhash}"
         check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
-        echo “当前${USER_ADDR_ME_GLOBAL_DAO}账户信息为：”
+        echo "Current ${USER_ADDR_ME_GLOBAL_DAO} account:"
         med query bank balances "${USER_ADDR_ME_GLOBAL_DAO}" --home ${ME_NODE1_HOME} -o json 2>/dev/null
     fi
 fi
 
 echo "# ---------------------------------------------------------------------- ------ #"
-echo "#               部署ME-DA-Node1                                                 #"
+echo "#               Deploy ME-DA-Node1                                                 #"
 echo "# ---------------------------------------------------------------------------- #"
 
 meda-appd init "${DA_NODE1_NAME}" --chain-id="${DA_CHAIN_ID}" --home "${DA_NODE1_HOME}"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#   判断用户是否需要add(dao、ibc、val0、val1、val2、val3、val4)，无输出则为不创建      #"
+echo "#   Decide whether to add users (dao, ibc, val0, val1, val2, val3, val4). No output means do not create      #"
 echo "# ---------------------------------------------------------------------------- #"
 if [ -z "${USER_ADDR_DA_DAO}" ]; then
     da_dao=$(add_key "meda-appd" "dao" ${da_user_index_dao} "--home ${DA_NODE1_HOME}")
@@ -2115,14 +2115,14 @@ if [ -z "${USER_ADDR_DA_VAL4}" ]; then
     USER_ADDR_DA_VAL4_PUBKEY=$(echo "${da_val4}" | grep -oP 'pubkey: \K[^\n]+' | sed "s/'//g")
 fi
 
-#echo "create channel hub-meda时,需要me的ibc地址"
+#echo "create channel hub-meda, the ME ibc address is required"
 if [ -z "${USER_ADDR_ME_IBC_DA}" ]; then
     da_me_ibc_da=$(add_key "meda-appd"  "me_user_ibc_da" ${USER_SEQ_ME_IBC_DA} "--home ${DA_NODE1_HOME}")
     echo "${da_me_ibc_da}"
     USER_ADDR_ME_IBC_DA=$(echo "${da_me_ibc_da}" | grep -oP 'address: \K[^\s]+')
     USER_ADDR_ME_IBC_DA_PUBKEY=$(echo "${da_me_ibc_da}" | grep -oP 'pubkey: \K[^\n]+' | sed "s/'//g")
 fi
-#echo "create channel hub-rollapp时,需要me的rollapp地址"
+#echo "create channel hub-rollapp, the ME rollapp address is required"
 if [ -z "${USER_ADDR_ME_IBC_ROLLAPP}" ]; then
     da_ibc_me=$(add_key "meda-appd"  "da_user_ibc_rollapp" ${USER_SEQ_ME_IBC_ROLLAPP} "--home ${DA_NODE1_HOME}")
     echo "${da_ibc_me}"
@@ -2132,7 +2132,7 @@ fi
 
 
 echo "# ----------------------------------------------------------------------------------------------------------- #"
-echo "#  ME添加6个free-gas-account: ${USER_ADDR_ME_IBC_DA} 、 ${USER_ADDR_ME_IBC_ROLLAPP} 、${USER_ADDR_ME_SEQUENCER} 、${USER_ADDR_ME_SEQUENCER2} 、${USER_ADDR_ME_SEQUENCER3} 、${USER_ADDR_ME_GLOBAL_DAO}#"
+echo "#  ME Add 6 free-gas-accounts: ${USER_ADDR_ME_IBC_DA}, ${USER_ADDR_ME_IBC_ROLLAPP}, ${USER_ADDR_ME_SEQUENCER}, ${USER_ADDR_ME_SEQUENCER2}, ${USER_ADDR_ME_SEQUENCER3},${USER_ADDR_ME_GLOBAL_DAO}#"
 echo "# ----------------------------------------------------------------------------------------------------------- #"
 seqID=$(med q auth account ${USER_ADDR_ME_GLOBAL_DAO} -o json   --home ${ME_NODE1_HOME} | jq -r .base_account.sequence)
 me_add_free_gas_account_list() {
@@ -2140,10 +2140,10 @@ me_add_free_gas_account_list() {
     local current_free_gas_address=$(med q dao free-gas-accounts --home ${ME_NODE1_HOME} -o json | jq -c '.addresses')
     echo  current free gas address:${current_free_gas_address}
     for addr in "${addrs[@]}"; do
-        echo "当前addr:${addr}"
+        echo "Current addr:${addr}"
         if  echo "$current_free_gas_address" | jq --arg addr "${addr}" '. as $arr | $arr | index($addr) != null | not' | grep -q "true"; then
-            echo "#当前sequence:$seqID, 查询free-gas-account:${addr} #"
-            echo "执行shell:med tx dao free-gas-account "[{\"address\":\"${addr}\", \"is_free\":true}]" --from ${USER_ADDR_ME_GLOBAL_DAO} --home ${ME_NODE1_HOME} --gas 500000 --fees 200000umec --account-number ${account_number} --sequence ${seqID} --offline -y -o json | jq -r '.txhash'"
+            echo "#Current sequence: $seqID, query free-gas-account:${addr} #"
+            echo "Run shell: med tx dao free-gas-account "[{\"address\":\"${addr}\", \"is_free\":true}]" --from ${USER_ADDR_ME_GLOBAL_DAO} --home ${ME_NODE1_HOME} --gas 500000 --fees 200000umec --account-number ${account_number} --sequence ${seqID} --offline -y -o json | jq -r '.txhash'"
             txhash=$(med tx dao free-gas-account "[{\"address\":\"${addr}\", \"is_free\":true}]" \
             --from ${USER_ADDR_ME_GLOBAL_DAO} \
             --home ${ME_NODE1_HOME} \
@@ -2154,22 +2154,22 @@ me_add_free_gas_account_list() {
             --offline \
             -y \
             -o json | jq -r '.txhash')
-            # 检查交易是否成功
+            # Check whether the tx succeeded
             if [ -z "${txhash}" ] || [ "${txhash}" = "null" ]; then
-                echo "错误: 添加免费gas账户 ${addr} 失败"
+                echo "error: failed to add free-gas account ${addr}"
                 med q tx ${txhash} --home ${ME_NODE1_HOME}
                 exit 1
             fi
             
-            echo "交易哈希: ${txhash}"
+            echo "tx hash: ${txhash}"
             check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
         else
-             echo "当前addr已经存在无需添加"
+             echo "This addr already exists, skip"
         fi 
         seqID=$((seqID+1))
     done
-    # 验证所有账户是否已添加到免费gas列表
-    echo "当前免费gas账户列表:"
+    # Check that every account was added to the free-gas list
+    echo "Current free-gas account list:"
     med q dao free-gas-accounts --home ${ME_NODE1_HOME}  -o json | jq -c '.addresses'
     echo "----------------------------"
 }
@@ -2181,16 +2181,16 @@ me_add_free_gas_account_list ${USER_ADDR_ME_IBC_DA} ${USER_ADDR_ME_IBC_ROLLAPP} 
 
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#      为获取rollapp用户地址提前初始化Rollapp Node1节点-步骤1开始                    #"
-echo "#      部署Rollapp Node1 步骤1                                                  #"
+echo "#      Initialize Rollapp Node1 early, step 1, so rollapp user addresses exist                    #"
+echo "#      Deploy Rollapp Node1 step 1                                                  #"
 echo "# ---------------------------------------------------------------------------- #"
 
 
-echo "初始化节点..."
+echo "Initialize the node..."
 rollappd init "${RAPP_NODE1_NAME}" --chain-id "${ROLLAPP_CHAIN_ID}" --home ${RAPP_NODE1_HOME}
 
 echo "# ------------------------------------------------------------------------------------------- #"
-echo "#      Rollapp add roluser、ibc、sync_user、dao、dev_operator、sequencer,无输出则为不创建         #"
+echo "#      Rollapp add roluser, ibc, sync_user, dao, dev_operator, sequencer. No output means do not create         #"
 echo "# ------------------------------------------------------------------------------------------- #"
 if [ -z "${USER_ADDR_ROLLAPP_ADMIN}" ]; then
     echo "add roluser"
@@ -2233,18 +2233,18 @@ if [ -z "${USER_ADDR_ROLLAPP_OPERATOR}" ]; then
     echo "-----------------------------------------------------------------------------------"
 fi
 
-# rollapp 恢复 seq 用户
+# rollapp Recover seq user
 if [ -z "${USER_ADDR_ROLLAPP_SEQUENCER}" ]; then
-    echo "恢复 sequencer 账户..."
+    echo "Recover the sequencer account..."
     mkdir -p "${RAPP_NODE1_HOME}"/sequencer_keys/keyring-${KEYRING_BACKEND_NAME}
     rollapp_seq=$(add_key  "rollappd"  "sequencer" ${USER_SEQ_ME_SEQUENCER} "--home ${RAPP_NODE1_HOME}/sequencer_keys")
     echo "${rollapp_seq}"
     USER_ADDR_ROLLAPP_SEQUENCER=$(echo "${rollapp_seq}" | grep -oP 'address: \K[^\s]+')
     USER_ADDR_ROLLAPP_SEQUENCER_PUBKEY=$(echo "${rollapp_seq}" | grep -oP 'pubkey: \K[^\n]+' | sed "s/'//g")
-    echo "sequencer 账户恢复完成"
+    echo "sequencer account recovered"
 fi
 
-# 持续查询地址是否有钱
+# Keep querying whether the address has a balance
 check_user_is_balances() {
     local binary=$1
     local user_addr=$2
@@ -2272,43 +2272,43 @@ check_user_is_balances() {
         account_status=$(${binary} query bank balances ${user_addr} ${extra_args} -o json)
         balance=$(echo "$account_status" | jq -r .balances[0].amount)
         denom=$(echo "$account_status" | jq -r .balances[0].denom)
-        echo 当前用户${user_addr} 拥有 ${balance} ${denom}
+        echo User ${user_addr} holds ${balance} ${denom}
         break
 
     done
 }
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                           DA创世                                           #"
+echo "#                           DA genesis                                           #"
 echo "# ---------------------------------------------------------------------------- #"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "# 初始资金${USER_ADDR_DA_VAL0}:${val0_TIA_AMOUNT}、${USER_ADDR_DA_DAO}:${dao_TIA_AMOUNT}  #"
+echo "# Initial funds ${USER_ADDR_DA_VAL0}:${val0_TIA_AMOUNT},${USER_ADDR_DA_DAO}:${dao_TIA_AMOUNT}  #"
 echo "# ---------------------------------------------------------------------------- #"
 meda-appd add-genesis-account ${USER_ADDR_DA_VAL0} $val0_TIA_AMOUNT --keyring-backend ${KEYRING_BACKEND_NAME} --home "$DA_NODE1_HOME"
 meda-appd add-genesis-account ${USER_ADDR_DA_DAO} $dao_TIA_AMOUNT --keyring-backend ${KEYRING_BACKEND_NAME} --home "$DA_NODE1_HOME"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               创世质押val0:${val0_STAKING_AMOUNT}                            #"
+echo "#               genesis stake val0:${val0_STAKING_AMOUNT}                            #"
 echo "# ---------------------------------------------------------------------------- #"
 
 meda-appd gentx val0 ${val0_STAKING_AMOUNT} --chain-id ${DA_CHAIN_ID} --keyring-backend ${KEYRING_BACKEND_NAME} --gas-prices 0.0001udmec --moniker ${DA_STAKING_AMOUNT_NODE1_REGION}  --home "${DA_NODE1_HOME}"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               收集创世交易                                                   #"
+echo "#               Collect genesis txs                                                   #"
 echo "# ---------------------------------------------------------------------------- #"
 
-#collect-gentxs会导致错误配置node1上的persistent_peers信息为本机物理ip,故此修改
+# collect-gentxs writes node1 persistent_peers as this machine's physical IP, so fix it afterwards
 meda-appd collect-gentxs --home "${DA_NODE1_HOME}"
 sed -i 's|^persistent_peers = .*$|persistent_peers = ""|' "${DA_NODES_HOME}/node1/config/config.toml"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               校验创世交易                                                   #"
+echo "#               Validate genesis txs                                                   #"
 echo "# ---------------------------------------------------------------------------- #"
 meda-appd validate-genesis --home "${DA_NODE1_HOME}"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               处理app配置文件                                                #"
+echo "#               Edit the app config                                                #"
 echo "# ---------------------------------------------------------------------------- #"
 
 sed -i'' -e "/\[api\]/,+3 s/enable = false/enable = true/"  "${DA_NODE1_HOME}"/config/app.toml
@@ -2318,40 +2318,40 @@ sed -i'' -e "/\[grpc\]/,+3 s/enable = false/enable = true/" "${DA_NODE1_HOME}"/c
 sed -i'' -e "/\[grpc-web\]/,+5 s/enable = false/enable = true/" "${DA_NODE1_HOME}"/config/app.toml
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               处理config配置文件                                             #"
+echo "#               Edit the config file                                             #"
 echo "# ---------------------------------------------------------------------------- #"
 sed -i '/^laddr/s/127.0.0.1/0.0.0.0/' "${DA_NODE1_HOME}"/config/config.toml
-#null：不索引任何交易（默认值）kv：使用键值存储索引交易（LevelDB 或 RocksDB）psql：使用 PostgreSQL 数据库索引交易（需要额外配置）。从 null 修改为 kv，表示启用键值存储索引这使得可以通过交易哈希查询交易详情
+#null: index no txs (default). kv: index txs in a key-value store (LevelDB or RocksDB). psql: index txs in PostgreSQL (extra config required). Changing null to kv enables key-value indexing so a tx can be queried by hash
 sed -i '/^indexer/s/null/kv/' "${DA_NODE1_HOME}"/config/config.toml
-#允许单个IP多端口也就是不同节点同一机器不同端口运行
+#Allow one IP to use many ports, so different nodes can run on one machine
 sed -i '/^allow_duplicate_ip/s/false/true/' "${DA_NODE1_HOME}"/config/config.toml
-#控制地址簿的严格性检查。设置为 false 的影响：允许使用非路由地址（如私有 IP 地址）作为对等节点；允许使用非全局单播地址；
+#Address-book strictness. false allows non-routable addresses (such as private IPs) as peers and non-global unicast addresses.
 sed -i '/^addr_book_strict/s/true/false/' "${DA_NODE1_HOME}"/config/config.toml
-#在验证节点或全节点上，通常建议保持 false，因为某些功能（如状态同步、查询历史状态等）可能需要这些数据，在归档节点上，如果磁盘空间有限，可以考虑设置为 true 来节省空间
+#On a validator or full node, keep this false, because state sync and historical queries may need the data. On an archive node with little disk, true saves space
 sed -i '/^discard_abci_responses/s/true/false/' "${DA_NODE1_HOME}"/config/config.toml
-#是 Tendermint 节点配置中的一个参数，用于控制交易追踪的详细程度。noop：默认值，不记录任何追踪信息；local：在本地记录追踪信息。
+#is a Tendermint config that controls tx trace detail. noop: default, record nothing; local: record traces locally.
 sed -i '/^trace_type/s/noop/local/'  "${DA_NODE1_HOME}"/config/config.toml
 sed -i '/^trace_pull_address/s/.*/trace_pull_address = \":26661\"/' "${DA_NODE1_HOME}"/config/config.toml
-#允许跨域
+#CORS
 sed -ie 's/cors_allowed_origins.*$/cors_allowed_origins = ["*"]/' "${DA_NODE1_HOME}"/config/config.toml
 if [[ "$ENABLE_MONITPORING" == [Yy] ]] ;then
     sed  -i'' -e "s/prometheus = false/prometheus = true/" "${DA_NODE1_HOME}"/config/config.toml
 fi
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               处理client配置文件                                                #"
+echo "#               Edit the client config                                                #"
 echo "# ---------------------------------------------------------------------------- #"
 meda-appd config chain-id ${DA_CHAIN_ID} --home "${DA_NODE1_HOME}"
 meda-appd config keyring-backend ${KEYRING_BACKEND_NAME} --home "${DA_NODE1_HOME}"
 meda-appd config node "tcp://${DA_NODE1_IP}:26657" --home "${DA_NODE1_HOME}"
-echo "修改/config/client.toml"
+echo "Edit/config/client.toml"
 sed -i "s/localhost:26657/${DA_NODE1_IP}:26657/" "${DA_NODE1_HOME}"/config/client.toml
 # The keyring's backend, where the keys are stored (os|file|kwallet|pass|test|memory)
-echo "替换钱包名称"
+echo "Replace the wallet name"
 sed -i'' -e "s/^keyring-backend *= .*/keyring-backend = \"${KEYRING_BACKEND_NAME}\"/" "${DA_NODE1_HOME}"/config/client.toml
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               处理genesis配置文件                                            #"
+echo "#               Edit the genesis config                                            #"
 echo "# ---------------------------------------------------------------------------- #"
 
 # Override the VotingPeriod from 1 week to 1 minute
@@ -2360,25 +2360,25 @@ sed -i'' 's#"604800s"#"60s"#g' "${DA_GENESIS_FILE}"
 # Override the genesis to use app version 1 and then upgrade to app version 2 later.
 sed -i'' 's#"app_version": "2"#"app_version": "1"#g' "${DA_GENESIS_FILE}"
 
-# 增加ibc代币生效块高
+# Raise the IBC token activation height
 sed -i "/ibc_deadline_block_height/s/100/${IBC_DEADLINE_BLOCK_HEIGHT}/" "${DA_GENESIS_FILE}"
 
-# 将 dao 地址写入 genesis 文件
+# Write the dao address into the genesis file
 tmp=$(mktemp)
 
 
 sed -i "/max_validators/s/100/${MAX_VALIDATORS}/" "${DA_GENESIS_FILE}"
 
 jq --arg addr ${USER_ADDR_DA_DAO} '.app_state.dao.dao_address = $addr' "${DA_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${DA_GENESIS_FILE}"
-#最小质押额
+#minimum stake
 jq --arg amount ${DA_MIN_DEPOSIT_AMOUNT} '.app_state.gov.deposit_params.min_deposit[0].amount = $amount' "${DA_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${DA_GENESIS_FILE}"
-#设置验证人佣金率的下限，防止验证人设置过低的佣金率进行不公平竞争
+#Lower bound on validator commission, so a validator cannot undercut others unfairly
 jq --arg var2 "0.000000000000000000" '.app_state.staking.params.min_commission_rate = $var2' "${DA_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${DA_GENESIS_FILE}"
-#解绑时间
+#unbonding time
 jq --arg var2 "${DA_UNBONDING_TIME}" '.app_state.staking.params.unbonding_time = $var2' "${DA_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${DA_GENESIS_FILE}"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               配置同步其他节点                                             #"
+echo "#               Configure the other sync nodes                                             #"
 echo "# ---------------------------------------------------------------------------- #"
 da_init_sync_node() {
     local NODE_NAME=$1
@@ -2412,7 +2412,7 @@ da_init_sync_node node3 ${DA_NODE3_IP}
 da_init_sync_node node4 ${DA_NODE4_IP}
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               获取DA Node ID                                               #"
+echo "#               Get DA Node ID                                               #"
 echo "# ---------------------------------------------------------------------------- #"
 DA_NODEID_NODE1=$(meda-appd  tendermint show-node-id --home "${DA_NODE1_HOME}")
 DA_NODEID_NODE2=$(meda-appd  tendermint show-node-id --home "${DA_NODES_HOME}"/node2)
@@ -2425,7 +2425,7 @@ echo Node3_ID:"${DA_NODEID_NODE3}"
 echo Node4_ID:"${DA_NODEID_NODE4}"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                         修改Node2-Node5的persistent_peers地址                #"
+echo "#                         Edit Node2-Node5 persistent_peers                #"
 echo "# ---------------------------------------------------------------------------- #"
 echo NodeID_Node1_P2P:"${NodeID_Node2_P2P}"
 NodeID_Node1_P2P="${DA_NODEID_NODE2}@${DA_NODE2_IP}:26656,${DA_NODEID_NODE3}@${DA_NODE3_IP}:26656,${DA_NODEID_NODE4}@${DA_NODE4_IP}:26656"
@@ -2446,7 +2446,7 @@ sed -i 's/persistent_peers = ""/persistent_peers = "'"${NodeID_Node4_P2P}"'"/' "
 
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                          生成 docker-compose 文件                            #"
+echo "#                          Generate docker-compose file                            #"
 echo "# ---------------------------------------------------------------------------- #"
 {
 cat <<EOF
@@ -2515,47 +2515,47 @@ cat >>docker-compose.yml<<EOF
       - ${DA_NODES_HOME}/node4:/home/ubuntu/.meda-app
 EOF
 docker compose  up -d da-node1
-echo "等待5s服务完全启动"
+echo "Wait 5s for services to finish starting"
 sleep 5
 docker compose up -d da-node2
-echo "等待5s服务完全启动"
+echo "Wait 5s for services to finish starting"
 sleep 5
 docker compose up -d da-node3
-echo "等待5s服务完全启动"
+echo "Wait 5s for services to finish starting"
 sleep 5
 docker compose  up -d da-node4
-echo "等待5s服务完全启动"
+echo "Wait 5s for services to finish starting"
 sleep 5
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                  修改node1 persistent_peers地址                               #"
+echo "#                  Edit node1 persistent_peers                               #"
 echo "# ---------------------------------------------------------------------------- #"
 docker compose down da-node1
 sed -i 's|^persistent_peers = .*$|persistent_peers = "'"${NodeID_Node1_P2P}"'"|' "${DA_NODES_HOME}/node1/config/config.toml"
 echo "NodeID_Node1_P2P:${NodeID_Node1_P2P}"
 docker compose up -d da-node1
-echo "等待5s服务完全启动"
+echo "Wait 5s for services to finish starting"
 sleep 5
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                  当前容器状态                                              #"
+echo "#                  Current container status                                              #"
 echo "# ---------------------------------------------------------------------------- #"
 docker compose ps
 
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                  等待DA出创世区块块 - 获取区块 hash                          #"
+echo "#                  Wait for the DA genesis block and get the block hash                          #"
 echo "# ---------------------------------------------------------------------------- #"
 wait_genesis_block_hash meda-appd "--home ${DA_NODE1_HOME}"
-#获取当前wait_genesis_block_hash计算值$BLOCK_HASH
+#Current wait_genesis_block_hash value $BLOCK_HASH
 TrustedHash=${BLOCK_HASH}
 echo "TrustedHash:${TrustedHash}"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                  搭建bridge 节点                                             #"
+echo "#                  Set up the bridge node                                             #"
 echo "# ---------------------------------------------------------------------------- #"
 meda bridge init --p2p.network ${DA_CHAIN_ID} --node.store ${DA_BRIDGE_HOME}
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               判断是否需要add  bridge用户                                     #"
+echo "#               Decide whether to add the bridge user                                     #"
 echo "# ---------------------------------------------------------------------------- #"
 
 if [ -z "${USER_ADDR_DA_BRIDGE}" ]; then
@@ -2565,7 +2565,7 @@ if [ -z "${USER_ADDR_DA_BRIDGE}" ]; then
     USER_ADDR_DA_BRIDGE_PUBKEY=$(echo "${meda_bridge}" | grep -oP 'pubkey: \K[^\n]+' | sed "s/'//g")
 fi
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               配置文件                                                       #"
+echo "#               config file                                                       #"
 echo "# ---------------------------------------------------------------------------- #"
 
 
@@ -2609,7 +2609,7 @@ EOF
 
 docker compose up -d da-bridge
 #===================================================================
-# 获取桥节点的 TRUSTED_PEERS_LIST
+# Get the bridge node's TRUSTED_PEERS_LIST
 
 echo ""
 while true; do
@@ -2628,7 +2628,7 @@ while true; do
 done
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                  搭建full 节点                                             #"
+echo "#                  Set up the full node                                             #"
 echo "# ---------------------------------------------------------------------------- #"
 
 MEDA_FULL_INIT=$(meda full init --p2p.network ${DA_CHAIN_ID} --node.store ${DA_FULL_HOME})
@@ -2640,7 +2640,7 @@ echo "FULL_CELES_KEY_ADDR: ${FULL_CELES_KEY_ADDR}"
 echo "FULL_CELES_DICT: ${FULL_CELES_DICT}"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               判断是否add  full用户                                           #"
+echo "#               Decide whether to add the full user                                           #"
 echo "# ---------------------------------------------------------------------------- #"
 if [ -z "${USER_ADDR_DA_FULL}" ]; then
     meda_full=$(add_key "meda-appd"  "full" ${da_user_index_full} "--home ${DA_FULL_HOME}/keys")
@@ -2651,7 +2651,7 @@ fi
 
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               Full配置文件                                                    #"
+echo "#               Full config file                                                    #"
 echo "# ---------------------------------------------------------------------------- #"
 
 sed -i "s/DefaultKeyName .*/DefaultKeyName = \"full\"/"   "${DA_FULL_HOME}"/config.toml
@@ -2669,7 +2669,7 @@ sed -i "s#TrustedPeers = \[\]#TrustedPeers = \[\"${TRUSTED_PEERS_LIST}\"\]#"  "$
 
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                  搭建light 节点                                             #"
+echo "#                  Set up the light node                                             #"
 echo "# ---------------------------------------------------------------------------- #"
 
 MEDA_LIGHT_INIT=$(meda light init --p2p.network ${DA_CHAIN_ID} --node.store ${DA_LIGHT_HOME})
@@ -2682,7 +2682,7 @@ echo "LIGHT_CELES_DICT: ${LIGHT_CELES_DICT}"
 
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               判断是否add light用户                                           #"
+echo "#               Decide whether to add the light user                                           #"
 echo "# ---------------------------------------------------------------------------- #"
 if [ -z "${USER_ADDR_DA_LIGHT}" ]; then
     meda_light=$(add_key "meda-appd" "light" ${da_user_index_light} "--home ${DA_LIGHT_HOME}/keys")
@@ -2691,13 +2691,13 @@ if [ -z "${USER_ADDR_DA_LIGHT}" ]; then
     USER_ADDR_DA_LIGHT_PUBKEY=$(echo "${meda_light}" | grep -oP 'pubkey: \K[^\n]+' | sed "s/'//g")
 fi
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               Light配置文件                                                    #"
+echo "#               Light config file                                                    #"
 echo "# ---------------------------------------------------------------------------- #"
 
 sed -i "s/DefaultKeyName .*/DefaultKeyName = \"light\"/" "${DA_LIGHT_HOME}"/config.toml
 
 sed -i "/TrustedHash/s/TrustedHash = \"\"/TrustedHash = \"${TrustedHash}\"/" "${DA_LIGHT_HOME}"/config.toml
-# 开启鉴权：Token获取方式：light_token=$(meda light auth --node.store ${DA_LIGHT_HOME} write)
+# Enable auth. Token command:light_token=$(meda light auth --node.store ${DA_LIGHT_HOME} write)
 sed -i "s/SkipAuth = false/SkipAuth = true/" "${DA_LIGHT_HOME}"/config.toml
 
 sed -i'' -e "/\[Core\]/,+3 s/IP = .*/IP = \"${DA_NODE1_IP}\"/" "${DA_LIGHT_HOME}"/config.toml
@@ -2713,7 +2713,7 @@ sed -i "s#TrustedPeers = \[\]#TrustedPeers = \[\"${TRUSTED_PEERS_LIST}\"\]#" "${
 
 #===================================================================
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               配置da-ful、da-light的docker-compose                            #"
+echo "#               Configure da-full and da-light docker-compose                            #"
 echo "# ---------------------------------------------------------------------------- #"
 cat >>docker-compose.yml<<EOF
 
@@ -2760,7 +2760,7 @@ docker compose up -d da-full
 docker compose up -d da-light
 
 
-echo "延时60秒,否则后续的free-whitelist存在失败情况"
+echo "Wait 60s, otherwise the later free-whitelist step can fail"
 sleep 60
 
 echo "# ---------------------------------------------------------------------------- #"
@@ -2786,7 +2786,7 @@ add_addr_to_da_whitelist() {
 
     for addr in "${addrs[@]}"; do
 
-        echo "执行shell:meda-appd tx dao add-to-fee-whitelist ${addr} --from dao --chain-id ${DA_CHAIN_ID} --keyring-backend ${KEYRING_BACKEND_NAME} -a $account_number --sequence ${seqID} --offline -y -o json --home ${DA_NODE1_HOME} | jq -r '.txhash'"
+        echo "Run shell: meda-appd tx dao add-to-fee-whitelist ${addr} --from dao --chain-id ${DA_CHAIN_ID} --keyring-backend ${KEYRING_BACKEND_NAME} -a $account_number --sequence ${seqID} --offline -y -o json --home ${DA_NODE1_HOME} | jq -r '.txhash'"
         txhash=$(meda-appd tx dao add-to-fee-whitelist ${addr} --from dao --chain-id ${DA_CHAIN_ID} --keyring-backend ${KEYRING_BACKEND_NAME} -a $account_number --sequence ${seqID} --offline -y -o json --home ${DA_NODE1_HOME} | jq -r '.txhash')
         seqID=$((seqID+1))
         check_tx_status meda-appd $txhash "--home ${DA_NODE1_HOME}"
@@ -2797,18 +2797,18 @@ add_addr_to_da_whitelist ${USER_ADDR_DA_IBC} ${USER_ADDR_ME_SEQUENCER} ${USER_AD
 
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               查询当前白名单地址                                                #"
+echo "#               Query the current whitelist                                                #"
 echo "# ---------------------------------------------------------------------------- #"
 meda-appd q dao fee-white-list --home ${DA_NODE1_HOME}
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               初始化rly-da                                                    #"
+echo "#               Initialize rly-da                                                    #"
 echo "# ---------------------------------------------------------------------------- #"
 
 rly config init --home ${RLY_DA_NODE_HOME}
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               设置通道配置信息 me-meda                                          #"
+echo "#               Set channel config me-meda                                          #"
 echo "# ---------------------------------------------------------------------------- #"
 cat > ${RLY_DA_NODE_HOME}/config/config.yaml <<EOF
 global:
@@ -2882,12 +2882,12 @@ paths:
 EOF
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               是否同步me_user_ibc_da_name、 da_user_ibc_me_name 密钥          #"
+echo "#               Whether to sync me_user_ibc_da_name and da_user_ibc_me_name keys          #"
 echo "# ---------------------------------------------------------------------------- #"
 if [[ "$Sync_Key" == [Yy] ]]; then
     mkdir -p ${RLY_DA_NODE_HOME}/keys/${ME_CHAIN_ID}/keyring-${KEYRING_BACKEND_NAME}/
     mkdir -p ${RLY_DA_NODE_HOME}/keys/${DA_CHAIN_ID}/keyring-${KEYRING_BACKEND_NAME}/
-    echo "处理me_user_ibc_da_name等价于USER_ADDR_ME_IBC_DA-me_user_ibc_da"
+    echo "Handle me_user_ibc_da_name, same as USER_ADDR_ME_IBC_DA-me_user_ibc_da"
     me_user_ibc_da_name=$(add_key "meda-appd" "me_user_ibc_da_name" ${USER_SEQ_ME_IBC_DA} "--home ${RLY_DA_NODE_HOME}/tmpxx20")
     echo "${me_user_ibc_da_name}"
     USER_ME_IBC_DA_NAME=$(echo "${me_user_ibc_da_name}" | grep -oP 'address: \K[^\s]+')
@@ -2895,7 +2895,7 @@ if [[ "$Sync_Key" == [Yy] ]]; then
     cp -rf ${RLY_DA_NODE_HOME}/tmpxx20/keyring-${KEYRING_BACKEND_NAME}/*  ${RLY_DA_NODE_HOME}/keys/${ME_CHAIN_ID}/keyring-${KEYRING_BACKEND_NAME}/
     rm -rf ${RLY_DA_NODE_HOME}/tmpxx20
 
-    echo "处理da_user_ibc_me_name等价于USER_ADDR_DA_IBC-ibc"
+    echo "Handle da_user_ibc_me_name, same as USER_ADDR_DA_IBC-ibc"
     da_user_ibc_me_name=$(add_key  "meda-appd"  "da_user_ibc_me_name" ${USER_SEQ_DA_IBC_ME} "--home ${RLY_DA_NODE_HOME}/tmpxx20")
     echo "${da_user_ibc_me_name}"
     USER_DA_IBC_ME_NAME=$(echo "${da_user_ibc_me_name}" | grep -oP 'address: \K[^\s]+')
@@ -2910,19 +2910,19 @@ echo "# ------------------------------------------------------------------------
 echo "#              create channel hub-meda                                       #"
 echo "# ---------------------------------------------------------------------------- #"
 #error   Error sending messages  {"path_name": "hub-meda", "src_chain_id": "mechain_400-1", "dst_chain_id": "me-da", "src_client_id": "07-tendermint-0", "dst_client_id": "07-tendermint-0", "error": "rpc error: code = Unknown desc = rpc error: code = Unknown desc = failed to execute message; message index: 1: connection handshake open try failed: consensus height is greater than or equal to the current block height (0-17 >= 0-17): invalid height [cosmos/ibc-go/v6@v6.2.2/modules/core/03-connection/keeper/handshake.go:79] With gas wanted: '18446744073709551615' and gas used: '128736' : unknown request"}
-#rly tx link信息同步周期需要高度大于17，否则跨链会出现上述类似错误，但实际无影响，同步信息会延迟到需求高度后再进行同步，故该类错误可忽略
-echo "等待60秒"
+#rly tx link The rly tx link sync period must be above height 17, otherwise IBC logs a similar error. It does not matter: sync waits until the required height, so the error can be ignored
+echo "Wait 60 seconds"
 sleep 60
 echo rly tx link hub-meda --home ${RLY_DA_NODE_HOME} --override 
 rly tx link hub-meda --home ${RLY_DA_NODE_HOME} --override
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               设定通道时间                                                     #"
+echo "#               Set channel timeout                                                     #"
 echo "# ---------------------------------------------------------------------------- #"
 echo rly transact client ${ME_CHAIN_ID} ${DA_CHAIN_ID} hub-meda --client-tp ${CLIENT_TP} --home ${RLY_DA_NODE_HOME}
 rly transact client ${ME_CHAIN_ID} ${DA_CHAIN_ID} hub-meda --client-tp ${CLIENT_TP} --home ${RLY_DA_NODE_HOME}
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               部署中继器服务                                                    #"
+echo "#               Deploy the relayer                                                    #"
 echo "# ---------------------------------------------------------------------------- #"
 cat >> docker-compose.yml<<EOF
 
@@ -2946,38 +2946,38 @@ EOF
 docker compose up -d rly-da
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#      rly-da验证                                                                  #"
+echo "#      rly-da check                                                                  #"
 echo "# ---------------------------------------------------------------------------- #"
-echo "sleep 5s 等待中继器完全启动"
+echo "sleep 5s Wait for the relayer to finish starting"
 sleep 5
-echo 检查${ME_CHAIN_ID} 客户端状态
+echo Check ${ME_CHAIN_ID} client status
 rly q clients ${ME_CHAIN_ID} --home ${RLY_DA_NODE_HOME}
-echo 检查${DA_CHAIN_ID}客户端状态
+echo Check ${DA_CHAIN_ID} client status
 rly q clients ${DA_CHAIN_ID} --home ${RLY_DA_NODE_HOME}
 
-echo 检查连接状态
+echo Check connection status
 rly q connections ${ME_CHAIN_ID} --home ${RLY_DA_NODE_HOME}
 
 
-echo "检查${ME_CHAIN_ID} 通道状态 shell:rly q channels ${ME_CHAIN_ID} --home ${RLY_DA_NODE_HOME}"
+echo "Check ${ME_CHAIN_ID} channel status shell:rly q channels ${ME_CHAIN_ID} --home ${RLY_DA_NODE_HOME}"
 rly q channels ${ME_CHAIN_ID} --home ${RLY_DA_NODE_HOME}
-echo "检查${DA_CHAIN_ID} 通道状态 shell:rly q channels ${DA_CHAIN_ID} --home ${RLY_DA_NODE_HOME}"
+echo "Check ${DA_CHAIN_ID} channel status shell:rly q channels ${DA_CHAIN_ID} --home ${RLY_DA_NODE_HOME}"
 rly q channels ${DA_CHAIN_ID} --home ${RLY_DA_NODE_HOME}
-echo "获取${ME_CHAIN_ID} 通道ID shell:rly q channels ${ME_CHAIN_ID} --home ${RLY_DA_NODE_HOME} 2>/dev/null | jq -r 'select(.state == "STATE_OPEN") | .channel_id'"
+echo "Get ${ME_CHAIN_ID} channel ID shell:rly q channels ${ME_CHAIN_ID} --home ${RLY_DA_NODE_HOME} 2>/dev/null | jq -r 'select(.state == "STATE_OPEN") | .channel_id'"
 ME_CHANNEL_ID=$(rly q channels ${ME_CHAIN_ID} --home ${RLY_DA_NODE_HOME} 2>/dev/null | jq -r 'select(.state == "STATE_OPEN") | .channel_id')
 echo "channel_id: ${ME_CHANNEL_ID}"
-echo "获取${DA_CHAIN_ID} 通道ID shell:rly q channels ${DA_CHAIN_ID} --home ${RLY_DA_NODE_HOME} 2>/dev/null | jq -r 'select(.state == "STATE_OPEN") | .channel_id'"
+echo "Get ${DA_CHAIN_ID} channel ID shell:rly q channels ${DA_CHAIN_ID} --home ${RLY_DA_NODE_HOME} 2>/dev/null | jq -r 'select(.state == "STATE_OPEN") | .channel_id'"
 DA_CHANNEL_ID=$(rly q channels ${DA_CHAIN_ID} --home ${RLY_DA_NODE_HOME} 2>/dev/null | jq -r 'select(.state == "STATE_OPEN") | .channel_id')
 echo "channel_id: ${DA_CHANNEL_ID}"
 
 
-# 查询原质押额
-echo "查询原质押额shell:meda-appd query staking validators --home ${DA_NODE1_HOME}"
+# Query the original stake
+echo "Query the original stake shell:meda-appd query staking validators --home ${DA_NODE1_HOME}"
 meda-appd query staking validators --home ${DA_NODE1_HOME}
 echo "-------------------------------------------"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                创建DA验证者                                                   #"
+echo "#                Create DA validators                                                   #"
 echo "# ---------------------------------------------------------------------------- #"
 DaNode1Pubkey=$(meda-appd tendermint show-validator --home ${DA_NODES_HOME}/node1)
 DaNode2Pubkey=$(meda-appd tendermint show-validator --home ${DA_NODES_HOME}/node2)
@@ -2988,19 +2988,19 @@ DaNode4Pubkey=$(meda-appd tendermint show-validator --home ${DA_NODES_HOME}/node
 if [[ ! $Interactive_Mode =~ ^[Yy]$ ]]
 then
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#                         非资管模式                                            #"
-    echo "#     ME的gold_dao用户 ibc 转账给DA的val1、val2、val3、val4地址用于后续验证者质押              #"
+    echo "#                         Non-custody mode                                            #"
+    echo "#     ME gold_dao user IBC-transfers to DA val1, val2, val3, and val4 for later validator stake              #"
     echo "# ---------------------------------------------------------------------------- #"
-    #如果没有初始化金额的话可能需要去除.base_account方能获取值
+    #If there is no initial balance, drop .base_account before reading the value
     account_number=$(med q auth account ${USER_ADDR_ME_GLOBAL_DAO} -o json --home ${ME_NODE1_HOME} | jq -r .base_account.account_number)
     seqID=$(med q auth account ${USER_ADDR_ME_GLOBAL_DAO} -o json --home ${ME_NODE1_HOME} | jq -r .base_account.sequence)
     me_ibc_transfer_list() {
         local addr=$1
         local send_amount=$2
-        echo "处理ibc: me gold_dao -> da: ${addr} ${send_amount}"
-        echo "现在执行:med tx ibc-transfer transfer transfer ${ME_CHANNEL_ID} ${addr} ${send_amount} --from ${USER_ADDR_ME_GLOBAL_DAO} --fees=100000umec  --chain-id ${ME_CHAIN_ID}  --keyring-backend ${KEYRING_BACKEND_NAME} --home $ME_NODE1_HOME -a $account_number --sequence ${seqID} --offline -y -o json | jq -r '.txhash' "
+        echo "Handle ibc: me gold_dao -> da: ${addr} ${send_amount}"
+        echo "Running: med tx ibc-transfer transfer transfer ${ME_CHANNEL_ID} ${addr} ${send_amount} --from ${USER_ADDR_ME_GLOBAL_DAO} --fees=100000umec  --chain-id ${ME_CHAIN_ID}  --keyring-backend ${KEYRING_BACKEND_NAME} --home $ME_NODE1_HOME -a $account_number --sequence ${seqID} --offline -y -o json | jq -r '.txhash' "
         txhash=$(med tx ibc-transfer transfer transfer ${ME_CHANNEL_ID} ${addr} ${send_amount} --from ${USER_ADDR_ME_GLOBAL_DAO} --fees=100000umec  --chain-id ${ME_CHAIN_ID}  --keyring-backend ${KEYRING_BACKEND_NAME} --home $ME_NODE1_HOME -a $account_number --sequence ${seqID} --offline -y -o json | jq -r '.txhash')
-        echo "返回txhash: ${txhash}"
+        echo "tx hash: ${txhash}"
         echo "----------------------------"
         seqID=$((seqID+1))
         check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
@@ -3009,10 +3009,10 @@ then
         local addr=$1
         local region=$2
         local send_amount=$3
-        echo "处理ibc: me region -> da: ${addr} ${send_amount}"
-        echo "现在执行:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}   $addr $send_amount --from global_dao --home $ME_NODE1_HOME -y -o json | jq -r '.txhash' "
+        echo "Handle ibc: me region -> da: ${addr} ${send_amount}"
+        echo "Running: med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}   $addr $send_amount --from global_dao --home $ME_NODE1_HOME -y -o json | jq -r '.txhash' "
         txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  $addr $send_amount --from global_dao --home $ME_NODE1_HOME -y -o json | jq -r '.txhash')
-        echo "返回txhash: ${txhash}"
+        echo "tx hash: ${txhash}"
         echo "----------------------------"
         seqID=$((seqID+1))
         check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
@@ -3050,64 +3050,64 @@ then
         check_tx_status meda-appd ${txhash} "--home ${DA_NODES_HOME}/node1"
     }
     echo "--------------------------------------------------------------------------------------"
-    echo "转账给${USER_ADDR_DA_VAL1}"
+    echo "Send to ${USER_ADDR_DA_VAL1}"
     me_ibc_transfer_list ${USER_ADDR_DA_VAL1}   ${ME_SEND_DA_AMOUNT_VAL1}
-    echo "等待10s"
+    echo "Wait 10s"
     sleep 10
-    echo "da-val1增加跨链代币质押额,初始原生代币创始质押${val0_STAKING_AMOUNT}将在DA块hight到达${IBC_DEADLINE_BLOCK_HEIGHT}时销毁导致质押为0,如若不增加该跨链代币额将会自动进入共识节点解绑"
-    echo "解绑冷静期期间依旧可以通过da_delegate_validator增加质押额度恢复共识节点。解绑冷静期${DA_UNBONDING_SECONDS}到期后将无法增加质押只能通过da_create_validator重新创建共识节点"
+    echo "da-val1 Add IBC-token stake. The initial native genesis stake ${val0_STAKING_AMOUNT} is burned when DA height reaches ${IBC_DEADLINE_BLOCK_HEIGHT} and stake becomes 0. Without this IBC-token stake the consensus node unbonds"
+    echo "During the unbonding period, da_delegate_validator can still restore the consensus node by adding stake. After unbonding period ${DA_UNBONDING_SECONDS}, stake can no longer be added and the node must be recreated with da_create_validator"
     da_delegate_validator ${DA_STAKING_AMOUNT_NODE1_REGION} ${DA_STAKING_AMOUNT_VAL1} ${USER_ADDR_DA_VAL1}
-    echo "override中继器rly后等待5s确认同步hup-meda"
+    echo "After overriding relayer rly, wait 5s and confirm hub-meda sync"
     echo "shell:rly  tx update-clients hub-meda --home ${RLY_DA_NODE_HOME}"
     rly  tx update-clients hub-meda --home ${RLY_DA_NODE_HOME} 
-    echo "等待5s,也就是通用1个块hight时间"
+    echo "Wait 5s, about one block time"
     sleep 5
     echo "--------------------------------------------------------------------------------------"
-    echo "转账给${USER_ADDR_DA_VAL2}"
+    echo "Send to ${USER_ADDR_DA_VAL2}"
     me_ibc_transfer_list ${USER_ADDR_DA_VAL2}  ${ME_SEND_DA_AMOUNT_VAL2}
-    echo "等待10s"
+    echo "Wait 10s"
     sleep 10
-    echo "创建验证者da-val2"
+    echo "Create validator da-val2"
     da_create_validator   ${DaNode2Pubkey}  ${DA_STAKING_AMOUNT_VAL2}  ${USER_ADDR_DA_VAL2} ${DA_STAKING_AMOUNT_NODE2_REGION}
 
-    echo "override中继器rly后等待5s确认同步hup-meda"
+    echo "After overriding relayer rly, wait 5s and confirm hub-meda sync"
     echo "shell:rly  tx update-clients hub-meda --home ${RLY_DA_NODE_HOME}"
     rly  tx update-clients hub-meda --home ${RLY_DA_NODE_HOME} 
-    echo "等待5s,也就是通用1个块hight时间" 
+    echo "Wait 5s, about one block time" 
     sleep 5
     echo "--------------------------------------------------------------------------------------"
-    echo "转账给${USER_ADDR_DA_VAL3}"
+    echo "Send to ${USER_ADDR_DA_VAL3}"
     me_ibc_transfer_list ${USER_ADDR_DA_VAL3}  ${ME_SEND_DA_AMOUNT_VAL3}
-    echo "等待10s"
+    echo "Wait 10s"
     sleep 10
-    echo "创建验证者da-val3"
+    echo "Create validator da-val3"
     da_create_validator   ${DaNode3Pubkey}  ${DA_STAKING_AMOUNT_VAL3}  ${USER_ADDR_DA_VAL3} ${DA_STAKING_AMOUNT_NODE3_REGION}
 
-    echo "override中继器rly后等待5s确认同步hup-meda"
+    echo "After overriding relayer rly, wait 5s and confirm hub-meda sync"
     echo "shell:rly  tx update-clients hub-meda --home ${RLY_DA_NODE_HOME}"
     rly  tx update-clients hub-meda --home ${RLY_DA_NODE_HOME} 
-    echo "等待5s,也就是通用1个块hight时间" 
+    echo "Wait 5s, about one block time" 
     sleep 5
     echo "--------------------------------------------------------------------------------------"
-    echo "转账给${USER_ADDR_DA_VAL4}"
+    echo "Send to ${USER_ADDR_DA_VAL4}"
     me_ibc_transfer_list ${USER_ADDR_DA_VAL4}  ${ME_SEND_DA_AMOUNT_VAL4}
-    echo "等待10s"
+    echo "Wait 10s"
     sleep 10
-    echo "创建验证者da-val4"
+    echo "Create validator da-val4"
     da_create_validator   ${DaNode4Pubkey}  ${DA_STAKING_AMOUNT_VAL4}  ${USER_ADDR_DA_VAL4} ${DA_STAKING_AMOUNT_NODE4_REGION}
 
-    echo "override中继器rly后等待5s确认同步hup-meda"
+    echo "After overriding relayer rly, wait 5s and confirm hub-meda sync"
     echo "shell:rly  tx update-clients hub-meda --home ${RLY_DA_NODE_HOME}"
     rly  tx update-clients hub-meda --home ${RLY_DA_NODE_HOME} 
-    echo "等待5s,也就是通用1个块hight时间" 
+    echo "Wait 5s, about one block time" 
     sleep 5
 else
-     echo "等待资管操作转账完成后确认回车"
+     echo "Press Enter after custody finishes the transfer"
      read -p "Do you want to continue? (Y/n) " 
 fi
-echo "当前共识节点" 
+echo "Current consensus nodes" 
 meda-appd query staking validators --home ${DA_NODE1_HOME} -o json | jq '.validators[].description.moniker'
-# 查询质押额
+# Query stake
 echo "-------------------------------------------"
 echo "meda new staking validators data"
 meda-appd query staking validators -o json  --home ${DA_NODES_HOME}/node1 | jq .validators[].tokens
@@ -3115,17 +3115,17 @@ echo "-------------------------------------------"
 
 if [[  ${Interactive_Mode} =~ ^[Yy]$ ]]
 then
-     echo "当前资管模式，请确认上面输出是否有误"
-     echo "无误请确认回车"
+     echo "Custody mode: check the output above"
+     echo "Press Enter if this looks correct"
      read -p "Do you want to continue? (Y/n)"
 fi
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#        DA部署完成                                                             #"
+echo "#        DA deploy finished                                                             #"
 echo "# ---------------------------------------------------------------------------- #"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#      部署Rollapp Node1 步骤2                                               #"
+echo "#      Deploy Rollapp Node1 step 2                                               #"
 echo "# ---------------------------------------------------------------------------- #"
 
 ROLLAPP_TENDERMINT_CONFIG_FILE="${RAPP_NODE1_HOME}/config/config.toml"
@@ -3135,7 +3135,7 @@ ROLLAPP_GENESIS_FILE="${RAPP_NODE1_HOME}/config/genesis.json"
 ROLLAPP_CLIENT_FILE="${RAPP_NODE1_HOME}/config/client.toml"
 
 
-echo "配置节点参数..."
+echo "Configure node params..."
 rollappd config chain-id ${ROLLAPP_CHAIN_ID} --home ${RAPP_NODE1_HOME}
 rollappd config keyring-backend ${KEYRING_BACKEND_NAME} --home ${RAPP_NODE1_HOME}
 rollappd config node "tcp://${RAPP_NODE1_IP}:26657" --home ${RAPP_NODE1_HOME}
@@ -3144,7 +3144,7 @@ rollappd config node "tcp://${RAPP_NODE1_IP}:26657" --home ${RAPP_NODE1_HOME}
 echo 'sync-hub-key-name = "sync_user"' >> ${ROLLAPP_CLIENT_FILE}
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               处理app配置文件                                                #"
+echo "#               Edit the app config                                                #"
 echo "# ---------------------------------------------------------------------------- #"
 
 sed -i'' -e "/\[api\]/,+3 s/enable = false/enable = true/"  "${ROLLAPP_CONFIG_FILE}"
@@ -3155,7 +3155,7 @@ sed -i'' -e "/\[grpc-web\]/,+5 s/enable = false/enable = true/"  "${ROLLAPP_CONF
 sed -i'' -e 's/^pruning *= .*/pruning = "nothing"/' "${ROLLAPP_CONFIG_FILE}"
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#               处理config配置文件                                             #"
+echo "#               Edit the config file                                             #"
 echo "# ---------------------------------------------------------------------------- #"
 sed -i '/^laddr/s/127.0.0.1/0.0.0.0/' "${ROLLAPP_TENDERMINT_CONFIG_FILE}"
 sed -i '/^addr_book_strict/s/true/false/' "${ROLLAPP_TENDERMINT_CONFIG_FILE}"
@@ -3165,41 +3165,41 @@ if [[ "$ENABLE_MONITPORING" == [Yy] ]] ;then
 fi
 
 
-echo "配置创世文件genesis..."
+echo "Configure the genesis file genesis..."
 tmp=$(mktemp)
 
 jq --arg denom ${DENOM} '.app_state.mint.params.mint_denom = $denom' "${ROLLAPP_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ROLLAPP_GENESIS_FILE}"
-echo "已更新 mint 参数"
+echo "Updated mint params"
 jq --arg denom ${DENOM} '.app_state.staking.params.bond_denom = $denom' "${ROLLAPP_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ROLLAPP_GENESIS_FILE}"
-echo "已更新 staking 参数"
+echo "Updated staking params"
 jq --arg denom ${DENOM} '.app_state.gov.deposit_params.min_deposit[0].denom = $denom' "${ROLLAPP_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ROLLAPP_GENESIS_FILE}"
 jq --arg amount ${ROLLAPP_MIN_DEPOSIT_AMOUNT} '.app_state.gov.deposit_params.min_deposit[0].amount = $amount' "${ROLLAPP_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ROLLAPP_GENESIS_FILE}"
-# rollapp 使用 cosmos-sdk v0.46，gov GenesisState 只有 deposit_params/voting_params，没有 params
+# rollapp uses cosmos-sdk v0.46. gov GenesisState has only deposit_params/voting_params, not params
 jq --arg period "${MAX_DEPOSIT_PERIOD}" '.app_state.gov.deposit_params.max_deposit_period = $period' "${ROLLAPP_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ROLLAPP_GENESIS_FILE}"
 jq --arg period "${VOTING_PERIOD}" '.app_state.gov.voting_params.voting_period = $period' "${ROLLAPP_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ROLLAPP_GENESIS_FILE}"
 jq 'del(.app_state.gov.params)' "${ROLLAPP_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ROLLAPP_GENESIS_FILE}"
-echo "已更新 gov 参数 voting_period=${VOTING_PERIOD} max_deposit_period=${MAX_DEPOSIT_PERIOD} (sdk v0.46 fields only)"
+echo "Updated gov params voting_period=${VOTING_PERIOD} max_deposit_period=${MAX_DEPOSIT_PERIOD} (sdk v0.46 fields only)"
 
-echo "创世文件genesis配置完成"
+echo "Genesis file configured"
 
-#echo "验证创世文件配置..."
+#echo "Validate the genesis file..."
 #jq '.app_state.mint.params.mint_denom' "${ROLLAPP_GENESIS_FILE}"
 #jq '.app_state.staking.params.bond_denom' "${ROLLAPP_GENESIS_FILE}"
 #jq '.app_state.gov.deposit_params.min_deposit[0].denom' "${ROLLAPP_GENESIS_FILE}"
 
 #===================================================================
 
-# 导出一个模块的公钥 - 节点公钥
+# Export a module pubkey - node pubkey
 rollappd dymint show-sequencer --home ${RAPP_NODE1_HOME} > ${RAPP_NODE1_HOME}/sequencer.info
 
-echo "验证节点公钥..."
+echo "Validate the node pubkey..."
 cat ${RAPP_NODE1_HOME}/sequencer.info
-echo "节点公钥配置完成"
+echo "Node pubkey configured"
 echo  sync me-hub key address
 echo "sync-hub-key-address = \"${USER_ADDR_ROLLAPP_SYNC}\"" >> ${ROLLAPP_CLIENT_FILE}
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#  初始化roluser、dao、dev_operator余额                                         #"
+echo "#  Initialize roluser, dao, and dev_operator balances                                         #"
 echo "# ---------------------------------------------------------------------------- #"
 rollappd add-genesis-account roluser "$rollapp_user_roluser_TOKEN_AMOUNT" --keyring-backend ${KEYRING_BACKEND_NAME} --home ${RAPP_NODE1_HOME}
 rollappd add-genesis-account dao "$rollapp_user_dao_TOKEN_AMOUNT" --keyring-backend ${KEYRING_BACKEND_NAME} --home ${RAPP_NODE1_HOME}
@@ -3211,7 +3211,7 @@ rollappd gentx_seq --pubkey "$(rollappd dymint show-sequencer --home ${RAPP_NODE
 rollappd gentx roluser "$rollapp_user_roluser_NODE_STAKING_AMOUNT" --chain-id "$ROLLAPP_CHAIN_ID" --keyring-backend ${KEYRING_BACKEND_NAME} --home ${RAPP_NODE1_HOME}
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "# 添加5个手续费白名单                                                             #"
+echo "# Add 5 fee whitelist entries                                                             #"
 echo "# rollapp_dao:${USER_ADDR_ROLLAPP_DAO}                                         #"
 echo "# rollapp_operator:${USER_ADDR_ROLLAPP_OPERATOR}                               #"
 echo "# rollapp_ibc:${USER_ADDR_ROLLAPP_IBC}                                         #"
@@ -3228,17 +3228,17 @@ jq --arg user_addr ${USER_ADDR_ROLLAPP_SYNC} '.app_state.region.relayerList[3].a
 
 jq --arg user_addr ${USER_ADDR_ROLLAPP_ADMIN} '.app_state.region.relayerList[4].address = $user_addr' "${ROLLAPP_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ROLLAPP_GENESIS_FILE}"
 
-echo "# 5个手续费白名单已添加完成显示如下 #"
+echo "# 5 fee whitelist entries added, shown below #"
 jq '.app_state.region.relayerList' "${ROLLAPP_GENESIS_FILE}"
-echo "# 收集创世交易文件 #"
+echo "# Collect the genesis tx file #"
 rollappd collect-gentxs --home ${RAPP_NODE1_HOME}
 
-echo "# 验证创世交易 #"
+echo "# Validate the genesis tx #"
 rollappd validate-genesis --home ${RAPP_NODE1_HOME} 
 
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#      修改 DYMINT_FILE 文件                                                    #"
+echo "#      Edit the DYMINT_FILE                                                    #"
 echo "# ---------------------------------------------------------------------------- #"
 #settlement
 sed -i "s/settlement_layer = \"mock\"/settlement_layer = \"me-hub\"/" ${ROLLAPP_DYMINT_FILE}
@@ -3255,11 +3255,11 @@ sed -i '/^settlement_gas_prices/s/1000000000/0.02umec/' ${ROLLAPP_DYMINT_FILE}
 sed -i '/max_supported_batch_skew/s/20/2000/' ${ROLLAPP_DYMINT_FILE}
 sed -i '/retry_attempts/s/10/20/' ${ROLLAPP_DYMINT_FILE}
 
-echo "# DYMINT_FILE 文件修改完成 #"
+echo "# DYMINT_FILE file updated #"
 echo "# ---------------------------------------------------------------------------- #"
-# 读取 JSON 数据
+# Read JSON data
 # base_url = da light addr
-# timeout 参数在 DA（数据可用性）层客户端配置中用于设置请求的超时时间，以纳秒（nanoseconds）为单位，50秒（50,000,000,000 纳秒）
+# timeout param in the DA (data availability) client sets the request timeout in nanoseconds. 50 seconds is 50,000,000,000 nanoseconds
 json_data=$(cat <<EOF
 {
     "base_url": "http://${DA_RPC_ADDR}",
@@ -3283,18 +3283,18 @@ echo "escaped_json: ${escaped_json}"
 # Dymint
 
 sed -i '/max_idle_time/s/=.*/= "5s"/' ${ROLLAPP_DYMINT_FILE}
-#设置区块证明生成的最大允许时间，防止证明生成过程无限期运行，影响区块生产的整体性能，生产环境建议根据实际测试调整，如果经常超时，可以适当增加该值
+#Max time allowed to build a block proof, so proof generation cannot run forever and stall block production. In production, raise it if proofs often time out
 sed -i '/max_proof_time/s/=.*/= "5s"/' ${ROLLAPP_DYMINT_FILE}
-#定义将交易批次提交到数据可用性层的超时时间，定义将交易批次提交到数据可用性层的超时时间，防止因网络问题导致的无限期等待
+#Timeout for submitting a tx batch to the data-availability layer, so a network problem cannot wait forever
 sed -i "/batch_submit_max_time/s/=.*/= \"${BATCH_SUBMIT_MAX_TIME}\"/" ${ROLLAPP_DYMINT_FILE}
-#批次最大大小
+#max batch size
 sed -i '/^block_batch_max_size_bytes/s/500000/1874272/' ${ROLLAPP_DYMINT_FILE}
-#定义 Rollup 使用的数据可用性层实现，确保交易数据对网络中的所有参与者可用。"mock"：模拟模式，仅用于测试，"me-da"：表示使用名为 "me-da" 的自定义 DA 层实现与da_config关联。
+#Which data-availability implementation the rollup uses, so tx data is available to every participant. "mock": simulation, for tests only. "me-da": the custom DA layer named "me-da", paired with da_config.
 sed -i "s/da_layer = \"mock\"/da_layer = \"me-da\"/" ${ROLLAPP_DYMINT_FILE}
-# 使用 sed 替换 TOML 文件中的 da_config 字段
+# Use sed to replace the da_config field in the TOML file
 sed -i "s|da_config = \"\"|da_config = \'$escaped_json\'|" ${ROLLAPP_DYMINT_FILE}
 
-# 替换掉原来的 da light 地址
+# Replace the old da light address
 sed -i "/^da_config/s/http:\/\/.*26658/http\:\/\/${DA_RPC_ADDR}/"  ${ROLLAPP_DYMINT_FILE}
 
 echo "--------------------------------------"
@@ -3306,38 +3306,38 @@ sed -i "/^da_config/s/TOKEN123/${light_token}/" ${ROLLAPP_DYMINT_FILE}
 
 echo "------------------------"
 sed -n '/^keyring_home_dir/p' ${ROLLAPP_DYMINT_FILE}
-echo "绑定容器内地址非物理机地址"
+echo "Bind the in-container address, not the host address"
 sed -i '/^keyring_home_dir/s#=.*#= "'"${ROLLAPP_CONTAINER_HOME}"'/sequencer_keys"#' ${ROLLAPP_DYMINT_FILE}
 sed -i 's|^dym_account_name = .*$|dym_account_name = "sequencer"|' ${ROLLAPP_DYMINT_FILE}
 sed -n '/^keyring_home_dir/p' ${ROLLAPP_DYMINT_FILE}
 sed -n '/^dym_account_name/p' ${ROLLAPP_DYMINT_FILE}
 #===================================================================
 
-echo "设置DAO和devOperator地址"
-echo "DAO地址: ${USER_ADDR_ROLLAPP_DAO}"
-echo "devOperator地址: ${USER_ADDR_ROLLAPP_OPERATOR}"
+echo "Set the DAO and devOperator addresses"
+echo "DAO address: ${USER_ADDR_ROLLAPP_DAO}"
+echo "devOperator address: ${USER_ADDR_ROLLAPP_OPERATOR}"
 
 jq --arg dao_address ${USER_ADDR_ROLLAPP_DAO} '.app_state.region.dao.address = $dao_address' "${ROLLAPP_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ROLLAPP_GENESIS_FILE}"
 
 jq --arg devOperator ${USER_ADDR_ROLLAPP_OPERATOR} '.app_state.region.devOperator.address = $devOperator' "${ROLLAPP_GENESIS_FILE}" > "$tmp" && mv "$tmp" "${ROLLAPP_GENESIS_FILE}"
 sed -i '/timeout_broadcast_tx_commit/s/10/360/' "${ROLLAPP_TENDERMINT_CONFIG_FILE}"
-echo "开放 26657 + 26656端口"
+echo "Open ports 26657 and 26656"
 sed -i '/^laddr/s/127.0.0.1/0.0.0.0/' "${ROLLAPP_TENDERMINT_CONFIG_FILE}"
 
-echo "gas费 0.001 umec"
+echo "gas fee 0.001 umec"
 # sed -i'' -e "s/^minimum-gas-prices *= .*/minimum-gas-prices = \"0$DENOM\"/" "$APP_CONFIG_FILE"
 # sed -i '/^minimum-gas-prices/s/=.*/= "0.001urax,0.001umec"/' "$APP_CONFIG_FILE"
 sed -i '/^minimum-gas-prices/s/=.*/= "'"${ROLLAPP_MIN_GAS_PRICES}"'"/' "${ROLLAPP_CONFIG_FILE}"
 
 
-echo "设置API端口"
+echo "Set the API port"
 sed -i -e '/\[api\]/,+3 s/enable *= .*/enable = true/' "${ROLLAPP_CONFIG_FILE}"
 sed -i -e '/\[api\]/,+10 s/swagger *= .*/swagger = true/' "${ROLLAPP_CONFIG_FILE}"
 sed -i -e '/\[api\]/,+10 s/localhost/0.0.0.0/' "${ROLLAPP_CONFIG_FILE}"
 
 
 echo "# ---------------------------------------------------------------------------- #"
-echo "#      创建rollapp Node1 Docker Compose。                                             #"
+echo "#      Create rollapp Node1 Docker Compose.                                             #"
 echo "# ---------------------------------------------------------------------------- #"
 cat >>docker-compose.yml<<EOF
   rollapp-node1:
@@ -3370,123 +3370,123 @@ then
     check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
     echo "med q rollapp list --home ${ME_NODE1_HOME}"
     med q rollapp list --home ${ME_NODE1_HOME}
-    echo "从${ME_STAKING_AMOUNT_NODE1_REGION}提取 node1 sequencer 额度${ME_SEND_SEQUENCER1_AMOUNT}"
+    echo "Withdraw the node1 sequencer amount from ${ME_STAKING_AMOUNT_NODE1_REGION}${ME_SEND_SEQUENCER1_AMOUNT}"
     echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_SEQUENCER}   ${ME_SEND_SEQUENCER1_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
     txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_SEQUENCER}   ${ME_SEND_SEQUENCER1_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-    echo "查询hash是否上链: ${txhash}"
+    echo "Check whether the tx hash is on chain: ${txhash}"
     check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
 else
-    echo "提交资管以下参数（只给 node1 sequencer 打 bond）"
-    echo "所属Rollapp:${ROLLAPP_CHAIN_ID}"
-    echo "最大排数:${MAX_SEQUENCERS}"
-    echo "sequence地址:${USER_ADDR_ME_SEQUENCER}"
-    read -rp "等候资管执行rollapp create-rollapp后回车" 
+    echo "Give custody the following params (bond only the node1 sequencer)"
+    echo "Belongs to Rollapp:${ROLLAPP_CHAIN_ID}"
+    echo "max sequencers:${MAX_SEQUENCERS}"
+    echo "sequence address:${USER_ADDR_ME_SEQUENCER}"
+    read -rp "Press Enter after custody runs rollapp create-rollapp" 
     med q rollapp list --home ${ME_NODE1_HOME}
-    read -rp "排序器列表是否一致,一致则回车,否则请资管重新执行rollapp create-rollapp"
-    echo "${USER_ADDR_ME_SEQUENCER}账户信息如下"
+    read -rp "Press Enter if the sequencer list matches. Otherwise ask custody to run rollapp create-rollapp again rollapp create-rollapp"
+    echo "${USER_ADDR_ME_SEQUENCER}account info"
     med query bank balances ${USER_ADDR_ME_SEQUENCER} --home ${ME_NODE1_HOME} -o json
-    read -rp "请确认上面是否存在足够的余额,否则需要资管转账到对应账户,金额应该大于${SEQUENCER_AMOUNT},回车继续,余额不足请确认转账后按N" REPLY
+    read -rp "Confirm the balance above is enough, otherwise custody must transfer to this account. The amount should be greater than ${SEQUENCER_AMOUNT}. Press Enter to continue. If the balance is short, press N" REPLY
     if [[ $REPLY =~ ^[Nn]$ ]]
     then
-        echo "${USER_ADDR_ME_SEQUENCER}账户信息如下"
+        echo "${USER_ADDR_ME_SEQUENCER}account info"
         med query bank balances ${USER_ADDR_ME_SEQUENCER} --home ${ME_NODE1_HOME} -o json
     fi
-    read -rp "请确认上面是否存在足够的余额" 
+    read -rp "Confirm the balance above is enough" 
 fi
-echo "me 绑定排序器 bind sequencer（仅 node1）"
-echo "获取Node1排序器公钥"
-echo "sequencer.info 内容:"
+echo "me bind sequencer (node1 only)"
+echo "Get the Node1 sequencer pubkey"
+echo "sequencer.info contents:"
 cat ${RAPP_NODE1_HOME}/sequencer.info
-#正式环境 - 质押为 0
-#注册排序器
-#排序器地址需要在HUB上有umec,需要资管定期拨款 @资管,创世后先拨款1MEC,理论是可以发10000笔交易
+#Production - stake is 0
+#Register the sequencer
+#The sequencer address needs umec on the HUB. Custody should fund it regularly. After genesis, fund 1 MEC first. In theory that covers 10000 txs
 
-echo "准备绑定排序器..."
+echo "Prepare to bind the sequencer..."
 create_sequencer ${SEQUENCER_MONIKER_NAME1} node1 sequencer
 
-echo "排序器状态shell:med q sequencer list-sequencer --home ${ME_NODE1_HOME}"
+echo "Sequencer status shell:med q sequencer list-sequencer --home ${ME_NODE1_HOME}"
 med q sequencer list-sequencer --home ${ME_NODE1_HOME}
 echo "-------------------------------------------------------------------------------"
 
 docker compose  up -d rollapp-node1
-echo "等待5s服务完全启动"
+echo "Wait 5s for services to finish starting"
 sleep 5
 echo "# ---------------------------------------------------------------------------- #"
-echo "#                  当前容器状态                                                  #"
+echo "#                  Current container status                                                  #"
 echo "# ---------------------------------------------------------------------------- #"
 docker compose  ps
 
 
 setup_after_rollapp_node1
 
-#测试语句
-#提取金库的钱到global_dao
+#test commands
+#Withdraw treasury funds to global_dao
 #./bin/med  tx staking withdraw-from-region me_earth  me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t  10mec --from global_dao --home nodes/hub-nodes/node1 -y -o json
-#转账到rollapp ibc并查询rollapp ibc余额
+#Transfer to rollapp ibc and query the rollapp ibc balance
 #./bin/med query bank balances me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t --home nodes/hub-nodes/node1 -o json
 #rollappd query bank balances me1qk7jwgdmq5lfraq5l4p3qa5vq9vwa84rzhmhhc  --home nodes/rollapp -o json
 #./bin/med tx ibc-transfer transfer transfer channel-1 me1qk7jwgdmq5lfraq5l4p3qa5vq9vwa84rzhmhhc 1mec --from me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t --fees=100000umec  --chain-id mechain_400-1 --home /data/docker-dev/nodes/hub-nodes/node1 --keyring-backend test  -y -o json
 #./bin/rollappd query bank balances me1qk7jwgdmq5lfraq5l4p3qa5vq9vwa84rzhmhhc --home nodes/rollapp -o json
 
-#转账到ibc并查询ibc余额
+#Transfer to ibc and query the ibc balance
 #./bin/meda-appd query bank balances me1zps5zt4tvz8uu4ajuq59sdjj2cf48w0nrv0gvd --home nodes/da-nodes/node1
 #./bin/med tx ibc-transfer transfer transfer channel-0 me1zps5zt4tvz8uu4ajuq59sdjj2cf48w0nrv0gvd 2mec --from me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t --fees=100000umec  --chain-id mechain_400-1  --keyring-backend test  -y -o json --home nodes/hub-nodes/node1
 #./bin/med query tx 9EF49DA3EA7EAE9D1E2CF25515A5934292CF4289CA6B401E7F56065ED7A5BBD4  --home nodes/hub-nodes/node1 -o json
 #./bin/meda-appd query bank balances me1zps5zt4tvz8uu4ajuq59sdjj2cf48w0nrv0gvd --home nodes/da-nodes/node1
 
 
-#查询ibc状态
-#trusting_period额度为511200s，此时unbonding_period为604800s
+#Query ibc status
+#trusting_period is 511200s, while unbonding_period is 604800s
 #./bin/med q ibc client state 07-tendermint-0 --home nodes/hub-nodes/node1 -o json
 #./bin/med tx ibc client update 07-tendermint-0 --from <your-key> --chain-id mechain_400-1 --keyring-backend test -y
-#查看 ibc 客户端有效期
-#保持不过期的办法:
-#1. 即将过期前发送一笔ibc交易进行续期；
-#2. IBC客户端内置的刷新时间机制
+#Check the ibc client expiry
+#How to keep it from expiring:
+#1. Send an ibc tx to refresh it before it expires;
+#2. IBC The IBC client's built-in refresh
 #./bin/rly query clients-expiration hub-rollapp --home ./nodes/rly-rapp  -o json
 #./bin/rly query clients-expiration hub-meda   --home ./nodes/rly-da -o json
-#更新操作
+#update
 #./bin/rly  tx update-clients hub-meda --home  ./nodes/rly-da
 #./bin/rly  tx update-clients hub-rollapp --home ./nodes/rly-rapp
 
-#Region查询余额并提现到指定账户
+#Region Query the balance and withdraw to an account
 #ME_NODE1_HOME="nodes/hub-nodes/node1" 
 #region_data=$(./bin/med  query staking regions --home ${ME_NODE1_HOME} -o json)
 #echo "$region_data" | jq -r '.region[] | [.regionId, .region_treasure_addr] | @tsv' | while IFS=$'\t' read -r region_id treasure_addr; do
 #    balance_json=$(./bin/med  query bank balances "$treasure_addr" --home ${ME_NODE1_HOME} -o json 2>/dev/null)
 #    balance=$(echo "$balance_json" | jq -r '.balances[] | select(.denom=="umec") | .amount // "0"')
-#    echo "$region_id 当前余额为 ${balance:-0} umec"
+#    echo "$region_id current balance is ${balance:-0} umec"
 #
 #done
-#echo "me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t的余额为:"
+#echo "me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t balance is:"
 #./bin/med query bank balances me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t --home nodes/hub-nodes/node1 -o json
 #./bin/med tx staking withdraw-from-region me_earth me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t  200umec --from global_dao --home nodes/hub-nodes/node1 -y -o json | jq -r '.txhash'
 #./bin/med query tx 65BF86C4AFD1E6C5D281A13D21B089E6620956F6EA6F6BD19A65419A1611F4C3 --home nodes/hub-nodes/node1 -o json
 
 
-# 清理节点全部数据, 回到创世时的第0个块状态
-# 基本没用, 只有在整个链需要从 1 开始运行，且不需要重新创世时
+# Wipe all node data and return to genesis block 0
+# Rarely useful. Only when the whole chain must restart from 1 without a new genesis
 # ./bin/med tendermint unsafe-reset-all --home ./nodes/node1
 
 
-# 查询验证者节点列表
+# Query the validator list
 # ./bin/med query staking validators --home ./nodes/node1
 
-# 导出用户私钥
+# Export a user private key
 #./bin/med keys export user_name --unsafe --unarmored-hex --keyring-backend test --home nodes/hub-nodes/node1/ | xxd -r -p | base64
-# 导入用户私钥
+# Import a user private key
 #./bin/med keys import <name> <keyfile> --home nodes/hub-nodes/node1/ --keyring-backend test
 
 
-## 边界网络代理节点关键配置
-# 开关 p2p 的交换机, 即不会再共享自己的 p2p 地址本，做到了网络隔离
-# 执行 sed -i 's/pex = true/pex = false/' "${ME_NODE1_HOME}"/config/config.toml
-# 外部区域节点连接此哨兵节点时，必须通过 persistent_peers 长连接才可以
+## Edge proxy node settings
+# Turn off the p2p address exchange, so this node stops sharing its address book and stays network-isolated
+# Run sed -i 's/pex = true/pex = false/' "${ME_NODE1_HOME}"/config/config.toml
+# An external node must use a persistent_peers long connection to reach this sentry
 
-#合约升级
-# 1.  上传新版本代码
+#contract upgrade
+# 1.  Upload the new code
 #med tx wasm store artifacts/matching_contract_v2.wasm --from admin --gas auto --gas-adjustment 1.3 --chain-id your-chain-id -y
-# 记录新的 CODE_ID
-# 2.  执行迁移
+# Record the new CODE_ID
+# 2.  Run the migration
 #med tx wasm migrate $CONTRACT_ADDR <NEW_CODE_ID> '{"new_version":"1.1.0"}' --from admin --chain-id your-chain-id -y
 
