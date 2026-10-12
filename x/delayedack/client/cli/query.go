@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
@@ -13,7 +14,7 @@ import (
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group eibc queries under a subcommand
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -27,6 +28,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdGetPacketsByRollapp())
 	cmd.AddCommand(CmdGetPacketsByStatus())
 	cmd.AddCommand(CmdGetPacketsByType())
+	cmd.AddCommand(CmdGetPendingPacketsByAddress())
 
 	return cmd
 }
@@ -41,7 +43,6 @@ func CmdQueryParams() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
@@ -62,20 +63,13 @@ func CmdGetPacketsByRollapp() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "packets-by-rollapp rollapp-id [status] [type]",
 		Short: "Get packets by rollapp-id",
-		Long: `Get packets by rollapp-id. Can filter by status (pending/finalized/reverted) and by type (recv/ack/timeout)
+		Long: `Get packets by rollapp-id. Can filter by status (pending/finalized) and by type (recv/ack/timeout)
 		Example:
 		packets rollapp1
 		packets rollapp1 PENDING
 		packets rollapp1 PENDING RECV`,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-
 			rollappId := args[0]
 
 			req := &types.QueryRollappPacketsRequest{
@@ -107,6 +101,12 @@ func CmdGetPacketsByRollapp() *cobra.Command {
 				req.Type = commontypes.RollappPacket_Type(dtype)
 			}
 
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
 			res, err := queryClient.GetPackets(cmd.Context(), req)
 			if err != nil {
 				return err
@@ -125,19 +125,12 @@ func CmdGetPacketsByStatus() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "packets-by-status status [type]",
 		Short: "Get packets by status",
-		Long: `Get packets by status (pending/finalized/reverted). Can filter by type (recv/ack/timeout)
+		Long: `Get packets by status (pending/finalized). Can filter by type (recv/ack/timeout)
 		Example:
 		packets-by-status pending
 		packets-by-status finalized recv`,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-
 			statusStr := strings.ToUpper(args[0])
 			status, ok := commontypes.Status_value[statusStr]
 			if !ok {
@@ -160,6 +153,12 @@ func CmdGetPacketsByStatus() *cobra.Command {
 				}
 				req.Type = commontypes.RollappPacket_Type(dtype)
 			}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.GetPackets(cmd.Context(), req)
 			if err != nil {
@@ -185,13 +184,6 @@ func CmdGetPacketsByType() *cobra.Command {
 		packets-by-type on_timeout`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-
 			typeStr := strings.ToUpper(args[0])
 
 			if !strings.HasPrefix(typeStr, "ON_") {
@@ -208,7 +200,47 @@ func CmdGetPacketsByType() *cobra.Command {
 				Status: commontypes.Status_PENDING, // get pending packets by default
 			}
 
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
 			res, err := queryClient.GetPackets(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdGetPendingPacketsByAddress() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pending-packets-by-address [address]",
+		Short: "Get pending packets by address",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			_, err = sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.GetPendingPacketsByAddress(cmd.Context(), &types.QueryPendingPacketsByAddressRequest{
+				Address:    args[0],
+				Pagination: nil, // TODO: handle pagination
+			})
 			if err != nil {
 				return err
 			}

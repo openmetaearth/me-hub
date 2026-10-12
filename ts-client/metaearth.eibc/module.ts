@@ -125,7 +125,7 @@ class SDKModule {
 const Module = (test: IgniteClient) => {
 	return {
 		module: {
-			DymensionxyzDymensionEibc: new SDKModule(test)
+			MetaearthEibc: new SDKModule(test)
 		},
 		registry: msgTypes
   }

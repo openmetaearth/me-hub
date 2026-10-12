@@ -3,8 +3,7 @@ package keeper_test
 import (
 	"strings"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
@@ -19,19 +18,20 @@ import (
 )
 
 func (s *KeeperTestSuite) TestApprove() {
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	did := "1111111111111111"
 	kycAccount, newUserPubkey := s.NewAccount()
 	inviter, _ := s.NewAccount()
+	inviterBalBefore := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
 	msg := &types.MsgApprove{
 		Issuer:   s.Dao.GlobalDao,
 		Did:      did,
 		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
 		Address:  kycAccount.String(),
-		Pubkey:   newUserPubkey,
+		Pubkey:   s.pubkeyJSON(newUserPubkey),
 		Uri:      "http://127.0.0.1/8001",
 		Hash:     "aaaa",
 		Inviter:  inviter.String(),
@@ -42,7 +42,7 @@ func (s *KeeperTestSuite) TestApprove() {
 
 	// check invite address
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), wstakingtypes.InviteReward.String())
+	s.Require().Equal(wstakingtypes.InviteReward.String(), balance.Amount.Sub(inviterBalBefore.Amount).String())
 
 	// check region DelegateAmount
 	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, strings.ToLower(wstakingtypes.MeEarthRegionName))
@@ -53,8 +53,8 @@ func (s *KeeperTestSuite) TestApprove() {
 	s.Require().NoError(err)
 
 	// check user's delegation
-	delegation, f := s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, valAddress)
-	s.Require().True(f)
+	delegation, err := s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, valAddress)
+	s.Require().NoError(err)
 	s.Require().Equal(delegation.Unmovable.String(), wstakingtypes.Bonus.String())
 
 	// check kyc
@@ -65,9 +65,9 @@ func (s *KeeperTestSuite) TestApprove() {
 }
 
 func (s *KeeperTestSuite) setupApproveCtx() {
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 }
 
 func (s *KeeperTestSuite) TestApproveRejectsSubAccountAddress() {
@@ -131,9 +131,9 @@ func (s *KeeperTestSuite) TestApproveRejectsSubAccountAddress() {
 func (s *KeeperTestSuite) TestCreateSBTRejectsDuplicateDid() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	did := "duplicate-sbt-did"
 	kycAccount, newUserPubkey := s.NewAccount()
@@ -143,7 +143,7 @@ func (s *KeeperTestSuite) TestCreateSBTRejectsDuplicateDid() {
 		Did:      did,
 		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
 		Address:  kycAccount.String(),
-		Pubkey:   newUserPubkey,
+		Pubkey:   s.pubkeyJSON(newUserPubkey),
 		Uri:      "http://127.0.0.1/8001",
 		Hash:     "aaaa",
 		Inviter:  inviter.String(),
@@ -179,19 +179,20 @@ func (s *KeeperTestSuite) TestCreateSBTRejectsDuplicateDid() {
 func (s *KeeperTestSuite) TestRemove() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	kycAccount, newUserPubkey := s.NewAccount()
 	did := "1111111111111111"
 	inviter, _ := s.NewAccount()
+	inviterBalBefore := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
 	msg := &types.MsgApprove{
 		Issuer:   s.Dao.GlobalDao,
 		Did:      did,
 		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
 		Address:  kycAccount.String(),
-		Pubkey:   newUserPubkey,
+		Pubkey:   s.pubkeyJSON(newUserPubkey),
 		Uri:      "http://127.0.0.1/8001",
 		Hash:     "aaaa",
 		Inviter:  inviter.String(),
@@ -202,7 +203,7 @@ func (s *KeeperTestSuite) TestRemove() {
 
 	// check invite address
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), wstakingtypes.InviteReward.String())
+	s.Require().Equal(wstakingtypes.InviteReward.String(), balance.Amount.Sub(inviterBalBefore.Amount).String())
 
 	// check kyc
 	kyc, f := s.Keeper().GetKYC(s.Ctx, did)
@@ -220,32 +221,33 @@ func (s *KeeperTestSuite) TestRemove() {
 	// check region DelegateAmount
 	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, strings.ToLower(wstakingtypes.MeEarthRegionName))
 	s.Require().True(found)
-	s.Require().Equal(region.DelegateAmount.String(), sdk.NewInt(0).String())
+	s.Require().Equal(region.DelegateAmount.String(), sdkmath.NewInt(0).String())
 
-	_, f = s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
-	s.Require().False(f)
+	_, err = s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, sdk.ValAddress{})
+	s.Require().Error(err)
 
 	// check kyc
 	_, f = s.Keeper().GetKYC(s.Ctx, did)
-	s.Require().False(f)
+	s.Require().Error(err)
 }
 
 func (s *KeeperTestSuite) TestUpdate() {
 	s.SetupTest()
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
-	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
+	wdistri.EndBlock(s.Ctx, *s.App.DistrKeeper)
 
 	kycAccount, newUserPubkey := s.NewAccount()
 	did := "1111111111111111"
 	inviter, _ := s.NewAccount()
+	inviterBalBefore := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
 	_, err := s.msgServer.Approve(s.Ctx, &types.MsgApprove{
 		Issuer:   s.Dao.GlobalDao,
 		Did:      did,
 		RegionId: strings.ToLower(wstakingtypes.MeEarthRegionName),
 		Address:  kycAccount.String(),
-		Pubkey:   newUserPubkey,
+		Pubkey:   s.pubkeyJSON(newUserPubkey),
 		Uri:      "http://127.0.0.1/8001",
 		Hash:     "aaaa",
 		Inviter:  inviter.String(),
@@ -255,19 +257,21 @@ func (s *KeeperTestSuite) TestUpdate() {
 
 	// check invite address
 	balance := s.App.BankKeeper.GetBalance(s.Ctx, inviter, params.BaseDenom)
-	s.Require().Equal(balance.Amount.String(), wstakingtypes.InviteReward.String())
+	s.Require().Equal(wstakingtypes.InviteReward.String(), balance.Amount.Sub(inviterBalBefore.Amount).String())
 
 	// check region DelegateAmount
 	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, strings.ToLower(wstakingtypes.MeEarthRegionName))
 	s.Require().True(found)
 	s.Require().Equal(region.DelegateAmount.String(), wstakingtypes.Bonus.String())
 
-	delegation, f := s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, s.meEarthValidator.GetOperator())
-	s.Require().True(f)
+	valAddr, err := sdk.ValAddressFromBech32(s.meEarthValidator.OperatorAddress)
+	s.Require().NoError(err)
+	delegation, err := s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, valAddr)
+	s.Require().NoError(err)
 	s.Require().Equal(delegation.Unmovable.String(), wstakingtypes.Bonus.String())
 	s.Require().Equal(delegation.ValidatorAddress, s.meEarthValidator.OperatorAddress)
 
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks + 1).WithChainID(apptesting.TestChainID)
+	s.Ctx = s.App.BaseApp.NewContext(false).WithBlockHeight(wminttypes.OneDayTotalBlocks + 1).WithChainID(apptesting.TestChainID)
 	wmint.BeginBlocker(s.Ctx, s.App.MintKeeper, nil)
 	wstaking.BeginBlock(s.Ctx, s.App.StakingKeeper)
 	// transfer kyc region
@@ -280,8 +284,10 @@ func (s *KeeperTestSuite) TestUpdate() {
 	})
 	s.Require().NoError(err)
 
-	delegation, f = s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, s.usaValidator.GetOperator())
-	s.Require().True(f)
+	usaValAddr, err := sdk.ValAddressFromBech32(s.usaValidator.OperatorAddress)
+	s.Require().NoError(err)
+	delegation, err = s.App.StakingKeeper.GetDelegation(s.Ctx, kycAccount, usaValAddr)
+	s.Require().NoError(err)
 	s.Require().Equal(delegation.Unmovable.String(), wstakingtypes.Bonus.String())
 	s.Require().Equal(s.usaValidator.OperatorAddress, delegation.ValidatorAddress)
 	s.Require().EqualValues(delegation.StartHeight, wminttypes.OneDayTotalBlocks+1)

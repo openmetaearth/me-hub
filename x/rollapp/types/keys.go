@@ -1,5 +1,7 @@
 package types
 
+import "cosmossdk.io/collections"
+
 const (
 	// ModuleName defines the module name
 	ModuleName = "rollapp"
@@ -17,6 +19,19 @@ const (
 	MemStoreKey = "mem_rollapp"
 )
 
+// KeyParams defines the module parameters key
+var KeyParams = []byte{0x00}
+
 func KeyPrefix(p string) []byte {
 	return []byte(p)
 }
+
+const (
+	ObsoleteDRSVersionsKeyPrefix = "obsoleteDRSVersions/value/"
+	// KeyRegisteredDenomPrefix is the prefix to retrieve all RegisteredDenom
+	KeyRegisteredDenomPrefix = "RegisteredDenom/value/"
+	// SkipDelayRollappKeyPrefix stores rollapps that bypass delayed acknowledgement.
+	SkipDelayRollappKeyPrefix = "SkipDelayRollapp/value/"
+)
+
+var SeqToUnfinalizedHeightKeyPrefix = collections.NewPrefix("seqToFinalizeHeight/")
