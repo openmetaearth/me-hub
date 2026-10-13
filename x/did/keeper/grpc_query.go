@@ -191,9 +191,34 @@ func (k Keeper) AllSetZkContractAddress(goCtx context.Context, req *types.QueryA
 		k.cdc.MustUnmarshal(iterator.Value(), &info)
 		setZkContractAddresses = append(setZkContractAddresses, types.SetZkContractAddress{
 			ZkContractAddress: info.ContractAddress,
-			Type:            int32(info.Type),
-			TypeDesc: types.ZkContractAddressType_name[int32(info.Type)]})
+			Type:              int32(info.Type),
+			TypeDesc:          types.ZkContractAddressType_name[int32(info.Type)]})
 	}
 
 	return &types.QueryAllSetZkContractAddressResponse{SetZkContractAddress: setZkContractAddresses}, nil
+}
+
+func (k Keeper) BondCoreIDInfo(goCtx context.Context, req *types.QueryBondCoreIDRequest) (*types.QueryBondCoreIDResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	callerAddr, err := sdk.AccAddressFromBech32(req.Address)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid address: "+err.Error())
+	}
+	did, found := k.GetDID(ctx, callerAddr)
+	if !found {
+		did, found = k.GetSubAccountDidMap(ctx, req.Address)
+		if !found {
+			return nil, status.Error(codes.NotFound, "did not found for address")
+		}
+	}
+
+	coreInfo, found := k.GetZkCoreIDInfo(ctx, did)
+	if !found {
+		return &types.QueryBondCoreIDResponse{}, status.Error(codes.NotFound, "bond core id not found for address,did = "+did)
+	}
+
+	return &types.QueryBondCoreIDResponse{CoreInfo: &coreInfo}, nil
 }

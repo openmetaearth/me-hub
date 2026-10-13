@@ -38,6 +38,7 @@ type DidKeeper interface {
 	IsAllowToUseZkContractVerify(ctx sdk.Context, callerAddr sdk.AccAddress) (bool, error)
 	GetDID(ctx sdk.Context, addr sdk.AccAddress) (string, bool)
 	GetDidInfo(ctx sdk.Context, did string) (didtypes.DidInfo, bool)
+	GetZkContractAddress(ctx sdk.Context, contractType didtypes.ZkContractAddressType) *didtypes.ZkContractAddressInfo
 }
 
 type WasmKeeper interface {

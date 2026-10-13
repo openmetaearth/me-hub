@@ -29,6 +29,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdQueryServices())
 	cmd.AddCommand(CmdQueryCredential())
 	cmd.AddCommand(CmdQueryAllSetZkContractAddress())
+	cmd.AddCommand(CmdQueryBondCoreIDInfo())
 
 	return cmd
 }
@@ -237,6 +238,31 @@ func CmdQueryAllSetZkContractAddress() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.AllSetZkContractAddress(cmd.Context(), &types.QueryAllSetZkContractAddressRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func CmdQueryBondCoreIDInfo() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bond-core-id-info [address]",
+		Short: "query bond core id info",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.BondCoreIDInfo(cmd.Context(), &types.QueryBondCoreIDRequest{Address: args[0]})
 			if err != nil {
 				return err
 			}
