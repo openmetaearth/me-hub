@@ -1,10 +1,10 @@
 #!/bin/bash
-# Post-v3 functional regression. Default runs all of: Hub transfer, IBC, KYC, fixed deposit, governance.
+# Post-v3 functional regression. Default runs all of: Hub transfer, IBC, KYC, flexible delegate, fixed deposit, governance.
 # The governance proposal is voted no so it does not schedule another software-upgrade halt.
 #
 #   cd /data/docker-beta
 #   ./scripts/setup_v3_test.sh all
-#   ./scripts/setup_v3_test.sh transfer|ibc|kyc|fixed|proposal
+#   ./scripts/setup_v3_test.sh transfer|ibc|kyc|delegate|fixed|proposal
 set -euo pipefail
 
 PROJECT_ENV="${PROJECT_ENV:-beta}"
@@ -17,6 +17,7 @@ ME_NODE1_HOME="${ME_NODE1_HOME:-${BASE_DIR}/nodes/hub-nodes/node1}"
 RAPP_NODE1_HOME="${RAPP_NODE1_HOME:-${BASE_DIR}/nodes/rollapp-nodes/node1}"
 FEES="${FEES:-200000umec}"
 TRANSFER_AMOUNT="${TRANSFER_AMOUNT:-20000000umec}"
+DELEGATE_AMOUNT="${DELEGATE_AMOUNT:-1000000umec}"
 FIXED_AMOUNT="${FIXED_AMOUNT:-10000000umec}"
 FIXED_TERM="${FIXED_TERM:-1}"
 FIXED_REGION="${FIXED_REGION:-me_earth}"
@@ -37,9 +38,10 @@ usage() {
     cat <<EOF
 Usage: $0 <command>
 
-  all         Run transfer, kyc, fixed, proposal, then ibc
+  all         Run transfer, kyc, delegate, fixed, proposal, then ibc
   transfer    global_dao sends ${TRANSFER_AMOUNT} to ${TEST_KEY}
   kyc         global_dao issues KYC for ${TEST_KEY} (region=${FIXED_REGION})
+  delegate    ${TEST_KEY} delegates ${DELEGATE_AMOUNT} (region follows KYC, else experience_region)
   fixed       Ensure a fixed-deposit config exists, then ${TEST_KEY} deposits ${FIXED_AMOUNT} for term ${FIXED_TERM}
   proposal    Submit a software-upgrade proposal; four validators vote no
   ibc         Call setup_v2_all_func.sh ibc
@@ -163,6 +165,18 @@ cmd_kyc() {
     med q kyc kyc "${KYC_DID}" --home "${ME_NODE1_HOME}"
 }
 
+cmd_delegate() {
+    need_base_dir
+    ensure_test_key
+    local addr
+    addr="$(test_addr)"
+    echo "# delegate ${DELEGATE_AMOUNT} from ${TEST_KEY}"
+    local txhash
+    txhash=$(hub_tx "${TEST_KEY}" staking delegate "${DELEGATE_AMOUNT}" | jq -r '.txhash')
+    check_tx_status med "${txhash}" "--home ${ME_NODE1_HOME}"
+    med q staking delegation "${addr}" --home "${ME_NODE1_HOME}"
+}
+
 cmd_fixed() {
     need_base_dir
     ensure_test_key
@@ -257,6 +271,7 @@ cmd_ibc() {
 cmd_all() {
     cmd_transfer
     cmd_kyc
+    cmd_delegate
     cmd_fixed
     cmd_proposal
     cmd_ibc
@@ -267,6 +282,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         all) cmd_all ;;
         transfer) cmd_transfer ;;
         kyc) cmd_kyc ;;
+        delegate) cmd_delegate ;;
         fixed) cmd_fixed ;;
         proposal) cmd_proposal ;;
         ibc) cmd_ibc ;;
