@@ -331,7 +331,10 @@ func CmdBondCoreID() *cobra.Command {
 				return err
 			}
 
-			coreID := args[0]
+			coreID,err := hex.DecodeString(args[0])
+			if err != nil{
+				return fmt.Errorf("invalid core id: %w",err)
+			} 
 			authProof,err := hex.DecodeString(args[1])
 			if err != nil{
 				return fmt.Errorf("invalid auth proof: %w",err)
