@@ -327,7 +327,7 @@ require (
 )
 
 replace (
-	github.com/cosmos/cosmos-sdk => github.com/openmetaearth/cosmos-sdk v0.0.0-20260706023401-5ff072ee3aeb
+	github.com/cosmos/cosmos-sdk => github.com/openmetaearth/cosmos-sdk v0.0.0-20261022073324-55c37aea1538
 	github.com/evmos/ethermint => github.com/openmetaearth/ethermint v0.22.0-me-v2.0.0-rc3
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/ipfs/go-log/v2 => github.com/st-chain/go-log/v2 v2.7.0

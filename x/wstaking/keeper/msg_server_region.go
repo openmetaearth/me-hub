@@ -133,7 +133,7 @@ func (k MsgServer) WithdrawFromRegion(goCtx context.Context, msg *types.MsgWithd
 
 	region, found := k.GetRegion(ctx, msg.RegionId)
 	if !found {
-		return nil, errorsmod.Wrapf(types.ErrRegionNotExist, "region not exist")
+		return nil, errorsmod.Wrapf(types.ErrRegionNotExist, "region %s not exist", msg.RegionId)
 	}
 
 	fromAddr, err := sdk.AccAddressFromBech32(region.RegionTreasureAddr)

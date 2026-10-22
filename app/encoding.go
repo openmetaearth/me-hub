@@ -1,9 +1,12 @@
 package app
 
 import (
+	"fmt"
+
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/x/tx/signing"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/codec/address"
+	sdkaddress "github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,6 +16,7 @@ import (
 	cryptocodec "github.com/evmos/ethermint/crypto/codec"
 	"github.com/evmos/ethermint/ethereum/eip712"
 	ethermint "github.com/evmos/ethermint/types"
+	protov2 "google.golang.org/protobuf/proto"
 
 	"github.com/openmetaearth/me-hub/app/params"
 	gravitytypes "github.com/openmetaearth/me-hub/x/gravity/types"
@@ -21,11 +25,14 @@ import (
 // makeEncodingConfig creates an EncodingConfig for an amino based test configuration.
 func makeEncodingConfig() params.EncodingConfig {
 	amino := codec.NewLegacyAmino()
-	addrCodec := address.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
+	addrCodec := sdkaddress.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
 	signingOpts := signing.Options{
 		AddressCodec:          addrCodec,
-		ValidatorAddressCodec: address.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
+		ValidatorAddressCodec: sdkaddress.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 	}
+	// cosmossdk.io/api still marks MsgCreateValidator's signer as validator_address.
+	// Signing reads that descriptor, so override it with delegator_address.
+	signingOpts.DefineCustomGetSigners("cosmos.staking.v1beta1.MsgCreateValidator", delegatorAddressSigner(addrCodec))
 
 	interfaceRegistry, err := codectypes.NewInterfaceRegistryWithOptions(codectypes.InterfaceRegistryOptions{
 		ProtoFiles:     proto.HybridResolver,
@@ -65,6 +72,21 @@ func MakeEncodingConfig() params.EncodingConfig {
 	eip712.SetEncodingConfig(encodingConfig.Amino, encodingConfig.InterfaceRegistry)
 
 	return encodingConfig
+}
+
+func delegatorAddressSigner(addrCodec address.Codec) signing.GetSignersFunc {
+	return func(msg protov2.Message) ([][]byte, error) {
+		m := msg.ProtoReflect()
+		fd := m.Descriptor().Fields().ByName("delegator_address")
+		if fd == nil {
+			return nil, fmt.Errorf("message %s has no delegator_address field", m.Descriptor().FullName())
+		}
+		bz, err := addrCodec.StringToBytes(m.Get(fd).String())
+		if err != nil {
+			return nil, fmt.Errorf("invalid delegator_address on %s: %w", m.Descriptor().FullName(), err)
+		}
+		return [][]byte{bz}, nil
+	}
 }
 
 // RegisterLegacyAminoCodec registers Interfaces from types, crypto, and SDK std.
