@@ -132,5 +132,9 @@ func (k Keeper) IsAllowToUseZkContractVerify(ctx sdk.Context, callerAddr sdk.Acc
 	if didInfo.KycLevel < types.KYC_LEVEL_TWO {
 		return false, errors.Wrap(types.ErrUnauthorized, "kyc level is not enough")
 	}
+	if _, isBonded := k.GetZkCoreIDInfo(ctx, did); !isBonded {
+		return false, errors.Wrapf(types.ErrUnauthorized, "did is not bonded to core-id,did = %s", did)
+	}
+
 	return true, nil
 }
