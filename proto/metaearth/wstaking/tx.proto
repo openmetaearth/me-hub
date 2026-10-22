@@ -60,7 +60,7 @@ service Msg {
 
 // MsgUpdateValidator defines a SDK message for editing an existing validator.
 message MsgUpdateValidator {
-  option (cosmos.msg.v1.signer) = "validator_address";
+  option (cosmos.msg.v1.signer) = "staker_address";
   option (amino.name) = "cosmos-sdk/MsgUpdateValidator";
 
   option (gogoproto.equal) = false;

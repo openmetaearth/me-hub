@@ -26,7 +26,6 @@ func makeEncodingConfig() params.EncodingConfig {
 		AddressCodec:          addrCodec,
 		ValidatorAddressCodec: address.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 	}
-	registerWstakingCustomGetSigners(&signingOpts, addrCodec)
 
 	interfaceRegistry, err := codectypes.NewInterfaceRegistryWithOptions(codectypes.InterfaceRegistryOptions{
 		ProtoFiles:     proto.HybridResolver,
