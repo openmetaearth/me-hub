@@ -322,9 +322,9 @@ func CmdRemoveVc() *cobra.Command {
 
 func CmdBondCoreID() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bond-core-id [core-id] [auth-proof] [nounce] []expires-at]",
+		Use:   "bond-core-id [core-id] [auth-proof] [nounce] [expires-at]",
 		Short: "bond core ID",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -332,7 +332,10 @@ func CmdBondCoreID() *cobra.Command {
 			}
 
 			coreID := args[0]
-			authProof := args[1]
+			authProof,err := hex.DecodeString(args[1])
+			if err != nil{
+				return fmt.Errorf("invalid auth proof: %w",err)
+			}
 			nounce, err := strconv.ParseUint(args[2], 10, 64)
 			if err != nil {
 				return fmt.Errorf("invalid nounce: %w", err)
@@ -343,7 +346,7 @@ func CmdBondCoreID() *cobra.Command {
 			}
 			msg := types.NewMsgBondZkCoreID(clientCtx.GetFromAddress().String(),  &types.ZkAuthClaimCoreIdInfo{
 				CoreId:    []byte(coreID),
-				AuthProof: []byte(authProof),
+				AuthProof: authProof,
 				Nonce:     nounce,
 				ExpiresAt: expiresAt})
 			if err := msg.ValidateBasic(); err != nil {
