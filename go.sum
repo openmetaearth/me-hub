@@ -1615,8 +1615,8 @@ github.com/opencontainers/runc v1.1.12 h1:BOIssBaW1La0/qbNZHXOOa71dZfZEQOzW7dqQf
 github.com/opencontainers/runc v1.1.12/go.mod h1:S+lQwSfncpBha7XTy/5lBwWgm5+y5Ma/O44Ekby9FK8=
 github.com/openmetaearth/cosmos-sdk v0.0.0-20261022073324-55c37aea1538 h1:oIv6Tt+8sUpgInbeDCfwzPocsSAHyU64KcO0jdDYB7s=
 github.com/openmetaearth/cosmos-sdk v0.0.0-20261022073324-55c37aea1538/go.mod h1:hrWEFMU1eoXqLJeE6VVESpJDQH67FS1nnMrQIjO2daw=
-github.com/openmetaearth/ethermint v0.22.0-me-v2.0.0-rc3 h1:bNgyUGhfElUj+SuL/rytXhaBGz3BqGlf1R0k6bJWcN8=
-github.com/openmetaearth/ethermint v0.22.0-me-v2.0.0-rc3/go.mod h1:L4M9tbS1rF34b8vEAklzSgAhVH8xDDNo0xoR9iDS/FI=
+github.com/openmetaearth/ethermint v0.22.0-me-v2.0.0-rc4 h1:pd44n7tYV+iNu1N/N+QR2FFdK79GyKQaGbkHPzBlwZ8=
+github.com/openmetaearth/ethermint v0.22.0-me-v2.0.0-rc4/go.mod h1:L4M9tbS1rF34b8vEAklzSgAhVH8xDDNo0xoR9iDS/FI=
 github.com/opentracing-contrib/go-observer v0.0.0-20170622124052-a52f23424492/go.mod h1:Ngi6UdF0k5OKD5t5wlmGhe/EDKPoUM3BXZSSfIuJbis=
 github.com/opentracing/basictracer-go v1.0.0/go.mod h1:QfBfYuafItcjQuMwinw9GhYKwFXS9KnPs5lxoYwgW74=
 github.com/opentracing/opentracing-go v1.0.2/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
