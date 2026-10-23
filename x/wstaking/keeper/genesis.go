@@ -7,7 +7,6 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -16,7 +15,7 @@ import (
 // setting the indexes. In addition, it also sets any delegations found in
 // data. Finally, it updates the bonded validators.
 // Returns final validator set after applying all declaration and delegations
-func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (res []abci.ValidatorUpdate) {
+func (k *Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (res []abci.ValidatorUpdate) { //nolint:gocyclo // genesis wiring covers many optional collections
 	bondedTokens := math.ZeroInt()
 	notBondedTokens := math.ZeroInt()
 
@@ -36,12 +35,18 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 		k.SetValidator(ctx, validator)
 
 		// Manually set indices for the first time
-		_ = k.SetValidatorByConsAddr(ctx, validator)
+		if err := k.SetValidatorByConsAddr(ctx, validator); err != nil {
+			panic(err)
+		}
 		k.SetValidatorByPowerIndex(ctx, validator)
 
 		// Call the creation hook if not exported
 		if !data.Exported {
-			if err := k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
+			valAddr, err := sdk.ValAddressFromBech32(validator.GetOperator())
+			if err != nil {
+				panic(fmt.Sprintf("invalid validator operator address: %s", validator.GetOperator()))
+			}
+			if err := k.Hooks().AfterValidatorCreated(ctx, valAddr); err != nil {
 				panic(err)
 			}
 		}
@@ -66,6 +71,22 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 	for _, stake := range data.Stakes {
 		k.SetStake(ctx, stake)
 	}
+
+	for _, ubs := range data.UnbondingStakes {
+		k.SetUnbondingStake(ctx, ubs)
+		for _, entry := range ubs.Entries {
+			k.InsertUBSQueue(ctx, ubs, entry.CompletionTime)
+		}
+	}
+
+	for _, region := range data.Regions {
+		k.SetRegion(ctx, region)
+	}
+
+	for _, fd := range data.FixedDepositList {
+		k.SetFixedDeposit(ctx, fd)
+	}
+	k.SetFixedDepositCount(ctx, data.FixedDepositCount)
 
 	for _, delegation := range data.Delegations {
 		k.SetDelegation(ctx, delegation)
@@ -105,7 +126,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 	}
 
 	// if balance is different from bonded coins panic because genesis is most likely malformed
-	if !bondedBalance.IsEqual(bondedCoins) {
+	if !bondedBalance.Equal(bondedCoins) {
 		panic(fmt.Sprintf("bonded pool balance is different from bonded coins: %s <-> %s", bondedBalance, bondedCoins))
 	}
 
@@ -121,7 +142,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 
 	// If balance is different from non bonded coins panic because genesis is most
 	// likely malformed.
-	if !notBondedBalance.IsEqual(notBondedCoins) {
+	if !notBondedBalance.Equal(notBondedCoins) {
 		panic(fmt.Sprintf("not bonded pool balance is different from not bonded coins: %s <-> %s", notBondedBalance, notBondedCoins))
 	}
 
@@ -134,9 +155,9 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 			}
 
 			k.SetLastValidatorPower(ctx, valAddr, lv.Power)
-			validator, found := k.GetValidator(ctx, valAddr)
 
-			if !found {
+			validator, err := k.GetValidator(ctx, valAddr)
+			if err != nil {
 				panic(fmt.Sprintf("validator %s not found", lv.Address))
 			}
 
@@ -159,7 +180,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *wstakingtypes.GenesisState) (
 // ExportGenesis returns a GenesisState for a given context and keeper. The
 // GenesisState will contain the pool, params, validators, and bonds found in
 // the keeper.
-func (k Keeper) ExportGenesis(ctx sdk.Context) *wstakingtypes.GenesisState {
+func (k *Keeper) ExportGenesis(ctx sdk.Context) *wstakingtypes.GenesisState {
 	var unbondingDelegations []types.UnbondingDelegation
 	k.IterateUnbondingDelegations(ctx, func(_ int64, ubd types.UnbondingDelegation) (stop bool) {
 		unbondingDelegations = append(unbondingDelegations, ubd)
@@ -184,12 +205,32 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *wstakingtypes.GenesisState {
 		return false
 	})
 
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	totalPower, err := k.GetLastTotalPower(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	allDelegations, err := k.GetAllDelegations(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	allValidators, err := k.GetAllValidators(ctx)
+	if err != nil {
+		panic(err)
+	}
+
 	return &wstakingtypes.GenesisState{
-		Params:               k.GetParams(ctx),
-		LastTotalPower:       k.GetLastTotalPower(ctx),
+		Params:               params,
+		LastTotalPower:       totalPower,
 		LastValidatorPowers:  lastValidatorPowers,
-		Validators:           k.GetAllValidators(ctx),
-		Delegations:          k.GetAllDelegations(ctx),
+		Validators:           allValidators,
+		Delegations:          allDelegations,
 		UnbondingDelegations: unbondingDelegations,
 		Redelegations:        redelegations,
 		Stakes:               k.GetAllStakes(ctx),

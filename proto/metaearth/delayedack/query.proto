@@ -21,6 +21,11 @@ service Query {
   rpc GetPackets(QueryRollappPacketsRequest) returns (QueryRollappPacketListResponse) {
     option (google.api.http).get = "/metaearth/delayedack/packets/{rollappId}/{status}";
   }
+
+  // Queries a list of pending RollappPacket items by rollappID and receiver.
+  rpc GetPendingPacketsByAddress(QueryPendingPacketsByAddressRequest) returns (QueryPendingPacketByAddressListResponse) {
+    option (google.api.http).get = "/metaearth/delayedack/pending-receiver-packets/{address}";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -40,6 +45,16 @@ message QueryRollappPacketsRequest {
 }
 
 message QueryRollappPacketListResponse {
+  repeated common.RollappPacket rollappPackets = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryPendingPacketsByAddressRequest {
+  string address = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryPendingPacketByAddressListResponse {
   repeated common.RollappPacket rollappPackets = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

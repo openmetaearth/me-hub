@@ -2,137 +2,213 @@ package keeper_test
 
 import (
 	"errors"
+	"fmt"
+	"reflect"
 	"slices"
-	"strconv"
 	"testing"
+	"unsafe"
 
+	errorsmod "cosmossdk.io/errors"
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
 
 	keepertest "github.com/openmetaearth/me-hub/testutil/keeper"
 	"github.com/openmetaearth/me-hub/testutil/nullify"
+	common "github.com/openmetaearth/me-hub/x/common/types"
 	"github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	"github.com/openmetaearth/me-hub/x/rollapp/types"
+	sequencertypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 )
 
-// Prevent strconv unused error
-var _ = strconv.IntSize
-
-func (suite *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
-	suite.SetupTest()
+func (s *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
 	initialHeight := uint64(10)
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialHeight))
-	ctx := &suite.Ctx
-	k := suite.App.RollappKeeper
+	s.Ctx = s.Ctx.WithBlockHeight(int64(initialHeight))
+	ctx := &s.Ctx
+	k := s.k()
 
-	rollapp := suite.CreateDefaultRollapp()
-	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+	rollapp, proposer := s.CreateDefaultRollappAndProposer()
 	// Create 2 state updates
-	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
-	suite.Require().Nil(err)
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialHeight + 1))
-	_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
-	suite.Require().Nil(err)
+	_, err := s.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
+	s.Require().Nil(err)
+	s.Ctx = s.Ctx.WithBlockHeight(int64(initialHeight + 1))
+	_, err = s.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
+	s.Require().Nil(err)
 
 	// Get the pending finalization queue
-	suite.Len(k.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight-1), 0)
-	suite.Len(k.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight), 1)
-	suite.Len(k.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight+1), 2)
-	suite.Len(k.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight+100), 2)
+	testCases := []struct {
+		height      uint64
+		expectedLen int
+	}{
+		{height: initialHeight - 1, expectedLen: 0},
+		{height: initialHeight, expectedLen: 1},
+		{height: initialHeight + 1, expectedLen: 2},
+		{height: initialHeight + 100, expectedLen: 2},
+	}
+	for _, tc := range testCases {
+		actual, err := k.GetFinalizationQueueUntilHeightInclusive(*ctx, tc.height)
+		s.Require().NoError(err)
+		s.Require().Len(actual, tc.expectedLen)
+	}
 }
 
-func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
-	k, ctx := keepertest.RollappKeeper(t)
+func (s *RollappTestSuite) TestBlockHeightToFinalizationQueueGet() {
+	k := s.k()
+	ctx := s.Ctx
 	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
 	for _, item := range items {
-
-		rst, found := k.GetBlockHeightToFinalizationQueue(ctx,
+		rst, found := k.GetFinalizationQueue(
+			ctx,
 			item.CreationHeight,
+			item.RollappId,
 		)
-		require.True(t, found)
-		require.Equal(t,
+		s.True(found)
+		s.Equal(
 			nullify.Fill(&item),
 			nullify.Fill(&rst),
 		)
 	}
 }
 
-func TestBlockHeightToFinalizationQueueRemove(t *testing.T) {
-	k, ctx := keepertest.RollappKeeper(t)
+func (s *RollappTestSuite) TestBlockHeightToFinalizationQueueRemove() {
+	k := s.k()
+	ctx := s.Ctx
 	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
 	for _, item := range items {
-		k.RemoveBlockHeightToFinalizationQueue(ctx,
+		err := k.RemoveFinalizationQueue(
+			ctx,
 			item.CreationHeight,
+			item.RollappId,
 		)
-		_, found := k.GetBlockHeightToFinalizationQueue(ctx,
+		s.NoError(err)
+		_, found := k.GetFinalizationQueue(
+			ctx,
 			item.CreationHeight,
+			item.RollappId,
 		)
-		require.False(t, found)
+		s.False(found)
 	}
 }
 
-func TestBlockHeightToFinalizationQueueGetAll(t *testing.T) {
-	k, ctx := keepertest.RollappKeeper(t)
+func (s *RollappTestSuite) TestBlockHeightToFinalizationQueueGetAll() {
+	k := s.k()
+	ctx := s.Ctx
 	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
-	require.ElementsMatch(t,
+	queue, err := k.GetEntireFinalizationQueue(ctx)
+	s.NoError(err)
+	s.ElementsMatch(
 		nullify.Fill(items),
-		nullify.Fill(k.GetAllBlockHeightToFinalizationQueue(ctx)),
+		nullify.Fill(queue),
 	)
 }
 
-// TODO: Test FinalizeQueue function with failed states
-func (suite *RollappTestSuite) TestFinalizeRollapps() {
+func (s *RollappTestSuite) TestGetFinalizationQueueByRollapp() {
+	k := s.k()
+	ctx := s.Ctx
+
+	q1 := types.BlockHeightToFinalizationQueue{CreationHeight: 1, RollappId: "rollapp_1234-1"}
+	q2 := types.BlockHeightToFinalizationQueue{CreationHeight: 2, RollappId: "rollapp_1234-1"}
+	q3 := types.BlockHeightToFinalizationQueue{CreationHeight: 3, RollappId: "rollapp_1234-1"}
+
+	k.MustSetFinalizationQueue(ctx, q1)
+	k.MustSetFinalizationQueue(ctx, q2)
+	k.MustSetFinalizationQueue(ctx, q3)
+
+	// Check all queues
+	q, err := k.GetEntireFinalizationQueue(ctx)
+	s.NoError(err)
+	s.Equal([]types.BlockHeightToFinalizationQueue{q1, q2, q3}, q)
+
+	// Get all queues from different heights associated with a given rollapp
+	q, err = k.GetFinalizationQueueByRollapp(ctx, "rollapp_1234-1")
+	s.NoError(err)
+	s.Equal([]types.BlockHeightToFinalizationQueue{q1, q2, q3}, q)
+
+	// Remove one of the queues
+	k.MustRemoveFinalizationQueue(ctx, 2, "rollapp_1234-1")
+
+	// Verify the index is updated
+	q, err = k.GetFinalizationQueueByRollapp(ctx, "rollapp_1234-1")
+	s.NoError(err)
+	s.Equal([]types.BlockHeightToFinalizationQueue{q1, q3}, q)
+
+	// Verify height 2 is empty
+
+	// Check all queues until height 3
+	q, err = k.GetFinalizationQueueUntilHeightInclusive(ctx, 3)
+	s.NoError(err)
+	s.Equal([]types.BlockHeightToFinalizationQueue{q1, q3}, q)
+
+	// Check all queues
+	q, err = k.GetEntireFinalizationQueue(ctx)
+	s.NoError(err)
+	s.Equal([]types.BlockHeightToFinalizationQueue{q1, q3}, q)
+}
+
+//nolint:gofumpt
+func (s *RollappTestSuite) TestFinalizeRollapps() {
+	s.SetupTest()
+
+	type rollappQueue struct {
+		rollappId string
+		index     uint64
+	}
+	type queue struct {
+		rollappsLeft []rollappQueue
+	}
+	type blockEnd struct {
+		wantNumFinalized int
+		wantQueue        []queue
+		recovers         map[types.StateInfoIndex]struct{}
+	}
 	type stateUpdate struct {
 		blockHeight int64
 		startHeight uint64
-		numBlocks   uint64
-	}
-	type queue struct {
-		rollappsLeft int
-	}
-	type blockEnd struct {
-		blockHeight      func() int64
-		wantNumFinalized int
-		wantQueue        []queue
+		numOfBlocks uint64
+		fail        bool
 	}
 	type rollappStateUpdate struct {
-		stateUpdate             stateUpdate
-		malleatePostStateUpdate func(rollappId string)
+		rollappId    string
+		stateUpdates []stateUpdate
 	}
 	type fields struct {
 		rollappStateUpdates []rollappStateUpdate
-		blockEnd            blockEnd
+		finalizations       []blockEnd
 	}
 
 	const initialHeight int64 = 10
+	getDisputePeriod := func() int64 {
+		return int64(s.k().DisputePeriodInBlocks(s.Ctx))
+	}
+
+	getFinalizationHeight := func(n int64) int64 {
+		return initialHeight + getDisputePeriod()*n
+	}
 
 	tests := []struct {
 		name   string
 		fields fields
 	}{
 		{
-			name: "finalize two rollapps successfully",
+			name: "finalize two rollapps in one finalization successfully",
 			fields: fields{
 				rollappStateUpdates: []rollappStateUpdate{
 					{
-						stateUpdate: stateUpdate{
-							blockHeight: initialHeight,
-							startHeight: 1,
-							numBlocks:   10,
-						},
+						rollappId: "rollapp_1234-1",
+						stateUpdates: []stateUpdate{{
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
+						}},
 					}, {
-						stateUpdate: stateUpdate{
-							blockHeight: initialHeight,
-							startHeight: 1,
-							numBlocks:   10,
-						},
+						rollappId: "rollappa_2345-1",
+						stateUpdates: []stateUpdate{{
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
+						}},
 					},
 				},
-				blockEnd: blockEnd{
-					blockHeight:      func() int64 { return initialHeight + int64(suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx)) },
-					wantQueue:        nil,
-					wantNumFinalized: 2,
+				finalizations: []blockEnd{
+					{
+						wantNumFinalized: 2,
+						wantQueue:        nil,
+					},
 				},
 			},
 		}, {
@@ -140,159 +216,255 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 			fields: fields{
 				rollappStateUpdates: []rollappStateUpdate{
 					{
-						stateUpdate: stateUpdate{
-							blockHeight: initialHeight,
-							startHeight: 1,
-							numBlocks:   10,
-						},
+						rollappId: "rollapp_1234-1",
+						stateUpdates: []stateUpdate{{
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
+						}},
 					}, {
-						stateUpdate: stateUpdate{
-							blockHeight: initialHeight,
-							startHeight: 1,
-							numBlocks:   10,
-						},
-						malleatePostStateUpdate: func(rollappId string) {
-							suite.App.RollappKeeper.RemoveStateInfo(suite.Ctx, rollappId, 1)
-						},
+						rollappId: "rollappa_2345-1",
+						stateUpdates: []stateUpdate{{
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10, fail: true,
+						}},
 					},
 				},
-				blockEnd: blockEnd{
-					blockHeight:      func() int64 { return initialHeight + int64(suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx)) },
-					wantQueue:        []queue{{rollappsLeft: 1}},
-					wantNumFinalized: 1,
+				finalizations: []blockEnd{
+					{
+						wantNumFinalized: 1,
+						wantQueue: []queue{{
+							rollappsLeft: []rollappQueue{{
+								rollappId: "rollappa_2345-1",
+								index:     1,
+							}},
+						}},
+					},
 				},
 			},
 		}, {
-			name: "finalize five rollapps, two with failed state",
+			name: "finalize five rollapps, three with failed state",
 			fields: fields{
 				rollappStateUpdates: []rollappStateUpdate{
 					{
-						stateUpdate: stateUpdate{
-							blockHeight: initialHeight,
-							startHeight: 1,
-							numBlocks:   10,
-						},
+						rollappId: "rollapp_1234-1",
+						stateUpdates: []stateUpdate{{
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
+						}, {
+							blockHeight: initialHeight, startHeight: 11, numOfBlocks: 20,
+						}},
 					}, {
-						stateUpdate: stateUpdate{
-							blockHeight: initialHeight,
-							startHeight: 1,
-							numBlocks:   10,
-						},
+						rollappId: "rollappa_2345-1",
+						stateUpdates: []stateUpdate{{
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
+						}},
 					}, {
-						stateUpdate: stateUpdate{
-							blockHeight: initialHeight,
-							startHeight: 1,
-							numBlocks:   10,
-						},
+						rollappId: "rollappe_3456-1",
+						stateUpdates: []stateUpdate{{
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
+						}},
 					}, {
-						stateUpdate: stateUpdate{
-							blockHeight: initialHeight,
-							startHeight: 1,
-							numBlocks:   10,
-						},
-						malleatePostStateUpdate: func(rollappId string) {
-							suite.App.RollappKeeper.RemoveStateInfo(suite.Ctx, rollappId, 1)
-						},
+						rollappId: "rollappi_4567-1",
+						stateUpdates: []stateUpdate{{
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
+							fail: true,
+						}, {
+							blockHeight: initialHeight + getDisputePeriod(), startHeight: 11, numOfBlocks: 20,
+							fail: true,
+						}},
 					}, {
-						stateUpdate: stateUpdate{
-							blockHeight: initialHeight,
-							startHeight: 1,
-							numBlocks:   10,
-						},
-						malleatePostStateUpdate: func(rollappId string) {
-							suite.App.RollappKeeper.RemoveStateInfo(suite.Ctx, rollappId, 1)
-						},
+						rollappId: "rollappo_5678-1",
+						stateUpdates: []stateUpdate{{
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
+							fail: true,
+						}},
 					},
 				},
-				blockEnd: blockEnd{
-					blockHeight: func() int64 { return initialHeight + int64(suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx)) },
-					wantQueue: []queue{
-						{
-							rollappsLeft: 2,
+				finalizations: []blockEnd{
+					{
+						// first finalization: 4 states finalized, 3 states left
+						wantNumFinalized: 4,
+						wantQueue: []queue{
+							{
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollappi_4567-1",
+										index:     1,
+									},
+								},
+							}, {
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollappo_5678-1",
+										index:     1,
+									},
+								},
+							}, {
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollappi_4567-1",
+										index:     2,
+									},
+								},
+							},
 						},
+					}, {
+						// second finalization: 1 state finalized from first finalization, 2 states left
+						wantNumFinalized: 1,
+						recovers: map[types.StateInfoIndex]struct{}{
+							{RollappId: "rollappi_4567-1", Index: 1}: {},
+						},
+						wantQueue: []queue{
+							{
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollappo_5678-1",
+										index:     1,
+									},
+								},
+							}, {
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollappi_4567-1",
+										index:     2,
+									},
+								},
+							},
+						},
+					}, {
+						// third finalization: 1 state finalized from first finalization, 1 state left
+						wantNumFinalized: 1,
+						recovers: map[types.StateInfoIndex]struct{}{
+							{RollappId: "rollappo_5678-1", Index: 1}: {},
+						},
+						wantQueue: []queue{
+							{
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollappi_4567-1",
+										index:     2,
+									},
+								},
+							},
+						},
+					}, {
+						// fourth finalization: 1 state finalized from first finalization, 0 states left
+						wantNumFinalized: 1,
+						recovers: map[types.StateInfoIndex]struct{}{
+							{RollappId: "rollappi_4567-1", Index: 2}: {},
+						},
+						wantQueue: nil,
 					},
-					wantNumFinalized: 3,
 				},
 			},
 		},
 	}
 
 	for _, tt := range tests {
-		suite.T().Run(tt.name, func(t *testing.T) {
-			suite.SetupTest()
-			ctx := &suite.Ctx
+		s.T().Run(tt.name, func(t *testing.T) {
+			s.SetupTest()
+			ctx := &s.Ctx
 
 			for _, rf := range tt.fields.rollappStateUpdates {
 				// Create a rollapp
-				rollapp := suite.CreateDefaultRollapp()
-				proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+				s.CreateRollappByName(rf.rollappId)
+				proposer := s.CreateDefaultSequencer(s.Ctx, rf.rollappId)
 
 				// Create state update
-				su := rf.stateUpdate
-				suite.Ctx = suite.Ctx.WithBlockHeight(su.blockHeight)
-				_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, su.startHeight, su.numBlocks)
-				suite.Require().Nil(err)
-
-				if rf.malleatePostStateUpdate != nil {
-					rf.malleatePostStateUpdate(rollapp)
+				for _, su := range rf.stateUpdates {
+					s.Ctx = s.Ctx.WithBlockHeight(su.blockHeight)
+					_, err := s.PostStateUpdate(*ctx, rf.rollappId, proposer, su.startHeight, su.numOfBlocks)
+					s.Require().Nil(err)
 				}
 			}
-			// End block and check if finalized
-			be := tt.fields.blockEnd
-			suite.Ctx = suite.Ctx.WithBlockHeight(be.blockHeight())
-			response := suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
 
-			heightQueue := suite.App.RollappKeeper.GetAllBlockHeightToFinalizationQueue(*ctx)
-			suite.Require().Len(heightQueue, len(be.wantQueue))
-
-			for i, q := range be.wantQueue {
-				suite.Require().Len(heightQueue[i].FinalizationQueue, q.rollappsLeft)
+			// prepare hooks for failed state updates
+			var errFinalizeIndexes []types.StateInfoIndex
+			for _, rf := range tt.fields.rollappStateUpdates {
+				for i, su := range rf.stateUpdates {
+					if su.fail {
+						errFinalizeIndexes = append(errFinalizeIndexes, types.StateInfoIndex{
+							RollappId: rf.rollappId,
+							Index:     uint64(i + 1),
+						})
+					}
+				}
 			}
+			s.setMockErrRollappKeeperHooks(errFinalizeIndexes)
+			// run finalizations and check finalized state updates
+			for i, be := range tt.fields.finalizations {
+				errFinalizeIndexes = slices.DeleteFunc(errFinalizeIndexes, func(e types.StateInfoIndex) bool {
+					_, ok := be.recovers[e]
+					return ok
+				})
 
-			numFinalized := countFinalized(response)
-			suite.Assert().Equal(be.wantNumFinalized, numFinalized)
+				s.Ctx = s.Ctx.WithBlockHeight(getFinalizationHeight(int64(i + 1)))
+				response, err := s.App.EndBlocker(s.Ctx)
+				s.Require().NoError(err)
+
+				numFinalized := countFinalized(response)
+				s.Require().Equalf(be.wantNumFinalized, numFinalized, "finalization %d", i+1)
+
+				heightQueue, err := s.k().GetEntireFinalizationQueue(*ctx)
+				s.Require().NoError(err)
+				s.Require().Lenf(heightQueue, len(be.wantQueue), "finalization %d", i+1)
+
+				for i, q := range be.wantQueue {
+					s.Require().Lenf(heightQueue[i].FinalizationQueue, len(q.rollappsLeft), "finalization %d", i+1)
+
+					for j, r := range q.rollappsLeft {
+						s.Require().Equalf(heightQueue[i].FinalizationQueue[j].RollappId, r.rollappId, "finalization %d, rollappLeft: %d", i+1, j+1)
+						s.Require().Equalf(heightQueue[i].FinalizationQueue[j].Index, r.index, "finalization %d, rollappLeft: %d", i+1, j+1)
+					}
+				}
+			}
 		})
 	}
 }
 
 // TODO: Test FinalizeQueue function with failed states
-func (suite *RollappTestSuite) TestFinalize() {
-	suite.SetupTest()
+func (s *RollappTestSuite) TestFinalize() {
+	s.SetupTest()
 
 	initialheight := uint64(10)
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight))
-	ctx := &suite.Ctx
+	s.Ctx = s.Ctx.WithBlockHeight(int64(initialheight))
+	ctx := &s.Ctx
 
-	k := suite.App.RollappKeeper
+	k := s.k()
 
 	// Create a rollapp
-	rollapp := suite.CreateDefaultRollapp()
-	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+	rollapp, proposer := s.CreateDefaultRollappAndProposer()
 
 	// Create 2 state updates
-	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
-	suite.Require().Nil(err)
+	_, err := s.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
+	s.Require().Nil(err)
 
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + 1))
-	_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
-	suite.Require().Nil(err)
-
-	// Finalize pending queues and check
-	response := suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
-	suite.Require().Len(k.GetAllBlockHeightToFinalizationQueue(*ctx), 2)
-	suite.False(findEvent(response, types.EventTypeStatusChange))
+	s.Ctx = s.Ctx.WithBlockHeight(int64(initialheight + 1))
+	_, err = s.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
+	s.Require().Nil(err)
 
 	// Finalize pending queues and check
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx)))
-	response = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
-	suite.Require().Len(k.GetAllBlockHeightToFinalizationQueue(*ctx), 1)
-	suite.True(findEvent(response, types.EventTypeStatusChange))
+	response, err := s.App.EndBlocker(s.Ctx)
+	s.Require().NoError(err)
+	actualQueue, err := k.GetEntireFinalizationQueue(*ctx)
+	s.Require().NoError(err)
+	s.Require().Len(actualQueue, 2)
+	s.False(findEvent(response, types.EventTypeStatusChange))
 
 	// Finalize pending queues and check
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx) + 1))
-	response = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
-	suite.Require().Len(k.GetAllBlockHeightToFinalizationQueue(*ctx), 0)
-	suite.True(findEvent(response, types.EventTypeStatusChange))
+	s.Ctx = s.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx)))
+	response, err = s.App.EndBlocker(s.Ctx)
+	s.Require().NoError(err)
+	actualQueue, err = k.GetEntireFinalizationQueue(*ctx)
+	s.Require().NoError(err)
+	s.Require().Len(actualQueue, 1)
+	s.True(findEvent(response, types.EventTypeStatusChange))
+
+	// Finalize pending queues and check
+	s.Ctx = s.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx) + 1))
+	response, err = s.App.EndBlocker(s.Ctx)
+	s.Require().NoError(err)
+	actualQueue, err = k.GetEntireFinalizationQueue(*ctx)
+	s.Require().NoError(err)
+	s.Require().Len(actualQueue, 0)
+	s.True(findEvent(response, types.EventTypeStatusChange))
 }
 
 /* ---------------------------------- utils --------------------------------- */
@@ -300,12 +472,13 @@ func createNBlockHeightToFinalizationQueue(keeper *keeper.Keeper, ctx sdk.Contex
 	items := make([]types.BlockHeightToFinalizationQueue, n)
 	for i := range items {
 		items[i].CreationHeight = uint64(i)
-		keeper.SetBlockHeightToFinalizationQueue(ctx, items[i])
+		items[i].RollappId = fmt.Sprintf("rollapp_%d-1", i)
+		keeper.MustSetFinalizationQueue(ctx, items[i])
 	}
 	return items
 }
 
-func countFinalized(response abci.ResponseEndBlock) int {
+func countFinalized(response sdk.EndBlock) int {
 	count := 0
 	for _, event := range response.Events {
 		if event.Type == types.EventTypeStatusChange {
@@ -315,12 +488,12 @@ func countFinalized(response abci.ResponseEndBlock) int {
 	return count
 }
 
-func findEvent(response abci.ResponseEndBlock, eventType string) bool {
+func findEvent(response sdk.EndBlock, eventType string) bool {
 	return slices.ContainsFunc(response.Events, func(e abci.Event) bool { return e.Type == eventType })
 }
 
 //nolint:govet
-func (suite *RollappTestSuite) TestKeeperFinalizePending() {
+func (s *RollappTestSuite) TestKeeperFinalizePending() {
 	tests := []struct {
 		name                     string
 		pendingFinalizationQueue []types.BlockHeightToFinalizationQueue
@@ -333,23 +506,45 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 				{
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 1},
-						{RollappId: "rollapp2", Index: 2},
-						{RollappId: "rollapp1", Index: 2},
-						{RollappId: "rollapp3", Index: 1},
-						{RollappId: "rollapp2", Index: 3},
-						{RollappId: "rollapp3", Index: 2},
+						{RollappId: "rollapp_1234-1", Index: 1},
+						{RollappId: "rollapp_1234-1", Index: 2},
 					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 2},
+						{RollappId: "rollappa_2345-1", Index: 3},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 1},
+						{RollappId: "rollappe_3456-1", Index: 2},
+					},
+					RollappId: "rollappe_3456-1",
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 3},
-						{RollappId: "rollapp2", Index: 4},
-						{RollappId: "rollapp1", Index: 4},
-						{RollappId: "rollapp3", Index: 3},
-						{RollappId: "rollapp2", Index: 5},
-						{RollappId: "rollapp3", Index: 4},
+						{RollappId: "rollapp_1234-1", Index: 3},
+						{RollappId: "rollapp_1234-1", Index: 4},
 					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 4},
+						{RollappId: "rollappa_2345-1", Index: 5},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 3},
+						{RollappId: "rollappe_3456-1", Index: 4},
+					},
+					RollappId: "rollappe_3456-1",
 				},
 			},
 			errFinalizeIndices: []types.StateInfoIndex{},
@@ -360,24 +555,44 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 				{
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 1},
-						{RollappId: "rollapp2", Index: 2},
-						{RollappId: "rollapp1", Index: 2},
-						{RollappId: "rollapp3", Index: 1},
-						{RollappId: "rollapp1", Index: 3},
-						{RollappId: "rollapp3", Index: 2},
+						{RollappId: "rollapp_1234-1", Index: 1},
+						{RollappId: "rollapp_1234-1", Index: 2},
+						{RollappId: "rollapp_1234-1", Index: 3},
 					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 2},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 1},
+						{RollappId: "rollappe_3456-1", Index: 2},
+					},
+					RollappId: "rollappe_3456-1",
 				},
 			},
-			errFinalizeIndices: []types.StateInfoIndex{{RollappId: "rollapp1", Index: 2}, {RollappId: "rollapp3", Index: 2}},
+			errFinalizeIndices: []types.StateInfoIndex{
+				{RollappId: "rollapp_1234-1", Index: 2},
+				{RollappId: "rollappe_3456-1", Index: 2},
+			},
 			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
 				{
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 2},
-						{RollappId: "rollapp1", Index: 3},
-						{RollappId: "rollapp3", Index: 2},
+						{RollappId: "rollapp_1234-1", Index: 2},
+						{RollappId: "rollapp_1234-1", Index: 3},
 					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 2},
+					},
+					RollappId: "rollappe_3456-1",
 				},
 			},
 		}, {
@@ -386,30 +601,52 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 				{
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 1},
-						{RollappId: "rollapp2", Index: 1},
+						{RollappId: "rollapp_1234-1", Index: 1},
 					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 1},
+					},
+					RollappId: "rollappa_2345-1",
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 2},
-						{RollappId: "rollapp2", Index: 2},
+						{RollappId: "rollapp_1234-1", Index: 2},
 					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 2},
+					},
+					RollappId: "rollappa_2345-1",
 				},
 			},
-			errFinalizeIndices: []types.StateInfoIndex{{RollappId: "rollapp1", Index: 1}, {RollappId: "rollapp2", Index: 2}},
+			errFinalizeIndices: []types.StateInfoIndex{
+				{RollappId: "rollapp_1234-1", Index: 1},
+				{RollappId: "rollappa_2345-1", Index: 2},
+			},
 			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
 				{
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 1},
+						{RollappId: "rollapp_1234-1", Index: 1},
 					},
+					RollappId: "rollapp_1234-1",
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 2},
-						{RollappId: "rollapp2", Index: 2},
+						{RollappId: "rollapp_1234-1", Index: 2},
 					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 2},
+					},
+					RollappId: "rollappa_2345-1",
 				},
 			},
 		}, {
@@ -418,40 +655,71 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 				{
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 1},
-						{RollappId: "rollapp2", Index: 2},
-						{RollappId: "rollapp1", Index: 2},
-						{RollappId: "rollapp3", Index: 1},
-						{RollappId: "rollapp2", Index: 3},
-						{RollappId: "rollapp3", Index: 2},
+						{RollappId: "rollapp_1234-1", Index: 1},
+						{RollappId: "rollapp_1234-1", Index: 2},
 					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 2},
+						{RollappId: "rollappa_2345-1", Index: 3},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 1},
+						{RollappId: "rollappe_3456-1", Index: 2},
+					},
+					RollappId: "rollappe_3456-1",
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 3},
-						{RollappId: "rollapp2", Index: 4},
-						{RollappId: "rollapp1", Index: 4},
-						{RollappId: "rollapp3", Index: 3},
-						{RollappId: "rollapp2", Index: 5},
-						{RollappId: "rollapp3", Index: 4},
+						{RollappId: "rollapp_1234-1", Index: 3},
+						{RollappId: "rollapp_1234-1", Index: 4},
 					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 4},
+						{RollappId: "rollappa_2345-1", Index: 5},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 3},
+						{RollappId: "rollappe_3456-1", Index: 4},
+					},
+					RollappId: "rollappe_3456-1",
 				},
 			},
-			errFinalizeIndices: []types.StateInfoIndex{{RollappId: "rollapp1", Index: 2}, {RollappId: "rollapp2", Index: 4}},
+			errFinalizeIndices: []types.StateInfoIndex{
+				{RollappId: "rollapp_1234-1", Index: 2},
+				{RollappId: "rollappe_3456-1", Index: 4},
+			},
 			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
 				{
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 2},
+						{RollappId: "rollapp_1234-1", Index: 2},
 					},
+					RollappId: "rollapp_1234-1",
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 3},
-						{RollappId: "rollapp2", Index: 4},
-						{RollappId: "rollapp1", Index: 4},
-						{RollappId: "rollapp2", Index: 5},
+						{RollappId: "rollapp_1234-1", Index: 3},
+						{RollappId: "rollapp_1234-1", Index: 4},
 					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 4},
+					},
+					RollappId: "rollappe_3456-1",
 				},
 			},
 		}, {
@@ -460,64 +728,113 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 				{
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 1},
-						{RollappId: "rollapp2", Index: 2},
-						{RollappId: "rollapp1", Index: 2},
-						{RollappId: "rollapp3", Index: 1},
-						{RollappId: "rollapp2", Index: 3},
-						{RollappId: "rollapp3", Index: 2},
+						{RollappId: "rollapp_1234-1", Index: 1},
+						{RollappId: "rollapp_1234-1", Index: 2},
 					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 2},
+						{RollappId: "rollappa_2345-1", Index: 3},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 1},
+						{RollappId: "rollappe_3456-1", Index: 2},
+					},
+					RollappId: "rollappe_3456-1",
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 3},
-						{RollappId: "rollapp2", Index: 4},
-						{RollappId: "rollapp1", Index: 4},
-						{RollappId: "rollapp3", Index: 3},
-						{RollappId: "rollapp2", Index: 5},
-						{RollappId: "rollapp3", Index: 4},
+						{RollappId: "rollapp_1234-1", Index: 3},
+						{RollappId: "rollapp_1234-1", Index: 4},
 					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 4},
+						{RollappId: "rollappa_2345-1", Index: 5},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 3},
+						{RollappId: "rollappe_3456-1", Index: 4},
+					},
+					RollappId: "rollappe_3456-1",
 				},
 			},
 			errFinalizeIndices: []types.StateInfoIndex{
-				{RollappId: "rollapp1", Index: 1},
-				{RollappId: "rollapp2", Index: 2},
-				{RollappId: "rollapp3", Index: 1},
+				{RollappId: "rollapp_1234-1", Index: 1},
+				{RollappId: "rollappa_2345-1", Index: 2},
+				{RollappId: "rollappe_3456-1", Index: 1},
 			},
 			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
 				{
 					CreationHeight: 1,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 1},
-						{RollappId: "rollapp2", Index: 2},
-						{RollappId: "rollapp1", Index: 2},
-						{RollappId: "rollapp3", Index: 1},
-						{RollappId: "rollapp2", Index: 3},
-						{RollappId: "rollapp3", Index: 2},
+						{RollappId: "rollapp_1234-1", Index: 1},
+						{RollappId: "rollapp_1234-1", Index: 2},
 					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 2},
+						{RollappId: "rollappa_2345-1", Index: 3},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 1},
+						{RollappId: "rollappe_3456-1", Index: 2},
+					},
+					RollappId: "rollappe_3456-1",
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
-						{RollappId: "rollapp1", Index: 3},
-						{RollappId: "rollapp2", Index: 4},
-						{RollappId: "rollapp1", Index: 4},
-						{RollappId: "rollapp3", Index: 3},
-						{RollappId: "rollapp2", Index: 5},
-						{RollappId: "rollapp3", Index: 4},
+						{RollappId: "rollapp_1234-1", Index: 3},
+						{RollappId: "rollapp_1234-1", Index: 4},
 					},
+					RollappId: "rollapp_1234-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappa_2345-1", Index: 4},
+						{RollappId: "rollappa_2345-1", Index: 5},
+					},
+					RollappId: "rollappa_2345-1",
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollappe_3456-1", Index: 3},
+						{RollappId: "rollappe_3456-1", Index: 4},
+					},
+					RollappId: "rollappe_3456-1",
 				},
 			},
 		},
 	}
 	for _, tt := range tests {
-		suite.T().Run(tt.name, func(t *testing.T) {
-			suite.SetupTest()
+		s.T().Run(tt.name, func(t *testing.T) {
+			s.SetupTest()
 
-			k := suite.App.RollappKeeper
+			k := s.k()
+			for _, item := range tt.pendingFinalizationQueue {
+				k.MustSetFinalizationQueue(s.Ctx, item)
+			}
 			k.SetFinalizePendingFn(MockFinalizePending(tt.errFinalizeIndices))
-			k.FinalizeAllPending(suite.Ctx, tt.pendingFinalizationQueue)
+			k.FinalizeAllPending(s.Ctx, tt.pendingFinalizationQueue)
 
-			suite.Require().Equal(tt.expectQueueAfter, k.GetAllBlockHeightToFinalizationQueue(suite.Ctx))
+			finalizationQueue, err := k.GetEntireFinalizationQueue(s.Ctx)
+			s.Require().NoError(err)
+			s.Require().Equal(tt.expectQueueAfter, finalizationQueue)
 		})
 	}
 }
@@ -528,5 +845,173 @@ func MockFinalizePending(errFinalizedIndices []types.StateInfoIndex) func(ctx sd
 			return errors.New("error")
 		}
 		return nil
+	}
+}
+
+// black-ops: don't do this at home
+// nolint:gosec
+func (s *RollappTestSuite) setMockErrRollappKeeperHooks(failIndexes []types.StateInfoIndex) {
+	k := s.k()
+	v := reflect.ValueOf(k).Elem()
+	f := v.FieldByName("hooks")
+	hooks := mockRollappHooks{failIndexes: failIndexes}
+
+	if f.CanSet() {
+		f.Set(reflect.ValueOf(types.MultiRollappHooks{hooks}))
+	} else {
+		reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Elem().Set(reflect.ValueOf(types.MultiRollappHooks{hooks}))
+	}
+}
+
+var _ types.RollappHooks = mockRollappHooks{}
+
+type mockRollappHooks struct {
+	types.StubRollappCreatedHooks
+	failIndexes []types.StateInfoIndex
+}
+
+func (m mockRollappHooks) AfterStateFinalized(_ sdk.Context, _ string, stateInfo *types.StateInfo) (err error) {
+	if slices.Contains(m.failIndexes, stateInfo.StateInfoIndex) {
+		return errors.New("error")
+	}
+	return
+}
+
+func (s *RollappTestSuite) TestUnbondConditionFlow() {
+	k := s.k()
+	ctx := s.Ctx
+
+	seq := keepertest.Alice
+
+	err := k.CanUnbond(ctx, seq)
+	s.NoError(err)
+
+	for h := range 10 {
+		err := k.SaveSequencerHeight(ctx, seq.Address, uint64(h))
+		s.NoError(err)
+	}
+
+	pairs, err := k.AllSequencerHeightPairs(ctx)
+	s.NoError(err)
+	s.Len(pairs, 10)
+
+	err = k.CanUnbond(ctx, seq)
+	s.True(errorsmod.IsOf(err, sequencertypes.ErrUnbondNotAllowed))
+
+	err = k.PruneSequencerHeights(ctx, []string{seq.Address}, 6)
+	s.NoError(err)
+	pairs, err = k.AllSequencerHeightPairs(ctx)
+	s.NoError(err)
+	s.Len(pairs, 7) // removed heights above 6
+
+	err = k.CanUnbond(ctx, seq)
+	s.True(errorsmod.IsOf(err, sequencertypes.ErrUnbondNotAllowed))
+
+	for h := range 7 {
+		err := k.DelSequencerHeight(ctx, seq.Address, uint64(h))
+		s.NoError(err)
+	}
+
+	err = k.CanUnbond(ctx, seq)
+	s.NoError(err)
+}
+
+func (s *RollappTestSuite) TestFastFinalizeRollappStatesUntilStateIndex() {
+	k := s.k()
+	ctx := &s.Ctx
+
+	// Create rollapp and proposer
+	rollapp, proposer := s.CreateDefaultRollappAndProposer()
+
+	// Create 5 state updates
+	initialHeight := uint64(10)
+	s.Ctx = s.Ctx.WithBlockHeight(int64(initialHeight))
+
+	// Post state updates 1-5
+	for i := uint64(1); i <= 5; i++ {
+		s.Ctx = s.Ctx.WithBlockHeight(int64(initialHeight + i - 1))
+		_, err := s.PostStateUpdate(*ctx, rollapp, proposer, i*10+1, 10)
+		s.Require().NoError(err)
+	}
+
+	// Verify all states are pending
+	for i := uint64(1); i <= 5; i++ {
+		stateInfo, found := k.GetStateInfo(*ctx, rollapp, i)
+		s.Require().True(found)
+		s.Require().Equal(common.Status_PENDING, stateInfo.Status)
+	}
+
+	// Check initial queue state - should have 5 states
+	queuesBefore, err := k.GetFinalizationQueueByRollapp(*ctx, rollapp)
+	s.Require().NoError(err)
+	totalBefore := 0
+	for _, q := range queuesBefore {
+		totalBefore += len(q.FinalizationQueue)
+	}
+	s.Require().Equal(5, totalBefore, "Should have 5 states in queue initially")
+
+	// Test 1: Fast finalize states up to index 3
+	err = k.FastFinalizeRollappStatesUntilStateIndex(*ctx, rollapp, 3)
+	s.Require().NoError(err)
+
+	// Verify states 1-3 are finalized
+	for i := uint64(1); i <= 3; i++ {
+		stateInfo, found := k.GetStateInfo(*ctx, rollapp, i)
+		s.Require().True(found)
+		s.Require().Equal(common.Status_FINALIZED, stateInfo.Status, "state %d should be finalized", i)
+	}
+
+	// Verify states 4-5 are still pending
+	for i := uint64(4); i <= 5; i++ {
+		stateInfo, found := k.GetStateInfo(*ctx, rollapp, i)
+		s.Require().True(found)
+		s.Require().Equal(common.Status_PENDING, stateInfo.Status, "state %d should be pending", i)
+	}
+
+	// Check queue state - should have 2 states remaining (4 and 5)
+	queuesAfter, err := k.GetFinalizationQueueByRollapp(*ctx, rollapp)
+	s.Require().NoError(err)
+	totalAfter := 0
+	for _, q := range queuesAfter {
+		totalAfter += len(q.FinalizationQueue)
+	}
+	s.Require().Equal(2, totalAfter, "Should have 2 states remaining in queue after finalizing 3")
+
+	// Test 2: Fast finalize remaining states
+	err = k.FastFinalizeRollappStatesUntilStateIndex(*ctx, rollapp, 5)
+	s.Require().NoError(err)
+
+	// Verify all states are finalized
+	for i := uint64(1); i <= 5; i++ {
+		stateInfo, found := k.GetStateInfo(*ctx, rollapp, i)
+		s.Require().True(found)
+		s.Require().Equal(common.Status_FINALIZED, stateInfo.Status, "state %d should be finalized", i)
+	}
+
+	// Check queue state - should be empty after finalizing all
+	queuesEmpty, err := k.GetFinalizationQueueByRollapp(*ctx, rollapp)
+	s.Require().NoError(err)
+	s.Require().Empty(queuesEmpty, "Queue should be empty after finalizing all states")
+
+	// Test 3: Verify idempotency - fast finalizing already finalized states should work
+	err = k.FastFinalizeRollappStatesUntilStateIndex(*ctx, rollapp, 3)
+	s.Require().NoError(err)
+
+	// All states should remain finalized
+	for i := uint64(1); i <= 5; i++ {
+		stateInfo, found := k.GetStateInfo(*ctx, rollapp, i)
+		s.Require().True(found)
+		s.Require().Equal(common.Status_FINALIZED, stateInfo.Status, "state %d should remain finalized", i)
+	}
+
+	// Test 4: Fast finalize with index beyond existing states
+	err = k.FastFinalizeRollappStatesUntilStateIndex(*ctx, rollapp, 10)
+	s.Require().NoError(err)
+
+	// All existing states should be finalized
+	for i := uint64(1); i <= 5; i++ {
+		stateInfo, found := k.GetStateInfo(*ctx, rollapp, i)
+		s.Require().True(found)
+		s.Require().Equal(common.Status_FINALIZED, stateInfo.Status, "state %d should be finalized", i)
 	}
 }
