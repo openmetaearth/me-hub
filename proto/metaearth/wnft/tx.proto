@@ -1,6 +1,7 @@
 syntax = "proto3";
 package metaearth.wnft;
 
+import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 
@@ -22,6 +23,7 @@ service Msg {
 
 message MsgNewClass {
   option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "cosmos-sdk/MsgNewClass";
 
   // class_id defines the unique identifier of the nft classification, similar
   // to the contract address of ERC721
@@ -52,6 +54,7 @@ message MsgNewClassResponse {}
 
 message MsgMintNFT {
   option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "cosmos-sdk/MsgMintNFT";
 
   // class_id defines the unique identifier of the nft classification, similar
   // to the contract address of ERC721
@@ -76,6 +79,7 @@ message MsgMintNFTResponse {}
 // account.
 message MsgSend {
   option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "wnft/MsgSend";
 
   // class_id defines the unique identifier of the nft classification, similar
   // to the contract address of ERC721

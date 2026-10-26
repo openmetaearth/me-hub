@@ -7,14 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 )
 
-func RegisterCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgApprove{}, "kyc/Approve", nil)
-	cdc.RegisterConcrete(&MsgUpdate{}, "kyc/Update", nil)
-	cdc.RegisterConcrete(&MsgRemove{}, "kyc/Remove", nil)
-	cdc.RegisterConcrete(&MsgCreateSBT{}, "kyc/CreateSBT", nil)
-	cdc.RegisterConcrete(&MsgDeleteSBT{}, "kyc/DeleteSBT", nil)
-	cdc.RegisterConcrete(&MsgCreateSubAccount{}, "kyc/CreateSubAccount", nil)
-}
+func RegisterCodec(*codec.LegacyAmino) {}
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),

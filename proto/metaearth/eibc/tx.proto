@@ -1,6 +1,7 @@
 syntax = "proto3";
 package metaearth.eibc;
 
+import "amino/amino.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
@@ -28,6 +29,7 @@ service Msg {
 // MsgUpdateParams allows to update module params.
 message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "eibc/UpdateParams";
 
   // Authority is the address that controls the module.
   string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -40,6 +42,7 @@ message MsgUpdateParamsResponse {}
 // MsgFulfillOrder defines the FulfillOrder request type.
 message MsgFulfillOrder {
   option (cosmos.msg.v1.signer) = "fulfiller_address";
+  option (amino.name) = "eibc/MsgFulfillOrder";
   // fulfiller_address is the bech32-encoded address of the account which the
   // message was sent from.
   string fulfiller_address = 1;
@@ -56,6 +59,7 @@ message MsgFulfillOrderResponse {}
 // MsgFulfillOrderAuthorized defines the FulfillOrderAuthorized request type.
 message MsgFulfillOrderAuthorized {
   option (cosmos.msg.v1.signer) = "lp_address";
+  option (amino.name) = "eibc/MsgFulfillOrderAuthorized";
   // order_id is the unique identifier of the order to be fulfilled.
   string order_id = 1;
   // rollapp_id is the unique identifier of the rollapp that the order is
@@ -101,6 +105,7 @@ message MsgFulfillOrderAuthorizedResponse {}
 
 message MsgUpdateDemandOrder {
   option (cosmos.msg.v1.signer) = "owner_address";
+  option (amino.name) = "eibc/MsgUpdateDemandOrder";
   // owner_address is the bech32-encoded address of the account owns the order.
   // This is expected to be the address of the order recipient.
   string owner_address = 1;
@@ -115,6 +120,7 @@ message MsgUpdateDemandOrderResponse {}
 // try find an on-demand-fulfiller to fulfill the order immediately
 message MsgTryFulfillOnDemand {
   option (cosmos.msg.v1.signer) = "signer";
+  option (amino.name) = "eibc/TryFulfillOnDemand";
   string signer = 2;
 
   string order_id = 1;
@@ -127,6 +133,7 @@ message MsgTryFulfillOnDemandResponse {}
 
 message MsgCreateOnDemandLP {
   option (cosmos.msg.v1.signer) = "signer";
+  option (amino.name) = "eibc/CreateOnDemandLP";
   string signer = 3;
 
   OnDemandLP lp = 2;
@@ -137,6 +144,7 @@ message MsgCreateOnDemandLPResponse {
 
 message MsgDeleteOnDemandLP {
   option (cosmos.msg.v1.signer) = "signer";
+  option (amino.name) = "eibc/DeleteOnDemandLP";
   string signer = 1; // must be original creator
 
   repeated uint64 ids = 2;

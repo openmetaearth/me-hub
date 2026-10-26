@@ -1,6 +1,7 @@
 syntax = "proto3";
 package metaearth.rollapp;
 
+import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
 import "gogoproto/gogo.proto";
 import "metaearth/rollapp/genesis_info.proto";
@@ -14,6 +15,7 @@ service ProposalMsg {
 
 message MsgRollappFraudProposal {
   option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "rollapp/RollappFraudProposal";
 
   // Authority is the authority address.
   string authority = 1;
@@ -38,6 +40,7 @@ message MsgRollappFraudProposalResponse {}
 // MsgForceGenesisInfoChange defines the Msg/ForceGenesisInfoChange request type
 message MsgForceGenesisInfoChange {
   option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "rollapp/ForceGenesisInfoChange";
 
   // Authority is the address that controls the module (defaults to x/gov unless
   // overwritten).

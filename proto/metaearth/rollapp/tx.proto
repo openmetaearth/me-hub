@@ -1,6 +1,7 @@
 syntax = "proto3";
 package metaearth.rollapp;
 
+import "amino/amino.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
@@ -39,6 +40,7 @@ service Msg {
 // MsgUpdateParams allows to update module params.
 message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "rollapp/UpdateParams";
 
   // Authority is the address that controls the module.
   string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -51,6 +53,7 @@ message MsgUpdateParamsResponse {}
 // MsgCreateRollapp creates a new rollapp chain on the hub.
 message MsgCreateRollapp {
   option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "rollapp/CreateRollapp";
   // creator is the bech32-encoded address of the rollapp creator
   string creator = 1;
   // rollappId is the unique identifier of the rollapp chain.
@@ -83,6 +86,7 @@ message MsgCreateRollappResponse {}
 // MsgUpdateRollappInformation updates the rollapp information.
 message MsgUpdateRollappInformation {
   option (cosmos.msg.v1.signer) = "owner";
+  option (amino.name) = "rollapp/UpdateRollappInformation";
   // owner is the bech32-encoded address of the rollapp owner
   string owner = 1;
   // rollapp_id is the unique identifier of the rollapp chain.
@@ -108,6 +112,7 @@ message MsgUpdateRollappInformationResponse {}
 // a block batch is a list of ordered blocks (by height)
 message MsgUpdateState {
   option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "rollapp/UpdateState";
   // creator is the bech32-encoded address of the sequencer sending the update
   string creator = 1;
   // rollappId is the rollapp that the sequencer belongs to and asking to update
@@ -138,6 +143,7 @@ message MsgUpdateStateResponse {}
 // owner.
 message MsgTransferOwnership {
   option (cosmos.msg.v1.signer) = "current_owner";
+  option (amino.name) = "rollapp/TransferDymNameOwnership";
   // current_owner is the bech32-encoded address of the current owner
   string current_owner = 1;
   // new_owner is the bech32-encoded address of the new owner
@@ -151,6 +157,7 @@ message MsgTransferOwnershipResponse {}
 // MsgAddApp adds an app to the rollapp.
 message MsgAddApp {
   option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "rollapp/AddApp";
   // creator is the bech32-encoded address of the app creator
   string creator = 1;
   // name is the unique App's name
@@ -172,6 +179,7 @@ message MsgAddAppResponse {}
 // MsgUpdateApp updates the app information.
 message MsgUpdateApp {
   option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "rollapp/UpdateApp";
   // creator is the bech32-encoded address of the app owner
   string creator = 1;
   // id is the unique App's id in the Rollapp
@@ -195,6 +203,7 @@ message MsgUpdateAppResponse {}
 // MsgRemoveApp removes an app from the rollapp.
 message MsgRemoveApp {
   option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "rollapp/RemoveApp";
   // creator is the bech32-encoded address of the app owner
   string creator = 1;
   // id is the unique App's id in the Rollapp
@@ -209,6 +218,7 @@ message MsgRemoveAppResponse {}
 // all corresponding rollapps. Must be called by the governance.
 message MsgMarkObsoleteRollapps {
   option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "rollapp/MarkObsoleteRollapps";
 
   // Authority is the authority address.
   string authority = 1;
@@ -221,6 +231,7 @@ message MsgMarkObsoleteRollappsResponse {}
 // MsgFastFinalizeWithTEE fast-finalizes rollapp state using TEE attestation
 message MsgFastFinalizeWithTEE {
   option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "rollapp/FastFinalizeWithTEE";
 
   // creator must be the active sequencer for the rollapp
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -250,6 +261,7 @@ message MsgFastFinalizeWithTEEResponse {}
 // MsgToggleTEE toggles the TEE feature for a rollapp
 message MsgToggleTEE {
   option (cosmos.msg.v1.signer) = "owner";
+  option (amino.name) = "rollapp/ToggleTEE";
 
   // owner is the bech32-encoded address of the rollapp owner
   string owner = 1;
@@ -263,6 +275,7 @@ message MsgToggleTEEResponse {}
 // MsgSkipDelayRollapp toggles whether a rollapp skips delayed acknowledgement.
 message MsgSkipDelayRollapp {
   option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "rollapp/SkipDelayRollapp";
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string rollappId = 2;
   bool skip = 3;

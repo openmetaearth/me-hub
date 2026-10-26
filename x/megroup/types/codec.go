@@ -7,15 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 )
 
-func RegisterCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgCreateGroup{}, "megroup/CreateGroup", nil)
-	cdc.RegisterConcrete(&MsgUpdateGroup{}, "megroup/UpdateGroup", nil)
-	cdc.RegisterConcrete(&MsgDeleteGroup{}, "megroup/DeleteGroup", nil)
-	cdc.RegisterConcrete(&MsgJoinGroup{}, "megroup/JoinGroup", nil)
-	cdc.RegisterConcrete(&MsgLeaveGroupRequest{}, "megroup/MsgLeaveGroupRequest", nil)
-
-	// this line is used by starport scaffolding # 2
-}
+func RegisterCodec(*codec.LegacyAmino) {}
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),

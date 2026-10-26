@@ -1,6 +1,7 @@
 syntax = "proto3";
 package metaearth.dao;
 
+import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
 import "gogoproto/gogo.proto";
 import "metaearth/dao/dao.proto";
@@ -19,6 +20,7 @@ service Msg {
 
 message MsgUpdateDao {
   option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "dao/MsgUpdateGlobalDao";
   string creator = 1;
   DaoAddresses dao_addresses = 2 [(gogoproto.nullable) = false];
 }
@@ -27,6 +29,7 @@ message MsgUpdateDaoResponse {}
 
 message MsgFreeGasAccount {
   option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "dao/MsgFreeGasAccount";
   string creator = 1;
   repeated FreeGasAccount accounts = 2 [(gogoproto.nullable) = false];
 }

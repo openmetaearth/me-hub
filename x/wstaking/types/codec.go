@@ -8,18 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 )
 
-func RegisterCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgUpdateValidator{}, "cosmos-sdk/MsgUpdateValidator", nil)
-	cdc.RegisterConcrete(&MsgStake{}, "cosmos-sdk/MsgStake", nil)
-	cdc.RegisterConcrete(&MsgUnstake{}, "cosmos-sdk/MsgUnstake", nil)
-	cdc.RegisterConcrete(&MsgNewRegion{}, "cosmos-sdk/MsgNewRegion", nil)
-	cdc.RegisterConcrete(&MsgWithdrawDelegatorReward{}, "cosmos-sdk/MsgWithdrawDelegatorReward", nil)
-	cdc.RegisterConcrete(&MsgRemoveRegion{}, "cosmos-sdk/MsgRemoveRegion", nil)
-	cdc.RegisterConcrete(&MsgReplaceConsensusPubKeyRequest{}, "cosmos-sdk/MsgReplaceConsensusPubKeyRequest", nil)
-	cdc.RegisterConcrete(&MsgSendToModule{}, "cosmos-sdk/MsgSendToModule", nil)
-	cdc.RegisterConcrete(&MsgGrantRegionWithdraw{}, "cosmos-sdk/MsgGrantRegionWithdraw", nil)
-	cdc.RegisterConcrete(&MsgRevokeRegionWithdraw{}, "cosmos-sdk/MsgRevokeRegionWithdraw", nil)
-}
+func RegisterCodec(*codec.LegacyAmino) {}
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),

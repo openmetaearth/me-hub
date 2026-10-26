@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package metaearth.megroup;
 
+import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
 import "metaearth/megroup/group_info.proto";
 
@@ -19,6 +20,7 @@ service Msg {
 }
 message MsgCreateGroup {
   option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "megroup/CreateGroup";
   string creator = 1;
   GroupInfo groupInfo = 2;
 }
@@ -29,6 +31,7 @@ message MsgCreateGroupResponse {
 
 message MsgUpdateGroup {
   option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "megroup/UpdateGroup";
   string creator = 1;
   uint64 id = 2;
   GroupInfo groupInfo = 3;
@@ -38,6 +41,7 @@ message MsgUpdateGroupResponse {}
 
 message MsgDeleteGroup {
   option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "megroup/DeleteGroup";
   string creator = 1;
   uint64 id = 2;
 }
@@ -46,6 +50,7 @@ message MsgDeleteGroupResponse {}
 
 message MsgJoinGroup {
   option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "megroup/JoinGroup";
   string creator = 1;
   uint64 groupId = 2;
   string applicantAddress = 3;
@@ -55,6 +60,7 @@ message MsgJoinGroupResponse {}
 
 message MsgLeaveGroupRequest {
   option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "megroup/MsgLeaveGroupRequest";
   string creator = 1;
   uint64 groupId = 2;
 }

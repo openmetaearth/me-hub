@@ -1,6 +1,7 @@
 syntax = "proto3";
 package metaearth.eibc;
 
+import "amino/amino.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
@@ -21,6 +22,7 @@ message DecProto {
 // FulfillOrderAuthorization allows the grantee to fulfill eIBC demand orders
 // from the granter's account.
 message FulfillOrderAuthorization {
+  option (amino.name) = "eibc/FulfillOrderAuthorization";
   option (cosmos_proto.implements_interface) = "cosmos.authz.v1beta1.Authorization";
 
   // rollapps is an optional list of rollapp criteria that the grantee can

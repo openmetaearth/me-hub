@@ -1,6 +1,7 @@
 syntax = "proto3";
 package metaearth.gravity.v1;
 
+import "amino/amino.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
@@ -39,6 +40,7 @@ service Msg {
 
 message MsgBondedRelayer {
   option (cosmos.msg.v1.signer) = "relayer_address";
+  option (amino.name) = "gravity/MsgBondedRelayer";
   string chain_name = 1;
   string relayer_address = 2;
   string external_address = 3;
@@ -49,6 +51,7 @@ message MsgBondedRelayerResponse {}
 
 message MsgAddDelegate {
   option (cosmos.msg.v1.signer) = "relayer_address";
+  option (amino.name) = "gravity/MsgAddDelegate";
   string chain_name = 1;
   string relayer_address = 2;
   cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
@@ -58,6 +61,7 @@ message MsgAddDelegateResponse {}
 
 message MsgUnbondedRelayer {
   option (cosmos.msg.v1.signer) = "relayer_address";
+  option (amino.name) = "gravity/MsgUnbondedRelayer";
   string chain_name = 1;
   string relayer_address = 2;
 }
@@ -81,6 +85,7 @@ message MsgUnbondedRelayerResponse {}
 // -------------
 message MsgRelayerSetConfirm {
   option (cosmos.msg.v1.signer) = "relayer_address";
+  option (amino.name) = "gravity/MsgRelayerSetConfirm";
   uint64 nonce = 1;
   string relayer_address = 2;
   string external_address = 3;
@@ -93,6 +98,7 @@ message MsgRelayerSetConfirmResponse {}
 // This informs the Cosmos module that a relayer set has been updated.
 message MsgRelayerSetUpdateClaim {
   option (cosmos.msg.v1.signer) = "relayer_address";
+  option (amino.name) = "gravity/MsgRelayerSetUpdateClaim";
   uint64 event_nonce = 1;
   uint64 block_height = 2;
   uint64 relayer_set_nonce = 3;
@@ -110,6 +116,7 @@ message MsgRelayerSetUpdateClaimResponse {}
 // -------------
 message MsgSendToMeClaim {
   option (cosmos.msg.v1.signer) = "relayer_address";
+  option (amino.name) = "gravity/MsgSendToMeClaim";
   uint64 event_nonce = 1;
   uint64 block_height = 2;
   string token_contract = 3;
@@ -139,6 +146,7 @@ message MsgSendToMeClaimResponse {}
 // two layers of fees for the user
 message MsgSendToExternal {
   option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "gravity/MsgSendToExternal";
   string sender = 1;
   string dest = 2;
   cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
@@ -155,6 +163,7 @@ message MsgSendToExternalResponse {
 // of the tokens
 message MsgCancelSendToExternal {
   option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "gravity/MsgCancelSendToExternal";
   uint64 transaction_id = 1;
   string sender = 2;
   string chain_name = 3;
@@ -174,6 +183,7 @@ message MsgCancelSendToExternalResponse {}
 // feeReceive:
 message MsgRequestBatch {
   option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "gravity/MsgRequestBatch";
   string sender = 1;
   string denom = 2;
   string minimum_fee = 3 [
@@ -202,6 +212,7 @@ message MsgRequestBatchResponse {
 // -------------
 message MsgConfirmBatch {
   option (cosmos.msg.v1.signer) = "relayer_address";
+  option (amino.name) = "gravity/MsgConfirmBatch";
   uint64 nonce = 1;
   string token_contract = 2;
   string relayer_address = 3;
@@ -216,6 +227,7 @@ message MsgConfirmBatchResponse {}
 // operations on the bridge contract was executed.
 message MsgSendToExternalClaim {
   option (cosmos.msg.v1.signer) = "relayer_address";
+  option (amino.name) = "gravity/MsgSendToExternalClaim";
   uint64 event_nonce = 1;
   uint64 block_height = 2;
   uint64 batch_nonce = 3;
@@ -228,6 +240,7 @@ message MsgSendToExternalClaimResponse {}
 
 message MsgBridgeTokenClaim {
   option (cosmos.msg.v1.signer) = "relayer_address";
+  option (amino.name) = "gravity/MsgBridgeTokenClaim";
   uint64 event_nonce = 1;
   uint64 block_height = 2;
   string token_contract = 3;
@@ -244,6 +257,7 @@ message MsgBridgeTokenClaimResponse {}
 message MsgUpdateParams {
   string chain_name = 1;
   option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "gravity/MsgUpdateParams";
 
   // authority is the address of the governance account.
   string authority = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -260,6 +274,7 @@ message MsgUpdateParamsResponse {}
 
 message MsgIncreaseBridgeFee {
   option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "gravity/MsgIncreaseBridgeFee";
   string chain_name = 1;
   uint64 transaction_id = 2;
   string sender = 3;
@@ -271,6 +286,7 @@ message MsgIncreaseBridgeFeeResponse {}
 message MsgProposalRelayers {
   string chain_name = 1;
   option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "gravity/MsgProposalRelayers";
 
   // authority is the address of the governance account.
   string authority = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];

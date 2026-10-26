@@ -1,6 +1,7 @@
 syntax = "proto3";
 package metaearth.lightclient;
 
+import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -18,6 +19,7 @@ service Msg {
 // NOTE: this definition is also copied to the relayer code
 message MsgSetCanonicalClient {
   option (cosmos.msg.v1.signer) = "signer";
+  option (amino.name) = "lightclient/SetCanonicalClient";
   string signer = 1;
   // id of ibc client state
   string client_id = 2;

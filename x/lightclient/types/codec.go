@@ -8,9 +8,7 @@ import (
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-func RegisterCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgSetCanonicalClient{}, "lightclient/SetCanonicalClient", nil)
-}
+func RegisterCodec(*codec.LegacyAmino) {}
 
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
