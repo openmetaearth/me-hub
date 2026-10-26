@@ -4,13 +4,13 @@ deps:
   - remote: buf.build
     owner: cosmos
     repository: cosmos-proto
-    commit: 1935555c206d4afb9e94615dfd0fad31
-    digest: shake256:c74d91a3ac7ae07d579e90eee33abf9b29664047ac8816500cf22c081fec0d72d62c89ce0bebafc1f6fec7aa5315be72606717740ca95007248425102c365377
+    commit: 04467658e59e44bbb22fe568206e1f70
+    digest: shake256:73a640bd60e0c523b0f8237ff34eab67c45a38b64bbbde1d80224819d272dbf316ac183526bd245f994af6608b025f5130483d0133c5edd385531326b5990466
   - remote: buf.build
     owner: cosmos
     repository: cosmos-sdk
-    commit: 954f7b05f38440fc8250134b15adec47
-    digest: shake256:2ab4404fd04a7d1d52df0e2d0f2d477a3d83ffd88d876957bf3fedfd702c8e52833d65b3ce1d89a3c5adf2aab512616b0e4f51d8463f07eda9a8a3317ee3ac54
+    commit: 5a6ab7bc14314acaa912d5e53aef1c2f
+    digest: shake256:02c00c73493720055f9b57553a35b5550023a3c1914123b247956288a78fb913aff70e66552777ae14d759467e119079d484af081264a5dd607a94d9fbc8116b
   - remote: buf.build
     owner: cosmos
     repository: gogo-proto
@@ -19,8 +19,8 @@ deps:
   - remote: buf.build
     owner: cosmos
     repository: ibc
-    commit: fbb44f5ad3194450af479a615fa715d9
-    digest: shake256:3fbf41c96089017ebf3b5143f78de0d531f604cb11da1bc98b2104eb6dd295b8a49f5f35c60b8389ba50bfa08959da905109324099e75ece9afd8e4087b14019
+    commit: 442292b00c1649c1b2e0881f942d3b53
+    digest: shake256:279bccf5ca7c2e3c5789a97f166bd96beede9989c4d1c1e162c5aecd83445b8745e9ede99278cc811af9d6a82335791a1cf988f60201db9a98e2dc567fabfd79
   - remote: buf.build
     owner: cosmos
     repository: ics23
@@ -29,5 +29,10 @@ deps:
   - remote: buf.build
     owner: googleapis
     repository: googleapis
-    commit: 8d7204855ec14631a499bd7393ce1970
-    digest: shake256:40bf4112960cad01281930beed85829910768e32e80e986791596853eccd42c0cbd9d96690b918f658020d2d427e16f8b6514e2ac7f4a10306fd32e77be44329
+    commit: 004180b77378443887d3b55cabc00384
+    digest: shake256:d26c7c2fd95f0873761af33ca4a0c0d92c8577122b6feb74eb3b0a57ebe47a98ab24a209a0e91945ac4c77204e9da0c2de0020b2cedc27bdbcdea6c431eec69b
+  - remote: buf.build
+    owner: grpc-ecosystem
+    repository: grpc-gateway
+    commit: 6467306b4f624747aaf6266762ee7a1c
+    digest: shake256:833d648b99b9d2c18b6882ef41aaeb113e76fc38de20dda810c588d133846e6593b4da71b388bcd921b1c7ab41c7acf8f106663d7301ae9e82ceab22cf64b1b7

@@ -1,9 +1,9 @@
 package wmint
 
 import (
+	"context"
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -50,7 +50,7 @@ func NewAppModule(
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	minttypes.RegisterMsgServer(cfg.MsgServer(), mintkeeper.NewMsgServerImpl(am.keeper.Keeper))
-	minttypes.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	minttypes.RegisterQueryServer(cfg.QueryServer(), mintkeeper.NewQueryServerImpl(am.keeper.Keeper))
 
 	m := mintkeeper.NewMigrator(am.keeper.Keeper, am.legacySubspace)
 
@@ -59,6 +59,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 }
 
-func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
-	BeginBlocker(ctx, am.keeper, nil)
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	BeginBlocker(sdk.UnwrapSDKContext(ctx), am.keeper, nil)
+	return nil
 }

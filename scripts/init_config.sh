@@ -27,14 +27,14 @@ JSONRPC_WS_ADDRESS=${JSONRPC_WS_ADDRESS:-"0.0.0.0:9546"}
 TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000adym"} #1M DYM
 STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000000000000000adym"} #67% staked
 
-# Validate dymension binary exists
+# Validate med binary exists
 export PATH=$PATH:$HOME/go/bin
 if ! command -v med > /dev/null; then
-  echo "dymension binary not found in $PATH"
+  echo "med binary not found in $PATH"
   exit 1
 fi
 
-# Create and init dymension chain
+# Create and init metaearth chain
 med init "$MONIKER_NAME" --chain-id="$CHAIN_ID"
 
 # Set chain parameters

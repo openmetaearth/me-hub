@@ -1,6 +1,7 @@
 syntax = "proto3";
 package metaearth.did;
 
+import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
@@ -28,6 +29,8 @@ service Msg {
 }
 
 message MsgCreateDid {
+  option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "did/MsgCreateDid";
   string creator = 1;
   string did = 2;
   string address = 3;
@@ -37,6 +40,8 @@ message MsgCreateDid {
 message MsgCreateDidResponse {}
 
 message MsgUpdateDidStatus {
+  option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "did/MsgUpdateDidStatus";
   string creator = 1;
   string did = 2;
   DidStatus status = 3;
@@ -45,6 +50,8 @@ message MsgUpdateDidStatus {
 message MsgUpdateDidStatusResponse {}
 
 message MsgRemoveDid {
+  option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "did/MsgRemoveDid";
   string creator = 1;
   string did = 2;
 }
@@ -52,6 +59,8 @@ message MsgRemoveDid {
 message MsgRemoveDidResponse {}
 
 message MsgCreateService {
+  option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "did/MsgCreateService";
   string creator = 1;
   string sid = 2;
   string name = 3;
@@ -62,6 +71,8 @@ message MsgCreateService {
 message MsgCreateServiceResponse {}
 
 message MsgUpdateServiceStatus {
+  option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "did/MsgUpdateServiceStatus";
   string creator = 1;
   string sid = 2;
   ServiceStatus status = 3;
@@ -70,6 +81,8 @@ message MsgUpdateServiceStatus {
 message MsgUpdateServiceStatusResponse {}
 
 message MsgRemoveService {
+  option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "did/MsgRemoveService";
   string creator = 1;
   string sid = 2;
 }
@@ -77,6 +90,8 @@ message MsgRemoveService {
 message MsgRemoveServiceResponse {}
 
 message MsgCreateVC {
+  option (cosmos.msg.v1.signer) = "issuer";
+  option (amino.name) = "did/MsgCreateVC";
   string issuer = 1;
   string did = 2;
   string sid = 3;
@@ -89,6 +104,8 @@ message MsgCreateVC {
 message MsgCreateVCResponse {}
 
 message MsgUpdateVC {
+  option (cosmos.msg.v1.signer) = "issuer";
+  option (amino.name) = "did/MsgUpdateVC";
   string issuer = 1;
   string did = 2;
   string sid = 3;
@@ -101,6 +118,8 @@ message MsgUpdateVC {
 message MsgUpdateVCResponse {}
 
 message MsgRemoveVC {
+  option (cosmos.msg.v1.signer) = "issuer";
+  option (amino.name) = "did/MsgRemoveVC";
   string issuer = 1;
   string did = 2;
   string sid = 3;

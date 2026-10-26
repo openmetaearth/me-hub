@@ -16,7 +16,7 @@ export enum CommonRollappPacketType {
   UNDEFINED = "UNDEFINED",
 }
 
-export enum DymensioncommonStatus {
+export enum MetaearthcommonStatus {
   PENDING = "PENDING",
   FINALIZED = "FINALIZED",
   REVERTED = "REVERTED",
@@ -25,7 +25,7 @@ export enum DymensioncommonStatus {
 /**
  * Params defines the parameters for the module.
  */
-export interface DymensioneibcParams {
+export interface MetaeartheibcParams {
   epoch_identifier?: string;
   timeout_fee?: string;
   errack_fee?: string;
@@ -58,7 +58,7 @@ export interface EibcDemandOrder {
    */
   fee?: V1Beta1Coin[];
   recipient?: string;
-  tracking_packet_status?: DymensioncommonStatus;
+  tracking_packet_status?: MetaearthcommonStatus;
   rollapp_id?: string;
   type?: CommonRollappPacketType;
 
@@ -105,7 +105,7 @@ export interface EibcQueryGetDemandOrderResponse {
  */
 export interface EibcQueryParamsResponse {
   /** params holds all the parameters of this module. */
-  params?: DymensioneibcParams;
+  params?: MetaeartheibcParams;
 }
 
 export interface GooglerpcStatus {

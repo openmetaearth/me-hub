@@ -1,17 +1,20 @@
 syntax = "proto3";
 package metaearth.wnft;
 
+import "amino/amino.proto";
 import "gogoproto/gogo.proto";
 
 option go_package = "github.com/openmetaearth/me-hub/x/wnft/types";
 
 message Extension {
+  option (amino.name) = "metaearth.wnft.Extension";
   option (gogoproto.equal) = true;
 
   string data = 1;
 }
 
 message ClassMetadata {
+  option (amino.name) = "metaearth.wnft.ClassMetadata";
   option (gogoproto.equal) = true;
 
   string creator = 1;

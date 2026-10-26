@@ -7,17 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 )
 
-func RegisterCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgCreateDid{}, "did/MsgCreateDid", nil)
-	cdc.RegisterConcrete(&MsgUpdateDidStatus{}, "did/MsgUpdateDidStatus", nil)
-	// cdc.RegisterConcrete(&MsgRemoveDid{}, "did/MsgRemoveDid", nil)
-	cdc.RegisterConcrete(&MsgCreateService{}, "did/MsgCreateService", nil)
-	cdc.RegisterConcrete(&MsgUpdateServiceStatus{}, "did/MsgUpdateServiceStatus", nil)
-	// cdc.RegisterConcrete(&MsgRemoveService{}, "did/MsgRemoveService", nil)
-	cdc.RegisterConcrete(&MsgCreateVC{}, "did/MsgCreateVC", nil)
-	cdc.RegisterConcrete(&MsgUpdateVC{}, "did/MsgUpdateVC", nil)
-	cdc.RegisterConcrete(&MsgRemoveVC{}, "did/MsgRemoveVC", nil)
-}
+func RegisterCodec(*codec.LegacyAmino) {}
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),

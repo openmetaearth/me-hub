@@ -1,6 +1,7 @@
 syntax = "proto3";
 package metaearth.kyc;
 
+import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
@@ -25,6 +26,8 @@ service Msg {
 }
 
 message MsgApprove {
+  option (cosmos.msg.v1.signer) = "issuer";
+  option (amino.name) = "kyc/Approve";
   string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string did = 2; // me-id
   string regionId = 3;
@@ -39,6 +42,8 @@ message MsgApprove {
 message MsgApproveResponse {}
 
 message MsgUpdate {
+  option (cosmos.msg.v1.signer) = "issuer";
+  option (amino.name) = "kyc/Update";
   string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string did = 2;
   string regionId = 3;
@@ -51,6 +56,8 @@ message MsgUpdate {
 message MsgUpdateResponse {}
 
 message MsgRemove {
+  option (cosmos.msg.v1.signer) = "issuer";
+  option (amino.name) = "kyc/Remove";
   string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string did = 2;
 }
@@ -58,6 +65,8 @@ message MsgRemove {
 message MsgRemoveResponse {}
 
 message MsgCreateSBT {
+  option (cosmos.msg.v1.signer) = "issuer";
+  option (amino.name) = "kyc/CreateSBT";
   string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string did = 2;
   string uri = 3;
@@ -68,6 +77,8 @@ message MsgCreateSBT {
 message MsgCreateSBTResponse {}
 
 message MsgUpdateSBT {
+  option (cosmos.msg.v1.signer) = "issuer";
+  option (amino.name) = "kyc/UpdateSBT";
   string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string did = 2;
   string uri = 3;
@@ -78,6 +89,8 @@ message MsgUpdateSBT {
 message MsgUpdateSBTResponse {}
 
 message MsgDeleteSBT {
+  option (cosmos.msg.v1.signer) = "issuer";
+  option (amino.name) = "kyc/DeleteSBT";
   string issuer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string did = 2;
 }
@@ -85,6 +98,8 @@ message MsgDeleteSBT {
 message MsgDeleteSBTResponse {}
 
 message MsgCreateSubAccount {
+  option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "kyc/CreateSubAccount";
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string sub_account = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string sub_account_pubkey = 3;
