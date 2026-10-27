@@ -101,6 +101,10 @@ service Query {
   rpc RegionWithdrawer(QueryRegionWithdrawerRequest) returns (QueryRegionWithdrawerResponse) {
     option (google.api.http).get = "/metaearth/wstaking/region_withdrawer/{region_id}";
   }
+
+  rpc DepositBondInfo(QueryDepositBondInfoRequest) returns (QueryDepositBondInfoResponse) {
+    option (google.api.http).get = "/metaearth/wstaking/deposit_bond_info/{id}";
+  }
 }
 
 message QueryRegionRequest {
@@ -270,4 +274,12 @@ message QueryRegionWithdrawerResponse {
   string region_id = 1;
   // the withdrawer of this region; empty string means this region is not set.
   string address = 2;
+}
+
+message QueryDepositBondInfoRequest {
+  uint64 id = 1;
+}
+
+message QueryDepositBondInfoResponse {
+  string contract_address = 1;
 }

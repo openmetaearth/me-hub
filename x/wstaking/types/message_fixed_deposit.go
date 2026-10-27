@@ -85,3 +85,49 @@ func (msg *MsgWithdrawFixedDeposit) ValidateBasic() error {
 	}
 	return nil
 }
+
+
+
+const TypeMsgBondDepositToPromptSct = "bond_deposit_to_prompt_sct"
+
+var _ sdk.Msg = &MsgBondDepositToPromptSctRequest{}
+
+func NewMsgBondDepositToPromptSctRequest(creator string, contractAddress string, id uint64) *MsgBondDepositToPromptSctRequest {
+	return &MsgBondDepositToPromptSctRequest{
+		Creator:          creator,
+		Address: contractAddress,
+		Id:               id,
+	}
+}
+
+func (msg *MsgBondDepositToPromptSctRequest) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgBondDepositToPromptSctRequest) Type() string {
+	return TypeMsgBondDepositToPromptSct
+}
+
+func (msg *MsgBondDepositToPromptSctRequest) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *MsgBondDepositToPromptSctRequest) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgBondDepositToPromptSctRequest) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+	return nil
+}
+
+	
+

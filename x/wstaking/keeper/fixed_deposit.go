@@ -176,3 +176,18 @@ func (k Keeper) GetFixedDepositTotalAmount(
 	k.cdc.MustUnmarshal(b, &val)
 	return val, true
 }
+
+func (k Keeper) SetDepositBondInfo(ctx sdk.Context, id uint64, address string) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BondDepositToPromptSctKey))
+	b := []byte(address)
+	store.Set(GetFixedDepositIDBytes(id), b)
+}
+
+func (k Keeper) GetDepositBondInfo(ctx sdk.Context, id uint64) (address string, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BondDepositToPromptSctKey))
+	b := store.Get(GetFixedDepositIDBytes(id))
+	if b == nil {
+		return "", false
+	}
+	return string(b), true
+}

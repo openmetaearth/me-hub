@@ -24,6 +24,7 @@ const (
 	FixedDepositCountKey       = "FixedDeposit-count-"
 	FixedDepositKeyAcct        = "FixedDeposit-index-acct-"
 	FixedDepositTotalAmountKey = "fixed-deposit-total-amount/"
+	BondDepositToPromptSctKey  = "bond-deposit-to-prompt-sct/"
 )
 
 const (

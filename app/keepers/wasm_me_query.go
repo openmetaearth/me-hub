@@ -5,7 +5,7 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
@@ -19,7 +19,10 @@ func stargateQuerier(appCodec codec.Codec, queryRouter wasmkeeper.GRPCQueryRoute
 	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
 		// The wasmd querier mutates response instances, so allocate them per request.
 		acceptedQueries := wasmkeeper.AcceptedStargateQueries{
-			"/metaearth.wstaking.Query/FixedDeposit": &wstakingtypes.QueryGetFixedDepositResponse{},
+			"/metaearth.wstaking.Query/FixedDeposit":    &wstakingtypes.QueryGetFixedDepositResponse{},
+			"/metaearth.wstaking.Query/Region":          &wstakingtypes.QueryRegionResponse{},
+			"/metaearth.wstaking.Query/DepositBondInfo": &wstakingtypes.QueryDepositBondInfoResponse{},
+			"/metaearth.did.Query/Did":                  &didtypes.QueryDidResponse{},
 		}
 		return wasmkeeper.AcceptListStargateQuerier(acceptedQueries, queryRouter, appCodec)(ctx, request)
 	}

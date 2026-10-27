@@ -162,3 +162,15 @@ func (k Keeper) FixedDepositAmountByMeid(goCtx context.Context, req *types.Query
 
 	return &types.QueryFixedDepositAmountByMeidResponse{Amount: totalAmount}, nil
 }
+
+func (k Keeper) DepositBondInfo(goCtx context.Context, req *types.QueryDepositBondInfoRequest) (*types.QueryDepositBondInfoResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	addr, found := k.GetDepositBondInfo(ctx, req.Id)
+	if !found {
+		return &types.QueryDepositBondInfoResponse{ContractAddress: ""}, nil
+	}
+	return &types.QueryDepositBondInfoResponse{ContractAddress: addr}, nil
+}
