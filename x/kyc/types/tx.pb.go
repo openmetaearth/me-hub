@@ -997,7 +997,8 @@ type MsgClient interface {
 	UpdateSBT(ctx context.Context, in *MsgUpdateSBT, opts ...grpc.CallOption) (*MsgUpdateSBTResponse, error)
 	DeleteSBT(ctx context.Context, in *MsgDeleteSBT, opts ...grpc.CallOption) (*MsgDeleteSBTResponse, error)
 	CreateSubAccount(ctx context.Context, in *MsgCreateSubAccount, opts ...grpc.CallOption) (*MsgCreateSubAccountResponse, error)
-	// UpdateKycIssuer registers or removes KYC issuers. Only the Global DAO may call it.
+	// UpdateKycIssuer registers or removes KYC issuers. Only the Global DAO may
+	// call it.
 	UpdateKycIssuer(ctx context.Context, in *MsgUpdateKycIssuer, opts ...grpc.CallOption) (*MsgUpdateKycIssuerResponse, error)
 }
 
@@ -1090,7 +1091,8 @@ type MsgServer interface {
 	UpdateSBT(context.Context, *MsgUpdateSBT) (*MsgUpdateSBTResponse, error)
 	DeleteSBT(context.Context, *MsgDeleteSBT) (*MsgDeleteSBTResponse, error)
 	CreateSubAccount(context.Context, *MsgCreateSubAccount) (*MsgCreateSubAccountResponse, error)
-	// UpdateKycIssuer registers or removes KYC issuers. Only the Global DAO may call it.
+	// UpdateKycIssuer registers or removes KYC issuers. Only the Global DAO may
+	// call it.
 	UpdateKycIssuer(context.Context, *MsgUpdateKycIssuer) (*MsgUpdateKycIssuerResponse, error)
 }
 

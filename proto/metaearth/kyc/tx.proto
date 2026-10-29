@@ -24,7 +24,8 @@ service Msg {
 
   rpc CreateSubAccount(MsgCreateSubAccount) returns (MsgCreateSubAccountResponse);
 
-  // UpdateKycIssuer registers or removes KYC issuers. Only the Global DAO may call it.
+  // UpdateKycIssuer registers or removes KYC issuers. Only the Global DAO may
+  // call it.
   rpc UpdateKycIssuer(MsgUpdateKycIssuer) returns (MsgUpdateKycIssuerResponse);
 }
 
