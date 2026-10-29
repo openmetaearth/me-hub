@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -32,7 +33,34 @@ func GetTxCmd() *cobra.Command {
 		CmdUpdateSBT(),
 		CmdDeleteSBT(),
 		CmdCreateSubAccount(),
+		CmdUpdateKycIssuer(),
 	)
+	return cmd
+}
+
+func CmdUpdateKycIssuer() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-kyc-issuer [option-type] [addresses]",
+		Short: "Register (0) or remove (1) KYC issuers as the Global DAO",
+		Long:  "Update KYC issuers using comma-separated account addresses. Adding requires an active registered DID for each address.",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			optionType, err := strconv.ParseInt(args[0], 10, 32)
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgUpdateKycIssuer(clientCtx.GetFromAddress().String(), strings.Split(args[1], ","), int32(optionType))
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 

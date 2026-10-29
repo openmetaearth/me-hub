@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
-	"github.com/openmetaearth/me-hub/x/kyc/types"
 )
 
 /*
@@ -44,15 +43,14 @@ func (k *Keeper) SetDidInfo(ctx sdk.Context, did string, info didtypes.DidInfo) 
 
 func (k Keeper) SetKycIssers(ctx sdk.Context, oldDaoAddress, newDaoAddress []string) error {
 	if len(oldDaoAddress) != len(newDaoAddress) {
-		return nil
+		return errors.New("old and new DAO address counts must match")
 	}
 
-	service, ok := k.GetService(ctx)
+	_, ok := k.GetService(ctx)
 	if !ok {
 		return errors.New("kyc service not found")
 	}
 
-	dids := []string{}
 	for i, dao := range oldDaoAddress {
 		did, found := k.GetDID(ctx, sdk.MustAccAddressFromBech32(dao))
 		if !found {
@@ -69,10 +67,7 @@ func (k Keeper) SetKycIssers(ctx sdk.Context, oldDaoAddress, newDaoAddress []str
 
 		didInfo.Address = newDaoAddress[i]
 		k.SetDidInfo(ctx, did, didInfo)
-		dids = append(dids, did)
 	}
 
-	service.Issuers = dids
-	k.didKeeper.SetService(ctx, types.ModuleName, service)
 	return nil
 }
