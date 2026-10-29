@@ -10,6 +10,10 @@ import (
 	stktypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
+type DaoKeeper interface {
+	IsGlobalDao(ctx sdk.Context, address string) bool
+}
+
 type StakingKeeper interface {
 	GetRegion(ctx sdk.Context, regionId string) (val stktypes.Region, found bool)
 	GetAllRegion(ctx sdk.Context) (regions []stktypes.Region)
