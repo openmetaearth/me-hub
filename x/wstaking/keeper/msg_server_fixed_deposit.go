@@ -342,20 +342,30 @@ func (k MsgServer) WithdrawFixedDeposit(goCtx context.Context, msg *types.MsgWit
 	}, nil
 }
 
-func (k MsgServer)	BondDepositToPromptSct(goCtx context.Context,req *types.MsgBondDepositToPromptSctRequest) (*types.MsgBondDepositToPromptSctResponse, error){
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	deposit,found := k.GetFixedDeposit(ctx,req.Id)
-	if !found {
-		return nil, types.ErrNoFixedDepositFound     
-	}
-	//todo: 处理合约为creator的情况
-	if deposit.Account != req.Creator {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,"only depositor can bond deposit to prompt sct, depositor:(%s), current retreiver:(%s)",deposit.Account,req.Creator)
-	}
-	addr, found := k.GetDepositBondInfo(ctx, req.Id)
-	if found {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,"deposit id:(%d) has been bonded to prompt sct contract address:(%s)",req.Id,addr)
-	}
-	k.SetDepositBondInfo(ctx, req.Id, req.Address)
-	return &types.MsgBondDepositToPromptSctResponse{},nil
+func (k MsgServer) BondDepositToPromptSct(goCtx context.Context, req *types.MsgBondDepositToPromptSctRequest) (*types.MsgBondDepositToPromptSctResponse, error) {
+
+	return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "UnSupport!")
+	/*
+	   ctx := sdk.UnwrapSDKContext(goCtx)
+	   deposit,found := k.GetFixedDeposit(ctx,req.Id)
+
+	   	if !found {
+	   		return nil, types.ErrNoFixedDepositFound
+	   	}
+
+	   //todo: 处理合约为creator的情况
+
+	   	if deposit.Account != req.Creator {
+	   		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,"only depositor can bond deposit to prompt sct, depositor:(%s), current retreiver:(%s)",deposit.Account,req.Creator)
+	   	}
+
+	   addr, found := k.GetDepositBondInfo(ctx, req.Id)
+
+	   	if found {
+	   		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,"deposit id:(%d) has been bonded to prompt sct contract address:(%s)",req.Id,addr)
+	   	}
+
+	   k.SetDepositBondInfo(ctx, req.Id, req.Address)
+	   return &types.MsgBondDepositToPromptSctResponse{},nil
+	*/
 }
