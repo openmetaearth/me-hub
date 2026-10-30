@@ -90,6 +90,8 @@ import (
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 	groupkeeper "github.com/openmetaearth/me-hub/x/megroup/keeper"
 	grouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
+	regiongovkeeper "github.com/openmetaearth/me-hub/x/regiongov/keeper"
+	regiongovtypes "github.com/openmetaearth/me-hub/x/regiongov/types"
 	rollappmodule "github.com/openmetaearth/me-hub/x/rollapp"
 	rollappmodulekeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	"github.com/openmetaearth/me-hub/x/rollapp/transfergenesis"
@@ -159,6 +161,7 @@ type AppKeepers struct {
 	WNFTKeeper          *wnftkeeper.Keeper
 	WasmKeeper          wasmkeeper.Keeper
 	GroupKeeper         *groupkeeper.Keeper
+	RegionGovKeeper     regiongovkeeper.Keeper
 
 	GravityRouterKeeper gravitykeeper.RouterKeeper
 	GravityKeepers
@@ -457,6 +460,13 @@ func (a *AppKeepers) InitKeepers(
 		a.KycKeeper,
 	)
 	a.StakingKeeper.SetGroupKeeper(a.GroupKeeper)
+
+	a.RegionGovKeeper = regiongovkeeper.NewKeeper(
+		appCodec,
+		a.keys[regiongovtypes.StoreKey],
+		a.StakingKeeper,
+		a.DaoKeeper,
+	)
 
 	a.BscKeeper = gravitykeeper.NewKeeper(
 		bsctypes.ModuleName,
