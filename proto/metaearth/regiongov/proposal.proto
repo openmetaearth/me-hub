@@ -1,0 +1,177 @@
+syntax = "proto3";
+package metaearth.regiongov;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/openmetaearth/me-hub/x/regiongov/types";
+
+// ProposalKind is the action a proposal executes after it passes.
+enum ProposalKind {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  PROPOSAL_KIND_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "ProposalKindUnspecified"];
+  PROPOSAL_KIND_TREASURY_WITHDRAW = 1 [(gogoproto.enumvalue_customname) = "ProposalKindTreasuryWithdraw"];
+  PROPOSAL_KIND_REPLACE_REGION_OPERATOR = 2 [(gogoproto.enumvalue_customname) = "ProposalKindReplaceRegionOperator"];
+}
+
+// ProposalStatus is the lifecycle state of a proposal.
+enum ProposalStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  PROPOSAL_STATUS_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "ProposalStatusUnspecified"];
+  PROPOSAL_STATUS_VOTING = 1 [(gogoproto.enumvalue_customname) = "ProposalStatusVoting"];
+  PROPOSAL_STATUS_PASSED = 2 [(gogoproto.enumvalue_customname) = "ProposalStatusPassed"];
+  PROPOSAL_STATUS_REJECTED = 3 [(gogoproto.enumvalue_customname) = "ProposalStatusRejected"];
+  // Execution was attempted after the tally passed, and the payout or operator replacement failed.
+  PROPOSAL_STATUS_FAILED = 4 [(gogoproto.enumvalue_customname) = "ProposalStatusFailed"];
+}
+
+// VoteOption is a yes or no ballot. Abstain is not a vote.
+enum VoteOption {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  VOTE_OPTION_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "VoteOptionUnspecified"];
+  VOTE_OPTION_YES = 1 [(gogoproto.enumvalue_customname) = "VoteOptionYes"];
+  VOTE_OPTION_NO = 2 [(gogoproto.enumvalue_customname) = "VoteOptionNo"];
+}
+
+// ElectorateKind selects which addresses are snapshotted into the 51% count.
+enum ElectorateKind {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  ELECTORATE_KIND_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "ElectorateKindUnspecified"];
+  // Country region operators only. The global region and the experience region do not vote.
+  // The proposing country region is included.
+  ELECTORATE_KIND_COUNTRY_REGION_OPERATORS = 1 [(gogoproto.enumvalue_customname) = "ElectorateKindCountryRegionOperators"];
+  // Equity addresses of one region. The region operator yes-vote is required separately.
+  ELECTORATE_KIND_REGION_EQUITY = 2 [(gogoproto.enumvalue_customname) = "ElectorateKindRegionEquity"];
+}
+
+// DaoVote is the dao ballot. Unspecified means the dao has not voted.
+// The dao may overwrite this value until the proposal is finalized.
+enum DaoVote {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  DAO_VOTE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "DaoVoteUnspecified"];
+  DAO_VOTE_YES = 1 [(gogoproto.enumvalue_customname) = "DaoVoteYes"];
+  DAO_VOTE_NO = 2 [(gogoproto.enumvalue_customname) = "DaoVoteNo"];
+}
+
+// PendingActionKind is an approval handled by the dao, not a counted vote.
+enum PendingActionKind {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  PENDING_ACTION_KIND_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "PendingActionKindUnspecified"];
+  PENDING_ACTION_KIND_SET_EQUITY = 1 [(gogoproto.enumvalue_customname) = "PendingActionKindSetEquity"];
+  PENDING_ACTION_KIND_FREEZE_EQUITY = 2 [(gogoproto.enumvalue_customname) = "PendingActionKindFreezeEquity"];
+  PENDING_ACTION_KIND_UNFREEZE_EQUITY = 3 [(gogoproto.enumvalue_customname) = "PendingActionKindUnfreezeEquity"];
+}
+
+// PendingActionStatus is the lifecycle of a dao approval.
+enum PendingActionStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  PENDING_ACTION_STATUS_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "PendingActionStatusUnspecified"];
+  PENDING_ACTION_STATUS_PENDING = 1 [(gogoproto.enumvalue_customname) = "PendingActionStatusPending"];
+  PENDING_ACTION_STATUS_APPROVED = 2 [(gogoproto.enumvalue_customname) = "PendingActionStatusApproved"];
+  PENDING_ACTION_STATUS_REJECTED = 3 [(gogoproto.enumvalue_customname) = "PendingActionStatusRejected"];
+}
+
+// Withdrawal moves coins from one region treasury to a receiver.
+message Withdrawal {
+  string region_id = 1;
+  string receiver = 2;
+  repeated cosmos.base.v1beta1.Coin amount = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+// TreasuryWithdrawPayload is the body of a treasury withdrawal proposal.
+message TreasuryWithdrawPayload {
+  repeated Withdrawal withdrawals = 1 [(gogoproto.nullable) = false];
+}
+
+// ReplaceRegionOperatorPayload replaces Region.OperatorAddress on the hub.
+message ReplaceRegionOperatorPayload {
+  string region_id = 1;
+  // new_operator is the validator operator address written to Region.OperatorAddress.
+  string new_operator = 2;
+}
+
+// Proposal is a counted vote with a snapshotted electorate.
+message Proposal {
+  uint64 id = 1;
+  ProposalKind kind = 2;
+  string proposer = 3;
+  string title = 4;
+  string summary = 5;
+  ProposalStatus status = 6;
+  google.protobuf.Timestamp submit_time = 7 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false
+  ];
+  google.protobuf.Timestamp voting_end_time = 8 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false
+  ];
+  // voting_period is the voting duration in seconds.
+  uint64 voting_period = 9;
+  ElectorateKind electorate = 10;
+  DaoVote dao_vote = 11;
+  // required_operator is the region operator who must vote yes on an equity withdrawal.
+  // It is Region.OperatorAddress, empty for operator electorates, and outside the 51% count.
+  string required_operator = 12;
+  TreasuryWithdrawPayload treasury = 13;
+  ReplaceRegionOperatorPayload replace_operator = 14;
+}
+
+// Elector is one region operator in a proposal's 51% snapshot.
+message Elector {
+  uint64 proposal_id = 1;
+  // operator is Region.OperatorAddress. The ballot is signed by the account with the same key.
+  string operator = 2;
+  string region_id = 3;
+}
+
+// Vote is a non-dao ballot. It cannot be overwritten.
+message Vote {
+  uint64 proposal_id = 1;
+  string voter = 2;
+  VoteOption option = 3;
+}
+
+// RegionEquity is the public equity-address list of one region.
+message RegionEquity {
+  string region_id = 1;
+  repeated string addresses = 2;
+}
+
+// RegionFreeze records that a whole region cannot propose or vote in this module.
+message RegionFreeze {
+  string region_id = 1;
+  bool frozen = 2;
+}
+
+// EquityFreeze records that one equity address cannot propose or vote.
+message EquityFreeze {
+  string region_id = 1;
+  string address = 2;
+  bool frozen = 3;
+}
+
+// PendingAction is a region-operator request that becomes effective when the dao agrees.
+message PendingAction {
+  uint64 id = 1;
+  PendingActionKind kind = 2;
+  PendingActionStatus status = 3;
+  string region_id = 4;
+  string proposer = 5;
+  repeated string addresses = 6;
+  google.protobuf.Timestamp submit_time = 7 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false
+  ];
+}
