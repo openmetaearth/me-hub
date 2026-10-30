@@ -1,0 +1,24 @@
+syntax = "proto3";
+package metaearth.regiongov;
+
+import "gogoproto/gogo.proto";
+import "metaearth/regiongov/params.proto";
+import "metaearth/regiongov/proposal.proto";
+
+option go_package = "github.com/openmetaearth/me-hub/x/regiongov/types";
+
+// GenesisState defines the regiongov module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  // proposal_seq is the last assigned proposal id. The next proposal uses seq + 1.
+  uint64 proposal_seq = 2;
+  // pending_action_seq is the last assigned pending-action id.
+  uint64 pending_action_seq = 3;
+  repeated Proposal proposals = 4 [(gogoproto.nullable) = false];
+  repeated Elector electors = 5 [(gogoproto.nullable) = false];
+  repeated Vote votes = 6 [(gogoproto.nullable) = false];
+  repeated RegionEquity equities = 7 [(gogoproto.nullable) = false];
+  repeated RegionFreeze region_freezes = 8 [(gogoproto.nullable) = false];
+  repeated EquityFreeze equity_freezes = 9 [(gogoproto.nullable) = false];
+  repeated PendingAction pending_actions = 10 [(gogoproto.nullable) = false];
+}

@@ -1,0 +1,168 @@
+syntax = "proto3";
+package metaearth.regiongov;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "metaearth/regiongov/params.proto";
+import "metaearth/regiongov/proposal.proto";
+
+option go_package = "github.com/openmetaearth/me-hub/x/regiongov/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Params queries the regiongov parameters.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/metaearth/regiongov/params";
+  }
+
+  // Proposal queries one proposal by id.
+  rpc Proposal(QueryProposalRequest) returns (QueryProposalResponse) {
+    option (google.api.http).get = "/metaearth/regiongov/proposals/{id}";
+  }
+
+  // Proposals queries proposals with optional status and kind filters.
+  rpc Proposals(QueryProposalsRequest) returns (QueryProposalsResponse) {
+    option (google.api.http).get = "/metaearth/regiongov/proposals";
+  }
+
+  // Votes queries ballots cast on one proposal.
+  rpc Votes(QueryVotesRequest) returns (QueryVotesResponse) {
+    option (google.api.http).get = "/metaearth/regiongov/votes/{proposal_id}";
+  }
+
+  // Electors queries the snapshotted electorate of one proposal.
+  rpc Electors(QueryElectorsRequest) returns (QueryElectorsResponse) {
+    option (google.api.http).get = "/metaearth/regiongov/electors/{proposal_id}";
+  }
+
+  // Equity queries the public equity addresses of one region.
+  rpc Equity(QueryEquityRequest) returns (QueryEquityResponse) {
+    option (google.api.http).get = "/metaearth/regiongov/equity/{region_id}";
+  }
+
+  // RegionFreeze queries whether a region is frozen.
+  rpc RegionFreeze(QueryRegionFreezeRequest) returns (QueryRegionFreezeResponse) {
+    option (google.api.http).get = "/metaearth/regiongov/region_freeze/{region_id}";
+  }
+
+  // EquityFreezes queries frozen equity addresses of one region.
+  rpc EquityFreezes(QueryEquityFreezesRequest) returns (QueryEquityFreezesResponse) {
+    option (google.api.http).get = "/metaearth/regiongov/equity_freezes/{region_id}";
+  }
+
+  // PendingAction queries one dao approval by id.
+  rpc PendingAction(QueryPendingActionRequest) returns (QueryPendingActionResponse) {
+    option (google.api.http).get = "/metaearth/regiongov/pending_actions/{id}";
+  }
+
+  // PendingActions queries dao approvals.
+  rpc PendingActions(QueryPendingActionsRequest) returns (QueryPendingActionsResponse) {
+    option (google.api.http).get = "/metaearth/regiongov/pending_actions";
+  }
+}
+
+// QueryParamsRequest is the request for Params.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is the response for Params.
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryProposalRequest is the request for Proposal.
+message QueryProposalRequest {
+  uint64 id = 1;
+}
+
+// QueryProposalResponse is the response for Proposal.
+message QueryProposalResponse {
+  Proposal proposal = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryProposalsRequest is the request for Proposals.
+message QueryProposalsRequest {
+  ProposalStatus status = 1;
+  ProposalKind kind = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+// QueryProposalsResponse is the response for Proposals.
+message QueryProposalsResponse {
+  repeated Proposal proposals = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryVotesRequest is the request for Votes.
+message QueryVotesRequest {
+  uint64 proposal_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryVotesResponse is the response for Votes.
+message QueryVotesResponse {
+  repeated Vote votes = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryElectorsRequest is the request for Electors.
+message QueryElectorsRequest {
+  uint64 proposal_id = 1;
+}
+
+// QueryElectorsResponse is the response for Electors.
+message QueryElectorsResponse {
+  repeated Elector electors = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryEquityRequest is the request for Equity.
+message QueryEquityRequest {
+  string region_id = 1;
+}
+
+// QueryEquityResponse is the response for Equity.
+message QueryEquityResponse {
+  RegionEquity equity = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryRegionFreezeRequest is the request for RegionFreeze.
+message QueryRegionFreezeRequest {
+  string region_id = 1;
+}
+
+// QueryRegionFreezeResponse is the response for RegionFreeze.
+message QueryRegionFreezeResponse {
+  bool frozen = 1;
+}
+
+// QueryEquityFreezesRequest is the request for EquityFreezes.
+message QueryEquityFreezesRequest {
+  string region_id = 1;
+}
+
+// QueryEquityFreezesResponse is the response for EquityFreezes.
+message QueryEquityFreezesResponse {
+  repeated EquityFreeze freezes = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryPendingActionRequest is the request for PendingAction.
+message QueryPendingActionRequest {
+  uint64 id = 1;
+}
+
+// QueryPendingActionResponse is the response for PendingAction.
+message QueryPendingActionResponse {
+  PendingAction action = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryPendingActionsRequest is the request for PendingActions.
+message QueryPendingActionsRequest {
+  PendingActionStatus status = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryPendingActionsResponse is the response for PendingActions.
+message QueryPendingActionsResponse {
+  repeated PendingAction actions = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}

@@ -1,0 +1,174 @@
+syntax = "proto3";
+package metaearth.regiongov;
+
+import "cosmos/msg/v1/msg.proto";
+import "metaearth/regiongov/proposal.proto";
+
+option go_package = "github.com/openmetaearth/me-hub/x/regiongov/types";
+
+// Msg defines the regiongov Msg service.
+service Msg {
+  // SubmitProposal opens a treasury withdrawal or region-operator replacement vote.
+  rpc SubmitProposal(MsgSubmitProposal) returns (MsgSubmitProposalResponse);
+  // Vote casts or, for the dao only, overwrites a ballot.
+  rpc Vote(MsgVote) returns (MsgVoteResponse);
+  // SubmitEquityUpdate asks the dao to replace one region's equity addresses.
+  rpc SubmitEquityUpdate(MsgSubmitEquityUpdate) returns (MsgSubmitEquityUpdateResponse);
+  // SubmitFreezeEquity asks the dao to freeze one equity address.
+  rpc SubmitFreezeEquity(MsgSubmitFreezeEquity) returns (MsgSubmitFreezeEquityResponse);
+  // SubmitUnfreezeEquity asks the dao to unfreeze one equity address.
+  rpc SubmitUnfreezeEquity(MsgSubmitUnfreezeEquity) returns (MsgSubmitUnfreezeEquityResponse);
+  // ApprovePendingAction accepts a pending equity update or equity freeze.
+  rpc ApprovePendingAction(MsgApprovePendingAction) returns (MsgApprovePendingActionResponse);
+  // RejectPendingAction rejects a pending equity update or equity freeze.
+  rpc RejectPendingAction(MsgRejectPendingAction) returns (MsgRejectPendingActionResponse);
+  // FreezeRegion freezes a region operator and that region's equity addresses.
+  rpc FreezeRegion(MsgFreezeRegion) returns (MsgFreezeRegionResponse);
+  // UnfreezeRegion restores propose and vote rights for a region.
+  rpc UnfreezeRegion(MsgUnfreezeRegion) returns (MsgUnfreezeRegionResponse);
+  // FreezeEquity freezes one equity address immediately.
+  rpc FreezeEquity(MsgFreezeEquity) returns (MsgFreezeEquityResponse);
+  // UnfreezeEquity restores one equity address immediately.
+  rpc UnfreezeEquity(MsgUnfreezeEquity) returns (MsgUnfreezeEquityResponse);
+}
+
+// MsgSubmitProposal opens a proposal. The proposer must still vote; submitting is not a yes vote.
+message MsgSubmitProposal {
+  option (cosmos.msg.v1.signer) = "proposer";
+
+  string proposer = 1;
+  ProposalKind kind = 2;
+  string title = 3;
+  string summary = 4;
+  // voting_period is the voting duration in seconds.
+  uint64 voting_period = 5;
+  TreasuryWithdrawPayload treasury = 6;
+  ReplaceRegionOperatorPayload replace_operator = 7;
+}
+
+// MsgSubmitProposalResponse returns the new proposal id.
+message MsgSubmitProposalResponse {
+  uint64 id = 1;
+}
+
+// MsgVote submits a yes or no ballot.
+message MsgVote {
+  option (cosmos.msg.v1.signer) = "voter";
+
+  string voter = 1;
+  uint64 proposal_id = 2;
+  VoteOption option = 3;
+}
+
+// MsgVoteResponse is the empty response of Vote.
+message MsgVoteResponse {}
+
+// MsgSubmitEquityUpdate replaces the equity list of one region after dao approval.
+message MsgSubmitEquityUpdate {
+  option (cosmos.msg.v1.signer) = "proposer";
+
+  string proposer = 1;
+  string region_id = 2;
+  repeated string addresses = 3;
+}
+
+// MsgSubmitEquityUpdateResponse returns the pending action id.
+message MsgSubmitEquityUpdateResponse {
+  uint64 action_id = 1;
+}
+
+// MsgSubmitFreezeEquity asks to freeze equity addresses.
+message MsgSubmitFreezeEquity {
+  option (cosmos.msg.v1.signer) = "proposer";
+
+  string proposer = 1;
+  string region_id = 2;
+  repeated string addresses = 3;
+}
+
+// MsgSubmitFreezeEquityResponse returns the pending action id.
+message MsgSubmitFreezeEquityResponse {
+  uint64 action_id = 1;
+}
+
+// MsgSubmitUnfreezeEquity asks to unfreeze equity addresses.
+message MsgSubmitUnfreezeEquity {
+  option (cosmos.msg.v1.signer) = "proposer";
+
+  string proposer = 1;
+  string region_id = 2;
+  repeated string addresses = 3;
+}
+
+// MsgSubmitUnfreezeEquityResponse returns the pending action id.
+message MsgSubmitUnfreezeEquityResponse {
+  uint64 action_id = 1;
+}
+
+// MsgApprovePendingAction approves a pending action.
+message MsgApprovePendingAction {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  string authority = 1;
+  uint64 action_id = 2;
+}
+
+// MsgApprovePendingActionResponse is the empty response of ApprovePendingAction.
+message MsgApprovePendingActionResponse {}
+
+// MsgRejectPendingAction rejects a pending action.
+message MsgRejectPendingAction {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  string authority = 1;
+  uint64 action_id = 2;
+}
+
+// MsgRejectPendingActionResponse is the empty response of RejectPendingAction.
+message MsgRejectPendingActionResponse {}
+
+// MsgFreezeRegion freezes regions without a vote.
+message MsgFreezeRegion {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  string authority = 1;
+  repeated string region_ids = 2;
+}
+
+// MsgFreezeRegionResponse is the empty response of FreezeRegion.
+message MsgFreezeRegionResponse {}
+
+// MsgUnfreezeRegion clears region freezes.
+message MsgUnfreezeRegion {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  string authority = 1;
+  repeated string region_ids = 2;
+}
+
+// MsgUnfreezeRegionResponse is the empty response of UnfreezeRegion.
+message MsgUnfreezeRegionResponse {}
+
+// MsgFreezeEquity freezes one equity address without a pending action.
+message MsgFreezeEquity {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  string authority = 1;
+  string region_id = 2;
+  string address = 3;
+}
+
+// MsgFreezeEquityResponse is the empty response of FreezeEquity.
+message MsgFreezeEquityResponse {}
+
+// MsgUnfreezeEquity clears one equity-address freeze.
+message MsgUnfreezeEquity {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  string authority = 1;
+  string region_id = 2;
+  string address = 3;
+}
+
+// MsgUnfreezeEquityResponse is the empty response of UnfreezeEquity.
+message MsgUnfreezeEquityResponse {}
