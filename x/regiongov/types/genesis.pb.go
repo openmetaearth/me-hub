@@ -26,7 +26,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // GenesisState defines the regiongov module's genesis state.
 type GenesisState struct {
 	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
-	// proposal_seq is the last assigned proposal id. The next proposal uses seq + 1.
+	// proposal_seq is the last assigned proposal id. The next proposal uses seq
+	// + 1.
 	ProposalSeq uint64 `protobuf:"varint,2,opt,name=proposal_seq,json=proposalSeq,proto3" json:"proposal_seq,omitempty"`
 	// pending_action_seq is the last assigned pending-action id.
 	PendingActionSeq uint64          `protobuf:"varint,3,opt,name=pending_action_seq,json=pendingActionSeq,proto3" json:"pending_action_seq,omitempty"`

@@ -25,11 +25,13 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters for region governance.
 type Params struct {
-	// min_voting_period is the shortest voting duration a proposal may set, in seconds.
-	// voting_period must be greater than or equal to this value. There is no maximum.
+	// min_voting_period is the shortest voting duration a proposal may set, in
+	// seconds. voting_period must be greater than or equal to this value. There
+	// is no maximum.
 	MinVotingPeriod uint64 `protobuf:"varint,1,opt,name=min_voting_period,json=minVotingPeriod,proto3" json:"min_voting_period,omitempty"`
 	// pass_threshold_percent is the yes-vote ratio of the snapshotted electorate.
-	// A proposal passes the count when yes * 100 >= eligible * pass_threshold_percent.
+	// A proposal passes the count when yes * 100 >= eligible *
+	// pass_threshold_percent.
 	PassThresholdPercent uint32 `protobuf:"varint,2,opt,name=pass_threshold_percent,json=passThresholdPercent,proto3" json:"pass_threshold_percent,omitempty"`
 	// equity_withdraw_percent is the maximum share of a region treasury balance
 	// an equity-address withdrawal may take. The check runs at execution.

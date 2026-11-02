@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -91,7 +92,7 @@ func CmdVote() *cobra.Command {
 			case "no":
 				option = types.VoteOptionNo
 			default:
-				return nil, fmt.Errorf("vote option must be yes or no")
+				return nil, errors.New("vote option must be yes or no")
 			}
 			return &types.MsgVote{Voter: ctx.GetFromAddress().String(), ProposalId: id, Option: option}, nil
 		})

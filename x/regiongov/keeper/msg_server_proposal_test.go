@@ -38,9 +38,9 @@ func (s *KeeperTestSuite) TestSubmitVoteAndEndBlock() {
 	s.Require().Equal(types.ElectorateKindCountryRegionOperators, stored.Electorate)
 	s.Require().Equal(s.startTime.Add(60*time.Second), stored.VotingEndTime)
 
-	half := s.submit(usa, 60, s.withdrawal(wstakingtypes.MeEarthRegionId))
-	noDao := s.submit(dao, 60, s.withdrawal(wstakingtypes.ExperienceRegionId))
-	country := s.submit(usa, 60, s.withdrawal("usa"))
+	half := s.submit(usa, s.withdrawal(wstakingtypes.MeEarthRegionId))
+	noDao := s.submit(dao, s.withdrawal(wstakingtypes.ExperienceRegionId))
+	country := s.submit(usa, s.withdrawal("usa"))
 	s.Require().ElementsMatch([]string{usa}, s.electorAccounts(country))
 	s.Require().NotContains(s.electorAccounts(country), dao)
 
@@ -82,7 +82,7 @@ func (s *KeeperTestSuite) TestSubmitVoteAndEndBlock() {
 func (s *KeeperTestSuite) TestDaoVetoBeforeEndBlock() {
 	s.SetupTest()
 	usa := operatorAccount(s.usaValidator.OperatorAddress)
-	id := s.submit(usa, 60, s.withdrawal("usa"))
+	id := s.submit(usa, s.withdrawal("usa"))
 
 	s.Require().NoError(s.vote(s.Dao.GlobalDao, id, types.VoteOptionYes))
 	s.Require().Equal(types.DaoVoteYes, s.mustProposal(id).DaoVote)

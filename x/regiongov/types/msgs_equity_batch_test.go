@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/stretchr/testify/require"
+
+	"github.com/openmetaearth/me-hub/testutil/sample"
 )
 
 func TestBatchEquityMessages(t *testing.T) {

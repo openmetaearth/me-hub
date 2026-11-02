@@ -59,7 +59,7 @@ func (s *KeeperTestSuite) TestDaoFreezesAndUnfreezesRegion() {
 	meEarth := operatorAccount(s.meEarthValidator.OperatorAddress)
 	dao := s.Dao.GlobalDao
 
-	open := s.submit(usa, 60, s.withdrawal(wstakingtypes.MeEarthRegionId))
+	open := s.submit(usa, s.withdrawal(wstakingtypes.MeEarthRegionId))
 	s.Require().ElementsMatch([]string{usa}, s.electorAccounts(open))
 
 	_, err := s.msgServer.FreezeRegion(s.Ctx, &types.MsgFreezeRegion{
@@ -117,6 +117,6 @@ func (s *KeeperTestSuite) TestDaoFreezesAndUnfreezesRegion() {
 	s.Require().False(frozen.Frozen)
 
 	s.Require().NoError(s.vote(usa, open, types.VoteOptionYes))
-	restored := s.submit(usa, 60, s.withdrawal("usa"))
+	restored := s.submit(usa, s.withdrawal("usa"))
 	s.Require().ElementsMatch([]string{usa}, s.electorAccounts(restored))
 }

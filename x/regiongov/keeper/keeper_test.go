@@ -99,12 +99,12 @@ func (s *KeeperTestSuite) withdrawal(regionID string) types.Withdrawal {
 	}
 }
 
-func (s *KeeperTestSuite) submit(proposer string, period uint64, withdrawals ...types.Withdrawal) uint64 {
+func (s *KeeperTestSuite) submit(proposer string, withdrawals ...types.Withdrawal) uint64 {
 	res, err := s.msgServer.SubmitProposal(s.Ctx, &types.MsgSubmitProposal{
 		Proposer:     proposer,
 		Kind:         types.ProposalKindTreasuryWithdraw,
 		Title:        "withdraw",
-		VotingPeriod: period,
+		VotingPeriod: 60,
 		Treasury:     &types.TreasuryWithdrawPayload{Withdrawals: withdrawals},
 	})
 	s.Require().NoError(err)

@@ -29,7 +29,7 @@ func TestTxCommands(t *testing.T) {
 	operator := sdk.ValAddress([]byte("operator-address-123")).String()
 	proposalFile := func(name, body string) string {
 		path := filepath.Join(t.TempDir(), name)
-		require.NoError(t, os.WriteFile(path, []byte(body), 0600))
+		require.NoError(t, os.WriteFile(path, []byte(body), 0o600))
 		return path
 	}
 	treasury := proposalFile("treasury.json", fmt.Sprintf(`{"kind":"PROPOSAL_KIND_TREASURY_WITHDRAW","title":"Withdraw","summary":"Budget","voting_period":"3600","treasury":{"withdrawals":[{"region_id":"region-1","receiver":%q,"amount":[{"denom":"umec","amount":"100"}]}]}}`, target))

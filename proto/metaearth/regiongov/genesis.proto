@@ -10,7 +10,8 @@ option go_package = "github.com/openmetaearth/me-hub/x/regiongov/types";
 // GenesisState defines the regiongov module's genesis state.
 message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
-  // proposal_seq is the last assigned proposal id. The next proposal uses seq + 1.
+  // proposal_seq is the last assigned proposal id. The next proposal uses seq
+  // + 1.
   uint64 proposal_seq = 2;
   // pending_action_seq is the last assigned pending-action id.
   uint64 pending_action_seq = 3;

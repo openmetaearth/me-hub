@@ -66,7 +66,8 @@ const (
 	ProposalStatusVoting      ProposalStatus = 1
 	ProposalStatusPassed      ProposalStatus = 2
 	ProposalStatusRejected    ProposalStatus = 3
-	// Execution was attempted after the tally passed, and the payout or operator replacement failed.
+	// Execution was attempted after the tally passed, and the payout or operator
+	// replacement failed.
 	ProposalStatusFailed ProposalStatus = 4
 )
 
@@ -128,10 +129,11 @@ type ElectorateKind int32
 
 const (
 	ElectorateKindUnspecified ElectorateKind = 0
-	// Country region operators only. The global region and the experience region do not vote.
-	// The proposing country region is included.
+	// Country region operators only. The global region and the experience region
+	// do not vote. The proposing country region is included.
 	ElectorateKindCountryRegionOperators ElectorateKind = 1
-	// Equity addresses of one region. The region operator yes-vote is required separately.
+	// Equity addresses of one region. The region operator yes-vote is required
+	// separately.
 	ElectorateKindRegionEquity ElectorateKind = 2
 )
 
@@ -358,7 +360,8 @@ func (m *TreasuryWithdrawPayload) GetWithdrawals() []Withdrawal {
 // ReplaceRegionOperatorPayload replaces Region.OperatorAddress on the hub.
 type ReplaceRegionOperatorPayload struct {
 	RegionId string `protobuf:"bytes,1,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
-	// new_operator is the validator operator address written to Region.OperatorAddress.
+	// new_operator is the validator operator address written to
+	// Region.OperatorAddress.
 	NewOperator string `protobuf:"bytes,2,opt,name=new_operator,json=newOperator,proto3" json:"new_operator,omitempty"`
 }
 
@@ -423,8 +426,9 @@ type Proposal struct {
 	VotingPeriod uint64         `protobuf:"varint,9,opt,name=voting_period,json=votingPeriod,proto3" json:"voting_period,omitempty"`
 	Electorate   ElectorateKind `protobuf:"varint,10,opt,name=electorate,proto3,enum=metaearth.regiongov.ElectorateKind" json:"electorate,omitempty"`
 	DaoVote      DaoVote        `protobuf:"varint,11,opt,name=dao_vote,json=daoVote,proto3,enum=metaearth.regiongov.DaoVote" json:"dao_vote,omitempty"`
-	// required_operator is the region operator who must vote yes on an equity withdrawal.
-	// It is Region.OperatorAddress, empty for operator electorates, and outside the 51% count.
+	// required_operator is the region operator who must vote yes on an equity
+	// withdrawal. It is Region.OperatorAddress, empty for operator electorates,
+	// and outside the 51% count.
 	RequiredOperator string                        `protobuf:"bytes,12,opt,name=required_operator,json=requiredOperator,proto3" json:"required_operator,omitempty"`
 	Treasury         *TreasuryWithdrawPayload      `protobuf:"bytes,13,opt,name=treasury,proto3" json:"treasury,omitempty"`
 	ReplaceOperator  *ReplaceRegionOperatorPayload `protobuf:"bytes,14,opt,name=replace_operator,json=replaceOperator,proto3" json:"replace_operator,omitempty"`
@@ -564,7 +568,8 @@ func (m *Proposal) GetReplaceOperator() *ReplaceRegionOperatorPayload {
 // Elector is one region operator in a proposal's 51% snapshot.
 type Elector struct {
 	ProposalId uint64 `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
-	// operator is Region.OperatorAddress. The ballot is signed by the account with the same key.
+	// operator is Region.OperatorAddress. The ballot is signed by the account
+	// with the same key.
 	Operator string `protobuf:"bytes,2,opt,name=operator,proto3" json:"operator,omitempty"`
 	RegionId string `protobuf:"bytes,3,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
 }
@@ -737,7 +742,8 @@ func (m *RegionEquity) GetAddresses() []string {
 	return nil
 }
 
-// RegionFreeze records that a whole region cannot propose or vote in this module.
+// RegionFreeze records that a whole region cannot propose or vote in this
+// module.
 type RegionFreeze struct {
 	RegionId string `protobuf:"bytes,1,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
 	Frozen   bool   `protobuf:"varint,2,opt,name=frozen,proto3" json:"frozen,omitempty"`
@@ -851,7 +857,8 @@ func (m *EquityFreeze) GetFrozen() bool {
 	return false
 }
 
-// PendingAction is a region-operator request that becomes effective when the dao agrees.
+// PendingAction is a region-operator request that becomes effective when the
+// dao agrees.
 type PendingAction struct {
 	Id         uint64              `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Kind       PendingActionKind   `protobuf:"varint,2,opt,name=kind,proto3,enum=metaearth.regiongov.PendingActionKind" json:"kind,omitempty"`

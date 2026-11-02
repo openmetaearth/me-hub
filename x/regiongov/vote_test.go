@@ -37,7 +37,7 @@ func (d stubDao) IsGlobalDao(_ sdk.Context, address string) bool {
 	return d.dao != "" && d.dao == address
 }
 
-func regionOf(id string, operatorAcc string) wstakingtypes.Region {
+func regionOf(id, operatorAcc string) wstakingtypes.Region {
 	return wstakingtypes.Region{
 		RegionId:        id,
 		OperatorAddress: sdk.ValAddress(sdk.MustAccAddressFromBech32(operatorAcc)).String(),

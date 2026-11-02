@@ -133,9 +133,10 @@ func (k Keeper) proposerAuthority(ctx sdk.Context, proposer string) (bool, []str
 		return false, nil, err
 	}
 	dao := k.isDao(ctx, proposer)
-	var operatorRegionIDs []string
+	regions := k.stakingKeeper.GetAllRegion(ctx)
+	operatorRegionIDs := make([]string, 0, len(regions))
 	frozenOperator := false
-	for _, region := range k.stakingKeeper.GetAllRegion(ctx) {
+	for _, region := range regions {
 		operator, ok := operatorAccount(region.OperatorAddress)
 		if !ok || !operator.Equals(acc) {
 			continue
@@ -162,9 +163,10 @@ func (k Keeper) snapshotElectors(ctx sdk.Context, proposalID uint64, kind types.
 	if kind != types.ElectorateKindCountryRegionOperators {
 		return nil, sdkerrors.Wrap(types.ErrInvalidProposal, "electorate is not a counted operator vote")
 	}
+	regions := k.stakingKeeper.GetAllRegion(ctx)
 	seen := make(map[string]struct{})
-	var electors []types.Elector
-	for _, region := range k.stakingKeeper.GetAllRegion(ctx) {
+	electors := make([]types.Elector, 0, len(regions))
+	for _, region := range regions {
 		if isSpecialRegion(region.RegionId) {
 			continue
 		}

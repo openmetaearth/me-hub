@@ -28,7 +28,8 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgSubmitProposal opens a proposal. The proposer must still vote; submitting is not a yes vote.
+// MsgSubmitProposal opens a proposal. The proposer must still vote; submitting
+// is not a yes vote.
 type MsgSubmitProposal struct {
 	Proposer string       `protobuf:"bytes,1,opt,name=proposer,proto3" json:"proposer,omitempty"`
 	Kind     ProposalKind `protobuf:"varint,2,opt,name=kind,proto3,enum=metaearth.regiongov.ProposalKind" json:"kind,omitempty"`
@@ -265,7 +266,8 @@ func (m *MsgVoteResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgVoteResponse proto.InternalMessageInfo
 
-// MsgSubmitEquityUpdate replaces the equity list of one region after dao approval.
+// MsgSubmitEquityUpdate replaces the equity list of one region after dao
+// approval.
 type MsgSubmitEquityUpdate struct {
 	Proposer  string   `protobuf:"bytes,1,opt,name=proposer,proto3" json:"proposer,omitempty"`
 	RegionId  string   `protobuf:"bytes,2,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
@@ -636,7 +638,8 @@ func (m *MsgApprovePendingAction) GetActionId() uint64 {
 	return 0
 }
 
-// MsgApprovePendingActionResponse is the empty response of ApprovePendingAction.
+// MsgApprovePendingActionResponse is the empty response of
+// ApprovePendingAction.
 type MsgApprovePendingActionResponse struct {
 }
 
@@ -1239,7 +1242,8 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	// SubmitProposal opens a treasury withdrawal or region-operator replacement vote.
+	// SubmitProposal opens a treasury withdrawal or region-operator replacement
+	// vote.
 	SubmitProposal(ctx context.Context, in *MsgSubmitProposal, opts ...grpc.CallOption) (*MsgSubmitProposalResponse, error)
 	// Vote casts or, for the dao only, overwrites a ballot.
 	Vote(ctx context.Context, in *MsgVote, opts ...grpc.CallOption) (*MsgVoteResponse, error)
@@ -1372,7 +1376,8 @@ func (c *msgClient) UnfreezeEquity(ctx context.Context, in *MsgUnfreezeEquity, o
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	// SubmitProposal opens a treasury withdrawal or region-operator replacement vote.
+	// SubmitProposal opens a treasury withdrawal or region-operator replacement
+	// vote.
 	SubmitProposal(context.Context, *MsgSubmitProposal) (*MsgSubmitProposalResponse, error)
 	// Vote casts or, for the dao only, overwrites a ballot.
 	Vote(context.Context, *MsgVote) (*MsgVoteResponse, error)

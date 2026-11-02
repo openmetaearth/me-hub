@@ -269,8 +269,5 @@ func validateEquityTarget(signer, regionID, address string) error {
 	if err := validateRegionID(regionID); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
-	if err := validateAccAddress(address); err != nil {
-		return err
-	}
-	return nil
+	return validateAccAddress(address)
 }

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -23,14 +24,14 @@ func validateAccAddress(address string) error {
 
 func validateRegionID(regionID string) error {
 	if regionID == "" {
-		return fmt.Errorf("region id is empty")
+		return errors.New("region id is empty")
 	}
 	return nil
 }
 
 func validateCoins(amount sdk.Coins) error {
 	if amount.Empty() {
-		return fmt.Errorf("amount is empty")
+		return errors.New("amount is empty")
 	}
 	if err := amount.Validate(); err != nil {
 		return fmt.Errorf("invalid amount: %w", err)
@@ -54,7 +55,7 @@ func validateUniqueAddresses(addresses []string) error {
 
 func validateEquityFreezeAddresses(addresses []string) error {
 	if len(addresses) == 0 {
-		return fmt.Errorf("equity freeze action requires at least one address")
+		return errors.New("equity freeze action requires at least one address")
 	}
 	seen := make(map[string]struct{}, len(addresses))
 	for _, address := range addresses {
@@ -73,7 +74,7 @@ func validateEquityFreezeAddresses(addresses []string) error {
 
 func validateWithdrawals(withdrawals []Withdrawal) error {
 	if len(withdrawals) == 0 {
-		return fmt.Errorf("treasury withdrawal is empty")
+		return errors.New("treasury withdrawal is empty")
 	}
 	seen := make(map[string]struct{}, len(withdrawals))
 	for _, withdrawal := range withdrawals {
@@ -96,7 +97,7 @@ func validateWithdrawals(withdrawals []Withdrawal) error {
 
 func validateReplaceOperator(payload *ReplaceRegionOperatorPayload) error {
 	if payload == nil {
-		return fmt.Errorf("replace operator payload is empty")
+		return errors.New("replace operator payload is empty")
 	}
 	if err := validateRegionID(payload.RegionId); err != nil {
 		return err

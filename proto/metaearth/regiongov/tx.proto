@@ -8,7 +8,8 @@ option go_package = "github.com/openmetaearth/me-hub/x/regiongov/types";
 
 // Msg defines the regiongov Msg service.
 service Msg {
-  // SubmitProposal opens a treasury withdrawal or region-operator replacement vote.
+  // SubmitProposal opens a treasury withdrawal or region-operator replacement
+  // vote.
   rpc SubmitProposal(MsgSubmitProposal) returns (MsgSubmitProposalResponse);
   // Vote casts or, for the dao only, overwrites a ballot.
   rpc Vote(MsgVote) returns (MsgVoteResponse);
@@ -32,7 +33,8 @@ service Msg {
   rpc UnfreezeEquity(MsgUnfreezeEquity) returns (MsgUnfreezeEquityResponse);
 }
 
-// MsgSubmitProposal opens a proposal. The proposer must still vote; submitting is not a yes vote.
+// MsgSubmitProposal opens a proposal. The proposer must still vote; submitting
+// is not a yes vote.
 message MsgSubmitProposal {
   option (cosmos.msg.v1.signer) = "proposer";
 
@@ -63,7 +65,8 @@ message MsgVote {
 // MsgVoteResponse is the empty response of Vote.
 message MsgVoteResponse {}
 
-// MsgSubmitEquityUpdate replaces the equity list of one region after dao approval.
+// MsgSubmitEquityUpdate replaces the equity list of one region after dao
+// approval.
 message MsgSubmitEquityUpdate {
   option (cosmos.msg.v1.signer) = "proposer";
 
@@ -113,7 +116,8 @@ message MsgApprovePendingAction {
   uint64 action_id = 2;
 }
 
-// MsgApprovePendingActionResponse is the empty response of ApprovePendingAction.
+// MsgApprovePendingActionResponse is the empty response of
+// ApprovePendingAction.
 message MsgApprovePendingActionResponse {}
 
 // MsgRejectPendingAction rejects a pending action.

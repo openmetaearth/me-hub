@@ -26,12 +26,10 @@ var (
 )
 
 // AppModuleBasic implements the AppModuleBasic interface for regiongov.
-type AppModuleBasic struct {
-	cdc codec.BinaryCodec
-}
+type AppModuleBasic struct{}
 
-func NewAppModuleBasic(cdc codec.BinaryCodec) AppModuleBasic {
-	return AppModuleBasic{cdc: cdc}
+func NewAppModuleBasic(codec.BinaryCodec) AppModuleBasic {
+	return AppModuleBasic{}
 }
 
 func (AppModuleBasic) Name() string { return types.ModuleName }
