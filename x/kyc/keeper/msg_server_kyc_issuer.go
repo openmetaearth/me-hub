@@ -26,6 +26,9 @@ func (m msgServer) UpdateKycIssuer(goCtx context.Context, msg *types.MsgUpdateKy
 	// Work on a copy and persist only after every address has been checked.
 	issuers := slices.Clone(service.Issuers)
 	for _, address := range msg.Addresses {
+		if msg.OptionType == types.KycIssuerRemove && m.daoKeeper.IsDao(ctx, address) {
+			return nil, errorsmod.Wrap(types.ErrDaoIssuerRemovalForbidden, address)
+		}
 		did, found := m.GetDID(ctx, sdk.MustAccAddressFromBech32(address))
 		if !found {
 			return nil, errorsmod.Wrap(didtypes.ErrDidNotFound, address)

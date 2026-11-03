@@ -12,6 +12,7 @@ import (
 
 type DaoKeeper interface {
 	IsGlobalDao(ctx sdk.Context, address string) bool
+	IsDao(ctx sdk.Context, address string) bool
 }
 
 type StakingKeeper interface {
