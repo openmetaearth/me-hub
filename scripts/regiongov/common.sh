@@ -4,24 +4,38 @@ ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "$ROOT/config.sh"
 command -v "$MED_BIN" >/dev/null || { echo "med binary not found: $MED_BIN" >&2; exit 1; }
 command -v jq >/dev/null || { echo 'jq is required' >&2; exit 1; }
-NET=()
-KEY=()
+NET=(--home ./nodes/hub-nodes/node1)
+KEY=(--home ./nodes/hub-nodes/node1)
 [[ -z $NODE ]] || NET+=(--node "$NODE")
 [[ -z $KEYRING_BACKEND ]] || KEY+=(--keyring-backend "$KEYRING_BACKEND")
 fail() { echo "FAIL: $*" >&2; exit 1; }
 query() { "$MED_BIN" query regiongov "$@" ${NET[@]+"${NET[@]}"} --output json; }
-key_address() { "$MED_BIN" keys show "$1" -a ${KEY[@]+"${KEY[@]}"}; }
-assert_json() { jq -e "$@" >/dev/null || fail 'JSON assertion failed'; }
+key_address() { "$MED_BIN" keys show "$1" -a "${KEY[@]}"; }
+assert_json() {
+ local response
+ response=$(cat)
+ if ! printf '%s' "$response" | jq -e "$@" >/dev/null; then
+  printf 'Assertion: %s\nResponse: %s\n' "$*" "$response" >&2
+  fail 'JSON assertion failed'
+ fi
+}
 
 # Never retry broadcasting: a timeout may mean the transaction has already committed.
 send_tx() {
- local signer=$1 hash deadline response
+ local signer=$1
  shift
- local options=(--from "$signer" --chain-id "$CHAIN_ID" --gas "$GAS" --gas-adjustment "$GAS_ADJUSTMENT" --broadcast-mode sync --yes --output json)
+ send_module_tx "$signer" regiongov "$@"
+}
+
+send_module_tx() {
+ local signer=$1 module=$2 hash deadline response
+ shift 2
+ local options=(--from "$signer" --gas "$GAS" --gas-adjustment "$GAS_ADJUSTMENT" --broadcast-mode sync --yes --output json)
+ [[ -z $CHAIN_ID ]] || options+=(--chain-id "$CHAIN_ID")
  [[ -z $FEES ]] || options+=(--fees "$FEES")
  [[ -z $GAS_PRICES ]] || options+=(--gas-prices "$GAS_PRICES")
- echo "TX: $* (from $signer)" >&2
- response=$("$MED_BIN" tx regiongov "$@" "${options[@]}" ${NET[@]+"${NET[@]}"} ${KEY[@]+"${KEY[@]}"}) || fail "broadcast failed: $*"
+ echo "TX: $module $* (from $signer)" >&2
+ response=$("$MED_BIN" tx "$module" "$@" "${options[@]}" ${NET[@]+"${NET[@]}"} ${KEY[@]+"${KEY[@]}"}) || fail "broadcast failed: $*"
  printf '%s\n' "$response" > "$RESULT_DIR/broadcast.json"
  printf '%s' "$response" | assert_json '(.code // 0 | tonumber) == 0'
  hash=$(printf '%s' "$response" | jq -er '.txhash | select(length > 0)')

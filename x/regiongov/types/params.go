@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	// DefaultMinVotingPeriod is one hour, expressed in seconds.
-	DefaultMinVotingPeriod uint64 = 3600
+	// DefaultMinVotingPeriod is 5 minutes, expressed in seconds.
+	DefaultMinVotingPeriod uint64 = 300
 	// MaxVotingPeriod is the largest duration time.Duration can represent, in seconds.
 	MaxVotingPeriod              uint64 = uint64(math.MaxInt64 / int64(time.Second))
 	DefaultPassThresholdPercent  uint32 = 51

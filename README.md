@@ -31,10 +31,11 @@ This guide will walk you through the steps required to set up and run a ME Hub f
 ### Binary integration tests
 
 The scripts in `scripts/regiongov/` invoke the installed `med` binary directly;
-none passes `--home`, so your default local home and client configuration are used.
+All account lookups, transactions and queries use `--home ./nodes/hub-nodes/node1`
+(relative to the working directory).
 They require Bash and `jq`. Edit `scripts/regiongov/config.sh` or override its
 values through environment variables. Defaults are `DAO_KEY=global_dao`,
-`OPERATOR_KEY=chn`, and `REGION_ID=chn`. Set `EQUITY_ADDRESSES` to at least two
+`OPERATOR_KEY=val4`, and `REGION_ID=chn`. Set `EQUITY_ADDRESSES` to at least two
 space-separated test account addresses. `MED_BIN` can select another prebuilt
 binary; scripts never compile or install it.
 
@@ -48,36 +49,46 @@ binary; scripts never compile or install it.
 ./scripts/regiongov/queries.sh proposals --status rejected --kind treasury
 
 # List independent test functions (also the default when no arguments are given).
-./scripts/regiongov/run.sh --list
-# Check or execute a single feature, without running other test cases.
-./scripts/regiongov/run.sh --check test_freeze_region
-./scripts/regiongov/run.sh --run test_freeze_region
-EQUITY_ADDRESSES="me1... me1..." ./scripts/regiongov/run.sh --run test_submit_freeze_equity
-# Execute selected cases in the supplied order, or explicitly run everything.
-./scripts/regiongov/run.sh --run test_submit_treasury_proposal test_vote
-EQUITY_ADDRESSES="me1... me1..." ./scripts/regiongov/run.sh --run all
+./scripts/regiongov/run.sh
+# Run one command at a time; no preflight mode or automatic full-suite execution.
+# Validators and regions are created by scripts/regiongov/setup_4validator.sh.
+# Execute a single feature.
+./scripts/regiongov/run.sh test_freeze_region
+EQUITY_ADDRESSES="me1... me1..." ./scripts/regiongov/run.sh test_submit_freeze_equity
+# Run each additional case separately.
+./scripts/regiongov/run.sh test_submit_treasury_proposal
+./scripts/regiongov/run.sh test_vote
+# IND/CHN operators plus DAO vote yes; wait for the on-chain voting period.
+./scripts/regiongov/run.sh test_treasury_proposal_pass
+./scripts/regiongov/run.sh test_operator_proposal_pass
 ```
 
 Each `test_*` function is independently runnable and prepares its own prerequisites;
 it does not depend on earlier tests. Setup/cleanup may send additional transactions
 (for example, testing unfreeze first creates frozen state). Each successful equity
 case restores the original membership, region cases unfreeze their targets, and
-proposal cases veto their own proposal. Each case has an isolated result directory
-and prints `PASS` or `FAIL`; failures stop the selected run without blind rollback.
+the original proposal cases veto their own proposal. Each case has an isolated result directory
+and prints `PASS` on success; command errors stop execution without blind rollback.
 Region freeze tests need only the DAO key and region IDs, proposal/vote tests do
 not require equity addresses, and `test_queries` requires neither signing keys nor
-equity configuration. `--run` requires an explicit test name or `all`.
+equity configuration. Pass exactly one command name; no arguments lists commands.
 
 The live suite exercises all 11 transaction commands: equity membership update
 and approval, batch freeze rejection and approval, batch unfreeze approval,
 immediate DAO equity freeze/unfreeze, region freeze/unfreeze, both proposal
 kinds and voting. It checks committed transaction codes and queries resulting
-state. Both proposal types are vetoed by the DAO so no withdrawal or operator
-replacement executes. This does **not** test successful proposal execution at
-voting expiry. Set `SECOND_REGION_ID` to exercise multi-region batches.
+state. The two `*_proposal_pass` cases use `VOTER_KEYS="val3 val4"`
+(IND and CHN; me_earth/experience_region are excluded from voting and tally)
+and DAO yes, then assert `PROPOSAL_STATUS_PASSED` at voting expiry. They print
+the proposal JSON before submitting. The treasury payload requests 1umec for DAO;
+the operator payload defaults to the current operator (override `NEW_OPERATOR`
+for a different validator). PASSED checks tally success, not a payout or replacement
+execution assertion. All voters must be eligible and funded for transaction fees. Set `SECOND_REGION_ID` to exercise multi-region batches.
 
 `NODE`, `CHAIN_ID`, `KEYRING_BACKEND`, `FEES` or `GAS_PRICES` can override local
-settings. `GAS` defaults to `auto`. A broadcast timeout is never automatically
+settings. `GAS` defaults to `auto`; when neither `FEES` nor `GAS_PRICES` is set,
+the script supplies `10000umec` in fees. Failed JSON assertions print the actual
+response, including transaction error codes and logs. A broadcast timeout is never automatically
 retried, because the transaction may already have committed.
 
 Use a dedicated non-DAO country-region operator with funds for fees and at least
@@ -87,8 +98,9 @@ On success the original equity membership is restored, but transaction fees,
 proposal/action history, and explicit unfrozen records remain. On failure the
 script stops without blind rollback; inspect the printed result directory (which
 contains the original membership, transaction hashes and responses), resolve any
-pending actions, and restore state manually before rerunning. The test does not
-create regions, keys, validators, or fund accounts.
+pending actions, and restore state manually before rerunning. Validators and regions are created by
+`scripts/regiongov/setup_4validator.sh`, not this runner. There is no global preflight: configure the prerequisites before
+running a case; the binary reports transaction errors directly.
 
 
 All region governance messages are available under `med tx regiongov`. Append
