@@ -18,4 +18,5 @@ var (
 	ErrSubAccountHasDID            = errors.Register(ModuleName, 110, "sub account already has a DID")
 	ErrSubAccountHasDelegation     = errors.Register(ModuleName, 111, "sub account already has delegation")
 	ErrMainAccountPubKeyErr        = errors.Register(ModuleName, 112, "main account must be an cosmos account")
+	ErrDaoIssuerRemovalForbidden   = errors.Register(ModuleName, 113, "cannot remove global_dao or meid_dao as a KYC issuer")
 )
