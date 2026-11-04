@@ -141,6 +141,69 @@ func (s *KeeperTestSuite) TestUpdateKycIssuerRemovalRejectsInvalidIdentityWithou
 	}
 }
 
+func (s *KeeperTestSuite) TestUpdateKycIssuerCannotRemoveDaoIssuers() {
+	issuer, pubKey, _ := s.newSecp256k1UserAccount()
+	s.setupActiveKyc(issuer, pubKey, "1000000000002")
+	_, err := s.msgServer.UpdateKycIssuer(s.Ctx, types.NewMsgUpdateKycIssuer(
+		s.Dao.GlobalDao, []string{issuer.String()}, types.KycIssuerAdd,
+	))
+	s.Require().NoError(err)
+
+	for _, tc := range []struct {
+		name    string
+		address string
+		did     string
+	}{
+		{name: "global_dao", address: s.Dao.GlobalDao, did: "1000000000010"},
+		{name: "meid_dao", address: s.Dao.MeidDao, did: "1000000000011"},
+	} {
+		s.Run(tc.name, func() {
+			ctx, _ := s.Ctx.CacheContext()
+			addr := sdk.MustAccAddressFromBech32(tc.address)
+			s.Keeper().SetDID(ctx, addr, tc.did)
+			s.Keeper().SetDidInfo(ctx, tc.did, didtypes.DidInfo{
+				Did: tc.did, Address: tc.address, Status: didtypes.DID_STATUS_ACTIVE,
+			})
+			// Both DAO roles may still be added as issuers.
+			_, err := s.msgServer.UpdateKycIssuer(ctx, types.NewMsgUpdateKycIssuer(
+				s.Dao.GlobalDao, []string{tc.address}, types.KycIssuerAdd,
+			))
+			s.Require().NoError(err)
+			original, found := s.Keeper().GetService(ctx)
+			s.Require().True(found)
+			s.Require().Contains(original.Issuers, tc.did)
+			eventCount := len(ctx.EventManager().Events())
+
+			for _, addresses := range [][]string{{tc.address}, {issuer.String(), tc.address}} {
+				_, err := s.msgServer.UpdateKycIssuer(ctx, types.NewMsgUpdateKycIssuer(
+					s.Dao.GlobalDao, addresses, types.KycIssuerRemove,
+				))
+				s.Require().ErrorIs(err, types.ErrDaoIssuerRemovalForbidden)
+				s.Require().ErrorContains(err, tc.address)
+				service, found := s.Keeper().GetService(ctx)
+				s.Require().True(found)
+				s.Require().Equal(original, service)
+				s.Require().Len(ctx.EventManager().Events(), eventCount)
+			}
+
+			// DAO protection also applies when its address-to-DID index is missing.
+			s.App.DidKeeper.DeleteDID(ctx, addr)
+			_, err = s.msgServer.UpdateKycIssuer(ctx, types.NewMsgUpdateKycIssuer(
+				s.Dao.GlobalDao, []string{tc.address}, types.KycIssuerRemove,
+			))
+			s.Require().ErrorIs(err, types.ErrDaoIssuerRemovalForbidden)
+		})
+	}
+	// Removing an ordinary issuer remains allowed after rejected DAO removals.
+	_, err = s.msgServer.UpdateKycIssuer(s.Ctx, types.NewMsgUpdateKycIssuer(
+		s.Dao.GlobalDao, []string{issuer.String()}, types.KycIssuerRemove,
+	))
+	s.Require().NoError(err)
+	service, found := s.Keeper().GetService(s.Ctx)
+	s.Require().True(found)
+	s.Require().NotContains(service.Issuers, "1000000000002")
+}
+
 func (s *KeeperTestSuite) TestDaoRotationPreservesKycIssuerMemberships() {
 	issuer, pubKey, _ := s.newSecp256k1UserAccount()
 	s.setupActiveKyc(issuer, pubKey, "1000000000002")
@@ -163,10 +226,10 @@ func (s *KeeperTestSuite) TestDaoRotationPreservesKycIssuerMemberships() {
 	_, found := s.Keeper().GetDID(s.Ctx, sdk.MustAccAddressFromBech32(s.Dao.GlobalDao))
 	s.Require().False(found)
 	_, err = s.msgServer.UpdateKycIssuer(s.Ctx, types.NewMsgUpdateKycIssuer(newDao.String(), []string{newDao.String()}, types.KycIssuerRemove))
-	s.Require().NoError(err)
+	s.Require().ErrorIs(err, types.ErrDaoIssuerRemovalForbidden)
 	_, err = daoServer.UpdateDao(s.Ctx, daotypes.NewMsgUpdateDao(newDao, s.Dao))
 	s.Require().NoError(err)
 	service, _ = s.Keeper().GetService(s.Ctx)
-	s.Require().NotContains(service.Issuers, "1000000000001")
+	s.Require().Equal(original.Issuers, service.Issuers)
 	s.Require().Contains(service.Issuers, "1000000000002")
 }
