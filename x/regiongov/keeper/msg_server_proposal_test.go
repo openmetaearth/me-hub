@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/openmetaearth/me-hub/x/regiongov/types"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
@@ -169,6 +170,57 @@ func (s *KeeperTestSuite) TestSubmitAuthorization() {
 		Treasury:     &types.TreasuryWithdrawPayload{Withdrawals: []types.Withdrawal{s.withdrawal(wstakingtypes.MeEarthRegionId)}},
 	})
 	s.Require().ErrorIs(err, types.ErrRegionFrozen)
+}
+
+func (s *KeeperTestSuite) TestExecuteTreasuryAndReplaceOperator() {
+	s.SetupTest()
+	usa := operatorAccount(s.usaValidator.OperatorAddress)
+	dao := s.Dao.GlobalDao
+	receiver := sample.AccAddress()
+
+	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
+	s.Require().True(found)
+	before := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), params.BaseDenom)
+	amount := sdk.NewCoins(sdk.NewInt64Coin(params.BaseDenom, 100))
+
+	id := s.submit(usa, types.Withdrawal{
+		RegionId: "usa",
+		Receiver: receiver,
+		Amount:   amount,
+	})
+	s.Require().NoError(s.vote(usa, id, types.VoteOptionYes))
+	s.Require().NoError(s.vote(dao, id, types.VoteOptionYes))
+	s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(id).Status)
+
+	s.endBlockAt(s.mustProposal(id).VotingEndTime)
+	s.Require().Equal(types.ProposalStatusPassed, s.mustProposal(id).Status)
+
+	after := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(region.RegionTreasureAddr), params.BaseDenom)
+	got := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(receiver), params.BaseDenom)
+	s.Require().Equal(before.Amount.Sub(amount[0].Amount), after.Amount)
+	s.Require().Equal(amount[0].Amount, got.Amount)
+
+	replace, err := s.msgServer.SubmitProposal(s.Ctx, &types.MsgSubmitProposal{
+		Proposer:     dao,
+		Kind:         types.ProposalKindReplaceRegionOperator,
+		Title:        "replace usa",
+		VotingPeriod: 60,
+		ReplaceOperator: &types.ReplaceRegionOperatorPayload{
+			RegionId:    "usa",
+			NewOperator: s.meEarthValidator.OperatorAddress,
+		},
+	})
+	s.Require().NoError(err)
+	s.Require().NoError(s.vote(usa, replace.Id, types.VoteOptionYes))
+	s.Require().NoError(s.vote(dao, replace.Id, types.VoteOptionYes))
+	s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(replace.Id).Status)
+
+	s.endBlockAt(s.mustProposal(replace.Id).VotingEndTime)
+	s.Require().Equal(types.ProposalStatusPassed, s.mustProposal(replace.Id).Status)
+
+	updated, found := s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
+	s.Require().True(found)
+	s.Require().Equal(s.meEarthValidator.OperatorAddress, updated.OperatorAddress)
 }
 
 func (s *KeeperTestSuite) mustProposal(id uint64) types.Proposal {

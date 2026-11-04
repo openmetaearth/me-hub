@@ -18,4 +18,5 @@ var (
 	ErrNotEquityAddress      = sdkerrors.Register(ModuleName, 13, "address is not an equity address of the region")
 	ErrEquityNotFrozen       = sdkerrors.Register(ModuleName, 14, "equity address is not frozen")
 	ErrEquityFrozen          = sdkerrors.Register(ModuleName, 15, "equity address is frozen")
+	ErrProposalExecution     = sdkerrors.Register(ModuleName, 16, "proposal execution failed")
 )

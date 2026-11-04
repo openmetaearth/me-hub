@@ -6,6 +6,7 @@ import (
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
@@ -78,6 +79,13 @@ func (s *KeeperTestSuite) SetupTest() {
 			OperatorAddress: region.operator,
 		})
 		s.Require().NoError(err)
+	}
+
+	fund := sdk.NewCoins(sdk.NewInt64Coin(params.BaseDenom, 1_000_000))
+	for _, region := range s.App.StakingKeeper.GetAllRegion(s.Ctx) {
+		treasure := sdk.MustAccAddressFromBech32(region.RegionTreasureAddr)
+		s.Require().NoError(s.App.BankKeeper.MintCoins(s.Ctx, mintypes.ModuleName, fund))
+		s.Require().NoError(s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, treasure, fund))
 	}
 
 	s.msgServer = regiongovkeeper.NewMsgServerImpl(s.App.RegionGovKeeper)

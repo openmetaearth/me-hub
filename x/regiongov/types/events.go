@@ -5,6 +5,7 @@ const (
 	EventTypeVote                 = "vote"
 	EventTypeVetoProposal         = "veto_proposal"
 	EventTypeTallyProposal        = "tally_proposal"
+	EventTypeExecuteProposal      = "execute_proposal"
 	EventTypeSubmitEquityUpdate   = "submit_equity_update"
 	EventTypeSubmitFreezeEquity   = "submit_freeze_equity"
 	EventTypeSubmitUnfreezeEquity = "submit_unfreeze_equity"

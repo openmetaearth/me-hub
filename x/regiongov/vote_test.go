@@ -18,15 +18,29 @@ type stubStaking struct {
 	regions []wstakingtypes.Region
 }
 
-func (s stubStaking) GetAllRegion(sdk.Context) []wstakingtypes.Region { return s.regions }
+func (s *stubStaking) GetAllRegion(sdk.Context) []wstakingtypes.Region { return s.regions }
 
-func (s stubStaking) GetRegion(_ sdk.Context, regionID string) (wstakingtypes.Region, bool) {
+func (s *stubStaking) GetRegion(_ sdk.Context, regionID string) (wstakingtypes.Region, bool) {
 	for _, region := range s.regions {
 		if region.RegionId == regionID || strings.EqualFold(region.RegionId, regionID) {
 			return region, true
 		}
 	}
 	return wstakingtypes.Region{}, false
+}
+
+func (s *stubStaking) WithdrawRegionTreasure(sdk.Context, string, string, sdk.Coins, uint32) error {
+	return nil
+}
+
+func (s *stubStaking) SetRegionOperator(_ sdk.Context, regionID, newOperator string) error {
+	for i, region := range s.regions {
+		if region.RegionId == regionID || strings.EqualFold(region.RegionId, regionID) {
+			s.regions[i].OperatorAddress = newOperator
+			return nil
+		}
+	}
+	return types.ErrUnknownRegion
 }
 
 type stubDao struct {
@@ -46,7 +60,7 @@ func regionOf(id, operatorAcc string) wstakingtypes.Region {
 
 func setupGov(t *testing.T, regions []wstakingtypes.Region, dao string) (keeper.Keeper, sdk.Context, types.MsgServer) {
 	t.Helper()
-	k, ctx := newKeeperWith(t, stubStaking{regions: regions}, stubDao{dao: dao})
+	k, ctx := newKeeperWith(t, &stubStaking{regions: regions}, stubDao{dao: dao})
 	params := types.DefaultParams()
 	params.MinVotingPeriod = 60
 	require.NoError(t, k.SetParams(ctx, params))

@@ -12,8 +12,8 @@ import (
 )
 
 // Keeper stores region governance state.
-// A proposal that reaches Passed is not executed here: treasury payouts and
-// operator replacement are applied in a later phase.
+// At VotingEndTime, EndBlocker tallies the proposal and executes it when it
+// passes (or marks Failed if execution errors); otherwise it is Rejected.
 type Keeper struct {
 	cdc           codec.BinaryCodec
 	storeKey      storetypes.StoreKey

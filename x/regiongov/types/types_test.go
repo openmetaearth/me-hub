@@ -12,7 +12,7 @@ import (
 )
 
 func TestParamsValidate(t *testing.T) {
-	require.Equal(t, uint64(3600), DefaultParams().MinVotingPeriod)
+	require.Equal(t, uint64(300), DefaultParams().MinVotingPeriod)
 	require.NoError(t, DefaultParams().Validate())
 
 	params := DefaultParams()

@@ -1,33 +1,20 @@
 package keeper
 
 import (
-	"strconv"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/x/regiongov/types"
 )
 
-// EndBlocker tallies proposals whose voting period has ended.
-// Passed means the count and the dao yes both succeeded. Execution is a later phase.
+// EndBlocker finalizes proposals whose voting period has ended.
+// Passed proposals are executed here; otherwise they are Rejected.
 func (k Keeper) EndBlocker(ctx sdk.Context) {
 	for _, id := range k.DequeueMatureProposals(ctx, ctx.BlockTime()) {
 		proposal, found := k.GetProposal(ctx, id)
 		if !found || proposal.Status != types.ProposalStatusVoting {
 			continue
 		}
-		if k.tallyPassed(ctx, proposal) {
-			proposal.Status = types.ProposalStatusPassed
-		} else {
-			proposal.Status = types.ProposalStatusRejected
-		}
-		k.SetProposal(ctx, proposal)
-		ctx.EventManager().EmitEvent(sdk.NewEvent(
-			types.EventTypeTallyProposal,
-			sdk.NewAttribute(types.AttributeKeyProposalID, strconv.FormatUint(proposal.Id, 10)),
-			sdk.NewAttribute(types.AttributeKeyStatus, proposal.Status.String()),
-		))
-		k.Logger(ctx).Info("tallied regiongov proposal", "id", proposal.Id, "status", proposal.Status.String())
+		k.finalizeProposal(ctx, proposal, k.tallyPassed(ctx, proposal))
 	}
 }
 
