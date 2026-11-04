@@ -149,6 +149,54 @@ func TestTreasuryElectorates(t *testing.T) {
 	require.ErrorIs(t, err, types.ErrUnauthorized)
 }
 
+func TestEquityCanWithdrawOnlyItsOwnRegion(t *testing.T) {
+	cn := sample.AccAddress()
+	us := sample.AccAddress()
+	earth := sample.AccAddress()
+	super := sample.AccAddress()
+	receiver := sample.AccAddress()
+	cnEquity := sample.AccAddress()
+	usEquity := sample.AccAddress()
+	k, ctx, srv := setupGov(t, []wstakingtypes.Region{
+		regionOf(wstakingtypes.MeEarthRegionId, earth),
+		regionOf("cn", cn),
+		regionOf("us", us),
+	}, super)
+	k.SetEquity(ctx, types.RegionEquity{RegionId: "cn", Addresses: []string{cnEquity}})
+	k.SetEquity(ctx, types.RegionEquity{RegionId: "us", Addresses: []string{usEquity}})
+
+	own, err := submitTreasury(srv, ctx, cnEquity, 60, withdrawal("cn", receiver))
+	require.NoError(t, err)
+	require.ElementsMatch(t, []string{cn, us}, electorAccounts(t, k, ctx, own.Id))
+
+	_, err = submitTreasury(srv, ctx, cnEquity, 60, withdrawal("us", receiver))
+	require.ErrorIs(t, err, types.ErrUnauthorized)
+	_, err = submitTreasury(srv, ctx, cnEquity, 60, withdrawal("cn", receiver), withdrawal("us", receiver))
+	require.ErrorIs(t, err, types.ErrUnauthorized)
+	_, err = submitTreasury(srv, ctx, cnEquity, 60, withdrawal(wstakingtypes.MeEarthRegionId, receiver))
+	require.ErrorIs(t, err, types.ErrUnauthorized)
+
+	_, err = srv.SubmitProposal(sdk.WrapSDKContext(ctx), &types.MsgSubmitProposal{
+		Proposer:     cnEquity,
+		Kind:         types.ProposalKindReplaceRegionOperator,
+		Title:        "replace",
+		VotingPeriod: 60,
+		ReplaceOperator: &types.ReplaceRegionOperatorPayload{
+			RegionId:    "cn",
+			NewOperator: sdk.ValAddress(sdk.MustAccAddressFromBech32(sample.AccAddress())).String(),
+		},
+	})
+	require.ErrorIs(t, err, types.ErrUnauthorized)
+
+	k.SetEquityFreeze(ctx, types.EquityFreeze{RegionId: "us", Address: usEquity, Frozen: true})
+	_, err = submitTreasury(srv, ctx, usEquity, 60, withdrawal("us", receiver))
+	require.ErrorIs(t, err, types.ErrEquityFrozen)
+
+	k.SetRegionFreeze(ctx, types.RegionFreeze{RegionId: "cn", Frozen: true})
+	_, err = submitTreasury(srv, ctx, cnEquity, 60, withdrawal("cn", receiver))
+	require.ErrorIs(t, err, types.ErrRegionFrozen)
+}
+
 func TestFrozenRegionIsOutOfTheSnapshot(t *testing.T) {
 	cn := sample.AccAddress()
 	us := sample.AccAddress()

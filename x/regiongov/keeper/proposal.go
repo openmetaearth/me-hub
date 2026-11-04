@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"strconv"
 	"time"
 
@@ -96,32 +97,93 @@ func (k Keeper) resolveTreasuryElectorate(ctx sdk.Context, msg *types.MsgSubmitP
 }
 
 func (k Keeper) authorizeProposer(ctx sdk.Context, proposer string, msg *types.MsgSubmitProposal) error {
-	dao, operatorRegionIDs, err := k.proposerAuthority(ctx, proposer)
-	if err != nil {
-		return err
+	dao, operatorRegionIDs, operatorErr := k.proposerAuthority(ctx, proposer)
+	equityRegionIDs, equityErr := k.activeEquityRegions(ctx, proposer)
+	if operatorErr != nil && len(equityRegionIDs) == 0 {
+		if errors.Is(operatorErr, types.ErrUnauthorized) && equityErr != nil {
+			return equityErr
+		}
+		return operatorErr
 	}
-	if msg.Kind != types.ProposalKindTreasuryWithdraw || dao {
+	if operatorErr != nil {
+		dao = false
+		operatorRegionIDs = nil
+	}
+	if msg.Kind != types.ProposalKindTreasuryWithdraw {
+		if dao || len(operatorRegionIDs) > 0 {
+			return nil
+		}
+		return sdkerrors.Wrap(types.ErrUnauthorized, "an equity address cannot replace a region operator")
+	}
+	if dao {
 		return nil
 	}
 	for _, withdrawal := range msg.Treasury.Withdrawals {
-		region, found := k.lookupRegion(ctx, withdrawal.RegionId)
-		if !found {
-			return sdkerrors.Wrapf(types.ErrUnknownRegion, "%s", withdrawal.RegionId)
-		}
-		// Any region operator may include the global or experience treasury.
-		// A country withdrawal is limited to a region that operator runs.
-		if isSpecialRegion(region.RegionId) {
-			continue
-		}
-		if !containsRegion(operatorRegionIDs, region.RegionId) {
-			return sdkerrors.Wrapf(
-				types.ErrUnauthorized,
-				"a region operator can withdraw only from regions they operate, got %s",
-				withdrawal.RegionId,
-			)
+		if err := k.authorizeWithdrawal(ctx, withdrawal.RegionId, operatorRegionIDs, equityRegionIDs); err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+func (k Keeper) authorizeWithdrawal(ctx sdk.Context, regionID string, operatorRegionIDs, equityRegionIDs []string) error {
+	region, found := k.lookupRegion(ctx, regionID)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrUnknownRegion, "%s", regionID)
+	}
+	// An operator may include the global or experience treasury, or a country they run.
+	if len(operatorRegionIDs) > 0 && (isSpecialRegion(region.RegionId) || containsRegion(operatorRegionIDs, region.RegionId)) {
+		return nil
+	}
+	if containsRegion(equityRegionIDs, region.RegionId) {
+		return nil
+	}
+	if len(operatorRegionIDs) > 0 {
+		return sdkerrors.Wrapf(
+			types.ErrUnauthorized,
+			"a region operator can withdraw only from regions they operate, got %s",
+			regionID,
+		)
+	}
+	return sdkerrors.Wrapf(
+		types.ErrUnauthorized,
+		"an equity address can withdraw only from its own region, got %s",
+		regionID,
+	)
+}
+
+// activeEquityRegions returns regions whose equity list contains proposer and
+// where that address can still propose. A frozen region or a frozen equity
+// address is omitted. When every membership is blocked, blocked explains why.
+func (k Keeper) activeEquityRegions(ctx sdk.Context, proposer string) ([]string, error) {
+	equities := k.GetAllEquities(ctx)
+	regionIDs := make([]string, 0, len(equities))
+	regionFrozen := false
+	equityFrozen := false
+	for _, equity := range equities {
+		if !containsAddress(equity.Addresses, proposer) {
+			continue
+		}
+		if k.isRegionFrozen(ctx, equity.RegionId) {
+			regionFrozen = true
+			continue
+		}
+		if k.isEquityFrozen(ctx, equity.RegionId, proposer) {
+			equityFrozen = true
+			continue
+		}
+		regionIDs = append(regionIDs, equity.RegionId)
+	}
+	if len(regionIDs) > 0 {
+		return regionIDs, nil
+	}
+	if regionFrozen {
+		return nil, sdkerrors.Wrap(types.ErrRegionFrozen, "equity region is frozen")
+	}
+	if equityFrozen {
+		return nil, sdkerrors.Wrap(types.ErrEquityFrozen, "equity address is frozen")
+	}
+	return nil, nil
 }
 
 // proposerAuthority accepts the dao or an operator of at least one unfrozen region.
