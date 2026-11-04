@@ -96,7 +96,7 @@ func TestQueryParams(t *testing.T) {
 
 	res, err := k.Params(sdk.WrapSDKContext(ctx), &types.QueryParamsRequest{})
 	require.NoError(t, err)
-	require.Equal(t, uint64(300), res.Params.MinVotingPeriod)
+	require.Equal(t, types.DefaultMinVotingPeriod, res.Params.MinVotingPeriod)
 	require.Equal(t, uint32(51), res.Params.PassThresholdPercent)
 	require.Equal(t, uint32(1), res.Params.EquityWithdrawPercent)
 }

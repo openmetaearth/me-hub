@@ -159,7 +159,7 @@ func (s *KeeperTestSuite) TestRemoveRegionThenCreateRegion() {
 	s.Require().NoError(err)
 }
 
-func (s *KeeperTestSuite) TestWithdrawFromRegion() {
+func (s *KeeperTestSuite) TestWithdrawRegionTreasure() {
 	s.SetupTest()
 
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
@@ -178,42 +178,33 @@ func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 	s.Require().Equal(balance.Amount.String(), amount.String())
 
 	tests := []struct {
-		name       string
-		withdrawer string
-		amount     sdk.Coin
-		expErr     error
+		name   string
+		amount sdk.Coin
+		expErr error
 	}{
 		{
-			name:       "Dao Permission",
-			withdrawer: s.Dao.MeidDao,
-			amount:     balance,
-			expErr:     sdkerrors.ErrUnauthorized,
-		}, {
-			name:       "over amount",
-			withdrawer: s.Dao.GlobalDao,
+			name: "over amount",
 			amount: balance.Add(sdk.Coin{
 				Denom:  params.BaseDenom,
 				Amount: sdk.NewInt(1),
 			}),
 			expErr: sdkerrors.ErrInsufficientFunds,
 		}, {
-			name:       "pass",
-			withdrawer: s.Dao.GlobalDao,
-			amount:     balance,
-			expErr:     nil,
+			name:   "pass",
+			amount: balance,
+			expErr: nil,
 		},
 	}
 	for _, test := range tests {
 		s.Run(test.name, func() {
 			daoBalanceBefore := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), params.BaseDenom)
 
-			msg := types.MsgWithdrawFromRegion{
-				Withdrawer: test.withdrawer,
-				RegionId:   strings.ToLower(types.ExperienceRegionName),
-				Receiver:   s.Dao.GlobalDao,
-				Amount:     sdk.NewCoins(test.amount),
-			}
-			_, err = s.msgServer.WithdrawFromRegion(s.Ctx, &msg)
+			err := s.Keeper().WithdrawRegionTreasure(
+				s.Ctx,
+				types.ExperienceRegionId,
+				s.Dao.GlobalDao,
+				sdk.NewCoins(test.amount),
+			)
 			s.Require().ErrorIs(err, test.expErr)
 
 			daoBalanceAfter := s.App.BankKeeper.GetBalance(s.Ctx, sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), params.BaseDenom)
@@ -224,177 +215,7 @@ func (s *KeeperTestSuite) TestWithdrawFromRegion() {
 	}
 }
 
-func (s *KeeperTestSuite) TestGrantRegionWithdraw() {
-	s.SetupTest()
-
-	regionId := types.ExperienceRegionId
-	addr0 := s.TestAccs[0].String()
-	addr1 := s.TestAccs[1].String()
-	nonDao := s.TestAccs[2].String()
-
-	tests := []struct {
-		name     string
-		creator  string
-		regionId string
-		address  string
-		expErr   error
-		malleate func()
-		// afterCheck is called only when expErr == nil
-		afterCheck func(res *types.QueryRegionWithdrawerResponse)
-	}{
-		{
-			name:     "non-DAO cannot grant",
-			creator:  nonDao,
-			regionId: regionId,
-			address:  addr0,
-			expErr:   types.ErrCheckGlobalDao,
-		},
-		{
-			name:     "region does not exist",
-			creator:  s.Dao.GlobalDao,
-			regionId: "nonexistent_region",
-			address:  addr0,
-			expErr:   types.ErrRegionNotExist,
-		},
-		{
-			name:     "invalid grantee address",
-			creator:  s.Dao.GlobalDao,
-			regionId: regionId,
-			address:  "not-a-valid-address",
-			expErr:   sdkerrors.ErrInvalidAddress,
-		},
-		{
-			name:     "grant success",
-			creator:  s.Dao.GlobalDao,
-			regionId: regionId,
-			address:  addr0,
-			expErr:   nil,
-			afterCheck: func(res *types.QueryRegionWithdrawerResponse) {
-				s.Require().Equal(addr0, res.Address)
-				s.Require().True(s.Keeper().CanRegionWithdraw(s.Ctx, addr0, regionId))
-			},
-		},
-		{
-			name:     "overwrite with a different address",
-			creator:  s.Dao.GlobalDao,
-			regionId: regionId,
-			address:  addr1,
-			// addr0 already granted by the previous "grant success" case
-			expErr: nil,
-			afterCheck: func(res *types.QueryRegionWithdrawerResponse) {
-				s.Require().Equal(addr1, res.Address)
-				s.Require().False(s.Keeper().CanRegionWithdraw(s.Ctx, addr0, regionId))
-				s.Require().True(s.Keeper().CanRegionWithdraw(s.Ctx, addr1, regionId))
-			},
-		},
-	}
-	for _, test := range tests {
-		s.Run(test.name, func() {
-			if test.malleate != nil {
-				test.malleate()
-			}
-			_, err := s.msgServer.GrantRegionWithdraw(s.Ctx, &types.MsgGrantRegionWithdraw{
-				Creator:  test.creator,
-				RegionId: test.regionId,
-				Address:  test.address,
-			})
-			s.Require().ErrorIs(err, test.expErr)
-			if test.expErr == nil && test.afterCheck != nil {
-				res, err := s.queryClient.RegionWithdrawer(s.Ctx, &types.QueryRegionWithdrawerRequest{
-					RegionId: test.regionId,
-				})
-				s.Require().NoError(err)
-				test.afterCheck(res)
-			}
-		})
-	}
-}
-
-func (s *KeeperTestSuite) TestRevokeRegionWithdraw() {
-	s.SetupTest()
-
-	regionId := types.ExperienceRegionId
-	addr0 := s.TestAccs[0].String()
-	nonDao := s.TestAccs[2].String()
-
-	grantAddr0 := func() {
-		_, err := s.msgServer.GrantRegionWithdraw(s.Ctx, &types.MsgGrantRegionWithdraw{
-			Creator:  s.Dao.GlobalDao,
-			RegionId: regionId,
-			Address:  addr0,
-		})
-		s.Require().NoError(err)
-	}
-
-	tests := []struct {
-		name     string
-		creator  string
-		regionId string
-		expErr   error
-		malleate func()
-	}{
-		{
-			name:     "non-DAO cannot revoke",
-			creator:  nonDao,
-			regionId: regionId,
-			expErr:   types.ErrCheckGlobalDao,
-		},
-		{
-			name:     "region does not exist",
-			creator:  s.Dao.GlobalDao,
-			regionId: "nonexistent_region",
-			expErr:   types.ErrRegionNotExist,
-		},
-		{
-			name:     "no permission record to revoke",
-			creator:  s.Dao.GlobalDao,
-			regionId: regionId,
-			expErr:   sdkerrors.ErrKeyNotFound,
-		},
-		{
-			name:     "revoke success",
-			creator:  s.Dao.GlobalDao,
-			regionId: regionId,
-			malleate: grantAddr0,
-			expErr:   nil,
-		},
-		{
-			name:     "revoke twice returns error",
-			creator:  s.Dao.GlobalDao,
-			regionId: regionId,
-			malleate: func() {
-				grantAddr0()
-				_, err := s.msgServer.RevokeRegionWithdraw(s.Ctx, &types.MsgRevokeRegionWithdraw{
-					Creator:  s.Dao.GlobalDao,
-					RegionId: regionId,
-				})
-				s.Require().NoError(err)
-			},
-			expErr: sdkerrors.ErrKeyNotFound,
-		},
-	}
-	for _, test := range tests {
-		s.Run(test.name, func() {
-			if test.malleate != nil {
-				test.malleate()
-			}
-			_, err := s.msgServer.RevokeRegionWithdraw(s.Ctx, &types.MsgRevokeRegionWithdraw{
-				Creator:  test.creator,
-				RegionId: test.regionId,
-			})
-			s.Require().ErrorIs(err, test.expErr)
-			if test.expErr == nil {
-				res, err := s.queryClient.RegionWithdrawer(s.Ctx, &types.QueryRegionWithdrawerRequest{
-					RegionId: test.regionId,
-				})
-				s.Require().NoError(err)
-				s.Require().Empty(res.Address)
-			}
-		})
-	}
-}
-
-func (s *KeeperTestSuite) TestWithdrawFromRegionRejectsBlockedModuleReceiver() {
+func (s *KeeperTestSuite) TestWithdrawRegionTreasureRejectsBlockedModuleReceiver() {
 	s.SetupTest()
 
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{}).WithBlockHeight(wminttypes.OneDayTotalBlocks).WithChainID(apptesting.TestChainID)
@@ -411,43 +232,18 @@ func (s *KeeperTestSuite) TestWithdrawFromRegionRejectsBlockedModuleReceiver() {
 	blockedReceiver := authtypes.NewModuleAddress(authtypes.FeeCollectorName)
 	s.Require().True(s.App.BankKeeper.BlockedAddr(blockedReceiver))
 
-	grantedWithdrawer := s.TestAccs[0].String()
-	_, err = s.msgServer.GrantRegionWithdraw(s.Ctx, &types.MsgGrantRegionWithdraw{
-		Creator:  s.Dao.GlobalDao,
-		RegionId: types.ExperienceRegionId,
-		Address:  grantedWithdrawer,
-	})
-	s.Require().NoError(err)
+	receiverBefore := s.App.BankKeeper.GetBalance(s.Ctx, blockedReceiver, params.BaseDenom)
+	treasuryBefore := s.App.BankKeeper.GetBalance(s.Ctx, regionTreasury, params.BaseDenom)
 
-	tests := []struct {
-		name       string
-		withdrawer string
-	}{
-		{
-			name:       "global dao",
-			withdrawer: s.Dao.GlobalDao,
-		},
-		{
-			name:       "granted withdrawer",
-			withdrawer: grantedWithdrawer,
-		},
-	}
-	for _, test := range tests {
-		s.Run(test.name, func() {
-			receiverBefore := s.App.BankKeeper.GetBalance(s.Ctx, blockedReceiver, params.BaseDenom)
-			treasuryBefore := s.App.BankKeeper.GetBalance(s.Ctx, regionTreasury, params.BaseDenom)
+	err = s.Keeper().WithdrawRegionTreasure(
+		s.Ctx,
+		types.ExperienceRegionId,
+		blockedReceiver.String(),
+		sdk.NewCoins(regionBalance),
+	)
 
-			_, err := s.msgServer.WithdrawFromRegion(s.Ctx, &types.MsgWithdrawFromRegion{
-				Withdrawer: test.withdrawer,
-				RegionId:   types.ExperienceRegionId,
-				Receiver:   blockedReceiver.String(),
-				Amount:     sdk.NewCoins(regionBalance),
-			})
-
-			s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
-			s.Require().Contains(err.Error(), "not allowed to receive region treasury withdrawals")
-			s.Require().Equal(receiverBefore.String(), s.App.BankKeeper.GetBalance(s.Ctx, blockedReceiver, params.BaseDenom).String())
-			s.Require().Equal(treasuryBefore.String(), s.App.BankKeeper.GetBalance(s.Ctx, regionTreasury, params.BaseDenom).String())
-		})
-	}
+	s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	s.Require().Contains(err.Error(), "not allowed to receive region treasury withdrawals")
+	s.Require().Equal(receiverBefore.String(), s.App.BankKeeper.GetBalance(s.Ctx, blockedReceiver, params.BaseDenom).String())
+	s.Require().Equal(treasuryBefore.String(), s.App.BankKeeper.GetBalance(s.Ctx, regionTreasury, params.BaseDenom).String())
 }
