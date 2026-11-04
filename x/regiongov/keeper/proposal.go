@@ -36,7 +36,7 @@ func (k Keeper) submitProposal(ctx sdk.Context, msg *types.MsgSubmitProposal) (u
 		return 0, err
 	}
 	if msg.Kind == types.ProposalKindTreasuryWithdraw {
-		if err := k.enforceEquityWithdrawLimit(ctx, proposer, msg.Treasury.Withdrawals); err != nil {
+		if err := k.enforceTreasuryWithdrawLimits(ctx, proposer, msg.Treasury.Withdrawals); err != nil {
 			return 0, err
 		}
 	}
@@ -157,27 +157,32 @@ func (k Keeper) authorizeWithdrawal(ctx sdk.Context, regionID string, operatorRe
 	)
 }
 
-// enforceEquityWithdrawLimit rejects an equity-address withdrawal above
-// equity_withdraw_percent of that region's treasury balance. The check runs
-// when the proposal transaction is submitted, so the transaction fails and no
-// proposal is created. The region's operator and the dao are not capped.
-func (k Keeper) enforceEquityWithdrawLimit(ctx sdk.Context, proposer string, withdrawals []types.Withdrawal) error {
+// enforceTreasuryWithdrawLimits checks each region and denom before creating a
+// proposal. All withdrawals are limited to the spendable treasury balance;
+// equity-only proposers additionally have the equity_withdraw_percent limit.
+// These checks do not reserve funds, so execution can still fail if the balance falls.
+func (k Keeper) enforceTreasuryWithdrawLimits(ctx sdk.Context, proposer string, withdrawals []types.Withdrawal) error {
 	percent := k.GetParams(ctx).EquityWithdrawPercent
 	for _, withdrawal := range withdrawals {
-		if !k.equityOnlyForRegion(ctx, proposer, withdrawal.RegionId) {
-			continue
-		}
 		spendable, err := k.stakingKeeper.SpendableRegionTreasure(ctx, withdrawal.RegionId)
 		if err != nil {
 			return err
 		}
+		equityOnly := k.equityOnlyForRegion(ctx, proposer, withdrawal.RegionId)
 		for _, coin := range withdrawal.Amount {
 			balance := spendable.AmountOf(coin.Denom)
-			if coin.Amount.MulRaw(100).GT(balance.MulRaw(int64(percent))) {
+			if equityOnly && coin.Amount.MulRaw(100).GT(balance.MulRaw(int64(percent))) {
 				return sdkerrors.Wrapf(
 					types.ErrEquityWithdrawLimit,
 					"equity withdrawal %s exceeds %d%% of region %s treasury balance %s",
 					coin, percent, withdrawal.RegionId, sdk.NewCoin(coin.Denom, balance),
+				)
+			}
+			if coin.Amount.GT(balance) {
+				return sdkerrors.Wrapf(
+					sdkerrors.ErrInsufficientFunds,
+					"withdrawal %s exceeds region %s spendable treasury balance %s",
+					coin, withdrawal.RegionId, sdk.NewCoin(coin.Denom, balance),
 				)
 			}
 		}

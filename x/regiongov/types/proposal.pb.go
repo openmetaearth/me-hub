@@ -313,11 +313,12 @@ func (m *Withdrawal) GetAmount() github_com_cosmos_cosmos_sdk_types.Coins {
 }
 
 // TreasuryWithdrawPayload is the body of a treasury withdrawal proposal.
+// MsgSubmitProposal rejects any withdrawal exceeding its region's spendable
+// treasury balance for any denom, including proposals by the dao or operators.
 // When the proposer is only an equity address of a withdrawal's region,
-// MsgSubmitProposal allows at most equity_withdraw_percent (default 1%) of
-// that region's treasury balance for each denom. A larger amount fails the
-// submit transaction and no proposal is created. A withdrawal proposed by
-// that region's operator or by the dao is not capped.
+// the amount is further limited to equity_withdraw_percent (default 1%) of
+// that spendable balance. Exceeding either limit fails the submit transaction
+// and no proposal is created. Submission does not reserve treasury funds.
 type TreasuryWithdrawPayload struct {
 	Withdrawals []Withdrawal `protobuf:"bytes,1,rep,name=withdrawals,proto3" json:"withdrawals"`
 }

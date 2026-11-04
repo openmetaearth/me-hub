@@ -11,7 +11,7 @@ import (
 type StakingKeeper interface {
 	GetRegion(ctx sdk.Context, regionID string) (wstakingtypes.Region, bool)
 	GetAllRegion(ctx sdk.Context) []wstakingtypes.Region
-	// SpendableRegionTreasure is the region treasury balance an equity withdrawal is measured against.
+	// SpendableRegionTreasure is the available balance used to validate treasury withdrawal proposals.
 	SpendableRegionTreasure(ctx sdk.Context, regionID string) (sdk.Coins, error)
 	// WithdrawRegionTreasure pays amount from the region treasury.
 	WithdrawRegionTreasure(ctx sdk.Context, regionID, receiver string, amount sdk.Coins) error

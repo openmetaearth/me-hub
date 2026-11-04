@@ -56,6 +56,10 @@ func (s *KeeperTestSuite) TestFinalizeProposalEvent() {
 			region, found := s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
 			s.Require().True(found)
 			treasury := sdk.MustAccAddressFromBech32(region.RegionTreasureAddr)
+			withdrawal := s.withdrawal("usa")
+			withdrawal.Receiver = receiver.String()
+			id := s.submit(operator, withdrawal)
+			// Submission requires sufficient funds, but the balance can fall before execution.
 			if tc.emptyTreasury {
 				balance := s.App.BankKeeper.GetAllBalances(s.Ctx, treasury)
 				s.Require().NoError(s.App.BankKeeper.SendCoins(s.Ctx, treasury, sdk.MustAccAddressFromBech32(s.Dao.GlobalDao), balance))
@@ -63,9 +67,6 @@ func (s *KeeperTestSuite) TestFinalizeProposalEvent() {
 			before := s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom)
 			receiverBefore := s.App.BankKeeper.GetBalance(s.Ctx, receiver, params.BaseDenom)
 
-			withdrawal := s.withdrawal("usa")
-			withdrawal.Receiver = receiver.String()
-			id := s.submit(operator, withdrawal)
 			if tc.operatorYes {
 				s.Require().NoError(s.vote(operator, id, types.VoteOptionYes))
 			}
@@ -172,7 +173,7 @@ func (s *KeeperTestSuite) TestEquityWithdrawCap() {
 		s.Require().Equal(maxAllowed, s.App.BankKeeper.GetBalance(s.Ctx, receiver, params.BaseDenom).Amount)
 	})
 
-	s.Run("region operator is not capped", func() {
+	s.Run("region operator is not subject to the equity cap", func() {
 		receiver := sdk.MustAccAddressFromBech32(sample.AccAddress())
 		before := s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom)
 		amount := maxAllowed.MulRaw(10)
@@ -186,7 +187,7 @@ func (s *KeeperTestSuite) TestEquityWithdrawCap() {
 		s.Require().Equal(before.Amount.Sub(amount), s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom).Amount)
 	})
 
-	s.Run("dao is not capped", func() {
+	s.Run("dao is not subject to the equity cap", func() {
 		receiver := sdk.MustAccAddressFromBech32(sample.AccAddress())
 		before := s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom)
 		amount := maxAllowed.MulRaw(10)
@@ -200,7 +201,7 @@ func (s *KeeperTestSuite) TestEquityWithdrawCap() {
 		s.Require().Equal(before.Amount.Sub(amount), s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom).Amount)
 	})
 
-	s.Run("region operator who is also an equity address is not capped", func() {
+	s.Run("region operator who is also an equity address is not subject to the equity cap", func() {
 		s.App.RegionGovKeeper.SetEquity(s.Ctx, types.RegionEquity{RegionId: "usa", Addresses: []string{equity, operator}})
 		receiver := sdk.MustAccAddressFromBech32(sample.AccAddress())
 		before := s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom)

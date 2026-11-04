@@ -114,13 +114,9 @@ assert_regions_frozen() {
 test_freeze_region() {
  send_tx "$DAO_KEY" freeze-region "${REGIONS[@]}"
  assert_regions_frozen true
- send_tx "$DAO_KEY" unfreeze-region "${REGIONS[@]}"
- assert_regions_frozen false
 }
 
 test_unfreeze_region() {
- send_tx "$DAO_KEY" freeze-region "${REGIONS[@]}"
- assert_regions_frozen true
  send_tx "$DAO_KEY" unfreeze-region "${REGIONS[@]}"
  assert_regions_frozen false
 }
@@ -132,7 +128,7 @@ submit_test_proposal() {
  NEW_OPERATOR=${NEW_OPERATOR:-$("$MED_BIN" keys show "$OPERATOR_KEY" -a --bech val ${KEY[@]+"${KEY[@]}"})}
  jq -n --arg region "$REGION_ID" --arg receiver "$DAO" --arg operator "$NEW_OPERATOR" --arg period "$PERIOD" --arg kind "$kind" '
  {title:("med binary test " + $kind),summary:"med binary proposal test",voting_period:$period} +
- (if $kind == "treasury" then {kind:"PROPOSAL_KIND_TREASURY_WITHDRAW",treasury:{withdrawals:[{region_id:$region,receiver:$receiver,amount:[{denom:"umec",amount:"1"}]}]}}
+ (if $kind == "treasury" then {kind:"PROPOSAL_KIND_TREASURY_WITHDRAW",treasury:{withdrawals:[{region_id:$region,receiver:$receiver,amount:[{denom:"umec",amount:"10"}]}]}}
  else {kind:"PROPOSAL_KIND_REPLACE_REGION_OPERATOR",replace_operator:{region_id:$region,new_operator:$operator}} end)' > "$RESULT_DIR/$kind.json"
  echo "Proposal JSON: $RESULT_DIR/$kind.json"
  cat "$RESULT_DIR/$kind.json"
