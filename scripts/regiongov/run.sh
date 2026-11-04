@@ -193,6 +193,59 @@ pass_test_proposal() {
 test_treasury_proposal_pass() { pass_test_proposal treasury; }
 test_operator_proposal_pass() { pass_test_proposal replace-operator; }
 
+test_treasury_proposal_51pass_daoveto() {
+ local voter params threshold period eligible required yes end_time deadline block_time
+ local voters=()
+ read -r -a voters <<< "$VOTER_KEYS"
+ for voter in "${voters[@]}"; do key_address "$voter" >/dev/null; done
+ params=$(query params)
+ threshold=$(printf '%s' "$params" | jq -er '.params.pass_threshold_percent')
+ [[ $threshold == 51 ]] || fail "this test requires pass_threshold_percent=51, got $threshold"
+ period=$(printf '%s' "$params" | jq -er '.params.min_voting_period')
+
+ submit_test_proposal treasury
+ eligible=$(jq -er '.electors | length | select(. > 0)' "$RESULT_DIR/electors-$PROPOSAL_ID.json")
+ # Reach the 51% threshold with the smallest whole number of operator votes.
+ required=$(((eligible * threshold + 99) / 100))
+ (( ${#voters[@]} >= required )) || fail "set VOTER_KEYS to at least $required eligible operator keys ($eligible electors)"
+ echo "Voting YES with $required/$eligible operators (threshold: $threshold%)..."
+ yes=0
+ for voter in "${voters[@]}"; do
+  (( yes < required )) || break
+  send_tx "$voter" vote "$PROPOSAL_ID" yes
+  yes=$((yes + 1))
+ done
+ query votes "$PROPOSAL_ID" --limit "$eligible" > "$RESULT_DIR/operator-yes-votes.json"
+ assert_json --argjson eligible "$eligible" --argjson threshold "$threshold" '
+  ([.votes[]? | select(.option == "VOTE_OPTION_YES")] | length) * 100 >= $eligible * $threshold
+ ' < "$RESULT_DIR/operator-yes-votes.json"
+
+ send_tx "$DAO_KEY" vote "$PROPOSAL_ID" yes
+ query proposal "$PROPOSAL_ID" > "$RESULT_DIR/dao-yes.json"
+ assert_json '.proposal.status == "PROPOSAL_STATUS_VOTING" and .proposal.dao_vote == "DAO_VOTE_YES"' < "$RESULT_DIR/dao-yes.json"
+ end_time=$(jq -er '.proposal.voting_end_time | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601' "$RESULT_DIR/dao-yes.json")
+
+ # DAO may overwrite YES with NO before voting closes, rejecting immediately.
+ veto_test_proposal
+ query proposal "$PROPOSAL_ID" > "$RESULT_DIR/dao-veto.json"
+ assert_json '.proposal.status == "PROPOSAL_STATUS_REJECTED" and .proposal.dao_vote == "DAO_VOTE_NO"' < "$RESULT_DIR/dao-veto.json"
+
+ deadline=$((SECONDS + period + TX_TIMEOUT))
+ echo "DAO vetoed proposal $PROPOSAL_ID; waiting past its voting end time to verify it stays rejected..."
+ while (( SECONDS < deadline )); do
+  block_time=$("$MED_BIN" query block ${NET[@]+"${NET[@]}"} | jq -er '.block.header.time | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601')
+  # Use committed chain time, not the local clock; wait past fractional seconds too.
+  if (( block_time > end_time )); then
+   query proposal "$PROPOSAL_ID" > "$RESULT_DIR/after-voting-end.json"
+   assert_json '.proposal.status == "PROPOSAL_STATUS_REJECTED" and .proposal.dao_vote == "DAO_VOTE_NO"' < "$RESULT_DIR/after-voting-end.json"
+   jq . "$RESULT_DIR/after-voting-end.json"
+   return
+  fi
+  sleep "$POLL_INTERVAL"
+ done
+ fail "timeout waiting past proposal $PROPOSAL_ID voting end time; inspect chain before rerunning"
+}
+
 test_queries() {
  "$ROOT/queries.sh" all > "$RESULT_DIR/queries.jsonl"
  jq -se 'length == 9' "$RESULT_DIR/queries.jsonl" >/dev/null
@@ -212,7 +265,7 @@ run_case() (
  echo "PASS: $1"
 )
 
-TESTS=(test_submit_equity_update test_approve_pending_action test_reject_pending_action test_submit_freeze_equity test_submit_unfreeze_equity test_freeze_equity test_unfreeze_equity test_freeze_region test_unfreeze_region test_submit_treasury_proposal test_submit_operator_proposal test_vote test_treasury_proposal_pass test_operator_proposal_pass test_queries)
+TESTS=(test_submit_equity_update test_approve_pending_action test_reject_pending_action test_submit_freeze_equity test_submit_unfreeze_equity test_freeze_equity test_unfreeze_equity test_freeze_region test_unfreeze_region test_submit_treasury_proposal test_submit_operator_proposal test_vote test_treasury_proposal_pass test_treasury_proposal_51pass_daoveto test_operator_proposal_pass test_queries)
 
 main() {
  if (( $# == 0 )); then

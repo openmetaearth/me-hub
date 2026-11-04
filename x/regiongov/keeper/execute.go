@@ -21,7 +21,7 @@ func (k Keeper) finalizeProposal(ctx sdk.Context, proposal types.Proposal, execu
 	if !execute {
 		proposal.Status = types.ProposalStatusRejected
 		k.SetProposal(ctx, proposal)
-		k.emitTally(ctx, proposal)
+		k.emitTally(ctx, proposal, false, nil)
 		return
 	}
 
@@ -29,35 +29,39 @@ func (k Keeper) finalizeProposal(ctx sdk.Context, proposal types.Proposal, execu
 	if err := k.executeProposal(cacheCtx, proposal); err != nil {
 		proposal.Status = types.ProposalStatusFailed
 		k.SetProposal(ctx, proposal)
-		k.emitTally(ctx, proposal)
-		ctx.EventManager().EmitEvent(sdk.NewEvent(
-			types.EventTypeExecuteProposal,
-			sdk.NewAttribute(types.AttributeKeyProposalID, strconv.FormatUint(proposal.Id, 10)),
-			sdk.NewAttribute(types.AttributeKeyStatus, proposal.Status.String()),
-		))
-		k.Logger(ctx).Error("regiongov proposal execution failed", "id", proposal.Id, "err", err)
+		k.emitTally(ctx, proposal, true, err)
 		return
 	}
 	write()
 	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	proposal.Status = types.ProposalStatusPassed
 	k.SetProposal(ctx, proposal)
-	k.emitTally(ctx, proposal)
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeExecuteProposal,
-		sdk.NewAttribute(types.AttributeKeyProposalID, strconv.FormatUint(proposal.Id, 10)),
-		sdk.NewAttribute(types.AttributeKeyStatus, proposal.Status.String()),
-	))
-	k.Logger(ctx).Info("executed regiongov proposal", "id", proposal.Id, "status", proposal.Status.String())
+	k.emitTally(ctx, proposal, true, nil)
 }
 
-func (k Keeper) emitTally(ctx sdk.Context, proposal types.Proposal) {
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		types.EventTypeTallyProposal,
+// emitTally reports the vote outcome and final proposal status in one event.
+// A rejected tally skips execution; a passed tally can still fail execution.
+func (k Keeper) emitTally(ctx sdk.Context, proposal types.Proposal, passed bool, executionErr error) {
+	result := "rejected"
+	if passed {
+		result = "passed"
+	}
+	attributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeyProposalID, strconv.FormatUint(proposal.Id, 10)),
-		sdk.NewAttribute(types.AttributeKeyStatus, proposal.Status.String()),
-	))
-	k.Logger(ctx).Info("tallied regiongov proposal", "id", proposal.Id, "status", proposal.Status.String())
+		sdk.NewAttribute(types.AttributeKeyTallyResult, result),
+		sdk.NewAttribute(types.AttributeKeyExecuteStatus, proposal.Status.String()),
+	}
+	if executionErr != nil {
+		attributes = append(attributes, sdk.NewAttribute(types.AttributeKeyError, executionErr.Error()))
+	}
+	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeTallyProposal, attributes...))
+
+	logger := k.Logger(ctx).With("id", proposal.Id, "tally_result", result, "execute_status", proposal.Status.String())
+	if executionErr != nil {
+		logger.Error("regiongov proposal execution failed", "err", executionErr)
+		return
+	}
+	logger.Info("finalized regiongov proposal")
 }
 
 func (k Keeper) executeProposal(ctx sdk.Context, proposal types.Proposal) error {
@@ -75,6 +79,9 @@ func (k Keeper) executeTreasury(ctx sdk.Context, proposal types.Proposal) error 
 	if proposal.Treasury == nil || len(proposal.Treasury.Withdrawals) == 0 {
 		return sdkerrors.Wrap(types.ErrInvalidProposal, "treasury payload is empty")
 	}
+	// Equity-address withdrawals are capped at execution, against the live
+	// treasury balance. The region's operator and the dao are not capped.
+	// Crossing the cap fails this proposal and leaves every withdrawal unsent.
 	params := k.GetParams(ctx)
 	for _, withdrawal := range proposal.Treasury.Withdrawals {
 		maxPercent := uint32(0)

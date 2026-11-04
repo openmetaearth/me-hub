@@ -92,6 +92,11 @@ message Withdrawal {
 }
 
 // TreasuryWithdrawPayload is the body of a treasury withdrawal proposal.
+// When the proposer is an equity address of a withdrawal's region, execution
+// allows at most equity_withdraw_percent (default 1%) of that region's
+// treasury balance for each denom. A larger amount fails the proposal and
+// moves no coins. A withdrawal proposed by that region's operator or by the
+// dao is not capped.
 message TreasuryWithdrawPayload {
   repeated Withdrawal withdrawals = 1 [(gogoproto.nullable) = false];
 }
