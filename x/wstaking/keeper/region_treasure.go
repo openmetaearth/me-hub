@@ -9,9 +9,21 @@ import (
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
+// SpendableRegionTreasure returns the coins a region treasury can pay out.
+func (k Keeper) SpendableRegionTreasure(ctx sdk.Context, regionID string) (sdk.Coins, error) {
+	region, found := k.GetRegion(ctx, regionID)
+	if !found {
+		return nil, sdkerrors.Wrapf(types.ErrRegionNotExist, "region %s", regionID)
+	}
+	fromAddr, err := sdk.AccAddressFromBech32(region.RegionTreasureAddr)
+	if err != nil {
+		return nil, sdkerrors.Wrapf(types.ErrUnknownAccount, "region account %s: %s", region.RegionTreasureAddr, err)
+	}
+	return k.bankKeeper.SpendableCoins(ctx, fromAddr), nil
+}
+
 // WithdrawRegionTreasure sends coins from a region treasury to receiver.
-// When maxPercent > 0, each denom must satisfy amount*100 <= spendable*maxPercent.
-func (k Keeper) WithdrawRegionTreasure(ctx sdk.Context, regionID, receiver string, amount sdk.Coins, maxPercent uint32) error {
+func (k Keeper) WithdrawRegionTreasure(ctx sdk.Context, regionID, receiver string, amount sdk.Coins) error {
 	region, found := k.GetRegion(ctx, regionID)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrRegionNotExist, "region %s", regionID)
@@ -27,20 +39,6 @@ func (k Keeper) WithdrawRegionTreasure(ctx sdk.Context, regionID, receiver strin
 	}
 	if k.bankKeeper.Extend().BlockedAddr(toAddr) {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive region treasury withdrawals", toAddr)
-	}
-
-	if maxPercent > 0 {
-		spendable := k.bankKeeper.SpendableCoins(ctx, fromAddr)
-		for _, coin := range amount {
-			balance := spendable.AmountOf(coin.Denom)
-			if coin.Amount.MulRaw(100).GT(balance.MulRaw(int64(maxPercent))) {
-				return sdkerrors.Wrapf(
-					sdkerrors.ErrInsufficientFunds,
-					"equity withdrawal %s exceeds %d%% of region %s treasury balance %s",
-					coin, maxPercent, regionID, sdk.NewCoin(coin.Denom, balance),
-				)
-			}
-		}
 	}
 
 	err = k.bankKeeper.Extend().SendCoinsWithTag(

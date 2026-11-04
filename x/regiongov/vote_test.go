@@ -29,7 +29,11 @@ func (s *stubStaking) GetRegion(_ sdk.Context, regionID string) (wstakingtypes.R
 	return wstakingtypes.Region{}, false
 }
 
-func (s *stubStaking) WithdrawRegionTreasure(sdk.Context, string, string, sdk.Coins, uint32) error {
+func (s *stubStaking) SpendableRegionTreasure(sdk.Context, string) (sdk.Coins, error) {
+	return sdk.NewCoins(sdk.NewInt64Coin("umec", 1_000_000)), nil
+}
+
+func (s *stubStaking) WithdrawRegionTreasure(sdk.Context, string, string, sdk.Coins) error {
 	return nil
 }
 

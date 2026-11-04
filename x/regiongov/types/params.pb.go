@@ -34,7 +34,8 @@ type Params struct {
 	// pass_threshold_percent.
 	PassThresholdPercent uint32 `protobuf:"varint,2,opt,name=pass_threshold_percent,json=passThresholdPercent,proto3" json:"pass_threshold_percent,omitempty"`
 	// equity_withdraw_percent is the maximum share of a region treasury balance
-	// an equity-address withdrawal may take. The check runs at execution.
+	// an equity-address withdrawal may take. MsgSubmitProposal rejects a larger
+	// amount. The region's operator and the dao are not capped.
 	EquityWithdrawPercent uint32 `protobuf:"varint,3,opt,name=equity_withdraw_percent,json=equityWithdrawPercent,proto3" json:"equity_withdraw_percent,omitempty"`
 }
 

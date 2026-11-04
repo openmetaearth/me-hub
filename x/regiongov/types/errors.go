@@ -19,4 +19,5 @@ var (
 	ErrEquityNotFrozen       = sdkerrors.Register(ModuleName, 14, "equity address is not frozen")
 	ErrEquityFrozen          = sdkerrors.Register(ModuleName, 15, "equity address is frozen")
 	ErrProposalExecution     = sdkerrors.Register(ModuleName, 16, "proposal execution failed")
+	ErrEquityWithdrawLimit   = sdkerrors.Register(ModuleName, 17, "equity withdrawal exceeds the region treasury limit")
 )

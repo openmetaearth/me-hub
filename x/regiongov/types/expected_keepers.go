@@ -11,9 +11,10 @@ import (
 type StakingKeeper interface {
 	GetRegion(ctx sdk.Context, regionID string) (wstakingtypes.Region, bool)
 	GetAllRegion(ctx sdk.Context) []wstakingtypes.Region
-	// WithdrawRegionTreasure pays amount from the region treasury. maxPercent 0
-	// skips the equity share check; otherwise amount*100 must be <= balance*maxPercent.
-	WithdrawRegionTreasure(ctx sdk.Context, regionID, receiver string, amount sdk.Coins, maxPercent uint32) error
+	// SpendableRegionTreasure is the region treasury balance an equity withdrawal is measured against.
+	SpendableRegionTreasure(ctx sdk.Context, regionID string) (sdk.Coins, error)
+	// WithdrawRegionTreasure pays amount from the region treasury.
+	WithdrawRegionTreasure(ctx sdk.Context, regionID, receiver string, amount sdk.Coins) error
 	SetRegionOperator(ctx sdk.Context, regionID, newOperator string) error
 }
 

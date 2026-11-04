@@ -35,6 +35,11 @@ func (k Keeper) submitProposal(ctx sdk.Context, msg *types.MsgSubmitProposal) (u
 	if err := k.authorizeProposer(ctx, proposer, msg); err != nil {
 		return 0, err
 	}
+	if msg.Kind == types.ProposalKindTreasuryWithdraw {
+		if err := k.enforceEquityWithdrawLimit(ctx, proposer, msg.Treasury.Withdrawals); err != nil {
+			return 0, err
+		}
+	}
 
 	id := k.GetProposalSeq(ctx) + 1
 	electors, err := k.snapshotElectors(ctx, id, electorate)
@@ -150,6 +155,54 @@ func (k Keeper) authorizeWithdrawal(ctx sdk.Context, regionID string, operatorRe
 		"an equity address can withdraw only from its own region, got %s",
 		regionID,
 	)
+}
+
+// enforceEquityWithdrawLimit rejects an equity-address withdrawal above
+// equity_withdraw_percent of that region's treasury balance. The check runs
+// when the proposal transaction is submitted, so the transaction fails and no
+// proposal is created. The region's operator and the dao are not capped.
+func (k Keeper) enforceEquityWithdrawLimit(ctx sdk.Context, proposer string, withdrawals []types.Withdrawal) error {
+	percent := k.GetParams(ctx).EquityWithdrawPercent
+	for _, withdrawal := range withdrawals {
+		if !k.equityOnlyForRegion(ctx, proposer, withdrawal.RegionId) {
+			continue
+		}
+		spendable, err := k.stakingKeeper.SpendableRegionTreasure(ctx, withdrawal.RegionId)
+		if err != nil {
+			return err
+		}
+		for _, coin := range withdrawal.Amount {
+			balance := spendable.AmountOf(coin.Denom)
+			if coin.Amount.MulRaw(100).GT(balance.MulRaw(int64(percent))) {
+				return sdkerrors.Wrapf(
+					types.ErrEquityWithdrawLimit,
+					"equity withdrawal %s exceeds %d%% of region %s treasury balance %s",
+					coin, percent, withdrawal.RegionId, sdk.NewCoin(coin.Denom, balance),
+				)
+			}
+		}
+	}
+	return nil
+}
+
+// equityOnlyForRegion is true when the proposer is authorized for this region
+// only as an equity address, not as dao or that region's operator.
+func (k Keeper) equityOnlyForRegion(ctx sdk.Context, proposer, regionID string) bool {
+	if k.isDao(ctx, proposer) {
+		return false
+	}
+	region, found := k.lookupRegion(ctx, regionID)
+	if !found {
+		return false
+	}
+	if operator, ok := operatorAccount(region.OperatorAddress); ok && operator.String() == proposer {
+		return false
+	}
+	equity, found := k.GetEquity(ctx, region.RegionId)
+	if !found {
+		return false
+	}
+	return containsAddress(equity.Addresses, proposer)
 }
 
 // activeEquityRegions returns regions whose equity list contains proposer and

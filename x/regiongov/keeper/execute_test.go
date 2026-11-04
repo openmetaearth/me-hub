@@ -138,15 +138,23 @@ func (s *KeeperTestSuite) TestEquityWithdrawCap() {
 	equity := sample.AccAddress()
 	s.App.RegionGovKeeper.SetEquity(s.Ctx, types.RegionEquity{RegionId: "usa", Addresses: []string{equity}})
 
-	s.Run("equity above one percent fails the proposal", func() {
+	s.Run("equity above one percent rejects the submit transaction", func() {
 		receiver := sdk.MustAccAddressFromBech32(sample.AccAddress())
 		before := s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom)
+		existing := len(s.App.RegionGovKeeper.GetAllProposals(s.Ctx))
 		withdrawal := s.withdrawal("usa")
 		withdrawal.Receiver = receiver.String()
 		withdrawal.Amount = sdk.NewCoins(sdk.NewCoin(params.BaseDenom, maxAllowed.AddRaw(1)))
 
-		id := s.passTreasury(equity, withdrawal)
-		s.Require().Equal(types.ProposalStatusFailed, s.mustProposal(id).Status)
+		_, err := s.msgServer.SubmitProposal(s.Ctx, &types.MsgSubmitProposal{
+			Proposer:     equity,
+			Kind:         types.ProposalKindTreasuryWithdraw,
+			Title:        "withdraw",
+			VotingPeriod: 60,
+			Treasury:     &types.TreasuryWithdrawPayload{Withdrawals: []types.Withdrawal{withdrawal}},
+		})
+		s.Require().ErrorIs(err, types.ErrEquityWithdrawLimit)
+		s.Require().Len(s.App.RegionGovKeeper.GetAllProposals(s.Ctx), existing)
 		s.Require().Equal(before, s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom))
 		s.Require().True(s.App.BankKeeper.GetBalance(s.Ctx, receiver, params.BaseDenom).IsZero())
 	})

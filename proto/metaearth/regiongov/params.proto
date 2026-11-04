@@ -20,6 +20,7 @@ message Params {
   uint32 pass_threshold_percent = 2;
 
   // equity_withdraw_percent is the maximum share of a region treasury balance
-  // an equity-address withdrawal may take. The check runs at execution.
+  // an equity-address withdrawal may take. MsgSubmitProposal rejects a larger
+  // amount. The region's operator and the dao are not capped.
   uint32 equity_withdraw_percent = 3;
 }
