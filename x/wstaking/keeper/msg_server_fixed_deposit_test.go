@@ -41,12 +41,8 @@ func (s *KeeperTestSuite) TestFixedDeposit() {
 	wdistri.EndBlock(s.Ctx, abci.RequestEndBlock{Height: s.Ctx.BlockHeight()}, *s.App.DistrKeeper)
 
 	amount := sdk.NewCoins(sdk.NewCoin(params.BaseDenom, sdk.NewInt(10000000)))
-	_, err = s.msgServer.WithdrawFromRegion(s.Ctx, &types.MsgWithdrawFromRegion{
-		Withdrawer: s.Dao.GlobalDao,
-		RegionId:   strings.ToLower(types.MeEarthRegionName),
-		Receiver:   s.Dao.GlobalDao,
-		Amount:     amount,
-	})
+	// Fund the depositor through the keeper; direct withdrawal transactions were removed.
+	err = s.Keeper().WithdrawRegionTreasure(s.Ctx, types.MeEarthRegionId, s.Dao.GlobalDao, amount)
 	s.Require().NoError(err)
 
 	tests := []struct {
