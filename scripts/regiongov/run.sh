@@ -2,20 +2,36 @@
 set -Eeuo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 
-generate_equity_addresses() {
+derive_test_address() {
  # Public test mnemonic only; never use these accounts for real funds.
  local global_dict="sign wise lyrics find brass grass already urge invite vibrant arrow grow dune theme trust mix napkin ball pause sponsor bacon capable flip people"
+ local index=$1 name=$2
+ printf '%s\n' "$global_dict" | "$MED_BIN" keys add "$name" \
+  --recover --dry-run --no-backup --key-type secp256k1 --coin-type 118 \
+  --hd-path "m/44'/118'/0'/0/0/$index" --keyring-backend test \
+  --home "$RESULT_DIR/derived-keys" --output json | jq -er '.address | select(type == "string" and startswith("me1"))'
+}
+
+generate_equity_addresses() {
  local index address
  TARGETS=()
  # setup_4validator.sh uses 11-14 for val1-val4; reserve 21-22 for equity tests.
  for index in 21 22; do
-  address=$(printf '%s\n' "$global_dict" | "$MED_BIN" keys add "regiongov-equity-$index" \
-   --recover --dry-run --no-backup --key-type secp256k1 --coin-type 118 \
-   --hd-path "m/44'/118'/0'/0/0/$index" --keyring-backend test \
-   --home "$RESULT_DIR/derived-keys" --output json | jq -er '.address | select(type == "string" and startswith("me1"))') \
+  address=$(derive_test_address "$index" "regiongov-equity-$index") \
    || fail "could not derive equity address at index $index"
   TARGETS+=("$address")
  done
+}
+
+generate_operator_address() {
+ local address
+ # Reserve index 23 for the replacement operator, separate from validators/equity.
+ address=$(derive_test_address 23 regiongov-operator-23) || fail 'could not derive operator address at index 23'
+ # Re-encode with the validator prefix AND checksum; replacing "me1" is invalid.
+ NEW_OPERATOR=$("$MED_BIN" debug addr "$address" --home "$RESULT_DIR/derived-keys" \
+  | jq -Rer 'select(startswith("Bech32 Val: ")) | ltrimstr("Bech32 Val: ") | select(startswith("mevaloper1"))') \
+  || fail 'could not convert the derived account to a validator operator address'
+ printf 'Derived operator account: %s (HD index 23)\n' "$address"
 }
 
 prepare_equity() {
@@ -155,7 +171,7 @@ submit_test_proposal() {
  local kind=$1 DAO PERIOD
  DAO=$(key_address "$DAO_KEY")
  PERIOD=$(query params | jq -er '.params.min_voting_period')
- NEW_OPERATOR=${NEW_OPERATOR:-$("$MED_BIN" keys show "$OPERATOR_KEY" -a --bech val ${KEY[@]+"${KEY[@]}"})}
+ if [[ $kind == replace-operator ]]; then require_new_operator; fi
  jq -n --arg region "$REGION_ID" --arg receiver "$DAO" --arg operator "$NEW_OPERATOR" --arg period "$PERIOD" --arg kind "$kind" '
  {title:("med binary test " + $kind),summary:"med binary proposal test",voting_period:$period} +
  (if $kind == "treasury" then {kind:"PROPOSAL_KIND_TREASURY_WITHDRAW",treasury:{withdrawals:[{region_id:$region,receiver:$receiver,amount:[{denom:"umec",amount:"10"}]}]}}
@@ -218,17 +234,16 @@ pass_test_proposal() {
 
 test_treasury_proposal_pass() { pass_test_proposal treasury; }
 require_new_operator() {
- [[ -n $NEW_OPERATOR ]] || fail 'set NEW_OPERATOR to an unused mevaloper address; replacement changes the validator operator, not just the region pointer'
+ [[ -n $NEW_OPERATOR ]] || generate_operator_address
  local current
  current=$("$MED_BIN" keys show "$OPERATOR_KEY" -a --bech val ${KEY[@]+"${KEY[@]}"})
  [[ $(printf '%s' "$NEW_OPERATOR" | tr '[:upper:]' '[:lower:]') != $(printf '%s' "$current" | tr '[:upper:]' '[:lower:]') ]] \
-  || fail 'NEW_OPERATOR must differ from the current operator'
+  || fail 'NEW_OPERATOR must differ from the current operator; if index 23 was already used, set NEW_OPERATOR to another unused address'
+ printf '%s\n' "$NEW_OPERATOR" > "$RESULT_DIR/new-operator.txt"
+ printf 'New operator: %s\n' "$NEW_OPERATOR"
 }
 
-test_operator_proposal_pass() {
- require_new_operator
- pass_test_proposal replace-operator
-}
+test_operator_proposal_pass() { pass_test_proposal replace-operator; }
 
 test_treasury_proposal_51pass_daoveto() {
  local voter params threshold period eligible required yes end_time deadline block_time
@@ -305,7 +320,12 @@ run_case() (
 TESTS=(test_submit_equity_update test_approve_pending_action test_reject_pending_action test_submit_freeze_equity test_submit_unfreeze_equity test_freeze_equity test_unfreeze_equity test_freeze_region test_unfreeze_region test_submit_treasury_proposal test_submit_operator_proposal test_vote test_treasury_proposal_pass test_treasury_proposal_51pass_daoveto test_operator_proposal_pass test_queries)
 
 run_all() {
+ local RESULT_DIR
+ RESULT_DIR=$(mktemp -d "${TMPDIR:-/tmp}/regiongov.all.XXXXXX")
+ printf 'Preflight results: %s\n' "$RESULT_DIR"
  require_new_operator
+ # Keep the same generated/explicit address in every fresh test process.
+ export NEW_OPERATOR
  local test result=0 passed=0 failed=0 skipped=0 index=0 started=$SECONDS
  local results=()
  for test in "${TESTS[@]}"; do

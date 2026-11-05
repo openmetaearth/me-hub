@@ -26,7 +26,10 @@ TX_TIMEOUT=${TX_TIMEOUT:-180}
 POLL_INTERVAL=${POLL_INTERVAL:-2}
 # Optional second region for testing batch region freeze (must initially be unfrozen).
 SECOND_REGION_ID=${SECOND_REGION_ID:-}
-# Unused validator operator address (mevaloper...), required for test_operator_proposal_pass/all.
-# Veto-only tests may omit it. A successful replacement changes the operator;
-# update OPERATOR_KEY/VOTER_KEYS before running further tests with the new account.
+# Optional replacement validator operator address (mevaloper...). If empty, run.sh
+# derives a public test address at HD index 23, separate from val1-val4/equity.
+# Derivation is dry-run: no key is saved. A successful replacement changes the
+# operator; recover its test key and update OPERATOR_KEY/VOTER_KEYS for later runs.
+# Index 23 is deterministic, not fresh on every run. If already used on-chain,
+# explicitly set NEW_OPERATOR to another unused address. Never use for real funds.
 NEW_OPERATOR=${NEW_OPERATOR:-}

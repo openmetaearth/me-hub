@@ -49,18 +49,19 @@ func (k Keeper) submitProposal(ctx sdk.Context, msg *types.MsgSubmitProposal) (u
 
 	now := ctx.BlockTime()
 	proposal := types.Proposal{
-		Id:              id,
-		Kind:            msg.Kind,
-		Proposer:        proposer,
-		Title:           msg.Title,
-		Summary:         msg.Summary,
-		Status:          types.ProposalStatusVoting,
-		SubmitTime:      now,
-		VotingEndTime:   now.Add(time.Duration(msg.VotingPeriod) * time.Second),
-		VotingPeriod:    msg.VotingPeriod,
-		Electorate:      electorate,
-		Treasury:        msg.Treasury,
-		ReplaceOperator: msg.ReplaceOperator,
+		Id:                    id,
+		Kind:                  msg.Kind,
+		Proposer:              proposer,
+		Title:                 msg.Title,
+		Summary:               msg.Summary,
+		Status:                types.ProposalStatusVoting,
+		SubmitTime:            now,
+		VotingEndTime:         now.Add(time.Duration(msg.VotingPeriod) * time.Second),
+		VotingPeriod:          msg.VotingPeriod,
+		Electorate:            electorate,
+		Treasury:              msg.Treasury,
+		ReplaceOperator:       msg.ReplaceOperator,
+		UpdateMinVotingPeriod: msg.UpdateMinVotingPeriod,
 	}
 	k.SetProposal(ctx, proposal)
 	for _, elector := range electors {
@@ -86,6 +87,8 @@ func (k Keeper) resolveElectorate(ctx sdk.Context, msg *types.MsgSubmitProposal)
 		if _, found := k.lookupRegion(ctx, msg.ReplaceOperator.RegionId); !found {
 			return types.ElectorateKindUnspecified, sdkerrors.Wrapf(types.ErrUnknownRegion, "%s", msg.ReplaceOperator.RegionId)
 		}
+		return types.ElectorateKindCountryRegionOperators, nil
+	case types.ProposalKindUpdateMinVotingPeriod:
 		return types.ElectorateKindCountryRegionOperators, nil
 	default:
 		return types.ElectorateKindUnspecified, sdkerrors.Wrap(types.ErrInvalidProposal, "unknown proposal kind")
@@ -118,7 +121,7 @@ func (k Keeper) authorizeProposer(ctx sdk.Context, proposer string, msg *types.M
 		if dao || len(operatorRegionIDs) > 0 {
 			return nil
 		}
-		return sdkerrors.Wrap(types.ErrUnauthorized, "an equity address cannot replace a region operator")
+		return sdkerrors.Wrap(types.ErrUnauthorized, "this proposal requires the dao or a region operator")
 	}
 	if dao {
 		return nil

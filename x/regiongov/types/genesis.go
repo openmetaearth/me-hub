@@ -44,7 +44,7 @@ func validateGenesisProposals(gs GenesisState) (map[uint64]Proposal, error) {
 	proposals := make(map[uint64]Proposal, len(gs.Proposals))
 	var maxProposalID uint64
 	for _, proposal := range gs.Proposals {
-		if err := validateProposal(proposal, gs.Params); err != nil {
+		if err := validateProposal(proposal); err != nil {
 			return nil, fmt.Errorf("proposal %d: %w", proposal.Id, err)
 		}
 		if _, ok := proposals[proposal.Id]; ok {
@@ -173,8 +173,8 @@ func validateGenesisPendingActions(gs GenesisState) error {
 	return nil
 }
 
-func validateProposal(proposal Proposal, params Params) error {
-	if err := validateProposalHeader(proposal, params); err != nil {
+func validateProposal(proposal Proposal) error {
+	if err := validateProposalHeader(proposal); err != nil {
 		return err
 	}
 	if err := validateProposalPayload(proposal); err != nil {
@@ -183,7 +183,7 @@ func validateProposal(proposal Proposal, params Params) error {
 	return validateProposalOperator(proposal)
 }
 
-func validateProposalHeader(proposal Proposal, params Params) error {
+func validateProposalHeader(proposal Proposal) error {
 	if proposal.Id == 0 {
 		return errors.New("id is empty")
 	}
@@ -196,8 +196,10 @@ func validateProposalHeader(proposal Proposal, params Params) error {
 	if proposal.Status == ProposalStatusUnspecified {
 		return errors.New("status is empty")
 	}
-	if proposal.VotingPeriod < params.MinVotingPeriod || proposal.VotingPeriod > MaxVotingPeriod {
-		return fmt.Errorf("voting_period %d is outside [%d,%d]", proposal.VotingPeriod, params.MinVotingPeriod, MaxVotingPeriod)
+	// Stored proposals were validated against the minimum at submission time.
+	// A later parameter increase must not invalidate an exported genesis.
+	if proposal.VotingPeriod < 1 || proposal.VotingPeriod > MaxVotingPeriod {
+		return fmt.Errorf("voting_period %d is outside [1,%d]", proposal.VotingPeriod, MaxVotingPeriod)
 	}
 	if proposal.SubmitTime.IsZero() || !proposal.VotingEndTime.After(proposal.SubmitTime) {
 		return errors.New("voting end time must be after submit time")
@@ -209,26 +211,6 @@ func validateProposalHeader(proposal Proposal, params Params) error {
 		return errors.New("unknown dao vote")
 	}
 	return nil
-}
-
-func validateProposalPayload(proposal Proposal) error {
-	switch proposal.Kind {
-	case ProposalKindTreasuryWithdraw:
-		if proposal.ReplaceOperator != nil {
-			return errors.New("treasury proposal cannot include a replace-operator payload")
-		}
-		if proposal.Treasury == nil {
-			return errors.New("treasury payload is empty")
-		}
-		return validateWithdrawals(proposal.Treasury.Withdrawals)
-	case ProposalKindReplaceRegionOperator:
-		if proposal.Treasury != nil {
-			return errors.New("replace-operator proposal cannot include a treasury payload")
-		}
-		return validateReplaceOperator(proposal.ReplaceOperator)
-	default:
-		return errors.New("unknown proposal kind")
-	}
 }
 
 func validateProposalOperator(proposal Proposal) error {

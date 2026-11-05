@@ -95,6 +95,36 @@ func validateWithdrawals(withdrawals []Withdrawal) error {
 	return nil
 }
 
+// validateProposalPayload is shared by transaction and genesis validation so
+// every proposal contains exactly the payload matching its kind.
+func validateProposalPayload(proposal Proposal) error {
+	switch proposal.Kind {
+	case ProposalKindTreasuryWithdraw:
+		if proposal.ReplaceOperator != nil || proposal.UpdateMinVotingPeriod != nil {
+			return errors.New("treasury proposal cannot include other payloads")
+		}
+		if proposal.Treasury == nil {
+			return errors.New("treasury payload is empty")
+		}
+		return validateWithdrawals(proposal.Treasury.Withdrawals)
+	case ProposalKindReplaceRegionOperator:
+		if proposal.Treasury != nil || proposal.UpdateMinVotingPeriod != nil {
+			return errors.New("replace-operator proposal cannot include other payloads")
+		}
+		return validateReplaceOperator(proposal.ReplaceOperator)
+	case ProposalKindUpdateMinVotingPeriod:
+		if proposal.Treasury != nil || proposal.ReplaceOperator != nil {
+			return errors.New("update-min-voting-period proposal cannot include other payloads")
+		}
+		if proposal.UpdateMinVotingPeriod == nil {
+			return errors.New("update min voting period payload is empty")
+		}
+		return validateMinVotingPeriod(proposal.UpdateMinVotingPeriod.MinVotingPeriod)
+	default:
+		return errors.New("unknown proposal kind")
+	}
+}
+
 func validateReplaceOperator(payload *ReplaceRegionOperatorPayload) error {
 	if payload == nil {
 		return errors.New("replace operator payload is empty")

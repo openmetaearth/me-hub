@@ -52,26 +52,11 @@ func (msg *MsgSubmitProposal) ValidateBasic() error {
 	if msg.VotingPeriod < 1 || msg.VotingPeriod > MaxVotingPeriod {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "voting_period must be a number of seconds in [1,%d]", MaxVotingPeriod)
 	}
-	switch msg.Kind {
-	case ProposalKindTreasuryWithdraw:
-		if msg.ReplaceOperator != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "treasury proposal cannot include a replace-operator payload")
-		}
-		if msg.Treasury == nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "treasury payload is empty")
-		}
-		if err := validateWithdrawals(msg.Treasury.Withdrawals); err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
-		}
-	case ProposalKindReplaceRegionOperator:
-		if msg.Treasury != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "replace-operator proposal cannot include a treasury payload")
-		}
-		if err := validateReplaceOperator(msg.ReplaceOperator); err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
-		}
-	default:
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "unknown proposal kind")
+	if err := validateProposalPayload(Proposal{
+		Kind: msg.Kind, Treasury: msg.Treasury, ReplaceOperator: msg.ReplaceOperator,
+		UpdateMinVotingPeriod: msg.UpdateMinVotingPeriod,
+	}); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 	return nil
 }

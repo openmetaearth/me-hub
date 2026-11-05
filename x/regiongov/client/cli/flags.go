@@ -46,6 +46,8 @@ func parseProposalKind(cmd *cobra.Command) (types.ProposalKind, error) {
 		return types.ProposalKindTreasuryWithdraw, nil
 	case "replace-operator":
 		return types.ProposalKindReplaceRegionOperator, nil
+	case "update-min-voting-period":
+		return types.ProposalKindUpdateMinVotingPeriod, nil
 	default:
 		return types.ProposalKindUnspecified, fmt.Errorf("unknown kind %q", value)
 	}

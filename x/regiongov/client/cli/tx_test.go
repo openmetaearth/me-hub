@@ -34,6 +34,8 @@ func TestTxCommands(t *testing.T) {
 	}
 	treasury := proposalFile("treasury.json", fmt.Sprintf(`{"kind":"PROPOSAL_KIND_TREASURY_WITHDRAW","title":"Withdraw","summary":"Budget","voting_period":"3600","treasury":{"withdrawals":[{"region_id":"region-1","receiver":%q,"amount":[{"denom":"umec","amount":"100"}]}]}}`, target))
 	replacement := proposalFile("operator.json", fmt.Sprintf(`{"proposer":%q,"kind":"PROPOSAL_KIND_REPLACE_REGION_OPERATOR","title":"Replace","voting_period":"3600","replace_operator":{"region_id":"region-1","new_operator":%q}}`, target, operator))
+	minVotingPeriod := proposalFile("min-voting-period.json", `{"kind":"PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD","title":"Update minimum","voting_period":"120","update_min_voting_period":{"min_voting_period":"300"}}`)
+	invalidMinVotingPeriod := proposalFile("invalid-min-voting-period.json", `{"kind":"PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD","title":"Invalid minimum","voting_period":"120","update_min_voting_period":{"min_voting_period":"0"}}`)
 	invalidJSON := proposalFile("invalid.json", `{`)
 	invalidPayload := proposalFile("invalid-payload.json", `{"kind":"PROPOSAL_KIND_TREASURY_WITHDRAW","title":"Withdraw","voting_period":"3600"}`)
 
@@ -44,6 +46,8 @@ func TestTxCommands(t *testing.T) {
 	}{
 		{"treasury", []string{"submit-proposal", treasury}, &types.MsgSubmitProposal{Proposer: signer, Kind: types.ProposalKindTreasuryWithdraw, Title: "Withdraw", Summary: "Budget", VotingPeriod: 3600, Treasury: &types.TreasuryWithdrawPayload{Withdrawals: []types.Withdrawal{{RegionId: "region-1", Receiver: target, Amount: sdk.NewCoins(sdk.NewInt64Coin("umec", 100))}}}}},
 		{"operator", []string{"submit-proposal", replacement}, &types.MsgSubmitProposal{Proposer: signer, Kind: types.ProposalKindReplaceRegionOperator, Title: "Replace", VotingPeriod: 3600, ReplaceOperator: &types.ReplaceRegionOperatorPayload{RegionId: "region-1", NewOperator: operator}}},
+		{"min-voting-period", []string{"submit-proposal", minVotingPeriod}, &types.MsgSubmitProposal{Proposer: signer, Kind: types.ProposalKindUpdateMinVotingPeriod, Title: "Update minimum", VotingPeriod: 120, UpdateMinVotingPeriod: &types.UpdateMinVotingPeriodPayload{MinVotingPeriod: 300}}},
+		{"invalid-min-voting-period", []string{"submit-proposal", invalidMinVotingPeriod}, nil},
 		{"yes", []string{"vote", "1", "yes"}, &types.MsgVote{Voter: signer, ProposalId: 1, Option: types.VoteOptionYes}},
 		{"no", []string{"vote", "2", "NO"}, &types.MsgVote{Voter: signer, ProposalId: 2, Option: types.VoteOptionNo}},
 		{"update", []string{"submit-equity-update", "region-1", target, signer}, &types.MsgSubmitEquityUpdate{Proposer: signer, RegionId: "region-1", Addresses: []string{target, signer}}},

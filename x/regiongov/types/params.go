@@ -28,14 +28,21 @@ func DefaultParams() Params {
 
 // Validate checks the parameter bounds agreed for region governance.
 func (p Params) Validate() error {
-	if p.MinVotingPeriod < 1 || p.MinVotingPeriod > MaxVotingPeriod {
-		return fmt.Errorf("min_voting_period must be a number of seconds in [1,%d], got %d", MaxVotingPeriod, p.MinVotingPeriod)
+	if err := validateMinVotingPeriod(p.MinVotingPeriod); err != nil {
+		return err
 	}
 	if p.PassThresholdPercent < 1 || p.PassThresholdPercent > 100 {
 		return fmt.Errorf("pass_threshold_percent must be in [1,100], got %d", p.PassThresholdPercent)
 	}
 	if p.EquityWithdrawPercent < 1 || p.EquityWithdrawPercent > 100 {
 		return fmt.Errorf("equity_withdraw_percent must be in [1,100], got %d", p.EquityWithdrawPercent)
+	}
+	return nil
+}
+
+func validateMinVotingPeriod(period uint64) error {
+	if period < 1 || period > MaxVotingPeriod {
+		return fmt.Errorf("min_voting_period must be a number of seconds in [1,%d], got %d", MaxVotingPeriod, period)
 	}
 	return nil
 }
