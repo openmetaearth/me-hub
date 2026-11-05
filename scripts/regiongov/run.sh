@@ -175,12 +175,22 @@ submit_test_proposal() {
  jq -n --arg region "$REGION_ID" --arg receiver "$DAO" --arg operator "$NEW_OPERATOR" --arg period "$PERIOD" --arg kind "$kind" '
  {title:("med binary test " + $kind),summary:"med binary proposal test",voting_period:$period} +
  (if $kind == "treasury" then {kind:"PROPOSAL_KIND_TREASURY_WITHDRAW",treasury:{withdrawals:[{region_id:$region,receiver:$receiver,amount:[{denom:"umec",amount:"10"}]}]}}
- else {kind:"PROPOSAL_KIND_REPLACE_REGION_OPERATOR",replace_operator:{region_id:$region,new_operator:$operator}} end)' > "$RESULT_DIR/$kind.json"
+ elif $kind == "replace-operator" then {kind:"PROPOSAL_KIND_REPLACE_REGION_OPERATOR",replace_operator:{region_id:$region,new_operator:$operator}}
+ elif $kind == "update-min-voting-period" then {kind:"PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD",update_min_voting_period:{min_voting_period:"300"}}
+ else error("unknown proposal kind: " + $kind) end)' > "$RESULT_DIR/$kind.json"
  echo "Proposal JSON: $RESULT_DIR/$kind.json"
  cat "$RESULT_DIR/$kind.json"
  send_tx "$DAO_KEY" submit-proposal "$RESULT_DIR/$kind.json"
  PROPOSAL_ID=$(event_id proposal_id)
  query proposal "$PROPOSAL_ID" | assert_json '.proposal.status == "PROPOSAL_STATUS_VOTING"'
+ if [[ $kind == update-min-voting-period ]]; then
+  query proposal "$PROPOSAL_ID" | assert_json '
+   .proposal.kind == "PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD" and
+   (.proposal.voting_period | tonumber) == 120 and
+   (.proposal.update_min_voting_period.min_voting_period | tonumber) == 300'
+  # Submission alone must not change the minimum before voting/execution.
+  query params | assert_json '(.params.min_voting_period | tonumber) == 120'
+ fi
  query electors "$PROPOSAL_ID" > "$RESULT_DIR/electors-$PROPOSAL_ID.json"
  assert_json 'all(.electors[]; (.region_id | ascii_downcase) != "me_earth" and (.region_id | ascii_downcase) != "experience_region")' < "$RESULT_DIR/electors-$PROPOSAL_ID.json"
  query votes "$PROPOSAL_ID" | assert_json '(.votes // [] | length) == 0'
@@ -233,6 +243,23 @@ pass_test_proposal() {
 }
 
 test_treasury_proposal_pass() { pass_test_proposal treasury; }
+
+test_min_voting_period_proposal_pass() {
+ local before current
+ before=$(query params)
+ printf '%s\n' "$before" > "$RESULT_DIR/params-before.json"
+ current=$(printf '%s' "$before" | jq -er '.params.min_voting_period')
+ [[ $current == 120 ]] || fail "this test requires min_voting_period=120, got $current; it leaves the minimum at 300 after success"
+ pass_test_proposal update-min-voting-period
+ query params > "$RESULT_DIR/params-after.json"
+ assert_json --argjson before "$before" '
+  (.params.min_voting_period | tonumber) == 300 and
+  (.params | del(.min_voting_period)) == ($before.params | del(.min_voting_period))
+ ' < "$RESULT_DIR/params-after.json"
+ jq . "$RESULT_DIR/params-after.json"
+ printf 'min_voting_period updated: 120 -> 300 seconds (not restored).\n'
+}
+
 require_new_operator() {
  [[ -n $NEW_OPERATOR ]] || generate_operator_address
  local current
@@ -317,7 +344,7 @@ run_case() (
  echo "PASS: $1"
 )
 
-TESTS=(test_submit_equity_update test_approve_pending_action test_reject_pending_action test_submit_freeze_equity test_submit_unfreeze_equity test_freeze_equity test_unfreeze_equity test_freeze_region test_unfreeze_region test_submit_treasury_proposal test_submit_operator_proposal test_vote test_treasury_proposal_pass test_treasury_proposal_51pass_daoveto test_operator_proposal_pass test_queries)
+TESTS=(test_submit_equity_update test_approve_pending_action test_reject_pending_action test_submit_freeze_equity test_submit_unfreeze_equity test_freeze_equity test_unfreeze_equity test_freeze_region test_unfreeze_region test_submit_treasury_proposal test_submit_operator_proposal test_vote test_treasury_proposal_pass test_treasury_proposal_51pass_daoveto test_min_voting_period_proposal_pass test_operator_proposal_pass test_queries)
 
 run_all() {
  local RESULT_DIR
