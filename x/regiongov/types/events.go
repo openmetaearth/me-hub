@@ -17,6 +17,7 @@ const (
 
 	AttributeKeyProposalID    = "proposal_id"
 	AttributeKeyActionID      = "action_id"
+	AttributeKeyActionKind    = "action_kind"
 	AttributeKeyProposer      = "proposer"
 	AttributeKeyVoter         = "voter"
 	AttributeKeyOption        = "option"

@@ -31,7 +31,7 @@ func (k Keeper) submitEquityUpdate(ctx sdk.Context, msg *types.MsgSubmitEquityUp
 			"equity addresses cannot include the region operator %s of region %s", proposer, region.RegionId)
 	}
 	id := k.queuePendingAction(ctx, types.PendingActionKindSetEquity, region.RegionId, proposer, addresses)
-	k.emitEquity(ctx, types.EventTypeSubmitEquityUpdate, id, region.RegionId, proposer, "")
+	k.emitEquity(ctx, types.EventTypeSubmitEquityUpdate, id, region.RegionId, proposer, addresses, "")
 	return id, nil
 }
 
@@ -67,9 +67,7 @@ func (k Keeper) submitEquityFreezeChange(ctx sdk.Context, regionID, proposer str
 		kind, eventType = types.PendingActionKindUnfreezeEquity, types.EventTypeSubmitUnfreezeEquity
 	}
 	id := k.queuePendingAction(ctx, kind, region.RegionId, proposer, addresses)
-	for _, address := range addresses {
-		k.emitEquity(ctx, eventType, id, region.RegionId, proposer, address)
-	}
+	k.emitEquity(ctx, eventType, id, region.RegionId, proposer, addresses, "")
 	return id, nil
 }
 
@@ -89,7 +87,7 @@ func (k Keeper) approvePendingAction(ctx sdk.Context, msg *types.MsgApprovePendi
 	}
 	action.Status = types.PendingActionStatusApproved
 	k.SetPendingAction(ctx, action)
-	k.emitEquity(ctx, types.EventTypeApprovePendingAction, action.Id, action.RegionId, action.Proposer, "")
+	k.emitEquity(ctx, types.EventTypeApprovePendingAction, action.Id, action.RegionId, action.Proposer, action.Addresses, action.Kind.String())
 	return nil
 }
 
@@ -106,7 +104,7 @@ func (k Keeper) rejectPendingAction(ctx sdk.Context, msg *types.MsgRejectPending
 	}
 	action.Status = types.PendingActionStatusRejected
 	k.SetPendingAction(ctx, action)
-	k.emitEquity(ctx, types.EventTypeRejectPendingAction, action.Id, action.RegionId, action.Proposer, "")
+	k.emitEquity(ctx, types.EventTypeRejectPendingAction, action.Id, action.RegionId, action.Proposer, action.Addresses, action.Kind.String())
 	return nil
 }
 
@@ -280,16 +278,26 @@ func (k Keeper) applyPendingAction(ctx sdk.Context, action types.PendingAction) 
 	return nil
 }
 
-func (k Keeper) emitEquity(ctx sdk.Context, eventType string, actionID uint64, regionID, proposer, address string) {
+// emitEquity reports each requested address, including for rejected actions.
+// An empty list means clearing the equity list and still emits one event.
+func (k Keeper) emitEquity(ctx sdk.Context, eventType string, actionID uint64, regionID, proposer string, addresses []string, actionKind string) {
 	attrs := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeyActionID, strconv.FormatUint(actionID, 10)),
 		sdk.NewAttribute(types.AttributeKeyRegionID, regionID),
 		sdk.NewAttribute(types.AttributeKeyProposer, proposer),
 	}
-	if address != "" {
-		attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyAddress, address))
+	if actionKind != "" {
+		attrs = append(attrs, sdk.NewAttribute(types.AttributeKeyActionKind, actionKind))
 	}
-	ctx.EventManager().EmitEvent(sdk.NewEvent(eventType, attrs...))
+	if len(addresses) == 0 {
+		ctx.EventManager().EmitEvent(sdk.NewEvent(eventType, attrs...))
+		return
+	}
+	for _, address := range addresses {
+		event := sdk.NewEvent(eventType, attrs...)
+		event = event.AppendAttributes(sdk.NewAttribute(types.AttributeKeyAddress, address))
+		ctx.EventManager().EmitEvent(event)
+	}
 }
 
 func canonicalAddresses(addresses []string) ([]string, error) {
