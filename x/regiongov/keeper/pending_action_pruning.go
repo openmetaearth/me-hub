@@ -8,7 +8,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/regiongov/types"
 )
 
-const pendingActionRetention = 7 * 24 * time.Hour
+const pendingActionRetention = 1 * 24 * time.Hour
 
 // pruneCompletedPendingActions removes decided requests strictly more than seven
 // days after submission, not approval/rejection. Pending requests never expire.
