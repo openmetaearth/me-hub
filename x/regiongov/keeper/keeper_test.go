@@ -1,10 +1,13 @@
 package keeper_test
 
 import (
+	"strings"
 	"testing"
 	"time"
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
@@ -13,6 +16,7 @@ import (
 
 	"github.com/openmetaearth/me-hub/app/apptesting"
 	"github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/openmetaearth/me-hub/x/regiongov"
 	regiongovkeeper "github.com/openmetaearth/me-hub/x/regiongov/keeper"
 	"github.com/openmetaearth/me-hub/x/regiongov/types"
@@ -24,6 +28,7 @@ type KeeperTestSuite struct {
 	apptesting.KeeperTestHelper
 
 	msgServer           types.MsgServer
+	stakingMsgServer    wstakingkeeper.MsgServer
 	meEarthValidator    stakingtypes.Validator
 	experienceValidator stakingtypes.Validator
 	usaValidator        stakingtypes.Validator
@@ -64,7 +69,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.Require().NoError(s.App.RegionGovKeeper.SetParams(s.Ctx, govParams))
 
 	stakingMsg := stakingkeeper.NewMsgServerImpl(s.App.StakingKeeper.Keeper)
-	regionMsg := wstakingkeeper.NewMsgServerImpl(s.App.StakingKeeper, s.App.TransferKeeper, stakingMsg)
+	s.stakingMsgServer = wstakingkeeper.NewMsgServerImpl(s.App.StakingKeeper, s.App.TransferKeeper, stakingMsg)
 	for _, region := range []struct {
 		name     string
 		operator string
@@ -73,22 +78,51 @@ func (s *KeeperTestSuite) SetupTest() {
 		{name: wstakingtypes.ExperienceRegionName, operator: s.experienceValidator.OperatorAddress},
 		{name: "USA", operator: s.usaValidator.OperatorAddress},
 	} {
-		_, err := regionMsg.NewRegion(s.Ctx, &wstakingtypes.MsgNewRegion{
-			Creator:         s.Dao.GlobalDao,
-			Name:            region.name,
-			OperatorAddress: region.operator,
-		})
-		s.Require().NoError(err)
-	}
-
-	fund := sdk.NewCoins(sdk.NewInt64Coin(params.BaseDenom, 1_000_000))
-	for _, region := range s.App.StakingKeeper.GetAllRegion(s.Ctx) {
-		treasure := sdk.MustAccAddressFromBech32(region.RegionTreasureAddr)
-		s.Require().NoError(s.App.BankKeeper.MintCoins(s.Ctx, mintypes.ModuleName, fund))
-		s.Require().NoError(s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, treasure, fund))
+		s.createFundedRegion(region.name, region.operator)
 	}
 
 	s.msgServer = regiongovkeeper.NewMsgServerImpl(s.App.RegionGovKeeper)
+}
+
+func (s *KeeperTestSuite) createFundedRegion(name, operator string) {
+	s.T().Helper()
+	_, err := s.stakingMsgServer.NewRegion(s.Ctx, &wstakingtypes.MsgNewRegion{
+		Creator:         s.Dao.GlobalDao,
+		Name:            name,
+		OperatorAddress: operator,
+	})
+	s.Require().NoError(err)
+	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, strings.ToLower(name))
+	s.Require().True(found)
+	treasury := sdk.MustAccAddressFromBech32(region.RegionTreasureAddr)
+	fund := sdk.NewCoins(sdk.NewInt64Coin(params.BaseDenom, 1_000_000))
+	s.Require().NoError(s.App.BankKeeper.MintCoins(s.Ctx, mintypes.ModuleName, fund))
+	s.Require().NoError(s.App.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, mintypes.ModuleName, treasury, fund))
+}
+
+// addCountryRegion creates a real validator and its bound, funded region. Tests
+// with multiple electors must not bypass wstaking's validator-region binding.
+func (s *KeeperTestSuite) addCountryRegion(regionID string) string {
+	s.T().Helper()
+	operator := sdk.MustAccAddressFromBech32(sample.AccAddress())
+	pubkey, err := codectypes.NewAnyWithValue(ed25519.GenPrivKey().PubKey())
+	s.Require().NoError(err)
+	amount := sdk.NewInt64Coin(params.BaseDenom, 1_000_000)
+	s.FundModuleAcc(wstakingtypes.StakePoolName, sdk.NewCoins(amount))
+	_, err = s.stakingMsgServer.CreateValidator(s.Ctx, &stakingtypes.MsgCreateValidator{
+		Description: stakingtypes.Description{Moniker: regionID, RegionID: regionID},
+		Commission: stakingtypes.NewCommissionRates(
+			s.App.StakingKeeper.MinCommissionRate(s.Ctx), sdk.OneDec(), sdk.ZeroDec(),
+		),
+		MinSelfDelegation: sdk.OneInt(),
+		DelegatorAddress:  s.Dao.GlobalDao,
+		ValidatorAddress:  sdk.ValAddress(operator).String(),
+		Pubkey:            pubkey,
+		Value:             amount,
+	})
+	s.Require().NoError(err)
+	s.createFundedRegion(strings.ToUpper(regionID), sdk.ValAddress(operator).String())
+	return operator.String()
 }
 
 func operatorAccount(operator string) string {

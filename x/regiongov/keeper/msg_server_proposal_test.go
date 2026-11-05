@@ -83,8 +83,15 @@ func (s *KeeperTestSuite) TestSubmitVoteAndEndBlock() {
 func (s *KeeperTestSuite) TestDaoVetoBeforeEndBlock() {
 	s.SetupTest()
 	usa := operatorAccount(s.usaValidator.OperatorAddress)
-	id := s.submit(usa, s.withdrawal("usa"))
-
+	withdrawal := s.withdrawal("usa")
+	withdrawal.Receiver = sample.AccAddress()
+	id := s.submit(usa, withdrawal)
+	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
+	s.Require().True(found)
+	treasury := sdk.MustAccAddressFromBech32(region.RegionTreasureAddr)
+	before := s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom)
+	// Veto must win even after every operator and the DAO have approved.
+	s.Require().NoError(s.vote(usa, id, types.VoteOptionYes))
 	s.Require().NoError(s.vote(s.Dao.GlobalDao, id, types.VoteOptionYes))
 	s.Require().Equal(types.DaoVoteYes, s.mustProposal(id).DaoVote)
 	s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(id).Status)
@@ -94,8 +101,13 @@ func (s *KeeperTestSuite) TestDaoVetoBeforeEndBlock() {
 	s.Require().Equal(types.ProposalStatusRejected, s.mustProposal(id).Status)
 	s.Require().ErrorIs(s.vote(s.Dao.GlobalDao, id, types.VoteOptionYes), types.ErrVotingClosed)
 
-	s.endBlockAt(s.startTime.Add(60 * time.Second))
+	s.Ctx = s.Ctx.WithEventManager(sdk.NewEventManager())
+	s.endBlockAt(s.mustProposal(id).VotingEndTime)
 	s.Require().Equal(types.ProposalStatusRejected, s.mustProposal(id).Status)
+	s.Require().Empty(s.Ctx.EventManager().Events())
+	s.Require().Equal(before, s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom))
+	receiver := sdk.MustAccAddressFromBech32(withdrawal.Receiver)
+	s.Require().True(s.App.BankKeeper.GetBalance(s.Ctx, receiver, params.BaseDenom).IsZero())
 }
 
 func (s *KeeperTestSuite) TestSubmitAuthorization() {

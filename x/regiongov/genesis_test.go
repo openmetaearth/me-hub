@@ -101,12 +101,8 @@ func TestQueryParams(t *testing.T) {
 	require.Equal(t, uint32(1), res.Params.EquityWithdrawPercent)
 }
 
+// Genesis import/export and parameter queries do not call other modules.
 func newKeeper(t *testing.T) (keeper.Keeper, sdk.Context) {
-	t.Helper()
-	return newKeeperWith(t, nil, nil)
-}
-
-func newKeeperWith(t *testing.T, staking types.StakingKeeper, dao types.DaoKeeper) (keeper.Keeper, sdk.Context) {
 	t.Helper()
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
 	db := cmtbftdb.NewMemDB()
@@ -115,7 +111,7 @@ func newKeeperWith(t *testing.T, staking types.StakingKeeper, dao types.DaoKeepe
 	require.NoError(t, stateStore.LoadLatestVersion())
 
 	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
-	k := keeper.NewKeeper(cdc, storeKey, staking, dao)
+	k := keeper.NewKeeper(cdc, storeKey, nil, nil)
 	ctx := sdk.NewContext(stateStore, cmtproto.Header{}, false, log.NewNopLogger())
 	return k, ctx
 }
