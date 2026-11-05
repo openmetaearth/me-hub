@@ -1,6 +1,10 @@
 package keeper_test
 
 import (
+	"strings"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/openmetaearth/me-hub/x/regiongov/types"
 )
@@ -138,6 +142,60 @@ func (s *KeeperTestSuite) TestEquityUpdateNeedsDaoApproval() {
 	equity, found = s.App.RegionGovKeeper.GetEquity(s.Ctx, "usa")
 	s.Require().True(found)
 	s.Require().Empty(equity.Addresses)
+}
+
+func (s *KeeperTestSuite) TestEquityUpdateRejectsOwnRegionOperator() {
+	s.SetupTest()
+	operator := operatorAccount(s.usaValidator.OperatorAddress)
+	otherOperator := operatorAccount(s.meEarthValidator.OperatorAddress)
+	address := sample.AccAddress()
+	original := types.RegionEquity{RegionId: "usa", Addresses: []string{address}}
+	s.App.RegionGovKeeper.SetEquity(s.Ctx, original)
+
+	for _, tc := range []struct {
+		name      string
+		proposer  string
+		regionID  string
+		addresses []string
+	}{
+		{"operator alone", operator, "usa", []string{operator}},
+		{"operator first", operator, "usa", []string{operator, address}},
+		{"operator last", operator, "usa", []string{address, operator}},
+		{"uppercase equity address", operator, "usa", []string{strings.ToUpper(operator)}},
+		{"uppercase proposer", strings.ToUpper(operator), "usa", []string{operator}},
+		{"uppercase region id", operator, "USA", []string{operator}},
+	} {
+		s.Run(tc.name, func() {
+			seq := s.App.RegionGovKeeper.GetPendingActionSeq(s.Ctx)
+			actions := s.App.RegionGovKeeper.GetAllPendingActions(s.Ctx)
+			events := len(s.Ctx.EventManager().Events())
+			res, err := s.msgServer.SubmitEquityUpdate(s.Ctx, &types.MsgSubmitEquityUpdate{
+				Proposer: tc.proposer, RegionId: tc.regionID, Addresses: tc.addresses,
+			})
+			s.Require().ErrorIs(err, sdkerrors.ErrInvalidRequest)
+			s.Require().Contains(err.Error(), "equity addresses cannot include the region operator")
+			s.Require().Nil(res)
+			s.Require().Equal(seq, s.App.RegionGovKeeper.GetPendingActionSeq(s.Ctx))
+			s.Require().Equal(actions, s.App.RegionGovKeeper.GetAllPendingActions(s.Ctx))
+			s.Require().Len(s.Ctx.EventManager().Events(), events)
+			equity, found := s.App.RegionGovKeeper.GetEquity(s.Ctx, "usa")
+			s.Require().True(found)
+			s.Require().Equal(original, equity)
+		})
+	}
+
+	// Only the target region's operator is excluded, not operators of other regions.
+	pending, err := s.msgServer.SubmitEquityUpdate(s.Ctx, &types.MsgSubmitEquityUpdate{
+		Proposer: operator, RegionId: "usa", Addresses: []string{address, otherOperator},
+	})
+	s.Require().NoError(err)
+	_, err = s.msgServer.ApprovePendingAction(s.Ctx, &types.MsgApprovePendingAction{
+		Authority: s.Dao.GlobalDao, ActionId: pending.ActionId,
+	})
+	s.Require().NoError(err)
+	equity, found := s.App.RegionGovKeeper.GetEquity(s.Ctx, "usa")
+	s.Require().True(found)
+	s.Require().Equal([]string{address, otherOperator}, equity.Addresses)
 }
 
 func (s *KeeperTestSuite) TestEquityFreezeByOperatorAndDao() {

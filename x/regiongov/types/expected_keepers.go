@@ -15,6 +15,7 @@ type StakingKeeper interface {
 	SpendableRegionTreasure(ctx sdk.Context, regionID string) (sdk.Coins, error)
 	// WithdrawRegionTreasure pays amount from the region treasury.
 	WithdrawRegionTreasure(ctx sdk.Context, regionID, receiver string, amount sdk.Coins) error
+	// SetRegionOperator migrates the region's bound validator to an unused operator address.
 	SetRegionOperator(ctx sdk.Context, regionID, newOperator string) error
 }
 

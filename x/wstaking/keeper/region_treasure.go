@@ -54,25 +54,27 @@ func (k Keeper) WithdrawRegionTreasure(ctx sdk.Context, regionID, receiver strin
 	return nil
 }
 
-// SetRegionOperator writes Region.OperatorAddress and updates the region group admin.
+// SetRegionOperator changes the bound validator's operator, not the region's
+// validator identity. resetValidator updates the region and group via BondRegion.
 func (k Keeper) SetRegionOperator(ctx sdk.Context, regionID, newOperator string) error {
 	region, found := k.GetRegion(ctx, regionID)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrRegionNotExist, "region %s", regionID)
 	}
-	valAddr, err := sdk.ValAddressFromBech32(newOperator)
+	newAddr, err := sdk.ValAddressFromBech32(newOperator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator %s: %s", newOperator, err)
 	}
-	validator, ok := k.GetValidator(ctx, valAddr)
-	if !ok {
-		return sdkerrors.Wrapf(types.ErrNoValidatorExists, "%s", newOperator)
+	oldAddr, err := sdk.ValAddressFromBech32(region.OperatorAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid bound operator %s: %s", region.OperatorAddress, err)
 	}
-
-	region.OperatorAddress = validator.OperatorAddress
-	k.SetRegion(ctx, region)
-	if k.groupKeeper != nil {
-		k.groupKeeper.UpdateGroupAdmin(ctx, regionID, validator.OwnerAddress)
+	validator, found := k.GetValidator(ctx, oldAddr)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrNoValidatorExists, "%s", region.OperatorAddress)
 	}
-	return nil
+	if validator.Description.RegionID != region.RegionId {
+		return sdkerrors.Wrapf(types.ErrRegion, "validator %s is bound to region %s, not %s", region.OperatorAddress, validator.Description.RegionID, region.RegionId)
+	}
+	return k.resetValidator(ctx, sdk.AccAddress(newAddr), validator)
 }

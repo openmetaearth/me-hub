@@ -25,6 +25,11 @@ func (k Keeper) submitEquityUpdate(ctx sdk.Context, msg *types.MsgSubmitEquityUp
 	if err != nil {
 		return 0, err
 	}
+	// requireRegionOperator guarantees proposer is the region operator's canonical account address.
+	if containsAddress(addresses, proposer) {
+		return 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,
+			"equity addresses cannot include the region operator %s of region %s", proposer, region.RegionId)
+	}
 	id := k.queuePendingAction(ctx, types.PendingActionKindSetEquity, region.RegionId, proposer, addresses)
 	k.emitEquity(ctx, types.EventTypeSubmitEquityUpdate, id, region.RegionId, proposer, "")
 	return id, nil

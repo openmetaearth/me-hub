@@ -102,11 +102,12 @@ message TreasuryWithdrawPayload {
   repeated Withdrawal withdrawals = 1 [(gogoproto.nullable) = false];
 }
 
-// ReplaceRegionOperatorPayload replaces Region.OperatorAddress on the hub.
+// ReplaceRegionOperatorPayload changes the bound validator's operator address,
+// preserving its consensus key and updating Region.OperatorAddress on the hub.
 message ReplaceRegionOperatorPayload {
   string region_id = 1;
-  // new_operator is the validator operator address written to
-  // Region.OperatorAddress.
+  // new_operator must be an unused validator operator address, not an existing
+  // validator. The same key's account address becomes the validator owner.
   string new_operator = 2;
 }
 

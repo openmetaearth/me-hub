@@ -200,6 +200,8 @@ func (s *KeeperTestSuite) TestExecuteTreasuryAndReplaceOperator() {
 	s.Require().Equal(before.Amount.Sub(amount[0].Amount), after.Amount)
 	s.Require().Equal(amount[0].Amount, got.Amount)
 
+	newOwner := sdk.MustAccAddressFromBech32(sample.AccAddress())
+	newOperator := sdk.ValAddress(newOwner)
 	replace, err := s.msgServer.SubmitProposal(s.Ctx, &types.MsgSubmitProposal{
 		Proposer:     dao,
 		Kind:         types.ProposalKindReplaceRegionOperator,
@@ -207,7 +209,7 @@ func (s *KeeperTestSuite) TestExecuteTreasuryAndReplaceOperator() {
 		VotingPeriod: 60,
 		ReplaceOperator: &types.ReplaceRegionOperatorPayload{
 			RegionId:    "usa",
-			NewOperator: s.meEarthValidator.OperatorAddress,
+			NewOperator: newOperator.String(),
 		},
 	})
 	s.Require().NoError(err)
@@ -220,7 +222,52 @@ func (s *KeeperTestSuite) TestExecuteTreasuryAndReplaceOperator() {
 
 	updated, found := s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
 	s.Require().True(found)
-	s.Require().Equal(s.meEarthValidator.OperatorAddress, updated.OperatorAddress)
+	s.Require().Equal(newOperator.String(), updated.OperatorAddress)
+	oldAddr, err := sdk.ValAddressFromBech32(s.usaValidator.OperatorAddress)
+	s.Require().NoError(err)
+	_, found = s.App.StakingKeeper.GetValidator(s.Ctx, oldAddr)
+	s.Require().False(found)
+	validator := s.App.StakingKeeper.MustGetValidator(s.Ctx, newOperator)
+	s.Require().Equal("usa", validator.Description.RegionID)
+	s.Require().Equal(newOwner.String(), validator.OwnerAddress)
+	s.Require().Equal(s.usaValidator.ConsensusPubkey, validator.ConsensusPubkey)
+	s.Require().Equal(s.usaValidator.Tokens, validator.Tokens)
+	resetEvents := 0
+	for _, event := range s.Ctx.EventManager().Events() {
+		if event.Type == wstakingtypes.EventTypeResetValidator {
+			resetEvents++
+		}
+	}
+	s.Require().Equal(1, resetEvents)
+	globalRegion, found := s.App.StakingKeeper.GetRegion(s.Ctx, wstakingtypes.MeEarthRegionId)
+	s.Require().True(found)
+	s.Require().Equal(s.meEarthValidator.OperatorAddress, globalRegion.OperatorAddress)
+	updates, err := s.App.StakingKeeper.ApplyAndReturnValidatorSetUpdates(s.Ctx)
+	s.Require().NoError(err)
+	s.Require().Empty(updates)
+}
+
+func (s *KeeperTestSuite) TestReplaceOperatorRejectsExistingValidatorAtExecution() {
+	s.SetupTest()
+	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
+	s.Require().True(found)
+	validators := s.App.StakingKeeper.GetAllValidators(s.Ctx)
+	stakes := s.App.StakingKeeper.GetAllStakes(s.Ctx)
+	replace, err := s.msgServer.SubmitProposal(s.Ctx, &types.MsgSubmitProposal{
+		Proposer: s.Dao.GlobalDao, Kind: types.ProposalKindReplaceRegionOperator,
+		Title: "cannot steal another region's validator", VotingPeriod: 60,
+		ReplaceOperator: &types.ReplaceRegionOperatorPayload{RegionId: "usa", NewOperator: s.meEarthValidator.OperatorAddress},
+	})
+	s.Require().NoError(err)
+	s.Require().NoError(s.vote(operatorAccount(region.OperatorAddress), replace.Id, types.VoteOptionYes))
+	s.Require().NoError(s.vote(s.Dao.GlobalDao, replace.Id, types.VoteOptionYes))
+	s.endBlockAt(s.mustProposal(replace.Id).VotingEndTime)
+	s.Require().Equal(types.ProposalStatusFailed, s.mustProposal(replace.Id).Status)
+	unchanged, found := s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
+	s.Require().True(found)
+	s.Require().Equal(region, unchanged)
+	s.Require().Equal(validators, s.App.StakingKeeper.GetAllValidators(s.Ctx))
+	s.Require().Equal(stakes, s.App.StakingKeeper.GetAllStakes(s.Ctx))
 }
 
 func (s *KeeperTestSuite) mustProposal(id uint64) types.Proposal {

@@ -32,8 +32,9 @@ func (k Keeper) finalizeProposal(ctx sdk.Context, proposal types.Proposal, execu
 		k.emitTally(ctx, proposal, true, err)
 		return
 	}
+	// CacheContext's write also forwards events; emitting them again duplicates
+	// reset_validator, group-admin, and transfer events from proposal execution.
 	write()
-	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
 	proposal.Status = types.ProposalStatusPassed
 	k.SetProposal(ctx, proposal)
 	k.emitTally(ctx, proposal, true, nil)

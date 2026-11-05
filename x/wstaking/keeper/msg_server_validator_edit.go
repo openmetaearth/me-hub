@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/openmetaearth/me-hub/utils"
@@ -15,7 +14,7 @@ import (
 
 // UpdateValidator defines a method for editing an existing validator
 func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateValidator) (*types.MsgUpdateValidatorResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
+	ctx, write := sdk.UnwrapSDKContext(goCtx).CacheContext()
 
 	if !k.daoKeeper.IsGlobalDao(ctx, msg.StakerAddress) {
 		return nil, types.ErrCheckGlobalDao
@@ -82,12 +81,12 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 	}
 
 	if msg.OwnerAddress != "" {
-		err = k.resetValidator(ctx,
-			sdk.MustAccAddressFromBech32(msg.StakerAddress),
-			sdk.MustAccAddressFromBech32(msg.OwnerAddress),
-			validator)
+		owner, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 		if err != nil {
-			return nil, sdkerrors.Wrapf(types.ErrResetValidator, err.Error())
+			return nil, err
+		}
+		if err := k.resetValidator(ctx, owner, validator); err != nil {
+			return nil, sdkerrors.Wrap(types.ErrResetValidator, err.Error())
 		}
 	} else {
 		k.SetValidator(ctx, validator)
@@ -101,77 +100,6 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 			sdk.NewAttribute(types.AttributeKeyRegionId, validator.Description.RegionID),
 		),
 	})
+	write()
 	return &types.MsgUpdateValidatorResponse{}, nil
-}
-
-func (k Keeper) resetValidator(goCtx context.Context, staker, newValAddr sdk.AccAddress, validator stakingtypes.Validator) error {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	oldValOperator := validator.GetOperator()
-
-	acc := k.authKeeper.GetAccount(ctx, newValAddr)
-	if acc != nil {
-		_, ok := acc.(authtypes.ModuleAccountI)
-		if ok {
-			return types.ErrValidatorAddress
-		}
-	}
-
-	newValOperAddr := sdk.ValAddress(newValAddr)
-	_, exist := k.GetValidator(ctx, newValOperAddr)
-	if exist {
-		return types.ErrValidatorExist
-	}
-
-	ctx.Logger().Info("==>old validator", "old validator", validator.String(), "old owner", validator.OwnerAddress)
-
-	stake, found := k.GetStake(ctx, staker, validator.GetOperator())
-	if !found {
-		return sdkerrors.Wrapf(types.ErrNoStake, "stake(%s) for operator(%s) not found", staker, validator.GetOperator())
-	}
-	if err := k.RemoveStake(ctx, stake); err != nil {
-		return err
-	}
-
-	k.RemoveValidator(ctx, validator.GetOperator())
-	k.DeleteLastValidatorPower(ctx, validator.GetOperator())
-	if validator.Status == stakingtypes.Unbonding {
-		k.DeleteValidatorQueue(ctx, validator)
-	}
-
-	stake.ValidatorAddress = newValOperAddr.String()
-	k.SetStake(ctx, stake)
-
-	validator.OperatorAddress = newValOperAddr.String()
-	validator.OwnerAddress = newValAddr.String()
-
-	err := k.SetValidatorByConsAddr(ctx, validator)
-	if err != nil {
-		return err
-	}
-
-	k.SetValidator(ctx, validator)
-	k.SetValidatorByPowerIndex(ctx, validator)
-	// bond region again
-	k.BondRegion(ctx, validator, validator.Tokens, true)
-
-	if validator.Status == stakingtypes.Unbonding {
-		k.InsertUnbondingValidatorQueue(ctx, validator)
-	}
-
-	k.SetChangeDelegationValidator(ctx, validator.Description.RegionID)
-
-	ctx.Logger().Info("==>new validator", "validator", validator.String(), "owner", validator.OwnerAddress)
-	if err := k.Hooks().AfterValidatorCreated(ctx, validator.GetOperator()); err != nil {
-		return err
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeResetValidator,
-			sdk.NewAttribute(types.AttributeKeyValidator, oldValOperator.String()),
-			sdk.NewAttribute(types.AttributeKeyNewValidator, newValOperAddr.String()),
-			sdk.NewAttribute(types.AttributeKeyNewOwnerAddress, validator.OwnerAddress),
-		),
-	})
-	return nil
 }

@@ -363,11 +363,12 @@ func (m *TreasuryWithdrawPayload) GetWithdrawals() []Withdrawal {
 	return nil
 }
 
-// ReplaceRegionOperatorPayload replaces Region.OperatorAddress on the hub.
+// ReplaceRegionOperatorPayload changes the bound validator's operator address,
+// preserving its consensus key and updating Region.OperatorAddress on the hub.
 type ReplaceRegionOperatorPayload struct {
 	RegionId string `protobuf:"bytes,1,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
-	// new_operator is the validator operator address written to
-	// Region.OperatorAddress.
+	// new_operator must be an unused validator operator address, not an existing
+	// validator. The same key's account address becomes the validator owner.
 	NewOperator string `protobuf:"bytes,2,opt,name=new_operator,json=newOperator,proto3" json:"new_operator,omitempty"`
 }
 

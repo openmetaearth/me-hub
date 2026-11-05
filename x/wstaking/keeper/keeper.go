@@ -18,18 +18,19 @@ import (
 
 type Keeper struct {
 	*stakingkeeper.Keeper
-	cdc            codec.BinaryCodec
-	storeKey       storetypes.StoreKey
-	authKeeper     banktypes.AccountKeeper
-	bankKeeper     types.BankKeeper
-	daoKeeper      types.DaoKeeper
-	mintKeeper     types.MintKeeper
-	nftKeeper      types.NFTKeeper
-	wstakingHooks  types.WstakingHooks
-	kycKeeper      types.KycKeeper
-	didKeeper      types.DidKeeper
-	groupKeeper    types.GroupKeeper
-	slashingKeeper slashingkeeper.Keeper
+	cdc                codec.BinaryCodec
+	storeKey           storetypes.StoreKey
+	authKeeper         banktypes.AccountKeeper
+	bankKeeper         types.BankKeeper
+	daoKeeper          types.DaoKeeper
+	mintKeeper         types.MintKeeper
+	nftKeeper          types.NFTKeeper
+	wstakingHooks      types.WstakingHooks
+	kycKeeper          types.KycKeeper
+	didKeeper          types.DidKeeper
+	groupKeeper        types.GroupKeeper
+	distributionKeeper types.DistributionKeeper
+	slashingKeeper     slashingkeeper.Keeper
 }
 
 func NewKeeper(
@@ -62,6 +63,10 @@ func (k *Keeper) SetKycKeeper(keeper types.KycKeeper) {
 
 func (k *Keeper) SetGroupKeeper(keeper types.GroupKeeper) {
 	k.groupKeeper = keeper
+}
+
+func (k *Keeper) SetDistributionKeeper(keeper types.DistributionKeeper) {
+	k.distributionKeeper = keeper
 }
 
 func (k *Keeper) SetDidKeeper(keeper types.DidKeeper) {

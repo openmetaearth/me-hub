@@ -9,7 +9,8 @@ REGION_ID=${REGION_ID:-chn}
 # Public test identity only. Enter the test mnemonic interactively; never store it here.
 EXPECTED_OPERATOR_ADDRESS=${EXPECTED_OPERATOR_ADDRESS:-me1u0s2z64yqdxpnxwjry95z5kqgl89kh90uhkcns}
 FUND_AMOUNT=${FUND_AMOUNT:-1000000000umec}
-# Required for live tests: two or more existing test account addresses, space separated.
+# Optional: two or more test account addresses, space separated. If empty, run.sh
+# derives two public test addresses at HD indices 21-22 (val1-val4 use 11-14).
 EQUITY_ADDRESSES=${EQUITY_ADDRESSES:-}
 # Optional overrides; empty values preserve med's local client configuration.
 CHAIN_ID=${CHAIN_ID:-}
@@ -25,5 +26,7 @@ TX_TIMEOUT=${TX_TIMEOUT:-180}
 POLL_INTERVAL=${POLL_INTERVAL:-2}
 # Optional second region for testing batch region freeze (must initially be unfrozen).
 SECOND_REGION_ID=${SECOND_REGION_ID:-}
-# Existing validator operator address; defaults to the current operator for veto-only tests.
+# Unused validator operator address (mevaloper...), required for test_operator_proposal_pass/all.
+# Veto-only tests may omit it. A successful replacement changes the operator;
+# update OPERATOR_KEY/VOTER_KEYS before running further tests with the new account.
 NEW_OPERATOR=${NEW_OPERATOR:-}

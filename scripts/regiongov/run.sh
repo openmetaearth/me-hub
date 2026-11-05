@@ -2,10 +2,40 @@
 set -Eeuo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 
+generate_equity_addresses() {
+ # Public test mnemonic only; never use these accounts for real funds.
+ local global_dict="sign wise lyrics find brass grass already urge invite vibrant arrow grow dune theme trust mix napkin ball pause sponsor bacon capable flip people"
+ local index address
+ TARGETS=()
+ # setup_4validator.sh uses 11-14 for val1-val4; reserve 21-22 for equity tests.
+ for index in 21 22; do
+  address=$(printf '%s\n' "$global_dict" | "$MED_BIN" keys add "regiongov-equity-$index" \
+   --recover --dry-run --no-backup --key-type secp256k1 --coin-type 118 \
+   --hd-path "m/44'/118'/0'/0/0/$index" --keyring-backend test \
+   --home "$RESULT_DIR/derived-keys" --output json | jq -er '.address | select(type == "string" and startswith("me1"))') \
+   || fail "could not derive equity address at index $index"
+  TARGETS+=("$address")
+ done
+}
+
 prepare_equity() {
- read -r -a TARGETS <<< "$EQUITY_ADDRESSES"
+ local key address
+ if [[ -n $EQUITY_ADDRESSES ]]; then
+  read -r -a TARGETS <<< "$EQUITY_ADDRESSES"
+ else
+  generate_equity_addresses
+ fi
  (( ${#TARGETS[@]} >= 2 )) || fail 'set EQUITY_ADDRESSES to at least two test addresses'
  TARGET_JSON=$(printf '%s\n' "${TARGETS[@]}" | jq -R . | jq -s .)
+ printf '%s\n' "$TARGET_JSON" | assert_json 'map(ascii_downcase) | length == (unique | length)'
+ for key in val1 val2 val3 val4 "$OPERATOR_KEY"; do
+  address=$(key_address "$key") || fail "could not read operator key $key"
+  if printf '%s\n' "$TARGET_JSON" | jq -e --arg address "$address" 'map(ascii_downcase) | index($address | ascii_downcase) != null' >/dev/null; then
+   fail "equity addresses must not include operator key $key ($address)"
+  fi
+ done
+ printf '%s\n' "$TARGET_JSON" > "$RESULT_DIR/equity-addresses.json"
+ printf 'Equity addresses: %s\n' "$TARGET_JSON"
  OLD_EQUITY=$(query equity "$REGION_ID" | jq -c '.equity.addresses // []')
  printf '%s\n' "$OLD_EQUITY" > "$RESULT_DIR/original-equity.json"
 }
@@ -187,7 +217,18 @@ pass_test_proposal() {
 }
 
 test_treasury_proposal_pass() { pass_test_proposal treasury; }
-test_operator_proposal_pass() { pass_test_proposal replace-operator; }
+require_new_operator() {
+ [[ -n $NEW_OPERATOR ]] || fail 'set NEW_OPERATOR to an unused mevaloper address; replacement changes the validator operator, not just the region pointer'
+ local current
+ current=$("$MED_BIN" keys show "$OPERATOR_KEY" -a --bech val ${KEY[@]+"${KEY[@]}"})
+ [[ $(printf '%s' "$NEW_OPERATOR" | tr '[:upper:]' '[:lower:]') != $(printf '%s' "$current" | tr '[:upper:]' '[:lower:]') ]] \
+  || fail 'NEW_OPERATOR must differ from the current operator'
+}
+
+test_operator_proposal_pass() {
+ require_new_operator
+ pass_test_proposal replace-operator
+}
 
 test_treasury_proposal_51pass_daoveto() {
  local voter params threshold period eligible required yes end_time deadline block_time
@@ -263,13 +304,50 @@ run_case() (
 
 TESTS=(test_submit_equity_update test_approve_pending_action test_reject_pending_action test_submit_freeze_equity test_submit_unfreeze_equity test_freeze_equity test_unfreeze_equity test_freeze_region test_unfreeze_region test_submit_treasury_proposal test_submit_operator_proposal test_vote test_treasury_proposal_pass test_treasury_proposal_51pass_daoveto test_operator_proposal_pass test_queries)
 
+run_all() {
+ require_new_operator
+ local test result=0 passed=0 failed=0 skipped=0 index=0 started=$SECONDS
+ local results=()
+ for test in "${TESTS[@]}"; do
+  index=$((index + 1))
+  if (( failed > 0 )); then
+   results+=("SKIP  $test")
+   skipped=$((skipped + 1))
+   continue
+  fi
+  printf '\n[%d/%d] %s\n' "$index" "${#TESTS[@]}" "$test"
+  # Use a fresh Bash process: testing run_case in an if would disable its errexit.
+  if "$BASH" "$ROOT/run.sh" "$test"; then
+   results+=("PASS  $test")
+   passed=$((passed + 1))
+  else
+   result=$?
+   results+=("FAIL  $test (exit $result)")
+   failed=$((failed + 1))
+  fi
+ done
+ printf '\n=== Test summary ===\n'
+ printf '%s\n' "${results[@]}"
+ printf 'Total: %d, passed: %d, failed: %d, skipped: %d, elapsed: %ds\n' \
+  "${#TESTS[@]}" "$passed" "$failed" "$skipped" "$((SECONDS - started))"
+ if (( failed > 0 )); then
+  printf 'Stopped after the first failure; inspect the chain and test results before rerunning.\n' >&2
+ fi
+ return "$result"
+}
+
 main() {
  if (( $# == 0 )); then
-  printf 'Usage: run.sh command_name\n'
+  printf 'Usage: run.sh <all|command_name>\n'
+  printf '  all: run every test in order, stopping on the first failure\n'
   printf '%s\n' "${TESTS[@]}"
   return
  fi
  (( $# == 1 )) || fail 'specify one command name'
+ if [[ $1 == all ]]; then
+  run_all
+  return
+ fi
  case " ${TESTS[*]} " in
   *" $1 "*) run_case "$1" ;;
   *) fail "unknown command: $1" ;;
