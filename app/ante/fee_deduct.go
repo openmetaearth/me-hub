@@ -176,7 +176,15 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 			} else if !bytes.Equal(feeGranter, feePayer) {
 				err := dfd.feegrantKeeper.UseGrantedFees(ctx, feeGranter, feePayer, fee, tx.GetMsgs())
 				if err != nil {
-					return ctx, errorsmod.Wrapf(err, "%s not allowed to pay fees from %s", feeGranter, feePayer)
+					granter := sdk.AccAddress(feeGranter).String()
+					grantee := sdk.AccAddress(feePayer).String()
+					if sdkerrors.ErrNotFound.Is(err) {
+						return ctx, errorsmod.Wrapf(err,
+							"no fee allowance from granter %s to grantee %s", granter, grantee)
+					}
+					return ctx, errorsmod.Wrapf(err,
+						"cannot use fee allowance from granter %s to grantee %s for fees %s",
+						granter, grantee, fee)
 				}
 			}
 			deductFeesFrom = feeGranter
