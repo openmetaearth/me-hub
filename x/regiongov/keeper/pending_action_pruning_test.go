@@ -26,7 +26,8 @@ func (s *KeeperTestSuite) TestPendingActionPruningBoundaryAndStatus() {
 		})
 	}
 	s.App.RegionGovKeeper.SetPendingActionSeq(s.Ctx, 3)
-	boundary := s.startTime.Add(7 * 24 * time.Hour)
+	// The current retention policy is one day; test both sides of its strict boundary.
+	boundary := s.startTime.Add(24 * time.Hour)
 	for _, now := range []time.Time{boundary.Add(-time.Nanosecond), boundary} {
 		s.endBlockAt(now)
 		s.Require().Len(s.App.RegionGovKeeper.GetAllPendingActions(s.Ctx), 3)
@@ -73,7 +74,7 @@ func (s *KeeperTestSuite) TestOldPendingActionPrunedAfterDaoDecision() {
 			addresses := []string{sample.AccAddress(), sample.AccAddress()}
 			s.App.RegionGovKeeper.SetEquity(s.Ctx, types.RegionEquity{RegionId: "usa", Addresses: addresses})
 			id, _ := s.submitEquityActionForEventTest(kind, operator, addresses...)
-			s.endBlockAt(s.startTime.Add(8 * 24 * time.Hour))
+			s.endBlockAt(s.startTime.Add(2 * 24 * time.Hour))
 			_, found := s.App.RegionGovKeeper.GetPendingAction(s.Ctx, id)
 			s.Require().True(found)
 
@@ -91,7 +92,7 @@ func (s *KeeperTestSuite) TestOldPendingActionPrunedAfterDaoDecision() {
 			equity, _ := s.App.RegionGovKeeper.GetEquity(s.Ctx, "usa")
 			freeze, freezeFound := s.App.RegionGovKeeper.GetEquityFreeze(s.Ctx, "usa", addresses[0])
 
-			// Approval time does not start a new seven-day retention window.
+			// Approval time does not start a new retention window.
 			s.endBlockAt(s.Ctx.BlockTime())
 			_, found = s.App.RegionGovKeeper.GetPendingAction(s.Ctx, id)
 			s.Require().False(found)

@@ -10,8 +10,8 @@ import (
 
 const pendingActionRetention = 1 * 24 * time.Hour
 
-// pruneCompletedPendingActions removes decided requests strictly more than seven
-// days after submission, not approval/rejection. Pending requests never expire.
+// pruneCompletedPendingActions removes decided requests strictly beyond the
+// retention period after submission, not approval/rejection. Pending requests never expire.
 func (k Keeper) pruneCompletedPendingActions(ctx sdk.Context) {
 	cutoff := ctx.BlockTime().Add(-pendingActionRetention)
 	var expiredIDs []uint64
