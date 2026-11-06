@@ -1,0 +1,136 @@
+package types
+
+import (
+	"errors"
+	"fmt"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+)
+
+func validateOperatorAddress(address string) error {
+	if _, err := sdk.ValAddressFromBech32(address); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address %s: %s", address, err)
+	}
+	return nil
+}
+
+func validateAccAddress(address string) error {
+	if _, err := sdk.AccAddressFromBech32(address); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address %s: %s", address, err)
+	}
+	return nil
+}
+
+func validateRegionID(regionID string) error {
+	if regionID == "" {
+		return errors.New("region id is empty")
+	}
+	return nil
+}
+
+func validateCoins(amount sdk.Coins) error {
+	if amount.Empty() {
+		return errors.New("amount is empty")
+	}
+	if err := amount.Validate(); err != nil {
+		return fmt.Errorf("invalid amount: %w", err)
+	}
+	return nil
+}
+
+func validateUniqueAddresses(addresses []string) error {
+	seen := make(map[string]struct{}, len(addresses))
+	for _, address := range addresses {
+		if err := validateAccAddress(address); err != nil {
+			return err
+		}
+		if _, ok := seen[address]; ok {
+			return fmt.Errorf("duplicate address %s", address)
+		}
+		seen[address] = struct{}{}
+	}
+	return nil
+}
+
+func validateEquityFreezeAddresses(addresses []string) error {
+	if len(addresses) == 0 {
+		return errors.New("equity freeze action requires at least one address")
+	}
+	seen := make(map[string]struct{}, len(addresses))
+	for _, address := range addresses {
+		acc, err := sdk.AccAddressFromBech32(address)
+		if err != nil {
+			return err
+		}
+		canonical := acc.String()
+		if _, ok := seen[canonical]; ok {
+			return fmt.Errorf("duplicate address %s", address)
+		}
+		seen[canonical] = struct{}{}
+	}
+	return nil
+}
+
+func validateWithdrawals(withdrawals []Withdrawal) error {
+	if len(withdrawals) == 0 {
+		return errors.New("treasury withdrawal is empty")
+	}
+	seen := make(map[string]struct{}, len(withdrawals))
+	for _, withdrawal := range withdrawals {
+		if err := validateRegionID(withdrawal.RegionId); err != nil {
+			return err
+		}
+		if _, ok := seen[withdrawal.RegionId]; ok {
+			return fmt.Errorf("duplicate withdrawal region %s", withdrawal.RegionId)
+		}
+		seen[withdrawal.RegionId] = struct{}{}
+		if err := validateAccAddress(withdrawal.Receiver); err != nil {
+			return err
+		}
+		if err := validateCoins(withdrawal.Amount); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// validateProposalPayload is shared by transaction and genesis validation so
+// every proposal contains exactly the payload matching its kind.
+func validateProposalPayload(proposal Proposal) error {
+	switch proposal.Kind {
+	case ProposalKindTreasuryWithdraw:
+		if proposal.ReplaceOperator != nil || proposal.UpdateMinVotingPeriod != nil {
+			return errors.New("treasury proposal cannot include other payloads")
+		}
+		if proposal.Treasury == nil {
+			return errors.New("treasury payload is empty")
+		}
+		return validateWithdrawals(proposal.Treasury.Withdrawals)
+	case ProposalKindReplaceRegionOperator:
+		if proposal.Treasury != nil || proposal.UpdateMinVotingPeriod != nil {
+			return errors.New("replace-operator proposal cannot include other payloads")
+		}
+		return validateReplaceOperator(proposal.ReplaceOperator)
+	case ProposalKindUpdateMinVotingPeriod:
+		if proposal.Treasury != nil || proposal.ReplaceOperator != nil {
+			return errors.New("update-min-voting-period proposal cannot include other payloads")
+		}
+		if proposal.UpdateMinVotingPeriod == nil {
+			return errors.New("update min voting period payload is empty")
+		}
+		return validateMinVotingPeriod(proposal.UpdateMinVotingPeriod.MinVotingPeriod)
+	default:
+		return errors.New("unknown proposal kind")
+	}
+}
+
+func validateReplaceOperator(payload *ReplaceRegionOperatorPayload) error {
+	if payload == nil {
+		return errors.New("replace operator payload is empty")
+	}
+	if err := validateRegionID(payload.RegionId); err != nil {
+		return err
+	}
+	return validateOperatorAddress(payload.NewOperator)
+}

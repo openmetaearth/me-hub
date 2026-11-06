@@ -12,6 +12,7 @@ This guide will walk you through the steps required to set up and run a ME Hub f
 ## Table of Contents
 
 - [ME Hub](#ME-hub)
+  - [Region governance transactions](#region-governance-transactions)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Initializing `med`](#initializing-med)
@@ -24,6 +25,157 @@ This guide will walk you through the steps required to set up and run a ME Hub f
   - [Debugging Container](#debugging-container)
   - [Developer](#developer)
     - [Setup push hooks](#setup-push-hooks)
+
+## Region governance transactions
+
+### Binary integration tests
+
+The scripts in `scripts/regiongov/` invoke the installed `med` binary directly;
+All account lookups, transactions and queries use `--home ./nodes/hub-nodes/node1`
+(relative to the working directory).
+They require Bash and `jq`. Edit `scripts/regiongov/config.sh` or override its
+values through environment variables. Defaults are `DAO_KEY=global_dao`,
+`OPERATOR_KEY=val4`, and `REGION_ID=chn`. Set `EQUITY_ADDRESSES` to at least two
+space-separated test account addresses. `MED_BIN` can select another prebuilt
+binary; scripts never compile or install it.
+
+```bash
+# Read-only queries and offline binary validation (no broadcast).
+./scripts/regiongov/queries.sh
+./scripts/regiongov/negative.sh
+./scripts/regiongov/queries.sh proposal 1
+./scripts/regiongov/queries.sh action 1
+# Pass any other regiongov query and its flags directly.
+./scripts/regiongov/queries.sh proposals --status rejected --kind treasury
+
+# List independent test functions (also the default when no arguments are given).
+./scripts/regiongov/run.sh
+# Run one command at a time; no preflight mode or automatic full-suite execution.
+# Validators and regions are created by scripts/regiongov/setup_4validator.sh.
+# Execute a single feature.
+./scripts/regiongov/run.sh test_freeze_region
+EQUITY_ADDRESSES="me1... me1..." ./scripts/regiongov/run.sh test_submit_freeze_equity
+# Run each additional case separately.
+./scripts/regiongov/run.sh test_submit_treasury_proposal
+./scripts/regiongov/run.sh test_vote
+# IND/CHN operators plus DAO vote yes; wait for the on-chain voting period.
+./scripts/regiongov/run.sh test_treasury_proposal_pass
+./scripts/regiongov/run.sh test_operator_proposal_pass
+```
+
+Each `test_*` function is independently runnable and prepares its own prerequisites;
+it does not depend on earlier tests. Setup/cleanup may send additional transactions
+(for example, testing unfreeze first creates frozen state). Each successful equity
+case restores the original membership, region cases unfreeze their targets, and
+the original proposal cases veto their own proposal. Each case has an isolated result directory
+and prints `PASS` on success; command errors stop execution without blind rollback.
+Region freeze tests need only the DAO key and region IDs, proposal/vote tests do
+not require equity addresses, and `test_queries` requires neither signing keys nor
+equity configuration. Pass exactly one command name; no arguments lists commands.
+
+The live suite exercises all 11 transaction commands: equity membership update
+and approval, batch freeze rejection and approval, batch unfreeze approval,
+immediate DAO equity freeze/unfreeze, region freeze/unfreeze, both proposal
+kinds and voting. It checks committed transaction codes and queries resulting
+state. The two `*_proposal_pass` cases use `VOTER_KEYS="val3 val4"`
+(IND and CHN; me_earth/experience_region are excluded from voting and tally)
+and DAO yes, then assert `PROPOSAL_STATUS_PASSED` at voting expiry. They print
+the proposal JSON before submitting. The treasury payload requests 1umec for DAO;
+the operator payload defaults to the current operator (override `NEW_OPERATOR`
+for a different validator). PASSED checks tally success, not a payout or replacement
+execution assertion. All voters must be eligible and funded for transaction fees. Set `SECOND_REGION_ID` to exercise multi-region batches.
+
+`NODE`, `CHAIN_ID`, `KEYRING_BACKEND`, `FEES` or `GAS_PRICES` can override local
+settings. `GAS` defaults to `auto`; when neither `FEES` nor `GAS_PRICES` is set,
+the script supplies `10000umec` in fees. Failed JSON assertions print the actual
+response, including transaction error codes and logs. A broadcast timeout is never automatically
+retried, because the transaction may already have committed.
+
+Use a dedicated non-DAO country-region operator with funds for fees and at least
+two test equity addresses. All target regions/addresses must initially be unfrozen,
+and the test region must have no pending actions. Do not run concurrent writers.
+On success the original equity membership is restored, but transaction fees,
+proposal/action history, and explicit unfrozen records remain. On failure the
+script stops without blind rollback; inspect the printed result directory (which
+contains the original membership, transaction hashes and responses), resolve any
+pending actions, and restore state manually before rerunning. Validators and regions are created by
+`scripts/regiongov/setup_4validator.sh`, not this runner. There is no global preflight: configure the prerequisites before
+running a case; the binary reports transaction errors directly.
+
+
+All region governance messages are available under `med tx regiongov`. Append
+`--from <key> --chain-id <chain-id>` to each command. The signer supplies the
+proposer, voter, or authority; authority operations still require DAO permission
+on chain. Add `--generate-only` to inspect an unsigned transaction without broadcasting.
+
+```sh
+med tx regiongov submit-proposal proposal.json
+med tx regiongov vote <proposal-id> yes # or no; submitting does not cast a vote
+med tx regiongov submit-equity-update <region-id> <address1> <address2>
+med tx regiongov submit-freeze-equity <region-id> <address> [address ...]
+med tx regiongov submit-unfreeze-equity <region-id> <address> [address ...]
+med tx regiongov approve-pending-action <action-id>
+med tx regiongov reject-pending-action <action-id>
+med tx regiongov freeze-region <region-id> [region-id ...]
+med tx regiongov unfreeze-region <region-id> [region-id ...]
+med tx regiongov freeze-equity <region-id> <address>
+med tx regiongov unfreeze-equity <region-id> <address>
+```
+
+`freeze-region` and `unfreeze-region` accept one or more region IDs. Their messages
+use `region_ids` (a JSON array) instead of the former `region_id` string. Empty
+lists, empty IDs, and duplicate IDs (case-insensitive) are rejected. All regions
+must exist before any state is changed; each affected region emits its own event.
+
+`submit-equity-update` replaces the entire equity list after approval. Omit all
+addresses to request clearing the list. The `submit-*-equity` commands request
+approval; `freeze-equity` and `unfreeze-equity` are immediate authority operations.
+`submit-freeze-equity` and `submit-unfreeze-equity` accept a nonempty list of
+addresses in the same region and create one pending action for the entire batch.
+Their message field is `addresses` (a JSON array), replacing `address`. Invalid,
+duplicate, non-equity addresses or incompatible freeze states reject the whole
+request without creating an action. DAO approval applies the entire batch;
+rejection applies none. Each submitted address emits an event with the same action ID.
+The immediate DAO commands still accept a single address.
+
+A treasury proposal JSON file supports withdrawals from multiple regions:
+
+```json
+{
+  "kind": "PROPOSAL_KIND_TREASURY_WITHDRAW",
+  "title": "Regional budget",
+  "summary": "Withdraw funds for regional operations",
+  "voting_period": "3600",
+  "treasury": {
+    "withdrawals": [
+      {
+        "region_id": "<region-id>",
+        "receiver": "<account-address>",
+        "amount": [{"denom": "umec", "amount": "1000000"}]
+      }
+    ]
+  }
+}
+```
+
+For an operator replacement, use this format instead:
+
+```json
+{
+  "kind": "PROPOSAL_KIND_REPLACE_REGION_OPERATOR",
+  "title": "Replace regional operator",
+  "summary": "Appoint a new operator",
+  "voting_period": "3600",
+  "replace_operator": {
+    "region_id": "<region-id>",
+    "new_operator": "<validator-operator-address>"
+  }
+}
+```
+
+Replace the placeholders with actual IDs and addresses. `voting_period` is in
+seconds. Do not supply both payloads. Any `proposer` in the file is replaced by
+`--from`.
 
 ## Prerequisites
 

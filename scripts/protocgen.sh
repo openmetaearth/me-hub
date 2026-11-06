@@ -2,7 +2,8 @@
 
 set -eo pipefail
 
-buf format -w
+# The image's buf only reads v1 configs. proto/buf.yaml is v1; the repo root file is v2.
+(cd proto && buf format -w)
 
 # get protoc executions
 # go get github.com/regen-network/cosmos-proto/protoc-gen-gocosmos 2>/dev/null

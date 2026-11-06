@@ -16,6 +16,7 @@ const (
 	EventTypeUpdateSBT        = "update_sbt"
 	EventTypeDeleteSBT        = "delete_sbt"
 	EventTypeCreateSubAccount = "create_sub_account"
+	EventTypeUpdateKycIssuer  = "update_kyc_issuer"
 )
 
 const (
@@ -29,6 +30,8 @@ const (
 	AttributeKeySubAccount      = "sub_account"
 	AttributeKeyDid             = "did"
 	AttributeKeyCreator         = "creator"
+	AttributeKeyAddresses       = "addresses"
+	AttributeKeyOptionType      = "option_type"
 )
 
 func NewKycEvent(

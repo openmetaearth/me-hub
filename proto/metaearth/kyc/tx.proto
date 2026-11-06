@@ -1,6 +1,7 @@
 syntax = "proto3";
 package metaearth.kyc;
 
+import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
@@ -22,6 +23,10 @@ service Msg {
   rpc DeleteSBT(MsgDeleteSBT) returns (MsgDeleteSBTResponse);
 
   rpc CreateSubAccount(MsgCreateSubAccount) returns (MsgCreateSubAccountResponse);
+
+  // UpdateKycIssuer registers or removes KYC issuers. Only the Global DAO may
+  // call it.
+  rpc UpdateKycIssuer(MsgUpdateKycIssuer) returns (MsgUpdateKycIssuerResponse);
 }
 
 message MsgApprove {
@@ -91,3 +96,18 @@ message MsgCreateSubAccount {
 }
 
 message MsgCreateSubAccountResponse {}
+
+// MsgUpdateKycIssuer updates the KYC service issuer list by account address.
+message MsgUpdateKycIssuer {
+  option (cosmos.msg.v1.signer) = "creator";
+  option (amino.name) = "kyc/UpdateKycIssuer";
+  // creator must be the Global DAO account.
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // addresses must have active, registered DIDs when adding issuers.
+  repeated string addresses = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // option_type is 0 to add issuers or 1 to remove them.
+  int32 option_type = 3;
+}
+
+// MsgUpdateKycIssuerResponse is returned after updating KYC issuers.
+message MsgUpdateKycIssuerResponse {}

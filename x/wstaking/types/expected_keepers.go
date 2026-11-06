@@ -69,6 +69,11 @@ type DidKeeper interface {
 	HasDidBySubAccount(ctx sdk.Context, subAccount string) bool
 }
 
+// DistributionKeeper migrates rewards when a validator's operator address changes.
+type DistributionKeeper interface {
+	MigrateValidatorOperator(ctx sdk.Context, oldAddr, newAddr sdk.ValAddress) error
+}
+
 type GroupKeeper interface {
 	CreateGroupByRegion(sdkCtx sdk.Context, regionInfo Region) (uint64, error)
 	UpdateGroupAdmin(ctx sdk.Context, regionID, admin string)

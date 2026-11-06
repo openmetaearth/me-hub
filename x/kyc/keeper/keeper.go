@@ -24,6 +24,7 @@ type Keeper struct {
 	didKeeper     types.DIDKeeper
 	nftKeeper     types.NFTKeeper
 	handlerReg    *handler.HandlerRegistry
+	daoKeeper     types.DaoKeeper
 }
 
 func NewKeeper(
@@ -33,6 +34,7 @@ func NewKeeper(
 	accountKeeper authkeeper.AccountKeeper,
 	didKeeper types.DIDKeeper,
 	nftKeeper types.NFTKeeper,
+	daoKeeper types.DaoKeeper,
 ) *Keeper {
 	return &Keeper{
 		cdc:           cdc,
@@ -42,6 +44,7 @@ func NewKeeper(
 		didKeeper:     didKeeper,
 		nftKeeper:     nftKeeper,
 		handlerReg:    handler.NewEventRegistry(),
+		daoKeeper:     daoKeeper,
 	}
 }
 

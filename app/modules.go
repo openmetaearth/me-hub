@@ -40,6 +40,7 @@ import (
 	"github.com/openmetaearth/me-hub/x/eibc"
 	"github.com/openmetaearth/me-hub/x/kyc"
 	groupmodule "github.com/openmetaearth/me-hub/x/megroup"
+	"github.com/openmetaearth/me-hub/x/regiongov"
 	"github.com/openmetaearth/me-hub/x/rollapp"
 	rollappmoduleclient "github.com/openmetaearth/me-hub/x/rollapp/client"
 	"github.com/openmetaearth/me-hub/x/sequencer"
@@ -105,6 +106,7 @@ var ModuleBasics = module.NewBasicManager(
 	wnft.AppModuleBasic{},
 	wasm.AppModuleBasic{},
 	groupmodule.AppModuleBasic{},
+	regiongov.AppModuleBasic{},
 	bsc.AppModuleBasic{},
 	tron.AppModuleBasic{},
 )

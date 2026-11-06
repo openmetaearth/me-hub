@@ -65,6 +65,8 @@ import (
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 	groupmodule "github.com/openmetaearth/me-hub/x/megroup"
 	grouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
+	"github.com/openmetaearth/me-hub/x/regiongov"
+	regiongovtypes "github.com/openmetaearth/me-hub/x/regiongov/types"
 	rollappmodule "github.com/openmetaearth/me-hub/x/rollapp"
 	rollappmoduletypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencermodule "github.com/openmetaearth/me-hub/x/sequencer"
@@ -129,6 +131,7 @@ func (a *AppKeepers) SetupModules(
 		groupmodule.NewAppModule(appCodec, *a.GroupKeeper),
 
 		dao.NewAppModule(appCodec, a.DaoKeeper),
+		regiongov.NewAppModule(appCodec, a.RegionGovKeeper),
 		wnft.NewAppModule(appCodec, *a.WNFTKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
 		wasm.NewAppModule(appCodec, &a.WasmKeeper, a.StakingKeeper, a.AccountKeeper, a.BankKeeper, bApp.MsgServiceRouter(), a.GetSubspace(wasmtypes.ModuleName)),
 
@@ -207,6 +210,7 @@ var BeginBlockers = []string{
 	kyctypes.ModuleName,
 	nft.ModuleName,
 	grouptypes.ModuleName,
+	regiongovtypes.ModuleName,
 	bsctypes.ModuleName,
 	trontypes.ModuleName,
 }
@@ -245,6 +249,7 @@ var EndBlockers = []string{
 	kyctypes.ModuleName,
 	nft.ModuleName,
 	grouptypes.ModuleName,
+	regiongovtypes.ModuleName,
 	bsctypes.ModuleName,
 	trontypes.ModuleName,
 }
@@ -283,6 +288,7 @@ var InitGenesis = []string{
 	kyctypes.ModuleName,
 	nft.ModuleName,
 	grouptypes.ModuleName,
+	regiongovtypes.ModuleName,
 	bsctypes.ModuleName,
 	trontypes.ModuleName,
 }
