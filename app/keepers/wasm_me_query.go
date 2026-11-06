@@ -19,10 +19,9 @@ func stargateQuerier(appCodec codec.Codec, queryRouter wasmkeeper.GRPCQueryRoute
 	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
 		// The wasmd querier mutates response instances, so allocate them per request.
 		acceptedQueries := wasmkeeper.AcceptedStargateQueries{
-			"/metaearth.wstaking.Query/FixedDeposit":    &wstakingtypes.QueryGetFixedDepositResponse{},
-			"/metaearth.wstaking.Query/Region":          &wstakingtypes.QueryRegionResponse{},
-			"/metaearth.wstaking.Query/DepositBondInfo": &wstakingtypes.QueryDepositBondInfoResponse{},
-			"/metaearth.did.Query/Did":                  &didtypes.QueryDidResponse{},
+			"/metaearth.wstaking.Query/FixedDeposit": &wstakingtypes.QueryGetFixedDepositResponse{},
+			"/metaearth.wstaking.Query/Region":       &wstakingtypes.QueryRegionResponse{},
+			"/metaearth.did.Query/Did":               &didtypes.QueryDidResponse{},
 		}
 		return wasmkeeper.AcceptListStargateQuerier(acceptedQueries, queryRouter, appCodec)(ctx, request)
 	}
