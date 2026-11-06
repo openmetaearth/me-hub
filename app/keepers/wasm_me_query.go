@@ -5,6 +5,7 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	didtypes "github.com/openmetaearth/me-hub/x/did/types"
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
