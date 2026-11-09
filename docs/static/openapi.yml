@@ -247,6 +247,1228 @@ paths:
           type: string
       tags:
         - Query
+  /metaearth/regiongov/electors/{proposal_id}:
+    get:
+      summary: Electors queries the snapshotted electorate of one proposal.
+      operationId: Electors
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              electors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    proposal_id:
+                      type: string
+                      format: uint64
+                    operator:
+                      type: string
+                      description: >-
+                        operator is Region.OperatorAddress. The ballot is signed
+                        by the account
+
+                        with the same key.
+                    region_id:
+                      type: string
+                  description: Elector is one region operator in a proposal's 51% snapshot.
+            description: QueryElectorsResponse is the response for Electors.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: proposal_id
+          in: path
+          required: true
+          type: string
+          format: uint64
+      tags:
+        - Query
+  /metaearth/regiongov/equity/{region_id}:
+    get:
+      summary: Equity queries the public equity addresses of one region.
+      operationId: Equity
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              equity:
+                type: object
+                properties:
+                  region_id:
+                    type: string
+                  addresses:
+                    type: array
+                    items:
+                      type: string
+                description: RegionEquity is the public equity-address list of one region.
+            description: QueryEquityResponse is the response for Equity.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: region_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /metaearth/regiongov/equity_freezes/{region_id}:
+    get:
+      summary: EquityFreezes queries frozen equity addresses of one region.
+      operationId: EquityFreezes
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              freezes:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    region_id:
+                      type: string
+                    address:
+                      type: string
+                    frozen:
+                      type: boolean
+                  description: >-
+                    EquityFreeze records that one equity address cannot propose
+                    or vote.
+            description: QueryEquityFreezesResponse is the response for EquityFreezes.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: region_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /metaearth/regiongov/params:
+    get:
+      summary: Params queries the regiongov parameters.
+      operationId: regiongovParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                type: object
+                properties:
+                  min_voting_period:
+                    type: string
+                    format: uint64
+                    description: >-
+                      min_voting_period is the shortest voting duration a
+                      proposal may set, in
+
+                      seconds. voting_period must be greater than or equal to
+                      this value. There
+
+                      is no maximum.
+                  pass_threshold_percent:
+                    type: integer
+                    format: int64
+                    description: >-
+                      pass_threshold_percent is the yes-vote ratio of the
+                      snapshotted electorate.
+
+                      A proposal passes the count when yes * 100 >= eligible *
+
+                      pass_threshold_percent.
+                  equity_withdraw_percent:
+                    type: integer
+                    format: int64
+                    description: >-
+                      equity_withdraw_percent is the maximum share of a region's
+                      spendable
+
+                      treasury balance an equity-address withdrawal may take.
+                      MsgSubmitProposal
+
+                      rejects a larger amount. The region's operator and the dao
+                      are exempt from
+
+                      this percentage limit, but their withdrawals must not
+                      exceed the spendable
+
+                      balance.
+                description: Params defines the parameters for region governance.
+            description: QueryParamsResponse is the response for Params.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
+  /metaearth/regiongov/pending_actions:
+    get:
+      summary: PendingActions queries dao approvals.
+      operationId: PendingActions
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              actions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uint64
+                    kind:
+                      type: string
+                      enum:
+                        - PENDING_ACTION_KIND_UNSPECIFIED
+                        - PENDING_ACTION_KIND_SET_EQUITY
+                        - PENDING_ACTION_KIND_FREEZE_EQUITY
+                        - PENDING_ACTION_KIND_UNFREEZE_EQUITY
+                      default: PENDING_ACTION_KIND_UNSPECIFIED
+                      description: >-
+                        PendingActionKind is an approval handled by the dao, not
+                        a counted vote.
+                    status:
+                      type: string
+                      enum:
+                        - PENDING_ACTION_STATUS_UNSPECIFIED
+                        - PENDING_ACTION_STATUS_PENDING
+                        - PENDING_ACTION_STATUS_APPROVED
+                        - PENDING_ACTION_STATUS_REJECTED
+                      default: PENDING_ACTION_STATUS_UNSPECIFIED
+                      description: PendingActionStatus is the lifecycle of a dao approval.
+                    region_id:
+                      type: string
+                    proposer:
+                      type: string
+                    addresses:
+                      type: array
+                      items:
+                        type: string
+                    submit_time:
+                      type: string
+                      format: date-time
+                  description: >-
+                    PendingAction is a region-operator request that becomes
+                    effective when the
+
+                    dao agrees.
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+            description: QueryPendingActionsResponse is the response for PendingActions.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: status
+          in: query
+          required: false
+          type: string
+          enum:
+            - PENDING_ACTION_STATUS_UNSPECIFIED
+            - PENDING_ACTION_STATUS_PENDING
+            - PENDING_ACTION_STATUS_APPROVED
+            - PENDING_ACTION_STATUS_REJECTED
+          default: PENDING_ACTION_STATUS_UNSPECIFIED
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  /metaearth/regiongov/pending_actions/{id}:
+    get:
+      summary: PendingAction queries one dao approval by id.
+      operationId: PendingAction
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              action:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uint64
+                  kind:
+                    type: string
+                    enum:
+                      - PENDING_ACTION_KIND_UNSPECIFIED
+                      - PENDING_ACTION_KIND_SET_EQUITY
+                      - PENDING_ACTION_KIND_FREEZE_EQUITY
+                      - PENDING_ACTION_KIND_UNFREEZE_EQUITY
+                    default: PENDING_ACTION_KIND_UNSPECIFIED
+                    description: >-
+                      PendingActionKind is an approval handled by the dao, not a
+                      counted vote.
+                  status:
+                    type: string
+                    enum:
+                      - PENDING_ACTION_STATUS_UNSPECIFIED
+                      - PENDING_ACTION_STATUS_PENDING
+                      - PENDING_ACTION_STATUS_APPROVED
+                      - PENDING_ACTION_STATUS_REJECTED
+                    default: PENDING_ACTION_STATUS_UNSPECIFIED
+                    description: PendingActionStatus is the lifecycle of a dao approval.
+                  region_id:
+                    type: string
+                  proposer:
+                    type: string
+                  addresses:
+                    type: array
+                    items:
+                      type: string
+                  submit_time:
+                    type: string
+                    format: date-time
+                description: >-
+                  PendingAction is a region-operator request that becomes
+                  effective when the
+
+                  dao agrees.
+            description: QueryPendingActionResponse is the response for PendingAction.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          format: uint64
+      tags:
+        - Query
+  /metaearth/regiongov/proposals:
+    get:
+      summary: Proposals queries proposals with optional status and kind filters.
+      operationId: regiongovProposals
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              proposals:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uint64
+                    kind:
+                      type: string
+                      enum:
+                        - PROPOSAL_KIND_UNSPECIFIED
+                        - PROPOSAL_KIND_TREASURY_WITHDRAW
+                        - PROPOSAL_KIND_REPLACE_REGION_OPERATOR
+                        - PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD
+                      default: PROPOSAL_KIND_UNSPECIFIED
+                      description: >-
+                        ProposalKind is the action a proposal executes after it
+                        passes.
+                    proposer:
+                      type: string
+                    title:
+                      type: string
+                    summary:
+                      type: string
+                    status:
+                      type: string
+                      enum:
+                        - PROPOSAL_STATUS_UNSPECIFIED
+                        - PROPOSAL_STATUS_VOTING
+                        - PROPOSAL_STATUS_PASSED
+                        - PROPOSAL_STATUS_REJECTED
+                        - PROPOSAL_STATUS_FAILED
+                      default: PROPOSAL_STATUS_UNSPECIFIED
+                      description: |-
+                        ProposalStatus is the lifecycle state of a proposal.
+
+                         - PROPOSAL_STATUS_FAILED: Execution was attempted after the tally passed, but the proposal action
+                        failed.
+                    submit_time:
+                      type: string
+                      format: date-time
+                    voting_end_time:
+                      type: string
+                      format: date-time
+                    voting_period:
+                      type: string
+                      format: uint64
+                      description: voting_period is the voting duration in seconds.
+                    electorate:
+                      type: string
+                      enum:
+                        - ELECTORATE_KIND_UNSPECIFIED
+                        - ELECTORATE_KIND_COUNTRY_REGION_OPERATORS
+                        - ELECTORATE_KIND_REGION_EQUITY
+                      default: ELECTORATE_KIND_UNSPECIFIED
+                      description: >-
+                        ElectorateKind selects which addresses are snapshotted
+                        into the 51% count.
+
+                         - ELECTORATE_KIND_COUNTRY_REGION_OPERATORS: Country region operators only. The global region and the experience region
+                        do not vote. The proposing country region is included.
+                         - ELECTORATE_KIND_REGION_EQUITY: Equity addresses of one region. The region operator yes-vote is required
+                        separately.
+                    dao_vote:
+                      type: string
+                      enum:
+                        - DAO_VOTE_UNSPECIFIED
+                        - DAO_VOTE_YES
+                        - DAO_VOTE_NO
+                      default: DAO_VOTE_UNSPECIFIED
+                      description: >-
+                        DaoVote is the dao ballot. Unspecified means the dao has
+                        not voted.
+
+                        The dao may overwrite this value until the proposal is
+                        finalized.
+                    required_operator:
+                      type: string
+                      description: >-
+                        required_operator is the region operator who must vote
+                        yes on an equity
+
+                        withdrawal. It is Region.OperatorAddress, empty for
+                        operator electorates,
+
+                        and outside the 51% count.
+                    treasury:
+                      type: object
+                      properties:
+                        withdrawals:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              region_id:
+                                type: string
+                              receiver:
+                                type: string
+                              amount:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    denom:
+                                      type: string
+                                    amount:
+                                      type: string
+                                  description: >-
+                                    Coin defines a token with a denomination and
+                                    an amount.
+
+
+                                    NOTE: The amount field is an Int which
+                                    implements the custom method
+
+                                    signatures required by gogoproto.
+                            description: >-
+                              Withdrawal moves coins from one region treasury to
+                              a receiver.
+                      description: >-
+                        TreasuryWithdrawPayload is the body of a treasury
+                        withdrawal proposal.
+
+                        MsgSubmitProposal rejects any withdrawal exceeding its
+                        region's spendable
+
+                        treasury balance for any denom, including proposals by
+                        the dao or operators.
+
+                        When the proposer is only an equity address of a
+                        withdrawal's region,
+
+                        the amount is further limited to equity_withdraw_percent
+                        (default 1%) of
+
+                        that spendable balance. Exceeding either limit fails the
+                        submit transaction
+
+                        and no proposal is created. Submission does not reserve
+                        treasury funds.
+                    replace_operator:
+                      type: object
+                      properties:
+                        region_id:
+                          type: string
+                        new_operator:
+                          type: string
+                          description: >-
+                            new_operator must be an unused validator operator
+                            address, not an existing
+
+                            validator. The same key's account address becomes
+                            the validator owner.
+                      description: >-
+                        ReplaceRegionOperatorPayload changes the bound
+                        validator's operator address,
+
+                        preserving its consensus key and updating
+                        Region.OperatorAddress on the hub.
+                    update_min_voting_period:
+                      type: object
+                      properties:
+                        min_voting_period:
+                          type: string
+                          format: uint64
+                          description: >-
+                            min_voting_period is an integer number of seconds in
+                            [1, 9223372036].
+                      description: >-
+                        UpdateMinVotingPeriodPayload changes only the minimum
+                        voting duration for
+
+                        proposals submitted after execution. Existing proposal
+                        deadlines are
+
+                        unchanged.
+                  description: Proposal is a counted vote with a snapshotted electorate.
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+            description: QueryProposalsResponse is the response for Proposals.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: status
+          description: |2-
+             - PROPOSAL_STATUS_FAILED: Execution was attempted after the tally passed, but the proposal action
+            failed.
+          in: query
+          required: false
+          type: string
+          enum:
+            - PROPOSAL_STATUS_UNSPECIFIED
+            - PROPOSAL_STATUS_VOTING
+            - PROPOSAL_STATUS_PASSED
+            - PROPOSAL_STATUS_REJECTED
+            - PROPOSAL_STATUS_FAILED
+          default: PROPOSAL_STATUS_UNSPECIFIED
+        - name: kind
+          in: query
+          required: false
+          type: string
+          enum:
+            - PROPOSAL_KIND_UNSPECIFIED
+            - PROPOSAL_KIND_TREASURY_WITHDRAW
+            - PROPOSAL_KIND_REPLACE_REGION_OPERATOR
+            - PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD
+          default: PROPOSAL_KIND_UNSPECIFIED
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  /metaearth/regiongov/proposals/{id}:
+    get:
+      summary: Proposal queries one proposal by id.
+      operationId: regiongovProposal
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              proposal:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uint64
+                  kind:
+                    type: string
+                    enum:
+                      - PROPOSAL_KIND_UNSPECIFIED
+                      - PROPOSAL_KIND_TREASURY_WITHDRAW
+                      - PROPOSAL_KIND_REPLACE_REGION_OPERATOR
+                      - PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD
+                    default: PROPOSAL_KIND_UNSPECIFIED
+                    description: >-
+                      ProposalKind is the action a proposal executes after it
+                      passes.
+                  proposer:
+                    type: string
+                  title:
+                    type: string
+                  summary:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - PROPOSAL_STATUS_UNSPECIFIED
+                      - PROPOSAL_STATUS_VOTING
+                      - PROPOSAL_STATUS_PASSED
+                      - PROPOSAL_STATUS_REJECTED
+                      - PROPOSAL_STATUS_FAILED
+                    default: PROPOSAL_STATUS_UNSPECIFIED
+                    description: |-
+                      ProposalStatus is the lifecycle state of a proposal.
+
+                       - PROPOSAL_STATUS_FAILED: Execution was attempted after the tally passed, but the proposal action
+                      failed.
+                  submit_time:
+                    type: string
+                    format: date-time
+                  voting_end_time:
+                    type: string
+                    format: date-time
+                  voting_period:
+                    type: string
+                    format: uint64
+                    description: voting_period is the voting duration in seconds.
+                  electorate:
+                    type: string
+                    enum:
+                      - ELECTORATE_KIND_UNSPECIFIED
+                      - ELECTORATE_KIND_COUNTRY_REGION_OPERATORS
+                      - ELECTORATE_KIND_REGION_EQUITY
+                    default: ELECTORATE_KIND_UNSPECIFIED
+                    description: >-
+                      ElectorateKind selects which addresses are snapshotted
+                      into the 51% count.
+
+                       - ELECTORATE_KIND_COUNTRY_REGION_OPERATORS: Country region operators only. The global region and the experience region
+                      do not vote. The proposing country region is included.
+                       - ELECTORATE_KIND_REGION_EQUITY: Equity addresses of one region. The region operator yes-vote is required
+                      separately.
+                  dao_vote:
+                    type: string
+                    enum:
+                      - DAO_VOTE_UNSPECIFIED
+                      - DAO_VOTE_YES
+                      - DAO_VOTE_NO
+                    default: DAO_VOTE_UNSPECIFIED
+                    description: >-
+                      DaoVote is the dao ballot. Unspecified means the dao has
+                      not voted.
+
+                      The dao may overwrite this value until the proposal is
+                      finalized.
+                  required_operator:
+                    type: string
+                    description: >-
+                      required_operator is the region operator who must vote yes
+                      on an equity
+
+                      withdrawal. It is Region.OperatorAddress, empty for
+                      operator electorates,
+
+                      and outside the 51% count.
+                  treasury:
+                    type: object
+                    properties:
+                      withdrawals:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            region_id:
+                              type: string
+                            receiver:
+                              type: string
+                            amount:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  denom:
+                                    type: string
+                                  amount:
+                                    type: string
+                                description: >-
+                                  Coin defines a token with a denomination and
+                                  an amount.
+
+
+                                  NOTE: The amount field is an Int which
+                                  implements the custom method
+
+                                  signatures required by gogoproto.
+                          description: >-
+                            Withdrawal moves coins from one region treasury to a
+                            receiver.
+                    description: >-
+                      TreasuryWithdrawPayload is the body of a treasury
+                      withdrawal proposal.
+
+                      MsgSubmitProposal rejects any withdrawal exceeding its
+                      region's spendable
+
+                      treasury balance for any denom, including proposals by the
+                      dao or operators.
+
+                      When the proposer is only an equity address of a
+                      withdrawal's region,
+
+                      the amount is further limited to equity_withdraw_percent
+                      (default 1%) of
+
+                      that spendable balance. Exceeding either limit fails the
+                      submit transaction
+
+                      and no proposal is created. Submission does not reserve
+                      treasury funds.
+                  replace_operator:
+                    type: object
+                    properties:
+                      region_id:
+                        type: string
+                      new_operator:
+                        type: string
+                        description: >-
+                          new_operator must be an unused validator operator
+                          address, not an existing
+
+                          validator. The same key's account address becomes the
+                          validator owner.
+                    description: >-
+                      ReplaceRegionOperatorPayload changes the bound validator's
+                      operator address,
+
+                      preserving its consensus key and updating
+                      Region.OperatorAddress on the hub.
+                  update_min_voting_period:
+                    type: object
+                    properties:
+                      min_voting_period:
+                        type: string
+                        format: uint64
+                        description: >-
+                          min_voting_period is an integer number of seconds in
+                          [1, 9223372036].
+                    description: >-
+                      UpdateMinVotingPeriodPayload changes only the minimum
+                      voting duration for
+
+                      proposals submitted after execution. Existing proposal
+                      deadlines are
+
+                      unchanged.
+                description: Proposal is a counted vote with a snapshotted electorate.
+            description: QueryProposalResponse is the response for Proposal.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          format: uint64
+      tags:
+        - Query
+  /metaearth/regiongov/region_freeze/{region_id}:
+    get:
+      summary: RegionFreeze queries whether a region is frozen.
+      operationId: RegionFreeze
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              frozen:
+                type: boolean
+            description: QueryRegionFreezeResponse is the response for RegionFreeze.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: region_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /metaearth/regiongov/votes/{proposal_id}:
+    get:
+      summary: Votes queries ballots cast on one proposal.
+      operationId: regiongovVotes
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              votes:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    proposal_id:
+                      type: string
+                      format: uint64
+                    voter:
+                      type: string
+                    option:
+                      type: string
+                      enum:
+                        - VOTE_OPTION_UNSPECIFIED
+                        - VOTE_OPTION_YES
+                        - VOTE_OPTION_NO
+                      default: VOTE_OPTION_UNSPECIFIED
+                      description: VoteOption is a yes or no ballot. Abstain is not a vote.
+                  description: Vote is a non-dao ballot. It cannot be overwritten.
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+            description: QueryVotesResponse is the response for Votes.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: proposal_id
+          in: path
+          required: true
+          type: string
+          format: uint64
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
   /me-hub/megroup/all_group:
     get:
       operationId: GroupAll
@@ -50366,7 +51588,7 @@ paths:
   /cosmos/gov/v1/proposals:
     get:
       summary: Proposals queries all proposals based on given status.
-      operationId: GovV1Proposal
+      operationId: GovV1Proposals
       responses:
         '200':
           description: A successful response.
@@ -51485,7 +52707,7 @@ paths:
   /cosmos/gov/v1/proposals/{proposal_id}/deposits:
     get:
       summary: Deposits queries all deposits of a single proposal.
-      operationId: GovV1Deposit
+      operationId: GovV1Deposits
       responses:
         '200':
           description: A successful response.
@@ -70033,6 +71255,1143 @@ definitions:
     properties:
       is_free:
         type: boolean
+  cosmos.base.v1beta1.Coin:
+    type: object
+    properties:
+      denom:
+        type: string
+      amount:
+        type: string
+    description: |-
+      Coin defines a token with a denomination and an amount.
+
+      NOTE: The amount field is an Int which implements the custom method
+      signatures required by gogoproto.
+  metaearth.regiongov.DaoVote:
+    type: string
+    enum:
+      - DAO_VOTE_UNSPECIFIED
+      - DAO_VOTE_YES
+      - DAO_VOTE_NO
+    default: DAO_VOTE_UNSPECIFIED
+    description: |-
+      DaoVote is the dao ballot. Unspecified means the dao has not voted.
+      The dao may overwrite this value until the proposal is finalized.
+  metaearth.regiongov.Elector:
+    type: object
+    properties:
+      proposal_id:
+        type: string
+        format: uint64
+      operator:
+        type: string
+        description: >-
+          operator is Region.OperatorAddress. The ballot is signed by the
+          account
+
+          with the same key.
+      region_id:
+        type: string
+    description: Elector is one region operator in a proposal's 51% snapshot.
+  metaearth.regiongov.ElectorateKind:
+    type: string
+    enum:
+      - ELECTORATE_KIND_UNSPECIFIED
+      - ELECTORATE_KIND_COUNTRY_REGION_OPERATORS
+      - ELECTORATE_KIND_REGION_EQUITY
+    default: ELECTORATE_KIND_UNSPECIFIED
+    description: |-
+      ElectorateKind selects which addresses are snapshotted into the 51% count.
+
+       - ELECTORATE_KIND_COUNTRY_REGION_OPERATORS: Country region operators only. The global region and the experience region
+      do not vote. The proposing country region is included.
+       - ELECTORATE_KIND_REGION_EQUITY: Equity addresses of one region. The region operator yes-vote is required
+      separately.
+  metaearth.regiongov.EquityFreeze:
+    type: object
+    properties:
+      region_id:
+        type: string
+      address:
+        type: string
+      frozen:
+        type: boolean
+    description: EquityFreeze records that one equity address cannot propose or vote.
+  metaearth.regiongov.Params:
+    type: object
+    properties:
+      min_voting_period:
+        type: string
+        format: uint64
+        description: >-
+          min_voting_period is the shortest voting duration a proposal may set,
+          in
+
+          seconds. voting_period must be greater than or equal to this value.
+          There
+
+          is no maximum.
+      pass_threshold_percent:
+        type: integer
+        format: int64
+        description: >-
+          pass_threshold_percent is the yes-vote ratio of the snapshotted
+          electorate.
+
+          A proposal passes the count when yes * 100 >= eligible *
+
+          pass_threshold_percent.
+      equity_withdraw_percent:
+        type: integer
+        format: int64
+        description: >-
+          equity_withdraw_percent is the maximum share of a region's spendable
+
+          treasury balance an equity-address withdrawal may take.
+          MsgSubmitProposal
+
+          rejects a larger amount. The region's operator and the dao are exempt
+          from
+
+          this percentage limit, but their withdrawals must not exceed the
+          spendable
+
+          balance.
+    description: Params defines the parameters for region governance.
+  metaearth.regiongov.PendingAction:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uint64
+      kind:
+        type: string
+        enum:
+          - PENDING_ACTION_KIND_UNSPECIFIED
+          - PENDING_ACTION_KIND_SET_EQUITY
+          - PENDING_ACTION_KIND_FREEZE_EQUITY
+          - PENDING_ACTION_KIND_UNFREEZE_EQUITY
+        default: PENDING_ACTION_KIND_UNSPECIFIED
+        description: >-
+          PendingActionKind is an approval handled by the dao, not a counted
+          vote.
+      status:
+        type: string
+        enum:
+          - PENDING_ACTION_STATUS_UNSPECIFIED
+          - PENDING_ACTION_STATUS_PENDING
+          - PENDING_ACTION_STATUS_APPROVED
+          - PENDING_ACTION_STATUS_REJECTED
+        default: PENDING_ACTION_STATUS_UNSPECIFIED
+        description: PendingActionStatus is the lifecycle of a dao approval.
+      region_id:
+        type: string
+      proposer:
+        type: string
+      addresses:
+        type: array
+        items:
+          type: string
+      submit_time:
+        type: string
+        format: date-time
+    description: |-
+      PendingAction is a region-operator request that becomes effective when the
+      dao agrees.
+  metaearth.regiongov.PendingActionKind:
+    type: string
+    enum:
+      - PENDING_ACTION_KIND_UNSPECIFIED
+      - PENDING_ACTION_KIND_SET_EQUITY
+      - PENDING_ACTION_KIND_FREEZE_EQUITY
+      - PENDING_ACTION_KIND_UNFREEZE_EQUITY
+    default: PENDING_ACTION_KIND_UNSPECIFIED
+    description: PendingActionKind is an approval handled by the dao, not a counted vote.
+  metaearth.regiongov.PendingActionStatus:
+    type: string
+    enum:
+      - PENDING_ACTION_STATUS_UNSPECIFIED
+      - PENDING_ACTION_STATUS_PENDING
+      - PENDING_ACTION_STATUS_APPROVED
+      - PENDING_ACTION_STATUS_REJECTED
+    default: PENDING_ACTION_STATUS_UNSPECIFIED
+    description: PendingActionStatus is the lifecycle of a dao approval.
+  metaearth.regiongov.Proposal:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uint64
+      kind:
+        type: string
+        enum:
+          - PROPOSAL_KIND_UNSPECIFIED
+          - PROPOSAL_KIND_TREASURY_WITHDRAW
+          - PROPOSAL_KIND_REPLACE_REGION_OPERATOR
+          - PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD
+        default: PROPOSAL_KIND_UNSPECIFIED
+        description: ProposalKind is the action a proposal executes after it passes.
+      proposer:
+        type: string
+      title:
+        type: string
+      summary:
+        type: string
+      status:
+        type: string
+        enum:
+          - PROPOSAL_STATUS_UNSPECIFIED
+          - PROPOSAL_STATUS_VOTING
+          - PROPOSAL_STATUS_PASSED
+          - PROPOSAL_STATUS_REJECTED
+          - PROPOSAL_STATUS_FAILED
+        default: PROPOSAL_STATUS_UNSPECIFIED
+        description: |-
+          ProposalStatus is the lifecycle state of a proposal.
+
+           - PROPOSAL_STATUS_FAILED: Execution was attempted after the tally passed, but the proposal action
+          failed.
+      submit_time:
+        type: string
+        format: date-time
+      voting_end_time:
+        type: string
+        format: date-time
+      voting_period:
+        type: string
+        format: uint64
+        description: voting_period is the voting duration in seconds.
+      electorate:
+        type: string
+        enum:
+          - ELECTORATE_KIND_UNSPECIFIED
+          - ELECTORATE_KIND_COUNTRY_REGION_OPERATORS
+          - ELECTORATE_KIND_REGION_EQUITY
+        default: ELECTORATE_KIND_UNSPECIFIED
+        description: >-
+          ElectorateKind selects which addresses are snapshotted into the 51%
+          count.
+
+           - ELECTORATE_KIND_COUNTRY_REGION_OPERATORS: Country region operators only. The global region and the experience region
+          do not vote. The proposing country region is included.
+           - ELECTORATE_KIND_REGION_EQUITY: Equity addresses of one region. The region operator yes-vote is required
+          separately.
+      dao_vote:
+        type: string
+        enum:
+          - DAO_VOTE_UNSPECIFIED
+          - DAO_VOTE_YES
+          - DAO_VOTE_NO
+        default: DAO_VOTE_UNSPECIFIED
+        description: |-
+          DaoVote is the dao ballot. Unspecified means the dao has not voted.
+          The dao may overwrite this value until the proposal is finalized.
+      required_operator:
+        type: string
+        description: >-
+          required_operator is the region operator who must vote yes on an
+          equity
+
+          withdrawal. It is Region.OperatorAddress, empty for operator
+          electorates,
+
+          and outside the 51% count.
+      treasury:
+        type: object
+        properties:
+          withdrawals:
+            type: array
+            items:
+              type: object
+              properties:
+                region_id:
+                  type: string
+                receiver:
+                  type: string
+                amount:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+              description: Withdrawal moves coins from one region treasury to a receiver.
+        description: >-
+          TreasuryWithdrawPayload is the body of a treasury withdrawal proposal.
+
+          MsgSubmitProposal rejects any withdrawal exceeding its region's
+          spendable
+
+          treasury balance for any denom, including proposals by the dao or
+          operators.
+
+          When the proposer is only an equity address of a withdrawal's region,
+
+          the amount is further limited to equity_withdraw_percent (default 1%)
+          of
+
+          that spendable balance. Exceeding either limit fails the submit
+          transaction
+
+          and no proposal is created. Submission does not reserve treasury
+          funds.
+      replace_operator:
+        type: object
+        properties:
+          region_id:
+            type: string
+          new_operator:
+            type: string
+            description: >-
+              new_operator must be an unused validator operator address, not an
+              existing
+
+              validator. The same key's account address becomes the validator
+              owner.
+        description: >-
+          ReplaceRegionOperatorPayload changes the bound validator's operator
+          address,
+
+          preserving its consensus key and updating Region.OperatorAddress on
+          the hub.
+      update_min_voting_period:
+        type: object
+        properties:
+          min_voting_period:
+            type: string
+            format: uint64
+            description: >-
+              min_voting_period is an integer number of seconds in [1,
+              9223372036].
+        description: >-
+          UpdateMinVotingPeriodPayload changes only the minimum voting duration
+          for
+
+          proposals submitted after execution. Existing proposal deadlines are
+
+          unchanged.
+    description: Proposal is a counted vote with a snapshotted electorate.
+  metaearth.regiongov.ProposalKind:
+    type: string
+    enum:
+      - PROPOSAL_KIND_UNSPECIFIED
+      - PROPOSAL_KIND_TREASURY_WITHDRAW
+      - PROPOSAL_KIND_REPLACE_REGION_OPERATOR
+      - PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD
+    default: PROPOSAL_KIND_UNSPECIFIED
+    description: ProposalKind is the action a proposal executes after it passes.
+  metaearth.regiongov.ProposalStatus:
+    type: string
+    enum:
+      - PROPOSAL_STATUS_UNSPECIFIED
+      - PROPOSAL_STATUS_VOTING
+      - PROPOSAL_STATUS_PASSED
+      - PROPOSAL_STATUS_REJECTED
+      - PROPOSAL_STATUS_FAILED
+    default: PROPOSAL_STATUS_UNSPECIFIED
+    description: |-
+      ProposalStatus is the lifecycle state of a proposal.
+
+       - PROPOSAL_STATUS_FAILED: Execution was attempted after the tally passed, but the proposal action
+      failed.
+  metaearth.regiongov.QueryElectorsResponse:
+    type: object
+    properties:
+      electors:
+        type: array
+        items:
+          type: object
+          properties:
+            proposal_id:
+              type: string
+              format: uint64
+            operator:
+              type: string
+              description: >-
+                operator is Region.OperatorAddress. The ballot is signed by the
+                account
+
+                with the same key.
+            region_id:
+              type: string
+          description: Elector is one region operator in a proposal's 51% snapshot.
+    description: QueryElectorsResponse is the response for Electors.
+  metaearth.regiongov.QueryEquityFreezesResponse:
+    type: object
+    properties:
+      freezes:
+        type: array
+        items:
+          type: object
+          properties:
+            region_id:
+              type: string
+            address:
+              type: string
+            frozen:
+              type: boolean
+          description: EquityFreeze records that one equity address cannot propose or vote.
+    description: QueryEquityFreezesResponse is the response for EquityFreezes.
+  metaearth.regiongov.QueryEquityResponse:
+    type: object
+    properties:
+      equity:
+        type: object
+        properties:
+          region_id:
+            type: string
+          addresses:
+            type: array
+            items:
+              type: string
+        description: RegionEquity is the public equity-address list of one region.
+    description: QueryEquityResponse is the response for Equity.
+  metaearth.regiongov.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        type: object
+        properties:
+          min_voting_period:
+            type: string
+            format: uint64
+            description: >-
+              min_voting_period is the shortest voting duration a proposal may
+              set, in
+
+              seconds. voting_period must be greater than or equal to this
+              value. There
+
+              is no maximum.
+          pass_threshold_percent:
+            type: integer
+            format: int64
+            description: >-
+              pass_threshold_percent is the yes-vote ratio of the snapshotted
+              electorate.
+
+              A proposal passes the count when yes * 100 >= eligible *
+
+              pass_threshold_percent.
+          equity_withdraw_percent:
+            type: integer
+            format: int64
+            description: >-
+              equity_withdraw_percent is the maximum share of a region's
+              spendable
+
+              treasury balance an equity-address withdrawal may take.
+              MsgSubmitProposal
+
+              rejects a larger amount. The region's operator and the dao are
+              exempt from
+
+              this percentage limit, but their withdrawals must not exceed the
+              spendable
+
+              balance.
+        description: Params defines the parameters for region governance.
+    description: QueryParamsResponse is the response for Params.
+  metaearth.regiongov.QueryPendingActionResponse:
+    type: object
+    properties:
+      action:
+        type: object
+        properties:
+          id:
+            type: string
+            format: uint64
+          kind:
+            type: string
+            enum:
+              - PENDING_ACTION_KIND_UNSPECIFIED
+              - PENDING_ACTION_KIND_SET_EQUITY
+              - PENDING_ACTION_KIND_FREEZE_EQUITY
+              - PENDING_ACTION_KIND_UNFREEZE_EQUITY
+            default: PENDING_ACTION_KIND_UNSPECIFIED
+            description: >-
+              PendingActionKind is an approval handled by the dao, not a counted
+              vote.
+          status:
+            type: string
+            enum:
+              - PENDING_ACTION_STATUS_UNSPECIFIED
+              - PENDING_ACTION_STATUS_PENDING
+              - PENDING_ACTION_STATUS_APPROVED
+              - PENDING_ACTION_STATUS_REJECTED
+            default: PENDING_ACTION_STATUS_UNSPECIFIED
+            description: PendingActionStatus is the lifecycle of a dao approval.
+          region_id:
+            type: string
+          proposer:
+            type: string
+          addresses:
+            type: array
+            items:
+              type: string
+          submit_time:
+            type: string
+            format: date-time
+        description: >-
+          PendingAction is a region-operator request that becomes effective when
+          the
+
+          dao agrees.
+    description: QueryPendingActionResponse is the response for PendingAction.
+  metaearth.regiongov.QueryPendingActionsResponse:
+    type: object
+    properties:
+      actions:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uint64
+            kind:
+              type: string
+              enum:
+                - PENDING_ACTION_KIND_UNSPECIFIED
+                - PENDING_ACTION_KIND_SET_EQUITY
+                - PENDING_ACTION_KIND_FREEZE_EQUITY
+                - PENDING_ACTION_KIND_UNFREEZE_EQUITY
+              default: PENDING_ACTION_KIND_UNSPECIFIED
+              description: >-
+                PendingActionKind is an approval handled by the dao, not a
+                counted vote.
+            status:
+              type: string
+              enum:
+                - PENDING_ACTION_STATUS_UNSPECIFIED
+                - PENDING_ACTION_STATUS_PENDING
+                - PENDING_ACTION_STATUS_APPROVED
+                - PENDING_ACTION_STATUS_REJECTED
+              default: PENDING_ACTION_STATUS_UNSPECIFIED
+              description: PendingActionStatus is the lifecycle of a dao approval.
+            region_id:
+              type: string
+            proposer:
+              type: string
+            addresses:
+              type: array
+              items:
+                type: string
+            submit_time:
+              type: string
+              format: date-time
+          description: >-
+            PendingAction is a region-operator request that becomes effective
+            when the
+
+            dao agrees.
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+    description: QueryPendingActionsResponse is the response for PendingActions.
+  metaearth.regiongov.QueryProposalResponse:
+    type: object
+    properties:
+      proposal:
+        type: object
+        properties:
+          id:
+            type: string
+            format: uint64
+          kind:
+            type: string
+            enum:
+              - PROPOSAL_KIND_UNSPECIFIED
+              - PROPOSAL_KIND_TREASURY_WITHDRAW
+              - PROPOSAL_KIND_REPLACE_REGION_OPERATOR
+              - PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD
+            default: PROPOSAL_KIND_UNSPECIFIED
+            description: ProposalKind is the action a proposal executes after it passes.
+          proposer:
+            type: string
+          title:
+            type: string
+          summary:
+            type: string
+          status:
+            type: string
+            enum:
+              - PROPOSAL_STATUS_UNSPECIFIED
+              - PROPOSAL_STATUS_VOTING
+              - PROPOSAL_STATUS_PASSED
+              - PROPOSAL_STATUS_REJECTED
+              - PROPOSAL_STATUS_FAILED
+            default: PROPOSAL_STATUS_UNSPECIFIED
+            description: |-
+              ProposalStatus is the lifecycle state of a proposal.
+
+               - PROPOSAL_STATUS_FAILED: Execution was attempted after the tally passed, but the proposal action
+              failed.
+          submit_time:
+            type: string
+            format: date-time
+          voting_end_time:
+            type: string
+            format: date-time
+          voting_period:
+            type: string
+            format: uint64
+            description: voting_period is the voting duration in seconds.
+          electorate:
+            type: string
+            enum:
+              - ELECTORATE_KIND_UNSPECIFIED
+              - ELECTORATE_KIND_COUNTRY_REGION_OPERATORS
+              - ELECTORATE_KIND_REGION_EQUITY
+            default: ELECTORATE_KIND_UNSPECIFIED
+            description: >-
+              ElectorateKind selects which addresses are snapshotted into the
+              51% count.
+
+               - ELECTORATE_KIND_COUNTRY_REGION_OPERATORS: Country region operators only. The global region and the experience region
+              do not vote. The proposing country region is included.
+               - ELECTORATE_KIND_REGION_EQUITY: Equity addresses of one region. The region operator yes-vote is required
+              separately.
+          dao_vote:
+            type: string
+            enum:
+              - DAO_VOTE_UNSPECIFIED
+              - DAO_VOTE_YES
+              - DAO_VOTE_NO
+            default: DAO_VOTE_UNSPECIFIED
+            description: >-
+              DaoVote is the dao ballot. Unspecified means the dao has not
+              voted.
+
+              The dao may overwrite this value until the proposal is finalized.
+          required_operator:
+            type: string
+            description: >-
+              required_operator is the region operator who must vote yes on an
+              equity
+
+              withdrawal. It is Region.OperatorAddress, empty for operator
+              electorates,
+
+              and outside the 51% count.
+          treasury:
+            type: object
+            properties:
+              withdrawals:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    region_id:
+                      type: string
+                    receiver:
+                      type: string
+                    amount:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          denom:
+                            type: string
+                          amount:
+                            type: string
+                        description: >-
+                          Coin defines a token with a denomination and an
+                          amount.
+
+
+                          NOTE: The amount field is an Int which implements the
+                          custom method
+
+                          signatures required by gogoproto.
+                  description: >-
+                    Withdrawal moves coins from one region treasury to a
+                    receiver.
+            description: >-
+              TreasuryWithdrawPayload is the body of a treasury withdrawal
+              proposal.
+
+              MsgSubmitProposal rejects any withdrawal exceeding its region's
+              spendable
+
+              treasury balance for any denom, including proposals by the dao or
+              operators.
+
+              When the proposer is only an equity address of a withdrawal's
+              region,
+
+              the amount is further limited to equity_withdraw_percent (default
+              1%) of
+
+              that spendable balance. Exceeding either limit fails the submit
+              transaction
+
+              and no proposal is created. Submission does not reserve treasury
+              funds.
+          replace_operator:
+            type: object
+            properties:
+              region_id:
+                type: string
+              new_operator:
+                type: string
+                description: >-
+                  new_operator must be an unused validator operator address, not
+                  an existing
+
+                  validator. The same key's account address becomes the
+                  validator owner.
+            description: >-
+              ReplaceRegionOperatorPayload changes the bound validator's
+              operator address,
+
+              preserving its consensus key and updating Region.OperatorAddress
+              on the hub.
+          update_min_voting_period:
+            type: object
+            properties:
+              min_voting_period:
+                type: string
+                format: uint64
+                description: >-
+                  min_voting_period is an integer number of seconds in [1,
+                  9223372036].
+            description: >-
+              UpdateMinVotingPeriodPayload changes only the minimum voting
+              duration for
+
+              proposals submitted after execution. Existing proposal deadlines
+              are
+
+              unchanged.
+        description: Proposal is a counted vote with a snapshotted electorate.
+    description: QueryProposalResponse is the response for Proposal.
+  metaearth.regiongov.QueryProposalsResponse:
+    type: object
+    properties:
+      proposals:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uint64
+            kind:
+              type: string
+              enum:
+                - PROPOSAL_KIND_UNSPECIFIED
+                - PROPOSAL_KIND_TREASURY_WITHDRAW
+                - PROPOSAL_KIND_REPLACE_REGION_OPERATOR
+                - PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD
+              default: PROPOSAL_KIND_UNSPECIFIED
+              description: ProposalKind is the action a proposal executes after it passes.
+            proposer:
+              type: string
+            title:
+              type: string
+            summary:
+              type: string
+            status:
+              type: string
+              enum:
+                - PROPOSAL_STATUS_UNSPECIFIED
+                - PROPOSAL_STATUS_VOTING
+                - PROPOSAL_STATUS_PASSED
+                - PROPOSAL_STATUS_REJECTED
+                - PROPOSAL_STATUS_FAILED
+              default: PROPOSAL_STATUS_UNSPECIFIED
+              description: |-
+                ProposalStatus is the lifecycle state of a proposal.
+
+                 - PROPOSAL_STATUS_FAILED: Execution was attempted after the tally passed, but the proposal action
+                failed.
+            submit_time:
+              type: string
+              format: date-time
+            voting_end_time:
+              type: string
+              format: date-time
+            voting_period:
+              type: string
+              format: uint64
+              description: voting_period is the voting duration in seconds.
+            electorate:
+              type: string
+              enum:
+                - ELECTORATE_KIND_UNSPECIFIED
+                - ELECTORATE_KIND_COUNTRY_REGION_OPERATORS
+                - ELECTORATE_KIND_REGION_EQUITY
+              default: ELECTORATE_KIND_UNSPECIFIED
+              description: >-
+                ElectorateKind selects which addresses are snapshotted into the
+                51% count.
+
+                 - ELECTORATE_KIND_COUNTRY_REGION_OPERATORS: Country region operators only. The global region and the experience region
+                do not vote. The proposing country region is included.
+                 - ELECTORATE_KIND_REGION_EQUITY: Equity addresses of one region. The region operator yes-vote is required
+                separately.
+            dao_vote:
+              type: string
+              enum:
+                - DAO_VOTE_UNSPECIFIED
+                - DAO_VOTE_YES
+                - DAO_VOTE_NO
+              default: DAO_VOTE_UNSPECIFIED
+              description: >-
+                DaoVote is the dao ballot. Unspecified means the dao has not
+                voted.
+
+                The dao may overwrite this value until the proposal is
+                finalized.
+            required_operator:
+              type: string
+              description: >-
+                required_operator is the region operator who must vote yes on an
+                equity
+
+                withdrawal. It is Region.OperatorAddress, empty for operator
+                electorates,
+
+                and outside the 51% count.
+            treasury:
+              type: object
+              properties:
+                withdrawals:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      region_id:
+                        type: string
+                      receiver:
+                        type: string
+                      amount:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            denom:
+                              type: string
+                            amount:
+                              type: string
+                          description: >-
+                            Coin defines a token with a denomination and an
+                            amount.
+
+
+                            NOTE: The amount field is an Int which implements
+                            the custom method
+
+                            signatures required by gogoproto.
+                    description: >-
+                      Withdrawal moves coins from one region treasury to a
+                      receiver.
+              description: >-
+                TreasuryWithdrawPayload is the body of a treasury withdrawal
+                proposal.
+
+                MsgSubmitProposal rejects any withdrawal exceeding its region's
+                spendable
+
+                treasury balance for any denom, including proposals by the dao
+                or operators.
+
+                When the proposer is only an equity address of a withdrawal's
+                region,
+
+                the amount is further limited to equity_withdraw_percent
+                (default 1%) of
+
+                that spendable balance. Exceeding either limit fails the submit
+                transaction
+
+                and no proposal is created. Submission does not reserve treasury
+                funds.
+            replace_operator:
+              type: object
+              properties:
+                region_id:
+                  type: string
+                new_operator:
+                  type: string
+                  description: >-
+                    new_operator must be an unused validator operator address,
+                    not an existing
+
+                    validator. The same key's account address becomes the
+                    validator owner.
+              description: >-
+                ReplaceRegionOperatorPayload changes the bound validator's
+                operator address,
+
+                preserving its consensus key and updating Region.OperatorAddress
+                on the hub.
+            update_min_voting_period:
+              type: object
+              properties:
+                min_voting_period:
+                  type: string
+                  format: uint64
+                  description: >-
+                    min_voting_period is an integer number of seconds in [1,
+                    9223372036].
+              description: >-
+                UpdateMinVotingPeriodPayload changes only the minimum voting
+                duration for
+
+                proposals submitted after execution. Existing proposal deadlines
+                are
+
+                unchanged.
+          description: Proposal is a counted vote with a snapshotted electorate.
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+    description: QueryProposalsResponse is the response for Proposals.
+  metaearth.regiongov.QueryRegionFreezeResponse:
+    type: object
+    properties:
+      frozen:
+        type: boolean
+    description: QueryRegionFreezeResponse is the response for RegionFreeze.
+  metaearth.regiongov.QueryVotesResponse:
+    type: object
+    properties:
+      votes:
+        type: array
+        items:
+          type: object
+          properties:
+            proposal_id:
+              type: string
+              format: uint64
+            voter:
+              type: string
+            option:
+              type: string
+              enum:
+                - VOTE_OPTION_UNSPECIFIED
+                - VOTE_OPTION_YES
+                - VOTE_OPTION_NO
+              default: VOTE_OPTION_UNSPECIFIED
+              description: VoteOption is a yes or no ballot. Abstain is not a vote.
+          description: Vote is a non-dao ballot. It cannot be overwritten.
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+    description: QueryVotesResponse is the response for Votes.
+  metaearth.regiongov.RegionEquity:
+    type: object
+    properties:
+      region_id:
+        type: string
+      addresses:
+        type: array
+        items:
+          type: string
+    description: RegionEquity is the public equity-address list of one region.
+  metaearth.regiongov.ReplaceRegionOperatorPayload:
+    type: object
+    properties:
+      region_id:
+        type: string
+      new_operator:
+        type: string
+        description: >-
+          new_operator must be an unused validator operator address, not an
+          existing
+
+          validator. The same key's account address becomes the validator owner.
+    description: >-
+      ReplaceRegionOperatorPayload changes the bound validator's operator
+      address,
+
+      preserving its consensus key and updating Region.OperatorAddress on the
+      hub.
+  metaearth.regiongov.TreasuryWithdrawPayload:
+    type: object
+    properties:
+      withdrawals:
+        type: array
+        items:
+          type: object
+          properties:
+            region_id:
+              type: string
+            receiver:
+              type: string
+            amount:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: >-
+                  Coin defines a token with a denomination and an amount.
+
+
+                  NOTE: The amount field is an Int which implements the custom
+                  method
+
+                  signatures required by gogoproto.
+          description: Withdrawal moves coins from one region treasury to a receiver.
+    description: >-
+      TreasuryWithdrawPayload is the body of a treasury withdrawal proposal.
+
+      MsgSubmitProposal rejects any withdrawal exceeding its region's spendable
+
+      treasury balance for any denom, including proposals by the dao or
+      operators.
+
+      When the proposer is only an equity address of a withdrawal's region,
+
+      the amount is further limited to equity_withdraw_percent (default 1%) of
+
+      that spendable balance. Exceeding either limit fails the submit
+      transaction
+
+      and no proposal is created. Submission does not reserve treasury funds.
+  metaearth.regiongov.UpdateMinVotingPeriodPayload:
+    type: object
+    properties:
+      min_voting_period:
+        type: string
+        format: uint64
+        description: min_voting_period is an integer number of seconds in [1, 9223372036].
+    description: |-
+      UpdateMinVotingPeriodPayload changes only the minimum voting duration for
+      proposals submitted after execution. Existing proposal deadlines are
+      unchanged.
+  metaearth.regiongov.Vote:
+    type: object
+    properties:
+      proposal_id:
+        type: string
+        format: uint64
+      voter:
+        type: string
+      option:
+        type: string
+        enum:
+          - VOTE_OPTION_UNSPECIFIED
+          - VOTE_OPTION_YES
+          - VOTE_OPTION_NO
+        default: VOTE_OPTION_UNSPECIFIED
+        description: VoteOption is a yes or no ballot. Abstain is not a vote.
+    description: Vote is a non-dao ballot. It cannot be overwritten.
+  metaearth.regiongov.VoteOption:
+    type: string
+    enum:
+      - VOTE_OPTION_UNSPECIFIED
+      - VOTE_OPTION_YES
+      - VOTE_OPTION_NO
+    default: VOTE_OPTION_UNSPECIFIED
+    description: VoteOption is a yes or no ballot. Abstain is not a vote.
+  metaearth.regiongov.Withdrawal:
+    type: object
+    properties:
+      region_id:
+        type: string
+      receiver:
+        type: string
+      amount:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+    description: Withdrawal moves coins from one region treasury to a receiver.
   metaearth.megroup.GroupInfo:
     type: object
     properties:
@@ -70320,18 +72679,6 @@ definitions:
         description: params holds all the parameters of this module.
         type: object
     description: QueryParamsResponse is response type for the Query/Params RPC method.
-  cosmos.base.v1beta1.Coin:
-    type: object
-    properties:
-      denom:
-        type: string
-      amount:
-        type: string
-    description: |-
-      Coin defines a token with a denomination and an amount.
-
-      NOTE: The amount field is an Int which implements the custom method
-      signatures required by gogoproto.
   metaearth.gravity.v1.Attestation:
     type: object
     properties:
