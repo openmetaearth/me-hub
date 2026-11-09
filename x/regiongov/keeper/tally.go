@@ -21,9 +21,13 @@ func (k Keeper) EndBlocker(ctx sdk.Context) {
 
 // tallyPassed is true when the dao has voted yes and
 // yes * 100 >= eligible * pass_threshold_percent. Absent and no votes are not yes.
-// An empty electorate does not pass.
+// Equity proposals additionally require their snapshotted region operator's yes
+// ballot, outside the counted electorate. An empty electorate does not pass.
 func (k Keeper) tallyPassed(ctx sdk.Context, proposal types.Proposal) bool {
 	if proposal.DaoVote != types.DaoVoteYes {
+		return false
+	}
+	if proposal.Electorate == types.ElectorateKindRegionEquity && !k.equityOperatorApproved(ctx, proposal) {
 		return false
 	}
 	electors := k.GetElectors(ctx, proposal.Id)
@@ -33,8 +37,8 @@ func (k Keeper) tallyPassed(ctx sdk.Context, proposal types.Proposal) bool {
 	}
 	allowed := make(map[string]struct{}, len(electors))
 	for _, elector := range electors {
-		acc, ok := operatorAccount(elector.Operator)
-		if !ok {
+		acc, err := elector.AccountAddress()
+		if err != nil {
 			continue
 		}
 		allowed[acc.String()] = struct{}{}

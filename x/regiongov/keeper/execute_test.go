@@ -219,6 +219,11 @@ func (s *KeeperTestSuite) TestEquityWithdrawCap() {
 
 func (s *KeeperTestSuite) passTreasury(proposer string, withdrawal types.Withdrawal) uint64 {
 	id := s.submit(proposer, withdrawal)
+	if s.mustProposal(id).Electorate == types.ElectorateKindRegionEquity {
+		for _, voter := range s.electorAccounts(id) {
+			s.Require().NoError(s.vote(voter, id, types.VoteOptionYes))
+		}
+	}
 	s.Require().NoError(s.vote(operatorAccount(s.usaValidator.OperatorAddress), id, types.VoteOptionYes))
 	s.Require().NoError(s.vote(s.Dao.GlobalDao, id, types.VoteOptionYes))
 	s.endBlockAt(s.mustProposal(id).VotingEndTime)

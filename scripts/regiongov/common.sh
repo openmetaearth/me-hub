@@ -28,8 +28,16 @@ send_tx() {
 }
 
 send_module_tx() {
- local signer=$1 module=$2 hash deadline response
+ local signer=$1 module=$2
  shift 2
+ send_module_tx_expect_result "$signer" "$module" 0 "" "$@"
+}
+
+# CheckTx must succeed; only a committed execution result can satisfy this check.
+# Nonzero expectations use a fixed gas limit in the caller to bypass simulation.
+send_module_tx_expect_result() {
+ local signer=$1 module=$2 expected_code=$3 expected_codespace=$4 hash deadline response
+ shift 4
  local options=(--from "$signer" --gas "$GAS" --gas-adjustment "$GAS_ADJUSTMENT" --broadcast-mode sync --yes --output json)
  [[ -z $CHAIN_ID ]] || options+=(--chain-id "$CHAIN_ID")
  [[ -z $FEES ]] || options+=(--fees "$FEES")

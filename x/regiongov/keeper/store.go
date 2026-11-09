@@ -68,9 +68,9 @@ func (k Keeper) GetAllProposals(ctx sdk.Context) []types.Proposal {
 }
 
 func (k Keeper) SetElector(ctx sdk.Context, elector types.Elector) {
-	acc, ok := operatorAccount(elector.Operator)
-	if !ok {
-		panic(fmt.Sprintf("elector %d has invalid operator %s", elector.ProposalId, elector.Operator))
+	acc, err := elector.AccountAddress()
+	if err != nil {
+		panic(fmt.Sprintf("elector %d has invalid address %s: %s", elector.ProposalId, elector.Operator, err))
 	}
 	k.mustSet(ctx, types.ElectorKey(elector.ProposalId, acc.String()), &elector)
 }

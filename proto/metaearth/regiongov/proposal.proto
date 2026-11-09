@@ -149,11 +149,13 @@ message Proposal {
   UpdateMinVotingPeriodPayload update_min_voting_period = 15;
 }
 
-// Elector is one region operator in a proposal's 51% snapshot.
+// Elector is one counted address in a proposal's snapshotted electorate.
 message Elector {
   uint64 proposal_id = 1;
-  // operator is Region.OperatorAddress. The ballot is signed by the account
-  // with the same key.
+  // For COUNTRY_REGION_OPERATORS, operator is Region.OperatorAddress; its
+  // corresponding account signs the ballot. For REGION_EQUITY, operator is
+  // the equity account address itself. The separately required region operator
+  // and dao approvals are outside the equity count.
   string operator = 2;
   string region_id = 3;
 }

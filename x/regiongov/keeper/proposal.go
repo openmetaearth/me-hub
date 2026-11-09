@@ -42,7 +42,13 @@ func (k Keeper) submitProposal(ctx sdk.Context, msg *types.MsgSubmitProposal) (u
 	}
 
 	id := k.GetProposalSeq(ctx) + 1
-	electors, err := k.snapshotElectors(ctx, id, electorate)
+	var electors []types.Elector
+	var requiredOperator string
+	if electorate == types.ElectorateKindRegionEquity {
+		electors, requiredOperator, err = k.snapshotEquityElectors(ctx, id, msg.Treasury.Withdrawals[0].RegionId)
+	} else {
+		electors, err = k.snapshotElectors(ctx, id, electorate)
+	}
 	if err != nil {
 		return 0, err
 	}
@@ -59,6 +65,7 @@ func (k Keeper) submitProposal(ctx sdk.Context, msg *types.MsgSubmitProposal) (u
 		VotingEndTime:         now.Add(time.Duration(msg.VotingPeriod) * time.Second),
 		VotingPeriod:          msg.VotingPeriod,
 		Electorate:            electorate,
+		RequiredOperator:      requiredOperator,
 		Treasury:              msg.Treasury,
 		ReplaceOperator:       msg.ReplaceOperator,
 		UpdateMinVotingPeriod: msg.UpdateMinVotingPeriod,
@@ -101,7 +108,20 @@ func (k Keeper) resolveTreasuryElectorate(ctx sdk.Context, msg *types.MsgSubmitP
 			return types.ElectorateKindUnspecified, sdkerrors.Wrapf(types.ErrUnknownRegion, "%s", withdrawal.RegionId)
 		}
 	}
-	return types.ElectorateKindCountryRegionOperators, nil
+	// Existing dao/operator proposals keep the global country-operator vote,
+	// regardless of whether the proposer also appears in an equity list.
+	proposer, err := canonicalAccAddress(msg.Proposer)
+	if err != nil {
+		return types.ElectorateKindUnspecified, err
+	}
+	dao, operatorRegions, _ := k.proposerAuthority(ctx, proposer)
+	if dao || len(operatorRegions) > 0 {
+		return types.ElectorateKindCountryRegionOperators, nil
+	}
+	if len(msg.Treasury.Withdrawals) != 1 {
+		return types.ElectorateKindUnspecified, sdkerrors.Wrap(types.ErrUnauthorized, "an equity proposal must withdraw from exactly one region")
+	}
+	return types.ElectorateKindRegionEquity, nil
 }
 
 func (k Keeper) authorizeProposer(ctx sdk.Context, proposer string, msg *types.MsgSubmitProposal) error {

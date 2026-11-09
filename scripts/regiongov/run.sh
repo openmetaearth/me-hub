@@ -2,14 +2,19 @@
 set -Eeuo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 
-derive_test_address() {
+recover_test_key() {
  # Public test mnemonic only; never use these accounts for real funds.
  local global_dict="sign wise lyrics find brass grass already urge invite vibrant arrow grow dune theme trust mix napkin ball pause sponsor bacon capable flip people"
  local index=$1 name=$2
+ shift 2
  printf '%s\n' "$global_dict" | "$MED_BIN" keys add "$name" \
-  --recover --dry-run --no-backup --key-type secp256k1 --coin-type 118 \
+  --recover --no-backup --key-type secp256k1 --coin-type 118 \
   --hd-path "m/44'/118'/0'/0/0/$index" --keyring-backend test \
-  --home "$RESULT_DIR/derived-keys" --output json | jq -er '.address | select(type == "string" and startswith("me1"))'
+  --home "$RESULT_DIR/derived-keys" --output json "$@"
+}
+
+derive_test_address() {
+ recover_test_key "$1" "$2" --dry-run | jq -er '.address | select(type == "string" and startswith("me1"))'
 }
 
 generate_equity_addresses() {
@@ -68,6 +73,38 @@ restore_equity() {
  send_tx "$OPERATOR_KEY" submit-equity-update "$REGION_ID" ${restore[@]+"${restore[@]}"}
  approve "$(event_id action_id)"
  assert_equity "$OLD_EQUITY"
+}
+
+prepare_equity_treasury() {
+ [[ $REGION_ID == chn ]] || fail 'this test requires REGION_ID=chn'
+ local index address dao
+ EQUITY_KEY_OPTIONS=("${KEY[@]}")
+ if [[ -z $EQUITY_ADDRESSES ]]; then
+  local addresses=()
+  # Three equities: one proposes and the other two vote (2/3 exceeds 51%).
+  # Index 23 remains reserved for operator replacement.
+  for index in 21 22 24; do
+   address=$(recover_test_key "$index" "regiongov-equity-$index" | jq -er '.address | select(type == "string" and startswith("me1"))') \
+    || fail "could not recover equity test key at index $index"
+   addresses+=("$address")
+  done
+  EQUITY_ADDRESSES="${addresses[*]}"
+  # Keep the node's client configuration, but sign with an isolated test keyring.
+  EQUITY_KEY_OPTIONS=(--home ./nodes/hub-nodes/node1 --keyring-dir "$RESULT_DIR/derived-keys" --keyring-backend test)
+ fi
+ prepare_equity
+ (( ${#TARGETS[@]} >= 3 )) || fail 'set EQUITY_ADDRESSES to at least three test addresses with keys in the configured keyring'
+ dao=$(key_address "$DAO_KEY")
+ for address in "${TARGETS[@]}"; do
+  [[ $address != "$dao" ]] || fail 'equity test accounts must differ from the DAO'
+  "$MED_BIN" keys show "$address" -a "${EQUITY_KEY_OPTIONS[@]}" >/dev/null \
+   || fail "no signing key for equity address $address"
+ done
+}
+
+send_equity_tx() {
+ local KEY=("${EQUITY_KEY_OPTIONS[@]}")
+ send_tx "$@"
 }
 
 reject_action() {
@@ -221,7 +258,7 @@ test_vote() {
 }
 
 pass_test_proposal() {
- local kind=$1 voter status deadline period
+ local kind=$1 voter period
  local voters=()
  read -r -a voters <<< "$VOTER_KEYS"
  for voter in "${voters[@]}"; do key_address "$voter" >/dev/null; done
@@ -229,6 +266,11 @@ pass_test_proposal() {
  submit_test_proposal "$kind"
  for voter in "${voters[@]}"; do send_tx "$voter" vote "$PROPOSAL_ID" yes; done
  send_tx "$DAO_KEY" vote "$PROPOSAL_ID" yes
+ wait_for_proposal_pass "$period"
+}
+
+wait_for_proposal_pass() {
+ local period=$1 status deadline
  deadline=$((SECONDS + period + TX_TIMEOUT))
  echo "Waiting for proposal $PROPOSAL_ID to pass (voting period: $period seconds)..."
  while (( SECONDS < deadline )); do
@@ -243,6 +285,69 @@ pass_test_proposal() {
 }
 
 test_treasury_proposal_pass() { pass_test_proposal treasury; }
+
+test_equity_treasury_proposal_pass() {
+ local params period percent threshold minimum treasury dao operator proposer voter
+ local voters=("${TARGETS[@]:1}")
+ proposer=${TARGETS[0]}
+ params=$(query params)
+ period=$(printf '%s' "$params" | jq -er '.params.min_voting_period')
+ percent=$(printf '%s' "$params" | jq -er '.params.equity_withdraw_percent | select(. >= 1 and . <= 100)')
+ threshold=$(printf '%s' "$params" | jq -er '.params.pass_threshold_percent')
+ (( ${#voters[@]} * 100 >= ${#TARGETS[@]} * threshold )) \
+  || fail "the other equity accounts cannot reach the $threshold% threshold without the proposer"
+ dao=$(key_address "$DAO_KEY")
+
+ # A 10umec withdrawal must also fit the equity percentage cap. Do not silently
+ # fund the treasury: fail before changing equity state if test funds are missing.
+ "$MED_BIN" query staking region "$REGION_ID" "${NET[@]}" --output json > "$RESULT_DIR/region.json"
+ treasury=$(jq -er '.region.region_treasure_addr | select(length > 0)' "$RESULT_DIR/region.json")
+ operator=$(key_address "$OPERATOR_KEY")
+ "$MED_BIN" keys show "$OPERATOR_KEY" --bech val -a "${KEY[@]}" \
+  | jq -Re --slurpfile region "$RESULT_DIR/region.json" '. == $region[0].region.operator_address' >/dev/null \
+  || fail 'OPERATOR_KEY must be the current chn operator'
+ "$MED_BIN" query bank spendable-balances "$treasury" --denom umec "${NET[@]}" --output json > "$RESULT_DIR/treasury-before.json"
+ minimum=$(((10 * 100 + percent - 1) / percent))
+ assert_json --argjson minimum "$minimum" '(.balance.amount // "0" | tonumber) >= $minimum' < "$RESULT_DIR/treasury-before.json"
+
+ # Fund only the isolated public test accounts so they can pay transaction fees.
+ for voter in "${TARGETS[@]}"; do
+  send_module_tx "$DAO_KEY" bank send "$dao" "$voter" "$FUND_AMOUNT"
+ done
+ setup_equity
+ jq -n --arg region "$REGION_ID" --arg receiver "$dao" --arg period "$period" '{
+  title:"chn equity withdrawal approved by other equity accounts",
+  summary:"An equity account proposes; other equities vote, with separate region operator and DAO approvals",
+  kind:"PROPOSAL_KIND_TREASURY_WITHDRAW",voting_period:$period,
+  treasury:{withdrawals:[{region_id:$region,receiver:$receiver,amount:[{denom:"umec",amount:"10"}]}]}
+ }' > "$RESULT_DIR/equity-treasury.json"
+ send_equity_tx "$proposer" submit-proposal "$RESULT_DIR/equity-treasury.json"
+ PROPOSAL_ID=$(event_id proposal_id)
+ query proposal "$PROPOSAL_ID" > "$RESULT_DIR/equity-proposal.json"
+ assert_json --arg proposer "$proposer" --slurpfile region "$RESULT_DIR/region.json" '
+  .proposal.proposer == $proposer and .proposal.status == "PROPOSAL_STATUS_VOTING" and
+  .proposal.electorate == "ELECTORATE_KIND_REGION_EQUITY" and
+  .proposal.required_operator == $region[0].region.operator_address
+ ' < "$RESULT_DIR/equity-proposal.json"
+ query electors "$PROPOSAL_ID" --limit "${#TARGETS[@]}" > "$RESULT_DIR/electors-$PROPOSAL_ID.json"
+ assert_json --argjson targets "$TARGET_JSON" '
+  ([.electors[].operator] | sort) == ($targets | sort) and all(.electors[]; .region_id == "chn")
+ ' < "$RESULT_DIR/electors-$PROPOSAL_ID.json"
+
+ # Equity ballots form the percentage; operator/DAO approvals are separate.
+ for voter in "${voters[@]}"; do send_equity_tx "$voter" vote "$PROPOSAL_ID" yes; done
+ send_tx "$OPERATOR_KEY" vote "$PROPOSAL_ID" yes
+ send_tx "$DAO_KEY" vote "$PROPOSAL_ID" yes
+ query votes "$PROPOSAL_ID" --limit "$((${#TARGETS[@]} + 1))" > "$RESULT_DIR/equity-votes.json"
+ assert_json --arg proposer "$proposer" --arg operator "$operator" --argjson voters "$(printf '%s\n' "${voters[@]}" | jq -R . | jq -s .)" '
+  (.votes // []) as $votes |
+  all($voters[]; . as $voter | any($votes[]; .voter == $voter and .option == "VOTE_OPTION_YES")) and
+  any($votes[]; .voter == $operator and .option == "VOTE_OPTION_YES") and
+  all($votes[]; .voter != $proposer)
+ ' < "$RESULT_DIR/equity-votes.json"
+ wait_for_proposal_pass "$period"
+ restore_equity
+}
 
 test_min_voting_period_proposal_pass() {
  local before current
@@ -335,6 +440,7 @@ run_case() (
  RESULT_DIR=$(mktemp -d "${TMPDIR:-/tmp}/regiongov.$1.XXXXXX")
  echo "Results: $RESULT_DIR"
  case $1 in
+  test_equity_treasury_proposal_pass) prepare_equity_treasury ;;
   test_*equity*|test_approve_pending_action|test_reject_pending_action) prepare_equity ;;
   test_freeze_region|test_unfreeze_region)
    REGIONS=("$REGION_ID")
@@ -344,7 +450,7 @@ run_case() (
  echo "PASS: $1"
 )
 
-TESTS=(test_submit_equity_update test_approve_pending_action test_reject_pending_action test_submit_freeze_equity test_submit_unfreeze_equity test_freeze_equity test_unfreeze_equity test_freeze_region test_unfreeze_region test_submit_treasury_proposal test_submit_operator_proposal test_vote test_treasury_proposal_pass test_treasury_proposal_51pass_daoveto test_min_voting_period_proposal_pass test_operator_proposal_pass test_queries)
+TESTS=(test_submit_equity_update test_approve_pending_action test_reject_pending_action test_submit_freeze_equity test_submit_unfreeze_equity test_freeze_equity test_unfreeze_equity test_freeze_region test_unfreeze_region test_submit_treasury_proposal test_submit_operator_proposal test_vote test_treasury_proposal_pass test_treasury_proposal_51pass_daoveto test_equity_treasury_proposal_pass test_min_voting_period_proposal_pass test_operator_proposal_pass test_queries)
 
 run_all() {
  local RESULT_DIR
