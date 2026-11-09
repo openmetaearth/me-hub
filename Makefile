@@ -283,7 +283,7 @@ proto-gen-ts:
 
 proto-swagger-gen:
 	@echo "Downloading Protobuf dependencies"
-	@make proto-download-deps
+# 	@make proto-download-deps
 	@echo "Generating Protobuf Swagger"
 	@$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
 
