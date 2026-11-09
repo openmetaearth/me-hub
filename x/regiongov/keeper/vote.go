@@ -29,12 +29,18 @@ func (k Keeper) castVote(ctx sdk.Context, msg *types.MsgVote) error {
 		return k.castDaoVote(ctx, proposal, voter, msg.Option)
 	}
 
-	elector, found := k.GetElector(ctx, proposal.Id, voter)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrUnauthorized, "%s is not an elector of proposal %d", voter, proposal.Id)
-	}
-	if k.isRegionFrozen(ctx, elector.RegionId) {
-		return sdkerrors.Wrapf(types.ErrRegionFrozen, "region %s", elector.RegionId)
+	if proposal.Electorate == types.ElectorateKindRegionEquity {
+		if err := k.authorizeEquityVote(ctx, proposal, voter); err != nil {
+			return err
+		}
+	} else {
+		elector, found := k.GetElector(ctx, proposal.Id, voter)
+		if !found {
+			return sdkerrors.Wrapf(types.ErrUnauthorized, "%s is not an elector of proposal %d", voter, proposal.Id)
+		}
+		if k.isRegionFrozen(ctx, elector.RegionId) {
+			return sdkerrors.Wrapf(types.ErrRegionFrozen, "region %s", elector.RegionId)
+		}
 	}
 	if _, found := k.GetVote(ctx, proposal.Id, voter); found {
 		return sdkerrors.Wrapf(types.ErrAlreadyVoted, "%s", voter)

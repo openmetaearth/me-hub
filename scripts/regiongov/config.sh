@@ -11,6 +11,12 @@ EXPECTED_OPERATOR_ADDRESS=${EXPECTED_OPERATOR_ADDRESS:-me1u0s2z64yqdxpnxwjry95z5
 FUND_AMOUNT=${FUND_AMOUNT:-1000000000umec}
 # Optional: two or more test account addresses, space separated. If empty, run.sh
 # derives two public test addresses at HD indices 21-22 (val1-val4 use 11-14).
+# test_equity_treasury_proposal_pass needs at least three signing accounts; its
+# default uses indices 21, 22, 24 in an isolated temporary test keyring. Explicit
+# addresses must have signing keys in the configured keyring. It funds each with
+# FUND_AMOUNT from DAO_KEY, withdraws 10umec from chn to DAO_KEY and restores the
+# equity list after success. The other equities vote YES; OPERATOR_KEY (the chn
+# operator) and DAO_KEY must also vote YES, outside the equity percentage count.
 EQUITY_ADDRESSES=${EQUITY_ADDRESSES:-}
 # Optional overrides; empty values preserve med's local client configuration.
 CHAIN_ID=${CHAIN_ID:-}

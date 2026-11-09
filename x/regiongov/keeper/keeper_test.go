@@ -166,7 +166,9 @@ func (s *KeeperTestSuite) electorAccounts(id uint64) []string {
 	electors := s.App.RegionGovKeeper.GetElectors(s.Ctx, id)
 	accounts := make([]string, 0, len(electors))
 	for _, elector := range electors {
-		accounts = append(accounts, operatorAccount(elector.Operator))
+		account, err := elector.AccountAddress()
+		s.Require().NoError(err)
+		accounts = append(accounts, account.String())
 	}
 	return accounts
 }

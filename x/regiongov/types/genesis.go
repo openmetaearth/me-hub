@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // DefaultGenesis returns the default genesis state.
@@ -64,20 +65,46 @@ func validateGenesisProposals(gs GenesisState) (map[uint64]Proposal, error) {
 func validateGenesisElectors(gs GenesisState, proposals map[uint64]Proposal) error {
 	electors := make(map[string]struct{}, len(gs.Electors))
 	for _, elector := range gs.Electors {
-		if _, ok := proposals[elector.ProposalId]; !ok {
+		proposal, ok := proposals[elector.ProposalId]
+		if !ok {
 			return fmt.Errorf("elector references missing proposal %d", elector.ProposalId)
 		}
-		if err := validateOperatorAddress(elector.Operator); err != nil {
+		if err := validateGenesisElector(proposal, elector); err != nil {
 			return fmt.Errorf("elector: %w", err)
 		}
 		if err := validateRegionID(elector.RegionId); err != nil {
 			return fmt.Errorf("elector region: %w", err)
 		}
-		key := genesisRecordKey(elector.ProposalId, elector.Operator)
+		account, err := elector.AccountAddress()
+		if err != nil {
+			return fmt.Errorf("elector: %w", err)
+		}
+		key := genesisRecordKey(elector.ProposalId, account.String())
 		if _, ok := electors[key]; ok {
 			return fmt.Errorf("duplicate elector %s on proposal %d", elector.Operator, elector.ProposalId)
 		}
 		electors[key] = struct{}{}
+	}
+	return nil
+}
+
+func validateGenesisElector(proposal Proposal, elector Elector) error {
+	if proposal.Electorate != ElectorateKindRegionEquity {
+		return validateOperatorAddress(elector.Operator)
+	}
+	if err := validateAccAddress(elector.Operator); err != nil {
+		return err
+	}
+	if !strings.EqualFold(elector.RegionId, proposal.Treasury.Withdrawals[0].RegionId) {
+		return errors.New("equity elector must belong to the withdrawal region")
+	}
+	account, _ := elector.AccountAddress() // Address was validated above.
+	operator, err := (Elector{Operator: proposal.RequiredOperator}).AccountAddress()
+	if err != nil {
+		return err
+	}
+	if account.Equals(operator) {
+		return errors.New("required operator must not be counted as an equity elector")
 	}
 	return nil
 }
@@ -215,6 +242,9 @@ func validateProposalHeader(proposal Proposal) error {
 
 func validateProposalOperator(proposal Proposal) error {
 	if proposal.Electorate == ElectorateKindRegionEquity {
+		if proposal.Kind != ProposalKindTreasuryWithdraw || proposal.Treasury == nil || len(proposal.Treasury.Withdrawals) != 1 {
+			return errors.New("an equity proposal must withdraw from exactly one region")
+		}
 		if err := validateOperatorAddress(proposal.RequiredOperator); err != nil {
 			return fmt.Errorf("required operator: %w", err)
 		}

@@ -631,11 +631,13 @@ func (m *Proposal) GetUpdateMinVotingPeriod() *UpdateMinVotingPeriodPayload {
 	return nil
 }
 
-// Elector is one region operator in a proposal's 51% snapshot.
+// Elector is one counted address in a proposal's snapshotted electorate.
 type Elector struct {
 	ProposalId uint64 `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
-	// operator is Region.OperatorAddress. The ballot is signed by the account
-	// with the same key.
+	// For COUNTRY_REGION_OPERATORS, operator is Region.OperatorAddress; its
+	// corresponding account signs the ballot. For REGION_EQUITY, operator is
+	// the equity account address itself. The separately required region operator
+	// and dao approvals are outside the equity count.
 	Operator string `protobuf:"bytes,2,opt,name=operator,proto3" json:"operator,omitempty"`
 	RegionId string `protobuf:"bytes,3,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
 }
