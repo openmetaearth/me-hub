@@ -51,8 +51,9 @@ send_module_tx_expect_result() {
  while (( SECONDS < deadline )); do
   if "$MED_BIN" query tx "$hash" ${NET[@]+"${NET[@]}"} --output json > "$RESULT_DIR/$hash.json" 2> "$RESULT_DIR/query-tx-error.log"; then
    TX_JSON=$(cat "$RESULT_DIR/$hash.json")
-   printf '%s' "$TX_JSON" | assert_json '(.code | tonumber) == 0'
-   echo "PASS committed: $hash" >&2
+   printf '%s' "$TX_JSON" | assert_json --argjson code "$expected_code" --arg codespace "$expected_codespace" '
+    (.code | tonumber) == $code and ($code == 0 or .codespace == $codespace)'
+   echo "PASS committed (expected code $expected_code): $hash" >&2
    return
   fi
   sleep "$POLL_INTERVAL"

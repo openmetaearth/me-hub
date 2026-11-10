@@ -107,6 +107,17 @@ send_equity_tx() {
  send_tx "$@"
 }
 
+expect_equity_unauthorized() {
+ local signer=$1 reason=$2
+ shift 2
+ # Auto gas would fail during simulation, without a committed permission check.
+ [[ $REJECT_GAS =~ ^[1-9][0-9]*$ ]] || fail 'REJECT_GAS must be a positive fixed gas limit'
+ local GAS=$REJECT_GAS
+ local KEY=("${EQUITY_KEY_OPTIONS[@]}")
+ send_module_tx_expect_result "$signer" regiongov 2 regiongov "$@"
+ printf '%s' "$TX_JSON" | assert_json --arg reason "$reason" '(.raw_log // "" | contains($reason))'
+}
+
 reject_action() {
  local id=$1
  send_tx "$DAO_KEY" reject-pending-action "$id"
@@ -213,7 +224,7 @@ submit_test_proposal() {
  {title:("med binary test " + $kind),summary:"med binary proposal test",voting_period:$period} +
  (if $kind == "treasury" then {kind:"PROPOSAL_KIND_TREASURY_WITHDRAW",treasury:{withdrawals:[{region_id:$region,receiver:$receiver,amount:[{denom:"umec",amount:"10"}]}]}}
  elif $kind == "replace-operator" then {kind:"PROPOSAL_KIND_REPLACE_REGION_OPERATOR",replace_operator:{region_id:$region,new_operator:$operator}}
- elif $kind == "update-min-voting-period" then {kind:"PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD",update_min_voting_period:{min_voting_period:"300"}}
+ elif $kind == "update-min-voting-period" then {kind:"PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD",update_min_voting_period:{min_voting_period:"121"}}
  else error("unknown proposal kind: " + $kind) end)' > "$RESULT_DIR/$kind.json"
  echo "Proposal JSON: $RESULT_DIR/$kind.json"
  cat "$RESULT_DIR/$kind.json"
@@ -224,7 +235,7 @@ submit_test_proposal() {
   query proposal "$PROPOSAL_ID" | assert_json '
    .proposal.kind == "PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD" and
    (.proposal.voting_period | tonumber) == 120 and
-   (.proposal.update_min_voting_period.min_voting_period | tonumber) == 300'
+   (.proposal.update_min_voting_period.min_voting_period | tonumber) == 121'
   # Submission alone must not change the minimum before voting/execution.
   query params | assert_json '(.params.min_voting_period | tonumber) == 120'
  fi
@@ -269,17 +280,20 @@ pass_test_proposal() {
  wait_for_proposal_pass "$period"
 }
 
-wait_for_proposal_pass() {
- local period=$1 status deadline
+wait_for_proposal_pass() { wait_for_proposal_status "$1" PROPOSAL_STATUS_PASSED; }
+
+wait_for_proposal_status() {
+ local period=$1 expected=$2 status deadline
  deadline=$((SECONDS + period + TX_TIMEOUT))
- echo "Waiting for proposal $PROPOSAL_ID to pass (voting period: $period seconds)..."
+ echo "Waiting for proposal $PROPOSAL_ID to reach $expected (voting period: $period seconds)..."
  while (( SECONDS < deadline )); do
   status=$(query proposal "$PROPOSAL_ID" | jq -er '.proposal.status')
-  case $status in
-   PROPOSAL_STATUS_PASSED) query proposal "$PROPOSAL_ID" | jq .; return ;;
-   PROPOSAL_STATUS_VOTING) sleep "$POLL_INTERVAL" ;;
-   *) fail "proposal $PROPOSAL_ID ended with $status" ;;
-  esac
+  if [[ $status == "$expected" ]]; then
+   query proposal "$PROPOSAL_ID" | jq .
+   return
+  fi
+  [[ $status == PROPOSAL_STATUS_VOTING ]] || fail "proposal $PROPOSAL_ID ended with $status, expected $expected"
+  sleep "$POLL_INTERVAL"
  done
  fail "proposal $PROPOSAL_ID timed out; inspect chain before rerunning"
 }
@@ -329,7 +343,7 @@ test_equity_treasury_proposal_pass() {
   .proposal.electorate == "ELECTORATE_KIND_REGION_EQUITY" and
   .proposal.required_operator == $region[0].region.operator_address
  ' < "$RESULT_DIR/equity-proposal.json"
- query electors "$PROPOSAL_ID" --limit "${#TARGETS[@]}" > "$RESULT_DIR/electors-$PROPOSAL_ID.json"
+ query electors "$PROPOSAL_ID" > "$RESULT_DIR/electors-$PROPOSAL_ID.json"
  assert_json --argjson targets "$TARGET_JSON" '
   ([.electors[].operator] | sort) == ($targets | sort) and all(.electors[]; .region_id == "chn")
  ' < "$RESULT_DIR/electors-$PROPOSAL_ID.json"
@@ -349,20 +363,93 @@ test_equity_treasury_proposal_pass() {
  restore_equity
 }
 
+test_equity_treasury_other_region_rejected() {
+ local period treasury receiver dao voter before_count receiver_before
+ [[ $OTHER_REGION_ID != "$REGION_ID" && $OTHER_REGION_ID != me_earth && $OTHER_REGION_ID != experience_region ]] \
+  || fail 'OTHER_REGION_ID must name a different country region'
+ [[ $REJECT_GAS =~ ^[1-9][0-9]*$ ]] || fail 'REJECT_GAS must be a positive fixed gas limit'
+ period=$(query params | jq -er '.params.min_voting_period')
+ dao=$(key_address "$DAO_KEY")
+ receiver=$(derive_test_address 25 regiongov-cross-region-receiver) || fail 'could not derive withdrawal receiver'
+ for voter in "${TARGETS[@]}"; do
+  [[ $voter != "$receiver" ]] || fail 'test receiver must not be an equity signer'
+ done
+ [[ $receiver != "$dao" ]] || fail 'test receiver must not be the fee-paying DAO'
+
+ # Require an existing, funded foreign treasury and chn-only equity memberships.
+ # Do not modify the other region's equity list or silently fund its treasury.
+ "$MED_BIN" query staking region "$OTHER_REGION_ID" "${NET[@]}" --output json > "$RESULT_DIR/other-region.json"
+ treasury=$(jq -er '.region.region_treasure_addr | select(length > 0)' "$RESULT_DIR/other-region.json")
+ "$MED_BIN" query bank spendable-balances "$treasury" --denom umec "${NET[@]}" --output json \
+  | assert_json '(.balance.amount // "0" | tonumber) >= 10'
+ query equity "$OTHER_REGION_ID" | assert_json --argjson targets "$TARGET_JSON" '
+  (.equity.addresses // [] | map(ascii_downcase)) as $foreign |
+  all($targets[]; ascii_downcase as $a | $foreign | index($a) == null)'
+ for voter in "$REGION_ID" "$OTHER_REGION_ID"; do
+  query region-freeze "$voter" | assert_json '.frozen == false'
+ done
+
+ for voter in "${TARGETS[@]}"; do
+  send_module_tx "$DAO_KEY" bank send "$dao" "$voter" "$FUND_AMOUNT"
+ done
+ setup_equity
+ assert_frozen false
+ "$MED_BIN" query bank balances "$receiver" --denom umec "${NET[@]}" --output json > "$RESULT_DIR/receiver-before.json"
+ receiver_before=$(jq -er '.amount' "$RESULT_DIR/receiver-before.json")
+ jq -n --arg region "$OTHER_REGION_ID" --arg receiver "$receiver" --arg period "$period" '{
+  title:"chn equities cannot withdraw from another region",
+  summary:"Foreign equity submission and ballots must be rejected without a treasury transfer",
+  kind:"PROPOSAL_KIND_TREASURY_WITHDRAW",voting_period:$period,
+  treasury:{withdrawals:[{region_id:$region,receiver:$receiver,amount:[{denom:"umec",amount:"10"}]}]}
+ }' > "$RESULT_DIR/other-region-treasury.json"
+
+ before_count=$(query proposals --count-total --limit 1 | jq -er '.pagination.total')
+ expect_equity_unauthorized "${TARGETS[0]}" "an equity address can withdraw only from its own region, got $OTHER_REGION_ID" \
+  submit-proposal "$RESULT_DIR/other-region-treasury.json"
+ query proposals --count-total --limit 1 | assert_json --arg count "$before_count" '.pagination.total == $count'
+
+ # A valid DAO proposal lets us test ballots, rather than voting on a nonexistent ID.
+ # It retains the existing country-operator electorate, never foreign equities.
+ send_tx "$DAO_KEY" submit-proposal "$RESULT_DIR/other-region-treasury.json"
+ PROPOSAL_ID=$(event_id proposal_id)
+ query proposal "$PROPOSAL_ID" | assert_json --arg dao "$dao" --arg region "$OTHER_REGION_ID" '
+  .proposal.proposer == $dao and .proposal.status == "PROPOSAL_STATUS_VOTING" and
+  .proposal.electorate == "ELECTORATE_KIND_COUNTRY_REGION_OPERATORS" and
+  .proposal.treasury.withdrawals[0].region_id == $region'
+ query electors "$PROPOSAL_ID" > "$RESULT_DIR/other-region-electors.json"
+ assert_json '(.electors | length) > 0' < "$RESULT_DIR/other-region-electors.json"
+ query votes "$PROPOSAL_ID" --count-total --limit 1 | assert_json '(.pagination.total | tonumber) == 0'
+ for voter in "${TARGETS[@]}"; do
+  expect_equity_unauthorized "$voter" "$voter is not an elector of proposal $PROPOSAL_ID" vote "$PROPOSAL_ID" yes
+  query votes "$PROPOSAL_ID" --count-total --limit 1 | assert_json '(.pagination.total | tonumber) == 0'
+  query proposal "$PROPOSAL_ID" | assert_json '.proposal.status == "PROPOSAL_STATUS_VOTING"'
+ done
+ send_tx "$DAO_KEY" vote "$PROPOSAL_ID" yes
+ query proposal "$PROPOSAL_ID" | assert_json '.proposal.status == "PROPOSAL_STATUS_VOTING" and .proposal.dao_vote == "DAO_VOTE_YES"'
+ wait_for_proposal_status "$period" PROPOSAL_STATUS_REJECTED
+ query proposal "$PROPOSAL_ID" | assert_json '.proposal.dao_vote == "DAO_VOTE_YES"'
+ query votes "$PROPOSAL_ID" --count-total --limit 1 | assert_json '(.pagination.total | tonumber) == 0'
+ # Treasury rewards may accrue during the wait; use a non-signing receiver to
+ # prove no withdrawal happened, instead of requiring a static treasury balance.
+ "$MED_BIN" query bank balances "$receiver" --denom umec "${NET[@]}" --output json \
+  | assert_json --arg amount "$receiver_before" '.amount == $amount'
+ restore_equity
+}
+
 test_min_voting_period_proposal_pass() {
  local before current
  before=$(query params)
  printf '%s\n' "$before" > "$RESULT_DIR/params-before.json"
  current=$(printf '%s' "$before" | jq -er '.params.min_voting_period')
- [[ $current == 120 ]] || fail "this test requires min_voting_period=120, got $current; it leaves the minimum at 300 after success"
+ [[ $current == 120 ]] || fail "this test requires min_voting_period=120, got $current; it leaves the minimum at 121 after success"
  pass_test_proposal update-min-voting-period
  query params > "$RESULT_DIR/params-after.json"
  assert_json --argjson before "$before" '
-  (.params.min_voting_period | tonumber) == 300 and
+  (.params.min_voting_period | tonumber) == 121 and
   (.params | del(.min_voting_period)) == ($before.params | del(.min_voting_period))
  ' < "$RESULT_DIR/params-after.json"
  jq . "$RESULT_DIR/params-after.json"
- printf 'min_voting_period updated: 120 -> 300 seconds (not restored).\n'
+ printf 'min_voting_period updated: 120 -> 121 seconds (not restored).\n'
 }
 
 require_new_operator() {
@@ -440,7 +527,7 @@ run_case() (
  RESULT_DIR=$(mktemp -d "${TMPDIR:-/tmp}/regiongov.$1.XXXXXX")
  echo "Results: $RESULT_DIR"
  case $1 in
-  test_equity_treasury_proposal_pass) prepare_equity_treasury ;;
+  test_equity_treasury_proposal_pass|test_equity_treasury_other_region_rejected) prepare_equity_treasury ;;
   test_*equity*|test_approve_pending_action|test_reject_pending_action) prepare_equity ;;
   test_freeze_region|test_unfreeze_region)
    REGIONS=("$REGION_ID")
@@ -450,7 +537,7 @@ run_case() (
  echo "PASS: $1"
 )
 
-TESTS=(test_submit_equity_update test_approve_pending_action test_reject_pending_action test_submit_freeze_equity test_submit_unfreeze_equity test_freeze_equity test_unfreeze_equity test_freeze_region test_unfreeze_region test_submit_treasury_proposal test_submit_operator_proposal test_vote test_treasury_proposal_pass test_treasury_proposal_51pass_daoveto test_equity_treasury_proposal_pass test_min_voting_period_proposal_pass test_operator_proposal_pass test_queries)
+TESTS=(test_submit_equity_update test_approve_pending_action test_reject_pending_action test_submit_freeze_equity test_submit_unfreeze_equity test_freeze_equity test_unfreeze_equity test_freeze_region test_unfreeze_region test_submit_treasury_proposal test_submit_operator_proposal test_vote test_treasury_proposal_pass test_treasury_proposal_51pass_daoveto test_equity_treasury_proposal_pass test_equity_treasury_other_region_rejected test_min_voting_period_proposal_pass test_operator_proposal_pass test_queries)
 
 run_all() {
  local RESULT_DIR

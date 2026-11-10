@@ -11,12 +11,13 @@ EXPECTED_OPERATOR_ADDRESS=${EXPECTED_OPERATOR_ADDRESS:-me1u0s2z64yqdxpnxwjry95z5
 FUND_AMOUNT=${FUND_AMOUNT:-1000000000umec}
 # Optional: two or more test account addresses, space separated. If empty, run.sh
 # derives two public test addresses at HD indices 21-22 (val1-val4 use 11-14).
-# test_equity_treasury_proposal_pass needs at least three signing accounts; its
+# Both equity treasury tests need at least three signing accounts; their
 # default uses indices 21, 22, 24 in an isolated temporary test keyring. Explicit
-# addresses must have signing keys in the configured keyring. It funds each with
-# FUND_AMOUNT from DAO_KEY, withdraws 10umec from chn to DAO_KEY and restores the
-# equity list after success. The other equities vote YES; OPERATOR_KEY (the chn
-# operator) and DAO_KEY must also vote YES, outside the equity percentage count.
+# addresses must have signing keys in the configured keyring. Both fund each
+# account with FUND_AMOUNT from DAO_KEY and restore chn's equity list on success.
+# test_equity_treasury_proposal_pass withdraws 10umec from chn to DAO_KEY. The
+# other equities vote YES; OPERATOR_KEY (the chn operator) and DAO_KEY must also
+# vote YES, outside the equity percentage count.
 EQUITY_ADDRESSES=${EQUITY_ADDRESSES:-}
 # Optional overrides; empty values preserve med's local client configuration.
 CHAIN_ID=${CHAIN_ID:-}
@@ -24,10 +25,17 @@ NODE=${NODE:-}
 KEYRING_BACKEND=${KEYRING_BACKEND:-}
 GAS=${GAS:-auto}
 GAS_ADJUSTMENT=${GAS_ADJUSTMENT:-1.5}
+# Expected permission failures must reach DeliverTx, not stop in gas simulation.
+REJECT_GAS=${REJECT_GAS:-1000000}
+# Cross-region rejection test: chn equities cannot withdraw/vote for this treasury.
+# Defaults to the other country in setup_4validator.sh; it must have >=10umec.
+# Uses a non-signing receiver at HD index 25, restores only chn's equity list on
+# success, and waits for REJECTED with DAO YES but no valid operator ballots.
+OTHER_REGION_ID=${OTHER_REGION_ID:-ind}
 FEES=${FEES:-}
 GAS_PRICES=${GAS_PRICES:-}
-# The chain requires at least 10000umec; keep explicit gas-price overrides usable.
-if [[ -z $FEES && -z $GAS_PRICES ]]; then FEES=10000umec; fi
+# The chain requires at least 20000umec; keep explicit gas-price overrides usable.
+if [[ -z $FEES && -z $GAS_PRICES ]]; then FEES=20000umec; fi
 TX_TIMEOUT=${TX_TIMEOUT:-180}
 POLL_INTERVAL=${POLL_INTERVAL:-2}
 # Optional second region for testing batch region freeze (must initially be unfrozen).
