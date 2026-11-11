@@ -274,6 +274,12 @@ proto-all: proto-format proto-gen
 proto-gen:
 	@echo "Generating Protobuf files"
 	@$(protoCosmosImage) sh ./scripts/protocgen.sh
+	@$(MAKE) proto-gen-api
+
+# Standard protobuf API types coexist with the gogo keeper/message types.
+proto-gen-api:
+	@echo "Generating regiongov standard Protobuf API"
+	@$(protoCosmosImage) sh -c 'cd proto && buf generate --template buf.gen.api.yaml --path metaearth/regiongov -o ..'
 
 # Generate ts-client TypeScript types via local buf (not Docker).
 # Requires: buf on PATH, network to buf.build. Example: make proto-gen-ts ARGS="dao rollapp"
@@ -356,7 +362,7 @@ proto-download-deps:
 	curl -sSL "https://raw.githubusercontent.com/cosmos/ics23/refs/heads/master/proto/cosmos/ics23/v1/proofs.proto" > "$(THIRD_PARTY_DIR)/cosmos/ics23/v1/proofs.proto"
 
 
-.PHONY: proto-gen proto-gen-ts proto-swagger-gen proto-format proto-lint proto-download-deps
+.PHONY: proto-gen proto-gen-api proto-gen-ts proto-swagger-gen proto-format proto-lint proto-download-deps
 
 ###############################################################################
 ###                                Linting                                  ###
