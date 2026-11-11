@@ -152,10 +152,11 @@ message Proposal {
 // Elector is one counted address in a proposal's snapshotted electorate.
 message Elector {
   uint64 proposal_id = 1;
-  // operator is the account address that signs MsgVote: the account corresponding
-  // to Region.OperatorAddress for COUNTRY_REGION_OPERATORS, or the equity account
-  // for REGION_EQUITY. The separately required region operator and dao approvals
-  // are outside the equity count. Queries also normalize legacy validator addresses.
+  // operator is the account address that signs MsgVote: the account
+  // corresponding to Region.OperatorAddress for COUNTRY_REGION_OPERATORS, or
+  // the equity account for REGION_EQUITY. The separately required region
+  // operator and dao approvals are outside the equity count. Queries also
+  // normalize legacy validator addresses.
   string operator = 2;
   string region_id = 3;
 }

@@ -634,10 +634,11 @@ func (m *Proposal) GetUpdateMinVotingPeriod() *UpdateMinVotingPeriodPayload {
 // Elector is one counted address in a proposal's snapshotted electorate.
 type Elector struct {
 	ProposalId uint64 `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
-	// operator is the account address that signs MsgVote: the account corresponding
-	// to Region.OperatorAddress for COUNTRY_REGION_OPERATORS, or the equity account
-	// for REGION_EQUITY. The separately required region operator and dao approvals
-	// are outside the equity count. Queries also normalize legacy validator addresses.
+	// operator is the account address that signs MsgVote: the account
+	// corresponding to Region.OperatorAddress for COUNTRY_REGION_OPERATORS, or
+	// the equity account for REGION_EQUITY. The separately required region
+	// operator and dao approvals are outside the equity count. Queries also
+	// normalize legacy validator addresses.
 	Operator string `protobuf:"bytes,2,opt,name=operator,proto3" json:"operator,omitempty"`
 	RegionId string `protobuf:"bytes,3,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
 }
