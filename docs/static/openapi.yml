@@ -268,13 +268,13 @@ paths:
                     operator:
                       type: string
                       description: >-
-                        operator is Region.OperatorAddress. The ballot is signed
-                        by the account
-
-                        with the same key.
+                        operator is the ordinary account address that signs MsgVote.
+                        For country operators it corresponds to Region.OperatorAddress;
+                        for equity electors it is the equity account itself.
+                        Legacy validator addresses are normalized in query responses.
                     region_id:
                       type: string
-                  description: Elector is one region operator in a proposal's 51% snapshot.
+                  description: Elector is one counted account in a proposal's snapshotted electorate.
             description: QueryElectorsResponse is the response for Electors.
         default:
           description: An unexpected error response.
@@ -71286,13 +71286,13 @@ definitions:
       operator:
         type: string
         description: >-
-          operator is Region.OperatorAddress. The ballot is signed by the
-          account
-
-          with the same key.
+          operator is the ordinary account address that signs MsgVote.
+          For country operators it corresponds to Region.OperatorAddress;
+          for equity electors it is the equity account itself.
+          Legacy validator addresses are normalized in query responses.
       region_id:
         type: string
-    description: Elector is one region operator in a proposal's 51% snapshot.
+    description: Elector is one counted account in a proposal's snapshotted electorate.
   metaearth.regiongov.ElectorateKind:
     type: string
     enum:
@@ -71618,13 +71618,13 @@ definitions:
             operator:
               type: string
               description: >-
-                operator is Region.OperatorAddress. The ballot is signed by the
-                account
-
-                with the same key.
+                operator is the ordinary account address that signs MsgVote.
+                For country operators it corresponds to Region.OperatorAddress;
+                for equity electors it is the equity account itself.
+                Legacy validator addresses are normalized in query responses.
             region_id:
               type: string
-          description: Elector is one region operator in a proposal's 51% snapshot.
+          description: Elector is one counted account in a proposal's snapshotted electorate.
     description: QueryElectorsResponse is the response for Electors.
   metaearth.regiongov.QueryEquityFreezesResponse:
     type: object

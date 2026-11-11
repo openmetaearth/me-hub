@@ -107,6 +107,10 @@ All region governance messages are available under `med tx regiongov`. Append
 `--from <key> --chain-id <chain-id>` to each command. The signer supplies the
 proposer, voter, or authority; authority operations still require DAO permission
 on chain. Add `--generate-only` to inspect an unsigned transaction without broadcasting.
+`electors[].operator` and `MsgVote.voter` use ordinary account addresses (`me1…`);
+for country operators this is the account corresponding to the staking operator.
+The staking operator, `required_operator`, and replacement `new_operator` retain
+validator operator addresses (`mevaloper1…`).
 
 ```sh
 med tx regiongov submit-proposal proposal.json

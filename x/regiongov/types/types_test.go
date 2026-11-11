@@ -92,9 +92,20 @@ func TestMsgSubmitProposalValidateBasic(t *testing.T) {
 }
 
 func TestMsgVoteValidateBasic(t *testing.T) {
-	msg := &MsgVote{Voter: sample.AccAddress(), ProposalId: 1, Option: VoteOptionYes}
+	account := sdk.MustAccAddressFromBech32(sample.AccAddress())
+	msg := &MsgVote{Voter: account.String(), ProposalId: 1, Option: VoteOptionYes}
 	require.NoError(t, msg.ValidateBasic())
+	require.Equal(t, []sdk.AccAddress{account}, msg.GetSigners())
+	require.Contains(t, string(msg.GetSignBytes()), account.String())
 
+	// Compatibility with old Elector snapshots must not allow validator
+	// addresses in transactions: the voter and signer are ordinary accounts.
+	msg.Voter = sdk.ValAddress(account).String()
+	require.Error(t, msg.ValidateBasic())
+	msg.Voter = account.String()
+	msg.ProposalId = 0
+	require.Error(t, msg.ValidateBasic())
+	msg.ProposalId = 1
 	msg.Option = VoteOptionUnspecified
 	require.Error(t, msg.ValidateBasic())
 }

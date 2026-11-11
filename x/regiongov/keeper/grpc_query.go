@@ -62,7 +62,17 @@ func (k Keeper) Electors(goCtx context.Context, req *types.QueryElectorsRequest)
 	if _, found := k.GetProposal(ctx, req.ProposalId); !found {
 		return nil, status.Error(codes.NotFound, "proposal not found")
 	}
-	return &types.QueryElectorsResponse{Electors: k.GetElectors(ctx, req.ProposalId)}, nil
+	electors := k.GetElectors(ctx, req.ProposalId)
+	for i := range electors {
+		// Legacy snapshots may store a validator address. Expose its ballot
+		// account without rewriting state or consulting the current operator.
+		account, err := electors[i].AccountAddress()
+		if err != nil {
+			return nil, status.Error(codes.Internal, "invalid elector address")
+		}
+		electors[i].Operator = account.String()
+	}
+	return &types.QueryElectorsResponse{Electors: electors}, nil
 }
 
 func (k Keeper) Equity(goCtx context.Context, req *types.QueryEquityRequest) (*types.QueryEquityResponse, error) {

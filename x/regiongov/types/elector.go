@@ -2,8 +2,8 @@ package types
 
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
-// AccountAddress returns the ballot signer. Country elector snapshots store a
-// validator operator address; equity snapshots store the equity account address.
+// AccountAddress returns the ballot signer. New snapshots store account addresses;
+// validator operator addresses remain supported for legacy country snapshots.
 func (e Elector) AccountAddress() (sdk.AccAddress, error) {
 	if account, err := sdk.AccAddressFromBech32(e.Operator); err == nil {
 		return account, nil

@@ -90,7 +90,10 @@ func validateGenesisElectors(gs GenesisState, proposals map[uint64]Proposal) err
 
 func validateGenesisElector(proposal Proposal, elector Elector) error {
 	if proposal.Electorate != ElectorateKindRegionEquity {
-		return validateOperatorAddress(elector.Operator)
+		// Accept old validator-address snapshots on import. SetElector stores
+		// their corresponding ballot accounts, just like new snapshots.
+		_, err := elector.AccountAddress()
+		return err
 	}
 	if err := validateAccAddress(elector.Operator); err != nil {
 		return err

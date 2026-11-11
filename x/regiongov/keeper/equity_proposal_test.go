@@ -401,7 +401,7 @@ func (s *KeeperTestSuite) TestEquityProposalGenesisRoundTrip() {
 	s.Require().Equal([]string{operator}, s.electorAccounts(countryProposal))
 
 	// Reuse the funded app and its real staking/bank state, but clear this
-	// module so import must restore both address encodings and the voting queue.
+	// module so import must restore both electorates and the voting queue.
 	store := s.Ctx.KVStore(s.App.GetKey(types.StoreKey))
 	iterator := store.Iterator(nil, nil)
 	var keys [][]byte

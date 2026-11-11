@@ -72,7 +72,9 @@ func (k Keeper) SetElector(ctx sdk.Context, elector types.Elector) {
 	if err != nil {
 		panic(fmt.Sprintf("elector %d has invalid address %s: %s", elector.ProposalId, elector.Operator, err))
 	}
-	k.mustSet(ctx, types.ElectorKey(elector.ProposalId, acc.String()), &elector)
+	// Normalize imports as well as new snapshots without changing the account key.
+	elector.Operator = acc.String()
+	k.mustSet(ctx, types.ElectorKey(elector.ProposalId, elector.Operator), &elector)
 }
 
 func (k Keeper) GetElectors(ctx sdk.Context, proposalID uint64) []types.Elector {

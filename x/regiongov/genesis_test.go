@@ -50,7 +50,7 @@ func TestInitExportGenesis(t *testing.T) {
 				Amount:   sdk.NewCoins(sdk.NewInt64Coin("umec", 100)),
 			}}},
 		}},
-		Electors: []types.Elector{{ProposalId: 1, Operator: operator, RegionId: "cn"}},
+		Electors: []types.Elector{{ProposalId: 1, Operator: operatorAcc, RegionId: "cn"}},
 		Votes:    []types.Vote{{ProposalId: 1, Voter: operatorAcc, Option: types.VoteOptionYes}},
 		Equities: []types.RegionEquity{{RegionId: "cn", Addresses: []string{equity}}},
 		RegionFreezes: []types.RegionFreeze{{
@@ -88,6 +88,18 @@ func TestInitExportGenesis(t *testing.T) {
 	require.Equal(t, genesis.RegionFreezes, exported.RegionFreezes)
 	require.Equal(t, genesis.EquityFreezes, exported.EquityFreezes)
 	require.Equal(t, genesis.PendingActions, exported.PendingActions)
+	require.NoError(t, exported.Validate())
+
+	// Old exports used validator addresses for counted country operators. Import
+	// them into the same account key and export the normalized signer address.
+	genesis.Electors[0].Operator = operator
+	require.NoError(t, genesis.Validate())
+	legacyKeeper, legacyCtx := newKeeper(t)
+	regiongov.InitGenesis(legacyCtx, legacyKeeper, genesis)
+	require.Equal(t, exported, regiongov.ExportGenesis(legacyCtx, legacyKeeper))
+	elector, found := legacyKeeper.GetElector(legacyCtx, 1, operatorAcc)
+	require.True(t, found)
+	require.Equal(t, operatorAcc, elector.Operator)
 }
 
 func TestQueryParams(t *testing.T) {

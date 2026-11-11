@@ -326,7 +326,7 @@ func (k Keeper) snapshotElectors(ctx sdk.Context, proposalID uint64, kind types.
 		seen[operator.String()] = struct{}{}
 		electors = append(electors, types.Elector{
 			ProposalId: proposalID,
-			Operator:   region.OperatorAddress,
+			Operator:   operator.String(),
 			RegionId:   region.RegionId,
 		})
 	}
