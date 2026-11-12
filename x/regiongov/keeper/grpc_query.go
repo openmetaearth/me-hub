@@ -92,7 +92,12 @@ func (k Keeper) RegionFreeze(goCtx context.Context, req *types.QueryRegionFreeze
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	freeze, found := k.GetRegionFreeze(ctx, req.RegionId)
+	regionID := req.RegionId
+	// Resolve the same canonical region ID used by freeze/unfreeze transactions.
+	if region, found := k.lookupRegion(ctx, regionID); found {
+		regionID = region.RegionId
+	}
+	freeze, found := k.GetRegionFreeze(ctx, regionID)
 	return &types.QueryRegionFreezeResponse{Frozen: found && freeze.Frozen}, nil
 }
 
