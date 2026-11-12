@@ -102,7 +102,7 @@ func validateGenesisElector(proposal Proposal, elector Elector) error {
 		return errors.New("equity elector must belong to the withdrawal region")
 	}
 	account, _ := elector.AccountAddress() // Address was validated above.
-	operator, err := (Elector{Operator: proposal.RequiredOperator}).AccountAddress()
+	operator, err := proposal.RequiredOperatorAccount()
 	if err != nil {
 		return err
 	}
@@ -248,7 +248,8 @@ func validateProposalOperator(proposal Proposal) error {
 		if proposal.Kind != ProposalKindTreasuryWithdraw || proposal.Treasury == nil || len(proposal.Treasury.Withdrawals) != 1 {
 			return errors.New("an equity proposal must withdraw from exactly one region")
 		}
-		if err := validateOperatorAddress(proposal.RequiredOperator); err != nil {
+		// Accept legacy snapshots on import; SetProposal normalizes the encoding.
+		if _, err := proposal.RequiredOperatorAccount(); err != nil {
 			return fmt.Errorf("required operator: %w", err)
 		}
 		return nil

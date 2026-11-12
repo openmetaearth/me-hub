@@ -641,9 +641,9 @@ type Proposal struct {
 	VotingPeriod uint64         `protobuf:"varint,9,opt,name=voting_period,json=votingPeriod,proto3" json:"voting_period,omitempty"`
 	Electorate   ElectorateKind `protobuf:"varint,10,opt,name=electorate,proto3,enum=metaearth.regiongov.ElectorateKind" json:"electorate,omitempty"`
 	DaoVote      DaoVote        `protobuf:"varint,11,opt,name=dao_vote,json=daoVote,proto3,enum=metaearth.regiongov.DaoVote" json:"dao_vote,omitempty"`
-	// required_operator is the region operator who must vote yes on an equity
-	// withdrawal. It is Region.OperatorAddress, empty for operator electorates,
-	// and outside the 51% count.
+	// required_operator is the snapshotted account address (me1...) of the region
+	// operator who must vote yes on an equity withdrawal, outside the 51% count.
+	// Empty for operator electorates; legacy valoper values remain readable.
 	RequiredOperator      string                        `protobuf:"bytes,12,opt,name=required_operator,json=requiredOperator,proto3" json:"required_operator,omitempty"`
 	Treasury              *TreasuryWithdrawPayload      `protobuf:"bytes,13,opt,name=treasury,proto3" json:"treasury,omitempty"`
 	ReplaceOperator       *ReplaceRegionOperatorPayload `protobuf:"bytes,14,opt,name=replace_operator,json=replaceOperator,proto3" json:"replace_operator,omitempty"`

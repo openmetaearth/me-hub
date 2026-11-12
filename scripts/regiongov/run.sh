@@ -339,10 +339,10 @@ test_equity_treasury_proposal_pass() {
  send_equity_tx "$proposer" submit-proposal "$RESULT_DIR/equity-treasury.json"
  PROPOSAL_ID=$(event_id proposal_id)
  query proposal "$PROPOSAL_ID" > "$RESULT_DIR/equity-proposal.json"
- assert_json --arg proposer "$proposer" --slurpfile region "$RESULT_DIR/region.json" '
+ assert_json --arg proposer "$proposer" --arg operator "$operator" '
   .proposal.proposer == $proposer and .proposal.status == "PROPOSAL_STATUS_VOTING" and
   .proposal.electorate == "ELECTORATE_KIND_REGION_EQUITY" and
-  .proposal.required_operator == $region[0].region.operator_address
+  .proposal.required_operator == $operator
  ' < "$RESULT_DIR/equity-proposal.json"
  query electors "$PROPOSAL_ID" > "$RESULT_DIR/electors-$PROPOSAL_ID.json"
  assert_json --argjson targets "$TARGET_JSON" '

@@ -140,9 +140,9 @@ message Proposal {
   uint64 voting_period = 9;
   ElectorateKind electorate = 10;
   DaoVote dao_vote = 11;
-  // required_operator is the region operator who must vote yes on an equity
-  // withdrawal. It is Region.OperatorAddress, empty for operator electorates,
-  // and outside the 51% count.
+  // required_operator is the snapshotted account address (me1...) of the region
+  // operator who must vote yes on an equity withdrawal, outside the 51% count.
+  // Empty for operator electorates; legacy valoper values remain readable.
   string required_operator = 12;
   TreasuryWithdrawPayload treasury = 13;
   ReplaceRegionOperatorPayload replace_operator = 14;

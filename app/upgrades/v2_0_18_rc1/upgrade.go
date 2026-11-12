@@ -10,12 +10,13 @@ import (
 )
 
 // CreateUpgradeHandler upgrades v2.0.18 without reinitializing regiongov.
-// Existing elector snapshots remain readable; no address rewrite is required.
+// Only proposal required-operator encodings change; staking addresses and elector
+// snapshots remain untouched.
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
 	_ upgrades.BaseAppParamManager,
-	_ *appkeepers.AppKeepers,
+	keepers *appkeepers.AppKeepers,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
@@ -23,6 +24,10 @@ func CreateUpgradeHandler(
 
 		versionMap, err := mm.RunMigrations(ctx, configurator, fromVM)
 		if err != nil {
+			return nil, err
+		}
+
+		if err := keepers.RegionGovKeeper.MigrateRequiredOperatorAccounts(ctx); err != nil {
 			return nil, err
 		}
 

@@ -52,7 +52,8 @@ func TestGenesisCountryElectorAddressFormats(t *testing.T) {
 
 func TestGenesisEquityElectorRules(t *testing.T) {
 	account := sample.AccAddress()
-	operator := sdk.ValAddress(sdk.MustAccAddressFromBech32(sample.AccAddress())).String()
+	operatorAccount := sample.AccAddress()
+	operator := sdk.ValAddress(sdk.MustAccAddressFromBech32(operatorAccount)).String()
 	now := time.Unix(1_700_000_000, 0).UTC()
 	newGenesis := func() *GenesisState {
 		gs := DefaultGenesis()
@@ -69,13 +70,19 @@ func TestGenesisEquityElectorRules(t *testing.T) {
 		gs.Electors = []Elector{{ProposalId: 1, Operator: account, RegionId: "chn"}}
 		return gs
 	}
-	require.NoError(t, newGenesis().Validate())
+	for _, address := range []string{operator, operatorAccount} {
+		gs := newGenesis()
+		gs.Proposals[0].RequiredOperator = address
+		require.NoError(t, gs.Validate(), "accept both account and legacy operator encodings")
+		gs.Electors[0].Operator = operatorAccount
+		require.ErrorContains(t, gs.Validate(), "required operator must not be counted")
+	}
 	for _, tc := range []struct {
 		name   string
 		modify func(*GenesisState)
 	}{
 		{"missing operator", func(gs *GenesisState) { gs.Proposals[0].RequiredOperator = "" }},
-		{"operator is not valoper", func(gs *GenesisState) { gs.Proposals[0].RequiredOperator = account }},
+		{"invalid operator", func(gs *GenesisState) { gs.Proposals[0].RequiredOperator = "invalid" }},
 		{"equity is not account", func(gs *GenesisState) { gs.Electors[0].Operator = operator }},
 		{"foreign region", func(gs *GenesisState) { gs.Electors[0].RegionId = "usa" }},
 		{"operator in counted electorate", func(gs *GenesisState) {

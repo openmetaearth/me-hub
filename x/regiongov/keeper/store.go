@@ -47,6 +47,9 @@ func (k Keeper) SetPendingActionSeq(ctx sdk.Context, seq uint64) {
 }
 
 func (k Keeper) SetProposal(ctx sdk.Context, proposal types.Proposal) {
+	if err := proposal.NormalizeRequiredOperator(); err != nil {
+		panic(fmt.Sprintf("proposal %d has invalid required operator %s: %s", proposal.Id, proposal.RequiredOperator, err))
+	}
 	k.mustSet(ctx, types.ProposalKey(proposal.Id), &proposal)
 }
 

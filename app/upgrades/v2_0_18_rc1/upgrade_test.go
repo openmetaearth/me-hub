@@ -14,6 +14,7 @@ import (
 	"github.com/openmetaearth/me-hub/testutil/sample"
 	"github.com/openmetaearth/me-hub/x/regiongov"
 	"github.com/openmetaearth/me-hub/x/regiongov/types"
+	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
 func TestUpgradePreservesRegionGovState(t *testing.T) {
@@ -51,6 +52,28 @@ func TestUpgradePreservesRegionGovState(t *testing.T) {
 		RegionId: "chn", Proposer: account, Addresses: []string{account}, SubmitTime: now,
 	})
 	k.SetPendingActionSeq(ctx, 3)
+	// A legacy equity proposal keeps its original approver even if the live
+	// region now points at a different validator operator.
+	operator := sdk.MustAccAddressFromBech32(sample.AccAddress())
+	equityProposal := types.Proposal{
+		Id: 8, Kind: types.ProposalKindTreasuryWithdraw, Proposer: account,
+		Title: "legacy equity proposal", Status: types.ProposalStatusVoting,
+		SubmitTime: now, VotingEndTime: now.Add(2 * time.Hour), VotingPeriod: 7200,
+		Electorate: types.ElectorateKindRegionEquity, DaoVote: types.DaoVoteYes,
+		RequiredOperator: sdk.ValAddress(operator).String(),
+		Treasury: &types.TreasuryWithdrawPayload{Withdrawals: []types.Withdrawal{{
+			RegionId: "chn", Receiver: account, Amount: sdk.NewCoins(sdk.NewInt64Coin("umec", 1)),
+		}}},
+	}
+	store.Set(types.ProposalKey(equityProposal.Id), application.AppCodec().MustMarshal(&equityProposal))
+	k.SetProposalSeq(ctx, equityProposal.Id)
+	k.InsertVotingQueue(ctx, equityProposal.VotingEndTime, equityProposal.Id)
+	k.SetElector(ctx, types.Elector{ProposalId: equityProposal.Id, Operator: account, RegionId: "chn"})
+	k.SetVote(ctx, types.Vote{ProposalId: equityProposal.Id, Voter: operator.String(), Option: types.VoteOptionYes})
+	application.StakingKeeper.SetRegion(ctx, wstakingtypes.Region{
+		RegionId: "chn", OperatorAddress: sdk.ValAddress(sdk.MustAccAddressFromBech32(sample.AccAddress())).String(),
+	})
+	regionsBefore := application.StakingKeeper.GetAllRegion(ctx)
 	before := regiongov.ExportGenesis(ctx, k)
 	require.NoError(t, before.Validate())
 	versionMap := application.UpgradeKeeper.GetModuleVersionMap(ctx)
@@ -65,7 +88,19 @@ func TestUpgradePreservesRegionGovState(t *testing.T) {
 		application.UpgradeKeeper.ApplyUpgrade(ctx, upgradetypes.Plan{Name: v2_0_18_rc1.UpgradeName, Height: ctx.BlockHeight()})
 	})
 	require.Equal(t, versionMap, application.UpgradeKeeper.GetModuleVersionMap(ctx))
-	require.Equal(t, before, regiongov.ExportGenesis(ctx, k))
+	for i := range before.Proposals {
+		if before.Proposals[i].Id == equityProposal.Id {
+			before.Proposals[i].RequiredOperator = operator.String()
+		}
+	}
+	require.Equal(t, before, regiongov.ExportGenesis(ctx, k), "only required_operator encoding changes")
+	require.Equal(t, regionsBefore, application.StakingKeeper.GetAllRegion(ctx), "staking regions are untouched")
+	require.NoError(t, k.MigrateRequiredOperatorAccounts(ctx))
+	require.Equal(t, before, regiongov.ExportGenesis(ctx, k), "migration is idempotent")
+	storedProposal, found := k.GetProposal(ctx, equityProposal.Id)
+	require.True(t, found)
+	require.Equal(t, operator.String(), storedProposal.RequiredOperator)
+	require.NoError(t, regiongov.ExportGenesis(ctx, k).Validate())
 	response, err := k.Electors(sdk.WrapSDKContext(ctx), &types.QueryElectorsRequest{ProposalId: proposal.Id})
 	require.NoError(t, err)
 	require.Len(t, response.Electors, 1)

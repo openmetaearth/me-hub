@@ -834,13 +834,9 @@ paths:
                     required_operator:
                       type: string
                       description: >-
-                        required_operator is the region operator who must vote
-                        yes on an equity
-
-                        withdrawal. It is Region.OperatorAddress, empty for
-                        operator electorates,
-
-                        and outside the 51% count.
+                        required_operator is the snapshotted account address (me1...) of the region
+                        operator who must vote yes on an equity withdrawal, outside the 51% count.
+                        Empty for operator electorates; legacy valoper values remain readable.
                     treasury:
                       type: object
                       properties:
@@ -1154,13 +1150,9 @@ paths:
                   required_operator:
                     type: string
                     description: >-
-                      required_operator is the region operator who must vote yes
-                      on an equity
-
-                      withdrawal. It is Region.OperatorAddress, empty for
-                      operator electorates,
-
-                      and outside the 51% count.
+                      required_operator is the snapshotted account address (me1...) of the region
+                      operator who must vote yes on an equity withdrawal, outside the 51% count.
+                      Empty for operator electorates; legacy valoper values remain readable.
                   treasury:
                     type: object
                     properties:
@@ -71489,13 +71481,9 @@ definitions:
       required_operator:
         type: string
         description: >-
-          required_operator is the region operator who must vote yes on an
-          equity
-
-          withdrawal. It is Region.OperatorAddress, empty for operator
-          electorates,
-
-          and outside the 51% count.
+          required_operator is the snapshotted account address (me1...) of the region
+          operator who must vote yes on an equity withdrawal, outside the 51% count.
+          Empty for operator electorates; legacy valoper values remain readable.
       treasury:
         type: object
         properties:
@@ -71900,13 +71888,9 @@ definitions:
           required_operator:
             type: string
             description: >-
-              required_operator is the region operator who must vote yes on an
-              equity
-
-              withdrawal. It is Region.OperatorAddress, empty for operator
-              electorates,
-
-              and outside the 51% count.
+              required_operator is the snapshotted account address (me1...) of the region
+              operator who must vote yes on an equity withdrawal, outside the 51% count.
+              Empty for operator electorates; legacy valoper values remain readable.
           treasury:
             type: object
             properties:
@@ -72080,13 +72064,9 @@ definitions:
             required_operator:
               type: string
               description: >-
-                required_operator is the region operator who must vote yes on an
-                equity
-
-                withdrawal. It is Region.OperatorAddress, empty for operator
-                electorates,
-
-                and outside the 51% count.
+                required_operator is the snapshotted account address (me1...) of the region
+                operator who must vote yes on an equity withdrawal, outside the 51% count.
+                Empty for operator electorates; legacy valoper values remain readable.
             treasury:
               type: object
               properties:

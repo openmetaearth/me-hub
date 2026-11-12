@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: ./scripts/upgrade.sh propose v2.0.18.rc1
+# Usage: ./scripts/upgrade.sh propose v2.0.18.rc1 1234567
 #        ./scripts/upgrade.sh vote 123
 set -euo pipefail
 
@@ -10,7 +10,6 @@ NODE=${NODE:-http://118.175.0.230:26657}
 ME_NODE1_HOME=${ME_NODE1_HOME:-./node1}
 KEYRING_BACKEND_NAME=${KEYRING_BACKEND_NAME:-test}
 ME_CHAIN_ID=${ME_CHAIN_ID:-}
-HALT_OFFSET=${HALT_OFFSET:-10000}
 GOV_FEES=${GOV_FEES:-20000umec}
 VOTE_FEES=${VOTE_FEES:-20000umec}
 GAS=${GAS:-auto}
@@ -21,14 +20,14 @@ TX_WAIT_INTERVAL=${TX_WAIT_INTERVAL:-2}
 
 usage() {
     printf '%s\n' \
-        'Usage: upgrade.sh propose <version> | vote <proposal-id>' \
+        'Usage: upgrade.sh propose <version> <upgrade-height> | vote <proposal-id>' \
         '  propose: val1 submits an SDK gov software-upgrade proposal.' \
         '  vote:    val1-val24 vote sequentially; default option is yes.' \
         'Defaults: NODE=http://118.175.0.230:26657, ME_NODE1_HOME=./node1 (relative to cwd),' \
         '          KEYRING_BACKEND_NAME=test, fees=20000umec, GAS=auto.' \
         'ME_CHAIN_ID defaults to the RPC chain ID; an explicit value must match it.' \
         'GOV_DEPOSIT defaults to the minimum deposit queried from gov params.' \
-        'HALT_HEIGHT sets the upgrade height; otherwise current height + HALT_OFFSET (10000).' \
+        'Upgrade height is a required positive integer argument, greater than the current height.' \
         'Choose a height AFTER the governance voting period, allowing time to deploy binaries.' \
         'VOTE_OPTION may be yes, no, abstain, or no_with_veto.' \
         'UPGRADE_INFO optionally provides a JSON object containing binary download information.' \
@@ -106,15 +105,8 @@ broadcast() {
 }
 
 propose() {
-    local version=$1 halt deposit info proposal_id
+    local version=$1 halt=$2 deposit info proposal_id
     require_key val1
-    if [[ -n ${HALT_HEIGHT:-} ]]; then
-        positive_integer "$HALT_HEIGHT" HALT_HEIGHT
-        halt=$HALT_HEIGHT
-    else
-        positive_integer "$HALT_OFFSET" HALT_OFFSET
-        halt=$((CURRENT_HEIGHT + HALT_OFFSET))
-    fi
     ((halt > CURRENT_HEIGHT)) || fail "upgrade height $halt must be above current height $CURRENT_HEIGHT"
     deposit=${GOV_DEPOSIT:-}
     if [[ -z $deposit ]]; then
@@ -162,8 +154,9 @@ main() {
     case ${1:-} in
         -h|--help|help) usage; return ;;
         propose)
-            [[ $# -eq 2 ]] || { usage >&2; exit 1; }
+            [[ $# -eq 3 ]] || { usage >&2; exit 1; }
             [[ $2 =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || fail 'invalid upgrade version'
+            positive_integer "$3" 'upgrade height'
             ;;
         vote)
             [[ $# -eq 2 ]] || { usage >&2; exit 1; }
@@ -173,7 +166,7 @@ main() {
         *) usage >&2; exit 1 ;;
     esac
     prepare
-    "$1" "$2"
+    "$@"
 }
 
 main "$@"
