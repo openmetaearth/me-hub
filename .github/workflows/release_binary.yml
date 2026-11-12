@@ -1,28 +1,61 @@
 name: Release Binary
+
 on:
   release:
-    types: [created]
-permissions: write-all
-# This workflow creates a release using goreleaser
-# via the 'make release' command.
+    types: [published]
+
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
     environment: release
     steps:
-      - name: Free disk space
-        run: curl -fsSL https://raw.githubusercontent.com/apache/arrow/2c63d481dcf7582d7b8ab3664ff4bdf45d7dd599/ci/scripts/util_free_space.sh | bash
-      - name: Checkout
-        uses: actions/checkout@v6
+      - name: Checkout release tag
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          submodules: true
+          ref: ${{ github.event.release.tag_name }}
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: Setup release environment
-        run: |-
-          echo 'GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}}' > .release-env
-      - name: Release publish
-        run: make release
+
+      - name: Test upgrade and affected modules
+        run: go test ./app/upgrades/... ./x/regiongov/... ./app/ante ./x/wstaking/... -count=1
+
+      - name: Build static Linux amd64 binary
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          docker build --platform linux/amd64 \
+            --build-arg GIT_VERSION="$RELEASE_TAG" \
+            --build-arg GIT_COMMIT="$(git rev-parse HEAD)" \
+            -t med-release-binary:build -f Dockerfile .
+          container=$(docker create med-release-binary:build)
+          trap 'docker rm "$container" >/dev/null' EXIT
+          mkdir -p release-artifacts/package
+          docker cp "$container:/usr/bin/med" release-artifacts/package/med
+          chmod +x release-artifacts/package/med
+          actual=$(release-artifacts/package/med version 2>&1)
+          test "$actual" = "$RELEASE_TAG"
+          release-artifacts/package/med version --long > release-artifacts/version.txt 2>&1
+          grep -F "$(git rev-parse HEAD)" release-artifacts/version.txt
+          cp release-note.md release-artifacts/package/RELEASE_NOTES.md
+          tar -czf "release-artifacts/med-${RELEASE_TAG}-linux-amd64.tar.gz" \
+            -C release-artifacts/package med RELEASE_NOTES.md
+          cd release-artifacts
+          sha256sum "med-${RELEASE_TAG}-linux-amd64.tar.gz" > "SHA256SUMS-${RELEASE_TAG}.txt"
+
+      - name: Upload release artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh release upload "$RELEASE_TAG" \
+            "release-artifacts/med-${RELEASE_TAG}-linux-amd64.tar.gz" \
+            "release-artifacts/SHA256SUMS-${RELEASE_TAG}.txt" \
+            release-artifacts/version.txt

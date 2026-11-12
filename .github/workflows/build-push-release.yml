@@ -36,10 +36,11 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=tag
+            type=raw,value=latest,enable=${{ !contains(github.ref_name, '.rc') && !contains(github.ref_name, '-') }}
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           flavor: |
-            latest=true
+            latest=false
 
       - name: Build and push Docker image
         id: build
@@ -73,7 +74,11 @@ jobs:
           echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Image:** \`$IMAGE_REF\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Latest:** \`$IMAGE_LATEST\`" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ github.ref_name }}" != *'.rc'* && "${{ github.ref_name }}" != *'-'* ]]; then
+            echo "- **Latest:** \`$IMAGE_LATEST\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo '- **Latest:** unchanged (prerelease)' >> $GITHUB_STEP_SUMMARY
+          fi
           echo "- **Digest:** \`${{ steps.build.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Git Tag:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Git Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
