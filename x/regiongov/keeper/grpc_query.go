@@ -62,7 +62,17 @@ func (k Keeper) Electors(goCtx context.Context, req *types.QueryElectorsRequest)
 	if _, found := k.GetProposal(ctx, req.ProposalId); !found {
 		return nil, status.Error(codes.NotFound, "proposal not found")
 	}
-	return &types.QueryElectorsResponse{Electors: k.GetElectors(ctx, req.ProposalId)}, nil
+	electors := k.GetElectors(ctx, req.ProposalId)
+	for i := range electors {
+		// Legacy snapshots may store a validator address. Expose its ballot
+		// account without rewriting state or consulting the current operator.
+		account, err := electors[i].AccountAddress()
+		if err != nil {
+			return nil, status.Error(codes.Internal, "invalid elector address")
+		}
+		electors[i].Operator = account.String()
+	}
+	return &types.QueryElectorsResponse{Electors: electors}, nil
 }
 
 func (k Keeper) Equity(goCtx context.Context, req *types.QueryEquityRequest) (*types.QueryEquityResponse, error) {
@@ -82,7 +92,12 @@ func (k Keeper) RegionFreeze(goCtx context.Context, req *types.QueryRegionFreeze
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	freeze, found := k.GetRegionFreeze(ctx, req.RegionId)
+	regionID := req.RegionId
+	// Resolve the same canonical region ID used by freeze/unfreeze transactions.
+	if region, found := k.lookupRegion(ctx, regionID); found {
+		regionID = region.RegionId
+	}
+	freeze, found := k.GetRegionFreeze(ctx, regionID)
 	return &types.QueryRegionFreezeResponse{Frozen: found && freeze.Frozen}, nil
 }
 

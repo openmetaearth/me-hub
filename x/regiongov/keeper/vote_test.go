@@ -62,7 +62,7 @@ func (s *KeeperTestSuite) TestEquityCanWithdrawOnlyItsOwnRegion() {
 	own := s.submit(usaEquity, s.withdrawal("usa"))
 	s.Require().ElementsMatch([]string{usaEquity}, s.electorAccounts(own))
 	s.Require().Equal(types.ElectorateKindRegionEquity, s.mustProposal(own).Electorate)
-	s.Require().Equal(s.usaValidator.OperatorAddress, s.mustProposal(own).RequiredOperator)
+	s.Require().Equal(operatorAccount(s.usaValidator.OperatorAddress), s.mustProposal(own).RequiredOperator)
 
 	for _, ids := range [][]string{{"chn"}, {"usa", "chn"}, {wstakingtypes.MeEarthRegionId}} {
 		var withdrawals []types.Withdrawal

@@ -13,8 +13,7 @@ import (
 	wstakingtypes "github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-// Equity snapshots must store canonical account addresses, not the validator
-// addresses used by country-operator proposals.
+// Equity snapshots, like new country snapshots, store canonical ballot accounts.
 func (s *KeeperTestSuite) equityProposalElectorAccounts(id uint64) []string {
 	s.T().Helper()
 	s.Require().Equal(types.ElectorateKindRegionEquity, s.mustProposal(id).Electorate)
@@ -57,7 +56,7 @@ func (s *KeeperTestSuite) TestEquityProposalApprovalAndTransfer() {
 	before := s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom)
 
 	id := s.submit(equities[0], withdrawal)
-	s.Require().Equal(s.usaValidator.OperatorAddress, s.mustProposal(id).RequiredOperator)
+	s.Require().Equal(operatorAccount(s.usaValidator.OperatorAddress), s.mustProposal(id).RequiredOperator)
 	s.Require().ElementsMatch(equities, s.equityProposalElectorAccounts(id))
 	for _, approver := range []string{operator, s.Dao.GlobalDao} {
 		_, found := s.App.RegionGovKeeper.GetElector(s.Ctx, id, approver)
@@ -353,7 +352,7 @@ func (s *KeeperTestSuite) TestEquityProposalSnapshotSurvivesEquityAndOperatorRep
 	s.Require().NoError(s.App.StakingKeeper.SetRegionOperator(s.Ctx, "usa", newValoper))
 
 	for _, id := range []uint64{approvedByOldOperator, missingOldOperator} {
-		s.Require().Equal(s.usaValidator.OperatorAddress, s.mustProposal(id).RequiredOperator)
+		s.Require().Equal(operatorAccount(s.usaValidator.OperatorAddress), s.mustProposal(id).RequiredOperator)
 		s.Require().ElementsMatch(oldEquities, s.equityProposalElectorAccounts(id))
 		for _, newEquity := range newEquities {
 			s.Require().ErrorIs(s.vote(newEquity, id, types.VoteOptionYes), types.ErrUnauthorized)
@@ -368,7 +367,7 @@ func (s *KeeperTestSuite) TestEquityProposalSnapshotSurvivesEquityAndOperatorRep
 	s.Require().NoError(s.vote(oldOperator, approvedByOldOperator, types.VoteOptionYes))
 
 	fresh := s.submit(newEquities[0], s.withdrawal("usa"))
-	s.Require().Equal(newValoper, s.mustProposal(fresh).RequiredOperator)
+	s.Require().Equal(newOperator.String(), s.mustProposal(fresh).RequiredOperator)
 	s.Require().ElementsMatch(newEquities, s.equityProposalElectorAccounts(fresh))
 	s.Require().ErrorIs(s.vote(oldOperator, fresh, types.VoteOptionYes), types.ErrUnauthorized)
 	for _, equity := range newEquities[1:] {
@@ -401,7 +400,7 @@ func (s *KeeperTestSuite) TestEquityProposalGenesisRoundTrip() {
 	s.Require().Equal([]string{operator}, s.electorAccounts(countryProposal))
 
 	// Reuse the funded app and its real staking/bank state, but clear this
-	// module so import must restore both address encodings and the voting queue.
+	// module so import must restore both electorates and the voting queue.
 	store := s.Ctx.KVStore(s.App.GetKey(types.StoreKey))
 	iterator := store.Iterator(nil, nil)
 	var keys [][]byte
@@ -415,7 +414,7 @@ func (s *KeeperTestSuite) TestEquityProposalGenesisRoundTrip() {
 	s.Require().Empty(s.App.RegionGovKeeper.GetAllProposals(s.Ctx))
 	regiongov.InitGenesis(s.Ctx, s.App.RegionGovKeeper, *genesis)
 	s.Require().Equal(genesis, regiongov.ExportGenesis(s.Ctx, s.App.RegionGovKeeper))
-	s.Require().Equal(s.usaValidator.OperatorAddress, s.mustProposal(equityProposal).RequiredOperator)
+	s.Require().Equal(operatorAccount(s.usaValidator.OperatorAddress), s.mustProposal(equityProposal).RequiredOperator)
 	s.Require().Equal(types.DaoVoteYes, s.mustProposal(equityProposal).DaoVote)
 	s.Require().ElementsMatch(equities, s.equityProposalElectorAccounts(equityProposal))
 	s.Require().Equal([]string{operator}, s.electorAccounts(countryProposal))

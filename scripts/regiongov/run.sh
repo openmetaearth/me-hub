@@ -240,7 +240,7 @@ submit_test_proposal() {
   query params | assert_json '(.params.min_voting_period | tonumber) == 120'
  fi
  query electors "$PROPOSAL_ID" > "$RESULT_DIR/electors-$PROPOSAL_ID.json"
- assert_json 'all(.electors[]; (.region_id | ascii_downcase) != "me_earth" and (.region_id | ascii_downcase) != "experience_region")' < "$RESULT_DIR/electors-$PROPOSAL_ID.json"
+ assert_json '(.electors | length) > 0 and all(.electors[]; (.operator | startswith("me1")) and (.region_id | ascii_downcase) != "me_earth" and (.region_id | ascii_downcase) != "experience_region")' < "$RESULT_DIR/electors-$PROPOSAL_ID.json"
  query votes "$PROPOSAL_ID" | assert_json '(.votes // [] | length) == 0'
 }
 
@@ -263,6 +263,7 @@ test_vote() {
  local OPERATOR
  OPERATOR=$(key_address "$OPERATOR_KEY")
  submit_test_proposal treasury
+ assert_json --arg voter "$OPERATOR" 'any(.electors[]; .operator == $voter)' < "$RESULT_DIR/electors-$PROPOSAL_ID.json"
  send_tx "$OPERATOR_KEY" vote "$PROPOSAL_ID" yes
  query votes "$PROPOSAL_ID" | assert_json --arg voter "$OPERATOR" 'any(.votes[]; .voter == $voter and .option == "VOTE_OPTION_YES")'
  veto_test_proposal
@@ -338,10 +339,10 @@ test_equity_treasury_proposal_pass() {
  send_equity_tx "$proposer" submit-proposal "$RESULT_DIR/equity-treasury.json"
  PROPOSAL_ID=$(event_id proposal_id)
  query proposal "$PROPOSAL_ID" > "$RESULT_DIR/equity-proposal.json"
- assert_json --arg proposer "$proposer" --slurpfile region "$RESULT_DIR/region.json" '
+ assert_json --arg proposer "$proposer" --arg operator "$operator" '
   .proposal.proposer == $proposer and .proposal.status == "PROPOSAL_STATUS_VOTING" and
   .proposal.electorate == "ELECTORATE_KIND_REGION_EQUITY" and
-  .proposal.required_operator == $region[0].region.operator_address
+  .proposal.required_operator == $operator
  ' < "$RESULT_DIR/equity-proposal.json"
  query electors "$PROPOSAL_ID" > "$RESULT_DIR/electors-$PROPOSAL_ID.json"
  assert_json --argjson targets "$TARGET_JSON" '

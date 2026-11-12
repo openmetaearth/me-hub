@@ -268,13 +268,13 @@ paths:
                     operator:
                       type: string
                       description: >-
-                        operator is Region.OperatorAddress. The ballot is signed
-                        by the account
-
-                        with the same key.
+                        operator is the ordinary account address that signs MsgVote.
+                        For country operators it corresponds to Region.OperatorAddress;
+                        for equity electors it is the equity account itself.
+                        Legacy validator addresses are normalized in query responses.
                     region_id:
                       type: string
-                  description: Elector is one region operator in a proposal's 51% snapshot.
+                  description: Elector is one counted account in a proposal's snapshotted electorate.
             description: QueryElectorsResponse is the response for Electors.
         default:
           description: An unexpected error response.
@@ -834,13 +834,9 @@ paths:
                     required_operator:
                       type: string
                       description: >-
-                        required_operator is the region operator who must vote
-                        yes on an equity
-
-                        withdrawal. It is Region.OperatorAddress, empty for
-                        operator electorates,
-
-                        and outside the 51% count.
+                        required_operator is the snapshotted account address (me1...) of the region
+                        operator who must vote yes on an equity withdrawal, outside the 51% count.
+                        Empty for operator electorates; legacy valoper values remain readable.
                     treasury:
                       type: object
                       properties:
@@ -1154,13 +1150,9 @@ paths:
                   required_operator:
                     type: string
                     description: >-
-                      required_operator is the region operator who must vote yes
-                      on an equity
-
-                      withdrawal. It is Region.OperatorAddress, empty for
-                      operator electorates,
-
-                      and outside the 51% count.
+                      required_operator is the snapshotted account address (me1...) of the region
+                      operator who must vote yes on an equity withdrawal, outside the 51% count.
+                      Empty for operator electorates; legacy valoper values remain readable.
                   treasury:
                     type: object
                     properties:
@@ -71286,13 +71278,13 @@ definitions:
       operator:
         type: string
         description: >-
-          operator is Region.OperatorAddress. The ballot is signed by the
-          account
-
-          with the same key.
+          operator is the ordinary account address that signs MsgVote.
+          For country operators it corresponds to Region.OperatorAddress;
+          for equity electors it is the equity account itself.
+          Legacy validator addresses are normalized in query responses.
       region_id:
         type: string
-    description: Elector is one region operator in a proposal's 51% snapshot.
+    description: Elector is one counted account in a proposal's snapshotted electorate.
   metaearth.regiongov.ElectorateKind:
     type: string
     enum:
@@ -71489,13 +71481,9 @@ definitions:
       required_operator:
         type: string
         description: >-
-          required_operator is the region operator who must vote yes on an
-          equity
-
-          withdrawal. It is Region.OperatorAddress, empty for operator
-          electorates,
-
-          and outside the 51% count.
+          required_operator is the snapshotted account address (me1...) of the region
+          operator who must vote yes on an equity withdrawal, outside the 51% count.
+          Empty for operator electorates; legacy valoper values remain readable.
       treasury:
         type: object
         properties:
@@ -71618,13 +71606,13 @@ definitions:
             operator:
               type: string
               description: >-
-                operator is Region.OperatorAddress. The ballot is signed by the
-                account
-
-                with the same key.
+                operator is the ordinary account address that signs MsgVote.
+                For country operators it corresponds to Region.OperatorAddress;
+                for equity electors it is the equity account itself.
+                Legacy validator addresses are normalized in query responses.
             region_id:
               type: string
-          description: Elector is one region operator in a proposal's 51% snapshot.
+          description: Elector is one counted account in a proposal's snapshotted electorate.
     description: QueryElectorsResponse is the response for Electors.
   metaearth.regiongov.QueryEquityFreezesResponse:
     type: object
@@ -71900,13 +71888,9 @@ definitions:
           required_operator:
             type: string
             description: >-
-              required_operator is the region operator who must vote yes on an
-              equity
-
-              withdrawal. It is Region.OperatorAddress, empty for operator
-              electorates,
-
-              and outside the 51% count.
+              required_operator is the snapshotted account address (me1...) of the region
+              operator who must vote yes on an equity withdrawal, outside the 51% count.
+              Empty for operator electorates; legacy valoper values remain readable.
           treasury:
             type: object
             properties:
@@ -72080,13 +72064,9 @@ definitions:
             required_operator:
               type: string
               description: >-
-                required_operator is the region operator who must vote yes on an
-                equity
-
-                withdrawal. It is Region.OperatorAddress, empty for operator
-                electorates,
-
-                and outside the 51% count.
+                required_operator is the snapshotted account address (me1...) of the region
+                operator who must vote yes on an equity withdrawal, outside the 51% count.
+                Empty for operator electorates; legacy valoper values remain readable.
             treasury:
               type: object
               properties:

@@ -47,6 +47,9 @@ func (k Keeper) SetPendingActionSeq(ctx sdk.Context, seq uint64) {
 }
 
 func (k Keeper) SetProposal(ctx sdk.Context, proposal types.Proposal) {
+	if err := proposal.NormalizeRequiredOperator(); err != nil {
+		panic(fmt.Sprintf("proposal %d has invalid required operator %s: %s", proposal.Id, proposal.RequiredOperator, err))
+	}
 	k.mustSet(ctx, types.ProposalKey(proposal.Id), &proposal)
 }
 
@@ -72,7 +75,9 @@ func (k Keeper) SetElector(ctx sdk.Context, elector types.Elector) {
 	if err != nil {
 		panic(fmt.Sprintf("elector %d has invalid address %s: %s", elector.ProposalId, elector.Operator, err))
 	}
-	k.mustSet(ctx, types.ElectorKey(elector.ProposalId, acc.String()), &elector)
+	// Normalize imports as well as new snapshots without changing the account key.
+	elector.Operator = acc.String()
+	k.mustSet(ctx, types.ElectorKey(elector.ProposalId, elector.Operator), &elector)
 }
 
 func (k Keeper) GetElectors(ctx sdk.Context, proposalID uint64) []types.Elector {

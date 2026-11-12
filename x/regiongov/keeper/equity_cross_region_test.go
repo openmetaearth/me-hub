@@ -64,7 +64,7 @@ func (s *KeeperTestSuite) TestEquityCrossRegionVotesRejectedOnEquityProposal() {
 	withdrawal, assertNoTransfer := s.crossRegionWithdrawal("usa")
 	id := s.submit(usaEquities[0], withdrawal)
 	s.Require().ElementsMatch(usaEquities, s.equityProposalElectorAccounts(id))
-	s.Require().Equal(s.usaValidator.OperatorAddress, s.mustProposal(id).RequiredOperator)
+	s.Require().Equal(operatorAccount(s.usaValidator.OperatorAddress), s.mustProposal(id).RequiredOperator)
 
 	// Both separate approvals are present, but only one of three local equities
 	// votes yes. Foreign equities and even the foreign operator cannot add votes.

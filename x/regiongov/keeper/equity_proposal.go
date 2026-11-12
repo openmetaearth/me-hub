@@ -49,7 +49,7 @@ func (k Keeper) snapshotEquityElectors(ctx sdk.Context, proposalID uint64, regio
 	if len(electors) == 0 {
 		return nil, "", types.ErrEmptyElectorate
 	}
-	return electors, region.OperatorAddress, nil
+	return electors, operator.String(), nil
 }
 
 // equityProposalRegion also guards imported proposals before indexing the payload.
@@ -72,8 +72,8 @@ func (k Keeper) authorizeEquityVote(ctx sdk.Context, proposal types.Proposal, vo
 	if k.isRegionFrozen(ctx, region.RegionId) {
 		return sdkerrors.Wrapf(types.ErrRegionFrozen, "%s", region.RegionId)
 	}
-	operator, ok := operatorAccount(proposal.RequiredOperator)
-	if ok && operator.String() == voter {
+	operator, err := proposal.RequiredOperatorAccount()
+	if err == nil && operator.String() == voter {
 		return nil
 	}
 	elector, found := k.GetElector(ctx, proposal.Id, voter)
@@ -90,8 +90,8 @@ func (k Keeper) equityOperatorApproved(ctx sdk.Context, proposal types.Proposal)
 	if _, ok := equityProposalRegion(proposal); !ok {
 		return false
 	}
-	operator, ok := operatorAccount(proposal.RequiredOperator)
-	if !ok {
+	operator, err := proposal.RequiredOperatorAccount()
+	if err != nil {
 		return false
 	}
 	vote, found := k.GetVote(ctx, proposal.Id, operator.String())

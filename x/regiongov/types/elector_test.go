@@ -23,9 +23,37 @@ func TestElectorAccountAddress(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestGenesisCountryElectorAddressFormats(t *testing.T) {
+	account := sdk.MustAccAddressFromBech32(sample.AccAddress())
+	now := time.Unix(1_700_000_000, 0).UTC()
+	gs := DefaultGenesis()
+	gs.ProposalSeq = 1
+	gs.Proposals = []Proposal{{
+		Id: 1, Kind: ProposalKindUpdateMinVotingPeriod, Proposer: account.String(),
+		Title: "update minimum", Status: ProposalStatusVoting,
+		SubmitTime: now, VotingEndTime: now.Add(time.Hour), VotingPeriod: 3600,
+		Electorate:            ElectorateKindCountryRegionOperators,
+		UpdateMinVotingPeriod: &UpdateMinVotingPeriodPayload{MinVotingPeriod: 120},
+	}}
+	for _, address := range []string{account.String(), strings.ToUpper(account.String()), sdk.ValAddress(account).String()} {
+		t.Run(address, func(t *testing.T) {
+			gs.Electors = []Elector{{ProposalId: 1, Operator: address, RegionId: "chn"}}
+			require.NoError(t, gs.Validate(), "both current and legacy country snapshots must import")
+		})
+	}
+	gs.Electors = []Elector{
+		{ProposalId: 1, Operator: account.String(), RegionId: "chn"},
+		{ProposalId: 1, Operator: sdk.ValAddress(account).String(), RegionId: "usa"},
+	}
+	require.ErrorContains(t, gs.Validate(), "duplicate elector", "two encodings must not create two votes")
+	gs.Electors = []Elector{{ProposalId: 1, Operator: "invalid", RegionId: "chn"}}
+	require.Error(t, gs.Validate())
+}
+
 func TestGenesisEquityElectorRules(t *testing.T) {
 	account := sample.AccAddress()
-	operator := sdk.ValAddress(sdk.MustAccAddressFromBech32(sample.AccAddress())).String()
+	operatorAccount := sample.AccAddress()
+	operator := sdk.ValAddress(sdk.MustAccAddressFromBech32(operatorAccount)).String()
 	now := time.Unix(1_700_000_000, 0).UTC()
 	newGenesis := func() *GenesisState {
 		gs := DefaultGenesis()
@@ -42,13 +70,19 @@ func TestGenesisEquityElectorRules(t *testing.T) {
 		gs.Electors = []Elector{{ProposalId: 1, Operator: account, RegionId: "chn"}}
 		return gs
 	}
-	require.NoError(t, newGenesis().Validate())
+	for _, address := range []string{operator, operatorAccount} {
+		gs := newGenesis()
+		gs.Proposals[0].RequiredOperator = address
+		require.NoError(t, gs.Validate(), "accept both account and legacy operator encodings")
+		gs.Electors[0].Operator = operatorAccount
+		require.ErrorContains(t, gs.Validate(), "required operator must not be counted")
+	}
 	for _, tc := range []struct {
 		name   string
 		modify func(*GenesisState)
 	}{
 		{"missing operator", func(gs *GenesisState) { gs.Proposals[0].RequiredOperator = "" }},
-		{"operator is not valoper", func(gs *GenesisState) { gs.Proposals[0].RequiredOperator = account }},
+		{"invalid operator", func(gs *GenesisState) { gs.Proposals[0].RequiredOperator = "invalid" }},
 		{"equity is not account", func(gs *GenesisState) { gs.Electors[0].Operator = operator }},
 		{"foreign region", func(gs *GenesisState) { gs.Electors[0].RegionId = "usa" }},
 		{"operator in counted electorate", func(gs *GenesisState) {
