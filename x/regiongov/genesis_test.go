@@ -108,9 +108,19 @@ func TestQueryParams(t *testing.T) {
 
 	res, err := k.Params(sdk.WrapSDKContext(ctx), &types.QueryParamsRequest{})
 	require.NoError(t, err)
-	require.Equal(t, types.DefaultMinVotingPeriod, res.Params.MinVotingPeriod)
+	require.Equal(t, uint64(3600), res.Params.MinVotingPeriod)
 	require.Equal(t, uint32(51), res.Params.PassThresholdPercent)
 	require.Equal(t, uint32(1), res.Params.EquityWithdrawPercent)
+}
+
+func TestInitGenesisPreservesConfiguredMinVotingPeriod(t *testing.T) {
+	genesis := types.DefaultGenesis()
+	genesis.Params.MinVotingPeriod = 120
+	k, ctx := newKeeper(t)
+	regiongov.InitGenesis(ctx, k, *genesis)
+
+	require.Equal(t, uint64(120), k.GetParams(ctx).MinVotingPeriod)
+	require.Equal(t, genesis.Params, regiongov.ExportGenesis(ctx, k).Params)
 }
 
 // Genesis import/export and parameter queries do not call other modules.

@@ -100,7 +100,7 @@ func validateWithdrawals(withdrawals []Withdrawal) error {
 func validateProposalPayload(proposal Proposal) error {
 	switch proposal.Kind {
 	case ProposalKindTreasuryWithdraw:
-		if proposal.ReplaceOperator != nil || proposal.UpdateMinVotingPeriod != nil {
+		if proposal.ReplaceOperator != nil {
 			return errors.New("treasury proposal cannot include other payloads")
 		}
 		if proposal.Treasury == nil {
@@ -108,18 +108,10 @@ func validateProposalPayload(proposal Proposal) error {
 		}
 		return validateWithdrawals(proposal.Treasury.Withdrawals)
 	case ProposalKindReplaceRegionOperator:
-		if proposal.Treasury != nil || proposal.UpdateMinVotingPeriod != nil {
+		if proposal.Treasury != nil {
 			return errors.New("replace-operator proposal cannot include other payloads")
 		}
 		return validateReplaceOperator(proposal.ReplaceOperator)
-	case ProposalKindUpdateMinVotingPeriod:
-		if proposal.Treasury != nil || proposal.ReplaceOperator != nil {
-			return errors.New("update-min-voting-period proposal cannot include other payloads")
-		}
-		if proposal.UpdateMinVotingPeriod == nil {
-			return errors.New("update min voting period payload is empty")
-		}
-		return validateMinVotingPeriod(proposal.UpdateMinVotingPeriod.MinVotingPeriod)
 	default:
 		return errors.New("unknown proposal kind")
 	}

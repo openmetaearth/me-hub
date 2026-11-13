@@ -29,11 +29,11 @@ func TestGenesisCountryElectorAddressFormats(t *testing.T) {
 	gs := DefaultGenesis()
 	gs.ProposalSeq = 1
 	gs.Proposals = []Proposal{{
-		Id: 1, Kind: ProposalKindUpdateMinVotingPeriod, Proposer: account.String(),
-		Title: "update minimum", Status: ProposalStatusVoting,
+		Id: 1, Kind: ProposalKindReplaceRegionOperator, Proposer: account.String(),
+		Title: "replace operator", Status: ProposalStatusVoting,
 		SubmitTime: now, VotingEndTime: now.Add(time.Hour), VotingPeriod: 3600,
-		Electorate:            ElectorateKindCountryRegionOperators,
-		UpdateMinVotingPeriod: &UpdateMinVotingPeriodPayload{MinVotingPeriod: 120},
+		Electorate:      ElectorateKindCountryRegionOperators,
+		ReplaceOperator: &ReplaceRegionOperatorPayload{RegionId: "chn", NewOperator: sdk.ValAddress(account).String()},
 	}}
 	for _, address := range []string{account.String(), strings.ToUpper(account.String()), sdk.ValAddress(account).String()} {
 		t.Run(address, func(t *testing.T) {
@@ -101,9 +101,9 @@ func TestGenesisEquityElectorRules(t *testing.T) {
 			gs.Proposals[0].Treasury.Withdrawals = append(gs.Proposals[0].Treasury.Withdrawals, withdrawal)
 		}},
 		{"non treasury electorate", func(gs *GenesisState) {
-			gs.Proposals[0].Kind = ProposalKindUpdateMinVotingPeriod
+			gs.Proposals[0].Kind = ProposalKindReplaceRegionOperator
 			gs.Proposals[0].Treasury = nil
-			gs.Proposals[0].UpdateMinVotingPeriod = &UpdateMinVotingPeriodPayload{MinVotingPeriod: 120}
+			gs.Proposals[0].ReplaceOperator = &ReplaceRegionOperatorPayload{RegionId: "chn", NewOperator: operator}
 		}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

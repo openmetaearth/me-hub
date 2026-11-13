@@ -59,8 +59,8 @@ func TestStandardAPIWireCompatibility(t *testing.T) {
 		{
 			name:     "proposal transaction",
 			standard: &regiongovapi.MsgSubmitProposal{}, gogo: &MsgSubmitProposal{},
-			json: `{"proposer":"proposer","kind":"PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD","votingPeriod":"120",` +
-				`"updateMinVotingPeriod":{"minVotingPeriod":"300"}}`,
+			json: `{"proposer":"proposer","kind":"PROPOSAL_KIND_REPLACE_REGION_OPERATOR","votingPeriod":"120",` +
+				`"replaceOperator":{"regionId":"chn","newOperator":"operator"}}`,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -174,8 +174,8 @@ func TestGatewayQueryEnums(t *testing.T) {
 		},
 		{
 			name: "numeric status and named kind",
-			path: "/metaearth/regiongov/proposals?status=4&kind=PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD",
-			want: &QueryProposalsRequest{Status: ProposalStatusFailed, Kind: ProposalKindUpdateMinVotingPeriod},
+			path: "/metaearth/regiongov/proposals?status=4&kind=PROPOSAL_KIND_TREASURY_WITHDRAW",
+			want: &QueryProposalsRequest{Status: ProposalStatusFailed, Kind: ProposalKindTreasuryWithdraw},
 		},
 		{
 			name: "omitted proposal filters",

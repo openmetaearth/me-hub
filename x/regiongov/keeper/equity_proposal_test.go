@@ -255,10 +255,6 @@ func (s *KeeperTestSuite) TestEquityProposalAuthorizationAndOperatorRouting() {
 			Proposer: equity, Kind: types.ProposalKindReplaceRegionOperator, Title: "equity cannot replace operator", VotingPeriod: 60,
 			ReplaceOperator: &types.ReplaceRegionOperatorPayload{RegionId: "usa", NewOperator: sdk.ValAddress(sdk.MustAccAddressFromBech32(outsider)).String()},
 		},
-		{
-			Proposer: equity, Kind: types.ProposalKindUpdateMinVotingPeriod, Title: "equity cannot update params", VotingPeriod: 60,
-			UpdateMinVotingPeriod: &types.UpdateMinVotingPeriodPayload{MinVotingPeriod: 120},
-		},
 	} {
 		_, err := s.msgServer.SubmitProposal(s.Ctx, msg)
 		s.Require().ErrorIs(err, types.ErrUnauthorized)

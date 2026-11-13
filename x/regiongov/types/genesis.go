@@ -207,7 +207,13 @@ func validateProposal(proposal Proposal) error {
 	if err := validateProposalHeader(proposal); err != nil {
 		return err
 	}
-	if err := validateProposalPayload(proposal); err != nil {
+	// Kind 3 is retired. Preserve historical records on export/import without
+	// allowing this kind through transaction validation or executing its action.
+	if proposal.Kind == ProposalKind(3) {
+		if proposal.Treasury != nil || proposal.ReplaceOperator != nil || proposal.Electorate != ElectorateKindCountryRegionOperators {
+			return errors.New("retired proposal must have a country electorate and no active payload")
+		}
+	} else if err := validateProposalPayload(proposal); err != nil {
 		return err
 	}
 	return validateProposalOperator(proposal)

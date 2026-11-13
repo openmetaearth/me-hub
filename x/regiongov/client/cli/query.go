@@ -116,7 +116,7 @@ func CmdQueryProposals() *cobra.Command {
 		},
 	}
 	cmd.Flags().String(flagStatus, "", "filter by status: voting, passed, rejected, failed")
-	cmd.Flags().String(flagKind, "", "filter by kind: treasury, replace-operator, update-min-voting-period")
+	cmd.Flags().String(flagKind, "", "filter by kind: treasury, replace-operator")
 	flags.AddPaginationFlagsToCmd(cmd, "proposals")
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd

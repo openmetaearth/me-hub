@@ -59,7 +59,7 @@ func newTxCommand(use, short string, args cobra.PositionalArgs, build txMessageB
 }
 
 func CmdSubmitProposal() *cobra.Command {
-	cmd := newTxCommand("submit-proposal [proposal.json]", "Submit a treasury withdrawal, region-operator replacement, or minimum voting-period update proposal", cobra.ExactArgs(1),
+	cmd := newTxCommand("submit-proposal [proposal.json]", "Submit a treasury withdrawal or region-operator replacement proposal", cobra.ExactArgs(1),
 		func(ctx client.Context, args []string) (sdk.Msg, error) {
 			data, err := os.ReadFile(args[0])
 			if err != nil {
@@ -74,9 +74,8 @@ func CmdSubmitProposal() *cobra.Command {
 		})
 	cmd.Long = `Submit a proposal from a MsgSubmitProposal JSON file. The proposer is taken from --from.
 The file must include kind, title, voting_period (seconds), and exactly one matching payload:
-treasury, replace_operator, or update_min_voting_period.
-An update_min_voting_period proposal must satisfy the current minimum voting period;
-its payload changes only the minimum for proposals submitted after execution.
+treasury or replace_operator.
+The voting period must satisfy the current min_voting_period parameter.
 Submitting a proposal does not cast a yes vote; use the vote command separately.`
 	return cmd
 }

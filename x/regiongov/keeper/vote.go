@@ -25,6 +25,9 @@ func (k Keeper) castVote(ctx sdk.Context, msg *types.MsgVote) error {
 		return sdkerrors.Wrapf(types.ErrVotingClosed, "proposal %d", proposal.Id)
 	}
 
+	if proposal.Kind != types.ProposalKindTreasuryWithdraw && proposal.Kind != types.ProposalKindReplaceRegionOperator {
+		return sdkerrors.Wrap(types.ErrInvalidProposal, "unknown proposal kind")
+	}
 	if k.isDao(ctx, voter) {
 		return k.castDaoVote(ctx, proposal, voter, msg.Option)
 	}
