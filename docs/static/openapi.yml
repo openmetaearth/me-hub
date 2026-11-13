@@ -268,13 +268,24 @@ paths:
                     operator:
                       type: string
                       description: >-
-                        operator is the ordinary account address that signs MsgVote.
-                        For country operators it corresponds to Region.OperatorAddress;
-                        for equity electors it is the equity account itself.
-                        Legacy validator addresses are normalized in query responses.
+                        operator is the account address that signs MsgVote: the
+                        account
+
+                        corresponding to Region.OperatorAddress for
+                        COUNTRY_REGION_OPERATORS, or
+
+                        the equity account for REGION_EQUITY. The separately
+                        required region
+
+                        operator and dao approvals are outside the equity count.
+                        Queries also
+
+                        normalize legacy validator addresses.
                     region_id:
                       type: string
-                  description: Elector is one counted account in a proposal's snapshotted electorate.
+                  description: >-
+                    Elector is one counted address in a proposal's snapshotted
+                    electorate.
             description: QueryElectorsResponse is the response for Electors.
         default:
           description: An unexpected error response.
@@ -768,7 +779,6 @@ paths:
                         - PROPOSAL_KIND_UNSPECIFIED
                         - PROPOSAL_KIND_TREASURY_WITHDRAW
                         - PROPOSAL_KIND_REPLACE_REGION_OPERATOR
-                        - PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD
                       default: PROPOSAL_KIND_UNSPECIFIED
                       description: >-
                         ProposalKind is the action a proposal executes after it
@@ -834,9 +844,14 @@ paths:
                     required_operator:
                       type: string
                       description: >-
-                        required_operator is the snapshotted account address (me1...) of the region
-                        operator who must vote yes on an equity withdrawal, outside the 51% count.
-                        Empty for operator electorates; legacy valoper values remain readable.
+                        required_operator is the snapshotted account address
+                        (me1...) of the region
+
+                        operator who must vote yes on an equity withdrawal,
+                        outside the 51% count.
+
+                        Empty for operator electorates; legacy valoper values
+                        remain readable.
                     treasury:
                       type: object
                       properties:
@@ -910,23 +925,6 @@ paths:
 
                         preserving its consensus key and updating
                         Region.OperatorAddress on the hub.
-                    update_min_voting_period:
-                      type: object
-                      properties:
-                        min_voting_period:
-                          type: string
-                          format: uint64
-                          description: >-
-                            min_voting_period is an integer number of seconds in
-                            [1, 9223372036].
-                      description: >-
-                        UpdateMinVotingPeriodPayload changes only the minimum
-                        voting duration for
-
-                        proposals submitted after execution. Existing proposal
-                        deadlines are
-
-                        unchanged.
                   description: Proposal is a counted vote with a snapshotted electorate.
               pagination:
                 type: object
@@ -1002,7 +1000,6 @@ paths:
             - PROPOSAL_KIND_UNSPECIFIED
             - PROPOSAL_KIND_TREASURY_WITHDRAW
             - PROPOSAL_KIND_REPLACE_REGION_OPERATOR
-            - PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD
           default: PROPOSAL_KIND_UNSPECIFIED
         - name: pagination.key
           description: |-
@@ -1084,7 +1081,6 @@ paths:
                       - PROPOSAL_KIND_UNSPECIFIED
                       - PROPOSAL_KIND_TREASURY_WITHDRAW
                       - PROPOSAL_KIND_REPLACE_REGION_OPERATOR
-                      - PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD
                     default: PROPOSAL_KIND_UNSPECIFIED
                     description: >-
                       ProposalKind is the action a proposal executes after it
@@ -1150,9 +1146,14 @@ paths:
                   required_operator:
                     type: string
                     description: >-
-                      required_operator is the snapshotted account address (me1...) of the region
-                      operator who must vote yes on an equity withdrawal, outside the 51% count.
-                      Empty for operator electorates; legacy valoper values remain readable.
+                      required_operator is the snapshotted account address
+                      (me1...) of the region
+
+                      operator who must vote yes on an equity withdrawal,
+                      outside the 51% count.
+
+                      Empty for operator electorates; legacy valoper values
+                      remain readable.
                   treasury:
                     type: object
                     properties:
@@ -1226,23 +1227,6 @@ paths:
 
                       preserving its consensus key and updating
                       Region.OperatorAddress on the hub.
-                  update_min_voting_period:
-                    type: object
-                    properties:
-                      min_voting_period:
-                        type: string
-                        format: uint64
-                        description: >-
-                          min_voting_period is an integer number of seconds in
-                          [1, 9223372036].
-                    description: >-
-                      UpdateMinVotingPeriodPayload changes only the minimum
-                      voting duration for
-
-                      proposals submitted after execution. Existing proposal
-                      deadlines are
-
-                      unchanged.
                 description: Proposal is a counted vote with a snapshotted electorate.
             description: QueryProposalResponse is the response for Proposal.
         default:
@@ -71278,13 +71262,19 @@ definitions:
       operator:
         type: string
         description: >-
-          operator is the ordinary account address that signs MsgVote.
-          For country operators it corresponds to Region.OperatorAddress;
-          for equity electors it is the equity account itself.
-          Legacy validator addresses are normalized in query responses.
+          operator is the account address that signs MsgVote: the account
+
+          corresponding to Region.OperatorAddress for COUNTRY_REGION_OPERATORS,
+          or
+
+          the equity account for REGION_EQUITY. The separately required region
+
+          operator and dao approvals are outside the equity count. Queries also
+
+          normalize legacy validator addresses.
       region_id:
         type: string
-    description: Elector is one counted account in a proposal's snapshotted electorate.
+    description: Elector is one counted address in a proposal's snapshotted electorate.
   metaearth.regiongov.ElectorateKind:
     type: string
     enum:
@@ -71420,7 +71410,6 @@ definitions:
           - PROPOSAL_KIND_UNSPECIFIED
           - PROPOSAL_KIND_TREASURY_WITHDRAW
           - PROPOSAL_KIND_REPLACE_REGION_OPERATOR
-          - PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD
         default: PROPOSAL_KIND_UNSPECIFIED
         description: ProposalKind is the action a proposal executes after it passes.
       proposer:
@@ -71481,8 +71470,12 @@ definitions:
       required_operator:
         type: string
         description: >-
-          required_operator is the snapshotted account address (me1...) of the region
-          operator who must vote yes on an equity withdrawal, outside the 51% count.
+          required_operator is the snapshotted account address (me1...) of the
+          region
+
+          operator who must vote yes on an equity withdrawal, outside the 51%
+          count.
+
           Empty for operator electorates; legacy valoper values remain readable.
       treasury:
         type: object
@@ -71552,22 +71545,6 @@ definitions:
 
           preserving its consensus key and updating Region.OperatorAddress on
           the hub.
-      update_min_voting_period:
-        type: object
-        properties:
-          min_voting_period:
-            type: string
-            format: uint64
-            description: >-
-              min_voting_period is an integer number of seconds in [1,
-              9223372036].
-        description: >-
-          UpdateMinVotingPeriodPayload changes only the minimum voting duration
-          for
-
-          proposals submitted after execution. Existing proposal deadlines are
-
-          unchanged.
     description: Proposal is a counted vote with a snapshotted electorate.
   metaearth.regiongov.ProposalKind:
     type: string
@@ -71575,7 +71552,6 @@ definitions:
       - PROPOSAL_KIND_UNSPECIFIED
       - PROPOSAL_KIND_TREASURY_WITHDRAW
       - PROPOSAL_KIND_REPLACE_REGION_OPERATOR
-      - PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD
     default: PROPOSAL_KIND_UNSPECIFIED
     description: ProposalKind is the action a proposal executes after it passes.
   metaearth.regiongov.ProposalStatus:
@@ -71606,13 +71582,23 @@ definitions:
             operator:
               type: string
               description: >-
-                operator is the ordinary account address that signs MsgVote.
-                For country operators it corresponds to Region.OperatorAddress;
-                for equity electors it is the equity account itself.
-                Legacy validator addresses are normalized in query responses.
+                operator is the account address that signs MsgVote: the account
+
+                corresponding to Region.OperatorAddress for
+                COUNTRY_REGION_OPERATORS, or
+
+                the equity account for REGION_EQUITY. The separately required
+                region
+
+                operator and dao approvals are outside the equity count. Queries
+                also
+
+                normalize legacy validator addresses.
             region_id:
               type: string
-          description: Elector is one counted account in a proposal's snapshotted electorate.
+          description: >-
+            Elector is one counted address in a proposal's snapshotted
+            electorate.
     description: QueryElectorsResponse is the response for Electors.
   metaearth.regiongov.QueryEquityFreezesResponse:
     type: object
@@ -71825,7 +71811,6 @@ definitions:
               - PROPOSAL_KIND_UNSPECIFIED
               - PROPOSAL_KIND_TREASURY_WITHDRAW
               - PROPOSAL_KIND_REPLACE_REGION_OPERATOR
-              - PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD
             default: PROPOSAL_KIND_UNSPECIFIED
             description: ProposalKind is the action a proposal executes after it passes.
           proposer:
@@ -71888,9 +71873,14 @@ definitions:
           required_operator:
             type: string
             description: >-
-              required_operator is the snapshotted account address (me1...) of the region
-              operator who must vote yes on an equity withdrawal, outside the 51% count.
-              Empty for operator electorates; legacy valoper values remain readable.
+              required_operator is the snapshotted account address (me1...) of
+              the region
+
+              operator who must vote yes on an equity withdrawal, outside the
+              51% count.
+
+              Empty for operator electorates; legacy valoper values remain
+              readable.
           treasury:
             type: object
             properties:
@@ -71964,23 +71954,6 @@ definitions:
 
               preserving its consensus key and updating Region.OperatorAddress
               on the hub.
-          update_min_voting_period:
-            type: object
-            properties:
-              min_voting_period:
-                type: string
-                format: uint64
-                description: >-
-                  min_voting_period is an integer number of seconds in [1,
-                  9223372036].
-            description: >-
-              UpdateMinVotingPeriodPayload changes only the minimum voting
-              duration for
-
-              proposals submitted after execution. Existing proposal deadlines
-              are
-
-              unchanged.
         description: Proposal is a counted vote with a snapshotted electorate.
     description: QueryProposalResponse is the response for Proposal.
   metaearth.regiongov.QueryProposalsResponse:
@@ -72000,7 +71973,6 @@ definitions:
                 - PROPOSAL_KIND_UNSPECIFIED
                 - PROPOSAL_KIND_TREASURY_WITHDRAW
                 - PROPOSAL_KIND_REPLACE_REGION_OPERATOR
-                - PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD
               default: PROPOSAL_KIND_UNSPECIFIED
               description: ProposalKind is the action a proposal executes after it passes.
             proposer:
@@ -72064,9 +72036,14 @@ definitions:
             required_operator:
               type: string
               description: >-
-                required_operator is the snapshotted account address (me1...) of the region
-                operator who must vote yes on an equity withdrawal, outside the 51% count.
-                Empty for operator electorates; legacy valoper values remain readable.
+                required_operator is the snapshotted account address (me1...) of
+                the region
+
+                operator who must vote yes on an equity withdrawal, outside the
+                51% count.
+
+                Empty for operator electorates; legacy valoper values remain
+                readable.
             treasury:
               type: object
               properties:
@@ -72140,23 +72117,6 @@ definitions:
 
                 preserving its consensus key and updating Region.OperatorAddress
                 on the hub.
-            update_min_voting_period:
-              type: object
-              properties:
-                min_voting_period:
-                  type: string
-                  format: uint64
-                  description: >-
-                    min_voting_period is an integer number of seconds in [1,
-                    9223372036].
-              description: >-
-                UpdateMinVotingPeriodPayload changes only the minimum voting
-                duration for
-
-                proposals submitted after execution. Existing proposal deadlines
-                are
-
-                unchanged.
           description: Proposal is a counted vote with a snapshotted electorate.
       pagination:
         type: object
@@ -72314,17 +72274,6 @@ definitions:
       transaction
 
       and no proposal is created. Submission does not reserve treasury funds.
-  metaearth.regiongov.UpdateMinVotingPeriodPayload:
-    type: object
-    properties:
-      min_voting_period:
-        type: string
-        format: uint64
-        description: min_voting_period is an integer number of seconds in [1, 9223372036].
-    description: |-
-      UpdateMinVotingPeriodPayload changes only the minimum voting duration for
-      proposals submitted after execution. Existing proposal deadlines are
-      unchanged.
   metaearth.regiongov.Vote:
     type: object
     properties:

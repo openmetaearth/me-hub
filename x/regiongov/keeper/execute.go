@@ -71,8 +71,6 @@ func (k Keeper) executeProposal(ctx sdk.Context, proposal types.Proposal) error 
 		return k.executeTreasury(ctx, proposal)
 	case types.ProposalKindReplaceRegionOperator:
 		return k.executeReplaceOperator(ctx, proposal)
-	case types.ProposalKindUpdateMinVotingPeriod:
-		return k.executeUpdateMinVotingPeriod(ctx, proposal)
 	default:
 		return sdkerrors.Wrap(types.ErrInvalidProposal, "unknown proposal kind")
 	}
@@ -93,16 +91,6 @@ func (k Keeper) executeTreasury(ctx sdk.Context, proposal types.Proposal) error 
 		}
 	}
 	return nil
-}
-
-func (k Keeper) executeUpdateMinVotingPeriod(ctx sdk.Context, proposal types.Proposal) error {
-	if proposal.UpdateMinVotingPeriod == nil {
-		return sdkerrors.Wrap(types.ErrInvalidProposal, "update min voting period payload is empty")
-	}
-	// Merge into the current parameters, without changing existing proposal deadlines.
-	params := k.GetParams(ctx)
-	params.MinVotingPeriod = proposal.UpdateMinVotingPeriod.MinVotingPeriod
-	return k.SetParams(ctx, params)
 }
 
 func (k Keeper) executeReplaceOperator(ctx sdk.Context, proposal types.Proposal) error {

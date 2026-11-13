@@ -54,7 +54,6 @@ func (msg *MsgSubmitProposal) ValidateBasic() error {
 	}
 	if err := validateProposalPayload(Proposal{
 		Kind: msg.Kind, Treasury: msg.Treasury, ReplaceOperator: msg.ReplaceOperator,
-		UpdateMinVotingPeriod: msg.UpdateMinVotingPeriod,
 	}); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}

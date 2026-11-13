@@ -181,8 +181,9 @@ For an operator replacement, use this format instead:
 ```
 
 Replace the placeholders with actual IDs and addresses. `voting_period` is in
-seconds. Do not supply both payloads. Any `proposer` in the file is replaced by
-`--from`.
+seconds and must be at least the current `min_voting_period` parameter (query it
+with `med query regiongov params`). Do not supply both payloads. Any `proposer`
+in the file is replaced by `--from`.
 
 ## Prerequisites
 

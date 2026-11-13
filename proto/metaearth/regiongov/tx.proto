@@ -8,8 +8,7 @@ option go_package = "github.com/openmetaearth/me-hub/x/regiongov/types";
 
 // Msg defines the regiongov Msg service.
 service Msg {
-  // SubmitProposal opens a treasury withdrawal, region-operator replacement,
-  // or minimum voting-period update vote.
+  // SubmitProposal opens a treasury withdrawal or region-operator replacement vote.
   rpc SubmitProposal(MsgSubmitProposal) returns (MsgSubmitProposalResponse);
   // Vote casts or, for the dao only, overwrites a ballot.
   rpc Vote(MsgVote) returns (MsgVoteResponse);
@@ -46,7 +45,8 @@ message MsgSubmitProposal {
   uint64 voting_period = 5;
   TreasuryWithdrawPayload treasury = 6;
   ReplaceRegionOperatorPayload replace_operator = 7;
-  UpdateMinVotingPeriodPayload update_min_voting_period = 8;
+  reserved 8;
+  reserved "update_min_voting_period";
 }
 
 // MsgSubmitProposalResponse returns the new proposal id.

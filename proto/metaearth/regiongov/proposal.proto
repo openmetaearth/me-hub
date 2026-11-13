@@ -14,7 +14,9 @@ enum ProposalKind {
   PROPOSAL_KIND_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "ProposalKindUnspecified"];
   PROPOSAL_KIND_TREASURY_WITHDRAW = 1 [(gogoproto.enumvalue_customname) = "ProposalKindTreasuryWithdraw"];
   PROPOSAL_KIND_REPLACE_REGION_OPERATOR = 2 [(gogoproto.enumvalue_customname) = "ProposalKindReplaceRegionOperator"];
-  PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD = 3 [(gogoproto.enumvalue_customname) = "ProposalKindUpdateMinVotingPeriod"];
+  // Removed proposal kind. Never reuse its wire number or name.
+  reserved 3;
+  reserved "PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD";
 }
 
 // ProposalStatus is the lifecycle state of a proposal.
@@ -112,14 +114,6 @@ message ReplaceRegionOperatorPayload {
   string new_operator = 2;
 }
 
-// UpdateMinVotingPeriodPayload changes only the minimum voting duration for
-// proposals submitted after execution. Existing proposal deadlines are
-// unchanged.
-message UpdateMinVotingPeriodPayload {
-  // min_voting_period is an integer number of seconds in [1, 9223372036].
-  uint64 min_voting_period = 1;
-}
-
 // Proposal is a counted vote with a snapshotted electorate.
 message Proposal {
   uint64 id = 1;
@@ -146,7 +140,8 @@ message Proposal {
   string required_operator = 12;
   TreasuryWithdrawPayload treasury = 13;
   ReplaceRegionOperatorPayload replace_operator = 14;
-  UpdateMinVotingPeriodPayload update_min_voting_period = 15;
+  reserved 15;
+  reserved "update_min_voting_period";
 }
 
 // Elector is one counted address in a proposal's snapshotted electorate.

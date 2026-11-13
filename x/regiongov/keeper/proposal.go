@@ -55,20 +55,19 @@ func (k Keeper) submitProposal(ctx sdk.Context, msg *types.MsgSubmitProposal) (u
 
 	now := ctx.BlockTime()
 	proposal := types.Proposal{
-		Id:                    id,
-		Kind:                  msg.Kind,
-		Proposer:              proposer,
-		Title:                 msg.Title,
-		Summary:               msg.Summary,
-		Status:                types.ProposalStatusVoting,
-		SubmitTime:            now,
-		VotingEndTime:         now.Add(time.Duration(msg.VotingPeriod) * time.Second),
-		VotingPeriod:          msg.VotingPeriod,
-		Electorate:            electorate,
-		RequiredOperator:      requiredOperator,
-		Treasury:              msg.Treasury,
-		ReplaceOperator:       msg.ReplaceOperator,
-		UpdateMinVotingPeriod: msg.UpdateMinVotingPeriod,
+		Id:               id,
+		Kind:             msg.Kind,
+		Proposer:         proposer,
+		Title:            msg.Title,
+		Summary:          msg.Summary,
+		Status:           types.ProposalStatusVoting,
+		SubmitTime:       now,
+		VotingEndTime:    now.Add(time.Duration(msg.VotingPeriod) * time.Second),
+		VotingPeriod:     msg.VotingPeriod,
+		Electorate:       electorate,
+		RequiredOperator: requiredOperator,
+		Treasury:         msg.Treasury,
+		ReplaceOperator:  msg.ReplaceOperator,
 	}
 	k.SetProposal(ctx, proposal)
 	for _, elector := range electors {
@@ -94,8 +93,6 @@ func (k Keeper) resolveElectorate(ctx sdk.Context, msg *types.MsgSubmitProposal)
 		if _, found := k.lookupRegion(ctx, msg.ReplaceOperator.RegionId); !found {
 			return types.ElectorateKindUnspecified, sdkerrors.Wrapf(types.ErrUnknownRegion, "%s", msg.ReplaceOperator.RegionId)
 		}
-		return types.ElectorateKindCountryRegionOperators, nil
-	case types.ProposalKindUpdateMinVotingPeriod:
 		return types.ElectorateKindCountryRegionOperators, nil
 	default:
 		return types.ElectorateKindUnspecified, sdkerrors.Wrap(types.ErrInvalidProposal, "unknown proposal kind")

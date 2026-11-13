@@ -16,7 +16,6 @@ func TestParseProposalKind(t *testing.T) {
 		{"", types.ProposalKindUnspecified},
 		{"treasury", types.ProposalKindTreasuryWithdraw},
 		{"replace-operator", types.ProposalKindReplaceRegionOperator},
-		{"update-min-voting-period", types.ProposalKindUpdateMinVotingPeriod},
 	} {
 		t.Run(tc.value, func(t *testing.T) {
 			cmd := CmdQueryProposals()
@@ -27,8 +26,13 @@ func TestParseProposalKind(t *testing.T) {
 		})
 	}
 
-	cmd := CmdQueryProposals()
-	require.NoError(t, cmd.Flags().Set(flagKind, "invalid"))
-	_, err := parseProposalKind(cmd)
-	require.Error(t, err)
+	for _, value := range []string{"invalid", "update-min-voting-period", "PROPOSAL_KIND_UPDATE_MIN_VOTING_PERIOD", "3"} {
+		t.Run(value, func(t *testing.T) {
+			cmd := CmdQueryProposals()
+			require.NoError(t, cmd.Flags().Set(flagKind, value))
+			kind, err := parseProposalKind(cmd)
+			require.ErrorContains(t, err, "unknown kind")
+			require.Equal(t, types.ProposalKindUnspecified, kind)
+		})
+	}
 }
