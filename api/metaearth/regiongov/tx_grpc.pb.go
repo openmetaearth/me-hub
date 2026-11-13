@@ -36,7 +36,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MsgClient interface {
-	// SubmitProposal opens a treasury withdrawal or region-operator replacement vote.
+	// SubmitProposal opens a treasury withdrawal or region-operator replacement
+	// vote.
 	SubmitProposal(ctx context.Context, in *MsgSubmitProposal, opts ...grpc.CallOption) (*MsgSubmitProposalResponse, error)
 	// Vote casts or, for the dao only, overwrites a ballot.
 	Vote(ctx context.Context, in *MsgVote, opts ...grpc.CallOption) (*MsgVoteResponse, error)
@@ -171,7 +172,8 @@ func (c *msgClient) UnfreezeEquity(ctx context.Context, in *MsgUnfreezeEquity, o
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility
 type MsgServer interface {
-	// SubmitProposal opens a treasury withdrawal or region-operator replacement vote.
+	// SubmitProposal opens a treasury withdrawal or region-operator replacement
+	// vote.
 	SubmitProposal(context.Context, *MsgSubmitProposal) (*MsgSubmitProposalResponse, error)
 	// Vote casts or, for the dao only, overwrites a ballot.
 	Vote(context.Context, *MsgVote) (*MsgVoteResponse, error)
