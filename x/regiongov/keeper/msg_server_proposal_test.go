@@ -80,7 +80,7 @@ func (s *KeeperTestSuite) TestSubmitVoteAndEndBlock() {
 	s.Require().Equal(types.ProposalStatusPassed, s.mustProposal(passed.Id).Status)
 }
 
-func (s *KeeperTestSuite) TestDaoVetoBeforeEndBlock() {
+func (s *KeeperTestSuite) TestDaoVetoAtVotingEnd() {
 	s.SetupTest()
 	usa := operatorAccount(s.usaValidator.OperatorAddress)
 	withdrawal := s.withdrawal("usa")
@@ -98,13 +98,17 @@ func (s *KeeperTestSuite) TestDaoVetoBeforeEndBlock() {
 
 	s.Require().NoError(s.vote(s.Dao.GlobalDao, id, types.VoteOptionNo))
 	s.Require().Equal(types.DaoVoteNo, s.mustProposal(id).DaoVote)
-	s.Require().Equal(types.ProposalStatusRejected, s.mustProposal(id).Status)
-	s.Require().ErrorIs(s.vote(s.Dao.GlobalDao, id, types.VoteOptionYes), types.ErrVotingClosed)
+	s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(id).Status)
+	end := s.mustProposal(id).VotingEndTime
+	s.endBlockAt(end.Add(-time.Nanosecond))
+	s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(id).Status)
 
 	s.Ctx = s.Ctx.WithEventManager(sdk.NewEventManager())
-	s.endBlockAt(s.mustProposal(id).VotingEndTime)
+	s.endBlockAt(end)
 	s.Require().Equal(types.ProposalStatusRejected, s.mustProposal(id).Status)
-	s.Require().Empty(s.Ctx.EventManager().Events())
+	s.Require().Len(s.Ctx.EventManager().Events(), 1)
+	s.Require().Equal(types.EventTypeTallyProposal, s.Ctx.EventManager().Events()[0].Type)
+	s.Require().ErrorIs(s.vote(s.Dao.GlobalDao, id, types.VoteOptionYes), types.ErrVotingClosed)
 	s.Require().Equal(before, s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom))
 	receiver := sdk.MustAccAddressFromBech32(withdrawal.Receiver)
 	s.Require().True(s.App.BankKeeper.GetBalance(s.Ctx, receiver, params.BaseDenom).IsZero())

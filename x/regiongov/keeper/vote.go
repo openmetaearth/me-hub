@@ -57,22 +57,10 @@ func (k Keeper) castVote(ctx sdk.Context, msg *types.MsgVote) error {
 	return nil
 }
 
-// castDaoVote records the dao ballot. It is not a 51% vote.
-// No rejects the proposal immediately. Yes can be overwritten with No until then.
+// castDaoVote records the dao ballot outside the counted electorate. Both yes
+// and no can be overwritten until voting closes; EndBlocker uses the final ballot.
 func (k Keeper) castDaoVote(ctx sdk.Context, proposal types.Proposal, voter string, option types.VoteOption) error {
 	proposal.DaoVote = daoVote(option)
-	if option == types.VoteOptionNo {
-		proposal.Status = types.ProposalStatusRejected
-		k.DeleteVotingQueue(ctx, proposal.VotingEndTime, proposal.Id)
-		k.SetProposal(ctx, proposal)
-		ctx.EventManager().EmitEvent(sdk.NewEvent(
-			types.EventTypeVetoProposal,
-			sdk.NewAttribute(types.AttributeKeyProposalID, strconv.FormatUint(proposal.Id, 10)),
-			sdk.NewAttribute(types.AttributeKeyVoter, voter),
-			sdk.NewAttribute(types.AttributeKeyStatus, proposal.Status.String()),
-		))
-		return nil
-	}
 	k.SetProposal(ctx, proposal)
 	k.emitVote(ctx, proposal.Id, voter, option)
 	return nil
