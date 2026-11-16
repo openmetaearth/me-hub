@@ -235,9 +235,23 @@ submit_test_proposal() {
  query votes "$PROPOSAL_ID" | assert_json '(.votes // [] | length) == 0'
 }
 
+vote_test_dao() {
+ local option=$1 stage=${2:-dao-$1}
+ send_tx "$DAO_KEY" vote "$PROPOSAL_ID" "$option"
+ query proposal "$PROPOSAL_ID" > "$RESULT_DIR/$stage.json"
+ assert_json --arg option "$option" '
+  .proposal.status == "PROPOSAL_STATUS_VOTING" and
+  .proposal.dao_vote == ("DAO_VOTE_" + ($option | ascii_upcase))
+ ' < "$RESULT_DIR/$stage.json"
+}
+
 veto_test_proposal() {
- send_tx "$DAO_KEY" vote "$PROPOSAL_ID" no
- query proposal "$PROPOSAL_ID" | assert_json '.proposal.status == "PROPOSAL_STATUS_REJECTED"'
+ local period
+ period=$(query proposal "$PROPOSAL_ID" | jq -er '.proposal.voting_period')
+ # NO is only the current DAO ballot, not an immediate rejection or cancellation.
+ vote_test_dao no
+ wait_for_proposal_status "$period" PROPOSAL_STATUS_REJECTED
+ query proposal "$PROPOSAL_ID" | assert_json '.proposal.dao_vote == "DAO_VOTE_NO"'
 }
 
 test_submit_treasury_proposal() {
@@ -275,16 +289,22 @@ pass_test_proposal() {
 wait_for_proposal_pass() { wait_for_proposal_status "$1" PROPOSAL_STATUS_PASSED; }
 
 wait_for_proposal_status() {
- local period=$1 expected=$2 status deadline
+ local period=$1 expected=$2 status deadline end_time block_time
+ end_time=$(query proposal "$PROPOSAL_ID" | jq -er '.proposal.voting_end_time | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601')
  deadline=$((SECONDS + period + TX_TIMEOUT))
- echo "Waiting for proposal $PROPOSAL_ID to reach $expected (voting period: $period seconds)..."
+ echo "Waiting for proposal $PROPOSAL_ID to reach $expected at voting expiry (voting period: $period seconds)..."
  while (( SECONDS < deadline )); do
   status=$(query proposal "$PROPOSAL_ID" | jq -er '.proposal.status')
   if [[ $status == "$expected" ]]; then
-   query proposal "$PROPOSAL_ID" | jq .
-   return
+   block_time=$("$MED_BIN" query block "${NET[@]}" | jq -er '.block.header.time | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601')
+   # Require committed chain time past the deadline, including fractional seconds.
+   if (( block_time > end_time )); then
+    query proposal "$PROPOSAL_ID" | jq .
+    return
+   fi
+  elif [[ $status != PROPOSAL_STATUS_VOTING ]]; then
+   fail "proposal $PROPOSAL_ID ended with $status, expected $expected"
   fi
-  [[ $status == PROPOSAL_STATUS_VOTING ]] || fail "proposal $PROPOSAL_ID ended with $status, expected $expected"
   sleep "$POLL_INTERVAL"
  done
  fail "proposal $PROPOSAL_ID timed out; inspect chain before rerunning"
@@ -428,70 +448,113 @@ test_equity_treasury_other_region_rejected() {
  restore_equity
 }
 
+current_region_operator() {
+ "$MED_BIN" query staking region "$REGION_ID" "${NET[@]}" --output json \
+  | jq -er '.region.operator_address | select(startswith("mevaloper1"))'
+}
+
+assert_region_operator() {
+ "$MED_BIN" query staking region "$REGION_ID" "${NET[@]}" --output json \
+  | assert_json --arg operator "$1" '.region.operator_address == $operator'
+}
+
 require_new_operator() {
+ local current signer
+ current=$(current_region_operator)
+ signer=$("$MED_BIN" keys show "$OPERATOR_KEY" -a --bech val "${KEY[@]}")
+ [[ $signer == "$current" ]] || fail 'OPERATOR_KEY must be the current region operator; update OPERATOR_KEY/VOTER_KEYS after a successful replacement'
  [[ -n $NEW_OPERATOR ]] || generate_operator_address
- local current
- current=$("$MED_BIN" keys show "$OPERATOR_KEY" -a --bech val ${KEY[@]+"${KEY[@]}"})
  [[ $(printf '%s' "$NEW_OPERATOR" | tr '[:upper:]' '[:lower:]') != $(printf '%s' "$current" | tr '[:upper:]' '[:lower:]') ]] \
   || fail 'NEW_OPERATOR must differ from the current operator; if index 23 was already used, set NEW_OPERATOR to another unused address'
+ printf '%s\n' "$current" > "$RESULT_DIR/original-operator.txt"
  printf '%s\n' "$NEW_OPERATOR" > "$RESULT_DIR/new-operator.txt"
  printf 'New operator: %s\n' "$NEW_OPERATOR"
 }
 
-test_operator_proposal_pass() { pass_test_proposal replace-operator; }
+operator_replacement_notice() {
+ printf 'Region %s now uses operator %s; no automatic rollback.\n' "$REGION_ID" "$NEW_OPERATOR"
+ printf 'Before later tests, recover/fund its signing key and update OPERATOR_KEY/VOTER_KEYS; choose another unused NEW_OPERATOR.\n'
+}
 
-test_treasury_proposal_51pass_daoveto() {
- local voter params threshold period eligible required yes end_time deadline block_time
- local voters=()
+test_operator_proposal_pass() {
+ pass_test_proposal replace-operator
+ assert_region_operator "$NEW_OPERATOR"
+ operator_replacement_notice
+}
+
+vote_operator_threshold_yes() {
+ local threshold=$1 eligible required voter address dao selected
+ local voters=() addresses=()
  read -r -a voters <<< "$VOTER_KEYS"
- for voter in "${voters[@]}"; do key_address "$voter" >/dev/null; done
+ eligible=$(jq -er '.electors | length | select(. > 0)' "$RESULT_DIR/electors-$PROPOSAL_ID.json")
+ # Reach 51% using real, distinct operator ballots, rounded up to whole voters.
+ required=$(((eligible * threshold + 99) / 100))
+ (( ${#voters[@]} >= required )) || fail "set VOTER_KEYS to at least $required eligible operator keys ($eligible electors)"
+ dao=$(key_address "$DAO_KEY")
+ for voter in "${voters[@]:0:required}"; do
+  address=$(key_address "$voter")
+  [[ $address != "$dao" ]] || fail 'DAO approval does not count as an operator ballot'
+  assert_json --arg voter "$address" 'any(.electors[]; .operator == $voter)' < "$RESULT_DIR/electors-$PROPOSAL_ID.json"
+  addresses+=("$address")
+ done
+ selected=$(printf '%s\n' "${addresses[@]}" | jq -R . | jq -s .)
+ printf '%s' "$selected" | assert_json 'length == (unique | length)'
+ echo "Voting YES with $required/$eligible operators (threshold: $threshold%)..."
+ for voter in "${voters[@]:0:required}"; do send_tx "$voter" vote "$PROPOSAL_ID" yes; done
+ query votes "$PROPOSAL_ID" --limit "$eligible" > "$RESULT_DIR/operator-yes-votes.json"
+ assert_json --argjson selected "$selected" --argjson eligible "$eligible" --argjson threshold "$threshold" \
+  --slurpfile snapshot "$RESULT_DIR/electors-$PROPOSAL_ID.json" '
+  [.votes[]? | select(.option == "VOTE_OPTION_YES") | .voter] as $yes |
+  ($yes | sort) == ($selected | sort) and
+  ($yes | length) == ($yes | unique | length) and
+  all($yes[]; . as $voter | any($snapshot[0].electors[]; .operator == $voter)) and
+  ($yes | length) * 100 >= $eligible * $threshold
+ ' < "$RESULT_DIR/operator-yes-votes.json"
+}
+
+test_proposal_51pass_dao_override() {
+ local kind=$1 final_option=$2 params threshold period original_operator expected
  params=$(query params)
  threshold=$(printf '%s' "$params" | jq -er '.params.pass_threshold_percent')
  [[ $threshold == 51 ]] || fail "this test requires pass_threshold_percent=51, got $threshold"
  period=$(printf '%s' "$params" | jq -er '.params.min_voting_period')
+ if [[ $kind == replace-operator ]]; then original_operator=$(current_region_operator); fi
+ submit_test_proposal "$kind"
+ vote_operator_threshold_yes "$threshold"
 
- submit_test_proposal treasury
- eligible=$(jq -er '.electors | length | select(. > 0)' "$RESULT_DIR/electors-$PROPOSAL_ID.json")
- # Reach the 51% threshold with the smallest whole number of operator votes.
- required=$(((eligible * threshold + 99) / 100))
- (( ${#voters[@]} >= required )) || fail "set VOTER_KEYS to at least $required eligible operator keys ($eligible electors)"
- echo "Voting YES with $required/$eligible operators (threshold: $threshold%)..."
- yes=0
- for voter in "${voters[@]}"; do
-  (( yes < required )) || break
-  send_tx "$voter" vote "$PROPOSAL_ID" yes
-  yes=$((yes + 1))
- done
- query votes "$PROPOSAL_ID" --limit "$eligible" > "$RESULT_DIR/operator-yes-votes.json"
- assert_json --argjson eligible "$eligible" --argjson threshold "$threshold" '
-  ([.votes[]? | select(.option == "VOTE_OPTION_YES")] | length) * 100 >= $eligible * $threshold
- ' < "$RESULT_DIR/operator-yes-votes.json"
-
- send_tx "$DAO_KEY" vote "$PROPOSAL_ID" yes
- query proposal "$PROPOSAL_ID" > "$RESULT_DIR/dao-yes.json"
- assert_json '.proposal.status == "PROPOSAL_STATUS_VOTING" and .proposal.dao_vote == "DAO_VOTE_YES"' < "$RESULT_DIR/dao-yes.json"
- end_time=$(jq -er '.proposal.voting_end_time | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601' "$RESULT_DIR/dao-yes.json")
-
- # DAO may overwrite YES with NO before voting closes, rejecting immediately.
- veto_test_proposal
- query proposal "$PROPOSAL_ID" > "$RESULT_DIR/dao-veto.json"
- assert_json '.proposal.status == "PROPOSAL_STATUS_REJECTED" and .proposal.dao_vote == "DAO_VOTE_NO"' < "$RESULT_DIR/dao-veto.json"
-
- deadline=$((SECONDS + period + TX_TIMEOUT))
- echo "DAO vetoed proposal $PROPOSAL_ID; waiting past its voting end time to verify it stays rejected..."
- while (( SECONDS < deadline )); do
-  block_time=$("$MED_BIN" query block ${NET[@]+"${NET[@]}"} | jq -er '.block.header.time | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601')
-  # Use committed chain time, not the local clock; wait past fractional seconds too.
-  if (( block_time > end_time )); then
-   query proposal "$PROPOSAL_ID" > "$RESULT_DIR/after-voting-end.json"
-   assert_json '.proposal.status == "PROPOSAL_STATUS_REJECTED" and .proposal.dao_vote == "DAO_VOTE_NO"' < "$RESULT_DIR/after-voting-end.json"
-   jq . "$RESULT_DIR/after-voting-end.json"
-   return
+ # Every DAO overwrite must leave the proposal open until the on-chain deadline.
+ vote_test_dao yes dao-initial-yes
+ vote_test_dao no dao-veto
+ if [[ $kind == replace-operator ]]; then assert_region_operator "$original_operator"; fi
+ if [[ $final_option == yes ]]; then
+  vote_test_dao yes dao-restored-yes
+  if [[ $kind == replace-operator ]]; then assert_region_operator "$original_operator"; fi
+  expected=PROPOSAL_STATUS_PASSED
+ else
+  expected=PROPOSAL_STATUS_REJECTED
+ fi
+ wait_for_proposal_status "$period" "$expected"
+ query proposal "$PROPOSAL_ID" > "$RESULT_DIR/after-voting-end.json"
+ assert_json --arg status "$expected" --arg option "$final_option" '
+  .proposal.status == $status and .proposal.dao_vote == ("DAO_VOTE_" + ($option | ascii_upcase))
+ ' < "$RESULT_DIR/after-voting-end.json"
+ if [[ $kind == replace-operator ]]; then
+  if [[ $final_option == yes ]]; then
+   assert_region_operator "$NEW_OPERATOR"
+   operator_replacement_notice
+  else
+   assert_region_operator "$original_operator"
   fi
-  sleep "$POLL_INTERVAL"
- done
- fail "timeout waiting past proposal $PROPOSAL_ID voting end time; inspect chain before rerunning"
+ fi
 }
+
+test_treasury_proposal_51pass_daoveto() { test_proposal_51pass_dao_override treasury no; }
+
+test_treasury_proposal_51pass_daoveto_then_daoyes() { test_proposal_51pass_dao_override treasury yes; }
+
+test_replaceoperator_proposal_51pass_daoveto() { test_proposal_51pass_dao_override replace-operator no; }
+
+test_replaceoperator_proposal_51pass_daoveto_then_daoyes() { test_proposal_51pass_dao_override replace-operator yes; }
 
 test_queries() {
  "$ROOT/queries.sh" all > "$RESULT_DIR/queries.jsonl"
@@ -513,7 +576,10 @@ run_case() (
  echo "PASS: $1"
 )
 
-TESTS=(test_submit_equity_update test_approve_pending_action test_reject_pending_action test_submit_freeze_equity test_submit_unfreeze_equity test_freeze_equity test_unfreeze_equity test_freeze_region test_unfreeze_region test_submit_treasury_proposal test_submit_operator_proposal test_vote test_treasury_proposal_pass test_treasury_proposal_51pass_daoveto test_equity_treasury_proposal_pass test_equity_treasury_other_region_rejected test_operator_proposal_pass test_queries)
+# All operator-dependent cases must finish before the one successful replacement.
+# test_operator_proposal_pass remains a standalone command: the final NO->YES case
+# also covers its successful replacement, without reusing obsolete signing keys.
+TESTS=(test_submit_equity_update test_approve_pending_action test_reject_pending_action test_submit_freeze_equity test_submit_unfreeze_equity test_freeze_equity test_unfreeze_equity test_freeze_region test_unfreeze_region test_submit_treasury_proposal test_submit_operator_proposal test_vote test_treasury_proposal_pass test_treasury_proposal_51pass_daoveto test_treasury_proposal_51pass_daoveto_then_daoyes test_equity_treasury_proposal_pass test_equity_treasury_other_region_rejected test_replaceoperator_proposal_51pass_daoveto test_queries test_replaceoperator_proposal_51pass_daoveto_then_daoyes)
 
 run_all() {
  local RESULT_DIR
@@ -555,8 +621,9 @@ run_all() {
 main() {
  if (( $# == 0 )); then
   printf 'Usage: run.sh <all|command_name>\n'
-  printf '  all: run every test in order, stopping on the first failure\n'
+  printf '  all: run the ordered suite, stopping on the first failure; one operator replacement runs last\n'
   printf '%s\n' "${TESTS[@]}"
+  printf '  test_operator_proposal_pass: standalone only; all covers success in the final DAO NO->YES case\n'
   return
  fi
  (( $# == 1 )) || fail 'specify one command name'
@@ -564,7 +631,7 @@ main() {
   run_all
   return
  fi
- case " ${TESTS[*]} " in
+ case " ${TESTS[*]} test_operator_proposal_pass " in
   *" $1 "*) run_case "$1" ;;
   *) fail "unknown command: $1" ;;
  esac
