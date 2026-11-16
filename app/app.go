@@ -57,7 +57,7 @@ import (
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_16"
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_17"
 	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_18"
-	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_18_rc2"
+	"github.com/openmetaearth/me-hub/app/upgrades/v2_0_18_rc3"
 	"github.com/openmetaearth/me-hub/docs"
 	metypes "github.com/openmetaearth/me-hub/types"
 	gravitykeeper "github.com/openmetaearth/me-hub/x/gravity/keeper"
@@ -83,7 +83,7 @@ var (
 		v2_0_16.Upgrade,
 		v2_0_17.Upgrade,
 		v2_0_18.Upgrade,
-		v2_0_18_rc2.Upgrade,
+		v2_0_18_rc3.Upgrade,
 	}
 )
 

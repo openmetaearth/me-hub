@@ -1,4 +1,4 @@
-package v2_0_18_rc2 //nolint:revive
+package v2_0_18_rc3 //nolint:revive
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"

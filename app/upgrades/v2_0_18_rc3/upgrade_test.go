@@ -1,4 +1,4 @@
-package v2_0_18_rc2_test //nolint:revive
+package v2_0_18_rc3_test //nolint:revive
 
 import (
 	"errors"
