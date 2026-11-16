@@ -30,13 +30,15 @@ This guide will walk you through the steps required to set up and run a ME Hub f
 
 ### Binary integration tests
 
-The scripts in `scripts/regiongov/` invoke the installed `med` binary directly;
-All account lookups, transactions and queries use `--home ./nodes/hub-nodes/node1`
-(relative to the working directory).
+The scripts in `scripts/regiongov/` invoke the installed `med` binary directly.
+Account lookups, transactions and chain queries use `--home ./nodes/hub-nodes/node1`
+(relative to the working directory); public test-key derivation uses an isolated
+keyring under the case's result directory.
 They require Bash and `jq`. Edit `scripts/regiongov/config.sh` or override its
 values through environment variables. Defaults are `DAO_KEY=global_dao`,
-`OPERATOR_KEY=val4`, and `REGION_ID=chn`. Set `EQUITY_ADDRESSES` to at least two
-space-separated test account addresses. `MED_BIN` can select another prebuilt
+`OPERATOR_KEY=val4`, and `REGION_ID=chn`. Ordinary equity cases derive two public
+test addresses (HD indices 21–22) when `EQUITY_ADDRESSES` is empty, or accept at
+least two space-separated test addresses. `MED_BIN` can select another prebuilt
 binary; scripts never compile or install it.
 
 ```bash
@@ -48,65 +50,118 @@ binary; scripts never compile or install it.
 # Pass any other regiongov query and its flags directly.
 ./scripts/regiongov/queries.sh proposals --status rejected --kind treasury
 
-# List independent test functions (also the default when no arguments are given).
+# List commands (also the default when no arguments are given).
 ./scripts/regiongov/run.sh
-# Run one command at a time; no preflight mode or automatic full-suite execution.
-# Validators and regions are created by scripts/regiongov/setup_4validator.sh.
-# Execute a single feature.
+# Validators and regions must already exist; setup_4validator.sh creates them.
+# Run one case; explicitly unfreeze after the region freeze case.
 ./scripts/regiongov/run.sh test_freeze_region
+./scripts/regiongov/run.sh test_unfreeze_region
 EQUITY_ADDRESSES="me1... me1..." ./scripts/regiongov/run.sh test_submit_freeze_equity
-# Run each additional case separately.
 ./scripts/regiongov/run.sh test_submit_treasury_proposal
 ./scripts/regiongov/run.sh test_vote
-# IND/CHN operators plus DAO vote yes; wait for the on-chain voting period.
+# IND/CHN operators plus DAO vote YES; wait for the on-chain voting period.
 ./scripts/regiongov/run.sh test_treasury_proposal_pass
-./scripts/regiongov/run.sh test_operator_proposal_pass
+# Real operator ballots reach 51%; final DAO NO rejects only at voting expiry.
+./scripts/regiongov/run.sh test_treasury_proposal_51pass_daoveto
+./scripts/regiongov/run.sh test_treasury_proposal_51pass_daoveto_then_daoyes
+./scripts/regiongov/run.sh test_replaceoperator_proposal_51pass_daoveto
+# Run successful operator replacement LAST: it changes the key needed later.
+./scripts/regiongov/run.sh test_replaceoperator_proposal_51pass_daoveto_then_daoyes
+# Alternatively, explicitly opt into the ordered suite (stops on first failure).
+# Do not run it immediately after the successful replacement above without
+# updating signing keys, funding and NEW_OPERATOR as described below.
+# ./scripts/regiongov/run.sh all
 ```
 
-Each `test_*` function is independently runnable and prepares its own prerequisites;
-it does not depend on earlier tests. Setup/cleanup may send additional transactions
-(for example, testing unfreeze first creates frozen state). Each successful equity
-case restores the original membership, region cases unfreeze their targets, and
-the original proposal cases veto their own proposal. Each case has an isolated result directory
-and prints `PASS` on success; command errors stop execution without blind rollback.
-Region freeze tests need only the DAO key and region IDs, proposal/vote tests do
-not require equity addresses, and `test_queries` requires neither signing keys nor
-equity configuration. Pass exactly one command name; no arguments lists commands.
+Each case can be selected independently, provided the configured keys, balances
+and starting state are correct. Setup/cleanup may send additional transactions.
+Successful equity cases restore the original membership; region freeze/unfreeze
+cases leave the requested state (the ordered suite pairs them). The basic submit
+and vote cases cast DAO NO and **wait for voting expiry and REJECTED** as cleanup:
+NO does not cancel a proposal immediately. Each case has an isolated result
+directory and prints `PASS` on success; command errors stop execution without
+blind rollback. Region freeze tests need only the DAO key and region IDs;
+operator-electorate proposal/vote tests do not require equity addresses, and
+`test_queries` requires neither signing keys nor equity configuration. Pass
+exactly one command name; no arguments only lists commands.
 
 The live suite exercises all 11 transaction commands: equity membership update
 and approval, batch freeze rejection and approval, batch unfreeze approval,
 immediate DAO equity freeze/unfreeze, region freeze/unfreeze, both proposal
 kinds and voting. It checks committed transaction codes and queries resulting
-state. The two `*_proposal_pass` cases use `VOTER_KEYS="val3 val4"`
-(IND and CHN; me_earth/experience_region are excluded from voting and tally)
-and DAO yes, then assert `PROPOSAL_STATUS_PASSED` at voting expiry. They print
-the proposal JSON before submitting. The treasury payload requests 1umec for DAO;
-the operator payload defaults to the current operator (override `NEW_OPERATOR`
-for a different validator). PASSED checks tally success, not a payout or replacement
-execution assertion. All voters must be eligible and funded for transaction fees. Set `SECOND_REGION_ID` to exercise multi-region batches.
+state. Operator-electorate cases default to `VOTER_KEYS="val3 val4"` (IND and
+CHN; me_earth/experience_region are excluded from voting and tally). All voters
+must be eligible and funded for transaction fees. Set `SECOND_REGION_ID` to
+exercise multi-region batches.
+
+The `*_51pass_daoveto*` cases require `pass_threshold_percent=51` and cast the
+smallest whole number of distinct, snapshotted operator YES ballots needed to
+reach it; DAO approval does not count toward 51%. DAO YES→NO must leave
+`VOTING` / `DAO_VOTE_NO`; `*_then_daoyes` restores `VOTING` / `DAO_VOTE_YES`.
+At expiry final NO yields `REJECTED`, whereas final YES with the threshold met
+yields `PASSED`. The operator cases also verify no replacement during voting,
+then the unchanged operator on rejection or the exact new operator on passage.
+
+`NEW_OPERATOR` must differ from the current on-chain operator, which must match
+`OPERATOR_KEY`. By default it is derived at public test HD index 23 without
+saving a signing key. A successful replacement is **not rolled back**: recover
+and fund the new signing key, update `OPERATOR_KEY` / `VOTER_KEYS` and choose an
+unused `NEW_OPERATOR` before another run. Index 23 is deterministic, not fresh;
+never use these public test identities for real funds. `all` stops on the first
+failure and puts successful DAO NO→YES replacement last to preserve earlier
+cases' signing keys. The older `test_operator_proposal_pass` remains a standalone
+command but is deliberately omitted from `all`: its successful replacement is
+covered by that final case, avoiding a second replacement with obsolete keys.
+
+Basic and DAO-override treasury payloads request **10umec for DAO**. The treasury
+must already be funded; the runner never changes governance parameters, funds a
+treasury or starts/restarts nodes. The ordinary treasury pass, treasury NO→YES
+and equity treasury pass cases each withdraw 10umec (30umec total in `all`).
+Provide enough spendable funds for sequential cases and the equity percentage
+cap; rejected proposals transfer nothing, but treasury rewards may still accrue.
+Existing equity treasury cases also fund each signing equity from DAO using
+`FUND_AMOUNT` (default `1000000000umec`); those transfers and fees remain.
 
 `NODE`, `CHAIN_ID`, `KEYRING_BACKEND`, `FEES` or `GAS_PRICES` can override local
 settings. `GAS` defaults to `auto`; when neither `FEES` nor `GAS_PRICES` is set,
-the script supplies `10000umec` in fees. Failed JSON assertions print the actual
-response, including transaction error codes and logs. A broadcast timeout is never automatically
-retried, because the transaction may already have committed.
+the script supplies `20000umec` in fees. Voting duration uses the current
+`min_voting_period` parameter without modifying it; even cleanup waits may take
+an hour with a 3600-second period. The wait budget is the voting period plus
+`TX_TIMEOUT`, not `TX_TIMEOUT` alone. Allow time for all committed votes and
+overwrites. Failed JSON assertions print the actual response,
+including transaction error codes and logs. A broadcast timeout is never
+automatically retried, because the transaction may already have committed.
 
-Use a dedicated non-DAO country-region operator with funds for fees and at least
-two test equity addresses. All target regions/addresses must initially be unfrozen,
-and the test region must have no pending actions. Do not run concurrent writers.
-On success the original equity membership is restored, but transaction fees,
-proposal/action history, and explicit unfrozen records remain. On failure the
-script stops without blind rollback; inspect the printed result directory (which
-contains the original membership, transaction hashes and responses), resolve any
-pending actions, and restore state manually before rerunning. Validators and regions are created by
-`scripts/regiongov/setup_4validator.sh`, not this runner. There is no global preflight: configure the prerequisites before
-running a case; the binary reports transaction errors directly.
+Use a dedicated non-DAO country-region operator with funds for fees. All target
+regions/addresses must initially be unfrozen, and the test region must have no
+pending actions. Do not run concurrent writers. On success transaction fees,
+funding transfers, treasury payouts, proposal/action history, explicit unfrozen
+records and successful operator replacements remain. On failure inspect the
+printed result directory (original state, transaction hashes and responses),
+resolve pending actions and any still-voting proposals, and restore state manually
+before rerunning. Validators and regions are created by
+`scripts/regiongov/setup_4validator.sh`, not this runner. `all` checks the replacement
+address/current operator up front, but does not globally preflight every balance
+or pending action; configure the prerequisites before running a case.
 
 
 All region governance messages are available under `med tx regiongov`. Append
 `--from <key> --chain-id <chain-id>` to each command. The signer supplies the
 proposer, voter, or authority; authority operations still require DAO permission
 on chain. Add `--generate-only` to inspect an unsigned transaction without broadcasting.
+For both `TreasuryWithdrawPayload` and `ReplaceRegionOperatorPayload`, the DAO
+can repeatedly vote `yes` or `no` while chain time is **strictly before**
+`voting_end_time`. Each DAO vote overwrites its previous ballot. Neither YES nor
+NO ends voting early: the proposal remains `PROPOSAL_STATUS_VOTING`, with
+`dao_vote` recording `DAO_VOTE_YES` or `DAO_VOTE_NO`. At the deadline, EndBlocker
+uses the DAO's **last ballot**. Final NO (or no DAO approval) rejects the proposal
+without executing it. Final YES permits passage only if the counted electorate
+meets `pass_threshold_percent`; equity withdrawals also require the snapshotted
+region operator's YES. A successful tally executes the payload at expiry; an
+execution error yields `PROPOSAL_STATUS_FAILED`, not `PASSED`. Votes at or after
+the deadline, or after finalization, are rejected. These overwrite rules apply to
+the DAO only; ordinary electors cannot change an already cast ballot.
+
 `electors[].operator`, `proposal.required_operator`, and `MsgVote.voter` use ordinary
 account addresses (`me1…`). An operator's ballot account has the same address bytes
 as the staking operator. `required_operator` is fixed when the proposal is submitted;
