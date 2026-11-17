@@ -7,7 +7,6 @@ import (
 
 	appkeepers "github.com/openmetaearth/me-hub/app/keepers"
 	"github.com/openmetaearth/me-hub/app/upgrades"
-	"github.com/openmetaearth/me-hub/x/regiongov"
 	regiongovtypes "github.com/openmetaearth/me-hub/x/regiongov/types"
 )
 
