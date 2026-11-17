@@ -341,6 +341,13 @@ func (s *KeeperTestSuite) TestEquityProposalSnapshotSurvivesEquityAndOperatorRep
 	s.App.RegionGovKeeper.SetEquity(s.Ctx, types.RegionEquity{RegionId: "usa", Addresses: oldEquities})
 	approvedByOldOperator := s.submit(oldEquities[0], s.withdrawal("usa"))
 	missingOldOperator := s.submit(oldEquities[0], s.withdrawal("usa"))
+	// Ballots cast before membership/operator changes remain valid at tally.
+	for _, id := range []uint64{approvedByOldOperator, missingOldOperator} {
+		for _, equity := range oldEquities[1:] {
+			s.Require().NoError(s.vote(equity, id, types.VoteOptionYes))
+		}
+	}
+	s.Require().NoError(s.vote(oldOperator, approvedByOldOperator, types.VoteOptionYes))
 
 	update, err := s.msgServer.SubmitEquityUpdate(s.Ctx, &types.MsgSubmitEquityUpdate{Proposer: oldOperator, RegionId: "usa", Addresses: newEquities})
 	s.Require().NoError(err)
@@ -357,13 +364,13 @@ func (s *KeeperTestSuite) TestEquityProposalSnapshotSurvivesEquityAndOperatorRep
 			s.Require().ErrorIs(s.vote(newEquity, id, types.VoteOptionYes), types.ErrUnauthorized)
 		}
 		s.Require().ErrorIs(s.vote(newOperator.String(), id, types.VoteOptionYes), types.ErrUnauthorized)
-		// Removed equity accounts retain their snapshotted voting rights.
-		for _, oldEquity := range oldEquities[1:] {
-			s.Require().NoError(s.vote(oldEquity, id, types.VoteOptionYes))
-		}
+		// The snapshot is fixed, but removed members cannot cast further ballots.
+		s.Require().ErrorIs(s.vote(oldEquities[0], id, types.VoteOptionYes), types.ErrUnauthorized)
+		_, found := s.App.RegionGovKeeper.GetVote(s.Ctx, id, oldEquities[0])
+		s.Require().False(found)
+		s.Require().ErrorIs(s.vote(oldOperator, id, types.VoteOptionYes), types.ErrUnauthorized)
 		s.Require().NoError(s.vote(s.Dao.GlobalDao, id, types.VoteOptionYes))
 	}
-	s.Require().NoError(s.vote(oldOperator, approvedByOldOperator, types.VoteOptionYes))
 
 	fresh := s.submit(newEquities[0], s.withdrawal("usa"))
 	s.Require().Equal(newOperator.String(), s.mustProposal(fresh).RequiredOperator)

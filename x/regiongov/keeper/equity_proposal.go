@@ -74,6 +74,10 @@ func (k Keeper) authorizeEquityVote(ctx sdk.Context, proposal types.Proposal, vo
 	}
 	operator, err := proposal.RequiredOperatorAccount()
 	if err == nil && operator.String() == voter {
+		currentOperator, ok := operatorAccount(region.OperatorAddress)
+		if !ok || currentOperator.String() != voter {
+			return sdkerrors.Wrapf(types.ErrUnauthorized, "%s is no longer the operator of region %s", voter, region.RegionId)
+		}
 		return nil
 	}
 	elector, found := k.GetElector(ctx, proposal.Id, voter)
@@ -82,6 +86,11 @@ func (k Keeper) authorizeEquityVote(ctx sdk.Context, proposal types.Proposal, vo
 	}
 	if k.isEquityFrozen(ctx, region.RegionId, voter) {
 		return sdkerrors.Wrapf(types.ErrEquityFrozen, "%s", voter)
+	}
+	// Removal blocks new ballots without changing the snapshot or earlier votes.
+	equity, found := k.GetEquity(ctx, region.RegionId)
+	if !found || !containsAddress(equity.Addresses, voter) {
+		return sdkerrors.Wrapf(types.ErrUnauthorized, "%s is no longer an equity of region %s", voter, region.RegionId)
 	}
 	return nil
 }
