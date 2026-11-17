@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"strconv"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -25,6 +26,9 @@ func (k Keeper) finalizeProposal(ctx sdk.Context, proposal types.Proposal, execu
 		return
 	}
 
+	logger := k.Logger(ctx).With("height", ctx.BlockHeight(), "id", proposal.Id, "kind", proposal.Kind.String())
+	started := time.Now()
+	logger.Info("regiongov proposal execution started")
 	cacheCtx, write := ctx.CacheContext()
 	if err := k.executeProposal(cacheCtx, proposal); err != nil {
 		proposal.Status = types.ProposalStatusFailed
@@ -35,6 +39,7 @@ func (k Keeper) finalizeProposal(ctx sdk.Context, proposal types.Proposal, execu
 	// CacheContext's write also forwards events; emitting them again duplicates
 	// reset_validator, group-admin, and transfer events from proposal execution.
 	write()
+	logger.Info("regiongov proposal execution completed", "elapsed", time.Since(started))
 	proposal.Status = types.ProposalStatusPassed
 	k.SetProposal(ctx, proposal)
 	k.emitTally(ctx, proposal, true, nil)
@@ -57,7 +62,7 @@ func (k Keeper) emitTally(ctx sdk.Context, proposal types.Proposal, passed bool,
 	}
 	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeTallyProposal, attributes...))
 
-	logger := k.Logger(ctx).With("id", proposal.Id, "tally_result", result, "execute_status", proposal.Status.String())
+	logger := k.Logger(ctx).With("height", ctx.BlockHeight(), "id", proposal.Id, "tally_result", result, "execute_status", proposal.Status.String())
 	if executionErr != nil {
 		logger.Error("regiongov proposal execution failed", "err", executionErr)
 		return

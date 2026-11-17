@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
@@ -30,6 +31,8 @@ func (k Keeper) MigrateValidatorOperator(ctx sdk.Context, oldAddr, newAddr sdk.V
 		distrtypes.ValidatorSlashEventPrefix,
 		distrtypes.DelegatorStartingInfoPrefix,
 	}
+	logger := k.Logger(ctx).With("height", ctx.BlockHeight(), "old_operator", oldAddr.String(), "new_operator", newAddr.String())
+	started := time.Now()
 	store := ctx.KVStore(k.storeKey)
 	type record struct{ oldKey, newKey, value []byte }
 	var records []record
@@ -49,6 +52,8 @@ func (k Keeper) MigrateValidatorOperator(ctx sdk.Context, oldAddr, newAddr sdk.V
 		iterator.Close()
 	}
 
+	logger.Info("operator distribution records collected", "records", len(records), "elapsed", time.Since(started))
+	started = time.Now()
 	// Preserve raw values and key suffixes exactly, including empty records and
 	// all period/reference metadata. All destination checks and iterator reads
 	// finish before any write, so a conflict cannot leave a partial migration.
@@ -56,6 +61,7 @@ func (k Keeper) MigrateValidatorOperator(ctx sdk.Context, oldAddr, newAddr sdk.V
 		store.Set(record.newKey, record.value)
 		store.Delete(record.oldKey)
 	}
+	logger.Info("operator distribution records migrated", "records", len(records), "elapsed", time.Since(started))
 	return nil
 }
 

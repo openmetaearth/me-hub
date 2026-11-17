@@ -41,9 +41,11 @@ POLL_INTERVAL=${POLL_INTERVAL:-2}
 # Optional second region for testing batch region freeze (must initially be unfrozen).
 SECOND_REGION_ID=${SECOND_REGION_ID:-}
 # Optional replacement validator operator address (mevaloper...). If empty, run.sh
-# derives a public test address at HD index 23, separate from val1-val4/equity.
-# Derivation is dry-run: no key is saved. A successful replacement changes the
-# operator; recover its test key and update OPERATOR_KEY/VOTER_KEYS for later runs.
-# Index 23 is deterministic, not fresh on every run. If already used on-chain,
-# explicitly set NEW_OPERATOR to another unused address. Never use for real funds.
+# recovers a public test signing key into RESULT_DIR/derived-keys (backend: test).
+# Default index 23 is separate from validators (11-14) and equities (21,22,24,25).
+# If already used on-chain, choose another unused index, e.g. NEW_OPERATOR_INDEX=26,
+# or provide NEW_OPERATOR explicitly (no key is recovered for an explicit address).
+# A successful replacement is not rolled back. Retain/fund its key and update
+# OPERATOR_KEY/VOTER_KEYS for later runs. Never use these public keys for real funds.
+NEW_OPERATOR_INDEX=${NEW_OPERATOR_INDEX:-23}
 NEW_OPERATOR=${NEW_OPERATOR:-}

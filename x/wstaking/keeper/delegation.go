@@ -302,18 +302,26 @@ func (k *Keeper) ChangeDelegationValidator(ctx sdk.Context) {
 	for _, regionId := range regionIds {
 		region, found := k.GetRegion(ctx, regionId)
 		if found {
-			k.didKeeper.IteratorCredentialsByFilter(ctx, kyctypes.ModuleName, []byte(regionId), func(vc didtypes.Credential) (stop bool) {
-				info, found := k.didKeeper.GetDidInfo(ctx, vc.Did)
-				if found {
-					delegation, f := k.GetDelegation(ctx, sdk.MustAccAddressFromBech32(info.Address), sdk.ValAddress{})
-					if f {
-						delegation.ValidatorAddress = region.OperatorAddress
-						k.SetDelegation(ctx, delegation)
-					}
-				}
-				return false
-			})
+			k.changeRegionDelegationValidator(ctx, regionId, "", region.OperatorAddress)
 			k.DeleteChangeDelegationValidator(ctx, regionId)
 		}
 	}
+}
+
+// Reuse the region's KYC/DID index instead of scanning all delegations. An empty
+// oldOperator keeps the queued ChangeDelegationValidator behavior; replacement
+// supplies it to change only delegations that still reference the old operator.
+func (k Keeper) changeRegionDelegationValidator(ctx sdk.Context, regionID, oldOperator, newOperator string) {
+	k.didKeeper.IteratorCredentialsByFilter(ctx, kyctypes.ModuleName, []byte(regionID), func(vc didtypes.Credential) (stop bool) {
+		info, found := k.didKeeper.GetDidInfo(ctx, vc.Did)
+		if !found {
+			return false
+		}
+		delegation, found := k.GetDelegation(ctx, sdk.MustAccAddressFromBech32(info.Address), sdk.ValAddress{})
+		if found && delegation.ValidatorAddress != newOperator && (oldOperator == "" || delegation.ValidatorAddress == oldOperator) {
+			delegation.ValidatorAddress = newOperator
+			k.SetDelegation(ctx, delegation)
+		}
+		return false
+	})
 }
