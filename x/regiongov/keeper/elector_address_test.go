@@ -110,13 +110,15 @@ func (s *KeeperTestSuite) TestOperatorReplacementKeepsSnapshottedAccount() {
 	s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(pending.Id).Status)
 
 	s.Require().ErrorIs(s.vote(newAccount, pending.Id, types.VoteOptionYes), types.ErrUnauthorized)
-	s.Require().NoError(s.vote(oldAccount, pending.Id, types.VoteOptionYes))
+	s.Require().ErrorIs(s.vote(oldAccount, pending.Id, types.VoteOptionYes), types.ErrUnauthorized)
+	s.Require().Equal([]string{oldAccount}, s.electorAccounts(pending.Id))
+	s.Require().Empty(s.App.RegionGovKeeper.GetVotes(s.Ctx, pending.Id))
 	s.Require().NoError(s.vote(s.Dao.GlobalDao, pending.Id, types.VoteOptionYes))
 	fresh := s.submit(newAccount, s.withdrawal("usa"))
 	s.Require().ErrorIs(s.vote(oldAccount, fresh, types.VoteOptionYes), types.ErrUnauthorized)
 	s.Require().NoError(s.vote(newAccount, fresh, types.VoteOptionYes))
 	s.Require().NoError(s.vote(s.Dao.GlobalDao, fresh, types.VoteOptionYes))
 	s.endBlockAt(s.mustProposal(fresh).VotingEndTime)
-	s.Require().Equal(types.ProposalStatusPassed, s.mustProposal(pending.Id).Status)
+	s.Require().Equal(types.ProposalStatusRejected, s.mustProposal(pending.Id).Status)
 	s.Require().Equal(types.ProposalStatusPassed, s.mustProposal(fresh).Status)
 }

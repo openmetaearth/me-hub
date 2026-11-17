@@ -44,6 +44,15 @@ func (k Keeper) castVote(ctx sdk.Context, msg *types.MsgVote) error {
 		if k.isRegionFrozen(ctx, elector.RegionId) {
 			return sdkerrors.Wrapf(types.ErrRegionFrozen, "region %s", elector.RegionId)
 		}
+		// Keep the snapshot for tally, but require current authority to cast a vote.
+		region, found := k.lookupRegion(ctx, elector.RegionId)
+		if !found {
+			return sdkerrors.Wrapf(types.ErrUnknownRegion, "%s", elector.RegionId)
+		}
+		operator, ok := operatorAccount(region.OperatorAddress)
+		if !ok || operator.String() != voter {
+			return sdkerrors.Wrapf(types.ErrUnauthorized, "%s is no longer the operator of region %s", voter, region.RegionId)
+		}
 	}
 	if _, found := k.GetVote(ctx, proposal.Id, voter); found {
 		return sdkerrors.Wrapf(types.ErrAlreadyVoted, "%s", voter)

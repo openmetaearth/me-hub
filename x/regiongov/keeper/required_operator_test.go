@@ -43,14 +43,16 @@ func (s *KeeperTestSuite) TestMigratedRequiredOperatorQueryAndVoting() {
 	s.Require().Equal(response.Proposal, list.Proposals[0])
 	s.Require().Equal(migrated, store.Get(types.ProposalKey(id)), "queries must not rewrite state")
 
+	s.Require().NoError(s.vote(operator, id, types.VoteOptionYes))
+	s.Require().ErrorIs(s.vote(operator, id, types.VoteOptionYes), types.ErrAlreadyVoted)
 	// A replacement must not inherit approval authority on the legacy proposal.
+	// The old operator's existing approval survives, but no new vote is allowed.
 	newOperator := sdk.MustAccAddressFromBech32(sample.AccAddress())
 	s.Require().NoError(s.App.StakingKeeper.SetRegionOperator(s.Ctx, "usa", sdk.ValAddress(newOperator).String()))
 	s.Require().ErrorIs(s.vote(newOperator.String(), id, types.VoteOptionYes), types.ErrUnauthorized)
 	s.Require().ErrorIs(s.vote(sample.AccAddress(), id, types.VoteOptionYes), types.ErrUnauthorized)
 	s.Require().ErrorIs(s.vote(proposal.RequiredOperator, id, types.VoteOptionYes), sdkerrors.ErrInvalidAddress)
-	s.Require().NoError(s.vote(operator, id, types.VoteOptionYes))
-	s.Require().ErrorIs(s.vote(operator, id, types.VoteOptionYes), types.ErrAlreadyVoted)
+	s.Require().ErrorIs(s.vote(operator, id, types.VoteOptionYes), types.ErrUnauthorized)
 	s.Require().NoError(s.vote(equity, id, types.VoteOptionYes))
 	s.Require().NoError(s.vote(s.Dao.GlobalDao, id, types.VoteOptionYes))
 	s.endBlockAt(proposal.VotingEndTime)
@@ -80,7 +82,7 @@ func (s *KeeperTestSuite) TestRequiredOperatorMigrationAndLegacyGenesis() {
 	s.Require().Equal(regionsBefore, s.App.StakingKeeper.GetAllRegion(s.Ctx))
 	s.Require().NoError(k.MigrateRequiredOperatorAccounts(s.Ctx))
 	s.Require().Equal(before, regiongov.ExportGenesis(s.Ctx, k), "migration is idempotent")
-	s.Require().ErrorIs(s.vote(operator, id, types.VoteOptionYes), types.ErrAlreadyVoted)
+	s.Require().ErrorIs(s.vote(operator, id, types.VoteOptionYes), types.ErrUnauthorized)
 	s.Require().ErrorIs(s.vote(newOperator.String(), id, types.VoteOptionYes), types.ErrUnauthorized)
 
 	// Import accepts old encodings but persists only canonical account addresses.
