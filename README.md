@@ -45,6 +45,8 @@ binary; scripts never compile or install it.
 # Read-only queries and offline binary validation (no broadcast).
 ./scripts/regiongov/queries.sh
 ./scripts/regiongov/negative.sh
+# Offline signing-key recovery regressions (isolated public test keyrings only).
+bash ./scripts/regiongov/run_test.sh
 ./scripts/regiongov/queries.sh proposal 1
 ./scripts/regiongov/queries.sh action 1
 # Pass any other regiongov query and its flags directly.
@@ -69,7 +71,7 @@ EQUITY_ADDRESSES="me1... me1..." ./scripts/regiongov/run.sh test_submit_freeze_e
 ./scripts/regiongov/run.sh test_replaceoperator_proposal_51pass_daoveto_then_daoyes
 # Alternatively, explicitly opt into the ordered suite (stops on first failure).
 # Do not run it immediately after the successful replacement above without
-# updating signing keys, funding and NEW_OPERATOR as described below.
+# updating signing keys, funding and the replacement address/index as described below.
 # ./scripts/regiongov/run.sh all
 ```
 
@@ -102,12 +104,28 @@ At expiry final NO yields `REJECTED`, whereas final YES with the threshold met
 yields `PASSED`. The operator cases also verify no replacement during voting,
 then the unchanged operator on rejection or the exact new operator on passage.
 
-`NEW_OPERATOR` must differ from the current on-chain operator, which must match
-`OPERATOR_KEY`. By default it is derived at public test HD index 23 without
-saving a signing key. A successful replacement is **not rolled back**: recover
-and fund the new signing key, update `OPERATOR_KEY` / `VOTER_KEYS` and choose an
-unused `NEW_OPERATOR` before another run. Index 23 is deterministic, not fresh;
-never use these public test identities for real funds. `all` stops on the first
+`NEW_OPERATOR` must differ from the current on-chain operator. Replacement
+proposals are submitted by DAO, so they do not require `OPERATOR_KEY` to match
+the current operator; the actual voting keys must still belong to the proposal's
+electorate snapshot. By default `recover_test_key` saves a signing key named
+`regiongov-operator-23` under `RESULT_DIR/derived-keys` (backend `test`), and reads
+its validator address with `keys show --bech val`. The script prints the keyring
+path; `new-operator-key.json` contains the public key information. With `all`, the
+key is retained in the printed preflight result directory. No node keys are
+overwritten. An explicit `NEW_OPERATOR` uses that address without recovering a key.
+
+A successful replacement is **not rolled back**. Retain and fund the new signing
+key, update `OPERATOR_KEY` / `VOTER_KEYS` and choose an unused replacement before
+another run. HD index 23 is deterministic, not fresh; if it is already used,
+select another unused index, for example:
+
+```bash
+NEW_OPERATOR_INDEX=26 ./scripts/regiongov/run.sh test_replaceoperator_proposal_51pass_daoveto_then_daoyes
+```
+
+Changing the replacement index does not fix stale voting keys: `VOTER_KEYS` must
+still contain eligible operators with signing keys in the configured keyring.
+Never use these public test identities for real funds. `all` stops on the first
 failure and puts successful DAO NO→YES replacement last to preserve earlier
 cases' signing keys. The older `test_operator_proposal_pass` remains a standalone
 command but is deliberately omitted from `all`: its successful replacement is

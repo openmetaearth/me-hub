@@ -285,8 +285,6 @@ func (a *AppKeepers) InitKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	a.StakingKeeper.SetDistributionKeeper(a.DistrKeeper)
-
 	a.SlashingKeeper = slashingkeeper.NewKeeper(
 		appCodec,
 		cdc,

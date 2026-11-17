@@ -29,14 +29,19 @@ generate_equity_addresses() {
 }
 
 generate_operator_address() {
- local address
- # Reserve index 23 for the replacement operator, separate from validators/equity.
- address=$(derive_test_address 23 regiongov-operator-23) || fail 'could not derive operator address at index 23'
+ local address name="regiongov-operator-$NEW_OPERATOR_INDEX"
+ [[ $NEW_OPERATOR_INDEX =~ ^[0-9]+$ ]] || fail 'NEW_OPERATOR_INDEX must be a nonnegative HD index'
+ # Recover a signing key, not just a dry-run address. Never overwrite the node keyring.
+ recover_test_key "$NEW_OPERATOR_INDEX" "$name" > "$RESULT_DIR/new-operator-key.json" \
+  || fail "could not recover operator key at index $NEW_OPERATOR_INDEX"
+ address=$(jq -er '.address | select(type == "string" and startswith("me1"))' "$RESULT_DIR/new-operator-key.json") \
+  || fail 'could not read the recovered operator account'
  # Re-encode with the validator prefix AND checksum; replacing "me1" is invalid.
- NEW_OPERATOR=$("$MED_BIN" debug addr "$address" --home "$RESULT_DIR/derived-keys" \
-  | jq -Rer 'select(startswith("Bech32 Val: ")) | ltrimstr("Bech32 Val: ") | select(startswith("mevaloper1"))') \
-  || fail 'could not convert the derived account to a validator operator address'
- printf 'Derived operator account: %s (HD index 23)\n' "$address"
+ NEW_OPERATOR=$("$MED_BIN" keys show "$name" -a --bech val \
+  --home "$RESULT_DIR/derived-keys" --keyring-backend test) \
+  || fail 'could not read the recovered validator operator address'
+ printf 'Recovered operator key: %s (%s, HD index %s)\n' "$name" "$address" "$NEW_OPERATOR_INDEX"
+ printf 'Operator keyring: %s/derived-keys (backend: test; retained after this case)\n' "$RESULT_DIR"
 }
 
 prepare_equity() {
@@ -459,21 +464,21 @@ assert_region_operator() {
 }
 
 require_new_operator() {
- local current signer
+ local current
  current=$(current_region_operator)
- signer=$("$MED_BIN" keys show "$OPERATOR_KEY" -a --bech val "${KEY[@]}")
- [[ $signer == "$current" ]] || fail 'OPERATOR_KEY must be the current region operator; update OPERATOR_KEY/VOTER_KEYS after a successful replacement'
+ # DAO submits the proposal; OPERATOR_KEY need not be the current operator.
+ # Actual voter keys are checked against the proposal's electorate snapshot.
  [[ -n $NEW_OPERATOR ]] || generate_operator_address
  [[ $(printf '%s' "$NEW_OPERATOR" | tr '[:upper:]' '[:lower:]') != $(printf '%s' "$current" | tr '[:upper:]' '[:lower:]') ]] \
-  || fail 'NEW_OPERATOR must differ from the current operator; if index 23 was already used, set NEW_OPERATOR to another unused address'
+  || fail "NEW_OPERATOR equals current operator $current; choose another NEW_OPERATOR_INDEX (default 23) or an unused NEW_OPERATOR"
  printf '%s\n' "$current" > "$RESULT_DIR/original-operator.txt"
  printf '%s\n' "$NEW_OPERATOR" > "$RESULT_DIR/new-operator.txt"
- printf 'New operator: %s\n' "$NEW_OPERATOR"
+ printf 'Current operator: %s\nNew operator: %s\n' "$current" "$NEW_OPERATOR"
 }
 
 operator_replacement_notice() {
  printf 'Region %s now uses operator %s; no automatic rollback.\n' "$REGION_ID" "$NEW_OPERATOR"
- printf 'Before later tests, recover/fund its signing key and update OPERATOR_KEY/VOTER_KEYS; choose another unused NEW_OPERATOR.\n'
+ printf 'Before later tests, retain/fund its signing key and update OPERATOR_KEY/VOTER_KEYS; choose another unused NEW_OPERATOR_INDEX or NEW_OPERATOR.\n'
 }
 
 test_operator_proposal_pass() {
