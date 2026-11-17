@@ -196,8 +196,13 @@ func (s *KeeperTestSuite) TestResetValidatorReinitializesDistribution() {
 	feePool := d.GetFeePool(s.Ctx)
 
 	s.Require().NoError(k.SetRegionOperator(s.Ctx, region.RegionId, newAddr.String()))
-	s.Require().Equal(distrtypes.NewValidatorCurrentRewards(sdk.DecCoins{}, 1), d.GetValidatorCurrentRewards(s.Ctx, newAddr))
-	s.Require().Equal(distrtypes.NewValidatorHistoricalRewards(sdk.DecCoins{}, 1), d.GetValidatorHistoricalRewards(s.Ctx, newAddr, 0))
+	// Protobuf decodes empty repeated fields as nil, not sdk.DecCoins{}.
+	current := d.GetValidatorCurrentRewards(s.Ctx, newAddr)
+	s.Require().Equal(uint64(1), current.Period)
+	s.Require().Empty(current.Rewards)
+	historical := d.GetValidatorHistoricalRewards(s.Ctx, newAddr, 0)
+	s.Require().Equal(uint32(1), historical.ReferenceCount)
+	s.Require().Empty(historical.CumulativeRewardRatio)
 	s.Require().True(d.GetValidatorOutstandingRewardsCoins(s.Ctx, newAddr).IsZero())
 	s.Require().True(d.GetValidatorAccumulatedCommission(s.Ctx, newAddr).Commission.IsZero())
 	s.Require().Equal(feePool, d.GetFeePool(s.Ctx))
