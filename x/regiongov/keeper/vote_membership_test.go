@@ -27,7 +27,22 @@ func (s *KeeperTestSuite) TestEquityVoteRequiresCurrentMembership() {
 
 			switch state {
 			case membersReplaced:
-				k.SetEquity(s.Ctx, types.RegionEquity{RegionId: "usa", Addresses: []string{strings.ToUpper(equities[0]), newEquity}})
+				// Exercise the real update path: it canonicalizes uppercase input
+				// before DAO approval persists the replacement membership.
+				update, err := s.msgServer.SubmitEquityUpdate(s.Ctx, &types.MsgSubmitEquityUpdate{
+					Proposer: operator, RegionId: "usa", Addresses: []string{strings.ToUpper(equities[0]), newEquity},
+				})
+				s.Require().NoError(err)
+				equity, found := k.GetEquity(s.Ctx, "usa")
+				s.Require().True(found)
+				s.Require().Equal(equities, equity.Addresses, "membership must not change before DAO approval")
+				_, err = s.msgServer.ApprovePendingAction(s.Ctx, &types.MsgApprovePendingAction{
+					Authority: s.Dao.GlobalDao, ActionId: update.ActionId,
+				})
+				s.Require().NoError(err)
+				equity, found = k.GetEquity(s.Ctx, "usa")
+				s.Require().True(found)
+				s.Require().Equal([]string{equities[0], newEquity}, equity.Addresses, "approved addresses must be canonical")
 			case "membership cleared":
 				k.SetEquity(s.Ctx, types.RegionEquity{RegionId: "usa"})
 			case "membership missing":
