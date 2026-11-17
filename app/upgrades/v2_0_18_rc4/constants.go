@@ -4,7 +4,6 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	"github.com/openmetaearth/me-hub/app/upgrades"
-	regiongovtypes "github.com/openmetaearth/me-hub/x/regiongov/types"
 )
 
 const (
@@ -15,7 +14,7 @@ var Upgrade = upgrades.Upgrade{
 	Name:          UpgradeName,
 	CreateHandler: CreateUpgradeHandler,
 	StoreUpgrades: storetypes.StoreUpgrades{
-		Added:   []string{regiongovtypes.StoreKey},
+		Added:   []string{},
 		Deleted: []string{},
 	},
 }
