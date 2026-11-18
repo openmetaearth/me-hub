@@ -17,6 +17,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgCreateSBT{},
 		&MsgDeleteSBT{},
 		&MsgCreateSubAccount{},
+		&MsgUpdateKycIssuer{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

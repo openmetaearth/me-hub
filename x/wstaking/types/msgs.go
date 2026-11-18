@@ -24,7 +24,6 @@ const (
 	TypeReviewRecord                       = "review_record"
 	TypeMsgStake                           = "stake"
 	TypeMsgUnstake                         = "unstake"
-	TypeMsgWithdrawFromRegion              = "withdraw_from_region"
 	TypeMsgWithdrawFromGlobalDaoFeePool    = "withdraw_from_global_dao_fee_pool"
 	TypeMsgTransferRegion                  = "transfer_region"
 	TypeMsgResetValidator                  = "create_validator"
@@ -43,7 +42,6 @@ var (
 	_ sdk.Msg = &MsgNewRegion{}
 	_ sdk.Msg = &MsgRemoveRegion{}
 	_ sdk.Msg = &MsgWithdrawDelegatorReward{}
-	_ sdk.Msg = &MsgWithdrawFromRegion{}
 	_ sdk.Msg = &MsgWithdrawFromGlobalDaoFeePool{}
 )
 
@@ -233,58 +231,6 @@ func (msg *MsgRemoveRegion) ValidateBasic() error {
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
-	return nil
-}
-
-func NewMsgWithdrawFromRegion(withdrawer, regionId, receiver string, amount sdk.Coins) *MsgWithdrawFromRegion {
-	return &MsgWithdrawFromRegion{
-		Withdrawer: withdrawer,
-		RegionId:   regionId,
-		Receiver:   receiver,
-		Amount:     amount,
-	}
-}
-
-func (msg *MsgWithdrawFromRegion) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgWithdrawFromRegion) Type() string {
-	return TypeMsgWithdrawFromRegion
-}
-
-func (msg *MsgWithdrawFromRegion) GetSigners() []sdk.AccAddress {
-	admin, err := sdk.AccAddressFromBech32(msg.Withdrawer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{admin}
-}
-
-func (msg *MsgWithdrawFromRegion) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
-func (msg *MsgWithdrawFromRegion) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Withdrawer)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
-	}
-
-	_, err = sdk.AccAddressFromBech32(msg.Receiver)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address (%s)", err)
-	}
-
-	if !msg.Amount.IsValid() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
-	}
-
-	if !msg.Amount.IsAllPositive() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
-	}
-
 	return nil
 }
 

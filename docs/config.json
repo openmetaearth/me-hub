@@ -10,7 +10,18 @@
       "url": "./tmp-swagger-gen/metaearth/dao/query.swagger.json",
       "operationIds": {
         "rename": {
-          "Params": "DaoParams"
+          "Params": "daoParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/metaearth/regiongov/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "regiongovParams",
+          "Proposal": "regiongovProposal",
+          "Proposals": "regiongovProposals",
+          "Votes": "regiongovVotes"
         }
       }
     },
@@ -201,11 +212,11 @@
         "rename": {
           "Params": "GovV1Params",
           "Proposal": "GovV1Proposal",
-          "Proposals": "GovV1Proposal",
+          "Proposals": "GovV1Proposals",
           "Vote": "GovV1Vote",
           "Votes": "GovV1Votes",
           "Deposit": "GovV1Deposit",
-          "Deposits": "GovV1Deposit",
+          "Deposits": "GovV1Deposits",
           "TallyResult": "GovV1TallyResult"
         }
       }

@@ -25,8 +25,6 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgWithdrawFixedDeposit{},
 		&MsgReplaceConsensusPubKeyRequest{},
 		&MsgSendToModule{},
-		&MsgGrantRegionWithdraw{},
-		&MsgRevokeRegionWithdraw{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

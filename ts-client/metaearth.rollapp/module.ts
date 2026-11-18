@@ -14,7 +14,6 @@ import { MsgUpdateState } from "./types/metaearth/rollapp/tx";
 import { BlockDescriptor as typeBlockDescriptor} from "./types"
 import { BlockDescriptors as typeBlockDescriptors} from "./types"
 import { GenesisTransfers as typeGenesisTransfers} from "./types"
-import { DeployerParams as typeDeployerParams} from "./types"
 import { Params as typeParams} from "./types"
 import { SubmitFraudProposal as typeSubmitFraudProposal} from "./types"
 import { RollappGenesisState as typeRollappGenesisState} from "./types"
@@ -180,7 +179,6 @@ class SDKModule {
 						BlockDescriptor: getStructure(typeBlockDescriptor.fromPartial({})),
 						BlockDescriptors: getStructure(typeBlockDescriptors.fromPartial({})),
 						GenesisTransfers: getStructure(typeGenesisTransfers.fromPartial({})),
-						DeployerParams: getStructure(typeDeployerParams.fromPartial({})),
 						Params: getStructure(typeParams.fromPartial({})),
 						SubmitFraudProposal: getStructure(typeSubmitFraudProposal.fromPartial({})),
 						RollappGenesisState: getStructure(typeRollappGenesisState.fromPartial({})),

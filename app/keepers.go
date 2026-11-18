@@ -93,6 +93,8 @@ import (
 	lightclientmoduletypes "github.com/openmetaearth/me-hub/x/lightclient/types"
 	groupkeeper "github.com/openmetaearth/me-hub/x/megroup/keeper"
 	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
+	regiongovkeeper "github.com/openmetaearth/me-hub/x/regiongov/keeper"
+	regiongovtypes "github.com/openmetaearth/me-hub/x/regiongov/types"
 	"github.com/openmetaearth/me-hub/x/rollapp/genesisbridge"
 	rollappmodulekeeper "github.com/openmetaearth/me-hub/x/rollapp/keeper"
 	rollappmoduletypes "github.com/openmetaearth/me-hub/x/rollapp/types"
@@ -161,6 +163,7 @@ type AppKeepers struct {
 	WNFTKeeper          *wnftkeeper.Keeper
 	WasmKeeper          wasmkeeper.Keeper
 	GroupKeeper         *groupkeeper.Keeper
+	RegionGovKeeper     regiongovkeeper.Keeper
 
 	GravityRouterKeeper gravitykeeper.RouterKeeper
 	GravityKeepers
@@ -432,8 +435,10 @@ func (a *AppKeepers) InitKeepers(
 			panic(fmt.Sprintf("error while reading wasm config: %s", err))
 		}
 
-		// Add custom query plugins for KYC module
-		allWasmOpts := append(wasmOpts, a.SetupCustomMsgs())
+		allWasmOpts := append(wasmOpts,
+			a.SetupCustomMsgs(),
+			setupStargateQueryPlugin(appCodec, bApp.GRPCQueryRouter()),
+		)
 
 		// The last arguments can contain custom message handlers, and custom query handlers,
 		// if we want to allow any custom callbacks
@@ -477,6 +482,7 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.DidKeeper,
 		a.WNFTKeeper,
+		a.DaoKeeper,
 	)
 	a.StakingKeeper.SetKycKeeper(a.KycKeeper)
 	a.StakingKeeper.SetDidKeeper(a.DidKeeper)
@@ -494,6 +500,13 @@ func (a *AppKeepers) InitKeepers(
 		a.KycKeeper,
 	)
 	a.StakingKeeper.SetGroupKeeper(a.GroupKeeper)
+
+	a.RegionGovKeeper = regiongovkeeper.NewKeeper(
+		appCodec,
+		a.keys[regiongovtypes.StoreKey],
+		a.StakingKeeper,
+		a.DaoKeeper,
+	)
 
 	a.BscKeeper = gravitykeeper.NewKeeper(
 		bsctypes.ModuleName,

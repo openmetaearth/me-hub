@@ -7,7 +7,7 @@ version: v2
 managed:
   enabled: true
 plugins:
-  - remote: buf.build/community/stephenh-ts-proto
+  - remote: buf.build/community/stephenh-ts-proto:v2.18.1
     out: .
     opt:
       - logtostderr=true

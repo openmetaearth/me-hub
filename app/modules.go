@@ -72,6 +72,8 @@ import (
 	lightclientmoduletypes "github.com/openmetaearth/me-hub/x/lightclient/types"
 	groupmodule "github.com/openmetaearth/me-hub/x/megroup"
 	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
+	"github.com/openmetaearth/me-hub/x/regiongov"
+	regiongovtypes "github.com/openmetaearth/me-hub/x/regiongov/types"
 	rollappmodule "github.com/openmetaearth/me-hub/x/rollapp"
 	rollappmoduletypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencermodule "github.com/openmetaearth/me-hub/x/sequencer"
@@ -104,7 +106,7 @@ var ModuleBasics = module.NewBasicManager(
 	eibcmodule.AppModuleBasic{}, lightclientmodule.AppModuleBasic{},
 	feemarket.AppModuleBasic{}, did.AppModuleBasic{}, kyc.AppModuleBasic{},
 	dao.AppModuleBasic{}, wnft.AppModuleBasic{},
-	wasm.AppModuleBasic{}, groupmodule.AppModuleBasic{}, bsc.AppModuleBasic{}, tron.AppModuleBasic{},
+	wasm.AppModuleBasic{}, groupmodule.AppModuleBasic{}, regiongov.AppModuleBasic{}, bsc.AppModuleBasic{}, tron.AppModuleBasic{},
 )
 
 func (app *App) SetupModules(
@@ -157,6 +159,7 @@ func (app *App) SetupModules(
 		groupmodule.NewAppModule(appCodec, *app.GroupKeeper),
 
 		dao.NewAppModule(appCodec, app.DaoKeeper),
+		regiongov.NewAppModule(appCodec, app.RegionGovKeeper),
 		wnft.NewAppModule(appCodec, *app.WNFTKeeper, app.AccountKeeper, app.BankKeeper, encodingConfig.InterfaceRegistry),
 		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, bApp.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 
@@ -240,6 +243,7 @@ var BeginBlockers = []string{
 	kyctypes.ModuleName,
 	nft.ModuleName,
 	megrouptypes.ModuleName,
+	regiongovtypes.ModuleName,
 	bsctypes.ModuleName,
 	trontypes.ModuleName,
 }
@@ -279,6 +283,7 @@ var EndBlockers = []string{
 	kyctypes.ModuleName,
 	nft.ModuleName,
 	megrouptypes.ModuleName,
+	regiongovtypes.ModuleName,
 	bsctypes.ModuleName,
 	trontypes.ModuleName,
 }
@@ -318,6 +323,7 @@ var InitGenesis = []string{
 	kyctypes.ModuleName,
 	nft.ModuleName,
 	megrouptypes.ModuleName,
+	regiongovtypes.ModuleName,
 	bsctypes.ModuleName,
 	trontypes.ModuleName,
 }

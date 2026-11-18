@@ -5,7 +5,6 @@ import { RegionAllFixedDepositCfg } from "./types/metaearth/wstaking/fixed_depos
 import { RegionFixedDepositCfg } from "./types/metaearth/wstaking/fixed_deposit"
 import { LastValidatorPower } from "./types/metaearth/wstaking/genesis"
 import { Meid } from "./types/metaearth/wstaking/meid"
-import { MeidNFT } from "./types/metaearth/wstaking/meid"
 import { Record } from "./types/metaearth/wstaking/record"
 import { ReviewRecord } from "./types/metaearth/wstaking/record"
 import { Region } from "./types/metaearth/wstaking/region"
@@ -27,7 +26,6 @@ export {
     RegionFixedDepositCfg,
     LastValidatorPower,
     Meid,
-    MeidNFT,
     Record,
     ReviewRecord,
     Region,

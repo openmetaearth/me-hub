@@ -276,6 +276,12 @@ proto-all: proto-format proto-gen
 proto-gen:
 	@echo "Generating Protobuf files"
 	@$(protoCosmosImage) sh ./scripts/protocgen.sh
+	@$(MAKE) proto-gen-api
+
+# Standard protobuf API types coexist with the gogo keeper/message types.
+proto-gen-api:
+	@echo "Generating regiongov standard Protobuf API"
+	@$(protoCosmosImage) sh -c 'cd proto && buf generate --template buf.gen.api.yaml --path metaearth/regiongov -o ..'
 
 # Generate ts-client TypeScript types via local buf (not Docker).
 # Requires: buf on PATH, network to buf.build. Example: make proto-gen-ts ARGS="dao rollapp"
@@ -283,11 +289,11 @@ proto-gen-ts:
 	@echo "Generating TypeScript client types"
 	@bash ./scripts/protocgen-ts.sh $(ARGS)
 
+# Resolve schemas with the host Go toolchain, then generate in proto-builder.
+# Existing swagger-proto/ and tmp-swagger-gen/ are deliberately not reused.
 proto-swagger-gen:
-	@echo "Downloading Protobuf dependencies"
-	@make proto-download-deps
-	@echo "Generating Protobuf Swagger"
-	@$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
+	@echo "Generating Protobuf Swagger from selected Go modules"
+	@PROTO_SWAGGER_IMAGE="$(protoCosmosName)" PROTO_DOCKER_ARGS="$(PROTO_DOCKER_ARGS)" sh ./scripts/protoc-swagger-gen.sh
 
 proto-format:
 	@$(protoCosmosImage) find ./ -name "*.proto" -exec clang-format -i {} \;
@@ -363,7 +369,7 @@ proto-download-deps:
 	curl -sSL "https://raw.githubusercontent.com/cosmos/ics23/$(DEPS_COSMOS_ICS23_VERSION)/proto/cosmos/ics23/v1/proofs.proto" > "$(THIRD_PARTY_DIR)/cosmos/ics23/v1/proofs.proto"
 
 
-.PHONY: proto-gen proto-gen-ts proto-swagger-gen proto-format proto-lint proto-download-deps
+.PHONY: proto-gen proto-gen-api proto-gen-ts proto-swagger-gen proto-format proto-lint proto-download-deps
 
 ###############################################################################
 ###                                Linting                                  ###

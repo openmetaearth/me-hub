@@ -1,0 +1,115 @@
+package types
+
+import (
+	"strings"
+	"testing"
+	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
+	_ "github.com/openmetaearth/me-hub/app/params"
+	"github.com/openmetaearth/me-hub/testutil/sample"
+)
+
+func TestElectorAccountAddress(t *testing.T) {
+	account := sdk.MustAccAddressFromBech32(sample.AccAddress())
+	for _, address := range []string{account.String(), strings.ToUpper(account.String()), sdk.ValAddress(account).String()} {
+		actual, err := (Elector{Operator: address}).AccountAddress()
+		require.NoError(t, err)
+		require.True(t, account.Equals(actual))
+	}
+	_, err := (Elector{Operator: "invalid"}).AccountAddress()
+	require.Error(t, err)
+}
+
+func TestGenesisCountryElectorAddressFormats(t *testing.T) {
+	account := sdk.MustAccAddressFromBech32(sample.AccAddress())
+	now := time.Unix(1_700_000_000, 0).UTC()
+	gs := DefaultGenesis()
+	gs.ProposalSeq = 1
+	gs.Proposals = []Proposal{{
+		Id: 1, Kind: ProposalKindReplaceRegionOperator, Proposer: account.String(),
+		Title: "replace operator", Status: ProposalStatusVoting,
+		SubmitTime: now, VotingEndTime: now.Add(time.Hour), VotingPeriod: 3600,
+		Electorate:      ElectorateKindCountryRegionOperators,
+		ReplaceOperator: &ReplaceRegionOperatorPayload{RegionId: "chn", NewOperator: sdk.ValAddress(account).String()},
+	}}
+	for _, address := range []string{account.String(), strings.ToUpper(account.String()), sdk.ValAddress(account).String()} {
+		t.Run(address, func(t *testing.T) {
+			gs.Electors = []Elector{{ProposalId: 1, Operator: address, RegionId: "chn"}}
+			require.NoError(t, gs.Validate(), "both current and legacy country snapshots must import")
+		})
+	}
+	gs.Electors = []Elector{
+		{ProposalId: 1, Operator: account.String(), RegionId: "chn"},
+		{ProposalId: 1, Operator: sdk.ValAddress(account).String(), RegionId: "usa"},
+	}
+	require.ErrorContains(t, gs.Validate(), "duplicate elector", "two encodings must not create two votes")
+	gs.Electors = []Elector{{ProposalId: 1, Operator: "invalid", RegionId: "chn"}}
+	require.Error(t, gs.Validate())
+}
+
+func TestGenesisEquityElectorRules(t *testing.T) {
+	account := sample.AccAddress()
+	operatorAccount := sample.AccAddress()
+	operator := sdk.ValAddress(sdk.MustAccAddressFromBech32(operatorAccount)).String()
+	now := time.Unix(1_700_000_000, 0).UTC()
+	newGenesis := func() *GenesisState {
+		gs := DefaultGenesis()
+		gs.ProposalSeq = 1
+		gs.Proposals = []Proposal{{
+			Id: 1, Kind: ProposalKindTreasuryWithdraw, Proposer: account,
+			Title: "equity withdrawal", Status: ProposalStatusVoting,
+			SubmitTime: now, VotingEndTime: now.Add(time.Hour), VotingPeriod: 3600,
+			Electorate: ElectorateKindRegionEquity, RequiredOperator: operator,
+			Treasury: &TreasuryWithdrawPayload{Withdrawals: []Withdrawal{{
+				RegionId: "chn", Receiver: account, Amount: sdk.NewCoins(sdk.NewInt64Coin("umec", 1)),
+			}}},
+		}}
+		gs.Electors = []Elector{{ProposalId: 1, Operator: account, RegionId: "chn"}}
+		return gs
+	}
+	for _, address := range []string{operator, operatorAccount} {
+		gs := newGenesis()
+		gs.Proposals[0].RequiredOperator = address
+		require.NoError(t, gs.Validate(), "accept both account and legacy operator encodings")
+		gs.Electors[0].Operator = operatorAccount
+		require.ErrorContains(t, gs.Validate(), "required operator must not be counted")
+	}
+	for _, tc := range []struct {
+		name   string
+		modify func(*GenesisState)
+	}{
+		{"missing operator", func(gs *GenesisState) { gs.Proposals[0].RequiredOperator = "" }},
+		{"invalid operator", func(gs *GenesisState) { gs.Proposals[0].RequiredOperator = "invalid" }},
+		{"equity is not account", func(gs *GenesisState) { gs.Electors[0].Operator = operator }},
+		{"foreign region", func(gs *GenesisState) { gs.Electors[0].RegionId = "usa" }},
+		{"operator in counted electorate", func(gs *GenesisState) {
+			val, err := sdk.ValAddressFromBech32(operator)
+			require.NoError(t, err)
+			gs.Electors[0].Operator = sdk.AccAddress(val).String()
+		}},
+		{"duplicate canonical elector", func(gs *GenesisState) {
+			duplicate := gs.Electors[0]
+			duplicate.Operator = strings.ToUpper(duplicate.Operator)
+			gs.Electors = append(gs.Electors, duplicate)
+		}},
+		{"multiple withdrawal regions", func(gs *GenesisState) {
+			withdrawal := gs.Proposals[0].Treasury.Withdrawals[0]
+			withdrawal.RegionId = "usa"
+			gs.Proposals[0].Treasury.Withdrawals = append(gs.Proposals[0].Treasury.Withdrawals, withdrawal)
+		}},
+		{"non treasury electorate", func(gs *GenesisState) {
+			gs.Proposals[0].Kind = ProposalKindReplaceRegionOperator
+			gs.Proposals[0].Treasury = nil
+			gs.Proposals[0].ReplaceOperator = &ReplaceRegionOperatorPayload{RegionId: "chn", NewOperator: operator}
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			gs := newGenesis()
+			tc.modify(gs)
+			require.Error(t, gs.Validate())
+		})
+	}
+}

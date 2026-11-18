@@ -7,7 +7,6 @@ import { msgTypes } from './registry';
 import { IgniteClient } from "../client"
 import { MissingWalletError } from "../helpers"
 import { Api } from "./rest";
-import { MsgWithdrawFromRegion } from "./types/metaearth/wstaking/tx";
 import { MsgWithdrawFromGlobalDaoFeePool } from "./types/metaearth/wstaking/tx";
 import { MsgNewRecord } from "./types/metaearth/wstaking/tx";
 import { MsgIbcTransferFromRegionTreasure } from "./types/metaearth/wstaking/tx";
@@ -32,7 +31,6 @@ import { RegionAllFixedDepositCfg as typeRegionAllFixedDepositCfg} from "./types
 import { RegionFixedDepositCfg as typeRegionFixedDepositCfg} from "./types"
 import { LastValidatorPower as typeLastValidatorPower} from "./types"
 import { Meid as typeMeid} from "./types"
-import { MeidNFT as typeMeidNFT} from "./types"
 import { Record as typeRecord} from "./types"
 import { ReviewRecord as typeReviewRecord} from "./types"
 import { Region as typeRegion} from "./types"
@@ -45,13 +43,7 @@ import { MsgFixedDepositCfg as typeMsgFixedDepositCfg} from "./types"
 import { MsgFixedDepositCfgResp as typeMsgFixedDepositCfgResp} from "./types"
 import { Height as typeHeight} from "./types"
 
-export { MsgWithdrawFromRegion, MsgWithdrawFromGlobalDaoFeePool, MsgNewRecord, MsgIbcTransferFromRegionTreasure, MsgNewRegion, MsgUnstake, MsgSetFixedDepositCfgStatus, MsgWithdrawFixedDeposit, MsgRemoveRegion, MsgRemoveFixedDepositCfg, MsgStake, MsgWithdrawDelegatorReward, MsgNewFixedDepositCfg, MsgSetFixedDepositCfgRate, MsgDoFixedDeposit, MsgReviewRecord, MsgTransferRegion };
-
-type sendMsgWithdrawFromRegionParams = {
-  value: MsgWithdrawFromRegion,
-  fee?: StdFee,
-  memo?: string
-};
+export { MsgWithdrawFromGlobalDaoFeePool, MsgNewRecord, MsgIbcTransferFromRegionTreasure, MsgNewRegion, MsgUnstake, MsgSetFixedDepositCfgStatus, MsgWithdrawFixedDeposit, MsgRemoveRegion, MsgRemoveFixedDepositCfg, MsgStake, MsgWithdrawDelegatorReward, MsgNewFixedDepositCfg, MsgSetFixedDepositCfgRate, MsgDoFixedDeposit, MsgReviewRecord, MsgTransferRegion };
 
 type sendMsgWithdrawFromGlobalDaoFeePoolParams = {
   value: MsgWithdrawFromGlobalDaoFeePool,
@@ -150,10 +142,6 @@ type sendMsgTransferRegionParams = {
 };
 
 
-type msgWithdrawFromRegionParams = {
-  value: MsgWithdrawFromRegion,
-};
-
 type msgWithdrawFromGlobalDaoFeePoolParams = {
   value: MsgWithdrawFromGlobalDaoFeePool,
 };
@@ -247,20 +235,6 @@ interface TxClientOptions {
 export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "http://localhost:26657", prefix: "cosmos" }) => {
 
   return {
-		
-		async sendMsgWithdrawFromRegion({ value, fee, memo }: sendMsgWithdrawFromRegionParams): Promise<DeliverTxResponse> {
-			if (!signer) {
-					throw new Error('TxClient:sendMsgWithdrawFromRegion: Unable to sign Tx. Signer is not present.')
-			}
-			try {			
-				const { address } = (await signer.getAccounts())[0]; 
-				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
-				let msg = this.msgWithdrawFromRegion({ value: MsgWithdrawFromRegion.fromPartial(value) })
-				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
-			} catch (e: any) {
-				throw new Error('TxClient:sendMsgWithdrawFromRegion: Could not broadcast Tx: '+ e.message)
-			}
-		},
 		
 		async sendMsgWithdrawFromGlobalDaoFeePool({ value, fee, memo }: sendMsgWithdrawFromGlobalDaoFeePoolParams): Promise<DeliverTxResponse> {
 			if (!signer) {
@@ -487,14 +461,6 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 		},
 		
 		
-		msgWithdrawFromRegion({ value }: msgWithdrawFromRegionParams): EncodeObject {
-			try {
-				return { typeUrl: "/metaearth.wstaking.MsgWithdrawFromRegion", value: MsgWithdrawFromRegion.fromPartial( value ) }  
-			} catch (e: any) {
-				throw new Error('TxClient:MsgWithdrawFromRegion: Could not create message: ' + e.message)
-			}
-		},
-		
 		msgWithdrawFromGlobalDaoFeePool({ value }: msgWithdrawFromGlobalDaoFeePoolParams): EncodeObject {
 			try {
 				return { typeUrl: "/metaearth.wstaking.MsgWithdrawFromGlobalDaoFeePool", value: MsgWithdrawFromGlobalDaoFeePool.fromPartial( value ) }  
@@ -652,7 +618,6 @@ class SDKModule {
 						RegionFixedDepositCfg: getStructure(typeRegionFixedDepositCfg.fromPartial({})),
 						LastValidatorPower: getStructure(typeLastValidatorPower.fromPartial({})),
 						Meid: getStructure(typeMeid.fromPartial({})),
-						MeidNFT: getStructure(typeMeidNFT.fromPartial({})),
 						Record: getStructure(typeRecord.fromPartial({})),
 						ReviewRecord: getStructure(typeReviewRecord.fromPartial({})),
 						Region: getStructure(typeRegion.fromPartial({})),

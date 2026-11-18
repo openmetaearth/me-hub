@@ -1,0 +1,28 @@
+syntax = "proto3";
+package metaearth.regiongov;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/openmetaearth/me-hub/x/regiongov/types";
+
+// Params defines the parameters for region governance.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+
+  // min_voting_period is the shortest voting duration a proposal may set, in
+  // seconds. voting_period must be greater than or equal to this value. There
+  // is no maximum.
+  uint64 min_voting_period = 1;
+
+  // pass_threshold_percent is the yes-vote ratio of the snapshotted electorate.
+  // A proposal passes the count when yes * 100 >= eligible *
+  // pass_threshold_percent.
+  uint32 pass_threshold_percent = 2;
+
+  // equity_withdraw_percent is the maximum share of a region's spendable
+  // treasury balance an equity-address withdrawal may take. MsgSubmitProposal
+  // rejects a larger amount. The region's operator and the dao are exempt from
+  // this percentage limit, but their withdrawals must not exceed the spendable
+  // balance.
+  uint32 equity_withdraw_percent = 3;
+}

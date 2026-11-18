@@ -63,6 +63,9 @@ func MakeEncodingConfig() params.EncodingConfig {
 	// module amino types without the Msg interface.
 	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	// Populate Any resolution before an App is constructed as well. Descriptor
+	// signer extraction alone does not register concrete messages for TxDecoder.
+	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
 	gravitytypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 

@@ -15,6 +15,7 @@ import (
 type Keeper struct {
 	distrkeeper.Keeper
 	cdc           codec.BinaryCodec
+	storeService  store.KVStoreService
 	authKeeper    distributiontypes.AccountKeeper
 	bankKeeper    distributiontypes.BankKeeper
 	regionStaking types.StakingKeeper
@@ -51,6 +52,7 @@ func NewKeeper(
 	return &Keeper{
 		Keeper:           distriKeeperImpl,
 		cdc:              cdc,
+		storeService:     storeService,
 		authKeeper:       accountKeeper,
 		bankKeeper:       bankKeeper,
 		regionStaking:    regionStaking,

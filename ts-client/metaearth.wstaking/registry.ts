@@ -1,5 +1,5 @@
+import { toCosmjsGeneratedType } from "../registry-codec";
 import { GeneratedType } from "@cosmjs/proto-signing";
-import { MsgWithdrawFromRegion } from "./types/metaearth/wstaking/tx";
 import { MsgWithdrawFromGlobalDaoFeePool } from "./types/metaearth/wstaking/tx";
 import { MsgNewRecord } from "./types/metaearth/wstaking/tx";
 import { MsgIbcTransferFromRegionTreasure } from "./types/metaearth/wstaking/tx";
@@ -18,23 +18,22 @@ import { MsgReviewRecord } from "./types/metaearth/wstaking/tx";
 import { MsgTransferRegion } from "./types/metaearth/wstaking/tx";
 
 const msgTypes: Array<[string, GeneratedType]>  = [
-    ["/metaearth.wstaking.MsgWithdrawFromRegion", MsgWithdrawFromRegion],
-    ["/metaearth.wstaking.MsgWithdrawFromGlobalDaoFeePool", MsgWithdrawFromGlobalDaoFeePool],
-    ["/metaearth.wstaking.MsgNewRecord", MsgNewRecord],
-    ["/metaearth.wstaking.MsgIbcTransferFromRegionTreasure", MsgIbcTransferFromRegionTreasure],
-    ["/metaearth.wstaking.MsgNewRegion", MsgNewRegion],
-    ["/metaearth.wstaking.MsgUnstake", MsgUnstake],
-    ["/metaearth.wstaking.MsgSetFixedDepositCfgStatus", MsgSetFixedDepositCfgStatus],
-    ["/metaearth.wstaking.MsgWithdrawFixedDeposit", MsgWithdrawFixedDeposit],
-    ["/metaearth.wstaking.MsgRemoveRegion", MsgRemoveRegion],
-    ["/metaearth.wstaking.MsgRemoveFixedDepositCfg", MsgRemoveFixedDepositCfg],
-    ["/metaearth.wstaking.MsgStake", MsgStake],
-    ["/metaearth.wstaking.MsgWithdrawDelegatorReward", MsgWithdrawDelegatorReward],
-    ["/metaearth.wstaking.MsgNewFixedDepositCfg", MsgNewFixedDepositCfg],
-    ["/metaearth.wstaking.MsgSetFixedDepositCfgRate", MsgSetFixedDepositCfgRate],
-    ["/metaearth.wstaking.MsgDoFixedDeposit", MsgDoFixedDeposit],
-    ["/metaearth.wstaking.MsgReviewRecord", MsgReviewRecord],
-    ["/metaearth.wstaking.MsgTransferRegion", MsgTransferRegion],
+    ["/metaearth.wstaking.MsgWithdrawFromGlobalDaoFeePool", toCosmjsGeneratedType(MsgWithdrawFromGlobalDaoFeePool)],
+    ["/metaearth.wstaking.MsgNewRecord", toCosmjsGeneratedType(MsgNewRecord)],
+    ["/metaearth.wstaking.MsgIbcTransferFromRegionTreasure", toCosmjsGeneratedType(MsgIbcTransferFromRegionTreasure)],
+    ["/metaearth.wstaking.MsgNewRegion", toCosmjsGeneratedType(MsgNewRegion)],
+    ["/metaearth.wstaking.MsgUnstake", toCosmjsGeneratedType(MsgUnstake)],
+    ["/metaearth.wstaking.MsgSetFixedDepositCfgStatus", toCosmjsGeneratedType(MsgSetFixedDepositCfgStatus)],
+    ["/metaearth.wstaking.MsgWithdrawFixedDeposit", toCosmjsGeneratedType(MsgWithdrawFixedDeposit)],
+    ["/metaearth.wstaking.MsgRemoveRegion", toCosmjsGeneratedType(MsgRemoveRegion)],
+    ["/metaearth.wstaking.MsgRemoveFixedDepositCfg", toCosmjsGeneratedType(MsgRemoveFixedDepositCfg)],
+    ["/metaearth.wstaking.MsgStake", toCosmjsGeneratedType(MsgStake)],
+    ["/metaearth.wstaking.MsgWithdrawDelegatorReward", toCosmjsGeneratedType(MsgWithdrawDelegatorReward)],
+    ["/metaearth.wstaking.MsgNewFixedDepositCfg", toCosmjsGeneratedType(MsgNewFixedDepositCfg)],
+    ["/metaearth.wstaking.MsgSetFixedDepositCfgRate", toCosmjsGeneratedType(MsgSetFixedDepositCfgRate)],
+    ["/metaearth.wstaking.MsgDoFixedDeposit", toCosmjsGeneratedType(MsgDoFixedDeposit)],
+    ["/metaearth.wstaking.MsgReviewRecord", toCosmjsGeneratedType(MsgReviewRecord)],
+    ["/metaearth.wstaking.MsgTransferRegion", toCosmjsGeneratedType(MsgTransferRegion)],
     
 ];
 

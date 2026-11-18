@@ -180,7 +180,7 @@ func (dfd DeductFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bo
 					grantee := sdk.AccAddress(feePayer).String()
 					if sdkerrors.ErrNotFound.Is(err) {
 						return ctx, errorsmod.Wrapf(err,
-							"no fee allowance from granter %s to grantee %s", granter, grantee)
+							"no fee allowance from granter %s to grantee %s; the granter must grant an allowance before --fee-granter can be used", granter, grantee)
 					}
 					return ctx, errorsmod.Wrapf(err,
 						"cannot use fee allowance from granter %s to grantee %s for fees %s",

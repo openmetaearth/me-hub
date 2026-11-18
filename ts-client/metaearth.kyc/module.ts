@@ -12,13 +12,14 @@ import { MsgApprove } from "./types/metaearth/kyc/tx";
 import { MsgRemove } from "./types/metaearth/kyc/tx";
 import { MsgUpdateSBT } from "./types/metaearth/kyc/tx";
 import { MsgUpdate } from "./types/metaearth/kyc/tx";
+import { MsgUpdateKycIssuer } from "./types/metaearth/kyc/tx";
 import { MsgCreateSBT } from "./types/metaearth/kyc/tx";
 
 import { KycEventSeq as typeKycEventSeq} from "./types"
 import { Region as typeRegion} from "./types"
 import { Protocol as typeProtocol} from "./types"
 
-export { MsgDeleteSBT, MsgApprove, MsgRemove, MsgUpdateSBT, MsgUpdate, MsgCreateSBT };
+export { MsgDeleteSBT, MsgApprove, MsgRemove, MsgUpdateSBT, MsgUpdate, MsgUpdateKycIssuer, MsgCreateSBT };
 
 type sendMsgDeleteSBTParams = {
   value: MsgDeleteSBT,
@@ -50,6 +51,12 @@ type sendMsgUpdateParams = {
   memo?: string
 };
 
+type sendMsgUpdateKycIssuerParams = {
+  value: MsgUpdateKycIssuer,
+  fee?: StdFee,
+  memo?: string
+};
+
 type sendMsgCreateSBTParams = {
   value: MsgCreateSBT,
   fee?: StdFee,
@@ -75,6 +82,10 @@ type msgUpdateSBTParams = {
 
 type msgUpdateParams = {
   value: MsgUpdate,
+};
+
+type msgUpdateKycIssuerParams = {
+  value: MsgUpdateKycIssuer,
 };
 
 type msgCreateSBTParams = {
@@ -181,6 +192,20 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
+		async sendMsgUpdateKycIssuer({ value, fee, memo }: sendMsgUpdateKycIssuerParams): Promise<DeliverTxResponse> {
+			if (!signer) {
+					throw new Error('TxClient:sendMsgUpdateKycIssuer: Unable to sign Tx. Signer is not present.')
+			}
+			try {
+				const { address } = (await signer.getAccounts())[0];
+				const signingClient = await SigningStargateClient.connectWithSigner(addr,signer,{registry, prefix});
+				let msg = this.msgUpdateKycIssuer({ value: MsgUpdateKycIssuer.fromPartial(value) })
+				return await signingClient.signAndBroadcast(address, [msg], fee ? fee : defaultFee, memo)
+			} catch (e: any) {
+				throw new Error('TxClient:sendMsgUpdateKycIssuer: Could not broadcast Tx: '+ e.message)
+			}
+		},
+
 		async sendMsgCreateSBT({ value, fee, memo }: sendMsgCreateSBTParams): Promise<DeliverTxResponse> {
 			if (!signer) {
 					throw new Error('TxClient:sendMsgCreateSBT: Unable to sign Tx. Signer is not present.')
@@ -236,6 +261,14 @@ export const txClient = ({ signer, prefix, addr }: TxClientOptions = { addr: "ht
 			}
 		},
 		
+		msgUpdateKycIssuer({ value }: msgUpdateKycIssuerParams): EncodeObject {
+			try {
+				return { typeUrl: "/metaearth.kyc.MsgUpdateKycIssuer", value: MsgUpdateKycIssuer.fromPartial( value ) }
+			} catch (e: any) {
+				throw new Error('TxClient:MsgUpdateKycIssuer: Could not create message: ' + e.message)
+			}
+		},
+
 		msgCreateSBT({ value }: msgCreateSBTParams): EncodeObject {
 			try {
 				return { typeUrl: "/metaearth.kyc.MsgCreateSBT", value: MsgCreateSBT.fromPartial( value ) }  

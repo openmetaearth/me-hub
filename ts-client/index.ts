@@ -33,6 +33,8 @@ import { Module as MetaearthDid, msgTypes as MetaearthDidMsgTypes } from './meta
 import { Module as MetaearthEibc, msgTypes as MetaearthEibcMsgTypes } from './metaearth.eibc'
 import { Module as MetaearthKyc, msgTypes as MetaearthKycMsgTypes } from './metaearth.kyc'
 import { Module as MetaearthMegroup, msgTypes as MetaearthMegroupMsgTypes } from './metaearth.megroup'
+import { msgTypes as MetaearthRegiongovMsgTypes } from './metaearth.regiongov/registry'
+export * as MetaearthRegiongov from './metaearth.regiongov'
 import { Module as MetaearthRollapp, msgTypes as MetaearthRollappMsgTypes } from './metaearth.rollapp'
 import { Module as MetaearthSequencer, msgTypes as MetaearthSequencerMsgTypes } from './metaearth.sequencer'
 import { Module as MetaearthStreamer, msgTypes as MetaearthStreamerMsgTypes } from './metaearth.streamer'
@@ -78,6 +80,7 @@ const registry = new Registry([
   ...MetaearthEibcMsgTypes,
   ...MetaearthKycMsgTypes,
   ...MetaearthMegroupMsgTypes,
+  ...MetaearthRegiongovMsgTypes,
   ...MetaearthRollappMsgTypes,
   ...MetaearthSequencerMsgTypes,
   ...MetaearthStreamerMsgTypes,

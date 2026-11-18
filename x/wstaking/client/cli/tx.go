@@ -53,8 +53,6 @@ func NewTxCmd() *cobra.Command {
 		NewUnstakeCmd(),
 		NewStakeCmd(),
 		CmdNewRegion(),
-		// CmdRemoveRegion(),
-		CmdWithdrawFromRegion(),
 		CmdWithdrawFromGlobalDaoFeePool(),
 		CmdNewRecord(),
 		CmdNewReviewRecord(),
@@ -70,8 +68,6 @@ func NewTxCmd() *cobra.Command {
 		NewIbcTransferFromRegionTreasureCmd(),
 		CmdReplaceConsensusPubKey(),
 		CmdSendToModule(),
-		CmdGrantRegionWithdraw(),
-		CmdRevokeRegionWithdraw(),
 	)
 
 	return stakingTxCmd

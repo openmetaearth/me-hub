@@ -32,6 +32,7 @@ import (
 	kyctypes "github.com/openmetaearth/me-hub/x/kyc/types"
 	lightclientmoduletypes "github.com/openmetaearth/me-hub/x/lightclient/types"
 	megrouptypes "github.com/openmetaearth/me-hub/x/megroup/types"
+	regiongovtypes "github.com/openmetaearth/me-hub/x/regiongov/types"
 	rollappmoduletypes "github.com/openmetaearth/me-hub/x/rollapp/types"
 	sequencermoduletypes "github.com/openmetaearth/me-hub/x/sequencer/types"
 	trontypes "github.com/openmetaearth/me-hub/x/tron/types"
@@ -128,6 +129,7 @@ var KVStoreKeys = storetypes.NewKVStoreKeys(
 	wasmtypes.StoreKey,
 	// megroup
 	megrouptypes.StoreKey,
+	regiongovtypes.StoreKey,
 	// gravity bridge
 	bsctypes.StoreKey,
 	trontypes.StoreKey,
