@@ -40,7 +40,7 @@ ROLLAPP_SERVICES=(rollapp-node1 rollapp-node2 rollapp-node3)
 ROLLAPP_NODE_HOMES=(node1 node2 node3)
 ROLLAPP_DA_LAYER="${ROLLAPP_DA_LAYER:-me-da}"
 # Phase B switches the Hub image. The Phase C rollappd image must be set explicitly.
-MED_V3_IMAGE="${MED_V3_IMAGE:-ghcr.io/openmetaearth/med:v3.0.0}"
+MED_V3_IMAGE="${MED_V3_IMAGE:-ghcr.io/openmetaearth/med:v3.0.0.rc1}"
 ROLLAPP_V3_IMAGE="${ROLLAPP_V3_IMAGE:-}"
 # Hub and rollapp images run as root. In-container home is fixed to these paths.
 HUB_CONTAINER_HOME="${HUB_CONTAINER_HOME:-/root/.mechain}"
@@ -586,7 +586,7 @@ wait_hub_block() {
     exit 1
 }
 
-# Phase B: after the halt, switch the compose Hub image to med:v3.0.0 and start it.
+# Phase B: after the halt, switch the compose Hub image to med:v3.0.0.rc1 and start it.
 # Old rollappd v1.0.21 panics on a nil GetProposer() inside IsSequencerVerify when it talks to a v3 Hub, so it must stay stopped.
 # Switching the image is not the proposal: rollapp gov/halt must finish before this, while the Hub is still v2.
 hub_upgrade() {

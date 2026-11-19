@@ -64,7 +64,7 @@ read -rp "Randomly generate mnemonic words?[N]: " Randomly_Generate_Mnemonic_Wor
 Randomly_Generate_Mnemonic_Words=${Randomly_Generate_Mnemonic_Words:-"N"}
 echo "randomly generate mnemonic words is set to: $Randomly_Generate_Mnemonic_Words"
 
-#Quick-install mode withdraws stake from me_earth so a test env can be stood up quickly. Turn it off to withdraw from each production region
+# Quick-install mode uses test chain parameters.
 read -rp "Quick install for test?[Y]: " INSTALL_TYPE
 INSTALL_TYPE=${INSTALL_TYPE:-"Y"}
 echo "Quick install for test is set to: $INSTALL_TYPE"
@@ -212,7 +212,7 @@ USER_ADDR_ROLLAPP_SYNC=                                                  # 84
 # Public Setting
 #======================================================================================
 # Docker runtime images (genesis/keys still use the host ${BIN_DIR} binary)
-MED_IMAGE="${MED_IMAGE:-ghcr.io/openmetaearth/med:v2.0.17}"
+MED_IMAGE="${MED_IMAGE:-ghcr.io/openmetaearth/med:v2.0.18.rc6}"
 ROLLAPP_IMAGE="${ROLLAPP_IMAGE:-harbor.starex.xyz/rollapp/rollappd:v1.0.21}"
 # hub / rollapp images run as root. In-container home is fixed to these paths (DA/rly still use ubuntu:24.04)
 HUB_CONTAINER_HOME="${HUB_CONTAINER_HOME:-/root/.mechain}"
@@ -245,7 +245,6 @@ ME_MIN_DEPOSIT_AMOUNT="100000000"
 TOTAL_SUPPLY="1000000000000000000umec"  # 100 billion MEC
 #minimum stake, unit udmec
 DA_MIN_DEPOSIT_AMOUNT="1000000000000"
-MIN_TREASURY_BALANCE="100000000"  # 1E umec minimum to keep
 dao_TIA_AMOUNT="0udmec" # da dao own balance
 # ME DA node directory
 DA_NODES_HOME="${BASE_DIR}/nodes/da-nodes"
@@ -303,15 +302,6 @@ RLY_RAPP_NODE_HOME="${BASE_DIR}/nodes/rly-rapp"
 calculate() {
     echo "$1" | bc
 }
-# Convert timeout_commit (1s / 0.5s / 500ms) to seconds for sleep. bash $(( )) cannot handle decimals
-timeout_commit_seconds() {
-    local d="$1"
-    case "$d" in
-        *ms) echo "scale=3; ${d%ms}/1000" | bc ;;
-        *s)  echo "${d%s}" ;;
-        *)   echo "$d" ;;
-    esac
-}
 umec_to_udmec() {
     local umec_amount=${1%umec}
     local result=$(echo "$umec_amount" | bc)
@@ -356,8 +346,9 @@ then
     # voting_period: test uses 3 minutes; expedited must be strictly shorter than voting_period
     VOTING_PERIOD="180s"
     EXPEDITED_VOTING_PERIOD="90s"
-    # Block time. Test uses 500ms; production currently uses 5s. 1330 blocks is about 11 minutes
+    # Block time. Test uses 500ms; production currently uses 5s.
     ME_TIMEOUT_COMMIT="500ms"
+    ME_TIMEOUT_PROPOSE="500ms"
 else
     ME_DISPUTE_PERIOD_IN_BLOCKS="50"
     DISTR_EPOCH_IDENTIFIER="day"
@@ -366,8 +357,8 @@ else
     VOTING_PERIOD="172800s"
     EXPEDITED_VOTING_PERIOD="300s"
     ME_TIMEOUT_COMMIT="5s"
+    ME_TIMEOUT_PROPOSE="500ms"
 fi
-REGION_HIGHT_WAIT="17280"
 #======================================================================================
 # ME-DA
 #======================================================================================
@@ -377,9 +368,7 @@ val0_TIA_AMOUNT="2000000000000udmec"     # da val0 own balance; DA coins are bur
 #DA Node genesis stake for new validators
 #Production mode
 #- Create 4 nodes. Custody must sign and send MsgCreateValidator. @Lee.
-#- Source of funds: withdraw from the top four ME-Hub mainnet region treasuries (IND, CHN, ME_EARTH, EXPERIENCE). Production should have more than four national treasuries, so exclude the EXPERIENCE region for stability.
-#- Withdrawal ratio: 0.01% (1/10000) of each region's staked amount, computed dynamically as ME_SEND_DA_AMOUNT and IBC-transferred to the ME-DA network.
-#Currently funded by the global_dao account, so the four amounts below must not exceed TARGET_BALANCE.
+# global_dao funds each DA validator via IBC with 0.01% of its corresponding Hub stake.
 ME_SEND_DA_AMOUNT_VAL1="$(calculate "${STAKING_AMOUNT%umec} / 10000")umec"
 ME_SEND_DA_AMOUNT_VAL2="$(calculate "${ME_STAKING_AMOUNT_NODE2%umec} / 10000")umec"
 ME_SEND_DA_AMOUNT_VAL3="$(calculate "${ME_STAKING_AMOUNT_NODE3%umec} / 10000")umec"
@@ -390,9 +379,8 @@ ME_SEND_SEQUENCER2_AMOUNT="1000000000000umec"
 ME_SEND_SEQUENCER3_AMOUNT="1000000000000umec"
 #MEC reserved for other uses
 ME_RESERVE_AMOUNT="200000000umec"
+# Extra Hub genesis supply issued to global_dao for DA, IBC, sequencers and the reserve.
 TARGET_BALANCE="$(calculate "${ME_SEND_DA_AMOUNT_VAL1%umec} + ${ME_SEND_DA_AMOUNT_VAL2%umec} + ${ME_SEND_DA_AMOUNT_VAL3%umec} + ${ME_SEND_DA_AMOUNT_VAL4%umec} + ${ME_SEND_IBC_AMOUNT%umec} + ${ME_RESERVE_AMOUNT%umec} + ${ME_SEND_SEQUENCER1_AMOUNT%umec} + ${ME_SEND_SEQUENCER2_AMOUNT%umec} + ${ME_SEND_SEQUENCER3_AMOUNT%umec}")"
-# ME hub Wait until this hub height before creating a region. Each block rewards 792 MEC, i.e. 79200000000umec, which is how the height is estimated. The spare 30 is only so the treasury is not drained in the extreme case. Imprecise sleeps usually overshoot
-ME_CREAT_REGION_HEIGHT="$(calculate "(${TARGET_BALANCE} / 79200000000) + 30")"
 #DA_STAKING_AMOUNT must be greater than 1000000000000udmec and the sum must be less than ME_SEND_DA_AMOUNT * 100000000 (equality can still fail even with zero fees)
 DA_STAKING_AMOUNT_VAL1=$(umec_to_udmec "${ME_SEND_DA_AMOUNT_VAL1}")
 DA_STAKING_AMOUNT_NODE1_REGION="me_earth"
@@ -1227,6 +1215,7 @@ sed -i 's/0.0.0.0:26656/0.0.0.0:26656/' "${ME_NODE1_HOME}"/config/config.toml
 sed -i 's/127.0.0.1:26657/0.0.0.0:26657/' "${ME_NODE1_HOME}"/config/config.toml
 # Block time
 sed -i 's/^timeout_commit = .*/timeout_commit = "'${ME_TIMEOUT_COMMIT}'"/' "${ME_NODE1_HOME}"/config/config.toml
+sed -i 's/^timeout_propose = .*/timeout_propose = "'${ME_TIMEOUT_PROPOSE}'"/' "${ME_NODE1_HOME}"/config/config.toml
 #CORS
 sed -i 's/cors_allowed_origins.*$/cors_allowed_origins = ["*"]/' "${ME_NODE1_HOME}"/config/config.toml
 sed -i 's/localhost:6060/0.0.0.0:6060/' "${ME_NODE1_HOME}"/config/config.toml
@@ -1489,10 +1478,10 @@ fi
 
 echo "-----------------------------------------------------------------------------------------"
 echo "# ---------------------------------------------------------------------------------------#"
-echo "# Initialize balances add-genesis-account global_dao-"0umec"                                       #"
+echo "# Fund global_dao (${USER_ADDR_ME_GLOBAL_DAO}) at genesis: ${TARGET_BALANCE}umec"
 echo "# (meid_dao, dev_operator, airdrop,val1)-"0umec"                                        #"                            
 echo "# --------------------------------------------------------------------------------------#"
-med add-genesis-account global_dao   "0umec" --home ${ME_NODE1_HOME}
+med add-genesis-account "${USER_ADDR_ME_GLOBAL_DAO}" "${TARGET_BALANCE}umec" --home "${ME_NODE1_HOME}"
 med add-genesis-account meid_dao     "0umec" --home ${ME_NODE1_HOME}
 med add-genesis-account dev_operator "0umec" --home ${ME_NODE1_HOME}
 med add-genesis-account airdrop      "0umec" --home ${ME_NODE1_HOME}
@@ -1942,26 +1931,6 @@ med query staking validators --home ${ME_NODE1_HOME} --output json | jq -r '.val
 if [[ $Interactive_Mode =~ ^[Nn]$ ]]
 then
     echo "# ---------------------------------------------------------------------------- #"
-    echo "#            Self-hosted mode waits for height ${ME_CREAT_REGION_HEIGHT} so region creation receives enough tokens     #"
-    echo "# ---------------------------------------------------------------------------- #"
-    echo "Need about target height ${ME_CREAT_REGION_HEIGHT} times block time ${ME_TIMEOUT_COMMIT} seconds"
-    while true; do
-        CURRENT_HEIGHT=$(med status --home ${ME_NODE1_HOME} 2>/dev/null | jq -r '.SyncInfo.latest_block_height' 2>/dev/null)
-        CURRENT_HEIGHT=${CURRENT_HEIGHT//\"/}
-        
-        echo "Current block height: $CURRENT_HEIGHT"
-
-        if [ "$CURRENT_HEIGHT" -ge ${ME_CREAT_REGION_HEIGHT} ] 2>/dev/null; then
-            echo -e "\nBlock height has reached ${ME_CREAT_REGION_HEIGHT}. Proceeding with next steps..."
-            break
-        fi
-        timeout_seconds=$(timeout_commit_seconds "${ME_TIMEOUT_COMMIT}")
-        sleepTime=$(echo "(${ME_CREAT_REGION_HEIGHT} * ${timeout_seconds}) / 3" | bc)
-        echo "Waiting for block height to reach ${ME_CREAT_REGION_HEIGHT} (next check in ${sleepTime} seconds)..."
-        sleep "$sleepTime"
-    done
-
-    echo "# ---------------------------------------------------------------------------- #"
     echo "#               Create region new-region zone                                           #"
     echo "# ---------------------------------------------------------------------------- #"
     seqID=$(med q auth account ${USER_ADDR_ME_GLOBAL_DAO}   --home ${ME_NODE1_HOME} --output json | jq -r .base_account.sequence)
@@ -1996,72 +1965,6 @@ echo "${region_data}" | jq -r '.region[] | [.regionId, .region_treasure_addr] | 
 
 done
 
-
-if [[ $Interactive_Mode =~ ^[Nn]$ ]]
-then
-    if [[ $INSTALL_TYPE =~ ^[Yy]$ ]]
-    then
-        echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${TARGET_BALANCE}umec --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
-        echo "Quick-withdraw mode takes the Send DA amount from ${ME_STAKING_AMOUNT_NODE1_REGION}${TARGET_BALANCE}"
-        txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${TARGET_BALANCE}umec --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-    else
-        echo "# ---------------------------------------------------------------------------- #"
-        echo "# Self-hosted production params wait for height ${REGION_HIGHT_WAIT} so every region has enough to withdraw (or create a 5th validator at a chosen height) #"
-        echo "# ---------------------------------------------------------------------------- #"
-        while true; do
-            CURRENT_HEIGHT=$(med status --home ${ME_NODE1_HOME} 2>/dev/null | jq -r '.SyncInfo.latest_block_height' 2>/dev/null)
-            CURRENT_HEIGHT=${CURRENT_HEIGHT//\"/}
-            
-            echo "Current block height: $CURRENT_HEIGHT"
-            
-            if [ "$CURRENT_HEIGHT" -ge "${REGION_HIGHT_WAIT}" ] 2>/dev/null; then
-                echo -e "\nBlock height has reached ${REGION_HIGHT_WAIT}. Proceeding with next steps..."
-                break
-            fi
-            timeout_seconds=$(timeout_commit_seconds "${ME_TIMEOUT_COMMIT}")
-            sleepTime=$(echo "(${REGION_HIGHT_WAIT} * ${timeout_seconds}) / 100" | bc)
-            echo "Waiting for block height to reach ${REGION_HIGHT_WAIT} (next check in ${sleepTime} seconds)..."
-            sleep "$sleepTime"
-        done
-        echo "Withdraw the Send DA val1 amount from ${ME_STAKING_AMOUNT_NODE1_REGION}${ME_SEND_DA_AMOUNT_VAL1}"
-        echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO}   ${ME_SEND_DA_AMOUNT_VAL1} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
-        txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO}   ${ME_SEND_DA_AMOUNT_VAL1} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-        echo "Check whether the tx hash is on chain: ${txhash}"
-        check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
-        
-        echo "Withdraw the Send IBC amount from ${ME_STAKING_AMOUNT_NODE1_REGION}${ME_SEND_IBC_AMOUNT}"
-        echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO}   ${ME_SEND_IBC_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
-        txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO}   ${ME_SEND_IBC_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-        echo "Check whether the tx hash is on chain: ${txhash}"
-        check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
-
-        echo "Withdraw the reserved amount from ${ME_STAKING_AMOUNT_NODE1_REGION}${ME_RESERVE_AMOUNT}"
-        echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO}   ${ME_RESERVE_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
-        txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_GLOBAL_DAO}   ${ME_RESERVE_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-        echo "Check whether the tx hash is on chain: ${txhash}"
-        check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
-
-        echo "Withdraw the Send DA val2 amount from ${ME_STAKING_AMOUNT_NODE2_REGION}${ME_SEND_DA_AMOUNT_VAL2}"
-        echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE2_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${ME_SEND_DA_AMOUNT_VAL2} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
-        txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE2_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${ME_SEND_DA_AMOUNT_VAL2} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-        echo "Check whether the tx hash is on chain: ${txhash}"
-        check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
-        
-        echo "Withdraw the Send DA val3 amount from ${ME_STAKING_AMOUNT_NODE3_REGION}${ME_SEND_DA_AMOUNT_VAL3}"
-        echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE3_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${ME_SEND_DA_AMOUNT_VAL3} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
-        txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE3_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${ME_SEND_DA_AMOUNT_VAL3} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-        echo "Check whether the tx hash is on chain: ${txhash}"
-        check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
-
-        echo "Withdraw the Send DA val4 amount from ${ME_STAKING_AMOUNT_NODE4_REGION}${ME_SEND_DA_AMOUNT_VAL4}"
-        echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE4_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${ME_SEND_DA_AMOUNT_VAL4} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
-        txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE4_REGION}  ${USER_ADDR_ME_GLOBAL_DAO} ${ME_SEND_DA_AMOUNT_VAL4} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
-        echo "Check whether the tx hash is on chain: ${txhash}"
-        check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
-        echo "Current ${USER_ADDR_ME_GLOBAL_DAO} account:"
-        med query bank balances "${USER_ADDR_ME_GLOBAL_DAO}" --home ${ME_NODE1_HOME} -o json 2>/dev/null
-    fi
-fi
 
 echo "# ---------------------------------------------------------------------- ------ #"
 echo "#               Deploy ME-DA-Node1                                                 #"
@@ -3005,18 +2908,6 @@ then
         seqID=$((seqID+1))
         check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
     }
-    me_region_transfer_list() {
-        local addr=$1
-        local region=$2
-        local send_amount=$3
-        echo "Handle ibc: me region -> da: ${addr} ${send_amount}"
-        echo "Running: med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}   $addr $send_amount --from global_dao --home $ME_NODE1_HOME -y -o json | jq -r '.txhash' "
-        txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  $addr $send_amount --from global_dao --home $ME_NODE1_HOME -y -o json | jq -r '.txhash')
-        echo "tx hash: ${txhash}"
-        echo "----------------------------"
-        seqID=$((seqID+1))
-        check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
-    }
     da_create_validator(){
         local Node_Region_Pubkey=$1
         local DA_STAKING_AMOUNT=$2
@@ -3370,9 +3261,10 @@ then
     check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
     echo "med q rollapp list --home ${ME_NODE1_HOME}"
     med q rollapp list --home ${ME_NODE1_HOME}
-    echo "Withdraw the node1 sequencer amount from ${ME_STAKING_AMOUNT_NODE1_REGION}${ME_SEND_SEQUENCER1_AMOUNT}"
-    echo "shell:med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_SEQUENCER}   ${ME_SEND_SEQUENCER1_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash'"
-    txhash=$(med tx staking withdraw-from-region ${ME_STAKING_AMOUNT_NODE1_REGION}  ${USER_ADDR_ME_SEQUENCER}   ${ME_SEND_SEQUENCER1_AMOUNT} --from global_dao --home ${ME_NODE1_HOME} -y -o json | jq -r '.txhash')
+    echo "Fund the node1 sequencer from global_dao: ${ME_SEND_SEQUENCER1_AMOUNT}"
+    txhash=$(med tx bank send global_dao "${USER_ADDR_ME_SEQUENCER}" "${ME_SEND_SEQUENCER1_AMOUNT}" \
+        --from global_dao --chain-id "${ME_CHAIN_ID}" --keyring-backend "${KEYRING_BACKEND_NAME}" \
+        --home "${ME_NODE1_HOME}" --fees=100000umec -y -o json | jq -r '.txhash')
     echo "Check whether the tx hash is on chain: ${txhash}"
     check_tx_status med ${txhash} "--home ${ME_NODE1_HOME}"
 else
@@ -3420,8 +3312,6 @@ docker compose  ps
 setup_after_rollapp_node1
 
 #test commands
-#Withdraw treasury funds to global_dao
-#./bin/med  tx staking withdraw-from-region me_earth  me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t  10mec --from global_dao --home nodes/hub-nodes/node1 -y -o json
 #Transfer to rollapp ibc and query the rollapp ibc balance
 #./bin/med query bank balances me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t --home nodes/hub-nodes/node1 -o json
 #rollappd query bank balances me1qk7jwgdmq5lfraq5l4p3qa5vq9vwa84rzhmhhc  --home nodes/rollapp -o json
@@ -3449,7 +3339,7 @@ setup_after_rollapp_node1
 #./bin/rly  tx update-clients hub-meda --home  ./nodes/rly-da
 #./bin/rly  tx update-clients hub-rollapp --home ./nodes/rly-rapp
 
-#Region Query the balance and withdraw to an account
+# Query region balances
 #ME_NODE1_HOME="nodes/hub-nodes/node1" 
 #region_data=$(./bin/med  query staking regions --home ${ME_NODE1_HOME} -o json)
 #echo "$region_data" | jq -r '.region[] | [.regionId, .region_treasure_addr] | @tsv' | while IFS=$'\t' read -r region_id treasure_addr; do
@@ -3460,8 +3350,7 @@ setup_after_rollapp_node1
 #done
 #echo "me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t balance is:"
 #./bin/med query bank balances me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t --home nodes/hub-nodes/node1 -o json
-#./bin/med tx staking withdraw-from-region me_earth me1eff5px4606z48lwehyvapane9tc9lekn9c4d5t  200umec --from global_dao --home nodes/hub-nodes/node1 -y -o json | jq -r '.txhash'
-#./bin/med query tx 65BF86C4AFD1E6C5D281A13D21B089E6620956F6EA6F6BD19A65419A1611F4C3 --home nodes/hub-nodes/node1 -o json
+
 
 
 # Wipe all node data and return to genesis block 0

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Server-side Hub v2 → v3.0.0 upgrade drill, driven by release images:
-#   V2: ghcr.io/openmetaearth/med:v2.0.17
-#   V3: ghcr.io/openmetaearth/med:v3.0.0
+#   V2: ghcr.io/openmetaearth/med:v2.0.18.rc6
+#   V3: ghcr.io/openmetaearth/med:v3.0.0.rc1
 #
 # Host needs: docker, jq. Chain data lives on the host and is mounted at
 # /root/.mechain inside the container (same path the release image uses).
@@ -15,15 +15,15 @@
 #
 # Optional:
 #   HOME_DIR=/data/mechain-upgrade CONTAINER_NAME=mechain-upgrade \
-#     MED_V2_IMAGE=ghcr.io/openmetaearth/med:v2.0.17 \
-#     MED_V3_IMAGE=ghcr.io/openmetaearth/med:v3.0.0 \
+#     MED_V2_IMAGE=ghcr.io/openmetaearth/med:v2.0.18.rc6 \
+#     MED_V3_IMAGE=ghcr.io/openmetaearth/med:v3.0.0.rc1 \
 #     ./scripts/setup_v2_upgrade.sh init
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-MED_V2_IMAGE="${MED_V2_IMAGE:-ghcr.io/openmetaearth/med:v2.0.17}"
-MED_V3_IMAGE="${MED_V3_IMAGE:-ghcr.io/openmetaearth/med:v3.0.0}"
+MED_V2_IMAGE="${MED_V2_IMAGE:-ghcr.io/openmetaearth/med:v2.0.18.rc6}"
+MED_V3_IMAGE="${MED_V3_IMAGE:-ghcr.io/openmetaearth/med:v3.0.0.rc1}"
 HOME_DIR="${HOME_DIR:-$HOME/.mechain-upgrade}"
 CONTAINER_HOME="/root/.mechain"
 CONTAINER_NAME="${CONTAINER_NAME:-mechain-upgrade}"

@@ -566,10 +566,23 @@ test_queries() {
  jq -se 'length == 9' "$RESULT_DIR/queries.jsonl" >/dev/null
 }
 
+fund_validators() {
+ local dao key address
+ dao=$(key_address "$DAO_KEY")
+ for key in val1 val2 val3 val4; do
+  address=$(key_address "$key") || fail "could not resolve $key before funding"
+  printf 'Funding %s (%s): %s from %s\n' "$key" "$address" "$FUND_AMOUNT" "$DAO_KEY"
+  send_module_tx "$DAO_KEY" bank send "$dao" "$address" "$FUND_AMOUNT"
+ done
+}
+
 run_case() (
  echo "=== $1 ==="
  RESULT_DIR=$(mktemp -d "${TMPDIR:-/tmp}/regiongov.$1.XXXXXX")
  echo "Results: $RESULT_DIR"
+ if [[ $1 != test_queries && ${REGIONGOV_SUITE_PREFUNDED:-0} != 1 ]]; then
+  fund_validators
+ fi
  case $1 in
   test_equity_treasury_proposal_pass|test_equity_treasury_other_region_rejected) prepare_equity_treasury ;;
   test_*equity*|test_approve_pending_action|test_reject_pending_action) prepare_equity ;;
@@ -591,6 +604,7 @@ run_all() {
  RESULT_DIR=$(mktemp -d "${TMPDIR:-/tmp}/regiongov.all.XXXXXX")
  printf 'Preflight results: %s\n' "$RESULT_DIR"
  require_new_operator
+ fund_validators
  # Keep the same generated/explicit address in every fresh test process.
  export NEW_OPERATOR
  local test result=0 passed=0 failed=0 skipped=0 index=0 started=$SECONDS
@@ -604,7 +618,7 @@ run_all() {
   fi
   printf '\n[%d/%d] %s\n' "$index" "${#TESTS[@]}" "$test"
   # Use a fresh Bash process: testing run_case in an if would disable its errexit.
-  if "$BASH" "$ROOT/run.sh" "$test"; then
+  if REGIONGOV_SUITE_PREFUNDED=1 "$BASH" "$ROOT/run.sh" "$test"; then
    results+=("PASS  $test")
    passed=$((passed + 1))
   else
