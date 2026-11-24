@@ -27,6 +27,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.50.14
 	github.com/cosmos/go-bip39 v1.0.0
+	github.com/cosmos/gogogateway v1.2.0
 	github.com/cosmos/gogoproto v1.7.2
 	github.com/cosmos/iavl v1.2.6
 	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.2.0
@@ -122,7 +123,6 @@ require (
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/typeurl v1.0.2 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
-	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/ibc-go/modules/apps/callbacks v0.2.1-0.20231113120333-342c00b0f8bd // indirect
 	github.com/cosmos/ledger-cosmos-go v0.14.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
@@ -327,7 +327,7 @@ require (
 )
 
 replace (
-	github.com/cosmos/cosmos-sdk => github.com/openmetaearth/cosmos-sdk v0.0.0-20261022073324-55c37aea1538
+	github.com/cosmos/cosmos-sdk => github.com/openmetaearth/cosmos-sdk v0.0.0-20261124032910-cd2c5d525a30
 	github.com/evmos/ethermint => github.com/openmetaearth/ethermint v0.22.0-me-v2.0.0-rc4
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/ipfs/go-log/v2 => github.com/st-chain/go-log/v2 v2.7.0

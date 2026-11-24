@@ -23,3 +23,4 @@ vendor
 .pr-close-list.txtaudit-report.md
 .env*
 pprof
+*.local.md
