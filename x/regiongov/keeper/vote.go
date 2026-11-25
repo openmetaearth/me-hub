@@ -66,9 +66,11 @@ func (k Keeper) castVote(ctx sdk.Context, msg *types.MsgVote) error {
 	return nil
 }
 
-// castDaoVote records the dao ballot outside the counted electorate. Both yes
-// and no can be overwritten until voting closes; EndBlocker uses the final ballot.
+// castDaoVote records one immutable DAO ballot per proposal, outside the counted electorate.
 func (k Keeper) castDaoVote(ctx sdk.Context, proposal types.Proposal, voter string, option types.VoteOption) error {
+	if proposal.DaoVote != types.DaoVoteUnspecified {
+		return errorsmod.Wrapf(types.ErrAlreadyVoted, "%s", voter)
+	}
 	proposal.DaoVote = daoVote(option)
 	k.SetProposal(ctx, proposal)
 	k.emitVote(ctx, proposal.Id, voter, option)

@@ -11,27 +11,19 @@ import (
 	"github.com/openmetaearth/me-hub/x/regiongov/types"
 )
 
-func (s *KeeperTestSuite) TestDaoVoteCanBeOverwrittenUntilVotingEnd() {
+func (s *KeeperTestSuite) TestDaoCanVoteOnlyOncePerProposal() {
 	const replaceOperator = "replace operator"
 	for _, electorate := range []string{"treasury", replaceOperator, "equity treasury"} {
 		for _, tc := range []struct {
 			name     string
-			ballots  []types.VoteOption
+			option   types.VoteOption
+			ballot   types.DaoVote
 			yesCount int
 			want     types.ProposalStatus
 		}{
-			{
-				name: "51pass_daoveto", yesCount: 2, want: types.ProposalStatusRejected,
-				ballots: []types.VoteOption{types.VoteOptionYes, types.VoteOptionNo, types.VoteOptionNo, types.VoteOptionYes, types.VoteOptionNo},
-			},
-			{
-				name: "51pass_daoveto_then_daoyes", yesCount: 2, want: types.ProposalStatusPassed,
-				ballots: []types.VoteOption{types.VoteOptionNo, types.VoteOptionNo, types.VoteOptionYes, types.VoteOptionNo, types.VoteOptionYes, types.VoteOptionYes},
-			},
-			{
-				name: "below_threshold_daoveto_then_daoyes", yesCount: 1, want: types.ProposalStatusRejected,
-				ballots: []types.VoteOption{types.VoteOptionNo, types.VoteOptionYes},
-			},
+			{"dao veto", types.VoteOptionNo, types.DaoVoteNo, 2, types.ProposalStatusRejected},
+			{"dao approval", types.VoteOptionYes, types.DaoVoteYes, 2, types.ProposalStatusPassed},
+			{"dao approval below threshold", types.VoteOptionYes, types.DaoVoteYes, 1, types.ProposalStatusRejected},
 		} {
 			s.Run(electorate+"/"+tc.name, func() {
 				s.SetupTest()
@@ -47,7 +39,7 @@ func (s *KeeperTestSuite) TestDaoVoteCanBeOverwrittenUntilVotingEnd() {
 				withdrawal.Receiver = sample.AccAddress()
 				newOperator := sdk.ValAddress(sdk.MustAccAddressFromBech32(sample.AccAddress()))
 				msg := &types.MsgSubmitProposal{
-					Proposer: proposer, Kind: types.ProposalKindTreasuryWithdraw, Title: "dao overwrite", VotingPeriod: 60,
+					Proposer: proposer, Kind: types.ProposalKindTreasuryWithdraw, Title: "single dao ballot", VotingPeriod: 60,
 					Treasury: &types.TreasuryWithdrawPayload{Withdrawals: []types.Withdrawal{withdrawal}},
 				}
 				if electorate == replaceOperator {
@@ -69,10 +61,16 @@ func (s *KeeperTestSuite) TestDaoVoteCanBeOverwrittenUntilVotingEnd() {
 				receiver := sdk.MustAccAddressFromBech32(withdrawal.Receiver)
 				balance := s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom)
 
-				// NO does not close voting for other electors or remove its tally queue.
-				s.Require().NoError(s.vote(s.Dao.GlobalDao, id, types.VoteOptionNo))
-				s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(id).Status)
+				// The first DAO ballot does not close voting for the electors.
+				s.Ctx = s.Ctx.WithEventManager(sdk.NewEventManager())
+				s.Require().NoError(s.vote(s.Dao.GlobalDao, id, tc.option))
+				expected := proposal
+				expected.DaoVote = tc.ballot
+				s.Require().Equal(expected, s.mustProposal(id))
 				s.Require().True(store.Has(queue))
+				s.Require().Empty(s.App.RegionGovKeeper.GetVotes(s.Ctx, id))
+				s.Require().Len(s.Ctx.EventManager().Events(), 1)
+				s.Require().Equal(types.EventTypeVote, s.Ctx.EventManager().Events()[0].Type)
 				for _, voter := range voters[:tc.yesCount] {
 					s.Require().NoError(s.vote(voter, id, types.VoteOptionYes))
 				}
@@ -80,29 +78,23 @@ func (s *KeeperTestSuite) TestDaoVoteCanBeOverwrittenUntilVotingEnd() {
 					s.Require().NoError(s.vote(operator, id, types.VoteOptionYes))
 				}
 				votes := s.App.RegionGovKeeper.GetVotes(s.Ctx, id)
-				for i, option := range tc.ballots {
-					// Use distinct block times, with the last change one nanosecond
-					// before the deadline. Repeating the same option is also valid.
-					s.Ctx = s.Ctx.WithBlockTime(proposal.VotingEndTime.Add(-time.Duration(len(tc.ballots)-i) * time.Nanosecond))
-					s.Ctx = s.Ctx.WithEventManager(sdk.NewEventManager())
-					s.Require().NoError(s.vote(s.Dao.GlobalDao, id, option))
-					expected := proposal
-					expected.DaoVote = types.DaoVoteYes
-					if option == types.VoteOptionNo {
-						expected.DaoVote = types.DaoVoteNo
-					}
-					s.Require().Equal(expected, s.mustProposal(id))
-					s.Require().Equal(votes, s.App.RegionGovKeeper.GetVotes(s.Ctx, id), "dao ballots must not change the counted votes")
-					s.Require().True(store.Has(queue))
-					s.Require().Len(s.Ctx.EventManager().Events(), 1)
-					s.Require().Equal(types.EventTypeVote, s.Ctx.EventManager().Events()[0].Type)
-					s.endBlockAt(s.Ctx.BlockTime())
-					s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(id).Status)
-					currentRegion, ok := s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
-					s.Require().True(ok)
-					s.Require().Equal(region, currentRegion)
-					s.Require().Equal(balance, s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom))
+				// Neither repeating the first vote nor changing it is allowed, even
+				// in a later block when the proposal is still open.
+				s.Ctx = s.Ctx.WithBlockTime(proposal.VotingEndTime.Add(-time.Nanosecond))
+				s.Ctx = s.Ctx.WithEventManager(sdk.NewEventManager())
+				for _, option := range []types.VoteOption{types.VoteOptionYes, types.VoteOptionNo} {
+					s.Require().ErrorIs(s.vote(s.Dao.GlobalDao, id, option), types.ErrAlreadyVoted)
 				}
+				s.Require().Equal(expected, s.mustProposal(id))
+				s.Require().Equal(votes, s.App.RegionGovKeeper.GetVotes(s.Ctx, id))
+				s.Require().True(store.Has(queue))
+				s.Require().Empty(s.Ctx.EventManager().Events())
+				s.endBlockAt(s.Ctx.BlockTime())
+				s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(id).Status)
+				currentRegion, found := s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
+				s.Require().True(found)
+				s.Require().Equal(region, currentRegion)
+				s.Require().Equal(balance, s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom))
 				s.Require().ErrorIs(s.vote(voters[0], id, types.VoteOptionNo), types.ErrAlreadyVoted)
 				before := s.mustProposal(id)
 				s.Ctx = s.Ctx.WithBlockTime(proposal.VotingEndTime)
@@ -115,7 +107,7 @@ func (s *KeeperTestSuite) TestDaoVoteCanBeOverwrittenUntilVotingEnd() {
 				s.Require().Equal(tc.want, s.mustProposal(id).Status)
 				s.Require().Equal(before.DaoVote, s.mustProposal(id).DaoVote)
 				s.Require().False(store.Has(queue))
-				currentRegion, found := s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
+				currentRegion, found = s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
 				s.Require().True(found)
 				if tc.want == types.ProposalStatusPassed && electorate == replaceOperator {
 					s.Require().Equal(newOperator.String(), currentRegion.OperatorAddress)

@@ -253,7 +253,7 @@ vote_test_dao() {
 veto_test_proposal() {
  local period
  period=$(query proposal "$PROPOSAL_ID" | jq -er '.proposal.voting_period')
- # NO is only the current DAO ballot, not an immediate rejection or cancellation.
+ # NO records the DAO's only ballot; it does not end voting immediately.
  vote_test_dao no
  wait_for_proposal_status "$period" PROPOSAL_STATUS_REJECTED
  query proposal "$PROPOSAL_ID" | assert_json '.proposal.dao_vote == "DAO_VOTE_NO"'
@@ -517,8 +517,9 @@ vote_operator_threshold_yes() {
  ' < "$RESULT_DIR/operator-yes-votes.json"
 }
 
-test_proposal_51pass_dao_override() {
- local kind=$1 final_option=$2 params threshold period original_operator expected
+test_proposal_51pass_dao_ballot() {
+ local kind=$1 option=$2 params threshold period original_operator expected other_option
+ [[ $REJECT_GAS =~ ^[1-9][0-9]*$ ]] || fail 'REJECT_GAS must be a positive fixed gas limit'
  params=$(query params)
  threshold=$(printf '%s' "$params" | jq -er '.params.pass_threshold_percent')
  [[ $threshold == 51 ]] || fail "this test requires pass_threshold_percent=51, got $threshold"
@@ -527,24 +528,27 @@ test_proposal_51pass_dao_override() {
  submit_test_proposal "$kind"
  vote_operator_threshold_yes "$threshold"
 
- # Every DAO overwrite must leave the proposal open until the on-chain deadline.
- vote_test_dao yes dao-initial-yes
- vote_test_dao no dao-veto
- if [[ $kind == replace-operator ]]; then assert_region_operator "$original_operator"; fi
- if [[ $final_option == yes ]]; then
-  vote_test_dao yes dao-restored-yes
-  if [[ $kind == replace-operator ]]; then assert_region_operator "$original_operator"; fi
+ if [[ $option == yes ]]; then
   expected=PROPOSAL_STATUS_PASSED
+  other_option=no
  else
   expected=PROPOSAL_STATUS_REJECTED
+  other_option=yes
  fi
+ vote_test_dao "$option"
+ # Bypass simulation and check the committed ErrAlreadyVoted (regiongov code 6).
+ GAS="$REJECT_GAS" send_module_tx_expect_result "$DAO_KEY" regiongov 6 regiongov vote "$PROPOSAL_ID" "$other_option"
+ query proposal "$PROPOSAL_ID" | assert_json --arg option "$option" '
+  .proposal.status == "PROPOSAL_STATUS_VOTING" and
+  .proposal.dao_vote == ("DAO_VOTE_" + ($option | ascii_upcase))'
+ if [[ $kind == replace-operator ]]; then assert_region_operator "$original_operator"; fi
  wait_for_proposal_status "$period" "$expected"
  query proposal "$PROPOSAL_ID" > "$RESULT_DIR/after-voting-end.json"
- assert_json --arg status "$expected" --arg option "$final_option" '
+ assert_json --arg status "$expected" --arg option "$option" '
   .proposal.status == $status and .proposal.dao_vote == ("DAO_VOTE_" + ($option | ascii_upcase))
  ' < "$RESULT_DIR/after-voting-end.json"
  if [[ $kind == replace-operator ]]; then
-  if [[ $final_option == yes ]]; then
+  if [[ $option == yes ]]; then
    assert_region_operator "$NEW_OPERATOR"
    operator_replacement_notice
   else
@@ -553,13 +557,13 @@ test_proposal_51pass_dao_override() {
  fi
 }
 
-test_treasury_proposal_51pass_daoveto() { test_proposal_51pass_dao_override treasury no; }
+test_treasury_proposal_51pass_daoveto() { test_proposal_51pass_dao_ballot treasury no; }
 
-test_treasury_proposal_51pass_daoveto_then_daoyes() { test_proposal_51pass_dao_override treasury yes; }
+test_treasury_proposal_51pass_daoyes() { test_proposal_51pass_dao_ballot treasury yes; }
 
-test_replaceoperator_proposal_51pass_daoveto() { test_proposal_51pass_dao_override replace-operator no; }
+test_replaceoperator_proposal_51pass_daoveto() { test_proposal_51pass_dao_ballot replace-operator no; }
 
-test_replaceoperator_proposal_51pass_daoveto_then_daoyes() { test_proposal_51pass_dao_override replace-operator yes; }
+test_replaceoperator_proposal_51pass_daoyes() { test_proposal_51pass_dao_ballot replace-operator yes; }
 
 test_queries() {
  "$ROOT/queries.sh" all > "$RESULT_DIR/queries.jsonl"
@@ -595,9 +599,9 @@ run_case() (
 )
 
 # All operator-dependent cases must finish before the one successful replacement.
-# test_operator_proposal_pass remains a standalone command: the final NO->YES case
+# test_operator_proposal_pass remains a standalone command: the final DAO YES case
 # also covers its successful replacement, without reusing obsolete signing keys.
-TESTS=(test_submit_equity_update test_approve_pending_action test_reject_pending_action test_submit_freeze_equity test_submit_unfreeze_equity test_freeze_equity test_unfreeze_equity test_freeze_region test_unfreeze_region test_submit_treasury_proposal test_submit_operator_proposal test_vote test_treasury_proposal_pass test_treasury_proposal_51pass_daoveto test_treasury_proposal_51pass_daoveto_then_daoyes test_equity_treasury_proposal_pass test_equity_treasury_other_region_rejected test_replaceoperator_proposal_51pass_daoveto test_queries test_replaceoperator_proposal_51pass_daoveto_then_daoyes)
+TESTS=(test_submit_equity_update test_approve_pending_action test_reject_pending_action test_submit_freeze_equity test_submit_unfreeze_equity test_freeze_equity test_unfreeze_equity test_freeze_region test_unfreeze_region test_submit_treasury_proposal test_submit_operator_proposal test_vote test_treasury_proposal_pass test_treasury_proposal_51pass_daoveto test_treasury_proposal_51pass_daoyes test_equity_treasury_proposal_pass test_equity_treasury_other_region_rejected test_replaceoperator_proposal_51pass_daoveto test_queries test_replaceoperator_proposal_51pass_daoyes)
 
 run_all() {
  local RESULT_DIR
@@ -642,7 +646,7 @@ main() {
   printf 'Usage: run.sh <all|command_name>\n'
   printf '  all: run the ordered suite, stopping on the first failure; one operator replacement runs last\n'
   printf '%s\n' "${TESTS[@]}"
-  printf '  test_operator_proposal_pass: standalone only; all covers success in the final DAO NO->YES case\n'
+  printf '  test_operator_proposal_pass: standalone only; all covers success in the final DAO YES case\n'
   return
  fi
  (( $# == 1 )) || fail 'specify one command name'

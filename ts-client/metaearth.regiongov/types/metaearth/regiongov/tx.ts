@@ -1996,7 +1996,7 @@ export interface Msg {
    * vote.
    */
   SubmitProposal(request: MsgSubmitProposal): Promise<MsgSubmitProposalResponse>;
-  /** Vote casts or, for the dao only, overwrites a ballot. */
+  /** Vote casts a ballot. Each voter can vote only once per proposal. */
   Vote(request: MsgVote): Promise<MsgVoteResponse>;
   /** SubmitEquityUpdate asks the dao to replace one region's equity addresses. */
   SubmitEquityUpdate(request: MsgSubmitEquityUpdate): Promise<MsgSubmitEquityUpdateResponse>;

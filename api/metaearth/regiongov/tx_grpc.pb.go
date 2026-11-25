@@ -39,7 +39,7 @@ type MsgClient interface {
 	// SubmitProposal opens a treasury withdrawal or region-operator replacement
 	// vote.
 	SubmitProposal(ctx context.Context, in *MsgSubmitProposal, opts ...grpc.CallOption) (*MsgSubmitProposalResponse, error)
-	// Vote casts or, for the dao only, overwrites a ballot.
+	// Vote casts a ballot. Each voter can vote only once per proposal.
 	Vote(ctx context.Context, in *MsgVote, opts ...grpc.CallOption) (*MsgVoteResponse, error)
 	// SubmitEquityUpdate asks the dao to replace one region's equity addresses.
 	SubmitEquityUpdate(ctx context.Context, in *MsgSubmitEquityUpdate, opts ...grpc.CallOption) (*MsgSubmitEquityUpdateResponse, error)
@@ -175,7 +175,7 @@ type MsgServer interface {
 	// SubmitProposal opens a treasury withdrawal or region-operator replacement
 	// vote.
 	SubmitProposal(context.Context, *MsgSubmitProposal) (*MsgSubmitProposalResponse, error)
-	// Vote casts or, for the dao only, overwrites a ballot.
+	// Vote casts a ballot. Each voter can vote only once per proposal.
 	Vote(context.Context, *MsgVote) (*MsgVoteResponse, error)
 	// SubmitEquityUpdate asks the dao to replace one region's equity addresses.
 	SubmitEquityUpdate(context.Context, *MsgSubmitEquityUpdate) (*MsgSubmitEquityUpdateResponse, error)

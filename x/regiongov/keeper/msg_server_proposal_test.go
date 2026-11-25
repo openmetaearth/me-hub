@@ -91,12 +91,8 @@ func (s *KeeperTestSuite) TestDaoVetoAtVotingEnd() {
 	s.Require().True(found)
 	treasury := sdk.MustAccAddressFromBech32(region.RegionTreasureAddr)
 	before := s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom)
-	// Veto must win even after every operator and the DAO have approved.
+	// The DAO's no ballot vetoes the proposal even if every operator voted yes.
 	s.Require().NoError(s.vote(usa, id, types.VoteOptionYes))
-	s.Require().NoError(s.vote(s.Dao.GlobalDao, id, types.VoteOptionYes))
-	s.Require().Equal(types.DaoVoteYes, s.mustProposal(id).DaoVote)
-	s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(id).Status)
-
 	s.Require().NoError(s.vote(s.Dao.GlobalDao, id, types.VoteOptionNo))
 	s.Require().Equal(types.DaoVoteNo, s.mustProposal(id).DaoVote)
 	s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(id).Status)

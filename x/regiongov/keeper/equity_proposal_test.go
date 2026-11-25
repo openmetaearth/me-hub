@@ -108,15 +108,14 @@ func (s *KeeperTestSuite) TestEquityProposalRequiresAllThreeApprovals() {
 		name      string
 		equityYes int
 		operator  types.VoteOption
-		daoYes    bool
-		daoVeto   bool
+		dao       types.VoteOption
 	}{
-		{name: "missing operator", equityYes: 3, daoYes: true},
+		{name: "missing operator", equityYes: 3, dao: types.VoteOptionYes},
 		{name: "missing dao", equityYes: 3, operator: types.VoteOptionYes},
-		{name: "below equity threshold", equityYes: 1, operator: types.VoteOptionYes, daoYes: true},
-		{name: "approvers are not equity votes", operator: types.VoteOptionYes, daoYes: true},
-		{name: "operator no is not an immediate veto", equityYes: 3, operator: types.VoteOptionNo, daoYes: true},
-		{name: "dao final no rejects at voting end", equityYes: 3, operator: types.VoteOptionYes, daoYes: true, daoVeto: true},
+		{name: "below equity threshold", equityYes: 1, operator: types.VoteOptionYes, dao: types.VoteOptionYes},
+		{name: "approvers are not equity votes", operator: types.VoteOptionYes, dao: types.VoteOptionYes},
+		{name: "operator no is not an immediate veto", equityYes: 3, operator: types.VoteOptionNo, dao: types.VoteOptionYes},
+		{name: "dao no rejects at voting end", equityYes: 3, operator: types.VoteOptionYes, dao: types.VoteOptionNo},
 	} {
 		s.Run(tc.name, func() {
 			id := s.submit(equities[0], withdrawal)
@@ -129,19 +128,10 @@ func (s *KeeperTestSuite) TestEquityProposalRequiresAllThreeApprovals() {
 				s.Require().NoError(s.vote(operator, id, tc.operator))
 				s.Require().ErrorIs(s.vote(operator, id, types.VoteOptionYes), types.ErrAlreadyVoted)
 			}
-			if tc.daoYes {
-				s.Require().NoError(s.vote(s.Dao.GlobalDao, id, types.VoteOptionYes))
+			if tc.dao != types.VoteOptionUnspecified {
+				s.Require().NoError(s.vote(s.Dao.GlobalDao, id, tc.dao))
 			}
 			s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(id).Status)
-			if tc.daoVeto {
-				s.Require().NoError(s.vote(s.Dao.GlobalDao, id, types.VoteOptionNo))
-				s.Require().Equal(types.DaoVoteNo, s.mustProposal(id).DaoVote)
-				s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(id).Status)
-				s.Require().NoError(s.vote(s.Dao.GlobalDao, id, types.VoteOptionYes))
-				s.Require().NoError(s.vote(s.Dao.GlobalDao, id, types.VoteOptionNo))
-				s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(id).Status)
-				s.Require().Equal(types.DaoVoteNo, s.mustProposal(id).DaoVote)
-			}
 		})
 	}
 	s.endBlockAt(s.mustProposal(rejected[0]).VotingEndTime)

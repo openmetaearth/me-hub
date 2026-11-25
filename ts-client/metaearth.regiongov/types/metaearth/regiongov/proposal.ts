@@ -199,7 +199,7 @@ export function electorateKindToJSON(object: ElectorateKind): string {
 
 /**
  * DaoVote is the dao ballot. Unspecified means the dao has not voted.
- * The dao may overwrite this value until the proposal is finalized.
+ * Once cast, the DAO ballot cannot be changed.
  */
 export enum DaoVote {
   DAO_VOTE_UNSPECIFIED = 0,

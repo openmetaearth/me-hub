@@ -66,12 +66,12 @@ EQUITY_ADDRESSES="me1... me1..." ./scripts/regiongov/run.sh test_submit_freeze_e
 ./scripts/regiongov/run.sh test_vote
 # IND/CHN operators plus DAO vote YES; wait for the on-chain voting period.
 ./scripts/regiongov/run.sh test_treasury_proposal_pass
-# Real operator ballots reach 51%; final DAO NO rejects only at voting expiry.
+# Real operator ballots reach 51%; DAO NO rejects only at voting expiry.
 ./scripts/regiongov/run.sh test_treasury_proposal_51pass_daoveto
-./scripts/regiongov/run.sh test_treasury_proposal_51pass_daoveto_then_daoyes
+./scripts/regiongov/run.sh test_treasury_proposal_51pass_daoyes
 ./scripts/regiongov/run.sh test_replaceoperator_proposal_51pass_daoveto
 # Run successful operator replacement LAST: it changes the key needed later.
-./scripts/regiongov/run.sh test_replaceoperator_proposal_51pass_daoveto_then_daoyes
+./scripts/regiongov/run.sh test_replaceoperator_proposal_51pass_daoyes
 # Alternatively, explicitly opt into the ordered suite (stops on first failure).
 # Do not run it immediately after the successful replacement above without
 # updating signing keys, funding and the replacement address/index as described below.
@@ -99,13 +99,14 @@ CHN; me_earth/experience_region are excluded from voting and tally). All voters
 must be eligible and funded for transaction fees. Set `SECOND_REGION_ID` to
 exercise multi-region batches.
 
-The `*_51pass_daoveto*` cases require `pass_threshold_percent=51` and cast the
-smallest whole number of distinct, snapshotted operator YES ballots needed to
-reach it; DAO approval does not count toward 51%. DAO YES→NO must leave
-`VOTING` / `DAO_VOTE_NO`; `*_then_daoyes` restores `VOTING` / `DAO_VOTE_YES`.
-At expiry final NO yields `REJECTED`, whereas final YES with the threshold met
-yields `PASSED`. The operator cases also verify no replacement during voting,
-then the unchanged operator on rejection or the exact new operator on passage.
+The `*_51pass_daoveto` and `*_51pass_daoyes` cases require
+`pass_threshold_percent=51` and cast the smallest whole number of distinct,
+snapshotted operator YES ballots needed to reach it. DAO approval does not count
+toward 51%. Each case casts one DAO ballot and checks that an attempt to change
+it returns `ErrAlreadyVoted` without changing the ballot or closing voting. At
+expiry DAO NO yields `REJECTED`, whereas DAO YES with the threshold met yields
+`PASSED`. The operator cases verify no replacement during voting, then the
+unchanged operator on rejection or the exact new operator on passage.
 
 `NEW_OPERATOR` must differ from the current on-chain operator. Replacement
 proposals are submitted by DAO, so they do not require `OPERATOR_KEY` to match
@@ -123,21 +124,21 @@ another run. HD index 23 is deterministic, not fresh; if it is already used,
 select another unused index, for example:
 
 ```bash
-NEW_OPERATOR_INDEX=26 ./scripts/regiongov/run.sh test_replaceoperator_proposal_51pass_daoveto_then_daoyes
+NEW_OPERATOR_INDEX=26 ./scripts/regiongov/run.sh test_replaceoperator_proposal_51pass_daoyes
 ```
 
 Changing the replacement index does not fix stale voting keys: `VOTER_KEYS` must
 still contain eligible operators with signing keys in the configured keyring.
 Never use these public test identities for real funds. `all` stops on the first
-failure and puts successful DAO NO→YES replacement last to preserve earlier
+failure and puts the successful DAO YES replacement last to preserve earlier
 cases' signing keys. The older `test_operator_proposal_pass` remains a standalone
 command but is deliberately omitted from `all`: its successful replacement is
 covered by that final case, avoiding a second replacement with obsolete keys.
 
-Basic and DAO-override treasury payloads request **10umec for DAO**. The treasury
+Basic and 51%-threshold treasury payloads request **10umec for DAO**. The treasury
 must already be funded; the runner never changes governance parameters, funds a
-treasury or starts/restarts nodes. The ordinary treasury pass, treasury NO→YES
-and equity treasury pass cases each withdraw 10umec (30umec total in `all`).
+treasury or starts/restarts nodes. The ordinary treasury pass, 51%-threshold DAO
+YES and equity treasury pass cases each withdraw 10umec (30umec total in `all`).
 Provide enough spendable funds for sequential cases and the equity percentage
 cap; rejected proposals transfer nothing, but treasury rewards may still accrue.
 Existing equity treasury cases also fund each signing equity from DAO using
@@ -148,10 +149,10 @@ settings. `GAS` defaults to `auto`; when neither `FEES` nor `GAS_PRICES` is set,
 the script supplies `20000umec` in fees. Voting duration uses the current
 `min_voting_period` parameter without modifying it; even cleanup waits may take
 an hour with a 3600-second period. The wait budget is the voting period plus
-`TX_TIMEOUT`, not `TX_TIMEOUT` alone. Allow time for all committed votes and
-overwrites. Failed JSON assertions print the actual response,
-including transaction error codes and logs. A broadcast timeout is never
-automatically retried, because the transaction may already have committed.
+`TX_TIMEOUT`, not `TX_TIMEOUT` alone. Allow time for all committed transactions,
+including rejected duplicate-vote attempts. Failed JSON assertions print the
+actual response, including transaction error codes and logs. A broadcast timeout
+is never automatically retried, because the transaction may already have committed.
 
 Use a dedicated non-DAO country-region operator with funds for fees. All target
 regions/addresses must initially be unfrozen, and the test region must have no
@@ -171,17 +172,17 @@ All region governance messages are available under `med tx regiongov`. Append
 proposer, voter, or authority; authority operations still require DAO permission
 on chain. Add `--generate-only` to inspect an unsigned transaction without broadcasting.
 For both `TreasuryWithdrawPayload` and `ReplaceRegionOperatorPayload`, the DAO
-can repeatedly vote `yes` or `no` while chain time is **strictly before**
-`voting_end_time`. Each DAO vote overwrites its previous ballot. Neither YES nor
-NO ends voting early: the proposal remains `PROPOSAL_STATUS_VOTING`, with
-`dao_vote` recording `DAO_VOTE_YES` or `DAO_VOTE_NO`. At the deadline, EndBlocker
-uses the DAO's **last ballot**. Final NO (or no DAO approval) rejects the proposal
-without executing it. Final YES permits passage only if the counted electorate
-meets `pass_threshold_percent`; equity withdrawals also require the snapshotted
+can vote `yes` or `no` **once per proposal**, strictly before `voting_end_time`.
+A repeated vote or change while voting is open returns `ErrAlreadyVoted`.
+Neither YES nor NO ends voting early: the proposal remains
+`PROPOSAL_STATUS_VOTING`, with `dao_vote` recording `DAO_VOTE_YES` or `DAO_VOTE_NO`.
+At the deadline, DAO NO or no DAO ballot rejects the proposal without executing
+it. DAO YES permits passage only if the counted electorate meets
+`pass_threshold_percent`; equity withdrawals also require the snapshotted
 region operator's YES. A successful tally executes the payload at expiry; an
 execution error yields `PROPOSAL_STATUS_FAILED`, not `PASSED`. Votes at or after
-the deadline, or after finalization, are rejected. These overwrite rules apply to
-the DAO only; ordinary electors cannot change an already cast ballot.
+the deadline, or after finalization, are rejected. Ordinary electors still
+cannot change an already cast ballot.
 
 `electors[].operator`, `proposal.required_operator`, and `MsgVote.voter` use ordinary
 account addresses (`me1…`). An operator's ballot account has the same address bytes

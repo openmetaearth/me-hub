@@ -236,7 +236,7 @@ func (ElectorateKind) EnumDescriptor() ([]byte, []int) {
 }
 
 // DaoVote is the dao ballot. Unspecified means the dao has not voted.
-// The dao may overwrite this value until the proposal is finalized.
+// Once cast, the DAO ballot cannot be changed.
 type DaoVote int32
 
 const (
