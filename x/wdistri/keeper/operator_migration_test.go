@@ -4,19 +4,18 @@ import (
 	"bytes"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/require"
-
-	"github.com/openmetaearth/me-hub/x/wdistri/types"
 )
 
-type migrationAccountKeeper struct{ types.AccountKeeper }
+type migrationAccountKeeper struct{ distrtypes.AccountKeeper }
 
 func (migrationAccountKeeper) GetModuleAddress(string) sdk.AccAddress {
 	return sdk.AccAddress(bytes.Repeat([]byte{9}, 20))
@@ -27,7 +26,7 @@ func migrationKeeper(t *testing.T) (*Keeper, sdk.Context, *storetypes.KVStoreKey
 	key := storetypes.NewKVStoreKey(distrtypes.StoreKey)
 	ctx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient")).Ctx
 	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
-	k := NewKeeper(cdc, key, paramtypes.Subspace{}, migrationAccountKeeper{}, nil, nil, "fees", "authority")
+	k := NewKeeper(cdc, runtime.NewKVStoreService(key), migrationAccountKeeper{}, nil, nil, nil, "fees", "authority")
 	return k, ctx, key
 }
 
@@ -48,26 +47,26 @@ func TestMigrateValidatorOperatorPreservesDistribution(t *testing.T) {
 	otherAddr := sdk.ValAddress(bytes.Repeat([]byte{3}, 20))
 	delegator := sdk.AccAddress(bytes.Repeat([]byte{4}, 20))
 	withdraw := sdk.AccAddress(bytes.Repeat([]byte{5}, 20))
-	coins := sdk.NewDecCoins(sdk.NewDecCoinFromDec("stake", sdk.MustNewDecFromStr("12.345")))
+	coins := sdk.NewDecCoins(sdk.NewDecCoinFromDec("stake", sdkmath.LegacyMustNewDecFromStr("12.345")))
 	outstanding := distrtypes.ValidatorOutstandingRewards{Rewards: coins}
 	commission := distrtypes.ValidatorAccumulatedCommission{Commission: coins}
 	current := distrtypes.NewValidatorCurrentRewards(coins, 23)
 	historical := distrtypes.NewValidatorHistoricalRewards(coins, 2)
-	slash := distrtypes.NewValidatorSlashEvent(18, sdk.MustNewDecFromStr("0.125"))
-	starting := distrtypes.NewDelegatorStartingInfo(17, sdk.MustNewDecFromStr("19.25"), 50)
-	k.SetValidatorOutstandingRewards(ctx, oldAddr, outstanding)
-	k.SetValidatorAccumulatedCommission(ctx, oldAddr, commission)
-	k.SetValidatorCurrentRewards(ctx, oldAddr, current)
-	k.SetValidatorHistoricalRewards(ctx, oldAddr, 17, historical)
-	k.SetValidatorHistoricalRewards(ctx, oldAddr, 22, historical)
-	k.SetValidatorSlashEvent(ctx, oldAddr, 60, 18, slash)
-	secondSlash := distrtypes.NewValidatorSlashEvent(19, sdk.MustNewDecFromStr("0.25"))
-	k.SetValidatorSlashEvent(ctx, oldAddr, 60, 19, secondSlash)
-	k.SetDelegatorStartingInfo(ctx, oldAddr, delegator, starting)
-	k.SetValidatorCurrentRewards(ctx, otherAddr, current)
-	k.SetDelegatorWithdrawAddr(ctx, sdk.AccAddress(oldAddr), withdraw)
-	k.SetDelegatorWithdrawAddr(ctx, sdk.AccAddress(newAddr), delegator)
-	k.SetPreviousProposerConsAddr(ctx, sdk.ConsAddress(oldAddr))
+	slash := distrtypes.NewValidatorSlashEvent(18, sdkmath.LegacyMustNewDecFromStr("0.125"))
+	starting := distrtypes.NewDelegatorStartingInfo(17, sdkmath.LegacyMustNewDecFromStr("19.25"), 50)
+	require.NoError(t, k.SetValidatorOutstandingRewards(ctx, oldAddr, outstanding))
+	require.NoError(t, k.SetValidatorAccumulatedCommission(ctx, oldAddr, commission))
+	require.NoError(t, k.SetValidatorCurrentRewards(ctx, oldAddr, current))
+	require.NoError(t, k.SetValidatorHistoricalRewards(ctx, oldAddr, 17, historical))
+	require.NoError(t, k.SetValidatorHistoricalRewards(ctx, oldAddr, 22, historical))
+	require.NoError(t, k.SetValidatorSlashEvent(ctx, oldAddr, 60, 18, slash))
+	secondSlash := distrtypes.NewValidatorSlashEvent(19, sdkmath.LegacyMustNewDecFromStr("0.25"))
+	require.NoError(t, k.SetValidatorSlashEvent(ctx, oldAddr, 60, 19, secondSlash))
+	require.NoError(t, k.SetDelegatorStartingInfo(ctx, oldAddr, delegator, starting))
+	require.NoError(t, k.SetValidatorCurrentRewards(ctx, otherAddr, current))
+	require.NoError(t, k.SetDelegatorWithdrawAddr(ctx, sdk.AccAddress(oldAddr), withdraw))
+	require.NoError(t, k.SetDelegatorWithdrawAddr(ctx, sdk.AccAddress(newAddr), delegator))
+	require.NoError(t, k.SetPreviousProposerConsAddr(ctx, sdk.ConsAddress(oldAddr)))
 	before := migrationStoreSnapshot(ctx, key)
 
 	cacheCtx, commit := ctx.CacheContext()
@@ -75,23 +74,24 @@ func TestMigrateValidatorOperatorPreservesDistribution(t *testing.T) {
 	require.Equal(t, before, migrationStoreSnapshot(ctx, key), "migration must respect the caller's cache")
 	commit()
 
-	require.Equal(t, outstanding, k.GetValidatorOutstandingRewards(ctx, newAddr))
-	require.Equal(t, commission, k.GetValidatorAccumulatedCommission(ctx, newAddr))
-	require.Equal(t, current, k.GetValidatorCurrentRewards(ctx, newAddr))
+	require.Equal(t, outstanding, mustMigrationValue(k.GetValidatorOutstandingRewards(ctx, newAddr)))
+	require.Equal(t, commission, mustMigrationValue(k.GetValidatorAccumulatedCommission(ctx, newAddr)))
+	require.Equal(t, current, mustMigrationValue(k.GetValidatorCurrentRewards(ctx, newAddr)))
 	for _, period := range []uint64{17, 22} {
-		require.Equal(t, historical, k.GetValidatorHistoricalRewards(ctx, newAddr, period))
+		require.Equal(t, historical, mustMigrationValue(k.GetValidatorHistoricalRewards(ctx, newAddr, period)))
 	}
 	for _, event := range []distrtypes.ValidatorSlashEvent{slash, secondSlash} {
-		actual, found := k.GetValidatorSlashEvent(ctx, newAddr, 60, event.ValidatorPeriod)
+		actual, found, err := k.GetValidatorSlashEvent(ctx, newAddr, 60, event.ValidatorPeriod)
+		require.NoError(t, err)
 		require.True(t, found)
 		require.Equal(t, event, actual)
 	}
-	require.Equal(t, starting, k.GetDelegatorStartingInfo(ctx, newAddr, delegator))
-	require.False(t, k.HasDelegatorStartingInfo(ctx, oldAddr, delegator))
-	require.Equal(t, current, k.GetValidatorCurrentRewards(ctx, otherAddr))
-	require.Equal(t, withdraw, k.GetDelegatorWithdrawAddr(ctx, sdk.AccAddress(oldAddr)))
-	require.Equal(t, delegator, k.GetDelegatorWithdrawAddr(ctx, sdk.AccAddress(newAddr)))
-	require.Equal(t, sdk.ConsAddress(oldAddr), k.GetPreviousProposerConsAddr(ctx))
+	require.Equal(t, starting, mustMigrationValue(k.GetDelegatorStartingInfo(ctx, newAddr, delegator)))
+	require.False(t, mustMigrationValue(k.HasDelegatorStartingInfo(ctx, oldAddr, delegator)))
+	require.Equal(t, current, mustMigrationValue(k.GetValidatorCurrentRewards(ctx, otherAddr)))
+	require.Equal(t, withdraw, mustMigrationValue(k.GetDelegatorWithdrawAddr(ctx, sdk.AccAddress(oldAddr))))
+	require.Equal(t, delegator, mustMigrationValue(k.GetDelegatorWithdrawAddr(ctx, sdk.AccAddress(newAddr))))
+	require.Equal(t, sdk.ConsAddress(oldAddr), mustMigrationValue(k.GetPreviousProposerConsAddr(ctx)))
 
 	// Migrating back must reproduce every byte, including period/reference counts,
 	// and proves no old-address distribution records were left behind.
@@ -102,22 +102,22 @@ func TestMigrateValidatorOperatorPreservesDistribution(t *testing.T) {
 func TestMigrateValidatorOperatorRejectsDestinationState(t *testing.T) {
 	setters := map[string]func(*Keeper, sdk.Context, sdk.ValAddress){
 		"outstanding": func(k *Keeper, ctx sdk.Context, addr sdk.ValAddress) {
-			k.SetValidatorOutstandingRewards(ctx, addr, distrtypes.ValidatorOutstandingRewards{})
+			require.NoError(t, k.SetValidatorOutstandingRewards(ctx, addr, distrtypes.ValidatorOutstandingRewards{}))
 		},
 		"commission": func(k *Keeper, ctx sdk.Context, addr sdk.ValAddress) {
-			k.SetValidatorAccumulatedCommission(ctx, addr, distrtypes.ValidatorAccumulatedCommission{})
+			require.NoError(t, k.SetValidatorAccumulatedCommission(ctx, addr, distrtypes.ValidatorAccumulatedCommission{}))
 		},
 		"current": func(k *Keeper, ctx sdk.Context, addr sdk.ValAddress) {
-			k.SetValidatorCurrentRewards(ctx, addr, distrtypes.NewValidatorCurrentRewards(sdk.DecCoins{}, 1))
+			require.NoError(t, k.SetValidatorCurrentRewards(ctx, addr, distrtypes.NewValidatorCurrentRewards(sdk.DecCoins{}, 1)))
 		},
 		"historical": func(k *Keeper, ctx sdk.Context, addr sdk.ValAddress) {
-			k.SetValidatorHistoricalRewards(ctx, addr, 0, distrtypes.NewValidatorHistoricalRewards(sdk.DecCoins{}, 1))
+			require.NoError(t, k.SetValidatorHistoricalRewards(ctx, addr, 0, distrtypes.NewValidatorHistoricalRewards(sdk.DecCoins{}, 1)))
 		},
 		"slash": func(k *Keeper, ctx sdk.Context, addr sdk.ValAddress) {
-			k.SetValidatorSlashEvent(ctx, addr, 10, 2, distrtypes.NewValidatorSlashEvent(2, sdk.ZeroDec()))
+			require.NoError(t, k.SetValidatorSlashEvent(ctx, addr, 10, 2, distrtypes.NewValidatorSlashEvent(2, sdkmath.LegacyZeroDec())))
 		},
 		"starting": func(k *Keeper, ctx sdk.Context, addr sdk.ValAddress) {
-			k.SetDelegatorStartingInfo(ctx, addr, sdk.AccAddress(addr), distrtypes.NewDelegatorStartingInfo(0, sdk.ZeroDec(), 0))
+			require.NoError(t, k.SetDelegatorStartingInfo(ctx, addr, sdk.AccAddress(addr), distrtypes.NewDelegatorStartingInfo(0, sdkmath.LegacyZeroDec(), 0)))
 		},
 	}
 	for name, setter := range setters {
@@ -125,7 +125,7 @@ func TestMigrateValidatorOperatorRejectsDestinationState(t *testing.T) {
 			k, ctx, key := migrationKeeper(t)
 			oldAddr := sdk.ValAddress(bytes.Repeat([]byte{1}, 20))
 			newAddr := sdk.ValAddress(bytes.Repeat([]byte{2}, 20))
-			k.SetValidatorCurrentRewards(ctx, oldAddr, distrtypes.NewValidatorCurrentRewards(sdk.DecCoins{}, 9))
+			require.NoError(t, k.SetValidatorCurrentRewards(ctx, oldAddr, distrtypes.NewValidatorCurrentRewards(sdk.DecCoins{}, 9)))
 			setter(k, ctx, newAddr)
 			before := migrationStoreSnapshot(ctx, key)
 			require.ErrorContains(t, k.MigrateValidatorOperator(ctx, oldAddr, newAddr), "already exists")
@@ -164,4 +164,13 @@ func TestMigrateValidatorOperatorValidatesAddresses(t *testing.T) {
 	require.Equal(t, before, migrationStoreSnapshot(ctx, key))
 	require.NoError(t, k.MigrateValidatorOperator(ctx, addr, sdk.ValAddress(bytes.Repeat([]byte{2}, 20))))
 	require.Equal(t, before, migrationStoreSnapshot(ctx, key), "absent source state should not invent records")
+}
+
+// mustMigrationValue keeps assertions on v0.50 keeper results readable while
+// treating unexpected store errors as test failures.
+func mustMigrationValue[T any](value T, err error) T {
+	if err != nil {
+		panic(err)
+	}
+	return value
 }

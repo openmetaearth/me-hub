@@ -7,6 +7,7 @@
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import { Coin } from "../../cosmos/base/v1beta1/coin";
+import { CompletionHookCall } from "../common/completion_hook";
 import { RollappPacket_Type, rollappPacket_TypeFromJSON, rollappPacket_TypeToJSON } from "../common/rollapp_packet";
 import { Status, statusFromJSON, statusToJSON } from "../common/status";
 
@@ -38,6 +39,13 @@ export interface DemandOrder {
    */
   fee: Coin[];
   recipient: string;
+  /**
+   * Deprecated: use DemandOrder.IsFulfilled method instead.
+   * Only used for backwards compatibility.
+   *
+   * @deprecated
+   */
+  deprecatedIsFulfilled: boolean;
   trackingPacketStatus: Status;
   rollappId: string;
   type: RollappPacket_Type;
@@ -46,6 +54,13 @@ export interface DemandOrder {
    * fulfilled the order.
    */
   fulfillerAddress: string;
+  /**
+   * creation_height is the height of the block on the hub when order was
+   * created.
+   */
+  creationHeight: number;
+  /** an optional hook which uses the funds when the order is fulfilled */
+  completionHook: CompletionHookCall | undefined;
 }
 
 function createBaseDemandOrder(): DemandOrder {
@@ -55,10 +70,13 @@ function createBaseDemandOrder(): DemandOrder {
     price: [],
     fee: [],
     recipient: "",
+    deprecatedIsFulfilled: false,
     trackingPacketStatus: 0,
     rollappId: "",
     type: 0,
     fulfillerAddress: "",
+    creationHeight: 0,
+    completionHook: undefined,
   };
 }
 
@@ -79,6 +97,9 @@ export const DemandOrder: MessageFns<DemandOrder> = {
     if (message.recipient !== "") {
       writer.uint32(42).string(message.recipient);
     }
+    if (message.deprecatedIsFulfilled !== false) {
+      writer.uint32(48).bool(message.deprecatedIsFulfilled);
+    }
     if (message.trackingPacketStatus !== 0) {
       writer.uint32(64).int32(message.trackingPacketStatus);
     }
@@ -90,6 +111,12 @@ export const DemandOrder: MessageFns<DemandOrder> = {
     }
     if (message.fulfillerAddress !== "") {
       writer.uint32(90).string(message.fulfillerAddress);
+    }
+    if (message.creationHeight !== 0) {
+      writer.uint32(96).uint64(message.creationHeight);
+    }
+    if (message.completionHook !== undefined) {
+      CompletionHookCall.encode(message.completionHook, writer.uint32(106).fork()).join();
     }
     return writer;
   },
@@ -147,6 +174,14 @@ export const DemandOrder: MessageFns<DemandOrder> = {
             message.recipient = reader.string();
             continue;
           }
+          case 6: {
+            if (tag !== 48) {
+              break;
+            }
+
+            message.deprecatedIsFulfilled = reader.bool();
+            continue;
+          }
           case 8: {
             if (tag !== 64) {
               break;
@@ -179,6 +214,22 @@ export const DemandOrder: MessageFns<DemandOrder> = {
             message.fulfillerAddress = reader.string();
             continue;
           }
+          case 12: {
+            if (tag !== 96) {
+              break;
+            }
+
+            message.creationHeight = longToNumber(reader.uint64());
+            continue;
+          }
+          case 13: {
+            if (tag !== 106) {
+              break;
+            }
+
+            message.completionHook = CompletionHookCall.decode(reader, reader.uint32());
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -202,6 +253,11 @@ export const DemandOrder: MessageFns<DemandOrder> = {
       price: globalThis.Array.isArray(object?.price) ? object.price.map((e: any) => Coin.fromJSON(e)) : [],
       fee: globalThis.Array.isArray(object?.fee) ? object.fee.map((e: any) => Coin.fromJSON(e)) : [],
       recipient: isSet(object.recipient) ? globalThis.String(object.recipient) : "",
+      deprecatedIsFulfilled: isSet(object.deprecatedIsFulfilled)
+        ? globalThis.Boolean(object.deprecatedIsFulfilled)
+        : isSet(object.deprecated_is_fulfilled)
+        ? globalThis.Boolean(object.deprecated_is_fulfilled)
+        : false,
       trackingPacketStatus: isSet(object.trackingPacketStatus)
         ? statusFromJSON(object.trackingPacketStatus)
         : isSet(object.tracking_packet_status)
@@ -218,6 +274,16 @@ export const DemandOrder: MessageFns<DemandOrder> = {
         : isSet(object.fulfiller_address)
         ? globalThis.String(object.fulfiller_address)
         : "",
+      creationHeight: isSet(object.creationHeight)
+        ? globalThis.Number(object.creationHeight)
+        : isSet(object.creation_height)
+        ? globalThis.Number(object.creation_height)
+        : 0,
+      completionHook: isSet(object.completionHook)
+        ? CompletionHookCall.fromJSON(object.completionHook)
+        : isSet(object.completion_hook)
+        ? CompletionHookCall.fromJSON(object.completion_hook)
+        : undefined,
     };
   },
 
@@ -238,6 +304,9 @@ export const DemandOrder: MessageFns<DemandOrder> = {
     if (message.recipient !== "") {
       obj.recipient = message.recipient;
     }
+    if (message.deprecatedIsFulfilled !== false) {
+      obj.deprecatedIsFulfilled = message.deprecatedIsFulfilled;
+    }
     if (message.trackingPacketStatus !== 0) {
       obj.trackingPacketStatus = statusToJSON(message.trackingPacketStatus);
     }
@@ -249,6 +318,12 @@ export const DemandOrder: MessageFns<DemandOrder> = {
     }
     if (message.fulfillerAddress !== "") {
       obj.fulfillerAddress = message.fulfillerAddress;
+    }
+    if (message.creationHeight !== 0) {
+      obj.creationHeight = Math.round(message.creationHeight);
+    }
+    if (message.completionHook !== undefined) {
+      obj.completionHook = CompletionHookCall.toJSON(message.completionHook);
     }
     return obj;
   },
@@ -263,10 +338,15 @@ export const DemandOrder: MessageFns<DemandOrder> = {
     message.price = object.price?.map((e) => Coin.fromPartial(e)) || [];
     message.fee = object.fee?.map((e) => Coin.fromPartial(e)) || [];
     message.recipient = object.recipient ?? "";
+    message.deprecatedIsFulfilled = object.deprecatedIsFulfilled ?? false;
     message.trackingPacketStatus = object.trackingPacketStatus ?? 0;
     message.rollappId = object.rollappId ?? "";
     message.type = object.type ?? 0;
     message.fulfillerAddress = object.fulfillerAddress ?? "";
+    message.creationHeight = object.creationHeight ?? 0;
+    message.completionHook = (object.completionHook !== undefined && object.completionHook !== null)
+      ? CompletionHookCall.fromPartial(object.completionHook)
+      : undefined;
     return message;
   },
 };
@@ -285,6 +365,17 @@ export type Exact<P, I> = P extends Builtin ? P
     & P
     & { [K in keyof P as Extract<K, keyof I>]: Exact<P[K], I[K & keyof I]> }
     & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function longToNumber(int64: { toString(): string }): number {
+  const num = globalThis.Number(int64.toString());
+  if (num > globalThis.Number.MAX_SAFE_INTEGER) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  }
+  if (num < globalThis.Number.MIN_SAFE_INTEGER) {
+    throw new globalThis.Error("Value is smaller than Number.MIN_SAFE_INTEGER");
+  }
+  return num;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

@@ -3,6 +3,7 @@ package wstaking
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,14 +16,11 @@ import (
 // and prune the oldest entry based on the HistoricalEntries parameter
 func BeginBlock(ctx sdk.Context, k *keeper.Keeper) {
 	totalRewardsPerBlockTemp := k.GetPerBlockMintCoinAmount(ctx)
-	totalRewardsPerBlock := sdk.NewIntFromBigInt(&totalRewardsPerBlockTemp)
+	totalRewardsPerBlock := sdkmath.NewIntFromBigInt(&totalRewardsPerBlockTemp)
 	regions := k.GetAllRegion(ctx)
 
 	for _, region := range regions {
-		if region.DelegateAmount.IsZero() {
-			continue
-		}
-		rewards := k.Calculate(sdk.NewDecFromInt(totalRewardsPerBlock), region.DelegateAmount)
+		rewards, _ := k.Calculate(ctx, sdkmath.LegacyNewDecFromInt(totalRewardsPerBlock), region.DelegateAmount) // rate.MulInt(totalRewardsPerBlock.Mul(region.DelegateAmount)).Mul(sdk.NewDecWithPrec(1, sdk.MEExponent))
 		region.DelegateInterest = region.DelegateInterest.Add(rewards)
 		k.SetRegion(ctx, region)
 	}
@@ -30,9 +28,14 @@ func BeginBlock(ctx sdk.Context, k *keeper.Keeper) {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
 
 	k.TrackHistoricalInfo(ctx)
+	// Initialize region cache once on first block; subsequent calls are no-ops due to sync.Once.
+	k.InitRegionCache(ctx)
 }
 
 func EndBlock(ctx sdk.Context, k *keeper.Keeper) []abci.ValidatorUpdate {
 	k.ChangeDelegationValidator(ctx)
-	return k.BlockValidatorUpdates(ctx)
+	updates := k.BlockValidatorUpdates(ctx)
+	// Refresh region cache at end of block so the next block's TXs see up-to-date data.
+	k.SetRegionsCache(ctx, k.GetAllRegion(ctx))
+	return updates
 }

@@ -3,18 +3,19 @@ package keeper
 import (
 	"context"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-func validateFixedDepositCfgRate(rate sdk.Dec) error {
+func validateFixedDepositCfgRate(rate sdkmath.LegacyDec) error {
 	if !rate.IsPositive() {
 		return types.ErrFixedDepositConfigRateInvalid.Wrapf("rate must be > 0 (%s)", rate.String())
 	}
 
-	minRate := sdk.MustNewDecFromStr("0.0001")
-	maxRate := sdk.MustNewDecFromStr("10000")
+	minRate := sdkmath.LegacyMustNewDecFromStr("0.0001")
+	maxRate := sdkmath.LegacyMustNewDecFromStr("10000")
 	if rate.LT(minRate) || rate.GT(maxRate) {
 		return types.ErrFixedDepositConfigRateInvalid.Wrapf("rate(%s) out of range [0.0001, 10000]", rate.String())
 	}
@@ -39,7 +40,7 @@ func (k MsgServer) NewFixedDepositCfg(goCtx context.Context, msg *types.MsgNewFi
 
 	_, found := k.GetRegion(ctx, msg.RegionId)
 	if !found {
-		return nil, types.ErrRegionName.Wrapf("add fixed deposit config error, region not exist (%s)", msg.RegionId)
+		return nil, types.ErrRegionName.Wrapf("add fixed deposit config error, region %s not exist", msg.RegionId)
 	}
 
 	if msg.Term <= 0 {

@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/openmetaearth/me-hub/utils"
@@ -25,8 +25,8 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 		return nil, err
 	}
 
-	validator, found := k.GetValidator(ctx, valAddr)
-	if !found {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return nil, stakingtypes.ErrNoValidatorFound
 	}
 	oldRegionId := validator.Description.RegionID
@@ -43,7 +43,10 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 			return nil, types.ErrRegionName
 		}
 		// remove duplication
-		validators := k.GetAllValidators(ctx)
+		validators, err := k.GetAllValidators(ctx)
+		if err != nil {
+			return nil, err
+		}
 		for _, v := range validators {
 			if v.Description.RegionID == msg.Description.RegionID {
 				return nil, types.ErrValidatorRegionDuplication
@@ -58,13 +61,13 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 		}
 	}
 
-	//region, f := k.GetRegion(ctx, validator.Description.RegionID)
+	// region, f := k.GetRegion(ctx, validator.Description.RegionID)
 	// if !f {
-	//	return nil, sdkerrors.Wrapf(types.ErrRegionNotExist, "please set region first")
-	//}
+	//	return nil, errorsmod.Wrapf(types.ErrRegionNotExist, "please set region first")
+	// }
 	// if region.OperatorAddress != validator.OperatorAddress {
 	//	return nil, fmt.Errorf("region id already bound to another validator(%s), please set region first", region.OperatorAddress)
-	//}
+	// }
 
 	if msg.CommissionRate != nil {
 		commission, err := k.UpdateValidatorCommission(ctx, validator, *msg.CommissionRate)
@@ -86,10 +89,12 @@ func (k MsgServer) UpdateValidator(goCtx context.Context, msg *types.MsgUpdateVa
 			return nil, err
 		}
 		if err := k.resetValidator(ctx, owner, validator); err != nil {
-			return nil, sdkerrors.Wrap(types.ErrResetValidator, err.Error())
+			return nil, errorsmod.Wrap(types.ErrResetValidator, err.Error())
 		}
 	} else {
-		k.SetValidator(ctx, validator)
+		if err := k.SetValidator(ctx, validator); err != nil {
+			return nil, err
+		}
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{

@@ -13,7 +13,6 @@ export const protobufFileName = "metaearth/common/status.proto";
 export enum Status {
   PENDING = 0,
   FINALIZED = 1,
-  REVERTED = 3,
   UNRECOGNIZED = -1,
 }
 
@@ -25,9 +24,6 @@ export function statusFromJSON(object: any): Status {
     case 1:
     case "FINALIZED":
       return Status.FINALIZED;
-    case 3:
-    case "REVERTED":
-      return Status.REVERTED;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -41,8 +37,6 @@ export function statusToJSON(object: Status): string {
       return "PENDING";
     case Status.FINALIZED:
       return "FINALIZED";
-    case Status.REVERTED:
-      return "REVERTED";
     case Status.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";

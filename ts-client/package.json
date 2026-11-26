@@ -11,17 +11,24 @@
     }
   ],
   "main": "index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test:registry": "node tests/registry.cjs"
+  },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^2.14.1",
     "@cosmjs/launchpad": "0.27.0",
     "@cosmjs/proto-signing": "0.27.0",
     "@cosmjs/stargate": "0.27.0",
     "@keplr-wallet/types": "^0.11.3", 
     "axios": "0.21.4",
     "buffer": "^6.0.3",
-    "events": "^3.3.0"
+    "events": "^3.3.0",
+    "long": "^4.0.0",
+    "protobufjs": "^6.11.4"
   },
   "peerDependencies": {
     "@cosmjs/launchpad": "0.27.0",
@@ -30,6 +37,7 @@
   }, 
   "devDependencies": {
     "@types/events": "^3.0.0",
+    "@types/node": "18.19.0",
     "typescript": "^4.8.4"
   }
 }

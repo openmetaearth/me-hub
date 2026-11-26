@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/openmetaearth/me-hub/x/regiongov/types"
 )
@@ -77,13 +77,13 @@ func (k Keeper) executeProposal(ctx sdk.Context, proposal types.Proposal) error 
 	case types.ProposalKindReplaceRegionOperator:
 		return k.executeReplaceOperator(ctx, proposal)
 	default:
-		return sdkerrors.Wrap(types.ErrInvalidProposal, "unknown proposal kind")
+		return errorsmod.Wrap(types.ErrInvalidProposal, "unknown proposal kind")
 	}
 }
 
 func (k Keeper) executeTreasury(ctx sdk.Context, proposal types.Proposal) error {
 	if proposal.Treasury == nil || len(proposal.Treasury.Withdrawals) == 0 {
-		return sdkerrors.Wrap(types.ErrInvalidProposal, "treasury payload is empty")
+		return errorsmod.Wrap(types.ErrInvalidProposal, "treasury payload is empty")
 	}
 	for _, withdrawal := range proposal.Treasury.Withdrawals {
 		if err := k.stakingKeeper.WithdrawRegionTreasure(
@@ -92,7 +92,7 @@ func (k Keeper) executeTreasury(ctx sdk.Context, proposal types.Proposal) error 
 			withdrawal.Receiver,
 			withdrawal.Amount,
 		); err != nil {
-			return sdkerrors.Wrapf(types.ErrProposalExecution, "region %s: %s", withdrawal.RegionId, err)
+			return errorsmod.Wrapf(types.ErrProposalExecution, "region %s: %s", withdrawal.RegionId, err)
 		}
 	}
 	return nil
@@ -100,14 +100,14 @@ func (k Keeper) executeTreasury(ctx sdk.Context, proposal types.Proposal) error 
 
 func (k Keeper) executeReplaceOperator(ctx sdk.Context, proposal types.Proposal) error {
 	if proposal.ReplaceOperator == nil {
-		return sdkerrors.Wrap(types.ErrInvalidProposal, "replace operator payload is empty")
+		return errorsmod.Wrap(types.ErrInvalidProposal, "replace operator payload is empty")
 	}
 	if err := k.stakingKeeper.SetRegionOperator(
 		ctx,
 		proposal.ReplaceOperator.RegionId,
 		proposal.ReplaceOperator.NewOperator,
 	); err != nil {
-		return sdkerrors.Wrapf(types.ErrProposalExecution, "%s", err)
+		return errorsmod.Wrapf(types.ErrProposalExecution, "%s", err)
 	}
 	return nil
 }

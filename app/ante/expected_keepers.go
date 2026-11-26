@@ -1,6 +1,8 @@
 package ante
 
 import (
+	"context"
+
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -19,7 +21,7 @@ type DaoKeeper interface {
 
 type BankKeeper interface {
 	FeeToReceivers(ctx sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output, receiverTypes []wbanktypes.FeeReceiverType) error
-	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
+	GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins
 }
 
 type StakingKeeper interface {
@@ -33,6 +35,6 @@ type KycKeeper interface {
 }
 
 type WasmKeeper interface {
-	HasContractInfo(ctx sdk.Context, contractAddress sdk.AccAddress) bool
-	GetContractInfo(ctx sdk.Context, contractAddress sdk.AccAddress) *wasmtypes.ContractInfo
+	HasContractInfo(ctx context.Context, contractAddress sdk.AccAddress) bool
+	GetContractInfo(ctx context.Context, contractAddress sdk.AccAddress) *wasmtypes.ContractInfo
 }

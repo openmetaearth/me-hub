@@ -1,8 +1,8 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/openmetaearth/me-hub/x/regiongov/types"
 )
@@ -12,14 +12,14 @@ import (
 func (k Keeper) snapshotEquityElectors(ctx sdk.Context, proposalID uint64, regionID string) ([]types.Elector, string, error) {
 	region, found := k.lookupRegion(ctx, regionID)
 	if !found {
-		return nil, "", sdkerrors.Wrapf(types.ErrUnknownRegion, "%s", regionID)
+		return nil, "", errorsmod.Wrapf(types.ErrUnknownRegion, "%s", regionID)
 	}
 	if k.isRegionFrozen(ctx, region.RegionId) {
-		return nil, "", sdkerrors.Wrapf(types.ErrRegionFrozen, "%s", region.RegionId)
+		return nil, "", errorsmod.Wrapf(types.ErrRegionFrozen, "%s", region.RegionId)
 	}
 	operator, ok := operatorAccount(region.OperatorAddress)
 	if !ok {
-		return nil, "", sdkerrors.Wrap(types.ErrInvalidProposal, "an equity withdrawal requires a region operator")
+		return nil, "", errorsmod.Wrap(types.ErrInvalidProposal, "an equity withdrawal requires a region operator")
 	}
 	equity, found := k.GetEquity(ctx, region.RegionId)
 	if !found {
@@ -63,34 +63,34 @@ func equityProposalRegion(proposal types.Proposal) (string, bool) {
 func (k Keeper) authorizeEquityVote(ctx sdk.Context, proposal types.Proposal, voter string) error {
 	regionID, ok := equityProposalRegion(proposal)
 	if !ok {
-		return sdkerrors.Wrap(types.ErrInvalidProposal, "an equity proposal must withdraw from exactly one region")
+		return errorsmod.Wrap(types.ErrInvalidProposal, "an equity proposal must withdraw from exactly one region")
 	}
 	region, found := k.lookupRegion(ctx, regionID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrUnknownRegion, "%s", regionID)
+		return errorsmod.Wrapf(types.ErrUnknownRegion, "%s", regionID)
 	}
 	if k.isRegionFrozen(ctx, region.RegionId) {
-		return sdkerrors.Wrapf(types.ErrRegionFrozen, "%s", region.RegionId)
+		return errorsmod.Wrapf(types.ErrRegionFrozen, "%s", region.RegionId)
 	}
 	operator, err := proposal.RequiredOperatorAccount()
 	if err == nil && operator.String() == voter {
 		currentOperator, ok := operatorAccount(region.OperatorAddress)
 		if !ok || currentOperator.String() != voter {
-			return sdkerrors.Wrapf(types.ErrUnauthorized, "%s is no longer the operator of region %s", voter, region.RegionId)
+			return errorsmod.Wrapf(types.ErrUnauthorized, "%s is no longer the operator of region %s", voter, region.RegionId)
 		}
 		return nil
 	}
 	elector, found := k.GetElector(ctx, proposal.Id, voter)
 	if !found || !containsRegion([]string{region.RegionId}, elector.RegionId) {
-		return sdkerrors.Wrapf(types.ErrUnauthorized, "%s is not an elector of proposal %d", voter, proposal.Id)
+		return errorsmod.Wrapf(types.ErrUnauthorized, "%s is not an elector of proposal %d", voter, proposal.Id)
 	}
 	if k.isEquityFrozen(ctx, region.RegionId, voter) {
-		return sdkerrors.Wrapf(types.ErrEquityFrozen, "%s", voter)
+		return errorsmod.Wrapf(types.ErrEquityFrozen, "%s", voter)
 	}
 	// Removal blocks new ballots without changing the snapshot or earlier votes.
 	equity, found := k.GetEquity(ctx, region.RegionId)
 	if !found || !containsAddress(equity.Addresses, voter) {
-		return sdkerrors.Wrapf(types.ErrUnauthorized, "%s is no longer an equity of region %s", voter, region.RegionId)
+		return errorsmod.Wrapf(types.ErrUnauthorized, "%s is no longer an equity of region %s", voter, region.RegionId)
 	}
 	return nil
 }

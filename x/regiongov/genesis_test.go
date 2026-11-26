@@ -4,13 +4,14 @@ import (
 	"testing"
 	"time"
 
-	cmtbftdb "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
+	"cosmossdk.io/store"
+	"cosmossdk.io/store/metrics"
+	storetypes "cosmossdk.io/store/types"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/store"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -126,9 +127,9 @@ func TestInitGenesisPreservesConfiguredMinVotingPeriod(t *testing.T) {
 // Genesis import/export and parameter queries do not call other modules.
 func newKeeper(t *testing.T) (keeper.Keeper, sdk.Context) {
 	t.Helper()
-	storeKey := sdk.NewKVStoreKey(types.StoreKey)
-	db := cmtbftdb.NewMemDB()
-	stateStore := store.NewCommitMultiStore(db)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	db := dbm.NewMemDB()
+	stateStore := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
 	require.NoError(t, stateStore.LoadLatestVersion())
 

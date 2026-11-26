@@ -3,7 +3,9 @@ package keeper_test
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/testutil/sample"
@@ -129,10 +131,12 @@ func (s *KeeperTestSuite) TestFrozenRegionIsOutOfTheSnapshot() {
 	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
 	s.Require().True(found)
 	s.Require().Equal(newOperator.String(), region.OperatorAddress)
-	_, found = s.App.StakingKeeper.GetValidator(s.Ctx, s.usaValidator.GetOperator())
-	s.Require().False(found)
-	validator, found := s.App.StakingKeeper.GetValidator(s.Ctx, newOperator)
-	s.Require().True(found)
+	oldOperator, err := sdk.ValAddressFromBech32(s.usaValidator.OperatorAddress)
+	s.Require().NoError(err)
+	_, err = s.App.StakingKeeper.GetValidator(s.Ctx, oldOperator)
+	s.Require().ErrorIs(err, stakingtypes.ErrNoValidatorFound)
+	validator, err := s.App.StakingKeeper.GetValidator(s.Ctx, newOperator)
+	s.Require().NoError(err)
 	s.Require().Equal(s.usaValidator.ConsensusPubkey, validator.ConsensusPubkey)
 	s.Require().Equal("usa", validator.Description.RegionID)
 }
@@ -153,7 +157,7 @@ func (s *KeeperTestSuite) TestEmptyElectorateDoesNotOpen() {
 				region.OperatorAddress = ""
 				s.App.StakingKeeper.SetRegion(s.Ctx, region)
 			}
-			before := s.App.ExportState(s.Ctx)
+			before := s.persistentState()
 			events := len(s.Ctx.EventManager().Events())
 			_, err := s.msgServer.SubmitProposal(s.Ctx, &types.MsgSubmitProposal{
 				Proposer: s.Dao.GlobalDao, Kind: types.ProposalKindTreasuryWithdraw, Title: "empty electorate", VotingPeriod: 60,
@@ -161,7 +165,7 @@ func (s *KeeperTestSuite) TestEmptyElectorateDoesNotOpen() {
 			})
 			s.Require().ErrorIs(err, types.ErrEmptyElectorate)
 			s.Require().Empty(s.App.RegionGovKeeper.GetAllProposals(s.Ctx))
-			s.Require().Equal(before, s.App.ExportState(s.Ctx))
+			s.Require().Equal(before, s.persistentState())
 			s.Require().Len(s.Ctx.EventManager().Events(), events)
 		})
 	}
@@ -231,13 +235,13 @@ func (s *KeeperTestSuite) TestBallotRulesAndTally() {
 	s.Require().Equal(types.ProposalStatusRejected, s.mustProposal(noDao).Status)
 	// Only the passing proposal pays, through wstaking and the actual bank keeper.
 	s.Require().Equal(before.Amount.SubRaw(1), s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom).Amount)
-	s.Require().Equal(sdk.OneInt(), s.App.BankKeeper.GetBalance(s.Ctx, receiver, params.BaseDenom).Amount)
+	s.Require().Equal(sdkmath.OneInt(), s.App.BankKeeper.GetBalance(s.Ctx, receiver, params.BaseDenom).Amount)
 
 	s.Ctx = s.Ctx.WithEventManager(sdk.NewEventManager())
 	s.endBlockAt(end.Add(time.Second))
 	s.Require().Empty(s.Ctx.EventManager().Events())
 	s.Require().Equal(types.ProposalStatusPassed, s.mustProposal(twoThirds).Status)
-	s.Require().Equal(sdk.OneInt(), s.App.BankKeeper.GetBalance(s.Ctx, receiver, params.BaseDenom).Amount)
+	s.Require().Equal(sdkmath.OneInt(), s.App.BankKeeper.GetBalance(s.Ctx, receiver, params.BaseDenom).Amount)
 	s.Require().Equal(before.Amount.SubRaw(1), s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom).Amount)
 }
 
@@ -278,5 +282,5 @@ func (s *KeeperTestSuite) TestOneOfTwoFailsAndTwoOfTwoPasses() {
 	s.Require().Equal(types.ProposalStatusRejected, s.mustProposal(failing).Status)
 	s.Require().Equal(types.ProposalStatusPassed, s.mustProposal(passing).Status)
 	receiver := sdk.MustAccAddressFromBech32(withdrawal.Receiver)
-	s.Require().Equal(sdk.OneInt(), s.App.BankKeeper.GetBalance(s.Ctx, receiver, params.BaseDenom).Amount)
+	s.Require().Equal(sdkmath.OneInt(), s.App.BankKeeper.GetBalance(s.Ctx, receiver, params.BaseDenom).Amount)
 }

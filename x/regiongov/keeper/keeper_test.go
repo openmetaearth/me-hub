@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -40,15 +41,16 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (s *KeeperTestSuite) SetupTest() {
-	app := apptesting.Setup(s.T(), false)
+	app := apptesting.Setup(s.T())
 	s.startTime = time.Unix(1_700_000_000, 0).UTC()
-	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{Time: s.startTime})
+	ctx := app.GetBaseApp().NewContext(false).WithBlockHeader(cometbftproto.Header{Time: s.startTime})
 
 	s.App = app
 	s.Ctx = ctx
 	s.InitializeDao()
 
-	validators := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
+	validators, err := s.App.StakingKeeper.GetValidators(s.Ctx, 10)
+	s.Require().NoError(err)
 	s.Require().GreaterOrEqual(len(validators), 3)
 	for _, validator := range validators {
 		switch validator.Description.RegionID {
@@ -109,12 +111,14 @@ func (s *KeeperTestSuite) addCountryRegion(regionID string) string {
 	s.Require().NoError(err)
 	amount := sdk.NewInt64Coin(params.BaseDenom, 1_000_000)
 	s.FundModuleAcc(wstakingtypes.StakePoolName, sdk.NewCoins(amount))
+	minCommissionRate, err := s.App.StakingKeeper.MinCommissionRate(s.Ctx)
+	s.Require().NoError(err)
 	_, err = s.stakingMsgServer.CreateValidator(s.Ctx, &stakingtypes.MsgCreateValidator{
 		Description: stakingtypes.Description{Moniker: regionID, RegionID: regionID},
 		Commission: stakingtypes.NewCommissionRates(
-			s.App.StakingKeeper.MinCommissionRate(s.Ctx), sdk.OneDec(), sdk.ZeroDec(),
+			minCommissionRate, sdkmath.LegacyOneDec(), sdkmath.LegacyZeroDec(),
 		),
-		MinSelfDelegation: sdk.OneInt(),
+		MinSelfDelegation: sdkmath.OneInt(),
 		DelegatorAddress:  s.Dao.GlobalDao,
 		ValidatorAddress:  sdk.ValAddress(operator).String(),
 		Pubkey:            pubkey,
@@ -123,6 +127,23 @@ func (s *KeeperTestSuite) addCountryRegion(regionID string) string {
 	s.Require().NoError(err)
 	s.createFundedRegion(strings.ToUpper(regionID), sdk.ValAddress(operator).String())
 	return operator.String()
+}
+
+// persistentState snapshots raw persistent stores without exporting unrelated
+// modules whose keepers are intentionally absent from the sparse app fixture.
+func (s *KeeperTestSuite) persistentState() map[string]map[string][]byte {
+	s.T().Helper()
+	state := make(map[string]map[string][]byte)
+	for name, key := range s.App.GetKVStoreKeys() {
+		entries := make(map[string][]byte)
+		iterator := s.Ctx.KVStore(key).Iterator(nil, nil)
+		for ; iterator.Valid(); iterator.Next() {
+			entries[string(iterator.Key())] = append([]byte(nil), iterator.Value()...)
+		}
+		s.Require().NoError(iterator.Close())
+		state[name] = entries
+	}
+	return state
 }
 
 func operatorAccount(operator string) string {

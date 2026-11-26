@@ -1000,25 +1000,25 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "regiongov", "params"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "regiongov", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Proposal_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "regiongov", "proposals", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Proposal_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "regiongov", "proposals", "id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Proposals_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "regiongov", "proposals"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Proposals_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "regiongov", "proposals"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Votes_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "regiongov", "votes", "proposal_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Votes_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "regiongov", "votes", "proposal_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Electors_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "regiongov", "electors", "proposal_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Electors_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "regiongov", "electors", "proposal_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Equity_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "regiongov", "equity", "region_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Equity_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "regiongov", "equity", "region_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_RegionFreeze_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "regiongov", "region_freeze", "region_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_RegionFreeze_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "regiongov", "region_freeze", "region_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_EquityFreezes_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "regiongov", "equity_freezes", "region_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_EquityFreezes_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "regiongov", "equity_freezes", "region_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_PendingAction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "regiongov", "pending_actions", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PendingAction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"metaearth", "regiongov", "pending_actions", "id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_PendingActions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "regiongov", "pending_actions"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PendingActions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"metaearth", "regiongov", "pending_actions"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

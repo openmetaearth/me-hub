@@ -1,3 +1,4 @@
+import { toCosmjsGeneratedType } from "../registry-codec";
 import { GeneratedType } from "@cosmjs/proto-signing";
 import { MsgUpdateDidStatus } from "./types/metaearth/did/tx";
 import { MsgUpdateVC } from "./types/metaearth/did/tx";
@@ -10,15 +11,15 @@ import { MsgCreateDid } from "./types/metaearth/did/tx";
 import { MsgRemoveDid } from "./types/metaearth/did/tx";
 
 const msgTypes: Array<[string, GeneratedType]>  = [
-    ["/metaearth.did.MsgUpdateDidStatus", MsgUpdateDidStatus],
-    ["/metaearth.did.MsgUpdateVC", MsgUpdateVC],
-    ["/metaearth.did.MsgUpdateServiceStatus", MsgUpdateServiceStatus],
-    ["/metaearth.did.MsgCreateService", MsgCreateService],
-    ["/metaearth.did.MsgCreateVC", MsgCreateVC],
-    ["/metaearth.did.MsgRemoveService", MsgRemoveService],
-    ["/metaearth.did.MsgRemoveVC", MsgRemoveVC],
-    ["/metaearth.did.MsgCreateDid", MsgCreateDid],
-    ["/metaearth.did.MsgRemoveDid", MsgRemoveDid],
+    ["/metaearth.did.MsgUpdateDidStatus", toCosmjsGeneratedType(MsgUpdateDidStatus)],
+    ["/metaearth.did.MsgUpdateVC", toCosmjsGeneratedType(MsgUpdateVC)],
+    ["/metaearth.did.MsgUpdateServiceStatus", toCosmjsGeneratedType(MsgUpdateServiceStatus)],
+    ["/metaearth.did.MsgCreateService", toCosmjsGeneratedType(MsgCreateService)],
+    ["/metaearth.did.MsgCreateVC", toCosmjsGeneratedType(MsgCreateVC)],
+    ["/metaearth.did.MsgRemoveService", toCosmjsGeneratedType(MsgRemoveService)],
+    ["/metaearth.did.MsgRemoveVC", toCosmjsGeneratedType(MsgRemoveVC)],
+    ["/metaearth.did.MsgCreateDid", toCosmjsGeneratedType(MsgCreateDid)],
+    ["/metaearth.did.MsgRemoveDid", toCosmjsGeneratedType(MsgRemoveDid)],
     
 ];
 

@@ -1,6 +1,8 @@
 package types
 
 import (
+	math "math"
+
 	commontypes "github.com/openmetaearth/me-hub/x/common/types"
 )
 
@@ -17,12 +19,6 @@ type Prefix struct {
 
 var bypassFilter = func(packet commontypes.RollappPacket) bool { return true }
 
-func byRollappIDFilter(rollappID string) func(packet commontypes.RollappPacket) bool {
-	return func(packet commontypes.RollappPacket) bool {
-		return packet.RollappId == rollappID
-	}
-}
-
 func PendingByRollappIDByMaxHeight(
 	rollappID string,
 	maxProofHeight uint64,
@@ -35,7 +31,19 @@ func PendingByRollappIDByMaxHeight(
 				End:   commontypes.RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappID, status, maxProofHeight+1), // inclusive end
 			},
 		},
-		FilterFunc: byRollappIDFilter(rollappID),
+		FilterFunc: bypassFilter,
+	}
+}
+
+func PendingByRollappIDFromHeight(rollappID string, fromHeight uint64) RollappPacketListFilter {
+	return RollappPacketListFilter{
+		Prefixes: []Prefix{
+			{
+				Start: commontypes.RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappID, commontypes.Status_PENDING, fromHeight),
+				End:   commontypes.RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappID, commontypes.Status_PENDING, math.MaxUint64),
+			},
+		},
+		FilterFunc: bypassFilter,
 	}
 }
 
@@ -46,7 +54,7 @@ func ByRollappIDByStatus(rollappID string, status ...commontypes.Status) Rollapp
 	}
 	return RollappPacketListFilter{
 		Prefixes:   prefixes,
-		FilterFunc: byRollappIDFilter(rollappID),
+		FilterFunc: bypassFilter,
 	}
 }
 
@@ -54,7 +62,7 @@ func ByRollappIDByTypeByStatus(rollappID string, packetType commontypes.RollappP
 	filter := ByRollappIDByStatus(rollappID, status...)
 	if packetType != commontypes.RollappPacket_UNDEFINED {
 		filter.FilterFunc = func(packet commontypes.RollappPacket) bool {
-			return packet.RollappId == rollappID && packet.Type == packetType
+			return packet.Type == packetType
 		}
 	}
 	return filter
@@ -64,7 +72,6 @@ func ByRollappID(rollappID string) RollappPacketListFilter {
 	return ByRollappIDByStatus(rollappID,
 		commontypes.Status_PENDING,
 		commontypes.Status_FINALIZED,
-		commontypes.Status_REVERTED,
 	)
 }
 

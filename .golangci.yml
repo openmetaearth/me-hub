@@ -8,6 +8,21 @@ issues:
   max-same-issues: 20
   exclude-dirs:
     - 'types/legacy'
+    # Vendored from Osmosis — keep upstream conventions.
+    - 'utils/osmoutils'
+    - 'utils/uevent'
+    - 'utils/gerrc'
+    - 'internal/collcompat'
+    # Ported settlement modules — keep existing conventions.
+    - 'x/rollapp'
+    - 'x/sequencer'
+    - 'x/delayedack'
+    - 'x/eibc'
+    - 'x/lightclient'
+    - 'x/denommetadata'
+    - 'x/common'
+    # Legacy v2 → v3 upgrade migration types copied from feat/v3.
+    - 'app/upgrades/v3/types'
   exclude-files:
     - '.*\\legacy\\_.*\\.go$'
     - '.*\\legacy\\.go$'

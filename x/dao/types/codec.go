@@ -8,11 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 )
 
-func RegisterCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgUpdateDao{}, "dao/MsgUpdateGlobalDao", nil)
-	cdc.RegisterConcrete(&MsgFreeGasAccount{}, "dao/MsgFreeGasAccount", nil)
-	// this line is used by starport scaffolding # 2
-}
+func RegisterCodec(*codec.LegacyAmino) {}
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),

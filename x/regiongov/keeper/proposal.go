@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -17,7 +18,7 @@ func (k Keeper) submitProposal(ctx sdk.Context, msg *types.MsgSubmitProposal) (u
 	}
 	params := k.GetParams(ctx)
 	if msg.VotingPeriod < params.MinVotingPeriod {
-		return 0, sdkerrors.Wrapf(
+		return 0, errorsmod.Wrapf(
 			types.ErrInvalidVotingPeriod,
 			"voting period %d is below min_voting_period %d",
 			msg.VotingPeriod, params.MinVotingPeriod,
@@ -91,18 +92,18 @@ func (k Keeper) resolveElectorate(ctx sdk.Context, msg *types.MsgSubmitProposal)
 		return k.resolveTreasuryElectorate(ctx, msg)
 	case types.ProposalKindReplaceRegionOperator:
 		if _, found := k.lookupRegion(ctx, msg.ReplaceOperator.RegionId); !found {
-			return types.ElectorateKindUnspecified, sdkerrors.Wrapf(types.ErrUnknownRegion, "%s", msg.ReplaceOperator.RegionId)
+			return types.ElectorateKindUnspecified, errorsmod.Wrapf(types.ErrUnknownRegion, "%s", msg.ReplaceOperator.RegionId)
 		}
 		return types.ElectorateKindCountryRegionOperators, nil
 	default:
-		return types.ElectorateKindUnspecified, sdkerrors.Wrap(types.ErrInvalidProposal, "unknown proposal kind")
+		return types.ElectorateKindUnspecified, errorsmod.Wrap(types.ErrInvalidProposal, "unknown proposal kind")
 	}
 }
 
 func (k Keeper) resolveTreasuryElectorate(ctx sdk.Context, msg *types.MsgSubmitProposal) (types.ElectorateKind, error) {
 	for _, withdrawal := range msg.Treasury.Withdrawals {
 		if _, found := k.lookupRegion(ctx, withdrawal.RegionId); !found {
-			return types.ElectorateKindUnspecified, sdkerrors.Wrapf(types.ErrUnknownRegion, "%s", withdrawal.RegionId)
+			return types.ElectorateKindUnspecified, errorsmod.Wrapf(types.ErrUnknownRegion, "%s", withdrawal.RegionId)
 		}
 	}
 	// Existing dao/operator proposals keep the global country-operator vote,
@@ -116,7 +117,7 @@ func (k Keeper) resolveTreasuryElectorate(ctx sdk.Context, msg *types.MsgSubmitP
 		return types.ElectorateKindCountryRegionOperators, nil
 	}
 	if len(msg.Treasury.Withdrawals) != 1 {
-		return types.ElectorateKindUnspecified, sdkerrors.Wrap(types.ErrUnauthorized, "an equity proposal must withdraw from exactly one region")
+		return types.ElectorateKindUnspecified, errorsmod.Wrap(types.ErrUnauthorized, "an equity proposal must withdraw from exactly one region")
 	}
 	return types.ElectorateKindRegionEquity, nil
 }
@@ -138,7 +139,7 @@ func (k Keeper) authorizeProposer(ctx sdk.Context, proposer string, msg *types.M
 		if dao || len(operatorRegionIDs) > 0 {
 			return nil
 		}
-		return sdkerrors.Wrap(types.ErrUnauthorized, "this proposal requires the dao or a region operator")
+		return errorsmod.Wrap(types.ErrUnauthorized, "this proposal requires the dao or a region operator")
 	}
 	if dao {
 		return nil
@@ -154,7 +155,7 @@ func (k Keeper) authorizeProposer(ctx sdk.Context, proposer string, msg *types.M
 func (k Keeper) authorizeWithdrawal(ctx sdk.Context, regionID string, operatorRegionIDs, equityRegionIDs []string) error {
 	region, found := k.lookupRegion(ctx, regionID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrUnknownRegion, "%s", regionID)
+		return errorsmod.Wrapf(types.ErrUnknownRegion, "%s", regionID)
 	}
 	// An operator may include the global or experience treasury, or a country they run.
 	if len(operatorRegionIDs) > 0 && (isSpecialRegion(region.RegionId) || containsRegion(operatorRegionIDs, region.RegionId)) {
@@ -164,13 +165,13 @@ func (k Keeper) authorizeWithdrawal(ctx sdk.Context, regionID string, operatorRe
 		return nil
 	}
 	if len(operatorRegionIDs) > 0 {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			types.ErrUnauthorized,
 			"a region operator can withdraw only from regions they operate, got %s",
 			regionID,
 		)
 	}
-	return sdkerrors.Wrapf(
+	return errorsmod.Wrapf(
 		types.ErrUnauthorized,
 		"an equity address can withdraw only from its own region, got %s",
 		regionID,
@@ -192,14 +193,14 @@ func (k Keeper) enforceTreasuryWithdrawLimits(ctx sdk.Context, proposer string, 
 		for _, coin := range withdrawal.Amount {
 			balance := spendable.AmountOf(coin.Denom)
 			if equityOnly && coin.Amount.MulRaw(100).GT(balance.MulRaw(int64(percent))) {
-				return sdkerrors.Wrapf(
+				return errorsmod.Wrapf(
 					types.ErrEquityWithdrawLimit,
 					"equity withdrawal %s exceeds %d%% of region %s treasury balance %s",
 					coin, percent, withdrawal.RegionId, sdk.NewCoin(coin.Denom, balance),
 				)
 			}
 			if coin.Amount.GT(balance) {
-				return sdkerrors.Wrapf(
+				return errorsmod.Wrapf(
 					sdkerrors.ErrInsufficientFunds,
 					"withdrawal %s exceeds region %s spendable treasury balance %s",
 					coin, withdrawal.RegionId, sdk.NewCoin(coin.Denom, balance),
@@ -256,10 +257,10 @@ func (k Keeper) activeEquityRegions(ctx sdk.Context, proposer string) ([]string,
 		return regionIDs, nil
 	}
 	if regionFrozen {
-		return nil, sdkerrors.Wrap(types.ErrRegionFrozen, "equity region is frozen")
+		return nil, errorsmod.Wrap(types.ErrRegionFrozen, "equity region is frozen")
 	}
 	if equityFrozen {
-		return nil, sdkerrors.Wrap(types.ErrEquityFrozen, "equity address is frozen")
+		return nil, errorsmod.Wrap(types.ErrEquityFrozen, "equity address is frozen")
 	}
 	return nil, nil
 }
@@ -291,9 +292,9 @@ func (k Keeper) proposerAuthority(ctx sdk.Context, proposer string) (bool, []str
 		return dao, operatorRegionIDs, nil
 	}
 	if frozenOperator {
-		return false, nil, sdkerrors.Wrap(types.ErrRegionFrozen, "region operator is frozen")
+		return false, nil, errorsmod.Wrap(types.ErrRegionFrozen, "region operator is frozen")
 	}
-	return false, nil, sdkerrors.Wrap(types.ErrUnauthorized, "proposer is not the dao or a region operator")
+	return false, nil, errorsmod.Wrap(types.ErrUnauthorized, "proposer is not the dao or a region operator")
 }
 
 // snapshotElectors records one vote per country-region operator account.
@@ -301,7 +302,7 @@ func (k Keeper) proposerAuthority(ctx sdk.Context, proposer string) (bool, []str
 // without an operator are left out. A proposing country region is included.
 func (k Keeper) snapshotElectors(ctx sdk.Context, proposalID uint64, kind types.ElectorateKind) ([]types.Elector, error) {
 	if kind != types.ElectorateKindCountryRegionOperators {
-		return nil, sdkerrors.Wrap(types.ErrInvalidProposal, "electorate is not a counted operator vote")
+		return nil, errorsmod.Wrap(types.ErrInvalidProposal, "electorate is not a counted operator vote")
 	}
 	regions := k.stakingKeeper.GetAllRegion(ctx)
 	seen := make(map[string]struct{})

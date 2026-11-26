@@ -5,21 +5,24 @@ import (
 	"strings"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/openmetaearth/me-hub/x/wstaking/types"
 )
 
-func (k Keeper) validateOperatorReplacement(ctx sdk.Context, newOwner sdk.AccAddress, validator stakingtypes.Validator) error {
+func (k *Keeper) validateOperatorReplacement(ctx sdk.Context, newOwner sdk.AccAddress, validator stakingtypes.Validator) error {
 	if err := sdk.VerifyAddressFormat(newOwner); err != nil {
 		return err
 	}
 	newAddr := sdk.ValAddress(newOwner)
-	if _, found := k.GetValidator(ctx, newAddr); found {
+	if _, err := k.GetValidator(ctx, newAddr); err == nil {
 		return types.ErrValidatorExist
+	} else if !errorsmod.IsOf(err, stakingtypes.ErrNoValidatorFound) {
+		return err
 	}
 	if _, module := k.authKeeper.GetAccount(ctx, newOwner).(authtypes.ModuleAccountI); module {
 		return types.ErrValidatorAddress
@@ -29,13 +32,13 @@ func (k Keeper) validateOperatorReplacement(ctx sdk.Context, newOwner sdk.AccAdd
 	}
 	store := ctx.KVStore(k.storeKey)
 	if store.Has(stakingtypes.GetLastValidatorPowerKey(newAddr)) {
-		return sdkerrors.Wrap(types.ErrValidatorExist, "new operator has last-validator power")
+		return errorsmod.Wrap(types.ErrValidatorExist, "new operator has last-validator power")
 	}
-	iterator := sdk.KVStorePrefixIterator(store, stakingtypes.GetUBDsByValIndexKey(newAddr))
+	iterator := storetypes.KVStorePrefixIterator(store, stakingtypes.GetUBDsByValIndexKey(newAddr))
 	occupied := iterator.Valid()
 	iterator.Close()
 	if occupied {
-		return sdkerrors.Wrap(types.ErrValidatorExist, "new operator has unbonding delegations")
+		return errorsmod.Wrap(types.ErrValidatorExist, "new operator has unbonding delegations")
 	}
 	// A pending consensus-key rotation still refers to the old operator.
 	rotation, err := k.GetReplaceConsensusPubKeyInfo(ctx)
@@ -43,18 +46,22 @@ func (k Keeper) validateOperatorReplacement(ctx sdk.Context, newOwner sdk.AccAdd
 		return err
 	}
 	if rotation != nil && strings.EqualFold(rotation.OperatorAddress, validator.OperatorAddress) {
-		return sdkerrors.Wrap(types.ErrExistingReplaceValidator, "finish consensus public key replacement before changing the operator")
+		return errorsmod.Wrap(types.ErrExistingReplaceValidator, "finish consensus public key replacement before changing the operator")
 	}
 	return nil
 }
 
 // resetValidator follows the remove/create lifecycle, keeping the consensus key
 // and completing all staking address changes atomically in the current block.
-func (k Keeper) resetValidator(ctx sdk.Context, newOwner sdk.AccAddress, validator stakingtypes.Validator) error {
+func (k *Keeper) resetValidator(ctx sdk.Context, newOwner sdk.AccAddress, validator stakingtypes.Validator) error {
 	if err := k.validateOperatorReplacement(ctx, newOwner, validator); err != nil {
 		return err
 	}
-	oldAddr, newAddr := validator.GetOperator(), sdk.ValAddress(newOwner)
+	oldAddr, err := sdk.ValAddressFromBech32(validator.OperatorAddress)
+	if err != nil {
+		return err
+	}
+	newAddr := sdk.ValAddress(newOwner)
 	logger := k.Logger(ctx).With("height", ctx.BlockHeight(), "region_id", validator.Description.RegionID,
 		"old_operator", oldAddr.String(), "new_operator", newAddr.String())
 	started := time.Now()
@@ -62,8 +69,11 @@ func (k Keeper) resetValidator(ctx sdk.Context, newOwner sdk.AccAddress, validat
 	ctx, write := ctx.CacheContext()
 	// UpdateValidator may also edit RegionID; select delegators using the stored
 	// source region, not the validator's proposed destination region.
-	oldRegionID := k.MustGetValidator(ctx, oldAddr).Description.RegionID
-	if err := k.migrateValidatorPositions(ctx, oldRegionID, oldAddr, newAddr); err != nil {
+	storedValidator, err := k.GetValidator(ctx, oldAddr)
+	if err != nil {
+		return err
+	}
+	if err := k.migrateValidatorPositions(ctx, storedValidator.Description.RegionID, oldAddr, newAddr); err != nil {
 		return err
 	}
 
@@ -79,28 +89,42 @@ func (k Keeper) resetValidator(ctx sdk.Context, newOwner sdk.AccAddress, validat
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(stakingtypes.GetValidatorKey(oldAddr))
 	store.Delete(stakingtypes.GetValidatorByConsAddrKey(consAddr))
-	k.DeleteValidatorByPowerIndex(ctx, validator)
+	if err := k.DeleteValidatorByPowerIndex(ctx, validator); err != nil {
+		return err
+	}
 	if validator.IsUnbonding() {
-		k.DeleteValidatorQueue(ctx, validator)
+		if err := k.DeleteValidatorQueue(ctx, validator); err != nil {
+			return err
+		}
 	}
 	// Keep last-set tracking, including a jailed validator awaiting a zero update.
 	if power := store.Get(stakingtypes.GetLastValidatorPowerKey(oldAddr)); power != nil {
 		store.Set(stakingtypes.GetLastValidatorPowerKey(newAddr), power)
-		k.DeleteLastValidatorPower(ctx, oldAddr)
+		if err := k.DeleteLastValidatorPower(ctx, oldAddr); err != nil {
+			return err
+		}
 	}
 
 	validator.OperatorAddress = newAddr.String()
 	validator.OwnerAddress = newOwner.String()
-	k.SetValidator(ctx, validator)
+	if err := k.SetValidator(ctx, validator); err != nil {
+		return err
+	}
 	if err := k.SetValidatorByConsAddr(ctx, validator); err != nil {
 		return err
 	}
-	k.SetValidatorByPowerIndex(ctx, validator)
+	if err := k.SetValidatorByPowerIndex(ctx, validator); err != nil {
+		return err
+	}
 	if validator.IsUnbonding() {
-		k.InsertUnbondingValidatorQueue(ctx, validator)
+		if err := k.InsertUnbondingValidatorQueue(ctx, validator); err != nil {
+			return err
+		}
 	}
 	for _, id := range validator.UnbondingIds {
-		k.SetValidatorByUnbondingID(ctx, validator, id)
+		if err := k.SetValidatorByUnbondingID(ctx, validator, id); err != nil {
+			return err
+		}
 	}
 	shares := validator.Tokens
 	if region, found := k.GetRegion(ctx, validator.Description.RegionID); found {
@@ -121,7 +145,7 @@ func (k Keeper) resetValidator(ctx sdk.Context, newOwner sdk.AccAddress, validat
 	return nil
 }
 
-func (k Keeper) migrateValidatorPositions(ctx sdk.Context, regionID string, oldAddr, newAddr sdk.ValAddress) error {
+func (k *Keeper) migrateValidatorPositions(ctx sdk.Context, regionID string, oldAddr, newAddr sdk.ValAddress) error {
 	oldOperator, newOperator := oldAddr.String(), newAddr.String()
 	stakes, err := k.GetStakesByValidator(ctx, oldAddr)
 	if err != nil {
@@ -137,12 +161,14 @@ func (k Keeper) migrateValidatorPositions(ctx sdk.Context, regionID string, oldA
 	if regionID == types.ExperienceRegionId {
 		// Experience delegators have no KYC/DID index. Collect before writing.
 		var delegations []stakingtypes.Delegation
-		k.IterateAllDelegations(ctx, func(del stakingtypes.Delegation) bool {
+		if err := k.IterateAllDelegations(ctx, func(del stakingtypes.Delegation) bool {
 			if del.ValidatorAddress == oldOperator {
 				delegations = append(delegations, del)
 			}
 			return false
-		})
+		}); err != nil {
+			return err
+		}
 		for _, del := range delegations {
 			del.ValidatorAddress = newOperator
 			k.SetDelegation(ctx, del)
@@ -152,8 +178,11 @@ func (k Keeper) migrateValidatorPositions(ctx sdk.Context, regionID string, oldA
 		// indexed path now rather than queueing it for the following block.
 		k.changeRegionDelegationValidator(ctx, regionID, oldOperator, newOperator)
 	}
-	k.migrateUnbondingDelegations(ctx, k.GetUnbondingDelegationsFromValidator(ctx, oldAddr), oldOperator, newOperator)
-	return nil
+	unbondings, err := k.GetUnbondingDelegationsFromValidator(ctx, oldAddr)
+	if err != nil {
+		return err
+	}
+	return k.migrateUnbondingDelegations(ctx, unbondings, oldOperator, newOperator)
 }
 
 type unbondingQueueUpdate struct {
@@ -162,15 +191,21 @@ type unbondingQueueUpdate struct {
 }
 
 // Rewrite each affected timeslice once, not once per unbonding entry.
-func (k Keeper) migrateUnbondingDelegations(ctx sdk.Context, unbondings []stakingtypes.UnbondingDelegation, oldOperator, newOperator string) {
+func (k *Keeper) migrateUnbondingDelegations(ctx sdk.Context, unbondings []stakingtypes.UnbondingDelegation, oldOperator, newOperator string) error {
 	updates := make(map[string]*unbondingQueueUpdate)
 	for _, ubd := range unbondings {
-		k.RemoveUnbondingDelegation(ctx, ubd)
+		if err := k.RemoveUnbondingDelegation(ctx, ubd); err != nil {
+			return err
+		}
 		ubd.ValidatorAddress = newOperator
-		k.SetUnbondingDelegation(ctx, ubd)
+		if err := k.SetUnbondingDelegation(ctx, ubd); err != nil {
+			return err
+		}
 		for _, entry := range ubd.Entries {
 			if entry.UnbondingId != 0 {
-				k.SetUnbondingDelegationByUnbondingID(ctx, ubd, entry.UnbondingId)
+				if err := k.SetUnbondingDelegationByUnbondingID(ctx, ubd, entry.UnbondingId); err != nil {
+					return err
+				}
 			}
 			key := string(stakingtypes.GetUnbondingDelegationTimeKey(entry.CompletionTime))
 			update := updates[key]
@@ -188,7 +223,10 @@ func (k Keeper) migrateUnbondingDelegations(ctx sdk.Context, unbondings []stakin
 	sort.Strings(keys) // State-write order must not depend on Go map iteration.
 	for _, key := range keys {
 		update := updates[key]
-		pairs := k.GetUBDQueueTimeSlice(ctx, update.completionTime)
+		pairs, err := k.GetUBDQueueTimeSlice(ctx, update.completionTime)
+		if err != nil {
+			return err
+		}
 		changed := false
 		for i := range pairs {
 			if _, ok := update.delegators[pairs[i].DelegatorAddress]; ok && pairs[i].ValidatorAddress == oldOperator {
@@ -197,7 +235,10 @@ func (k Keeper) migrateUnbondingDelegations(ctx sdk.Context, unbondings []stakin
 			}
 		}
 		if changed {
-			k.SetUBDQueueTimeSlice(ctx, update.completionTime, pairs)
+			if err := k.SetUBDQueueTimeSlice(ctx, update.completionTime, pairs); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }

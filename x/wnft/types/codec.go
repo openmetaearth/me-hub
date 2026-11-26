@@ -9,12 +9,7 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 )
 
-func RegisterCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgNewClass{}, "cosmos-sdk/MsgNewClass", nil)
-	cdc.RegisterConcrete(&MsgMintNFT{}, "cosmos-sdk/MsgMintNFT", nil)
-	cdc.RegisterConcrete(&ClassMetadata{}, "metaearth.wnft.ClassMetadata", nil)
-	cdc.RegisterConcrete(&Extension{}, "metaearth.wnft.Extension", nil)
-}
+func RegisterCodec(*codec.LegacyAmino) {}
 
 // RegisterInterfaces registers the interfaces types with the interface registry.
 func RegisterInterfaces(registry types.InterfaceRegistry) {

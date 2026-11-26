@@ -469,8 +469,6 @@ export interface WstakingMsgWithdrawFixedDepositResponse {
 
 export type WstakingMsgWithdrawFromGlobalDaoFeePoolResp = object;
 
-export type WstakingMsgWithdrawFromRegionResp = object;
-
 export interface WstakingQueryAllDelegationsResponse {
   delegations?: Stakingv1Beta1Delegation[];
 

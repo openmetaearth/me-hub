@@ -1,8 +1,8 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/openmetaearth/me-hub/x/regiongov/types"
 )
@@ -30,7 +30,7 @@ func (k Keeper) setRegionFrozen(ctx sdk.Context, msg *types.MsgFreezeRegion, fro
 	for _, id := range msg.RegionIds {
 		region, found := k.lookupRegion(ctx, id)
 		if !found {
-			return sdkerrors.Wrapf(types.ErrUnknownRegion, "%s", id)
+			return errorsmod.Wrapf(types.ErrUnknownRegion, "%s", id)
 		}
 		regionIDs = append(regionIDs, region.RegionId)
 	}

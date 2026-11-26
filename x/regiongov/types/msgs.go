@@ -3,6 +3,7 @@ package types
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gogoproto/proto"
@@ -47,15 +48,15 @@ func (msg *MsgSubmitProposal) ValidateBasic() error {
 		return err
 	}
 	if msg.Title == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "title is empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "title is empty")
 	}
 	if msg.VotingPeriod < 1 || msg.VotingPeriod > MaxVotingPeriod {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "voting_period must be a number of seconds in [1,%d]", MaxVotingPeriod)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "voting_period must be a number of seconds in [1,%d]", MaxVotingPeriod)
 	}
 	if err := validateProposalPayload(Proposal{
 		Kind: msg.Kind, Treasury: msg.Treasury, ReplaceOperator: msg.ReplaceOperator,
 	}); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 	return nil
 }
@@ -71,10 +72,10 @@ func (msg *MsgVote) ValidateBasic() error {
 		return err
 	}
 	if msg.ProposalId == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "proposal id is empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "proposal id is empty")
 	}
 	if msg.Option != VoteOptionYes && msg.Option != VoteOptionNo {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "vote option must be yes or no")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "vote option must be yes or no")
 	}
 	return nil
 }
@@ -90,10 +91,10 @@ func (msg *MsgSubmitEquityUpdate) ValidateBasic() error {
 		return err
 	}
 	if err := validateRegionID(msg.RegionId); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 	if err := validateUniqueAddresses(msg.Addresses); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 	return nil
 }
@@ -207,7 +208,7 @@ func validateAuthorityAction(authority string, actionID uint64) error {
 		return err
 	}
 	if actionID == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "action id is empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "action id is empty")
 	}
 	return nil
 }
@@ -217,16 +218,16 @@ func validateAuthorityRegions(authority string, regionIDs []string) error {
 		return err
 	}
 	if len(regionIDs) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "region ids are empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "region ids are empty")
 	}
 	seen := make(map[string]struct{}, len(regionIDs))
 	for _, regionID := range regionIDs {
 		if err := validateRegionID(regionID); err != nil {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+			return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 		}
 		id := strings.ToLower(regionID)
 		if _, ok := seen[id]; ok {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "duplicate region id %s", regionID)
+			return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "duplicate region id %s", regionID)
 		}
 		seen[id] = struct{}{}
 	}
@@ -238,10 +239,10 @@ func validateEquityTargets(signer, regionID string, addresses []string) error {
 		return err
 	}
 	if err := validateRegionID(regionID); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 	if err := validateEquityFreezeAddresses(addresses); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 	return nil
 }
@@ -251,7 +252,7 @@ func validateEquityTarget(signer, regionID, address string) error {
 		return err
 	}
 	if err := validateRegionID(regionID); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 	return validateAccAddress(address)
 }

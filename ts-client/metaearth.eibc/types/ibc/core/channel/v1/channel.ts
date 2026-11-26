@@ -14,7 +14,7 @@ export const protobufFileName = "ibc/core/channel/v1/channel.proto";
 
 /**
  * State defines if a channel is in one of the following states:
- * CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
+ * CLOSED, INIT, TRYOPEN, OPEN, FLUSHING, FLUSHCOMPLETE or UNINITIALIZED.
  */
 export enum State {
   /** STATE_UNINITIALIZED_UNSPECIFIED - Default State */
@@ -33,6 +33,10 @@ export enum State {
    * packets.
    */
   STATE_CLOSED = 4,
+  /** STATE_FLUSHING - A channel has just accepted the upgrade handshake attempt and is flushing in-flight packets. */
+  STATE_FLUSHING = 5,
+  /** STATE_FLUSHCOMPLETE - A channel has just completed flushing any in-flight packets. */
+  STATE_FLUSHCOMPLETE = 6,
   UNRECOGNIZED = -1,
 }
 
@@ -53,6 +57,12 @@ export function stateFromJSON(object: any): State {
     case 4:
     case "STATE_CLOSED":
       return State.STATE_CLOSED;
+    case 5:
+    case "STATE_FLUSHING":
+      return State.STATE_FLUSHING;
+    case 6:
+    case "STATE_FLUSHCOMPLETE":
+      return State.STATE_FLUSHCOMPLETE;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -72,6 +82,10 @@ export function stateToJSON(object: State): string {
       return "STATE_OPEN";
     case State.STATE_CLOSED:
       return "STATE_CLOSED";
+    case State.STATE_FLUSHING:
+      return "STATE_FLUSHING";
+    case State.STATE_FLUSHCOMPLETE:
+      return "STATE_FLUSHCOMPLETE";
     case State.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -145,6 +159,11 @@ export interface Channel {
   connectionHops: string[];
   /** opaque channel version, which is agreed upon during the handshake */
   version: string;
+  /**
+   * upgrade sequence indicates the latest upgrade attempt performed by this channel
+   * the value of 0 indicates the channel has never been upgraded
+   */
+  upgradeSequence: number;
 }
 
 /**
@@ -171,6 +190,11 @@ export interface IdentifiedChannel {
   portId: string;
   /** channel identifier */
   channelId: string;
+  /**
+   * upgrade sequence indicates the latest upgrade attempt performed by this channel
+   * the value of 0 indicates the channel has never been upgraded
+   */
+  upgradeSequence: number;
 }
 
 /** Counterparty defines a channel end counterparty */
@@ -225,7 +249,7 @@ export interface PacketState {
 }
 
 /**
- * PacketId is an identifer for a unique Packet
+ * PacketId is an identifier for a unique Packet
  * Source chains refer to packets by source port/channel
  * Destination chains refer to packets by destination port/channel
  */
@@ -252,8 +276,28 @@ export interface Acknowledgement {
   error?: string | undefined;
 }
 
+/**
+ * Timeout defines an execution deadline structure for 04-channel handlers.
+ * This includes packet lifecycle handlers as well as the upgrade handshake handlers.
+ * A valid Timeout contains either one or both of a timestamp and block height (sequence).
+ */
+export interface Timeout {
+  /** block height after which the packet or upgrade times out */
+  height:
+    | Height
+    | undefined;
+  /** block timestamp (in nanoseconds) after which the packet or upgrade times out */
+  timestamp: number;
+}
+
+/** Params defines the set of IBC channel parameters. */
+export interface Params {
+  /** the relative timeout after which channel upgrades will time out. */
+  upgradeTimeout: Timeout | undefined;
+}
+
 function createBaseChannel(): Channel {
-  return { state: 0, ordering: 0, counterparty: undefined, connectionHops: [], version: "" };
+  return { state: 0, ordering: 0, counterparty: undefined, connectionHops: [], version: "", upgradeSequence: 0 };
 }
 
 export const Channel: MessageFns<Channel> = {
@@ -272,6 +316,9 @@ export const Channel: MessageFns<Channel> = {
     }
     if (message.version !== "") {
       writer.uint32(42).string(message.version);
+    }
+    if (message.upgradeSequence !== 0) {
+      writer.uint32(48).uint64(message.upgradeSequence);
     }
     return writer;
   },
@@ -329,6 +376,14 @@ export const Channel: MessageFns<Channel> = {
             message.version = reader.string();
             continue;
           }
+          case 6: {
+            if (tag !== 48) {
+              break;
+            }
+
+            message.upgradeSequence = longToNumber(reader.uint64());
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -352,6 +407,11 @@ export const Channel: MessageFns<Channel> = {
         ? object.connection_hops.map((e: any) => globalThis.String(e))
         : [],
       version: isSet(object.version) ? globalThis.String(object.version) : "",
+      upgradeSequence: isSet(object.upgradeSequence)
+        ? globalThis.Number(object.upgradeSequence)
+        : isSet(object.upgrade_sequence)
+        ? globalThis.Number(object.upgrade_sequence)
+        : 0,
     };
   },
 
@@ -372,6 +432,9 @@ export const Channel: MessageFns<Channel> = {
     if (message.version !== "") {
       obj.version = message.version;
     }
+    if (message.upgradeSequence !== 0) {
+      obj.upgradeSequence = Math.round(message.upgradeSequence);
+    }
     return obj;
   },
 
@@ -387,12 +450,22 @@ export const Channel: MessageFns<Channel> = {
       : undefined;
     message.connectionHops = object.connectionHops?.map((e) => e) || [];
     message.version = object.version ?? "";
+    message.upgradeSequence = object.upgradeSequence ?? 0;
     return message;
   },
 };
 
 function createBaseIdentifiedChannel(): IdentifiedChannel {
-  return { state: 0, ordering: 0, counterparty: undefined, connectionHops: [], version: "", portId: "", channelId: "" };
+  return {
+    state: 0,
+    ordering: 0,
+    counterparty: undefined,
+    connectionHops: [],
+    version: "",
+    portId: "",
+    channelId: "",
+    upgradeSequence: 0,
+  };
 }
 
 export const IdentifiedChannel: MessageFns<IdentifiedChannel> = {
@@ -417,6 +490,9 @@ export const IdentifiedChannel: MessageFns<IdentifiedChannel> = {
     }
     if (message.channelId !== "") {
       writer.uint32(58).string(message.channelId);
+    }
+    if (message.upgradeSequence !== 0) {
+      writer.uint32(64).uint64(message.upgradeSequence);
     }
     return writer;
   },
@@ -490,6 +566,14 @@ export const IdentifiedChannel: MessageFns<IdentifiedChannel> = {
             message.channelId = reader.string();
             continue;
           }
+          case 8: {
+            if (tag !== 64) {
+              break;
+            }
+
+            message.upgradeSequence = longToNumber(reader.uint64());
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -523,6 +607,11 @@ export const IdentifiedChannel: MessageFns<IdentifiedChannel> = {
         : isSet(object.channel_id)
         ? globalThis.String(object.channel_id)
         : "",
+      upgradeSequence: isSet(object.upgradeSequence)
+        ? globalThis.Number(object.upgradeSequence)
+        : isSet(object.upgrade_sequence)
+        ? globalThis.Number(object.upgrade_sequence)
+        : 0,
     };
   },
 
@@ -549,6 +638,9 @@ export const IdentifiedChannel: MessageFns<IdentifiedChannel> = {
     if (message.channelId !== "") {
       obj.channelId = message.channelId;
     }
+    if (message.upgradeSequence !== 0) {
+      obj.upgradeSequence = Math.round(message.upgradeSequence);
+    }
     return obj;
   },
 
@@ -566,6 +658,7 @@ export const IdentifiedChannel: MessageFns<IdentifiedChannel> = {
     message.version = object.version ?? "";
     message.portId = object.portId ?? "";
     message.channelId = object.channelId ?? "";
+    message.upgradeSequence = object.upgradeSequence ?? 0;
     return message;
   },
 };
@@ -1194,6 +1287,168 @@ export const Acknowledgement: MessageFns<Acknowledgement> = {
     const message = createBaseAcknowledgement();
     message.result = object.result ?? undefined;
     message.error = object.error ?? undefined;
+    return message;
+  },
+};
+
+function createBaseTimeout(): Timeout {
+  return { height: undefined, timestamp: 0 };
+}
+
+export const Timeout: MessageFns<Timeout> = {
+  encode(message: Timeout, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.height !== undefined) {
+      Height.encode(message.height, writer.uint32(10).fork()).join();
+    }
+    if (message.timestamp !== 0) {
+      writer.uint32(16).uint64(message.timestamp);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Timeout {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseTimeout();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.height = Height.decode(reader, reader.uint32());
+            continue;
+          }
+          case 2: {
+            if (tag !== 16) {
+              break;
+            }
+
+            message.timestamp = longToNumber(reader.uint64());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): Timeout {
+    return {
+      height: isSet(object.height) ? Height.fromJSON(object.height) : undefined,
+      timestamp: isSet(object.timestamp) ? globalThis.Number(object.timestamp) : 0,
+    };
+  },
+
+  toJSON(message: Timeout): unknown {
+    const obj: any = {};
+    if (message.height !== undefined) {
+      obj.height = Height.toJSON(message.height);
+    }
+    if (message.timestamp !== 0) {
+      obj.timestamp = Math.round(message.timestamp);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Timeout>, I>>(base?: I): Timeout {
+    return Timeout.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Timeout>, I>>(object: I): Timeout {
+    const message = createBaseTimeout();
+    message.height = (object.height !== undefined && object.height !== null)
+      ? Height.fromPartial(object.height)
+      : undefined;
+    message.timestamp = object.timestamp ?? 0;
+    return message;
+  },
+};
+
+function createBaseParams(): Params {
+  return { upgradeTimeout: undefined };
+}
+
+export const Params: MessageFns<Params> = {
+  encode(message: Params, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.upgradeTimeout !== undefined) {
+      Timeout.encode(message.upgradeTimeout, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Params {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseParams();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.upgradeTimeout = Timeout.decode(reader, reader.uint32());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): Params {
+    return {
+      upgradeTimeout: isSet(object.upgradeTimeout)
+        ? Timeout.fromJSON(object.upgradeTimeout)
+        : isSet(object.upgrade_timeout)
+        ? Timeout.fromJSON(object.upgrade_timeout)
+        : undefined,
+    };
+  },
+
+  toJSON(message: Params): unknown {
+    const obj: any = {};
+    if (message.upgradeTimeout !== undefined) {
+      obj.upgradeTimeout = Timeout.toJSON(message.upgradeTimeout);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Params>, I>>(base?: I): Params {
+    return Params.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Params>, I>>(object: I): Params {
+    const message = createBaseParams();
+    message.upgradeTimeout = (object.upgradeTimeout !== undefined && object.upgradeTimeout !== null)
+      ? Timeout.fromPartial(object.upgradeTimeout)
+      : undefined;
     return message;
   },
 };

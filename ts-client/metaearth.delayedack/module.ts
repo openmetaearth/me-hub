@@ -90,7 +90,7 @@ class SDKModule {
 const Module = (test: IgniteClient) => {
 	return {
 		module: {
-			DymensionxyzDymensionDelayedack: new SDKModule(test)
+			MetaearthDelayedack: new SDKModule(test)
 		},
 		registry: msgTypes
   }

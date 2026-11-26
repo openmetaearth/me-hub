@@ -4,6 +4,8 @@ package metaearth.rollapp;
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
+import "metaearth/rollapp/app.proto";
+import "metaearth/rollapp/genesis_bridge_data.proto";
 import "metaearth/rollapp/params.proto";
 import "metaearth/rollapp/rollapp.proto";
 import "metaearth/rollapp/state_info.proto";
@@ -36,6 +38,11 @@ service Query {
     option (google.api.http).get = "/metaearth/rollapp/latest_height/{rollappId}";
   }
 
+  // Queries the latest finalized height by rollapp-id.
+  rpc LatestFinalizedHeight(QueryGetLatestFinalizedHeightRequest) returns (QueryGetLatestFinalizedHeightResponse) {
+    option (google.api.http).get = "/metaearth/rollapp/latest_finalized_height/{rollappId}";
+  }
+
   // Queries a LatestStateIndex by rollapp-id.
   rpc LatestStateIndex(QueryGetLatestStateIndexRequest) returns (QueryGetLatestStateIndexResponse) {
     option (google.api.http).get = "/metaearth/rollapp/latest_state_index/{rollappId}";
@@ -46,6 +53,20 @@ service Query {
     option (google.api.http).get = "/metaearth/rollapp/state_info/{rollappId}/{index}";
   }
 
+  // Queries a list of registered denoms for the rollapp.
+  rpc RegisteredDenoms(QueryRegisteredDenomsRequest) returns (QueryRegisteredDenomsResponse) {
+    option (google.api.http).get = "/metaearth/rollapp/registered_denoms";
+  }
+
+  // Queries a list of obsolete DRS versions.
+  rpc ObsoleteDRSVersions(QueryObsoleteDRSVersionsRequest) returns (QueryObsoleteDRSVersionsResponse) {
+    option (google.api.http).get = "/metaearth/rollapp/obsolete_drs_versions";
+  }
+
+  // Validates provided genesis bridge data against the hub.
+  rpc ValidateGenesisBridge(QueryValidateGenesisBridgeRequest) returns (QueryValidateGenesisBridgeResponse);
+
+  // Queries rollapps that skip delayed acknowledgement.
   rpc SkipDelayRollapp(QuerySkipDelayRollappRequest) returns (QuerySkipDelayRollappResponse) {
     option (google.api.http).get = "/metaearth/rollapp/skip_delay_rollapp";
   }
@@ -62,10 +83,14 @@ message QueryParamsResponse {
 
 message QueryGetRollappRequest {
   string rollappId = 1;
+  // omit_apps is an optional flag to omit the list of apps in the response
+  bool omit_apps = 2;
 }
 
 message QueryGetRollappByEIP155Request {
   uint64 eip155 = 1;
+  // omit_apps is an optional flag to omit the list of apps in the response
+  bool omit_apps = 2;
 }
 
 message QueryGetLatestHeightRequest {
@@ -74,6 +99,14 @@ message QueryGetLatestHeightRequest {
 }
 
 message QueryGetLatestHeightResponse {
+  uint64 height = 1;
+}
+
+message QueryGetLatestFinalizedHeightRequest {
+  string rollappId = 1;
+}
+
+message QueryGetLatestFinalizedHeightResponse {
   uint64 height = 1;
 }
 
@@ -88,21 +121,21 @@ message QueryGetLatestStateIndexResponse {
 
 message QueryGetRollappResponse {
   Rollapp rollapp = 1 [(gogoproto.nullable) = false];
-  // Defines the index of the last rollapp UpdateState.
-  StateInfoIndex latestStateIndex = 2;
-  // Defines the index of the last rollapp UpdateState that was finalized.
-  StateInfoIndex latestFinalizedStateIndex = 3;
-
-  uint64 latestHeight = 4;
-  uint64 latestFinalizedHeight = 5;
+  reserved 2 to 5;
+  RollappSummary summary = 6 [(gogoproto.nullable) = false];
+  // apps is the list of (lazy-loaded) apps in the rollapp
+  repeated App apps = 7 [(gogoproto.nullable) = true];
 }
 
 message QueryAllRollappRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  // omit_apps is an optional flag to omit the list of apps in the response
+  bool omit_apps = 2;
 }
 
 message QueryAllRollappResponse {
-  repeated RollappSummary rollapp = 1 [(gogoproto.nullable) = false];
+  reserved 1;
+  repeated QueryGetRollappResponse rollapp = 3 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
@@ -115,6 +148,32 @@ message QueryGetStateInfoRequest {
 
 message QueryGetStateInfoResponse {
   StateInfo stateInfo = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryRegisteredDenomsRequest {
+  string rollappId = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryRegisteredDenomsResponse {
+  repeated string denoms = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryObsoleteDRSVersionsRequest {}
+
+message QueryObsoleteDRSVersionsResponse {
+  repeated uint32 drs_versions = 1;
+}
+
+message QueryValidateGenesisBridgeRequest {
+  string rollappId = 1;
+  GenesisBridgeData data = 2 [(gogoproto.nullable) = false];
+}
+
+message QueryValidateGenesisBridgeResponse {
+  bool valid = 1;
+  string err = 2;
 }
 
 message QuerySkipDelayRollappRequest {}

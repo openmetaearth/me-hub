@@ -7,6 +7,8 @@
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import { PageRequest, PageResponse } from "../../cosmos/base/query/v1beta1/pagination";
+import { App } from "./app";
+import { GenesisBridgeData } from "./genesis_bridge_data";
 import { Params } from "./params";
 import { Rollapp, RollappSummary } from "./rollapp";
 import { StateInfo, StateInfoIndex } from "./state_info";
@@ -27,10 +29,14 @@ export interface QueryParamsResponse {
 
 export interface QueryGetRollappRequest {
   rollappId: string;
+  /** omit_apps is an optional flag to omit the list of apps in the response */
+  omitApps: boolean;
 }
 
 export interface QueryGetRollappByEIP155Request {
   eip155: number;
+  /** omit_apps is an optional flag to omit the list of apps in the response */
+  omitApps: boolean;
 }
 
 export interface QueryGetLatestHeightRequest {
@@ -39,6 +45,14 @@ export interface QueryGetLatestHeightRequest {
 }
 
 export interface QueryGetLatestHeightResponse {
+  height: number;
+}
+
+export interface QueryGetLatestFinalizedHeightRequest {
+  rollappId: string;
+}
+
+export interface QueryGetLatestFinalizedHeightResponse {
   height: number;
 }
 
@@ -52,25 +66,24 @@ export interface QueryGetLatestStateIndexResponse {
 }
 
 export interface QueryGetRollappResponse {
-  rollapp:
-    | Rollapp
+  rollapp: Rollapp | undefined;
+  summary:
+    | RollappSummary
     | undefined;
-  /** Defines the index of the last rollapp UpdateState. */
-  latestStateIndex:
-    | StateInfoIndex
-    | undefined;
-  /** Defines the index of the last rollapp UpdateState that was finalized. */
-  latestFinalizedStateIndex: StateInfoIndex | undefined;
-  latestHeight: number;
-  latestFinalizedHeight: number;
+  /** apps is the list of (lazy-loaded) apps in the rollapp */
+  apps: App[];
 }
 
 export interface QueryAllRollappRequest {
-  pagination: PageRequest | undefined;
+  pagination:
+    | PageRequest
+    | undefined;
+  /** omit_apps is an optional flag to omit the list of apps in the response */
+  omitApps: boolean;
 }
 
 export interface QueryAllRollappResponse {
-  rollapp: RollappSummary[];
+  rollapp: QueryGetRollappResponse[];
   pagination: PageResponse | undefined;
 }
 
@@ -83,6 +96,33 @@ export interface QueryGetStateInfoRequest {
 
 export interface QueryGetStateInfoResponse {
   stateInfo: StateInfo | undefined;
+}
+
+export interface QueryRegisteredDenomsRequest {
+  rollappId: string;
+  pagination: PageRequest | undefined;
+}
+
+export interface QueryRegisteredDenomsResponse {
+  denoms: string[];
+  pagination: PageResponse | undefined;
+}
+
+export interface QueryObsoleteDRSVersionsRequest {
+}
+
+export interface QueryObsoleteDRSVersionsResponse {
+  drsVersions: number[];
+}
+
+export interface QueryValidateGenesisBridgeRequest {
+  rollappId: string;
+  data: GenesisBridgeData | undefined;
+}
+
+export interface QueryValidateGenesisBridgeResponse {
+  valid: boolean;
+  err: string;
 }
 
 export interface QuerySkipDelayRollappRequest {
@@ -214,13 +254,16 @@ export const QueryParamsResponse: MessageFns<QueryParamsResponse> = {
 };
 
 function createBaseQueryGetRollappRequest(): QueryGetRollappRequest {
-  return { rollappId: "" };
+  return { rollappId: "", omitApps: false };
 }
 
 export const QueryGetRollappRequest: MessageFns<QueryGetRollappRequest> = {
   encode(message: QueryGetRollappRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.rollappId !== "") {
       writer.uint32(10).string(message.rollappId);
+    }
+    if (message.omitApps !== false) {
+      writer.uint32(16).bool(message.omitApps);
     }
     return writer;
   },
@@ -246,6 +289,14 @@ export const QueryGetRollappRequest: MessageFns<QueryGetRollappRequest> = {
             message.rollappId = reader.string();
             continue;
           }
+          case 2: {
+            if (tag !== 16) {
+              break;
+            }
+
+            message.omitApps = reader.bool();
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -259,13 +310,23 @@ export const QueryGetRollappRequest: MessageFns<QueryGetRollappRequest> = {
   },
 
   fromJSON(object: any): QueryGetRollappRequest {
-    return { rollappId: isSet(object.rollappId) ? globalThis.String(object.rollappId) : "" };
+    return {
+      rollappId: isSet(object.rollappId) ? globalThis.String(object.rollappId) : "",
+      omitApps: isSet(object.omitApps)
+        ? globalThis.Boolean(object.omitApps)
+        : isSet(object.omit_apps)
+        ? globalThis.Boolean(object.omit_apps)
+        : false,
+    };
   },
 
   toJSON(message: QueryGetRollappRequest): unknown {
     const obj: any = {};
     if (message.rollappId !== "") {
       obj.rollappId = message.rollappId;
+    }
+    if (message.omitApps !== false) {
+      obj.omitApps = message.omitApps;
     }
     return obj;
   },
@@ -276,18 +337,22 @@ export const QueryGetRollappRequest: MessageFns<QueryGetRollappRequest> = {
   fromPartial<I extends Exact<DeepPartial<QueryGetRollappRequest>, I>>(object: I): QueryGetRollappRequest {
     const message = createBaseQueryGetRollappRequest();
     message.rollappId = object.rollappId ?? "";
+    message.omitApps = object.omitApps ?? false;
     return message;
   },
 };
 
 function createBaseQueryGetRollappByEIP155Request(): QueryGetRollappByEIP155Request {
-  return { eip155: 0 };
+  return { eip155: 0, omitApps: false };
 }
 
 export const QueryGetRollappByEIP155Request: MessageFns<QueryGetRollappByEIP155Request> = {
   encode(message: QueryGetRollappByEIP155Request, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.eip155 !== 0) {
       writer.uint32(8).uint64(message.eip155);
+    }
+    if (message.omitApps !== false) {
+      writer.uint32(16).bool(message.omitApps);
     }
     return writer;
   },
@@ -313,6 +378,14 @@ export const QueryGetRollappByEIP155Request: MessageFns<QueryGetRollappByEIP155R
             message.eip155 = longToNumber(reader.uint64());
             continue;
           }
+          case 2: {
+            if (tag !== 16) {
+              break;
+            }
+
+            message.omitApps = reader.bool();
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -326,13 +399,23 @@ export const QueryGetRollappByEIP155Request: MessageFns<QueryGetRollappByEIP155R
   },
 
   fromJSON(object: any): QueryGetRollappByEIP155Request {
-    return { eip155: isSet(object.eip155) ? globalThis.Number(object.eip155) : 0 };
+    return {
+      eip155: isSet(object.eip155) ? globalThis.Number(object.eip155) : 0,
+      omitApps: isSet(object.omitApps)
+        ? globalThis.Boolean(object.omitApps)
+        : isSet(object.omit_apps)
+        ? globalThis.Boolean(object.omit_apps)
+        : false,
+    };
   },
 
   toJSON(message: QueryGetRollappByEIP155Request): unknown {
     const obj: any = {};
     if (message.eip155 !== 0) {
       obj.eip155 = Math.round(message.eip155);
+    }
+    if (message.omitApps !== false) {
+      obj.omitApps = message.omitApps;
     }
     return obj;
   },
@@ -345,6 +428,7 @@ export const QueryGetRollappByEIP155Request: MessageFns<QueryGetRollappByEIP155R
   ): QueryGetRollappByEIP155Request {
     const message = createBaseQueryGetRollappByEIP155Request();
     message.eip155 = object.eip155 ?? 0;
+    message.omitApps = object.omitApps ?? false;
     return message;
   },
 };
@@ -496,6 +580,148 @@ export const QueryGetLatestHeightResponse: MessageFns<QueryGetLatestHeightRespon
   },
   fromPartial<I extends Exact<DeepPartial<QueryGetLatestHeightResponse>, I>>(object: I): QueryGetLatestHeightResponse {
     const message = createBaseQueryGetLatestHeightResponse();
+    message.height = object.height ?? 0;
+    return message;
+  },
+};
+
+function createBaseQueryGetLatestFinalizedHeightRequest(): QueryGetLatestFinalizedHeightRequest {
+  return { rollappId: "" };
+}
+
+export const QueryGetLatestFinalizedHeightRequest: MessageFns<QueryGetLatestFinalizedHeightRequest> = {
+  encode(message: QueryGetLatestFinalizedHeightRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.rollappId !== "") {
+      writer.uint32(10).string(message.rollappId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryGetLatestFinalizedHeightRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseQueryGetLatestFinalizedHeightRequest();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.rollappId = reader.string();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): QueryGetLatestFinalizedHeightRequest {
+    return { rollappId: isSet(object.rollappId) ? globalThis.String(object.rollappId) : "" };
+  },
+
+  toJSON(message: QueryGetLatestFinalizedHeightRequest): unknown {
+    const obj: any = {};
+    if (message.rollappId !== "") {
+      obj.rollappId = message.rollappId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<QueryGetLatestFinalizedHeightRequest>, I>>(
+    base?: I,
+  ): QueryGetLatestFinalizedHeightRequest {
+    return QueryGetLatestFinalizedHeightRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<QueryGetLatestFinalizedHeightRequest>, I>>(
+    object: I,
+  ): QueryGetLatestFinalizedHeightRequest {
+    const message = createBaseQueryGetLatestFinalizedHeightRequest();
+    message.rollappId = object.rollappId ?? "";
+    return message;
+  },
+};
+
+function createBaseQueryGetLatestFinalizedHeightResponse(): QueryGetLatestFinalizedHeightResponse {
+  return { height: 0 };
+}
+
+export const QueryGetLatestFinalizedHeightResponse: MessageFns<QueryGetLatestFinalizedHeightResponse> = {
+  encode(message: QueryGetLatestFinalizedHeightResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.height !== 0) {
+      writer.uint32(8).uint64(message.height);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryGetLatestFinalizedHeightResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseQueryGetLatestFinalizedHeightResponse();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.height = longToNumber(reader.uint64());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): QueryGetLatestFinalizedHeightResponse {
+    return { height: isSet(object.height) ? globalThis.Number(object.height) : 0 };
+  },
+
+  toJSON(message: QueryGetLatestFinalizedHeightResponse): unknown {
+    const obj: any = {};
+    if (message.height !== 0) {
+      obj.height = Math.round(message.height);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<QueryGetLatestFinalizedHeightResponse>, I>>(
+    base?: I,
+  ): QueryGetLatestFinalizedHeightResponse {
+    return QueryGetLatestFinalizedHeightResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<QueryGetLatestFinalizedHeightResponse>, I>>(
+    object: I,
+  ): QueryGetLatestFinalizedHeightResponse {
+    const message = createBaseQueryGetLatestFinalizedHeightResponse();
     message.height = object.height ?? 0;
     return message;
   },
@@ -662,13 +888,7 @@ export const QueryGetLatestStateIndexResponse: MessageFns<QueryGetLatestStateInd
 };
 
 function createBaseQueryGetRollappResponse(): QueryGetRollappResponse {
-  return {
-    rollapp: undefined,
-    latestStateIndex: undefined,
-    latestFinalizedStateIndex: undefined,
-    latestHeight: 0,
-    latestFinalizedHeight: 0,
-  };
+  return { rollapp: undefined, summary: undefined, apps: [] };
 }
 
 export const QueryGetRollappResponse: MessageFns<QueryGetRollappResponse> = {
@@ -676,17 +896,11 @@ export const QueryGetRollappResponse: MessageFns<QueryGetRollappResponse> = {
     if (message.rollapp !== undefined) {
       Rollapp.encode(message.rollapp, writer.uint32(10).fork()).join();
     }
-    if (message.latestStateIndex !== undefined) {
-      StateInfoIndex.encode(message.latestStateIndex, writer.uint32(18).fork()).join();
+    if (message.summary !== undefined) {
+      RollappSummary.encode(message.summary, writer.uint32(50).fork()).join();
     }
-    if (message.latestFinalizedStateIndex !== undefined) {
-      StateInfoIndex.encode(message.latestFinalizedStateIndex, writer.uint32(26).fork()).join();
-    }
-    if (message.latestHeight !== 0) {
-      writer.uint32(32).uint64(message.latestHeight);
-    }
-    if (message.latestFinalizedHeight !== 0) {
-      writer.uint32(40).uint64(message.latestFinalizedHeight);
+    for (const v of message.apps) {
+      App.encode(v!, writer.uint32(58).fork()).join();
     }
     return writer;
   },
@@ -712,36 +926,20 @@ export const QueryGetRollappResponse: MessageFns<QueryGetRollappResponse> = {
             message.rollapp = Rollapp.decode(reader, reader.uint32());
             continue;
           }
-          case 2: {
-            if (tag !== 18) {
+          case 6: {
+            if (tag !== 50) {
               break;
             }
 
-            message.latestStateIndex = StateInfoIndex.decode(reader, reader.uint32());
+            message.summary = RollappSummary.decode(reader, reader.uint32());
             continue;
           }
-          case 3: {
-            if (tag !== 26) {
+          case 7: {
+            if (tag !== 58) {
               break;
             }
 
-            message.latestFinalizedStateIndex = StateInfoIndex.decode(reader, reader.uint32());
-            continue;
-          }
-          case 4: {
-            if (tag !== 32) {
-              break;
-            }
-
-            message.latestHeight = longToNumber(reader.uint64());
-            continue;
-          }
-          case 5: {
-            if (tag !== 40) {
-              break;
-            }
-
-            message.latestFinalizedHeight = longToNumber(reader.uint64());
+            message.apps.push(App.decode(reader, reader.uint32()));
             continue;
           }
         }
@@ -759,12 +957,8 @@ export const QueryGetRollappResponse: MessageFns<QueryGetRollappResponse> = {
   fromJSON(object: any): QueryGetRollappResponse {
     return {
       rollapp: isSet(object.rollapp) ? Rollapp.fromJSON(object.rollapp) : undefined,
-      latestStateIndex: isSet(object.latestStateIndex) ? StateInfoIndex.fromJSON(object.latestStateIndex) : undefined,
-      latestFinalizedStateIndex: isSet(object.latestFinalizedStateIndex)
-        ? StateInfoIndex.fromJSON(object.latestFinalizedStateIndex)
-        : undefined,
-      latestHeight: isSet(object.latestHeight) ? globalThis.Number(object.latestHeight) : 0,
-      latestFinalizedHeight: isSet(object.latestFinalizedHeight) ? globalThis.Number(object.latestFinalizedHeight) : 0,
+      summary: isSet(object.summary) ? RollappSummary.fromJSON(object.summary) : undefined,
+      apps: globalThis.Array.isArray(object?.apps) ? object.apps.map((e: any) => App.fromJSON(e)) : [],
     };
   },
 
@@ -773,17 +967,11 @@ export const QueryGetRollappResponse: MessageFns<QueryGetRollappResponse> = {
     if (message.rollapp !== undefined) {
       obj.rollapp = Rollapp.toJSON(message.rollapp);
     }
-    if (message.latestStateIndex !== undefined) {
-      obj.latestStateIndex = StateInfoIndex.toJSON(message.latestStateIndex);
+    if (message.summary !== undefined) {
+      obj.summary = RollappSummary.toJSON(message.summary);
     }
-    if (message.latestFinalizedStateIndex !== undefined) {
-      obj.latestFinalizedStateIndex = StateInfoIndex.toJSON(message.latestFinalizedStateIndex);
-    }
-    if (message.latestHeight !== 0) {
-      obj.latestHeight = Math.round(message.latestHeight);
-    }
-    if (message.latestFinalizedHeight !== 0) {
-      obj.latestFinalizedHeight = Math.round(message.latestFinalizedHeight);
+    if (message.apps?.length) {
+      obj.apps = message.apps.map((e) => App.toJSON(e));
     }
     return obj;
   },
@@ -796,27 +984,25 @@ export const QueryGetRollappResponse: MessageFns<QueryGetRollappResponse> = {
     message.rollapp = (object.rollapp !== undefined && object.rollapp !== null)
       ? Rollapp.fromPartial(object.rollapp)
       : undefined;
-    message.latestStateIndex = (object.latestStateIndex !== undefined && object.latestStateIndex !== null)
-      ? StateInfoIndex.fromPartial(object.latestStateIndex)
+    message.summary = (object.summary !== undefined && object.summary !== null)
+      ? RollappSummary.fromPartial(object.summary)
       : undefined;
-    message.latestFinalizedStateIndex =
-      (object.latestFinalizedStateIndex !== undefined && object.latestFinalizedStateIndex !== null)
-        ? StateInfoIndex.fromPartial(object.latestFinalizedStateIndex)
-        : undefined;
-    message.latestHeight = object.latestHeight ?? 0;
-    message.latestFinalizedHeight = object.latestFinalizedHeight ?? 0;
+    message.apps = object.apps?.map((e) => App.fromPartial(e)) || [];
     return message;
   },
 };
 
 function createBaseQueryAllRollappRequest(): QueryAllRollappRequest {
-  return { pagination: undefined };
+  return { pagination: undefined, omitApps: false };
 }
 
 export const QueryAllRollappRequest: MessageFns<QueryAllRollappRequest> = {
   encode(message: QueryAllRollappRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.pagination !== undefined) {
       PageRequest.encode(message.pagination, writer.uint32(10).fork()).join();
+    }
+    if (message.omitApps !== false) {
+      writer.uint32(16).bool(message.omitApps);
     }
     return writer;
   },
@@ -842,6 +1028,14 @@ export const QueryAllRollappRequest: MessageFns<QueryAllRollappRequest> = {
             message.pagination = PageRequest.decode(reader, reader.uint32());
             continue;
           }
+          case 2: {
+            if (tag !== 16) {
+              break;
+            }
+
+            message.omitApps = reader.bool();
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -855,13 +1049,23 @@ export const QueryAllRollappRequest: MessageFns<QueryAllRollappRequest> = {
   },
 
   fromJSON(object: any): QueryAllRollappRequest {
-    return { pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined };
+    return {
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+      omitApps: isSet(object.omitApps)
+        ? globalThis.Boolean(object.omitApps)
+        : isSet(object.omit_apps)
+        ? globalThis.Boolean(object.omit_apps)
+        : false,
+    };
   },
 
   toJSON(message: QueryAllRollappRequest): unknown {
     const obj: any = {};
     if (message.pagination !== undefined) {
       obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    if (message.omitApps !== false) {
+      obj.omitApps = message.omitApps;
     }
     return obj;
   },
@@ -874,6 +1078,7 @@ export const QueryAllRollappRequest: MessageFns<QueryAllRollappRequest> = {
     message.pagination = (object.pagination !== undefined && object.pagination !== null)
       ? PageRequest.fromPartial(object.pagination)
       : undefined;
+    message.omitApps = object.omitApps ?? false;
     return message;
   },
 };
@@ -885,7 +1090,7 @@ function createBaseQueryAllRollappResponse(): QueryAllRollappResponse {
 export const QueryAllRollappResponse: MessageFns<QueryAllRollappResponse> = {
   encode(message: QueryAllRollappResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.rollapp) {
-      RollappSummary.encode(v!, writer.uint32(10).fork()).join();
+      QueryGetRollappResponse.encode(v!, writer.uint32(26).fork()).join();
     }
     if (message.pagination !== undefined) {
       PageResponse.encode(message.pagination, writer.uint32(18).fork()).join();
@@ -906,12 +1111,12 @@ export const QueryAllRollappResponse: MessageFns<QueryAllRollappResponse> = {
       while (reader.pos < end) {
         const tag = reader.uint32();
         switch (tag >>> 3) {
-          case 1: {
-            if (tag !== 10) {
+          case 3: {
+            if (tag !== 26) {
               break;
             }
 
-            message.rollapp.push(RollappSummary.decode(reader, reader.uint32()));
+            message.rollapp.push(QueryGetRollappResponse.decode(reader, reader.uint32()));
             continue;
           }
           case 2: {
@@ -937,7 +1142,7 @@ export const QueryAllRollappResponse: MessageFns<QueryAllRollappResponse> = {
   fromJSON(object: any): QueryAllRollappResponse {
     return {
       rollapp: globalThis.Array.isArray(object?.rollapp)
-        ? object.rollapp.map((e: any) => RollappSummary.fromJSON(e))
+        ? object.rollapp.map((e: any) => QueryGetRollappResponse.fromJSON(e))
         : [],
       pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
     };
@@ -946,7 +1151,7 @@ export const QueryAllRollappResponse: MessageFns<QueryAllRollappResponse> = {
   toJSON(message: QueryAllRollappResponse): unknown {
     const obj: any = {};
     if (message.rollapp?.length) {
-      obj.rollapp = message.rollapp.map((e) => RollappSummary.toJSON(e));
+      obj.rollapp = message.rollapp.map((e) => QueryGetRollappResponse.toJSON(e));
     }
     if (message.pagination !== undefined) {
       obj.pagination = PageResponse.toJSON(message.pagination);
@@ -959,7 +1164,7 @@ export const QueryAllRollappResponse: MessageFns<QueryAllRollappResponse> = {
   },
   fromPartial<I extends Exact<DeepPartial<QueryAllRollappResponse>, I>>(object: I): QueryAllRollappResponse {
     const message = createBaseQueryAllRollappResponse();
-    message.rollapp = object.rollapp?.map((e) => RollappSummary.fromPartial(e)) || [];
+    message.rollapp = object.rollapp?.map((e) => QueryGetRollappResponse.fromPartial(e)) || [];
     message.pagination = (object.pagination !== undefined && object.pagination !== null)
       ? PageResponse.fromPartial(object.pagination)
       : undefined;
@@ -1153,6 +1358,505 @@ export const QueryGetStateInfoResponse: MessageFns<QueryGetStateInfoResponse> = 
   },
 };
 
+function createBaseQueryRegisteredDenomsRequest(): QueryRegisteredDenomsRequest {
+  return { rollappId: "", pagination: undefined };
+}
+
+export const QueryRegisteredDenomsRequest: MessageFns<QueryRegisteredDenomsRequest> = {
+  encode(message: QueryRegisteredDenomsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.rollappId !== "") {
+      writer.uint32(10).string(message.rollappId);
+    }
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryRegisteredDenomsRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseQueryRegisteredDenomsRequest();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.rollappId = reader.string();
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.pagination = PageRequest.decode(reader, reader.uint32());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): QueryRegisteredDenomsRequest {
+    return {
+      rollappId: isSet(object.rollappId) ? globalThis.String(object.rollappId) : "",
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+    };
+  },
+
+  toJSON(message: QueryRegisteredDenomsRequest): unknown {
+    const obj: any = {};
+    if (message.rollappId !== "") {
+      obj.rollappId = message.rollappId;
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<QueryRegisteredDenomsRequest>, I>>(base?: I): QueryRegisteredDenomsRequest {
+    return QueryRegisteredDenomsRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<QueryRegisteredDenomsRequest>, I>>(object: I): QueryRegisteredDenomsRequest {
+    const message = createBaseQueryRegisteredDenomsRequest();
+    message.rollappId = object.rollappId ?? "";
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseQueryRegisteredDenomsResponse(): QueryRegisteredDenomsResponse {
+  return { denoms: [], pagination: undefined };
+}
+
+export const QueryRegisteredDenomsResponse: MessageFns<QueryRegisteredDenomsResponse> = {
+  encode(message: QueryRegisteredDenomsResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.denoms) {
+      writer.uint32(10).string(v!);
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryRegisteredDenomsResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseQueryRegisteredDenomsResponse();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.denoms.push(reader.string());
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.pagination = PageResponse.decode(reader, reader.uint32());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): QueryRegisteredDenomsResponse {
+    return {
+      denoms: globalThis.Array.isArray(object?.denoms) ? object.denoms.map((e: any) => globalThis.String(e)) : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+    };
+  },
+
+  toJSON(message: QueryRegisteredDenomsResponse): unknown {
+    const obj: any = {};
+    if (message.denoms?.length) {
+      obj.denoms = message.denoms;
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<QueryRegisteredDenomsResponse>, I>>(base?: I): QueryRegisteredDenomsResponse {
+    return QueryRegisteredDenomsResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<QueryRegisteredDenomsResponse>, I>>(
+    object: I,
+  ): QueryRegisteredDenomsResponse {
+    const message = createBaseQueryRegisteredDenomsResponse();
+    message.denoms = object.denoms?.map((e) => e) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseQueryObsoleteDRSVersionsRequest(): QueryObsoleteDRSVersionsRequest {
+  return {};
+}
+
+export const QueryObsoleteDRSVersionsRequest: MessageFns<QueryObsoleteDRSVersionsRequest> = {
+  encode(_: QueryObsoleteDRSVersionsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryObsoleteDRSVersionsRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseQueryObsoleteDRSVersionsRequest();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(_: any): QueryObsoleteDRSVersionsRequest {
+    return {};
+  },
+
+  toJSON(_: QueryObsoleteDRSVersionsRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<QueryObsoleteDRSVersionsRequest>, I>>(base?: I): QueryObsoleteDRSVersionsRequest {
+    return QueryObsoleteDRSVersionsRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<QueryObsoleteDRSVersionsRequest>, I>>(_: I): QueryObsoleteDRSVersionsRequest {
+    const message = createBaseQueryObsoleteDRSVersionsRequest();
+    return message;
+  },
+};
+
+function createBaseQueryObsoleteDRSVersionsResponse(): QueryObsoleteDRSVersionsResponse {
+  return { drsVersions: [] };
+}
+
+export const QueryObsoleteDRSVersionsResponse: MessageFns<QueryObsoleteDRSVersionsResponse> = {
+  encode(message: QueryObsoleteDRSVersionsResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.drsVersions.length !== 0) {
+      writer.uint32(10).fork();
+      for (const v of message.drsVersions) {
+        writer.uint32(v);
+      }
+      writer.join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryObsoleteDRSVersionsResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseQueryObsoleteDRSVersionsResponse();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag === 8) {
+              message.drsVersions.push(reader.uint32());
+
+              continue;
+            }
+
+            if (tag === 10) {
+              const end2 = reader.uint32() + reader.pos;
+              while (reader.pos < end2) {
+                message.drsVersions.push(reader.uint32());
+              }
+
+              continue;
+            }
+
+            break;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): QueryObsoleteDRSVersionsResponse {
+    return {
+      drsVersions: globalThis.Array.isArray(object?.drsVersions)
+        ? object.drsVersions.map((e: any) => globalThis.Number(e))
+        : globalThis.Array.isArray(object?.drs_versions)
+        ? object.drs_versions.map((e: any) => globalThis.Number(e))
+        : [],
+    };
+  },
+
+  toJSON(message: QueryObsoleteDRSVersionsResponse): unknown {
+    const obj: any = {};
+    if (message.drsVersions?.length) {
+      obj.drsVersions = message.drsVersions.map((e) => Math.round(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<QueryObsoleteDRSVersionsResponse>, I>>(
+    base?: I,
+  ): QueryObsoleteDRSVersionsResponse {
+    return QueryObsoleteDRSVersionsResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<QueryObsoleteDRSVersionsResponse>, I>>(
+    object: I,
+  ): QueryObsoleteDRSVersionsResponse {
+    const message = createBaseQueryObsoleteDRSVersionsResponse();
+    message.drsVersions = object.drsVersions?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseQueryValidateGenesisBridgeRequest(): QueryValidateGenesisBridgeRequest {
+  return { rollappId: "", data: undefined };
+}
+
+export const QueryValidateGenesisBridgeRequest: MessageFns<QueryValidateGenesisBridgeRequest> = {
+  encode(message: QueryValidateGenesisBridgeRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.rollappId !== "") {
+      writer.uint32(10).string(message.rollappId);
+    }
+    if (message.data !== undefined) {
+      GenesisBridgeData.encode(message.data, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryValidateGenesisBridgeRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseQueryValidateGenesisBridgeRequest();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.rollappId = reader.string();
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.data = GenesisBridgeData.decode(reader, reader.uint32());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): QueryValidateGenesisBridgeRequest {
+    return {
+      rollappId: isSet(object.rollappId) ? globalThis.String(object.rollappId) : "",
+      data: isSet(object.data) ? GenesisBridgeData.fromJSON(object.data) : undefined,
+    };
+  },
+
+  toJSON(message: QueryValidateGenesisBridgeRequest): unknown {
+    const obj: any = {};
+    if (message.rollappId !== "") {
+      obj.rollappId = message.rollappId;
+    }
+    if (message.data !== undefined) {
+      obj.data = GenesisBridgeData.toJSON(message.data);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<QueryValidateGenesisBridgeRequest>, I>>(
+    base?: I,
+  ): QueryValidateGenesisBridgeRequest {
+    return QueryValidateGenesisBridgeRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<QueryValidateGenesisBridgeRequest>, I>>(
+    object: I,
+  ): QueryValidateGenesisBridgeRequest {
+    const message = createBaseQueryValidateGenesisBridgeRequest();
+    message.rollappId = object.rollappId ?? "";
+    message.data = (object.data !== undefined && object.data !== null)
+      ? GenesisBridgeData.fromPartial(object.data)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseQueryValidateGenesisBridgeResponse(): QueryValidateGenesisBridgeResponse {
+  return { valid: false, err: "" };
+}
+
+export const QueryValidateGenesisBridgeResponse: MessageFns<QueryValidateGenesisBridgeResponse> = {
+  encode(message: QueryValidateGenesisBridgeResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.valid !== false) {
+      writer.uint32(8).bool(message.valid);
+    }
+    if (message.err !== "") {
+      writer.uint32(18).string(message.err);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryValidateGenesisBridgeResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseQueryValidateGenesisBridgeResponse();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.valid = reader.bool();
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.err = reader.string();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): QueryValidateGenesisBridgeResponse {
+    return {
+      valid: isSet(object.valid) ? globalThis.Boolean(object.valid) : false,
+      err: isSet(object.err) ? globalThis.String(object.err) : "",
+    };
+  },
+
+  toJSON(message: QueryValidateGenesisBridgeResponse): unknown {
+    const obj: any = {};
+    if (message.valid !== false) {
+      obj.valid = message.valid;
+    }
+    if (message.err !== "") {
+      obj.err = message.err;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<QueryValidateGenesisBridgeResponse>, I>>(
+    base?: I,
+  ): QueryValidateGenesisBridgeResponse {
+    return QueryValidateGenesisBridgeResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<QueryValidateGenesisBridgeResponse>, I>>(
+    object: I,
+  ): QueryValidateGenesisBridgeResponse {
+    const message = createBaseQueryValidateGenesisBridgeResponse();
+    message.valid = object.valid ?? false;
+    message.err = object.err ?? "";
+    return message;
+  },
+};
+
 function createBaseQuerySkipDelayRollappRequest(): QuerySkipDelayRollappRequest {
   return {};
 }
@@ -1288,10 +1992,19 @@ export interface Query {
   RollappAll(request: QueryAllRollappRequest): Promise<QueryAllRollappResponse>;
   /** Queries a LatestHeight by rollapp-id. */
   LatestHeight(request: QueryGetLatestHeightRequest): Promise<QueryGetLatestHeightResponse>;
+  /** Queries the latest finalized height by rollapp-id. */
+  LatestFinalizedHeight(request: QueryGetLatestFinalizedHeightRequest): Promise<QueryGetLatestFinalizedHeightResponse>;
   /** Queries a LatestStateIndex by rollapp-id. */
   LatestStateIndex(request: QueryGetLatestStateIndexRequest): Promise<QueryGetLatestStateIndexResponse>;
   /** Queries a StateInfo by index. */
   StateInfo(request: QueryGetStateInfoRequest): Promise<QueryGetStateInfoResponse>;
+  /** Queries a list of registered denoms for the rollapp. */
+  RegisteredDenoms(request: QueryRegisteredDenomsRequest): Promise<QueryRegisteredDenomsResponse>;
+  /** Queries a list of obsolete DRS versions. */
+  ObsoleteDRSVersions(request: QueryObsoleteDRSVersionsRequest): Promise<QueryObsoleteDRSVersionsResponse>;
+  /** Validates provided genesis bridge data against the hub. */
+  ValidateGenesisBridge(request: QueryValidateGenesisBridgeRequest): Promise<QueryValidateGenesisBridgeResponse>;
+  /** Queries rollapps that skip delayed acknowledgement. */
   SkipDelayRollapp(request: QuerySkipDelayRollappRequest): Promise<QuerySkipDelayRollappResponse>;
 }
 
@@ -1307,8 +2020,12 @@ export class QueryClientImpl implements Query {
     this.RollappByEIP155 = this.RollappByEIP155.bind(this);
     this.RollappAll = this.RollappAll.bind(this);
     this.LatestHeight = this.LatestHeight.bind(this);
+    this.LatestFinalizedHeight = this.LatestFinalizedHeight.bind(this);
     this.LatestStateIndex = this.LatestStateIndex.bind(this);
     this.StateInfo = this.StateInfo.bind(this);
+    this.RegisteredDenoms = this.RegisteredDenoms.bind(this);
+    this.ObsoleteDRSVersions = this.ObsoleteDRSVersions.bind(this);
+    this.ValidateGenesisBridge = this.ValidateGenesisBridge.bind(this);
     this.SkipDelayRollapp = this.SkipDelayRollapp.bind(this);
   }
   Params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
@@ -1341,6 +2058,12 @@ export class QueryClientImpl implements Query {
     return promise.then((data) => QueryGetLatestHeightResponse.decode(new BinaryReader(data)));
   }
 
+  LatestFinalizedHeight(request: QueryGetLatestFinalizedHeightRequest): Promise<QueryGetLatestFinalizedHeightResponse> {
+    const data = QueryGetLatestFinalizedHeightRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "LatestFinalizedHeight", data);
+    return promise.then((data) => QueryGetLatestFinalizedHeightResponse.decode(new BinaryReader(data)));
+  }
+
   LatestStateIndex(request: QueryGetLatestStateIndexRequest): Promise<QueryGetLatestStateIndexResponse> {
     const data = QueryGetLatestStateIndexRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "LatestStateIndex", data);
@@ -1351,6 +2074,24 @@ export class QueryClientImpl implements Query {
     const data = QueryGetStateInfoRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "StateInfo", data);
     return promise.then((data) => QueryGetStateInfoResponse.decode(new BinaryReader(data)));
+  }
+
+  RegisteredDenoms(request: QueryRegisteredDenomsRequest): Promise<QueryRegisteredDenomsResponse> {
+    const data = QueryRegisteredDenomsRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "RegisteredDenoms", data);
+    return promise.then((data) => QueryRegisteredDenomsResponse.decode(new BinaryReader(data)));
+  }
+
+  ObsoleteDRSVersions(request: QueryObsoleteDRSVersionsRequest): Promise<QueryObsoleteDRSVersionsResponse> {
+    const data = QueryObsoleteDRSVersionsRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "ObsoleteDRSVersions", data);
+    return promise.then((data) => QueryObsoleteDRSVersionsResponse.decode(new BinaryReader(data)));
+  }
+
+  ValidateGenesisBridge(request: QueryValidateGenesisBridgeRequest): Promise<QueryValidateGenesisBridgeResponse> {
+    const data = QueryValidateGenesisBridgeRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "ValidateGenesisBridge", data);
+    return promise.then((data) => QueryValidateGenesisBridgeResponse.decode(new BinaryReader(data)));
   }
 
   SkipDelayRollapp(request: QuerySkipDelayRollappRequest): Promise<QuerySkipDelayRollappResponse> {

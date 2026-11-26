@@ -323,8 +323,8 @@ func (m *OutgoingTxBatch) GetCheckpoint(gravityIDString string) ([]byte, error) 
 	return crypto.Keccak256Hash(abiEncodedBatch[4:]).Bytes(), nil
 }
 
-func (m *OutgoingTxBatch) TotalAmount() sdk.Int {
-	totalAmount := sdk.ZeroInt()
+func (m *OutgoingTxBatch) TotalAmount() sdkmath.Int {
+	totalAmount := sdkmath.ZeroInt()
 	for _, tx := range m.Transactions {
 		totalAmount = totalAmount.Add(tx.Token.Amount)
 	}
@@ -337,8 +337,8 @@ func (m *Relayer) GetRelayer() sdk.AccAddress {
 	return sdk.MustAccAddressFromBech32(m.RelayerAddress)
 }
 
-func (m *Relayer) GetSlashAmount(slashFraction sdk.Dec) sdk.Coin {
-	slashAmount := sdk.NewDecFromInt(m.DelegateAmount).Mul(slashFraction).MulInt64(m.SlashTimes).TruncateInt()
+func (m *Relayer) GetSlashAmount(slashFraction sdkmath.LegacyDec) sdk.Coin {
+	slashAmount := sdkmath.LegacyNewDecFromInt(m.DelegateAmount).Mul(slashFraction).MulInt64(m.SlashTimes).TruncateInt()
 	slashAmount = sdkmath.MinInt(slashAmount, m.DelegateAmount)
 	slashAmount = sdkmath.MaxInt(slashAmount, sdkmath.ZeroInt())
 	return sdk.NewCoin(params.BaseDenom, slashAmount)

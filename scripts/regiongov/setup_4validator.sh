@@ -148,7 +148,7 @@ ME_STAKING_AMOUNT_NODE3_REGION="ind"
 ME_STAKING_AMOUNT_NODE4="$(calculate "${TOTAL_AMOUNT} * 1772 / 10000")umec"   # 17.72% = 177,200,000 MEC = 177200000000000000umec
 ME_STAKING_AMOUNT_NODE4_REGION="chn"
 
-#me_earth:ME_VAL1. After the three regions above, the rest of the 10 billion is staked to me_earth  
+#me_earth:ME_VAL1. After the three regions above, the rest of the 10 billion is staked to me_earth
 STAKING_AMOUNT="$(calculate "${TOTAL_AMOUNT} - ${ME_STAKING_AMOUNT_NODE2%umec} - ${ME_STAKING_AMOUNT_NODE3%umec} - ${ME_STAKING_AMOUNT_NODE4%umec}")umec"  # 54.52% = 545,200,000 MEC =545200000000000000umec
 ME_STAKING_AMOUNT_NODE1_REGION="me_earth"
 # staking module param: tokens must stay locked for 604800s/7 days, 18000s/5 hours, 3024000s/28 days, 21600s/6 hours.
@@ -241,7 +241,7 @@ check_tx_status() {
         if ! $cosmosapp query tx ${txhash} $extra_args > /dev/null 2>&1; then
             sleep 1
             sleepTime=$((sleepTime - 1))
-            if [ $sleepTime -eq 0 ]; then  
+            if [ $sleepTime -eq 0 ]; then
                 echo "shell:$cosmosapp query tx ${txhash} $extra_args -o json"
                 echo "Tx failed, not found in chain, txhash: ${txhash}"
                 echo "Current result:"
@@ -254,7 +254,7 @@ check_tx_status() {
         # If the transaction is found, check the response code
         resp_code=$($cosmosapp q tx ${txhash} -o json $extra_args | jq -r '.code' 2>/dev/null)
 
-        if [ "$resp_code" != "0" ]; then 
+        if [ "$resp_code" != "0" ]; then
             echo "shell:$cosmosapp query tx ${txhash} $extra_args -o json"
             echo "Tx failed in chain, code: ${resp_code}"
             exit 1
@@ -574,7 +574,7 @@ fi
 echo "-----------------------------------------------------------------------------------------"
 echo "# ---------------------------------------------------------------------------------------#"
 echo "# Initialize global_dao with an extra 100,000,000 MEC (10^16 umec) #"
-echo "# (meid_dao, dev_operator, airdrop,val1)-"0umec"                                        #"                            
+echo "# (meid_dao, dev_operator, airdrop,val1)-"0umec"                                        #"
 echo "# --------------------------------------------------------------------------------------#"
 med add-genesis-account global_dao   "10000000000000000umec" --home ${ME_NODE1_HOME}
 med add-genesis-account meid_dao     "0umec" --home ${ME_NODE1_HOME}
@@ -712,7 +712,7 @@ me_init_sync_node() {
     /bin/cp -rf ${ME_NODE1_HOME}/config/config.toml ${CONFIG_DIRECTORY}/
     sed_inplace "s|^moniker = .*$|moniker = \"${NODE_NAME}\"|" "${TENDERMINT_CONF}"
     sed_inplace "s|^node = .*$|node = \"tcp://${NODE_IP}:26657\"|" "${CLIENT_CONFIG_FILE}"
-    
+
 }
 
 me_init_sync_node node2 ${ME_NODE2_IP}
@@ -769,7 +769,7 @@ x-me-template: &me-template
 
 networks:
   ${Docker_Network_Name}:
-    name: ${Docker_Network_Name} 
+    name: ${Docker_Network_Name}
     external: true
 
 services:
@@ -853,7 +853,7 @@ if [ -z "${USER_ADDR_ME_VAL3}" ]; then
     USER_ADDR_ME_VAL3=$(echo "${val3}" | awk '/^[[:space:]-]*address:/ {print $NF}')
     USER_ADDR_ME_VAL3_PUBKEY=$(echo "${val3}" | sed -n 's/^[[:space:]]*pubkey: //p' | sed "s/'//g")
     echo "--------------------------------------------------------------------------"
-fi    
+fi
 if [ -z "${USER_ADDR_ME_VAL4}" ]; then
     val4=$(add_key  "med"  "val4" ${USER_SEQ_ME_VAL4} "--home $ME_NODE1_HOME")
     echo "${val4}"

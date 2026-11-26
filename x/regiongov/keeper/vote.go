@@ -3,8 +3,8 @@ package keeper
 import (
 	"strconv"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/openmetaearth/me-hub/x/regiongov/types"
 )
@@ -19,14 +19,14 @@ func (k Keeper) castVote(ctx sdk.Context, msg *types.MsgVote) error {
 	}
 	proposal, found := k.GetProposal(ctx, msg.ProposalId)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrProposalNotFound, "%d", msg.ProposalId)
+		return errorsmod.Wrapf(types.ErrProposalNotFound, "%d", msg.ProposalId)
 	}
 	if proposal.Status != types.ProposalStatusVoting || !ctx.BlockTime().Before(proposal.VotingEndTime) {
-		return sdkerrors.Wrapf(types.ErrVotingClosed, "proposal %d", proposal.Id)
+		return errorsmod.Wrapf(types.ErrVotingClosed, "proposal %d", proposal.Id)
 	}
 
 	if proposal.Kind != types.ProposalKindTreasuryWithdraw && proposal.Kind != types.ProposalKindReplaceRegionOperator {
-		return sdkerrors.Wrap(types.ErrInvalidProposal, "unknown proposal kind")
+		return errorsmod.Wrap(types.ErrInvalidProposal, "unknown proposal kind")
 	}
 	if k.isDao(ctx, voter) {
 		return k.castDaoVote(ctx, proposal, voter, msg.Option)
@@ -39,23 +39,23 @@ func (k Keeper) castVote(ctx sdk.Context, msg *types.MsgVote) error {
 	} else {
 		elector, found := k.GetElector(ctx, proposal.Id, voter)
 		if !found {
-			return sdkerrors.Wrapf(types.ErrUnauthorized, "%s is not an elector of proposal %d", voter, proposal.Id)
+			return errorsmod.Wrapf(types.ErrUnauthorized, "%s is not an elector of proposal %d", voter, proposal.Id)
 		}
 		if k.isRegionFrozen(ctx, elector.RegionId) {
-			return sdkerrors.Wrapf(types.ErrRegionFrozen, "region %s", elector.RegionId)
+			return errorsmod.Wrapf(types.ErrRegionFrozen, "region %s", elector.RegionId)
 		}
 		// Keep the snapshot for tally, but require current authority to cast a vote.
 		region, found := k.lookupRegion(ctx, elector.RegionId)
 		if !found {
-			return sdkerrors.Wrapf(types.ErrUnknownRegion, "%s", elector.RegionId)
+			return errorsmod.Wrapf(types.ErrUnknownRegion, "%s", elector.RegionId)
 		}
 		operator, ok := operatorAccount(region.OperatorAddress)
 		if !ok || operator.String() != voter {
-			return sdkerrors.Wrapf(types.ErrUnauthorized, "%s is no longer the operator of region %s", voter, region.RegionId)
+			return errorsmod.Wrapf(types.ErrUnauthorized, "%s is no longer the operator of region %s", voter, region.RegionId)
 		}
 	}
 	if _, found := k.GetVote(ctx, proposal.Id, voter); found {
-		return sdkerrors.Wrapf(types.ErrAlreadyVoted, "%s", voter)
+		return errorsmod.Wrapf(types.ErrAlreadyVoted, "%s", voter)
 	}
 	k.SetVote(ctx, types.Vote{
 		ProposalId: proposal.Id,
@@ -66,9 +66,11 @@ func (k Keeper) castVote(ctx sdk.Context, msg *types.MsgVote) error {
 	return nil
 }
 
-// castDaoVote records the dao ballot outside the counted electorate. Both yes
-// and no can be overwritten until voting closes; EndBlocker uses the final ballot.
+// castDaoVote records one immutable DAO ballot per proposal, outside the counted electorate.
 func (k Keeper) castDaoVote(ctx sdk.Context, proposal types.Proposal, voter string, option types.VoteOption) error {
+	if proposal.DaoVote != types.DaoVoteUnspecified {
+		return errorsmod.Wrapf(types.ErrAlreadyVoted, "%s", voter)
+	}
 	proposal.DaoVote = daoVote(option)
 	k.SetProposal(ctx, proposal)
 	k.emitVote(ctx, proposal.Id, voter, option)

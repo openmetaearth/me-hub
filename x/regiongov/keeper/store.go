@@ -4,8 +4,9 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/openmetaearth/me-hub/x/regiongov/types"
 )
@@ -235,11 +236,11 @@ func (k Keeper) GetAllPendingActions(ctx sdk.Context) []types.PendingAction {
 	return actions
 }
 
-func (k Keeper) mustSet(ctx sdk.Context, key []byte, msg codec.ProtoMarshaler) {
+func (k Keeper) mustSet(ctx sdk.Context, key []byte, msg proto.Message) {
 	ctx.KVStore(k.storeKey).Set(key, k.cdc.MustMarshal(msg))
 }
 
-func (k Keeper) get(ctx sdk.Context, key []byte, msg codec.ProtoMarshaler) bool {
+func (k Keeper) get(ctx sdk.Context, key []byte, msg proto.Message) bool {
 	bz := ctx.KVStore(k.storeKey).Get(key)
 	if len(bz) == 0 {
 		return false
@@ -250,7 +251,7 @@ func (k Keeper) get(ctx sdk.Context, key []byte, msg codec.ProtoMarshaler) bool 
 
 func (k Keeper) iterate(ctx sdk.Context, prefix []byte, cb func(key, value []byte) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, prefix)
+	iterator := storetypes.KVStorePrefixIterator(store, prefix)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		if cb(iterator.Key(), iterator.Value()) {

@@ -6,6 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
+import { Timestamp } from "../../google/protobuf/timestamp";
 
 export const protobufPackage = "metaearth.rollapp";
 
@@ -20,6 +21,12 @@ export interface BlockDescriptor {
    * block)
    */
   stateRoot: Uint8Array;
+  /** timestamp is the time from the block header */
+  timestamp:
+    | Date
+    | undefined;
+  /** DrsVersion is a DRS version used by the rollapp. */
+  drsVersion: number;
 }
 
 /** BlockDescriptors defines list of BlockDescriptor. */
@@ -28,7 +35,7 @@ export interface BlockDescriptors {
 }
 
 function createBaseBlockDescriptor(): BlockDescriptor {
-  return { height: 0, stateRoot: new Uint8Array(0) };
+  return { height: 0, stateRoot: new Uint8Array(0), timestamp: undefined, drsVersion: 0 };
 }
 
 export const BlockDescriptor: MessageFns<BlockDescriptor> = {
@@ -38,6 +45,12 @@ export const BlockDescriptor: MessageFns<BlockDescriptor> = {
     }
     if (message.stateRoot.length !== 0) {
       writer.uint32(18).bytes(message.stateRoot);
+    }
+    if (message.timestamp !== undefined) {
+      Timestamp.encode(toTimestamp(message.timestamp), writer.uint32(26).fork()).join();
+    }
+    if (message.drsVersion !== 0) {
+      writer.uint32(32).uint32(message.drsVersion);
     }
     return writer;
   },
@@ -71,6 +84,22 @@ export const BlockDescriptor: MessageFns<BlockDescriptor> = {
             message.stateRoot = reader.bytes();
             continue;
           }
+          case 3: {
+            if (tag !== 26) {
+              break;
+            }
+
+            message.timestamp = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+            continue;
+          }
+          case 4: {
+            if (tag !== 32) {
+              break;
+            }
+
+            message.drsVersion = reader.uint32();
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -87,6 +116,12 @@ export const BlockDescriptor: MessageFns<BlockDescriptor> = {
     return {
       height: isSet(object.height) ? globalThis.Number(object.height) : 0,
       stateRoot: isSet(object.stateRoot) ? bytesFromBase64(object.stateRoot) : new Uint8Array(0),
+      timestamp: isSet(object.timestamp) ? fromJsonTimestamp(object.timestamp) : undefined,
+      drsVersion: isSet(object.drsVersion)
+        ? globalThis.Number(object.drsVersion)
+        : isSet(object.drs_version)
+        ? globalThis.Number(object.drs_version)
+        : 0,
     };
   },
 
@@ -98,6 +133,12 @@ export const BlockDescriptor: MessageFns<BlockDescriptor> = {
     if (message.stateRoot.length !== 0) {
       obj.stateRoot = base64FromBytes(message.stateRoot);
     }
+    if (message.timestamp !== undefined) {
+      obj.timestamp = message.timestamp.toISOString();
+    }
+    if (message.drsVersion !== 0) {
+      obj.drsVersion = Math.round(message.drsVersion);
+    }
     return obj;
   },
 
@@ -108,6 +149,8 @@ export const BlockDescriptor: MessageFns<BlockDescriptor> = {
     const message = createBaseBlockDescriptor();
     message.height = object.height ?? 0;
     message.stateRoot = object.stateRoot ?? new Uint8Array(0);
+    message.timestamp = object.timestamp ?? undefined;
+    message.drsVersion = object.drsVersion ?? 0;
     return message;
   },
 };
@@ -218,6 +261,28 @@ export type Exact<P, I> = P extends Builtin ? P
     & P
     & { [K in keyof P as Extract<K, keyof I>]: Exact<P[K], I[K & keyof I]> }
     & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function toTimestamp(date: Date): Timestamp {
+  const seconds = Math.trunc(date.getTime() / 1_000);
+  const nanos = (date.getTime() % 1_000) * 1_000_000;
+  return { seconds, nanos };
+}
+
+function fromTimestamp(t: Timestamp): Date {
+  let millis = (t.seconds || 0) * 1_000;
+  millis += (t.nanos || 0) / 1_000_000;
+  return new globalThis.Date(millis);
+}
+
+function fromJsonTimestamp(o: any): Date {
+  if (o instanceof globalThis.Date) {
+    return o;
+  } else if (typeof o === "string") {
+    return new globalThis.Date(o);
+  } else {
+    return fromTimestamp(Timestamp.fromJSON(o));
+  }
+}
 
 function longToNumber(int64: { toString(): string }): number {
   const num = globalThis.Number(int64.toString());

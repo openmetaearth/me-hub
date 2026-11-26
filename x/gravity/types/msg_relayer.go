@@ -3,7 +3,7 @@ package types
 import (
 	"encoding/hex"
 
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -38,7 +38,7 @@ func (m *MsgBondedRelayer) GetSignBytes() []byte {
 
 func (m *MsgBondedRelayer) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
-		return errors.Wrap(sdkerrors.ErrInvalidAddress, "relayer address is not a valid bech32 address")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "relayer address is not a valid bech32 address")
 	}
 	if err := ValidateExternalAddr(m.ChainName, m.ExternalAddress); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid external address: %s", err)
@@ -71,7 +71,7 @@ func (m *MsgAddDelegate) GetSignBytes() []byte {
 
 func (m *MsgAddDelegate) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.RelayerAddress); err != nil {
-		return errors.Wrap(sdkerrors.ErrInvalidAddress, "relayer address is not a valid bech32 address")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "relayer address is not a valid bech32 address")
 	}
 	if !m.Amount.IsValid() || !m.Amount.IsPositive() {
 		return sdkerrors.ErrInvalidRequest.Wrap("invalid delegation amount")
@@ -125,14 +125,14 @@ func (m *MsgProposalRelayers) GetSignBytes() []byte {
 
 func (m *MsgProposalRelayers) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return errors.Wrap(sdkerrors.ErrInvalidAddress, "authority is not a valid bech32 address")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "authority is not a valid bech32 address")
 	}
 	if len(m.Relayers) == 0 {
 		return sdkerrors.ErrInvalidRequest.Wrap("relayers list cannot be empty")
 	}
 	for _, relayer := range m.Relayers {
 		if _, err := sdk.AccAddressFromBech32(relayer); err != nil {
-			return errors.Wrap(sdkerrors.ErrInvalidAddress, "relayer address is not a valid bech32 address")
+			return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "relayer address is not a valid bech32 address")
 		}
 	}
 	return nil
@@ -198,13 +198,13 @@ func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 
 func (m *MsgUpdateParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-		return sdkerrors.Wrap(err, "authority")
+		return errorsmod.Wrap(err, "authority")
 	}
 	if _, ok := externalAddressRouter[m.ChainName]; !ok {
 		return sdkerrors.ErrInvalidRequest.Wrap("unrecognized cross chain name")
 	}
 	if err := m.Params.ValidateBasic(); err != nil {
-		return sdkerrors.Wrap(err, "params")
+		return errorsmod.Wrap(err, "params")
 	}
 	return nil
 }

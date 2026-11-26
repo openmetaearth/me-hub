@@ -2,6 +2,7 @@ syntax = "proto3";
 package metaearth.rollapp;
 
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 import "metaearth/common/status.proto";
 import "metaearth/rollapp/block_descriptor.proto";
 
@@ -38,8 +39,8 @@ message StateInfo {
   uint64 numBlocks = 4;
   // DAPath is the description of the location on the DA layer
   string DAPath = 5;
-  // version is the version of the rollapp
-  uint64 version = 6;
+
+  reserved 6;
   // creationHeight is the height at which the UpdateState took place
   uint64 creationHeight = 7;
   // status is the status of the state update
@@ -48,6 +49,17 @@ message StateInfo {
   // the list must be ordered by height, starting from startHeight to
   // startHeight+numBlocks-1
   BlockDescriptors BDs = 9 [(gogoproto.nullable) = false];
+  // created_at is the timestamp at which the StateInfo was created
+  google.protobuf.Timestamp created_at = 10 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"created_at\""
+  ];
+
+  // NextProposer is the bech32-encoded address of the proposer that we expect
+  // to see in the next state info. Most of the time NextProposer is the current
+  // proposer. In case of rotation it is changed to the successor.
+  string nextProposer = 11;
 }
 
 // StateInfoSummary is a compact representation of StateInfo
@@ -64,9 +76,11 @@ message StateInfoSummary {
 // BlockHeightToFinalizationQueue defines a map from block height to list of
 // states to finalized
 message BlockHeightToFinalizationQueue {
-  // creationHeight is the block height that the state should be finalized
+  // CreationHeight is the block height that the state should be finalized
   uint64 creationHeight = 1;
-  // finalizationQueue is a list of states that are waiting to be finalized
+  // FinalizationQueue is a list of states that are waiting to be finalized
   // when the block height becomes creationHeight
   repeated StateInfoIndex finalizationQueue = 2 [(gogoproto.nullable) = false];
+  // RollappID is the rollapp which the queue belongs to
+  string rollapp_id = 3;
 }

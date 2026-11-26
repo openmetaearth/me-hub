@@ -4,10 +4,11 @@ import (
 	"context"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/x/nft"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/nft"
 
 	"github.com/openmetaearth/me-hub/utils"
 	wnfttypes "github.com/openmetaearth/me-hub/x/wnft/types"
@@ -19,7 +20,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 
 	_, err := utils.CheckRegionName(msg.Name)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrRegionName, err.Error())
+		return nil, errorsmod.Wrap(types.ErrRegionName, err.Error())
 	}
 
 	if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
@@ -29,16 +30,16 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	regionId := strings.ToLower(msg.Name)
 	_, found := k.GetRegion(ctx, regionId)
 	if found {
-		return nil, sdkerrors.Wrapf(types.ErrRegionAlreadyExist, "region already exist")
+		return nil, errorsmod.Wrapf(types.ErrRegionAlreadyExist, "region already exist")
 	}
 
 	valAddr, err := sdk.ValAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "region bonded validator no found")
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "region bonded validator no found")
 	}
 
-	validator, ok := k.GetValidator(ctx, valAddr)
-	if !ok {
+	validator, err := k.GetValidator(ctx, valAddr)
+	if err != nil {
 		return nil, types.ErrRegionValidatorNotExist
 	}
 	if !strings.EqualFold(validator.Description.RegionID, regionId) {
@@ -48,15 +49,15 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	allRegions := k.Keeper.GetAllRegion(ctx)
 	for _, reg := range allRegions {
 		if reg.OperatorAddress == msg.OperatorAddress {
-			return nil, sdkerrors.Wrapf(types.ErrRegionValidatorDuplicate, "meid region bonded validator duplicates")
+			return nil, errorsmod.Wrapf(types.ErrRegionValidatorDuplicate, "meid region bonded validator duplicates")
 		}
 		if reg.RegionId == regionId {
-			return nil, sdkerrors.Wrapf(types.ErrRegionNameDuplicate, "meid region name duplicates")
+			return nil, errorsmod.Wrapf(types.ErrRegionNameDuplicate, "meid region name duplicates")
 		}
 	}
 	err = k.WstakingHooks().BeforeValidatorStakingModified(ctx, valAddr)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrHooks, "before create new region :error :%+v", err)
+		return nil, errorsmod.Wrapf(types.ErrHooks, "before create new region :error :%+v", err)
 	}
 
 	uri := ""
@@ -65,7 +66,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	}
 	metadata, err := codectypes.NewAnyWithValue(classMetadata)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "%v", err)
+		return nil, errorsmod.Wrapf(sdkerrors.ErrLogic, "%v", err)
 	}
 	nftClass := nft.Class{
 		Id:          types.GetClassId(msg.Name),
@@ -81,7 +82,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 	if !nftClassFound {
 		err = k.nftKeeper.SaveClass(ctx, nftClass)
 		if err != nil {
-			return nil, sdkerrors.Wrapf(types.ErrRegionAlreadyExist, "save nft class: %v", err)
+			return nil, errorsmod.Wrapf(types.ErrRegionAlreadyExist, "save nft class: %v", err)
 		}
 	}
 
@@ -115,28 +116,7 @@ func (k MsgServer) NewRegion(goCtx context.Context, msg *types.MsgNewRegion) (*t
 }
 
 func (k MsgServer) RemoveRegion(goCtx context.Context, msg *types.MsgRemoveRegion) (*types.MsgRemoveRegionResponse, error) {
-	// ctx := sdk.UnwrapSDKContext(goCtx)
-
-	// if !k.daoKeeper.IsGlobalDao(ctx, msg.Creator) {
-	// 	return nil, types.ErrCheckGlobalDao
-	// }
-
-	// _, found := k.GetRegion(ctx, msg.RegionId)
-	// if !found {
-	// 	return nil, types.ErrRegionNotExist
-	// }
-
-	// err := k.WstakingHooks().BeforeValidatorStakingModified(ctx, sdk.ValAddress{})
-	// if err != nil {
-	// 	return nil, sdkerrors.Wrapf(types.ErrHooks, "before remove region :error :%+v", err)
-	// }
-	// k.Keeper.RemoveRegion(ctx, msg.RegionId)
-	// ctx.EventManager().EmitEvent(
-	// 	sdk.NewEvent(
-	// 		types.EventTypeRemoveRegion,
-	// 		sdk.NewAttribute(types.AttributeKeyRegionId, msg.RegionId),
-	// 	),
-	// )
+	// RemoveRegion is currently a no-op, matching main.
 	return &types.MsgRemoveRegionResponse{}, nil
 }
 

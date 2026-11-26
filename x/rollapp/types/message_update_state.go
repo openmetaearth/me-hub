@@ -7,41 +7,18 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const TypeMsgUpdateState = "update_state"
-
 var _ sdk.Msg = &MsgUpdateState{}
 
-func NewMsgUpdateState(creator, rollappId string, startHeight, numBlocks uint64, dAPath string, version uint64, bDs *BlockDescriptors) *MsgUpdateState {
+func NewMsgUpdateState(creator, rollappId, dAPath string, startHeight, numBlocks, revision uint64, bDs *BlockDescriptors) *MsgUpdateState {
 	return &MsgUpdateState{
-		Creator:     creator,
-		RollappId:   rollappId,
-		StartHeight: startHeight,
-		NumBlocks:   numBlocks,
-		DAPath:      dAPath,
-		Version:     version,
-		BDs:         *bDs,
+		Creator:         creator,
+		RollappId:       rollappId,
+		StartHeight:     startHeight,
+		NumBlocks:       numBlocks,
+		DAPath:          dAPath,
+		BDs:             *bDs,
+		RollappRevision: revision,
 	}
-}
-
-func (msg *MsgUpdateState) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgUpdateState) Type() string {
-	return TypeMsgUpdateState
-}
-
-func (msg *MsgUpdateState) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
-}
-
-func (msg *MsgUpdateState) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgUpdateState) ValidateBasic() error {
@@ -60,7 +37,7 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 	}
 
 	// check to see that update contains all BDs
-	if len(msg.BDs.BD) != int(msg.NumBlocks) {
+	if len(msg.BDs.BD) != int(msg.NumBlocks) { //nolint:gosec
 		return errorsmod.Wrapf(ErrInvalidNumBlocks, "number of blocks (%d) != number of block descriptors(%d)", msg.NumBlocks, len(msg.BDs.BD))
 	}
 
@@ -70,7 +47,12 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 	}
 
 	// check that the blocks are sequential by height
-	for bdIndex := uint64(0); bdIndex < msg.NumBlocks; bdIndex++ {
+	for bdIndex := uint64(0); bdIndex < msg.NumBlocks; bdIndex += 1 {
+
+		// Pre 3D rollapps will use zero DRS until they upgrade. Post 3D rollapps
+		// should use a non-zero version. We rely on other fraud mechanisms
+		// to catch that if it's wrong. So we don't check DRS.
+
 		if msg.BDs.BD[bdIndex].Height != msg.StartHeight+bdIndex {
 			return ErrInvalidBlockSequence
 		}

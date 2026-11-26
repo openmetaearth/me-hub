@@ -4,21 +4,27 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	"github.com/openmetaearth/me-hub/utils/gerrc"
 )
 
 // x/eibc module sentinel errors
 var (
-	ErrInvalidOrderID               = errorsmod.Register(ModuleName, 3, "Invalid order ID")
-	ErrDemandOrderAlreadyExist      = errorsmod.Register(ModuleName, 4, "Demand order already exists")
-	ErrDemandOrderDoesNotExist      = errorsmod.Register(ModuleName, 5, "Demand order does not exist")
-	ErrDemandOrderInactive          = errorsmod.Register(ModuleName, 6, "Demand order inactive")
-	ErrFulfillerAddressDoesNotExist = errorsmod.Register(ModuleName, 7, "Fulfiller address does not exist")
-	ErrInvalidRecipientAddress      = errorsmod.Register(ModuleName, 8, "Invalid recipient address")
-	ErrBlockedAddress               = errorsmod.Register(ModuleName, 9, "Can't purchase demand order for recipient with blocked address")
-	ErrDemandAlreadyFulfilled       = errorsmod.Register(ModuleName, 10, "Demand order already fulfilled")
-	ErrFeeTooHigh                   = errorsmod.Register(ModuleName, 11, "Fee must be less than or equal to the total amount")
-	ErrExpectedFeeNotMet            = errorsmod.Register(ModuleName, 12, "Expected fee not met")
-	ErrNegativeFee                  = errorsmod.Register(ModuleName, 13, "Fee must be greater than or equal to 0")
-	ErrMultipleDenoms               = errorsmod.Register(ModuleName, 15, "Multiple denoms not allowed")
-	ErrEmptyPrice                   = errorsmod.Register(ModuleName, 16, "Price must be greater than 0")
+	ErrInvalidRecipientAddress     = gerrc.ErrInvalidArgument.Wrap("recipient address")
+	ErrInvalidCreationHeight       = gerrc.ErrInvalidArgument.Wrap("creation height")
+	ErrMultipleDenoms              = gerrc.ErrInvalidArgument.Wrap("multiple denoms not allowed")
+	ErrEmptyPrice                  = gerrc.ErrInvalidArgument.Wrap("price must be greater than 0")
+	ErrDemandAlreadyFulfilled      = gerrc.ErrFailedPrecondition.Wrap("demand order already fulfilled")
+	ErrDemandOrderInactive         = gerrc.ErrInvalidArgument.Wrap("demand order inactive")
+	ErrInvalidOrderID              = errorsmod.Register(ModuleName, 3, "invalid order ID")
+	ErrDemandOrderAlreadyExist     = errorsmod.Register(ModuleName, 4, "demand order already exists")
+	ErrDemandOrderDoesNotExist     = errorsmod.Register(ModuleName, 5, "demand order does not exist")
+	ErrAccountDoesNotExist         = gerrc.ErrNotFound.Wrap("account")
+	ErrBlockedAddress              = errorsmod.Register(ModuleName, 9, "cant purchase demand order for recipient with blocked address")
+	ErrFeeTooHigh                  = errorsmod.Register(ModuleName, 11, "fee must be less than or equal to the total amount")
+	ErrExpectedFeeNotMet           = errorsmod.Register(ModuleName, 12, "expected fee not met")
+	ErrNegativeFee                 = errorsmod.Register(ModuleName, 13, "fee must be greater than or equal to 0")
+	ErrRollappStateInfoNotFound    = errorsmod.Register(ModuleName, 19, "rollapp state info not found")
+	ErrOrderNotSettlementValidated = errorsmod.Register(ModuleName, 20, "demand order not settlement validated")
+	ErrRollappIdMismatch           = errorsmod.Register(ModuleName, 21, "rollapp ID mismatch")
+	ErrPriceMismatch               = errorsmod.Register(ModuleName, 22, "price mismatch")
 )

@@ -9,7 +9,8 @@ import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import { PageRequest, PageResponse } from "../../cosmos/base/query/v1beta1/pagination";
 import { OperatingStatus, operatingStatusFromJSON, operatingStatusToJSON } from "./operating_status";
 import { Params } from "./params";
-import { MsgStoreReplaceProposer, Sequencer } from "./sequencer";
+import { Sequencer } from "./sequencer";
+import { MsgStoreReplaceProposer } from "./tx";
 
 export const protobufPackage = "metaearth.sequencer";
 
@@ -44,30 +45,60 @@ export interface QuerySequencersResponse {
 
 export interface QueryGetSequencersByRollappRequest {
   rollappId: string;
+  pagination: PageRequest | undefined;
 }
 
 export interface QueryGetSequencersByRollappResponse {
   sequencers: Sequencer[];
+  pagination: PageResponse | undefined;
 }
 
 export interface QueryGetSequencersByRollappByStatusRequest {
   rollappId: string;
   status: OperatingStatus;
+  pagination: PageRequest | undefined;
 }
 
 export interface QueryGetSequencersByRollappByStatusResponse {
   sequencers: Sequencer[];
+  pagination: PageResponse | undefined;
 }
 
-export interface QueryGetUnConfirmSequencersAddrByRollappRequest {
+/** Request type for the GetProposerByRollapp RPC method. */
+export interface QueryGetProposerByRollappRequest {
   rollappId: string;
-  blockHeight: number;
 }
 
-export interface QueryGetUnConfirmSequencersAddrByRollappResponse {
-  newSequencer: Sequencer | undefined;
-  startHeight: number;
-  unconfirmCacheHeight: number;
+/** Response type for the GetProposerByRollapp RPC method. */
+export interface QueryGetProposerByRollappResponse {
+  proposerAddr: string;
+}
+
+/** Request type for the GetNextProposerByRollapp RPC method. */
+export interface QueryGetNextProposerByRollappRequest {
+  rollappId: string;
+}
+
+/** Response type for the GetNextProposerByRollapp RPC method. */
+export interface QueryGetNextProposerByRollappResponse {
+  /**
+   * nextProposerAddr is the address of the next proposer.
+   * can be empty if no sequencer is available to be the next proposer.
+   */
+  nextProposerAddr: string;
+  /** rotationInProgress is true if the proposer rotation is in progress. */
+  rotationInProgress: boolean;
+}
+
+/** Request type for the Proposers RPC method. */
+export interface QueryProposersRequest {
+  pagination: PageRequest | undefined;
+}
+
+/** Response type for the Proposers RPC method. */
+export interface QueryProposersResponse {
+  proposers: Sequencer[];
+  pagination: PageResponse | undefined;
 }
 
 export interface QueryReplaceProposerInfoRequest {
@@ -75,7 +106,7 @@ export interface QueryReplaceProposerInfoRequest {
 }
 
 export interface QueryReplaceProposerInfoResponse {
-  replaceProposer: MsgStoreReplaceProposer | undefined;
+  info: MsgStoreReplaceProposer | undefined;
 }
 
 function createBaseQueryParamsRequest(): QueryParamsRequest {
@@ -494,13 +525,16 @@ export const QuerySequencersResponse: MessageFns<QuerySequencersResponse> = {
 };
 
 function createBaseQueryGetSequencersByRollappRequest(): QueryGetSequencersByRollappRequest {
-  return { rollappId: "" };
+  return { rollappId: "", pagination: undefined };
 }
 
 export const QueryGetSequencersByRollappRequest: MessageFns<QueryGetSequencersByRollappRequest> = {
   encode(message: QueryGetSequencersByRollappRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.rollappId !== "") {
       writer.uint32(10).string(message.rollappId);
+    }
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(18).fork()).join();
     }
     return writer;
   },
@@ -526,6 +560,14 @@ export const QueryGetSequencersByRollappRequest: MessageFns<QueryGetSequencersBy
             message.rollappId = reader.string();
             continue;
           }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.pagination = PageRequest.decode(reader, reader.uint32());
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -539,13 +581,19 @@ export const QueryGetSequencersByRollappRequest: MessageFns<QueryGetSequencersBy
   },
 
   fromJSON(object: any): QueryGetSequencersByRollappRequest {
-    return { rollappId: isSet(object.rollappId) ? globalThis.String(object.rollappId) : "" };
+    return {
+      rollappId: isSet(object.rollappId) ? globalThis.String(object.rollappId) : "",
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+    };
   },
 
   toJSON(message: QueryGetSequencersByRollappRequest): unknown {
     const obj: any = {};
     if (message.rollappId !== "") {
       obj.rollappId = message.rollappId;
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
     }
     return obj;
   },
@@ -560,18 +608,24 @@ export const QueryGetSequencersByRollappRequest: MessageFns<QueryGetSequencersBy
   ): QueryGetSequencersByRollappRequest {
     const message = createBaseQueryGetSequencersByRollappRequest();
     message.rollappId = object.rollappId ?? "";
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
 
 function createBaseQueryGetSequencersByRollappResponse(): QueryGetSequencersByRollappResponse {
-  return { sequencers: [] };
+  return { sequencers: [], pagination: undefined };
 }
 
 export const QueryGetSequencersByRollappResponse: MessageFns<QueryGetSequencersByRollappResponse> = {
   encode(message: QueryGetSequencersByRollappResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.sequencers) {
       Sequencer.encode(v!, writer.uint32(10).fork()).join();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).join();
     }
     return writer;
   },
@@ -597,6 +651,14 @@ export const QueryGetSequencersByRollappResponse: MessageFns<QueryGetSequencersB
             message.sequencers.push(Sequencer.decode(reader, reader.uint32()));
             continue;
           }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.pagination = PageResponse.decode(reader, reader.uint32());
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -614,6 +676,7 @@ export const QueryGetSequencersByRollappResponse: MessageFns<QueryGetSequencersB
       sequencers: globalThis.Array.isArray(object?.sequencers)
         ? object.sequencers.map((e: any) => Sequencer.fromJSON(e))
         : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
     };
   },
 
@@ -621,6 +684,9 @@ export const QueryGetSequencersByRollappResponse: MessageFns<QueryGetSequencersB
     const obj: any = {};
     if (message.sequencers?.length) {
       obj.sequencers = message.sequencers.map((e) => Sequencer.toJSON(e));
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
     }
     return obj;
   },
@@ -635,12 +701,15 @@ export const QueryGetSequencersByRollappResponse: MessageFns<QueryGetSequencersB
   ): QueryGetSequencersByRollappResponse {
     const message = createBaseQueryGetSequencersByRollappResponse();
     message.sequencers = object.sequencers?.map((e) => Sequencer.fromPartial(e)) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
 
 function createBaseQueryGetSequencersByRollappByStatusRequest(): QueryGetSequencersByRollappByStatusRequest {
-  return { rollappId: "", status: 0 };
+  return { rollappId: "", status: 0, pagination: undefined };
 }
 
 export const QueryGetSequencersByRollappByStatusRequest: MessageFns<QueryGetSequencersByRollappByStatusRequest> = {
@@ -650,6 +719,9 @@ export const QueryGetSequencersByRollappByStatusRequest: MessageFns<QueryGetSequ
     }
     if (message.status !== 0) {
       writer.uint32(16).int32(message.status);
+    }
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(26).fork()).join();
     }
     return writer;
   },
@@ -683,6 +755,14 @@ export const QueryGetSequencersByRollappByStatusRequest: MessageFns<QueryGetSequ
             message.status = reader.int32() as any;
             continue;
           }
+          case 3: {
+            if (tag !== 26) {
+              break;
+            }
+
+            message.pagination = PageRequest.decode(reader, reader.uint32());
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -699,6 +779,7 @@ export const QueryGetSequencersByRollappByStatusRequest: MessageFns<QueryGetSequ
     return {
       rollappId: isSet(object.rollappId) ? globalThis.String(object.rollappId) : "",
       status: isSet(object.status) ? operatingStatusFromJSON(object.status) : 0,
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
     };
   },
 
@@ -709,6 +790,9 @@ export const QueryGetSequencersByRollappByStatusRequest: MessageFns<QueryGetSequ
     }
     if (message.status !== 0) {
       obj.status = operatingStatusToJSON(message.status);
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
     }
     return obj;
   },
@@ -724,12 +808,15 @@ export const QueryGetSequencersByRollappByStatusRequest: MessageFns<QueryGetSequ
     const message = createBaseQueryGetSequencersByRollappByStatusRequest();
     message.rollappId = object.rollappId ?? "";
     message.status = object.status ?? 0;
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
 
 function createBaseQueryGetSequencersByRollappByStatusResponse(): QueryGetSequencersByRollappByStatusResponse {
-  return { sequencers: [] };
+  return { sequencers: [], pagination: undefined };
 }
 
 export const QueryGetSequencersByRollappByStatusResponse: MessageFns<QueryGetSequencersByRollappByStatusResponse> = {
@@ -739,6 +826,9 @@ export const QueryGetSequencersByRollappByStatusResponse: MessageFns<QueryGetSeq
   ): BinaryWriter {
     for (const v of message.sequencers) {
       Sequencer.encode(v!, writer.uint32(10).fork()).join();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).join();
     }
     return writer;
   },
@@ -764,6 +854,14 @@ export const QueryGetSequencersByRollappByStatusResponse: MessageFns<QueryGetSeq
             message.sequencers.push(Sequencer.decode(reader, reader.uint32()));
             continue;
           }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.pagination = PageResponse.decode(reader, reader.uint32());
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -781,6 +879,7 @@ export const QueryGetSequencersByRollappByStatusResponse: MessageFns<QueryGetSeq
       sequencers: globalThis.Array.isArray(object?.sequencers)
         ? object.sequencers.map((e: any) => Sequencer.fromJSON(e))
         : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
     };
   },
 
@@ -788,6 +887,9 @@ export const QueryGetSequencersByRollappByStatusResponse: MessageFns<QueryGetSeq
     const obj: any = {};
     if (message.sequencers?.length) {
       obj.sequencers = message.sequencers.map((e) => Sequencer.toJSON(e));
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
     }
     return obj;
   },
@@ -802,31 +904,26 @@ export const QueryGetSequencersByRollappByStatusResponse: MessageFns<QueryGetSeq
   ): QueryGetSequencersByRollappByStatusResponse {
     const message = createBaseQueryGetSequencersByRollappByStatusResponse();
     message.sequencers = object.sequencers?.map((e) => Sequencer.fromPartial(e)) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
 
-function createBaseQueryGetUnConfirmSequencersAddrByRollappRequest(): QueryGetUnConfirmSequencersAddrByRollappRequest {
-  return { rollappId: "", blockHeight: 0 };
+function createBaseQueryGetProposerByRollappRequest(): QueryGetProposerByRollappRequest {
+  return { rollappId: "" };
 }
 
-export const QueryGetUnConfirmSequencersAddrByRollappRequest: MessageFns<
-  QueryGetUnConfirmSequencersAddrByRollappRequest
-> = {
-  encode(
-    message: QueryGetUnConfirmSequencersAddrByRollappRequest,
-    writer: BinaryWriter = new BinaryWriter(),
-  ): BinaryWriter {
+export const QueryGetProposerByRollappRequest: MessageFns<QueryGetProposerByRollappRequest> = {
+  encode(message: QueryGetProposerByRollappRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.rollappId !== "") {
       writer.uint32(10).string(message.rollappId);
-    }
-    if (message.blockHeight !== 0) {
-      writer.uint32(16).int64(message.blockHeight);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): QueryGetUnConfirmSequencersAddrByRollappRequest {
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryGetProposerByRollappRequest {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
     if (previousRecursionDepth >= 100) {
@@ -835,7 +932,7 @@ export const QueryGetUnConfirmSequencersAddrByRollappRequest: MessageFns<
     (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
     try {
       const end = length === undefined ? reader.len : reader.pos + length;
-      const message = createBaseQueryGetUnConfirmSequencersAddrByRollappRequest();
+      const message = createBaseQueryGetProposerByRollappRequest();
       while (reader.pos < end) {
         const tag = reader.uint32();
         switch (tag >>> 3) {
@@ -847,14 +944,6 @@ export const QueryGetUnConfirmSequencersAddrByRollappRequest: MessageFns<
             message.rollappId = reader.string();
             continue;
           }
-          case 2: {
-            if (tag !== 16) {
-              break;
-            }
-
-            message.blockHeight = longToNumber(reader.int64());
-            continue;
-          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -867,67 +956,45 @@ export const QueryGetUnConfirmSequencersAddrByRollappRequest: MessageFns<
     }
   },
 
-  fromJSON(object: any): QueryGetUnConfirmSequencersAddrByRollappRequest {
-    return {
-      rollappId: isSet(object.rollappId) ? globalThis.String(object.rollappId) : "",
-      blockHeight: isSet(object.blockHeight)
-        ? globalThis.Number(object.blockHeight)
-        : isSet(object.block_height)
-        ? globalThis.Number(object.block_height)
-        : 0,
-    };
+  fromJSON(object: any): QueryGetProposerByRollappRequest {
+    return { rollappId: isSet(object.rollappId) ? globalThis.String(object.rollappId) : "" };
   },
 
-  toJSON(message: QueryGetUnConfirmSequencersAddrByRollappRequest): unknown {
+  toJSON(message: QueryGetProposerByRollappRequest): unknown {
     const obj: any = {};
     if (message.rollappId !== "") {
       obj.rollappId = message.rollappId;
     }
-    if (message.blockHeight !== 0) {
-      obj.blockHeight = Math.round(message.blockHeight);
-    }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<QueryGetUnConfirmSequencersAddrByRollappRequest>, I>>(
+  create<I extends Exact<DeepPartial<QueryGetProposerByRollappRequest>, I>>(
     base?: I,
-  ): QueryGetUnConfirmSequencersAddrByRollappRequest {
-    return QueryGetUnConfirmSequencersAddrByRollappRequest.fromPartial(base ?? ({} as any));
+  ): QueryGetProposerByRollappRequest {
+    return QueryGetProposerByRollappRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<QueryGetUnConfirmSequencersAddrByRollappRequest>, I>>(
+  fromPartial<I extends Exact<DeepPartial<QueryGetProposerByRollappRequest>, I>>(
     object: I,
-  ): QueryGetUnConfirmSequencersAddrByRollappRequest {
-    const message = createBaseQueryGetUnConfirmSequencersAddrByRollappRequest();
+  ): QueryGetProposerByRollappRequest {
+    const message = createBaseQueryGetProposerByRollappRequest();
     message.rollappId = object.rollappId ?? "";
-    message.blockHeight = object.blockHeight ?? 0;
     return message;
   },
 };
 
-function createBaseQueryGetUnConfirmSequencersAddrByRollappResponse(): QueryGetUnConfirmSequencersAddrByRollappResponse {
-  return { newSequencer: undefined, startHeight: 0, unconfirmCacheHeight: 0 };
+function createBaseQueryGetProposerByRollappResponse(): QueryGetProposerByRollappResponse {
+  return { proposerAddr: "" };
 }
 
-export const QueryGetUnConfirmSequencersAddrByRollappResponse: MessageFns<
-  QueryGetUnConfirmSequencersAddrByRollappResponse
-> = {
-  encode(
-    message: QueryGetUnConfirmSequencersAddrByRollappResponse,
-    writer: BinaryWriter = new BinaryWriter(),
-  ): BinaryWriter {
-    if (message.newSequencer !== undefined) {
-      Sequencer.encode(message.newSequencer, writer.uint32(10).fork()).join();
-    }
-    if (message.startHeight !== 0) {
-      writer.uint32(16).int64(message.startHeight);
-    }
-    if (message.unconfirmCacheHeight !== 0) {
-      writer.uint32(24).int64(message.unconfirmCacheHeight);
+export const QueryGetProposerByRollappResponse: MessageFns<QueryGetProposerByRollappResponse> = {
+  encode(message: QueryGetProposerByRollappResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.proposerAddr !== "") {
+      writer.uint32(10).string(message.proposerAddr);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): QueryGetUnConfirmSequencersAddrByRollappResponse {
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryGetProposerByRollappResponse {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
     if (previousRecursionDepth >= 100) {
@@ -936,7 +1003,7 @@ export const QueryGetUnConfirmSequencersAddrByRollappResponse: MessageFns<
     (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
     try {
       const end = length === undefined ? reader.len : reader.pos + length;
-      const message = createBaseQueryGetUnConfirmSequencersAddrByRollappResponse();
+      const message = createBaseQueryGetProposerByRollappResponse();
       while (reader.pos < end) {
         const tag = reader.uint32();
         switch (tag >>> 3) {
@@ -945,23 +1012,7 @@ export const QueryGetUnConfirmSequencersAddrByRollappResponse: MessageFns<
               break;
             }
 
-            message.newSequencer = Sequencer.decode(reader, reader.uint32());
-            continue;
-          }
-          case 2: {
-            if (tag !== 16) {
-              break;
-            }
-
-            message.startHeight = longToNumber(reader.int64());
-            continue;
-          }
-          case 3: {
-            if (tag !== 24) {
-              break;
-            }
-
-            message.unconfirmCacheHeight = longToNumber(reader.int64());
+            message.proposerAddr = reader.string();
             continue;
           }
         }
@@ -976,54 +1027,346 @@ export const QueryGetUnConfirmSequencersAddrByRollappResponse: MessageFns<
     }
   },
 
-  fromJSON(object: any): QueryGetUnConfirmSequencersAddrByRollappResponse {
-    return {
-      newSequencer: isSet(object.newSequencer)
-        ? Sequencer.fromJSON(object.newSequencer)
-        : isSet(object.new_sequencer)
-        ? Sequencer.fromJSON(object.new_sequencer)
-        : undefined,
-      startHeight: isSet(object.startHeight)
-        ? globalThis.Number(object.startHeight)
-        : isSet(object.start_height)
-        ? globalThis.Number(object.start_height)
-        : 0,
-      unconfirmCacheHeight: isSet(object.unconfirmCacheHeight)
-        ? globalThis.Number(object.unconfirmCacheHeight)
-        : isSet(object.unconfirm_cache_height)
-        ? globalThis.Number(object.unconfirm_cache_height)
-        : 0,
-    };
+  fromJSON(object: any): QueryGetProposerByRollappResponse {
+    return { proposerAddr: isSet(object.proposerAddr) ? globalThis.String(object.proposerAddr) : "" };
   },
 
-  toJSON(message: QueryGetUnConfirmSequencersAddrByRollappResponse): unknown {
+  toJSON(message: QueryGetProposerByRollappResponse): unknown {
     const obj: any = {};
-    if (message.newSequencer !== undefined) {
-      obj.newSequencer = Sequencer.toJSON(message.newSequencer);
-    }
-    if (message.startHeight !== 0) {
-      obj.startHeight = Math.round(message.startHeight);
-    }
-    if (message.unconfirmCacheHeight !== 0) {
-      obj.unconfirmCacheHeight = Math.round(message.unconfirmCacheHeight);
+    if (message.proposerAddr !== "") {
+      obj.proposerAddr = message.proposerAddr;
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<QueryGetUnConfirmSequencersAddrByRollappResponse>, I>>(
+  create<I extends Exact<DeepPartial<QueryGetProposerByRollappResponse>, I>>(
     base?: I,
-  ): QueryGetUnConfirmSequencersAddrByRollappResponse {
-    return QueryGetUnConfirmSequencersAddrByRollappResponse.fromPartial(base ?? ({} as any));
+  ): QueryGetProposerByRollappResponse {
+    return QueryGetProposerByRollappResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<QueryGetUnConfirmSequencersAddrByRollappResponse>, I>>(
+  fromPartial<I extends Exact<DeepPartial<QueryGetProposerByRollappResponse>, I>>(
     object: I,
-  ): QueryGetUnConfirmSequencersAddrByRollappResponse {
-    const message = createBaseQueryGetUnConfirmSequencersAddrByRollappResponse();
-    message.newSequencer = (object.newSequencer !== undefined && object.newSequencer !== null)
-      ? Sequencer.fromPartial(object.newSequencer)
+  ): QueryGetProposerByRollappResponse {
+    const message = createBaseQueryGetProposerByRollappResponse();
+    message.proposerAddr = object.proposerAddr ?? "";
+    return message;
+  },
+};
+
+function createBaseQueryGetNextProposerByRollappRequest(): QueryGetNextProposerByRollappRequest {
+  return { rollappId: "" };
+}
+
+export const QueryGetNextProposerByRollappRequest: MessageFns<QueryGetNextProposerByRollappRequest> = {
+  encode(message: QueryGetNextProposerByRollappRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.rollappId !== "") {
+      writer.uint32(10).string(message.rollappId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryGetNextProposerByRollappRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseQueryGetNextProposerByRollappRequest();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.rollappId = reader.string();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): QueryGetNextProposerByRollappRequest {
+    return { rollappId: isSet(object.rollappId) ? globalThis.String(object.rollappId) : "" };
+  },
+
+  toJSON(message: QueryGetNextProposerByRollappRequest): unknown {
+    const obj: any = {};
+    if (message.rollappId !== "") {
+      obj.rollappId = message.rollappId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<QueryGetNextProposerByRollappRequest>, I>>(
+    base?: I,
+  ): QueryGetNextProposerByRollappRequest {
+    return QueryGetNextProposerByRollappRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<QueryGetNextProposerByRollappRequest>, I>>(
+    object: I,
+  ): QueryGetNextProposerByRollappRequest {
+    const message = createBaseQueryGetNextProposerByRollappRequest();
+    message.rollappId = object.rollappId ?? "";
+    return message;
+  },
+};
+
+function createBaseQueryGetNextProposerByRollappResponse(): QueryGetNextProposerByRollappResponse {
+  return { nextProposerAddr: "", rotationInProgress: false };
+}
+
+export const QueryGetNextProposerByRollappResponse: MessageFns<QueryGetNextProposerByRollappResponse> = {
+  encode(message: QueryGetNextProposerByRollappResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.nextProposerAddr !== "") {
+      writer.uint32(10).string(message.nextProposerAddr);
+    }
+    if (message.rotationInProgress !== false) {
+      writer.uint32(16).bool(message.rotationInProgress);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryGetNextProposerByRollappResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseQueryGetNextProposerByRollappResponse();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.nextProposerAddr = reader.string();
+            continue;
+          }
+          case 2: {
+            if (tag !== 16) {
+              break;
+            }
+
+            message.rotationInProgress = reader.bool();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): QueryGetNextProposerByRollappResponse {
+    return {
+      nextProposerAddr: isSet(object.nextProposerAddr) ? globalThis.String(object.nextProposerAddr) : "",
+      rotationInProgress: isSet(object.rotationInProgress) ? globalThis.Boolean(object.rotationInProgress) : false,
+    };
+  },
+
+  toJSON(message: QueryGetNextProposerByRollappResponse): unknown {
+    const obj: any = {};
+    if (message.nextProposerAddr !== "") {
+      obj.nextProposerAddr = message.nextProposerAddr;
+    }
+    if (message.rotationInProgress !== false) {
+      obj.rotationInProgress = message.rotationInProgress;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<QueryGetNextProposerByRollappResponse>, I>>(
+    base?: I,
+  ): QueryGetNextProposerByRollappResponse {
+    return QueryGetNextProposerByRollappResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<QueryGetNextProposerByRollappResponse>, I>>(
+    object: I,
+  ): QueryGetNextProposerByRollappResponse {
+    const message = createBaseQueryGetNextProposerByRollappResponse();
+    message.nextProposerAddr = object.nextProposerAddr ?? "";
+    message.rotationInProgress = object.rotationInProgress ?? false;
+    return message;
+  },
+};
+
+function createBaseQueryProposersRequest(): QueryProposersRequest {
+  return { pagination: undefined };
+}
+
+export const QueryProposersRequest: MessageFns<QueryProposersRequest> = {
+  encode(message: QueryProposersRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryProposersRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseQueryProposersRequest();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.pagination = PageRequest.decode(reader, reader.uint32());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): QueryProposersRequest {
+    return { pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined };
+  },
+
+  toJSON(message: QueryProposersRequest): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<QueryProposersRequest>, I>>(base?: I): QueryProposersRequest {
+    return QueryProposersRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<QueryProposersRequest>, I>>(object: I): QueryProposersRequest {
+    const message = createBaseQueryProposersRequest();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
       : undefined;
-    message.startHeight = object.startHeight ?? 0;
-    message.unconfirmCacheHeight = object.unconfirmCacheHeight ?? 0;
+    return message;
+  },
+};
+
+function createBaseQueryProposersResponse(): QueryProposersResponse {
+  return { proposers: [], pagination: undefined };
+}
+
+export const QueryProposersResponse: MessageFns<QueryProposersResponse> = {
+  encode(message: QueryProposersResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.proposers) {
+      Sequencer.encode(v!, writer.uint32(10).fork()).join();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): QueryProposersResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseQueryProposersResponse();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.proposers.push(Sequencer.decode(reader, reader.uint32()));
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.pagination = PageResponse.decode(reader, reader.uint32());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): QueryProposersResponse {
+    return {
+      proposers: globalThis.Array.isArray(object?.proposers)
+        ? object.proposers.map((e: any) => Sequencer.fromJSON(e))
+        : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+    };
+  },
+
+  toJSON(message: QueryProposersResponse): unknown {
+    const obj: any = {};
+    if (message.proposers?.length) {
+      obj.proposers = message.proposers.map((e) => Sequencer.toJSON(e));
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<QueryProposersResponse>, I>>(base?: I): QueryProposersResponse {
+    return QueryProposersResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<QueryProposersResponse>, I>>(object: I): QueryProposersResponse {
+    const message = createBaseQueryProposersResponse();
+    message.proposers = object.proposers?.map((e) => Sequencer.fromPartial(e)) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
@@ -1098,13 +1441,13 @@ export const QueryReplaceProposerInfoRequest: MessageFns<QueryReplaceProposerInf
 };
 
 function createBaseQueryReplaceProposerInfoResponse(): QueryReplaceProposerInfoResponse {
-  return { replaceProposer: undefined };
+  return { info: undefined };
 }
 
 export const QueryReplaceProposerInfoResponse: MessageFns<QueryReplaceProposerInfoResponse> = {
   encode(message: QueryReplaceProposerInfoResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.replaceProposer !== undefined) {
-      MsgStoreReplaceProposer.encode(message.replaceProposer, writer.uint32(10).fork()).join();
+    if (message.info !== undefined) {
+      MsgStoreReplaceProposer.encode(message.info, writer.uint32(10).fork()).join();
     }
     return writer;
   },
@@ -1127,7 +1470,7 @@ export const QueryReplaceProposerInfoResponse: MessageFns<QueryReplaceProposerIn
               break;
             }
 
-            message.replaceProposer = MsgStoreReplaceProposer.decode(reader, reader.uint32());
+            message.info = MsgStoreReplaceProposer.decode(reader, reader.uint32());
             continue;
           }
         }
@@ -1143,19 +1486,13 @@ export const QueryReplaceProposerInfoResponse: MessageFns<QueryReplaceProposerIn
   },
 
   fromJSON(object: any): QueryReplaceProposerInfoResponse {
-    return {
-      replaceProposer: isSet(object.replaceProposer)
-        ? MsgStoreReplaceProposer.fromJSON(object.replaceProposer)
-        : isSet(object.replace_proposer)
-        ? MsgStoreReplaceProposer.fromJSON(object.replace_proposer)
-        : undefined,
-    };
+    return { info: isSet(object.info) ? MsgStoreReplaceProposer.fromJSON(object.info) : undefined };
   },
 
   toJSON(message: QueryReplaceProposerInfoResponse): unknown {
     const obj: any = {};
-    if (message.replaceProposer !== undefined) {
-      obj.replaceProposer = MsgStoreReplaceProposer.toJSON(message.replaceProposer);
+    if (message.info !== undefined) {
+      obj.info = MsgStoreReplaceProposer.toJSON(message.info);
     }
     return obj;
   },
@@ -1169,8 +1506,8 @@ export const QueryReplaceProposerInfoResponse: MessageFns<QueryReplaceProposerIn
     object: I,
   ): QueryReplaceProposerInfoResponse {
     const message = createBaseQueryReplaceProposerInfoResponse();
-    message.replaceProposer = (object.replaceProposer !== undefined && object.replaceProposer !== null)
-      ? MsgStoreReplaceProposer.fromPartial(object.replaceProposer)
+    message.info = (object.info !== undefined && object.info !== null)
+      ? MsgStoreReplaceProposer.fromPartial(object.info)
       : undefined;
     return message;
   },
@@ -1190,9 +1527,15 @@ export interface Query {
   SequencersByRollappByStatus(
     request: QueryGetSequencersByRollappByStatusRequest,
   ): Promise<QueryGetSequencersByRollappByStatusResponse>;
-  UnConfirmSequencerAddressByRollappByStatus(
-    request: QueryGetUnConfirmSequencersAddrByRollappRequest,
-  ): Promise<QueryGetUnConfirmSequencersAddrByRollappResponse>;
+  /** Queries the current proposer by rollappId. */
+  GetProposerByRollapp(request: QueryGetProposerByRollappRequest): Promise<QueryGetProposerByRollappResponse>;
+  /** Queries the next proposer by rollappId. */
+  GetNextProposerByRollapp(
+    request: QueryGetNextProposerByRollappRequest,
+  ): Promise<QueryGetNextProposerByRollappResponse>;
+  /** Queries a list of proposers. */
+  Proposers(request: QueryProposersRequest): Promise<QueryProposersResponse>;
+  /** Queries a pending ReplaceProposer request by rollappId. */
   ReplaceProposerInfo(request: QueryReplaceProposerInfoRequest): Promise<QueryReplaceProposerInfoResponse>;
 }
 
@@ -1208,7 +1551,9 @@ export class QueryClientImpl implements Query {
     this.Sequencers = this.Sequencers.bind(this);
     this.SequencersByRollapp = this.SequencersByRollapp.bind(this);
     this.SequencersByRollappByStatus = this.SequencersByRollappByStatus.bind(this);
-    this.UnConfirmSequencerAddressByRollappByStatus = this.UnConfirmSequencerAddressByRollappByStatus.bind(this);
+    this.GetProposerByRollapp = this.GetProposerByRollapp.bind(this);
+    this.GetNextProposerByRollapp = this.GetNextProposerByRollapp.bind(this);
+    this.Proposers = this.Proposers.bind(this);
     this.ReplaceProposerInfo = this.ReplaceProposerInfo.bind(this);
   }
   Params(request: QueryParamsRequest): Promise<QueryParamsResponse> {
@@ -1243,12 +1588,24 @@ export class QueryClientImpl implements Query {
     return promise.then((data) => QueryGetSequencersByRollappByStatusResponse.decode(new BinaryReader(data)));
   }
 
-  UnConfirmSequencerAddressByRollappByStatus(
-    request: QueryGetUnConfirmSequencersAddrByRollappRequest,
-  ): Promise<QueryGetUnConfirmSequencersAddrByRollappResponse> {
-    const data = QueryGetUnConfirmSequencersAddrByRollappRequest.encode(request).finish();
-    const promise = this.rpc.request(this.service, "UnConfirmSequencerAddressByRollappByStatus", data);
-    return promise.then((data) => QueryGetUnConfirmSequencersAddrByRollappResponse.decode(new BinaryReader(data)));
+  GetProposerByRollapp(request: QueryGetProposerByRollappRequest): Promise<QueryGetProposerByRollappResponse> {
+    const data = QueryGetProposerByRollappRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "GetProposerByRollapp", data);
+    return promise.then((data) => QueryGetProposerByRollappResponse.decode(new BinaryReader(data)));
+  }
+
+  GetNextProposerByRollapp(
+    request: QueryGetNextProposerByRollappRequest,
+  ): Promise<QueryGetNextProposerByRollappResponse> {
+    const data = QueryGetNextProposerByRollappRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "GetNextProposerByRollapp", data);
+    return promise.then((data) => QueryGetNextProposerByRollappResponse.decode(new BinaryReader(data)));
+  }
+
+  Proposers(request: QueryProposersRequest): Promise<QueryProposersResponse> {
+    const data = QueryProposersRequest.encode(request).finish();
+    const promise = this.rpc.request(this.service, "Proposers", data);
+    return promise.then((data) => QueryProposersResponse.decode(new BinaryReader(data)));
   }
 
   ReplaceProposerInfo(request: QueryReplaceProposerInfoRequest): Promise<QueryReplaceProposerInfoResponse> {
@@ -1276,17 +1633,6 @@ export type Exact<P, I> = P extends Builtin ? P
     & P
     & { [K in keyof P as Extract<K, keyof I>]: Exact<P[K], I[K & keyof I]> }
     & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
-
-function longToNumber(int64: { toString(): string }): number {
-  const num = globalThis.Number(int64.toString());
-  if (num > globalThis.Number.MAX_SAFE_INTEGER) {
-    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
-  }
-  if (num < globalThis.Number.MIN_SAFE_INTEGER) {
-    throw new globalThis.Error("Value is smaller than Number.MIN_SAFE_INTEGER");
-  }
-  return num;
-}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

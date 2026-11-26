@@ -15,24 +15,61 @@ export const protobufFileName = "metaearth/sequencer/params.proto";
 
 /** Params defines the parameters for the module. */
 export interface Params {
-  minBond:
+  /**
+   * notice_period is the time duration of notice period.
+   * notice period is the duration between the unbond request and the actual
+   * unbonding starting. the proposer is still bonded during this period.
+   */
+  noticePeriod:
+    | Duration
+    | undefined;
+  /**
+   * liveness_slash_min_multiplier multiplies with the tokens of the slashed
+   * sequencer to compute the burn amount.
+   */
+  livenessSlashMinMultiplier: string;
+  /** liveness_slash_min_absolute is the absolute minimum to slash for liveness */
+  livenessSlashMinAbsolute:
     | Coin
     | undefined;
-  /** unbonding_time is the time duration of unbonding. */
-  unbondingTime: Duration | undefined;
+  /** how much dishonor a sequencer gains on liveness events (+dishonor) */
+  dishonorLiveness: number;
+  /** how much honor a sequencer gains on state updates (-dishonor) */
+  dishonorStateUpdate: number;
+  /** the minimum dishonor at which a sequencer can be kicked (<=) */
+  dishonorKickThreshold: number;
 }
 
 function createBaseParams(): Params {
-  return { minBond: undefined, unbondingTime: undefined };
+  return {
+    noticePeriod: undefined,
+    livenessSlashMinMultiplier: "",
+    livenessSlashMinAbsolute: undefined,
+    dishonorLiveness: 0,
+    dishonorStateUpdate: 0,
+    dishonorKickThreshold: 0,
+  };
 }
 
 export const Params: MessageFns<Params> = {
   encode(message: Params, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.minBond !== undefined) {
-      Coin.encode(message.minBond, writer.uint32(10).fork()).join();
+    if (message.noticePeriod !== undefined) {
+      Duration.encode(message.noticePeriod, writer.uint32(26).fork()).join();
     }
-    if (message.unbondingTime !== undefined) {
-      Duration.encode(message.unbondingTime, writer.uint32(18).fork()).join();
+    if (message.livenessSlashMinMultiplier !== "") {
+      writer.uint32(34).string(message.livenessSlashMinMultiplier);
+    }
+    if (message.livenessSlashMinAbsolute !== undefined) {
+      Coin.encode(message.livenessSlashMinAbsolute, writer.uint32(50).fork()).join();
+    }
+    if (message.dishonorLiveness !== 0) {
+      writer.uint32(56).uint64(message.dishonorLiveness);
+    }
+    if (message.dishonorStateUpdate !== 0) {
+      writer.uint32(64).uint64(message.dishonorStateUpdate);
+    }
+    if (message.dishonorKickThreshold !== 0) {
+      writer.uint32(72).uint64(message.dishonorKickThreshold);
     }
     return writer;
   },
@@ -50,20 +87,52 @@ export const Params: MessageFns<Params> = {
       while (reader.pos < end) {
         const tag = reader.uint32();
         switch (tag >>> 3) {
-          case 1: {
-            if (tag !== 10) {
+          case 3: {
+            if (tag !== 26) {
               break;
             }
 
-            message.minBond = Coin.decode(reader, reader.uint32());
+            message.noticePeriod = Duration.decode(reader, reader.uint32());
             continue;
           }
-          case 2: {
-            if (tag !== 18) {
+          case 4: {
+            if (tag !== 34) {
               break;
             }
 
-            message.unbondingTime = Duration.decode(reader, reader.uint32());
+            message.livenessSlashMinMultiplier = reader.string();
+            continue;
+          }
+          case 6: {
+            if (tag !== 50) {
+              break;
+            }
+
+            message.livenessSlashMinAbsolute = Coin.decode(reader, reader.uint32());
+            continue;
+          }
+          case 7: {
+            if (tag !== 56) {
+              break;
+            }
+
+            message.dishonorLiveness = longToNumber(reader.uint64());
+            continue;
+          }
+          case 8: {
+            if (tag !== 64) {
+              break;
+            }
+
+            message.dishonorStateUpdate = longToNumber(reader.uint64());
+            continue;
+          }
+          case 9: {
+            if (tag !== 72) {
+              break;
+            }
+
+            message.dishonorKickThreshold = longToNumber(reader.uint64());
             continue;
           }
         }
@@ -80,26 +149,58 @@ export const Params: MessageFns<Params> = {
 
   fromJSON(object: any): Params {
     return {
-      minBond: isSet(object.minBond)
-        ? Coin.fromJSON(object.minBond)
-        : isSet(object.min_bond)
-        ? Coin.fromJSON(object.min_bond)
+      noticePeriod: isSet(object.noticePeriod)
+        ? Duration.fromJSON(object.noticePeriod)
+        : isSet(object.notice_period)
+        ? Duration.fromJSON(object.notice_period)
         : undefined,
-      unbondingTime: isSet(object.unbondingTime)
-        ? Duration.fromJSON(object.unbondingTime)
-        : isSet(object.unbonding_time)
-        ? Duration.fromJSON(object.unbonding_time)
+      livenessSlashMinMultiplier: isSet(object.livenessSlashMinMultiplier)
+        ? globalThis.String(object.livenessSlashMinMultiplier)
+        : isSet(object.liveness_slash_min_multiplier)
+        ? globalThis.String(object.liveness_slash_min_multiplier)
+        : "",
+      livenessSlashMinAbsolute: isSet(object.livenessSlashMinAbsolute)
+        ? Coin.fromJSON(object.livenessSlashMinAbsolute)
+        : isSet(object.liveness_slash_min_absolute)
+        ? Coin.fromJSON(object.liveness_slash_min_absolute)
         : undefined,
+      dishonorLiveness: isSet(object.dishonorLiveness)
+        ? globalThis.Number(object.dishonorLiveness)
+        : isSet(object.dishonor_liveness)
+        ? globalThis.Number(object.dishonor_liveness)
+        : 0,
+      dishonorStateUpdate: isSet(object.dishonorStateUpdate)
+        ? globalThis.Number(object.dishonorStateUpdate)
+        : isSet(object.dishonor_state_update)
+        ? globalThis.Number(object.dishonor_state_update)
+        : 0,
+      dishonorKickThreshold: isSet(object.dishonorKickThreshold)
+        ? globalThis.Number(object.dishonorKickThreshold)
+        : isSet(object.dishonor_kick_threshold)
+        ? globalThis.Number(object.dishonor_kick_threshold)
+        : 0,
     };
   },
 
   toJSON(message: Params): unknown {
     const obj: any = {};
-    if (message.minBond !== undefined) {
-      obj.minBond = Coin.toJSON(message.minBond);
+    if (message.noticePeriod !== undefined) {
+      obj.noticePeriod = Duration.toJSON(message.noticePeriod);
     }
-    if (message.unbondingTime !== undefined) {
-      obj.unbondingTime = Duration.toJSON(message.unbondingTime);
+    if (message.livenessSlashMinMultiplier !== "") {
+      obj.livenessSlashMinMultiplier = message.livenessSlashMinMultiplier;
+    }
+    if (message.livenessSlashMinAbsolute !== undefined) {
+      obj.livenessSlashMinAbsolute = Coin.toJSON(message.livenessSlashMinAbsolute);
+    }
+    if (message.dishonorLiveness !== 0) {
+      obj.dishonorLiveness = Math.round(message.dishonorLiveness);
+    }
+    if (message.dishonorStateUpdate !== 0) {
+      obj.dishonorStateUpdate = Math.round(message.dishonorStateUpdate);
+    }
+    if (message.dishonorKickThreshold !== 0) {
+      obj.dishonorKickThreshold = Math.round(message.dishonorKickThreshold);
     }
     return obj;
   },
@@ -109,12 +210,17 @@ export const Params: MessageFns<Params> = {
   },
   fromPartial<I extends Exact<DeepPartial<Params>, I>>(object: I): Params {
     const message = createBaseParams();
-    message.minBond = (object.minBond !== undefined && object.minBond !== null)
-      ? Coin.fromPartial(object.minBond)
+    message.noticePeriod = (object.noticePeriod !== undefined && object.noticePeriod !== null)
+      ? Duration.fromPartial(object.noticePeriod)
       : undefined;
-    message.unbondingTime = (object.unbondingTime !== undefined && object.unbondingTime !== null)
-      ? Duration.fromPartial(object.unbondingTime)
-      : undefined;
+    message.livenessSlashMinMultiplier = object.livenessSlashMinMultiplier ?? "";
+    message.livenessSlashMinAbsolute =
+      (object.livenessSlashMinAbsolute !== undefined && object.livenessSlashMinAbsolute !== null)
+        ? Coin.fromPartial(object.livenessSlashMinAbsolute)
+        : undefined;
+    message.dishonorLiveness = object.dishonorLiveness ?? 0;
+    message.dishonorStateUpdate = object.dishonorStateUpdate ?? 0;
+    message.dishonorKickThreshold = object.dishonorKickThreshold ?? 0;
     return message;
   },
 };
@@ -133,6 +239,17 @@ export type Exact<P, I> = P extends Builtin ? P
     & P
     & { [K in keyof P as Extract<K, keyof I>]: Exact<P[K], I[K & keyof I]> }
     & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function longToNumber(int64: { toString(): string }): number {
+  const num = globalThis.Number(int64.toString());
+  if (num > globalThis.Number.MAX_SAFE_INTEGER) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  }
+  if (num < globalThis.Number.MIN_SAFE_INTEGER) {
+    throw new globalThis.Error("Value is smaller than Number.MIN_SAFE_INTEGER");
+  }
+  return num;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

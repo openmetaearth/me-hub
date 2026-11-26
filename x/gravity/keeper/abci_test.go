@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/app/params"
@@ -22,7 +21,7 @@ func (s *KeeperTestSuite) TestDepositClaim() {
 	normalMsg := &types.MsgBondedRelayer{
 		RelayerAddress:  s.relayerAddrs[0].String(),
 		ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[0].PublicKey),
-		DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+		DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10*1e8)),
 		ChainName:       s.chainName,
 	}
 	_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), normalMsg)
@@ -30,7 +29,7 @@ func (s *KeeperTestSuite) TestDepositClaim() {
 
 	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 
-	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	s.Keeper().EndBlocker(s.Ctx)
 
 	bridgeTokenContract := helpers.GenExternalAddr(s.chainName)
 	sendToMeSendAddr := helpers.GenExternalAddr(s.chainName)
@@ -63,7 +62,7 @@ func (s *KeeperTestSuite) TestDepositClaim() {
 	s.SendClaim(sendToMeClaim)
 
 	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
-	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	s.Keeper().EndBlocker(s.Ctx)
 
 	allBalances := s.App.BankKeeper.GetAllBalances(s.Ctx, sdk.MustAccAddressFromBech32(sendToMeClaim.Receiver))
 	s.Require().EqualValues(sdk.Coin{Amount: sendToMeClaim.Amount, Denom: utils.GetDenom(addBridgeTokenClaim.GetSymbol())}.String(), allBalances.String())
@@ -83,14 +82,14 @@ func (s *KeeperTestSuite) TestProposalRelayers() {
 		msgBondedRelayer := &types.MsgBondedRelayer{
 			RelayerAddress:  s.relayerAddrs[i].String(),
 			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10*1e8)),
 			ChainName:       s.chainName,
 		}
 		s.Require().NoError(msgBondedRelayer.ValidateBasic())
 		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msgBondedRelayer)
 
 		s.Require().NoError(err)
-		s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+		s.Keeper().EndBlocker(s.Ctx)
 		s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 
 		relayerSets := s.Keeper().GetRelayerSets(s.Ctx)
@@ -124,7 +123,7 @@ func (s *KeeperTestSuite) TestProposalRelayers() {
 		s.Require().NotNil(endBlockBeforeAttestation.Votes)
 		s.Require().EqualValues(i+1, len(endBlockBeforeAttestation.Votes))
 
-		s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+		s.Keeper().EndBlocker(s.Ctx)
 		s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 		endBlockAfterAttestation := s.Keeper().GetAttestation(s.Ctx, addBridgeTokenClaim.EventNonce, addBridgeTokenClaim.ClaimHash())
 		s.Require().NotNil(endBlockAfterAttestation)
@@ -144,7 +143,7 @@ func (s *KeeperTestSuite) TestProposalRelayers() {
 	}
 	_, err := s.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(s.Ctx), addBridgeTokenClaim)
 	s.Require().NoError(err)
-	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	s.Keeper().EndBlocker(s.Ctx)
 	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 
 	attestation := s.Keeper().GetAttestation(s.Ctx, addBridgeTokenClaim.EventNonce, addBridgeTokenClaim.ClaimHash())
@@ -192,12 +191,12 @@ func (s *KeeperTestSuite) TestAttestationAfterRelayerUpdate() {
 		msgBondedRelayer := &types.MsgBondedRelayer{
 			RelayerAddress:  s.relayerAddrs[i].String(),
 			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10*1e8)),
 			ChainName:       s.chainName,
 		}
 		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msgBondedRelayer)
 		s.Require().NoError(err)
-		s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+		s.Keeper().EndBlocker(s.Ctx)
 		s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 		relayerSets := s.Keeper().GetRelayerSets(s.Ctx)
 		s.Require().NotNil(relayerSets)
@@ -239,7 +238,7 @@ func (s *KeeperTestSuite) TestAttestationAfterRelayerUpdate() {
 		firstBridgeTokenClaim.RelayerAddress = s.relayerAddrs[6].String()
 		_, err := s.MsgServer().BridgeTokenClaim(sdk.WrapSDKContext(s.Ctx), firstBridgeTokenClaim)
 		s.Require().NoError(err)
-		s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+		s.Keeper().EndBlocker(s.Ctx)
 		s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 
 		attestation := s.Keeper().GetAttestation(s.Ctx, firstBridgeTokenClaim.EventNonce, firstBridgeTokenClaim.ClaimHash())
@@ -271,7 +270,7 @@ func (s *KeeperTestSuite) TestAttestationAfterRelayerUpdate() {
 			s.Require().NotNil(endBlockBeforeAttestation.Votes)
 			s.Require().EqualValues(i+1, len(endBlockBeforeAttestation.Votes))
 
-			s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+			s.Keeper().EndBlocker(s.Ctx)
 			s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 			endBlockAfterAttestation := s.Keeper().GetAttestation(s.Ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 			s.Require().NotNil(endBlockAfterAttestation)
@@ -296,7 +295,7 @@ func (s *KeeperTestSuite) TestAttestationAfterRelayerUpdate() {
 		})
 		s.Require().NoError(err)
 		s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
-		s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+		s.Keeper().EndBlocker(s.Ctx)
 
 		secondClaimAttestation = s.Keeper().GetAttestation(s.Ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 		s.Require().NotNil(secondClaimAttestation)
@@ -323,7 +322,7 @@ func (s *KeeperTestSuite) TestAttestationAfterRelayerUpdate() {
 		})
 		s.Require().NoError(err)
 		s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
-		s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+		s.Keeper().EndBlocker(s.Ctx)
 
 		secondClaimAttestation = s.Keeper().GetAttestation(s.Ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 		s.Require().NotNil(secondClaimAttestation)
@@ -350,7 +349,7 @@ func (s *KeeperTestSuite) TestAttestationAfterRelayerUpdate() {
 		})
 		s.Require().NoError(err)
 		s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
-		s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+		s.Keeper().EndBlocker(s.Ctx)
 
 		secondClaimAttestation = s.Keeper().GetAttestation(s.Ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 		s.Require().NotNil(secondClaimAttestation)
@@ -370,7 +369,7 @@ func (s *KeeperTestSuite) TestAttestationAfterRelayerUpdate() {
 		s.Require().NoError(err)
 
 		s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
-		s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+		s.Keeper().EndBlocker(s.Ctx)
 
 		secondClaimAttestation = s.Keeper().GetAttestation(s.Ctx, secondBridgeTokenClaim.EventNonce, secondBridgeTokenClaim.ClaimHash())
 		s.Require().NotNil(secondClaimAttestation)
@@ -387,13 +386,13 @@ func (s *KeeperTestSuite) TestAttestationIgnoresOfflineRelayerStaleVotes() {
 		msgBondedRelayer := &types.MsgBondedRelayer{
 			RelayerAddress:  s.relayerAddrs[i].String(),
 			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10*1e8)),
 			ChainName:       s.chainName,
 		}
 		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msgBondedRelayer)
 		s.Require().NoError(err)
 	}
-	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	s.Keeper().EndBlocker(s.Ctx)
 	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 
 	bridgeTokenClaim := &types.MsgBridgeTokenClaim{
@@ -422,7 +421,7 @@ func (s *KeeperTestSuite) TestAttestationIgnoresOfflineRelayerStaleVotes() {
 		ChainName: s.chainName,
 	})
 	s.Require().NoError(err)
-	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	s.Keeper().EndBlocker(s.Ctx)
 	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 
 	removedRelayer, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[0])
@@ -466,14 +465,14 @@ func (s *KeeperTestSuite) TestRelayerDelete() {
 		msgBondedRelayer := &types.MsgBondedRelayer{
 			RelayerAddress:  s.relayerAddrs[i].String(),
 			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10*1e8)),
 			ChainName:       s.chainName,
 		}
 		s.Require().NoError(msgBondedRelayer.ValidateBasic())
 		_, err := s.MsgServer().BondedRelayer(sdk.WrapSDKContext(s.Ctx), msgBondedRelayer)
 		s.Require().NoError(err)
 	}
-	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	s.Keeper().EndBlocker(s.Ctx)
 	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 	allRelayers := s.Keeper().GetAllRelayers(s.Ctx, false)
 	s.Require().NotNil(allRelayers)
@@ -500,7 +499,7 @@ func (s *KeeperTestSuite) TestRelayerDelete() {
 	})
 	s.Require().NoError(err)
 	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
-	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	s.Keeper().EndBlocker(s.Ctx)
 
 	nonce = s.Keeper().GetLastRelayerSetNonce(s.Ctx)
 	s.Require().EqualValues(2, nonce)
@@ -533,7 +532,7 @@ func (s *KeeperTestSuite) TestRelayerSetSlash() {
 		msgBondedRelayer := &types.MsgBondedRelayer{
 			RelayerAddress:  s.relayerAddrs[i].String(),
 			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10*1e8)),
 			ChainName:       s.chainName,
 		}
 		s.Require().NoError(msgBondedRelayer.ValidateBasic())
@@ -568,7 +567,7 @@ func (s *KeeperTestSuite) TestRelayerSetSlash() {
 	s.Keeper().EndBlocker(s.Ctx)
 	relayerSetHeight := int64(relayerSets[0].Height)
 	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
-	s.App.EndBlock(abci.RequestEndBlock{Height: s.Ctx.BlockHeight()})
+	s.Keeper().EndBlocker(s.Ctx)
 
 	relayer, found := s.Keeper().GetRelayer(s.Ctx, s.relayerAddrs[len(s.relayerAddrs)-1])
 	s.Require().True(found)
@@ -599,7 +598,7 @@ func (s *KeeperTestSuite) TestRelayerSetNotCreatedWhenSlashDoesNotChangeMembers(
 		msgBondedRelayer := &types.MsgBondedRelayer{
 			RelayerAddress:  s.relayerAddrs[i].String(),
 			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10*1e8)),
 			ChainName:       s.chainName,
 		}
 		s.Require().NoError(msgBondedRelayer.ValidateBasic())
@@ -635,7 +634,7 @@ func (s *KeeperTestSuite) TestSlashRelayer() {
 		msgBondedRelayer := &types.MsgBondedRelayer{
 			RelayerAddress:  s.relayerAddrs[i].String(),
 			ExternalAddress: s.PubKeyToExternalAddr(s.externalPris[i].PublicKey),
-			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdk.NewInt(10*1e8)),
+			DelegateAmount:  sdk.NewCoin(params.BaseDenom, sdkmath.NewInt(10*1e8)),
 			ChainName:       s.chainName,
 		}
 		s.Require().NoError(msgBondedRelayer.ValidateBasic())

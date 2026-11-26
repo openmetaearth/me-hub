@@ -33,7 +33,7 @@ func NewCmdSubmitCreateDenomMetadataProposal() *cobra.Command {
 			path := args[0]
 
 			var metadatas []banktypes.Metadata
-			metadatas, err = utils.ParseJsonFromFile[banktypes.Metadata](path)
+			err = utils.ParseJsonFromFile(path, &metadatas)
 			if err != nil {
 				return err
 			}

@@ -26,10 +26,8 @@ func (keeper Keeper) MeTallyResult(c context.Context, req *types.QueryMeTallyRes
 		return nil, status.Error(codes.InvalidArgument, "proposal id can not be 0")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-
-	proposal, ok := keeper.GetProposal(ctx, req.ProposalId)
-	if !ok {
+	proposal, err := keeper.Proposals.Get(c, req.ProposalId)
+	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "proposal %d doesn't exist", req.ProposalId)
 	}
 
@@ -44,7 +42,11 @@ func (keeper Keeper) MeTallyResult(c context.Context, req *types.QueryMeTallyRes
 
 	default:
 		// proposal is in voting period
-		_, _, tallyResult = keeper.Tally(ctx, proposal)
+		ctx := sdk.UnwrapSDKContext(c)
+		_, _, tallyResult, err = keeper.Tally(ctx, proposal)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &types.QueryMeTallyResultResponse{Tally: &tallyResult}, nil

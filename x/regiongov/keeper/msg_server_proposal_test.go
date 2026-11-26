@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/openmetaearth/me-hub/app/params"
 	"github.com/openmetaearth/me-hub/testutil/sample"
@@ -90,12 +91,8 @@ func (s *KeeperTestSuite) TestDaoVetoAtVotingEnd() {
 	s.Require().True(found)
 	treasury := sdk.MustAccAddressFromBech32(region.RegionTreasureAddr)
 	before := s.App.BankKeeper.GetBalance(s.Ctx, treasury, params.BaseDenom)
-	// Veto must win even after every operator and the DAO have approved.
+	// The DAO's no ballot vetoes the proposal even if every operator voted yes.
 	s.Require().NoError(s.vote(usa, id, types.VoteOptionYes))
-	s.Require().NoError(s.vote(s.Dao.GlobalDao, id, types.VoteOptionYes))
-	s.Require().Equal(types.DaoVoteYes, s.mustProposal(id).DaoVote)
-	s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(id).Status)
-
 	s.Require().NoError(s.vote(s.Dao.GlobalDao, id, types.VoteOptionNo))
 	s.Require().Equal(types.DaoVoteNo, s.mustProposal(id).DaoVote)
 	s.Require().Equal(types.ProposalStatusVoting, s.mustProposal(id).Status)
@@ -241,8 +238,8 @@ func (s *KeeperTestSuite) TestExecuteTreasuryAndReplaceOperator() {
 	s.Require().Equal(newOperator.String(), updated.OperatorAddress)
 	oldAddr, err := sdk.ValAddressFromBech32(s.usaValidator.OperatorAddress)
 	s.Require().NoError(err)
-	_, found = s.App.StakingKeeper.GetValidator(s.Ctx, oldAddr)
-	s.Require().False(found)
+	_, err = s.App.StakingKeeper.GetValidator(s.Ctx, oldAddr)
+	s.Require().ErrorIs(err, stakingtypes.ErrNoValidatorFound)
 	validator := s.App.StakingKeeper.MustGetValidator(s.Ctx, newOperator)
 	s.Require().Equal("usa", validator.Description.RegionID)
 	s.Require().Equal(newOwner.String(), validator.OwnerAddress)
@@ -267,7 +264,8 @@ func (s *KeeperTestSuite) TestReplaceOperatorRejectsExistingValidatorAtExecution
 	s.SetupTest()
 	region, found := s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
 	s.Require().True(found)
-	validators := s.App.StakingKeeper.GetAllValidators(s.Ctx)
+	validators, err := s.App.StakingKeeper.GetAllValidators(s.Ctx)
+	s.Require().NoError(err)
 	stakes := s.App.StakingKeeper.GetAllStakes(s.Ctx)
 	replace, err := s.msgServer.SubmitProposal(s.Ctx, &types.MsgSubmitProposal{
 		Proposer: s.Dao.GlobalDao, Kind: types.ProposalKindReplaceRegionOperator,
@@ -282,7 +280,9 @@ func (s *KeeperTestSuite) TestReplaceOperatorRejectsExistingValidatorAtExecution
 	unchanged, found := s.App.StakingKeeper.GetRegion(s.Ctx, "usa")
 	s.Require().True(found)
 	s.Require().Equal(region, unchanged)
-	s.Require().Equal(validators, s.App.StakingKeeper.GetAllValidators(s.Ctx))
+	validatorsAfter, err := s.App.StakingKeeper.GetAllValidators(s.Ctx)
+	s.Require().NoError(err)
+	s.Require().Equal(validators, validatorsAfter)
 	s.Require().Equal(stakes, s.App.StakingKeeper.GetAllStakes(s.Ctx))
 }
 

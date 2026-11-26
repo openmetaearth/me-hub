@@ -3,6 +3,7 @@ package keeper
 import (
 	"strconv"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -19,7 +20,7 @@ func (k Keeper) submitEquityUpdate(ctx sdk.Context, msg *types.MsgSubmitEquityUp
 		return 0, err
 	}
 	if k.isDao(ctx, proposer) {
-		return 0, sdkerrors.Wrap(types.ErrUnauthorized, "dao cannot set equity addresses")
+		return 0, errorsmod.Wrap(types.ErrUnauthorized, "dao cannot set equity addresses")
 	}
 	addresses, err := canonicalAddresses(msg.Addresses)
 	if err != nil {
@@ -27,7 +28,7 @@ func (k Keeper) submitEquityUpdate(ctx sdk.Context, msg *types.MsgSubmitEquityUp
 	}
 	// requireRegionOperator guarantees proposer is the region operator's canonical account address.
 	if containsAddress(addresses, proposer) {
-		return 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest,
+		return 0, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest,
 			"equity addresses cannot include the region operator %s of region %s", proposer, region.RegionId)
 	}
 	id := k.queuePendingAction(ctx, types.PendingActionKindSetEquity, region.RegionId, proposer, addresses)
@@ -56,10 +57,10 @@ func (k Keeper) submitEquityFreezeChange(ctx sdk.Context, regionID, proposer str
 	}
 	for _, address := range addresses {
 		if frozen && k.isEquityFrozen(ctx, region.RegionId, address) {
-			return 0, sdkerrors.Wrapf(types.ErrEquityFrozen, "%s", address)
+			return 0, errorsmod.Wrapf(types.ErrEquityFrozen, "%s", address)
 		}
 		if !frozen && !k.isEquityFrozen(ctx, region.RegionId, address) {
-			return 0, sdkerrors.Wrapf(types.ErrEquityNotFrozen, "%s", address)
+			return 0, errorsmod.Wrapf(types.ErrEquityNotFrozen, "%s", address)
 		}
 	}
 	kind, eventType := types.PendingActionKindFreezeEquity, types.EventTypeSubmitFreezeEquity
@@ -148,7 +149,7 @@ func (k Keeper) prepareOperatorEquityChange(ctx sdk.Context, regionID, proposer 
 		return wstakingtypes.Region{}, "", nil, err
 	}
 	if k.isDao(ctx, canonicalProposer) {
-		return wstakingtypes.Region{}, "", nil, sdkerrors.Wrap(types.ErrUnauthorized, "dao freezes equity addresses directly")
+		return wstakingtypes.Region{}, "", nil, errorsmod.Wrap(types.ErrUnauthorized, "dao freezes equity addresses directly")
 	}
 	canonicalAddresses := make([]string, 0, len(addresses))
 	for _, address := range addresses {
@@ -167,7 +168,7 @@ func (k Keeper) prepareDaoEquityChange(ctx sdk.Context, authority, regionID, add
 	}
 	region, found := k.lookupRegion(ctx, regionID)
 	if !found {
-		return wstakingtypes.Region{}, "", sdkerrors.Wrapf(types.ErrUnknownRegion, "%s", regionID)
+		return wstakingtypes.Region{}, "", errorsmod.Wrapf(types.ErrUnknownRegion, "%s", regionID)
 	}
 	canonicalAddress, err := k.requireEquityAddress(ctx, region.RegionId, address)
 	if err != nil {
@@ -179,10 +180,10 @@ func (k Keeper) prepareDaoEquityChange(ctx sdk.Context, authority, regionID, add
 func (k Keeper) requireRegionOperator(ctx sdk.Context, regionID, proposer string) (wstakingtypes.Region, string, error) {
 	region, found := k.lookupRegion(ctx, regionID)
 	if !found {
-		return wstakingtypes.Region{}, "", sdkerrors.Wrapf(types.ErrUnknownRegion, "%s", regionID)
+		return wstakingtypes.Region{}, "", errorsmod.Wrapf(types.ErrUnknownRegion, "%s", regionID)
 	}
 	if k.isRegionFrozen(ctx, region.RegionId) {
-		return wstakingtypes.Region{}, "", sdkerrors.Wrapf(types.ErrRegionFrozen, "%s", region.RegionId)
+		return wstakingtypes.Region{}, "", errorsmod.Wrapf(types.ErrRegionFrozen, "%s", region.RegionId)
 	}
 	canonical, err := canonicalAccAddress(proposer)
 	if err != nil {
@@ -190,7 +191,7 @@ func (k Keeper) requireRegionOperator(ctx sdk.Context, regionID, proposer string
 	}
 	operator, ok := operatorAccount(region.OperatorAddress)
 	if !ok || operator.String() != canonical {
-		return wstakingtypes.Region{}, "", sdkerrors.Wrap(types.ErrUnauthorized, "proposer is not the region operator")
+		return wstakingtypes.Region{}, "", errorsmod.Wrap(types.ErrUnauthorized, "proposer is not the region operator")
 	}
 	return region, canonical, nil
 }
@@ -201,7 +202,7 @@ func (k Keeper) requireDao(ctx sdk.Context, authority string) error {
 		return err
 	}
 	if !k.isDao(ctx, canonical) {
-		return sdkerrors.Wrap(types.ErrUnauthorized, "authority is not the dao")
+		return errorsmod.Wrap(types.ErrUnauthorized, "authority is not the dao")
 	}
 	return nil
 }
@@ -213,7 +214,7 @@ func (k Keeper) requireEquityAddress(ctx sdk.Context, regionID, address string) 
 	}
 	equity, found := k.GetEquity(ctx, regionID)
 	if !found || !containsAddress(equity.Addresses, canonical) {
-		return "", sdkerrors.Wrapf(types.ErrNotEquityAddress, "%s", canonical)
+		return "", errorsmod.Wrapf(types.ErrNotEquityAddress, "%s", canonical)
 	}
 	return canonical, nil
 }
@@ -249,10 +250,10 @@ func (k Keeper) queuePendingAction(ctx sdk.Context, kind types.PendingActionKind
 func (k Keeper) openPendingAction(ctx sdk.Context, id uint64) (types.PendingAction, error) {
 	action, found := k.GetPendingAction(ctx, id)
 	if !found {
-		return types.PendingAction{}, sdkerrors.Wrapf(types.ErrPendingActionNotFound, "%d", id)
+		return types.PendingAction{}, errorsmod.Wrapf(types.ErrPendingActionNotFound, "%d", id)
 	}
 	if action.Status != types.PendingActionStatusPending {
-		return types.PendingAction{}, sdkerrors.Wrapf(types.ErrPendingActionClosed, "%d", id)
+		return types.PendingAction{}, errorsmod.Wrapf(types.ErrPendingActionClosed, "%d", id)
 	}
 	return action, nil
 }
@@ -273,7 +274,7 @@ func (k Keeper) applyPendingAction(ctx sdk.Context, action types.PendingAction) 
 			k.setEquityFrozen(ctx, action.RegionId, address, action.Kind == types.PendingActionKindFreezeEquity)
 		}
 	default:
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "unknown pending action kind %s", action.Kind.String())
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "unknown pending action kind %s", action.Kind.String())
 	}
 	return nil
 }

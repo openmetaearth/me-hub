@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -33,7 +35,7 @@ func (k Keeper) MigrateValidatorOperator(ctx sdk.Context, oldAddr, newAddr sdk.V
 	}
 	logger := k.Logger(ctx).With("height", ctx.BlockHeight(), "old_operator", oldAddr.String(), "new_operator", newAddr.String())
 	started := time.Now()
-	store := ctx.KVStore(k.storeKey)
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	type record struct{ oldKey, newKey, value []byte }
 	var records []record
 	for _, category := range categories {
@@ -43,7 +45,7 @@ func (k Keeper) MigrateValidatorOperator(ctx sdk.Context, oldAddr, newAddr sdk.V
 			return fmt.Errorf("distribution state already exists for destination validator %s", newAddr)
 		}
 
-		iterator := sdk.KVStorePrefixIterator(store, oldPrefix)
+		iterator := storetypes.KVStorePrefixIterator(store, oldPrefix)
 		for ; iterator.Valid(); iterator.Next() {
 			oldKey := bytes.Clone(iterator.Key())
 			newKey := append(bytes.Clone(newPrefix), oldKey[len(oldPrefix):]...)
@@ -65,8 +67,8 @@ func (k Keeper) MigrateValidatorOperator(ctx sdk.Context, oldAddr, newAddr sdk.V
 	return nil
 }
 
-func validatorDistributionPrefixExists(store sdk.KVStore, prefix []byte) bool {
-	iterator := sdk.KVStorePrefixIterator(store, prefix)
+func validatorDistributionPrefixExists(store storetypes.KVStore, prefix []byte) bool {
+	iterator := storetypes.KVStorePrefixIterator(store, prefix)
 	defer iterator.Close()
 	return iterator.Valid()
 }

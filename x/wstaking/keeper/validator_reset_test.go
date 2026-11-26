@@ -1,13 +1,17 @@
 package keeper_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -40,41 +44,43 @@ func (s *KeeperTestSuite) TestSetRegionOperatorResetsValidator() {
 	newAddr := sdk.ValAddress(s.TestAccs[0])
 	consAddr, err := old.GetConsAddr()
 	s.Require().NoError(err)
-	power := k.GetLastValidatorPower(s.Ctx, oldAddr)
+	power := mustResetValue(k.GetLastValidatorPower(s.Ctx, oldAddr))
 	s.Require().Positive(power)
 
+	// The v3 fixture has no genesis stakes. Seed the original owner explicitly.
+	k.SetStake(s.Ctx, types.NewStake(sdk.AccAddress(oldAddr), oldAddr, sdkmath.LegacyOneDec()))
 	// A DAO rotation may leave stakes belonging to earlier DAOs. All must move.
-	extra := types.NewStake(s.TestAccs[1], oldAddr, sdk.NewDec(7))
+	extra := types.NewStake(s.TestAccs[1], oldAddr, sdkmath.LegacyNewDec(7))
 	extra.StartHeight = 123
 	k.SetStake(s.Ctx, extra)
 	stakes, err := k.GetStakesByValidator(s.Ctx, oldAddr)
 	s.Require().NoError(err)
 	s.Require().GreaterOrEqual(len(stakes), 2)
 	// Experience-region delegators need not have KYC credentials.
-	delegation := stakingtypes.NewDelegation(s.TestAccs[2], oldAddr, sdk.ZeroDec())
+	delegation := stakingtypes.NewDelegation(s.TestAccs[2].String(), oldAddr.String(), sdkmath.LegacyZeroDec())
 	delegation.StartHeight = 42
-	delegation.UnMeidAmount = sdk.NewInt(55)
+	delegation.UnMeidAmount = sdkmath.NewInt(55)
 	k.SetDelegation(s.Ctx, delegation)
 	k.SetGroupKeeper(s.App.GroupKeeper)
 	s.App.GroupKeeper.SetGroupToRegion(s.Ctx, region.RegionId, 42)
 	s.App.GroupKeeper.SetGroupInfo(s.Ctx, grouptypes.GroupInfo{Id: 42, Admin: old.OwnerAddress})
 	signing := slashingtypes.NewValidatorSigningInfo(consAddr, 17, 9, time.Unix(100, 0).UTC(), false, 3)
-	s.App.SlashingKeeper.SetValidatorSigningInfo(s.Ctx, consAddr, signing)
-	s.App.SlashingKeeper.SetValidatorMissedBlockBitArray(s.Ctx, consAddr, 2, true)
+	s.Require().NoError(s.App.SlashingKeeper.SetValidatorSigningInfo(s.Ctx, consAddr, signing))
+	s.Require().NoError(s.App.SlashingKeeper.SetMissedBlockBitmapValue(s.Ctx, consAddr, 2, true))
 
 	s.Require().NoError(k.SetRegionOperator(s.Ctx, region.RegionId, newAddr.String()))
-	_, found = k.GetValidator(s.Ctx, oldAddr)
-	s.Require().False(found)
+	_, err = k.GetValidator(s.Ctx, oldAddr)
+	s.Require().Error(err)
 	updated := k.MustGetValidator(s.Ctx, newAddr)
 	expected := old
 	expected.OperatorAddress = newAddr.String()
 	expected.OwnerAddress = sdk.AccAddress(newAddr).String()
 	s.Require().Equal(expected, updated)
-	byCons, found := k.GetValidatorByConsAddr(s.Ctx, consAddr)
-	s.Require().True(found)
+	byCons, err := k.GetValidatorByConsAddr(s.Ctx, consAddr)
+	s.Require().NoError(err)
 	s.Require().Equal(newAddr.String(), byCons.OperatorAddress)
-	s.Require().Zero(k.GetLastValidatorPower(s.Ctx, oldAddr))
-	s.Require().Equal(power, k.GetLastValidatorPower(s.Ctx, newAddr))
+	s.Require().Zero(mustResetValue(k.GetLastValidatorPower(s.Ctx, oldAddr)))
+	s.Require().Equal(power, mustResetValue(k.GetLastValidatorPower(s.Ctx, newAddr)))
 	updatedRegion, found := k.GetRegion(s.Ctx, region.RegionId)
 	s.Require().True(found)
 	region.OperatorAddress = newAddr.String()
@@ -91,15 +97,15 @@ func (s *KeeperTestSuite) TestSetRegionOperatorResetsValidator() {
 		stake.ValidatorAddress = newAddr.String()
 		s.Require().Equal(*stake, moved)
 	}
-	movedDelegation, found := k.GetDelegation(s.Ctx, s.TestAccs[2], newAddr)
-	s.Require().True(found)
+	movedDelegation, err := k.GetDelegation(s.Ctx, s.TestAccs[2], newAddr)
+	s.Require().NoError(err)
 	delegation.ValidatorAddress = newAddr.String()
 	s.Require().Equal(delegation, movedDelegation)
-	gotSigning, found := s.App.SlashingKeeper.GetValidatorSigningInfo(s.Ctx, consAddr)
-	s.Require().True(found)
+	gotSigning, err := s.App.SlashingKeeper.GetValidatorSigningInfo(s.Ctx, consAddr)
+	s.Require().NoError(err)
 	s.Require().Equal(signing, gotSigning)
-	s.Require().True(s.App.SlashingKeeper.GetValidatorMissedBlockBitArray(s.Ctx, consAddr, 2))
-	pubkey, err := s.App.SlashingKeeper.GetPubkey(s.Ctx, consAddr.Bytes())
+	s.Require().True(mustResetValue(s.App.SlashingKeeper.GetMissedBlockBitmapValue(s.Ctx, consAddr, 2)))
+	pubkey, err := s.App.SlashingKeeper.GetPubkey(s.Ctx, consAddr)
 	s.Require().NoError(err)
 	expectedPubkey, err := old.ConsPubKey()
 	s.Require().NoError(err)
@@ -130,23 +136,23 @@ func (s *KeeperTestSuite) TestSetRegionOperatorUpdatesKycDelegations() {
 	newAddr := sdk.ValAddress(s.TestAccs[0])
 	delegator := s.TestAccs[1]
 	s.setOperatorReplacementKYC(delegator, old.Description.RegionID)
-	delegation := stakingtypes.NewDelegation(delegator, old.GetOperator(), sdk.NewDec(3))
-	delegation.Amount = sdk.NewInt(31)
-	delegation.Unmovable = sdk.NewInt(7)
+	delegation := stakingtypes.NewDelegation(delegator.String(), old.OperatorAddress, sdkmath.LegacyNewDec(3))
+	delegation.Amount = sdkmath.NewInt(31)
+	delegation.Unmovable = sdkmath.NewInt(7)
 	delegation.StartHeight = 42
 	k.SetDelegation(s.Ctx, delegation)
 	// Delegations in other regions must not be changed.
-	other := stakingtypes.NewDelegation(s.TestAccs[2], s.meEarthValidator.GetOperator(), sdk.NewDec(5))
+	other := stakingtypes.NewDelegation(s.TestAccs[2].String(), s.meEarthValidator.OperatorAddress, sdkmath.LegacyNewDec(5))
 	s.setOperatorReplacementKYC(s.TestAccs[2], s.meEarthValidator.Description.RegionID)
 	k.SetDelegation(s.Ctx, other)
 
 	s.Require().NoError(k.SetRegionOperator(s.Ctx, old.Description.RegionID, newAddr.String()))
 	delegation.ValidatorAddress = newAddr.String()
-	actual, found := k.GetDelegation(s.Ctx, delegator, sdk.ValAddress{})
-	s.Require().True(found)
+	actual, err := k.GetDelegation(s.Ctx, delegator, sdk.ValAddress{})
+	s.Require().NoError(err)
 	s.Require().Equal(delegation, actual)
-	actual, found = k.GetDelegation(s.Ctx, s.TestAccs[2], sdk.ValAddress{})
-	s.Require().True(found)
+	actual, err = k.GetDelegation(s.Ctx, s.TestAccs[2], sdk.ValAddress{})
+	s.Require().NoError(err)
 	s.Require().Equal(other, actual)
 	// Replacement completes immediately; it does not leave a next-block marker.
 	s.Require().Empty(k.GetAllChangeDelegationValidator(s.Ctx))
@@ -163,7 +169,7 @@ func (s *KeeperTestSuite) TestUpdateValidatorUsesSourceRegionDelegations() {
 				s.setOperatorReplacementKYC(s.TestAccs[1], regionID)
 			}
 			k.SetRegion(s.Ctx, types.Region{RegionId: regionID, OperatorAddress: old.OperatorAddress, RegionShare: old.Tokens})
-			delegation := stakingtypes.NewDelegation(s.TestAccs[1], old.GetOperator(), sdk.OneDec())
+			delegation := stakingtypes.NewDelegation(s.TestAccs[1].String(), old.OperatorAddress, sdkmath.LegacyOneDec())
 			k.SetDelegation(s.Ctx, delegation)
 			newAddr := sdk.ValAddress(s.TestAccs[0])
 			_, err := s.msgServer.UpdateValidator(s.Ctx, &types.MsgUpdateValidator{
@@ -172,8 +178,8 @@ func (s *KeeperTestSuite) TestUpdateValidatorUsesSourceRegionDelegations() {
 			})
 			s.Require().NoError(err)
 			delegation.ValidatorAddress = newAddr.String()
-			actual, found := k.GetDelegation(s.Ctx, s.TestAccs[1], sdk.ValAddress{})
-			s.Require().True(found)
+			actual, err := k.GetDelegation(s.Ctx, s.TestAccs[1], sdk.ValAddress{})
+			s.Require().NoError(err)
 			s.Require().Equal(delegation, actual)
 			s.Require().Equal("ind", k.MustGetValidator(s.Ctx, newAddr).Description.RegionID)
 			s.Require().Empty(k.GetAllChangeDelegationValidator(s.Ctx))
@@ -190,22 +196,22 @@ func (s *KeeperTestSuite) TestResetValidatorReinitializesDistribution() {
 	d := s.App.DistrKeeper
 	// The product uses region treasury rewards. Restore the original validator
 	// lifecycle, not reward-period preservation under a different operator key.
-	d.SetValidatorCurrentRewards(s.Ctx, oldAddr, distrtypes.NewValidatorCurrentRewards(sdk.DecCoins{}, 9))
-	d.SetValidatorHistoricalRewards(s.Ctx, oldAddr, 8, distrtypes.NewValidatorHistoricalRewards(sdk.DecCoins{}, 1))
-	d.SetValidatorSlashEvent(s.Ctx, oldAddr, 10, 8, distrtypes.NewValidatorSlashEvent(8, sdk.ZeroDec()))
-	feePool := d.GetFeePool(s.Ctx)
+	s.Require().NoError(d.SetValidatorCurrentRewards(s.Ctx, oldAddr, distrtypes.NewValidatorCurrentRewards(sdk.DecCoins{}, 9)))
+	s.Require().NoError(d.SetValidatorHistoricalRewards(s.Ctx, oldAddr, 8, distrtypes.NewValidatorHistoricalRewards(sdk.DecCoins{}, 1)))
+	s.Require().NoError(d.SetValidatorSlashEvent(s.Ctx, oldAddr, 10, 8, distrtypes.NewValidatorSlashEvent(8, sdkmath.LegacyZeroDec())))
+	feePool := mustResetValue(d.FeePool.Get(s.Ctx))
 
 	s.Require().NoError(k.SetRegionOperator(s.Ctx, region.RegionId, newAddr.String()))
 	// Protobuf decodes empty repeated fields as nil, not sdk.DecCoins{}.
-	current := d.GetValidatorCurrentRewards(s.Ctx, newAddr)
+	current := mustResetValue(d.GetValidatorCurrentRewards(s.Ctx, newAddr))
 	s.Require().Equal(uint64(1), current.Period)
 	s.Require().Empty(current.Rewards)
-	historical := d.GetValidatorHistoricalRewards(s.Ctx, newAddr, 0)
+	historical := mustResetValue(d.GetValidatorHistoricalRewards(s.Ctx, newAddr, 0))
 	s.Require().Equal(uint32(1), historical.ReferenceCount)
 	s.Require().Empty(historical.CumulativeRewardRatio)
-	s.Require().True(d.GetValidatorOutstandingRewardsCoins(s.Ctx, newAddr).IsZero())
-	s.Require().True(d.GetValidatorAccumulatedCommission(s.Ctx, newAddr).Commission.IsZero())
-	s.Require().Equal(feePool, d.GetFeePool(s.Ctx))
+	s.Require().True(mustResetValue(d.GetValidatorOutstandingRewardsCoins(s.Ctx, newAddr)).IsZero())
+	s.Require().True(mustResetValue(d.GetValidatorAccumulatedCommission(s.Ctx, newAddr)).Commission.IsZero())
+	s.Require().Equal(feePool, mustResetValue(d.FeePool.Get(s.Ctx)))
 	store := s.Ctx.KVStore(s.App.GetKey(distrtypes.StoreKey))
 	for _, key := range [][]byte{
 		distrtypes.GetValidatorCurrentRewardsKey(oldAddr),
@@ -216,11 +222,12 @@ func (s *KeeperTestSuite) TestResetValidatorReinitializesDistribution() {
 	} {
 		s.Require().False(store.Has(key))
 	}
-	_, found := d.GetValidatorSlashEvent(s.Ctx, oldAddr, 10, 8)
+	_, found, err := d.GetValidatorSlashEvent(s.Ctx, oldAddr, 10, 8)
+	s.Require().NoError(err)
 	s.Require().False(found)
 	// The recreated distribution records remain usable by registered hooks.
 	s.Require().NotPanics(func() {
-		s.Require().NoError(k.Hooks().BeforeValidatorSlashed(s.Ctx, newAddr, sdk.ZeroDec()))
+		s.Require().NoError(k.Hooks().BeforeValidatorSlashed(s.Ctx, newAddr, sdkmath.LegacyZeroDec()))
 	})
 }
 
@@ -236,19 +243,19 @@ func (s *KeeperTestSuite) TestSetRegionOperatorAllowsOwnerWithDelegation() {
 			newAddr := sdk.ValAddress(newOwner)
 			delegationOperator := oldAddr
 			if name == "another operator" {
-				for _, validator := range k.GetAllValidators(s.Ctx) {
+				for _, validator := range mustResetValue(k.GetAllValidators(s.Ctx)) {
 					if validator.OperatorAddress != oldAddr.String() {
-						delegationOperator = validator.GetOperator()
+						delegationOperator = mustValidatorAddress(validator.OperatorAddress)
 						break
 					}
 				}
 				s.Require().NotEqual(oldAddr, delegationOperator)
 			}
 			// Demand staking does not prevent this account from becoming an operator.
-			delegation := stakingtypes.NewDelegation(newOwner, delegationOperator, sdk.NewDec(3))
-			delegation.Amount = sdk.NewInt(31)
-			delegation.UnMeidAmount = sdk.NewInt(55)
-			delegation.Unmovable = sdk.NewInt(7)
+			delegation := stakingtypes.NewDelegation(newOwner.String(), delegationOperator.String(), sdkmath.LegacyNewDec(3))
+			delegation.Amount = sdkmath.NewInt(31)
+			delegation.UnMeidAmount = sdkmath.NewInt(55)
+			delegation.Unmovable = sdkmath.NewInt(7)
 			delegation.StartHeight = 42
 			k.SetDelegation(s.Ctx, delegation)
 
@@ -257,8 +264,8 @@ func (s *KeeperTestSuite) TestSetRegionOperatorAllowsOwnerWithDelegation() {
 			if name == "old operator" {
 				delegation.ValidatorAddress = newAddr.String()
 			}
-			actual, found := k.GetDelegation(s.Ctx, newOwner, sdk.ValAddress{})
-			s.Require().True(found)
+			actual, err := k.GetDelegation(s.Ctx, newOwner, sdk.ValAddress{})
+			s.Require().NoError(err)
 			s.Require().Equal(delegation, actual)
 		})
 	}
@@ -278,7 +285,7 @@ func (s *KeeperTestSuite) TestSetRegionOperatorRejectsInvalidReplacement() {
 			case "same operator":
 				target = old.OperatorAddress
 			case "existing validator":
-				for _, v := range k.GetAllValidators(s.Ctx) {
+				for _, v := range mustResetValue(k.GetAllValidators(s.Ctx)) {
 					if v.OperatorAddress != old.OperatorAddress {
 						target = v.OperatorAddress
 						break
@@ -295,15 +302,15 @@ func (s *KeeperTestSuite) TestSetRegionOperatorRejectsInvalidReplacement() {
 				k.SetRegion(s.Ctx, region)
 			case "mismatched region":
 				old.Description.RegionID = "other"
-				k.SetValidator(s.Ctx, old)
+				s.Require().NoError(k.SetValidator(s.Ctx, old))
 			default:
 				s.setOccupiedOperatorTarget(name, mustValidatorAddress(target))
 			}
-			before := s.App.ExportState(s.Ctx)
+			before := s.operatorReplacementSnapshot()
 			events := len(s.Ctx.EventManager().Events())
 			err := k.SetRegionOperator(s.Ctx, regionID, target)
 			s.Require().Error(err)
-			s.Require().Equal(before, s.App.ExportState(s.Ctx))
+			s.Require().Equal(before, s.operatorReplacementSnapshot())
 			s.Require().Len(s.Ctx.EventManager().Events(), events)
 			switch name {
 			case "existing validator", "target unbonding delegation", "target last power":
@@ -318,9 +325,9 @@ func (s *KeeperTestSuite) setOccupiedOperatorTarget(name string, target sdk.ValA
 	end := s.Ctx.BlockTime().Add(time.Hour)
 	switch name {
 	case "target unbonding delegation":
-		k.SetUnbondingDelegationEntry(s.Ctx, s.TestAccs[1], target, 1, end, sdk.OneInt())
+		mustResetValue(k.SetUnbondingDelegationEntry(s.Ctx, s.TestAccs[1], target, 1, end, sdkmath.OneInt()))
 	case "target last power":
-		k.SetLastValidatorPower(s.Ctx, target, 1)
+		s.Require().NoError(k.SetLastValidatorPower(s.Ctx, target, 1))
 	default:
 		s.FailNow("unknown occupied target test", name)
 	}
@@ -331,14 +338,14 @@ func (s *KeeperTestSuite) TestResetValidatorKeepsJailedConsensusRemoval() {
 	k := s.Keeper()
 	region, _ := k.GetRegion(s.Ctx, types.ExperienceRegionId)
 	old := k.MustGetValidator(s.Ctx, mustValidatorAddress(region.OperatorAddress))
-	k.JailValidator(s.Ctx, old)
-	power := k.GetLastValidatorPower(s.Ctx, old.GetOperator())
+	s.Require().NoError(k.JailValidator(s.Ctx, old))
+	power := mustResetValue(k.GetLastValidatorPower(s.Ctx, mustValidatorAddress(old.OperatorAddress)))
 	s.Require().Positive(power)
 	newAddr := sdk.ValAddress(s.TestAccs[0])
 	s.Require().NoError(k.SetRegionOperator(s.Ctx, region.RegionId, newAddr.String()))
 	renamed := k.MustGetValidator(s.Ctx, newAddr)
 	s.Require().True(renamed.Jailed)
-	s.Require().Equal(power, k.GetLastValidatorPower(s.Ctx, newAddr))
+	s.Require().Equal(power, mustResetValue(k.GetLastValidatorPower(s.Ctx, newAddr)))
 	updates, err := k.ApplyAndReturnValidatorSetUpdates(s.Ctx)
 	s.Require().NoError(err)
 	s.Require().Len(updates, 1)
@@ -365,47 +372,47 @@ func (s *KeeperTestSuite) TestResetValidatorMigratesUnbondingState() {
 	old.UnbondingHeight = 10
 	old.UnbondingTime = end
 	old.UnbondingOnHoldRefCount = 1
-	old.UnbondingIds = []uint64{k.IncrementUnbondingID(s.Ctx)}
-	k.SetValidator(s.Ctx, old)
-	k.DeleteLastValidatorPower(s.Ctx, oldAddr)
-	k.InsertUnbondingValidatorQueue(s.Ctx, old)
-	k.SetValidatorByUnbondingID(s.Ctx, old, old.UnbondingIds[0])
-	ubd := k.SetUnbondingDelegationEntry(s.Ctx, delegator, oldAddr, 10, end, sdk.NewInt(13))
-	k.InsertUBDQueue(s.Ctx, ubd, end)
+	old.UnbondingIds = []uint64{mustResetValue(k.IncrementUnbondingID(s.Ctx))}
+	s.Require().NoError(k.SetValidator(s.Ctx, old))
+	s.Require().NoError(k.DeleteLastValidatorPower(s.Ctx, oldAddr))
+	s.Require().NoError(k.InsertUnbondingValidatorQueue(s.Ctx, old))
+	s.Require().NoError(k.SetValidatorByUnbondingID(s.Ctx, old, old.UnbondingIds[0]))
+	ubd := mustResetValue(k.SetUnbondingDelegationEntry(s.Ctx, delegator, oldAddr, 10, end, sdkmath.NewInt(13)))
+	s.Require().NoError(k.InsertUBDQueue(s.Ctx, ubd, end))
 
 	s.Require().NoError(k.SetRegionOperator(s.Ctx, region.RegionId, newAddr.String()))
 	moved := k.MustGetValidator(s.Ctx, newAddr)
 	s.Require().Equal(old.UnbondingIds, moved.UnbondingIds)
 	s.Require().Equal(old.UnbondingOnHoldRefCount, moved.UnbondingOnHoldRefCount)
 	s.Require().False(s.Ctx.KVStore(k.GetStoreKey()).Has(stakingtypes.GetLastValidatorPowerKey(newAddr)))
-	byID, found := k.GetValidatorByUnbondingID(s.Ctx, old.UnbondingIds[0])
-	s.Require().True(found)
+	byID, err := k.GetValidatorByUnbondingID(s.Ctx, old.UnbondingIds[0])
+	s.Require().NoError(err)
 	s.Require().Equal(moved, byID)
-	_, found = k.GetUnbondingDelegation(s.Ctx, delegator, oldAddr)
-	s.Require().False(found)
-	movedUBD, found := k.GetUnbondingDelegationByUnbondingID(s.Ctx, ubd.Entries[0].UnbondingId)
-	s.Require().True(found)
+	_, err = k.GetUnbondingDelegation(s.Ctx, delegator, oldAddr)
+	s.Require().Error(err)
+	movedUBD, err := k.GetUnbondingDelegationByUnbondingID(s.Ctx, ubd.Entries[0].UnbondingId)
+	s.Require().NoError(err)
 	ubd.ValidatorAddress = newAddr.String()
 	s.Require().Equal(ubd, movedUBD)
-	s.Require().Empty(k.GetUnbondingDelegationsFromValidator(s.Ctx, oldAddr))
-	s.Require().Equal([]stakingtypes.UnbondingDelegation{ubd}, k.GetUnbondingDelegationsFromValidator(s.Ctx, newAddr))
-	s.Require().Equal([]stakingtypes.DVPair{{DelegatorAddress: delegator.String(), ValidatorAddress: newAddr.String()}}, k.GetUBDQueueTimeSlice(s.Ctx, end))
+	s.Require().Empty(mustResetValue(k.GetUnbondingDelegationsFromValidator(s.Ctx, oldAddr)))
+	s.Require().Equal([]stakingtypes.UnbondingDelegation{ubd}, mustResetValue(k.GetUnbondingDelegationsFromValidator(s.Ctx, newAddr)))
+	s.Require().Equal([]stakingtypes.DVPair{{DelegatorAddress: delegator.String(), ValidatorAddress: newAddr.String()}}, mustResetValue(k.GetUBDQueueTimeSlice(s.Ctx, end)))
 	// Queue references must still complete normally after the address change.
 	coins := sdk.NewCoins(sdk.NewInt64Coin(params.BaseDenom, 13))
 	s.App.AccountKeeper.SetAccount(s.Ctx, s.App.AccountKeeper.NewAccountWithAddress(s.Ctx, delegator))
 	s.Require().NoError(s.App.BankKeeper.MintCoins(s.Ctx, minttypes.ModuleName, coins))
 	s.Require().NoError(s.App.BankKeeper.SendCoinsFromModuleToModule(s.Ctx, minttypes.ModuleName, stakingtypes.NotBondedPoolName, coins))
 	s.Ctx = s.Ctx.WithBlockTime(end).WithBlockHeight(100)
-	pairs := k.DequeueAllMatureUBDQueue(s.Ctx, end)
+	pairs := mustResetValue(k.DequeueAllMatureUBDQueue(s.Ctx, end))
 	s.Require().Len(pairs, 1)
 	paid, err := k.CompleteUnbonding(s.Ctx, delegator, mustValidatorAddress(pairs[0].ValidatorAddress))
 	s.Require().NoError(err)
 	s.Require().Equal(coins, paid)
 	// On-hold validator remains queued; releasing the hold permits completion.
-	k.UnbondAllMatureValidators(s.Ctx)
+	s.Require().NoError(k.UnbondAllMatureValidators(s.Ctx))
 	s.Require().True(k.MustGetValidator(s.Ctx, newAddr).IsUnbonding())
 	s.Require().NoError(k.UnbondingCanComplete(s.Ctx, old.UnbondingIds[0]))
-	k.UnbondAllMatureValidators(s.Ctx)
+	s.Require().NoError(k.UnbondAllMatureValidators(s.Ctx))
 	s.Require().True(k.MustGetValidator(s.Ctx, newAddr).IsUnbonded())
 }
 
@@ -425,12 +432,12 @@ func (s *KeeperTestSuite) TestResetValidatorBatchesSharedUnbondingQueue() {
 	unbondings := make([]stakingtypes.UnbondingDelegation, 0, count)
 	queue := make([]stakingtypes.DVPair, 0, count*2+2)
 	for _, delegator := range delegators {
-		k.SetStake(s.Ctx, types.NewStake(delegator, oldAddr, sdk.OneDec()))
-		k.SetDelegation(s.Ctx, stakingtypes.NewDelegation(delegator, oldAddr, sdk.OneDec()))
-		k.SetUnbondingDelegationEntry(s.Ctx, delegator, oldAddr, 10, end, sdk.OneInt())
-		k.SetUnbondingDelegationEntry(s.Ctx, delegator, oldAddr, 11, end, sdk.OneInt())
-		k.SetUnbondingDelegationEntry(s.Ctx, delegator, oldAddr, 12, later, sdk.OneInt())
-		ubd := k.SetUnbondingDelegationEntry(s.Ctx, delegator, oldAddr, 13, missing, sdk.OneInt())
+		k.SetStake(s.Ctx, types.NewStake(delegator, oldAddr, sdkmath.LegacyOneDec()))
+		k.SetDelegation(s.Ctx, stakingtypes.NewDelegation(delegator.String(), oldAddr.String(), sdkmath.LegacyOneDec()))
+		mustResetValue(k.SetUnbondingDelegationEntry(s.Ctx, delegator, oldAddr, 10, end, sdkmath.OneInt()))
+		mustResetValue(k.SetUnbondingDelegationEntry(s.Ctx, delegator, oldAddr, 11, end, sdkmath.OneInt()))
+		mustResetValue(k.SetUnbondingDelegationEntry(s.Ctx, delegator, oldAddr, 12, later, sdkmath.OneInt()))
+		ubd := mustResetValue(k.SetUnbondingDelegationEntry(s.Ctx, delegator, oldAddr, 13, missing, sdkmath.OneInt()))
 		unbondings = append(unbondings, ubd)
 		pair := stakingtypes.DVPair{DelegatorAddress: delegator.String(), ValidatorAddress: oldAddr.String()}
 		queue = append(queue, pair, pair) // Preserve duplicate references and ordering.
@@ -440,24 +447,24 @@ func (s *KeeperTestSuite) TestResetValidatorBatchesSharedUnbondingQueue() {
 		stakingtypes.DVPair{DelegatorAddress: delegators[0].String(), ValidatorAddress: other.String()},
 		stakingtypes.DVPair{DelegatorAddress: s.TestAccs[2].String(), ValidatorAddress: oldAddr.String()},
 	)
-	k.SetUBDQueueTimeSlice(s.Ctx, end, queue)
-	k.SetUBDQueueTimeSlice(s.Ctx, later, queue)
-	unrelatedStake := types.NewStake(s.TestAccs[2], other, sdk.NewDec(3))
-	unrelatedDelegation := stakingtypes.NewDelegation(s.TestAccs[2], other, sdk.NewDec(4))
+	s.Require().NoError(k.SetUBDQueueTimeSlice(s.Ctx, end, queue))
+	s.Require().NoError(k.SetUBDQueueTimeSlice(s.Ctx, later, queue))
+	unrelatedStake := types.NewStake(s.TestAccs[2], other, sdkmath.LegacyNewDec(3))
+	unrelatedDelegation := stakingtypes.NewDelegation(s.TestAccs[2].String(), other.String(), sdkmath.LegacyNewDec(4))
 	k.SetStake(s.Ctx, unrelatedStake)
 	k.SetDelegation(s.Ctx, unrelatedDelegation)
 	s.Require().NoError(k.SetRegionOperator(s.Ctx, region.RegionId, newAddr.String()))
 	for i := range queue[:count*2] {
 		queue[i].ValidatorAddress = newAddr.String()
 	}
-	s.Require().Equal(queue, k.GetUBDQueueTimeSlice(s.Ctx, end))
-	s.Require().Equal(queue, k.GetUBDQueueTimeSlice(s.Ctx, later))
+	s.Require().Equal(queue, mustResetValue(k.GetUBDQueueTimeSlice(s.Ctx, end)))
+	s.Require().Equal(queue, mustResetValue(k.GetUBDQueueTimeSlice(s.Ctx, later)))
 	s.Require().False(s.Ctx.KVStore(k.GetStoreKey()).Has(stakingtypes.GetUnbondingDelegationTimeKey(missing)))
 	for _, ubd := range unbondings {
 		ubd.ValidatorAddress = newAddr.String()
 		for _, entry := range ubd.Entries {
-			moved, found := k.GetUnbondingDelegationByUnbondingID(s.Ctx, entry.UnbondingId)
-			s.Require().True(found)
+			moved, err := k.GetUnbondingDelegationByUnbondingID(s.Ctx, entry.UnbondingId)
+			s.Require().NoError(err)
 			s.Require().Equal(ubd, moved)
 		}
 		delegator := sdk.MustAccAddressFromBech32(ubd.DelegatorAddress)
@@ -465,17 +472,17 @@ func (s *KeeperTestSuite) TestResetValidatorBatchesSharedUnbondingQueue() {
 		s.Require().False(found)
 		stake, found := k.GetStake(s.Ctx, delegator, newAddr)
 		s.Require().True(found)
-		s.Require().Equal(types.NewStake(delegator, newAddr, sdk.OneDec()), stake)
-		delegation, found := k.GetDelegation(s.Ctx, delegator, newAddr)
-		s.Require().True(found)
-		s.Require().Equal(stakingtypes.NewDelegation(delegator, newAddr, sdk.OneDec()), delegation)
+		s.Require().Equal(types.NewStake(delegator, newAddr, sdkmath.LegacyOneDec()), stake)
+		delegation, err := k.GetDelegation(s.Ctx, delegator, newAddr)
+		s.Require().NoError(err)
+		s.Require().Equal(stakingtypes.NewDelegation(delegator.String(), newAddr.String(), sdkmath.LegacyOneDec()), delegation)
 	}
-	s.Require().Empty(k.GetUnbondingDelegationsFromValidator(s.Ctx, oldAddr))
+	s.Require().Empty(mustResetValue(k.GetUnbondingDelegationsFromValidator(s.Ctx, oldAddr)))
 	stake, found := k.GetStake(s.Ctx, s.TestAccs[2], other)
 	s.Require().True(found)
 	s.Require().Equal(unrelatedStake, stake)
-	delegation, found := k.GetDelegation(s.Ctx, s.TestAccs[2], other)
-	s.Require().True(found)
+	delegation, err := k.GetDelegation(s.Ctx, s.TestAccs[2], other)
+	s.Require().NoError(err)
 	s.Require().Equal(unrelatedDelegation, delegation)
 }
 
@@ -497,11 +504,11 @@ func (s *KeeperTestSuite) TestResetValidatorRejectsPendingConsensusRotation() {
 				_, err = k.UpdateValidatorPubKey(s.Ctx.WithBlockHeight(info.UpdateAtHeight))
 				s.Require().NoError(err)
 			}
-			before := s.App.ExportState(s.Ctx)
+			before := s.operatorReplacementSnapshot()
 			events := len(s.Ctx.EventManager().Events())
 			err = k.SetRegionOperator(s.Ctx, region.RegionId, sdk.ValAddress(s.TestAccs[0]).String())
 			s.Require().ErrorIs(err, types.ErrExistingReplaceValidator)
-			s.Require().Equal(before, s.App.ExportState(s.Ctx))
+			s.Require().Equal(before, s.operatorReplacementSnapshot())
 			s.Require().Len(s.Ctx.EventManager().Events(), events)
 		})
 	}
@@ -509,7 +516,7 @@ func (s *KeeperTestSuite) TestResetValidatorRejectsPendingConsensusRotation() {
 
 type failingValidatorCreationHook struct{ stakingtypes.MultiStakingHooks }
 
-func (failingValidatorCreationHook) AfterValidatorCreated(sdk.Context, sdk.ValAddress) error {
+func (failingValidatorCreationHook) AfterValidatorCreated(context.Context, sdk.ValAddress) error {
 	return errors.New("injected validator creation failure")
 }
 
@@ -521,34 +528,34 @@ func (s *KeeperTestSuite) TestResetValidatorRollsBackPositionMigration() {
 	oldAddr := mustValidatorAddress(region.OperatorAddress)
 	end := s.Ctx.BlockTime().Add(time.Hour)
 	for _, delegator := range s.TestAccs[1:] {
-		ubd := k.SetUnbondingDelegationEntry(s.Ctx, delegator, oldAddr, 10, end, sdk.OneInt())
-		k.InsertUBDQueue(s.Ctx, ubd, end)
+		ubd := mustResetValue(k.SetUnbondingDelegationEntry(s.Ctx, delegator, oldAddr, 10, end, sdkmath.OneInt()))
+		s.Require().NoError(k.InsertUBDQueue(s.Ctx, ubd, end))
 	}
-	queueBefore := k.GetUBDQueueTimeSlice(s.Ctx, end)
-	unbondingsBefore := k.GetUnbondingDelegationsFromValidator(s.Ctx, oldAddr)
+	queueBefore := mustResetValue(k.GetUBDQueueTimeSlice(s.Ctx, end))
+	unbondingsBefore := mustResetValue(k.GetUnbondingDelegationsFromValidator(s.Ctx, oldAddr))
 	// Genesis export omits queue keys and secondary indexes; check them explicitly.
 	assertUnbondingRollback := func() {
-		s.Require().Equal(queueBefore, k.GetUBDQueueTimeSlice(s.Ctx, end))
-		s.Require().Equal(unbondingsBefore, k.GetUnbondingDelegationsFromValidator(s.Ctx, oldAddr))
-		s.Require().Empty(k.GetUnbondingDelegationsFromValidator(s.Ctx, target))
+		s.Require().Equal(queueBefore, mustResetValue(k.GetUBDQueueTimeSlice(s.Ctx, end)))
+		s.Require().Equal(unbondingsBefore, mustResetValue(k.GetUnbondingDelegationsFromValidator(s.Ctx, oldAddr)))
+		s.Require().Empty(mustResetValue(k.GetUnbondingDelegationsFromValidator(s.Ctx, target)))
 		for _, ubd := range unbondingsBefore {
 			for _, entry := range ubd.Entries {
-				byID, found := k.GetUnbondingDelegationByUnbondingID(s.Ctx, entry.UnbondingId)
-				s.Require().True(found)
+				byID, err := k.GetUnbondingDelegationByUnbondingID(s.Ctx, entry.UnbondingId)
+				s.Require().NoError(err)
 				s.Require().Equal(ubd, byID)
 			}
 		}
 	}
 	// Fail creation after position/queue writes and the normal lifecycle hooks ran.
-	replacement := stakingkeeper.NewKeeper(k.GetCdc(), k.GetStoreKey(), s.App.AccountKeeper, s.App.BankKeeper, k.GetAuthority())
+	replacement := stakingkeeper.NewKeeper(k.GetCdc(), runtime.NewKVStoreService(k.GetStoreKey().(*storetypes.KVStoreKey)), s.App.AccountKeeper, s.App.BankKeeper, k.GetAuthority(), k.ValidatorAddressCodec(), k.ConsensusAddressCodec())
 	replacement.SetHooks(stakingtypes.NewMultiStakingHooks(k.Hooks(), failingValidatorCreationHook{}))
 	originalKeeper := k.Keeper
 	k.Keeper = replacement
 	defer func() { k.Keeper = originalKeeper }()
-	before := s.App.ExportState(s.Ctx)
+	before := s.operatorReplacementSnapshot()
 	events := len(s.Ctx.EventManager().Events())
 	s.Require().ErrorContains(k.SetRegionOperator(s.Ctx, region.RegionId, target.String()), "injected validator creation failure")
-	s.Require().Equal(before, s.App.ExportState(s.Ctx))
+	s.Require().Equal(before, s.operatorReplacementSnapshot())
 	s.Require().Len(s.Ctx.EventManager().Events(), events)
 	assertUnbondingRollback()
 	// UpdateValidator also rolls back description/region edits made before reset.
@@ -557,7 +564,7 @@ func (s *KeeperTestSuite) TestResetValidatorRollsBackPositionMigration() {
 		Description: stakingtypes.Description{RegionID: "ind"},
 	})
 	s.Require().Error(err)
-	s.Require().Equal(before, s.App.ExportState(s.Ctx))
+	s.Require().Equal(before, s.operatorReplacementSnapshot())
 	s.Require().Len(s.Ctx.EventManager().Events(), events)
 	assertUnbondingRollback()
 }
@@ -584,8 +591,32 @@ func (s *KeeperTestSuite) TestUpdateValidatorResetsAllStakes() {
 	})
 	s.Require().NoError(err)
 	s.Require().NotNil(response)
-	_, found = s.Keeper().GetValidator(s.Ctx, oldAddr)
-	s.Require().False(found)
+	_, err = s.Keeper().GetValidator(s.Ctx, oldAddr)
+	s.Require().Error(err)
 	validator := s.Keeper().MustGetValidator(s.Ctx, sdk.ValAddress(s.TestAccs[0]))
 	s.Require().Equal(region.RegionId, validator.Description.RegionID)
+}
+
+// Snapshot raw stores, including queues and secondary indexes. Genesis export
+// depends on unrelated module initialization and omits several migration keys.
+func (s *KeeperTestSuite) operatorReplacementSnapshot() map[string]map[string]string {
+	result := make(map[string]map[string]string)
+	for name, key := range s.App.GetKVStoreKeys() {
+		values := make(map[string]string)
+		iterator := s.Ctx.KVStore(key).Iterator(nil, nil)
+		for ; iterator.Valid(); iterator.Next() {
+			values[string(iterator.Key())] = string(iterator.Value())
+		}
+		s.Require().NoError(iterator.Close())
+		result[name] = values
+	}
+	return result
+}
+
+// mustResetValue unwraps SDK v0.50 keeper results in assertions and setup.
+func mustResetValue[T any](value T, err error) T {
+	if err != nil {
+		panic(err)
+	}
+	return value
 }

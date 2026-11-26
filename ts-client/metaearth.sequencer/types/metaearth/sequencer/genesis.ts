@@ -18,12 +18,23 @@ export interface GenesisState {
   params:
     | Params
     | undefined;
-  /** this line is used by starport scaffolding # genesis/proto/state */
+  /** sequencerList is a list of all defined sequencers */
   sequencerList: Sequencer[];
+  /** genesisProposers is a list of the defined genesis proposers */
+  genesisProposers: GenesisProposer[];
+  /** genesisSuccessor is a list of the defined genesis proposers */
+  genesisSuccessors: GenesisProposer[];
+  /** list of sequencers in the notice queue */
+  noticeQueue: string[];
+}
+
+export interface GenesisProposer {
+  address: string;
+  rollappId: string;
 }
 
 function createBaseGenesisState(): GenesisState {
-  return { params: undefined, sequencerList: [] };
+  return { params: undefined, sequencerList: [], genesisProposers: [], genesisSuccessors: [], noticeQueue: [] };
 }
 
 export const GenesisState: MessageFns<GenesisState> = {
@@ -33,6 +44,15 @@ export const GenesisState: MessageFns<GenesisState> = {
     }
     for (const v of message.sequencerList) {
       Sequencer.encode(v!, writer.uint32(18).fork()).join();
+    }
+    for (const v of message.genesisProposers) {
+      GenesisProposer.encode(v!, writer.uint32(26).fork()).join();
+    }
+    for (const v of message.genesisSuccessors) {
+      GenesisProposer.encode(v!, writer.uint32(42).fork()).join();
+    }
+    for (const v of message.noticeQueue) {
+      writer.uint32(34).string(v!);
     }
     return writer;
   },
@@ -66,6 +86,30 @@ export const GenesisState: MessageFns<GenesisState> = {
             message.sequencerList.push(Sequencer.decode(reader, reader.uint32()));
             continue;
           }
+          case 3: {
+            if (tag !== 26) {
+              break;
+            }
+
+            message.genesisProposers.push(GenesisProposer.decode(reader, reader.uint32()));
+            continue;
+          }
+          case 5: {
+            if (tag !== 42) {
+              break;
+            }
+
+            message.genesisSuccessors.push(GenesisProposer.decode(reader, reader.uint32()));
+            continue;
+          }
+          case 4: {
+            if (tag !== 34) {
+              break;
+            }
+
+            message.noticeQueue.push(reader.string());
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -84,6 +128,15 @@ export const GenesisState: MessageFns<GenesisState> = {
       sequencerList: globalThis.Array.isArray(object?.sequencerList)
         ? object.sequencerList.map((e: any) => Sequencer.fromJSON(e))
         : [],
+      genesisProposers: globalThis.Array.isArray(object?.genesisProposers)
+        ? object.genesisProposers.map((e: any) => GenesisProposer.fromJSON(e))
+        : [],
+      genesisSuccessors: globalThis.Array.isArray(object?.genesisSuccessors)
+        ? object.genesisSuccessors.map((e: any) => GenesisProposer.fromJSON(e))
+        : [],
+      noticeQueue: globalThis.Array.isArray(object?.noticeQueue)
+        ? object.noticeQueue.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -94,6 +147,15 @@ export const GenesisState: MessageFns<GenesisState> = {
     }
     if (message.sequencerList?.length) {
       obj.sequencerList = message.sequencerList.map((e) => Sequencer.toJSON(e));
+    }
+    if (message.genesisProposers?.length) {
+      obj.genesisProposers = message.genesisProposers.map((e) => GenesisProposer.toJSON(e));
+    }
+    if (message.genesisSuccessors?.length) {
+      obj.genesisSuccessors = message.genesisSuccessors.map((e) => GenesisProposer.toJSON(e));
+    }
+    if (message.noticeQueue?.length) {
+      obj.noticeQueue = message.noticeQueue;
     }
     return obj;
   },
@@ -107,6 +169,94 @@ export const GenesisState: MessageFns<GenesisState> = {
       ? Params.fromPartial(object.params)
       : undefined;
     message.sequencerList = object.sequencerList?.map((e) => Sequencer.fromPartial(e)) || [];
+    message.genesisProposers = object.genesisProposers?.map((e) => GenesisProposer.fromPartial(e)) || [];
+    message.genesisSuccessors = object.genesisSuccessors?.map((e) => GenesisProposer.fromPartial(e)) || [];
+    message.noticeQueue = object.noticeQueue?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseGenesisProposer(): GenesisProposer {
+  return { address: "", rollappId: "" };
+}
+
+export const GenesisProposer: MessageFns<GenesisProposer> = {
+  encode(message: GenesisProposer, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    if (message.rollappId !== "") {
+      writer.uint32(18).string(message.rollappId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GenesisProposer {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseGenesisProposer();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.address = reader.string();
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.rollappId = reader.string();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): GenesisProposer {
+    return {
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
+      rollappId: isSet(object.rollappId) ? globalThis.String(object.rollappId) : "",
+    };
+  },
+
+  toJSON(message: GenesisProposer): unknown {
+    const obj: any = {};
+    if (message.address !== "") {
+      obj.address = message.address;
+    }
+    if (message.rollappId !== "") {
+      obj.rollappId = message.rollappId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GenesisProposer>, I>>(base?: I): GenesisProposer {
+    return GenesisProposer.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GenesisProposer>, I>>(object: I): GenesisProposer {
+    const message = createBaseGenesisProposer();
+    message.address = object.address ?? "";
+    message.rollappId = object.rollappId ?? "";
     return message;
   },
 };

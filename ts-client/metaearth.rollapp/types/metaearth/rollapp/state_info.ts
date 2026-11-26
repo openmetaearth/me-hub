@@ -6,6 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
+import { Timestamp } from "../../google/protobuf/timestamp";
 import { Status, statusFromJSON, statusToJSON } from "../common/status";
 import { BlockDescriptors } from "./block_descriptor";
 
@@ -54,8 +55,6 @@ export interface StateInfo {
   numBlocks: number;
   /** DAPath is the description of the location on the DA layer */
   DAPath: string;
-  /** version is the version of the rollapp */
-  version: number;
   /** creationHeight is the height at which the UpdateState took place */
   creationHeight: number;
   /** status is the status of the state update */
@@ -65,7 +64,19 @@ export interface StateInfo {
    * the list must be ordered by height, starting from startHeight to
    * startHeight+numBlocks-1
    */
-  BDs: BlockDescriptors | undefined;
+  BDs:
+    | BlockDescriptors
+    | undefined;
+  /** created_at is the timestamp at which the StateInfo was created */
+  createdAt:
+    | Date
+    | undefined;
+  /**
+   * NextProposer is the bech32-encoded address of the proposer that we expect
+   * to see in the next state info. Most of the time NextProposer is the current
+   * proposer. In case of rotation it is changed to the successor.
+   */
+  nextProposer: string;
 }
 
 /** StateInfoSummary is a compact representation of StateInfo */
@@ -88,13 +99,15 @@ export interface StateInfoSummary {
  * states to finalized
  */
 export interface BlockHeightToFinalizationQueue {
-  /** creationHeight is the block height that the state should be finalized */
+  /** CreationHeight is the block height that the state should be finalized */
   creationHeight: number;
   /**
-   * finalizationQueue is a list of states that are waiting to be finalized
+   * FinalizationQueue is a list of states that are waiting to be finalized
    * when the block height becomes creationHeight
    */
   finalizationQueue: StateInfoIndex[];
+  /** RollappID is the rollapp which the queue belongs to */
+  rollappId: string;
 }
 
 function createBaseStateInfoIndex(): StateInfoIndex {
@@ -189,10 +202,11 @@ function createBaseStateInfo(): StateInfo {
     startHeight: 0,
     numBlocks: 0,
     DAPath: "",
-    version: 0,
     creationHeight: 0,
     status: 0,
     BDs: undefined,
+    createdAt: undefined,
+    nextProposer: "",
   };
 }
 
@@ -213,9 +227,6 @@ export const StateInfo: MessageFns<StateInfo> = {
     if (message.DAPath !== "") {
       writer.uint32(42).string(message.DAPath);
     }
-    if (message.version !== 0) {
-      writer.uint32(48).uint64(message.version);
-    }
     if (message.creationHeight !== 0) {
       writer.uint32(56).uint64(message.creationHeight);
     }
@@ -224,6 +235,12 @@ export const StateInfo: MessageFns<StateInfo> = {
     }
     if (message.BDs !== undefined) {
       BlockDescriptors.encode(message.BDs, writer.uint32(74).fork()).join();
+    }
+    if (message.createdAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(82).fork()).join();
+    }
+    if (message.nextProposer !== "") {
+      writer.uint32(90).string(message.nextProposer);
     }
     return writer;
   },
@@ -281,14 +298,6 @@ export const StateInfo: MessageFns<StateInfo> = {
             message.DAPath = reader.string();
             continue;
           }
-          case 6: {
-            if (tag !== 48) {
-              break;
-            }
-
-            message.version = longToNumber(reader.uint64());
-            continue;
-          }
           case 7: {
             if (tag !== 56) {
               break;
@@ -313,6 +322,22 @@ export const StateInfo: MessageFns<StateInfo> = {
             message.BDs = BlockDescriptors.decode(reader, reader.uint32());
             continue;
           }
+          case 10: {
+            if (tag !== 82) {
+              break;
+            }
+
+            message.createdAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+            continue;
+          }
+          case 11: {
+            if (tag !== 90) {
+              break;
+            }
+
+            message.nextProposer = reader.string();
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -332,10 +357,15 @@ export const StateInfo: MessageFns<StateInfo> = {
       startHeight: isSet(object.startHeight) ? globalThis.Number(object.startHeight) : 0,
       numBlocks: isSet(object.numBlocks) ? globalThis.Number(object.numBlocks) : 0,
       DAPath: isSet(object.DAPath) ? globalThis.String(object.DAPath) : "",
-      version: isSet(object.version) ? globalThis.Number(object.version) : 0,
       creationHeight: isSet(object.creationHeight) ? globalThis.Number(object.creationHeight) : 0,
       status: isSet(object.status) ? statusFromJSON(object.status) : 0,
       BDs: isSet(object.BDs) ? BlockDescriptors.fromJSON(object.BDs) : undefined,
+      createdAt: isSet(object.createdAt)
+        ? fromJsonTimestamp(object.createdAt)
+        : isSet(object.created_at)
+        ? fromJsonTimestamp(object.created_at)
+        : undefined,
+      nextProposer: isSet(object.nextProposer) ? globalThis.String(object.nextProposer) : "",
     };
   },
 
@@ -356,9 +386,6 @@ export const StateInfo: MessageFns<StateInfo> = {
     if (message.DAPath !== "") {
       obj.DAPath = message.DAPath;
     }
-    if (message.version !== 0) {
-      obj.version = Math.round(message.version);
-    }
     if (message.creationHeight !== 0) {
       obj.creationHeight = Math.round(message.creationHeight);
     }
@@ -367,6 +394,12 @@ export const StateInfo: MessageFns<StateInfo> = {
     }
     if (message.BDs !== undefined) {
       obj.BDs = BlockDescriptors.toJSON(message.BDs);
+    }
+    if (message.createdAt !== undefined) {
+      obj.createdAt = message.createdAt.toISOString();
+    }
+    if (message.nextProposer !== "") {
+      obj.nextProposer = message.nextProposer;
     }
     return obj;
   },
@@ -383,12 +416,13 @@ export const StateInfo: MessageFns<StateInfo> = {
     message.startHeight = object.startHeight ?? 0;
     message.numBlocks = object.numBlocks ?? 0;
     message.DAPath = object.DAPath ?? "";
-    message.version = object.version ?? 0;
     message.creationHeight = object.creationHeight ?? 0;
     message.status = object.status ?? 0;
     message.BDs = (object.BDs !== undefined && object.BDs !== null)
       ? BlockDescriptors.fromPartial(object.BDs)
       : undefined;
+    message.createdAt = object.createdAt ?? undefined;
+    message.nextProposer = object.nextProposer ?? "";
     return message;
   },
 };
@@ -497,7 +531,7 @@ export const StateInfoSummary: MessageFns<StateInfoSummary> = {
 };
 
 function createBaseBlockHeightToFinalizationQueue(): BlockHeightToFinalizationQueue {
-  return { creationHeight: 0, finalizationQueue: [] };
+  return { creationHeight: 0, finalizationQueue: [], rollappId: "" };
 }
 
 export const BlockHeightToFinalizationQueue: MessageFns<BlockHeightToFinalizationQueue> = {
@@ -507,6 +541,9 @@ export const BlockHeightToFinalizationQueue: MessageFns<BlockHeightToFinalizatio
     }
     for (const v of message.finalizationQueue) {
       StateInfoIndex.encode(v!, writer.uint32(18).fork()).join();
+    }
+    if (message.rollappId !== "") {
+      writer.uint32(26).string(message.rollappId);
     }
     return writer;
   },
@@ -540,6 +577,14 @@ export const BlockHeightToFinalizationQueue: MessageFns<BlockHeightToFinalizatio
             message.finalizationQueue.push(StateInfoIndex.decode(reader, reader.uint32()));
             continue;
           }
+          case 3: {
+            if (tag !== 26) {
+              break;
+            }
+
+            message.rollappId = reader.string();
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -558,6 +603,11 @@ export const BlockHeightToFinalizationQueue: MessageFns<BlockHeightToFinalizatio
       finalizationQueue: globalThis.Array.isArray(object?.finalizationQueue)
         ? object.finalizationQueue.map((e: any) => StateInfoIndex.fromJSON(e))
         : [],
+      rollappId: isSet(object.rollappId)
+        ? globalThis.String(object.rollappId)
+        : isSet(object.rollapp_id)
+        ? globalThis.String(object.rollapp_id)
+        : "",
     };
   },
 
@@ -568,6 +618,9 @@ export const BlockHeightToFinalizationQueue: MessageFns<BlockHeightToFinalizatio
     }
     if (message.finalizationQueue?.length) {
       obj.finalizationQueue = message.finalizationQueue.map((e) => StateInfoIndex.toJSON(e));
+    }
+    if (message.rollappId !== "") {
+      obj.rollappId = message.rollappId;
     }
     return obj;
   },
@@ -581,6 +634,7 @@ export const BlockHeightToFinalizationQueue: MessageFns<BlockHeightToFinalizatio
     const message = createBaseBlockHeightToFinalizationQueue();
     message.creationHeight = object.creationHeight ?? 0;
     message.finalizationQueue = object.finalizationQueue?.map((e) => StateInfoIndex.fromPartial(e)) || [];
+    message.rollappId = object.rollappId ?? "";
     return message;
   },
 };
@@ -599,6 +653,28 @@ export type Exact<P, I> = P extends Builtin ? P
     & P
     & { [K in keyof P as Extract<K, keyof I>]: Exact<P[K], I[K & keyof I]> }
     & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function toTimestamp(date: Date): Timestamp {
+  const seconds = Math.trunc(date.getTime() / 1_000);
+  const nanos = (date.getTime() % 1_000) * 1_000_000;
+  return { seconds, nanos };
+}
+
+function fromTimestamp(t: Timestamp): Date {
+  let millis = (t.seconds || 0) * 1_000;
+  millis += (t.nanos || 0) / 1_000_000;
+  return new globalThis.Date(millis);
+}
+
+function fromJsonTimestamp(o: any): Date {
+  if (o instanceof globalThis.Date) {
+    return o;
+  } else if (typeof o === "string") {
+    return new globalThis.Date(o);
+  } else {
+    return fromTimestamp(Timestamp.fromJSON(o));
+  }
+}
 
 function longToNumber(int64: { toString(): string }): number {
   const num = globalThis.Number(int64.toString());

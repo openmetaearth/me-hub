@@ -48,8 +48,10 @@ func newTxCommand(use, short string, args cobra.PositionalArgs, build txMessageB
 			if err != nil {
 				return err
 			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
+			if msg, ok := msg.(sdk.HasValidateBasic); ok {
+				if err := msg.ValidateBasic(); err != nil {
+					return err
+				}
 			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

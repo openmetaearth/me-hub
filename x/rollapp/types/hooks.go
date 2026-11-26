@@ -11,11 +11,13 @@ import (
 
 // RollappHooks event hooks for rollapp object (noalias)
 type RollappHooks interface {
-	BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string) error                // Must be called when a rollapp's state changes
-	AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *StateInfo) error // Must be called when a rollapp's state changes
-	FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error
-	RollappCreated(ctx sdk.Context, rollappID string) error
-	ProcPendingStates(ctx sdk.Context, rollappID, creator string, stateInfo *StateInfo) error
+	BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateUpdateBySequencer bool) error // Must be called when a rollapp's state changes
+	AfterUpdateState(ctx sdk.Context, stateInfo *StateInfoMeta) error                                    // Must be called when a rollapp's state changes
+	AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *StateInfo) error                   // Must be called when a rollapp's state changes
+	RollappCreated(ctx sdk.Context, rollappID, alias string, creator sdk.AccAddress, feeDenom string) error
+	AfterTransfersEnabled(ctx sdk.Context, rollappID, rollappIBCDenom string) error
+
+	OnHardFork(ctx sdk.Context, rollappID string, height uint64) error
 }
 
 var _ RollappHooks = MultiRollappHooks{}
@@ -28,9 +30,19 @@ func NewMultiRollappHooks(hooks ...RollappHooks) MultiRollappHooks {
 	return hooks
 }
 
-func (h MultiRollappHooks) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string) error {
+func (h MultiRollappHooks) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateUpdateBySequencer bool) error {
 	for i := range h {
-		err := h[i].BeforeUpdateState(ctx, seqAddr, rollappId)
+		err := h[i].BeforeUpdateState(ctx, seqAddr, rollappId, lastStateUpdateBySequencer)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (h MultiRollappHooks) AfterUpdateState(ctx sdk.Context, stateInfo *StateInfoMeta) error {
+	for i := range h {
+		err := h[i].AfterUpdateState(ctx, stateInfo)
 		if err != nil {
 			return err
 		}
@@ -48,9 +60,9 @@ func (h MultiRollappHooks) AfterStateFinalized(ctx sdk.Context, rollappID string
 	return nil
 }
 
-func (h MultiRollappHooks) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
+func (h MultiRollappHooks) OnHardFork(ctx sdk.Context, rollappID string, lastValidHeight uint64) error {
 	for i := range h {
-		err := h[i].FraudSubmitted(ctx, rollappID, height, seqAddr)
+		err := h[i].OnHardFork(ctx, rollappID, lastValidHeight)
 		if err != nil {
 			return err
 		}
@@ -59,9 +71,9 @@ func (h MultiRollappHooks) FraudSubmitted(ctx sdk.Context, rollappID string, hei
 }
 
 // RollappCreated implements RollappHooks.
-func (h MultiRollappHooks) RollappCreated(ctx sdk.Context, rollappID string) error {
+func (h MultiRollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, creatorAddr sdk.AccAddress, feeDenom string) error {
 	for i := range h {
-		err := h[i].RollappCreated(ctx, rollappID)
+		err := h[i].RollappCreated(ctx, rollappID, alias, creatorAddr, feeDenom)
 		if err != nil {
 			return err
 		}
@@ -69,12 +81,31 @@ func (h MultiRollappHooks) RollappCreated(ctx sdk.Context, rollappID string) err
 	return nil
 }
 
-func (h MultiRollappHooks) ProcPendingStates(ctx sdk.Context, rollappID, creator string, stateInfo *StateInfo) error {
+func (h MultiRollappHooks) AfterTransfersEnabled(ctx sdk.Context, rollappID, rollappIBCDenom string) error {
 	for i := range h {
-		err := h[i].ProcPendingStates(ctx, rollappID, creator, stateInfo)
+		err := h[i].AfterTransfersEnabled(ctx, rollappID, rollappIBCDenom)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
 }
+
+var _ RollappHooks = &StubRollappCreatedHooks{}
+
+type StubRollappCreatedHooks struct{}
+
+func (StubRollappCreatedHooks) RollappCreated(sdk.Context, string, string, sdk.AccAddress, string) error {
+	return nil
+}
+
+func (StubRollappCreatedHooks) BeforeUpdateState(sdk.Context, string, string, bool) error { return nil }
+func (StubRollappCreatedHooks) AfterUpdateState(sdk.Context, *StateInfoMeta) error {
+	return nil
+}
+func (StubRollappCreatedHooks) OnHardFork(sdk.Context, string, uint64) error { return nil }
+func (StubRollappCreatedHooks) AfterStateFinalized(sdk.Context, string, *StateInfo) error {
+	return nil
+}
+
+func (StubRollappCreatedHooks) AfterTransfersEnabled(sdk.Context, string, string) error { return nil }

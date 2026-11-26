@@ -17,13 +17,11 @@ package evm
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"strings"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -42,11 +40,6 @@ func InitGenesis(
 	bankKeeper types.BankKeeper,
 	data types.GenesisState,
 ) []abci.ValidatorUpdate {
-	// Enable evm Create code
-	if utils.IsOneOfDymensionChains(ctx) && data.Params.EnableCreate {
-		panic(errors.New("enable create is not allowed on mechain chains"))
-	}
-
 	k.SetChainIDFromCosmos(ctx.ChainID())
 
 	err := k.SetParams(ctx, data.Params)
@@ -155,7 +148,7 @@ func InitGenesis(
 // ExportGenesis exports genesis state of the EVM module
 func ExportGenesis(ctx sdk.Context, k *keeper.Keeper, ak types.AccountKeeper) *types.GenesisState {
 	var ethGenAccounts []types.GenesisAccount
-	ak.IterateAccounts(ctx, func(account authtypes.AccountI) bool {
+	ak.IterateAccounts(ctx, func(account sdk.AccountI) bool {
 		ethAccount, ok := account.(ethermint.EthAccountI)
 		if !ok {
 			// ignore non EthAccounts

@@ -4,20 +4,21 @@ import (
 	"errors"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 func validateOperatorAddress(address string) error {
 	if _, err := sdk.ValAddressFromBech32(address); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address %s: %s", address, err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address %s: %s", address, err)
 	}
 	return nil
 }
 
 func validateAccAddress(address string) error {
 	if _, err := sdk.AccAddressFromBech32(address); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address %s: %s", address, err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address %s: %s", address, err)
 	}
 	return nil
 }

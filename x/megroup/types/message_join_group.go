@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -44,7 +45,7 @@ func (msg *MsgJoinGroup) GetSignBytes() []byte {
 func (msg *MsgJoinGroup) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
 }
@@ -80,10 +81,10 @@ func (msg *MsgLeaveGroupRequest) GetSignBytes() []byte {
 func (msg *MsgLeaveGroupRequest) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	if msg.GroupId == 0 {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "GroupId is 0")
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "GroupId is 0")
 	}
 	return nil
 }

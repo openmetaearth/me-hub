@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"time"
 
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/openmetaearth/me-hub/x/regiongov/types"
@@ -34,7 +35,7 @@ func (k Keeper) matureQueue(ctx sdk.Context, endTime time.Time) ([]uint64, [][]b
 	store := ctx.KVStore(k.storeKey)
 	// PrefixEndBytes covers every proposal id stored under this end time.
 	// InclusiveEndBytes only appends 0x00 and would stop before the id suffix.
-	iterator := store.Iterator(types.VotingQueuePrefix, sdk.PrefixEndBytes(types.VotingQueueTimePrefix(endTime)))
+	iterator := store.Iterator(types.VotingQueuePrefix, storetypes.PrefixEndBytes(types.VotingQueueTimePrefix(endTime)))
 	defer iterator.Close()
 
 	var ids []uint64

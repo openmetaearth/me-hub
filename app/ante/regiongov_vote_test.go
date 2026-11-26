@@ -10,7 +10,6 @@ import (
 	"github.com/evmos/ethermint/testutil"
 	"github.com/golang/mock/gomock"
 
-	"github.com/openmetaearth/me-hub/app"
 	"github.com/openmetaearth/me-hub/app/params"
 	regiongovtypes "github.com/openmetaearth/me-hub/x/regiongov/types"
 )
@@ -45,9 +44,12 @@ func (suite *AnteTestSuite) TestRegionGovVoteAccountSignature() {
 			msg := &regiongovtypes.MsgVote{Voter: voter.String(), ProposalId: 1, Option: regiongovtypes.VoteOptionYes}
 			suite.Require().NoError(msg.ValidateBasic())
 			suite.Require().Equal([]sdk.AccAddress{voter}, msg.GetSigners())
-			// GetTxConfig is an SDK test helper with only SDK messages registered;
-			// use the application's encoding config for regiongov transaction decoding.
-			txConfig := app.MakeEncodingConfig().TxConfig
+			// Use the application codec so SDK v0.50 signer extraction reads the
+			// regiongov protobuf signer annotations, not legacy GetSigners methods.
+			txConfig := suite.app.GetTxConfig()
+			signers, _, err := suite.app.AppCodec().GetMsgV1Signers(msg)
+			suite.Require().NoError(err)
+			suite.Require().Equal([][]byte{voter.Bytes()}, signers)
 			builder := txConfig.NewTxBuilder()
 			suite.Require().NoError(builder.SetMsgs(msg))
 			builder.SetFeeAmount(sdk.NewCoins(sdk.NewInt64Coin(params.BaseDenom, 20)))
@@ -64,7 +66,7 @@ func (suite *AnteTestSuite) TestRegionGovVoteAccountSignature() {
 			if tc.wrongPublicKey || tc.wrongSignature {
 				privateKey = otherKey
 			}
-			signature, err := clienttx.SignWithPrivKey(signing.SignMode_SIGN_MODE_DIRECT, authsigning.SignerData{
+			signature, err := clienttx.SignWithPrivKey(suite.ctx, signing.SignMode_SIGN_MODE_DIRECT, authsigning.SignerData{
 				Address: voter.String(), ChainID: suite.ctx.ChainID(),
 				AccountNumber: acc.GetAccountNumber(), Sequence: acc.GetSequence(),
 			}, builder, privateKey, txConfig, acc.GetSequence())

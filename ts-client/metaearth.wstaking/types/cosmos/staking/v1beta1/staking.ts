@@ -252,9 +252,9 @@ export interface DVVTriplets {
  * validator.
  */
 export interface Delegation {
-  /** delegator_address is the bech32-encoded address of the delegator. */
+  /** delegator_address is the encoded address of the delegator. */
   delegatorAddress: string;
-  /** validator_address is the bech32-encoded address of the validator. */
+  /** validator_address is the encoded address of the validator. */
   validatorAddress: string;
   /** shares define the delegation shares received. */
   shares: string;
@@ -265,9 +265,9 @@ export interface Delegation {
  * for a single validator in an time-ordered list.
  */
 export interface UnbondingDelegation {
-  /** delegator_address is the bech32-encoded address of the delegator. */
+  /** delegator_address is the encoded address of the delegator. */
   delegatorAddress: string;
-  /** validator_address is the bech32-encoded address of the validator. */
+  /** validator_address is the encoded address of the validator. */
   validatorAddress: string;
   /** entries are the unbonding delegation entries. */
   entries: UnbondingDelegationEntry[];
